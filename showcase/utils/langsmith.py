@@ -99,11 +99,24 @@ def print_run_tree(run_id: str | None = None, verbose: bool = False):
         print(f"⚠️  Error reading run: {e}")
 
 
-def _print_run_node(run, client, verbose: bool = False, indent: int = 0):
-    """Recursively print a run node and its children."""
-    prefix = "  " * indent
-    connector = "└─" if indent > 0 else "📊"
+def _print_run_node(
+    run, 
+    client, 
+    verbose: bool = False, 
+    indent: int = 0,
+    is_last: bool = True,
+    prefix: str = "",
+):
+    """Recursively print a run node and its children in tree format.
     
+    Args:
+        run: The LangSmith run object
+        client: LangSmith client
+        verbose: Include timing details
+        indent: Current indentation level
+        is_last: Whether this is the last sibling
+        prefix: Prefix string for tree drawing
+    """
     # Status emoji
     if run.status == "success":
         status = "✅"
@@ -114,11 +127,30 @@ def _print_run_node(run, client, verbose: bool = False, indent: int = 0):
     
     # Timing
     timing = ""
-    if verbose and run.end_time and run.start_time:
+    if run.end_time and run.start_time:
         duration = (run.end_time - run.start_time).total_seconds()
         timing = f" ({duration:.1f}s)"
     
-    print(f"{prefix}{connector} {run.name}{timing} {status}")
+    # Tree connectors
+    if indent == 0:
+        connector = "📊 "
+        new_prefix = ""
+    else:
+        connector = "└─ " if is_last else "├─ "
+        new_prefix = prefix + ("   " if is_last else "│  ")
+    
+    # Clean up run name for display
+    display_name = run.name
+    if display_name.startswith("Chat"):
+        display_name = f"🤖 {display_name}"
+    elif "generate" in display_name.lower():
+        display_name = f"📝 {display_name}"
+    elif "analyze" in display_name.lower():
+        display_name = f"🔍 {display_name}"
+    elif "summarize" in display_name.lower():
+        display_name = f"📊 {display_name}"
+    
+    print(f"{prefix}{connector}{display_name}{timing} {status}")
     
     # Get child runs
     try:
@@ -126,8 +158,19 @@ def _print_run_node(run, client, verbose: bool = False, indent: int = 0):
             parent_run_id=run.id,
             limit=50,
         ))
-        for child in children:
-            _print_run_node(child, client, verbose=verbose, indent=indent + 1)
+        # Sort by start time to show in execution order
+        children.sort(key=lambda r: r.start_time or datetime.min)
+        
+        for i, child in enumerate(children):
+            child_is_last = (i == len(children) - 1)
+            _print_run_node(
+                child, 
+                client, 
+                verbose=verbose, 
+                indent=indent + 1,
+                is_last=child_is_last,
+                prefix=new_prefix,
+            )
     except Exception:
         pass
 
@@ -149,7 +192,7 @@ def log_execution(
     import json
     
     if log_dir is None:
-        log_dir = SHOWCASE_ROOT / "outputs" / "logs"
+        log_dir = PROJECT_ROOT / "outputs" / "logs"
     log_path = Path(log_dir)
     log_path.mkdir(parents=True, exist_ok=True)
     
@@ -190,3 +233,80 @@ def get_run_url(run_id: str | None = None) -> str | None:
         return f"{web_url}/o/default/projects/p/{project}/runs/{run_id}"
     
     return f"{web_url}/projects/{project}/runs/{run_id}"
+
+
+def get_graph_mermaid(graph_type: str = "main") -> str:
+    """Get Mermaid diagram for a pipeline graph.
+    
+    Args:
+        graph_type: Type of graph ('main' or 'resume')
+        
+    Returns:
+        Mermaid diagram string
+    """
+    from showcase.builder import build_showcase_graph, build_resume_graph
+    
+    if graph_type == "main":
+        graph = build_showcase_graph().compile()
+    elif graph_type == "resume-analyze":
+        graph = build_resume_graph(start_from="analyze").compile()
+    elif graph_type == "resume-summarize":
+        graph = build_resume_graph(start_from="summarize").compile()
+    else:
+        raise ValueError(f"Unknown graph type: {graph_type}")
+    
+    return graph.get_graph().draw_mermaid()
+
+
+def print_graph_mermaid(graph_type: str = "main"):
+    """Print Mermaid diagram for a pipeline graph.
+    
+    Args:
+        graph_type: Type of graph ('main', 'resume-analyze', 'resume-summarize')
+    """
+    mermaid = get_graph_mermaid(graph_type)
+    print(f"```mermaid\n{mermaid}```")
+
+
+def export_graph_png(
+    graph_type: str = "main",
+    output_path: str | Path | None = None,
+) -> Path | None:
+    """Export graph as PNG image.
+    
+    Requires graphviz and pygraphviz to be installed.
+    
+    Args:
+        graph_type: Type of graph ('main', 'resume-analyze', 'resume-summarize')
+        output_path: Output file path (default: outputs/graph_{type}.png)
+        
+    Returns:
+        Path to created file or None if failed
+    """
+    from showcase.builder import build_showcase_graph, build_resume_graph
+    
+    if graph_type == "main":
+        graph = build_showcase_graph().compile()
+    elif graph_type == "resume-analyze":
+        graph = build_resume_graph(start_from="analyze").compile()
+    elif graph_type == "resume-summarize":
+        graph = build_resume_graph(start_from="summarize").compile()
+    else:
+        raise ValueError(f"Unknown graph type: {graph_type}")
+    
+    if output_path is None:
+        from showcase.config import OUTPUTS_DIR
+        OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+        output_path = OUTPUTS_DIR / f"graph_{graph_type.replace('-', '_')}.png"
+    else:
+        output_path = Path(output_path)
+    
+    try:
+        png_data = graph.get_graph().draw_mermaid_png()
+        with open(output_path, "wb") as f:
+            f.write(png_data)
+        return output_path
+    except Exception as e:
+        print(f"⚠️  Could not export PNG: {e}")
+        print("   (Mermaid PNG export requires additional dependencies)")
+        return None

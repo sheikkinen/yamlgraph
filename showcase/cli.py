@@ -164,6 +164,7 @@ def cmd_resume(args):
 def cmd_trace(args):
     """Show execution trace for a run."""
     from showcase.utils import get_latest_run_id, get_run_url, print_run_tree
+    from showcase.utils.langsmith import get_graph_mermaid
     
     run_id = args.run_id or get_latest_run_id()
     
@@ -171,8 +172,28 @@ def cmd_trace(args):
         print("❌ No run ID provided and could not find latest run.")
         return
     
-    print(f"\n📊 Execution trace for: {run_id}\n")
+    print(f"\n📊 Execution trace for: {run_id}")
+    print("─" * 50)
+    print()
     print_run_tree(run_id, verbose=args.verbose)
+    
+    # Show graph structure in verbose mode
+    if args.verbose:
+        print("\n" + "─" * 50)
+        print("📈 Pipeline Graph Structure:")
+        print("─" * 50 + "\n")
+        try:
+            mermaid = get_graph_mermaid("main")
+            # Print a simplified text version
+            print("  generate → analyze → summarize → END")
+            print("      ↓")
+            print("   (error) → END")
+            print()
+            print("  Full Mermaid diagram:")
+            for line in mermaid.split("\n"):
+                print(f"    {line}")
+        except Exception as e:
+            print(f"  ⚠️  Could not generate graph: {e}")
     
     if url := get_run_url(run_id):
         print(f"\n🔗 View in LangSmith: {url}")
@@ -193,6 +214,67 @@ def cmd_export(args):
     
     filepath = export_state(state)
     print(f"✅ Exported to: {filepath}")
+
+
+def cmd_graph(args):
+    """Show or export pipeline graph visualization."""
+    from showcase.utils.langsmith import get_graph_mermaid, export_graph_png
+    
+    graph_type = args.type
+    
+    print(f"\n📈 Pipeline Graph: {graph_type}")
+    print("─" * 50 + "\n")
+    
+    try:
+        mermaid = get_graph_mermaid(graph_type)
+        
+        if args.format == "mermaid":
+            print("```mermaid")
+            print(mermaid)
+            print("```")
+        elif args.format == "text":
+            # Simple text representation
+            if graph_type == "main":
+                print("  ┌─────────────┐")
+                print("  │  generate   │")
+                print("  └──────┬──────┘")
+                print("         │")
+                print("         ▼")
+                print("  ┌─────────────┐     ┌─────────┐")
+                print("  │should_cont. │────►│   END   │ (on error)")
+                print("  └──────┬──────┘     └─────────┘")
+                print("         │ (continue)")
+                print("         ▼")
+                print("  ┌─────────────┐")
+                print("  │   analyze   │")
+                print("  └──────┬──────┘")
+                print("         │")
+                print("         ▼")
+                print("  ┌─────────────┐")
+                print("  │  summarize  │")
+                print("  └──────┬──────┘")
+                print("         │")
+                print("         ▼")
+                print("  ┌─────────────┐")
+                print("  │     END     │")
+                print("  └─────────────┘")
+            elif graph_type == "resume-analyze":
+                print("  analyze → summarize → END")
+            elif graph_type == "resume-summarize":
+                print("  summarize → END")
+            print()
+        
+        # Export to PNG if requested
+        if args.png:
+            print("Exporting to PNG...")
+            path = export_graph_png(graph_type, args.output)
+            if path:
+                print(f"✅ Exported to: {path}")
+    
+    except Exception as e:
+        print(f"❌ Error generating graph: {e}")
+    
+    print()
 
 
 def main():
@@ -240,6 +322,20 @@ def main():
     export_parser.add_argument("--thread-id", "-i", required=True,
                               help="Thread ID to export")
     export_parser.set_defaults(func=cmd_export)
+    
+    # Graph command
+    graph_parser = subparsers.add_parser("graph", help="Show pipeline graph")
+    graph_parser.add_argument("--type", "-t", default="main",
+                             choices=["main", "resume-analyze", "resume-summarize"],
+                             help="Graph type to show")
+    graph_parser.add_argument("--format", "-f", default="text",
+                             choices=["text", "mermaid"],
+                             help="Output format")
+    graph_parser.add_argument("--png", "-p", action="store_true",
+                             help="Also export as PNG")
+    graph_parser.add_argument("--output", "-o",
+                             help="PNG output path")
+    graph_parser.set_defaults(func=cmd_graph)
     
     args = parser.parse_args()
     
