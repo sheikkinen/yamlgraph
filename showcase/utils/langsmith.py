@@ -6,10 +6,8 @@ printing execution trees, and logging run information.
 
 import os
 from datetime import datetime
-from pathlib import Path
 
-# Find showcase root (4 levels up from src/showcase/utils/langsmith.py)
-SHOWCASE_ROOT = Path(__file__).parent.parent.parent
+from showcase.config import PROJECT_ROOT
 
 
 def get_client():

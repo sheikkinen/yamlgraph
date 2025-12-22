@@ -10,10 +10,40 @@ Usage:
 """
 
 import argparse
+import sys
+
+from showcase.config import MAX_TOPIC_LENGTH, MAX_WORD_COUNT, MIN_WORD_COUNT, VALID_STYLES
+
+
+def validate_run_args(args) -> bool:
+    """Validate run command arguments.
+    
+    Args:
+        args: Parsed arguments namespace
+        
+    Returns:
+        True if valid, False otherwise (prints error message)
+    """
+    if len(args.topic) > MAX_TOPIC_LENGTH:
+        print(f"❌ Topic too long: max {MAX_TOPIC_LENGTH} characters")
+        return False
+    
+    if len(args.topic.strip()) == 0:
+        print("❌ Topic cannot be empty")
+        return False
+    
+    if args.word_count < MIN_WORD_COUNT or args.word_count > MAX_WORD_COUNT:
+        print(f"❌ Word count must be between {MIN_WORD_COUNT} and {MAX_WORD_COUNT}")
+        return False
+    
+    return True
 
 
 def cmd_run(args):
     """Run the showcase pipeline."""
+    if not validate_run_args(args):
+        sys.exit(1)
+    
     from showcase.builder import run_pipeline
     from showcase.storage import ShowcaseDB, export_state
     from showcase.utils import get_run_url, is_tracing_enabled

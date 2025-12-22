@@ -4,26 +4,21 @@ This module provides a simple, reusable executor for YAML-defined prompts
 with support for structured outputs via Pydantic models.
 """
 
-import os
-from pathlib import Path
 from typing import Type, TypeVar
 
 import yaml
-from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
-# Find showcase root (3 levels up from src/showcase/executor.py)
-SHOWCASE_ROOT = Path(__file__).parent.parent
-
-# Load environment from showcase root
-load_dotenv(SHOWCASE_ROOT / ".env")
+from showcase.config import (
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_MODEL,
+    DEFAULT_TEMPERATURE,
+    PROMPTS_DIR,
+)
 
 T = TypeVar("T", bound=BaseModel)
-
-# Prompt directory (at showcase root)
-PROMPTS_DIR = SHOWCASE_ROOT / "prompts"
 
 
 def load_prompt(prompt_name: str) -> dict:
@@ -56,7 +51,7 @@ def format_prompt(template: str, variables: dict) -> str:
     return template.format(**variables)
 
 
-def create_llm(temperature: float = 0.7) -> ChatAnthropic:
+def create_llm(temperature: float = DEFAULT_TEMPERATURE) -> ChatAnthropic:
     """Create a configured LLM instance.
     
     Args:
@@ -66,9 +61,9 @@ def create_llm(temperature: float = 0.7) -> ChatAnthropic:
         Configured ChatAnthropic instance
     """
     return ChatAnthropic(
-        model=os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
+        model=DEFAULT_MODEL,
         temperature=temperature,
-        max_tokens=4096,
+        max_tokens=DEFAULT_MAX_TOKENS,
     )
 
 
@@ -76,7 +71,7 @@ def execute_prompt(
     prompt_name: str,
     variables: dict | None = None,
     output_model: Type[T] | None = None,
-    temperature: float = 0.7,
+    temperature: float = DEFAULT_TEMPERATURE,
 ) -> T | str:
     """Execute a YAML prompt with optional structured output.
     
@@ -138,7 +133,7 @@ class PromptExecutor:
     def __init__(self):
         self._llm_cache: dict[str, ChatAnthropic] = {}
     
-    def _get_llm(self, temperature: float = 0.7) -> ChatAnthropic:
+    def _get_llm(self, temperature: float = DEFAULT_TEMPERATURE) -> ChatAnthropic:
         """Get or create cached LLM instance."""
         cache_key = f"temp_{temperature}"
         if cache_key not in self._llm_cache:
@@ -150,7 +145,7 @@ class PromptExecutor:
         prompt_name: str,
         variables: dict | None = None,
         output_model: Type[T] | None = None,
-        temperature: float = 0.7,
+        temperature: float = DEFAULT_TEMPERATURE,
     ) -> T | str:
         """Execute a prompt using cached LLM.
         

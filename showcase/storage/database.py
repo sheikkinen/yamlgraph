@@ -10,8 +10,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-# Find showcase root (4 levels up from src/showcase/storage/database.py)
-SHOWCASE_ROOT = Path(__file__).parent.parent.parent
+from pydantic import BaseModel
+
+from showcase.config import DATABASE_PATH, OUTPUTS_DIR
 
 
 class ShowcaseDB:
@@ -24,7 +25,7 @@ class ShowcaseDB:
             db_path: Path to SQLite database file (default: outputs/showcase.db)
         """
         if db_path is None:
-            db_path = SHOWCASE_ROOT / "outputs" / "showcase.db"
+            db_path = DATABASE_PATH
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
@@ -66,7 +67,7 @@ class ShowcaseDB:
             Row ID of the saved state
         """
         now = datetime.now().isoformat()
-        state_json = json.dumps(state, default=str)
+        state_json = json.dumps(self._serialize_state(state), default=str)
         
         with self._get_connection() as conn:
             # Check if thread exists
@@ -166,3 +167,24 @@ class ShowcaseDB:
                 (thread_id,)
             )
             return cursor.rowcount > 0
+
+    def _serialize_state(self, state: dict) -> dict:
+        """Convert state to JSON-serializable format.
+        
+        Handles Pydantic models and other complex types.
+        
+        Args:
+            state: State dictionary
+            
+        Returns:
+            JSON-serializable dictionary
+        """
+        result = {}
+        for key, value in state.items():
+            if isinstance(value, BaseModel):
+                result[key] = value.model_dump()
+            elif hasattr(value, "__dict__"):
+                result[key] = vars(value)
+            else:
+                result[key] = value
+        return result

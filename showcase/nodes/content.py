@@ -15,23 +15,30 @@ def generate_node(state: ShowcaseState) -> dict:
     """
     print(f"📝 Generating content about: {state['topic']}")
     
-    result = execute_prompt(
-        "generate",
-        variables={
-            "topic": state["topic"],
-            "word_count": state.get("word_count", 300),
-            "style": state.get("style", "informative"),
-        },
-        output_model=GeneratedContent,
-        temperature=0.8,
-    )
-    
-    print(f"   ✓ Generated: {result.title} ({result.word_count} words)")
-    
-    return {
-        "generated": result,
-        "current_step": "generate",
-    }
+    try:
+        result = execute_prompt(
+            "generate",
+            variables={
+                "topic": state["topic"],
+                "word_count": state.get("word_count", 300),
+                "style": state.get("style", "informative"),
+            },
+            output_model=GeneratedContent,
+            temperature=0.8,
+        )
+        
+        print(f"   ✓ Generated: {result.title} ({result.word_count} words)")
+        
+        return {
+            "generated": result,
+            "current_step": "generate",
+        }
+    except Exception as e:
+        print(f"   ✗ Error: {e}")
+        return {
+            "error": f"Generation failed: {e}",
+            "current_step": "generate",
+        }
 
 
 def analyze_node(state: ShowcaseState) -> dict:
@@ -46,19 +53,26 @@ def analyze_node(state: ShowcaseState) -> dict:
     
     print(f"🔍 Analyzing: {generated.title}")
     
-    result = execute_prompt(
-        "analyze",
-        variables={"content": generated.content},
-        output_model=Analysis,
-        temperature=0.3,
-    )
-    
-    print(f"   ✓ Sentiment: {result.sentiment} (confidence: {result.confidence:.2f})")
-    
-    return {
-        "analysis": result,
-        "current_step": "analyze",
-    }
+    try:
+        result = execute_prompt(
+            "analyze",
+            variables={"content": generated.content},
+            output_model=Analysis,
+            temperature=0.3,
+        )
+        
+        print(f"   ✓ Sentiment: {result.sentiment} (confidence: {result.confidence:.2f})")
+        
+        return {
+            "analysis": result,
+            "current_step": "analyze",
+        }
+    except Exception as e:
+        print(f"   ✗ Error: {e}")
+        return {
+            "error": f"Analysis failed: {e}",
+            "current_step": "analyze",
+        }
 
 
 def summarize_node(state: ShowcaseState) -> dict:
@@ -75,24 +89,31 @@ def summarize_node(state: ShowcaseState) -> dict:
     
     print("📊 Creating final summary...")
     
-    result = execute_prompt(
-        "summarize",
-        variables={
-            "topic": state["topic"],
-            "generated_content": generated.content,
-            "analysis_summary": analysis.summary,
-            "key_points": ", ".join(analysis.key_points),
-            "sentiment": analysis.sentiment,
-        },
-        temperature=0.5,
-    )
-    
-    print("   ✓ Summary complete")
-    
-    return {
-        "final_summary": result,
-        "current_step": "summarize",
-    }
+    try:
+        result = execute_prompt(
+            "summarize",
+            variables={
+                "topic": state["topic"],
+                "generated_content": generated.content,
+                "analysis_summary": analysis.summary,
+                "key_points": ", ".join(analysis.key_points),
+                "sentiment": analysis.sentiment,
+            },
+            temperature=0.5,
+        )
+        
+        print("   ✓ Summary complete")
+        
+        return {
+            "final_summary": result,
+            "current_step": "summarize",
+        }
+    except Exception as e:
+        print(f"   ✗ Error: {e}")
+        return {
+            "error": f"Summary failed: {e}",
+            "current_step": "summarize",
+        }
 
 
 def should_continue(state: ShowcaseState) -> str:

@@ -11,8 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-# Find showcase root (4 levels up from src/showcase/storage/export.py)
-SHOWCASE_ROOT = Path(__file__).parent.parent.parent
+from showcase.config import OUTPUTS_DIR
 
 
 def export_state(
@@ -31,7 +30,7 @@ def export_state(
         Path to the created file
     """
     if output_dir is None:
-        output_dir = SHOWCASE_ROOT / "outputs"
+        output_dir = OUTPUTS_DIR
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     

@@ -64,6 +64,7 @@ showcase/
 ├── showcase/             # Main package
 │   ├── __init__.py       # Package exports
 │   ├── builder.py        # Graph builders + pipeline runner
+│   ├── config.py         # Centralized configuration
 │   ├── executor.py       # YAML prompt executor
 │   ├── cli.py            # CLI commands
 │   │
@@ -90,6 +91,11 @@ showcase/
 │   ├── analyze.yaml
 │   ├── generate.yaml
 │   └── summarize.yaml
+│
+├── tests/                # Test suite
+│   ├── conftest.py       # Shared fixtures
+│   ├── unit/             # Unit tests
+│   └── integration/      # Integration tests
 │
 └── outputs/              # Generated files (gitignored)
 ```
@@ -174,7 +180,26 @@ print_run_tree(verbose=True)
 | `ANTHROPIC_MODEL` | No | Model name (default: claude-sonnet-4-20250514) |
 | `LANGCHAIN_TRACING_V2` | No | Enable LangSmith tracing |
 | `LANGCHAIN_API_KEY` | No | LangSmith API key |
+| `LANGCHAIN_ENDPOINT` | No | LangSmith endpoint URL |
 | `LANGCHAIN_PROJECT` | No | LangSmith project name |
+
+## Testing
+
+Run the test suite:
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run only unit tests
+pytest tests/unit/ -v
+
+# Run only integration tests
+pytest tests/integration/ -v
+
+# Run with coverage
+pytest tests/ --cov=showcase --cov-report=term-missing
+```
 
 ## Extending
 
@@ -222,3 +247,7 @@ graph.add_edge("previous", "my_node")
 ## License
 
 MIT
+
+## Remember
+
+Prompts in yaml templates, shared executor, pydantic, data stored in sqllite, langgraph, langsmith, venv, tdd red-green-blue, refactor modules to < 400 lines, kiss
