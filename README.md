@@ -103,7 +103,7 @@ showcase/
 ## Pipeline Flow
 
 ```mermaid
-graph LR
+graph TD
     A["📝 generate"] -->|GeneratedContent| B{should_continue}
     B -->|"✓ content exists"| C["🔍 analyze"]
     B -->|"✗ error/empty"| F["🛑 END"]
@@ -327,7 +327,7 @@ def build_showcase_graph() -> StateGraph:
 
 Resulting pipeline:
 ```mermaid
-graph LR
+graph TD
     A[generate] --> B{should_continue}
     B -->|continue| C[fact_check]
     C --> D[analyze]
