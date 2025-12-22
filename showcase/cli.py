@@ -217,64 +217,14 @@ def cmd_export(args):
 
 
 def cmd_graph(args):
-    """Show or export pipeline graph visualization."""
-    from showcase.utils.langsmith import get_graph_mermaid, export_graph_png
-    
-    graph_type = args.type
-    
-    print(f"\n📈 Pipeline Graph: {graph_type}")
-    print("─" * 50 + "\n")
+    """Show pipeline graph as Mermaid diagram."""
+    from showcase.utils.langsmith import get_graph_mermaid
     
     try:
-        mermaid = get_graph_mermaid(graph_type)
-        
-        if args.format == "mermaid":
-            print("```mermaid")
-            print(mermaid)
-            print("```")
-        elif args.format == "text":
-            # Simple text representation
-            if graph_type == "main":
-                print("  ┌─────────────┐")
-                print("  │  generate   │")
-                print("  └──────┬──────┘")
-                print("         │")
-                print("         ▼")
-                print("  ┌─────────────┐     ┌─────────┐")
-                print("  │should_cont. │────►│   END   │ (on error)")
-                print("  └──────┬──────┘     └─────────┘")
-                print("         │ (continue)")
-                print("         ▼")
-                print("  ┌─────────────┐")
-                print("  │   analyze   │")
-                print("  └──────┬──────┘")
-                print("         │")
-                print("         ▼")
-                print("  ┌─────────────┐")
-                print("  │  summarize  │")
-                print("  └──────┬──────┘")
-                print("         │")
-                print("         ▼")
-                print("  ┌─────────────┐")
-                print("  │     END     │")
-                print("  └─────────────┘")
-            elif graph_type == "resume-analyze":
-                print("  analyze → summarize → END")
-            elif graph_type == "resume-summarize":
-                print("  summarize → END")
-            print()
-        
-        # Export to PNG if requested
-        if args.png:
-            print("Exporting to PNG...")
-            path = export_graph_png(graph_type, args.output)
-            if path:
-                print(f"✅ Exported to: {path}")
-    
+        mermaid = get_graph_mermaid(args.type)
+        print(mermaid)
     except Exception as e:
         print(f"❌ Error generating graph: {e}")
-    
-    print()
 
 
 def main():
@@ -324,17 +274,10 @@ def main():
     export_parser.set_defaults(func=cmd_export)
     
     # Graph command
-    graph_parser = subparsers.add_parser("graph", help="Show pipeline graph")
+    graph_parser = subparsers.add_parser("graph", help="Show pipeline graph (Mermaid)")
     graph_parser.add_argument("--type", "-t", default="main",
                              choices=["main", "resume-analyze", "resume-summarize"],
                              help="Graph type to show")
-    graph_parser.add_argument("--format", "-f", default="text",
-                             choices=["text", "mermaid"],
-                             help="Output format")
-    graph_parser.add_argument("--png", "-p", action="store_true",
-                             help="Also export as PNG")
-    graph_parser.add_argument("--output", "-o",
-                             help="PNG output path")
     graph_parser.set_defaults(func=cmd_graph)
     
     args = parser.parse_args()
