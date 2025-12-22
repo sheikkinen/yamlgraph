@@ -43,6 +43,14 @@ class TestBuildResumeGraph:
         assert "analyze" not in graph.nodes
         assert "generate" not in graph.nodes
 
+    def test_resume_invalid_start_raises_error(self):
+        """Resume graph should raise ValueError for invalid start_from."""
+        with pytest.raises(ValueError, match="start_from must be one of"):
+            build_resume_graph(start_from="invalid_node")
+        
+        with pytest.raises(ValueError, match="start_from must be one of"):
+            build_resume_graph(start_from="generate")  # Can't resume from start
+
 
 class TestRunPipeline:
     """Tests for run_pipeline function with mocked LLM."""

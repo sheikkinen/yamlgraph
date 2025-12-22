@@ -1,6 +1,29 @@
 """Graph builders for the showcase pipeline.
 
 Provides functions to build various pipeline configurations.
+
+Pipeline Architecture
+=====================
+
+The main showcase pipeline follows this flow:
+
+```mermaid
+graph LR
+    A[generate] -->|content| B{should_continue}
+    B -->|continue| C[analyze]
+    B -->|end| E[END]
+    C -->|analysis| D[summarize]
+    D --> E[END]
+```
+
+State Flow:
+- generate: Creates GeneratedContent from topic
+- analyze: Produces Analysis from generated content  
+- summarize: Combines all outputs into final_summary
+
+Resume Support:
+- Pipeline can resume from any node if state is persisted
+- Use build_resume_graph(start_from="analyze") to skip completed steps
 """
 
 from langgraph.graph import END, StateGraph
@@ -55,12 +78,40 @@ def build_resume_graph(start_from: str = "analyze") -> StateGraph:
     This demonstrates how to create alternate entry points
     for resuming interrupted pipelines.
     
+    Resume Graph Flow:
+    
+    ```mermaid
+    graph LR
+        subgraph "start_from='analyze'"
+            A1[analyze] --> B1[summarize] --> C1[END]
+        end
+        subgraph "start_from='summarize'"
+            A2[summarize] --> C2[END]
+        end
+    ```
+    
     Args:
         start_from: Node to start from ('analyze' or 'summarize')
         
     Returns:
         StateGraph for resume
+        
+    Raises:
+        ValueError: If start_from is not a valid node name
+        
+    Example:
+        >>> # Resume a pipeline that failed during analysis
+        >>> from showcase.storage import ShowcaseDB
+        >>> db = ShowcaseDB()
+        >>> state = db.load_state("thread-123")
+        >>> if state and state.get("generated") and not state.get("analysis"):
+        ...     graph = build_resume_graph(start_from="analyze").compile()
+        ...     result = graph.invoke(state)
     """
+    valid_nodes = {"analyze", "summarize"}
+    if start_from not in valid_nodes:
+        raise ValueError(f"start_from must be one of {valid_nodes}, got '{start_from}'")
+    
     graph = StateGraph(ShowcaseState)
     
     # Add only the nodes needed from start_from onwards

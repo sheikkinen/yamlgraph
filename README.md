@@ -102,14 +102,45 @@ showcase/
 
 ## Pipeline Flow
 
+```mermaid
+graph LR
+    A["📝 generate"] -->|GeneratedContent| B{should_continue}
+    B -->|"✓ content exists"| C["🔍 analyze"]
+    B -->|"✗ error/empty"| F["🛑 END"]
+    C -->|Analysis| D["📊 summarize"]
+    D -->|final_summary| F
+    
+    style A fill:#e1f5fe
+    style C fill:#fff3e0
+    style D fill:#e8f5e9
+    style F fill:#fce4ec
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   generate  │ ──▶ │   analyze   │ ──▶ │  summarize  │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                   │                   │
-       ▼                   ▼                   ▼
- GeneratedContent      Analysis          final_summary
-   (Pydantic)         (Pydantic)           (string)
+
+### Node Outputs
+
+| Node | Output Type | Description |
+|------|-------------|-------------|
+| `generate` | `GeneratedContent` | Title, content, word_count, tags |
+| `analyze` | `Analysis` | Summary, key_points, sentiment, confidence |
+| `summarize` | `str` | Final combined summary |
+
+### Resume Flow
+
+Pipelines can be resumed from any checkpoint:
+
+```mermaid
+graph LR
+    subgraph "Resume from analyze"
+        A1["Load State"] --> B1["analyze"] --> C1["summarize"] --> D1["END"]
+    end
+    subgraph "Resume from summarize"
+        A2["Load State"] --> C2["summarize"] --> D2["END"]
+    end
+```
+
+```bash
+# Resume an interrupted run
+showcase resume --thread-id abc123
 ```
 
 ## Key Patterns
@@ -201,7 +232,138 @@ pytest tests/integration/ -v
 pytest tests/ --cov=showcase --cov-report=term-missing
 ```
 
-## Extending
+## Extending the Pipeline
+
+### Adding a New Node (Complete Example)
+
+Let's add a "fact_check" node that verifies generated content:
+
+**Step 1: Define the output schema** (`showcase/models/schemas.py`):
+```python
+class FactCheck(BaseModel):
+    """Structured fact-checking output."""
+    
+    claims: list[str] = Field(description="Claims identified in content")
+    verified: bool = Field(description="Whether claims are verifiable")
+    confidence: float = Field(ge=0.0, le=1.0, description="Verification confidence")
+    notes: str = Field(description="Additional context")
+```
+
+**Step 2: Create the prompt** (`prompts/fact_check.yaml`):
+```yaml
+system: |
+  You are a fact-checker. Analyze the given content and identify
+  claims that can be verified. Assess the overall verifiability.
+
+user: |
+  Content to fact-check:
+  {content}
+  
+  Identify key claims and assess their verifiability.
+```
+
+**Step 3: Add the node function** (`showcase/nodes/content.py`):
+```python
+from showcase.models import FactCheck
+
+def fact_check_node(state: ShowcaseState) -> dict:
+    """Fact-check the generated content."""
+    generated = state.get("generated")
+    if not generated:
+        error = PipelineError(
+            type=ErrorType.STATE_ERROR,
+            message="No content to fact-check",
+            node="fact_check",
+            retryable=False,
+        )
+        return {**_add_error(state, error), "current_step": "fact_check"}
+    
+    print(f"🔎 Fact-checking: {generated.title}")
+    
+    try:
+        result = execute_prompt(
+            "fact_check",
+            variables={"content": generated.content},
+            output_model=FactCheck,
+            temperature=0.2,  # Low temp for accuracy
+        )
+        print(f"   ✓ Verified: {result.verified} (confidence: {result.confidence:.2f})")
+        return {"fact_check": result, "current_step": "fact_check"}
+    except Exception as e:
+        error = PipelineError.from_exception(e, node="fact_check")
+        return {**_add_error(state, error), "current_step": "fact_check"}
+```
+
+**Step 4: Add to state** (`showcase/models/state.py`):
+```python
+class ShowcaseState(TypedDict, total=False):
+    # ... existing fields ...
+    fact_check: FactCheck | None  # Add new field
+```
+
+**Step 5: Wire into the graph** (`showcase/builder.py`):
+```python
+from showcase.nodes import fact_check_node
+
+def build_showcase_graph() -> StateGraph:
+    graph = StateGraph(ShowcaseState)
+    
+    graph.add_node("generate", generate_node)
+    graph.add_node("fact_check", fact_check_node)  # New node
+    graph.add_node("analyze", analyze_node)
+    graph.add_node("summarize", summarize_node)
+    
+    graph.set_entry_point("generate")
+    graph.add_conditional_edges("generate", should_continue, {
+        "continue": "fact_check",  # Route to fact_check first
+        "end": END,
+    })
+    graph.add_edge("fact_check", "analyze")  # Then to analyze
+    graph.add_edge("analyze", "summarize")
+    graph.add_edge("summarize", END)
+    
+    return graph
+```
+
+Resulting pipeline:
+```mermaid
+graph LR
+    A[generate] --> B{should_continue}
+    B -->|continue| C[fact_check]
+    C --> D[analyze]
+    D --> E[summarize]
+    E --> F[END]
+    B -->|end| F
+```
+
+### Adding Conditional Branching
+
+Route to different nodes based on analysis results:
+
+```python
+def route_by_sentiment(state: ShowcaseState) -> str:
+    """Route based on sentiment analysis."""
+    analysis = state.get("analysis")
+    if not analysis:
+        return "default"
+    
+    if analysis.sentiment == "negative" and analysis.confidence > 0.8:
+        return "handle_negative"
+    elif analysis.sentiment == "positive":
+        return "celebrate"
+    return "default"
+
+# In build_showcase_graph():
+graph.add_conditional_edges(
+    "analyze",
+    route_by_sentiment,
+    {
+        "handle_negative": "rewrite_node",
+        "celebrate": "enhance_node", 
+        "default": "summarize",
+    }
+)
+```
 
 ### Add a New Prompt
 
@@ -218,7 +380,7 @@ result = execute_prompt("new_prompt", variables={"var": "value"})
 
 ### Add Structured Output
 
-1. Define model in `models.py`:
+1. Define model in `showcase/models/schemas.py`:
 ```python
 class MyOutput(BaseModel):
     field: str = Field(description="...")
@@ -227,21 +389,6 @@ class MyOutput(BaseModel):
 2. Use with executor:
 ```python
 result = execute_prompt("prompt", output_model=MyOutput)
-```
-
-### Add Pipeline Node
-
-1. Add node function in `graph.py`:
-```python
-def my_node(state: ShowcaseState) -> dict:
-    # Process state
-    return {"my_field": result}
-```
-
-2. Add to graph:
-```python
-graph.add_node("my_node", my_node)
-graph.add_edge("previous", "my_node")
 ```
 
 ## License
