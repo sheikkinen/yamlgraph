@@ -6,6 +6,7 @@ printing execution trees, and logging run information.
 
 import os
 from datetime import datetime
+from pathlib import Path
 
 from showcase.config import PROJECT_ROOT
 
