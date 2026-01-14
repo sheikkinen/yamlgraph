@@ -390,3 +390,104 @@ class TestLoadAndCompile:
             
             assert result.get("generated") is not None
             assert result["generated"].title == "Test"
+
+
+# =============================================================================
+# TestYAMLSchemaValidation
+# =============================================================================
+
+
+class TestYAMLSchemaValidation:
+    """Tests for YAML schema validation on load."""
+
+    def test_missing_nodes_raises_error(self, tmp_path):
+        """YAML without nodes should raise ValidationError."""
+        yaml_content = """
+version: "1.0"
+name: empty_graph
+edges:
+  - from: START
+    to: END
+"""
+        yaml_file = tmp_path / "no_nodes.yaml"
+        yaml_file.write_text(yaml_content)
+        
+        with pytest.raises(ValueError, match="nodes"):
+            load_graph_config(yaml_file)
+
+    def test_missing_edges_raises_error(self, tmp_path):
+        """YAML without edges should raise ValidationError."""
+        yaml_content = """
+version: "1.0"
+name: no_edges
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+"""
+        yaml_file = tmp_path / "no_edges.yaml"
+        yaml_file.write_text(yaml_content)
+        
+        with pytest.raises(ValueError, match="edges"):
+            load_graph_config(yaml_file)
+
+    def test_node_missing_prompt_raises_error(self, tmp_path):
+        """Node without prompt should raise ValidationError."""
+        yaml_content = """
+version: "1.0"
+name: bad_node
+nodes:
+  generate:
+    type: llm
+    output_model: showcase.models.GeneratedContent
+edges:
+  - from: START
+    to: generate
+"""
+        yaml_file = tmp_path / "no_prompt.yaml"
+        yaml_file.write_text(yaml_content)
+        
+        with pytest.raises(ValueError, match="prompt"):
+            load_graph_config(yaml_file)
+
+    def test_edge_missing_from_raises_error(self, tmp_path):
+        """Edge without 'from' should raise ValidationError."""
+        yaml_content = """
+version: "1.0"
+name: bad_edge
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+edges:
+  - to: generate
+"""
+        yaml_file = tmp_path / "no_from.yaml"
+        yaml_file.write_text(yaml_content)
+        
+        with pytest.raises(ValueError, match="from"):
+            load_graph_config(yaml_file)
+
+    def test_edge_missing_to_raises_error(self, tmp_path):
+        """Edge without 'to' should raise ValidationError."""
+        yaml_content = """
+version: "1.0"
+name: bad_edge
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+edges:
+  - from: START
+"""
+        yaml_file = tmp_path / "no_to.yaml"
+        yaml_file.write_text(yaml_content)
+        
+        with pytest.raises(ValueError, match="to"):
+            load_graph_config(yaml_file)
+
+    def test_valid_yaml_passes_validation(self, sample_yaml_file):
+        """Valid YAML should load without errors."""
+        config = load_graph_config(sample_yaml_file)
+        assert config.name == "test_graph"
+        assert "generate" in config.nodes

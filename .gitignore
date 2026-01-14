@@ -28,3 +28,9 @@ outputs/
 dist/
 build/
 *.egg-info/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/

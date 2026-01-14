@@ -2,11 +2,11 @@
 
 A minimal, self-contained demonstration / template of a LLM pipeline using:
 
-- **YAML Graph Configuration** - Declarative pipeline definition
+- **YAML Graph Configuration** - Declarative pipeline definition with schema validation
 - **YAML Prompts** - Declarative prompt templates with Jinja2 support
 - **Pydantic Models** - Structured LLM outputs
 - **Multi-Provider LLMs** - Support for Anthropic, Mistral, and OpenAI
-- **LangGraph** - Pipeline orchestration
+- **LangGraph** - Pipeline orchestration with resume support
 - **SQLite** - State persistence
 - **LangSmith** - Observability and tracing
 - **JSON Export** - Result serialization
@@ -131,15 +131,13 @@ graph TD
 
 ### Resume Flow
 
-Pipelines can be resumed from any checkpoint:
+Pipelines can be resumed from any checkpoint. The resume behavior uses `skip_if_exists`:
+nodes check if their output already exists in state and skip LLM calls if so.
 
 ```mermaid
 graph LR
-    subgraph "Resume from analyze"
-        A1["Load State"] --> B1["analyze"] --> C1["summarize"] --> D1["END"]
-    end
-    subgraph "Resume from summarize"
-        A2["Load State"] --> C2["summarize"] --> D2["END"]
+    subgraph "Resume after 'analyze' completed"
+        A1["Load State"] --> B1["analyze (skipped)"] --> C1["summarize"] --> D1["END"]
     end
 ```
 
@@ -147,6 +145,11 @@ graph LR
 # Resume an interrupted run
 showcase resume --thread-id abc123
 ```
+
+When resumed:
+- Nodes with existing outputs are **skipped** (no duplicate LLM calls)
+- Only nodes without outputs in state actually run
+- State is preserved via SQLite checkpointing
 
 ## Key Patterns
 
@@ -353,9 +356,15 @@ pytest tests/unit/ -v
 # Run only integration tests
 pytest tests/integration/ -v
 
-# Run with coverage
+# Run with coverage report
 pytest tests/ --cov=showcase --cov-report=term-missing
+
+# Run with HTML coverage report
+pytest tests/ --cov=showcase --cov-report=html
+# Then open htmlcov/index.html
 ```
+
+**Current coverage**: 60% overall, 98% on graph_loader, 100% on builder/llm_factory.
 
 ## Extending the Pipeline
 

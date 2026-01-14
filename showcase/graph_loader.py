@@ -17,6 +17,39 @@ from showcase.models import ErrorType, PipelineError, ShowcaseState
 
 logger = logging.getLogger(__name__)
 
+# Constants for template parsing
+STATE_TEMPLATE_PREFIX = "{state."
+STATE_TEMPLATE_SUFFIX = "}"
+
+
+def _validate_config(config: dict) -> None:
+    """Validate YAML configuration structure.
+    
+    Args:
+        config: Parsed YAML dictionary
+        
+    Raises:
+        ValueError: If required fields are missing or invalid
+    """
+    # Check required top-level keys
+    if not config.get("nodes"):
+        raise ValueError("Graph config missing required 'nodes' section")
+    
+    if not config.get("edges"):
+        raise ValueError("Graph config missing required 'edges' section")
+    
+    # Validate each node
+    for node_name, node_config in config["nodes"].items():
+        if not node_config.get("prompt"):
+            raise ValueError(f"Node '{node_name}' missing required 'prompt' field")
+    
+    # Validate each edge
+    for i, edge in enumerate(config["edges"]):
+        if "from" not in edge:
+            raise ValueError(f"Edge {i} missing required 'from' field")
+        if "to" not in edge:
+            raise ValueError(f"Edge {i} missing required 'to' field")
+
 
 class GraphConfig:
     """Parsed graph configuration from YAML."""
@@ -49,6 +82,7 @@ def load_graph_config(path: str | Path) -> GraphConfig:
         
     Raises:
         FileNotFoundError: If the file doesn't exist
+        ValueError: If the YAML is invalid or missing required fields
     """
     path = Path(path)
     if not path.exists():
@@ -56,6 +90,9 @@ def load_graph_config(path: str | Path) -> GraphConfig:
 
     with open(path) as f:
         config = yaml.safe_load(f)
+
+    # Validate before creating config
+    _validate_config(config)
 
     return GraphConfig(config)
 
@@ -100,11 +137,13 @@ def resolve_template(template: str, state: ShowcaseState) -> Any:
     if not isinstance(template, str):
         return template
     
-    if not template.startswith("{state."):
+    if not template.startswith(STATE_TEMPLATE_PREFIX):
         return template
 
     # Extract path: "{state.foo.bar}" -> ["foo", "bar"]
-    path_str = template[7:-1]  # Remove "{state." and "}"
+    prefix_len = len(STATE_TEMPLATE_PREFIX)
+    suffix_len = len(STATE_TEMPLATE_SUFFIX)
+    path_str = template[prefix_len:-suffix_len]
     path = path_str.split(".")
 
     value = state
