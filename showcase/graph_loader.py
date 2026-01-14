@@ -5,6 +5,7 @@ and compile them into LangGraph StateGraph instances.
 """
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
 
 import yaml
