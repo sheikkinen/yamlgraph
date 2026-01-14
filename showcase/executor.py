@@ -71,13 +71,23 @@ def load_prompt(prompt_name: str) -> dict:
 def format_prompt(template: str, variables: dict) -> str:
     """Format a prompt template with variables.
     
+    Supports both simple {variable} placeholders and Jinja2 templates.
+    If the template contains Jinja2 syntax ({%, {{), uses Jinja2 rendering.
+    
     Args:
-        template: Template string with {variable} placeholders
+        template: Template string with {variable} or Jinja2 placeholders
         variables: Dictionary of variable values
         
     Returns:
         Formatted string
     """
+    # Check for Jinja2 syntax
+    if "{%" in template or "{{" in template:
+        from jinja2 import Template
+        jinja_template = Template(template)
+        return jinja_template.render(**variables)
+    
+    # Fall back to simple format
     return template.format(**variables)
 
 

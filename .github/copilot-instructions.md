@@ -1,0 +1,63 @@
+# GitHub Copilot Instructions - LangGraph Showcase
+
+## Core Technologies
+- **LangGraph**: Pipeline orchestration with state management
+- **Pydantic v2**: Structured, validated LLM outputs
+- **YAML Prompts**: Declarative prompt templates with Jinja2 support
+- **Jinja2**: Advanced template engine for complex prompts
+- **SQLite**: State persistence and checkpointing
+- **LangSmith**: Observability and tracing
+- **Anthropic Claude**: LLM provider (claude-sonnet-4-20250514)
+
+## Essential Rules
+
+### 1. YAML Prompts with Jinja2 Support
+- **ALL prompts MUST be in YAML files** under `prompts/`
+- Never hardcode prompts in Python
+- Use shared `execute_prompt()` from `showcase.executor`
+- **Simple templates**: Use `{variable}` for basic substitution
+- **Advanced templates**: Use Jinja2 syntax for loops, conditionals, filters
+  - Loops: `{% for item in items %}...{% endfor %}`
+  - Conditionals: `{% if condition %}...{% endif %}`
+  - Filters: `{{ text[:50] }}`, `{{ items | join(", ") }}`
+- Template engine auto-detects: `{{` or `{%` triggers Jinja2 mode
+
+### 2. Pydantic for All Outputs
+- All LLM outputs use Pydantic models in `showcase/models/schemas.py`
+- Define fields with `Field(description="...")`
+- Inherit from `pydantic.BaseModel`
+
+### 3. LangGraph State Pattern
+- State is `ShowcaseState` (TypedDict with `total=False`)
+- Nodes return `dict` with partial updates
+- Never mutate state directly
+
+### 4. Error Handling
+```python
+try:
+    result = execute_prompt(...)
+    return {"field": result, "current_step": "node_name"}
+except Exception as e:
+    error = PipelineError.from_exception(e, node="node_name")
+    return {**_add_error(state, error), "current_step": "node_name"}
+```
+
+### 5. Code Quality
+- **Module size**: < 400 lines (max 500)
+- **TDD**: Red-Green-Refactor with tests for all changes
+- **KISS**: Prefer clarity over cleverness
+- **Type hints**: On ALL functions
+- **Python 3.11+**: Use `|` for unions
+
+### 6. Logging
+- Use `logging.getLogger(__name__)`
+- User-facing prints with emojis: 📝 🔍 📊 ✓ ✗ 🚀 💾
+
+## Anti-Patterns
+
+❌ Hardcoded prompts → ✅ YAML templates
+❌ Untyped dicts → ✅ Pydantic models
+❌ Direct state mutation → ✅ Return update dicts
+❌ Silent exceptions → ✅ `PipelineError.from_exception()`
+❌ Files > 400 lines → ✅ Refactor into modules
+❌ Skip tests → ✅ TDD red-green-refactor

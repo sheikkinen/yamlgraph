@@ -147,6 +147,7 @@ showcase resume --thread-id abc123
 
 ### 1. YAML Prompt Templates
 
+**Simple Templating (Basic Substitution)**:
 ```yaml
 # prompts/generate.yaml
 system: |
@@ -156,6 +157,28 @@ user: |
   Write about: {topic}
   Target length: approximately {word_count} words
 ```
+
+**Advanced Templating (Jinja2)**:
+```yaml
+# prompts/analyze_list.yaml
+template: |
+  Analyze the following {{ items|length }} items:
+  
+  {% for item in items %}
+  ### {{ loop.index }}. {{ item.title }}
+  Topic: {{ item.topic }}
+  {% if item.tags %}
+  Tags: {{ item.tags | join(", ") }}
+  {% endif %}
+  {% endfor %}
+```
+
+**Template Features**:
+- **Auto-detection**: Uses Jinja2 if `{{` or `{%` present, otherwise simple formatting
+- **Loops**: `{% for item in items %}...{% endfor %}`
+- **Conditionals**: `{% if condition %}...{% endif %}`
+- **Filters**: `{{ text[:50] }}`, `{{ items | join(", ") }}`, `{{ name | upper }}`
+- **Backward compatible**: Existing `{variable}` prompts work unchanged
 
 ### 2. Structured Executor
 
