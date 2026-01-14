@@ -50,6 +50,16 @@ def _validate_config(config: dict) -> None:
         if "to" not in edge:
             raise ValueError(f"Edge {i} missing required 'to' field")
 
+    # Validate on_error values
+    valid_on_error = {"skip", "retry", "fail", "fallback"}
+    for node_name, node_config in config["nodes"].items():
+        on_error = node_config.get("on_error")
+        if on_error and on_error not in valid_on_error:
+            raise ValueError(
+                f"Node '{node_name}' has invalid on_error value '{on_error}'. "
+                f"Valid values: {', '.join(valid_on_error)}"
+            )
+
 
 class GraphConfig:
     """Parsed graph configuration from YAML."""
@@ -59,7 +69,13 @@ class GraphConfig:
         
         Args:
             config: Parsed YAML configuration dictionary
+            
+        Raises:
+            ValueError: If config is invalid
         """
+        # Validate before storing
+        _validate_config(config)
+        
         self.version = config.get("version", "1.0")
         self.name = config.get("name", "unnamed")
         self.description = config.get("description", "")
@@ -91,9 +107,7 @@ def load_graph_config(path: str | Path) -> GraphConfig:
     with open(path) as f:
         config = yaml.safe_load(f)
 
-    # Validate before creating config
-    _validate_config(config)
-
+    # Validation happens in GraphConfig.__init__
     return GraphConfig(config)
 
 
@@ -189,6 +203,12 @@ def create_node_function(
     state_key = node_config.get("state_key", node_name)
     variable_templates = node_config.get("variables", {})
     requires = node_config.get("requires", [])
+    
+    # Error handling config
+    on_error = node_config.get("on_error")  # skip | retry | fail | fallback | None
+    max_retries = node_config.get("max_retries", 3)
+    fallback_config = node_config.get("fallback", {})
+    fallback_provider = fallback_config.get("provider") if fallback_config else None
 
     def node_fn(state: ShowcaseState) -> dict:
         """Generated node function."""
@@ -218,22 +238,66 @@ def create_node_function(
                 resolved = ", ".join(str(item) for item in resolved)
             variables[key] = resolved
 
-        try:
-            result = execute_prompt(
-                prompt_name=prompt_name,
-                variables=variables,
-                output_model=output_model,
-                temperature=temperature,
-                provider=provider,
-            )
-            
+        def attempt_execute(use_provider: str | None) -> tuple[Any, Exception | None]:
+            """Attempt to execute prompt with given provider."""
+            try:
+                result = execute_prompt(
+                    prompt_name=prompt_name,
+                    variables=variables,
+                    output_model=output_model,
+                    temperature=temperature,
+                    provider=use_provider,
+                )
+                return result, None
+            except Exception as e:
+                return None, e
+
+        # Execute with error handling based on on_error setting
+        result, error = attempt_execute(provider)
+        
+        if error is None:
             logger.info(f"Node {node_name} completed successfully")
             return {state_key: result, "current_step": node_name}
-            
-        except Exception as e:
-            logger.error(f"Node {node_name} failed: {e}")
-            error = PipelineError.from_exception(e, node=node_name)
-            return {"error": error, "current_step": node_name}
+
+        # Handle error based on on_error setting
+        if on_error == "skip":
+            logger.warning(f"Node {node_name} failed, skipping: {error}")
+            return {"current_step": node_name}
+        
+        elif on_error == "fail":
+            logger.error(f"Node {node_name} failed (on_error=fail): {error}")
+            raise error
+        
+        elif on_error == "retry":
+            # Retry with configured max_retries
+            for attempt in range(1, max_retries):
+                logger.info(f"Node {node_name} retry {attempt}/{max_retries - 1}")
+                result, error = attempt_execute(provider)
+                if error is None:
+                    logger.info(f"Node {node_name} completed on retry {attempt}")
+                    return {state_key: result, "current_step": node_name}
+            # All retries exhausted
+            logger.error(f"Node {node_name} failed after {max_retries} attempts")
+            pipeline_error = PipelineError.from_exception(error, node=node_name)
+            return {"error": pipeline_error, "current_step": node_name}
+        
+        elif on_error == "fallback" and fallback_provider:
+            # Try fallback provider
+            logger.info(f"Node {node_name} trying fallback provider: {fallback_provider}")
+            result, fallback_error = attempt_execute(fallback_provider)
+            if fallback_error is None:
+                logger.info(f"Node {node_name} completed with fallback provider")
+                return {state_key: result, "current_step": node_name}
+            # Both providers failed
+            logger.error(f"Node {node_name} failed with primary and fallback providers")
+            pipeline_error = PipelineError.from_exception(fallback_error, node=node_name)
+            return {"error": pipeline_error, "current_step": node_name}
+        
+        else:
+            # Default behavior: return error in state
+            logger.error(f"Node {node_name} failed: {error}")
+            pipeline_error = PipelineError.from_exception(error, node=node_name)
+            return {"error": pipeline_error, "current_step": node_name}
 
     node_fn.__name__ = f"{node_name}_node"
     return node_fn

@@ -17,6 +17,9 @@ nodes:
     prompt: generate
     output_model: showcase.models.GeneratedContent
     temperature: 0.8
+    on_error: fallback        # skip | retry | fail | fallback
+    fallback:
+      provider: anthropic    # Fallback provider if primary fails
     variables:
       topic: "{state.topic}"
       word_count: "{state.word_count}"
