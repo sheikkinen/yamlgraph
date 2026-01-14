@@ -581,26 +581,32 @@ This project demonstrates solid production patterns with declarative YAML-based 
 | Multi-Provider LLMs | ✅ | Factory pattern supporting Anthropic/Mistral/OpenAI |
 | Dynamic Node Generation | ✅ | Nodes compiled from YAML at runtime |
 
+### Implemented Patterns
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Branching/Routing | ✅ | `type: router` for LLM-based conditional routing |
+| Self-Correction Loops | ✅ | Reflexion pattern with critique → refine cycles |
+| Tool/Agent Patterns | ✅ | Shell tools + agent nodes with LangChain tool binding |
+| Per-Node Error Handling | ✅ | `on_error: skip/retry/fail/fallback` |
+
 ### Missing LangGraph Features
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Branching/Parallel Nodes | ❌ | Current graph is linear; doesn't show conditional routing or parallel execution |
+| Parallel Nodes | ❌ | No concurrent execution of independent nodes |
 | Human-in-the-Loop | ❌ | No `interrupt_before` / `interrupt_after` demonstration |
 | Streaming | ❌ | No streaming output support |
 | Native Checkpointing | ❌ | Uses custom SQLite instead of LangGraph's `SqliteSaver` / `MemorySaver` |
-| Tool/Agent Patterns | ❌ | No ReAct agent or tool calling examples |
 | Sub-graphs | ❌ | No nested graph composition |
 | Async Nodes | ❌ | Everything is synchronous |
 
 ### Potential Enhancements
 
 1. **Add parallel nodes** - Run `sentiment_analysis` and `topic_extraction` concurrently
-2. **Add a cycle** - Content → review → revise loop with max iterations
-3. **Use LangGraph's checkpointer** - Replace custom DB with native persistence
-4. **Add streaming** - `--stream` CLI flag for real-time output
-5. **Add agent example** - Demonstrate tool calling patterns
-6. **JSON Schema validation** - Validate `graphs/*.yaml` against schema
+2. **Use LangGraph's checkpointer** - Replace custom DB with native persistence
+3. **Add streaming** - `--stream` CLI flag for real-time output
+4. **JSON Schema validation** - Validate `graphs/*.yaml` against schema
 
 ## License
 
