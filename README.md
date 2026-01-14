@@ -4,6 +4,7 @@ A minimal, self-contained demonstration / template of a LLM pipeline using:
 
 - **YAML Prompts** - Declarative prompt templates with Jinja2 support
 - **Pydantic Models** - Structured LLM outputs
+- **Multi-Provider LLMs** - Support for Anthropic, Mistral, and OpenAI
 - **LangGraph** - Pipeline orchestration
 - **SQLite** - State persistence
 - **LangSmith** - Observability and tracing
@@ -195,7 +196,40 @@ result = execute_prompt(
 print(result.title)  # Typed access!
 ```
 
-### 3. LangGraph Pipeline
+### 3. Multi-Provider LLM Support
+
+```python
+from showcase.executor import execute_prompt
+
+# Use default provider (Anthropic)
+result = execute_prompt(
+    "greet",
+    variables={"name": "Alice", "style": "formal"},
+)
+
+# Switch to Mistral
+result = execute_prompt(
+    "greet",
+    variables={"name": "Bob", "style": "casual"},
+    provider="mistral",
+)
+
+# Or set via environment variable
+# PROVIDER=openai showcase run ...
+```
+
+Supported providers:
+- **Anthropic** (default): Claude models
+- **Mistral**: Mistral Large and other models  
+- **OpenAI**: GPT-4 and other models
+
+Provider selection priority:
+1. Function parameter: `execute_prompt(..., provider="mistral")`
+2. YAML metadata: `provider: mistral` in prompt file
+3. Environment variable: `PROVIDER=mistral`
+4. Default: `anthropic`
+
+### 4. LangGraph Pipeline
 
 ```python
 from showcase.graph import build_showcase_graph
@@ -204,7 +238,7 @@ graph = build_showcase_graph().compile()
 result = graph.invoke(initial_state)
 ```
 
-### 4. State Persistence
+### 5. State Persistence
 
 ```python
 from showcase.storage import ShowcaseDB
@@ -214,7 +248,7 @@ db.save_state("thread-123", state)
 state = db.load_state("thread-123")
 ```
 
-### 5. LangSmith Tracing
+### 6. LangSmith Tracing
 
 ```python
 from showcase.langsmith_utils import print_run_tree
@@ -231,8 +265,13 @@ print_run_tree(verbose=True)
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | Anthropic API key |
-| `ANTHROPIC_MODEL` | No | Model name (default: claude-sonnet-4-20250514) |
+| `ANTHROPIC_API_KEY` | Yes* | Anthropic API key (* if using Anthropic) |
+| `MISTRAL_API_KEY` | No | Mistral API key (required if using Mistral) |
+| `OPENAI_API_KEY` | No | OpenAI API key (required if using OpenAI) |
+| `PROVIDER` | No | Default LLM provider (anthropic/mistral/openai) |
+| `ANTHROPIC_MODEL` | No | Anthropic model (default: claude-sonnet-4-20250514) |
+| `MISTRAL_MODEL` | No | Mistral model (default: mistral-large-latest) |
+| `OPENAI_MODEL` | No | OpenAI model (default: gpt-4o) |
 | `LANGCHAIN_TRACING_V2` | No | Enable LangSmith tracing |
 | `LANGCHAIN_API_KEY` | No | LangSmith API key |
 | `LANGCHAIN_ENDPOINT` | No | LangSmith endpoint URL |
@@ -424,6 +463,7 @@ This project demonstrates solid production patterns but underutilizes some LangG
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Jinja2 Templating | ✅ | Hybrid auto-detection (simple {var} + advanced Jinja2) |
+| Multi-Provider LLMs | ✅ | Factory pattern supporting Anthropic/Mistral/OpenAI |
 
 ### Missing LangGraph Features
 
@@ -435,17 +475,15 @@ This project demonstrates solid production patterns but underutilizes some LangG
 | Native Checkpointing | ❌ | Uses custom SQLite instead of LangGraph's `SqliteSaver` / `MemorySaver` |
 | Tool/Agent Patterns | ❌ | No ReAct agent or tool calling examples |
 | Sub-graphs | ❌ | No nested graph composition |
-| Multiple LLM Providers | ⏸️ | Planned (see docs/matrix-features.md) - Hardcoded to Anthropic only |
 | Async Nodes | ❌ | Everything is synchronous |
 
 ### Potential Enhancements
 
-1. **Add multi-provider support** - Implement LLM factory (see docs/matrix-features.md Phase 2)
-2. **Add parallel nodes** - Run `sentiment_analysis` and `topic_extraction` concurrently
-3. **Add a cycle** - Content → review → revise loop with max iterations
-4. **Use LangGraph's checkpointer** - Replace custom DB with native persistence
-5. **Add streaming** - `--stream` CLI flag for real-time output
-6. **Add agent example** - Demonstrate tool calling patterns
+1. **Add parallel nodes** - Run `sentiment_analysis` and `topic_extraction` concurrently
+2. **Add a cycle** - Content → review → revise loop with max iterations
+3. **Use LangGraph's checkpointer** - Replace custom DB with native persistence
+4. **Add streaming** - `--stream` CLI flag for real-time output
+5. **Add agent example** - Demonstrate tool calling patterns
 
 ## License
 

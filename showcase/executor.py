@@ -9,19 +9,18 @@ import time
 from typing import Type, TypeVar
 
 import yaml
-from langchain_anthropic import ChatAnthropic
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from showcase.config import (
-    DEFAULT_MAX_TOKENS,
-    DEFAULT_MODEL,
     DEFAULT_TEMPERATURE,
     MAX_RETRIES,
     PROMPTS_DIR,
     RETRY_BASE_DELAY,
     RETRY_MAX_DELAY,
 )
+from showcase.utils.llm_factory import create_llm
 
 logger = logging.getLogger(__name__)
 
@@ -91,27 +90,12 @@ def format_prompt(template: str, variables: dict) -> str:
     return template.format(**variables)
 
 
-def create_llm(temperature: float = DEFAULT_TEMPERATURE) -> ChatAnthropic:
-    """Create a configured LLM instance.
-    
-    Args:
-        temperature: Sampling temperature (0.0 to 1.0)
-        
-    Returns:
-        Configured ChatAnthropic instance
-    """
-    return ChatAnthropic(
-        model=DEFAULT_MODEL,
-        temperature=temperature,
-        max_tokens=DEFAULT_MAX_TOKENS,
-    )
-
-
 def execute_prompt(
     prompt_name: str,
     variables: dict | None = None,
     output_model: Type[T] | None = None,
     temperature: float = DEFAULT_TEMPERATURE,
+    provider: str | None = None,
 ) -> T | str:
     """Execute a YAML prompt with optional structured output.
     
@@ -122,6 +106,8 @@ def execute_prompt(
         variables: Variables to substitute in the template
         output_model: Optional Pydantic model for structured output
         temperature: LLM temperature setting
+        provider: LLM provider ("anthropic", "mistral", "openai"). 
+                 Can also be set in YAML metadata or PROVIDER env var.
         
     Returns:
         Parsed Pydantic model if output_model provided, else raw string
@@ -139,6 +125,7 @@ def execute_prompt(
         variables=variables,
         output_model=output_model,
         temperature=temperature,
+        provider=provider,
     )
 
 
@@ -162,15 +149,18 @@ class PromptExecutor:
     """Reusable executor with LLM caching and retry logic."""
     
     def __init__(self, max_retries: int = MAX_RETRIES):
-        self._llm_cache: dict[str, ChatAnthropic] = {}
         self._max_retries = max_retries
     
-    def _get_llm(self, temperature: float = DEFAULT_TEMPERATURE) -> ChatAnthropic:
-        """Get or create cached LLM instance."""
-        cache_key = f"temp_{temperature}"
-        if cache_key not in self._llm_cache:
-            self._llm_cache[cache_key] = create_llm(temperature=temperature)
-        return self._llm_cache[cache_key]
+    def _get_llm(
+        self,
+        temperature: float = DEFAULT_TEMPERATURE,
+        provider: str | None = None,
+    ) -> BaseChatModel:
+        """Get or create cached LLM instance.
+        
+        Uses llm_factory which handles caching internally.
+        """
+        return create_llm(temperature=temperature, provider=provider)
     
     def _invoke_with_retry(self, llm, messages, output_model: Type[T] | None = None) -> T | str:
         """Invoke LLM with exponential backoff retry.
@@ -219,15 +209,24 @@ class PromptExecutor:
         variables: dict | None = None,
         output_model: Type[T] | None = None,
         temperature: float = DEFAULT_TEMPERATURE,
+        provider: str | None = None,
     ) -> T | str:
         """Execute a prompt using cached LLM with retry logic.
         
         Same interface as execute_prompt() but with LLM caching and
         automatic retry for transient failures.
+        
+        Provider priority: parameter > YAML metadata > env var > default
         """
         variables = variables or {}
         
         prompt_config = load_prompt(prompt_name)
+        
+        # Extract provider from YAML metadata if not provided
+        if provider is None and "provider" in prompt_config:
+            provider = prompt_config["provider"]
+            logger.debug(f"Using provider from YAML metadata: {provider}")
+        
         system_text = format_prompt(prompt_config.get("system", ""), variables)
         user_text = format_prompt(prompt_config["user"], variables)
         
@@ -236,6 +235,6 @@ class PromptExecutor:
             messages.append(SystemMessage(content=system_text))
         messages.append(HumanMessage(content=user_text))
         
-        llm = self._get_llm(temperature=temperature)
+        llm = self._get_llm(temperature=temperature, provider=provider)
         
         return self._invoke_with_retry(llm, messages, output_model)
