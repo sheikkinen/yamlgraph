@@ -56,6 +56,11 @@ showcase git-report -q "What changed recently?"
 showcase git-report -q "Summarize the test files"
 showcase git-report -q "Which files have the most activity?"
 
+# Memory demo - multi-turn conversation with state persistence
+showcase memory-demo --input "Show me the last 5 commits"
+showcase memory-demo --input "What about test files?" --thread mem-abc123
+showcase memory-demo --input "Summarize your findings" --thread mem-abc123 --export
+
 # View recent runs
 showcase list-runs
 
@@ -589,6 +594,9 @@ This project demonstrates solid production patterns with declarative YAML-based 
 | Self-Correction Loops | ✅ | Reflexion pattern with critique → refine cycles |
 | Tool/Agent Patterns | ✅ | Shell tools + agent nodes with LangChain tool binding |
 | Per-Node Error Handling | ✅ | `on_error: skip/retry/fail/fallback` |
+| Conversation Memory | ✅ | Message accumulation via `AgentState.messages` |
+| Native Checkpointing | ✅ | `SqliteSaver` from `langgraph-checkpoint-sqlite` |
+| State Export | ✅ | JSON/Markdown export with `export_result()` |
 
 ### Missing LangGraph Features
 
@@ -597,7 +605,6 @@ This project demonstrates solid production patterns with declarative YAML-based 
 | Parallel Nodes | ❌ | No concurrent execution of independent nodes |
 | Human-in-the-Loop | ❌ | No `interrupt_before` / `interrupt_after` demonstration |
 | Streaming | ❌ | No streaming output support |
-| Native Checkpointing | ❌ | Uses custom SQLite instead of LangGraph's `SqliteSaver` / `MemorySaver` |
 | Sub-graphs | ❌ | No nested graph composition |
 | Async Nodes | ❌ | Everything is synchronous |
 

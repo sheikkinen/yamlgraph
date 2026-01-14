@@ -221,6 +221,77 @@ def cmd_refine(args):
         sys.exit(1)
 
 
+def cmd_memory_demo(args):
+    """Run multi-turn code review assistant with memory."""
+    import os
+    from uuid import uuid4
+    from showcase.graph_loader import load_and_compile
+    from showcase.storage.export import export_result
+    
+    # Generate or use provided thread_id
+    thread_id = args.thread or f"mem-{uuid4().hex[:8]}"
+    is_continuation = args.thread is not None
+    
+    # Change to repo directory
+    original_dir = os.getcwd()
+    try:
+        os.chdir(args.repo)
+        
+        if is_continuation:
+            print(f"\n🔄 Continuing conversation (thread: {thread_id})")
+        else:
+            print(f"\n🤖 Starting new conversation (thread: {thread_id})")
+        print(f"   Query: {args.input}")
+        print(f"   Repo: {os.getcwd()}")
+        print()
+        
+        graph = load_and_compile("graphs/memory-demo.yaml")
+        app = graph.compile()
+        
+        # TODO: With checkpointer, would use config={"configurable": {"thread_id": thread_id}}
+        result = app.invoke({"input": args.input})
+        
+        # Show stats
+        iterations = result.get("_agent_iterations", 0)
+        messages = result.get("messages", [])
+        tool_results = result.get("_tool_results", [])
+        
+        print(f"🔧 Agent iterations: {iterations}")
+        print(f"💬 Messages: {len(messages)}")
+        if tool_results:
+            print(f"🛠️  Tools called: {len(tool_results)}")
+        
+        # Show response
+        if response := result.get("response"):
+            print("\n" + "=" * 60)
+            print("RESPONSE")
+            print("=" * 60)
+            print(f"\n{response}\n")
+        
+        # Export if requested
+        if args.export:
+            config = {
+                "response": {"format": "markdown", "filename": "review.md"},
+                "_tool_results": {"format": "json", "filename": "tool_outputs.json"},
+            }
+            # Add thread_id to result for export
+            result["thread_id"] = thread_id
+            paths = export_result(result, config)
+            print("📁 Exported:")
+            for p in paths:
+                print(f"   {p}")
+        
+        # Show continuation hint
+        print(f"\n💾 To continue: --thread {thread_id}")
+        print()
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+    finally:
+        os.chdir(original_dir)
+
+
 def cmd_git_report(args):
     """Analyze git repository with AI agent."""
     import os
@@ -472,6 +543,18 @@ def create_parser() -> argparse.ArgumentParser:
     git_parser.add_argument("--repo", "-r", default=".",
                             help="Repository path (default: current directory)")
     git_parser.set_defaults(func=cmd_git_report)
+    
+    # Memory-demo command (multi-turn agent with memory)
+    memory_parser = subparsers.add_parser("memory-demo", help="Multi-turn code review with memory")
+    memory_parser.add_argument("--input", "-i", required=True,
+                               help="Query or follow-up question")
+    memory_parser.add_argument("--thread", "-t", type=str, default=None,
+                               help="Thread ID to continue conversation")
+    memory_parser.add_argument("--repo", "-r", default=".",
+                               help="Repository path (default: current directory)")
+    memory_parser.add_argument("--export", "-e", action="store_true",
+                               help="Export results to files")
+    memory_parser.set_defaults(func=cmd_memory_demo)
     
     # Resume command
     resume_parser = subparsers.add_parser("resume", help="Resume a pipeline")
