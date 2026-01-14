@@ -164,3 +164,49 @@ class GitReport(BaseModel):
         default_factory=list, 
         description="Suggested actions or areas to focus on"
     )
+
+
+# =============================================================================
+# Generic Report Model (Flexible for Any Use Case)
+# =============================================================================
+
+
+class GenericReport(BaseModel):
+    """Flexible report structure for any use case.
+    
+    Use this when you don't need a custom schema - works for most
+    analysis and summary tasks. The LLM can populate any combination
+    of the optional fields as needed.
+    
+    Example usage in graph YAML:
+        nodes:
+          analyze:
+            type: llm
+            prompt: my_analysis
+            output_model: showcase.models.GenericReport
+    
+    Example prompts can request specific sections:
+        "Analyze the repository and provide:
+         - A summary of findings
+         - Key findings as bullet points
+         - Recommendations for improvement"
+    """
+    
+    title: str = Field(description="Report title")
+    summary: str = Field(description="Executive summary")
+    sections: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Named sections with any content (strings, dicts, lists)"
+    )
+    findings: list[str] = Field(
+        default_factory=list,
+        description="Key findings or bullet points"
+    )
+    recommendations: list[str] = Field(
+        default_factory=list,
+        description="Suggested actions or areas to focus on"
+    )
+    metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional key-value data (author, version, tags, etc.)"
+    )

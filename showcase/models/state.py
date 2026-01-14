@@ -1,78 +1,106 @@
-"""LangGraph State Definition.
+"""LangGraph State Definitions.
 
-Defines the TypedDict state used by the showcase pipeline,
-following LangGraph's state management pattern.
+Defines typed state schemas for different graph types.
+Provides specialized states for each demo while maintaining
+backward compatibility via ShowcaseState alias.
 """
 
 from datetime import datetime
-from typing import TypedDict
+from typing import Annotated, TypedDict
+from operator import add
 
-from showcase.models.schemas import Analysis, GeneratedContent, PipelineError
+from showcase.models.schemas import (
+    Analysis,
+    Critique,
+    DraftContent,
+    GeneratedContent,
+    PipelineError,
+    ToneClassification,
+)
 
 
-class ShowcaseState(TypedDict, total=False):
-    """Pipeline state for the showcase graph.
+# =============================================================================
+# Base State - Common fields for all graphs
+# =============================================================================
+
+
+class BaseState(TypedDict, total=False):
+    """Common fields for all graphs.
     
-    All fields are optional (total=False) to support incremental updates.
-    
-    Attributes:
-        thread_id: Unique identifier for this pipeline run
-        topic: The topic to generate content about
-        style: Writing style (informative, casual, technical)
-        word_count: Target word count for generation
-        
-        generated: Output from the generate node
-        analysis: Output from the analyze node
-        final_summary: Output from the summarize node
-        
-        current_step: Name of the current pipeline step
-        error: Structured error information (if any)
-        errors: List of all errors encountered
-        
-        started_at: Pipeline start timestamp
-        completed_at: Pipeline completion timestamp
-        
-        _route: Internal field for router node routing decisions
+    Provides shared functionality like error tracking and timestamps.
     """
-    # Input fields
     thread_id: str
+    current_step: str
+    error: PipelineError | None
+    errors: list[PipelineError]
+    started_at: datetime | None
+    completed_at: datetime | None
+
+
+# =============================================================================
+# Specialized States
+# =============================================================================
+
+
+class ContentState(BaseState, total=False):
+    """State for content generation pipeline.
+    
+    Used by: graphs/showcase.yaml
+    """
     topic: str
     style: str
     word_count: int
-    message: str  # For router demo
-    topic: str  # For reflexion demo
-    input: str  # Generic input for agent demos
-    
-    # Pipeline outputs
     generated: GeneratedContent | None
     analysis: Analysis | None
     final_summary: str | None
-    classification: object | None  # For router demo
-    response: str | None  # For router demo
-    current_draft: object | None  # For reflexion demo
-    critique: object | None  # For reflexion demo
+
+
+class RouterState(BaseState, total=False):
+    """State for router demo.
     
-    # Metadata
-    current_step: str
-    error: PipelineError | None  # Current/last error
-    errors: list[PipelineError]  # All errors encountered
+    Used by: graphs/router-demo.yaml
+    """
+    message: str
+    classification: ToneClassification | None
+    response: str | None
+    _route: str | None
+
+
+class ReflexionState(BaseState, total=False):
+    """State for self-correction loops.
     
-    # Router internal
-    _route: str | None  # Router routing decision
+    Used by: graphs/reflexion-demo.yaml
+    """
+    topic: str
+    current_draft: DraftContent | None
+    critique: Critique | None
+    _loop_counts: dict[str, int]
+    _loop_limit_reached: bool
+
+
+class AgentState(BaseState, total=False):
+    """State for agent with tool use.
     
-    # Loop tracking
-    _loop_counts: dict[str, int]  # Per-node iteration counts
-    _loop_limit_reached: bool  # Flag when limit hit
+    Used by: graphs/git-report.yaml
     
-    # Agent tracking
-    _agent_iterations: int  # How many iterations agent ran
-    _agent_limit_reached: bool  # True if hit max_iterations
-    analysis: str | Analysis | None  # Can be string from agent or structured
-    report: object | None  # GitReport or other structured output
-    
-    # Timestamps
-    started_at: datetime | None
-    completed_at: datetime | None
+    Note: messages uses Annotated with add reducer for accumulation.
+    """
+    input: str
+    messages: Annotated[list, add]  # Accumulates across iterations
+    analysis: str | None
+    report: object | None  # Flexible for different report types
+    _tool_results: list[dict] | None  # Raw tool outputs
+    _agent_iterations: int
+    _agent_limit_reached: bool
+
+
+# =============================================================================
+# Backward Compatibility
+# =============================================================================
+
+
+# Alias for backward compatibility - existing code uses ShowcaseState
+ShowcaseState = ContentState
 
 
 def create_initial_state(

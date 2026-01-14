@@ -100,11 +100,19 @@ def create_agent_node(
         
     Returns:
         Node function that runs the agent loop
+        
+    Config options:
+        - tools: List of tool names to make available
+        - max_iterations: Max tool-call loops (default: 5)
+        - state_key: Key to store final answer (default: node_name)
+        - prompt: Prompt file name (default: "agent")
+        - tool_results_key: Optional key to store raw tool outputs
     """
     tool_names = node_config.get("tools", [])
     max_iterations = node_config.get("max_iterations", 5)
     state_key = node_config.get("state_key", node_name)
     prompt_name = node_config.get("prompt", "agent")
+    tool_results_key = node_config.get("tool_results_key")
 
     # Build LangChain tools from shell configs
     lc_tools = [build_langchain_tool(name, tools[name]) for name in tool_names]
@@ -128,11 +136,20 @@ def create_agent_node(
         
         user_prompt = re.sub(r'\{(\w+)\}', replace_var, user_template)
 
-        # Initialize messages
-        messages: list = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_prompt),
-        ]
+        # Initialize messages - preserve existing if multi-turn
+        existing_messages = list(state.get("messages", []))
+        if existing_messages:
+            # Multi-turn: add new user message to existing conversation
+            messages = existing_messages + [HumanMessage(content=user_prompt)]
+        else:
+            # New conversation: start with system + user
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_prompt),
+            ]
+
+        # Track raw tool outputs for persistence
+        tool_results: list[dict] = []
 
         # Get LLM with tools bound
         llm = create_llm().bind_tools(lc_tools)
@@ -154,11 +171,15 @@ def create_agent_node(
             if not response.tool_calls:
                 # Done - LLM finished reasoning
                 logger.info(f"✓ Agent completed after {iteration + 1} iterations")
-                return {
+                result = {
                     state_key: response.content,
                     "current_step": node_name,
                     "_agent_iterations": iteration + 1,
+                    "messages": messages,  # Return for accumulation
                 }
+                if tool_results_key and tool_results:
+                    result[tool_results_key] = tool_results
+                return result
 
             # Execute tool calls
             for tool_call in response.tool_calls:
@@ -173,8 +194,18 @@ def create_agent_node(
                 if tool_config:
                     result = execute_shell_tool(tool_config, tool_args)
                     output = str(result.output) if result.success else f"Error: {result.error}"
+                    success = result.success
                 else:
                     output = f"Error: Unknown tool '{tool_name}'"
+                    success = False
+
+                # Store raw tool result for persistence
+                tool_results.append({
+                    "tool": tool_name,
+                    "args": tool_args,
+                    "output": output,
+                    "success": success,
+                })
 
                 # Add tool result to messages
                 messages.append(
@@ -184,11 +215,15 @@ def create_agent_node(
         # Hit max iterations
         logger.warning(f"Agent hit max iterations ({max_iterations})")
         last_content = messages[-1].content if hasattr(messages[-1], "content") else ""
-        return {
+        result = {
             state_key: last_content,
             "current_step": node_name,
             "_agent_iterations": max_iterations,
             "_agent_limit_reached": True,
+            "messages": messages,  # Return for accumulation
         }
+        if tool_results_key and tool_results:
+            result[tool_results_key] = tool_results
+        return result
 
     return node_fn

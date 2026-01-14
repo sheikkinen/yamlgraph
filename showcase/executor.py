@@ -67,7 +67,11 @@ def load_prompt(prompt_name: str) -> dict:
         return yaml.safe_load(f)
 
 
-def format_prompt(template: str, variables: dict) -> str:
+def format_prompt(
+    template: str, 
+    variables: dict, 
+    state: dict | None = None,
+) -> str:
     """Format a prompt template with variables.
     
     Supports both simple {variable} placeholders and Jinja2 templates.
@@ -76,18 +80,35 @@ def format_prompt(template: str, variables: dict) -> str:
     Args:
         template: Template string with {variable} or Jinja2 placeholders
         variables: Dictionary of variable values
+        state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
         
     Returns:
         Formatted string
+        
+    Examples:
+        Simple format:
+            format_prompt("Hello {name}", {"name": "World"})
+        
+        Jinja2 with variables:
+            format_prompt("{% for item in items %}{{ item }}{% endfor %}", {"items": [1, 2]})
+        
+        Jinja2 with state:
+            format_prompt("Topic: {{ state.topic }}", {}, state={"topic": "AI"})
     """
     # Check for Jinja2 syntax
     if "{%" in template or "{{" in template:
         from jinja2 import Template
         jinja_template = Template(template)
-        return jinja_template.render(**variables)
+        # Pass both variables and state to Jinja2
+        context = {"state": state or {}, **variables}
+        return jinja_template.render(**context)
     
-    # Fall back to simple format
-    return template.format(**variables)
+    # Fall back to simple format - stringify lists for compatibility
+    safe_vars = {
+        k: (", ".join(map(str, v)) if isinstance(v, list) else v)
+        for k, v in variables.items()
+    }
+    return template.format(**safe_vars)
 
 
 def execute_prompt(

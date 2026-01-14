@@ -165,3 +165,83 @@ def export_summary(state: dict) -> dict:
     summary["has_final_summary"] = bool(state.get("final_summary"))
     
     return summary
+
+
+def export_result(
+    state: dict,
+    export_config: dict,
+    base_path: str | Path = "outputs",
+) -> list[Path]:
+    """Export state fields to files.
+    
+    Args:
+        state: Final graph state
+        export_config: Mapping of field -> export settings
+        base_path: Base directory for exports
+        
+    Returns:
+        List of paths to exported files
+        
+    Example config:
+        {
+            "final_summary": {"format": "markdown", "filename": "summary.md"},
+            "generated": {"format": "json", "filename": "content.json"},
+        }
+    """
+    base_path = Path(base_path)
+    thread_id = state.get("thread_id", "unknown")
+    output_dir = base_path / thread_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    exported = []
+    
+    for field, settings in export_config.items():
+        if field not in state or state[field] is None:
+            continue
+            
+        value = state[field]
+        filename = settings.get("filename", f"{field}.txt")
+        format_type = settings.get("format", "text")
+        
+        file_path = output_dir / filename
+        
+        if format_type == "json":
+            content = _serialize_to_json(value)
+            file_path.write_text(content)
+        elif format_type == "markdown":
+            content = _serialize_to_markdown(value)
+            file_path.write_text(content)
+        else:
+            file_path.write_text(str(value))
+            
+        exported.append(file_path)
+    
+    return exported
+
+
+def _serialize_to_json(value: Any) -> str:
+    """Serialize value to JSON string."""
+    if isinstance(value, BaseModel):
+        return value.model_dump_json(indent=2)
+    return json.dumps(value, default=str, indent=2)
+
+
+def _serialize_to_markdown(value: Any) -> str:
+    """Serialize value to Markdown string."""
+    if isinstance(value, BaseModel):
+        return _pydantic_to_markdown(value)
+    return str(value)
+
+
+def _pydantic_to_markdown(model: BaseModel) -> str:
+    """Convert Pydantic model to Markdown."""
+    lines = [f"# {model.__class__.__name__}", ""]
+    for field, value in model.model_dump().items():
+        if isinstance(value, list):
+            lines.append(f"## {field.replace('_', ' ').title()}")
+            for item in value:
+                lines.append(f"- {item}")
+            lines.append("")
+        else:
+            lines.append(f"**{field.replace('_', ' ').title()}**: {value}")
+    return "\n".join(lines)
