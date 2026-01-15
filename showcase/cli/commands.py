@@ -77,6 +77,11 @@ def cmd_route(args):
     if not validate_route_args(args):
         sys.exit(1)
 
+    # Deprecation warning
+    print(
+        "⚠️  DEPRECATED: Use 'showcase graph run graphs/router-demo.yaml --var message=\"...\"' instead"
+    )
+
     from showcase.graph_loader import load_and_compile
 
     print("\n🔍 Classifying tone...")
@@ -112,6 +117,11 @@ def cmd_refine(args):
     """Run the reflexion demo pipeline (draft → critique → refine loop)."""
     if not validate_refine_args(args):
         sys.exit(1)
+
+    # Deprecation warning
+    print(
+        "⚠️  DEPRECATED: Use 'showcase graph run graphs/reflexion-demo.yaml --var topic=\"...\"' instead"
+    )
 
     from showcase.graph_loader import load_and_compile
 

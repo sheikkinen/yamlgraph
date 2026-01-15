@@ -221,6 +221,12 @@ def create_parser() -> argparse.ArgumentParser:
     )
     graph_info_parser.add_argument("graph_path", help="Path to graph YAML file")
 
+    # graph validate
+    graph_validate_parser = graph_subparsers.add_parser(
+        "validate", help="Validate graph YAML schema"
+    )
+    graph_validate_parser.add_argument("graph_path", help="Path to graph YAML file")
+
     graph_parser.set_defaults(func=cmd_graph_dispatch)
 
     # Legacy: mermaid graph command (renamed to avoid conflict)

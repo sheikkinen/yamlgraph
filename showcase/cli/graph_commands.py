@@ -200,6 +200,87 @@ def cmd_graph_info(args):
         sys.exit(1)
 
 
+def cmd_graph_validate(args):
+    """Validate a graph YAML file.
+
+    Checks:
+    - File exists and is valid YAML
+    - Required fields present (name, nodes, edges)
+    - Node references are valid
+    - Edge references match existing nodes
+    """
+    graph_path = Path(args.graph_path)
+
+    if not graph_path.exists():
+        print(f"❌ Graph file not found: {graph_path}")
+        sys.exit(1)
+
+    errors = []
+    warnings = []
+
+    try:
+        with open(graph_path) as f:
+            config = yaml.safe_load(f)
+
+        # Check required fields
+        if not config.get("name"):
+            errors.append("Missing required field: name")
+
+        nodes = config.get("nodes", {})
+        if not nodes:
+            errors.append("Missing required field: nodes")
+
+        edges = config.get("edges", [])
+        if not edges:
+            warnings.append("No edges defined")
+
+        # Validate node references in edges
+        node_names = set(nodes.keys()) | {"START", "END"}
+        for i, edge in enumerate(edges):
+            from_node = edge.get("from", "")
+            to_node = edge.get("to", "")
+
+            if from_node not in node_names:
+                errors.append(f"Edge {i + 1}: unknown 'from' node '{from_node}'")
+            if to_node not in node_names:
+                errors.append(f"Edge {i + 1}: unknown 'to' node '{to_node}'")
+
+        # Validate node configurations
+        for node_name, node_config in nodes.items():
+            node_type = node_config.get("type", "llm")
+            if node_type == "agent":
+                if not node_config.get("tools"):
+                    warnings.append(f"Node '{node_name}': agent has no tools")
+
+        # Report results
+        name = config.get("name", graph_path.stem)
+        if errors:
+            print(f"\n❌ {graph_path.name} ({name}) - INVALID\n")
+            for err in errors:
+                print(f"   ✗ {err}")
+            for warn in warnings:
+                print(f"   ⚠ {warn}")
+            print()
+            sys.exit(1)
+        elif warnings:
+            print(f"\n⚠️  {graph_path.name} ({name}) - VALID with warnings\n")
+            for warn in warnings:
+                print(f"   ⚠ {warn}")
+            print()
+        else:
+            print(f"\n✅ {graph_path.name} ({name}) - VALID\n")
+            print(f"   Nodes: {len(nodes)}")
+            print(f"   Edges: {len(edges)}")
+            print()
+
+    except yaml.YAMLError as e:
+        print(f"❌ Invalid YAML: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Error validating graph: {e}")
+        sys.exit(1)
+
+
 def cmd_graph_dispatch(args):
     """Dispatch to graph subcommands."""
     if args.graph_command == "run":
@@ -208,6 +289,8 @@ def cmd_graph_dispatch(args):
         cmd_graph_list(args)
     elif args.graph_command == "info":
         cmd_graph_info(args)
+    elif args.graph_command == "validate":
+        cmd_graph_validate(args)
     else:
         print(f"Unknown graph command: {args.graph_command}")
         sys.exit(1)

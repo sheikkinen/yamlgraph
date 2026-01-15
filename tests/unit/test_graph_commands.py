@@ -284,3 +284,96 @@ class TestCmdGraphInfo:
 
         with pytest.raises(SystemExit):
             cmd_graph_info(args)
+
+
+# =============================================================================
+# cmd_graph_validate tests
+# =============================================================================
+
+
+class TestCmdGraphValidate:
+    """Tests for cmd_graph_validate function."""
+
+    def test_cmd_graph_validate_exists(self):
+        """cmd_graph_validate function should exist."""
+        from showcase.cli.graph_commands import cmd_graph_validate
+
+        assert callable(cmd_graph_validate)
+
+    def test_validate_file_not_found(self):
+        """Should error if graph file doesn't exist."""
+        from showcase.cli.graph_commands import cmd_graph_validate
+
+        args = argparse.Namespace(graph_path="nonexistent.yaml")
+
+        with pytest.raises(SystemExit):
+            cmd_graph_validate(args)
+
+    def test_validate_valid_graph(self):
+        """Should validate a correct graph without errors."""
+        from showcase.cli.graph_commands import cmd_graph_validate
+
+        args = argparse.Namespace(graph_path="graphs/showcase.yaml")
+
+        # Should not raise
+        cmd_graph_validate(args)
+
+    def test_validate_subparser_exists(self):
+        """graph validate subcommand should exist."""
+        from showcase.cli import create_parser
+
+        parser = create_parser()
+        args = parser.parse_args(["graph", "validate", "graphs/showcase.yaml"])
+        assert args.graph_command == "validate"
+        assert args.graph_path == "graphs/showcase.yaml"
+
+
+# =============================================================================
+# Deprecation warning tests (Phase 7.4)
+# =============================================================================
+
+
+class TestDeprecationWarnings:
+    """Tests for deprecation warnings on old commands."""
+
+    def test_route_shows_deprecation_warning(self, capsys):
+        """route command should show deprecation warning."""
+        from showcase.cli.commands import cmd_route
+
+        args = argparse.Namespace(message="test message")
+
+        # Mock to avoid actual execution
+        with patch("showcase.graph_loader.load_and_compile") as mock_load:
+            mock_graph = MagicMock()
+            mock_app = MagicMock()
+            mock_app.invoke.return_value = {"classification": None, "response": "ok"}
+            mock_graph.compile.return_value = mock_app
+            mock_load.return_value = mock_graph
+
+            cmd_route(args)
+
+        captured = capsys.readouterr()
+        assert "deprecated" in captured.out.lower() or "graph run" in captured.out
+
+    def test_refine_shows_deprecation_warning(self, capsys):
+        """refine command should show deprecation warning."""
+        from showcase.cli.commands import cmd_refine
+
+        args = argparse.Namespace(topic="test topic")
+
+        # Mock to avoid actual execution
+        with patch("showcase.graph_loader.load_and_compile") as mock_load:
+            mock_graph = MagicMock()
+            mock_app = MagicMock()
+            mock_app.invoke.return_value = {
+                "_loop_counts": {},
+                "critique": None,
+                "current_draft": None,
+            }
+            mock_graph.compile.return_value = mock_app
+            mock_load.return_value = mock_graph
+
+            cmd_refine(args)
+
+        captured = capsys.readouterr()
+        assert "deprecated" in captured.out.lower() or "graph run" in captured.out
