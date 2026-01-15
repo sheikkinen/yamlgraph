@@ -4,8 +4,81 @@ Contains all cmd_* functions for CLI subcommands.
 """
 
 import sys
+from typing import Any
+
+from pydantic import BaseModel
 
 from showcase.cli.validators import validate_run_args
+
+
+# Internal keys to skip when formatting results
+_INTERNAL_KEYS = frozenset(
+    {
+        "_route",
+        "_loop_counts",
+        "thread_id",
+        "current_step",
+        "errors",
+        "topic",
+        "style",
+        "word_count",
+    }
+)
+
+
+def _format_value(value: Any, max_length: int = 200) -> str:
+    """Format a single value for display.
+
+    Args:
+        value: The value to format (str, list, Pydantic model, etc.)
+        max_length: Maximum length before truncation
+
+    Returns:
+        Formatted string representation
+    """
+    if isinstance(value, BaseModel):
+        # Format Pydantic model as key: value pairs
+        lines = []
+        for field_name, field_value in value.model_dump().items():
+            formatted = _format_value(field_value, max_length)
+            lines.append(f"   {field_name}: {formatted}")
+        return "\n" + "\n".join(lines)
+
+    if isinstance(value, list):
+        # Format list items
+        if not value:
+            return "[]"
+        if len(value) <= 3:
+            return str(value)
+        return f"[{len(value)} items]"
+
+    if isinstance(value, str):
+        if len(value) > max_length:
+            return value[:max_length] + "..."
+        return value
+
+    return str(value)
+
+
+def _format_result(result: dict[str, Any]) -> None:
+    """Format and print pipeline result generically.
+
+    Iterates over all non-internal keys in the result dict
+    and prints their values. Works with any Pydantic model.
+
+    Args:
+        result: Pipeline result dict with arbitrary Pydantic models
+    """
+    for key, value in result.items():
+        if key in _INTERNAL_KEYS or value is None:
+            continue
+
+        print(f"\n📝 {key}:")
+        formatted = _format_value(value)
+        if formatted.startswith("\n"):
+            print(formatted)
+        else:
+            print(f"   {formatted}")
 
 
 def cmd_run(args):
@@ -45,20 +118,7 @@ def cmd_run(args):
     print("RESULTS")
     print("=" * 60)
 
-    if generated := result.get("generated"):
-        print(f"\n📝 Generated: {generated.title}")
-        print(f"   {generated.content[:200]}...")
-
-    if analysis := result.get("analysis"):
-        print("\n🔍 Analysis:")
-        print(
-            f"   Sentiment: {analysis.sentiment} (confidence: {analysis.confidence:.2f})"
-        )
-        print(f"   Key points: {len(analysis.key_points)}")
-
-    if summary := result.get("final_summary"):
-        print("\n📊 Summary:")
-        print(f"   {summary[:300]}...")
+    _format_result(result)
 
     # Show LangSmith link
     if is_tracing_enabled():

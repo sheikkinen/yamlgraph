@@ -66,3 +66,57 @@ class TestValidateRunArgs:
         """Word count at maximum should pass validation."""
         args = self._create_args(word_count=MAX_WORD_COUNT)
         assert validate_run_args(args) is True
+
+
+class TestFormatResult:
+    """Tests for generic result formatting."""
+
+    def test_format_result_with_any_pydantic_model(self, capsys):
+        """CLI should format any Pydantic model, not just known ones."""
+        from pydantic import BaseModel
+
+        from showcase.cli.commands import _format_result
+
+        class CustomResult(BaseModel):
+            title: str
+            score: float
+            items: list[str]
+
+        result = {
+            "current_step": "done",
+            "custom": CustomResult(title="Test Title", score=0.95, items=["a", "b"]),
+        }
+
+        _format_result(result)
+        captured = capsys.readouterr()
+        assert "Test Title" in captured.out
+        assert "0.95" in captured.out
+
+    def test_format_result_skips_internal_keys(self, capsys):
+        """Internal keys should be skipped."""
+        from showcase.cli.commands import _format_result
+
+        result = {
+            "current_step": "done",
+            "_route": "positive",
+            "_loop_counts": {"draft": 2},
+            "response": "Hello!",
+        }
+
+        _format_result(result)
+        captured = capsys.readouterr()
+        assert "_route" not in captured.out
+        assert "_loop_counts" not in captured.out
+        assert "Hello!" in captured.out
+
+    def test_format_result_truncates_long_strings(self, capsys):
+        """Long strings should be truncated."""
+        from showcase.cli.commands import _format_result
+
+        long_text = "x" * 500
+        result = {"summary": long_text}
+
+        _format_result(result)
+        captured = capsys.readouterr()
+        assert "..." in captured.out
+        assert len(captured.out) < 400  # Truncated
