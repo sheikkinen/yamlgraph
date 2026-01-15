@@ -14,6 +14,7 @@ from showcase.utils.langsmith import (
     print_run_tree,
 )
 from showcase.utils.logging import get_logger, setup_logging
+from showcase.utils.template import extract_variables, validate_variables
 
 __all__ = [
     # Conditions
@@ -33,4 +34,7 @@ __all__ = [
     # Logging
     "get_logger",
     "setup_logging",
+    # Template utilities
+    "extract_variables",
+    "validate_variables",
 ]

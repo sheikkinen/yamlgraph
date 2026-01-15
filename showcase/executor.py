@@ -21,6 +21,7 @@ from showcase.config import (
     RETRY_MAX_DELAY,
 )
 from showcase.utils.llm_factory import create_llm
+from showcase.utils.template import validate_variables
 
 logger = logging.getLogger(__name__)
 
@@ -241,10 +242,19 @@ class PromptExecutor:
         automatic retry for transient failures.
 
         Provider priority: parameter > YAML metadata > env var > default
+
+        Raises:
+            ValueError: If required template variables are missing
         """
         variables = variables or {}
 
         prompt_config = load_prompt(prompt_name)
+
+        # Validate all required variables are provided (fail fast)
+        full_template = (
+            prompt_config.get("system", "") + prompt_config.get("user", "")
+        )
+        validate_variables(full_template, variables, prompt_name)
 
         # Extract provider from YAML metadata if not provided
         if provider is None and "provider" in prompt_config:
