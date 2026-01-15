@@ -66,6 +66,8 @@ class TestSerializeState:
 
     def test_serialize_preserves_none(self, empty_state):
         """None values should be preserved."""
+        # Add a None field to test serialization
+        empty_state["generated"] = None
         result = _serialize_state(empty_state)
         assert result["generated"] is None
         assert result["error"] is None

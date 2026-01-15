@@ -1,22 +1,15 @@
 """LangGraph State Definitions.
 
 Defines typed state schemas for different graph types.
-Provides specialized states for each demo while maintaining
-backward compatibility via ShowcaseState alias.
+Uses generic Any types for demo-specific outputs, allowing
+any Pydantic model from inline YAML schemas.
 """
 
 from datetime import datetime
-from typing import Annotated, TypedDict
 from operator import add
+from typing import Annotated, Any, TypedDict
 
-from showcase.models.schemas import (
-    Analysis,
-    Critique,
-    DraftContent,
-    GeneratedContent,
-    PipelineError,
-    ToneClassification,
-)
+from showcase.models.schemas import PipelineError
 
 
 # =============================================================================
@@ -47,13 +40,17 @@ class ContentState(BaseState, total=False):
     """State for content generation pipeline.
 
     Used by: graphs/showcase.yaml
+
+    Fields:
+        generated: Output from generate node (typically has title, content, word_count, tags)
+        analysis: Output from analyze node (typically has summary, key_points, sentiment, confidence)
     """
 
     topic: str
     style: str
     word_count: int
-    generated: GeneratedContent | None
-    analysis: Analysis | None
+    generated: Any  # Dynamic Pydantic model from inline schema
+    analysis: Any  # Dynamic Pydantic model from inline schema
     final_summary: str | None
 
 
@@ -61,10 +58,13 @@ class RouterState(BaseState, total=False):
     """State for router demo.
 
     Used by: graphs/router-demo.yaml
+
+    Fields:
+        classification: Output from classify node (typically has tone, confidence, reasoning)
     """
 
     message: str
-    classification: ToneClassification | None
+    classification: Any  # Dynamic Pydantic model from inline schema
     response: str | None
     _route: str | None
 
@@ -73,11 +73,15 @@ class ReflexionState(BaseState, total=False):
     """State for self-correction loops.
 
     Used by: graphs/reflexion-demo.yaml
+
+    Fields:
+        current_draft: Output from draft/refine nodes (typically has content, version)
+        critique: Output from critique node (typically has score, feedback, should_refine)
     """
 
     topic: str
-    current_draft: DraftContent | None
-    critique: Critique | None
+    current_draft: Any  # Dynamic Pydantic model from inline schema
+    critique: Any  # Dynamic Pydantic model from inline schema
     _loop_counts: dict[str, int]
     _loop_limit_reached: bool
 
@@ -94,7 +98,7 @@ class AgentState(BaseState, total=False):
     messages: Annotated[list, add]  # Accumulates across iterations
     response: str | None  # Agent's final response (state_key target)
     analysis: str | None
-    report: object | None  # Flexible for different report types
+    report: Any  # Dynamic Pydantic model from inline schema
     _tool_results: list[dict] | None  # Raw tool outputs
     _agent_iterations: int
     _agent_limit_reached: bool
@@ -114,7 +118,8 @@ def create_initial_state(
     style: str = "informative",
     word_count: int = 300,
     thread_id: str | None = None,
-) -> ShowcaseState:
+    **kwargs: Any,
+) -> dict[str, Any]:
     """Create an initial state for a new pipeline run.
 
     Args:
@@ -122,23 +127,22 @@ def create_initial_state(
         style: Writing style (default: informative)
         word_count: Target word count (default: 300)
         thread_id: Optional thread ID (auto-generated if not provided)
+        **kwargs: Additional state fields
 
     Returns:
-        Initialized ShowcaseState dictionary
+        Initialized state dictionary
     """
     import uuid
 
-    return ShowcaseState(
-        thread_id=thread_id or uuid.uuid4().hex[:16],  # 16 chars for better uniqueness
-        topic=topic,
-        style=style,
-        word_count=word_count,
-        generated=None,
-        analysis=None,
-        final_summary=None,
-        current_step="init",
-        error=None,
-        errors=[],
-        started_at=datetime.now(),
-        completed_at=None,
-    )
+    return {
+        "thread_id": thread_id or uuid.uuid4().hex[:16],
+        "topic": topic,
+        "style": style,
+        "word_count": word_count,
+        "current_step": "init",
+        "error": None,
+        "errors": [],
+        "started_at": datetime.now(),
+        "completed_at": None,
+        **kwargs,
+    }
