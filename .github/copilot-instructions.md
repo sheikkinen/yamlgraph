@@ -9,7 +9,7 @@
 - **SQLite**: State persistence and checkpointing
 - **LangSmith**: Observability and tracing
 
-- Term 'backward compatibility' is a key indicator for a refactoring need in this project. 
+- Term 'backward compatibility' is a key indicator for a refactoring need in this project. Use DeprecationError to mark old APIs while refactoring.
 
 ## Essential Rules
 

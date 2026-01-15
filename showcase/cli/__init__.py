@@ -4,10 +4,10 @@ This package provides the CLI entry point and command implementations.
 
 Usage:
     showcase run --topic "machine learning" --style casual
+    showcase graph run graphs/router-demo.yaml --var message="hello"
+    showcase graph list
     showcase list-runs
     showcase resume --thread-id abc123
-    showcase route "I love this product!"
-    showcase refine --topic "climate change"
     showcase trace --run-id <run-id>
 """
 
@@ -18,8 +18,6 @@ from showcase.cli import commands, validators
 
 # Re-export validators for backward compatibility
 from showcase.cli.validators import (
-    validate_refine_args,
-    validate_route_args,
     validate_run_args,
 )
 
@@ -30,9 +28,7 @@ from showcase.cli.commands import (
     cmd_graph,
     cmd_list_runs,
     cmd_memory_demo,
-    cmd_refine,
     cmd_resume,
-    cmd_route,
     cmd_run,
     cmd_trace,
 )
@@ -43,12 +39,8 @@ __all__ = [
     "validators",
     # Validators
     "validate_run_args",
-    "validate_route_args",
-    "validate_refine_args",
     # Commands
     "cmd_run",
-    "cmd_route",
-    "cmd_refine",
     "cmd_memory_demo",
     "cmd_git_report",
     "cmd_list_runs",
@@ -107,22 +99,6 @@ def create_parser() -> argparse.ArgumentParser:
         "--limit", "-l", type=int, default=10, help="Maximum runs to show"
     )
     list_parser.set_defaults(func=cmd_list_runs)
-
-    # Route command (router demo)
-    route_parser = subparsers.add_parser(
-        "route", help="Run router demo (tone classification)"
-    )
-    route_parser.add_argument("message", help="Message to classify and route")
-    route_parser.set_defaults(func=cmd_route)
-
-    # Refine command (reflexion demo)
-    refine_parser = subparsers.add_parser(
-        "refine", help="Run reflexion demo (self-refinement loop)"
-    )
-    refine_parser.add_argument(
-        "--topic", "-t", required=True, help="Topic to write about"
-    )
-    refine_parser.set_defaults(func=cmd_refine)
 
     # Git-report command (agent demo)
     git_parser = subparsers.add_parser(

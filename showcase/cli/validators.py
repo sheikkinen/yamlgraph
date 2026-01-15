@@ -7,38 +7,6 @@ from showcase.config import MAX_WORD_COUNT, MIN_WORD_COUNT
 from showcase.utils.sanitize import sanitize_topic
 
 
-def validate_route_args(args) -> bool:
-    """Validate route command arguments.
-
-    Args:
-        args: Parsed arguments namespace
-
-    Returns:
-        True if valid, False otherwise (prints error message)
-    """
-    message = args.message.strip() if args.message else ""
-    if not message:
-        print("❌ Message cannot be empty")
-        return False
-    return True
-
-
-def validate_refine_args(args) -> bool:
-    """Validate refine command arguments.
-
-    Args:
-        args: Parsed arguments namespace
-
-    Returns:
-        True if valid, False otherwise (prints error message)
-    """
-    topic = args.topic.strip() if args.topic else ""
-    if not topic:
-        print("❌ Topic cannot be empty")
-        return False
-    return True
-
-
 def validate_run_args(args) -> bool:
     """Validate and sanitize run command arguments.
 

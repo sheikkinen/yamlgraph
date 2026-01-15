@@ -4,6 +4,17 @@ Provides DeprecationError exception and helpers for migrating
 old commands to the universal graph runner.
 
 Term 'backward compatibility' signals refactoring need per project guidelines.
+
+Example:
+    >>> from showcase.cli.deprecation import DeprecationError, deprecated_command
+    >>> 
+    >>> def cmd_old_command(args):
+    ...     # Signal this command needs refactoring
+    ...     deprecated_command("old", "graph run graphs/new.yaml --var x=y")
+    ...
+    >>> # Running raises:
+    >>> # DeprecationError: DEPRECATED: 'old' is deprecated.
+    >>> # Use 'graph run graphs/new.yaml --var x=y' instead.
 """
 
 

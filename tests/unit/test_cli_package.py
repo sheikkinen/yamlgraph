@@ -38,18 +38,6 @@ class TestCLIPackageStructure:
 
         assert callable(validate_run_args)
 
-    def test_validate_route_args_in_validators(self):
-        """validate_route_args should be in validators module."""
-        from showcase.cli.validators import validate_route_args
-
-        assert callable(validate_route_args)
-
-    def test_validate_refine_args_in_validators(self):
-        """validate_refine_args should be in validators module."""
-        from showcase.cli.validators import validate_refine_args
-
-        assert callable(validate_refine_args)
-
     def test_commands_submodule_exists(self):
         """commands submodule should exist."""
         from showcase.cli import commands
@@ -61,18 +49,6 @@ class TestCLIPackageStructure:
         from showcase.cli.commands import cmd_run
 
         assert callable(cmd_run)
-
-    def test_cmd_route_in_commands(self):
-        """cmd_route should be in commands module."""
-        from showcase.cli.commands import cmd_route
-
-        assert callable(cmd_route)
-
-    def test_cmd_refine_in_commands(self):
-        """cmd_refine should be in commands module."""
-        from showcase.cli.commands import cmd_refine
-
-        assert callable(cmd_refine)
 
 
 # =============================================================================
@@ -89,35 +65,11 @@ class TestBackwardCompatibility:
 
         assert callable(validate_run_args)
 
-    def test_validate_route_args_from_cli(self):
-        """validate_route_args should still be importable from showcase.cli."""
-        from showcase.cli import validate_route_args
-
-        assert callable(validate_route_args)
-
-    def test_validate_refine_args_from_cli(self):
-        """validate_refine_args should still be importable from showcase.cli."""
-        from showcase.cli import validate_refine_args
-
-        assert callable(validate_refine_args)
-
     def test_cmd_run_from_cli(self):
         """cmd_run should still be importable from showcase.cli."""
         from showcase.cli import cmd_run
 
         assert callable(cmd_run)
-
-    def test_cmd_route_from_cli(self):
-        """cmd_route should still be importable from showcase.cli."""
-        from showcase.cli import cmd_route
-
-        assert callable(cmd_route)
-
-    def test_cmd_refine_from_cli(self):
-        """cmd_refine should still be importable from showcase.cli."""
-        from showcase.cli import cmd_refine
-
-        assert callable(cmd_refine)
 
 
 # =============================================================================
@@ -136,14 +88,6 @@ class TestValidatorsModule:
             style=style,
         )
 
-    def _create_route_args(self, message="I love this!"):
-        """Helper to create route args namespace."""
-        return argparse.Namespace(message=message)
-
-    def _create_refine_args(self, topic="climate change"):
-        """Helper to create refine args namespace."""
-        return argparse.Namespace(topic=topic)
-
     def test_validate_run_args_valid(self):
         """Valid run args pass validation."""
         from showcase.cli.validators import validate_run_args
@@ -157,31 +101,3 @@ class TestValidatorsModule:
 
         args = self._create_run_args(topic="")
         assert validate_run_args(args) is False
-
-    def test_validate_route_args_valid(self):
-        """Valid route args pass validation."""
-        from showcase.cli.validators import validate_route_args
-
-        args = self._create_route_args()
-        assert validate_route_args(args) is True
-
-    def test_validate_route_args_empty(self):
-        """Empty message fails validation."""
-        from showcase.cli.validators import validate_route_args
-
-        args = self._create_route_args(message="")
-        assert validate_route_args(args) is False
-
-    def test_validate_refine_args_valid(self):
-        """Valid refine args pass validation."""
-        from showcase.cli.validators import validate_refine_args
-
-        args = self._create_refine_args()
-        assert validate_refine_args(args) is True
-
-    def test_validate_refine_args_empty(self):
-        """Empty topic fails validation."""
-        from showcase.cli.validators import validate_refine_args
-
-        args = self._create_refine_args(topic="")
-        assert validate_refine_args(args) is False

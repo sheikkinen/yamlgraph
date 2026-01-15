@@ -5,11 +5,7 @@ Contains all cmd_* functions for CLI subcommands.
 
 import sys
 
-from showcase.cli.validators import (
-    validate_refine_args,
-    validate_route_args,
-    validate_run_args,
-)
+from showcase.cli.validators import validate_run_args
 
 
 def cmd_run(args):
@@ -70,101 +66,6 @@ def cmd_run(args):
             print(f"\n🔗 LangSmith: {url}")
 
     print()
-
-
-def cmd_route(args):
-    """Run the router demo pipeline."""
-    from showcase.cli.deprecation import get_replacement_command, deprecated_command
-
-    if not validate_route_args(args):
-        sys.exit(1)
-
-    # Raise deprecation error with replacement command
-    replacement = get_replacement_command("route", {"message": args.message})
-    deprecated_command("route", replacement)
-
-    from showcase.graph_loader import load_and_compile
-
-    print("\n🔍 Classifying tone...")
-
-    try:
-        graph = load_and_compile("graphs/router-demo.yaml")
-        app = graph.compile()
-
-        result = app.invoke({"message": args.message})
-
-        # Show classification result
-        if classification := result.get("classification"):
-            tone = getattr(classification, "tone", "unknown")
-            confidence = getattr(classification, "confidence", 0.0)
-            print(f"📊 Detected: {tone} (confidence: {confidence:.2f})")
-
-            route = result.get("_route", f"respond_{tone}")
-            print(f"🚀 Routing to: {route}")
-
-        # Show response
-        if response := result.get("response"):
-            print("\n" + "=" * 60)
-            print("RESPONSE")
-            print("=" * 60)
-            print(f"\n{response}\n")
-
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
-
-
-def cmd_refine(args):
-    """Run the reflexion demo pipeline (draft → critique → refine loop)."""
-    from showcase.cli.deprecation import get_replacement_command, deprecated_command
-
-    if not validate_refine_args(args):
-        sys.exit(1)
-
-    # Raise deprecation error with replacement command
-    replacement = get_replacement_command("refine", {"topic": args.topic})
-    deprecated_command("refine", replacement)
-
-    from showcase.graph_loader import load_and_compile
-
-    print("\n📝 Running reflexion pipeline (self-refinement loop)")
-    print(f"   Topic: {args.topic}")
-    print()
-
-    try:
-        graph = load_and_compile("graphs/reflexion-demo.yaml")
-        app = graph.compile()
-
-        result = app.invoke({"topic": args.topic})
-
-        # Show iteration count
-        loop_counts = result.get("_loop_counts", {})
-        iterations = loop_counts.get("critique", 0)
-        limit_reached = result.get("_loop_limit_reached", False)
-
-        print(f"\n🔄 Iterations: {iterations}")
-        if limit_reached:
-            print("⚠️  Loop limit reached (circuit breaker triggered)")
-
-        # Show critique result
-        if critique := result.get("critique"):
-            score = getattr(critique, "score", 0.0)
-            print(f"📊 Final score: {score:.2f}")
-
-        # Show draft result
-        if draft := result.get("current_draft"):
-            version = getattr(draft, "version", 1)
-            content = getattr(draft, "content", "")
-            print(f"📄 Final version: {version}")
-
-            print("\n" + "=" * 60)
-            print("FINAL CONTENT")
-            print("=" * 60)
-            print(f"\n{content}\n")
-
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
 
 
 def cmd_memory_demo(args):
