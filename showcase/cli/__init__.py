@@ -185,16 +185,56 @@ def create_parser() -> argparse.ArgumentParser:
     )
     export_parser.set_defaults(func=cmd_export)
 
-    # Graph command
-    graph_parser = subparsers.add_parser("graph", help="Show pipeline graph (Mermaid)")
-    graph_parser.add_argument(
+    # Graph command group (universal runner)
+    from showcase.cli.graph_commands import cmd_graph_dispatch
+
+    graph_parser = subparsers.add_parser(
+        "graph", help="Universal graph runner and utilities"
+    )
+    graph_subparsers = graph_parser.add_subparsers(
+        dest="graph_command", help="Graph commands"
+    )
+
+    # graph run
+    graph_run_parser = graph_subparsers.add_parser("run", help="Run any graph")
+    graph_run_parser.add_argument("graph_path", help="Path to graph YAML file")
+    graph_run_parser.add_argument(
+        "--var",
+        "-v",
+        action="append",
+        default=[],
+        help="Set state variable (key=value), can repeat",
+    )
+    graph_run_parser.add_argument(
+        "--thread", "-t", type=str, default=None, help="Thread ID for persistence"
+    )
+    graph_run_parser.add_argument(
+        "--export", "-e", action="store_true", help="Export results to files"
+    )
+
+    # graph list
+    graph_subparsers.add_parser("list", help="List available graphs")
+
+    # graph info
+    graph_info_parser = graph_subparsers.add_parser(
+        "info", help="Show graph information"
+    )
+    graph_info_parser.add_argument("graph_path", help="Path to graph YAML file")
+
+    graph_parser.set_defaults(func=cmd_graph_dispatch)
+
+    # Legacy: mermaid graph command (renamed to avoid conflict)
+    mermaid_parser = subparsers.add_parser(
+        "mermaid", help="Show pipeline graph (Mermaid diagram)"
+    )
+    mermaid_parser.add_argument(
         "--type",
         "-t",
         default="main",
         choices=["main", "resume-analyze", "resume-summarize"],
         help="Graph type to show",
     )
-    graph_parser.set_defaults(func=cmd_graph)
+    mermaid_parser.set_defaults(func=cmd_graph)
 
     return parser
 
