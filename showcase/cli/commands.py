@@ -1,83 +1,15 @@
-"""Showcase CLI - Command-line interface for the showcase app.
+"""CLI command implementations.
 
-Demonstrates how to expose LangGraph pipelines via CLI.
-
-Usage:
-    showcase run --topic "machine learning" --style casual
-    showcase list-runs
-    showcase resume --thread-id abc123
-    showcase route "I love this product!"
-    showcase refine --topic "climate change"
-    showcase trace --run-id <run-id>
+Contains all cmd_* functions for CLI subcommands.
 """
 
-import argparse
 import sys
 
-from showcase.config import MAX_WORD_COUNT, MIN_WORD_COUNT
-from showcase.utils.sanitize import sanitize_topic
-
-
-def validate_route_args(args) -> bool:
-    """Validate route command arguments.
-
-    Args:
-        args: Parsed arguments namespace
-
-    Returns:
-        True if valid, False otherwise (prints error message)
-    """
-    message = args.message.strip() if args.message else ""
-    if not message:
-        print("❌ Message cannot be empty")
-        return False
-    return True
-
-
-def validate_refine_args(args) -> bool:
-    """Validate refine command arguments.
-
-    Args:
-        args: Parsed arguments namespace
-
-    Returns:
-        True if valid, False otherwise (prints error message)
-    """
-    topic = args.topic.strip() if args.topic else ""
-    if not topic:
-        print("❌ Topic cannot be empty")
-        return False
-    return True
-
-
-def validate_run_args(args) -> bool:
-    """Validate and sanitize run command arguments.
-
-    Args:
-        args: Parsed arguments namespace
-
-    Returns:
-        True if valid, False otherwise (prints error message)
-    """
-    # Sanitize topic
-    result = sanitize_topic(args.topic)
-    if not result.is_safe:
-        for warning in result.warnings:
-            print(f"❌ {warning}")
-        return False
-
-    # Update args with sanitized value
-    args.topic = result.value
-
-    # Print any warnings (e.g., truncation)
-    for warning in result.warnings:
-        print(f"⚠️  {warning}")
-
-    if args.word_count < MIN_WORD_COUNT or args.word_count > MAX_WORD_COUNT:
-        print(f"❌ Word count must be between {MIN_WORD_COUNT} and {MAX_WORD_COUNT}")
-        return False
-
-    return True
+from showcase.cli.validators import (
+    validate_refine_args,
+    validate_route_args,
+    validate_run_args,
+)
 
 
 def cmd_run(args):
@@ -227,6 +159,7 @@ def cmd_memory_demo(args):
     """Run multi-turn code review assistant with memory."""
     import os
     from uuid import uuid4
+
     from showcase.graph_loader import load_and_compile
     from showcase.storage.export import export_result
 
@@ -286,7 +219,7 @@ def cmd_memory_demo(args):
                 print("📁 No fields to export")
 
         # Create public LangSmith link if tracing is enabled
-        from showcase.utils.langsmith import share_run, is_tracing_enabled
+        from showcase.utils.langsmith import is_tracing_enabled, share_run
 
         if is_tracing_enabled():
             public_url = share_run()
@@ -307,6 +240,7 @@ def cmd_memory_demo(args):
 def cmd_git_report(args):
     """Analyze git repository with AI agent."""
     import os
+
     from showcase.graph_loader import load_and_compile
 
     # Change to repo directory
@@ -502,158 +436,3 @@ def cmd_graph(args):
         print(mermaid)
     except Exception as e:
         print(f"❌ Error generating graph: {e}")
-
-
-def create_parser() -> argparse.ArgumentParser:
-    """Create and configure the CLI argument parser.
-
-    Returns:
-        Configured ArgumentParser for testing and main().
-    """
-    parser = argparse.ArgumentParser(
-        description="Showcase App - LangGraph Pipeline Demo",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Run command
-    run_parser = subparsers.add_parser("run", help="Run the pipeline")
-    run_parser.add_argument(
-        "--topic", "-t", required=True, help="Topic to generate content about"
-    )
-    run_parser.add_argument(
-        "--style",
-        "-s",
-        default="informative",
-        choices=["informative", "casual", "technical"],
-        help="Writing style",
-    )
-    run_parser.add_argument(
-        "--word-count", "-w", type=int, default=300, help="Target word count"
-    )
-    run_parser.add_argument(
-        "--export", "-e", action="store_true", help="Export result to JSON"
-    )
-    run_parser.add_argument(
-        "--thread",
-        type=str,
-        default=None,
-        help="Thread ID for conversation persistence",
-    )
-    run_parser.set_defaults(func=cmd_run)
-
-    # List runs command
-    list_parser = subparsers.add_parser("list-runs", help="List recent runs")
-    list_parser.add_argument(
-        "--limit", "-l", type=int, default=10, help="Maximum runs to show"
-    )
-    list_parser.set_defaults(func=cmd_list_runs)
-
-    # Route command (router demo)
-    route_parser = subparsers.add_parser(
-        "route", help="Run router demo (tone classification)"
-    )
-    route_parser.add_argument("message", help="Message to classify and route")
-    route_parser.set_defaults(func=cmd_route)
-
-    # Refine command (reflexion demo)
-    refine_parser = subparsers.add_parser(
-        "refine", help="Run reflexion demo (self-refinement loop)"
-    )
-    refine_parser.add_argument(
-        "--topic", "-t", required=True, help="Topic to write about"
-    )
-    refine_parser.set_defaults(func=cmd_refine)
-
-    # Git-report command (agent demo)
-    git_parser = subparsers.add_parser(
-        "git-report", help="Analyze git repo with AI agent"
-    )
-    git_parser.add_argument(
-        "--query",
-        "-q",
-        required=True,
-        help="What to analyze (e.g., 'recent changes', 'test activity')",
-    )
-    git_parser.add_argument(
-        "--repo", "-r", default=".", help="Repository path (default: current directory)"
-    )
-    git_parser.set_defaults(func=cmd_git_report)
-
-    # Memory-demo command (multi-turn agent with memory)
-    memory_parser = subparsers.add_parser(
-        "memory-demo", help="Multi-turn code review with memory"
-    )
-    memory_parser.add_argument(
-        "--input", "-i", required=True, help="Query or follow-up question"
-    )
-    memory_parser.add_argument(
-        "--thread",
-        "-t",
-        type=str,
-        default=None,
-        help="Thread ID to continue conversation",
-    )
-    memory_parser.add_argument(
-        "--repo", "-r", default=".", help="Repository path (default: current directory)"
-    )
-    memory_parser.add_argument(
-        "--export", "-e", action="store_true", help="Export results to files"
-    )
-    memory_parser.set_defaults(func=cmd_memory_demo)
-
-    # Resume command
-    resume_parser = subparsers.add_parser("resume", help="Resume a pipeline")
-    resume_parser.add_argument(
-        "--thread-id", "-i", required=True, help="Thread ID to resume"
-    )
-    resume_parser.set_defaults(func=cmd_resume)
-
-    # Trace command
-    trace_parser = subparsers.add_parser("trace", help="Show execution trace")
-    trace_parser.add_argument(
-        "--run-id", "-r", help="Run ID (uses latest if not provided)"
-    )
-    trace_parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Include timing details"
-    )
-    trace_parser.set_defaults(func=cmd_trace)
-
-    # Export command
-    export_parser = subparsers.add_parser("export", help="Export a run to JSON")
-    export_parser.add_argument(
-        "--thread-id", "-i", required=True, help="Thread ID to export"
-    )
-    export_parser.set_defaults(func=cmd_export)
-
-    # Graph command
-    graph_parser = subparsers.add_parser("graph", help="Show pipeline graph (Mermaid)")
-    graph_parser.add_argument(
-        "--type",
-        "-t",
-        default="main",
-        choices=["main", "resume-analyze", "resume-summarize"],
-        help="Graph type to show",
-    )
-    graph_parser.set_defaults(func=cmd_graph)
-
-    return parser
-
-
-def main():
-    """Main CLI entry point."""
-    parser = create_parser()
-    args = parser.parse_args()
-
-    if not args.command:
-        parser.print_help()
-        return
-
-    args.func(args)
-
-
-if __name__ == "__main__":
-    main()
-
-    main()
