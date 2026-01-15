@@ -95,7 +95,7 @@ showcase/
 │   │
 │   ├── models/           # Pydantic models
 │   │   ├── __init__.py
-│   │   ├── schemas.py    # Output schemas (Analysis, GeneratedContent, etc.)
+│   │   ├── schemas.py    # Framework schemas (ErrorType, PipelineError, GenericReport)
 │   │   └── state.py      # LangGraph state definition
 │   │
 │   ├── tools/            # Tool execution
@@ -139,10 +139,10 @@ showcase/
 
 ```mermaid
 graph TD
-    A["📝 generate"] -->|GeneratedContent| B{should_continue}
+    A["📝 generate"] -->|content| B{should_continue}
     B -->|"✓ content exists"| C["🔍 analyze"]
     B -->|"✗ error/empty"| F["🛑 END"]
-    C -->|Analysis| D["📊 summarize"]
+    C -->|analysis| D["📊 summarize"]
     D -->|final_summary| F
     
     style A fill:#e1f5fe
@@ -155,9 +155,11 @@ graph TD
 
 | Node | Output Type | Description |
 |------|-------------|-------------|
-| `generate` | `GeneratedContent` | Title, content, word_count, tags |
-| `analyze` | `Analysis` | Summary, key_points, sentiment, confidence |
+| `generate` | Inline schema | Title, content, word_count, tags |
+| `analyze` | Inline schema | Summary, key_points, sentiment, confidence |
 | `summarize` | `str` | Final combined summary |
+
+Output schemas are defined inline in YAML prompt files using the `schema:` block.
 
 ### Resume Flow
 
@@ -222,12 +224,12 @@ template: |
 
 ```python
 from showcase.executor import execute_prompt
-from showcase.models import GeneratedContent
+from showcase.models import GenericReport
 
 result = execute_prompt(
     "generate",
     variables={"topic": "AI", "word_count": 300},
-    output_model=GeneratedContent,
+    output_model=GenericReport,
 )
 print(result.title)  # Typed access!
 ```
@@ -285,7 +287,11 @@ nodes:
   generate:
     type: llm
     prompt: generate
-    output_model: showcase.models.GeneratedContent
+    output_schema:  # Inline schema - no Python model needed!
+      title: str
+      content: str
+      word_count: int
+      tags: list[str]
     temperature: 0.8
     variables:
       topic: "{state.topic}"
@@ -296,7 +302,11 @@ nodes:
   analyze:
     type: llm
     prompt: analyze
-    output_model: showcase.models.Analysis
+    output_schema:  # Inline schema
+      summary: str
+      key_points: list[str]
+      sentiment: str
+      confidence: float
     temperature: 0.3
     variables:
       content: "{state.generated.content}"
@@ -478,7 +488,9 @@ nodes:
   generate:
     type: prompt
     prompt: generate
-    output_model: showcase.models.GeneratedContent
+    output_schema:  # Inline schema - no Python model needed!
+      title: str
+      content: str
     variables:
       topic: topic
     output_key: generated
@@ -486,7 +498,9 @@ nodes:
   fact_check:  # ✨ New node - just YAML!
     type: prompt
     prompt: fact_check
-    output_model: showcase.models.FactCheck
+    output_schema:  # Define schema inline
+      is_accurate: bool
+      issues: list[str]
     requires: [generated]
     variables:
       content: generated.content
