@@ -6,13 +6,13 @@ Routes customer messages to different response handlers based on detected **emot
 
 ```bash
 # Positive tone
-showcase route "I absolutely love your product!"
+showcase graph run graphs/router-demo.yaml --var message="I absolutely love your product!"
 
 # Negative tone  
-showcase route "This is frustrating, nothing works"
+showcase graph run graphs/router-demo.yaml --var message="This is frustrating, nothing works"
 
 # Neutral tone
-showcase route "What are your business hours?"
+showcase graph run graphs/router-demo.yaml --var message="What are your business hours?"
 ```
 
 ## Flow
@@ -55,7 +55,7 @@ See [graphs/router-demo.yaml](../../graphs/router-demo.yaml)
 ## Example Output
 
 ```
-$ showcase route "I love this product!"
+$ showcase graph run graphs/router-demo.yaml --var message="I love this product!"
 
 🔍 Classifying tone...
 📊 Detected: positive (confidence: 0.95)

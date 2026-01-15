@@ -43,23 +43,27 @@ python -m showcase.cli run --topic "machine learning" --style casual
 # With export
 showcase run -t "climate change" -s informative -w 500 --export
 
-# Router demo - tone-based routing
-showcase route "I love this product!"      # → positive response
-showcase route "This is frustrating"       # → empathetic response
-showcase route "What are your hours?"      # → informative response
+# Universal graph runner - run any YAML graph
+showcase graph run graphs/router-demo.yaml --var message="I love this!"
+showcase graph run graphs/reflexion-demo.yaml --var topic="climate change"
+showcase graph run graphs/git-report.yaml --var input="What changed recently?"
+showcase graph run graphs/memory-demo.yaml --var input="Show me recent commits"
 
-# Reflexion demo - self-refinement loop
-showcase refine --topic "climate change"   # → draft → critique → refine cycle
+# Graph utilities
+showcase graph list                        # List available graphs
+showcase graph info graphs/router-demo.yaml # Show graph structure
+showcase graph validate graphs/*.yaml      # Validate graph schemas
 
 # Git report demo - AI agent with shell tools
 showcase git-report -q "What changed recently?"
 showcase git-report -q "Summarize the test files"
-showcase git-report -q "Which files have the most activity?"
 
 # Memory demo - multi-turn conversation with state persistence
 showcase memory-demo --input "Show me the last 5 commits"
 showcase memory-demo --input "What about test files?" --thread mem-abc123
-showcase memory-demo --input "Summarize your findings" --thread mem-abc123 --export
+
+# Deprecated commands (raise DeprecationError with replacement suggestion)
+# showcase route "hello"  # → DeprecationError: Use 'graph run graphs/router-demo.yaml --var message=hello'
 
 # View recent runs
 showcase list-runs
