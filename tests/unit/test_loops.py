@@ -3,9 +3,9 @@
 TDD tests for expression conditions, loop tracking, and cyclic graphs.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Test: Expression Condition Parsing
@@ -147,11 +147,15 @@ class TestLoopTracking:
     """Tests for loop iteration tracking."""
 
     def test_state_has_loop_counts_field(self):
-        """ShowcaseState should have _loop_counts field."""
-        from showcase.models import ShowcaseState
+        """Dynamic state should have _loop_counts field."""
+        from showcase.models.state_builder import build_state_class
 
-        # TypedDict should allow _loop_counts
-        state: ShowcaseState = {"_loop_counts": {"critique": 2}}
+        State = build_state_class({"nodes": {}})
+        # Should have _loop_counts in annotations
+        assert "_loop_counts" in State.__annotations__
+
+        # And work at runtime
+        state = {"_loop_counts": {"critique": 2}}
         assert state["_loop_counts"]["critique"] == 2
 
     def test_node_increments_loop_counter(self):
@@ -323,7 +327,7 @@ class TestCyclicEdges:
 
 class TestReflexionModels:
     """Tests for DraftContent and Critique-like fixture models.
-    
+
     Note: Demo models were removed from showcase.models in Section 10.
     These tests use fixture models to prove the pattern still works.
     """
@@ -392,7 +396,7 @@ class TestReflexionDemoGraph:
 
     def test_demo_graph_compiles(self):
         """reflexion-demo.yaml compiles to StateGraph."""
-        from showcase.graph_loader import load_graph_config, compile_graph
+        from showcase.graph_loader import compile_graph, load_graph_config
 
         config = load_graph_config("graphs/reflexion-demo.yaml")
         graph = compile_graph(config)

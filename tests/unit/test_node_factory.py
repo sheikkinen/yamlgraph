@@ -3,17 +3,16 @@
 Split from test_graph_loader.py for better organization and file size management.
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from showcase.node_factory import (
     create_node_function,
     resolve_class,
     resolve_template,
 )
-from showcase.models import ShowcaseState
 from tests.conftest import FixtureGeneratedContent
-
 
 # =============================================================================
 # Fixtures
@@ -23,18 +22,18 @@ from tests.conftest import FixtureGeneratedContent
 @pytest.fixture
 def sample_state():
     """Sample pipeline state."""
-    return ShowcaseState(
-        thread_id="test-123",
-        topic="machine learning",
-        style="informative",
-        word_count=300,
-        generated=None,
-        analysis=None,
-        final_summary=None,
-        current_step="init",
-        error=None,
-        errors=[],
-    )
+    return {
+        "thread_id": "test-123",
+        "topic": "machine learning",
+        "style": "informative",
+        "word_count": 300,
+        "generated": None,
+        "analysis": None,
+        "final_summary": None,
+        "current_step": "init",
+        "error": None,
+        "errors": [],
+    }
 
 
 @pytest.fixture
@@ -66,10 +65,13 @@ class TestResolveClass:
         assert hasattr(cls, "model_fields")  # Pydantic model check
 
     def test_resolve_state_class(self):
-        """Import ShowcaseState."""
-        cls = resolve_class("showcase.models.ShowcaseState")
-        # ShowcaseState is a TypedDict, check it exists
+        """Dynamic state class can be built."""
+        from showcase.models.state_builder import build_state_class
+
+        cls = build_state_class({"nodes": {}})
+        # Dynamic state is a TypedDict
         assert cls is not None
+        assert hasattr(cls, "__annotations__")
 
     def test_resolve_invalid_module_raises(self):
         """Invalid module raises ImportError."""

@@ -52,7 +52,7 @@ class TestDeprecatedCommand:
 
     def test_deprecated_command_raises(self):
         """deprecated_command should raise DeprecationError."""
-        from showcase.cli.deprecation import deprecated_command, DeprecationError
+        from showcase.cli.deprecation import DeprecationError, deprecated_command
 
         with pytest.raises(DeprecationError) as exc_info:
             deprecated_command(
@@ -64,7 +64,7 @@ class TestDeprecatedCommand:
 
     def test_deprecated_command_with_mapping(self):
         """deprecated_command should format with variable mapping."""
-        from showcase.cli.deprecation import deprecated_command, DeprecationError
+        from showcase.cli.deprecation import DeprecationError, deprecated_command
 
         with pytest.raises(DeprecationError) as exc_info:
             deprecated_command(

@@ -32,6 +32,7 @@ def build_langchain_tool(name: str, config: ShellToolConfig) -> Callable:
         LangChain-compatible tool function
     """
     import re
+
     from langchain_core.tools import StructuredTool
     from pydantic import Field, create_model
 

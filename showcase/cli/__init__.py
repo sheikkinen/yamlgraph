@@ -15,8 +15,6 @@ import argparse
 
 # Import submodules for package access
 from showcase.cli import commands, validators
-
-# Re-export commands for backward compatibility
 from showcase.cli.commands import (
     cmd_export,
     cmd_graph,
@@ -29,12 +27,6 @@ __all__ = [
     # Submodules
     "commands",
     "validators",
-    # Commands
-    "cmd_list_runs",
-    "cmd_resume",
-    "cmd_trace",
-    "cmd_export",
-    "cmd_graph",
     # Entry points
     "main",
     "create_parser",

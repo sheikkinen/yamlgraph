@@ -3,8 +3,9 @@
 TDD tests for router node type and multi-target conditional edges.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from showcase.graph_loader import (
     GraphConfig,
@@ -13,7 +14,6 @@ from showcase.graph_loader import (
 )
 from showcase.node_factory import create_node_function
 
-
 # =============================================================================
 # Test: ToneClassification Model (Using Test Fixture)
 # =============================================================================
@@ -21,7 +21,7 @@ from showcase.node_factory import create_node_function
 
 class TestToneClassificationModel:
     """Tests for ToneClassification-like model in tests.
-    
+
     Note: Demo models were removed from showcase.models in Section 10.
     These tests use the fixture model to prove the pattern still works.
     """

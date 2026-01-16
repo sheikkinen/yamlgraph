@@ -12,9 +12,8 @@ from unittest.mock import MagicMock
 import pytest
 from pydantic import BaseModel, Field
 
-from showcase.models import ShowcaseState, create_initial_state
+from showcase.models import create_initial_state
 from showcase.storage import ShowcaseDB
-
 
 # =============================================================================
 # Test-Only Pydantic Models (Fixtures)
@@ -103,7 +102,7 @@ def sample_analysis() -> FixtureAnalysis:
 
 
 @pytest.fixture
-def sample_state(sample_generated_content, sample_analysis) -> ShowcaseState:
+def sample_state(sample_generated_content, sample_analysis) -> dict:
     """Complete sample state for testing."""
     state = create_initial_state(
         topic="artificial intelligence",
@@ -119,7 +118,7 @@ def sample_state(sample_generated_content, sample_analysis) -> ShowcaseState:
 
 
 @pytest.fixture
-def empty_state() -> ShowcaseState:
+def empty_state() -> dict:
     """Initial empty state for testing."""
     return create_initial_state(
         topic="test topic",

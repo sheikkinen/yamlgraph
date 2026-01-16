@@ -1,7 +1,7 @@
 """Showcase package - LangGraph pipeline demonstration.
 
 Framework for building LLM pipelines with YAML configuration.
-Demo-specific output schemas are defined inline in graph YAML files.
+State is now generated dynamically from graph config.
 """
 
 from showcase.builder import build_resume_graph, build_showcase_graph, run_pipeline
@@ -10,7 +10,7 @@ from showcase.models import (
     ErrorType,
     GenericReport,
     PipelineError,
-    ShowcaseState,
+    build_state_class,
     create_initial_state,
 )
 from showcase.storage import ShowcaseDB
@@ -27,8 +27,8 @@ __all__ = [
     "ErrorType",
     "PipelineError",
     "GenericReport",
-    # State
-    "ShowcaseState",
+    # Dynamic state
+    "build_state_class",
     "create_initial_state",
     # Storage
     "ShowcaseDB",

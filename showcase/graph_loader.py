@@ -7,16 +7,20 @@ and compile them into LangGraph StateGraph instances.
 import logging
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import yaml
 from langgraph.graph import END, StateGraph
 
-from showcase.models import ShowcaseState
+from showcase.models.state_builder import build_state_class
 from showcase.node_factory import create_node_function, resolve_class
 from showcase.tools.agent import create_agent_node
 from showcase.tools.nodes import create_tool_node
 from showcase.tools.shell import parse_tools
 from showcase.utils.conditions import evaluate_condition
+
+# Type alias for dynamic state
+GraphState = dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +105,10 @@ class GraphConfig:
         self.nodes = config.get("nodes", {})
         self.edges = config.get("edges", [])
         self.tools = config.get("tools", {})
-        self.state_class = config.get("state_class", "showcase.models.ShowcaseState")
+        self.state_class = config.get("state_class", "")
         self.loop_limits = config.get("loop_limits", {})
+        # Store raw config for dynamic state building
+        self.raw_config = config
 
 
 def load_graph_config(path: str | Path) -> GraphConfig:
@@ -128,7 +134,7 @@ def load_graph_config(path: str | Path) -> GraphConfig:
     return GraphConfig(config)
 
 
-def _should_continue(state: ShowcaseState) -> str:
+def _should_continue(state: GraphState) -> str:
     """Default routing condition: continue or end.
 
     Args:
@@ -153,8 +159,20 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     Returns:
         StateGraph ready for compilation
     """
-    # Get state class
-    state_class = resolve_class(config.state_class)
+    # Build state class dynamically from config
+    # If state_class is explicitly set, use it (with deprecation warning)
+    if config.state_class and config.state_class != "showcase.models.GraphState":
+        import warnings
+        warnings.warn(
+            f"state_class '{config.state_class}' is deprecated. "
+            "State is now auto-generated from graph config.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        state_class = resolve_class(config.state_class)
+    else:
+        # Dynamic state generation - no YAML coupling!
+        state_class = build_state_class(config.raw_config)
     graph = StateGraph(state_class)
 
     # Parse tools if present
@@ -229,7 +247,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     # Add router conditional edges
     for source_node, target_nodes in router_edges.items():
         # Create routing function that reads _route from state
-        # NOTE: Use `state: dict` not `state: ShowcaseState` - type hints cause
+        # NOTE: Use `state: dict` not `state: GraphState` - type hints cause
         # LangGraph to filter state fields. See docs/debug-router-type-hints.md
         def make_router_fn(targets: list[str]) -> Callable:
             def router_fn(state: dict) -> str:
@@ -259,7 +277,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
         def make_expr_router_fn(edges: list[tuple[str, str]]) -> Callable:
             """Create router that evaluates expression conditions."""
 
-            def expr_router_fn(state: ShowcaseState) -> str:
+            def expr_router_fn(state: GraphState) -> str:
                 # Check loop limit first
                 if state.get("_loop_limit_reached"):
                     return END

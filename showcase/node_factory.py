@@ -11,12 +11,15 @@ import logging
 from typing import Any, Callable
 
 from showcase.executor import execute_prompt
-from showcase.models import ErrorType, PipelineError, ShowcaseState
+from showcase.models import ErrorType, PipelineError
+
+# Type alias for dynamic state
+GraphState = dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
 
-def resolve_template(template: str, state: ShowcaseState) -> Any:
+def resolve_template(template: str, state: GraphState) -> Any:
     """Resolve a template string to a value from state.
 
     Args:
@@ -146,7 +149,7 @@ def create_node_function(
     node_name: str,
     node_config: dict,
     defaults: dict,
-) -> Callable[[ShowcaseState], dict]:
+) -> Callable[[GraphState], dict]:
     """Create a node function from YAML config.
 
     Args:

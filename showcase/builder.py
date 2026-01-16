@@ -33,7 +33,10 @@ from langgraph.graph import StateGraph
 
 from showcase.config import DEFAULT_GRAPH
 from showcase.graph_loader import load_and_compile
-from showcase.models import create_initial_state, ShowcaseState
+from showcase.models import create_initial_state
+
+# Type alias for dynamic state
+GraphState = dict[str, Any]
 
 
 def build_graph(
@@ -102,7 +105,7 @@ def run_pipeline(
     style: str = "informative",
     word_count: int = 300,
     graph_path: Path | str | None = None,
-) -> ShowcaseState:
+) -> GraphState:
     """Run the complete pipeline with given inputs.
 
     Args:

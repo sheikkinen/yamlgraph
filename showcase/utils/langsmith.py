@@ -314,7 +314,7 @@ def get_graph_mermaid(graph_type: str = "main") -> str:
     Returns:
         Mermaid diagram string
     """
-    from showcase.builder import build_showcase_graph, build_resume_graph
+    from showcase.builder import build_resume_graph, build_showcase_graph
 
     if graph_type == "main":
         graph = build_showcase_graph().compile()
@@ -353,7 +353,7 @@ def export_graph_png(
     Returns:
         Path to created file or None if failed
     """
-    from showcase.builder import build_showcase_graph, build_resume_graph
+    from showcase.builder import build_resume_graph, build_showcase_graph
 
     if graph_type == "main":
         graph = build_showcase_graph().compile()

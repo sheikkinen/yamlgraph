@@ -2,9 +2,9 @@
 
 from unittest.mock import patch
 
-from tests.conftest import FixtureAnalysis, FixtureGeneratedContent
 from showcase.builder import build_resume_graph
 from showcase.models import create_initial_state
+from tests.conftest import FixtureAnalysis, FixtureGeneratedContent
 
 
 class TestResumeFromAnalyze:

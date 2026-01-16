@@ -13,8 +13,10 @@ from collections.abc import Callable
 from typing import Any
 
 from showcase.models.schemas import ErrorType, PipelineError
-from showcase.models.state import ShowcaseState
 from showcase.tools.shell import ShellToolConfig, execute_shell_tool
+
+# Type alias for state - dynamic TypedDict at runtime
+GraphState = dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +75,7 @@ def create_tool_node(
     node_name: str,
     node_config: dict[str, Any],
     tools: dict[str, ShellToolConfig],
-) -> Callable[[ShowcaseState], dict]:
+) -> Callable[[GraphState], dict]:
     """Create a node that executes a shell tool.
 
     Args:
@@ -93,7 +95,7 @@ def create_tool_node(
     on_error = node_config.get("on_error", "fail")
     variables_template = node_config.get("variables", {})
 
-    def node_fn(state: ShowcaseState) -> dict:
+    def node_fn(state: GraphState) -> dict:
         """Execute the shell tool and return state update."""
         # Resolve variables from state
         variables = resolve_variables(variables_template, state)

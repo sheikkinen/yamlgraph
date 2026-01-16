@@ -9,8 +9,6 @@ version: "1.0"                    # Schema version
 name: my-pipeline                  # Graph identifier
 description: What this graph does  # Human-readable description
 
-state_class: showcase.models.ShowcaseState  # State TypedDict class
-
 defaults:                          # Default values for all nodes
   provider: mistral
   temperature: 0.7
@@ -68,17 +66,25 @@ Human-readable description of what the graph does.
 description: Content generation pipeline (generate → analyze → summarize)
 ```
 
-### `state_class`
+### `state_class` (Deprecated)
 **Type:** `string` (Python class path)  
-**Default:** `"showcase.models.ShowcaseState"`
+**Default:** Auto-generated from graph configuration
 
-Fully qualified path to the state TypedDict class.
+> ⚠️ **Deprecated:** State is now automatically generated from the graph configuration. You no longer need to specify `state_class`.
+
+The state TypedDict is built dynamically based on:
+- Node `output_key` and `state_key` fields
+- Node types (agent → adds `input`, `messages`; router → adds `_route`)
+- Common input fields (`topic`, `style`, `word_count`, `message`, `input`)
+- Infrastructure fields (`errors`, `thread_id`, `current_step`, etc.)
 
 ```yaml
-# Built-in state classes
-state_class: showcase.models.ShowcaseState    # Default with common fields
-state_class: showcase.models.RouterState      # For router demos
-state_class: showcase.models.state.AgentState # For agents with messages
+# No state_class needed - state is auto-generated!
+name: my-pipeline
+nodes:
+  generate:
+    prompt: generate
+    state_key: generated  # ← This field is auto-added to state
 ```
 
 ### `defaults`

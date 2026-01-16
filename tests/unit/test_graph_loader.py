@@ -6,17 +6,17 @@ Note: Node factory tests (resolve_class, resolve_template, create_node_function)
 have been moved to test_node_factory.py for better organization.
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from showcase.graph_loader import (
     GraphConfig,
-    load_graph_config,
     compile_graph,
     load_and_compile,
+    load_graph_config,
 )
 from tests.conftest import FixtureGeneratedContent
-
 
 # =============================================================================
 # Fixtures
@@ -30,8 +30,6 @@ def sample_yaml_content():
 version: "1.0"
 name: test_graph
 description: Test pipeline
-
-state_class: showcase.models.ShowcaseState
 
 defaults:
   provider: mistral
@@ -113,8 +111,8 @@ class TestLoadGraphConfig:
         assert sample_config.defaults["temperature"] == 0.7
 
     def test_parse_state_class(self, sample_config):
-        """State class path parsed."""
-        assert sample_config.state_class == "showcase.models.ShowcaseState"
+        """State class defaults to empty (dynamic generation)."""
+        assert sample_config.state_class == ""
 
 
 # =============================================================================

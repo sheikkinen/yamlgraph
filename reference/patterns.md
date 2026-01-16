@@ -489,7 +489,7 @@ Maintain conversation history across interactions.
 version: "1.0"
 name: memory-pattern
 
-state_class: showcase.models.state.AgentState   # Has messages list
+# State auto-generated with messages reducer for agent
 
 nodes:
   chat:

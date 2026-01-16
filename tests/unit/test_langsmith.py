@@ -10,16 +10,14 @@ Tests for:
 import os
 from unittest.mock import MagicMock, patch
 
-
 from showcase.utils.langsmith import (
     get_client,
+    get_latest_run_id,
     get_project_name,
     is_tracing_enabled,
-    share_run,
     read_run_shared_link,
-    get_latest_run_id,
+    share_run,
 )
-
 
 # =============================================================================
 # is_tracing_enabled() tests

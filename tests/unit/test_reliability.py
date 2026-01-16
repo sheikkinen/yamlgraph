@@ -3,13 +3,13 @@
 TDD tests for on_error behaviors and fallback provider chains.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from showcase.graph_loader import GraphConfig
-from showcase.node_factory import create_node_function
 from showcase.models import PipelineError
-
+from showcase.node_factory import create_node_function
 
 # =============================================================================
 # Test: on_error Configuration Parsing

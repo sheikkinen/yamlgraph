@@ -10,7 +10,6 @@ from pydantic import BaseModel
 
 from showcase.cli.validators import validate_run_args
 
-
 # Internal keys to skip when formatting results
 _INTERNAL_KEYS = frozenset(
     {

@@ -9,12 +9,13 @@ Create your first pipeline in 5 minutes. Start here if you're new.
 
 ### [Graph YAML Reference](graph-yaml.md)
 Complete reference for graph configuration files (`graphs/*.yaml`):
-- Top-level properties (version, name, state_class)
+- Top-level properties (version, name, defaults)
 - Node types (llm, router, agent)
 - Edge definitions and conditions
 - Tools for agents
 - Error handling
 - Loop limits
+- Dynamic state generation
 
 ### [Prompt YAML Reference](prompt-yaml.md)
 Complete reference for prompt template files (`prompts/*.yaml`):

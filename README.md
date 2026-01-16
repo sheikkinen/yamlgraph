@@ -280,8 +280,6 @@ version: "1.0"
 name: showcase
 description: Content generation pipeline
 
-state_class: showcase.models.ShowcaseState
-
 defaults:
   provider: mistral
   temperature: 0.7

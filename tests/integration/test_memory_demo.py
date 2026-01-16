@@ -2,7 +2,7 @@
 
 Tests the memory features from Section 6 working together:
 - Checkpointer for state persistence
-- Message accumulation in AgentState
+- Message accumulation via dynamic state (Annotated reducers)
 - Tool results storage
 - Result export
 """
@@ -69,9 +69,10 @@ class TestCheckpointerIntegration:
 
     def test_build_graph_accepts_checkpointer(self):
         """build_graph accepts optional checkpointer parameter."""
+        import tempfile
+
         from showcase.builder import build_graph
         from showcase.storage.checkpointer import get_checkpointer
-        import tempfile
 
         with tempfile.NamedTemporaryFile(suffix=".db") as f:
             checkpointer = get_checkpointer(f.name)
@@ -81,9 +82,10 @@ class TestCheckpointerIntegration:
 
     def test_graph_with_checkpointer_accepts_thread_id(self):
         """Graph with checkpointer can be invoked with thread_id."""
+        import tempfile
+
         from showcase.builder import build_graph
         from showcase.storage.checkpointer import get_checkpointer
-        import tempfile
 
         with tempfile.NamedTemporaryFile(suffix=".db") as f:
             checkpointer = get_checkpointer(f.name)

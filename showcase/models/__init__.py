@@ -1,7 +1,7 @@
 """Pydantic models and state definitions.
 
 Framework models for error handling and generic reports.
-Demo-specific output schemas are defined inline in graph YAML files.
+State is now generated dynamically by state_builder.py.
 """
 
 from showcase.models.schemas import (
@@ -9,11 +9,8 @@ from showcase.models.schemas import (
     GenericReport,
     PipelineError,
 )
-from showcase.models.state import (
-    AgentState,
-    ReflexionState,
-    RouterState,
-    ShowcaseState,
+from showcase.models.state_builder import (
+    build_state_class,
     create_initial_state,
 )
 
@@ -22,10 +19,7 @@ __all__ = [
     "ErrorType",
     "PipelineError",
     "GenericReport",
-    # States
-    "ShowcaseState",
-    "RouterState",
-    "ReflexionState",
-    "AgentState",
+    # Dynamic state generation
+    "build_state_class",
     "create_initial_state",
 ]

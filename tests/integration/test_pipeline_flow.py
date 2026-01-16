@@ -2,8 +2,8 @@
 
 from unittest.mock import patch
 
+from showcase.builder import build_resume_graph, build_showcase_graph, run_pipeline
 from tests.conftest import FixtureAnalysis, FixtureGeneratedContent
-from showcase.builder import build_showcase_graph, build_resume_graph, run_pipeline
 
 
 class TestBuildShowcaseGraph:

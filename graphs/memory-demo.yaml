@@ -1,9 +1,6 @@
 name: memory_demo
 description: Multi-turn code review assistant with memory
 
-# Use AgentState which has messages with add reducer
-state_class: showcase.models.state.AgentState
-
 tools:
   git_log:
     command: git log --oneline -n {count}

@@ -3,14 +3,14 @@
 These tests verify the fixes for issues documented in docs/open-issues.md.
 """
 
-import pytest
 from unittest.mock import patch
 
-from tests.conftest import FixtureAnalysis, FixtureGeneratedContent
-from showcase.builder import build_resume_graph
-from showcase.graph_loader import load_graph_config, _should_continue
-from showcase.models import create_initial_state
+import pytest
 
+from showcase.builder import build_resume_graph
+from showcase.graph_loader import _should_continue, load_graph_config
+from showcase.models import create_initial_state
+from tests.conftest import FixtureAnalysis, FixtureGeneratedContent
 
 # =============================================================================
 # Issue 1: Resume Logic - FIXED: skip_if_exists behavior
@@ -147,7 +147,6 @@ class TestEntryPointHack:
         yaml_content = """
 version: "1.0"
 name: test
-state_class: showcase.models.ShowcaseState
 nodes:
   first:
     type: llm

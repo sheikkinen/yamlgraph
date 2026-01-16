@@ -21,7 +21,6 @@ from typing import Any
 import yaml
 from pydantic import Field, create_model
 
-
 # =============================================================================
 # Type Resolution
 # =============================================================================

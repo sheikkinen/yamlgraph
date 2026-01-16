@@ -49,7 +49,7 @@ class ShowcaseDB:
                 )
             """)
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_thread_id 
+                CREATE INDEX IF NOT EXISTS idx_thread_id
                 ON pipeline_runs(thread_id)
             """)
             conn.commit()
@@ -76,7 +76,7 @@ class ShowcaseDB:
 
             if existing:
                 conn.execute(
-                    """UPDATE pipeline_runs 
+                    """UPDATE pipeline_runs
                        SET updated_at = ?, status = ?, state_json = ?
                        WHERE thread_id = ?""",
                     (now, status, state_json, thread_id),
@@ -84,7 +84,7 @@ class ShowcaseDB:
                 return existing["id"]
             else:
                 cursor = conn.execute(
-                    """INSERT INTO pipeline_runs 
+                    """INSERT INTO pipeline_runs
                        (thread_id, created_at, updated_at, status, state_json)
                        VALUES (?, ?, ?, ?, ?)""",
                     (thread_id, now, now, status, state_json),
@@ -120,7 +120,7 @@ class ShowcaseDB:
         """
         with self._get_connection() as conn:
             row = conn.execute(
-                """SELECT id, thread_id, created_at, updated_at, status 
+                """SELECT id, thread_id, created_at, updated_at, status
                    FROM pipeline_runs WHERE thread_id = ?""",
                 (thread_id,),
             ).fetchone()
@@ -140,9 +140,9 @@ class ShowcaseDB:
         """
         with self._get_connection() as conn:
             rows = conn.execute(
-                """SELECT id, thread_id, created_at, updated_at, status 
-                   FROM pipeline_runs 
-                   ORDER BY updated_at DESC 
+                """SELECT id, thread_id, created_at, updated_at, status
+                   FROM pipeline_runs
+                   ORDER BY updated_at DESC
                    LIMIT ?""",
                 (limit,),
             ).fetchall()

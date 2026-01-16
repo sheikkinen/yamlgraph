@@ -2,8 +2,8 @@
 
 import json
 
+from showcase.storage.export import _serialize_state, export_state
 from tests.conftest import FixtureGeneratedContent
-from showcase.storage.export import export_state, _serialize_state
 
 
 class TestExportState:
@@ -78,6 +78,7 @@ class TestExportSummaryGeneric:
     def test_export_summary_with_any_pydantic_model(self):
         """export_summary should work with any Pydantic model, not just demo-specific ones."""
         from pydantic import BaseModel
+
         from showcase.storage.export import export_summary
 
         class CustomModel(BaseModel):
@@ -99,6 +100,7 @@ class TestExportSummaryGeneric:
     def test_export_summary_extracts_scalar_fields(self):
         """export_summary should extract key scalar fields from any model."""
         from pydantic import BaseModel
+
         from showcase.storage.export import export_summary
 
         class ReportContent(BaseModel):
@@ -124,6 +126,7 @@ class TestExportSummaryGeneric:
         """export_summary should not import demo-specific model types."""
         import ast
         import inspect
+
         from showcase.storage import export
 
         source = inspect.getsource(export)

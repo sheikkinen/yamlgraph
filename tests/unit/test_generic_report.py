@@ -137,8 +137,9 @@ class TestGenericReportSchema:
 
     def test_model_serializes_to_json(self):
         """Report serializes to JSON string."""
-        from showcase.models.schemas import GenericReport
         import json
+
+        from showcase.models.schemas import GenericReport
 
         report = GenericReport(title="Test", summary="Summary")
 

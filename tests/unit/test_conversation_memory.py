@@ -250,16 +250,18 @@ class TestMultiTurnConversation:
         assert len(messages) >= 2, "Should return messages for accumulation"
 
     def test_agent_state_message_reducer_works(self):
-        """AgentState's Annotated[list, add] should accumulate messages."""
-        from showcase.models.state import AgentState
-        from typing import get_type_hints
+        """Dynamic state's Annotated[list, add] should accumulate messages."""
         from operator import add as add_op
+        from typing import get_type_hints
 
-        hints = get_type_hints(AgentState, include_extras=True)
+        from showcase.models.state_builder import build_state_class
+
+        State = build_state_class({"nodes": {"agent": {"type": "agent"}}})
+        hints = get_type_hints(State, include_extras=True)
 
         # Check messages field has reducer annotation
         messages_hint = hints.get("messages")
-        assert messages_hint is not None, "AgentState should have messages field"
+        assert messages_hint is not None, "State should have messages field"
 
         # The Annotated type should have add as metadata
         if hasattr(messages_hint, "__metadata__"):

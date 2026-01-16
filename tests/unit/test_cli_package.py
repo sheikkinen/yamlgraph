@@ -5,7 +5,6 @@ TDD tests for splitting cli.py into a cli/ package.
 
 import argparse
 
-
 # =============================================================================
 # Package Structure Tests
 # =============================================================================
@@ -49,27 +48,6 @@ class TestCLIPackageStructure:
         from showcase.cli.commands import cmd_list_runs
 
         assert callable(cmd_list_runs)
-
-
-# =============================================================================
-# Backward Compatibility Tests
-# =============================================================================
-
-
-class TestBackwardCompatibility:
-    """Ensure old imports still work."""
-
-    def test_cmd_list_runs_from_cli(self):
-        """cmd_list_runs should still be importable from showcase.cli."""
-        from showcase.cli import cmd_list_runs
-
-        assert callable(cmd_list_runs)
-
-    def test_cmd_resume_from_cli(self):
-        """cmd_resume should still be importable from showcase.cli."""
-        from showcase.cli import cmd_resume
-
-        assert callable(cmd_resume)
 
 
 # =============================================================================

@@ -6,9 +6,8 @@ in a loop until it has enough information to respond.
 
 from unittest.mock import MagicMock, patch
 
-
+from showcase.tools.agent import build_langchain_tool, create_agent_node
 from showcase.tools.shell import ShellToolConfig
-from showcase.tools.agent import create_agent_node, build_langchain_tool
 
 
 class TestBuildLangchainTool:

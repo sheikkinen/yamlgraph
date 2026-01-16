@@ -5,8 +5,6 @@ version: "1.0"
 name: reflexion-demo
 description: Self-improving essay with critique loop
 
-state_class: showcase.models.ShowcaseState
-
 defaults:
   provider: mistral
   temperature: 0.7
