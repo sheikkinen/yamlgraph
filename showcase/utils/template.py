@@ -9,6 +9,7 @@ Supports both simple {variable} placeholders and Jinja2 templates.
 
 import logging
 import re
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ def extract_variables(template: str) -> set[str]:
 
 def validate_variables(
     template: str,
-    provided: dict,
+    provided: dict[str, Any],
     prompt_name: str,
 ) -> None:
     """Validate that all required template variables are provided.

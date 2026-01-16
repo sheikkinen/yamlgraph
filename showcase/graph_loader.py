@@ -25,7 +25,62 @@ GraphState = dict[str, Any]
 logger = logging.getLogger(__name__)
 
 
-def _validate_config(config: dict) -> None:
+def _validate_required_sections(config: dict[str, Any]) -> None:
+    """Validate required top-level sections exist."""
+    if not config.get("nodes"):
+        raise ValueError("Graph config missing required 'nodes' section")
+    if not config.get("edges"):
+        raise ValueError("Graph config missing required 'edges' section")
+
+
+def _validate_node_prompt(node_name: str, node_config: dict[str, Any]) -> None:
+    """Validate node has required prompt if applicable."""
+    node_type = node_config.get("type", "llm")
+    if node_type in ("llm", "router") and not node_config.get("prompt"):
+        raise ValueError(f"Node '{node_name}' missing required 'prompt' field")
+
+
+def _validate_router_node(
+    node_name: str, node_config: dict[str, Any], all_nodes: dict[str, Any]
+) -> None:
+    """Validate router node has routes pointing to valid nodes."""
+    if node_config.get("type") != "router":
+        return
+
+    if not node_config.get("routes"):
+        raise ValueError(
+            f"Router node '{node_name}' missing required 'routes' field"
+        )
+
+    for route_key, target_node in node_config["routes"].items():
+        if target_node not in all_nodes:
+            raise ValueError(
+                f"Router node '{node_name}' route '{route_key}' points to "
+                f"nonexistent node '{target_node}'"
+            )
+
+
+def _validate_edges(edges: list[dict[str, Any]]) -> None:
+    """Validate each edge has required from/to fields."""
+    for i, edge in enumerate(edges):
+        if "from" not in edge:
+            raise ValueError(f"Edge {i} missing required 'from' field")
+        if "to" not in edge:
+            raise ValueError(f"Edge {i} missing required 'to' field")
+
+
+def _validate_on_error(node_name: str, node_config: dict[str, Any]) -> None:
+    """Validate on_error value is valid."""
+    valid_on_error = {"skip", "retry", "fail", "fallback"}
+    on_error = node_config.get("on_error")
+    if on_error and on_error not in valid_on_error:
+        raise ValueError(
+            f"Node '{node_name}' has invalid on_error value '{on_error}'. "
+            f"Valid values: {', '.join(valid_on_error)}"
+        )
+
+
+def _validate_config(config: dict[str, Any]) -> None:
     """Validate YAML configuration structure.
 
     Args:
@@ -34,53 +89,15 @@ def _validate_config(config: dict) -> None:
     Raises:
         ValueError: If required fields are missing or invalid
     """
-    # Check required top-level keys
-    if not config.get("nodes"):
-        raise ValueError("Graph config missing required 'nodes' section")
-
-    if not config.get("edges"):
-        raise ValueError("Graph config missing required 'edges' section")
+    _validate_required_sections(config)
 
     nodes = config["nodes"]
-
-    # Validate each node
     for node_name, node_config in nodes.items():
-        node_type = node_config.get("type", "llm")
-        # Only LLM and router nodes require prompt
-        if node_type in ("llm", "router") and not node_config.get("prompt"):
-            raise ValueError(f"Node '{node_name}' missing required 'prompt' field")
+        _validate_node_prompt(node_name, node_config)
+        _validate_router_node(node_name, node_config, nodes)
+        _validate_on_error(node_name, node_config)
 
-        # Validate router nodes
-        if node_config.get("type") == "router":
-            if not node_config.get("routes"):
-                raise ValueError(
-                    f"Router node '{node_name}' missing required 'routes' field"
-                )
-
-            # Validate route targets exist
-            for route_key, target_node in node_config["routes"].items():
-                if target_node not in nodes:
-                    raise ValueError(
-                        f"Router node '{node_name}' route '{route_key}' points to "
-                        f"nonexistent node '{target_node}'"
-                    )
-
-    # Validate each edge
-    for i, edge in enumerate(config["edges"]):
-        if "from" not in edge:
-            raise ValueError(f"Edge {i} missing required 'from' field")
-        if "to" not in edge:
-            raise ValueError(f"Edge {i} missing required 'to' field")
-
-    # Validate on_error values
-    valid_on_error = {"skip", "retry", "fail", "fallback"}
-    for node_name, node_config in nodes.items():
-        on_error = node_config.get("on_error")
-        if on_error and on_error not in valid_on_error:
-            raise ValueError(
-                f"Node '{node_name}' has invalid on_error value '{on_error}'. "
-                f"Valid values: {', '.join(valid_on_error)}"
-            )
+    _validate_edges(config["edges"])
 
 
 class GraphConfig:

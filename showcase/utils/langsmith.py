@@ -8,13 +8,14 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from showcase.config import PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 
 
-def get_client():
+def get_client() -> Any | None:
     """Get a LangSmith client if available.
 
     Returns:
@@ -141,7 +142,7 @@ def read_run_shared_link(run_id: str) -> str | None:
         return None
 
 
-def print_run_tree(run_id: str | None = None, verbose: bool = False):
+def print_run_tree(run_id: str | None = None, verbose: bool = False) -> None:
     """Print an execution tree for a run.
 
     Args:
@@ -250,7 +251,7 @@ def log_execution(
     inputs: dict | None = None,
     outputs: dict | None = None,
     log_dir: str | Path | None = None,
-):
+) -> None:
     """Log execution details to a file.
 
     Args:
@@ -328,7 +329,7 @@ def get_graph_mermaid(graph_type: str = "main") -> str:
     return graph.get_graph().draw_mermaid()
 
 
-def print_graph_mermaid(graph_type: str = "main"):
+def print_graph_mermaid(graph_type: str = "main") -> None:
     """Print Mermaid diagram for a pipeline graph.
 
     Args:

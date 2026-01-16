@@ -7,7 +7,7 @@ name = "langgraph-showcase"
 version = "0.1.0"
 description = "A minimal showcase of LangGraph pipeline patterns"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 license = {text = "MIT"}
 dependencies = [
     "langchain-anthropic>=0.3.0",

@@ -124,13 +124,8 @@ def create_agent_node(
 
     def node_fn(state: dict) -> dict:
         """Execute the agent loop."""
-        # Load prompts
-        try:
-            system_prompt, user_template = _load_prompt(prompt_name)
-        except FileNotFoundError:
-            # Fallback for testing
-            system_prompt = "You are a helpful assistant with access to tools."
-            user_template = "{input}"
+        # Load prompts - fail fast if missing
+        system_prompt, user_template = _load_prompt(prompt_name)
 
         # Format user prompt with state - handle missing keys
         import re

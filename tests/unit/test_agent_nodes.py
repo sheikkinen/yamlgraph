@@ -61,7 +61,7 @@ class TestCreateAgentNode:
             "search": ShellToolConfig(command="echo search", description="Search"),
         }
         node_config = {
-            "prompt": "agent_prompt",
+            "prompt": "agent",
             "tools": ["search"],
             "max_iterations": 5,
             "state_key": "result",
@@ -99,7 +99,7 @@ class TestCreateAgentNode:
             "echo": ShellToolConfig(command="echo {message}", description="Echo"),
         }
         node_config = {
-            "prompt": "agent_prompt",
+            "prompt": "agent",
             "tools": ["echo"],
             "max_iterations": 5,
             "state_key": "result",
@@ -129,7 +129,7 @@ class TestCreateAgentNode:
             "search": ShellToolConfig(command="echo searching", description="Search"),
         }
         node_config = {
-            "prompt": "agent_prompt",
+            "prompt": "agent",
             "tools": ["search"],
             "max_iterations": 3,
             "state_key": "result",
@@ -170,7 +170,7 @@ class TestCreateAgentNode:
             ),
         }
         node_config = {
-            "prompt": "agent_prompt",
+            "prompt": "agent",
             "tools": ["calc"],
             "max_iterations": 5,
             "state_key": "answer",
@@ -190,7 +190,7 @@ class TestCreateAgentNode:
             "test": ShellToolConfig(command="echo test", description="Test"),
         }
         node_config = {
-            "prompt": "agent_prompt",
+            "prompt": "agent",
             "tools": ["test"],
             # No max_iterations specified
         }

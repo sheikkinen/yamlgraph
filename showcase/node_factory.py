@@ -109,7 +109,7 @@ def resolve_prompt_path(prompt_name: str, prompts_dir: str | None = None) -> str
 
 
 def get_output_model_for_node(
-    node_config: dict, prompts_dir: str | None = None
+    node_config: dict[str, Any], prompts_dir: str | None = None
 ) -> type | None:
     """Get output model for a node, checking inline schema if no explicit model.
 

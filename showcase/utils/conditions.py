@@ -83,7 +83,7 @@ def parse_literal(value_str: str) -> Any:
 
 
 def evaluate_comparison(
-    left_path: str, operator: str, right_str: str, state: dict
+    left_path: str, operator: str, right_str: str, state: dict[str, Any]
 ) -> bool:
     """Evaluate a single comparison expression.
 
