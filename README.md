@@ -31,42 +31,29 @@ cp .env.sample .env
 # Edit .env with your ANTHROPIC_API_KEY
 ```
 
-### 2. Run the Pipeline
+### 2. Run a Pipeline
 
 ```bash
-# Using the CLI command (after pip install -e .)
-showcase run --topic "machine learning" --style casual
-
-# Or using python -m
-python -m showcase.cli run --topic "machine learning" --style casual
-
-# With export
-showcase run -t "climate change" -s informative -w 500 --export
-
-# Universal graph runner - run any YAML graph
+# Run any YAML graph with the universal graph runner
+showcase graph run graphs/showcase.yaml --var topic="AI" --var style=casual
 showcase graph run graphs/router-demo.yaml --var message="I love this!"
 showcase graph run graphs/reflexion-demo.yaml --var topic="climate change"
 showcase graph run graphs/git-report.yaml --var input="What changed recently?"
 showcase graph run graphs/memory-demo.yaml --var input="Show me recent commits"
 
 # Graph utilities
-showcase graph list                        # List available graphs
+showcase graph list                         # List available graphs
 showcase graph info graphs/router-demo.yaml # Show graph structure
-showcase graph validate graphs/*.yaml      # Validate graph schemas
+showcase graph validate graphs/*.yaml       # Validate graph schemas
 
-# Deprecated commands (raise DeprecationError with replacement suggestion)
-# showcase route "hello"       → Use: showcase graph run graphs/router-demo.yaml --var message=hello
-# showcase git-report -q "..." → Use: showcase graph run graphs/git-report.yaml --var input="..."
-# showcase memory-demo -i "..." → Use: showcase graph run graphs/memory-demo.yaml --var input="..."
+# State management
+showcase list-runs                          # View recent runs
+showcase resume --thread-id abc123          # Resume a run
+showcase export --thread-id abc123          # Export run to JSON
 
-# View recent runs
-showcase list-runs
-
-# Resume a run
-showcase resume --thread-id abc123
-
-# View execution trace (requires LangSmith)
-showcase trace --verbose
+# Observability (requires LangSmith)
+showcase trace --verbose                    # View execution trace
+showcase mermaid                            # Show pipeline as Mermaid diagram
 ```
 
 ## Documentation

@@ -3,7 +3,7 @@
 This package provides the CLI entry point and command implementations.
 
 Usage:
-    showcase run --topic "machine learning" --style casual
+    showcase graph run graphs/showcase.yaml --var topic="AI" --var style=casual
     showcase graph run graphs/router-demo.yaml --var message="hello"
     showcase graph list
     showcase list-runs
@@ -16,18 +16,12 @@ import argparse
 # Import submodules for package access
 from showcase.cli import commands, validators
 
-# Re-export validators for backward compatibility
-from showcase.cli.validators import (
-    validate_run_args,
-)
-
 # Re-export commands for backward compatibility
 from showcase.cli.commands import (
     cmd_export,
     cmd_graph,
     cmd_list_runs,
     cmd_resume,
-    cmd_run,
     cmd_trace,
 )
 
@@ -35,10 +29,7 @@ __all__ = [
     # Submodules
     "commands",
     "validators",
-    # Validators
-    "validate_run_args",
     # Commands
-    "cmd_run",
     "cmd_list_runs",
     "cmd_resume",
     "cmd_trace",
@@ -62,32 +53,6 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Run command
-    run_parser = subparsers.add_parser("run", help="Run the pipeline")
-    run_parser.add_argument(
-        "--topic", "-t", required=True, help="Topic to generate content about"
-    )
-    run_parser.add_argument(
-        "--style",
-        "-s",
-        default="informative",
-        choices=["informative", "casual", "technical"],
-        help="Writing style",
-    )
-    run_parser.add_argument(
-        "--word-count", "-w", type=int, default=300, help="Target word count"
-    )
-    run_parser.add_argument(
-        "--export", "-e", action="store_true", help="Export result to JSON"
-    )
-    run_parser.add_argument(
-        "--thread",
-        type=str,
-        default=None,
-        help="Thread ID for conversation persistence",
-    )
-    run_parser.set_defaults(func=cmd_run)
 
     # List runs command
     list_parser = subparsers.add_parser("list-runs", help="List recent runs")

@@ -98,41 +98,41 @@ class TestCheckpointerIntegration:
 class TestCLIThreadFlag:
     """Tests for CLI --thread flag."""
 
-    def test_cli_has_thread_argument(self):
-        """CLI accepts --thread argument."""
+    def test_graph_run_cli_has_thread_argument(self):
+        """Graph run CLI accepts --thread argument."""
         from showcase.cli import create_parser
 
         parser = create_parser()
         # Parse with thread flag
-        args = parser.parse_args(["run", "--topic", "test", "--thread", "abc123"])
+        args = parser.parse_args(["graph", "run", "graphs/showcase.yaml", "--thread", "abc123"])
         assert args.thread == "abc123"
 
-    def test_thread_defaults_to_none(self):
+    def test_graph_run_thread_defaults_to_none(self):
         """Thread defaults to None when not specified."""
         from showcase.cli import create_parser
 
         parser = create_parser()
-        args = parser.parse_args(["run", "--topic", "test"])
+        args = parser.parse_args(["graph", "run", "graphs/showcase.yaml"])
         assert args.thread is None
 
 
 class TestCLIExportFlag:
     """Tests for CLI --export flag."""
 
-    def test_cli_has_export_argument(self):
-        """CLI accepts --export flag."""
+    def test_graph_run_cli_has_export_argument(self):
+        """Graph run CLI accepts --export flag."""
         from showcase.cli import create_parser
 
         parser = create_parser()
-        args = parser.parse_args(["run", "--topic", "test", "--export"])
+        args = parser.parse_args(["graph", "run", "graphs/showcase.yaml", "--export"])
         assert args.export is True
 
-    def test_export_defaults_to_false(self):
+    def test_graph_run_export_defaults_to_false(self):
         """Export defaults to False when not specified."""
         from showcase.cli import create_parser
 
         parser = create_parser()
-        args = parser.parse_args(["run", "--topic", "test"])
+        args = parser.parse_args(["graph", "run", "graphs/showcase.yaml"])
         assert args.export is False
 
 

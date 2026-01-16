@@ -3,7 +3,7 @@
 import argparse
 
 
-from showcase.cli import validate_run_args
+from showcase.cli.validators import validate_run_args
 from showcase.config import MAX_TOPIC_LENGTH, MIN_WORD_COUNT, MAX_WORD_COUNT
 
 

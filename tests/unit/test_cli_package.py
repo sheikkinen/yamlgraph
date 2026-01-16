@@ -44,11 +44,11 @@ class TestCLIPackageStructure:
 
         assert commands is not None
 
-    def test_cmd_run_in_commands(self):
-        """cmd_run should be in commands module."""
-        from showcase.cli.commands import cmd_run
+    def test_cmd_list_runs_in_commands(self):
+        """cmd_list_runs should be in commands module."""
+        from showcase.cli.commands import cmd_list_runs
 
-        assert callable(cmd_run)
+        assert callable(cmd_list_runs)
 
 
 # =============================================================================
@@ -59,17 +59,17 @@ class TestCLIPackageStructure:
 class TestBackwardCompatibility:
     """Ensure old imports still work."""
 
-    def test_validate_run_args_from_cli(self):
-        """validate_run_args should still be importable from showcase.cli."""
-        from showcase.cli import validate_run_args
+    def test_cmd_list_runs_from_cli(self):
+        """cmd_list_runs should still be importable from showcase.cli."""
+        from showcase.cli import cmd_list_runs
 
-        assert callable(validate_run_args)
+        assert callable(cmd_list_runs)
 
-    def test_cmd_run_from_cli(self):
-        """cmd_run should still be importable from showcase.cli."""
-        from showcase.cli import cmd_run
+    def test_cmd_resume_from_cli(self):
+        """cmd_resume should still be importable from showcase.cli."""
+        from showcase.cli import cmd_resume
 
-        assert callable(cmd_run)
+        assert callable(cmd_resume)
 
 
 # =============================================================================
