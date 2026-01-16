@@ -69,6 +69,15 @@ showcase resume --thread-id abc123
 showcase trace --verbose
 ```
 
+## Documentation
+
+See the [reference/](reference/) folder for comprehensive YAML configuration guides:
+
+- [Quick Start](reference/quickstart.md) - Create your first pipeline in 5 minutes
+- [Graph YAML Reference](reference/graph-yaml.md) - All graph configuration options
+- [Prompt YAML Reference](reference/prompt-yaml.md) - Schema and template syntax
+- [Common Patterns](reference/patterns.md) - Router, loops, agents, and more
+
 ## Architecture
 
 ```
@@ -125,6 +134,13 @@ showcase/
 │       ├── respond_positive.yaml
 │       ├── respond_negative.yaml
 │       └── respond_neutral.yaml
+│
+├── reference/            # YAML configuration reference docs
+│   ├── README.md         # Overview and key concepts
+│   ├── quickstart.md     # 5-minute getting started guide
+│   ├── graph-yaml.md     # Graph YAML reference
+│   ├── prompt-yaml.md    # Prompt YAML reference
+│   └── patterns.md       # Common patterns and examples
 │
 ├── tests/                # Test suite
 │   ├── conftest.py       # Shared fixtures
@@ -615,18 +631,16 @@ This project demonstrates solid production patterns with declarative YAML-based 
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Parallel Nodes | ❌ | No concurrent execution of independent nodes |
+| Fan-out/Fan-in | 📋 | Planned: `type: fanout` with `Send()` for item-level parallelism |
 | Human-in-the-Loop | ❌ | No `interrupt_before` / `interrupt_after` demonstration |
 | Streaming | ❌ | No streaming output support |
 | Sub-graphs | ❌ | No nested graph composition |
-| Async Nodes | ❌ | Everything is synchronous |
 
 ### Potential Enhancements
 
-1. **Add parallel nodes** - Run `sentiment_analysis` and `topic_extraction` concurrently
-2. **Use LangGraph's checkpointer** - Replace custom DB with native persistence
-3. **Add streaming** - `--stream` CLI flag for real-time output
-4. **JSON Schema validation** - Validate `graphs/*.yaml` against schema
+1. **Dynamic fan-out** - Process lists in parallel: `[doc1, doc2, doc3]` → spawn workers → aggregate results
+2. **Add streaming** - `--stream` CLI flag for real-time output
+3. **JSON Schema validation** - Validate `graphs/*.yaml` against schema
 
 ## License
 

@@ -1,0 +1,488 @@
+# Graph YAML Reference
+
+This document explains all configuration options for graph YAML files in the `graphs/` directory.
+
+## File Structure
+
+```yaml
+version: "1.0"                    # Schema version
+name: my-pipeline                  # Graph identifier
+description: What this graph does  # Human-readable description
+
+state_class: showcase.models.ShowcaseState  # State TypedDict class
+
+defaults:                          # Default values for all nodes
+  provider: mistral
+  temperature: 0.7
+
+tools:                             # Optional: Tool definitions for agents
+  tool_name: { ... }
+
+nodes:                             # Required: Node definitions
+  node_name: { ... }
+
+edges:                             # Required: Edge definitions
+  - from: START
+    to: node_name
+
+loop_limits:                       # Optional: Max iterations per node
+  node_name: 3
+
+exports:                           # Optional: Export configuration
+  state_key:
+    format: markdown
+    filename: output.md
+```
+
+---
+
+## Top-Level Properties
+
+### `version`
+**Type:** `string`  
+**Default:** `"1.0"`
+
+Schema version for the YAML format.
+
+```yaml
+version: "1.0"
+```
+
+### `name`
+**Type:** `string`  
+**Default:** `"unnamed"`
+
+Identifier for the graph, used in logging and display.
+
+```yaml
+name: content-pipeline
+```
+
+### `description`
+**Type:** `string`  
+**Default:** `""`
+
+Human-readable description of what the graph does.
+
+```yaml
+description: Content generation pipeline (generate → analyze → summarize)
+```
+
+### `state_class`
+**Type:** `string` (Python class path)  
+**Default:** `"showcase.models.ShowcaseState"`
+
+Fully qualified path to the state TypedDict class.
+
+```yaml
+# Built-in state classes
+state_class: showcase.models.ShowcaseState    # Default with common fields
+state_class: showcase.models.RouterState      # For router demos
+state_class: showcase.models.state.AgentState # For agents with messages
+```
+
+### `defaults`
+**Type:** `object`
+
+Default configuration applied to all nodes unless overridden.
+
+```yaml
+defaults:
+  provider: mistral       # Default LLM provider
+  temperature: 0.7        # Default temperature
+```
+
+---
+
+## Node Definition
+
+Each node in the `nodes` section defines a processing step.
+
+### Common Node Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `type` | `string` | `"llm"` | Node type: `llm`, `router`, `agent`, `tool` |
+| `prompt` | `string` | required | Prompt file path (without `.yaml`) |
+| `variables` | `object` | `{}` | Template variable mappings |
+| `state_key` | `string` | node name | State key to store result |
+| `requires` | `list[str]` | `[]` | Required state keys before execution |
+| `temperature` | `float` | from defaults | LLM temperature |
+| `provider` | `string` | from defaults | LLM provider |
+| `skip_if_exists` | `bool` | `true` | Skip if output already in state |
+
+### `type: llm` - Standard LLM Node
+
+Basic LLM execution with structured output.
+
+```yaml
+nodes:
+  generate:
+    type: llm
+    prompt: generate                 # prompts/generate.yaml
+    temperature: 0.8
+    variables:
+      topic: "{state.topic}"
+      word_count: "{state.word_count}"
+    state_key: generated
+    requires: []                     # No dependencies
+```
+
+### `type: router` - Conditional Routing
+
+Routes to different nodes based on LLM classification.
+
+```yaml
+nodes:
+  classify:
+    type: router
+    prompt: router-demo/classify_tone
+    routes:                          # Maps classification → node
+      positive: respond_positive
+      negative: respond_negative
+      neutral: respond_neutral
+    default_route: respond_neutral   # Fallback if no match
+    variables:
+      message: "{state.message}"
+    state_key: classification
+```
+
+**Required properties for routers:**
+- `routes`: Map of classification values to target nodes
+- Prompt must return an object with `tone`, `intent`, or similar field
+
+### `type: agent` - Tool-Using Agent
+
+Agent with access to tools for multi-step reasoning.
+
+```yaml
+nodes:
+  analyze:
+    type: agent
+    prompt: git_analyst
+    tools: [recent_commits, commit_details]  # Tools from graph's tools section
+    max_iterations: 8                         # Max tool calls
+    state_key: analysis
+```
+
+**Agent-specific properties:**
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `tools` | `list[str]` | `[]` | Tool names from graph's `tools` section |
+| `max_iterations` | `int` | `5` | Maximum tool invocations |
+| `tool_results_key` | `string` | - | State key for tool execution logs |
+
+### Error Handling Properties
+
+All node types support error handling:
+
+```yaml
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+    on_error: fallback               # skip | retry | fail | fallback
+    max_retries: 3                   # For retry mode
+    fallback:
+      provider: anthropic            # Fallback provider for fallback mode
+```
+
+| `on_error` Value | Behavior |
+|------------------|----------|
+| `skip` | Log warning, continue without output |
+| `retry` | Retry up to `max_retries` times |
+| `fail` | Raise exception, halt pipeline |
+| `fallback` | Try `fallback.provider` on failure |
+
+---
+
+## Variable Templates
+
+The `variables` section maps prompt variables to state values.
+
+### Syntax
+
+```yaml
+variables:
+  simple: "{state.field}"              # Direct field access
+  nested: "{state.obj.attr}"           # Nested object access
+  loop: "{state._loop_counts.node}"    # Access loop counter
+```
+
+### Resolution
+
+Templates are resolved at runtime by `node_factory.resolve_template()`:
+
+1. `{state.field}` → `state.get("field")`
+2. `{state.obj.attr}` → `state.get("obj").attr`
+3. Lists are joined with `, ` for simple template placeholders
+
+---
+
+## Edge Definition
+
+Edges define the flow between nodes.
+
+### Linear Edge
+
+Simple node-to-node connection:
+
+```yaml
+edges:
+  - from: generate
+    to: analyze
+```
+
+### Entry Point
+
+Start the graph at a node:
+
+```yaml
+edges:
+  - from: START
+    to: generate
+```
+
+### Terminal Edge
+
+End the graph after a node:
+
+```yaml
+edges:
+  - from: summarize
+    to: END
+```
+
+### Conditional Edge (Router)
+
+For router nodes, specify multiple targets:
+
+```yaml
+edges:
+  - from: classify
+    to: [respond_positive, respond_negative, respond_neutral]
+    type: conditional
+```
+
+### Expression-Based Conditions
+
+Route based on state values:
+
+```yaml
+edges:
+  - from: critique
+    to: refine
+    condition: critique.score < 0.8    # Go to refine if low score
+
+  - from: critique
+    to: END
+    condition: critique.score >= 0.8   # End if high score
+```
+
+**Supported operators:** `<`, `<=`, `>`, `>=`, `==`, `!=`
+
+### Legacy Continue/End Conditions
+
+Simple binary routing (for backward compatibility):
+
+```yaml
+edges:
+  - from: generate
+    to: analyze
+    condition: continue
+
+  - from: generate
+    to: END
+    condition: end
+```
+
+---
+
+## Tools Definition
+
+Define tools for agent nodes in the `tools` section.
+
+### Shell Tool
+
+Execute shell commands:
+
+```yaml
+tools:
+  recent_commits:
+    type: shell                       # Optional, defaults to shell
+    command: git log --oneline -n {count}
+    description: "List recent commits"
+    parse: text                       # Output format: text | json
+```
+
+**Parameterized commands:**
+- Use `{param_name}` placeholders in commands
+- Agent provides parameter values at runtime
+
+### Example Tools
+
+```yaml
+tools:
+  commit_details:
+    command: git show --stat {commit_hash}
+    description: "Show details of a specific commit by hash"
+    parse: text
+    
+  line_count:
+    command: wc -l {file} | awk '{print $1}'
+    description: "Count lines in a file"
+    parse: text
+```
+
+---
+
+## Loop Limits
+
+Prevent infinite loops in self-correction patterns:
+
+```yaml
+loop_limits:
+  critique: 3     # Node 'critique' runs at most 3 times
+```
+
+**Note:** Use with `skip_if_exists: false` on loop nodes.
+
+---
+
+## Exports
+
+Configure automatic result export:
+
+```yaml
+exports:
+  response:
+    format: markdown
+    filename: review.md
+    
+  _tool_results:
+    format: json
+    filename: tool_outputs.json
+```
+
+**Supported formats:** `markdown`, `json`, `text`
+
+---
+
+## Complete Examples
+
+### Linear Pipeline
+
+```yaml
+version: "1.0"
+name: showcase
+
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+    variables:
+      topic: "{state.topic}"
+    state_key: generated
+
+  analyze:
+    type: llm
+    prompt: analyze
+    variables:
+      content: "{state.generated.content}"
+    state_key: analysis
+    requires: [generated]
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: analyze
+  - from: analyze
+    to: END
+```
+
+### Self-Correction Loop
+
+```yaml
+version: "1.0"
+name: reflexion-demo
+
+nodes:
+  draft:
+    type: llm
+    prompt: reflexion-demo/draft
+    state_key: current_draft
+
+  critique:
+    type: llm
+    prompt: reflexion-demo/critique
+    variables:
+      content: "{state.current_draft.content}"
+      iteration: "{state._loop_counts.critique}"
+    state_key: critique
+    skip_if_exists: false           # Re-run each iteration
+
+  refine:
+    type: llm
+    prompt: reflexion-demo/refine
+    variables:
+      content: "{state.current_draft.content}"
+      feedback: "{state.critique.feedback}"
+    state_key: current_draft
+    skip_if_exists: false
+
+edges:
+  - from: START
+    to: draft
+  - from: draft
+    to: critique
+  - from: critique
+    to: refine
+    condition: critique.score < 0.8
+  - from: critique
+    to: END
+    condition: critique.score >= 0.8
+  - from: refine
+    to: critique
+
+loop_limits:
+  critique: 3
+```
+
+### Router Pattern
+
+```yaml
+version: "1.0"
+name: router-demo
+
+nodes:
+  classify:
+    type: router
+    prompt: router-demo/classify_tone
+    routes:
+      positive: respond_positive
+      negative: respond_negative
+      neutral: respond_neutral
+    default_route: respond_neutral
+    variables:
+      message: "{state.message}"
+
+  respond_positive:
+    type: llm
+    prompt: router-demo/respond_positive
+    variables:
+      message: "{state.message}"
+    state_key: response
+
+  # ... other response nodes
+
+edges:
+  - from: START
+    to: classify
+  - from: classify
+    to: [respond_positive, respond_negative, respond_neutral]
+    type: conditional
+  - from: respond_positive
+    to: END
+```
