@@ -3,6 +3,7 @@
 Supports multiple models:
 - z-image: Fast, good for realistic/photographic (default)
 - hidream: Better for cartoons, illustrations, stylized art
+- p-image-edit: Image-to-image editing for character consistency
 """
 
 from __future__ import annotations
@@ -132,6 +133,72 @@ def generate_image(
 
     except Exception as e:
         logger.error(f"Image generation failed: {e}")
+        return ImageResult(success=False, error=str(e))
+
+
+def edit_image(
+    input_image: str | Path,
+    prompt: str,
+    output_path: str | Path,
+    aspect_ratio: str = "16:9",
+    turbo: bool = True,
+) -> ImageResult:
+    """Edit an image using Replicate p-image-edit model.
+
+    Uses the input image as base and applies the prompt as modifications.
+    Great for maintaining character consistency across panels.
+
+    Args:
+        input_image: Path to the source image
+        prompt: Edit instructions (what to change/add)
+        output_path: Path to save the edited image
+        aspect_ratio: Output aspect ratio (default 16:9)
+        turbo: Use turbo mode for faster generation
+
+    Returns:
+        ImageResult with success status and path or error
+    """
+    if not REPLICATE_AVAILABLE:
+        return ImageResult(success=False, error="replicate package not installed")
+
+    api_token = os.environ.get("REPLICATE_API_TOKEN")
+    if not api_token:
+        return ImageResult(
+            success=False, error="REPLICATE_API_TOKEN not set in environment"
+        )
+
+    input_image = Path(input_image)
+    if not input_image.exists():
+        return ImageResult(success=False, error=f"Input image not found: {input_image}")
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        logger.info(f"✏️ Editing image: {prompt[:50]}...")
+
+        client = replicate.Client(api_token=api_token)
+
+        with open(input_image, "rb") as f:
+            output = client.run(
+                "prunaai/p-image-edit",
+                input={
+                    "turbo": turbo,
+                    "images": [f],
+                    "prompt": prompt,
+                    "aspect_ratio": aspect_ratio,
+                },
+            )
+
+        # Save the output
+        with open(output_path, "wb") as out:
+            out.write(output.read())
+
+        logger.info(f"✓ Edited image saved: {output_path}")
+        return ImageResult(success=True, path=str(output_path))
+
+    except Exception as e:
+        logger.error(f"Image editing failed: {e}")
         return ImageResult(success=False, error=str(e))
 
 

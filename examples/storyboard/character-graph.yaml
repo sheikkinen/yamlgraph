@@ -1,0 +1,49 @@
+# Character-Consistent Storyboard Graph
+# Generates a character image first, then uses image-to-image editing for panels
+#
+# Usage:
+#   showcase graph run examples/storyboard/character-graph.yaml \
+#     --var concept="A detective solving a mystery"
+#
+#   # With HiDream (cartoon style):
+#   showcase graph run examples/storyboard/character-graph.yaml \
+#     --var concept="A robot learning emotions" \
+#     --var model="hidream"
+
+name: character-storyboard
+version: "1.0"
+description: Character-consistent storyboard using image-to-image editing
+
+# Declare input state fields
+state:
+  concept: str
+  model: str
+
+# Python tools for image generation
+tools:
+  generate_character_storyboard:
+    type: python
+    module: examples.storyboard.nodes.character_node
+    function: generate_character_storyboard
+    description: Generate character image then use img2img for panels
+
+nodes:
+  expand_story:
+    type: llm
+    prompt: examples/storyboard/expand_character_story
+    state_key: story
+    variables:
+      concept: "{state.concept}"
+      model: "{state.model}"
+
+  generate_images:
+    type: python
+    tool: generate_character_storyboard
+
+edges:
+  - from: START
+    to: expand_story
+  - from: expand_story
+    to: generate_images
+  - from: generate_images
+    to: END
