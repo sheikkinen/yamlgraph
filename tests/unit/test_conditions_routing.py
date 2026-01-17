@@ -2,6 +2,9 @@
 
 Tests the expression evaluation and routing functions used for
 graph edge conditions.
+
+Note: resolve_value tests are in test_expressions.py (TestResolveStatePath)
+since resolve_value delegates to resolve_state_path.
 """
 
 import pytest
@@ -12,48 +15,7 @@ from showcase.utils.conditions import (
     evaluate_comparison,
     evaluate_condition,
     parse_literal,
-    resolve_value,
 )
-
-
-class TestResolveValue:
-    """Tests for resolve_value function."""
-
-    def test_simple_key(self):
-        """Should resolve simple key."""
-        state = {"score": 0.8}
-        assert resolve_value("score", state) == 0.8
-
-    def test_nested_dict_path(self):
-        """Should resolve nested dict path."""
-        state = {"critique": {"score": 0.9}}
-        assert resolve_value("critique.score", state) == 0.9
-
-    def test_missing_key_returns_none(self):
-        """Should return None for missing key."""
-        state = {"a": 1}
-        assert resolve_value("b", state) is None
-
-    def test_missing_nested_returns_none(self):
-        """Should return None for missing nested path."""
-        state = {"a": {"b": 1}}
-        assert resolve_value("a.c", state) is None
-
-    def test_pydantic_model_attribute(self):
-        """Should resolve Pydantic model attribute."""
-
-        class Critique(BaseModel):
-            score: float
-            feedback: str
-
-        state = {"critique": Critique(score=0.75, feedback="Good")}
-        assert resolve_value("critique.score", state) == 0.75
-        assert resolve_value("critique.feedback", state) == "Good"
-
-    def test_deeply_nested_path(self):
-        """Should resolve deeply nested path."""
-        state = {"a": {"b": {"c": {"d": 42}}}}
-        assert resolve_value("a.b.c.d", state) == 42
 
 
 class TestParseLiteral:
