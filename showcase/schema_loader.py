@@ -35,7 +35,7 @@ TYPE_MAP: dict[str, type] = {
 }
 
 
-def resolve_type(type_str: str) -> type:
+def resolve_type(type_str: str, field_name: str | None = None) -> type:
     """Resolve a type string to a Python type.
 
     Supports:
@@ -44,6 +44,7 @@ def resolve_type(type_str: str) -> type:
 
     Args:
         type_str: Type string like "str", "list[str]", "dict[str, Any]"
+        field_name: Optional field name for better error messages
 
     Returns:
         Python type annotation
@@ -58,17 +59,23 @@ def resolve_type(type_str: str) -> type:
     # Handle list[T] pattern
     list_match = re.match(r"list\[(\w+)\]", type_str)
     if list_match:
-        inner_type = resolve_type(list_match.group(1))
+        inner_type = resolve_type(list_match.group(1), field_name)
         return list[inner_type]
 
     # Handle dict[K, V] pattern
     dict_match = re.match(r"dict\[(\w+),\s*(\w+)\]", type_str)
     if dict_match:
-        key_type = resolve_type(dict_match.group(1))
-        value_type = resolve_type(dict_match.group(2))
+        key_type = resolve_type(dict_match.group(1), field_name)
+        value_type = resolve_type(dict_match.group(2), field_name)
         return dict[key_type, value_type]
 
-    raise ValueError(f"Unknown type: {type_str}")
+    # Provide helpful error with supported types
+    supported = ", ".join(TYPE_MAP.keys())
+    context = f" for field '{field_name}'" if field_name else ""
+    raise ValueError(
+        f"Unknown type: '{type_str}'{context}. "
+        f"Supported types: {supported}, list[T], dict[K, V]"
+    )
 
 
 # =============================================================================
@@ -97,8 +104,8 @@ def build_pydantic_model(schema: dict) -> type:
     field_definitions = {}
 
     for field_name, field_def in schema["fields"].items():
-        # Resolve the type
-        field_type = resolve_type(field_def["type"])
+        # Resolve the type - pass field_name for better error messages
+        field_type = resolve_type(field_def["type"], field_name)
 
         # Handle optional fields
         is_optional = field_def.get("optional", False)

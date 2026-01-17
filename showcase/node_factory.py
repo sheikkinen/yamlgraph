@@ -11,8 +11,16 @@ import logging
 from typing import Any, Callable
 
 from showcase.constants import ErrorHandler, NodeType
+from showcase.error_handlers import (
+    check_loop_limit,
+    check_requirements,
+    handle_default,
+    handle_fail,
+    handle_fallback,
+    handle_retry,
+    handle_skip,
+)
 from showcase.executor import execute_prompt
-from showcase.models import ErrorType, PipelineError
 from showcase.utils.expressions import resolve_template
 
 # Type alias for dynamic state
@@ -175,8 +183,7 @@ def create_node_function(
         current_count = loop_counts.get(node_name, 0)
 
         # Check loop limit
-        if loop_limit is not None and current_count >= loop_limit:
-            logger.warning(f"Node {node_name} hit loop limit ({loop_limit})")
+        if check_loop_limit(node_name, loop_limit, current_count):
             return {"_loop_limit_reached": True, "current_step": node_name}
 
         loop_counts[node_name] = current_count + 1
@@ -187,19 +194,12 @@ def create_node_function(
             return {"current_step": node_name, "_loop_counts": loop_counts}
 
         # Check requirements
-        for req in requires:
-            if state.get(req) is None:
-                error = PipelineError(
-                    type=ErrorType.STATE_ERROR,
-                    message=f"Missing required state: {req}",
-                    node=node_name,
-                    retryable=False,
-                )
-                return {
-                    "error": error,
-                    "current_step": node_name,
-                    "_loop_counts": loop_counts,
-                }
+        if error := check_requirements(requires, state, node_name):
+            return {
+                "errors": [error],
+                "current_step": node_name,
+                "_loop_counts": loop_counts,
+            }
 
         # Resolve variables
         variables = {}
@@ -246,64 +246,33 @@ def create_node_function(
                 logger.info(f"Router {node_name} routing to: {update['_route']}")
             return update
 
-        # Error handling
+        # Error handling - dispatch to strategy handlers
         if on_error == ErrorHandler.SKIP:
-            logger.warning(f"Node {node_name} failed, skipping: {error}")
+            handle_skip(node_name, error, loop_counts)
             return {"current_step": node_name, "_loop_counts": loop_counts}
 
         elif on_error == ErrorHandler.FAIL:
-            logger.error(f"Node {node_name} failed (on_error=fail): {error}")
-            raise error
+            handle_fail(node_name, error)
 
         elif on_error == ErrorHandler.RETRY:
-            last_exception: Exception | None = None
-            for attempt in range(1, max_retries):
-                logger.info(f"Node {node_name} retry {attempt}/{max_retries - 1}")
-                result, error = attempt_execute(provider)
-                if error is None:
-                    return {
-                        state_key: result,
-                        "current_step": node_name,
-                        "_loop_counts": loop_counts,
-                    }
-                last_exception = error
-            logger.error(f"Node {node_name} failed after {max_retries} attempts")
-            pipeline_error = PipelineError.from_exception(
-                last_exception or Exception("Unknown error"), node=node_name
+            result = handle_retry(
+                node_name,
+                lambda: attempt_execute(provider),
+                max_retries,
             )
-            return {
-                "error": pipeline_error,
-                "current_step": node_name,
-                "_loop_counts": loop_counts,
-            }
+            return result.to_state_update(state_key, node_name, loop_counts)
 
         elif on_error == ErrorHandler.FALLBACK and fallback_provider:
-            logger.info(f"Node {node_name} trying fallback: {fallback_provider}")
-            result, fallback_error = attempt_execute(fallback_provider)
-            if fallback_error is None:
-                return {
-                    state_key: result,
-                    "current_step": node_name,
-                    "_loop_counts": loop_counts,
-                }
-            logger.error(f"Node {node_name} failed with primary and fallback")
-            pipeline_error = PipelineError.from_exception(
-                fallback_error, node=node_name
+            result = handle_fallback(
+                node_name,
+                attempt_execute,
+                fallback_provider,
             )
-            return {
-                "error": pipeline_error,
-                "current_step": node_name,
-                "_loop_counts": loop_counts,
-            }
+            return result.to_state_update(state_key, node_name, loop_counts)
 
         else:
-            logger.error(f"Node {node_name} failed: {error}")
-            pipeline_error = PipelineError.from_exception(error, node=node_name)
-            return {
-                "error": pipeline_error,
-                "current_step": node_name,
-                "_loop_counts": loop_counts,
-            }
+            result = handle_default(node_name, error)
+            return result.to_state_update(state_key, node_name, loop_counts)
 
     node_fn.__name__ = f"{node_name}_node"
     return node_fn

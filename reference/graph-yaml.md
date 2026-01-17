@@ -356,20 +356,40 @@ edges:
 
 **Supported operators:** `<`, `<=`, `>`, `>=`, `==`, `!=`
 
-### Legacy Continue/End Conditions
+---
 
-Simple binary routing (for backward compatibility):
+## Security Considerations
 
-```yaml
-edges:
-  - from: generate
-    to: analyze
-    condition: continue
+### Expression Evaluation Safety
 
-  - from: generate
-    to: END
-    condition: end
+Condition expressions are evaluated **without using `eval()`**. The expression parser only supports:
+
+**Safe operations:**
+- Field path resolution: `critique.score`, `result.status`
+- Comparison operators: `<`, `<=`, `>`, `>=`, `==`, `!=`
+- Compound expressions: `a > 1 and b < 2`, `x == "done" or y == "skip"`
+- Literal values: integers, floats, booleans, quoted strings
+
+**Not supported (by design):**
+- Arbitrary Python code execution
+- Function calls
+- Import statements
+- Assignment expressions
+
+Example of validated expression parsing:
+
+```python
+# Safe - parsed with regex, not eval()
+evaluate_condition("critique.score < 0.8", state)  # ✓
+evaluate_condition("a > 1 and b == 'done'", state)  # ✓
+
+# Not supported - will fail validation
+"__import__('os').system('cmd')"  # ✗ Rejected
 ```
+
+### Shell Tool Security
+
+Shell commands use `shlex.quote()` for parameter sanitization. See the main README Security section for details.
 
 ---
 

@@ -43,11 +43,14 @@ MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
 RETRY_BASE_DELAY = float(os.getenv("LLM_RETRY_DELAY", "1.0"))  # seconds
 RETRY_MAX_DELAY = float(os.getenv("LLM_RETRY_MAX_DELAY", "30.0"))  # seconds
 
-# CLI Constraints
-MAX_TOPIC_LENGTH = 500
-MAX_WORD_COUNT = 5000
-MIN_WORD_COUNT = 50
-VALID_STYLES = ("informative", "casual", "technical")
+# CLI Constraints - configurable via environment
+MAX_TOPIC_LENGTH = int(os.getenv("SHOWCASE_MAX_TOPIC_LENGTH", "500"))
+MAX_WORD_COUNT = int(os.getenv("SHOWCASE_MAX_WORD_COUNT", "5000"))
+MIN_WORD_COUNT = int(os.getenv("SHOWCASE_MIN_WORD_COUNT", "50"))
+
+# Valid styles - can be extended via environment (comma-separated)
+_default_styles = "informative,casual,technical"
+VALID_STYLES = tuple(os.getenv("SHOWCASE_VALID_STYLES", _default_styles).split(","))
 
 # Input Sanitization Patterns
 # Characters that could be used for prompt injection

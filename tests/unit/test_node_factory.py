@@ -179,8 +179,8 @@ class TestCreateNodeFunction:
         node_fn = create_node_function("analyze", node_config, {})
         result = node_fn(sample_state)
 
-        assert result.get("error") is not None
-        assert "generated" in result["error"].message
+        assert result.get("errors")
+        assert "generated" in result["errors"][0].message
 
     def test_node_handles_exception(self, sample_state):
         """Exceptions become PipelineError."""
@@ -197,8 +197,8 @@ class TestCreateNodeFunction:
             node_fn = create_node_function("generate", node_config, {})
             result = node_fn(sample_state)
 
-        assert result.get("error") is not None
-        assert "API Error" in result["error"].message
+        assert result.get("errors")
+        assert "API Error" in result["errors"][0].message
 
     def test_node_uses_defaults(self, sample_state):
         """Node uses default provider/temperature from config."""

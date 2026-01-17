@@ -88,6 +88,9 @@ def wrap_for_reducer(
 ) -> Callable[[dict], dict]:
     """Wrap sub-node output for Annotated reducer aggregation.
 
+    Handles error propagation: if a map branch fails, the error is
+    included in the result with the _map_index for tracking.
+
     Args:
         node_fn: The original node function
         collect_key: State key where results are collected
@@ -98,7 +101,34 @@ def wrap_for_reducer(
     """
 
     def wrapped(state: dict) -> dict:
-        result = node_fn(state)
+        try:
+            result = node_fn(state)
+        except Exception as e:
+            # Propagate error with map index
+            from showcase.models import PipelineError
+
+            error_result = {
+                "_map_index": state.get("_map_index", 0),
+                "_error": str(e),
+                "_error_type": type(e).__name__,
+            }
+            return {
+                collect_key: [error_result],
+                "errors": [PipelineError.from_exception(e, node="map_subnode")],
+            }
+
+        # Check if result contains an error
+        if "errors" in result or "error" in result:
+            error_result = {
+                "_map_index": state.get("_map_index", 0),
+                "_error": str(result.get("errors") or result.get("error")),
+            }
+            # Preserve errors in output
+            output = {collect_key: [error_result]}
+            if "errors" in result:
+                output["errors"] = result["errors"]
+            return output
+
         extracted = result.get(state_key, result)
 
         # Convert Pydantic models to dicts

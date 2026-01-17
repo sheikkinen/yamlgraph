@@ -135,7 +135,7 @@ class TestOnErrorSkip:
         }
         node_fn = create_node_function("generate", node_config, {})
 
-        with patch("showcase.node_factory.logger") as mock_logger:
+        with patch("showcase.error_handlers.logger") as mock_logger:
             node_fn({"topic": "test"})
             mock_logger.warning.assert_called()
 
@@ -186,9 +186,10 @@ class TestOnErrorRetry:
 
         result = node_fn({"topic": "test"})
 
-        assert mock_execute.call_count == 2
-        assert "error" in result
-        assert isinstance(result["error"], PipelineError)
+        # 1 initial attempt + 2 retries = 3 total calls
+        assert mock_execute.call_count == 3
+        assert "errors" in result
+        assert isinstance(result["errors"][0], PipelineError)
 
 
 # =============================================================================
@@ -266,8 +267,8 @@ class TestOnErrorFallback:
         result = node_fn({"topic": "test"})
 
         assert mock_execute.call_count == 2
-        assert "error" in result
-        assert isinstance(result["error"], PipelineError)
+        assert "errors" in result
+        assert isinstance(result["errors"][0], PipelineError)
 
 
 # =============================================================================
@@ -292,6 +293,6 @@ class TestDefaultOnError:
 
         result = node_fn({"topic": "test"})
 
-        # Current default behavior: return error in state
-        assert "error" in result
-        assert isinstance(result["error"], PipelineError)
+        # Current default behavior: return error in state (as list for consistency)
+        assert "errors" in result
+        assert isinstance(result["errors"][0], PipelineError)

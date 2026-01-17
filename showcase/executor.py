@@ -5,6 +5,7 @@ with support for structured outputs via Pydantic models.
 """
 
 import logging
+import threading
 import time
 from pathlib import Path
 from typing import Type, TypeVar
@@ -170,10 +171,11 @@ def execute_prompt(
 # Default executor instance for LLM caching
 # Use get_executor() to access, or set_executor() for dependency injection
 _executor: "PromptExecutor | None" = None
+_executor_lock = threading.Lock()
 
 
 def get_executor() -> "PromptExecutor":
-    """Get the executor instance.
+    """Get the executor instance (thread-safe).
 
     Returns the default singleton or a custom instance set via set_executor().
 
@@ -182,12 +184,15 @@ def get_executor() -> "PromptExecutor":
     """
     global _executor
     if _executor is None:
-        _executor = PromptExecutor()
+        with _executor_lock:
+            # Double-check after acquiring lock
+            if _executor is None:
+                _executor = PromptExecutor()
     return _executor
 
 
 def set_executor(executor: "PromptExecutor | None") -> None:
-    """Set a custom executor instance for dependency injection.
+    """Set a custom executor instance for dependency injection (thread-safe).
 
     Useful for testing or when you need different executor configurations.
 
@@ -195,7 +200,8 @@ def set_executor(executor: "PromptExecutor | None") -> None:
         executor: Custom PromptExecutor instance, or None to reset to default
     """
     global _executor
-    _executor = executor
+    with _executor_lock:
+        _executor = executor
 
 
 class PromptExecutor:

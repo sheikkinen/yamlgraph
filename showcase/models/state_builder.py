@@ -4,8 +4,11 @@ Builds TypedDict programmatically from YAML graph config, eliminating
 the need for state_class coupling between YAML and Python.
 """
 
+import logging
 from operator import add
 from typing import Annotated, Any, TypedDict
+
+logger = logging.getLogger(__name__)
 
 
 def sorted_add(existing: list, new: list) -> list:
@@ -99,10 +102,21 @@ def parse_state_config(state_config: dict) -> dict[str, type]:
     for field_name, type_spec in state_config.items():
         if isinstance(type_spec, str):
             # Simple type: "str", "int", etc.
-            python_type = TYPE_MAP.get(type_spec.lower(), Any)
+            normalized = type_spec.lower()
+            if normalized not in TYPE_MAP:
+                supported = ", ".join(sorted(set(TYPE_MAP.keys())))
+                logger.warning(
+                    f"Unknown type '{type_spec}' for state field '{field_name}'. "
+                    f"Supported types: {supported}. Defaulting to Any."
+                )
+            python_type = TYPE_MAP.get(normalized, Any)
             fields[field_name] = python_type
         else:
             # Unknown format, use Any
+            logger.warning(
+                f"Invalid type specification for state field '{field_name}': "
+                f"expected string, got {type(type_spec).__name__}. Defaulting to Any."
+            )
             fields[field_name] = Any
 
     return fields

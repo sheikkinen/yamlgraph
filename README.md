@@ -75,6 +75,60 @@ See the [reference/](reference/) folder for comprehensive YAML configuration gui
 
 ## Architecture
 
+### Data Flow
+
+```mermaid
+flowchart TB
+    subgraph Input["📥 Input Layer"]
+        CLI["CLI Command"]
+        YAML_G["graphs/*.yaml"]
+        YAML_P["prompts/*.yaml"]
+    end
+
+    subgraph Core["⚙️ Core Processing"]
+        GL["graph_loader.py<br/>YAML → StateGraph"]
+        NF["node_factory.py<br/>Create Node Functions"]
+        EH["error_handlers.py<br/>Skip/Retry/Fail/Fallback"]
+        EX["executor.py<br/>Prompt Execution"]
+    end
+
+    subgraph LLM["🤖 LLM Layer"]
+        LF["llm_factory.py"]
+        ANT["Anthropic"]
+        MIS["Mistral"]
+        OAI["OpenAI"]
+    end
+
+    subgraph State["💾 State Layer"]
+        SB["state_builder.py<br/>Dynamic TypedDict"]
+        CP["checkpointer.py<br/>SQLite Persistence"]
+        DB[(SQLite DB)]
+    end
+
+    subgraph Output["📤 Output Layer"]
+        EXP["export.py"]
+        JSON["JSON Export"]
+        LS["LangSmith Traces"]
+    end
+
+    CLI --> GL
+    YAML_G --> GL
+    YAML_P --> EX
+    GL --> NF
+    NF --> EH
+    EH --> EX
+    EX --> LF
+    LF --> ANT & MIS & OAI
+    GL --> SB
+    SB --> CP
+    CP --> DB
+    EX --> EXP
+    EXP --> JSON
+    EX --> LS
+```
+
+### Directory Structure
+
 ```
 showcase/
 ├── README.md
