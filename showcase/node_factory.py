@@ -85,8 +85,12 @@ def resolve_class(class_path: str) -> type:
 def resolve_prompt_path(prompt_name: str, prompts_dir: str | None = None) -> str:
     """Resolve a prompt name to its full YAML file path.
 
+    Search order:
+    1. prompts_dir/{prompt_name}.yaml (default: prompts/)
+    2. {prompt_name}/prompts/{basename}.yaml (for external examples)
+
     Args:
-        prompt_name: Prompt name like "greet" or "router-demo/classify"
+        prompt_name: Prompt name like "greet" or "examples/storyboard/expand_story"
         prompts_dir: Base prompts directory (defaults to "prompts/")
 
     Returns:
@@ -100,12 +104,21 @@ def resolve_prompt_path(prompt_name: str, prompts_dir: str | None = None) -> str
     if prompts_dir is None:
         prompts_dir = os.environ.get("PROMPTS_DIR", "prompts")
 
+    # Try standard location first: prompts/{prompt_name}.yaml
     yaml_path = os.path.join(prompts_dir, f"{prompt_name}.yaml")
+    if os.path.exists(yaml_path):
+        return yaml_path
 
-    if not os.path.exists(yaml_path):
-        raise FileNotFoundError(f"Prompt file not found: {yaml_path}")
+    # Try external example location: {parent}/prompts/{basename}.yaml
+    # e.g., "examples/storyboard/expand_story" -> "examples/storyboard/prompts/expand_story.yaml"
+    parts = prompt_name.rsplit("/", 1)
+    if len(parts) == 2:
+        parent_dir, basename = parts
+        alt_path = os.path.join(parent_dir, "prompts", f"{basename}.yaml")
+        if os.path.exists(alt_path):
+            return alt_path
 
-    return yaml_path
+    raise FileNotFoundError(f"Prompt not found: {yaml_path}")
 
 
 def get_output_model_for_node(

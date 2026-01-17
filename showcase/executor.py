@@ -6,6 +6,7 @@ with support for structured outputs via Pydantic models.
 
 import logging
 import time
+from pathlib import Path
 from typing import Type, TypeVar
 
 import yaml
@@ -54,18 +55,32 @@ def is_retryable(exception: Exception) -> bool:
 def load_prompt(prompt_name: str) -> dict:
     """Load a YAML prompt template.
 
+    Search order:
+    1. prompts/{prompt_name}.yaml
+    2. {parent}/prompts/{basename}.yaml (for external examples like examples/storyboard/...)
+
     Args:
         prompt_name: Name of the prompt file (without .yaml extension)
 
     Returns:
         Dictionary with 'system' and 'user' keys
     """
+    # Try standard location first
     prompt_path = PROMPTS_DIR / f"{prompt_name}.yaml"
-    if not prompt_path.exists():
-        raise FileNotFoundError(f"Prompt not found: {prompt_path}")
+    if prompt_path.exists():
+        with open(prompt_path) as f:
+            return yaml.safe_load(f)
 
-    with open(prompt_path) as f:
-        return yaml.safe_load(f)
+    # Try external example location: {parent}/prompts/{basename}.yaml
+    parts = prompt_name.rsplit("/", 1)
+    if len(parts) == 2:
+        parent_dir, basename = parts
+        alt_path = Path(parent_dir) / "prompts" / f"{basename}.yaml"
+        if alt_path.exists():
+            with open(alt_path) as f:
+                return yaml.safe_load(f)
+
+    raise FileNotFoundError(f"Prompt not found: {prompt_path}")
 
 
 def format_prompt(
