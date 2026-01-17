@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from yamlgraph.config import PROJECT_ROOT
+from yamlgraph.config import WORKING_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -265,7 +265,7 @@ def log_execution(
     import json
 
     if log_dir is None:
-        log_dir = PROJECT_ROOT / "outputs" / "logs"
+        log_dir = WORKING_DIR / "outputs" / "logs"
     log_path = Path(log_dir)
     log_path.mkdir(parents=True, exist_ok=True)
 

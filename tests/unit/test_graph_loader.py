@@ -161,9 +161,9 @@ class TestLoadAndCompile:
 
     def test_load_and_compile_yamlgraph(self):
         """Load the actual yamlgraph.yaml and compile it."""
-        from yamlgraph.config import PROJECT_ROOT
+        from yamlgraph.config import GRAPHS_DIR
 
-        yamlgraph_path = PROJECT_ROOT / "graphs" / "yamlgraph.yaml"
+        yamlgraph_path = GRAPHS_DIR / "yamlgraph.yaml"
         if not yamlgraph_path.exists():
             pytest.skip("yamlgraph.yaml not created yet")
 

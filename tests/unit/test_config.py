@@ -10,9 +10,9 @@ from yamlgraph.config import (
     MIN_WORD_COUNT,
     OUTPUTS_DIR,
     PACKAGE_ROOT,
-    PROJECT_ROOT,
     PROMPTS_DIR,
     VALID_STYLES,
+    WORKING_DIR,
 )
 
 
@@ -24,10 +24,10 @@ class TestPaths:
         assert PACKAGE_ROOT.exists()
         assert PACKAGE_ROOT.is_dir()
 
-    def test_project_root_exists(self):
-        """Project root directory should exist."""
-        assert PROJECT_ROOT.exists()
-        assert PROJECT_ROOT.is_dir()
+    def test_working_dir_exists(self):
+        """Working directory should exist."""
+        assert WORKING_DIR.exists()
+        assert WORKING_DIR.is_dir()
 
     def test_prompts_dir_exists(self):
         """Prompts directory should exist."""
@@ -40,8 +40,8 @@ class TestPaths:
         assert len(yaml_files) > 0
 
     def test_outputs_dir_path(self):
-        """Outputs directory path should be under project root."""
-        assert OUTPUTS_DIR.parent == PROJECT_ROOT
+        """Outputs directory path should be under working dir."""
+        assert OUTPUTS_DIR.parent == WORKING_DIR
 
     def test_database_path(self):
         """Database path should be in outputs directory."""

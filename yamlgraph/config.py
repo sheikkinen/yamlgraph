@@ -12,16 +12,17 @@ from dotenv import load_dotenv
 # Package root (yamlgraph/ directory)
 PACKAGE_ROOT = Path(__file__).parent
 
-# Project root (parent of yamlgraph/)
-PROJECT_ROOT = PACKAGE_ROOT.parent
+# Working directory (where the user runs the CLI from)
+WORKING_DIR = Path.cwd()
 
-# Load environment variables from project root
-load_dotenv(PROJECT_ROOT / ".env")
+# Load environment variables from current working directory
+# This ensures .env is found where the user runs yamlgraph, not in site-packages
+load_dotenv(WORKING_DIR / ".env")
 
-# Directory paths
-PROMPTS_DIR = PROJECT_ROOT / "prompts"
-GRAPHS_DIR = PROJECT_ROOT / "graphs"
-OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+# Directory paths (relative to working directory)
+PROMPTS_DIR = WORKING_DIR / "prompts"
+GRAPHS_DIR = WORKING_DIR / "graphs"
+OUTPUTS_DIR = WORKING_DIR / "outputs"
 DATABASE_PATH = OUTPUTS_DIR / "yamlgraph.db"
 
 # Default graph configuration
