@@ -133,11 +133,13 @@ def generate_animated_character_images(state: GraphState) -> dict:
 
         if reference_path:
             # Use img2img from reference for character consistency
+            # magic=0.25 preserves more of the reference (lower = more original)
             original_result = edit_image(
                 input_image=reference_path,
                 prompt=full_original_prompt,
                 output_path=original_path,
                 aspect_ratio="16:9",
+                magic=0.25,
             )
         else:
             # Generate from scratch

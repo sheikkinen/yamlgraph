@@ -142,6 +142,7 @@ def edit_image(
     output_path: str | Path,
     aspect_ratio: str = "16:9",
     turbo: bool = True,
+    magic: float | None = None,
 ) -> ImageResult:
     """Edit an image using Replicate p-image-edit model.
 
@@ -154,6 +155,7 @@ def edit_image(
         output_path: Path to save the edited image
         aspect_ratio: Output aspect ratio (default 16:9)
         turbo: Use turbo mode for faster generation
+        magic: Prompt strength 0-1 (lower = more original, higher = more prompt)
 
     Returns:
         ImageResult with success status and path or error
@@ -180,14 +182,18 @@ def edit_image(
         client = replicate.Client(api_token=api_token)
 
         with open(input_image, "rb") as f:
+            input_params = {
+                "turbo": turbo,
+                "images": [f],
+                "prompt": prompt,
+                "aspect_ratio": aspect_ratio,
+            }
+            if magic is not None:
+                input_params["magic"] = magic
+
             output = client.run(
                 "prunaai/p-image-edit",
-                input={
-                    "turbo": turbo,
-                    "images": [f],
-                    "prompt": prompt,
-                    "aspect_ratio": aspect_ratio,
-                },
+                input=input_params,
             )
 
         # Save the output
