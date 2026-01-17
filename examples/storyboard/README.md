@@ -68,9 +68,16 @@ Generates animation-ready storyboards with 3 frames per panel (original, first_f
 ### Usage
 
 ```bash
+# Generate from scratch
 showcase graph run examples/storyboard/animated-character-graph.yaml \
   --var concept="A detective solving a mystery" \
   --var model="hidream"
+
+# With pre-existing character image (better consistency)
+showcase graph run examples/storyboard/animated-character-graph.yaml \
+  --var concept="A detective solving a mystery" \
+  --var model="hidream" \
+  --var reference_image="path/to/character.png"
 ```
 
 ### How It Works
@@ -83,11 +90,13 @@ concept ──► expand_story ──► animate_panels (map) ──► generate
 ```
 
 For each panel:
-1. **Original** - Generated via `generate_image(character_prompt + panel.original)`
+1. **Original** - Generated via:
+   - `edit_image(reference_image, prompt)` if reference provided
+   - `generate_image(character_prompt + panel.original)` otherwise
 2. **First frame** - Generated via `edit_image(original, first_frame)` (img2img)
 3. **Last frame** - Generated via `edit_image(original, last_frame)` (img2img)
 
-This ensures each panel's animation frames are visually coherent.
+Using `reference_image` ensures consistent character appearance across all panels.
 
 ### Output
 

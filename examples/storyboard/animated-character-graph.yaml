@@ -8,6 +8,11 @@
 # Usage:
 #   showcase graph run examples/storyboard/animated-character-graph.yaml \
 #     --var concept="A detective solving a mystery" --var model=hidream
+#
+#   # With pre-existing character image:
+#   showcase graph run examples/storyboard/animated-character-graph.yaml \
+#     --var concept="A detective" --var model=hidream \
+#     --var reference_image="path/to/character.png"
 
 name: animated-character-storyboard
 version: "1.0"
@@ -16,9 +21,10 @@ description: Character-consistent animated storyboard with first/middle/last fra
 state:
   concept: str
   model: str
+  reference_image: str  # Optional: pre-existing character image for img2img
   story: any
   animated_panels: list
-  character_image: str
+  images: list
 
 tools:
   generate_animated_character_images:
