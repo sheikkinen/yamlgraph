@@ -10,6 +10,7 @@ Creates LangGraph node functions from YAML configuration with support for:
 import logging
 from typing import Any, Callable
 
+from showcase.constants import ErrorHandler, NodeType
 from showcase.executor import execute_prompt
 from showcase.models import ErrorType, PipelineError
 
@@ -173,7 +174,7 @@ def create_node_function(
     Returns:
         Node function compatible with LangGraph
     """
-    node_type = node_config.get("type", "llm")
+    node_type = node_config.get("type", NodeType.LLM)
     prompt_name = node_config.get("prompt")
 
     # Resolve output model (explicit > inline schema > None)
@@ -266,7 +267,7 @@ def create_node_function(
             }
 
             # Router: add _route to state
-            if node_type == "router" and routes:
+            if node_type == NodeType.ROUTER and routes:
                 route_key = getattr(result, "tone", None) or getattr(
                     result, "intent", None
                 )
@@ -280,15 +281,16 @@ def create_node_function(
             return update
 
         # Error handling
-        if on_error == "skip":
+        if on_error == ErrorHandler.SKIP:
             logger.warning(f"Node {node_name} failed, skipping: {error}")
             return {"current_step": node_name, "_loop_counts": loop_counts}
 
-        elif on_error == "fail":
+        elif on_error == ErrorHandler.FAIL:
             logger.error(f"Node {node_name} failed (on_error=fail): {error}")
             raise error
 
-        elif on_error == "retry":
+        elif on_error == ErrorHandler.RETRY:
+            last_exception: Exception | None = None
             for attempt in range(1, max_retries):
                 logger.info(f"Node {node_name} retry {attempt}/{max_retries - 1}")
                 result, error = attempt_execute(provider)
@@ -298,15 +300,18 @@ def create_node_function(
                         "current_step": node_name,
                         "_loop_counts": loop_counts,
                     }
+                last_exception = error
             logger.error(f"Node {node_name} failed after {max_retries} attempts")
-            pipeline_error = PipelineError.from_exception(error, node=node_name)
+            pipeline_error = PipelineError.from_exception(
+                last_exception or Exception("Unknown error"), node=node_name
+            )
             return {
                 "error": pipeline_error,
                 "current_step": node_name,
                 "_loop_counts": loop_counts,
             }
 
-        elif on_error == "fallback" and fallback_provider:
+        elif on_error == ErrorHandler.FALLBACK and fallback_provider:
             logger.info(f"Node {node_name} trying fallback: {fallback_provider}")
             result, fallback_error = attempt_execute(fallback_provider)
             if fallback_error is None:

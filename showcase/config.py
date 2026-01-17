@@ -28,9 +28,15 @@ DATABASE_PATH = OUTPUTS_DIR / "showcase.db"
 DEFAULT_GRAPH = GRAPHS_DIR / "showcase.yaml"
 
 # LLM Configuration
-DEFAULT_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
 DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MAX_TOKENS = 4096
+
+# Default models per provider (override with {PROVIDER}_MODEL env var)
+DEFAULT_MODELS = {
+    "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
+    "mistral": os.getenv("MISTRAL_MODEL", "mistral-large-latest"),
+    "openai": os.getenv("OPENAI_MODEL", "gpt-4o"),
+}
 
 # Retry Configuration
 MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))

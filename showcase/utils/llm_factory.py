@@ -11,17 +11,12 @@ from typing import Literal
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
+from showcase.config import DEFAULT_MODELS
+
 logger = logging.getLogger(__name__)
 
 # Type alias for supported providers
 ProviderType = Literal["anthropic", "mistral", "openai"]
-
-# Default models for each provider
-MODEL_DEFAULTS = {
-    "anthropic": "claude-haiku-4-5",
-    "mistral": "mistral-large-latest",
-    "openai": "gpt-4o",
-}
 
 # Thread-safe cache for LLM instances
 _llm_cache: dict[tuple, BaseChatModel] = {}
@@ -67,17 +62,15 @@ def create_llm(
     selected_provider = provider or os.getenv("PROVIDER") or "anthropic"
 
     # Validate provider
-    if selected_provider not in MODEL_DEFAULTS:
+    if selected_provider not in DEFAULT_MODELS:
         raise ValueError(
             f"Invalid provider: {selected_provider}. "
-            f"Must be one of: {', '.join(MODEL_DEFAULTS.keys())}"
+            f"Must be one of: {', '.join(DEFAULT_MODELS.keys())}"
         )
 
     # Determine model (parameter > env var > default)
-    selected_model = model or os.getenv(
-        f"{selected_provider.upper()}_MODEL",
-        MODEL_DEFAULTS[selected_provider],
-    )
+    # Note: DEFAULT_MODELS already handles env var via config.py
+    selected_model = model or DEFAULT_MODELS[selected_provider]
 
     # Create cache key
     cache_key = (selected_provider, selected_model, temperature)

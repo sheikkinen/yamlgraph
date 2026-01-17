@@ -38,6 +38,7 @@ def get_client() -> Any | None:
         )
         return Client(api_url=endpoint, api_key=api_key)
     except ImportError:
+        logger.debug("LangSmith package not installed, client unavailable")
         return None
 
 
@@ -138,7 +139,8 @@ def read_run_shared_link(run_id: str) -> str | None:
 
     try:
         return client.read_run_shared_link(run_id)
-    except Exception:
+    except Exception as e:
+        logger.debug("Could not read run shared link for %s: %s", run_id, e)
         return None
 
 
@@ -242,8 +244,8 @@ def _print_run_node(
                 is_last=child_is_last,
                 prefix=new_prefix,
             )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Could not fetch child runs for %s: %s", run.id, e)
 
 
 def log_execution(

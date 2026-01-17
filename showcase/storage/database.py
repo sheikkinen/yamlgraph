@@ -2,38 +2,169 @@
 
 Provides a lightweight wrapper around SQLite for storing
 and retrieving pipeline execution state.
+
+Supports optional connection pooling for high-throughput scenarios.
 """
 
 import json
 import sqlite3
+import threading
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
+from queue import Empty, Queue
+from typing import Iterator
 
 from pydantic import BaseModel
 
 from showcase.config import DATABASE_PATH
 
 
-class ShowcaseDB:
-    """SQLite wrapper for showcase state persistence."""
+class ConnectionPool:
+    """Thread-safe SQLite connection pool.
 
-    def __init__(self, db_path: str | Path | None = None):
+    Maintains a pool of reusable connections for high-throughput scenarios.
+    Connections are returned to the pool after use instead of being closed.
+    """
+
+    def __init__(self, db_path: Path, pool_size: int = 5):
+        """Initialize connection pool.
+
+        Args:
+            db_path: Path to SQLite database
+            pool_size: Maximum number of connections to maintain
+        """
+        self._db_path = db_path
+        self._pool_size = pool_size
+        self._pool: Queue[sqlite3.Connection] = Queue(maxsize=pool_size)
+        self._lock = threading.Lock()
+        self._total_connections = 0
+
+    def _create_connection(self) -> sqlite3.Connection:
+        """Create a new database connection."""
+        conn = sqlite3.connect(self._db_path, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    @contextmanager
+    def get_connection(self) -> Iterator[sqlite3.Connection]:
+        """Get a connection from the pool.
+
+        Creates a new connection if pool is empty and under limit.
+
+        Yields:
+            Database connection (returned to pool on exit)
+        """
+        conn = None
+        try:
+            # Try to get from pool
+            try:
+                conn = self._pool.get_nowait()
+            except Empty:
+                # Pool empty - create new connection if under limit
+                with self._lock:
+                    if self._total_connections < self._pool_size:
+                        conn = self._create_connection()
+                        self._total_connections += 1
+                    else:
+                        # At limit - block waiting for connection
+                        pass
+
+                if conn is None:
+                    conn = self._pool.get()  # Blocking wait
+
+            yield conn
+
+        finally:
+            # Return connection to pool
+            if conn is not None:
+                try:
+                    self._pool.put_nowait(conn)
+                except Exception:
+                    # Pool full, close connection
+                    conn.close()
+                    with self._lock:
+                        self._total_connections -= 1
+
+    def close_all(self) -> None:
+        """Close all connections in the pool."""
+        while True:
+            try:
+                conn = self._pool.get_nowait()
+                conn.close()
+            except Empty:
+                break
+        with self._lock:
+            self._total_connections = 0
+
+
+class ShowcaseDB:
+    """SQLite wrapper for showcase state persistence.
+
+    Supports two connection modes:
+    - Default: Creates new connection per operation (simple, safe)
+    - Pooled: Reuses connections from pool (high-throughput)
+
+    Example:
+        # Default mode (simple)
+        db = ShowcaseDB()
+
+        # Pooled mode (high-throughput)
+        db = ShowcaseDB(use_pool=True, pool_size=10)
+    """
+
+    def __init__(
+        self,
+        db_path: str | Path | None = None,
+        use_pool: bool = False,
+        pool_size: int = 5,
+    ):
         """Initialize database connection.
 
         Args:
             db_path: Path to SQLite database file (default: outputs/showcase.db)
+            use_pool: Enable connection pooling for high-throughput scenarios
+            pool_size: Maximum connections in pool (only used if use_pool=True)
         """
         if db_path is None:
             db_path = DATABASE_PATH
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        self._use_pool = use_pool
+        self._pool: ConnectionPool | None = None
+        if use_pool:
+            self._pool = ConnectionPool(self.db_path, pool_size)
+
         self._init_db()
 
-    def _get_connection(self) -> sqlite3.Connection:
-        """Get a database connection."""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    @contextmanager
+    def _get_connection(self) -> Iterator[sqlite3.Connection]:
+        """Get a database connection.
+
+        Uses pool if enabled, otherwise creates new connection.
+
+        Yields:
+            Database connection
+        """
+        if self._pool is not None:
+            with self._pool.get_connection() as conn:
+                yield conn
+        else:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            try:
+                yield conn
+            finally:
+                conn.close()
+
+    def close(self) -> None:
+        """Close database connections.
+
+        For pooled mode, closes all connections in pool.
+        """
+        if self._pool is not None:
+            self._pool.close_all()
 
     def _init_db(self):
         """Initialize database tables."""
@@ -81,6 +212,7 @@ class ShowcaseDB:
                        WHERE thread_id = ?""",
                     (now, status, state_json, thread_id),
                 )
+                conn.commit()
                 return existing["id"]
             else:
                 cursor = conn.execute(
@@ -89,6 +221,7 @@ class ShowcaseDB:
                        VALUES (?, ?, ?, ?, ?)""",
                     (thread_id, now, now, status, state_json),
                 )
+                conn.commit()
                 return cursor.lastrowid
 
     def load_state(self, thread_id: str) -> dict | None:
@@ -162,6 +295,7 @@ class ShowcaseDB:
             cursor = conn.execute(
                 "DELETE FROM pipeline_runs WHERE thread_id = ?", (thread_id,)
             )
+            conn.commit()
             return cursor.rowcount > 0
 
     def _serialize_state(self, state: dict) -> dict:

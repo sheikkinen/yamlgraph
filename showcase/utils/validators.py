@@ -5,6 +5,8 @@ Validation functions for YAML graph configuration structures.
 
 from typing import Any
 
+from showcase.constants import ErrorHandler, NodeType
+
 
 def validate_required_sections(config: dict[str, Any]) -> None:
     """Validate required top-level sections exist.
@@ -31,10 +33,10 @@ def validate_node_prompt(node_name: str, node_config: dict[str, Any]) -> None:
     Raises:
         ValueError: If prompt is required but missing
     """
-    node_type = node_config.get("type", "llm")
+    node_type = node_config.get("type", NodeType.LLM)
     # Only llm and router nodes require prompts
     # tool, python, agent, and map nodes don't require prompts
-    if node_type in ("llm", "router") and not node_config.get("prompt"):
+    if NodeType.requires_prompt(node_type) and not node_config.get("prompt"):
         raise ValueError(f"Node '{node_name}' missing required 'prompt' field")
 
 
@@ -51,7 +53,7 @@ def validate_router_node(
     Raises:
         ValueError: If router configuration is invalid
     """
-    if node_config.get("type") != "router":
+    if node_config.get("type") != NodeType.ROUTER:
         return
 
     if not node_config.get("routes"):
@@ -91,12 +93,11 @@ def validate_on_error(node_name: str, node_config: dict[str, Any]) -> None:
     Raises:
         ValueError: If on_error value is invalid
     """
-    valid_on_error = {"skip", "retry", "fail", "fallback"}
     on_error = node_config.get("on_error")
-    if on_error and on_error not in valid_on_error:
+    if on_error and on_error not in ErrorHandler.all_values():
         raise ValueError(
             f"Node '{node_name}' has invalid on_error value '{on_error}'. "
-            f"Valid values: {', '.join(valid_on_error)}"
+            f"Valid values: {', '.join(ErrorHandler.all_values())}"
         )
 
 
@@ -110,7 +111,7 @@ def validate_map_node(node_name: str, node_config: dict[str, Any]) -> None:
     Raises:
         ValueError: If map node configuration is invalid
     """
-    if node_config.get("type") != "map":
+    if node_config.get("type") != NodeType.MAP:
         return
 
     required_fields = ["over", "as", "node", "collect"]

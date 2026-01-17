@@ -4,6 +4,7 @@ from showcase.tools.shell import (
     ShellToolConfig,
     execute_shell_tool,
     parse_tools,
+    sanitize_variables,
 )
 
 
@@ -35,6 +36,44 @@ class TestShellToolConfig:
         assert config.parse == "json"
         assert config.timeout == 60
         assert config.env == {"API_KEY": "secret"}
+
+
+class TestSanitizeVariables:
+    """Tests for variable sanitization."""
+
+    def test_sanitizes_simple_string(self):
+        """Simple strings are quoted."""
+        result = sanitize_variables({"name": "Alice"})
+        # shlex.quote adds quotes around strings with no special chars
+        assert result["name"] in ("Alice", "'Alice'")
+
+    def test_sanitizes_shell_injection(self):
+        """Shell injection attempts are safely quoted."""
+        # Command substitution attempt
+        result = sanitize_variables({"name": "$(rm -rf /)"})
+        assert "$" not in result["name"] or result["name"].startswith("'")
+        # The result should be a quoted string
+        assert "'$(rm -rf /)'" == result["name"]
+
+    def test_sanitizes_semicolon_injection(self):
+        """Semicolon command chaining is prevented."""
+        result = sanitize_variables({"name": "test; rm -rf /"})
+        assert "'" in result["name"]  # Must be quoted
+
+    def test_sanitizes_pipe_injection(self):
+        """Pipe injection is prevented."""
+        result = sanitize_variables({"name": "test | cat /etc/passwd"})
+        assert "'" in result["name"]  # Must be quoted
+
+    def test_handles_none_values(self):
+        """None values become empty strings."""
+        result = sanitize_variables({"name": None})
+        assert result["name"] == ""
+
+    def test_handles_list_values(self):
+        """List values are JSON encoded and quoted."""
+        result = sanitize_variables({"items": [1, 2, 3]})
+        assert "[1, 2, 3]" in result["items"] or "'[1, 2, 3]'" == result["items"]
 
 
 class TestExecuteShellTool:

@@ -13,13 +13,14 @@ import yaml
 from langgraph.graph import END, StateGraph
 from langgraph.types import Send
 
+from showcase.constants import NodeType
 from showcase.models.state_builder import build_state_class
 from showcase.node_factory import create_node_function, resolve_class
+from showcase.routing import make_expr_router_fn, make_router_fn, should_continue
 from showcase.tools.agent import create_agent_node
 from showcase.tools.nodes import create_tool_node
 from showcase.tools.python_tool import create_python_node, parse_python_tools
 from showcase.tools.shell import parse_tools
-from showcase.utils.conditions import evaluate_condition
 from showcase.utils.expressions import resolve_state_expression
 from showcase.utils.validators import validate_config
 
@@ -78,22 +79,6 @@ def load_graph_config(path: str | Path) -> GraphConfig:
         config = yaml.safe_load(f)
 
     return GraphConfig(config)
-
-
-def _should_continue(state: GraphState) -> str:
-    """Default routing condition: continue or end.
-
-    Args:
-        state: Current pipeline state
-
-    Returns:
-        'continue' if should proceed, 'end' if should stop
-    """
-    if state.get("error") is not None:
-        return "end"
-    if state.get("generated") is None:
-        return "end"
-    return "continue"
 
 
 def wrap_for_reducer(
@@ -233,18 +218,18 @@ def compile_graph(config: GraphConfig) -> StateGraph:
         if node_name in config.loop_limits:
             enriched_config["loop_limit"] = config.loop_limits[node_name]
 
-        node_type = node_config.get("type", "llm")
+        node_type = node_config.get("type", NodeType.LLM)
 
-        if node_type == "tool":
+        if node_type == NodeType.TOOL:
             node_fn = create_tool_node(node_name, enriched_config, tools)
             graph.add_node(node_name, node_fn)
-        elif node_type == "python":
+        elif node_type == NodeType.PYTHON:
             node_fn = create_python_node(node_name, enriched_config, python_tools)
             graph.add_node(node_name, node_fn)
-        elif node_type == "agent":
+        elif node_type == NodeType.AGENT:
             node_fn = create_agent_node(node_name, enriched_config, tools)
             graph.add_node(node_name, node_fn)
-        elif node_type == "map":
+        elif node_type == NodeType.MAP:
             # Map node - compile and track for edge wiring
             map_edge_fn, sub_node_name = compile_map_node(
                 node_name, enriched_config, graph, config.defaults
@@ -307,28 +292,12 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     if conditional_source and conditional_targets:
         graph.add_conditional_edges(
             conditional_source,
-            _should_continue,
+            should_continue,
             conditional_targets,
         )
 
     # Add router conditional edges
     for source_node, target_nodes in router_edges.items():
-        # Create routing function that reads _route from state
-        # NOTE: Use `state: dict` not `state: GraphState` - type hints cause
-        # LangGraph to filter state fields. See docs/debug-router-type-hints.md
-        def make_router_fn(targets: list[str]) -> Callable:
-            def router_fn(state: dict) -> str:
-                route = state.get("_route")
-                logger.debug(f"Router: _route={route}, targets={targets}")
-                if route and route in targets:
-                    logger.debug(f"Router: matched route {route}")
-                    return route
-                # Default to first target
-                logger.debug(f"Router: defaulting to {targets[0]}")
-                return targets[0]
-
-            return router_fn
-
         # Create mapping: target_name -> target_name (identity mapping)
         route_mapping = {target: target for target in target_nodes}
 
@@ -340,34 +309,6 @@ def compile_graph(config: GraphConfig) -> StateGraph:
 
     # Add expression-based conditional edges
     for source_node, expr_edges in expression_edges.items():
-
-        def make_expr_router_fn(edges: list[tuple[str, str]]) -> Callable:
-            """Create router that evaluates expression conditions."""
-
-            def expr_router_fn(state: GraphState) -> str:
-                # Check loop limit first
-                if state.get("_loop_limit_reached"):
-                    return END
-
-                for condition, target in edges:
-                    try:
-                        if evaluate_condition(condition, state):
-                            logger.debug(
-                                f"Condition '{condition}' matched, routing to {target}"
-                            )
-                            return target
-                    except ValueError as e:
-                        logger.warning(
-                            f"Failed to evaluate condition '{condition}': {e}"
-                        )
-                # No condition matched - this shouldn't happen with well-formed graphs
-                logger.warning(
-                    f"No condition matched for {source_node}, defaulting to END"
-                )
-                return END
-
-            return expr_router_fn
-
         # Build mapping: all possible targets
         targets = {target for _, target in expr_edges}
         targets.add(END)  # Always include END as fallback
@@ -375,7 +316,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
 
         graph.add_conditional_edges(
             source_node,
-            make_expr_router_fn(expr_edges),
+            make_expr_router_fn(expr_edges, source_node),
             route_mapping,
         )
 

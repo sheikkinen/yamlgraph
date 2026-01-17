@@ -2,6 +2,16 @@
 
 This module provides the core shell tool execution functionality,
 allowing YAML-defined tools to run shell commands with parsed output.
+
+Security Model:
+    Variables are sanitized with shlex.quote() to prevent shell injection.
+    The command template itself is trusted (from YAML config), but all
+    user-provided variable values are escaped before substitution.
+
+    Example:
+        command: "git log --author={author}"
+        variables: {"author": "$(rm -rf /)"}
+        → Executed: git log --author='$(rm -rf /)'  (safely quoted)
 """
 
 from __future__ import annotations
@@ -9,6 +19,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shlex
 import subprocess
 from dataclasses import dataclass, field
 from typing import Any
@@ -54,22 +65,50 @@ class ToolResult:
     error: str | None = None
 
 
+def sanitize_variables(variables: dict[str, Any]) -> dict[str, str]:
+    """Sanitize variable values for safe shell substitution.
+
+    Uses shlex.quote() to escape values, preventing shell injection.
+
+    Args:
+        variables: Raw variable values
+
+    Returns:
+        Sanitized variables safe for shell interpolation
+    """
+    sanitized = {}
+    for key, value in variables.items():
+        if value is None:
+            sanitized[key] = ""
+        elif isinstance(value, (list, dict)):
+            # Convert complex types to JSON, then quote
+            sanitized[key] = shlex.quote(json.dumps(value))
+        else:
+            sanitized[key] = shlex.quote(str(value))
+    return sanitized
+
+
 def execute_shell_tool(
     config: ShellToolConfig,
     variables: dict[str, Any],
+    sanitize: bool = True,
 ) -> ToolResult:
     """Execute shell command with variable substitution.
 
     Args:
         config: Tool configuration with command template
         variables: Values to substitute into command placeholders
+        sanitize: Whether to sanitize variables with shlex.quote (default True)
 
     Returns:
         ToolResult with success status and parsed output or error
     """
+    # Sanitize variables to prevent shell injection
+    safe_vars = sanitize_variables(variables) if sanitize else variables
+
     # Substitute variables into command
     try:
-        command = config.command.format(**variables)
+        command = config.command.format(**safe_vars)
     except KeyError as e:
         return ToolResult(
             success=False,

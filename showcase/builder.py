@@ -85,9 +85,9 @@ def build_showcase_graph(graph_path: Path | str | None = None) -> StateGraph:
 def build_resume_graph() -> StateGraph:
     """Build a graph for resuming an interrupted pipeline.
 
-    Returns the same graph as build_showcase_graph(). Resume works
-    automatically because nodes skip execution if their output
-    already exists in state (skip_if_exists behavior).
+    This is an alias for build_showcase_graph(). Resume works automatically
+    because nodes skip execution if their output already exists in state
+    (skip_if_exists behavior).
 
     To resume:
     1. Load saved state from database

@@ -60,11 +60,10 @@ class TestCreateLLM:
             assert isinstance(llm, ChatAnthropic)
             assert llm.model == "claude-opus-4"
 
-    def test_model_from_environment(self):
-        """Should use provider-specific model env var."""
-        with patch.dict(os.environ, {"ANTHROPIC_MODEL": "claude-sonnet-4"}):
-            llm = create_llm(provider="anthropic", temperature=0.7)
-            assert llm.model == "claude-sonnet-4"
+    def test_model_override_parameter(self):
+        """Should prefer model parameter over default."""
+        llm = create_llm(provider="anthropic", model="claude-sonnet-4", temperature=0.7)
+        assert llm.model == "claude-sonnet-4"
 
     def test_default_models(self):
         """Should use correct default models for each provider."""

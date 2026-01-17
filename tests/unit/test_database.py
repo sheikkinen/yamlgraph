@@ -93,3 +93,53 @@ class TestShowcaseDB:
         # Pydantic models should be dicts after serialization
         assert isinstance(loaded["generated"], dict)
         assert loaded["generated"]["title"] == "Test Article"
+
+
+class TestConnectionPool:
+    """Tests for connection pooling."""
+
+    def test_pooled_mode_works(self, tmp_path):
+        """Database should work in pooled mode."""
+        from showcase.storage.database import ShowcaseDB
+
+        db_path = tmp_path / "pooled_test.db"
+        db = ShowcaseDB(db_path=db_path, use_pool=True, pool_size=3)
+
+        try:
+            # Save and load should work
+            db.save_state("test-thread", {"topic": "test"})
+            loaded = db.load_state("test-thread")
+            assert loaded["topic"] == "test"
+        finally:
+            db.close()
+
+    def test_pool_reuses_connections(self, tmp_path):
+        """Pool should reuse connections."""
+        from showcase.storage.database import ConnectionPool
+
+        db_path = tmp_path / "pool_test.db"
+        pool = ConnectionPool(db_path, pool_size=2)
+
+        # Get a connection, use it, return it
+        with pool.get_connection() as conn1:
+            conn1_id = id(conn1)
+
+        # Next connection should be the same one (reused from pool)
+        with pool.get_connection() as conn2:
+            conn2_id = id(conn2)
+
+        assert conn1_id == conn2_id
+        pool.close_all()
+
+    def test_close_method(self, tmp_path):
+        """Close should clean up connections."""
+        from showcase.storage.database import ShowcaseDB
+
+        db_path = tmp_path / "close_test.db"
+        db = ShowcaseDB(db_path=db_path, use_pool=True, pool_size=2)
+
+        # Use the connection to create one
+        db.save_state("test", {"data": "value"})
+
+        # Close should not raise
+        db.close()

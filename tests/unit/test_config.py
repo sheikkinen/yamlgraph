@@ -3,7 +3,7 @@
 from showcase.config import (
     DATABASE_PATH,
     DEFAULT_MAX_TOKENS,
-    DEFAULT_MODEL,
+    DEFAULT_MODELS,
     DEFAULT_TEMPERATURE,
     MAX_TOPIC_LENGTH,
     MAX_WORD_COUNT,
@@ -52,10 +52,17 @@ class TestPaths:
 class TestLLMConfig:
     """Tests for LLM configuration."""
 
-    def test_default_model_is_string(self):
-        """Default model should be a non-empty string."""
-        assert isinstance(DEFAULT_MODEL, str)
-        assert len(DEFAULT_MODEL) > 0
+    def test_default_models_has_all_providers(self):
+        """Default models dict should have all supported providers."""
+        assert "anthropic" in DEFAULT_MODELS
+        assert "mistral" in DEFAULT_MODELS
+        assert "openai" in DEFAULT_MODELS
+
+    def test_default_models_are_strings(self):
+        """All default models should be non-empty strings."""
+        for provider, model in DEFAULT_MODELS.items():
+            assert isinstance(model, str), f"{provider} model should be string"
+            assert len(model) > 0, f"{provider} model should not be empty"
 
     def test_default_temperature_range(self):
         """Default temperature should be in valid range."""

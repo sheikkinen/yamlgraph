@@ -8,8 +8,9 @@ from unittest.mock import patch
 import pytest
 
 from showcase.builder import build_resume_graph
-from showcase.graph_loader import _should_continue, load_graph_config
+from showcase.graph_loader import load_graph_config
 from showcase.models import create_initial_state
+from showcase.routing import should_continue
 from tests.conftest import FixtureAnalysis, FixtureGeneratedContent
 
 # =============================================================================
@@ -103,13 +104,13 @@ class TestConditionsFromYAML:
     """Issue 2: Conditions block was dead config - now removed."""
 
     def test_routing_uses_should_continue_function(self):
-        """Routing is handled by _should_continue(), not YAML conditions.
+        """Routing is handled by should_continue(), not YAML conditions.
 
         This is by design: dynamic condition evaluation adds complexity
-        without clear benefit for this showcase. The _should_continue()
+        without clear benefit for this showcase. The should_continue()
         function provides simple, predictable routing.
         """
-        # _should_continue checks 'generated' and 'error'
+        # should_continue checks 'generated' and 'error'
         state_success = {
             "generated": FixtureGeneratedContent(
                 title="T", content="C", word_count=5, tags=[]
@@ -118,8 +119,8 @@ class TestConditionsFromYAML:
         }
         state_error = {"generated": None, "error": "Some error"}
 
-        assert _should_continue(state_success) == "continue"
-        assert _should_continue(state_error) == "end"
+        assert should_continue(state_success) == "continue"
+        assert should_continue(state_error) == "end"
 
     def test_conditions_block_not_in_schema(self):
         """GraphConfig no longer parses conditions block."""
@@ -128,9 +129,9 @@ class TestConditionsFromYAML:
         config = load_graph_config(DEFAULT_GRAPH)
 
         # conditions attribute should not exist
-        assert not hasattr(config, "conditions"), (
-            "GraphConfig should not have 'conditions' attribute - it's dead config"
-        )
+        assert not hasattr(
+            config, "conditions"
+        ), "GraphConfig should not have 'conditions' attribute - it's dead config"
 
 
 # =============================================================================

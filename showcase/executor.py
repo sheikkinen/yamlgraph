@@ -167,20 +167,35 @@ def execute_prompt(
     )
 
 
-# Singleton executor instance for LLM caching
+# Default executor instance for LLM caching
+# Use get_executor() to access, or set_executor() for dependency injection
 _executor: "PromptExecutor | None" = None
 
 
 def get_executor() -> "PromptExecutor":
-    """Get the singleton executor instance.
+    """Get the executor instance.
+
+    Returns the default singleton or a custom instance set via set_executor().
 
     Returns:
-        Shared PromptExecutor instance with LLM caching
+        PromptExecutor instance with LLM caching
     """
     global _executor
     if _executor is None:
         _executor = PromptExecutor()
     return _executor
+
+
+def set_executor(executor: "PromptExecutor | None") -> None:
+    """Set a custom executor instance for dependency injection.
+
+    Useful for testing or when you need different executor configurations.
+
+    Args:
+        executor: Custom PromptExecutor instance, or None to reset to default
+    """
+    global _executor
+    _executor = executor
 
 
 class PromptExecutor:
