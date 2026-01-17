@@ -146,7 +146,7 @@ def concatenate_videos(video_paths: list[Path], output_path: Path) -> bool:
     if not video_paths:
         return False
 
-    # Create concat file list
+    # Create concat file list in the same directory
     concat_file = output_path.parent / "concat_list.txt"
     with open(concat_file, "w") as f:
         for video in video_paths:
@@ -162,14 +162,14 @@ def concatenate_videos(video_paths: list[Path], output_path: Path) -> bool:
                 "-safe",
                 "0",
                 "-i",
-                str(concat_file),
+                "concat_list.txt",  # Use relative name since cwd is set
                 "-c",
                 "copy",
-                str(output_path),
+                output_path.name,  # Use relative name
             ],
             capture_output=True,
             text=True,
-            cwd=output_path.parent,
+            cwd=str(output_path.parent),  # Ensure string path
         )
 
         concat_file.unlink()  # Clean up
