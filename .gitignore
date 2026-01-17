@@ -38,6 +38,7 @@ htmlcov/
 # Caches
 .cache/
 .ruff_cache/
+.mypy_cache/
 
 # Custom graphs
-projects/
+projects/docs/
