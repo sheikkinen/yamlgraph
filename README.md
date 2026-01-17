@@ -41,6 +41,12 @@ showcase graph run graphs/reflexion-demo.yaml --var topic="climate change"
 showcase graph run graphs/git-report.yaml --var input="What changed recently?"
 showcase graph run graphs/memory-demo.yaml --var input="Show me recent commits"
 
+# Animated storyboard with parallel fan-out (type: map)
+showcase graph run examples/storyboard/animated-graph.yaml \
+  --var concept="A robot learning to paint" --var model=hidream
+showcase graph run examples/storyboard/animated-character-graph.yaml \
+  --var concept="A brave mouse knight" --var model=hidream
+
 # Graph utilities
 showcase graph list                         # List available graphs
 showcase graph info graphs/router-demo.yaml # Show graph structure
