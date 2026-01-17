@@ -17,8 +17,18 @@ A YAML-first framework for building LLM pipelines using:
 
 ## Installation
 
+### From PyPI
+
 ```bash
 pip install yamlgraph
+```
+
+### From Source
+
+```bash
+git clone https://github.com/sheikkinen/yamlgraph.git
+cd yamlgraph
+pip install -e ".[dev]"
 ```
 
 ## Quick Start
