@@ -75,8 +75,7 @@ See the [reference/](reference/) folder for comprehensive YAML configuration gui
 ```
 showcase/
 ├── README.md
-├── pyproject.toml        # Package definition with CLI entry point
-├── requirements.txt      # Dependencies
+├── pyproject.toml        # Package definition with CLI entry point and dependencies
 ├── .env.sample           # Environment template
 │
 ├── graphs/               # YAML graph definitions
