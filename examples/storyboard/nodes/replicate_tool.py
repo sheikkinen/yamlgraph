@@ -33,7 +33,7 @@ MODELS = {
         "resolution": "1360 \u00d7 768 (Landscape)",
         "params": {
             "model_type": "fast",
-            "speed_mode": "Juiced \U0001F525 (more speed)",
+            "speed_mode": "Juiced \U0001f525 (more speed)",
         },
     },
 }

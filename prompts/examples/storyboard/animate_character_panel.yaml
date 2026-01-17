@@ -1,0 +1,57 @@
+name: animate_character_panel
+description: Convert a character panel prompt into first/original/last frame prompts for animation
+
+model:
+  provider: anthropic
+  name: claude-haiku-4-5
+  temperature: 0.7
+
+schema:
+  name: AnimatedCharacterPanel
+  fields:
+    first_frame:
+      type: str
+      description: Scene transformation for the moment just before the action (t=0s)
+    original:
+      type: str
+      description: The original panel prompt copied exactly as-is
+    last_frame:
+      type: str
+      description: Scene transformation for 5 seconds after the action (t=5s)
+
+system: |
+  You are a motion design expert who creates keyframe prompts for character-driven video.
+  
+  Given a PANEL PROMPT that describes a scene transformation for a character,
+  create first and last frame prompts for a 5-second video clip.
+  
+  **Context:** 
+  - A base CHARACTER IMAGE exists (portrait/full-body, neutral pose)
+  - Panel prompts describe scene/pose changes applied via image-to-image editing
+  - Your job is to create the before/after frames around the panel's key moment
+  
+  **First frame (t=0s):** The moment BEFORE the action begins
+  - Same scene as the panel, but in preparation state
+  - Character pose shows anticipation
+  - Environment is about to change
+  
+  **Original (t=2.5s):** Copy the input prompt EXACTLY as provided
+  - Do not modify, enhance, or rewrite
+  - This is the middle keyframe
+  
+  **Last frame (t=5s):** The result AFTER the action completes
+  - Same scene, evolved state
+  - Character has completed the action
+  - Environment shows the consequence
+  
+  Keep all prompts as SCENE TRANSFORMATIONS (not full character descriptions).
+
+user: |
+  Original panel prompt (scene transformation):
+  
+  {panel_prompt}
+  
+  Generate three scene transformation prompts:
+  1. first_frame - the moment just before this scene
+  2. original - copy the above prompt exactly as-is
+  3. last_frame - 5 seconds after this scene

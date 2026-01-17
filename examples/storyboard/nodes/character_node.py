@@ -150,7 +150,9 @@ def generate_character_storyboard(state: GraphState) -> dict:
     logger.info(f"📝 Metadata saved: {metadata_path}")
 
     success_count = sum(1 for r in results if r.success)
-    logger.info(f"✅ Generated {success_count}/{len(results)} images (1 character + {len(panels[:3])} panels)")
+    logger.info(
+        f"✅ Generated {success_count}/{len(results)} images (1 character + {len(panels[:3])} panels)"
+    )
 
     return {
         "current_step": "generate_character_storyboard",

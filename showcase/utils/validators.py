@@ -1,0 +1,140 @@
+"""Graph configuration validators.
+
+Validation functions for YAML graph configuration structures.
+"""
+
+from typing import Any
+
+
+def validate_required_sections(config: dict[str, Any]) -> None:
+    """Validate required top-level sections exist.
+
+    Args:
+        config: Parsed YAML configuration dictionary
+
+    Raises:
+        ValueError: If required sections are missing
+    """
+    if not config.get("nodes"):
+        raise ValueError("Graph config missing required 'nodes' section")
+    if not config.get("edges"):
+        raise ValueError("Graph config missing required 'edges' section")
+
+
+def validate_node_prompt(node_name: str, node_config: dict[str, Any]) -> None:
+    """Validate node has required prompt if applicable.
+
+    Args:
+        node_name: Name of the node
+        node_config: Node configuration dictionary
+
+    Raises:
+        ValueError: If prompt is required but missing
+    """
+    node_type = node_config.get("type", "llm")
+    # Only llm and router nodes require prompts
+    # tool, python, agent, and map nodes don't require prompts
+    if node_type in ("llm", "router") and not node_config.get("prompt"):
+        raise ValueError(f"Node '{node_name}' missing required 'prompt' field")
+
+
+def validate_router_node(
+    node_name: str, node_config: dict[str, Any], all_nodes: dict[str, Any]
+) -> None:
+    """Validate router node has routes pointing to valid nodes.
+
+    Args:
+        node_name: Name of the node
+        node_config: Node configuration dictionary
+        all_nodes: All nodes in the graph for target validation
+
+    Raises:
+        ValueError: If router configuration is invalid
+    """
+    if node_config.get("type") != "router":
+        return
+
+    if not node_config.get("routes"):
+        raise ValueError(f"Router node '{node_name}' missing required 'routes' field")
+
+    for route_key, target_node in node_config["routes"].items():
+        if target_node not in all_nodes:
+            raise ValueError(
+                f"Router node '{node_name}' route '{route_key}' points to "
+                f"nonexistent node '{target_node}'"
+            )
+
+
+def validate_edges(edges: list[dict[str, Any]]) -> None:
+    """Validate each edge has required from/to fields.
+
+    Args:
+        edges: List of edge configurations
+
+    Raises:
+        ValueError: If edge is missing required fields
+    """
+    for i, edge in enumerate(edges):
+        if "from" not in edge:
+            raise ValueError(f"Edge {i} missing required 'from' field")
+        if "to" not in edge:
+            raise ValueError(f"Edge {i} missing required 'to' field")
+
+
+def validate_on_error(node_name: str, node_config: dict[str, Any]) -> None:
+    """Validate on_error value is valid.
+
+    Args:
+        node_name: Name of the node
+        node_config: Node configuration dictionary
+
+    Raises:
+        ValueError: If on_error value is invalid
+    """
+    valid_on_error = {"skip", "retry", "fail", "fallback"}
+    on_error = node_config.get("on_error")
+    if on_error and on_error not in valid_on_error:
+        raise ValueError(
+            f"Node '{node_name}' has invalid on_error value '{on_error}'. "
+            f"Valid values: {', '.join(valid_on_error)}"
+        )
+
+
+def validate_map_node(node_name: str, node_config: dict[str, Any]) -> None:
+    """Validate map node has required fields.
+
+    Args:
+        node_name: Name of the node
+        node_config: Node configuration dictionary
+
+    Raises:
+        ValueError: If map node configuration is invalid
+    """
+    if node_config.get("type") != "map":
+        return
+
+    required_fields = ["over", "as", "node", "collect"]
+    for field in required_fields:
+        if field not in node_config:
+            raise ValueError(f"Map node '{node_name}' missing required '{field}' field")
+
+
+def validate_config(config: dict[str, Any]) -> None:
+    """Validate YAML configuration structure.
+
+    Args:
+        config: Parsed YAML dictionary
+
+    Raises:
+        ValueError: If required fields are missing or invalid
+    """
+    validate_required_sections(config)
+
+    nodes = config["nodes"]
+    for node_name, node_config in nodes.items():
+        validate_node_prompt(node_name, node_config)
+        validate_router_node(node_name, node_config, nodes)
+        validate_on_error(node_name, node_config)
+        validate_map_node(node_name, node_config)
+
+    validate_edges(config["edges"])

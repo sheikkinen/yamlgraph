@@ -1,0 +1,66 @@
+# Animated Character-Consistent Storyboard Graph
+#
+# Workflow:
+# 1. Generate story with character prompt + 3 panel prompts
+# 2. Map each panel to animated frames (first/original/last)
+# 3. Generate character base image + 9 panel frames via img2img
+#
+# Usage:
+#   python run.py graph run examples/storyboard/animated-character-graph.yaml \
+#     --var concept="A detective solving a mystery" --var model=hidream
+
+name: animated-character-storyboard
+version: "1.0"
+description: Character-consistent animated storyboard with first/middle/last frames
+
+state:
+  concept: str
+  model: str
+  story: any
+  animated_panels: list
+  character_image: str
+
+tools:
+  generate_animated_character_images:
+    type: python
+    module: examples.storyboard.nodes.animated_character_node
+    function: generate_animated_character_images
+    description: Generate character image then 3 frames per panel via img2img
+
+nodes:
+  # Step 1: Generate character + story panels
+  expand_story:
+    type: llm
+    prompt: examples/storyboard/expand_character_story
+    state_key: story
+    variables:
+      concept: "{state.concept}"
+      model: "{state.model}"
+
+  # Step 2: Map each panel to animated frames (parallel)
+  animate_panels:
+    type: map
+    over: "{state.story.panels}"
+    as: panel_prompt
+    node:
+      type: llm
+      prompt: examples/storyboard/animate_character_panel
+      state_key: animated_panel
+    collect: animated_panels
+
+  # Step 3: Generate all images (character + 9 frames)
+  generate_images:
+    type: python
+    tool: generate_animated_character_images
+    state_key: images
+    requires: [animated_panels, story]
+
+edges:
+  - from: START
+    to: expand_story
+  - from: expand_story
+    to: animate_panels
+  - from: animate_panels
+    to: generate_images
+  - from: generate_images
+    to: END

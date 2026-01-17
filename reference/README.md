@@ -10,7 +10,7 @@ Create your first pipeline in 5 minutes. Start here if you're new.
 ### [Graph YAML Reference](graph-yaml.md)
 Complete reference for graph configuration files (`graphs/*.yaml`):
 - Top-level properties (version, name, defaults)
-- Node types (llm, router, agent)
+- Node types (llm, router, map, python, agent)
 - Edge definitions and conditions
 - Tools for agents
 - Error handling
@@ -24,6 +24,13 @@ Complete reference for prompt template files (`prompts/*.yaml`):
 - Jinja2 templating
 - Field types and constraints
 
+### [Map Nodes Reference](map-nodes.md)
+Parallel fan-out/fan-in processing with LangGraph's `Send()` API:
+- Process lists in parallel
+- Automatic result collection
+- Sub-node types (llm, router, python)
+- Animated storyboard examples
+
 ### [Common Patterns](patterns.md)
 Copy-paste patterns for common use cases:
 1. Linear pipeline
@@ -33,6 +40,7 @@ Copy-paste patterns for common use cases:
 5. Error recovery
 6. Multi-input consolidation
 7. Stateful memory
+8. Parallel fan-out (Map)
 
 ---
 

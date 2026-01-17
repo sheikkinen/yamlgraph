@@ -158,6 +158,11 @@ def extract_node_fields(nodes: dict) -> dict[str, type]:
         elif node_type == "router":
             fields["_route"] = str
 
+        elif node_type == "map":
+            # Map node collect field needs list reducer for fan-in
+            if collect_key := node_config.get("collect"):
+                fields[collect_key] = Annotated[list, add]
+
     return fields
 
 

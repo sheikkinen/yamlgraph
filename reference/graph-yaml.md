@@ -203,6 +203,50 @@ nodes:
 
 **Note:** The Python function must be defined in the `tools` section with `type: python`.
 
+### `type: map` - Parallel Fan-Out Node
+
+Process each item in a list in parallel using LangGraph's `Send()` API.
+
+```yaml
+nodes:
+  animate_panels:
+    type: map
+    over: "{state.story.panels}"     # List to iterate over
+    as: panel_prompt                  # Variable name for each item
+    node:                             # Sub-node executed per item
+      type: llm
+      prompt: animate_panel
+      state_key: animated_panel
+    collect: animated_panels          # State key for collected results
+```
+
+**Map node properties:**
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `over` | `string` | Yes | State expression for the list to iterate |
+| `as` | `string` | Yes | Variable name injected into sub-node |
+| `node` | `object` | Yes | Sub-node definition (llm, router, or python) |
+| `collect` | `string` | Yes | State key where results are collected |
+
+**How it works:**
+1. Fan-out: Each item is dispatched via `Send()` for parallel processing
+2. Process: Sub-node runs independently per item with `{state.<as>}` available
+3. Collect: Results are aggregated using `Annotated[list, operator.add]` reducer
+
+**Sub-node variable access:**
+```yaml
+as: panel_prompt
+node:
+  type: llm
+  prompt: animate_panel
+  variables:
+    prompt: "{state.panel_prompt}"    # Access injected item
+    context: "{state.story.title}"    # Access parent state
+```
+
+See [Map Nodes Reference](map-nodes.md) for detailed examples and patterns.
+
 ### Error Handling Properties
 
 All node types support error handling:

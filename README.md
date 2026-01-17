@@ -63,6 +63,7 @@ See the [reference/](reference/) folder for comprehensive YAML configuration gui
 - [Quick Start](reference/quickstart.md) - Create your first pipeline in 5 minutes
 - [Graph YAML Reference](reference/graph-yaml.md) - All graph configuration options
 - [Prompt YAML Reference](reference/prompt-yaml.md) - Schema and template syntax
+- [Map Nodes](reference/map-nodes.md) - Parallel fan-out/fan-in processing
 - [Common Patterns](reference/patterns.md) - Router, loops, agents, and more
 
 ## Architecture
@@ -403,7 +404,8 @@ showcase git-report -q "Summarize the test directory"
 **Node types:**
 - `type: llm` - Standard LLM call with structured output
 - `type: router` - Classify and route to different paths
-- `type: tool` - Execute a specific shell tool
+- `type: map` - Parallel fan-out over lists with `Send()`
+- `type: python` - Execute custom Python functions
 - `type: agent` - LLM loop that autonomously calls tools
 
 ## Environment Variables
@@ -616,16 +618,16 @@ This project demonstrates solid production patterns with declarative YAML-based 
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Fan-out/Fan-in | 📋 | Planned: `type: fanout` with `Send()` for item-level parallelism |
+| Fan-out/Fan-in | ✅ | `type: map` with `Send()` for item-level parallelism |
 | Human-in-the-Loop | ❌ | No `interrupt_before` / `interrupt_after` demonstration |
 | Streaming | ❌ | No streaming output support |
 | Sub-graphs | ❌ | No nested graph composition |
 
 ### Potential Enhancements
 
-1. **Dynamic fan-out** - Process lists in parallel: `[doc1, doc2, doc3]` → spawn workers → aggregate results
-2. **Add streaming** - `--stream` CLI flag for real-time output
-3. **JSON Schema validation** - Validate `graphs/*.yaml` against schema
+1. **Add streaming** - `--stream` CLI flag for real-time output
+2. **JSON Schema validation** - Validate `graphs/*.yaml` against schema
+3. **Sub-graphs** - Nested graph composition for complex workflows
 
 ## License
 

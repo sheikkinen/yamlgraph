@@ -529,6 +529,129 @@ class AgentState(TypedDict, total=False):
 
 ---
 
+## Pattern 8: Parallel Fan-Out (Map)
+
+Process each item in a list in parallel and collect results.
+
+### Use Case
+- Transform multiple documents/panels/items simultaneously
+- Generate images for each story panel
+- Analyze multiple code files in parallel
+
+### Graph Structure
+
+```yaml
+version: "1.0"
+name: map-pattern
+
+state:
+  items: list
+  processed_items: list
+
+nodes:
+  generate_items:
+    type: llm
+    prompt: generate_items
+    state_key: items              # Returns a list
+
+  process_items:
+    type: map
+    over: "{state.items}"         # List to iterate
+    as: item                      # Variable name per item
+    node:
+      type: llm
+      prompt: process_item
+      state_key: processed_item
+    collect: processed_items      # Collected results
+
+  summarize:
+    type: llm
+    prompt: summarize
+    variables:
+      results: "{state.processed_items}"
+    state_key: summary
+    requires: [processed_items]
+
+edges:
+  - from: START
+    to: generate_items
+  - from: generate_items
+    to: process_items
+  - from: process_items
+    to: summarize
+  - from: summarize
+    to: END
+```
+
+### Sub-Node Prompt Pattern
+
+```yaml
+# prompts/process_item.yaml
+schema:
+  name: ProcessedItem
+  fields:
+    result:
+      type: str
+      description: "Processed output"
+    metadata:
+      type: dict
+      description: "Additional info"
+
+system: |
+  Process the given item and return structured output.
+
+user: |
+  Process this item: {item}
+```
+
+### Real-World Example: Animated Storyboard
+
+```yaml
+nodes:
+  expand_story:
+    type: llm
+    prompt: expand_story
+    state_key: story              # {title, panels: [...]}
+
+  animate_panels:
+    type: map
+    over: "{state.story.panels}"  # List of panel descriptions
+    as: panel_prompt
+    node:
+      type: llm
+      prompt: animate_panel       # Convert to first/middle/last frames
+      state_key: animated_panel
+    collect: animated_panels
+
+  generate_images:
+    type: python
+    tool: generate_images
+    requires: [animated_panels]
+
+edges:
+  - from: START
+    to: expand_story
+  - from: expand_story
+    to: animate_panels
+  - from: animate_panels
+    to: generate_images
+  - from: generate_images
+    to: END
+```
+
+### Key Points
+
+- Use `type: map` for parallel list processing
+- `over` specifies the list to iterate (supports nested access)
+- `as` defines the variable name available in sub-node
+- `collect` aggregates all results into a list
+- Results include `_map_index` for ordering
+- Sub-nodes can be `llm`, `router`, or `python` type
+
+See [Map Nodes Reference](map-nodes.md) for comprehensive documentation.
+
+---
+
 ## Cheat Sheet
 
 ### Node Type Quick Reference
@@ -537,6 +660,8 @@ class AgentState(TypedDict, total=False):
 |------|---------|-----------------|
 | `llm` | LLM call with optional structured output | `prompt` |
 | `router` | Classification → routing | `prompt`, `routes` |
+| `map` | Parallel fan-out over lists | `over`, `as`, `node`, `collect` |
+| `python` | Custom Python function | `tool` |
 | `agent` | Tool-using autonomous agent | `prompt`, `tools` |
 
 ### Common Variable Patterns
