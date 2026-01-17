@@ -1,9 +1,13 @@
-name: Publish to PyPI
+name: Release to PyPI
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0, v0.1.0, etc.
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   test:
@@ -39,10 +43,13 @@ jobs:
           python-version: '3.12'
 
       - name: Install build tools
-        run: python -m pip install --upgrade pip build
+        run: python -m pip install --upgrade pip build twine
 
       - name: Build package
         run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -53,7 +60,9 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    environment: pypi
+    environment:
+      name: pypi
+      url: https://pypi.org/project/yamlgraph/
     permissions:
       id-token: write
     steps:
@@ -65,3 +74,25 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  create-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
