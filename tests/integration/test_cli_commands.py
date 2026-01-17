@@ -23,6 +23,20 @@ class TestGraphCommands:
         assert "showcase.yaml" in result.stdout
         assert "Available graphs" in result.stdout
 
+    def test_graph_list_shows_all_demos(self):
+        """'graph list' shows all demo graphs."""
+        result = subprocess.run(
+            [sys.executable, "-m", "showcase.cli", "graph", "list"],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+        assert result.returncode == 0
+        # Should list all main demo graphs
+        assert "router-demo.yaml" in result.stdout
+        assert "reflexion-demo.yaml" in result.stdout
+        assert "git-report.yaml" in result.stdout
+
     def test_graph_validate_valid_graph(self):
         """'graph validate' succeeds for valid graph."""
         result = subprocess.run(
@@ -40,6 +54,25 @@ class TestGraphCommands:
         )
         assert result.returncode == 0
         assert "VALID" in result.stdout
+
+    def test_graph_validate_all_demos(self):
+        """'graph validate' succeeds for all demo graphs."""
+        demos = [
+            "graphs/showcase.yaml",
+            "graphs/router-demo.yaml",
+            "graphs/reflexion-demo.yaml",
+            "graphs/git-report.yaml",
+            "graphs/memory-demo.yaml",
+            "graphs/map-demo.yaml",
+        ]
+        for demo in demos:
+            result = subprocess.run(
+                [sys.executable, "-m", "showcase.cli", "graph", "validate", demo],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+            assert result.returncode == 0, f"Failed to validate {demo}: {result.stderr}"
 
     def test_graph_validate_invalid_path(self):
         """'graph validate' fails for missing file."""
@@ -75,6 +108,88 @@ class TestGraphCommands:
         )
         assert result.returncode == 0
         assert "Nodes:" in result.stdout or "nodes" in result.stdout.lower()
+
+    def test_graph_info_shows_edges(self):
+        """'graph info' shows edge details."""
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "showcase.cli",
+                "graph",
+                "info",
+                "graphs/showcase.yaml",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+        assert result.returncode == 0
+        assert "Edges:" in result.stdout or "edges" in result.stdout.lower()
+
+    def test_graph_info_router_demo(self):
+        """'graph info' shows router-demo structure."""
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "showcase.cli",
+                "graph",
+                "info",
+                "graphs/router-demo.yaml",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+        assert result.returncode == 0
+        assert "classify" in result.stdout
+        assert "router" in result.stdout.lower()
+
+    def test_graph_run_nonexistent_file_shows_error(self):
+        """'graph run' with nonexistent file shows error."""
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "showcase.cli",
+                "graph",
+                "run",
+                "graphs/does-not-exist.yaml",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+        # Should fail with file not found
+        assert result.returncode != 0
+        assert (
+            "not found" in result.stdout.lower() + result.stderr.lower()
+            or "Error" in result.stdout + result.stderr
+        )
+
+    def test_graph_run_invalid_var_format(self):
+        """'graph run' with invalid --var format shows error."""
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "showcase.cli",
+                "graph",
+                "run",
+                "graphs/showcase.yaml",
+                "--var",
+                "invalid_no_equals",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+        assert result.returncode != 0
+        assert (
+            "Invalid" in result.stdout + result.stderr
+            or "key=value" in result.stdout + result.stderr
+        )
 
 
 class TestListRunsCommand:
