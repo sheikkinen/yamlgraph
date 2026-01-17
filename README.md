@@ -634,6 +634,34 @@ This project demonstrates solid production patterns with declarative YAML-based 
 2. **JSON Schema validation** - Validate `graphs/*.yaml` against schema
 3. **Sub-graphs** - Nested graph composition for complex workflows
 
+## Security
+
+### Shell Command Injection Protection
+
+Shell tools (defined in `graphs/*.yaml` with `type: tool`) execute commands with variable substitution. All user-provided variable values are sanitized using `shlex.quote()` to prevent shell injection attacks.
+
+```yaml
+# In graph YAML - command template is trusted
+tools:
+  git_log:
+    type: shell
+    command: "git log --author={author} -n {count}"
+```
+
+**Security model:**
+- ✅ **Command templates** (from YAML) are trusted configuration
+- ✅ **Variable values** (from user input/LLM) are escaped with `shlex.quote()`
+- ✅ **Complex types** (lists, dicts) are JSON-serialized then quoted
+
+**Example protection:**
+```python
+# Malicious input is safely escaped
+variables = {"author": "$(rm -rf /)"}
+# Executed as: git log --author='$(rm -rf /)'  (quoted, harmless)
+```
+
+See [showcase/tools/shell.py](showcase/tools/shell.py) for implementation details.
+
 ## License
 
 MIT
