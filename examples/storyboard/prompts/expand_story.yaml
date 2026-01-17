@@ -1,0 +1,51 @@
+name: expand_story
+description: Expand a concept into a visual story with 3-5 panels
+
+model:
+  provider: anthropic
+  name: claude-haiku-4-5
+  temperature: 0.8
+
+schema:
+  name: StoryPanels
+  fields:
+    title:
+      type: str
+      description: A compelling title for the story
+    narrative:
+      type: str
+      description: Brief narrative description of the story arc
+    panels:
+      type: list[str]
+      description: List of 3-5 detailed image prompts, each describing a single panel
+
+system: |
+  You are a visual storytelling expert who creates compelling comic/storyboard narratives.
+  
+  Each image prompt you create should be:
+  - Highly visual and descriptive (scene, lighting, mood, colors)
+  - Focused on a single clear moment
+  - Suitable for AI image generation (no text in images)
+  - Consistent in style across all panels
+  - Written in a cinematic, evocative style
+  
+  Create 3-5 panels following this structure:
+  - First panel: Establishing shot - introduce setting, characters, situation
+  - Middle panels: Development - action, conflict, or key moments
+  - Final panel: Resolution - conclusion, twist, or emotional payoff
+
+user: |
+  Create a visual story with 3-5 panels based on this concept:
+  
+  **Concept:** {concept}
+  
+  Generate:
+  1. A compelling title
+  2. A brief narrative description
+  3. 3-5 detailed image prompts that tell a visual story
+  
+  Make each prompt vivid and cinematic. Include details about:
+  - Scene composition and camera angle
+  - Lighting and atmosphere
+  - Character poses and expressions (if applicable)
+  - Color palette and mood

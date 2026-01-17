@@ -1,0 +1,38 @@
+version: "1.0"
+name: storyboard
+description: Generate a visual story with 3-5 panels from a concept
+
+# Declare input state fields
+state:
+  concept: str
+
+# Python tools for image generation
+tools:
+  generate_images:
+    type: python
+    module: examples.storyboard.nodes.image_node
+    function: generate_images_node
+    description: Generate images for each story panel using Replicate API
+
+nodes:
+  expand_story:
+    type: llm
+    prompt: examples/storyboard/expand_story
+    state_key: story
+    variables:
+      concept: "{state.concept}"
+    # Output schema defined inline in prompt YAML
+
+  generate_images:
+    type: python
+    tool: generate_images
+    state_key: images
+    requires: [story]
+
+edges:
+  - from: START
+    to: expand_story
+  - from: expand_story
+    to: generate_images
+  - from: generate_images
+    to: END
