@@ -13,7 +13,6 @@ nodes:
   generate:
     type: llm
     prompt: generate
-    # output_model now defined inline in prompt YAML
     temperature: 0.8
     on_error: fallback        # skip | retry | fail | fallback
     fallback:
@@ -27,7 +26,6 @@ nodes:
   analyze:
     type: llm
     prompt: analyze
-    # output_model now defined inline in prompt YAML
     temperature: 0.3
     variables:
       content: "{state.generated.content}"

@@ -13,7 +13,6 @@ nodes:
   draft:
     type: llm
     prompt: reflexion-demo/draft
-    # output_model now defined inline in prompt YAML
     variables:
       topic: "{state.topic}"
     state_key: current_draft
@@ -21,7 +20,6 @@ nodes:
   critique:
     type: llm
     prompt: reflexion-demo/critique
-    # output_model now defined inline in prompt YAML
     variables:
       content: "{state.current_draft.content}"
       iteration: "{state._loop_counts.critique}"
@@ -31,7 +29,6 @@ nodes:
   refine:
     type: llm
     prompt: reflexion-demo/refine
-    # output_model now defined inline in prompt YAML
     variables:
       content: "{state.current_draft.content}"
       feedback: "{state.critique.feedback}"
