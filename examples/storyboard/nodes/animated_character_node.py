@@ -1,8 +1,11 @@
 """Animated character storyboard node.
 
-Generates:
-1. Character base image
-2. 3 images per panel (first_frame, original, last_frame) using img2img from character
+Generates for each panel:
+1. Original image (generate from character_prompt + panel description)
+2. First frame (img2img from original)
+3. Last frame (img2img from original)
+
+This ensures animation frames are visually coherent within each panel.
 """
 
 from __future__ import annotations
@@ -23,14 +26,18 @@ GraphState = dict[str, Any]
 def generate_animated_character_images(state: GraphState) -> dict:
     """Generate animated character-consistent storyboard images.
 
-    Step 0: Generate base character image
-    For each panel: Generate first_frame, original, last_frame via img2img
+    For each panel:
+    1. Generate ORIGINAL from character_prompt + panel's original description
+    2. Generate first_frame via img2img from original
+    3. Generate last_frame via img2img from original
+
+    This creates coherent animation sequences within each panel.
 
     Args:
         state: Graph state with 'story' and 'animated_panels'
 
     Returns:
-        State update with 'images' and 'character_image'
+        State update with 'images'
     """
     story = state.get("story")
     animated_panels = state.get("animated_panels", [])
@@ -84,34 +91,14 @@ def generate_animated_character_images(state: GraphState) -> dict:
     logger.info(f"🎬 Generating animated character storyboard in {output_dir}")
     logger.info(f"🖼️  Using model: {model_name}")
 
-    # Step 0: Generate base character image
-    character_path = output_dir / "character.png"
-    logger.info(f"👤 Creating character: {character_prompt[:60]}...")
-
-    character_result = generate_image(
-        prompt=character_prompt,
-        output_path=character_path,
-        model_name=model_name,
-    )
-
-    if not character_result.success:
-        logger.error(f"Character generation failed: {character_result.error}")
-        return {
-            "current_step": "generate_animated_character_images",
-            "images": [],
-            "error": f"Character generation failed: {character_result.error}",
-        }
-
-    logger.info(f"✓ Character created: {character_path}")
-
     # Generate frames for each panel
+    # Each panel: generate original first, then img2img for first/last
     total_images = len(animated_panels) * 3
     logger.info(
         f"🎞️  Generating {total_images} frames ({len(animated_panels)} panels × 3)"
     )
 
     all_results: list[dict] = []
-    frame_keys = ["first_frame", "original", "last_frame"]
 
     for panel_idx, panel in enumerate(animated_panels, 1):
         if hasattr(panel, "model_dump"):
@@ -124,39 +111,82 @@ def generate_animated_character_images(state: GraphState) -> dict:
 
         panel_result = {"panel": panel_idx, "frames": {}}
 
-        for frame_key in frame_keys:
-            prompt = panel_dict.get(frame_key, "")
-            if not prompt:
-                logger.warning(f"Panel {panel_idx} missing {frame_key}")
-                continue
+        # Step 1: Generate ORIGINAL image from character_prompt + panel description
+        original_prompt = panel_dict.get("original", "")
+        if not original_prompt:
+            logger.warning(f"Panel {panel_idx} missing original prompt")
+            continue
 
-            output_path = output_dir / f"panel_{panel_idx}_{frame_key}.png"
-            logger.info(f"📸 Panel {panel_idx} {frame_key}: {prompt[:50]}...")
+        # Combine character + scene for consistency
+        full_original_prompt = f"{character_prompt}, {original_prompt}"
+        original_path = output_dir / f"panel_{panel_idx}_original.png"
+        logger.info(f"📸 Panel {panel_idx} original: {original_prompt[:50]}...")
 
-            # Use img2img from character
-            result = edit_image(
-                input_image=character_path,
-                prompt=prompt,
-                output_path=output_path,
+        original_result = generate_image(
+            prompt=full_original_prompt,
+            output_path=original_path,
+            model_name=model_name,
+        )
+
+        if not original_result.success:
+            logger.error(f"Panel {panel_idx} original failed: {original_result.error}")
+            continue
+
+        panel_result["frames"]["original"] = str(original_path)
+        logger.info(f"✓ Panel {panel_idx} original created")
+
+        # Step 2: Generate first_frame via img2img from original
+        first_prompt = panel_dict.get("first_frame", "")
+        if first_prompt:
+            first_path = output_dir / f"panel_{panel_idx}_first_frame.png"
+            logger.info(f"📸 Panel {panel_idx} first_frame: {first_prompt[:50]}...")
+
+            first_result = edit_image(
+                input_image=original_path,
+                prompt=first_prompt,
+                output_path=first_path,
                 aspect_ratio="16:9",
             )
 
-            if result.success and result.path:
-                panel_result["frames"][frame_key] = result.path
+            if first_result.success and first_result.path:
+                panel_result["frames"]["first_frame"] = first_result.path
             else:
-                logger.error(f"Panel {panel_idx} {frame_key} failed: {result.error}")
-                panel_result["frames"][frame_key] = None
+                logger.error(
+                    f"Panel {panel_idx} first_frame failed: {first_result.error}"
+                )
+                panel_result["frames"]["first_frame"] = None
+
+        # Step 3: Generate last_frame via img2img from original
+        last_prompt = panel_dict.get("last_frame", "")
+        if last_prompt:
+            last_path = output_dir / f"panel_{panel_idx}_last_frame.png"
+            logger.info(f"📸 Panel {panel_idx} last_frame: {last_prompt[:50]}...")
+
+            last_result = edit_image(
+                input_image=original_path,
+                prompt=last_prompt,
+                output_path=last_path,
+                aspect_ratio="16:9",
+            )
+
+            if last_result.success and last_result.path:
+                panel_result["frames"]["last_frame"] = last_result.path
+            else:
+                logger.error(
+                    f"Panel {panel_idx} last_frame failed: {last_result.error}"
+                )
+                panel_result["frames"]["last_frame"] = None
 
         all_results.append(panel_result)
 
     # Save metadata
+    frame_keys = ["first_frame", "original", "last_frame"]
     metadata_path = output_dir / "animated_character_story.json"
     metadata = {
         "concept": state.get("concept", ""),
         "title": story_dict.get("title", ""),
         "narrative": story_dict.get("narrative", ""),
         "character_prompt": character_prompt,
-        "character_image": str(character_path),
         "panels": [
             {
                 "index": r["panel"],
@@ -176,11 +206,10 @@ def generate_animated_character_images(state: GraphState) -> dict:
     logger.info(f"📝 Metadata saved: {metadata_path}")
 
     success_count = sum(1 for r in all_results for path in r["frames"].values() if path)
-    logger.info(f"✅ Generated {success_count}/{total_images} images + 1 character")
+    logger.info(f"✅ Generated {success_count}/{total_images} images")
 
     return {
         "current_step": "generate_animated_character_images",
-        "character_image": str(character_path),
         "images": all_results,
         "output_dir": str(output_dir),
     }

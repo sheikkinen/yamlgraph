@@ -58,3 +58,58 @@ outputs/storyboard/20260117_120000/
 | `prompts/expand_story.yaml` | LLM prompt with schema |
 | `nodes/image_node.py` | Python node for image generation |
 | `nodes/replicate_tool.py` | Replicate API wrapper |
+
+---
+
+## Animated Storyboard
+
+Generates animation-ready storyboards with 3 frames per panel (original, first_frame, last_frame).
+
+### Usage
+
+```bash
+showcase graph run examples/storyboard/animated-character-graph.yaml \
+  --var concept="A detective solving a mystery" \
+  --var model="hidream"
+```
+
+### How It Works
+
+```
+concept ──► expand_story ──► animate_panels (map) ──► generate_images
+                │                    │                      │
+                ▼                    ▼                      ▼
+         character_prompt    3 panels × 3 prompts    9 images total
+```
+
+For each panel:
+1. **Original** - Generated via `generate_image(character_prompt + panel.original)`
+2. **First frame** - Generated via `edit_image(original, first_frame)` (img2img)
+3. **Last frame** - Generated via `edit_image(original, last_frame)` (img2img)
+
+This ensures each panel's animation frames are visually coherent.
+
+### Output
+
+```
+outputs/storyboard/{thread_id}/animated/
+├── panel_1_original.png
+├── panel_1_first_frame.png
+├── panel_1_last_frame.png
+├── panel_2_original.png
+├── panel_2_first_frame.png
+├── panel_2_last_frame.png
+├── panel_3_original.png
+├── panel_3_first_frame.png
+├── panel_3_last_frame.png
+└── animated_character_story.json
+```
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `animated-character-graph.yaml` | Animated graph with map node |
+| `prompts/expand_character_story.yaml` | Story + character prompt |
+| `prompts/animate_character_panel.yaml` | Panel → 3 frame prompts |
+| `nodes/animated_character_node.py` | Image generation with img2img |

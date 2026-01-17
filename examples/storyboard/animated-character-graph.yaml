@@ -3,7 +3,7 @@
 # Workflow:
 # 1. Generate story with character prompt + 3 panel prompts
 # 2. Map each panel to animated frames (first/original/last)
-# 3. Generate character base image + 9 panel frames via img2img
+# 3. Generate 3 images per panel: original + 2 img2img frames
 #
 # Usage:
 #   showcase graph run examples/storyboard/animated-character-graph.yaml \
