@@ -26,6 +26,9 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 # Install as editable package
 pip install -e .
 
+# Optional: For storyboard image generation
+pip install -e ".[storyboard]"
+
 # Configure environment
 cp .env.sample .env
 # Edit .env with your ANTHROPIC_API_KEY
