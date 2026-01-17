@@ -35,5 +35,9 @@ coverage.xml
 htmlcov/
 .pytest_cache/
 
+# Caches
+.cache/
+.ruff_cache/
+
 # Custom graphs
 projects/

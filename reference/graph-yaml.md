@@ -402,7 +402,7 @@ Execute Python functions directly:
 tools:
   generate_images:
     type: python
-    module: projects.storyboard.nodes.image_node
+    module: examples.storyboard.nodes.image_node
     function: generate_images_node
     description: "Generate images for each story panel"
 ```

@@ -21,7 +21,7 @@ class PythonToolConfig:
     """Configuration for a Python tool.
 
     Attributes:
-        module: Full module path (e.g., "projects.storyboard.nodes.image_node")
+        module: Full module path (e.g., "examples.storyboard.nodes.image_node")
         function: Function name within the module
         description: Human-readable description
     """
