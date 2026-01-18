@@ -110,6 +110,9 @@ yamlgraph graph run graphs/reflexion-demo.yaml --var topic="climate change"
 # AI agent with shell tools
 yamlgraph graph run graphs/git-report.yaml --var input="What changed recently?"
 
+# Web research agent (requires: pip install yamlgraph[websearch])
+yamlgraph graph run graphs/web-research.yaml --var topic="LangGraph tutorials"
+
 # Parallel fan-out with map nodes
 yamlgraph graph run examples/storyboard/animated-character-graph.yaml \
   --var concept="A brave mouse knight" --var model=hidream
@@ -527,6 +530,43 @@ Run the git analysis agent:
 yamlgraph git-report -q "What changed recently?"
 yamlgraph git-report -q "Summarize the test directory"
 ```
+
+### 8. Web Search Tools
+
+Enable agents to search the web using DuckDuckGo (no API key required):
+
+```bash
+pip install yamlgraph[websearch]
+```
+
+```yaml
+# graphs/web-research.yaml
+tools:
+  search_web:
+    type: websearch
+    provider: duckduckgo
+    max_results: 5
+    description: "Search the web for current information"
+
+nodes:
+  research:
+    type: agent
+    prompt: web-research/researcher
+    tools: [search_web]
+    max_iterations: 5
+    state_key: research
+```
+
+Run web research:
+
+```bash
+yamlgraph graph run graphs/web-research.yaml --var topic="LangGraph tutorials"
+```
+
+**Tool types:**
+- `type: shell` - Execute shell commands with variable substitution
+- `type: websearch` - Web search via DuckDuckGo (provider: duckduckgo)
+- `type: python` - Execute custom Python functions
 
 **Node types:**
 - `type: llm` - Standard LLM call with structured output
