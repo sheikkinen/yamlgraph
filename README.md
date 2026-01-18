@@ -116,6 +116,9 @@ yamlgraph graph run graphs/web-research.yaml --var topic="LangGraph tutorials"
 # Code quality analysis with shell tools
 yamlgraph graph run graphs/code-analysis.yaml --var path="yamlgraph" --var package="yamlgraph"
 
+# Meta: YAMLGraph brainstorms its own features
+yamlgraph graph run graphs/feature-brainstorm.yaml --var focus="tools"
+
 # Parallel fan-out with map nodes
 yamlgraph graph run examples/storyboard/animated-character-graph.yaml \
   --var concept="A brave mouse knight" --var model=hidream
@@ -127,6 +130,7 @@ yamlgraph graph run examples/storyboard/animated-character-graph.yaml \
 yamlgraph graph list                         # List available graphs
 yamlgraph graph info graphs/router-demo.yaml # Show graph structure
 yamlgraph graph validate graphs/*.yaml       # Validate graph schemas
+yamlgraph graph lint graphs/*.yaml           # Lint graphs for common issues
 yamlgraph list-runs                          # View recent runs
 yamlgraph resume --thread-id abc123          # Resume a run
 yamlgraph export --thread-id abc123          # Export run to JSON

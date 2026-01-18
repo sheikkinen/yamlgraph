@@ -1,0 +1,100 @@
+version: "1.0"
+name: feature-brainstorm
+description: YAMLGraph proposes improvements to itself by analyzing its own codebase
+
+state:
+  focus: str  # Optional: area to focus on (e.g., "tools", "patterns", "cli")
+
+tools:
+  read_patterns:
+    type: shell
+    command: cat reference/patterns.md
+    description: "Read current pattern documentation"
+
+  read_readme:
+    type: shell
+    command: head -400 README.md
+    description: "Read project overview and features"
+
+  list_graphs:
+    type: shell
+    command: ls -la graphs/*.yaml examples/**/*.yaml 2>/dev/null || ls graphs/*.yaml
+    description: "List all available graph examples"
+
+  search_todos:
+    type: shell
+    command: grep -rn "TODO\|FIXME\|HACK" yamlgraph/ --include="*.py" | head -30
+    description: "Find TODO comments in codebase"
+
+  read_changelog:
+    type: shell
+    command: cat CHANGELOG.md
+    description: "Read recent changes and version history"
+
+  read_reference:
+    type: shell
+    command: cat reference/README.md reference/graph-yaml.md
+    description: "Read graph YAML schema documentation"
+
+  list_tools:
+    type: shell
+    command: ls -la yamlgraph/tools/*.py
+    description: "List available tool implementations"
+
+  search_web:
+    type: websearch
+    provider: duckduckgo
+    max_results: 5
+    description: "Research competing tools and LLM orchestration trends"
+
+nodes:
+  gather_context:
+    type: agent
+    prompt: feature-brainstorm/gather
+    tools:
+      - read_patterns
+      - read_readme
+      - list_graphs
+      - search_todos
+      - read_changelog
+      - read_reference
+      - list_tools
+    max_iterations: 10
+    state_key: current_state
+
+  research_alternatives:
+    type: agent
+    prompt: feature-brainstorm/research
+    tools:
+      - search_web
+    max_iterations: 5
+    state_key: market_research
+
+  brainstorm:
+    type: llm
+    prompt: feature-brainstorm/ideate
+    state_key: ideas
+    variables:
+      current_state: current_state
+      market_research: market_research
+      focus: focus
+
+  prioritize:
+    type: llm
+    prompt: feature-brainstorm/prioritize
+    state_key: roadmap
+    variables:
+      ideas: ideas
+      focus: focus
+
+edges:
+  - from: START
+    to: gather_context
+  - from: gather_context
+    to: research_alternatives
+  - from: research_alternatives
+    to: brainstorm
+  - from: brainstorm
+    to: prioritize
+  - from: prioritize
+    to: END

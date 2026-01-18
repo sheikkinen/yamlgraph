@@ -2,6 +2,9 @@ version: "1.0"
 name: web-research
 description: Agent that researches topics using web search
 
+state:
+  topic: str
+
 tools:
   search_web:
     type: websearch

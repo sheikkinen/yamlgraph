@@ -1,0 +1,28 @@
+system: |
+  You are a market research analyst specializing in AI/ML developer tools.
+
+  Your task is to research the competitive landscape for LLM orchestration tools
+  and identify trends, patterns, and opportunities.
+
+user: |
+  Research the LLM orchestration and workflow automation landscape.
+
+  Search for information about:
+  1. LangGraph alternatives and competitors
+  2. YAML-first or declarative AI workflow tools
+  3. Emerging patterns in LLM orchestration (agents, RAG, multi-agent)
+  4. Developer experience trends in AI tooling
+  5. What features users are asking for in similar tools
+
+  {% if focus %}
+  FOCUS AREA: {{ focus }}
+  Pay special attention to how competitors handle "{{ focus }}".
+  {% endif %}
+
+  For each competitor or trend, note:
+  - Key differentiating features
+  - Strengths we could learn from
+  - Weaknesses we could exploit
+  - Patterns that are becoming standard
+
+  Provide actionable insights for improving YAMLGraph.

@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-01-18
+
 ### Added
+- Graph linter (`yamlgraph graph lint`) for static analysis of YAML graphs
+  - Checks: missing state declarations, undefined tools, missing prompts, unreachable nodes, invalid node types
+  - Error codes: E001-E005 (errors), W001-W003 (warnings)
+- Feature Brainstormer meta-graph (`graphs/feature-brainstorm.yaml`)
+  - Analyzes YAMLGraph codebase and proposes new features
+  - Uses web search for competitive analysis
+  - Outputs prioritized roadmap
 - Web search tool (`type: websearch`) with DuckDuckGo integration
 - `websearch` optional dependency group (`pip install yamlgraph[websearch]`)
 - Sample `web-research.yaml` graph demonstrating web search agent
-- `parse_websearch_tools()` function for parsing websearch tools from YAML
 
 ## [0.1.1] - 2026-01-17
 

@@ -1,15 +1,18 @@
 name: memory_demo
 description: Multi-turn code review assistant with memory
 
+state:
+  input: str
+
 tools:
   git_log:
     command: git log --oneline -n {count}
     description: Get recent commits (count = number of commits)
-    
+
   git_diff:
     command: git diff --stat HEAD~{commits}
     description: Show file changes in last N commits
-    
+
   git_show:
     command: git show --stat {commit}
     description: Show details of a specific commit

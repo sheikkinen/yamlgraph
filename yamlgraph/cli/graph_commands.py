@@ -4,6 +4,7 @@ Implements:
 - graph run <path> --var key=value
 - graph list
 - graph info <path>
+- graph lint <path>
 """
 
 import sys
@@ -11,6 +12,9 @@ from argparse import Namespace
 from pathlib import Path
 
 import yaml
+
+from yamlgraph.config import WORKING_DIR
+from yamlgraph.tools.graph_linter import lint_graph
 
 
 def parse_vars(var_list: list[str] | None) -> dict[str, str]:
@@ -367,6 +371,62 @@ def cmd_graph_validate(args: Namespace) -> None:
         sys.exit(1)
 
 
+def cmd_graph_lint(args: Namespace) -> None:
+    """Lint graph YAML files for issues.
+
+    Checks:
+    - Missing state declarations for variables
+    - Undefined tool references
+    - Missing prompt files
+    - Unreachable nodes
+    - Invalid node types
+    """
+    total_errors = 0
+    total_warnings = 0
+
+    for graph_path_str in args.graph_path:
+        graph_path = Path(graph_path_str)
+
+        if not graph_path.exists():
+            print(f"❌ Graph file not found: {graph_path}")
+            total_errors += 1
+            continue
+
+        try:
+            result = lint_graph(graph_path, WORKING_DIR)
+
+            errors = [i for i in result.issues if i.severity == "error"]
+            warnings = [i for i in result.issues if i.severity == "warning"]
+
+            if result.valid and not warnings:
+                print(f"✅ {graph_path.name} - No issues found")
+            else:
+                status = "❌" if errors else "⚠️"
+                print(f"{status} {graph_path.name}")
+
+                for issue in result.issues:
+                    icon = "❌" if issue.severity == "error" else "⚠"
+                    print(f"   {icon} [{issue.code}] {issue.message}")
+                    if issue.fix:
+                        print(f"      Fix: {issue.fix}")
+
+            total_errors += len(errors)
+            total_warnings += len(warnings)
+
+        except Exception as e:
+            print(f"❌ Error linting {graph_path}: {e}")
+            total_errors += 1
+
+    # Summary
+    print()
+    if total_errors == 0 and total_warnings == 0:
+        print("✅ All graphs passed linting")
+    else:
+        print(f"Found {total_errors} error(s) and {total_warnings} warning(s)")
+        if total_errors > 0:
+            sys.exit(1)
+
+
 def cmd_graph_dispatch(args: Namespace) -> None:
     """Dispatch to graph subcommands."""
     if args.graph_command == "run":
@@ -377,6 +437,8 @@ def cmd_graph_dispatch(args: Namespace) -> None:
         cmd_graph_info(args)
     elif args.graph_command == "validate":
         cmd_graph_validate(args)
+    elif args.graph_command == "lint":
+        cmd_graph_lint(args)
     else:
         print(f"Unknown graph command: {args.graph_command}")
         sys.exit(1)

@@ -2,6 +2,9 @@ version: "1.0"
 name: git-report
 description: Agent that analyzes git repository and generates reports
 
+state:
+  input: str  # User's query about the repository
+
 tools:
   recent_commits:
     type: shell

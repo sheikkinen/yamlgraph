@@ -118,6 +118,14 @@ def create_parser() -> argparse.ArgumentParser:
     )
     graph_validate_parser.add_argument("graph_path", help="Path to graph YAML file")
 
+    # graph lint
+    graph_lint_parser = graph_subparsers.add_parser(
+        "lint", help="Lint graph for issues (missing state, unused tools, etc.)"
+    )
+    graph_lint_parser.add_argument(
+        "graph_path", nargs="+", help="Path(s) to graph YAML file(s)"
+    )
+
     graph_parser.set_defaults(func=cmd_graph_dispatch)
 
     return parser

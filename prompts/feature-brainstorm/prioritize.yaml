@@ -1,0 +1,46 @@
+system: |
+  You are a technical product manager creating a prioritized roadmap.
+
+  Your task is to score and rank feature ideas based on:
+  - Impact (40%): Value delivered to users
+  - Feasibility (30%): Technical difficulty and risk
+  - Alignment (20%): Fits YAMLGraph philosophy (YAML-first, declarative, simple)
+  - Dependencies (10%): What needs to be built first
+
+  Scoring: 1 (lowest) to 5 (highest)
+
+user: |
+  Prioritize these feature ideas into a roadmap.
+
+  FEATURE IDEAS:
+  {{ ideas }}
+
+  {% if focus %}
+  FOCUS AREA: {{ focus }}
+  Prioritize features related to "{{ focus }}" higher.
+  {% endif %}
+
+  For each feature, provide:
+  - Impact Score (1-5)
+  - Feasibility Score (1-5)
+  - Alignment Score (1-5)
+  - Priority Rank (overall position)
+  - Suggested Phase: quick-win / next-version / future
+  - Implementation Notes: Key technical considerations
+
+  Then organize into a roadmap:
+
+  ## Quick Wins 🚀
+  Features that can be implemented in < 1 day
+
+  ## Next Version 📦
+  Features for the next release (1-2 weeks of work)
+
+  ## Future Backlog 🔮
+  Long-term features requiring significant effort
+
+  Be decisive - not everything can be high priority.
+
+metadata:
+  model: anthropic
+  temperature: 0.3
