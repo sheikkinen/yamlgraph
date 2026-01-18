@@ -1,0 +1,125 @@
+# Implementation Agent - Story → Code Location Guide
+# Analyzes user story and provides structural guidance for implementation
+
+version: "1.0"
+name: implementation-agent
+description: Analyze user story and provide implementation guidance with file:line references
+
+defaults:
+  provider: anthropic
+  temperature: 0.3
+
+# Input state - variables passed from CLI
+state:
+  story: str          # User story / bug / feature request
+  scope: str          # Package to analyze (e.g., "yamlgraph")
+
+tools:
+  # Phase 1 tools (stdlib only)
+  list_modules:
+    type: python
+    module: yamlgraph.tools.analysis.code_nav
+    function: list_package_modules
+    description: "List all modules in a package with summaries (docstring, classes, functions)"
+
+  get_structure:
+    type: python
+    module: yamlgraph.tools.analysis.ast_analysis
+    function: get_module_structure
+    description: "Get classes, functions, imports from a Python file with line numbers"
+
+  read_lines:
+    type: python
+    module: yamlgraph.tools.analysis.code_context
+    function: read_lines
+    description: "Read specific line range from a file (1-indexed)"
+
+  find_tests:
+    type: python
+    module: yamlgraph.tools.analysis.code_context
+    function: find_related_tests
+    description: "Find test functions that mention a symbol name"
+
+  search_file:
+    type: python
+    module: yamlgraph.tools.analysis.code_context
+    function: search_in_file
+    description: "Search for a pattern in a file (grep). Returns matching lines with line numbers. Use to verify if a field/symbol exists."
+
+  search_code:
+    type: python
+    module: yamlgraph.tools.analysis.code_context
+    function: search_codebase
+    description: "Search for a pattern across files in a directory (grep -r). Returns all matches with file paths and line numbers."
+
+  # Phase 2 tools (jedi-based semantic analysis)
+  find_refs:
+    type: python
+    module: yamlgraph.tools.analysis.jedi_analysis
+    function: find_references
+    description: "Find all references to a symbol across the project (definition, imports, usages). Requires file_path, symbol_name, line."
+
+  get_callers:
+    type: python
+    module: yamlgraph.tools.analysis.jedi_analysis
+    function: get_callers
+    description: "Find all functions that call a given function. Returns caller names with file and line."
+
+  get_callees:
+    type: python
+    module: yamlgraph.tools.analysis.jedi_analysis
+    function: get_callees
+    description: "Find all functions called by a given function. Returns callee names with line numbers."
+
+nodes:
+  parse_story:
+    type: llm
+    prompt: impl-agent/parse_story
+    variables:
+      story: "{state.story}"
+    state_key: parsed_request
+
+  discover:
+    type: agent
+    prompt: impl-agent/discover
+    tools: [list_modules]
+    max_iterations: 5
+    variables:
+      parsed_request: "{state.parsed_request}"
+      scope: "{state.scope}"
+    state_key: discovery
+    requires: [parsed_request]
+
+  analyze:
+    type: agent
+    prompt: impl-agent/analyze
+    tools: [get_structure, read_lines, find_tests, search_file, search_code, find_refs, get_callers, get_callees]
+    max_iterations: 15
+    variables:
+      story: "{state.story}"
+      discovery: "{state.discovery}"
+      parsed_request: "{state.parsed_request}"
+    state_key: code_analysis
+    requires: [discovery]
+
+  plan:
+    type: llm
+    prompt: impl-agent/generate_plan
+    variables:
+      story: "{state.story}"
+      parsed_request: "{state.parsed_request}"
+      code_analysis: "{state.code_analysis}"
+    state_key: implementation_plan
+    requires: [parsed_request, code_analysis]
+
+edges:
+  - from: START
+    to: parse_story
+  - from: parse_story
+    to: discover
+  - from: discover
+    to: analyze
+  - from: analyze
+    to: plan
+  - from: plan
+    to: END

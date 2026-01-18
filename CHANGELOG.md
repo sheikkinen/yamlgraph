@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-01-18
+
+### Added
+- Implementation Agent (`graphs/impl-agent.yaml`) for code analysis
+  - Analyzes codebases and generates implementation plans
+  - 9 tools: AST analysis, text search, jedi semantic analysis
+  - Detects existing implementations before suggesting changes
+- Code analysis tools subpackage (`yamlgraph.tools.analysis`)
+  - `get_module_structure` - AST-based structure extraction
+  - `read_lines`, `search_in_file`, `search_codebase` - text search
+  - `find_refs`, `get_callers`, `get_callees` - jedi semantic analysis
+  - `list_package_modules` - package module discovery
+- `analysis` optional dependency group (`pip install yamlgraph[analysis]`)
+- Reference documentation for impl-agent (`reference/impl-agent.md`)
+
+### Changed
+- Refactored analysis tools into `yamlgraph/tools/analysis/` subfolder
+- Agent nodes now support `max_iterations` config (default 10)
+
 ## [0.1.2] - 2026-01-18
 
 ### Added

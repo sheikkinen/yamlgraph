@@ -42,11 +42,12 @@ def parse_vars(var_list: list[str] | None) -> dict[str, str]:
     return result
 
 
-def _display_result(result: dict) -> None:
+def _display_result(result: dict, truncate: bool = True) -> None:
     """Display result summary to console.
 
     Args:
         result: Graph execution result dict
+        truncate: Whether to truncate long values (default: True)
     """
     print("=" * 60)
     print("RESULT")
@@ -57,9 +58,9 @@ def _display_result(result: dict) -> None:
         if key.startswith("_") or key in skip_keys:
             continue
         if value is not None:
-            value_str = str(value)[:200]
-            if len(str(value)) > 200:
-                value_str += "..."
+            value_str = str(value)
+            if truncate and len(value_str) > 200:
+                value_str = value_str[:200] + "..."
             print(f"  {key}: {value_str}")
 
 
@@ -122,7 +123,7 @@ def cmd_graph_run(args: Namespace) -> None:
 
         result = app.invoke(initial_state, config=config if config else None)
 
-        _display_result(result)
+        _display_result(result, truncate=not getattr(args, "full", False))
 
         if args.export:
             _handle_export(graph_path, result)

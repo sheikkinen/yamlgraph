@@ -116,6 +116,10 @@ yamlgraph graph run graphs/web-research.yaml --var topic="LangGraph tutorials"
 # Code quality analysis with shell tools
 yamlgraph graph run graphs/code-analysis.yaml --var path="yamlgraph" --var package="yamlgraph"
 
+# Implementation agent - analyze code and generate plans
+yamlgraph graph run graphs/impl-agent.yaml \
+  --var 'story=Add timeout to websearch' --var scope=yamlgraph/tools
+
 # Meta: YAMLGraph brainstorms its own features
 yamlgraph graph run graphs/feature-brainstorm.yaml --var focus="tools"
 
@@ -148,6 +152,7 @@ See the [reference/](reference/) folder for comprehensive YAML configuration gui
 - [Graph YAML Reference](reference/graph-yaml.md) - All graph configuration options
 - [Prompt YAML Reference](reference/prompt-yaml.md) - Schema and template syntax
 - [Map Nodes](reference/map-nodes.md) - Parallel fan-out/fan-in processing
+- [Implementation Agent](reference/impl-agent.md) - Code analysis and planning
 - [Common Patterns](reference/patterns.md) - Router, loops, agents, and more
 
 ## Architecture

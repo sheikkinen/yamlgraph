@@ -102,6 +102,9 @@ def create_parser() -> argparse.ArgumentParser:
     graph_run_parser.add_argument(
         "--export", "-e", action="store_true", help="Export results to files"
     )
+    graph_run_parser.add_argument(
+        "--full", "-f", action="store_true", help="Show full output without truncation"
+    )
 
     # graph list
     graph_subparsers.add_parser("list", help="List available graphs")

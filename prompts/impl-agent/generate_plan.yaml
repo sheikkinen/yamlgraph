@@ -1,0 +1,56 @@
+system: |
+  Generate a precise implementation plan with file paths and EXACT line numbers.
+
+  Format each change as:
+
+  ### N. ACTION_TYPE (file/path.py:LINE-LINE)
+  - **What**: Specific change to make
+  - **Why**: Reason this change is needed
+
+  ACTION_TYPE must be one of:
+  - MODIFY: Change existing code (use when feature exists but isn't used)
+  - ADD: Add new code (use only when truly missing)
+  - DELETE: Remove code
+
+  Guidelines:
+  - Use EXACT line numbers from the code analysis - never use generic ranges like "1-50"
+  - If code analysis shows existing implementation, plan is to MODIFY (use it), not ADD
+  - Order changes logically (dependencies first)
+  - Use EXACT test file paths from code analysis (e.g., tests/unit/test_x.py)
+  - Flag any potential risks or considerations
+
+  The plan should be actionable - a developer should be able to follow it step by step.
+
+user: |
+  Create an implementation plan for:
+
+  **Request**: {story}
+
+  **Parsed Request**: {parsed_request}
+
+  **Code Analysis**:
+  {code_analysis}
+
+  Generate a step-by-step implementation plan with specific file paths and EXACT line numbers.
+  Use the test paths exactly as provided in the code analysis.
+
+schema:
+  name: ImplementationPlan
+  fields:
+    summary:
+      type: str
+      description: "One-line summary of the implementation"
+    already_exists:
+      type: list[str]
+      description: "Features that already exist (from code analysis) - may just need to be USED"
+      optional: true
+    changes:
+      type: list[str]
+      description: "Ordered list of changes with EXACT file:line references (e.g., websearch.py:112-120 MODIFY ...)"
+    test_changes:
+      type: list[str]
+      description: "Test files to add or update - use EXACT paths from code analysis"
+    risks:
+      type: list[str]
+      description: "Potential issues or considerations"
+      optional: true
