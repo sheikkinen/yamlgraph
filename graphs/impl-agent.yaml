@@ -123,6 +123,25 @@ tools:
     function: find_similar_code
     description: "Find similar functions/classes to follow their patterns"
 
+  # Phase 8 tools (template extraction)
+  extract_function_template:
+    type: python
+    module: yamlgraph.tools.analysis.template_tools
+    function: extract_function_template
+    description: "Extract reusable function template with signature, docstring, and body structure"
+
+  extract_class_template:
+    type: python
+    module: yamlgraph.tools.analysis.template_tools
+    function: extract_class_template
+    description: "Extract reusable class template with bases, class variables, and method signatures"
+
+  extract_test_template:
+    type: python
+    module: yamlgraph.tools.analysis.template_tools
+    function: extract_test_template
+    description: "Extract test patterns (fixtures, test classes, mock patterns) for consistent test code"
+
 nodes:
   parse_story:
     type: llm

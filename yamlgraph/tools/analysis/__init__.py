@@ -29,6 +29,11 @@ from yamlgraph.tools.analysis.jedi_analysis import (
     get_callers,
 )
 from yamlgraph.tools.analysis.syntax_tools import syntax_check
+from yamlgraph.tools.analysis.template_tools import (
+    extract_class_template,
+    extract_function_template,
+    extract_test_template,
+)
 
 __all__ = [
     # AST analysis
@@ -57,4 +62,8 @@ __all__ = [
     "summarize_module",
     "diff_preview",
     "find_similar_code",
+    # Template extraction
+    "extract_function_template",
+    "extract_class_template",
+    "extract_test_template",
 ]
