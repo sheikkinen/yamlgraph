@@ -22,6 +22,7 @@ from yamlgraph.tools.analysis.jedi_analysis import (
     get_callees,
     get_callers,
 )
+from yamlgraph.tools.analysis.syntax_tools import syntax_check
 
 __all__ = [
     # AST analysis
@@ -41,4 +42,6 @@ __all__ = [
     # Git analysis
     "git_blame",
     "git_log",
+    # Syntax validation
+    "syntax_check",
 ]

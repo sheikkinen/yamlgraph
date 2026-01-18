@@ -84,6 +84,13 @@ tools:
     function: get_callees
     description: "Find all functions called by a given function. Returns callee names with line numbers."
 
+  # Phase 5 tools (validation)
+  syntax_check:
+    type: python
+    module: yamlgraph.tools.analysis.syntax_tools
+    function: syntax_check
+    description: "Check if Python code is syntactically valid. Returns valid=True or valid=False with error message."
+
 nodes:
   parse_story:
     type: llm
