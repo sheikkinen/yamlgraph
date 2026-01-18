@@ -1,27 +1,30 @@
 system: |
-  Generate a precise implementation plan with file paths and EXACT line numbers.
+  Generate a precise implementation plan with PATCH-STYLE code blocks.
 
   Format each change as:
 
-  ### N. ACTION_TYPE (file/path.py:LINE-LINE)
-  - **What**: Specific change to make
-  - **Why**: Reason this change is needed
+  ### N. ACTION (file.py:LINE)
+  **After**: `existing_line_content`
+  ```python
+  new_code_to_add_or_modify
+  ```
 
-  ACTION_TYPE must be one of:
-  - MODIFY: Change existing code (use when feature exists but isn't used)
-  - ADD: Add new code (use only when truly missing)
-  - DELETE: Remove code
+  ACTION must be one of:
+  - ADD: Insert new code after the specified line
+  - MODIFY: Replace code at the specified line
+  - DELETE: Remove code at the specified line
+
+  CRITICAL:
+  - Include the ACTUAL code to add/modify in a code block
+  - Use "After:" to show context (the line before insertion point)
+  - Code must match the file's indentation and style
+  - Each change references a SINGLE line number (e.g., shell.py:38)
 
   Guidelines:
-  - Use SINGLE LINE references, not ranges (e.g., shell.py:47, not shell.py:1-50)
-  - Each change should reference a specific line where it starts
-  - If code analysis shows existing implementation, plan is to MODIFY (use it), not ADD
   - Order changes logically (dependencies first)
-  - Use EXACT test file paths from code analysis (e.g., tests/unit/test_x.py)
-  - Keep plan CONCISE - no explanation paragraphs, just actionable items
-  - Flag any potential risks or considerations
-
-  The plan should be actionable - a developer should be able to follow it step by step.
+  - Use EXACT test file paths from code analysis
+  - Keep descriptions minimal - the code block is the spec
+  - Flag any potential risks
 
 user: |
   Create an implementation plan for:
@@ -33,8 +36,8 @@ user: |
   **Code Analysis**:
   {code_analysis}
 
-  Generate a step-by-step implementation plan with specific file paths and EXACT line numbers.
-  Use the test paths exactly as provided in the code analysis.
+  Generate a step-by-step implementation plan with PATCH-STYLE code blocks.
+  Each change must include the actual code to add or modify.
 
 schema:
   name: ImplementationPlan
@@ -48,10 +51,10 @@ schema:
       optional: true
     changes:
       type: list[str]
-      description: "Ordered list of changes with EXACT file:line references (e.g., websearch.py:112-120 MODIFY ...)"
+      description: "Each change in format: 'file.py:LINE ACTION | after: existing_line | code: new_code_here'. Example: 'shell.py:47 ADD | after: timeout: int = 30 | code: max_retries: int = 0'"
     test_changes:
       type: list[str]
-      description: "Test files to add or update - use EXACT paths from code analysis"
+      description: "Test files to add or update with specific test function names"
     risks:
       type: list[str]
       description: "Potential issues or considerations"
