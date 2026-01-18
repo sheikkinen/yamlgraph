@@ -1,5 +1,6 @@
 # Implementation Agent - Story → Code Location Guide
 # Analyzes user story and provides structural guidance for implementation
+# v4: LLM-driven discovery with systematic tool execution
 
 version: "1.0"
 name: implementation-agent
@@ -11,8 +12,10 @@ defaults:
 
 # Input state - variables passed from CLI
 state:
-  story: str          # User story / bug / feature request
-  scope: str          # Package to analyze (e.g., "yamlgraph")
+  story: str                      # User story / bug / feature request
+  scope: str                      # Package to analyze (e.g., "yamlgraph")
+  discovery_plan: DiscoveryPlan   # LLM-generated discovery tasks
+  discovery_findings: list        # Collected results from tool calls
 
 tools:
   # Phase 1 tools (stdlib only)
@@ -176,28 +179,35 @@ nodes:
       story: "{state.story}"
     state_key: parsed_request
 
-  discover:
-    type: agent
-    prompt: impl-agent/discover
-    tools: [list_modules]
-    max_iterations: 5
-    variables:
-      parsed_request: "{state.parsed_request}"
-      scope: "{state.scope}"
-    state_key: discovery
-    requires: [parsed_request]
-
-  analyze:
-    type: agent
-    prompt: impl-agent/analyze
-    tools: [get_structure, read_lines, find_tests, search_file, search_code, git_blame, git_log, find_refs, get_callers, get_callees]
-    max_iterations: 15
+  plan_discovery:
+    type: llm
+    prompt: impl-agent/plan_discovery
     variables:
       story: "{state.story}"
-      discovery: "{state.discovery}"
+      scope: "{state.scope}"
       parsed_request: "{state.parsed_request}"
+    state_key: discovery_plan
+    requires: [parsed_request]
+
+  execute_discovery:
+    type: map
+    over: "{state.discovery_plan.tasks}"
+    as: task
+    node:
+      type: tool_call
+      tool: "{state.task.tool}"
+      args: "{state.task.args}"
+      state_key: discovery_result
+    collect: discovery_findings
+
+  synthesize:
+    type: llm
+    prompt: impl-agent/synthesize
+    variables:
+      story: "{state.story}"
+      discovery_findings: "{state.discovery_findings}"
     state_key: code_analysis
-    requires: [discovery]
+    requires: [discovery_findings]
 
   plan:
     type: llm
@@ -213,10 +223,12 @@ edges:
   - from: START
     to: parse_story
   - from: parse_story
-    to: discover
-  - from: discover
-    to: analyze
-  - from: analyze
+    to: plan_discovery
+  - from: plan_discovery
+    to: execute_discovery
+  - from: execute_discovery
+    to: synthesize
+  - from: synthesize
     to: plan
   - from: plan
     to: END
