@@ -91,6 +91,19 @@ tools:
     function: syntax_check
     description: "Check if Python code is syntactically valid. Returns valid=True or valid=False with error message."
 
+  # Phase 6 tools (dependency analysis)
+  get_imports:
+    type: python
+    module: yamlgraph.tools.analysis.dependency_tools
+    function: get_imports
+    description: "Extract all imports from a Python file (module, names, aliases)"
+
+  get_dependents:
+    type: python
+    module: yamlgraph.tools.analysis.dependency_tools
+    function: get_dependents
+    description: "Find all files that import a given module (reverse dependency lookup)"
+
 nodes:
   parse_story:
     type: llm

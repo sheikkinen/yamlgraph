@@ -15,6 +15,7 @@ from yamlgraph.tools.analysis.code_context import (
     search_in_file,
 )
 from yamlgraph.tools.analysis.code_nav import list_package_modules
+from yamlgraph.tools.analysis.dependency_tools import get_dependents, get_imports
 from yamlgraph.tools.analysis.git_tools import git_blame, git_log
 from yamlgraph.tools.analysis.jedi_analysis import (
     JEDI_AVAILABLE,
@@ -44,4 +45,7 @@ __all__ = [
     "git_log",
     # Syntax validation
     "syntax_check",
+    # Dependency analysis
+    "get_imports",
+    "get_dependents",
 ]
