@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-01-18
+
+### Added
+- Implementation Agent expanded to **14 tools** for comprehensive code analysis
+  - `git_blame` - Get author, date, commit for specific lines
+  - `git_log` - Get recent commits for a file
+  - `syntax_check` - Validate Python code syntax
+  - `get_imports` - Extract all imports from a Python file
+  - `get_dependents` - Find files that import a given module
+- Patch-style output format in implementation plans
+  - Changes now include actual code: `file:LINE ACTION | after: context | code: ...`
+  - Supports ADD, MODIFY, CREATE, DELETE actions
+- 33 new tests for Phase 4-6 tools
+
+### Changed
+- Analyze prompt now includes git context guidance
+- Single-line references in output (e.g., `shell.py:38` not `:1-50`)
+- Structured discovery output (no narrative paragraphs)
+
 ## [0.1.3] - 2026-01-18
 
 ### Added

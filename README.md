@@ -116,7 +116,7 @@ yamlgraph graph run graphs/web-research.yaml --var topic="LangGraph tutorials"
 # Code quality analysis with shell tools
 yamlgraph graph run graphs/code-analysis.yaml --var path="yamlgraph" --var package="yamlgraph"
 
-# Implementation agent - analyze code and generate plans
+# Implementation agent - analyze code and generate plans (14 tools)
 yamlgraph graph run graphs/impl-agent.yaml \
   --var 'story=Add timeout to websearch' --var scope=yamlgraph/tools
 
