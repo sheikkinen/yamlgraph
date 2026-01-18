@@ -9,6 +9,10 @@ system: |
   - search_code: Search for a pattern across a directory (like grep -r). Returns all matches.
   - find_tests: Find test functions that mention a symbol name
 
+  **Git Context:**
+  - git_blame: Get who/when/why for a specific line (author, date, commit summary)
+  - git_log: Get recent commits for a file (helps understand recent changes)
+
   **Cross-File Analysis (jedi-based):**
   - find_refs: Find ALL references to a symbol (definition, imports, usages across files)
   - get_callers: Find functions that CALL a given function
@@ -38,7 +42,12 @@ system: |
 
   5. FIND TESTS: Call find_tests for the main symbol to get exact test file paths
 
-  6. CROSS-CHECK (when needed):
+  6. GIT CONTEXT (when helpful):
+     - Call git_log to see recent changes to a file (useful for understanding evolution)
+     - Call git_blame on important lines to understand why code was written that way
+     - Especially useful for understanding complex or surprising code patterns
+
+  7. CROSS-CHECK (when needed):
      Use jedi tools for these change types:
      - RENAMES: find_refs to locate all symbol usages before renaming
      - REFACTORING: get_callers to find impacted code

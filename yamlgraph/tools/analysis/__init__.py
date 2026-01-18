@@ -15,6 +15,7 @@ from yamlgraph.tools.analysis.code_context import (
     search_in_file,
 )
 from yamlgraph.tools.analysis.code_nav import list_package_modules
+from yamlgraph.tools.analysis.git_tools import git_blame, git_log
 from yamlgraph.tools.analysis.jedi_analysis import (
     JEDI_AVAILABLE,
     find_references,
@@ -37,4 +38,7 @@ __all__ = [
     "find_references",
     "get_callers",
     "get_callees",
+    # Git analysis
+    "git_blame",
+    "git_log",
 ]
