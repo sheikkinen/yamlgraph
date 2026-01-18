@@ -20,6 +20,7 @@ from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.nodes import create_tool_node
 from yamlgraph.tools.python_tool import create_python_node, parse_python_tools
 from yamlgraph.tools.shell import parse_tools
+from yamlgraph.tools.websearch import parse_websearch_tools
 from yamlgraph.utils.validators import validate_config
 
 # Type alias for dynamic state
@@ -106,17 +107,18 @@ def _resolve_state_class(config: GraphConfig) -> type:
 
 def _parse_all_tools(
     config: GraphConfig,
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Parse shell and Python tools from config.
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """Parse shell, Python, and websearch tools from config.
 
     Args:
         config: Graph configuration
 
     Returns:
-        Tuple of (shell_tools, python_tools) dictionaries
+        Tuple of (shell_tools, python_tools, websearch_tools) dictionaries
     """
     tools = parse_tools(config.tools)
     python_tools = parse_python_tools(config.tools)
+    websearch_tools = parse_websearch_tools(config.tools)
 
     if tools:
         logger.info(f"Parsed {len(tools)} shell tools: {', '.join(tools.keys())}")
@@ -124,8 +126,12 @@ def _parse_all_tools(
         logger.info(
             f"Parsed {len(python_tools)} Python tools: {', '.join(python_tools.keys())}"
         )
+    if websearch_tools:
+        logger.info(
+            f"Parsed {len(websearch_tools)} websearch tools: {', '.join(websearch_tools.keys())}"
+        )
 
-    return tools, python_tools
+    return tools, python_tools, websearch_tools
 
 
 def _compile_node(
@@ -135,6 +141,7 @@ def _compile_node(
     config: GraphConfig,
     tools: dict[str, Any],
     python_tools: dict[str, Any],
+    websearch_tools: dict[str, Any],
 ) -> tuple[str, Any] | None:
     """Compile a single node and add to graph.
 
@@ -145,6 +152,7 @@ def _compile_node(
         config: Full graph config for defaults
         tools: Shell tools registry
         python_tools: Python tools registry
+        websearch_tools: Web search tools registry (LangChain StructuredTool)
 
     Returns:
         Tuple of (node_name, map_info) for map nodes, None otherwise
@@ -163,7 +171,7 @@ def _compile_node(
         node_fn = create_python_node(node_name, enriched_config, python_tools)
         graph.add_node(node_name, node_fn)
     elif node_type == NodeType.AGENT:
-        node_fn = create_agent_node(node_name, enriched_config, tools)
+        node_fn = create_agent_node(node_name, enriched_config, tools, websearch_tools)
         graph.add_node(node_name, node_fn)
     elif node_type == NodeType.MAP:
         map_edge_fn, sub_node_name = compile_map_node(
@@ -185,6 +193,7 @@ def _compile_nodes(
     graph: StateGraph,
     tools: dict[str, Any],
     python_tools: dict[str, Any],
+    websearch_tools: dict[str, Any],
 ) -> dict[str, tuple]:
     """Compile all nodes and add to graph.
 
@@ -193,6 +202,7 @@ def _compile_nodes(
         graph: StateGraph to add nodes to
         tools: Shell tools registry
         python_tools: Python tools registry
+        websearch_tools: Web search tools registry
 
     Returns:
         Dict of map_nodes: name -> (map_edge_fn, sub_node_name)
@@ -201,7 +211,7 @@ def _compile_nodes(
 
     for node_name, node_config in config.nodes.items():
         result = _compile_node(
-            node_name, node_config, graph, config, tools, python_tools
+            node_name, node_config, graph, config, tools, python_tools, websearch_tools
         )
         if result:
             map_nodes[result[0]] = result[1]
@@ -303,10 +313,10 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     graph = StateGraph(state_class)
 
     # Parse all tools
-    tools, python_tools = _parse_all_tools(config)
+    tools, python_tools, websearch_tools = _parse_all_tools(config)
 
     # Compile all nodes
-    map_nodes = _compile_nodes(config, graph, tools, python_tools)
+    map_nodes = _compile_nodes(config, graph, tools, python_tools, websearch_tools)
 
     # Process edges
     router_edges: dict[str, list] = {}

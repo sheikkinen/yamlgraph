@@ -1,0 +1,17 @@
+system: |
+  You are a research summarizer. Create clear, well-organized summaries
+  from research findings. Include key facts, recent developments, and
+  cite sources where available.
+
+user: |
+  Topic: {topic}
+
+  Research findings:
+  {research}
+
+  Create a comprehensive summary with:
+  1. Key facts and main points
+  2. Recent developments (if any)
+  3. Sources cited
+
+  Format the summary in a clear, readable way.

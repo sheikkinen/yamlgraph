@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Web search tool (`type: websearch`) with DuckDuckGo integration
+- `websearch` optional dependency group (`pip install yamlgraph[websearch]`)
+- Sample `web-research.yaml` graph demonstrating web search agent
+- `parse_websearch_tools()` function for parsing websearch tools from YAML
+
 ## [0.1.1] - 2026-01-17
 
 ### Added

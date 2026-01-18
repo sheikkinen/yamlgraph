@@ -89,6 +89,7 @@ def create_agent_node(
     node_name: str,
     node_config: dict[str, Any],
     tools: dict[str, ShellToolConfig],
+    websearch_tools: dict[str, Any] | None = None,
 ) -> Callable[[dict], dict]:
     """Create an agent node that loops with tool calls.
 
@@ -100,7 +101,8 @@ def create_agent_node(
     Args:
         node_name: Name of the node in the graph
         node_config: Node configuration from YAML
-        tools: Registry of available tools
+        tools: Registry of available shell tools
+        websearch_tools: Registry of web search tools (LangChain StructuredTool)
 
     Returns:
         Node function that runs the agent loop
@@ -112,15 +114,30 @@ def create_agent_node(
         - prompt: Prompt file name (default: "agent")
         - tool_results_key: Optional key to store raw tool outputs
     """
+    if websearch_tools is None:
+        websearch_tools = {}
+
     tool_names = node_config.get("tools", [])
     max_iterations = node_config.get("max_iterations", 5)
     state_key = node_config.get("state_key", node_name)
     prompt_name = node_config.get("prompt", "agent")
     tool_results_key = node_config.get("tool_results_key")
 
-    # Build LangChain tools from shell configs
-    lc_tools = [build_langchain_tool(name, tools[name]) for name in tool_names]
-    tool_lookup = {name: tools[name] for name in tool_names}
+    # Build LangChain tools from shell configs, plus add websearch tools directly
+    lc_tools = []
+    tool_lookup = {}
+
+    for name in tool_names:
+        if name in tools:
+            # Shell tool - need to wrap
+            lc_tools.append(build_langchain_tool(name, tools[name]))
+            tool_lookup[name] = tools[name]
+        elif name in websearch_tools:
+            # Websearch tool - already a LangChain tool
+            lc_tools.append(websearch_tools[name])
+            tool_lookup[name] = websearch_tools[name]
+        else:
+            logger.warning(f"Tool '{name}' not found in shell or websearch registries")
 
     def node_fn(state: dict) -> dict:
         """Execute the agent loop."""
@@ -194,13 +211,24 @@ def create_agent_node(
                 # Execute the tool
                 tool_config = tool_lookup.get(tool_name)
                 if tool_config:
-                    result = execute_shell_tool(tool_config, tool_args)
-                    output = (
-                        str(result.output)
-                        if result.success
-                        else f"Error: {result.error}"
-                    )
-                    success = result.success
+                    # Check if it's a shell tool config or a LangChain tool
+                    if isinstance(tool_config, ShellToolConfig):
+                        # Shell tool - use execute_shell_tool
+                        result = execute_shell_tool(tool_config, tool_args)
+                        output = (
+                            str(result.output)
+                            if result.success
+                            else f"Error: {result.error}"
+                        )
+                        success = result.success
+                    else:
+                        # LangChain tool (websearch, etc) - invoke directly
+                        try:
+                            output = tool_config.invoke(tool_args)
+                            success = True
+                        except Exception as e:
+                            output = f"Error: {e}"
+                            success = False
                 else:
                     output = f"Error: Unknown tool '{tool_name}'"
                     success = False
