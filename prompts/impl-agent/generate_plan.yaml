@@ -1,40 +1,48 @@
 system: |
-  Generate a precise implementation plan with PATCH-STYLE code blocks.
+  Generate a precise implementation plan with DEVELOPER INSTRUCTIONS (not code blocks).
 
-  Format each change as:
+  Your output should guide a developer to implement the change correctly.
+  Reference exact file paths and line numbers from the Code Analysis.
 
-  ### N. ACTION (file.py:LINE)
-  **After**: `existing_line_content`
-  ```python
-  new_code_to_add_or_modify
+  ## Instruction Types
+
+  ### EXTRACT
+  Move existing code to a new location:
+  ```
+  EXTRACT functions [name1, name2] (lines X-Y) from file.py → new_module.py
   ```
 
-  ACTION must be one of:
-  - ADD: Insert new code after the specified line
-  - MODIFY: Replace code at the specified line
-  - DELETE: Remove code at the specified line
+  ### MODIFY
+  Change existing code in place:
+  ```
+  MODIFY function_name (lines X-Y) in file.py: add parameter 'timeout: int = 30'
+  ```
 
-  CRITICAL:
-  - Include the ACTUAL code to add/modify in a code block
-  - Use "After:" to show context (the line before insertion point)
-  - Code must match the file's indentation and style
-  - Each change references a SINGLE line number (e.g., shell.py:38)
+  ### ADD
+  Add new code:
+  ```
+  ADD import statement at line X in file.py: 'from module import func'
+  ADD function new_func after line X in file.py: [brief description of what it does]
+  ```
 
-  ## REFACTOR TASKS - SPECIAL RULES
-  When change_type is "refactor" (moving/extracting code):
-  - **PRESERVE CODE VERBATIM** - Copy functions exactly as they appear in source
-  - **DO NOT REWRITE** - No "improvements", no signature changes, no reimplementation
-  - **KEEP ALL SIGNATURES** - Function names, parameters, return types must be identical
-  - **KEEP ALL DOCSTRINGS** - Copy documentation exactly
-  - **ONLY CHANGE IMPORTS** - The only modifications are import statements in new/old files
-  - Refactoring means MOVING code, not REWRITING code
-  - Backward compatibility is critical - existing callers must continue to work
+  ### DELETE
+  Remove code:
+  ```
+  DELETE lines X-Y in file.py (function_name - moved to new_module.py)
+  ```
 
-  Guidelines:
-  - Order changes logically (dependencies first)
-  - Use EXACT test file paths from code analysis
-  - Keep descriptions minimal - the code block is the spec
-  - Flag any potential risks
+  ### CREATE
+  New file:
+  ```
+  CREATE new_module.py with functions: [list] extracted from old_module.py
+  ```
+
+  ## CRITICAL RULES
+  - Always include LINE NUMBERS from the Code Analysis
+  - For EXTRACT/DELETE: reference the exact lines to move/remove
+  - For refactoring: specify source lines, not rewritten code
+  - Order instructions by dependency (imports before usage)
+  - Keep instructions atomic (one action per instruction)
 
 user: |
   Create an implementation plan for:
@@ -43,12 +51,8 @@ user: |
 
   **Change Type**: {{ parsed_request.change_type }}
   {% if parsed_request.change_type == 'refactor' %}
-  ⚠️ THIS IS A REFACTOR TASK - YOU MUST:
-  - Copy functions EXACTLY as they appear in the source code
-  - DO NOT change function signatures, parameters, or return types
-  - DO NOT "improve" or rewrite the code
-  - ONLY modify import statements
-  - Use the EXACT code from the Code Analysis section
+  ⚠️ REFACTOR TASK - Use EXTRACT/DELETE instructions with exact line numbers.
+  Do NOT write new code - reference existing code by line numbers.
   {% endif %}
 
   **Parsed Request**: {{ parsed_request }}
@@ -56,26 +60,31 @@ user: |
   **Code Analysis**:
   {{ code_analysis }}
 
-  Generate a step-by-step implementation plan with PATCH-STYLE code blocks.
-  Each change must include the actual code to add or modify.
+  Generate step-by-step developer instructions with exact line references.
 
 schema:
   name: ImplementationPlan
   fields:
     summary:
       type: str
-      description: "One-line summary of the implementation"
+      description: "One-line summary of what changes are needed"
     already_exists:
       type: list[str]
-      description: "Features that already exist (from code analysis) - may just need to be USED"
+      description: "Features that already exist and can be reused"
       optional: true
-    changes:
+    instructions:
       type: list[str]
-      description: "Each change in format: 'file.py:LINE ACTION | after: existing_line | code: new_code_here'. Example: 'shell.py:47 ADD | after: timeout: int = 30 | code: max_retries: int = 0'"
-    test_changes:
+      description: |
+        Ordered list of developer instructions. Examples:
+        - "EXTRACT functions [print_run_tree, _print_run_node] (lines 147-248) from utils/langsmith.py → utils/tracing.py"
+        - "ADD import at line 15 in utils/langsmith.py: 'from .tracing import print_run_tree'"
+        - "DELETE lines 147-248 in utils/langsmith.py (moved to tracing.py)"
+        - "MODIFY get_client (lines 18-42) in utils/langsmith.py: add caching decorator"
+        - "CREATE utils/tracing.py with extracted functions + imports from langsmith.py"
+    test_instructions:
       type: list[str]
-      description: "Test files to add or update with specific test function names"
+      description: "Test file changes needed (which tests to update/add)"
     risks:
       type: list[str]
-      description: "Potential issues or considerations"
+      description: "Potential issues: circular imports, backward compatibility, etc."
       optional: true

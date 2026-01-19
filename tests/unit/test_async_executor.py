@@ -4,7 +4,6 @@ TDD: RED phase - write tests first.
 """
 
 import asyncio
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -34,7 +33,9 @@ async def test_execute_prompt_async_returns_string():
 
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
-        patch("yamlgraph.executor_async.invoke_async", new_callable=AsyncMock) as mock_invoke,
+        patch(
+            "yamlgraph.executor_async.invoke_async", new_callable=AsyncMock
+        ) as mock_invoke,
         patch("yamlgraph.executor_async.load_prompt") as mock_load,
     ):
         mock_load.return_value = {
@@ -60,7 +61,9 @@ async def test_execute_prompt_async_with_output_model():
 
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
-        patch("yamlgraph.executor_async.invoke_async", new_callable=AsyncMock) as mock_invoke,
+        patch(
+            "yamlgraph.executor_async.invoke_async", new_callable=AsyncMock
+        ) as mock_invoke,
         patch("yamlgraph.executor_async.load_prompt") as mock_load,
     ):
         mock_load.return_value = {
@@ -86,8 +89,12 @@ async def test_execute_prompt_async_uses_provider_from_yaml():
     mock_llm = MagicMock()
 
     with (
-        patch("yamlgraph.executor_async.create_llm", return_value=mock_llm) as mock_create,
-        patch("yamlgraph.executor_async.invoke_async", new_callable=AsyncMock) as mock_invoke,
+        patch(
+            "yamlgraph.executor_async.create_llm", return_value=mock_llm
+        ) as mock_create,
+        patch(
+            "yamlgraph.executor_async.invoke_async", new_callable=AsyncMock
+        ) as mock_invoke,
         patch("yamlgraph.executor_async.load_prompt") as mock_load,
     ):
         mock_load.return_value = {
@@ -330,7 +337,9 @@ async def test_compile_graph_async_without_checkpointer():
     config = MagicMock()
     config.checkpointer = None
 
-    with patch("yamlgraph.storage.checkpointer_factory.get_checkpointer", return_value=None):
+    with patch(
+        "yamlgraph.storage.checkpointer_factory.get_checkpointer", return_value=None
+    ):
         result = compile_graph_async(mock_graph, config)
 
     mock_graph.compile.assert_called_once_with(checkpointer=None)

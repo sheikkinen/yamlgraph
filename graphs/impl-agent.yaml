@@ -7,7 +7,7 @@ name: implementation-agent
 description: Analyze user story and provide implementation guidance with file:line references
 
 defaults:
-  provider: anthropic
+  provider: mistral
   temperature: 0.3
 
 # Input state - variables passed from CLI

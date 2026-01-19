@@ -5,8 +5,9 @@ Tests get_checkpointer() factory with env var expansion and async mode.
 """
 
 import os
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from yamlgraph.storage.checkpointer_factory import (
     expand_env_vars,
@@ -59,16 +60,18 @@ class TestGetCheckpointerMemory:
         """Default type should be memory."""
         config = {"type": "memory"}  # Empty config defaults to memory via get
         saver = get_checkpointer(config)
-        
+
         from langgraph.checkpoint.memory import InMemorySaver
+
         assert isinstance(saver, InMemorySaver)
 
     def test_memory_checkpointer_explicit(self):
         """Explicit type: memory should work."""
         config = {"type": "memory"}
         saver = get_checkpointer(config)
-        
+
         from langgraph.checkpoint.memory import InMemorySaver
+
         assert isinstance(saver, InMemorySaver)
 
     def test_none_config_returns_none(self):
@@ -83,8 +86,9 @@ class TestGetCheckpointerSqlite:
         """SQLite with :memory: should work."""
         config = {"type": "sqlite", "path": ":memory:"}
         saver = get_checkpointer(config)
-        
+
         from langgraph.checkpoint.sqlite import SqliteSaver
+
         assert isinstance(saver, SqliteSaver)
 
     def test_sqlite_expands_env_var(self):
@@ -92,8 +96,9 @@ class TestGetCheckpointerSqlite:
         with patch.dict(os.environ, {"DB_PATH": ":memory:"}):
             config = {"type": "sqlite", "path": "${DB_PATH}"}
             saver = get_checkpointer(config)
-            
+
             from langgraph.checkpoint.sqlite import SqliteSaver
+
             assert isinstance(saver, SqliteSaver)
 
 
@@ -105,17 +110,21 @@ class TestGetCheckpointerRedis:
         mock_saver = MagicMock()
         mock_redis_module = MagicMock()
         mock_redis_module.RedisSaver.from_conn_string.return_value = mock_saver
-        
-        with patch.dict("sys.modules", {"langgraph.checkpoint.redis": mock_redis_module}):
+
+        with patch.dict(
+            "sys.modules", {"langgraph.checkpoint.redis": mock_redis_module}
+        ):
             # Re-import to pick up mocked module
-            from yamlgraph.storage import checkpointer_factory
             import importlib
+
+            from yamlgraph.storage import checkpointer_factory
+
             importlib.reload(checkpointer_factory)
-            
+
             with patch.dict(os.environ, {"REDIS_URL": "redis://localhost:6379"}):
                 config = {"type": "redis", "url": "${REDIS_URL}", "ttl": 120}
                 saver = checkpointer_factory.get_checkpointer(config)
-                
+
                 mock_redis_module.RedisSaver.from_conn_string.assert_called_once_with(
                     "redis://localhost:6379",
                     ttl={"default_ttl": 120},
@@ -128,15 +137,19 @@ class TestGetCheckpointerRedis:
         mock_saver = MagicMock()
         mock_aio_module = MagicMock()
         mock_aio_module.AsyncRedisSaver.from_conn_string.return_value = mock_saver
-        
-        with patch.dict("sys.modules", {"langgraph.checkpoint.redis.aio": mock_aio_module}):
-            from yamlgraph.storage import checkpointer_factory
+
+        with patch.dict(
+            "sys.modules", {"langgraph.checkpoint.redis.aio": mock_aio_module}
+        ):
             import importlib
+
+            from yamlgraph.storage import checkpointer_factory
+
             importlib.reload(checkpointer_factory)
-            
+
             config = {"type": "redis", "url": "redis://localhost:6379", "ttl": 60}
             saver = checkpointer_factory.get_checkpointer(config, async_mode=True)
-            
+
             mock_aio_module.AsyncRedisSaver.from_conn_string.assert_called_once_with(
                 "redis://localhost:6379",
                 ttl={"default_ttl": 60},
@@ -149,16 +162,17 @@ class TestGetCheckpointerRedis:
         """Missing redis package should give helpful error."""
         # Clear any cached imports
         import sys
+
         for key in list(sys.modules.keys()):
             if "langgraph.checkpoint.redis" in key:
                 del sys.modules[key]
-        
+
         # This test verifies the ImportError wrapping
         config = {"type": "redis", "url": "redis://localhost:6379"}
-        
+
         with pytest.raises(ImportError) as exc_info:
             get_checkpointer(config)
-        
+
         assert "pip install yamlgraph[redis]" in str(exc_info.value)
 
     def test_redis_default_ttl(self):
@@ -166,15 +180,19 @@ class TestGetCheckpointerRedis:
         mock_saver = MagicMock()
         mock_redis_module = MagicMock()
         mock_redis_module.RedisSaver.from_conn_string.return_value = mock_saver
-        
-        with patch.dict("sys.modules", {"langgraph.checkpoint.redis": mock_redis_module}):
-            from yamlgraph.storage import checkpointer_factory
+
+        with patch.dict(
+            "sys.modules", {"langgraph.checkpoint.redis": mock_redis_module}
+        ):
             import importlib
+
+            from yamlgraph.storage import checkpointer_factory
+
             importlib.reload(checkpointer_factory)
-            
+
             config = {"type": "redis", "url": "redis://localhost:6379"}
             checkpointer_factory.get_checkpointer(config)
-            
+
             mock_redis_module.RedisSaver.from_conn_string.assert_called_once_with(
                 "redis://localhost:6379",
                 ttl={"default_ttl": 60},
@@ -187,8 +205,8 @@ class TestGetCheckpointerErrors:
     def test_unknown_type_raises_error(self):
         """Unknown checkpointer type should raise ValueError."""
         config = {"type": "unknown_db"}
-        
+
         with pytest.raises(ValueError) as exc_info:
             get_checkpointer(config)
-        
+
         assert "Unknown checkpointer type: unknown_db" in str(exc_info.value)
