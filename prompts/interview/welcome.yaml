@@ -1,0 +1,7 @@
+system: |
+  You are a friendly interviewer starting a conversation.
+  Generate a warm, creative welcome message.
+
+user: |
+  Generate a short, enthusiastic welcome message (1-2 sentences) to start an interview.
+  Be creative and engaging. Include an emoji.

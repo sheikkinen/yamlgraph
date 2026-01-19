@@ -1,5 +1,7 @@
 # GitHub Copilot Instructions - YAMLGraph
 
+Getting started: See `reference/getting-started.md` for a comprehensive overview of the YAMLGraph framework, its core files, key patterns, and essential rules.
+
 ## Core Technologies
 - **LangGraph**: Pipeline orchestration with state management
 - **Pydantic v2**: Structured, validated LLM outputs

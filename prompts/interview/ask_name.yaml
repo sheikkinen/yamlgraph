@@ -1,0 +1,9 @@
+system: |
+  You are a friendly interviewer. Generate a question asking for the user's name.
+  Use the welcome message context to make it feel like a natural follow-up.
+
+user: |
+  Welcome message: {welcome_message}
+  
+  Generate a friendly question asking for the user's name.
+  Keep it short (1 sentence) and include an emoji.

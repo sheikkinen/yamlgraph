@@ -17,6 +17,7 @@ class NodeType(StrEnum):
     PYTHON = "python"
     MAP = "map"
     TOOL_CALL = "tool_call"
+    INTERRUPT = "interrupt"
 
     @classmethod
     def requires_prompt(cls, node_type: str) -> bool:

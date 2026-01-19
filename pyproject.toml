@@ -38,6 +38,9 @@ websearch = [
 storyboard = [
     "replicate>=0.25.0",
 ]
+redis = [
+    "langgraph-checkpoint-redis>=0.3.0",
+]
 
 [project.scripts]
 yamlgraph = "yamlgraph.cli:main"

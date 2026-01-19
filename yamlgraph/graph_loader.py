@@ -15,11 +15,13 @@ from yamlgraph.constants import NodeType
 from yamlgraph.map_compiler import compile_map_node
 from yamlgraph.models.state_builder import build_state_class
 from yamlgraph.node_factory import (
+    create_interrupt_node,
     create_node_function,
     create_tool_call_node,
     resolve_class,
 )
 from yamlgraph.routing import make_expr_router_fn, make_router_fn
+from yamlgraph.storage.checkpointer_factory import get_checkpointer
 from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.nodes import create_tool_node
 from yamlgraph.tools.python_tool import (
@@ -61,6 +63,7 @@ class GraphConfig:
         self.tools = config.get("tools", {})
         self.state_class = config.get("state_class", "")
         self.loop_limits = config.get("loop_limits", {})
+        self.checkpointer = config.get("checkpointer", None)
         # Store raw config for dynamic state building
         self.raw_config = config
 
@@ -203,6 +206,10 @@ def _compile_node(
     elif node_type == NodeType.TOOL_CALL:
         # Dynamic tool call from state
         node_fn = create_tool_call_node(node_name, enriched_config, callable_registry)
+        graph.add_node(node_name, node_fn)
+    elif node_type == NodeType.INTERRUPT:
+        # Human-in-the-loop interrupt node
+        node_fn = create_interrupt_node(node_name, enriched_config)
         graph.add_node(node_name, node_fn)
     else:
         # LLM and router nodes
@@ -381,3 +388,16 @@ def load_and_compile(path: str | Path) -> StateGraph:
     config = load_graph_config(path)
     logger.info(f"Loaded graph config: {config.name} v{config.version}")
     return compile_graph(config)
+
+
+def get_checkpointer_for_graph(config: GraphConfig, *, async_mode: bool = False):
+    """Get checkpointer from graph config.
+
+    Args:
+        config: Graph configuration
+        async_mode: If True, return async-compatible saver
+
+    Returns:
+        Configured checkpointer or None if not specified
+    """
+    return get_checkpointer(config.checkpointer, async_mode=async_mode)

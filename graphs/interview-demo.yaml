@@ -1,0 +1,63 @@
+# Interview Demo - Human-in-the-Loop with Interrupt Nodes
+#
+# This graph demonstrates the interrupt node feature for human input.
+# The graph asks the user questions and generates a personalized greeting.
+#
+# Usage:
+#   python scripts/run_interview_demo.py
+#
+version: "1.0"
+name: interview-demo
+description: Interactive interview with human-in-the-loop
+
+# Checkpointer required for interrupt nodes
+checkpointer:
+  type: sqlite
+  path: ":memory:"
+
+# Declare state fields for interrupt responses
+state:
+  user_name: str
+  user_topic: str
+  welcome_message: str
+
+nodes:
+  # Step 0: LLM generates welcome message
+  generate_welcome:
+    type: llm
+    prompt: interview/welcome
+    state_key: welcome_message
+    provider: mistral
+
+  # Step 1: Ask for user's name (uses LLM-generated welcome)
+  ask_name:
+    type: interrupt
+    prompt: interview/ask_name
+    state_key: name_question
+    resume_key: user_name
+
+  # Step 2: Ask for favorite topic
+  ask_topic:
+    type: interrupt
+    message: "🤔 What topic would you like to learn about?"
+    state_key: topic_question
+    resume_key: user_topic
+
+  # Step 3: Generate personalized response
+  generate_response:
+    type: llm
+    prompt: interview/personalized_greeting
+    state_key: greeting
+    provider: mistral
+
+edges:
+  - from: START
+    to: generate_welcome
+  - from: generate_welcome
+    to: ask_name
+  - from: ask_name
+    to: ask_topic
+  - from: ask_topic
+    to: generate_response
+  - from: generate_response
+    to: END
