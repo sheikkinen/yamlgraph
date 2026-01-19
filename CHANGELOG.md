@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-01-19
+
+### Added
+- **Interrupt Nodes** for human-in-the-loop workflows
+  - New `type: interrupt` node pauses graph execution
+  - Resume with `Command(resume={...})` providing user input
+  - See [reference/interrupt-nodes.md](reference/interrupt-nodes.md)
+- **Checkpointer Factory** with Redis support
+  - Configure checkpointers in YAML: `memory`, `sqlite`, `redis`
+  - Async variants: `redis_async`, `memory` (for async)
+  - Environment variable expansion in connection strings
+  - Optional dependency: `pip install yamlgraph[redis]`
+  - See [reference/checkpointers.md](reference/checkpointers.md)
+- **Async Executor** for web framework integration
+  - `run_graph_async()` - Run graphs with interrupt handling
+  - `compile_graph_async()` - Compile with async checkpointer
+  - `load_and_compile_async()` - Load YAML and compile async
+  - See [reference/async-usage.md](reference/async-usage.md)
+- **Streaming Support** for real-time token output
+  - `execute_prompt_streaming()` - Async generator yielding chunks
+  - `stream: true` node config for YAML-defined streaming
+  - `create_streaming_node()` factory function
+  - See [reference/streaming.md](reference/streaming.md)
+- FastAPI integration example (`examples/fastapi_interview.py`)
+- Interview demo graph (`graphs/interview-demo.yaml`)
+- 51 new unit tests (891 total, 86% coverage)
+
+### Changed
+- `executor_async.py` expanded with graph execution APIs
+- `node_factory.py` supports `type: interrupt` and `stream: true`
+- `graph_loader.py` integrates checkpointer factory
+
 ## [0.1.4] - 2026-01-18
 
 ### Added
