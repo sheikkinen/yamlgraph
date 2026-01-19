@@ -25,6 +25,16 @@ def read_lines(file_path: str, start_line: int, end_line: int) -> str | dict:
     Returns:
         String with the requested lines, or error dict if file not found.
     """
+    # Validate line arguments - handle placeholder strings like 'TBD' or '<dynamic>'
+    try:
+        start_line = int(start_line)
+        end_line = int(end_line)
+    except (ValueError, TypeError):
+        return {
+            "error": f"Invalid line numbers: start_line={start_line!r}, end_line={end_line!r}. "
+            "Use get_structure first to get actual line numbers."
+        }
+
     path = Path(file_path)
     if not path.exists():
         return {"error": f"File not found: {file_path}"}

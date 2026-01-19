@@ -46,6 +46,15 @@ def find_references(
         List of reference dicts with file, line, column, type.
         Or error dict if file not found or jedi unavailable.
     """
+    # Validate line argument - handle placeholder strings like 'TBD' or '<dynamic>'
+    try:
+        line = int(line)
+    except (ValueError, TypeError):
+        return {
+            "error": f"Invalid line number: {line!r}. "
+            "Use get_structure first to get actual line numbers."
+        }
+
     if not JEDI_AVAILABLE:
         return {"error": "jedi not installed. Run: pip install jedi"}
 
@@ -115,6 +124,15 @@ def get_callers(
         List of caller dicts with file, line, caller name.
         Or error dict if file not found.
     """
+    # Validate line argument - handle placeholder strings like 'TBD' or '<dynamic>'
+    try:
+        line = int(line)
+    except (ValueError, TypeError):
+        return {
+            "error": f"Invalid line number: {line!r}. "
+            "Use get_structure first to get actual line numbers."
+        }
+
     if not JEDI_AVAILABLE:
         return {"error": "jedi not installed. Run: pip install jedi"}
 
@@ -175,6 +193,15 @@ def get_callees(
         List of callee dicts with name, line, file.
         Or error dict if file not found.
     """
+    # Validate line argument - handle placeholder strings like 'TBD' or '<dynamic>'
+    try:
+        line = int(line)
+    except (ValueError, TypeError):
+        return {
+            "error": f"Invalid line number: {line!r}. "
+            "Use get_structure first to get actual line numbers."
+        }
+
     if not JEDI_AVAILABLE:
         return {"error": "jedi not installed. Run: pip install jedi"}
 
