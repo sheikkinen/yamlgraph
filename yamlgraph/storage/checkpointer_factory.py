@@ -91,17 +91,33 @@ def get_checkpointer(
             ) from e
 
     elif cp_type == "sqlite":
-        import sqlite3
-
-        from langgraph.checkpoint.sqlite import SqliteSaver
-
         path = expand_env_vars(config.get("path", ":memory:"))
-        conn = sqlite3.connect(path, check_same_thread=False)
-        return SqliteSaver(conn)
+
+        if async_mode:
+            # MemorySaver supports both sync and async operations
+            # For production async SQLite, use AsyncSqliteSaver with aiosqlite
+            # but that requires async context management which complicates the API
+            import logging
+
+            if path != ":memory:":
+                logging.getLogger(__name__).info(
+                    f"Using MemorySaver for async mode (sqlite path '{path}' ignored). "
+                    "For persistent async storage, use Redis checkpointer."
+                )
+            from langgraph.checkpoint.memory import MemorySaver
+
+            return MemorySaver()
+        else:
+            import sqlite3
+
+            from langgraph.checkpoint.sqlite import SqliteSaver
+
+            conn = sqlite3.connect(path, check_same_thread=False)
+            return SqliteSaver(conn)
 
     elif cp_type == "memory":
-        from langgraph.checkpoint.memory import InMemorySaver
+        from langgraph.checkpoint.memory import MemorySaver
 
-        return InMemorySaver()
+        return MemorySaver()
 
     raise ValueError(f"Unknown checkpointer type: {cp_type}")
