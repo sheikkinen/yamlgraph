@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Subgraph Nodes** for composing graphs from other YAML graphs
+  - New `type: subgraph` node embeds child graphs
+  - Two modes: `mode: invoke` (explicit state mapping) or `mode: direct` (shared schema)
+  - Input/output mapping: `{parent_key: child_key}`, `"auto"`, or `"*"`
+  - Thread ID propagation for checkpointer continuity
+  - Circular reference detection with clear error messages
+  - Nested subgraphs supported (graphs within graphs)
+  - See demo: `graphs/subgraph-demo.yaml`
+
 ### Changed
 - Moved impl-agent to `examples/codegen/` as self-contained example
   - Tools: `examples/codegen/tools/` (13 analysis tools)
