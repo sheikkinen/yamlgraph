@@ -433,8 +433,120 @@ def generate_refactor_script(
     Path(output_path).write_text(script_content)
     Path(output_path).chmod(0o755)  # Make executable
 
+    # Generate companion tasks file for manual/LLM handling
+    tasks_path = output_path.replace(".sh", "_tasks.md")
+    tasks_content = generate_tasks_file(reordered, project_root, timestamp)
+    Path(tasks_path).write_text(tasks_content)
+
     logger.info(f"Generated refactor script: {output_path}")
+    logger.info(f"Generated tasks file: {tasks_path}")
     return output_path
+
+
+def generate_tasks_file(
+    parsed_instructions: list[dict[str, Any]],
+    project_root: str,
+    timestamp: str,
+) -> str:
+    """Generate a markdown file with full task details for manual/LLM handling.
+
+    Args:
+        parsed_instructions: List of parsed instruction dicts (already reordered)
+        project_root: Root directory for file paths
+        timestamp: Timestamp for the file header
+
+    Returns:
+        Markdown content as string
+    """
+    lines = [
+        f"# Refactor Tasks - {timestamp}",
+        "",
+        "Tasks for manual review or LLM execution. Full instruction text preserved.",
+        "",
+        "---",
+        "",
+    ]
+
+    # Separate automated vs manual tasks
+    automated = [p for p in parsed_instructions if p.get("valid")]
+    manual = [p for p in parsed_instructions if not p.get("valid")]
+
+    # Summary
+    lines.extend(
+        [
+            "## Summary",
+            "",
+            f"- **Total tasks**: {len(parsed_instructions)}",
+            f"- **Automated** (in shell script): {len(automated)}",
+            f"- **Manual/LLM** (below): {len(manual)}",
+            "",
+            "---",
+            "",
+        ]
+    )
+
+    # Manual tasks section (full detail)
+    if manual:
+        lines.extend(
+            [
+                "## Manual Tasks",
+                "",
+                "These tasks require manual implementation or LLM assistance.",
+                "",
+            ]
+        )
+
+        for i, task in enumerate(manual, 1):
+            # Extract action keyword from instruction start
+            original = task.get("original", "")
+            action = task.get("action")
+            if not action:
+                # Try to extract from first word
+                first_word = original.split()[0].upper() if original else "UNKNOWN"
+                action = first_word.rstrip(":")
+            lines.append(f"### Task {i}: {action}")
+            lines.append("")
+            lines.append("**Full Instruction:**")
+            lines.append("```")
+            lines.append(task["original"])
+            lines.append("```")
+            lines.append("")
+
+            # Add helpful context based on action type
+            if "file" in task:
+                lines.append(f"**Target file**: `{project_root}/{task['file']}`")
+            if "line" in task:
+                lines.append(f"**At line**: {task['line']}")
+            lines.append("")
+            lines.append("---")
+            lines.append("")
+
+    # Automated tasks reference (brief)
+    if automated:
+        lines.extend(
+            [
+                "## Automated Tasks (Reference)",
+                "",
+                "These are handled by the shell script. Listed here for completeness.",
+                "",
+                "| # | Action | Target | Lines |",
+                "|---|--------|--------|-------|",
+            ]
+        )
+
+        for i, task in enumerate(automated, 1):
+            action = task.get("action", "?")
+            target = task.get("file", task.get("source_file", "?"))
+            if len(target) > 40:
+                target = "..." + target[-37:]
+            start = task.get("start_line", "")
+            end = task.get("end_line", "")
+            line_range = f"{start}-{end}" if start and end else ""
+            lines.append(f"| {i} | {action} | `{target}` | {line_range} |")
+
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 def extract_instructions_from_output(output_text: str) -> list[str]:
