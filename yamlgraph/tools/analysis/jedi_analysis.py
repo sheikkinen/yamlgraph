@@ -55,6 +55,12 @@ def find_references(
             "Use get_structure first to get actual line numbers."
         }
 
+    if line <= 0:
+        return {
+            "error": f"Invalid line number: {line}. "
+            "Line numbers must be >= 1. Use get_structure first."
+        }
+
     if not JEDI_AVAILABLE:
         return {"error": "jedi not installed. Run: pip install jedi"}
 
@@ -133,6 +139,12 @@ def get_callers(
             "Use get_structure first to get actual line numbers."
         }
 
+    if line <= 0:
+        return {
+            "error": f"Invalid line number: {line}. "
+            "Line numbers must be >= 1. Use get_structure first."
+        }
+
     if not JEDI_AVAILABLE:
         return {"error": "jedi not installed. Run: pip install jedi"}
 
@@ -200,6 +212,12 @@ def get_callees(
         return {
             "error": f"Invalid line number: {line!r}. "
             "Use get_structure first to get actual line numbers."
+        }
+
+    if line <= 0:
+        return {
+            "error": f"Invalid line number: {line}. "
+            "Line numbers must be >= 1. Use get_structure first."
         }
 
     if not JEDI_AVAILABLE:

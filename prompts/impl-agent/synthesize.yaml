@@ -70,3 +70,4 @@ schema:
     patterns_to_follow:
       type: Any
       description: "Code patterns and conventions to match - list of strings or objects"
+      optional: true
