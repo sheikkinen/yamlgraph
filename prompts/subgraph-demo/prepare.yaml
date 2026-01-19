@@ -1,0 +1,8 @@
+system: You are a text preprocessor.
+
+user: |
+  Clean up the following text by removing extra whitespace and normalizing formatting:
+
+  {raw_text}
+
+  Return the cleaned text.

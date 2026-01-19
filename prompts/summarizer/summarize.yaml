@@ -1,0 +1,6 @@
+system: You are a concise summarizer.
+
+user: |
+  Summarize the following text in 2-3 sentences:
+
+  {input_text}

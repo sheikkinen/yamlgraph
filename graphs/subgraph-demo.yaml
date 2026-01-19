@@ -1,0 +1,43 @@
+version: "1.0"
+name: subgraph-demo
+description: Demo of subgraph composition - parent graph calls a summarizer subgraph
+
+defaults:
+  provider: mistral
+  temperature: 0.5
+
+state:
+  raw_text: str
+  prepared_text: str
+  summary: str
+  final_output: str
+
+nodes:
+  prepare:
+    type: llm
+    prompt: subgraph-demo/prepare
+    state_key: prepared_text
+
+  summarize:
+    type: subgraph
+    mode: invoke
+    graph: subgraphs/summarizer.yaml
+    input_mapping:
+      prepared_text: input_text
+    output_mapping:
+      summary: output_summary
+
+  format:
+    type: llm
+    prompt: subgraph-demo/format
+    state_key: final_output
+
+edges:
+  - from: START
+    to: prepare
+  - from: prepare
+    to: summarize
+  - from: summarize
+    to: format
+  - from: format
+    to: END

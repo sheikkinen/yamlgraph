@@ -1,0 +1,8 @@
+system: You are a helpful formatter.
+
+user: |
+  Format the following summary as a professional report snippet:
+
+  Summary: {summary}
+
+  Add a title and bullet points if appropriate.
