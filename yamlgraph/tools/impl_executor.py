@@ -107,13 +107,16 @@ def parse_instruction(instruction: str) -> dict[str, Any]:
         re.IGNORECASE | re.DOTALL,
     )
     if add_match:
+        # Clean content: strip backticks and trailing periods
+        content = add_match.group(4).strip()
+        content = content.strip("`'\"").rstrip(".")
         return {
             "original": instruction,
             "action": "ADD",
             "what": add_match.group(1).strip(),
             "line": int(add_match.group(2)),
             "file": add_match.group(3).strip().rstrip("."),
-            "content": add_match.group(4).strip(),
+            "content": content,
             "valid": True,
         }
 
@@ -430,21 +433,23 @@ def extract_instructions_from_output(output_text: str) -> list[str]:
         List of instruction strings
     """
     # Try to find implementation_plan.instructions in the output
-    # Format: instructions=['...', '...']
+    # Format: instructions=['...', '...'] test_instructions=[...]
 
-    # Look for instructions= pattern
+    # Look for instructions= and capture until '] test_instructions=' or '] risks='
+    # Use non-greedy matching and explicit field boundary
     match = re.search(
-        r"instructions=\[([^\]]+(?:\][^\]]+)*)\]",
+        r"instructions=(\[.*?\])\s+(?:test_instructions=|risks=)",
         output_text,
         re.DOTALL,
     )
     if match:
-        # Parse the list content
-        content = match.group(1)
-        # Split by quoted strings
-        instructions = re.findall(r"'([^']*(?:''[^']*)*)'", content)
+        # Parse the list content (remove outer brackets)
+        list_str = match.group(1)
+        # Split by quoted strings - handle escaped quotes
+        instructions = re.findall(r"'((?:[^'\\]|\\.)*)'", list_str)
         if instructions:
-            return [i.replace("''", "'") for i in instructions]
+            # Unescape newlines and quotes
+            return [i.replace("\\n", "\n").replace("\\'", "'") for i in instructions]
 
     # Alternative: look for numbered instructions
     numbered = re.findall(r"^\d+\.\s*(.+)$", output_text, re.MULTILINE)

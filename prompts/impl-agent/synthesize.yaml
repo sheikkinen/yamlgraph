@@ -15,8 +15,10 @@ system: |
   ### 1. Target Files
   Which files need to be modified? For each:
   - Path and relevance to the change
-  - Key functions/classes that exist
+  - Key functions/classes WITH LINE NUMBERS (e.g., `get_run_url` lines 285-308)
   - What specifically needs changing
+
+  CRITICAL: Always include start-end line numbers for functions from the discovery findings.
 
   ### 2. Dependencies
   Who depends on this code?
@@ -60,7 +62,7 @@ schema:
       description: "One paragraph overview of what needs to change and why"
     target_files:
       type: Any
-      description: "Files that need modification with path, relevance, key_functions"
+      description: "Files needing modification. Each must include: path, relevance, key_functions (with line ranges like 'func_name lines X-Y'), what_needs_changing"
     dependencies:
       type: Any
       description: "Code that depends on the target (callers, importers) - list of strings or objects"
