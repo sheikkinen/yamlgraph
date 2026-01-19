@@ -66,21 +66,46 @@ demo_analysis() {
         --var path="yamlgraph" --var package="yamlgraph"
 }
 
+demo_interview() {
+    echo -e "${YELLOW}Note: Interview demo requires interactive input${NC}"
+    echo -e "${YELLOW}Running via dedicated script...${NC}"
+    python scripts/run_interview_demo.py
+}
+
+demo_brainstorm() {
+    run_demo "Feature Brainstorm" "graphs/feature-brainstorm.yaml"
+}
+
+demo_webresearch() {
+    run_demo "Web Research Agent" "graphs/web-research.yaml" \
+        --var topic="Latest developments in AI agents"
+}
+
+demo_codegen() {
+    run_demo "Impl-Agent (Code Analysis)" "examples/codegen/impl-agent.yaml" \
+        --var story="Add a timeout parameter to websearch" \
+        --var scope="yamlgraph/tools"
+}
+
 print_usage() {
     echo -e "${YELLOW}YamlGraph Demos${NC}"
     echo ""
     echo "Usage: ./demo.sh [demo_name]"
     echo ""
     echo "Available demos:"
-    echo "  router     - Tone-based routing (positive/negative/neutral)"
-    echo "  yamlgraph  - Content generation pipeline (generate → analyze → summarize)"
-    echo "  reflexion  - Self-refinement loop (draft → critique → refine)"
-    echo "  git        - AI agent with git tools"
-    echo "  memory     - Agent with conversation memory"
-    echo "  map        - Parallel fan-out processing"
-    echo "  storyboard - Animated character storyboard with image generation"
-    echo "  analysis   - Self-analysis of yamlgraph codebase"
-    echo "  all        - Run all demos (default)"
+    echo "  router      - Tone-based routing (positive/negative/neutral)"
+    echo "  yamlgraph   - Content generation pipeline (generate → analyze → summarize)"
+    echo "  reflexion   - Self-refinement loop (draft → critique → refine)"
+    echo "  git         - AI agent with git tools"
+    echo "  memory      - Agent with conversation memory"
+    echo "  map         - Parallel fan-out processing"
+    echo "  storyboard  - Animated character storyboard with image generation"
+    echo "  analysis    - Self-analysis of yamlgraph codebase"
+    echo "  interview   - Human-in-the-loop interrupt demo"
+    echo "  brainstorm  - Feature brainstorm (YAMLGraph analyzes itself)"
+    echo "  webresearch - Web research agent"
+    echo "  codegen     - Impl-agent code analysis (from examples/codegen)"
+    echo "  all         - Run all demos (default)"
     echo ""
 }
 
@@ -112,6 +137,18 @@ case "${1:-all}" in
     analysis)
         demo_analysis
         ;;
+    interview)
+        demo_interview
+        ;;
+    brainstorm)
+        demo_brainstorm
+        ;;
+    webresearch)
+        demo_webresearch
+        ;;
+    codegen)
+        demo_codegen
+        ;;
     all)
         echo -e "${YELLOW}🚀 Running all YamlGraph demos...${NC}"
         demo_router
@@ -122,7 +159,11 @@ case "${1:-all}" in
         demo_map
         demo_storyboard
         demo_analysis
+        demo_brainstorm
+        demo_webresearch
+        # Skip interview (requires interaction) and codegen (slow)
         echo ""
+        echo -e "${YELLOW}Note: Skipped 'interview' (interactive) and 'codegen' (slow)${NC}"
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo -e "${GREEN}✓ All demos completed successfully!${NC}"
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

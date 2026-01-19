@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Moved impl-agent to `examples/codegen/` as self-contained example
+  - Tools: `examples/codegen/tools/` (13 analysis tools)
+  - Prompts: `examples/codegen/prompts/`
+  - Graph: `examples/codegen/impl-agent.yaml`
+  - Tests: `examples/codegen/tests/` (16 test files)
+  - Run: `yamlgraph graph run examples/codegen/impl-agent.yaml`
+- Updated ruff linting rules: added B (bugbear), C4 (comprehensions), UP (pyupgrade), SIM (simplify)
+- Removed dead code: `log_execution`, `set_executor`, `get_checkpointer_for_graph`, `log_with_context`
+
 ## [0.2.0] - 2026-01-19
 
 ### Added
@@ -74,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reference documentation for impl-agent (`reference/impl-agent.md`)
 
 ### Changed
-- Refactored analysis tools into `yamlgraph/tools/analysis/` subfolder
+- Refactored analysis tools into `examples/codegen/tools/` as self-contained example
 - Agent nodes now support `max_iterations` config (default 10)
 
 ## [0.1.2] - 2026-01-18
