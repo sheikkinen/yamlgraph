@@ -11,7 +11,10 @@ A YAML-first framework for building LLM pipelines using:
 - **Pydantic Models** - Structured LLM outputs
 - **Multi-Provider LLMs** - Support for Anthropic, Mistral, and OpenAI
 - **LangGraph** - Pipeline orchestration with resume support
-- **SQLite** - State persistence
+- **Human-in-the-Loop** - Interrupt nodes for user input
+- **Streaming** - Token-by-token LLM output
+- **Async Support** - FastAPI-ready async execution
+- **Checkpointers** - Memory, SQLite, and Redis state persistence
 - **LangSmith** - Observability and tracing
 - **JSON Export** - Result serialization
 
@@ -21,6 +24,9 @@ A YAML-first framework for building LLM pipelines using:
 
 ```bash
 pip install yamlgraph
+
+# With Redis support for distributed checkpointing
+pip install yamlgraph[redis]
 ```
 
 ### From Source
@@ -128,6 +134,63 @@ yamlgraph graph run examples/storyboard/animated-character-graph.yaml \
   --var concept="A brave mouse knight" --var model=hidream
 ```
 
+### Human-in-the-Loop (Interrupt Nodes)
+
+Create interactive workflows that pause for user input:
+
+```yaml
+# graphs/interview.yaml
+checkpointer:
+  type: memory
+
+nodes:
+  ask_name:
+    type: interrupt
+    message: "What is your name?"
+    resume_key: user_name
+
+  greet:
+    type: llm
+    prompt: greet
+    variables:
+      name: "{state.user_name}"
+```
+
+```python
+from langgraph.types import Command
+from yamlgraph.executor_async import load_and_compile_async, run_graph_async
+
+app = await load_and_compile_async("graphs/interview.yaml")
+config = {"configurable": {"thread_id": "session-1"}}
+
+result = await run_graph_async(app, {}, config)
+# result["__interrupt__"] contains the question
+
+result = await run_graph_async(app, Command(resume="Alice"), config)
+# result["greeting"] contains personalized response
+```
+
+### Streaming
+
+Token-by-token LLM output for real-time UX:
+
+```python
+from yamlgraph.executor_async import execute_prompt_streaming
+
+async for token in execute_prompt_streaming("greet", {"name": "World"}):
+    print(token, end="", flush=True)
+```
+
+Or in YAML nodes:
+
+```yaml
+nodes:
+  generate:
+    type: llm
+    prompt: story
+    stream: true
+```
+
 ### CLI Utilities
 
 ```bash
@@ -151,6 +214,10 @@ See the [reference/](reference/) folder for comprehensive YAML configuration gui
 - [Quick Start](reference/quickstart.md) - Create your first pipeline in 5 minutes
 - [Graph YAML Reference](reference/graph-yaml.md) - All graph configuration options
 - [Prompt YAML Reference](reference/prompt-yaml.md) - Schema and template syntax
+- [Interrupt Nodes](reference/interrupt-nodes.md) - Human-in-the-loop patterns
+- [Checkpointers](reference/checkpointers.md) - State persistence (Memory, SQLite, Redis)
+- [Async Usage](reference/async-usage.md) - FastAPI integration and async execution
+- [Streaming](reference/streaming.md) - Token-by-token LLM output
 - [Map Nodes](reference/map-nodes.md) - Parallel fan-out/fan-in processing
 - [Implementation Agent](reference/impl-agent.md) - Code analysis and planning
 - [Common Patterns](reference/patterns.md) - Router, loops, agents, and more
