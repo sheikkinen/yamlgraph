@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from yamlgraph.tools.analysis.ast_analysis import get_module_structure
+from examples.codegen.tools.ast_analysis import get_module_structure
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from yamlgraph.tools.analysis.ast_analysis import get_module_structure
+from examples.codegen.tools.ast_analysis import get_module_structure
 
 
 class TestGetModuleStructure:

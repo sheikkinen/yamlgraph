@@ -10,8 +10,8 @@ Creates LangGraph node functions from YAML configuration with support for:
 """
 
 import logging
-from collections.abc import AsyncIterator
-from typing import Any, Callable
+from collections.abc import AsyncIterator, Callable
+from typing import Any
 
 from yamlgraph.constants import ErrorHandler, NodeType
 from yamlgraph.error_handlers import (

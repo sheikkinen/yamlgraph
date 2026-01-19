@@ -8,7 +8,8 @@ Provides strategy functions for different error handling modes:
 """
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from yamlgraph.models import ErrorType, PipelineError
 

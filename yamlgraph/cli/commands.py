@@ -121,9 +121,8 @@ def cmd_run(args: Namespace) -> None:
     _format_result(result)
 
     # Show LangSmith link
-    if is_tracing_enabled():
-        if url := get_run_url():
-            print(f"\n🔗 LangSmith: {url}")
+    if is_tracing_enabled() and (url := get_run_url()):
+        print(f"\n🔗 LangSmith: {url}")
 
     print()
 

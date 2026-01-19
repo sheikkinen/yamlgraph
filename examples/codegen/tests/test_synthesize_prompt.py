@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-PROMPT_PATH = Path(__file__).parents[2] / "prompts" / "impl-agent" / "synthesize.yaml"
+PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "synthesize.yaml"
 
 
 class TestSynthesizePromptStructure:

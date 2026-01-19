@@ -136,7 +136,7 @@ def _get_signature(func: ast.FunctionDef) -> str:
     # Decorators
     decorators = ""
     for dec in func.decorator_list:
-        dec_name = _get_name(dec) if isinstance(dec, (ast.Name, ast.Attribute)) else "?"
+        dec_name = _get_name(dec) if isinstance(dec, ast.Name | ast.Attribute) else "?"
         decorators += f"@{dec_name}\n    "
 
     return f"{decorators}def {func.name}({args_str}){returns}: ..."
@@ -267,10 +267,12 @@ def find_similar_code(
 
     target = None
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name == symbol_name:
-            target = node
-            break
-        elif isinstance(node, ast.ClassDef) and node.name == symbol_name:
+        if (
+            isinstance(node, ast.FunctionDef)
+            and node.name == symbol_name
+            or isinstance(node, ast.ClassDef)
+            and node.name == symbol_name
+        ):
             target = node
             break
 
@@ -294,7 +296,7 @@ def find_similar_code(
             continue
 
         for node in ast.walk(file_tree):
-            if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            if isinstance(node, ast.FunctionDef | ast.ClassDef):
                 if node.name == symbol_name:
                     continue  # Skip exact matches
 
@@ -344,7 +346,7 @@ def _extract_traits(node: ast.FunctionDef | ast.ClassDef) -> dict:
         traits["decorators"] = [
             _get_name(d)
             for d in node.decorator_list
-            if isinstance(d, (ast.Name, ast.Attribute))
+            if isinstance(d, ast.Name | ast.Attribute)
         ]
         traits["has_docstring"] = ast.get_docstring(node) is not None
 
@@ -360,7 +362,7 @@ def _extract_traits(node: ast.FunctionDef | ast.ClassDef) -> dict:
         traits["decorators"] = [
             _get_name(d)
             for d in node.decorator_list
-            if isinstance(d, (ast.Name, ast.Attribute))
+            if isinstance(d, ast.Name | ast.Attribute)
         ]
         # Count methods
         traits["param_count"] = sum(
@@ -381,10 +383,13 @@ def _compare_traits(a: dict, b: dict) -> tuple[float, list[str]]:
         reasons.append(f"same type ({a['type']})")
 
     # Similar param count
-    if a["type"] == "FunctionDef" and b["type"] == "FunctionDef":
-        if abs(a["param_count"] - b["param_count"]) <= 1:
-            score += 0.2
-            reasons.append("similar params")
+    if (
+        a["type"] == "FunctionDef"
+        and b["type"] == "FunctionDef"
+        and abs(a["param_count"] - b["param_count"]) <= 1
+    ):
+        score += 0.2
+        reasons.append("similar params")
 
     # Both have return types
     if a.get("has_return_type") and b.get("has_return_type"):

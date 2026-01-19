@@ -7,7 +7,7 @@ with support for structured outputs via Pydantic models.
 import logging
 import threading
 import time
-from typing import Type, TypeVar
+from typing import TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -99,7 +99,7 @@ def format_prompt(
 def execute_prompt(
     prompt_name: str,
     variables: dict | None = None,
-    output_model: Type[T] | None = None,
+    output_model: type[T] | None = None,
     temperature: float = DEFAULT_TEMPERATURE,
     provider: str | None = None,
 ) -> T | str:
@@ -176,7 +176,7 @@ class PromptExecutor:
         return create_llm(temperature=temperature, provider=provider)
 
     def _invoke_with_retry(
-        self, llm, messages, output_model: Type[T] | None = None
+        self, llm, messages, output_model: type[T] | None = None
     ) -> T | str:
         """Invoke LLM with exponential backoff retry.
 
@@ -222,7 +222,7 @@ class PromptExecutor:
         self,
         prompt_name: str,
         variables: dict | None = None,
-        output_model: Type[T] | None = None,
+        output_model: type[T] | None = None,
         temperature: float = DEFAULT_TEMPERATURE,
         provider: str | None = None,
     ) -> T | str:

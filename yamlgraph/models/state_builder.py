@@ -173,7 +173,7 @@ def extract_node_fields(nodes: dict) -> dict[str, type]:
     """
     fields: dict[str, type] = {}
 
-    for node_name, node_config in nodes.items():
+    for _node_name, node_config in nodes.items():
         if not isinstance(node_config, dict):
             continue
 

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from yamlgraph.tools.analysis.template_tools import (
+from examples.codegen.tools.template_tools import (
     extract_class_template,
     extract_function_template,
     extract_test_template,

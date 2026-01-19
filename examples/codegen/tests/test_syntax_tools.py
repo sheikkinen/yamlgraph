@@ -1,6 +1,6 @@
 """Tests for syntax validation tools."""
 
-from yamlgraph.tools.analysis.syntax_tools import syntax_check
+from examples.codegen.tools.syntax_tools import syntax_check
 
 
 class TestSyntaxCheck:

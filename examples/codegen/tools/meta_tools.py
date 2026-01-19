@@ -48,7 +48,7 @@ def extract_graph_template(graph_path: str) -> dict:
     # Extract node types
     nodes = data.get("nodes", {})
     node_types_seen = set()
-    for node_name, node_config in nodes.items():
+    for _node_name, node_config in nodes.items():
         if isinstance(node_config, dict):
             node_type = node_config.get("type", "unknown")
             node_types_seen.add(node_type)
@@ -88,7 +88,7 @@ def extract_graph_template(graph_path: str) -> dict:
     # Extract tool patterns
     tools = data.get("tools", {})
     tool_types_seen = set()
-    for tool_name, tool_config in tools.items():
+    for _tool_name, tool_config in tools.items():
         if isinstance(tool_config, dict):
             tool_type = tool_config.get("type", "unknown")
             tool_types_seen.add(tool_type)

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from yamlgraph.tools.analysis.meta_tools import (
+from examples.codegen.tools.meta_tools import (
     extract_graph_template,
     extract_prompt_template,
 )

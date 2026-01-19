@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from yamlgraph.tools.analysis.dependency_tools import get_dependents, get_imports
+from examples.codegen.tools.dependency_tools import get_dependents, get_imports
 
 
 class TestGetImports:

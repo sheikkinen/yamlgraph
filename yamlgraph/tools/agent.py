@@ -12,13 +12,12 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-import yaml
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
-from yamlgraph.config import PROMPTS_DIR
 from yamlgraph.tools.python_tool import PythonToolConfig, load_python_function
 from yamlgraph.tools.shell import ShellToolConfig, execute_shell_tool
 from yamlgraph.utils.llm_factory import create_llm
+from yamlgraph.utils.prompts import load_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -104,10 +103,7 @@ def build_python_tool(name: str, config: PythonToolConfig) -> Any:
         fields[param_name] = (param_type, Field(description=f"Parameter: {param_name}"))
 
     # Create dynamic Pydantic model
-    if fields:
-        ArgsModel = create_model(f"{name}_args", **fields)
-    else:
-        ArgsModel = None
+    ArgsModel = create_model(f"{name}_args", **fields) if fields else None
 
     def execute_python(**kwargs) -> str:
         """Execute the Python function and return result as string."""
@@ -123,25 +119,6 @@ def build_python_tool(name: str, config: PythonToolConfig) -> Any:
         description=config.description,
         args_schema=ArgsModel,
     )
-
-
-def _load_prompt(prompt_name: str) -> tuple[str, str]:
-    """Load system and user prompts from YAML file.
-
-    Args:
-        prompt_name: Name of prompt file (without .yaml)
-
-    Returns:
-        Tuple of (system_prompt, user_template)
-    """
-    prompt_path = PROMPTS_DIR / f"{prompt_name}.yaml"
-    if not prompt_path.exists():
-        raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
-
-    with open(prompt_path) as f:
-        prompt_config = yaml.safe_load(f)
-
-    return prompt_config.get("system", ""), prompt_config.get("user", "{input}")
 
 
 def create_agent_node(
@@ -211,7 +188,9 @@ def create_agent_node(
     def node_fn(state: dict) -> dict:
         """Execute the agent loop."""
         # Load prompts - fail fast if missing
-        system_prompt, user_template = _load_prompt(prompt_name)
+        prompt_config = load_prompt(prompt_name)
+        system_prompt = prompt_config.get("system", "")
+        user_template = prompt_config.get("user", "{input}")
 
         # Format user prompt with state - handle missing keys
         import re

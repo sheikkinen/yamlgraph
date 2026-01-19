@@ -21,167 +21,167 @@ tools:
   # Phase 1 tools (stdlib only)
   list_modules:
     type: python
-    module: yamlgraph.tools.analysis.code_nav
+    module: examples.codegen.tools.code_nav
     function: list_package_modules
     description: "List all modules in a package with summaries (docstring, classes, functions)"
 
   get_structure:
     type: python
-    module: yamlgraph.tools.analysis.ast_analysis
+    module: examples.codegen.tools.ast_analysis
     function: get_module_structure
     description: "Get classes, functions, imports from a Python file with line numbers"
 
   read_lines:
     type: python
-    module: yamlgraph.tools.analysis.code_context
+    module: examples.codegen.tools.code_context
     function: read_lines
     description: "Read specific line range from a file (1-indexed)"
 
   find_tests:
     type: python
-    module: yamlgraph.tools.analysis.code_context
+    module: examples.codegen.tools.code_context
     function: find_related_tests
     description: "Find test functions that mention a symbol name"
 
   search_file:
     type: python
-    module: yamlgraph.tools.analysis.code_context
+    module: examples.codegen.tools.code_context
     function: search_in_file
     description: "Search for a pattern in a file (grep). Returns matching lines with line numbers. Use to verify if a field/symbol exists."
 
   search_code:
     type: python
-    module: yamlgraph.tools.analysis.code_context
+    module: examples.codegen.tools.code_context
     function: search_codebase
     description: "Search for a pattern across files in a directory (grep -r). Returns all matches with file paths and line numbers."
 
   # Phase 2 tools (git context)
   git_blame:
     type: python
-    module: yamlgraph.tools.analysis.git_tools
+    module: examples.codegen.tools.git_tools
     function: git_blame
     description: "Get blame info for a specific line (author, date, commit, summary)"
 
   git_log:
     type: python
-    module: yamlgraph.tools.analysis.git_tools
+    module: examples.codegen.tools.git_tools
     function: git_log
     description: "Get recent commits for a file (hash, author, date, message)"
 
   # Phase 3 tools (jedi-based semantic analysis)
   find_refs:
     type: python
-    module: yamlgraph.tools.analysis.jedi_analysis
+    module: examples.codegen.tools.jedi_analysis
     function: find_references
     description: "Find all references to a symbol across the project (definition, imports, usages). Requires file_path, symbol_name, line."
 
   get_callers:
     type: python
-    module: yamlgraph.tools.analysis.jedi_analysis
+    module: examples.codegen.tools.jedi_analysis
     function: get_callers
     description: "Find all functions that call a given function. Returns caller names with file and line."
 
   get_callees:
     type: python
-    module: yamlgraph.tools.analysis.jedi_analysis
+    module: examples.codegen.tools.jedi_analysis
     function: get_callees
     description: "Find all functions called by a given function. Returns callee names with line numbers."
 
   # Phase 5 tools (validation)
   syntax_check:
     type: python
-    module: yamlgraph.tools.analysis.syntax_tools
+    module: examples.codegen.tools.syntax_tools
     function: syntax_check
     description: "Check if Python code is syntactically valid. Returns valid=True or valid=False with error message."
 
   # Phase 6 tools (dependency analysis)
   get_imports:
     type: python
-    module: yamlgraph.tools.analysis.dependency_tools
+    module: examples.codegen.tools.dependency_tools
     function: get_imports
     description: "Extract all imports from a Python file (module, names, aliases)"
 
   get_dependents:
     type: python
-    module: yamlgraph.tools.analysis.dependency_tools
+    module: examples.codegen.tools.dependency_tools
     function: get_dependents
     description: "Find all files that import a given module (reverse dependency lookup)"
 
   # Phase 7 tools (AI helpers)
   summarize_module:
     type: python
-    module: yamlgraph.tools.analysis.ai_helpers
+    module: examples.codegen.tools.ai_helpers
     function: summarize_module
     description: "Compress module to signatures only (for AI context windows)"
 
   diff_preview:
     type: python
-    module: yamlgraph.tools.analysis.ai_helpers
+    module: examples.codegen.tools.ai_helpers
     function: diff_preview
     description: "Preview what a patch would look like applied (validates before suggesting)"
 
   find_similar_code:
     type: python
-    module: yamlgraph.tools.analysis.ai_helpers
+    module: examples.codegen.tools.ai_helpers
     function: find_similar_code
     description: "Find similar functions/classes to follow their patterns"
 
   # Phase 8 tools (template extraction)
   extract_function_template:
     type: python
-    module: yamlgraph.tools.analysis.template_tools
+    module: examples.codegen.tools.template_tools
     function: extract_function_template
     description: "Extract reusable function template with signature, docstring, and body structure"
 
   extract_class_template:
     type: python
-    module: yamlgraph.tools.analysis.template_tools
+    module: examples.codegen.tools.template_tools
     function: extract_class_template
     description: "Extract reusable class template with bases, class variables, and method signatures"
 
   extract_test_template:
     type: python
-    module: yamlgraph.tools.analysis.template_tools
+    module: examples.codegen.tools.template_tools
     function: extract_test_template
     description: "Extract test patterns (fixtures, test classes, mock patterns) for consistent test code"
 
   # Phase 9 tools (example discovery)
   find_example:
     type: python
-    module: yamlgraph.tools.analysis.example_tools
+    module: examples.codegen.tools.example_tools
     function: find_example
     description: "Find real usage examples of a function/class (prioritizes test files)"
 
   find_error_handling:
     type: python
-    module: yamlgraph.tools.analysis.example_tools
+    module: examples.codegen.tools.example_tools
     function: find_error_handling
     description: "Analyze error handling patterns (exceptions, dict_error, logging)"
 
   # Phase 10 tools (YAMLGraph meta-templates)
   extract_graph_template:
     type: python
-    module: yamlgraph.tools.analysis.meta_tools
+    module: examples.codegen.tools.meta_tools
     function: extract_graph_template
     description: "Extract patterns from graph YAML (node types, edges, state, tools)"
 
   extract_prompt_template:
     type: python
-    module: yamlgraph.tools.analysis.meta_tools
+    module: examples.codegen.tools.meta_tools
     function: extract_prompt_template
     description: "Extract patterns from prompt YAML (sections, variables, schema, jinja)"
 
 nodes:
   parse_story:
     type: llm
-    prompt: impl-agent/parse_story
+    prompt: examples/codegen/parse_story
     variables:
       story: "{state.story}"
     state_key: parsed_request
 
   plan_discovery:
     type: llm
-    prompt: impl-agent/plan_discovery
+    prompt: examples/codegen/plan_discovery
     variables:
       story: "{state.story}"
       scope: "{state.scope}"
@@ -202,7 +202,7 @@ nodes:
 
   synthesize:
     type: llm
-    prompt: impl-agent/synthesize
+    prompt: examples/codegen/synthesize
     variables:
       story: "{state.story}"
       discovery_findings: "{state.discovery_findings}"
@@ -211,7 +211,7 @@ nodes:
 
   plan:
     type: llm
-    prompt: impl-agent/generate_plan
+    prompt: examples/codegen/generate_plan
     variables:
       story: "{state.story}"
       parsed_request: "{state.parsed_request}"

@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-GRAPH_PATH = Path(__file__).parents[2] / "graphs" / "impl-agent.yaml"
+GRAPH_PATH = Path(__file__).parent.parent / "impl-agent.yaml"
 
 
 class TestImplAgentV4Structure:
@@ -25,7 +25,7 @@ class TestImplAgentV4Structure:
         nodes = graph_config.get("nodes", {})
         assert "plan_discovery" in nodes
         node = nodes["plan_discovery"]
-        assert node.get("prompt") == "impl-agent/plan_discovery"
+        assert node.get("prompt") == "examples/codegen/plan_discovery"
         assert node.get("state_key") == "discovery_plan"
 
     def test_has_execute_discovery_node(self, graph_config):
@@ -44,7 +44,7 @@ class TestImplAgentV4Structure:
         nodes = graph_config.get("nodes", {})
         assert "synthesize" in nodes
         node = nodes["synthesize"]
-        assert node.get("prompt") == "impl-agent/synthesize"
+        assert node.get("prompt") == "examples/codegen/synthesize"
         assert node.get("state_key") == "code_analysis"
 
     def test_edge_flow(self, graph_config):

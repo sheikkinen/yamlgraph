@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from yamlgraph.models.impl_agent_schemas import DiscoveryPlan, DiscoveryTask
+from examples.codegen.models.schemas import DiscoveryPlan, DiscoveryTask
 from yamlgraph.utils.prompts import load_prompt
 
 
@@ -11,17 +11,17 @@ class TestPlanDiscoveryPrompt:
 
     def test_prompt_file_exists(self):
         """Prompt file exists and is loadable."""
-        prompt_path = Path("prompts/impl-agent/plan_discovery.yaml")
+        prompt_path = Path("examples/codegen/prompts/plan_discovery.yaml")
         assert prompt_path.exists(), "plan_discovery.yaml not found"
 
-        prompt = load_prompt("impl-agent/plan_discovery")
+        prompt = load_prompt("examples/codegen/plan_discovery")
         assert "system" in prompt
         assert "user" in prompt
         assert "schema" in prompt
 
     def test_prompt_has_required_sections(self):
         """Prompt contains key instruction sections."""
-        prompt = load_prompt("impl-agent/plan_discovery")
+        prompt = load_prompt("examples/codegen/plan_discovery")
         system = prompt["system"]
 
         # Check for key sections
@@ -31,7 +31,7 @@ class TestPlanDiscoveryPrompt:
 
     def test_prompt_lists_core_tools(self):
         """Prompt documents core discovery tools."""
-        prompt = load_prompt("impl-agent/plan_discovery")
+        prompt = load_prompt("examples/codegen/plan_discovery")
         system = prompt["system"]
 
         # Core tools should be listed
@@ -43,7 +43,7 @@ class TestPlanDiscoveryPrompt:
 
     def test_schema_matches_discovery_plan(self):
         """Output schema is compatible with DiscoveryPlan model."""
-        prompt = load_prompt("impl-agent/plan_discovery")
+        prompt = load_prompt("examples/codegen/plan_discovery")
         schema = prompt["schema"]
 
         # Schema should have name and define tasks field
@@ -88,7 +88,7 @@ class TestPlanDiscoveryPrompt:
 
     def test_minimum_checklist_coverage(self):
         """Prompt explicitly requires minimum discovery coverage."""
-        prompt = load_prompt("impl-agent/plan_discovery")
+        prompt = load_prompt("examples/codegen/plan_discovery")
         system = prompt["system"]
 
         # Minimum checklist items

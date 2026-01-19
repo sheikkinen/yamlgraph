@@ -9,11 +9,11 @@ Supports optional connection pooling for high-throughput scenarios.
 import json
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from queue import Empty, Queue
-from typing import Iterator
 
 from pydantic import BaseModel
 

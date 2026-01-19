@@ -1,6 +1,6 @@
 """Tests for AI helper tools (context compression, diff preview, similarity)."""
 
-from yamlgraph.tools.analysis.ai_helpers import (
+from examples.codegen.tools.ai_helpers import (
     diff_preview,
     find_similar_code,
     summarize_module,
@@ -154,9 +154,9 @@ class TestFindSimilarCode:
         """Finds functions with similar structure."""
         # Look for functions similar to git_blame (simple tool pattern)
         result = find_similar_code(
-            file_path="yamlgraph/tools/analysis/git_tools.py",
+            file_path="examples/codegen/tools/git_tools.py",
             symbol_name="git_blame",
-            project_path="yamlgraph/tools/analysis",
+            project_path="examples/codegen/tools",
         )
 
         assert "error" not in result
@@ -166,9 +166,9 @@ class TestFindSimilarCode:
     def test_returns_file_and_line(self):
         """Each result includes file and line."""
         result = find_similar_code(
-            file_path="yamlgraph/tools/analysis/git_tools.py",
+            file_path="examples/codegen/tools/git_tools.py",
             symbol_name="git_blame",
-            project_path="yamlgraph/tools/analysis",
+            project_path="examples/codegen/tools",
         )
 
         assert "error" not in result
@@ -180,9 +180,9 @@ class TestFindSimilarCode:
     def test_includes_similarity_reason(self):
         """Results explain why they're similar."""
         result = find_similar_code(
-            file_path="yamlgraph/tools/analysis/git_tools.py",
+            file_path="examples/codegen/tools/git_tools.py",
             symbol_name="git_blame",
-            project_path="yamlgraph/tools/analysis",
+            project_path="examples/codegen/tools",
         )
 
         assert "error" not in result
@@ -212,9 +212,9 @@ class TestFindSimilarCode:
     def test_max_results_parameter(self):
         """Respects max_results parameter."""
         result = find_similar_code(
-            file_path="yamlgraph/tools/analysis/git_tools.py",
+            file_path="examples/codegen/tools/git_tools.py",
             symbol_name="git_blame",
-            project_path="yamlgraph/tools/analysis",
+            project_path="examples/codegen/tools",
             max_results=2,
         )
 
@@ -224,9 +224,9 @@ class TestFindSimilarCode:
     def test_includes_code_snippet(self):
         """Results include code snippet."""
         result = find_similar_code(
-            file_path="yamlgraph/tools/analysis/git_tools.py",
+            file_path="examples/codegen/tools/git_tools.py",
             symbol_name="git_blame",
-            project_path="yamlgraph/tools/analysis",
+            project_path="examples/codegen/tools",
         )
 
         assert "error" not in result

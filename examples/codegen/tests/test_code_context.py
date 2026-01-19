@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from yamlgraph.tools.analysis.code_context import (
+from examples.codegen.tools.code_context import (
     find_related_tests,
     read_lines,
     search_codebase,

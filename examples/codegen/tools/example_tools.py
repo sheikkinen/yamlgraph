@@ -84,12 +84,11 @@ def _is_definition(source: str, symbol_name: str) -> bool:
         return False
 
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            if node.name == symbol_name:
-                return True
-        elif isinstance(node, ast.ClassDef):
-            if node.name == symbol_name:
-                return True
+        if (
+            isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef)
+            and node.name == symbol_name
+        ):
+            return True
 
     return False
 
@@ -147,10 +146,9 @@ def find_error_handling(project_path: str) -> dict:
 
         # Find exception types
         for node in ast.walk(tree):
-            if isinstance(node, ast.ExceptHandler):
-                if node.type:
-                    exc_types = _extract_exception_types(node.type)
-                    exceptions.update(exc_types)
+            if isinstance(node, ast.ExceptHandler) and node.type:
+                exc_types = _extract_exception_types(node.type)
+                exceptions.update(exc_types)
 
         # Check for dict error pattern
         if 'return {"error"' in source or "return {'error'" in source:

@@ -7,34 +7,34 @@ This subpackage provides static and semantic analysis capabilities:
 - Jedi-based cross-file reference tracking (optional)
 """
 
-from yamlgraph.tools.analysis.ai_helpers import (
+from examples.codegen.tools.ai_helpers import (
     diff_preview,
     find_similar_code,
     summarize_module,
 )
-from yamlgraph.tools.analysis.ast_analysis import get_module_structure
-from yamlgraph.tools.analysis.code_context import (
+from examples.codegen.tools.ast_analysis import get_module_structure
+from examples.codegen.tools.code_context import (
     find_related_tests,
     read_lines,
     search_codebase,
     search_in_file,
 )
-from yamlgraph.tools.analysis.code_nav import list_package_modules
-from yamlgraph.tools.analysis.dependency_tools import get_dependents, get_imports
-from yamlgraph.tools.analysis.example_tools import find_error_handling, find_example
-from yamlgraph.tools.analysis.git_tools import git_blame, git_log
-from yamlgraph.tools.analysis.jedi_analysis import (
+from examples.codegen.tools.code_nav import list_package_modules
+from examples.codegen.tools.dependency_tools import get_dependents, get_imports
+from examples.codegen.tools.example_tools import find_error_handling, find_example
+from examples.codegen.tools.git_tools import git_blame, git_log
+from examples.codegen.tools.jedi_analysis import (
     JEDI_AVAILABLE,
     find_references,
     get_callees,
     get_callers,
 )
-from yamlgraph.tools.analysis.meta_tools import (
+from examples.codegen.tools.meta_tools import (
     extract_graph_template,
     extract_prompt_template,
 )
-from yamlgraph.tools.analysis.syntax_tools import syntax_check
-from yamlgraph.tools.analysis.template_tools import (
+from examples.codegen.tools.syntax_tools import syntax_check
+from examples.codegen.tools.template_tools import (
     extract_class_template,
     extract_function_template,
     extract_test_template,

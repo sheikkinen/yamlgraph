@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from yamlgraph.tools.analysis.code_nav import list_package_modules
+from examples.codegen.tools.code_nav import list_package_modules
 
 
 class TestListPackageModules:

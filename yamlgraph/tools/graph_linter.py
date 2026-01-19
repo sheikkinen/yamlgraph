@@ -137,7 +137,7 @@ def check_state_declarations(
                     )
 
     # Check prompt files for variables
-    for node_name, node_config in graph.get("nodes", {}).items():
+    for _node_name, node_config in graph.get("nodes", {}).items():
         prompt_name = node_config.get("prompt")
         if prompt_name:
             prompt_path = _get_prompt_path(prompt_name, prompts_dir)

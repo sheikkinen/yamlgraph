@@ -12,7 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Type, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
@@ -34,7 +34,7 @@ T = TypeVar("T", bound=BaseModel)
 async def execute_prompt_async(
     prompt_name: str,
     variables: dict | None = None,
-    output_model: Type[T] | None = None,
+    output_model: type[T] | None = None,
     temperature: float = DEFAULT_TEMPERATURE,
     provider: str | None = None,
 ) -> T | str:

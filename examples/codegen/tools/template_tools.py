@@ -128,9 +128,12 @@ def _extract_body_structure(func: ast.FunctionDef, lines: list[str]) -> str:
 
     for node in func.body:
         # Skip docstring
-        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
-            if isinstance(node.value.value, str):
-                continue
+        if (
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Constant)
+            and isinstance(node.value.value, str)
+        ):
+            continue
 
         if isinstance(node, ast.Try):
             body_parts.append("    try:")
@@ -280,10 +283,9 @@ def extract_test_template(test_file: str, target_module: str) -> dict:
             for alias in node.names:
                 if alias.name == "pytest":
                     imports.append("import pytest")
-        elif isinstance(node, ast.ImportFrom):
-            if node.module and "mock" in node.module:
-                names = ", ".join(a.name for a in node.names)
-                imports.append(f"from {node.module} import {names}")
+        elif isinstance(node, ast.ImportFrom) and node.module and "mock" in node.module:
+            names = ", ".join(a.name for a in node.names)
+            imports.append(f"from {node.module} import {names}")
 
     if imports:
         template_parts.extend(imports)

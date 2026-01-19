@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from yamlgraph.models.impl_agent_schemas import (
+from examples.codegen.models.schemas import (
     DiscoveryFindings,
     DiscoveryPlan,
     DiscoveryResult,

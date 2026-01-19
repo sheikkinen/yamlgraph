@@ -1,6 +1,6 @@
 """Tests for git analysis tools."""
 
-from yamlgraph.tools.analysis.git_tools import git_blame, git_log
+from examples.codegen.tools.git_tools import git_blame, git_log
 
 
 class TestGitBlame:

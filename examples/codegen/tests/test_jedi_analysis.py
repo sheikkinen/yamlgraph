@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from yamlgraph.tools.analysis.jedi_analysis import (
+from examples.codegen.tools.jedi_analysis import (
     JEDI_AVAILABLE,
     find_references,
     get_callees,
@@ -104,7 +104,7 @@ cfg = AppConfig()
 
             assert isinstance(result, list)
             # Should find definition + import + usage
-            files = set(r.get("file", "") for r in result)
+            files = {r.get("file", "") for r in result}
             assert len(files) >= 1  # At least the defining file
 
 

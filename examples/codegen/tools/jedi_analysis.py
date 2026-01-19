@@ -234,12 +234,16 @@ def get_callees(
         # Find the function AST node
         func_node = None
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and node.name == function_name:
-                if node.lineno == line or (
-                    node.lineno <= line <= (node.end_lineno or line)
-                ):
-                    func_node = node
-                    break
+            if (
+                isinstance(node, ast.FunctionDef)
+                and node.name == function_name
+                and (
+                    node.lineno == line
+                    or node.lineno <= line <= (node.end_lineno or line)
+                )
+            ):
+                func_node = node
+                break
 
         if not func_node:
             return []
@@ -291,11 +295,12 @@ def _find_enclosing_function(file_path: str, line: int) -> dict | None:
         # Find the innermost function containing this line
         best_match = None
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                if node.lineno <= line <= (node.end_lineno or line):
-                    # Check if this is more specific than current best
-                    if best_match is None or node.lineno > best_match.lineno:
-                        best_match = node
+            if (
+                isinstance(node, ast.FunctionDef)
+                and node.lineno <= line <= (node.end_lineno or line)
+                and (best_match is None or node.lineno > best_match.lineno)
+            ):
+                best_match = node
 
         if best_match:
             return {"name": best_match.name, "line": best_match.lineno}

@@ -5,8 +5,9 @@ and compile them into LangGraph StateGraph instances.
 """
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import yaml
 from langgraph.graph import END, StateGraph
@@ -62,7 +63,7 @@ class GraphConfig:
         self.tools = config.get("tools", {})
         self.state_class = config.get("state_class", "")
         self.loop_limits = config.get("loop_limits", {})
-        self.checkpointer = config.get("checkpointer", None)
+        self.checkpointer = config.get("checkpointer")
         # Store raw config for dynamic state building
         self.raw_config = config
 

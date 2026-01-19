@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from yamlgraph.tools.analysis.example_tools import (
+from examples.codegen.tools.example_tools import (
     find_error_handling,
     find_example,
 )
