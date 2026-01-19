@@ -209,14 +209,28 @@ def instruction_to_shell(parsed: dict[str, Any], project_root: str = ".") -> str
     """
     lines = []
     lines.append(f"\n# {'-' * 70}")
-    lines.append(f"# INSTRUCTION: {parsed['original'][:100]}")
-    if len(parsed["original"]) > 100:
-        lines.append(f"#              {parsed['original'][100:]}")
+
+    # Handle multi-line instructions: convert newlines to comment continuations
+    original = parsed["original"]
+    instr_lines = original.split("\n")
+    first_line = instr_lines[0][:100]
+    lines.append(f"# INSTRUCTION: {first_line}")
+
+    # Add continuation for long first line
+    if len(instr_lines[0]) > 100:
+        lines.append(f"#              {instr_lines[0][100:200]}")
+
+    # Add remaining lines as comments (truncate at 5 lines for brevity)
+    for extra_line in instr_lines[1:5]:
+        lines.append(f"#              {extra_line[:100]}")
+    if len(instr_lines) > 5:
+        lines.append(f"#              ... ({len(instr_lines) - 5} more lines)")
+
     lines.append(f"# {'-' * 70}")
 
     if not parsed.get("valid"):
         lines.append("# ⚠️  Could not parse this instruction - manual review required")
-        lines.append(f'echo "MANUAL: {parsed["original"][:60]}..."')
+        lines.append(f'echo "MANUAL: {first_line[:60]}..."')
         return "\n".join(lines)
 
     action = parsed["action"]
