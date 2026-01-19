@@ -129,6 +129,15 @@ def create_parser() -> argparse.ArgumentParser:
         "graph_path", nargs="+", help="Path(s) to graph YAML file(s)"
     )
 
+    # graph mermaid
+    graph_mermaid_parser = graph_subparsers.add_parser(
+        "mermaid", help="Generate Mermaid diagram from graph"
+    )
+    graph_mermaid_parser.add_argument("graph_path", help="Path to graph YAML file")
+    graph_mermaid_parser.add_argument(
+        "--output", "-o", type=str, help="Output file (default: stdout)"
+    )
+
     graph_parser.set_defaults(func=cmd_graph_dispatch)
 
     return parser
