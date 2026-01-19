@@ -3,11 +3,47 @@
 Provides structured validation for graph YAML files with clear error messages.
 """
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from yamlgraph.constants import ErrorHandler, NodeType
+
+
+class SubgraphNodeConfig(BaseModel):
+    """Configuration for a subgraph node."""
+
+    type: Literal["subgraph"]
+    graph: str = Field(
+        ..., description="Path to subgraph YAML file (relative to parent)"
+    )
+    mode: Literal["invoke", "direct"] = Field(
+        default="invoke",
+        description="invoke: explicit state mapping; direct: shared schema",
+    )
+    input_mapping: dict[str, str] | Literal["auto", "*"] = Field(
+        default_factory=dict,
+        description="Map parent state fields to child input (mode=invoke only)",
+    )
+    output_mapping: dict[str, str] | Literal["auto", "*"] = Field(
+        default_factory=dict,
+        description="Map child output fields to parent state (mode=invoke only)",
+    )
+    checkpointer: str | None = Field(
+        default=None,
+        description="Override parent checkpointer",
+    )
+
+    model_config = {"extra": "allow"}
+
+    @model_validator(mode="after")
+    def validate_config(self) -> "SubgraphNodeConfig":
+        """Validate subgraph configuration."""
+        if not self.graph.endswith((".yaml", ".yml")):
+            raise ValueError(f"Subgraph must be a YAML file: {self.graph}")
+        if self.mode == "direct" and (self.input_mapping or self.output_mapping):
+            raise ValueError("mode=direct does not support input/output mappings")
+        return self
 
 
 class NodeConfig(BaseModel):

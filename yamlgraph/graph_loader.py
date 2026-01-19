@@ -18,6 +18,7 @@ from yamlgraph.models.state_builder import build_state_class
 from yamlgraph.node_factory import (
     create_interrupt_node,
     create_node_function,
+    create_subgraph_node,
     create_tool_call_node,
     resolve_class,
 )
@@ -42,11 +43,12 @@ logger = logging.getLogger(__name__)
 class GraphConfig:
     """Parsed graph configuration from YAML."""
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, source_path: Path | None = None):
         """Initialize from parsed YAML dict.
 
         Args:
             config: Parsed YAML configuration dictionary
+            source_path: Path to the source YAML file (for subgraph resolution)
 
         Raises:
             ValueError: If config is invalid
@@ -66,6 +68,8 @@ class GraphConfig:
         self.checkpointer = config.get("checkpointer")
         # Store raw config for dynamic state building
         self.raw_config = config
+        # Store source path for subgraph resolution
+        self.source_path = source_path
 
 
 def load_graph_config(path: str | Path) -> GraphConfig:
@@ -88,7 +92,7 @@ def load_graph_config(path: str | Path) -> GraphConfig:
     with open(path) as f:
         config = yaml.safe_load(f)
 
-    return GraphConfig(config)
+    return GraphConfig(config, source_path=path.resolve())
 
 
 def _resolve_state_class(config: GraphConfig) -> type:
@@ -210,6 +214,19 @@ def _compile_node(
     elif node_type == NodeType.INTERRUPT:
         # Human-in-the-loop interrupt node
         node_fn = create_interrupt_node(node_name, enriched_config)
+        graph.add_node(node_name, node_fn)
+    elif node_type == NodeType.SUBGRAPH:
+        # Subgraph node - compose graphs from YAML
+        if not config.source_path:
+            raise ValueError(
+                f"Cannot resolve subgraph path for node '{node_name}': "
+                "parent graph has no source_path"
+            )
+        node_fn = create_subgraph_node(
+            node_name,
+            enriched_config,
+            parent_graph_path=config.source_path,
+        )
         graph.add_node(node_name, node_fn)
     else:
         # LLM and router nodes
