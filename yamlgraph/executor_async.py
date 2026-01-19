@@ -7,9 +7,11 @@ Note: This is a foundation module. The underlying LLM calls still
 use sync HTTP clients wrapped with run_in_executor.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
-from typing import Type, TypeVar
+from typing import TYPE_CHECKING, Type, TypeVar
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
@@ -18,6 +20,9 @@ from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.executor import format_prompt, load_prompt
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.llm_factory_async import invoke_async
+
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
 from yamlgraph.utils.template import validate_variables
 
 logger = logging.getLogger(__name__)
@@ -119,4 +124,102 @@ async def execute_prompts_concurrent(
     return await asyncio.gather(*tasks)
 
 
-__all__ = ["execute_prompt_async", "execute_prompts_concurrent"]
+# ==============================================================================
+# Async Graph Execution (Phase 2 - Feature 003)
+# ==============================================================================
+
+
+async def run_graph_async(
+    app,
+    initial_state: dict,
+    config: dict | None = None,
+) -> dict:
+    """Execute a compiled graph asynchronously.
+
+    Thin wrapper around LangGraph's ainvoke for consistent API.
+    Supports interrupt handling and Command resume.
+
+    Args:
+        app: Compiled LangGraph app (from graph.compile())
+        initial_state: Initial state dict or Command(resume=...) for resuming
+        config: LangGraph config with thread_id, e.g.
+                {"configurable": {"thread_id": "my-thread"}}
+
+    Returns:
+        Final state dict. If interrupted, contains "__interrupt__" key.
+
+    Example:
+        >>> app = load_and_compile_async("graphs/interview.yaml")
+        >>> result = await run_graph_async(
+        ...     app,
+        ...     {"query": "hello"},
+        ...     {"configurable": {"thread_id": "t1"}},
+        ... )
+        >>> if "__interrupt__" in result:
+        ...     # Handle interrupt - get user input
+        ...     result = await run_graph_async(
+        ...         app,
+        ...         Command(resume="user answer"),
+        ...         {"configurable": {"thread_id": "t1"}},
+        ...     )
+    """
+    config = config or {}
+    return await app.ainvoke(initial_state, config)
+
+
+def compile_graph_async(
+    graph,
+    config,
+) -> CompiledStateGraph:
+    """Compile a StateGraph with async-compatible checkpointer.
+
+    Uses async_mode=True when fetching checkpointer to get
+    AsyncRedisSaver instead of RedisSaver.
+
+    Args:
+        graph: StateGraph instance
+        config: GraphConfig with optional checkpointer field
+
+    Returns:
+        Compiled graph ready for ainvoke()
+    """
+    from yamlgraph.storage.checkpointer_factory import get_checkpointer
+
+    checkpointer_config = getattr(config, "checkpointer", None)
+    checkpointer = get_checkpointer(checkpointer_config, async_mode=True)
+
+    return graph.compile(checkpointer=checkpointer)
+
+
+async def load_and_compile_async(path: str) -> CompiledStateGraph:
+    """Load YAML and compile to async-ready graph.
+
+    Convenience function combining load_graph_config, compile_graph,
+    and compile_graph_async.
+
+    Args:
+        path: Path to YAML graph definition
+
+    Returns:
+        Compiled graph ready for ainvoke()
+
+    Example:
+        >>> app = await load_and_compile_async("graphs/interview.yaml")
+        >>> result = await run_graph_async(app, {"input": "hi"}, config)
+    """
+    from yamlgraph.graph_loader import compile_graph, load_graph_config
+
+    config = load_graph_config(path)
+    logger.info(f"Loaded graph config: {config.name} v{config.version}")
+
+    state_graph = compile_graph(config)
+    return compile_graph_async(state_graph, config)
+
+
+__all__ = [
+    "execute_prompt_async",
+    "execute_prompts_concurrent",
+    "run_graph_async",
+    "compile_graph_async",
+    "load_and_compile_async",
+]
