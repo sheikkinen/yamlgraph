@@ -29,6 +29,10 @@ class SubgraphNodeConfig(BaseModel):
         default_factory=dict,
         description="Map child output fields to parent state (mode=invoke only)",
     )
+    interrupt_output_mapping: dict[str, str] | Literal["auto", "*"] = Field(
+        default_factory=dict,
+        description="Map child state to parent when subgraph interrupts (FR-006)",
+    )
     checkpointer: str | None = Field(
         default=None,
         description="Override parent checkpointer",

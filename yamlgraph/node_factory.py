@@ -682,6 +682,7 @@ def create_subgraph_node(
     mode = node_config.get("mode", "invoke")
     input_mapping = node_config.get("input_mapping", {})
     output_mapping = node_config.get("output_mapping", {})
+    interrupt_output_mapping = node_config.get("interrupt_output_mapping", {})
 
     # Validate graph exists
     if not graph_path.exists():
@@ -726,8 +727,19 @@ def create_subgraph_node(
         # Invoke subgraph
         child_output = compiled.invoke(child_input, child_config)
 
-        # Map child output back to parent state
-        parent_updates = _map_output_state(child_output, output_mapping)
+        # Check if subgraph hit an interrupt (FR-006)
+        is_interrupted = "__interrupt__" in child_output
+
+        # Choose mapping based on interrupt status
+        if is_interrupted and interrupt_output_mapping:
+            # Apply interrupt_output_mapping when subgraph is interrupted
+            parent_updates = _map_output_state(child_output, interrupt_output_mapping)
+            # Forward the interrupt marker to parent
+            parent_updates["__interrupt__"] = child_output["__interrupt__"]
+        else:
+            # Apply output_mapping for completion
+            parent_updates = _map_output_state(child_output, output_mapping)
+
         parent_updates["current_step"] = node_name
 
         return parent_updates

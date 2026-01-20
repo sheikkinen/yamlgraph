@@ -441,3 +441,156 @@ class TestThreadIdPropagation:
 
         assert child_config["configurable"]["other"] == "value"
         assert child_config["tags"] == ["test"]
+
+
+class TestInterruptOutputMapping:
+    """Tests for interrupt_output_mapping feature (FR-006)."""
+
+    def test_schema_accepts_interrupt_output_mapping(self):
+        """SubgraphNodeConfig accepts interrupt_output_mapping."""
+        from yamlgraph.models.graph_schema import SubgraphNodeConfig
+
+        config = SubgraphNodeConfig(
+            type="subgraph",
+            graph="child.yaml",
+            mode="invoke",
+            output_mapping={"final_result": "result"},
+            interrupt_output_mapping={"current_phase": "phase"},
+        )
+        assert config.interrupt_output_mapping == {"current_phase": "phase"}
+
+    def test_schema_default_interrupt_output_mapping_empty(self):
+        """interrupt_output_mapping defaults to empty dict."""
+        from yamlgraph.models.graph_schema import SubgraphNodeConfig
+
+        config = SubgraphNodeConfig(
+            type="subgraph",
+            graph="child.yaml",
+        )
+        assert config.interrupt_output_mapping == {}
+
+    def test_applies_interrupt_mapping_when_subgraph_interrupts(self, tmp_path):
+        """interrupt_output_mapping is applied when subgraph returns __interrupt__."""
+        from unittest.mock import MagicMock, patch
+
+        from yamlgraph.node_factory import create_subgraph_node
+
+        # Create a minimal child graph file
+        child_yaml = tmp_path / "child.yaml"
+        child_yaml.write_text(
+            """
+version: "1.0"
+name: child
+state:
+  phase: str
+  result: str
+nodes:
+  ask_question:
+    type: interrupt
+    state_key: question
+edges:
+  - {from: START, to: ask_question}
+  - {from: ask_question, to: END}
+"""
+        )
+
+        parent_path = tmp_path / "parent.yaml"
+
+        config = {
+            "type": "subgraph",
+            "graph": "child.yaml",
+            "mode": "invoke",
+            "output_mapping": {"final_result": "result"},
+            "interrupt_output_mapping": {"current_phase": "phase"},
+        }
+
+        # Mock the compiled subgraph to return an interrupted state
+        mock_compiled = MagicMock()
+        mock_compiled.invoke.return_value = {
+            "phase": "probing",
+            "result": None,
+            "__interrupt__": (MagicMock(value={"question": "What?"}),),
+        }
+
+        with patch(
+            "yamlgraph.graph_loader.compile_graph"
+        ) as mock_compile_graph, patch(
+            "yamlgraph.graph_loader.load_graph_config"
+        ) as mock_load:
+            mock_load.return_value = MagicMock()
+            mock_state_graph = MagicMock()
+            mock_state_graph.compile.return_value = mock_compiled
+            mock_compile_graph.return_value = mock_state_graph
+
+            node_fn = create_subgraph_node("demographics", config, parent_path)
+            result = node_fn({"user_input": "hello"}, {})
+
+        # Should use interrupt_output_mapping, not output_mapping
+        assert "current_phase" in result
+        assert result["current_phase"] == "probing"
+        # Should NOT have the completion mapping
+        assert "final_result" not in result
+        # Should forward the interrupt marker
+        assert "__interrupt__" in result
+
+    def test_applies_output_mapping_when_subgraph_completes(self, tmp_path):
+        """output_mapping is applied when subgraph completes (no __interrupt__)."""
+        from unittest.mock import MagicMock, patch
+
+        from yamlgraph.node_factory import create_subgraph_node
+
+        child_yaml = tmp_path / "child.yaml"
+        child_yaml.write_text(
+            """
+version: "1.0"
+name: child
+state:
+  phase: str
+  result: str
+nodes:
+  process:
+    type: llm
+    prompt: test
+    state_key: result
+edges:
+  - {from: START, to: process}
+  - {from: process, to: END}
+"""
+        )
+
+        parent_path = tmp_path / "parent.yaml"
+
+        config = {
+            "type": "subgraph",
+            "graph": "child.yaml",
+            "mode": "invoke",
+            "output_mapping": {"final_result": "result"},
+            "interrupt_output_mapping": {"current_phase": "phase"},
+        }
+
+        # Mock the compiled subgraph to return a completed state (no __interrupt__)
+        mock_compiled = MagicMock()
+        mock_compiled.invoke.return_value = {
+            "phase": "complete",
+            "result": "Analysis done",
+            # No __interrupt__ key
+        }
+
+        with patch(
+            "yamlgraph.graph_loader.compile_graph"
+        ) as mock_compile_graph, patch(
+            "yamlgraph.graph_loader.load_graph_config"
+        ) as mock_load:
+            mock_load.return_value = MagicMock()
+            mock_state_graph = MagicMock()
+            mock_state_graph.compile.return_value = mock_compiled
+            mock_compile_graph.return_value = mock_state_graph
+
+            node_fn = create_subgraph_node("demographics", config, parent_path)
+            result = node_fn({"user_input": "hello"}, {})
+
+        # Should use output_mapping, not interrupt_output_mapping
+        assert "final_result" in result
+        assert result["final_result"] == "Analysis done"
+        # Should NOT have the interrupt mapping
+        assert "current_phase" not in result

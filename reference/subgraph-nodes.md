@@ -38,6 +38,7 @@ nodes:
 | `mode` | `string` | - | Execution mode: `invoke` (default) or `stream` |
 | `input_mapping` | `dict` | - | Map parent state keys → child state keys |
 | `output_mapping` | `dict` | - | Map child state keys → parent state keys |
+| `interrupt_output_mapping` | `dict` | - | Map child state keys → parent when interrupted (FR-006) |
 
 ## State Mapping
 
@@ -72,6 +73,52 @@ nodes:
 ```
 
 After the child graph completes, `result` and `score` are updated in parent state.
+
+### Interrupt Output Mapping (FR-006)
+
+When a subgraph contains an interrupt node, use `interrupt_output_mapping` to expose child state to the parent:
+
+```yaml
+nodes:
+  interview:
+    type: subgraph
+    graph: subgraphs/questionnaire.yaml
+    input_mapping:
+      user_id: user_id
+    output_mapping:
+      final_report: report        # Used when subgraph completes normally
+    interrupt_output_mapping:
+      partial_answers: answers    # Used when subgraph is interrupted
+      current_question: question  # Expose progress state to parent
+```
+
+**Key behaviors:**
+- `interrupt_output_mapping` is used when the child graph hits an interrupt node
+- `output_mapping` is used when the child graph completes normally (reaches END)
+- The `__interrupt__` marker is automatically forwarded to the parent
+- This enables the parent graph to:
+  - Display partial results during human-in-the-loop workflows
+  - Track progress through multi-step subgraph interactions
+  - Resume the subgraph from where it left off
+
+**Example: Multi-step questionnaire**
+
+```yaml
+# Parent graph can show progress
+nodes:
+  run_questionnaire:
+    type: subgraph
+    graph: questionnaires/onboarding.yaml
+    input_mapping:
+      user_name: user_name
+    output_mapping:
+      completed_answers: final_answers
+    interrupt_output_mapping:
+      partial_answers: current_answers
+      question_index: progress_step
+```
+
+This allows the parent to access `current_answers` and `progress_step` while the user is answering questions.
 
 ## Execution Modes
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.7] - 2026-01-20
 
+### Added
+- **interrupt_output_mapping for subgraphs** (FR-006) - Expose child state during interrupts
+  - New `interrupt_output_mapping` field in subgraph node config
+  - Maps child state → parent when subgraph hits an interrupt node
+  - `output_mapping` still used for normal completion (reaches END)
+  - `__interrupt__` marker auto-forwarded to parent graph
+  - See [reference/subgraph-nodes.md](reference/subgraph-nodes.md#interrupt-output-mapping-fr-006)
+
 ### Fixed
 - **prompts_relative + prompts_dir** - When both are set, prompts_dir is now resolved relative to graph_path.parent
   - Fixed `yamlgraph/utils/prompts.py` resolve_prompt_path() to combine graph_path.parent with prompts_dir

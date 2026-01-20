@@ -65,7 +65,6 @@ class TestPromptExecutorGraphRelative:
 
     def test_execute_with_graph_path_and_prompts_relative(self, tmp_path):
         """Executor should resolve prompts relative to graph when configured."""
-        from pathlib import Path
         from unittest.mock import MagicMock, patch
 
         from yamlgraph.executor import PromptExecutor
@@ -107,7 +106,6 @@ user: Generate opening for {questionnaire_name}.
 
     def test_execute_with_prompts_dir_override(self, tmp_path):
         """Executor should use explicit prompts_dir when provided."""
-        from pathlib import Path
         from unittest.mock import MagicMock, patch
 
         from yamlgraph.executor import PromptExecutor
@@ -140,7 +138,6 @@ user: Say hello to {name}.
 
     def test_execute_prompt_function_passes_path_params(self, tmp_path):
         """execute_prompt() should accept and forward path params."""
-        from pathlib import Path
         from unittest.mock import MagicMock, patch
 
         from yamlgraph.executor import execute_prompt
@@ -163,7 +160,7 @@ user: Test {msg}.
             mock_executor.execute.return_value = "OK"
             mock_get.return_value = mock_executor
 
-            result = execute_prompt(
+            execute_prompt(
                 prompt_name="test",
                 variables={"msg": "hello"},
                 prompts_dir=prompts_dir,
