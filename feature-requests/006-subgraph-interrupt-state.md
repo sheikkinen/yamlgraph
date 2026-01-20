@@ -101,26 +101,66 @@ Result would include:
 
 ## Implementation Notes
 
-```python
-# yamlgraph/subgraph_node.py
+### Initial Approach (Failed)
 
-def create_subgraph_node(node_name: str, node_config: dict) -> Callable:
-    subgraph = load_subgraph(node_config["graph"])
-    output_mapping = node_config.get("output_mapping", {})
-    interrupt_mapping = node_config.get("interrupt_output_mapping", {})
-    
-    def subgraph_fn(state: dict) -> dict:
-        result = run_subgraph(subgraph, state, node_config.get("input_mapping"))
-        
-        if result.get("__interrupt__"):
-            # Apply interrupt mapping
-            return apply_mapping(result, interrupt_mapping)
-        else:
-            # Apply completion mapping
-            return apply_mapping(result, output_mapping)
-    
-    return subgraph_fn
+The naive approach assumed `compiled.invoke()` returns a dict with `__interrupt__`:
+
+```python
+child_output = compiled.invoke(child_input, child_config)
+if "__interrupt__" in child_output:
+    return apply_mapping(child_output, interrupt_mapping)
 ```
+
+**Problem:** When invoked from within a parent node, `compiled.invoke()` raises `GraphInterrupt` exception instead of returning. The exception propagates up, bypassing any mapping code.
+
+### Working Solution: Pregel Internal API
+
+LangGraph's execution engine is called **Pregel** (named after [Google's Pregel paper](https://research.google/pubs/pub36726/) for distributed graph processing).
+
+The Pregel runtime passes internal mechanisms via `config["configurable"]`:
+
+```python
+config = {
+    "configurable": {
+        "thread_id": "...",
+        "__pregel_send": <deque.extend>,      # Inject state updates
+        "__pregel_checkpointer": <Saver>,     # Checkpoint access
+        "__pregel_task_id": "...",            # Current task ID
+        # ... more internal plumbing
+    }
+}
+```
+
+**Solution:** Use `__pregel_send` to inject mapped child state **before** re-raising the interrupt:
+
+```python
+except GraphInterrupt as e:
+    if interrupt_output_mapping:
+        # Get child state from checkpointer
+        child_state = compiled.get_state(child_config)
+        parent_updates = _map_output_state(child_state.values, interrupt_output_mapping)
+        
+        # Use Pregel's internal send to inject updates
+        send = config.get("configurable", {}).get("__pregel_send")
+        if send:
+            send([(k, v) for k, v in parent_updates.items()])
+    
+    raise  # Re-raise to pause the graph
+```
+
+### Caveats
+
+⚠️ **`__pregel_send` is an internal, undocumented API.** It may change in future LangGraph versions.
+
+There is no official way to update state when a node raises an exception. This solution was discovered by inspecting the config passed to nodes and testing behavior.
+
+### References
+
+- [Google Pregel Paper](https://research.google/pubs/pub36726/) - Original distributed graph processing model
+- [LangGraph Interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts) - Official interrupt documentation
+- [LangGraph Subgraphs with Interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts#using-with-subgraphs-called-as-functions) - Subgraph interrupt behavior
+- [LangGraph Errors Reference](https://reference.langchain.com/python/langgraph/errors/) - `GraphInterrupt` exception docs
+- [LangGraph Types Reference](https://reference.langchain.com/python/langgraph/types/) - `interrupt()` function docs
 
 ## Alternatives Considered
 
