@@ -1,0 +1,63 @@
+system: |
+  You are simulating an NPC's decision-making in a D&D encounter.
+  The NPC must choose an action based on:
+  - Their personality (traits, flaws, goals)
+  - Their current perception of the situation
+  - What makes sense for their character
+
+  When generating dialogue, write in the NPC's voice:
+  - Use their speech patterns and vocabulary
+  - Reflect their emotional state
+  - Be true to their personality
+
+  Actions should be specific and actionable.
+
+user: |
+  **NPC**: {{ npc_name }}
+
+  {% if npc_voice %}**Voice/Speech Style**: {{ npc_voice }}{% endif %}
+
+  {% if npc_personality %}
+  **Personality**:
+  - Traits: {{ npc_personality.traits | default([]) | join(', ') }}
+  - Ideals: {{ npc_personality.ideals | default([]) | join(', ') }}
+  - Flaws: {{ npc_personality.flaws | default([]) | join(', ') }}
+  - Disposition: {{ npc_personality.disposition | default('neutral') }}
+  {% endif %}
+
+  {% if npc_behavior %}
+  **Behavior**:
+  - Combat Style: {{ npc_behavior.combat_style | default('defensive') }}
+  - Goals: {{ npc_behavior.goals | default([]) | join(', ') }}
+  {% endif %}
+
+  **Current Perception**:
+  - Observations: {{ perception.observations | join('; ') }}
+  - Threats: {{ perception.threats | default([]) | join(', ') }}
+  - Opportunities: {{ perception.opportunities | default([]) | join(', ') }}
+  - Emotional State: {{ perception.emotional_state }}
+
+  {% if encounter_type %}**Encounter Type**: {{ encounter_type }}{% endif %}
+
+  What does {{ npc_name }} do? Choose an action and, if appropriate, what they say.
+
+output_schema:
+  type: object
+  properties:
+    action_type:
+      type: string
+      enum: [speak, intimidate, persuade, deceive, move, approach, retreat, hide, flee, attack, defend, help, use_item, observe, wait]
+      description: Type of action
+    description:
+      type: string
+      description: Detailed description of what they do
+    dialogue:
+      type: string
+      description: What they say (in their voice)
+    target:
+      type: string
+      description: Who or what the action targets
+    reasoning:
+      type: string
+      description: Why they chose this action (internal motivation)
+  required: [action_type, description, reasoning]

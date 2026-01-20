@@ -1,0 +1,75 @@
+version: "1.0"
+name: encounter-turn
+description: Process one NPC turn in an encounter
+
+defaults:
+  provider: anthropic
+  temperature: 0.7
+
+state:
+  # NPC data (from npc-creation output or loaded from file)
+  npc_name: str
+  npc_appearance: str
+  npc_voice: str
+  npc_personality: dict
+  npc_behavior: dict
+  npc_goals: list
+
+  # Encounter context
+  location: str
+  recent_events: str
+  other_npcs: list
+  encounter_type: str
+
+  # Turn outputs
+  perception: dict
+  decision: dict
+  narration: str
+
+nodes:
+  perceive:
+    type: llm
+    prompt: examples/npc/encounter/perceive
+    state_key: perception
+    temperature: 0.5
+    variables:
+      npc_name: "{state.npc_name}"
+      npc_personality: "{state.npc_personality}"
+      npc_goals: "{state.npc_goals}"
+      location: "{state.location}"
+      recent_events: "{state.recent_events}"
+      other_npcs: "{state.other_npcs}"
+
+  decide:
+    type: llm
+    prompt: examples/npc/encounter/decide
+    state_key: decision
+    temperature: 0.7
+    variables:
+      npc_name: "{state.npc_name}"
+      npc_voice: "{state.npc_voice}"
+      npc_personality: "{state.npc_personality}"
+      npc_behavior: "{state.npc_behavior}"
+      perception: "{state.perception}"
+      encounter_type: "{state.encounter_type}"
+
+  narrate:
+    type: llm
+    prompt: examples/npc/encounter/narrate
+    state_key: narration
+    temperature: 0.8
+    variables:
+      npc_name: "{state.npc_name}"
+      npc_appearance: "{state.npc_appearance}"
+      location: "{state.location}"
+      decision: "{state.decision}"
+
+edges:
+  - from: START
+    to: perceive
+  - from: perceive
+    to: decide
+  - from: decide
+    to: narrate
+  - from: narrate
+    to: END

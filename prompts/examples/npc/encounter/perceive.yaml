@@ -1,0 +1,60 @@
+system: |
+  You are simulating an NPC's perception and awareness in a D&D encounter.
+  Consider what the NPC would realistically notice based on:
+  - Their personality and goals
+  - Their current emotional state
+  - What just happened
+  - Who else is present
+
+  Be specific about threats and opportunities the NPC would recognize.
+
+user: |
+  **NPC**: {{ npc_name }}
+
+  {% if npc_personality %}
+  **Personality**:
+  - Traits: {{ npc_personality.traits | default([]) | join(', ') }}
+  - Flaws: {{ npc_personality.flaws | default([]) | join(', ') }}
+  - Disposition: {{ npc_personality.disposition | default('neutral') }}
+  {% endif %}
+
+  {% if npc_goals %}
+  **Goals**:
+  {% for goal in npc_goals %}
+  - {{ goal }}
+  {% endfor %}
+  {% endif %}
+
+  **Location**: {{ location }}
+
+  **What just happened**: {{ recent_events }}
+
+  {% if other_npcs %}**Others present**: {{ other_npcs | join(', ') }}{% endif %}
+
+  What does {{ npc_name }} perceive about this situation?
+  Consider what they see, hear, and understand.
+  Identify any threats to their safety or goals.
+  Identify any opportunities to advance their goals.
+
+output_schema:
+  type: object
+  properties:
+    observations:
+      type: array
+      items:
+        type: string
+      description: What the NPC notices
+    threats:
+      type: array
+      items:
+        type: string
+      description: Perceived dangers or obstacles
+    opportunities:
+      type: array
+      items:
+        type: string
+      description: Ways to advance their goals
+    emotional_state:
+      type: string
+      description: Current emotional state (calm, alert, anxious, angry, etc.)
+  required: [observations, threats, opportunities, emotional_state]

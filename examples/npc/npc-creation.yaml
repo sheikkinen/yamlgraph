@@ -1,0 +1,90 @@
+version: "1.0"
+name: npc-creation
+description: Generate complete D&D NPC from a concept
+
+defaults:
+  provider: anthropic
+  temperature: 0.7
+
+state:
+  # Inputs (with defaults for optional fields)
+  concept: str
+  race: str
+  character_class: str
+  location: str
+  role_in_story: str
+  include_stats: bool
+
+  # Pipeline outputs
+  identity: dict
+  personality: dict
+  knowledge: dict
+  behavior: dict
+  stats: dict
+
+nodes:
+  identity:
+    type: llm
+    prompt: examples/npc/npc/identity
+    state_key: identity
+    variables:
+      concept: "{state.concept}"
+      race: "{state.race}"
+      character_class: "{state.character_class}"
+      location: "{state.location}"
+      role_in_story: "{state.role_in_story}"
+
+  personality:
+    type: llm
+    prompt: examples/npc/npc/personality
+    state_key: personality
+    variables:
+      concept: "{state.concept}"
+      identity: "{state.identity}"
+      role_in_story: "{state.role_in_story}"
+
+  knowledge:
+    type: llm
+    prompt: examples/npc/npc/knowledge
+    state_key: knowledge
+    variables:
+      concept: "{state.concept}"
+      identity: "{state.identity}"
+      location: "{state.location}"
+      role_in_story: "{state.role_in_story}"
+
+  behavior:
+    type: llm
+    prompt: examples/npc/npc/behavior
+    state_key: behavior
+    variables:
+      concept: "{state.concept}"
+      identity: "{state.identity}"
+      personality: "{state.personality}"
+      role_in_story: "{state.role_in_story}"
+
+  stats:
+    type: llm
+    prompt: examples/npc/npc/stats
+    state_key: stats
+    variables:
+      concept: "{state.concept}"
+      identity: "{state.identity}"
+
+edges:
+  - from: START
+    to: identity
+  - from: identity
+    to: personality
+  - from: personality
+    to: knowledge
+  - from: knowledge
+    to: behavior
+  - from: behavior
+    to: stats
+    condition: "include_stats == 'true'"
+  - from: behavior
+    to: END
+    condition: "include_stats != 'true'"
+  - from: stats
+    to: END
