@@ -29,7 +29,12 @@ user: |
 
   **What just happened**: {{ recent_events }}
 
-  {% if other_npcs %}**Others present**: {{ other_npcs | join(', ') }}{% endif %}
+  {% if other_npcs %}
+  **Others present**:
+  {% for npc in other_npcs %}
+  - {{ npc.name }} ({{ npc.race }} {{ npc.character_class }})
+  {% endfor %}
+  {% endif %}
 
   What does {{ npc_name }} perceive about this situation?
   Consider what they see, hear, and understand.

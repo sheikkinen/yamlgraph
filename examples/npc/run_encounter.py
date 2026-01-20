@@ -46,18 +46,19 @@ def load_npcs(npc_dir: str | None) -> list[dict]:
             for f in npc_path.glob("*.yaml"):
                 with open(f) as fp:
                     data = yaml.safe_load(fp)
-                    # Extract flat NPC dict from nested structure
+                    identity = data.get("identity", {})
+                    personality = data.get("personality", {})
+                    behavior = data.get("behavior", {})
+                    # Build structured NPC dict
                     npc = {
-                        "name": data.get("identity", {}).get("name", f.stem),
-                        "appearance": data.get("identity", {}).get("appearance", ""),
-                        "voice": data.get("identity", {}).get("voice", ""),
-                        "personality": str(data.get("personality", {})),
-                        "behavior": str(data.get("behavior", {})),
-                        "goals": str(data.get("behavior", {}).get("goals", [])),
-                        "race": data.get("identity", {}).get("race", ""),
-                        "character_class": data.get("identity", {}).get(
-                            "character_class", ""
-                        ),
+                        "name": identity.get("name", f.stem),
+                        "appearance": identity.get("appearance", ""),
+                        "voice": identity.get("voice", ""),
+                        "race": identity.get("race", ""),
+                        "character_class": identity.get("character_class", ""),
+                        "personality": personality,  # Keep as dict
+                        "behavior": behavior,  # Keep as dict
+                        "goals": behavior.get("goals", []),  # Keep as list
                     }
                     npcs.append(npc)
             if npcs:
@@ -70,9 +71,17 @@ def load_npcs(npc_dir: str | None) -> list[dict]:
             "name": "Thorin Ironfoot",
             "appearance": "A stocky dwarf with burn scars and a copper beard",
             "voice": "Gruff, low rumble",
-            "personality": "Stoic craftsman, distrustful of magic",
-            "behavior": "Observes before acting, prefers direct confrontation",
-            "goals": "Run a successful smithy, find an apprentice",
+            "personality": {
+                "traits": ["Stoic", "Hardworking", "Practical"],
+                "ideals": ["Quality craftsmanship", "Honest trade"],
+                "flaws": ["Distrustful of magic", "Stubborn"],
+                "disposition": "neutral",
+            },
+            "behavior": {
+                "combat_style": "defensive",
+                "goals": ["Run a successful smithy", "Find an apprentice"],
+            },
+            "goals": ["Run a successful smithy", "Find an apprentice"],
             "race": "Dwarf",
             "character_class": "Blacksmith",
         },
@@ -80,9 +89,17 @@ def load_npcs(npc_dir: str | None) -> list[dict]:
             "name": "Lyra Whisperwind",
             "appearance": "A lithe elf with silver hair and piercing blue eyes",
             "voice": "Melodic, speaks in riddles",
-            "personality": "Curious and mischievous, loves secrets",
-            "behavior": "Watches from shadows, gathers information",
-            "goals": "Uncover hidden truths, protect the ancient grove",
+            "personality": {
+                "traits": ["Curious", "Mischievous", "Observant"],
+                "ideals": ["Truth", "Knowledge"],
+                "flaws": ["Overly secretive", "Distrustful"],
+                "disposition": "curious",
+            },
+            "behavior": {
+                "combat_style": "ranged",
+                "goals": ["Uncover hidden truths", "Protect the ancient grove"],
+            },
+            "goals": ["Uncover hidden truths", "Protect the ancient grove"],
             "race": "Elf",
             "character_class": "Ranger",
         },
@@ -90,9 +107,17 @@ def load_npcs(npc_dir: str | None) -> list[dict]:
             "name": "Marcus the Bold",
             "appearance": "A burly human with a thick black beard and battle scars",
             "voice": "Booming laugh, speaks loudly",
-            "personality": "Jovial warrior, loyal to friends",
-            "behavior": "Leaps into action, protects the weak",
-            "goals": "Find glory in battle, earn gold for his family",
+            "personality": {
+                "traits": ["Jovial", "Brave", "Loyal"],
+                "ideals": ["Glory", "Protecting the weak"],
+                "flaws": ["Reckless", "Overconfident"],
+                "disposition": "friendly",
+            },
+            "behavior": {
+                "combat_style": "aggressive",
+                "goals": ["Find glory in battle", "Earn gold for his family"],
+            },
+            "goals": ["Find glory in battle", "Earn gold for his family"],
             "race": "Human",
             "character_class": "Fighter",
         },

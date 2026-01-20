@@ -31,13 +31,15 @@ def resolve_state_variable(template: str, state: dict[str, Any]) -> str:
         state: Current graph state
 
     Returns:
-        Resolved string value
+        Resolved value (preserves type: lists, dicts, etc.)
     """
     value = resolve_template(template, state)
     # resolve_template returns the template unchanged if not a state expression
     if value is template:
         return template
-    return str(value) if value is not None else ""
+    # Preserve the original type - don't convert to string
+    # This allows lists and dicts to be passed to Jinja2 templates correctly
+    return value
 
 
 def resolve_variables(

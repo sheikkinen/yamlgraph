@@ -82,6 +82,41 @@ START → await_dm ──(end)→ END
 **Requirements:**
 - `REPLICATE_API_TOKEN` environment variable for image generation
 
+### Automated Demo (`demo.py`)
+
+Run a complete automated demonstration with NPC creation and pre-scripted encounters:
+
+```bash
+# Default: 3 NPCs, 5 rounds
+python examples/npc/demo.py
+
+# Quick demo: 2 NPCs, 3 rounds
+python examples/npc/demo.py --npcs 2 --rounds 3
+
+# With images
+python examples/npc/demo.py --images
+
+# Skip NPC creation (use default NPCs)
+python examples/npc/demo.py --skip-creation
+
+# Full options
+python examples/npc/demo.py -n 4 -r 5 -i
+```
+
+**Features:**
+- Creates NPCs from random concepts (bartender, bard, soldier, etc.)
+- Runs encounters with 10 pre-scripted DM scenarios
+- No user input required - fully automated
+- Optional image generation for each turn
+
+**Pre-scripted scenarios include:**
+1. Adventurers burst in needing help
+2. Strange glowing crystal revealed
+3. Hooded figure offers to buy the crystal
+4. City watch arrives looking for someone
+5. Explosion rocks the building
+6. And more dramatic events...
+
 ## Prompts
 
 All prompts are in `prompts/` using Jinja2 templates with inline schemas:

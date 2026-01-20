@@ -137,6 +137,72 @@ def build_pydantic_model(schema: dict) -> type:
     return create_model(model_name, **field_definitions)
 
 
+# JSON Schema type mapping
+JSON_SCHEMA_TYPE_MAP: dict[str, type] = {
+    "string": str,
+    "integer": int,
+    "number": float,
+    "boolean": bool,
+    "array": list,
+    "object": dict,
+}
+
+
+def build_pydantic_model_from_json_schema(
+    schema: dict, model_name: str = "DynamicOutput"
+) -> type:
+    """Build a Pydantic model from a JSON Schema-style definition.
+
+    Args:
+        schema: JSON Schema with 'type: object' and 'properties'
+        model_name: Name for the generated model
+
+    Returns:
+        Dynamically created Pydantic model class
+    """
+    if schema.get("type") != "object":
+        raise ValueError("output_schema must have type: object")
+
+    properties = schema.get("properties", {})
+    required = set(schema.get("required", []))
+
+    field_definitions = {}
+
+    for field_name, field_def in properties.items():
+        json_type = field_def.get("type", "string")
+        description = field_def.get("description", "")
+
+        # Handle array types
+        if json_type == "array":
+            items = field_def.get("items", {})
+            item_type = JSON_SCHEMA_TYPE_MAP.get(items.get("type", "string"), str)
+            field_type = list[item_type]
+        # Handle enum types
+        elif "enum" in field_def:
+            field_type = str  # Enums become str in Pydantic
+        else:
+            field_type = JSON_SCHEMA_TYPE_MAP.get(json_type, str)
+
+        # Check if required
+        is_optional = field_name not in required
+        if is_optional:
+            field_type = field_type | None
+
+        # Build Field
+        field_kwargs: dict[str, Any] = {}
+        if description:
+            field_kwargs["description"] = description
+        if is_optional:
+            field_kwargs["default"] = None
+
+        if field_kwargs:
+            field_definitions[field_name] = (field_type, Field(**field_kwargs))
+        else:
+            field_definitions[field_name] = (field_type, ...)
+
+    return create_model(model_name, **field_definitions)
+
+
 # =============================================================================
 # YAML Loading
 # =============================================================================
@@ -144,6 +210,10 @@ def build_pydantic_model(schema: dict) -> type:
 
 def load_schema_from_yaml(yaml_path: str | Path) -> type | None:
     """Load a Pydantic model from a prompt YAML file's schema block.
+
+    Supports two formats:
+    1. Native format (schema: with name/fields)
+    2. JSON Schema format (output_schema: with type/properties)
 
     Args:
         yaml_path: Path to the YAML prompt file
@@ -154,7 +224,17 @@ def load_schema_from_yaml(yaml_path: str | Path) -> type | None:
     with open(yaml_path) as f:
         config = yaml.safe_load(f)
 
-    if "schema" not in config:
-        return None
+    # Check for native format first
+    if "schema" in config:
+        return build_pydantic_model(config["schema"])
 
-    return build_pydantic_model(config["schema"])
+    # Check for JSON Schema format (output_schema)
+    if "output_schema" in config:
+        # Generate model name from file name
+        path = Path(yaml_path)
+        model_name = "".join(word.title() for word in path.stem.split("_")) + "Output"
+        return build_pydantic_model_from_json_schema(
+            config["output_schema"], model_name
+        )
+
+    return None

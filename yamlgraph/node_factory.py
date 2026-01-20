@@ -259,8 +259,7 @@ def create_node_function(
             variables = {}
             for key, template in variable_templates.items():
                 resolved = resolve_template(template, state)
-                if isinstance(resolved, list):
-                    resolved = ", ".join(str(item) for item in resolved)
+                # Preserve original types (lists, dicts) for Jinja2 templates
                 variables[key] = resolved
         else:
             # No explicit variable mapping - pass state as variables
@@ -496,8 +495,7 @@ def create_streaming_node(
             variables = {}
             for key, template in variable_templates.items():
                 resolved = resolve_template(template, state)
-                if isinstance(resolved, list):
-                    resolved = ", ".join(str(item) for item in resolved)
+                # Preserve original types (lists, dicts) for Jinja2 templates
                 variables[key] = resolved
         else:
             # No explicit variable mapping - pass state as variables
