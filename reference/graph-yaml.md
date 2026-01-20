@@ -96,6 +96,45 @@ Default configuration applied to all nodes unless overridden.
 defaults:
   provider: mistral       # Default LLM provider
   temperature: 0.7        # Default temperature
+  prompts_relative: true  # Resolve prompts relative to graph file
+  prompts_dir: path/to   # Explicit prompts directory (optional)
+```
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `provider` | `string` | env-based | Default LLM provider |
+| `temperature` | `float` | `0.7` | Default temperature |
+| `prompts_relative` | `bool` | `false` | Resolve prompts relative to graph file |
+| `prompts_dir` | `string` | `prompts/` | Explicit prompts directory path |
+
+**Prompt Resolution Order:**
+1. If `prompts_dir` specified: `{prompts_dir}/{prompt_name}.yaml`
+2. If `prompts_relative: true`: `{graph_dir}/{prompt_name}.yaml`
+3. Default: `prompts/{prompt_name}.yaml`
+
+**Example - Colocated prompts:**
+```
+questionnaires/
+  audit/
+    graph.yaml              # prompts_relative: true
+    prompts/
+      opening.yaml
+      extract.yaml
+  phq9/
+    graph.yaml
+    prompts/
+      opening.yaml
+```
+
+```yaml
+# questionnaires/audit/graph.yaml
+defaults:
+  prompts_relative: true
+
+nodes:
+  generate_opening:
+    type: llm
+    prompt: prompts/opening  # → questionnaires/audit/prompts/opening.yaml
 ```
 
 ---
@@ -116,6 +155,8 @@ Each node in the `nodes` section defines a processing step.
 | `temperature` | `float` | from defaults | LLM temperature |
 | `provider` | `string` | from defaults | LLM provider |
 | `skip_if_exists` | `bool` | `true` | Skip if output already in state |
+| `parse_json` | `bool` | `false` | Extract JSON from LLM response |
+| `stream` | `bool` | `false` | Enable token-by-token streaming |
 
 ### `type: llm` - Standard LLM Node
 
@@ -124,6 +165,51 @@ Basic LLM execution with structured output.
 ```yaml
 nodes:
   generate:
+    type: llm
+    prompt: generate                 # prompts/generate.yaml
+    temperature: 0.8
+    variables:
+      topic: "{state.topic}"
+      word_count: "{state.word_count}"
+    state_key: generated
+    requires: []                     # No dependencies
+```
+
+**JSON Extraction:**
+
+When LLMs wrap JSON in markdown code blocks, use `parse_json: true`:
+
+```yaml
+nodes:
+  extract_fields:
+    type: llm
+    prompt: extract
+    state_key: extracted
+    parse_json: true                 # Auto-extract JSON from response
+```
+
+This extracts JSON from responses like:
+```
+```json
+{"name": "test", "value": 42}
+```
+
+Reasoning: I extracted the structured data...
+```
+
+The node stores the parsed dict `{"name": "test", "value": 42}` instead of raw string.
+
+**Streaming:**
+
+For token-by-token output (useful in web UIs):
+
+```yaml
+nodes:
+  generate_story:
+    type: llm
+    prompt: story
+    stream: true                     # Enable streaming
+```
     type: llm
     prompt: generate                 # prompts/generate.yaml
     temperature: 0.8

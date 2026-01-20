@@ -15,6 +15,8 @@ A YAML-first framework for building LLM pipelines using:
 - **Streaming** - Token-by-token LLM output
 - **Async Support** - FastAPI-ready async execution
 - **Checkpointers** - Memory, SQLite, and Redis state persistence
+- **Graph-Relative Prompts** - Colocate prompts with graphs
+- **JSON Extraction** - Auto-extract JSON from LLM responses
 - **LangSmith** - Observability and tracing
 - **JSON Export** - Result serialization
 
@@ -189,6 +191,34 @@ nodes:
     type: llm
     prompt: story
     stream: true
+```
+
+### Graph-Relative Prompts
+
+Colocate prompts with graphs for cleaner project structures:
+
+```yaml
+# questionnaires/audit/graph.yaml
+defaults:
+  prompts_relative: true  # Resolve prompts from graph directory
+
+nodes:
+  opening:
+    type: llm
+    prompt: prompts/opening  # → questionnaires/audit/prompts/opening.yaml
+```
+
+### JSON Extraction
+
+Auto-extract JSON from LLM responses wrapped in markdown:
+
+```yaml
+nodes:
+  extract:
+    type: llm
+    prompt: extract_fields
+    state_key: data
+    parse_json: true  # {"key": "value"} instead of "```json..."
 ```
 
 ### CLI Utilities
