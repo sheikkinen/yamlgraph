@@ -1,0 +1,86 @@
+<!-- Turn result component - rendered after each turn -->
+<div class="turn-result" id="turn-result-{{ turn_number }}">
+
+    <!-- Debug: show what data we received -->
+    <details style="margin-bottom: 1rem; font-size: 0.75rem; color: var(--text-secondary);">
+        <summary>🔍 Debug Data</summary>
+        <pre style="background: #1a1a2e; padding: 0.5rem; border-radius: 4px; overflow-x: auto;">
+turn_number: {{ turn_number }}
+scene_image: {{ scene_image }}
+turn_summary: {{ turn_summary[:100] if turn_summary else 'None' }}...
+narrations count: {{ narrations | length }}
+narrations: {{ narrations }}
+is_complete: {{ is_complete }}
+        </pre>
+    </details>
+
+    {% if scene_image %}
+    <div class="scene-container" style="margin-bottom: 1rem;">
+        <img src="/{{ scene_image }}" alt="Scene" class="scene-image" style="width: 100%; max-width: 512px; border-radius: 8px;">
+    </div>
+    {% endif %}
+
+    <div class="turn-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <span class="card-header" style="margin: 0; border: none; padding: 0;">🎭 Turn {{ turn_number }}</span>
+        <span class="turn-badge">Turn {{ turn_number }}</span>
+    </div>
+
+    {% if turn_summary %}
+    <div class="turn-summary" style="background: rgba(var(--accent-rgb, 99, 102, 241), 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-style: italic;">
+        {{ turn_summary }}
+    </div>
+    {% endif %}
+
+    <div class="narration-list">
+        {% for narration in narrations %}
+        <div class="narration">
+            <div class="narration-npc">{{ narration.npc }}</div>
+            <div class="narration-text">{{ narration.text }}</div>
+        </div>
+        {% else %}
+        <p style="color: var(--text-secondary); text-align: center;">
+            No responses yet. Enter your narration below.
+        </p>
+        {% endfor %}
+    </div>
+
+    {% if not is_complete %}
+    <!-- DM Input Form -->
+    <form id="turn-form" hx-post="/encounter/turn"
+          hx-target="#encounter-area"
+          hx-swap="innerHTML"
+          style="margin-top: 1rem; border-top: 1px solid var(--bg-secondary); padding-top: 1rem;">
+
+        <input type="hidden" name="session_id" value="{{ session_id }}">
+
+        <div class="form-group">
+            <label for="dm-input">Your Narration <span style="color: var(--text-secondary); font-weight: normal;">(edit or press Enter to use suggestion)</span></label>
+            <textarea name="dm_input" id="dm-input"
+                      placeholder="Describe what happens next..."
+                      required>{% if turn_number == 1 %}The adventuring party enters and looks around, taking in the scene.{% else %}The party listens to the NPCs and considers their next move.{% endif %}</textarea>
+        </div>
+
+        <button type="submit" id="continue-btn">
+            <span class="htmx-indicator">
+                <span class="spinner"></span>
+            </span>
+            ⚔️ Continue
+        </button>
+    </form>
+    <script>
+        document.getElementById('turn-form').addEventListener('htmx:beforeRequest', function() {
+            document.getElementById('continue-btn').disabled = true;
+            document.getElementById('continue-btn').textContent = 'Processing...';
+        });
+    </script>
+    {% else %}
+    <!-- Encounter Complete -->
+    <div style="margin-top: 1rem; padding: 1rem; background: rgba(74, 222, 128, 0.1); border-radius: 8px; text-align: center;">
+        <span style="font-size: 2rem;">🎉</span>
+        <p style="color: var(--success); font-weight: 600; margin-top: 0.5rem;">
+            Encounter Complete!
+        </p>
+        <a href="/" style="color: var(--accent);">Start a new encounter</a>
+    </div>
+    {% endif %}
+</div>

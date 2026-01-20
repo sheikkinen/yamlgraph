@@ -1,0 +1,11 @@
+<!-- Error component - shown when something goes wrong -->
+<div class="error">
+    <div class="error-title">⚠️ Error</div>
+    <p>{{ error }}</p>
+
+    {% if session_id %}
+    <div style="margin-top: 1rem;">
+        <a href="/" style="color: var(--accent);">← Start Over</a>
+    </div>
+    {% endif %}
+</div>

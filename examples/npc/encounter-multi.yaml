@@ -20,7 +20,7 @@ checkpointer:
   path: ":memory:"
 
 defaults:
-  provider: anthropic
+  provider: mistral
   temperature: 0.7
 
 # Python tools for image generation

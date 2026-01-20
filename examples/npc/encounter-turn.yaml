@@ -3,7 +3,7 @@ name: encounter-turn
 description: Process one NPC turn in an encounter
 
 defaults:
-  provider: anthropic
+  provider: mistral
   temperature: 0.7
 
 state:

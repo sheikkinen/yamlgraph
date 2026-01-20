@@ -33,6 +33,83 @@ nodes:
 - ❌ No static type checking in IDE
 - ❌ Runtime errors instead of compile-time
 
+### Application Layer Pattern
+
+When building applications with YAMLGraph, use a three-layer architecture:
+
+```
+┌─────────────────────────────────────┐
+│  Python CLI (demo.py, run_*.py)     │ ← Presentation: colors, REPL, args
+├─────────────────────────────────────┤
+│  YAML Graphs (*.yaml)               │ ← Logic: LLM, state, checkpoints
+├─────────────────────────────────────┤
+│  Python Tools (nodes/*.py)          │ ← Side effects: API calls, files
+└─────────────────────────────────────┘
+```
+
+**Presentation Layer** (Python CLI):
+- Argument parsing, terminal colors, interactive prompts
+- Thin wrapper around graph execution
+- Calls `app.invoke()` and formats output
+
+**Logic Layer** (YAML Graphs):
+- All LLM calls, routing, state transitions
+- Interrupt nodes for human-in-the-loop
+- Map nodes for parallel processing
+- Checkpointing and resume capability
+
+**Side Effects Layer** (Python Tools):
+- External API calls (Replicate, databases)
+- File I/O (image generation, exports)
+- Functions that can't be expressed in YAML
+
+**Why this pattern?**
+- Graphs are testable, traceable, and resumable
+- Python handles UX where YAML can't (colors, stdin)
+- Tools isolate non-deterministic operations
+- Each layer can evolve independently
+
+### Building APIs on YAMLGraph
+
+The same pattern extends to web APIs:
+
+```
+┌─────────────────────────────────────┐
+│  FastAPI / Flask                    │ ← HTTP: routes, auth, validation
+├─────────────────────────────────────┤
+│  YAML Graphs                        │ ← Logic: stateless or with threads
+├─────────────────────────────────────┤
+│  Python Tools + Storage             │ ← Persistence: DB, S3, queues
+└─────────────────────────────────────┘
+```
+
+**Key integration points:**
+
+```python
+from yamlgraph.graph_loader import compile_graph, load_graph_config
+
+# One-shot execution (stateless)
+@app.post("/generate")
+def generate(request: GenerateRequest):
+    config = load_graph_config("graphs/generate.yaml")
+    graph = compile_graph(config).compile()
+    result = graph.invoke({"topic": request.topic})
+    return {"result": result}
+
+# Multi-turn with threads (stateful)
+@app.post("/chat/{thread_id}")
+def chat(thread_id: str, message: ChatMessage):
+    config = load_graph_config("graphs/chat.yaml")
+    checkpointer = get_checkpointer_for_graph(config)
+    graph = compile_graph(config).compile(checkpointer=checkpointer)
+
+    run_config = {"configurable": {"thread_id": thread_id}}
+    result = graph.invoke(Command(resume=message.content), run_config)
+    return {"response": result}
+```
+
+See [docs/plan-api-yamlgraph.md](docs/plan-api-yamlgraph.md) for detailed API design patterns.
+
 ---
 
 ## Module Architecture

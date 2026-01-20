@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-01-20
+
+### Added
+- **NPC Encounter Web API** - HTMX-powered web UI for running NPC encounters
+  - FastAPI backend with session persistence (`examples/npc/api/`)
+  - Session adapter pattern for stateless servers with checkpointer state
+  - MemorySaver default, RedisSaver via `REDIS_URL` env var
+  - Interrupt detection and resume with `Command(resume=input)`
+  - Map node output parsing (`{'_map_index': N, 'value': '...'}`)
+  - HTML templates with HTMX fragments
+  - Integration tests (20 passing)
+- **Web UI + API Reference** - `reference/web-ui-api.md`
+  - Architecture diagram, directory structure
+  - Session adapter, routes, HTMX templates patterns
+  - Interrupt handling and checkpointer options
+- **Application Layer Pattern** in ARCHITECTURE.md
+  - Three-layer architecture: Presentation → Logic → Side Effects
+  - API integration patterns with example code
+
+### Changed
+- NPC example graphs now use `mistral` provider (was `anthropic`)
+
 ## [0.3.1] - 2026-01-20
 
 ### Added

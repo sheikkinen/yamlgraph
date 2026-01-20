@@ -1,0 +1,67 @@
+<!-- Encounter state component - shows full encounter state -->
+<div class="encounter-state">
+
+    <div class="turn-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="card-header" style="margin: 0; border: none; padding: 0;">
+            📍 {{ location | title }}
+        </span>
+        <span class="turn-badge">Turn {{ turn_number }}</span>
+    </div>
+
+    {% if npcs %}
+    <div style="margin-bottom: 1rem;">
+        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-secondary);">NPCs Present:</div>
+        <div class="npc-list">
+            {% for npc in npcs %}
+            <div class="npc-card">
+                <div class="npc-name">{{ npc.name }}</div>
+                <div class="npc-meta">{{ npc.race }} {{ npc.character_class }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="narration-list">
+        {% for narration in narrations %}
+        <div class="narration">
+            <div class="narration-npc">{{ narration.npc }}</div>
+            <div class="narration-text">{{ narration.text }}</div>
+        </div>
+        {% else %}
+        <p style="color: var(--text-secondary); text-align: center;">
+            No narrations yet.
+        </p>
+        {% endfor %}
+    </div>
+
+    <!-- DM Input Form -->
+    <form id="turn-form" hx-post="/encounter/turn"
+          hx-target="#encounter-area"
+          hx-swap="innerHTML"
+          hx-indicator="#turn-indicator"
+          style="margin-top: 1rem; border-top: 1px solid var(--bg-secondary); padding-top: 1rem;">
+
+        <input type="hidden" name="session_id" value="{{ session_id }}">
+
+        <div class="form-group">
+            <label for="dm-input">Your Narration <span style="color: var(--text-secondary); font-weight: normal;">(edit or press Enter to use suggestion)</span></label>
+            <textarea name="dm_input" id="dm-input"
+                      placeholder="Describe what happens next..."
+                      required>{% if turn_number == 1 %}The adventuring party enters and looks around, taking in the scene.{% else %}The party listens to the NPCs and considers their next move.{% endif %}</textarea>
+        </div>
+
+        <button type="submit" id="continue-btn">
+            <span class="htmx-indicator" id="turn-indicator">
+                <span class="spinner"></span>
+            </span>
+            ⚔️ Continue
+        </button>
+    </form>
+    <script>
+        document.getElementById('turn-form').addEventListener('htmx:beforeRequest', function() {
+            document.getElementById('continue-btn').disabled = true;
+            document.getElementById('continue-btn').textContent = 'Processing...';
+        });
+    </script>
+</div>

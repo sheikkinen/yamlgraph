@@ -3,7 +3,7 @@ description: Create a narrative summary of the entire turn after all NPCs have a
 version: "1.0"
 
 metadata:
-  provider: anthropic
+  provider: mistral
   temperature: 0.7
 
 system: |

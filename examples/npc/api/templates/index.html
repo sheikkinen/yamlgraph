@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Start Encounter - NPC Encounter{% endblock %}
+
+{% block content %}
+<div class="main-grid">
+    <aside class="sidebar">
+        <div class="card-header">⚔️ New Encounter</div>
+
+        <form hx-post="/encounter/start"
+              hx-target="#encounter-area"
+              hx-swap="innerHTML"
+              hx-indicator="#start-indicator"
+              hx-disabled-elt="#start-btn"
+              hx-on::before-request="showLoading()">
+
+            <input type="hidden" name="session_id" value="{{ session_id }}">
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                <select name="location" id="location">
+                    <option value="tavern">🍺 Tavern</option>
+                    <option value="marketplace">🏪 Marketplace</option>
+                    <option value="castle">🏰 Castle</option>
+                    <option value="forest">🌲 Forest</option>
+                    <option value="dungeon">🕳️ Dungeon</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="npc_concepts">NPC Concepts (one per line)</label>
+                <textarea name="npc_concepts" id="npc_concepts"
+                          placeholder="a gruff dwarven bartender&#10;a mysterious elven traveler&#10;a nervous halfling merchant">a gruff dwarven bartender
+a mysterious elven traveler</textarea>
+            </div>
+
+            <button type="submit" id="start-btn">
+                <span class="htmx-indicator" id="start-indicator">
+                    <span class="spinner"></span>
+                </span>
+                🎲 Start Encounter
+            </button>
+        </form>
+    </aside>
+
+    <section class="main-content">
+        <div id="encounter-area" class="card">
+            <div class="card-header">🎭 Encounter Area</div>
+            <div id="encounter-placeholder">
+                <p style="color: var(--text-secondary); padding: 2rem; text-align: center;">
+                    Configure your encounter and click "Start Encounter" to begin.
+                </p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Show loading state in encounter area
+    function showLoading() {
+        const area = document.getElementById('encounter-area');
+        area.innerHTML = `
+            <div class="card-header">🎭 Encounter Area</div>
+            <div style="padding: 2rem; text-align: center;">
+                <div class="spinner" style="width: 2rem; height: 2rem; margin: 0 auto 1rem;"></div>
+                <p style="color: var(--text-secondary);">Starting encounter... Creating NPCs...</p>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">This may take a moment while AI generates your NPCs.</p>
+            </div>
+        `;
+    }
+
+    // Convert textarea lines to multiple hidden inputs before submit
+    document.querySelector('form').addEventListener('submit', function(evt) {
+        // Remove any previously added hidden inputs
+        document.querySelectorAll('.npc-concept-input').forEach(el => el.remove());
+
+        const textarea = document.getElementById('npc_concepts');
+        const lines = textarea.value.split('\n').filter(line => line.trim());
+
+        // Clear textarea name so it doesn't get submitted
+        textarea.name = '';
+
+        // Add hidden input for each line
+        lines.forEach(line => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'npc_concepts';
+            input.value = line.trim();
+            input.className = 'npc-concept-input';
+            this.appendChild(input);
+        });
+    });
+</script>
+{% endblock %}

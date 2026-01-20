@@ -3,7 +3,7 @@ description: Convert narrative text to an image generation prompt
 version: "1.0"
 
 metadata:
-  provider: anthropic
+  provider: mistral
   temperature: 0.7
 
 system: |
