@@ -176,3 +176,34 @@ Originally implemented in Python:
 - `npc/showcase/nodes/npc_nodes.py`
 
 Now pure YAML: ~200 lines across 3 graphs.
+
+## Feature Comparison
+
+| Feature | Original `npc/` | `examples/npc/` | Status |
+|---------|-----------------|-----------------|--------|
+| NPC Creation | ✅ `run.py npc "concept"` | ✅ `npc-creation.yaml` | ✅ Ported |
+| Encounter Turn | ✅ `process_turn()` | ✅ `encounter-turn.yaml` | ✅ Ported |
+| Multi-NPC Encounter | ✅ Loops through NPCs | ✅ Map nodes (parallel) | ✅ Ported |
+| Turn Summary | ✅ | ✅ `summarize` node | ✅ Ported |
+| Image Generation | ✅ `--images` flag | ✅ `generate_scene_image` | ✅ Ported |
+| Automated Demo | ✅ `demo.py` | ✅ `demo.py` | ✅ Ported |
+| Interactive Console | ✅ `/world`, `/npc` commands | ❌ | Not ported |
+| World Management | ✅ YAML worlds | ❌ | Not ported |
+| NPC Persistence | ✅ Save to YAML files | ❌ | Not ported |
+
+### What's Different
+
+**Original (`npc/`)**: Full Python implementation with interactive DM console, world management, and persistent NPC storage.
+
+**YAMLGraph (`examples/npc/`)**: Pure YAML graphs demonstrating YAMLGraph patterns:
+- **Map nodes** for parallel NPC processing
+- **Interrupt nodes** for human-in-the-loop
+- **Passthrough nodes** for state manipulation
+- **Inline schemas** via `output_schema:` in prompts
+
+The YAMLGraph version focuses on showcasing graph patterns rather than being a complete game system.
+
+## Requirements
+
+- `ANTHROPIC_API_KEY` - For LLM calls
+- `REPLICATE_API_TOKEN` - For image generation (optional)
