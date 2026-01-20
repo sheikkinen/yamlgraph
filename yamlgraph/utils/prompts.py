@@ -4,8 +4,10 @@ This module consolidates prompt loading logic used by executor.py
 and node_factory.py into a single, testable module.
 
 Search order for prompts:
-1. {prompts_dir}/{prompt_name}.yaml (standard location)
-2. {parent}/prompts/{basename}.yaml (external examples like examples/storyboard/...)
+1. If prompts_dir specified: prompts_dir/{prompt_name}.yaml
+2. If prompts_relative + graph_path: graph_path.parent/{prompt_name}.yaml
+3. Default: PROMPTS_DIR/{prompt_name}.yaml
+4. Fallback: {parent}/prompts/{basename}.yaml (external examples)
 """
 
 from pathlib import Path
@@ -18,42 +20,64 @@ from yamlgraph.config import PROMPTS_DIR
 def resolve_prompt_path(
     prompt_name: str,
     prompts_dir: Path | None = None,
+    graph_path: Path | None = None,
+    prompts_relative: bool = False,
 ) -> Path:
     """Resolve a prompt name to its full YAML file path.
 
-    Search order:
-    1. prompts_dir/{prompt_name}.yaml (default: prompts/)
-    2. {parent}/prompts/{basename}.yaml (for external examples)
+    Resolution order:
+    1. If prompts_dir specified: prompts_dir/{prompt_name}.yaml
+    2. If prompts_relative and graph_path: graph_path.parent/{prompt_name}.yaml
+    3. Default: PROMPTS_DIR/{prompt_name}.yaml
+    4. Fallback: {parent}/prompts/{basename}.yaml (external examples)
 
     Args:
-        prompt_name: Prompt name like "greet" or "examples/storyboard/expand_story"
-        prompts_dir: Base prompts directory (defaults to PROMPTS_DIR from config)
+        prompt_name: Prompt name like "greet" or "prompts/opening"
+        prompts_dir: Explicit prompts directory override (takes precedence)
+        graph_path: Path to the graph YAML file (for relative resolution)
+        prompts_relative: If True, resolve relative to graph_path.parent
 
     Returns:
         Path to the YAML file
 
     Raises:
         FileNotFoundError: If prompt file doesn't exist
+        ValueError: If prompts_relative=True but graph_path not provided
 
     Examples:
         >>> resolve_prompt_path("greet")
         PosixPath('/path/to/prompts/greet.yaml')
 
-        >>> resolve_prompt_path("map-demo/generate_ideas")
-        PosixPath('/path/to/prompts/map-demo/generate_ideas.yaml')
+        >>> resolve_prompt_path("prompts/opening", graph_path=Path("graphs/demo.yaml"), prompts_relative=True)
+        PosixPath('/path/to/graphs/prompts/opening.yaml')
     """
-    if prompts_dir is None:
-        prompts_dir = PROMPTS_DIR
+    # Validate prompts_relative requires graph_path
+    if prompts_relative and graph_path is None and prompts_dir is None:
+        raise ValueError("graph_path required when prompts_relative=True")
 
-    prompts_dir = Path(prompts_dir)
+    # 1. Explicit prompts_dir takes precedence
+    if prompts_dir is not None:
+        prompts_dir = Path(prompts_dir)
+        yaml_path = prompts_dir / f"{prompt_name}.yaml"
+        if yaml_path.exists():
+            return yaml_path
+        # Fall through to other resolution methods
 
-    # Try standard location first: prompts_dir/{prompt_name}.yaml
-    yaml_path = prompts_dir / f"{prompt_name}.yaml"
+    # 2. Graph-relative resolution
+    if prompts_relative and graph_path is not None:
+        graph_dir = Path(graph_path).parent
+        yaml_path = graph_dir / f"{prompt_name}.yaml"
+        if yaml_path.exists():
+            return yaml_path
+        # Fall through to default
+
+    # 3. Default: use global PROMPTS_DIR
+    default_dir = PROMPTS_DIR if prompts_dir is None else prompts_dir
+    yaml_path = Path(default_dir) / f"{prompt_name}.yaml"
     if yaml_path.exists():
         return yaml_path
 
-    # Try external example location: {parent}/prompts/{basename}.yaml
-    # e.g., "examples/storyboard/expand_story" -> "examples/storyboard/prompts/expand_story.yaml"
+    # 4. Fallback: external example location {parent}/prompts/{basename}.yaml
     parts = prompt_name.rsplit("/", 1)
     if len(parts) == 2:
         parent_dir, basename = parts
@@ -67,12 +91,16 @@ def resolve_prompt_path(
 def load_prompt(
     prompt_name: str,
     prompts_dir: Path | None = None,
+    graph_path: Path | None = None,
+    prompts_relative: bool = False,
 ) -> dict:
     """Load a YAML prompt template.
 
     Args:
         prompt_name: Name of the prompt file (without .yaml extension)
         prompts_dir: Optional prompts directory override
+        graph_path: Path to the graph YAML file (for relative resolution)
+        prompts_relative: If True, resolve relative to graph_path.parent
 
     Returns:
         Dictionary with prompt content (typically 'system' and 'user' keys)
@@ -80,7 +108,12 @@ def load_prompt(
     Raises:
         FileNotFoundError: If prompt file doesn't exist
     """
-    path = resolve_prompt_path(prompt_name, prompts_dir)
+    path = resolve_prompt_path(
+        prompt_name,
+        prompts_dir=prompts_dir,
+        graph_path=graph_path,
+        prompts_relative=prompts_relative,
+    )
 
     with open(path) as f:
         return yaml.safe_load(f)
@@ -89,6 +122,8 @@ def load_prompt(
 def load_prompt_path(
     prompt_name: str,
     prompts_dir: Path | None = None,
+    graph_path: Path | None = None,
+    prompts_relative: bool = False,
 ) -> tuple[Path, dict]:
     """Load a prompt and return both path and content.
 
@@ -98,6 +133,8 @@ def load_prompt_path(
     Args:
         prompt_name: Name of the prompt file (without .yaml extension)
         prompts_dir: Optional prompts directory override
+        graph_path: Path to the graph YAML file (for relative resolution)
+        prompts_relative: If True, resolve relative to graph_path.parent
 
     Returns:
         Tuple of (path, content_dict)
@@ -105,7 +142,12 @@ def load_prompt_path(
     Raises:
         FileNotFoundError: If prompt file doesn't exist
     """
-    path = resolve_prompt_path(prompt_name, prompts_dir)
+    path = resolve_prompt_path(
+        prompt_name,
+        prompts_dir=prompts_dir,
+        graph_path=graph_path,
+        prompts_relative=prompts_relative,
+    )
 
     with open(path) as f:
         content = yaml.safe_load(f)

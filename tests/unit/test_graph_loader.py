@@ -110,6 +110,64 @@ class TestLoadGraphConfig:
         assert sample_config.defaults["provider"] == "mistral"
         assert sample_config.defaults["temperature"] == 0.7
 
+    def test_parse_prompts_relative(self, tmp_path):
+        """Should parse prompts_relative from defaults."""
+        yaml_content = """
+version: "1.0"
+name: test_graph
+
+defaults:
+  prompts_relative: true
+
+nodes:
+  greet:
+    type: llm
+    prompt: prompts/greet
+    state_key: greeting
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END
+"""
+        yaml_file = tmp_path / "test.yaml"
+        yaml_file.write_text(yaml_content)
+
+        config = load_graph_config(yaml_file)
+
+        assert config.prompts_relative is True
+        assert config.prompts_dir is None
+
+    def test_parse_prompts_dir(self, tmp_path):
+        """Should parse prompts_dir from defaults."""
+        yaml_content = """
+version: "1.0"
+name: test_graph
+
+defaults:
+  prompts_dir: shared/prompts
+
+nodes:
+  greet:
+    type: llm
+    prompt: greet
+    state_key: greeting
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END
+"""
+        yaml_file = tmp_path / "test.yaml"
+        yaml_file.write_text(yaml_content)
+
+        config = load_graph_config(yaml_file)
+
+        assert config.prompts_dir == "shared/prompts"
+        assert config.prompts_relative is False
+
     def test_parse_state_class(self, sample_config):
         """State class defaults to empty (dynamic generation)."""
         assert sample_config.state_class == ""

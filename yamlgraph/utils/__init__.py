@@ -6,6 +6,7 @@ from yamlgraph.utils.expressions import (
     resolve_state_path,
     resolve_template,
 )
+from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.langsmith import (
     get_client,
     get_latest_run_id,
@@ -25,6 +26,8 @@ __all__ = [
     "resolve_state_path",
     "resolve_state_expression",
     "resolve_template",
+    # JSON extraction
+    "extract_json",
     # LangSmith
     "get_client",
     "get_project_name",

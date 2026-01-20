@@ -223,3 +223,128 @@ class TestCreateNodeFunction:
 
             assert mock.call_args[1]["temperature"] == 0.5
             assert mock.call_args[1]["provider"] == "anthropic"
+
+    def test_node_uses_graph_relative_prompts(self, sample_state, tmp_path):
+        """Node uses graph_path for relative prompt resolution."""
+        from pathlib import Path
+
+        # Create colocated graph+prompts structure
+        graph_dir = tmp_path / "questionnaires" / "audit"
+        prompts_dir = graph_dir / "prompts"
+        prompts_dir.mkdir(parents=True)
+
+        graph_file = graph_dir / "graph.yaml"
+        graph_file.write_text("name: audit")
+
+        prompt_file = prompts_dir / "opening.yaml"
+        prompt_file.write_text("system: Welcome\nuser: Start")
+
+        node_config = {
+            "type": "llm",
+            "prompt": "prompts/opening",
+            "variables": {},
+            "state_key": "opening",
+        }
+        defaults = {"prompts_relative": True}
+
+        mock_result = FixtureGeneratedContent(
+            title="T", content="C", word_count=1, tags=[]
+        )
+
+        with patch(
+            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+        ) as mock:
+            node_fn = create_node_function(
+                "generate_opening",
+                node_config,
+                defaults,
+                graph_path=graph_file,
+            )
+            result = node_fn(sample_state)
+
+            # Prompt should have been resolved
+            mock.assert_called_once()
+            assert result["opening"] == mock_result
+
+    def test_node_uses_explicit_prompts_dir(self, sample_state, tmp_path):
+        """Node uses explicit prompts_dir from defaults."""
+        from pathlib import Path
+
+        # Create explicit prompts directory
+        shared_prompts = tmp_path / "shared" / "prompts"
+        shared_prompts.mkdir(parents=True)
+
+        prompt_file = shared_prompts / "greet.yaml"
+        prompt_file.write_text("system: Hi\nuser: Hello")
+
+        node_config = {
+            "type": "llm",
+            "prompt": "greet",
+            "variables": {},
+            "state_key": "greeting",
+        }
+        defaults = {"prompts_dir": str(shared_prompts)}
+
+        mock_result = FixtureGeneratedContent(
+            title="T", content="C", word_count=1, tags=[]
+        )
+
+        with patch(
+            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+        ) as mock:
+            node_fn = create_node_function(
+                "greet",
+                node_config,
+                defaults,
+            )
+            result = node_fn(sample_state)
+
+            mock.assert_called_once()
+            assert result["greeting"] == mock_result
+
+    def test_node_parse_json_enabled(self, sample_state):
+        """Node with parse_json: true extracts JSON from response."""
+        node_config = {
+            "type": "llm",
+            "prompt": "generate",
+            "variables": {},
+            "state_key": "extracted",
+            "parse_json": True,
+        }
+
+        # Simulate LLM returning JSON in markdown
+        mock_result = '''```json
+{"name": "test", "value": 42}
+```
+
+Reasoning: I extracted the name and value.
+'''
+        with patch(
+            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+        ):
+            node_fn = create_node_function("extract", node_config, {})
+            result = node_fn(sample_state)
+
+        # Should be parsed dict, not raw string
+        assert result["extracted"] == {"name": "test", "value": 42}
+
+    def test_node_parse_json_disabled_by_default(self, sample_state):
+        """Node without parse_json returns raw string."""
+        node_config = {
+            "type": "llm",
+            "prompt": "generate",
+            "variables": {},
+            "state_key": "raw",
+            # parse_json not specified - defaults to False
+        }
+
+        mock_result = '{"key": "value"}'
+
+        with patch(
+            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+        ):
+            node_fn = create_node_function("raw_node", node_config, {})
+            result = node_fn(sample_state)
+
+        # Should be raw string (though it's valid JSON, we don't auto-parse)
+        assert result["raw"] == '{"key": "value"}'

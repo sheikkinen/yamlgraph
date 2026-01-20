@@ -8,6 +8,7 @@ Creates LangGraph node functions from YAML configuration with support for:
 - Dynamic tool calls from state (type: tool_call)
 - Streaming nodes (type: llm, stream: true)
 - Subgraph nodes (type: subgraph) for composing workflows
+- JSON extraction from LLM output (parse_json: true)
 """
 
 import logging
@@ -28,6 +29,7 @@ from yamlgraph.error_handlers import (
 )
 from yamlgraph.executor import execute_prompt
 from yamlgraph.utils.expressions import resolve_template
+from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.prompts import resolve_prompt_path
 
 # Type alias for dynamic state
@@ -146,7 +148,10 @@ def resolve_class(class_path: str) -> type:
 
 
 def get_output_model_for_node(
-    node_config: dict[str, Any], prompts_dir: str | None = None
+    node_config: dict[str, Any],
+    prompts_dir: Path | None = None,
+    graph_path: Path | None = None,
+    prompts_relative: bool = False,
 ) -> type | None:
     """Get output model for a node, checking inline schema if no explicit model.
 
@@ -158,6 +163,8 @@ def get_output_model_for_node(
     Args:
         node_config: Node configuration from YAML
         prompts_dir: Base prompts directory
+        graph_path: Path to graph YAML file (for relative prompt resolution)
+        prompts_relative: If True, resolve prompts relative to graph_path
 
     Returns:
         Pydantic model class or None
@@ -172,7 +179,12 @@ def get_output_model_for_node(
         try:
             from yamlgraph.schema_loader import load_schema_from_yaml
 
-            yaml_path = resolve_prompt_path(prompt_name, prompts_dir)
+            yaml_path = resolve_prompt_path(
+                prompt_name,
+                prompts_dir=prompts_dir,
+                graph_path=graph_path,
+                prompts_relative=prompts_relative,
+            )
             return load_schema_from_yaml(yaml_path)
         except FileNotFoundError:
             # Prompt file doesn't exist yet - will fail later
@@ -186,6 +198,7 @@ def create_node_function(
     node_name: str,
     node_config: dict,
     defaults: dict,
+    graph_path: Path | None = None,
 ) -> Callable[[GraphState], dict]:
     """Create a node function from YAML config.
 
@@ -193,6 +206,7 @@ def create_node_function(
         node_name: Name of the node
         node_config: Node configuration from YAML
         defaults: Default configuration values
+        graph_path: Path to graph YAML file (for relative prompt resolution)
 
     Returns:
         Node function compatible with LangGraph
@@ -200,12 +214,23 @@ def create_node_function(
     node_type = node_config.get("type", NodeType.LLM)
     prompt_name = node_config.get("prompt")
 
+    # Prompt resolution options from defaults (FR-A)
+    prompts_relative = defaults.get("prompts_relative", False)
+    prompts_dir = defaults.get("prompts_dir")
+    if prompts_dir:
+        prompts_dir = Path(prompts_dir)
+
     # Check for streaming mode
     if node_config.get("stream", False):
         return create_streaming_node(node_name, node_config)
 
     # Resolve output model (explicit > inline schema > None)
-    output_model = get_output_model_for_node(node_config)
+    output_model = get_output_model_for_node(
+        node_config,
+        prompts_dir=prompts_dir,
+        graph_path=graph_path,
+        prompts_relative=prompts_relative,
+    )
 
     # Get config values (node > defaults)
     temperature = node_config.get("temperature", defaults.get("temperature", 0.7))
@@ -229,6 +254,9 @@ def create_node_function(
 
     # Skip if exists (default true for resume support, false for loop nodes)
     skip_if_exists = node_config.get("skip_if_exists", True)
+
+    # JSON extraction (FR-B)
+    parse_json = node_config.get("parse_json", False)
 
     def node_fn(state: dict) -> dict:
         """Generated node function."""
@@ -286,6 +314,10 @@ def create_node_function(
         result, error = attempt_execute(provider)
 
         if error is None:
+            # Post-process: JSON extraction if enabled (FR-B)
+            if parse_json and isinstance(result, str):
+                result = extract_json(result)
+
             logger.info(f"Node {node_name} completed successfully")
             update = {
                 state_key: result,

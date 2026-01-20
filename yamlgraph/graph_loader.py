@@ -72,6 +72,9 @@ class GraphConfig:
         self.raw_config = config
         # Store source path for subgraph resolution
         self.source_path = source_path
+        # Prompt resolution options (FR-A: graph-relative prompts)
+        self.prompts_relative = self.defaults.get("prompts_relative", False)
+        self.prompts_dir = self.defaults.get("prompts_dir")
 
 
 def load_graph_config(path: str | Path) -> GraphConfig:
@@ -236,7 +239,12 @@ def _compile_node(
         graph.add_node(node_name, node_fn)
     else:
         # LLM and router nodes
-        node_fn = create_node_function(node_name, enriched_config, config.defaults)
+        node_fn = create_node_function(
+            node_name,
+            enriched_config,
+            config.defaults,
+            graph_path=config.source_path,
+        )
         graph.add_node(node_name, node_fn)
 
     logger.info(f"Added node: {node_name} (type={node_type})")
