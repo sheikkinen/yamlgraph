@@ -25,7 +25,7 @@ state:
 nodes:
   identity:
     type: llm
-    prompt: examples/npc/npc/identity
+    prompt: examples/npc/npc_identity
     state_key: identity
     variables:
       concept: "{state.concept}"
@@ -36,7 +36,7 @@ nodes:
 
   personality:
     type: llm
-    prompt: examples/npc/npc/personality
+    prompt: examples/npc/npc_personality
     state_key: personality
     variables:
       concept: "{state.concept}"
@@ -45,7 +45,7 @@ nodes:
 
   knowledge:
     type: llm
-    prompt: examples/npc/npc/knowledge
+    prompt: examples/npc/npc_knowledge
     state_key: knowledge
     variables:
       concept: "{state.concept}"
@@ -55,7 +55,7 @@ nodes:
 
   behavior:
     type: llm
-    prompt: examples/npc/npc/behavior
+    prompt: examples/npc/npc_behavior
     state_key: behavior
     variables:
       concept: "{state.concept}"
@@ -65,7 +65,7 @@ nodes:
 
   stats:
     type: llm
-    prompt: examples/npc/npc/stats
+    prompt: examples/npc/npc_stats
     state_key: stats
     variables:
       concept: "{state.concept}"

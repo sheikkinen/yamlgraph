@@ -68,7 +68,7 @@ nodes:
   # NPC perceives the situation
   perceive:
     type: llm
-    prompt: examples/npc/encounter/perceive
+    prompt: examples/npc/encounter_perceive
     state_key: perception
     temperature: 0.5
     skip_if_exists: false
@@ -83,7 +83,7 @@ nodes:
   # NPC decides what to do
   decide:
     type: llm
-    prompt: examples/npc/encounter/decide
+    prompt: examples/npc/encounter_decide
     state_key: decision
     temperature: 0.7
     skip_if_exists: false
@@ -98,7 +98,7 @@ nodes:
   # Generate narration
   narrate:
     type: llm
-    prompt: examples/npc/encounter/narrate
+    prompt: examples/npc/encounter_narrate
     state_key: narration
     temperature: 0.8
     skip_if_exists: false
@@ -111,7 +111,7 @@ nodes:
   # Generate image prompt from narration
   describe_scene:
     type: llm
-    prompt: examples/npc/image/describe_scene
+    prompt: examples/npc/scene_describe
     state_key: scene_prompt
     temperature: 0.6
     skip_if_exists: false
