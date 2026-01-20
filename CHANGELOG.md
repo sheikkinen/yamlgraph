@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.8] - 2026-01-20
+
+### Added
+- **interrupt_output_mapping for subgraphs** (FR-006) - Expose child state during interrupts
+  - New `interrupt_output_mapping` field in subgraph node config
+  - Maps child state → parent when subgraph hits an interrupt node
+  - Uses LangGraph's internal `__pregel_send` to update parent state before interrupt propagates
+  - `output_mapping` still used for normal completion (reaches END)
+  - 3 integration tests for interrupt output mapping
+  - See [reference/subgraph-nodes.md](reference/subgraph-nodes.md#interrupt-output-mapping-fr-006)
+
 ## [0.3.7] - 2026-01-20
 
 ### Added

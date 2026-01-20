@@ -716,6 +716,8 @@ def create_subgraph_node(
 
     def subgraph_node(state: dict, config: RunnableConfig | None = None) -> dict:
         """Execute the subgraph with mapped state."""
+        from langgraph.errors import GraphInterrupt
+
         config = config or {}
 
         # Build child input from parent state
@@ -724,20 +726,38 @@ def create_subgraph_node(
         # Build child config with propagated thread ID
         child_config = _build_child_config(config, node_name)
 
-        # Invoke subgraph
-        child_output = compiled.invoke(child_input, child_config)
+        # Invoke subgraph - may raise GraphInterrupt
+        try:
+            child_output = compiled.invoke(child_input, child_config)
+            is_interrupted = "__interrupt__" in child_output
+        except GraphInterrupt:
+            # FR-006: Child hit an interrupt
+            if interrupt_output_mapping:
+                # Get child state from checkpointer
+                child_state = compiled.get_state(child_config)
+                child_output = dict(child_state.values) if child_state else {}
 
-        # Check if subgraph hit an interrupt (FR-006)
-        is_interrupted = "__interrupt__" in child_output
+                # Apply interrupt_output_mapping
+                parent_updates = _map_output_state(child_output, interrupt_output_mapping)
+                parent_updates["current_step"] = node_name
 
-        # Choose mapping based on interrupt status
+                # Use __pregel_send to update parent state before re-raising
+                # This allows the mapped state to be included in the result
+                send = config.get("configurable", {}).get("__pregel_send")
+                if send:
+                    # Convert dict to list of (key, value) tuples
+                    updates = [(k, v) for k, v in parent_updates.items()]
+                    send(updates)
+                    logger.info(f"FR-006: Subgraph {node_name} mapped state: {list(parent_updates.keys())}")
+
+            # Re-raise to pause the graph
+            raise
+
+        # Normal completion path
         if is_interrupted and interrupt_output_mapping:
-            # Apply interrupt_output_mapping when subgraph is interrupted
             parent_updates = _map_output_state(child_output, interrupt_output_mapping)
-            # Forward the interrupt marker to parent
             parent_updates["__interrupt__"] = child_output["__interrupt__"]
         else:
-            # Apply output_mapping for completion
             parent_updates = _map_output_state(child_output, output_mapping)
 
         parent_updates["current_step"] = node_name

@@ -2,7 +2,7 @@
 
 **ID:** 006  
 **Priority:** P2 - Nice to Have  
-**Status:** ✅ Implemented (v0.3.7)  
+**Status:** ✅ Implemented (v0.3.8)  
 **Effort:** 2-3 days  
 **Requested:** 2026-01-20  
 **Implemented:** 2026-01-20  

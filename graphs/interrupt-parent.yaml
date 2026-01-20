@@ -1,0 +1,37 @@
+version: "1.0"
+name: interrupt-parent
+description: Parent graph testing interrupt_output_mapping (FR-006)
+
+checkpointer:
+  type: memory
+
+state:
+  user_input: str
+  child_phase: str
+  child_data: str
+  final_result: str
+
+nodes:
+  run_child:
+    type: subgraph
+    graph: subgraphs/interrupt-child.yaml
+    input_mapping:
+      user_input: input_message
+    output_mapping:
+      final_result: extracted_data
+    interrupt_output_mapping:
+      child_phase: phase
+      child_data: extracted_data
+
+  done:
+    type: passthrough
+    output:
+      final_result: "all done"
+
+edges:
+  - from: START
+    to: run_child
+  - from: run_child
+    to: done
+  - from: done
+    to: END
