@@ -73,6 +73,41 @@ START → await_dm ──(end)→ END
 **Requirements:**
 - `REPLICATE_API_TOKEN` environment variable for image generation
 
+### Encounter Multi (`encounter-multi.yaml`)
+
+Multi-turn encounter with MULTIPLE NPCs using map nodes for parallel processing:
+
+```bash
+python examples/npc/run_multi_encounter.py
+
+# With NPC files from npc/npcs/ directory
+python examples/npc/run_multi_encounter.py --npc-dir npc/npcs/
+```
+
+**Features:**
+- Multiple NPCs in same encounter
+- Parallel processing: all NPCs perceive/decide/act simultaneously
+- Map nodes for fan-out/fan-in pattern
+- Combined turn summary weaving all NPC actions
+- Image generation showing all characters
+
+**Pipeline flow:**
+```
+START → await_dm ──(end)→ END
+            │
+            └→ perceive_all (map) → decide_all (map) → narrate_all (map)
+                                                              │
+                                                              ↓
+                   summarize → describe_scene → generate_scene_image → next_turn → await_dm
+```
+
+**Node types used:**
+- `interrupt` - await_dm (pauses for human input)
+- `map` - perceive_all, decide_all, narrate_all (parallel NPC processing)
+- `llm` - summarize, describe_scene
+- `python` - generate_scene_image (Replicate API)
+- `passthrough` - next_turn (increment counter, append history)
+
 ## Prompts
 
 All prompts are in `prompts/` using Jinja2 templates with inline schemas:
