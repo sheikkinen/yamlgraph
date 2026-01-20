@@ -40,48 +40,18 @@ yamlgraph graph run examples/npc/encounter-turn.yaml \
 START → perceive → decide → narrate → END
 ```
 
-### Encounter Loop (`encounter-loop.yaml`)
+### Encounter Multi (`encounter-multi.yaml`)
 
-Multi-turn interactive encounter with DM interrupts and image generation:
+Multi-turn encounter with multiple NPCs using map nodes for parallel processing:
 
 ```bash
 python examples/npc/run_encounter.py
-```
-
-**Features:**
-- Human-in-the-loop: pauses for DM input each turn
-- Image generation: creates scene images via Replicate API
-- Turn history: accumulates narrative summaries
-- Loop: continues until DM types 'end'
-
-**Pipeline flow:**
-```
-START → await_dm ──(end)→ END
-            │
-            └→ perceive → decide → narrate → describe_scene
-                                                   │
-                                                   ↓
-                 generate_scene_image → summarize → next_turn → await_dm
-```
-
-**Node types used:**
-- `interrupt` - await_dm (pauses for human input)
-- `llm` - perceive, decide, narrate, describe_scene, summarize
-- `python` - generate_scene_image (Replicate API)
-- `passthrough` - next_turn (increment counter, append history)
-
-**Requirements:**
-- `REPLICATE_API_TOKEN` environment variable for image generation
-
-### Encounter Multi (`encounter-multi.yaml`)
-
-Multi-turn encounter with MULTIPLE NPCs using map nodes for parallel processing:
-
-```bash
-python examples/npc/run_multi_encounter.py
 
 # With NPC files from npc/npcs/ directory
-python examples/npc/run_multi_encounter.py --npc-dir npc/npcs/
+python examples/npc/run_encounter.py --npc-dir npc/npcs/
+
+# Custom location
+python examples/npc/run_encounter.py -l "The Dragon's Lair"
 ```
 
 **Features:**
@@ -90,6 +60,7 @@ python examples/npc/run_multi_encounter.py --npc-dir npc/npcs/
 - Map nodes for fan-out/fan-in pattern
 - Combined turn summary weaving all NPC actions
 - Image generation showing all characters
+- Human-in-the-loop: pauses for DM input each turn
 
 **Pipeline flow:**
 ```
@@ -107,6 +78,9 @@ START → await_dm ──(end)→ END
 - `llm` - summarize, describe_scene
 - `python` - generate_scene_image (Replicate API)
 - `passthrough` - next_turn (increment counter, append history)
+
+**Requirements:**
+- `REPLICATE_API_TOKEN` environment variable for image generation
 
 ## Prompts
 
