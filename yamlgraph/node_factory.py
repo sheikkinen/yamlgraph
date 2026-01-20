@@ -306,6 +306,9 @@ def create_node_function(
                     output_model=output_model,
                     temperature=temperature,
                     provider=use_provider,
+                    graph_path=graph_path,
+                    prompts_dir=prompts_dir,
+                    prompts_relative=prompts_relative,
                 )
                 return result, None
             except Exception as e:
@@ -374,6 +377,9 @@ def create_node_function(
 def create_interrupt_node(
     node_name: str,
     config: dict[str, Any],
+    graph_path: Path | None = None,
+    prompts_dir: Path | None = None,
+    prompts_relative: bool = False,
 ) -> Callable[[GraphState], dict]:
     """Create an interrupt node that pauses for human input.
 
@@ -387,6 +393,9 @@ def create_interrupt_node(
             - prompt: Prompt name to generate dynamic payload
             - state_key: Where to store payload (default: "interrupt_message")
             - resume_key: Where to store resume value (default: "user_input")
+        graph_path: Path to graph file for relative prompt resolution
+        prompts_dir: Explicit prompts directory override
+        prompts_relative: If True, resolve prompts relative to graph_path
 
     Returns:
         Node function compatible with LangGraph
@@ -407,7 +416,13 @@ def create_interrupt_node(
             payload = existing_payload
         elif prompt_name:
             # First execution with prompt
-            payload = execute_prompt(prompt_name, state)
+            payload = execute_prompt(
+                prompt_name,
+                state,
+                graph_path=graph_path,
+                prompts_dir=prompts_dir,
+                prompts_relative=prompts_relative,
+            )
         elif message is not None:
             # Static message
             payload = message

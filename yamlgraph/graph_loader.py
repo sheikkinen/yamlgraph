@@ -193,6 +193,12 @@ def _compile_node(
     if node_name in config.loop_limits:
         enriched_config["loop_limit"] = config.loop_limits[node_name]
 
+    # Extract prompts path config from defaults (FR-A)
+    prompts_relative = config.defaults.get("prompts_relative", False)
+    prompts_dir = config.defaults.get("prompts_dir")
+    if prompts_dir:
+        prompts_dir = Path(prompts_dir)
+
     node_type = node_config.get("type", NodeType.LLM)
 
     if node_type == NodeType.TOOL:
@@ -218,7 +224,13 @@ def _compile_node(
         graph.add_node(node_name, node_fn)
     elif node_type == NodeType.INTERRUPT:
         # Human-in-the-loop interrupt node
-        node_fn = create_interrupt_node(node_name, enriched_config)
+        node_fn = create_interrupt_node(
+            node_name,
+            enriched_config,
+            graph_path=config.source_path,
+            prompts_dir=prompts_dir,
+            prompts_relative=prompts_relative,
+        )
         graph.add_node(node_name, node_fn)
     elif node_type == NodeType.PASSTHROUGH:
         # Simple state transformation node

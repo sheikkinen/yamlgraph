@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2026-01-20
+
+### Fixed
+- **prompts_relative bug** - Executor and node factory now correctly resolve graph-relative prompts
+  - Added `graph_path`, `prompts_dir`, `prompts_relative` params to `execute_prompt()`
+  - Added same params to `PromptExecutor.execute()` method
+  - `node_factory.create_node_function()` now passes path params to executor
+  - `create_interrupt_node()` now accepts and forwards path params
+  - Graph-relative prompts now work at runtime, not just compilation time
+  - See [feature-requests/bug-prompts-relative-executor.md](feature-requests/bug-prompts-relative-executor.md)
+
+### Added
+- 3 new unit tests for executor path resolution
+- Integration test now verifies path params are forwarded to execute_prompt
+
 ## [0.3.4] - 2026-01-20
 
 ### Fixed

@@ -1,7 +1,8 @@
 # Feature Request: JSON Extraction from LLM Output
 
 **Priority:** MEDIUM  
-**Use Case:** Structured extraction where LLMs add explanatory text
+**Use Case:** Structured extraction where LLMs add explanatory text  
+**Status:** ✅ IMPLEMENTED in v0.3.3
 
 ## Problem
 
