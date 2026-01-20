@@ -1,7 +1,8 @@
 # Feature Request: Graph-Relative Prompt Resolution
 
 **Priority:** HIGH  
-**Use Case:** Multi-questionnaire systems with per-graph prompts
+**Use Case:** Multi-questionnaire systems with per-graph prompts  
+**Status:** ✅ IMPLEMENTED in v0.3.3 (executor fix in v0.3.5)
 
 ## Problem
 

@@ -58,3 +58,118 @@ class TestFormatPrompt:
         template = "Count: {word_count}"
         result = format_prompt(template, {"word_count": 300})
         assert result == "Count: 300"
+
+
+class TestPromptExecutorGraphRelative:
+    """Tests for PromptExecutor with graph-relative prompts."""
+
+    def test_execute_with_graph_path_and_prompts_relative(self, tmp_path):
+        """Executor should resolve prompts relative to graph when configured."""
+        from pathlib import Path
+        from unittest.mock import MagicMock, patch
+
+        from yamlgraph.executor import PromptExecutor
+
+        # Create graph-relative prompt structure
+        graph_dir = tmp_path / "questionnaires" / "audit"
+        prompts_dir = graph_dir / "prompts"
+        prompts_dir.mkdir(parents=True)
+
+        # Create colocated prompt
+        prompt_file = prompts_dir / "opening.yaml"
+        prompt_file.write_text(
+            """
+system: You are an audit assistant.
+user: Generate opening for {questionnaire_name}.
+"""
+        )
+
+        graph_path = graph_dir / "graph.yaml"
+        graph_path.touch()  # Just needs to exist for path resolution
+
+        # Mock LLM to avoid actual API calls
+        mock_llm = MagicMock()
+        mock_llm.invoke.return_value = MagicMock(content="Welcome to the audit.")
+
+        executor = PromptExecutor()
+
+        with patch.object(executor, "_get_llm", return_value=mock_llm):
+            # Should find prompts/opening.yaml relative to graph_path
+            result = executor.execute(
+                prompt_name="prompts/opening",
+                variables={"questionnaire_name": "Financial Audit"},
+                graph_path=graph_path,
+                prompts_relative=True,
+            )
+
+        assert result == "Welcome to the audit."
+        mock_llm.invoke.assert_called_once()
+
+    def test_execute_with_prompts_dir_override(self, tmp_path):
+        """Executor should use explicit prompts_dir when provided."""
+        from pathlib import Path
+        from unittest.mock import MagicMock, patch
+
+        from yamlgraph.executor import PromptExecutor
+
+        # Create prompts in explicit directory
+        prompts_dir = tmp_path / "my_prompts"
+        prompts_dir.mkdir()
+
+        prompt_file = prompts_dir / "greeting.yaml"
+        prompt_file.write_text(
+            """
+system: You are helpful.
+user: Say hello to {name}.
+"""
+        )
+
+        mock_llm = MagicMock()
+        mock_llm.invoke.return_value = MagicMock(content="Hello!")
+
+        executor = PromptExecutor()
+
+        with patch.object(executor, "_get_llm", return_value=mock_llm):
+            result = executor.execute(
+                prompt_name="greeting",
+                variables={"name": "World"},
+                prompts_dir=prompts_dir,
+            )
+
+        assert result == "Hello!"
+
+    def test_execute_prompt_function_passes_path_params(self, tmp_path):
+        """execute_prompt() should accept and forward path params."""
+        from pathlib import Path
+        from unittest.mock import MagicMock, patch
+
+        from yamlgraph.executor import execute_prompt
+
+        # Create test prompt
+        prompts_dir = tmp_path / "prompts"
+        prompts_dir.mkdir()
+        (prompts_dir / "test.yaml").write_text(
+            """
+system: Test system.
+user: Test {msg}.
+"""
+        )
+
+        mock_llm = MagicMock()
+        mock_llm.invoke.return_value = MagicMock(content="OK")
+
+        with patch("yamlgraph.executor.get_executor") as mock_get:
+            mock_executor = MagicMock()
+            mock_executor.execute.return_value = "OK"
+            mock_get.return_value = mock_executor
+
+            result = execute_prompt(
+                prompt_name="test",
+                variables={"msg": "hello"},
+                prompts_dir=prompts_dir,
+            )
+
+            # Verify path params were forwarded
+            mock_executor.execute.assert_called_once()
+            call_kwargs = mock_executor.execute.call_args.kwargs
+            assert call_kwargs["prompts_dir"] == prompts_dir

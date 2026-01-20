@@ -7,6 +7,7 @@ with support for structured outputs via Pydantic models.
 import logging
 import threading
 import time
+from pathlib import Path
 from typing import TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -102,6 +103,9 @@ def execute_prompt(
     output_model: type[T] | None = None,
     temperature: float = DEFAULT_TEMPERATURE,
     provider: str | None = None,
+    graph_path: "Path | None" = None,
+    prompts_dir: "Path | None" = None,
+    prompts_relative: bool = False,
 ) -> T | str:
     """Execute a YAML prompt with optional structured output.
 
@@ -114,6 +118,9 @@ def execute_prompt(
         temperature: LLM temperature setting
         provider: LLM provider ("anthropic", "mistral", "openai").
                  Can also be set in YAML metadata or PROVIDER env var.
+        graph_path: Path to graph file for relative prompt resolution
+        prompts_dir: Explicit prompts directory override
+        prompts_relative: If True, resolve prompts relative to graph_path
 
     Returns:
         Parsed Pydantic model if output_model provided, else raw string
@@ -132,6 +139,9 @@ def execute_prompt(
         output_model=output_model,
         temperature=temperature,
         provider=provider,
+        graph_path=graph_path,
+        prompts_dir=prompts_dir,
+        prompts_relative=prompts_relative,
     )
 
 
@@ -225,6 +235,9 @@ class PromptExecutor:
         output_model: type[T] | None = None,
         temperature: float = DEFAULT_TEMPERATURE,
         provider: str | None = None,
+        graph_path: "Path | None" = None,
+        prompts_dir: "Path | None" = None,
+        prompts_relative: bool = False,
     ) -> T | str:
         """Execute a prompt using cached LLM with retry logic.
 
@@ -233,12 +246,27 @@ class PromptExecutor:
 
         Provider priority: parameter > YAML metadata > env var > default
 
+        Args:
+            prompt_name: Name of the prompt file (without .yaml)
+            variables: Variables to substitute in the template
+            output_model: Optional Pydantic model for structured output
+            temperature: LLM temperature setting
+            provider: LLM provider ("anthropic", "mistral", "openai")
+            graph_path: Path to graph file for relative prompt resolution
+            prompts_dir: Explicit prompts directory override
+            prompts_relative: If True, resolve prompts relative to graph_path
+
         Raises:
             ValueError: If required template variables are missing
         """
         variables = variables or {}
 
-        prompt_config = load_prompt(prompt_name)
+        prompt_config = load_prompt(
+            prompt_name,
+            prompts_dir=prompts_dir,
+            graph_path=graph_path,
+            prompts_relative=prompts_relative,
+        )
 
         # Validate all required variables are provided (fail fast)
         full_template = prompt_config.get("system", "") + prompt_config.get("user", "")
