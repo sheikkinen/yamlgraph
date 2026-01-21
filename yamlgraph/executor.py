@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from yamlgraph.config import (
@@ -20,81 +19,14 @@ from yamlgraph.config import (
     RETRY_BASE_DELAY,
     RETRY_MAX_DELAY,
 )
+from yamlgraph.executor_base import format_prompt, is_retryable, prepare_messages
 from yamlgraph.utils.llm_factory import create_llm
-from yamlgraph.utils.prompts import load_prompt
-from yamlgraph.utils.template import validate_variables
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
-
-# Exceptions that are retryable
-RETRYABLE_EXCEPTIONS = (
-    "RateLimitError",
-    "APIConnectionError",
-    "APITimeoutError",
-    "InternalServerError",
-    "ServiceUnavailableError",
-)
-
-
-def is_retryable(exception: Exception) -> bool:
-    """Check if an exception is retryable.
-
-    Args:
-        exception: The exception to check
-
-    Returns:
-        True if the exception should be retried
-    """
-    exc_name = type(exception).__name__
-    return exc_name in RETRYABLE_EXCEPTIONS or "rate" in exc_name.lower()
-
-
-def format_prompt(
-    template: str,
-    variables: dict,
-    state: dict | None = None,
-) -> str:
-    """Format a prompt template with variables.
-
-    Supports both simple {variable} placeholders and Jinja2 templates.
-    If the template contains Jinja2 syntax ({%, {{), uses Jinja2 rendering.
-
-    Args:
-        template: Template string with {variable} or Jinja2 placeholders
-        variables: Dictionary of variable values
-        state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
-
-    Returns:
-        Formatted string
-
-    Examples:
-        Simple format:
-            format_prompt("Hello {name}", {"name": "World"})
-
-        Jinja2 with variables:
-            format_prompt("{% for item in items %}{{ item }}{% endfor %}", {"items": [1, 2]})
-
-        Jinja2 with state:
-            format_prompt("Topic: {{ state.topic }}", {}, state={"topic": "AI"})
-    """
-    # Check for Jinja2 syntax
-    if "{%" in template or "{{" in template:
-        from jinja2 import Template
-
-        jinja_template = Template(template)
-        # Pass both variables and state to Jinja2
-        context = {"state": state or {}, **variables}
-        return jinja_template.render(**context)
-
-    # Fall back to simple format - stringify lists for compatibility
-    safe_vars = {
-        k: (", ".join(map(str, v)) if isinstance(v, list) else v)
-        for k, v in variables.items()
-    }
-    return template.format(**safe_vars)
+__all__ = ["execute_prompt", "format_prompt", "get_executor", "PromptExecutor"]
 
 
 def execute_prompt(
@@ -259,32 +191,15 @@ class PromptExecutor:
         Raises:
             ValueError: If required template variables are missing
         """
-        variables = variables or {}
-
-        prompt_config = load_prompt(
-            prompt_name,
-            prompts_dir=prompts_dir,
+        messages, resolved_provider = prepare_messages(
+            prompt_name=prompt_name,
+            variables=variables,
+            provider=provider,
             graph_path=graph_path,
+            prompts_dir=prompts_dir,
             prompts_relative=prompts_relative,
         )
 
-        # Validate all required variables are provided (fail fast)
-        full_template = prompt_config.get("system", "") + prompt_config.get("user", "")
-        validate_variables(full_template, variables, prompt_name)
-
-        # Extract provider from YAML metadata if not provided
-        if provider is None and "provider" in prompt_config:
-            provider = prompt_config["provider"]
-            logger.debug(f"Using provider from YAML metadata: {provider}")
-
-        system_text = format_prompt(prompt_config.get("system", ""), variables)
-        user_text = format_prompt(prompt_config["user"], variables)
-
-        messages = []
-        if system_text:
-            messages.append(SystemMessage(content=system_text))
-        messages.append(HumanMessage(content=user_text))
-
-        llm = self._get_llm(temperature=temperature, provider=provider)
+        llm = self._get_llm(temperature=temperature, provider=resolved_provider)
 
         return self._invoke_with_retry(llm, messages, output_model)

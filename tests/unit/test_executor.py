@@ -2,7 +2,8 @@
 
 import pytest
 
-from yamlgraph.executor import format_prompt, load_prompt
+from yamlgraph.executor_base import format_prompt
+from yamlgraph.utils.prompts import load_prompt
 
 
 class TestLoadPrompt:

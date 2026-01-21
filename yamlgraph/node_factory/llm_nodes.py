@@ -110,6 +110,7 @@ def create_node_function(
 
         # Check requirements
         if error := check_requirements(requires, state, node_name):
+            # State-level "errors" list accumulates via add reducer
             return {
                 "errors": [error],
                 "current_step": node_name,

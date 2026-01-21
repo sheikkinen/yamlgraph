@@ -36,7 +36,7 @@ async def test_execute_prompt_async_returns_string():
         patch(
             "yamlgraph.executor_async.invoke_async", new_callable=AsyncMock
         ) as mock_invoke,
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {
             "system": "You are helpful.",
@@ -64,7 +64,7 @@ async def test_execute_prompt_async_with_output_model():
         patch(
             "yamlgraph.executor_async.invoke_async", new_callable=AsyncMock
         ) as mock_invoke,
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {
             "system": "Analyze this.",
@@ -95,7 +95,7 @@ async def test_execute_prompt_async_uses_provider_from_yaml():
         patch(
             "yamlgraph.executor_async.invoke_async", new_callable=AsyncMock
         ) as mock_invoke,
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {
             "system": "Hello",

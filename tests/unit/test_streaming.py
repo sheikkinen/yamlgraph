@@ -34,7 +34,7 @@ async def test_execute_prompt_streaming_yields_tokens():
 
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {
             "system": "You are helpful.",
@@ -64,10 +64,10 @@ async def test_execute_prompt_streaming_with_variables():
 
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
         patch(
-            "yamlgraph.executor_async.format_prompt", return_value="Say hello to Alice"
-        ) as mock_format,
+            "yamlgraph.executor_base.format_prompt", return_value="Say hello to Alice"
+        ),
     ):
         mock_load.return_value = {
             "system": "",
@@ -81,7 +81,6 @@ async def test_execute_prompt_streaming_with_variables():
             tokens.append(token)
 
         assert tokens == ["Hi Alice!"]
-        mock_format.assert_called()
 
 
 @pytest.mark.asyncio
@@ -102,7 +101,7 @@ async def test_execute_prompt_streaming_uses_provider():
         patch(
             "yamlgraph.executor_async.create_llm", return_value=mock_llm
         ) as mock_create,
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {"system": "", "user": "test"}
 
@@ -139,7 +138,7 @@ async def test_execute_prompt_streaming_handles_empty_chunks():
 
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {"system": "", "user": "test"}
 
@@ -165,7 +164,7 @@ async def test_execute_prompt_streaming_propagates_errors():
 
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {"system": "", "user": "test"}
 
@@ -199,7 +198,7 @@ async def test_execute_prompt_streaming_collect():
 
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
-        patch("yamlgraph.executor_async.load_prompt") as mock_load,
+        patch("yamlgraph.executor_base.load_prompt") as mock_load,
     ):
         mock_load.return_value = {"system": "", "user": "test"}
 

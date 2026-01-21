@@ -57,7 +57,7 @@ class TestCodeReviewPrompt:
 
     def test_prompt_loads(self):
         """Prompt loads with system and user templates."""
-        from yamlgraph.executor import load_prompt
+        from yamlgraph.utils.prompts import load_prompt
 
         prompt = load_prompt("code_review")
         assert "system" in prompt

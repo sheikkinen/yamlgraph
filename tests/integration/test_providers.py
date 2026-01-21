@@ -6,8 +6,9 @@ from unittest.mock import patch
 import pytest
 from pydantic import BaseModel, Field
 
-from yamlgraph.executor import execute_prompt, load_prompt
+from yamlgraph.executor import execute_prompt
 from yamlgraph.utils.llm_factory import clear_cache
+from yamlgraph.utils.prompts import load_prompt
 
 
 class ProviderTestContent(BaseModel):

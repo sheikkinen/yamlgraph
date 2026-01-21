@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.12] - 2026-01-21
+
+### Changed
+- **DRY refactor of executor modules** - Extracted shared code to `executor_base.py`
+  - New `prepare_messages()` helper eliminates 3x duplicated prompt loading logic
+  - Shared `format_prompt()` and `is_retryable()` functions
+  - `executor.py` and `executor_async.py` now import from base module
+  - Cleaner separation of sync/async concerns
+
+### Added
+- **Documentation for error/errors design pattern**
+  - `state_builder.py` - Explains `error` (singular, overwrite) vs `errors` (plural, accumulator)
+  - `tool_nodes.py` - Clarifies nested tool result `error` is not state-level
+  - `llm_nodes.py` - Notes `errors` uses add reducer for accumulation
+
 ## [0.3.11] - 2026-01-21
 
 ### Changed

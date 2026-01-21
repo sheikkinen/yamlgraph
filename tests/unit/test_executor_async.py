@@ -62,7 +62,7 @@ class TestExecutePromptAsync:
     async def test_uses_provider_from_yaml(self):
         """Should extract provider from YAML metadata."""
         with (
-            patch("yamlgraph.executor_async.load_prompt") as mock_load,
+            patch("yamlgraph.executor_base.load_prompt") as mock_load,
             patch("yamlgraph.executor_async.invoke_async") as mock_invoke,
             patch("yamlgraph.executor_async.create_llm") as mock_create_llm,
         ):

@@ -42,9 +42,11 @@ BASE_FIELDS: dict[str, type] = {
     # Core tracking
     "thread_id": str,
     "current_step": str,
-    # Error handling - singular for current error
+    # Error handling (two patterns by design):
+    # - "error" (singular): Current/last error, simple overwrite semantics
+    # - "errors" (plural): Accumulated PipelineError list via add reducer
+    # Note: Tool results use nested {"error": ...} which is a different pattern
     "error": Any,
-    # Error handling with reducer (accumulates)
     "errors": Annotated[list, add],
     # Messages with reducer (accumulates)
     "messages": Annotated[list, add],

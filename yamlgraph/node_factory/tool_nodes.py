@@ -47,6 +47,8 @@ def create_tool_call_node(
         # Look up tool in registry
         tool_func = tools_registry.get(tool_name)
         if tool_func is None:
+            # Note: "error" here is nested inside the tool result dict (state_key),
+            # not state-level. This is the tool response structure pattern.
             return {
                 state_key: {
                     "task_id": task_id,

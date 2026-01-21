@@ -14,17 +14,15 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, TypeVar
 
-from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from yamlgraph.config import DEFAULT_TEMPERATURE
-from yamlgraph.executor import format_prompt, load_prompt
+from yamlgraph.executor_base import prepare_messages
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.llm_factory_async import invoke_async
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
-from yamlgraph.utils.template import validate_variables
 
 logger = logging.getLogger(__name__)
 
@@ -59,29 +57,14 @@ async def execute_prompt_async(
         ...     output_model=GenericReport,
         ... )
     """
-    variables = variables or {}
-
-    # Load and validate prompt (sync - file I/O is fast)
-    prompt_config = load_prompt(prompt_name)
-
-    full_template = prompt_config.get("system", "") + prompt_config.get("user", "")
-    validate_variables(full_template, variables, prompt_name)
-
-    # Extract provider from YAML metadata if not provided
-    if provider is None and "provider" in prompt_config:
-        provider = prompt_config["provider"]
-        logger.debug(f"Using provider from YAML metadata: {provider}")
-
-    system_text = format_prompt(prompt_config.get("system", ""), variables)
-    user_text = format_prompt(prompt_config["user"], variables)
-
-    messages = []
-    if system_text:
-        messages.append(SystemMessage(content=system_text))
-    messages.append(HumanMessage(content=user_text))
+    messages, resolved_provider = prepare_messages(
+        prompt_name=prompt_name,
+        variables=variables,
+        provider=provider,
+    )
 
     # Create LLM (cached via factory)
-    llm = create_llm(temperature=temperature, provider=provider)
+    llm = create_llm(temperature=temperature, provider=resolved_provider)
 
     # Invoke asynchronously
     return await invoke_async(llm, messages, output_model)
@@ -155,29 +138,14 @@ async def execute_prompt_streaming(
         ...     print(token, end="", flush=True)
         Hello, World!
     """
-    variables = variables or {}
-
-    # Load and validate prompt
-    prompt_config = load_prompt(prompt_name)
-
-    full_template = prompt_config.get("system", "") + prompt_config.get("user", "")
-    validate_variables(full_template, variables, prompt_name)
-
-    # Extract provider from YAML metadata if not provided
-    if provider is None and "provider" in prompt_config:
-        provider = prompt_config["provider"]
-        logger.debug(f"Using provider from YAML metadata: {provider}")
-
-    system_text = format_prompt(prompt_config.get("system", ""), variables)
-    user_text = format_prompt(prompt_config["user"], variables)
-
-    messages = []
-    if system_text:
-        messages.append(SystemMessage(content=system_text))
-    messages.append(HumanMessage(content=user_text))
+    messages, resolved_provider = prepare_messages(
+        prompt_name=prompt_name,
+        variables=variables,
+        provider=provider,
+    )
 
     # Create LLM (cached via factory)
-    llm = create_llm(temperature=temperature, provider=provider)
+    llm = create_llm(temperature=temperature, provider=resolved_provider)
 
     # Stream tokens
     async for chunk in llm.astream(messages):
