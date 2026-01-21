@@ -17,10 +17,10 @@ Limitations:
 
 from __future__ import annotations
 
-import asyncio
 import base64
+from collections.abc import Iterator
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Iterator
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import orjson
