@@ -21,7 +21,7 @@ run_demo() {
     echo -e "${GREEN}▶ Running: ${name}${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-    python -m yamlgraph.cli graph run "$graph" "${vars[@]}"
+    .venv/bin/python -m yamlgraph.cli graph run "$graph" "${vars[@]}"
 
     echo -e "${GREEN}✓ ${name} completed${NC}"
 }
@@ -69,7 +69,7 @@ demo_analysis() {
 demo_interview() {
     echo -e "${YELLOW}Note: Interview demo requires interactive input${NC}"
     echo -e "${YELLOW}Running via dedicated script...${NC}"
-    python scripts/run_interview_demo.py
+    .venv/bin/python scripts/run_interview_demo.py
 }
 
 demo_brainstorm() {
