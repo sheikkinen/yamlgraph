@@ -176,3 +176,155 @@ class TestResolveTemplate:
 
         state = {"draft": Draft(text="Content")}
         assert resolve_template("{state.draft.text}", state) == "Content"
+
+
+class TestArithmeticExpressions:
+    """Tests for arithmetic expressions in resolve_template."""
+
+    def test_addition_with_literal(self):
+        """Should handle {state.counter + 1}."""
+        state = {"counter": 5}
+        result = resolve_template("{state.counter + 1}", state)
+        assert result == 6
+
+    def test_subtraction_with_literal(self):
+        """Should handle {state.value - 2}."""
+        state = {"value": 10}
+        result = resolve_template("{state.value - 2}", state)
+        assert result == 8
+
+    def test_multiplication_with_literal(self):
+        """Should handle {state.value * 3}."""
+        state = {"value": 4}
+        result = resolve_template("{state.value * 3}", state)
+        assert result == 12
+
+    def test_division_with_literal(self):
+        """Should handle {state.value / 2}."""
+        state = {"value": 10}
+        result = resolve_template("{state.value / 2}", state)
+        assert result == 5.0
+
+    def test_addition_with_state_reference(self):
+        """Should handle {state.a + state.b}."""
+        state = {"a": 3, "b": 7}
+        result = resolve_template("{state.a + state.b}", state)
+        assert result == 10
+
+    def test_list_concatenation_with_list(self):
+        """Should handle {state.history + [state.item]}."""
+        state = {"history": ["a", "b"], "item": "c"}
+        result = resolve_template("{state.history + [state.item]}", state)
+        assert result == ["a", "b", "c"]
+
+    def test_list_addition_single_item(self):
+        """Should handle adding single item to list."""
+        from yamlgraph.utils.expressions import _apply_operator
+
+        result = _apply_operator(["a", "b"], "+", "c")
+        assert result == ["a", "b", "c"]
+
+    def test_missing_state_returns_none(self):
+        """Should return None if state path missing."""
+        state = {"other": 1}
+        result = resolve_template("{state.missing + 1}", state)
+        assert result is None
+
+
+class TestParseOperand:
+    """Tests for _parse_operand helper."""
+
+    def test_parse_list_literal_with_state_ref(self):
+        """Should parse [state.item] to list."""
+        from yamlgraph.utils.expressions import _parse_operand
+
+        state = {"item": "value"}
+        result = _parse_operand("[state.item]", state)
+        assert result == ["value"]
+
+    def test_parse_list_literal_with_literal(self):
+        """Should parse literal value in list."""
+        from yamlgraph.utils.expressions import _parse_operand
+
+        result = _parse_operand("[42]", {})
+        assert result == [42]
+
+    def test_parse_dict_literal_with_state_ref(self):
+        """Should parse dict with state reference."""
+        from yamlgraph.utils.expressions import _parse_operand
+
+        state = {"name": "test"}
+        result = _parse_operand("{'key': state.name}", state)
+        assert result == {"key": "test"}
+
+    def test_parse_dict_literal_with_literal(self):
+        """Should parse dict with literal value."""
+        from yamlgraph.utils.expressions import _parse_operand
+
+        result = _parse_operand("{'count': 5}", {})
+        assert result == {"count": 5}
+
+
+class TestParseLiteral:
+    """Tests for _parse_literal helper."""
+
+    def test_parse_true(self):
+        """Should parse 'true' as True."""
+        from yamlgraph.utils.expressions import _parse_literal
+
+        assert _parse_literal("true") is True
+        assert _parse_literal("True") is True
+        assert _parse_literal("TRUE") is True
+
+    def test_parse_false(self):
+        """Should parse 'false' as False."""
+        from yamlgraph.utils.expressions import _parse_literal
+
+        assert _parse_literal("false") is False
+        assert _parse_literal("False") is False
+
+    def test_parse_null(self):
+        """Should parse 'null' and 'none' as None."""
+        from yamlgraph.utils.expressions import _parse_literal
+
+        assert _parse_literal("null") is None
+        assert _parse_literal("none") is None
+        assert _parse_literal("None") is None
+
+    def test_parse_float(self):
+        """Should parse float strings."""
+        from yamlgraph.utils.expressions import _parse_literal
+
+        assert _parse_literal("3.14") == 3.14
+        assert _parse_literal("0.5") == 0.5
+
+    def test_parse_int(self):
+        """Should parse integer strings."""
+        from yamlgraph.utils.expressions import _parse_literal
+
+        assert _parse_literal("42") == 42
+        assert _parse_literal("-10") == -10
+
+    def test_parse_quoted_string(self):
+        """Should strip quotes from strings."""
+        from yamlgraph.utils.expressions import _parse_literal
+
+        assert _parse_literal('"hello"') == "hello"
+        assert _parse_literal("'world'") == "world"
+
+    def test_parse_unquoted_string(self):
+        """Should return unquoted non-numeric strings as-is."""
+        from yamlgraph.utils.expressions import _parse_literal
+
+        assert _parse_literal("hello") == "hello"
+
+
+class TestApplyOperator:
+    """Tests for _apply_operator helper."""
+
+    def test_unknown_operator_raises(self):
+        """Should raise for unknown operator."""
+        from yamlgraph.utils.expressions import _apply_operator
+
+        with pytest.raises(ValueError, match="Unknown operator"):
+            _apply_operator(1, "%", 2)

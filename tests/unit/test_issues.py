@@ -20,7 +20,7 @@ from yamlgraph.models import create_initial_state
 class TestResumeStartFromParameter:
     """Issue 1: Resume should skip nodes whose output already exists."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_resume_from_analyze_skips_generate(self, mock_execute):
         """When state has 'generated', generate node should be skipped.
 
@@ -56,7 +56,7 @@ class TestResumeStartFromParameter:
         # Original generated content should be preserved
         assert result["generated"].title == "Already Generated"
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_resume_from_summarize_skips_generate_and_analyze(self, mock_execute):
         """When state has 'generated' and 'analysis', only summarize runs."""
         state = create_initial_state(topic="test", thread_id="issue1b")

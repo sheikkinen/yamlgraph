@@ -8,11 +8,8 @@ from unittest.mock import patch
 import pytest
 
 from tests.conftest import FixtureGeneratedContent
-from yamlgraph.node_factory import (
-    create_node_function,
-    resolve_class,
-    resolve_template,
-)
+from yamlgraph.node_factory import create_node_function, resolve_class
+from yamlgraph.utils.expressions import resolve_template
 
 # =============================================================================
 # Fixtures
@@ -150,7 +147,7 @@ class TestCreateNodeFunction:
         )
 
         with patch(
-            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=mock_result
         ) as mock:
             node_fn = create_node_function(
                 "generate", node_config, {"provider": "mistral"}
@@ -192,7 +189,8 @@ class TestCreateNodeFunction:
         }
 
         with patch(
-            "yamlgraph.node_factory.execute_prompt", side_effect=ValueError("API Error")
+            "yamlgraph.node_factory.llm_nodes.execute_prompt",
+            side_effect=ValueError("API Error"),
         ):
             node_fn = create_node_function("generate", node_config, {})
             result = node_fn(sample_state)
@@ -216,7 +214,7 @@ class TestCreateNodeFunction:
         )
 
         with patch(
-            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=mock_result
         ) as mock:
             node_fn = create_node_function("generate", node_config, defaults)
             node_fn(sample_state)
@@ -251,7 +249,7 @@ class TestCreateNodeFunction:
         )
 
         with patch(
-            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=mock_result
         ) as mock:
             node_fn = create_node_function(
                 "generate_opening",
@@ -288,7 +286,7 @@ class TestCreateNodeFunction:
         )
 
         with patch(
-            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=mock_result
         ) as mock:
             node_fn = create_node_function(
                 "greet",
@@ -311,14 +309,14 @@ class TestCreateNodeFunction:
         }
 
         # Simulate LLM returning JSON in markdown
-        mock_result = '''```json
+        mock_result = """```json
 {"name": "test", "value": 42}
 ```
 
 Reasoning: I extracted the name and value.
-'''
+"""
         with patch(
-            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=mock_result
         ):
             node_fn = create_node_function("extract", node_config, {})
             result = node_fn(sample_state)
@@ -339,7 +337,7 @@ Reasoning: I extracted the name and value.
         mock_result = '{"key": "value"}'
 
         with patch(
-            "yamlgraph.node_factory.execute_prompt", return_value=mock_result
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=mock_result
         ):
             node_fn = create_node_function("raw_node", node_config, {})
             result = node_fn(sample_state)

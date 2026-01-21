@@ -130,7 +130,9 @@ class TestSubgraphIntegration:
                 return "final text"
             return f"mocked response for {prompt_name}"
 
-        with patch("yamlgraph.node_factory.execute_prompt", side_effect=mock_execute):
+        with patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=mock_execute
+        ):
             config = load_graph_config(parent_graph)
             graph = compile_graph(config)
             compiled = graph.compile()
@@ -164,7 +166,9 @@ class TestSubgraphIntegration:
                 return "FINAL"
             return "mock"
 
-        with patch("yamlgraph.node_factory.execute_prompt", side_effect=mock_execute):
+        with patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=mock_execute
+        ):
             config = load_graph_config(parent_graph)
             graph = compile_graph(config)
             compiled = graph.compile()
@@ -280,7 +284,9 @@ edges:
             call_sequence.append(prompt_name)
             return f"result from {prompt_name}"
 
-        with patch("yamlgraph.node_factory.execute_prompt", side_effect=mock_execute):
+        with patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=mock_execute
+        ):
             from yamlgraph.graph_loader import compile_graph, load_graph_config
 
             config = load_graph_config(root)

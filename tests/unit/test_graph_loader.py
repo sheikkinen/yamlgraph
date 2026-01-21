@@ -239,7 +239,9 @@ class TestLoadAndCompile:
             tags=[],
         )
 
-        with patch("yamlgraph.node_factory.execute_prompt", return_value=mock_result):
+        with patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=mock_result
+        ):
             graph = load_and_compile(sample_yaml_file)
             compiled = graph.compile()
 

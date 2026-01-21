@@ -92,7 +92,7 @@ class TestCreateInterruptNode:
         # Simulate resume: state already has the payload
         state = {"pending_question": "Previously generated question"}
 
-        with patch("yamlgraph.node_factory.execute_prompt") as mock_prompt:
+        with patch("yamlgraph.executor.execute_prompt") as mock_prompt:
             result = node_fn(state)
 
             # execute_prompt should NOT be called (idempotency)
@@ -103,7 +103,7 @@ class TestCreateInterruptNode:
             assert result["user_response"] == "resumed_value"
 
     @patch("langgraph.types.interrupt")
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.executor.execute_prompt")
     def test_interrupt_node_with_prompt_calls_execute_prompt(
         self, mock_execute_prompt, mock_interrupt
     ):

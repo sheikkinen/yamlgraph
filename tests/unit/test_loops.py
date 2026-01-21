@@ -167,7 +167,7 @@ class TestLoopTracking:
             "state_key": "result",
         }
 
-        with patch("yamlgraph.node_factory.execute_prompt") as mock_execute:
+        with patch("yamlgraph.node_factory.llm_nodes.execute_prompt") as mock_execute:
             mock_execute.return_value = "test result"
 
             node_fn = create_node_function("critique", node_config, {})
@@ -237,7 +237,7 @@ class TestLoopLimits:
             "loop_limit": 3,  # Node-level limit
         }
 
-        with patch("yamlgraph.node_factory.execute_prompt") as mock_execute:
+        with patch("yamlgraph.node_factory.llm_nodes.execute_prompt") as mock_execute:
             mock_execute.return_value = "test result"
 
             node_fn = create_node_function("critique", node_config, {})

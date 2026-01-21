@@ -140,7 +140,7 @@ class TestRouterNodeParsing:
 class TestRouterNodeFunction:
     """Tests for router node execution."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_router_returns_route_in_state(self, mock_execute):
         """Router node adds _route to state based on classification."""
         mock_classification = MagicMock()
@@ -167,7 +167,7 @@ class TestRouterNodeFunction:
         assert result.get("_route") == "respond_positive"
         assert "classification" in result
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_router_uses_default_route_for_unknown(self, mock_execute):
         """Router uses default_route when tone not in routes."""
         mock_classification = MagicMock()
@@ -228,7 +228,7 @@ class TestConditionalEdges:
         assert conditional_edge["type"] == "conditional"
         assert conditional_edge["to"] == ["node_a", "node_b"]
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_graph_routes_to_correct_node(self, mock_execute):
         """Compiled graph routes based on _route in state."""
         # Mock classifier returns "positive"

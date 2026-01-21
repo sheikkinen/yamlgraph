@@ -10,6 +10,40 @@ import json
 import re
 
 
+def find_balanced_json(text: str, start_char: str, end_char: str) -> str | None:
+    """Find first balanced JSON structure with given delimiters.
+
+    Scans for matching open/close brackets to extract nested JSON.
+
+    Args:
+        text: Text to search
+        start_char: Opening bracket ('{' or '[')
+        end_char: Closing bracket ('}' or ']')
+
+    Returns:
+        Extracted JSON string if found and valid, else None
+    """
+    start_idx = text.find(start_char)
+    if start_idx == -1:
+        return None
+
+    depth = 0
+    for i, c in enumerate(text[start_idx:], start=start_idx):
+        if c == start_char:
+            depth += 1
+        elif c == end_char:
+            depth -= 1
+            if depth == 0:
+                candidate = text[start_idx : i + 1]
+                try:
+                    json.loads(candidate)  # Validate it's valid JSON
+                    return candidate
+                except json.JSONDecodeError:
+                    return None  # Found balanced but invalid JSON
+
+    return None  # Unbalanced brackets
+
+
 def extract_json(text: str) -> dict | list | str:
     """Extract JSON from LLM response.
 
@@ -77,28 +111,13 @@ def extract_json(text: str) -> dict | list | str:
                 continue
 
     # 5. Try nested structures (greedy, last resort)
-    # Find balanced braces manually
     for start_char, end_char in [("{", "}"), ("[", "]")]:
-        start_idx = text.find(start_char)
-        if start_idx == -1:
-            continue
-
-        # Find matching closing bracket
-        depth = 0
-        for i, c in enumerate(text[start_idx:], start=start_idx):
-            if c == start_char:
-                depth += 1
-            elif c == end_char:
-                depth -= 1
-                if depth == 0:
-                    candidate = text[start_idx : i + 1]
-                    try:
-                        return json.loads(candidate)
-                    except json.JSONDecodeError:
-                        break  # Try next start position
+        candidate = find_balanced_json(text, start_char, end_char)
+        if candidate:
+            return json.loads(candidate)
 
     # 6. Return original text
     return text
 
 
-__all__ = ["extract_json"]
+__all__ = ["extract_json", "find_balanced_json"]

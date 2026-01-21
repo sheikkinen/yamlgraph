@@ -4,7 +4,10 @@ TDD tests for add-simple-redis-checkpointer feature.
 Tests the plain Redis checkpointer that works without Redis Stack.
 """
 
-from unittest.mock import AsyncMock
+import base64
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock
+from uuid import UUID
 
 import pytest
 
@@ -230,3 +233,296 @@ class TestSimpleRedisCheckpointerSerialization:
 
         assert result is not None
         assert result.checkpoint["id"] == "cp-123"
+
+
+class TestSerializationHelpers:
+    """Test _serialize_value and _deserialize_value functions."""
+
+    def test_serialize_uuid(self):
+        """Should serialize UUID to dict with __type__."""
+        from yamlgraph.storage.simple_redis import _serialize_value
+
+        uuid = UUID("12345678-1234-5678-1234-567812345678")
+        result = _serialize_value(uuid)
+        assert result == {
+            "__type__": "uuid",
+            "value": "12345678-1234-5678-1234-567812345678",
+        }
+
+    def test_serialize_datetime(self):
+        """Should serialize datetime to ISO format."""
+        from yamlgraph.storage.simple_redis import _serialize_value
+
+        dt = datetime(2026, 1, 21, 12, 30, 45)
+        result = _serialize_value(dt)
+        assert result == {"__type__": "datetime", "value": "2026-01-21T12:30:45"}
+
+    def test_serialize_bytes(self):
+        """Should serialize bytes to base64."""
+        from yamlgraph.storage.simple_redis import _serialize_value
+
+        data = b"hello world"
+        result = _serialize_value(data)
+        assert result["__type__"] == "bytes"
+        assert base64.b64decode(result["value"]) == b"hello world"
+
+    def test_serialize_unknown_type_raises(self):
+        """Should raise TypeError for unknown types."""
+        from yamlgraph.storage.simple_redis import _serialize_value
+
+        class CustomClass:
+            pass
+
+        with pytest.raises(TypeError, match="Cannot serialize"):
+            _serialize_value(CustomClass())
+
+    def test_deserialize_uuid(self):
+        """Should deserialize UUID from dict."""
+        from yamlgraph.storage.simple_redis import _deserialize_value
+
+        data = {"__type__": "uuid", "value": "12345678-1234-5678-1234-567812345678"}
+        result = _deserialize_value(data)
+        assert result == UUID("12345678-1234-5678-1234-567812345678")
+
+    def test_deserialize_datetime(self):
+        """Should deserialize datetime from ISO format."""
+        from yamlgraph.storage.simple_redis import _deserialize_value
+
+        data = {"__type__": "datetime", "value": "2026-01-21T12:30:45"}
+        result = _deserialize_value(data)
+        assert result == datetime(2026, 1, 21, 12, 30, 45)
+
+    def test_deserialize_bytes(self):
+        """Should deserialize bytes from base64."""
+        from yamlgraph.storage.simple_redis import _deserialize_value
+
+        encoded = base64.b64encode(b"hello world").decode()
+        data = {"__type__": "bytes", "value": encoded}
+        result = _deserialize_value(data)
+        assert result == b"hello world"
+
+    def test_deserialize_regular_dict_unchanged(self):
+        """Should return regular dicts unchanged."""
+        from yamlgraph.storage.simple_redis import _deserialize_value
+
+        data = {"name": "test", "value": 123}
+        result = _deserialize_value(data)
+        assert result == {"name": "test", "value": 123}
+
+
+class TestDeepDeserialize:
+    """Test _deep_deserialize function."""
+
+    def test_deep_deserialize_nested_uuid(self):
+        """Should deserialize nested UUIDs."""
+        from yamlgraph.storage.simple_redis import _deep_deserialize
+
+        data = {
+            "checkpoint": {
+                "id": {
+                    "__type__": "uuid",
+                    "value": "12345678-1234-5678-1234-567812345678",
+                },
+                "name": "test",
+            }
+        }
+        result = _deep_deserialize(data)
+        assert result["checkpoint"]["id"] == UUID(
+            "12345678-1234-5678-1234-567812345678"
+        )
+        assert result["checkpoint"]["name"] == "test"
+
+    def test_deep_deserialize_list_with_uuids(self):
+        """Should deserialize UUIDs in lists."""
+        from yamlgraph.storage.simple_redis import _deep_deserialize
+
+        data = [
+            {"__type__": "uuid", "value": "12345678-1234-5678-1234-567812345678"},
+            {"__type__": "datetime", "value": "2026-01-21T12:00:00"},
+        ]
+        result = _deep_deserialize(data)
+        assert result[0] == UUID("12345678-1234-5678-1234-567812345678")
+        assert result[1] == datetime(2026, 1, 21, 12, 0, 0)
+
+    def test_deep_deserialize_primitive(self):
+        """Should return primitives unchanged."""
+        from yamlgraph.storage.simple_redis import _deep_deserialize
+
+        assert _deep_deserialize("hello") == "hello"
+        assert _deep_deserialize(123) == 123
+        assert _deep_deserialize(None) is None
+
+
+class TestSyncMethods:
+    """Test sync methods with mocked Redis client."""
+
+    def test_put_without_ttl(self):
+        """Should use set() when no TTL configured."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = MagicMock()
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._sync_client = mock_client
+
+        config = {"configurable": {"thread_id": "test-thread"}}
+        checkpoint = {"v": 1, "id": "cp-123", "ts": "2026-01-21T00:00:00Z"}
+        metadata = {"source": "test"}
+
+        saver.put(config, checkpoint, metadata, {})
+
+        mock_client.set.assert_called_once()
+        mock_client.setex.assert_not_called()
+
+    def test_put_with_ttl(self):
+        """Should use setex() when TTL configured."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = MagicMock()
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379", ttl=3600)
+        saver._sync_client = mock_client
+
+        config = {"configurable": {"thread_id": "test-thread"}}
+        checkpoint = {"v": 1, "id": "cp-123", "ts": "2026-01-21T00:00:00Z"}
+        metadata = {"source": "test"}
+
+        saver.put(config, checkpoint, metadata, {})
+
+        mock_client.setex.assert_called_once()
+        # First arg is key, second is TTL, third is data
+        call_args = mock_client.setex.call_args[0]
+        assert call_args[1] == 3600
+
+    def test_get_tuple_returns_none_for_missing(self):
+        """Should return None when key not found."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = None
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._sync_client = mock_client
+
+        config = {"configurable": {"thread_id": "test-thread"}}
+        result = saver.get_tuple(config)
+
+        assert result is None
+
+    def test_get_tuple_deserializes_data(self):
+        """Should deserialize stored checkpoint."""
+        import orjson
+
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        stored = {
+            "checkpoint": {"v": 1, "id": "cp-123"},
+            "metadata": {"source": "test"},
+            "parent_config": None,
+        }
+        mock_client = MagicMock()
+        mock_client.get.return_value = orjson.dumps(stored)
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._sync_client = mock_client
+
+        config = {"configurable": {"thread_id": "test-thread"}}
+        result = saver.get_tuple(config)
+
+        assert result is not None
+        assert result.checkpoint["id"] == "cp-123"
+
+    def test_list_with_limit(self):
+        """Should respect limit parameter."""
+        import orjson
+
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        stored = {
+            "checkpoint": {"v": 1, "id": "cp-123"},
+            "metadata": {},
+            "parent_config": {},
+        }
+        mock_client = MagicMock()
+        mock_client.scan_iter.return_value = iter(["key1", "key2", "key3"])
+        mock_client.get.return_value = orjson.dumps(stored)
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._sync_client = mock_client
+
+        config = {"configurable": {"thread_id": "test"}}
+        results = list(saver.list(config, limit=2))
+
+        assert len(results) == 2
+
+    def test_list_with_thread_filter(self):
+        """Should filter by thread_id in pattern."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = MagicMock()
+        mock_client.scan_iter.return_value = iter([])
+        saver = SimpleRedisCheckpointer(
+            redis_url="redis://localhost:6379", key_prefix="lg:"
+        )
+        saver._sync_client = mock_client
+
+        config = {"configurable": {"thread_id": "my-thread"}}
+        list(saver.list(config))
+
+        # Should use thread-specific pattern
+        mock_client.scan_iter.assert_called_once()
+        call_kwargs = mock_client.scan_iter.call_args[1]
+        assert call_kwargs["match"] == "lg:my-thread:*"
+
+
+class TestAsyncMethodsWithTTL:
+    """Test async methods with TTL."""
+
+    @pytest.mark.asyncio
+    async def test_aput_with_ttl(self):
+        """Should use setex() when TTL configured."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = AsyncMock()
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379", ttl=7200)
+        saver._client = mock_client
+
+        config = {"configurable": {"thread_id": "test-thread"}}
+        checkpoint = {"v": 1, "id": "cp-123"}
+        metadata = {}
+
+        await saver.aput(config, checkpoint, metadata, {})
+
+        mock_client.setex.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_aget_tuple_returns_none_for_missing(self):
+        """Should return None when key not found."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = AsyncMock()
+        mock_client.get.return_value = None
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._client = mock_client
+
+        config = {"configurable": {"thread_id": "test-thread"}}
+        result = await saver.aget_tuple(config)
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_aclose_closes_client(self):
+        """Should close Redis client on aclose()."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = AsyncMock()
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._client = mock_client
+
+        await saver.aclose()
+
+        mock_client.close.assert_called_once()
+        assert saver._client is None
+
+    @pytest.mark.asyncio
+    async def test_aclose_noop_if_no_client(self):
+        """Should not error if client not initialized."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        await saver.aclose()  # Should not raise

@@ -105,7 +105,7 @@ class TestOnErrorConfigParsing:
 class TestOnErrorSkip:
     """Tests for on_error: skip behavior."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_skip_returns_empty_on_failure(self, mock_execute):
         """Node with on_error: skip returns empty dict on failure."""
         mock_execute.side_effect = Exception("LLM failed")
@@ -123,7 +123,7 @@ class TestOnErrorSkip:
         assert "error" not in result
         assert result.get("current_step") == "generate"
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_skip_logs_warning(self, mock_execute):
         """Node with on_error: skip logs a warning."""
         mock_execute.side_effect = Exception("LLM failed")
@@ -148,7 +148,7 @@ class TestOnErrorSkip:
 class TestOnErrorRetry:
     """Tests for on_error: retry behavior."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_retry_uses_node_max_retries(self, mock_execute):
         """Node uses its own max_retries, not global."""
         # Fail first 2 times, succeed on 3rd
@@ -171,7 +171,7 @@ class TestOnErrorRetry:
         assert mock_execute.call_count == 3
         assert "generated" in result
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_retry_exhausted_returns_error(self, mock_execute):
         """After max_retries exhausted, returns error."""
         mock_execute.side_effect = Exception("Always fails")
@@ -200,7 +200,7 @@ class TestOnErrorRetry:
 class TestOnErrorFail:
     """Tests for on_error: fail behavior."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_fail_raises_exception(self, mock_execute):
         """Node with on_error: fail raises exception."""
         mock_execute.side_effect = Exception("LLM failed")
@@ -224,7 +224,7 @@ class TestOnErrorFail:
 class TestOnErrorFallback:
     """Tests for on_error: fallback behavior."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_fallback_tries_alternate_provider(self, mock_execute):
         """Node tries fallback provider on primary failure."""
         # First call (mistral) fails, second call (anthropic) succeeds
@@ -250,7 +250,7 @@ class TestOnErrorFallback:
         assert second_call.kwargs.get("provider") == "anthropic"
         assert "generated" in result
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_all_providers_fail_returns_error(self, mock_execute):
         """When all providers fail, returns error with all attempts."""
         mock_execute.side_effect = Exception("All fail")
@@ -279,7 +279,7 @@ class TestOnErrorFallback:
 class TestDefaultOnError:
     """Tests for default error behavior (no on_error specified)."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_default_behavior_returns_error(self, mock_execute):
         """Without on_error config, current behavior returns error in state."""
         mock_execute.side_effect = Exception("LLM failed")

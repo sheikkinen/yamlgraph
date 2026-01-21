@@ -10,7 +10,7 @@ from yamlgraph.models import create_initial_state
 class TestResumeFromAnalyze:
     """Tests for resuming pipeline with existing generated content."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_resume_with_generated_skips_generate(self, mock_execute):
         """Should skip generate when generated content exists."""
         # Create state with generated content
@@ -44,7 +44,7 @@ class TestResumeFromAnalyze:
 class TestResumeFromSummarize:
     """Tests for resuming pipeline with existing analysis."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_resume_with_analysis_skips_generate_and_analyze(self, mock_execute):
         """Should skip generate and analyze when both exist."""
         # Create state with generated content and analysis

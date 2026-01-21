@@ -1,0 +1,72 @@
+"""Streaming node factory.
+
+Creates LangGraph nodes that stream LLM output.
+"""
+
+import logging
+from collections.abc import AsyncIterator, Callable
+from typing import Any
+
+from yamlgraph.node_factory.base import GraphState
+
+logger = logging.getLogger(__name__)
+
+
+def create_streaming_node(
+    node_name: str,
+    node_config: dict[str, Any],
+) -> Callable[[GraphState], AsyncIterator[str]]:
+    """Create a streaming node that yields tokens.
+
+    Streaming nodes are async generators that yield tokens as they
+    are produced by the LLM. They do not support structured output.
+
+    Args:
+        node_name: Name of the node
+        node_config: Node configuration with:
+            - prompt: Prompt name to execute
+            - state_key: Where to store final result (optional)
+            - on_token: Optional callback function for each token
+            - provider: LLM provider
+            - temperature: LLM temperature
+
+    Returns:
+        Async generator function compatible with streaming execution
+    """
+    from yamlgraph.executor_async import execute_prompt_streaming
+    from yamlgraph.utils.expressions import resolve_template
+
+    prompt_name = node_config.get("prompt")
+    variable_templates = node_config.get("variables", {})
+    provider = node_config.get("provider")
+    temperature = node_config.get("temperature", 0.7)
+    on_token = node_config.get("on_token")
+
+    async def streaming_node(state: dict) -> AsyncIterator[str]:
+        # Resolve variables from templates OR use state directly
+        if variable_templates:
+            variables = {}
+            for key, template in variable_templates.items():
+                resolved = resolve_template(template, state)
+                # Preserve original types (lists, dicts) for Jinja2 templates
+                variables[key] = resolved
+        else:
+            # No explicit variable mapping - pass state as variables
+            variables = {
+                k: v
+                for k, v in state.items()
+                if not k.startswith("_") and v is not None
+            }
+
+        async for token in execute_prompt_streaming(
+            prompt_name,
+            variables=variables,
+            provider=provider,
+            temperature=temperature,
+        ):
+            if on_token:
+                on_token(token)
+            yield token
+
+    streaming_node.__name__ = f"{node_name}_streaming"
+    return streaming_node

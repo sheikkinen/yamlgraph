@@ -130,7 +130,7 @@ class TestResolvePromptPath:
         (prompt_dir / "nested").mkdir()
         (prompt_dir / "nested" / "deep.yaml").write_text("name: deep")
 
-        from yamlgraph.node_factory import resolve_prompt_path
+        from yamlgraph.utils.prompts import resolve_prompt_path
 
         # Simple prompt - now returns Path object
         path = resolve_prompt_path("simple", prompt_dir)
@@ -145,7 +145,7 @@ class TestResolvePromptPath:
         prompt_dir = tmp_path / "prompts"
         prompt_dir.mkdir()
 
-        from yamlgraph.node_factory import resolve_prompt_path
+        from yamlgraph.utils.prompts import resolve_prompt_path
 
         with pytest.raises(FileNotFoundError):
             resolve_prompt_path("nonexistent", prompt_dir)

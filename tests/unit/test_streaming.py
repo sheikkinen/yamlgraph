@@ -65,7 +65,9 @@ async def test_execute_prompt_streaming_with_variables():
     with (
         patch("yamlgraph.executor_async.create_llm", return_value=mock_llm),
         patch("yamlgraph.executor_async.load_prompt") as mock_load,
-        patch("yamlgraph.executor_async.format_prompt", return_value="Say hello to Alice") as mock_format,
+        patch(
+            "yamlgraph.executor_async.format_prompt", return_value="Say hello to Alice"
+        ) as mock_format,
     ):
         mock_load.return_value = {
             "system": "",
@@ -73,7 +75,9 @@ async def test_execute_prompt_streaming_with_variables():
         }
 
         tokens = []
-        async for token in execute_prompt_streaming("greet", variables={"name": "Alice"}):
+        async for token in execute_prompt_streaming(
+            "greet", variables={"name": "Alice"}
+        ):
             tokens.append(token)
 
         assert tokens == ["Hi Alice!"]
@@ -95,12 +99,16 @@ async def test_execute_prompt_streaming_uses_provider():
     mock_llm.astream = mock_astream
 
     with (
-        patch("yamlgraph.executor_async.create_llm", return_value=mock_llm) as mock_create,
+        patch(
+            "yamlgraph.executor_async.create_llm", return_value=mock_llm
+        ) as mock_create,
         patch("yamlgraph.executor_async.load_prompt") as mock_load,
     ):
         mock_load.return_value = {"system": "", "user": "test"}
 
-        async for _ in execute_prompt_streaming("test", variables={}, provider="openai"):
+        async for _ in execute_prompt_streaming(
+            "test", variables={}, provider="openai"
+        ):
             pass
 
         mock_create.assert_called_once()
@@ -196,7 +204,9 @@ async def test_execute_prompt_streaming_collect():
         mock_load.return_value = {"system": "", "user": "test"}
 
         # Collect all tokens
-        result = "".join([token async for token in execute_prompt_streaming("test", {})])
+        result = "".join(
+            [token async for token in execute_prompt_streaming("test", {})]
+        )
 
         assert result == "The quick brown fox"
 
@@ -276,7 +286,7 @@ def test_node_config_stream_true_creates_streaming_node():
         "stream": True,
     }
 
-    with patch("yamlgraph.node_factory.create_streaming_node") as mock_create:
+    with patch("yamlgraph.node_factory.streaming.create_streaming_node") as mock_create:
         mock_create.return_value = MagicMock()
 
         # This should detect stream: true and use create_streaming_node
@@ -296,8 +306,10 @@ def test_node_config_stream_false_creates_regular_node():
     }
 
     with (
-        patch("yamlgraph.node_factory.create_streaming_node") as mock_streaming,
-        patch("yamlgraph.node_factory.execute_prompt") as mock_execute,
+        patch(
+            "yamlgraph.node_factory.streaming.create_streaming_node"
+        ) as mock_streaming,
+        patch("yamlgraph.node_factory.llm_nodes.execute_prompt") as mock_execute,
     ):
         mock_execute.return_value = "result"
 

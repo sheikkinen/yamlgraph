@@ -51,7 +51,7 @@ class TestBuildResumeGraph:
 class TestRunPipeline:
     """Tests for run_pipeline function with mocked LLM."""
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_full_pipeline_success(self, mock_execute):
         """Full pipeline should execute all steps."""
         # Setup mock returns for each call
@@ -78,7 +78,7 @@ class TestRunPipeline:
         assert result["final_summary"] == mock_summary
         assert mock_execute.call_count == 3
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_pipeline_stops_on_generate_error(self, mock_execute):
         """Pipeline should stop and raise exception on generate failure."""
         mock_execute.side_effect = Exception("API Error")
@@ -88,7 +88,7 @@ class TestRunPipeline:
 
         assert "API Error" in str(exc_info.value)
 
-    @patch("yamlgraph.node_factory.execute_prompt")
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
     def test_pipeline_state_progression(self, mock_execute):
         """Pipeline should update current_step as it progresses."""
         mock_generated = FixtureGeneratedContent(

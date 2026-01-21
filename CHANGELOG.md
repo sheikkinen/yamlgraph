@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.11] - 2026-01-21
+
+### Changed
+- **Refactored node_factory into package** - Split 768-line monolith into focused modules
+  - `base.py` (90 lines) - `resolve_class`, `get_output_model_for_node`
+  - `llm_nodes.py` (208 lines) - `create_node_function`
+  - `streaming.py` (72 lines) - `create_streaming_node`
+  - `tool_nodes.py` (90 lines) - `create_tool_call_node`
+  - `control_nodes.py` (147 lines) - `create_interrupt_node`, `create_passthrough_node`
+  - `subgraph_nodes.py` (220 lines) - `create_subgraph_node`, state mapping helpers
+  - All modules under 230 lines (limit: 400)
+  - Public API unchanged via `__init__.py` re-exports
+
 ## [0.3.10] - 2026-01-21
 
 ### Added
