@@ -818,7 +818,7 @@ pytest tests/ --cov=yamlgraph --cov-report=html
 # Then open htmlcov/index.html
 ```
 
-**Current coverage**: 60% overall, 98% on graph_loader, 100% on builder/llm_factory.
+**Current coverage**: 92% overall, 90% on graph_loader, 100% on builder/llm_factory.
 
 ## Extending the Pipeline
 
@@ -991,14 +991,14 @@ This project demonstrates solid production patterns with declarative YAML-based 
 | State Export | ✅ | JSON/Markdown export with `export_result()` |
 | LangSmith Share Links | ✅ | Auto-generate public trace URLs after runs |
 
-### Missing LangGraph Features
+### LangGraph Features
 
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Fan-out/Fan-in | ✅ | `type: map` with `Send()` for item-level parallelism |
-| Human-in-the-Loop | ❌ | No `interrupt_before` / `interrupt_after` demonstration |
-| Streaming | ❌ | No streaming output support |
-| Sub-graphs | ❌ | No nested graph composition |
+| Human-in-the-Loop | ✅ | `type: interrupt` nodes with `resume_key` |
+| Streaming | ✅ | `stream: true` on nodes, `execute_prompt_streaming()` |
+| Sub-graphs | ✅ | `type: subgraph` for nested graph composition |
 
 ### Potential Enhancements
 

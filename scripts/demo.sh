@@ -92,6 +92,17 @@ demo_subgraph() {
         --var raw_text="LangGraph is a library for building stateful, multi-actor applications with LLMs. It allows developers to create complex AI workflows using a graph-based approach."
 }
 
+demo_costrouter() {
+    echo -e "${YELLOW}Cost Router - Routes queries to cost-appropriate models${NC}"
+    echo -e "${YELLOW}Using: Replicate/Granite (simple), Mistral (medium), Anthropic (complex)${NC}"
+    run_demo "Cost Router (Simple Query)" "examples/cost-router/cost-router.yaml" \
+        --var query="What is the capital of France?"
+    run_demo "Cost Router (Medium Query)" "examples/cost-router/cost-router.yaml" \
+        --var query="Summarize the key benefits of cloud computing"
+    run_demo "Cost Router (Complex Query)" "examples/cost-router/cost-router.yaml" \
+        --var query="Analyze the ethical implications of AI in healthcare"
+}
+
 print_usage() {
     echo -e "${YELLOW}YamlGraph Demos${NC}"
     echo ""
@@ -111,6 +122,7 @@ print_usage() {
     echo "  webresearch - Web research agent"
     echo "  codegen     - Impl-agent code analysis (from examples/codegen)"
     echo "  subgraph    - Subgraph composition demo"
+    echo "  costrouter  - Cost-based routing (Replicate/Mistral/Anthropic)"
     echo "  all         - Run all demos (default)"
     echo ""
 }
@@ -122,7 +134,7 @@ cd "$(dirname "$0")/.."
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}▶ Linting all graphs...${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-.venv/bin/python -m yamlgraph.cli graph lint graphs/*.yaml innovation/*.yaml
+.venv/bin/python -m yamlgraph.cli graph lint graphs/*.yaml
 echo -e "${GREEN}✓ All graphs passed linting${NC}"
 echo ""
 
@@ -166,6 +178,9 @@ case "${1:-all}" in
     subgraph)
         demo_subgraph
         ;;
+    costrouter)
+        demo_costrouter
+        ;;
     all)
         echo -e "${YELLOW}🚀 Running all YamlGraph demos...${NC}"
         demo_router
@@ -178,6 +193,7 @@ case "${1:-all}" in
         demo_analysis
         demo_brainstorm
         demo_webresearch
+        demo_costrouter
         # Skip interview (requires interaction) and codegen (slow)
         echo ""
         echo -e "${YELLOW}Note: Skipped 'interview' (interactive) and 'codegen' (slow)${NC}"

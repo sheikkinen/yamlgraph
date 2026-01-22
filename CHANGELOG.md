@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.16] - 2026-01-22
+
+### Added
+- **Replicate provider support** - New `replicate` provider using LiteLLM for IBM Granite and other Replicate-hosted models
+  - Uses `langchain-litellm` for LangChain integration
+  - Requires `REPLICATE_API_TOKEN` in `.env`
+  - Default model: `ibm-granite/granite-4.0-h-small`
+  - Install with: `pip install -e ".[replicate]"`
+- **Cost Router example** - New `examples/cost-router/` demonstrating intelligent query routing
+  - Classifies queries as simple/medium/complex using cheap Granite model
+  - Routes to appropriate tier: Granite (simple), Mistral (medium), Claude (complex)
+  - Demonstrates `parse_json: true` for providers without structured output
+- **`costrouter` demo** - Added to `scripts/demo.sh` to showcase multi-provider routing
+
+### Changed
+- **`parse_json: true` now bypasses output_model** - When set, skips structured output allowing same prompt to work with providers that don't support `response_format`
+- **Suppressed Pydantic serializer warnings** for Replicate provider (langchain-litellm type mismatch)
+- **Cleaned up replicate dependencies** - Only `langchain-litellm` needed (includes `litellm`)
+
+### Fixed
+- **Removed broken innovation symlink** from demo.sh lint command
+
 ## [0.3.15] - 2026-01-22
 
 ### Fixed

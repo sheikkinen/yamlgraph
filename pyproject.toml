@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yamlgraph"
-version = "0.3.13"
+version = "0.3.16"
 description = "YAML-first framework for building LLM pipelines with LangGraph"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -39,8 +39,7 @@ storyboard = [
     "replicate>=0.25.0",
 ]
 replicate = [
-    "langchain-litellm>=0.3.0",
-    "litellm>=1.65.0",
+    "langchain-litellm>=0.3.0",  # includes litellm as dependency
 ]
 redis = [
     "langgraph-checkpoint-redis>=0.3.0",

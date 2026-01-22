@@ -129,8 +129,14 @@ def _create_replicate_llm(model: str, temperature: float) -> BaseChatModel:
     Raises:
         ValueError: If REPLICATE_API_TOKEN is not set
     """
+    import warnings
+
     import litellm
     from langchain_litellm import ChatLiteLLM
+
+    # Suppress Pydantic serialization warnings from langchain-litellm
+    # (type mismatch between LiteLLM and LangChain response types - harmless)
+    warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
 
     # Validate API token is set
     if not os.getenv("REPLICATE_API_TOKEN"):
