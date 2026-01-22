@@ -38,6 +38,46 @@ if TYPE_CHECKING:
     from langchain_core.runnables import RunnableConfig
 
 
+def _serialize_key(key: Any) -> str:
+    """Serialize a dict key to a JSON-safe string.
+
+    Handles tuple keys from LangGraph's channel_versions and versions_seen.
+    """
+    if isinstance(key, str):
+        return key
+    if isinstance(key, tuple):
+        # Mark as tuple for deserialization
+        return f"__tuple__:{orjson.dumps(key).decode()}"
+    # Fallback: convert to string
+    return str(key)
+
+
+def _deserialize_key(key: str) -> Any:
+    """Deserialize a stringified key back to its original type."""
+    if key.startswith("__tuple__:"):
+        json_part = key[len("__tuple__:"):]
+        return tuple(orjson.loads(json_part))
+    return key
+
+
+def _stringify_keys(obj: Any) -> Any:
+    """Recursively convert non-string dict keys to JSON-safe strings."""
+    if isinstance(obj, dict):
+        return {_serialize_key(k): _stringify_keys(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_stringify_keys(item) for item in obj]
+    return obj
+
+
+def _unstringify_keys(obj: Any) -> Any:
+    """Recursively convert stringified keys back to original types."""
+    if isinstance(obj, dict):
+        return {_deserialize_key(k): _unstringify_keys(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_unstringify_keys(item) for item in obj]
+    return obj
+
+
 def _serialize_value(obj: Any) -> Any:
     """Serialize non-JSON types for orjson."""
     if isinstance(obj, UUID):
@@ -151,6 +191,7 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
             return None
 
         stored = orjson.loads(data)
+        stored = _unstringify_keys(stored)
         stored = _deep_deserialize(stored)
 
         return CheckpointTuple(
@@ -180,6 +221,8 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
             "parent_config": config,
         }
 
+        # Convert tuple keys to strings for orjson compatibility
+        stored = _stringify_keys(stored)
         data = orjson.dumps(stored, default=_serialize_value)
 
         if self.ttl:
@@ -216,6 +259,7 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
             data = await client.get(key)
             if data:
                 stored = orjson.loads(data)
+                stored = _unstringify_keys(stored)
                 stored = _deep_deserialize(stored)
                 yield CheckpointTuple(
                     config=stored.get("parent_config", {}),
@@ -257,6 +301,7 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
             return None
 
         stored = orjson.loads(data)
+        stored = _unstringify_keys(stored)
         stored = _deep_deserialize(stored)
 
         return CheckpointTuple(
@@ -286,6 +331,8 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
             "parent_config": config,
         }
 
+        # Convert tuple keys to strings for orjson compatibility
+        stored = _stringify_keys(stored)
         data = orjson.dumps(stored, default=_serialize_value)
 
         if self.ttl:
@@ -319,6 +366,7 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
             data = client.get(key)
             if data:
                 stored = orjson.loads(data)
+                stored = _unstringify_keys(stored)
                 stored = _deep_deserialize(stored)
                 yield CheckpointTuple(
                     config=stored.get("parent_config", {}),

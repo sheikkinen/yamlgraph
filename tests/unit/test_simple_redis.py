@@ -536,8 +536,8 @@ class TestChainMapSerialization:
     async def test_chainmap_serialization(self):
         """Should serialize and deserialize ChainMap correctly."""
         from yamlgraph.storage.simple_redis import (
-            _serialize_value,
             _deserialize_value,
+            _serialize_value,
         )
 
         chainmap = ChainMap({"a": 1}, {"b": 2})
@@ -553,6 +553,7 @@ class TestChainMapSerialization:
     async def test_chainmap_in_checkpoint(self):
         """Should handle ChainMap in checkpoint state."""
         import orjson
+
         from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
 
         mock_client = AsyncMock()
@@ -612,3 +613,97 @@ class TestFunctionSerialization:
         import pytest
         with pytest.raises(TypeError):
             _serialize_value(MyClass)
+
+
+class TestTupleKeySerialization:
+    """Test tuple dict key serialization/deserialization."""
+
+    def test_tuple_key_serialization(self):
+        """Should serialize tuple keys to strings."""
+        from yamlgraph.storage.simple_redis import _deserialize_key, _serialize_key
+
+        key = ("node_name", "task_id_123")
+        serialized = _serialize_key(key)
+
+        assert isinstance(serialized, str)
+        assert serialized.startswith("__tuple__:")
+
+        deserialized = _deserialize_key(serialized)
+        assert deserialized == key
+
+    def test_string_key_passthrough(self):
+        """String keys should pass through unchanged."""
+        from yamlgraph.storage.simple_redis import _deserialize_key, _serialize_key
+
+        key = "normal_key"
+        serialized = _serialize_key(key)
+        assert serialized == key
+
+        deserialized = _deserialize_key(key)
+        assert deserialized == key
+
+    def test_stringify_keys_recursive(self):
+        """Should recursively convert tuple keys in nested dicts."""
+        from yamlgraph.storage.simple_redis import _stringify_keys, _unstringify_keys
+
+        data = {
+            "channel_versions": {
+                ("node1", "task1"): 1,
+                ("node2", "task2"): 2,
+            },
+            "nested": {
+                "list": [
+                    {("key1", "key2"): "value"}
+                ]
+            },
+        }
+
+        stringified = _stringify_keys(data)
+
+        # Check structure is preserved but keys are strings
+        assert isinstance(stringified, dict)
+        assert "channel_versions" in stringified
+        for k in stringified["channel_versions"]:
+            assert isinstance(k, str)
+            assert k.startswith("__tuple__:")
+
+        # Round-trip should restore original
+        restored = _unstringify_keys(stringified)
+        assert restored == data
+
+    def test_tuple_key_in_checkpoint(self):
+        """Should handle tuple keys in actual checkpoint data."""
+        import orjson
+
+        from yamlgraph.storage.simple_redis import (
+            _serialize_value,
+            _stringify_keys,
+            _unstringify_keys,
+        )
+
+        # Simulate LangGraph checkpoint structure
+        checkpoint = {
+            "v": 1,
+            "ts": "2024-01-01T00:00:00Z",
+            "id": "test",
+            "channel_versions": {
+                ("__start__", "task1"): 1,
+                ("node1", "task2"): 2,
+            },
+            "versions_seen": {
+                ("node1", "task2"): {
+                    "channel1": 1,
+                },
+            },
+        }
+
+        stored = {"checkpoint": checkpoint}
+
+        # Stringify, serialize, deserialize, unstringify
+        stringified = _stringify_keys(stored)
+        data = orjson.dumps(stringified, default=_serialize_value)
+        loaded = orjson.loads(data)
+        restored = _unstringify_keys(loaded)
+
+        assert restored == stored
+        assert ("__start__", "task1") in restored["checkpoint"]["channel_versions"]
