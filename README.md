@@ -20,6 +20,10 @@ A YAML-first framework for building LLM pipelines using:
 - **LangSmith** - Observability and tracing
 - **JSON Export** - Result serialization
 
+## What is YAMLGraph?
+
+**YAMLGraph** is a declarative LLM pipeline orchestration framework that lets you define complex AI workflows entirely in YAML—no Python required for 60-80% of use cases. Built on LangGraph, it provides multi-provider LLM support (Anthropic, OpenAI, Mistral, Replicate), parallel batch processing via map nodes (using LangGraph Send), LLM-driven conditional routing, and human-in-the-loop interrupts with checkpointing. Pipelines are version-controlled, linted, and observable via LangSmith. The key insight: by constraining the API surface to YAML + Jinja2 templates + Pydantic schemas, YAMLGraph trades some flexibility for dramatically faster prototyping, easier maintenance, and built-in best practices—making it ideal for teams who want production-ready AI pipelines without the complexity of full-code frameworks.
+
 ## Installation
 
 ### From PyPI

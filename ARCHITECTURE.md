@@ -110,6 +110,37 @@ def chat(thread_id: str, message: ChatMessage):
 
 See [docs/plan-api-yamlgraph.md](docs/plan-api-yamlgraph.md) for detailed API design patterns.
 
+### Production Example: NPC Encounter
+
+The **examples/npc** directory demonstrates a full production pattern:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  HTMX Frontend                                                  │
+│  • HTML fragments, SSE streaming, minimal JS                    │
+├─────────────────────────────────────────────────────────────────┤
+│  FastAPI + Session Adapter                                      │
+│  • EncounterSession wraps graph with thread_id management       │
+│  • Human-in-loop via Command(resume=player_choice)              │
+├─────────────────────────────────────────────────────────────────┤
+│  YAMLGraph (encounter-multi.yaml)                               │
+│  • Map nodes for parallel NPC generation                        │
+│  • interrupt_before for player choice points                    │
+├─────────────────────────────────────────────────────────────────┤
+│  Prompts + Tools                                                │
+│  • YAML prompts with Pydantic schemas                           │
+│  • Tool functions for game mechanics                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+Key patterns demonstrated:
+- **Session Adapter**: `EncounterSession` provides clean API over raw graph
+- **Human-in-Loop**: `interrupt_before` + `Command(resume=...)` for player agency
+- **Map Nodes**: Parallel fan-out with `Send()` for multi-NPC processing
+- **HTMX Integration**: Server-rendered HTML fragments, no client framework
+
+See [examples/npc/architecture.md](examples/npc/architecture.md) for full documentation.
+
 ---
 
 ## Module Architecture

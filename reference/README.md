@@ -50,6 +50,15 @@ Complete reference documentation for YAMLGraph v0.3.0+.
 | [Code Analysis](code-analysis.md) | Automated code quality analysis |
 | [Implementation Agent](impl-agent.md) | 14-tool agent for codebase analysis |
 | [Porting from Showcase](porting-from-showcase.md) | Migration guide: Python → YAML graphs |
+| [Web UI & API](web-ui-api.md) | Serving graphs as web applications |
+
+### Example Architectures
+
+| Example | Description | Key Patterns |
+|---------|-------------|--------------|
+| [NPC Encounter](../examples/npc/architecture.md) | D&D encounter with web UI | Session adapter, HTMX, human-in-loop |
+| [Cost Router](../examples/cost-router/) | LLM routing by complexity | Multi-provider, cost optimization |
+| [Storyboard](../examples/storyboard/) | Animated story generation | Map nodes, image generation |
 
 ---
 
