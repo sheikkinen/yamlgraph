@@ -113,7 +113,11 @@ def create_llm(
 def _create_replicate_llm(model: str, temperature: float) -> BaseChatModel:
     """Create a Replicate-hosted model via LangChain wrapper.
 
-    Uses langchain-litellm for unified interface.
+    Uses langchain-litellm for unified interface. Requires REPLICATE_API_TOKEN
+    environment variable (loaded from .env via config.py).
+
+    Note: Replicate doesn't support structured output (response_format).
+    Use parse_json: true in node config instead of output_schema in prompts.
 
     Args:
         model: Model name (e.g., "ibm-granite/granite-4.0-h-small")
@@ -121,9 +125,19 @@ def _create_replicate_llm(model: str, temperature: float) -> BaseChatModel:
 
     Returns:
         LangChain-compatible chat model
+
+    Raises:
+        ValueError: If REPLICATE_API_TOKEN is not set
     """
     import litellm
     from langchain_litellm import ChatLiteLLM
+
+    # Validate API token is set
+    if not os.getenv("REPLICATE_API_TOKEN"):
+        raise ValueError(
+            "REPLICATE_API_TOKEN environment variable is required. "
+            "Get your token at https://replicate.com/account/api-tokens"
+        )
 
     # Drop unsupported params (like response_format) for Replicate
     litellm.drop_params = True

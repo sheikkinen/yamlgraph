@@ -35,5 +35,16 @@ user: |
 
   Respond with JSON only, no other text.
 
-# NOTE: output_schema removed - Replicate doesn't support structured output
-# Use parse_json: true in node config instead
+# Schema kept for documentation and future use with providers that support it.
+# When using Replicate, set parse_json: true in node config.
+output_schema:
+  type: object
+  properties:
+    complexity:
+      type: string
+      enum: [simple, medium, complex]
+      description: Query complexity level
+    reasoning:
+      type: string
+      description: Brief explanation of classification
+  required: [complexity, reasoning]

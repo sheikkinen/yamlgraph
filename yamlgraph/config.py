@@ -33,6 +33,8 @@ DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MAX_TOKENS = 4096
 
 # Default models per provider (override with {PROVIDER}_MODEL env var)
+# API keys expected in .env:
+#   ANTHROPIC_API_KEY, MISTRAL_API_KEY, OPENAI_API_KEY, REPLICATE_API_TOKEN
 DEFAULT_MODELS = {
     "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
     "mistral": os.getenv("MISTRAL_MODEL", "mistral-large-latest"),

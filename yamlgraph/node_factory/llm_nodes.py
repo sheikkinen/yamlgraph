@@ -59,12 +59,17 @@ def create_node_function(
         return create_streaming_node(node_name, node_config)
 
     # Resolve output model (explicit > inline schema > None)
-    output_model = get_output_model_for_node(
-        node_config,
-        prompts_dir=prompts_dir,
-        graph_path=graph_path,
-        prompts_relative=prompts_relative,
-    )
+    # When parse_json is true, skip output_model (provider doesn't support structured output)
+    parse_json = node_config.get("parse_json", False)
+    if parse_json:
+        output_model = None  # Use manual JSON parsing instead
+    else:
+        output_model = get_output_model_for_node(
+            node_config,
+            prompts_dir=prompts_dir,
+            graph_path=graph_path,
+            prompts_relative=prompts_relative,
+        )
 
     # Get config values (node > defaults)
     temperature = node_config.get("temperature", defaults.get("temperature", 0.7))
@@ -88,9 +93,6 @@ def create_node_function(
 
     # Skip if exists (default true for resume support, false for loop nodes)
     skip_if_exists = node_config.get("skip_if_exists", True)
-
-    # JSON extraction (FR-B)
-    parse_json = node_config.get("parse_json", False)
 
     def node_fn(state: dict) -> dict:
         """Generated node function."""
