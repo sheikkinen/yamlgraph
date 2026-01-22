@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.17] - 2026-01-22
+
+### Added
+- **ChainMap serialization** in `SimpleRedisCheckpointer`
+  - Fixes `TypeError: Cannot serialize <class 'collections.ChainMap'>` when graphs contain ChainMap in state
+  - ChainMap serialized as `{"__type__": "chainmap", "value": {...}}`
+  - Deserialized back to `ChainMap` instance
+  - 2 new unit tests for ChainMap serialization
+
 ## [0.3.16] - 2026-01-22
 
 ### Added
