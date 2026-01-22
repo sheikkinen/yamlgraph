@@ -284,6 +284,24 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
             await self._client.close()
             self._client = None
 
+    async def adelete_thread(self, thread_id: str) -> None:
+        """Delete all checkpoints for a thread."""
+        client = await self._get_client()
+        pattern = self._make_key(thread_id, "*")
+
+        # Use SCAN to find all keys for this thread, then delete
+        keys_to_delete = []
+        async for key in client.scan_iter(match=pattern):
+            keys_to_delete.append(key)
+
+        # Also check for key without namespace suffix
+        base_key = self._make_key(thread_id, "")
+        if await client.exists(base_key):
+            keys_to_delete.append(base_key)
+
+        if keys_to_delete:
+            await client.delete(*keys_to_delete)
+
     # =========================================================================
     # Sync methods (required by BaseCheckpointSaver)
     # =========================================================================
@@ -383,3 +401,21 @@ class SimpleRedisCheckpointer(BaseCheckpointSaver):
     ) -> None:
         """Store pending writes (sync version)."""
         pass
+
+    def delete_thread(self, thread_id: str) -> None:
+        """Delete all checkpoints for a thread (sync version)."""
+        client = self._get_sync_client()
+        pattern = self._make_key(thread_id, "*")
+
+        # Use SCAN to find all keys for this thread, then delete
+        keys_to_delete = []
+        for key in client.scan_iter(match=pattern):
+            keys_to_delete.append(key)
+
+        # Also check for key without namespace suffix
+        base_key = self._make_key(thread_id, "")
+        if client.exists(base_key):
+            keys_to_delete.append(base_key)
+
+        if keys_to_delete:
+            client.delete(*keys_to_delete)

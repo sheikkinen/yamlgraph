@@ -707,3 +707,85 @@ class TestTupleKeySerialization:
 
         assert restored == stored
         assert ("__start__", "task1") in restored["checkpoint"]["channel_versions"]
+
+
+class TestDeleteThread:
+    """Test thread deletion functionality."""
+
+    @pytest.mark.asyncio
+    async def test_adelete_thread_removes_keys(self):
+        """Should delete all keys for a thread."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = AsyncMock()
+        # Mock scan_iter to return async iterator directly (not a coroutine)
+        mock_client.scan_iter = MagicMock(return_value=AsyncIteratorMock([
+            b"lg:test-thread:ns1",
+            b"lg:test-thread:ns2",
+        ]))
+        mock_client.exists = AsyncMock(return_value=True)
+        mock_client.delete = AsyncMock()
+
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._client = mock_client
+
+        await saver.adelete_thread("test-thread")
+
+        # Should call delete with all found keys plus base key
+        mock_client.delete.assert_called_once()
+        call_args = mock_client.delete.call_args[0]
+        assert len(call_args) >= 1  # At least the base key
+
+    @pytest.mark.asyncio
+    async def test_adelete_thread_no_keys(self):
+        """Should handle case when no keys exist."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = AsyncMock()
+        mock_client.scan_iter = MagicMock(return_value=AsyncIteratorMock([]))
+        mock_client.exists = AsyncMock(return_value=False)
+        mock_client.delete = AsyncMock()
+
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._client = mock_client
+
+        await saver.adelete_thread("nonexistent-thread")
+
+        # Should not call delete when no keys found
+        mock_client.delete.assert_not_called()
+
+    def test_delete_thread_sync(self):
+        """Should delete all keys for a thread (sync)."""
+        from yamlgraph.storage.simple_redis import SimpleRedisCheckpointer
+
+        mock_client = MagicMock()
+        mock_client.scan_iter = MagicMock(return_value=[
+            b"lg:test-thread:ns1",
+        ])
+        mock_client.exists = MagicMock(return_value=True)
+        mock_client.delete = MagicMock()
+
+        saver = SimpleRedisCheckpointer(redis_url="redis://localhost:6379")
+        saver._sync_client = mock_client
+
+        saver.delete_thread("test-thread")
+
+        mock_client.delete.assert_called_once()
+
+
+class AsyncIteratorMock:
+    """Helper to mock async iterators."""
+
+    def __init__(self, items):
+        self.items = items
+        self.index = 0
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if self.index >= len(self.items):
+            raise StopAsyncIteration
+        item = self.items[self.index]
+        self.index += 1
+        return item
