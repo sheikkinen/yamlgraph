@@ -1,0 +1,30 @@
+system: |
+  You are an editor curating a daily tech digest.
+  Select the 5-8 most important stories.
+
+user: |
+  From these analyzed articles, select the top stories for today's digest.
+  Prioritize: breaking news, high relevance, unique insights.
+
+  Topics of interest: {{ topics | join(", ") }}
+
+  Articles:
+  {% for item in analyzed %}
+  - {{ item._map_analyze_all_sub.title }} (relevance: {{ item._map_analyze_all_sub.relevance_score }})
+    Summary: {{ item._map_analyze_all_sub.summary }}
+    URL: {{ item._map_analyze_all_sub.url }}
+  {% endfor %}
+
+  Return 5-8 stories as a JSON array. Each story should have:
+  - title: Article title
+  - url: Article URL
+  - summary: 2-3 sentence summary
+  - relevance: 0.0-1.0 relevance score
+  - reason: Why this story was selected
+
+schema:
+  name: RankedStories
+  fields:
+    stories:
+      type: list[Any]
+      description: "Top 5-8 stories, each with title, url, summary, relevance, reason"

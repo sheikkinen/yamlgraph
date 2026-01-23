@@ -1,0 +1,124 @@
+version: "1.0"
+name: daily_digest
+description: Daily tech news digest with email delivery
+
+checkpointer:
+  type: sqlite
+  path: ${DATABASE_PATH:-digest.db}
+
+defaults:
+  provider: anthropic
+  temperature: 0.5
+  prompts_relative: true
+  prompts_dir: prompts
+
+state:
+  topics: list
+  recipient_email: str
+  today: str
+  raw_articles: list
+  filtered_articles: list
+  articles_with_content: list
+  analyzed: list
+  ranked_stories: list
+  digest_html: str
+  email_sent: bool
+
+# Python tools
+tools:
+  fetch_sources:
+    type: python
+    module: nodes.sources
+    function: fetch_sources
+    description: "Fetch articles from HN, RSS feeds"
+
+  filter_recent:
+    type: python
+    module: nodes.filters
+    function: filter_recent
+    description: "Filter to recent articles, dedupe via SQLite"
+
+  fetch_article_content:
+    type: python
+    module: nodes.content
+    function: fetch_all_content
+    description: "Extract text content from all article URLs"
+
+  format_email:
+    type: python
+    module: nodes.formatting
+    function: format_email
+    description: "Render HTML email using Jinja2 template"
+
+  send_email:
+    type: python
+    module: nodes.email
+    function: send_email
+    description: "Send email via Resend API"
+
+nodes:
+  fetch_sources:
+    type: python
+    tool: fetch_sources
+    state_key: raw_articles
+
+  filter_recent:
+    type: python
+    tool: filter_recent
+    state_key: filtered_articles
+
+  fetch_content:
+    type: python
+    tool: fetch_article_content
+    state_key: articles_with_content
+
+  analyze_all:
+    type: map
+    over: "{state.articles_with_content}"
+    as: article
+    node:
+      type: llm
+      prompt: analyze_article
+      variables:
+        title: "{state.article.title}"
+        url: "{state.article.url}"
+        content: "{state.article.content}"
+        topics: "{state.topics}"
+    collect: analyzed
+    on_error: skip
+
+  rank_stories:
+    type: llm
+    prompt: rank_stories
+    variables:
+      analyzed: "{state.analyzed}"
+      topics: "{state.topics}"
+    state_key: ranked_stories
+
+  format_email:
+    type: python
+    tool: format_email
+    state_key: digest_html
+
+  send_email:
+    type: python
+    tool: send_email
+    state_key: email_sent
+
+edges:
+  - from: START
+    to: fetch_sources
+  - from: fetch_sources
+    to: filter_recent
+  - from: filter_recent
+    to: fetch_content
+  - from: fetch_content
+    to: analyze_all
+  - from: analyze_all
+    to: rank_stories
+  - from: rank_stories
+    to: format_email
+  - from: format_email
+    to: send_email
+  - from: send_email
+    to: END

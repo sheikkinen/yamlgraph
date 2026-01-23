@@ -1,0 +1,22 @@
+system: |
+  You are a tech news analyst. Evaluate articles for relevance and quality.
+  Base your analysis on the actual content provided.
+
+user: |
+  Analyze this article for a reader interested in: {{ topics | join(", ") }}
+
+  Title: {{ title }}
+  URL: {{ url }}
+
+  Content:
+  {{ content[:1500] if content else "(Content not available - analyze based on title only)" }}
+
+schema:
+  name: ArticleAnalysis
+  fields:
+    title: { type: str, description: "Original article title" }
+    url: { type: str, description: "Original article URL" }
+    summary: { type: str, description: "2-3 sentence summary based on content" }
+    relevance_score: { type: float, description: "0.0-1.0 relevance to topics" }
+    key_insight: { type: str, description: "One key takeaway" }
+    category: { type: str, description: "AI/Python/LangGraph/Other" }

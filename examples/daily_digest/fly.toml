@@ -1,0 +1,43 @@
+# fly.toml app configuration file generated for my-digest-agent on 2026-01-23T07:49:12+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'my-digest-agent'
+primary_region = 'ams'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  DATABASE_PATH = '/data/digest.db'
+  DIGEST_FROM_EMAIL = 'digest@yourdomain.com'
+
+[[mounts]]
+  source = 'digest_data'
+  destination = '/data'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'suspend'
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[services]]
+  protocol = ''
+  internal_port = 0
+  ports = []
+
+  [[services.http_checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health'
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512
