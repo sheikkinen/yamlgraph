@@ -168,10 +168,6 @@ edges:
         assert config.prompts_dir == "shared/prompts"
         assert config.prompts_relative is False
 
-    def test_parse_state_class(self, sample_config):
-        """State class defaults to empty (dynamic generation)."""
-        assert sample_config.state_class == ""
-
 
 # =============================================================================
 # TestCompileGraph

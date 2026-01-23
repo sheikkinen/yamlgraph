@@ -66,27 +66,6 @@ Human-readable description of what the graph does.
 description: Content generation pipeline (generate → analyze → summarize)
 ```
 
-### `state_class` (Deprecated)
-**Type:** `string` (Python class path)
-**Default:** Auto-generated from graph configuration
-
-> ⚠️ **Deprecated:** State is now automatically generated from the graph configuration. You no longer need to specify `state_class`.
-
-The state TypedDict is built dynamically based on:
-- Node `state_key` fields
-- Node types (agent → adds `input`, `messages`; router → adds `_route`)
-- Common input fields (`topic`, `style`, `word_count`, `message`, `input`)
-- Infrastructure fields (`errors`, `thread_id`, `current_step`, etc.)
-
-```yaml
-# No state_class needed - state is auto-generated!
-name: my-pipeline
-nodes:
-  generate:
-    prompt: generate
-    state_key: generated  # ← This field is auto-added to state
-```
-
 ### `defaults`
 **Type:** `object`
 

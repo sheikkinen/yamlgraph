@@ -131,7 +131,6 @@ class GraphConfigSchema(BaseModel):
     nodes: dict[str, NodeConfig] = Field(...)
     edges: list[EdgeConfig] = Field(...)
     tools: dict[str, Any] = Field(default_factory=dict)
-    state_class: str = Field(default="")
     loop_limits: dict[str, int] = Field(default_factory=dict)
 
     model_config = {"extra": "allow"}

@@ -182,13 +182,11 @@ def cmd_graph_info(args: Namespace) -> None:
 
         name = config.get("name", graph_path.stem)
         description = config.get("description", "No description")
-        state_class = config.get("state_class", "default")
         nodes = config.get("nodes", {})
         edges = config.get("edges", [])
 
         print(f"\n📊 Graph: {name}")
         print(f"   {description}")
-        print(f"\n   State: {state_class}")
 
         # Show nodes
         print(f"\n   Nodes ({len(nodes)}):")

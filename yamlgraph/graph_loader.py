@@ -21,7 +21,6 @@ from yamlgraph.node_factory import (
     create_passthrough_node,
     create_subgraph_node,
     create_tool_call_node,
-    resolve_class,
 )
 from yamlgraph.routing import make_expr_router_fn, make_router_fn
 from yamlgraph.storage.checkpointer_factory import get_checkpointer
@@ -65,7 +64,6 @@ class GraphConfig:
         self.nodes = config.get("nodes", {})
         self.edges = config.get("edges", [])
         self.tools = config.get("tools", {})
-        self.state_class = config.get("state_class", "")
         self.loop_limits = config.get("loop_limits", {})
         self.checkpointer = config.get("checkpointer")
         # Store raw config for dynamic state building
@@ -101,10 +99,7 @@ def load_graph_config(path: str | Path) -> GraphConfig:
 
 
 def _resolve_state_class(config: GraphConfig) -> type:
-    """Resolve the state class for the graph.
-
-    Uses dynamic state generation unless explicit state_class is set
-    (deprecated).
+    """Build state class dynamically from graph configuration.
 
     Args:
         config: Graph configuration
@@ -112,16 +107,6 @@ def _resolve_state_class(config: GraphConfig) -> type:
     Returns:
         TypedDict class for graph state
     """
-    if config.state_class and config.state_class != "yamlgraph.models.GraphState":
-        import warnings
-
-        warnings.warn(
-            f"state_class '{config.state_class}' is deprecated. "
-            "State is now auto-generated from graph config.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return resolve_class(config.state_class)
     return build_state_class(config.raw_config)
 
 
