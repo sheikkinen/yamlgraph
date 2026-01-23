@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.21] - 2026-01-23
+
+### Added
+- **Book Translator Example** (`examples/book_translator/`)
+  - Two-phase splitting: LLM identifies markers, Python splits reliably
+  - Parallel chunk translation with map nodes
+  - Glossary extraction and consistency across chunks
+  - Quality gates with optional human review interrupt
+  - Sample Finnish Winter War diary (17KB) and German fairy tale
+  - Full test coverage with 4 test files
+
+- **`get_map_result()` helper** in book_translator tools
+  - Extract results from map node output without hardcoding `_map_*_sub` keys
+  - Decouples tools from internal map node key naming
+
+### Fixed
+- Pass `graph_path` to map node sub-nodes for relative prompt resolution
+
 ## [0.3.20] - 2026-01-22
 
 ### Added
