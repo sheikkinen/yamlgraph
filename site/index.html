@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAMLGraph - Declarative LLM Pipeline Orchestration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'JetBrains Mono', monospace; }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        .scroll-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .yaml-block {
+            background: #1e1e2e;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .yaml-block pre {
+            color: #cdd6f4;
+            padding: 1.5rem;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        .yaml-key { color: #89b4fa; }
+        .yaml-value { color: #a6e3a1; }
+        .yaml-comment { color: #6c7086; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white">
+
+    <!-- Hero Section -->
+    <section class="scroll-section relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/30 via-slate-900 to-purple-900/30"></div>
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="mb-6">
+                    <span class="inline-block px-4 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-indigo-300 text-sm font-medium">
+                        v1.0 • MIT License • Python 3.11+
+                    </span>
+                </div>
+                <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                    <span class="gradient-text">YAML</span>Graph
+                </h1>
+                <p class="text-xl md:text-2xl text-slate-300 mb-8 leading-relaxed">
+                    Declarative LLM Pipeline Orchestration<br/>
+                    <span class="text-slate-400">Build production AI workflows in YAML — no Python required</span>
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 mb-12">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span class="text-slate-300">1026 Tests</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path></svg>
+                        <span class="text-slate-300">91% Coverage</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="text-slate-300">~6,100 LOC</span>
+                    </div>
+                </div>
+                <div class="yaml-block max-w-xl mx-auto text-left">
+                    <div class="bg-slate-800 px-4 py-2 flex items-center gap-2 border-b border-slate-700">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-2 text-slate-400 text-sm">pip install yamlgraph</span>
+                    </div>
+                    <pre><span class="yaml-comment"># That's it. Build AI pipelines in YAML.</span>
+<span class="yaml-key">yamlgraph</span> graph run my-pipeline.yaml --var topic="AI"</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Problem / Solution -->
+    <section class="scroll-section bg-slate-900">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
+                    <span class="gradient-text">Why YAMLGraph?</span>
+                </h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Before -->
+                    <div class="p-6 rounded-xl bg-red-900/10 border border-red-900/30">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                                <span class="text-red-400">✗</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-red-400">Traditional LLM Code</h3>
+                        </div>
+                        <ul class="space-y-3 text-slate-400">
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-500 mt-1">•</span>
+                                <span>100+ lines of boilerplate per pipeline</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-500 mt-1">•</span>
+                                <span>Prompts scattered in code strings</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-500 mt-1">•</span>
+                                <span>Manual state management and error handling</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-500 mt-1">•</span>
+                                <span>Provider lock-in, hard to switch LLMs</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-500 mt-1">•</span>
+                                <span>No observability without extra tooling</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- After -->
+                    <div class="p-6 rounded-xl bg-green-900/10 border border-green-900/30">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                                <span class="text-green-400">✓</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-green-400">YAMLGraph Pipelines</h3>
+                        </div>
+                        <ul class="space-y-3 text-slate-400">
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">•</span>
+                                <span>20-30 lines YAML for complete workflows</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">•</span>
+                                <span>Declarative prompt templates with Jinja2</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">•</span>
+                                <span>Built-in retries, fallbacks, checkpointing</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">•</span>
+                                <span>Multi-provider: swap Anthropic↔OpenAI↔Mistral</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-500 mt-1">•</span>
+                                <span>LangSmith tracing built-in</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Flow -->
+    <section class="scroll-section bg-slate-800/50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">
+                    <span class="gradient-text">How It Works</span>
+                </h2>
+                <p class="text-center text-slate-400 mb-16 max-w-2xl mx-auto">
+                    YAML graphs compile to LangGraph StateGraph instances with automatic state management, error handling, and persistence.
+                </p>
+
+                <div class="grid md:grid-cols-4 gap-6 mb-16">
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                            <span class="text-3xl">📝</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Define</h3>
+                        <p class="text-sm text-slate-400">YAML graph + prompts</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                            <span class="text-3xl">⚙️</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Compile</h3>
+                        <p class="text-sm text-slate-400">To LangGraph StateGraph</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-pink-500/20 flex items-center justify-center">
+                            <span class="text-3xl">🚀</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Execute</h3>
+                        <p class="text-sm text-slate-400">Multi-provider LLMs</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                            <span class="text-3xl">📊</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Observe</h3>
+                        <p class="text-sm text-slate-400">LangSmith tracing</p>
+                    </div>
+                </div>
+
+                <!-- Architecture Diagram -->
+                <div class="bg-slate-900 rounded-xl p-8 border border-slate-700">
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wide">Input Layer</h4>
+                            <div class="space-y-2">
+                                <div class="px-4 py-2 bg-slate-800 rounded-lg text-sm">CLI Commands</div>
+                                <div class="px-4 py-2 bg-slate-800 rounded-lg text-sm">Python API</div>
+                                <div class="px-4 py-2 bg-slate-800 rounded-lg text-sm">FastAPI Async</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-semibold text-purple-400 uppercase tracking-wide">Core Engine</h4>
+                            <div class="space-y-2">
+                                <div class="px-4 py-2 bg-purple-900/30 rounded-lg text-sm border border-purple-500/30">Graph Loader</div>
+                                <div class="px-4 py-2 bg-purple-900/30 rounded-lg text-sm border border-purple-500/30">Node Factory</div>
+                                <div class="px-4 py-2 bg-purple-900/30 rounded-lg text-sm border border-purple-500/30">Prompt Executor</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-semibold text-blue-400 uppercase tracking-wide">LLM Providers</h4>
+                            <div class="space-y-2">
+                                <div class="px-4 py-2 bg-slate-800 rounded-lg text-sm flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-orange-400"></span>Anthropic Claude
+                                </div>
+                                <div class="px-4 py-2 bg-slate-800 rounded-lg text-sm flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-green-400"></span>OpenAI GPT
+                                </div>
+                                <div class="px-4 py-2 bg-slate-800 rounded-lg text-sm flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>Mistral
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Node Types Chart -->
+    <section class="scroll-section bg-slate-900">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">
+                    <span class="gradient-text">Node Types</span>
+                </h2>
+                <p class="text-center text-slate-400 mb-16 max-w-2xl mx-auto">
+                    7 node types cover 95% of LLM pipeline patterns
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">🤖</span>
+                                <h3 class="font-semibold">llm</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">Standard LLM call with structured Pydantic output</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">🔀</span>
+                                <h3 class="font-semibold">router</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">LLM classification for conditional branching</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">🛠️</span>
+                                <h3 class="font-semibold">agent</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">ReAct agent with tool access and iteration limits</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">⚡</span>
+                                <h3 class="font-semibold">tool</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">Direct tool execution (shell, websearch)</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">🗺️</span>
+                                <h3 class="font-semibold">map</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">Parallel fan-out over list items (batch processing)</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">🐍</span>
+                                <h3 class="font-semibold">python</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">Custom Python function for advanced logic</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">✋</span>
+                                <h3 class="font-semibold">interrupt</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">Human-in-the-loop pause for user input</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">📦</span>
+                                <h3 class="font-semibold">subgraph</h3>
+                            </div>
+                            <p class="text-sm text-slate-400">Nested graphs for modular composition</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Examples -->
+    <section class="scroll-section bg-slate-800/50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">
+                    <span class="gradient-text">Real Examples</span>
+                </h2>
+                <p class="text-center text-slate-400 mb-16 max-w-2xl mx-auto">
+                    Production-ready patterns you can use today
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Router Example -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <span class="text-2xl">🔀</span>
+                            Conditional Routing
+                        </h3>
+                        <div class="yaml-block">
+                            <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 text-sm text-slate-400">
+                                router-demo.yaml
+                            </div>
+                            <pre><span class="yaml-key">nodes</span>:
+  <span class="yaml-key">classify</span>:
+    <span class="yaml-key">type</span>: <span class="yaml-value">router</span>
+    <span class="yaml-key">prompt</span>: <span class="yaml-value">classify_tone</span>
+    <span class="yaml-key">routes</span>:
+      <span class="yaml-key">positive</span>: <span class="yaml-value">respond_happy</span>
+      <span class="yaml-key">negative</span>: <span class="yaml-value">respond_empathy</span>
+      <span class="yaml-key">neutral</span>: <span class="yaml-value">respond_info</span></pre>
+                        </div>
+                    </div>
+
+                    <!-- Map Example -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <span class="text-2xl">🗺️</span>
+                            Parallel Processing
+                        </h3>
+                        <div class="yaml-block">
+                            <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 text-sm text-slate-400">
+                                map-demo.yaml
+                            </div>
+                            <pre><span class="yaml-key">nodes</span>:
+  <span class="yaml-key">batch_process</span>:
+    <span class="yaml-key">type</span>: <span class="yaml-value">map</span>
+    <span class="yaml-key">over</span>: <span class="yaml-value">"{state.items}"</span>
+    <span class="yaml-key">as</span>: <span class="yaml-value">item</span>
+    <span class="yaml-key">node</span>:
+      <span class="yaml-key">prompt</span>: <span class="yaml-value">process_item</span>
+    <span class="yaml-key">collect</span>: <span class="yaml-value">results</span></pre>
+                        </div>
+                    </div>
+
+                    <!-- Agent Example -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <span class="text-2xl">🛠️</span>
+                            AI Agent with Tools
+                        </h3>
+                        <div class="yaml-block">
+                            <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 text-sm text-slate-400">
+                                git-report.yaml
+                            </div>
+                            <pre><span class="yaml-key">tools</span>:
+  <span class="yaml-key">git_log</span>:
+    <span class="yaml-key">command</span>: <span class="yaml-value">git log --oneline -n {n}</span>
+  <span class="yaml-key">git_diff</span>:
+    <span class="yaml-key">command</span>: <span class="yaml-value">git diff HEAD~{n}</span>
+
+<span class="yaml-key">nodes</span>:
+  <span class="yaml-key">analyze</span>:
+    <span class="yaml-key">type</span>: <span class="yaml-value">agent</span>
+    <span class="yaml-key">tools</span>: <span class="yaml-value">[git_log, git_diff]</span>
+    <span class="yaml-key">max_iterations</span>: <span class="yaml-value">8</span></pre>
+                        </div>
+                    </div>
+
+                    <!-- Reflexion Example -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <span class="text-2xl">🔄</span>
+                            Self-Correction Loop
+                        </h3>
+                        <div class="yaml-block">
+                            <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 text-sm text-slate-400">
+                                reflexion-demo.yaml
+                            </div>
+                            <pre><span class="yaml-key">edges</span>:
+  - <span class="yaml-key">from</span>: <span class="yaml-value">draft</span>
+    <span class="yaml-key">to</span>: <span class="yaml-value">critique</span>
+  - <span class="yaml-key">from</span>: <span class="yaml-value">critique</span>
+    <span class="yaml-key">to</span>: <span class="yaml-value">refine</span>
+    <span class="yaml-key">condition</span>: <span class="yaml-value">critique.score < 0.8</span>
+  - <span class="yaml-key">from</span>: <span class="yaml-value">critique</span>
+    <span class="yaml-key">to</span>: <span class="yaml-value">END</span>
+    <span class="yaml-key">condition</span>: <span class="yaml-value">critique.score >= 0.8</span></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Dashboard -->
+    <section class="scroll-section bg-slate-900">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">
+                    <span class="gradient-text">Quality Metrics</span>
+                </h2>
+                <p class="text-center text-slate-400 mb-16 max-w-2xl mx-auto">
+                    Production-ready code quality with comprehensive test coverage
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                        <h3 class="font-semibold mb-4">Test Coverage by Module</h3>
+                        <canvas id="coverageChart" height="250"></canvas>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                        <h3 class="font-semibold mb-4">Codebase Composition</h3>
+                        <canvas id="compositionChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-4 gap-6 mt-8">
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700 text-center">
+                        <div class="text-4xl font-bold text-indigo-400 mb-2">1026</div>
+                        <div class="text-sm text-slate-400">Tests Passing</div>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700 text-center">
+                        <div class="text-4xl font-bold text-green-400 mb-2">91%</div>
+                        <div class="text-sm text-slate-400">Code Coverage</div>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700 text-center">
+                        <div class="text-4xl font-bold text-purple-400 mb-2">A</div>
+                        <div class="text-sm text-slate-400">Maintainability</div>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700 text-center">
+                        <div class="text-4xl font-bold text-blue-400 mb-2">14</div>
+                        <div class="text-sm text-slate-400">Example Graphs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Matrix -->
+    <section class="scroll-section bg-slate-800/50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">
+                    <span class="gradient-text">Feature Comparison</span>
+                </h2>
+                <p class="text-center text-slate-400 mb-16 max-w-2xl mx-auto">
+                    Built-in capabilities vs. manual implementation
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="py-4 px-4 font-semibold">Feature</th>
+                                <th class="py-4 px-4 font-semibold text-center">YAMLGraph</th>
+                                <th class="py-4 px-4 font-semibold text-center">Raw LangGraph</th>
+                                <th class="py-4 px-4 font-semibold text-center">DIY Python</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-700/50">
+                                <td class="py-3 px-4 text-slate-300">Declarative config</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ YAML</td>
+                                <td class="py-3 px-4 text-center text-yellow-400">~ Python</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗</td>
+                            </tr>
+                            <tr class="border-b border-slate-700/50">
+                                <td class="py-3 px-4 text-slate-300">Multi-provider LLMs</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Built-in</td>
+                                <td class="py-3 px-4 text-center text-yellow-400">~ Manual</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗ DIY</td>
+                            </tr>
+                            <tr class="border-b border-slate-700/50">
+                                <td class="py-3 px-4 text-slate-300">Structured outputs</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Pydantic</td>
+                                <td class="py-3 px-4 text-center text-yellow-400">~ Manual</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗ DIY</td>
+                            </tr>
+                            <tr class="border-b border-slate-700/50">
+                                <td class="py-3 px-4 text-slate-300">Error handling</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Auto</td>
+                                <td class="py-3 px-4 text-center text-yellow-400">~ Manual</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗ DIY</td>
+                            </tr>
+                            <tr class="border-b border-slate-700/50">
+                                <td class="py-3 px-4 text-slate-300">State persistence</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ SQLite/Redis</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Checkpointer</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗ DIY</td>
+                            </tr>
+                            <tr class="border-b border-slate-700/50">
+                                <td class="py-3 px-4 text-slate-300">Parallel processing</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Map nodes</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Send</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗ DIY</td>
+                            </tr>
+                            <tr class="border-b border-slate-700/50">
+                                <td class="py-3 px-4 text-slate-300">LangSmith tracing</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Auto</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ Auto</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗ Manual</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-slate-300">Graph linting</td>
+                                <td class="py-3 px-4 text-center text-green-400">✓ CLI</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗</td>
+                                <td class="py-3 px-4 text-center text-red-400">✗</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Getting Started CTA -->
+    <section class="scroll-section bg-gradient-to-br from-indigo-900/50 via-slate-900 to-purple-900/50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl md:text-5xl font-bold mb-6">
+                    Start Building in <span class="gradient-text">Minutes</span>
+                </h2>
+                <p class="text-xl text-slate-300 mb-12">
+                    From install to first pipeline in under 5 minutes
+                </p>
+
+                <div class="yaml-block text-left max-w-2xl mx-auto mb-12">
+                    <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 text-sm text-slate-400">
+                        Terminal
+                    </div>
+                    <pre><span class="yaml-comment"># Install</span>
+pip install yamlgraph
+
+<span class="yaml-comment"># Set your LLM key</span>
+export ANTHROPIC_API_KEY=your-key
+
+<span class="yaml-comment"># Run an example</span>
+yamlgraph graph run graphs/yamlgraph.yaml --var topic=AI
+
+<span class="yaml-comment"># Lint your graphs</span>
+yamlgraph graph lint graphs/*.yaml</pre>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="https://github.com/sheikkinen/yamlgraph" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-semibold transition-colors">
+                        View on GitHub →
+                    </a>
+                    <a href="https://pypi.org/project/yamlgraph/" class="px-8 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-colors">
+                        PyPI Package
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t border-slate-800">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-wrap justify-between items-center gap-4">
+                <div class="text-slate-400 text-sm">
+                    YAMLGraph © 2026 • MIT License
+                </div>
+                <div class="flex gap-6 text-slate-400 text-sm">
+                    <span>Python 3.11+</span>
+                    <span>•</span>
+                    <span>Built on LangGraph</span>
+                    <span>•</span>
+                    <span>Pydantic v2</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Coverage Chart
+        const coverageCtx = document.getElementById('coverageChart').getContext('2d');
+        new Chart(coverageCtx, {
+            type: 'bar',
+            data: {
+                labels: ['graph_loader', 'executor', 'node_factory', 'cli', 'tools', 'utils', 'storage'],
+                datasets: [{
+                    label: 'Coverage %',
+                    data: [95, 100, 92, 88, 95, 90, 89],
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.7)',
+                        'rgba(139, 92, 246, 0.7)',
+                        'rgba(168, 85, 247, 0.7)',
+                        'rgba(192, 132, 252, 0.7)',
+                        'rgba(99, 102, 241, 0.7)',
+                        'rgba(139, 92, 246, 0.7)',
+                        'rgba(168, 85, 247, 0.7)',
+                    ],
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Composition Chart
+        const compositionCtx = document.getElementById('compositionChart').getContext('2d');
+        new Chart(compositionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Core Engine', 'CLI & API', 'Tools & Agents', 'Utils', 'Storage', 'Tests'],
+                datasets: [{
+                    data: [25, 15, 20, 15, 10, 15],
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(34, 211, 238, 0.8)',
+                        'rgba(250, 204, 21, 0.8)',
+                        'rgba(74, 222, 128, 0.8)',
+                    ],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#94a3b8', padding: 15 }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
