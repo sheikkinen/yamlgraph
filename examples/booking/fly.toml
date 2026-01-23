@@ -1,0 +1,33 @@
+# Fly.io configuration for Booking API
+# See https://fly.io/docs/reference/configuration/
+
+app = "yamlgraph-booking"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8000"
+  BOOKING_DB_PATH = "/data/booking.db"
+  BOOKING_GRAPH_PATH = "examples/booking/graphs/booking.yaml"
+  # Set these secrets via: fly secrets set ANTHROPIC_API_KEY=...
+  # ANTHROPIC_API_KEY = "set-via-secrets"
+  # UPSTASH_REDIS_URL = "set-via-secrets"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[mounts]]
+  source = "booking_data"
+  destination = "/data"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
