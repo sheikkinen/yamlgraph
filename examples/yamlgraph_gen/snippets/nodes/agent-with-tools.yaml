@@ -1,13 +1,60 @@
-# Agent with Tools Node Snippet
-# LLM with function calling
+# Agent with Tools Pattern
+# Graph that uses an agent node with custom tools
 
-description: Agent node with tool access
+description: Agent pattern with custom Python tools
 
-node:
-  type: agent
-  prompt: prompts/__NODE_NAME__
-  state_key: "{output_key}"
+graph_snippet: |
+  # Python tools for agent
   tools:
-    - module: "{tools_module}"
-      functions:
-        - "{tool_function}"
+    __TOOL_NAME__:
+      type: python
+      module: tools.__TOOL_MODULE__
+      function: __TOOL_FUNCTION__
+      description: "__TOOL_DESCRIPTION__"
+
+  nodes:
+    agent:
+      type: agent
+      prompt: agent
+      state_key: agent_response
+      tools:
+        - __TOOL_NAME__
+      max_iterations: 5
+      variables:
+        input: "{state.input}"
+
+tool_stub: |
+  """Tool functions for the agent.
+
+  Each function receives the full state dict and returns
+  a dict with updates to merge into state.
+  """
+  from typing import Any
+
+
+  def __TOOL_FUNCTION__(state: dict[str, Any]) -> dict[str, Any]:
+      """__TOOL_DESCRIPTION__
+
+      Args:
+          state: Current graph state
+
+      Returns:
+          Dict with state updates
+      """
+      # TODO: Implement tool logic
+      input_value = state.get("input", "")
+
+      return {
+          "tool_result": f"Processed: {input_value}",
+      }
+
+edges_snippet: |
+  - from: START
+    to: agent
+  - from: agent
+    to: END
+
+use_cases:
+  - Research agent with web search
+  - Data processing with custom tools
+  - API integration agents

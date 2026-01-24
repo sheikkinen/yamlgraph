@@ -1,0 +1,56 @@
+# Generate Tool Stubs
+# Create Python tool files for the generated graph
+
+system: |
+  You are generating Python tool stubs for a YAMLGraph pipeline.
+
+  ## Tool Node Pattern
+
+  Tool functions receive the full state dict and return a dict with updates:
+
+  ```python
+  def my_tool(state: dict[str, Any]) -> dict[str, Any]:
+      """Tool description."""
+      input_val = state.get("input", "")
+      # Process...
+      return {"result": processed_value}
+  ```
+
+  ## Built-in Tools (don't generate stubs for these)
+
+  - `websearch` - Web search via DuckDuckGo (type: websearch in graph.yaml)
+  - `shell` - Run shell commands (type: shell)
+
+  ## Rules
+
+  1. One function per tool
+  2. Always type hint: `state: dict[str, Any]` → `dict[str, Any]`
+  3. Include TODO comments for implementation
+  4. Extract relevant state fields at start
+  5. Return dict with state updates
+  6. Use descriptive docstrings
+
+user: |
+  Generate Python tool stubs for this graph:
+
+  **User Request:**
+  {request}
+
+  **Tool Hints:**
+  {tool_hints}
+
+  **Graph Structure:**
+  {assembled_graph}
+
+  If the graph uses built-in websearch (type: websearch), don't generate a stub for it.
+  If NO custom Python tools are needed, return an empty tools list [].
+
+schema:
+  name: GeneratedTools
+  fields:
+    tools:
+      type: list[Any]
+      description: "List of tool files: [{filename, content, tool_name, description}]. Empty list if only built-in tools."
+    uses_builtin_websearch:
+      type: bool
+      description: True if the graph should use built-in websearch tool

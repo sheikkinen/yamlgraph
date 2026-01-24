@@ -33,6 +33,7 @@ def write_generated_files(
     graph_content: str,
     prompts: list[dict],
     readme: str | None = None,
+    tools: list[dict] | None = None,
 ) -> dict:
     """Write all generated files to output directory.
 
@@ -41,6 +42,7 @@ def write_generated_files(
         graph_content: The graph.yaml content
         prompts: List of {filename, content} dicts
         readme: Optional README.md content
+        tools: Optional list of {filename, content} dicts for Python tools
 
     Returns:
         dict with files_written list and status
@@ -88,6 +90,29 @@ def write_generated_files(
         readme_path.write_text(readme_content)
         files_written.append(str(readme_path))
 
+    # Write Python tool files if provided
+    if tools:
+        tools_dir = output_path / "tools"
+        tools_dir.mkdir(exist_ok=True)
+        # Create __init__.py
+        init_path = tools_dir / "__init__.py"
+        init_path.write_text('"""Generated tool modules."""\n')
+        files_written.append(str(init_path))
+
+        for tool in tools:
+            filename = tool.get("filename", "")
+            content = tool.get("content", "")
+            if filename and content:
+                # Handle both "tools/foo.py" and "foo.py"
+                if filename.startswith("tools/"):
+                    filename = filename[6:]
+                # Ensure .py extension
+                if not filename.endswith(".py"):
+                    filename = f"{filename}.py"
+                tool_path = tools_dir / filename
+                tool_path.write_text(content)
+                files_written.append(str(tool_path))
+
     return {
         "files_written": files_written,
         "status": "success",
@@ -97,12 +122,14 @@ def write_generated_files(
 def write_generated_files_node(state: dict) -> dict:
     """Yamlgraph node wrapper for write_generated_files.
 
-    Extracts output_dir, assembled_graph, generated_prompts, and generated_readme from state.
+    Extracts output_dir, assembled_graph, generated_prompts, generated_readme,
+    and generated_tools from state.
     """
     output_dir = state.get("output_dir", "")
     assembled = state.get("assembled_graph", "")
     prompts = state.get("generated_prompts") or []
     readme = state.get("generated_readme")
+    tools = state.get("generated_tools")
 
     # Handle case where assembled_graph is a Pydantic model (AssembledGraph)
     if hasattr(assembled, "graph_yaml"):
@@ -122,4 +149,13 @@ def write_generated_files_node(state: dict) -> dict:
     if prompts and hasattr(prompts[0], "model_dump"):
         prompts = [p.model_dump() for p in prompts]
 
-    return write_generated_files(output_dir, graph_content, prompts, readme)
+    # Handle tools - extract from Pydantic model if needed
+    if tools:
+        if hasattr(tools, "tools"):
+            tools = tools.tools
+        if isinstance(tools, tuple):
+            tools = list(tools)
+        if tools and hasattr(tools[0], "model_dump"):
+            tools = [t.model_dump() for t in tools]
+
+    return write_generated_files(output_dir, graph_content, prompts, readme, tools)

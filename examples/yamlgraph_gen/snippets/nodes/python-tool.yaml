@@ -1,0 +1,53 @@
+# Python Tool Node Pattern
+# Standalone Python tool node (not agent)
+
+description: Python tool node for custom logic
+
+graph_snippet: |
+  tools:
+    __TOOL_NAME__:
+      type: python
+      module: tools.__TOOL_MODULE__
+      function: __TOOL_FUNCTION__
+      description: "__TOOL_DESCRIPTION__"
+
+  nodes:
+    __NODE_NAME__:
+      type: python
+      tool: __TOOL_NAME__
+      variables:
+        input: "{state.input}"
+
+tool_stub: |
+  """Python tool node handler.
+
+  Receives full state dict, returns dict with state updates.
+  """
+  from typing import Any
+
+
+  def __TOOL_FUNCTION__(state: dict[str, Any]) -> dict[str, Any]:
+      """__TOOL_DESCRIPTION__
+
+      Args:
+          state: Current graph state
+
+      Returns:
+          Dict with state updates to merge
+      """
+      # TODO: Implement logic
+      return {
+          "result": "processed",
+      }
+
+edges_snippet: |
+  - from: __PREV_NODE__
+    to: __NODE_NAME__
+  - from: __NODE_NAME__
+    to: __NEXT_NODE__
+
+use_cases:
+  - Data transformation
+  - External API calls
+  - File operations
+  - Custom business logic

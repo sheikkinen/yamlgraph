@@ -142,3 +142,31 @@ class TestWriteGeneratedFiles:
         write_generated_files(str(tmp_path), "version: '1.0'", [], readme)
 
         assert (tmp_path / "README.md").read_text() == "# From Dict"
+
+    def test_write_with_tools(self, tmp_path: Path) -> None:
+        """Write graph.yaml, prompts, and tool stubs."""
+        graph_content = "version: '1.0'\nname: test"
+        prompts = [{"filename": "agent.yaml", "content": "system: test"}]
+        tools = [
+            {"filename": "search.py", "content": "def search(state): pass"},
+            {"filename": "tools/api.py", "content": "def call_api(state): pass"},
+        ]
+
+        result = write_generated_files(
+            str(tmp_path), graph_content, prompts, None, tools
+        )
+
+        assert result["status"] == "success"
+        # graph.yaml + 1 prompt + __init__.py + 2 tools = 5
+        assert len(result["files_written"]) == 5
+        assert (tmp_path / "tools" / "__init__.py").exists()
+        assert (tmp_path / "tools" / "search.py").exists()
+        assert (tmp_path / "tools" / "api.py").exists()
+
+    def test_write_tools_adds_py_extension(self, tmp_path: Path) -> None:
+        """Tool files without .py extension get it added."""
+        tools = [{"filename": "my_tool", "content": "def my_tool(state): pass"}]
+
+        write_generated_files(str(tmp_path), "version: '1.0'", [], None, tools)
+
+        assert (tmp_path / "tools" / "my_tool.py").exists()

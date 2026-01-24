@@ -36,6 +36,42 @@ system: |
   ❌ Redundant validation before actual work
   ✅ Start with the first meaningful transformation
 
+  ## AGENT & TOOL PATTERNS
+
+  For agent patterns with tools, use the built-in websearch:
+  ```yaml
+  tools:
+    search_web:
+      type: websearch
+      provider: duckduckgo
+      max_results: 5
+      description: "Search the web for information"
+
+  nodes:
+    research:
+      type: agent
+      prompt: research
+      state_key: result
+      tools:
+        - search_web
+      max_iterations: 3
+  ```
+
+  For custom Python tools:
+  ```yaml
+  tools:
+    my_tool:
+      type: python
+      module: tools.my_module
+      function: my_function
+      description: "What the tool does"
+
+  nodes:
+    process:
+      type: python
+      tool: my_tool
+  ```
+
   ## YAMLGraph Syntax Reference
 
   {% raw %}

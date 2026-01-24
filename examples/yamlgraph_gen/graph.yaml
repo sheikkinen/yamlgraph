@@ -16,6 +16,8 @@ state:
   output_dir: str
   patterns: list
   confidence: float
+  needs_tools: bool
+  tool_hints: list
   clarification: str
   selected_snippets: dict
   snippet_contents: dict
@@ -23,6 +25,7 @@ state:
   node_list: list
   generated_graph: str
   generated_prompts: list
+  generated_tools: list
   generated_readme: str
   structure_valid: bool
   structure_errors: list
@@ -103,6 +106,15 @@ nodes:
       assembled_graph: "{state.assembled_graph}"
       node_list: "{state.node_list}"
 
+  generate_tools:
+    type: llm
+    prompt: generate_tools
+    state_key: generated_tools
+    variables:
+      request: "{state.request}"
+      tool_hints: "{state.tool_hints}"
+      assembled_graph: "{state.assembled_graph}"
+
   generate_readme:
     type: llm
     prompt: generate_readme
@@ -122,6 +134,7 @@ nodes:
       graph_content: "{state.assembled_graph}"
       prompts: "{state.generated_prompts}"
       readme: "{state.generated_readme}"
+      tools: "{state.generated_tools}"
 
   validate_structure:
     type: python
@@ -165,6 +178,9 @@ edges:
     to: generate_prompts
 
   - from: generate_prompts
+    to: generate_tools
+
+  - from: generate_tools
     to: generate_readme
 
   - from: generate_readme

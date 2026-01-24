@@ -1,0 +1,36 @@
+# Web Search Tool Pattern
+# Built-in websearch tool (no custom code needed)
+
+description: Web search using DuckDuckGo (built-in)
+
+graph_snippet: |
+  tools:
+    search_web:
+      type: websearch
+      provider: duckduckgo
+      max_results: 5
+      description: "Search the web for information"
+
+  nodes:
+    research_agent:
+      type: agent
+      prompt: research
+      state_key: research_result
+      tools:
+        - search_web
+      max_iterations: 3
+      variables:
+        query: "{state.query}"
+
+# No tool_stub needed - websearch is built-in
+
+edges_snippet: |
+  - from: START
+    to: research_agent
+  - from: research_agent
+    to: END
+
+use_cases:
+  - Research tasks
+  - Fact checking
+  - Current events lookup

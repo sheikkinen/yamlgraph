@@ -56,6 +56,12 @@ schema:
     patterns:
       type: list[str]
       description: List of identified patterns (e.g., ["router", "map"])
+    needs_tools:
+      type: bool
+      description: True if request mentions tools, APIs, search, or custom logic
+    tool_hints:
+      type: list[str]
+      description: Suggested tool names/purposes (e.g., ["search_web", "call_api"])
     confidence:
       type: float
       description: Classification confidence (0.0 to 1.0)
