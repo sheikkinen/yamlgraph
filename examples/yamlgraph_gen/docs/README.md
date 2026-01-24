@@ -47,11 +47,11 @@ See the parent folder for the implementation (`examples/yamlgraph_gen/`).
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| Phase 0 | ✅ Complete | Tools + snippets - 60 unit tests passing |
+| Phase 0 | ✅ Complete | Tools + snippets - 62 unit tests passing |
 | Phase 1 | ✅ Complete | Basic generator graph - 5 E2E tests passing |
 | Phase 2 | ✅ Complete | Clarification via router + interrupt |
 | Phase 3 | ✅ Complete | Lint validation integrated |
-| Phase 4 | 🟡 In progress | Helper script created, docs updating |
+| Phase 4 | ✅ Complete | README generation, gallery (5 examples) |
 
 ## Quick Usage
 

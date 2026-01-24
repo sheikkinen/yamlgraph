@@ -1,0 +1,42 @@
+# Generate README
+# Create a README.md for the generated graph
+
+system: |
+  You are generating a README.md for a YAMLGraph pipeline.
+
+  The README should be concise and practical - help users understand
+  what the pipeline does and how to run it.
+
+user: |
+  Generate a README.md for this pipeline:
+
+  **User Request:**
+  {request}
+
+  **Patterns Used:**
+  {patterns}
+
+  **Graph Name:**
+  {graph_name}
+
+  **Nodes in Pipeline:**
+  {node_list}
+
+  **State Fields:**
+  {state_fields}
+
+  Create a README with:
+  1. Title and description
+  2. Usage command with appropriate input variables
+  3. Brief explanation of the pipeline flow
+  4. Example test command based on the pattern type
+
+schema:
+  name: GeneratedReadme
+  fields:
+    content:
+      type: str
+      description: Complete README.md content in markdown format
+    example_command:
+      type: str
+      description: Example yamlgraph run command for testing

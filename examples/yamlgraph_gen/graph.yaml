@@ -23,6 +23,7 @@ state:
   node_list: list
   generated_graph: str
   generated_prompts: list
+  generated_readme: str
   structure_valid: bool
   structure_errors: list
   lint_result: dict
@@ -102,6 +103,17 @@ nodes:
       assembled_graph: "{state.assembled_graph}"
       node_list: "{state.node_list}"
 
+  generate_readme:
+    type: llm
+    prompt: generate_readme
+    state_key: generated_readme
+    variables:
+      request: "{state.request}"
+      patterns: "{state.patterns}"
+      graph_name: "{state.assembled_graph.name}"
+      node_list: "{state.node_list}"
+      state_fields: "{state.assembled_graph.state}"
+
   write_files:
     type: python
     tool: write_generated_files
@@ -109,6 +121,7 @@ nodes:
       output_dir: "{state.output_dir}"
       graph_content: "{state.assembled_graph}"
       prompts: "{state.generated_prompts}"
+      readme: "{state.generated_readme}"
 
   validate_structure:
     type: python
@@ -152,6 +165,9 @@ edges:
     to: generate_prompts
 
   - from: generate_prompts
+    to: generate_readme
+
+  - from: generate_readme
     to: write_files
 
   - from: write_files

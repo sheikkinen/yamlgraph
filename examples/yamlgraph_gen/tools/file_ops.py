@@ -32,6 +32,7 @@ def write_generated_files(
     output_dir: str,
     graph_content: str,
     prompts: list[dict],
+    readme: str | None = None,
 ) -> dict:
     """Write all generated files to output directory.
 
@@ -39,6 +40,7 @@ def write_generated_files(
         output_dir: Target directory
         graph_content: The graph.yaml content
         prompts: List of {filename, content} dicts
+        readme: Optional README.md content
 
     Returns:
         dict with files_written list and status
@@ -74,6 +76,18 @@ def write_generated_files(
             prompt_path.write_text(content)
             files_written.append(str(prompt_path))
 
+    # Write README.md if provided
+    if readme:
+        readme_content = readme
+        # Handle Pydantic model
+        if hasattr(readme, "content"):
+            readme_content = readme.content
+        elif isinstance(readme, dict):
+            readme_content = readme.get("content", str(readme))
+        readme_path = output_path / "README.md"
+        readme_path.write_text(readme_content)
+        files_written.append(str(readme_path))
+
     return {
         "files_written": files_written,
         "status": "success",
@@ -83,11 +97,12 @@ def write_generated_files(
 def write_generated_files_node(state: dict) -> dict:
     """Yamlgraph node wrapper for write_generated_files.
 
-    Extracts output_dir, assembled_graph, and generated_prompts from state.
+    Extracts output_dir, assembled_graph, generated_prompts, and generated_readme from state.
     """
     output_dir = state.get("output_dir", "")
     assembled = state.get("assembled_graph", "")
     prompts = state.get("generated_prompts") or []
+    readme = state.get("generated_readme")
 
     # Handle case where assembled_graph is a Pydantic model (AssembledGraph)
     if hasattr(assembled, "graph_yaml"):
@@ -107,4 +122,4 @@ def write_generated_files_node(state: dict) -> dict:
     if prompts and hasattr(prompts[0], "model_dump"):
         prompts = [p.model_dump() for p in prompts]
 
-    return write_generated_files(output_dir, graph_content, prompts)
+    return write_generated_files(output_dir, graph_content, prompts, readme)

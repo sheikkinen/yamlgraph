@@ -71,12 +71,12 @@ For each pattern type, generate appropriate test inputs:
 
 ## Success Criteria
 
-- [ ] Generated projects include README.md
-- [ ] Example test command is runnable
-- [ ] Documentation explains each file
+- [x] Generated projects include README.md
+- [x] Example test command is runnable
+- [x] Documentation explains each file
 - [x] Helper script created (`run_generator.py`)
 - [x] Planning documentation updated
-- [ ] Gallery has 5+ example outputs
+- [x] Gallery has 5+ example outputs
 
 ## Completed Items
 

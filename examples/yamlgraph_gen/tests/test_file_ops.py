@@ -121,3 +121,24 @@ class TestWriteGeneratedFiles:
 
         assert result["status"] == "success"
         assert len(result["files_written"]) == 1
+
+    def test_write_with_readme(self, tmp_path: Path) -> None:
+        """Write graph.yaml, prompts, and README.md."""
+        graph_content = "version: '1.0'\nname: test"
+        prompts = [{"filename": "node1.yaml", "content": "system: test"}]
+        readme = "# Test Pipeline\n\nDescription here."
+
+        result = write_generated_files(str(tmp_path), graph_content, prompts, readme)
+
+        assert result["status"] == "success"
+        assert len(result["files_written"]) == 3
+        assert (tmp_path / "README.md").exists()
+        assert "Test Pipeline" in (tmp_path / "README.md").read_text()
+
+    def test_write_readme_from_dict(self, tmp_path: Path) -> None:
+        """Write README.md from dict with content key."""
+        readme = {"content": "# From Dict", "example_command": "yamlgraph run"}
+
+        write_generated_files(str(tmp_path), "version: '1.0'", [], readme)
+
+        assert (tmp_path / "README.md").read_text() == "# From Dict"

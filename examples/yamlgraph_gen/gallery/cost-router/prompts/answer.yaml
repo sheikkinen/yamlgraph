@@ -1,0 +1,12 @@
+system: |
+  Answer the user's question concisely.
+
+user: |
+  {query}
+
+schema:
+  name: Answer
+  fields:
+    response:
+      type: str
+      description: Concise answer to the question
