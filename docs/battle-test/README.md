@@ -9,7 +9,7 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 | Linear | ✅ | ✅ | ✅ | [Test case](00-linear.md) |
 | Agent + Websearch | ✅ | ✅ | ✅ | [Test case](05-agent-tools.md) |
 | Router | ✅ | ✅ | ✅ | [Test case](01-router.md) - Generator fixed |
-| Map | ⬜ | ⬜ | ⬜ | [Test case](02-map.md) |
+| Map | ✅ | ✅ | ✅ | [Test case](02-map.md) - Generator + framework fixed |
 | Interrupt | ⬜ | ⬜ | ⬜ | [Test case](03-interrupt.md) |
 | Subgraph | ⬜ | ⬜ | ⬜ | [Test case](04-subgraph.md) |
 
@@ -20,7 +20,7 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 | Linear nodes | ✅ | Fully supported |
 | Router nodes | ✅ | Single combined node, dict routes, intent field |
 | Agent + websearch | ✅ | Built-in DuckDuckGo |
-| Map nodes | ⚠️ | Snippet exists, untested |
+| Map nodes | ✅ | over/as/node/collect pattern, START->map supported |
 | Interrupt nodes | ⚠️ | Snippet exists, no checkpointer config |
 | Subgraph creation | ❌ | Only generates main graph |
 | Custom Python tools | ⚠️ | Stubs generated, not functional |
@@ -40,12 +40,12 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 |-------|---------|-------------|--------|
 | No checkpointer | interrupt | Generator does not add checkpointer config | Open |
 | No subgraph files | subgraph | Only generates main graph | Open |
-| Untested map | map | Snippet exists but not validated | Open |
+| ~~Untested map~~ | map | ~~Snippet exists but not validated~~ | ✅ Fixed |
 
 ## Execution Checklist
 
 1. [x] Run router test → ✅ **PASSED** (generator fixed)
-2. [ ] Run map test → update status
+2. [x] Run map test → ✅ **PASSED** (generator + framework fixed)
 3. [ ] Run interrupt test → update status
 4. [x] Update generator based on findings → ✅ **Complete**
 5. [ ] Re-run remaining tests after fixes
@@ -59,3 +59,6 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 | Assembly dict/list preservation | `prompts/assemble_graph.yaml` | Explicit examples prevent format changes |
 | Self-documenting snippets | All snippet files | Pattern-specific guidance in comments |
 | Prompt schema validation | `prompts/generate_prompts.yaml` | Router schema field requirements |
+| Map node API update | `snippets/nodes/map-basic.yaml`, `snippets/patterns/*-map.yaml` | Current API: over/as/node/collect |
+| Snippet loader fix | `tools/snippet_loader.py` | Check state.classification.patterns |
+| START->map edge support | `yamlgraph/graph_loader.py` | Framework now supports conditional entry points |

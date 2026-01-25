@@ -1,24 +1,32 @@
 # Generate Then Map Pattern
 # LLM generates list → map processes each
+#
+# ASSEMBLY INSTRUCTIONS:
+# - Map node has nested sub-node under `node:` key
+# - Map node itself does NOT have a prompt field
+# - Use `over`, `as`, `node`, `collect` fields (not input_key, sub_node)
+# - Sub-node is where the prompt goes
 
 description: Generate a list then process each item
 
 nodes:
   generate_list:
     type: llm
-    prompt: prompts/generate_list.yaml
+    prompt: generate_list
     state_key: items
     variables:
-      topic: "{state.topic}"
+      input: "{state.input}"
 
   process_items:
     type: map
-    prompt: prompts/process_item.yaml
-    state_key: results
-    input_key: items
-    sub_node: process_single
-    variables:
-      item: "{item}"
+    over: "{state.items}"
+    as: item
+    node:
+      prompt: process_item
+      state_key: result
+      variables:
+        item: "{state.item}"
+    collect: results
 
 edges:
   - from: START

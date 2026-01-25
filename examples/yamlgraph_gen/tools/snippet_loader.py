@@ -125,7 +125,14 @@ def load_snippets_for_patterns_node(state: dict) -> dict:
 
     Extracts patterns from state and returns snippet contents.
     """
-    patterns = state.get("patterns") or []
+    # Try to get patterns from state.patterns or state.classification.patterns
+    patterns = state.get("patterns")
+    if not patterns:
+        classification = state.get("classification")
+        if classification and hasattr(classification, "patterns"):
+            patterns = classification.patterns
+
+    patterns = patterns or []
     return load_snippets_for_patterns(patterns)
 
 

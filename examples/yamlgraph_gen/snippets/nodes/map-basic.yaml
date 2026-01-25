@@ -4,16 +4,20 @@
 # ASSEMBLY INSTRUCTIONS:
 # - Map node has nested structure: over, as, node (sub-node), collect
 # - DO NOT flatten or restructure the nesting
-# - Sub-node is nested under `node:` key
+# - Sub-node is nested under `node:` key with prompt, state_key, variables
+# - Map node itself does NOT have a prompt (only the sub-node does)
 # - Keep all fields exactly as defined
 
 description: Map node for parallel processing
 
 node:
-  type: map
-  prompt: prompts/__NODE_NAME__
-  state_key: "{output_key}"
-  input_key: "{items_key}"
-  sub_node: process_item
-  variables:
-    item: "{item}"
+  __NODE_NAME__:
+    type: map
+    over: "{state.__LIST_FIELD__}"
+    as: __ITEM_NAME__
+    node:
+      prompt: __SUB_NODE_PROMPT__
+      state_key: __ITEM_RESULT__
+      variables:
+        __ITEM_NAME__: "{state.__ITEM_NAME__}"
+    collect: __COLLECTED_RESULTS__

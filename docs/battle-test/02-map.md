@@ -1,6 +1,6 @@
 # Test Case: Map Pattern
 
-**Status:** ⬜ Not tested
+**Status:** ✅ PASSED (generator + framework fixed)
 
 ## Request
 
@@ -34,30 +34,59 @@ yamlgraph graph run graph.yaml --var 'topics=["quantum computing", "machine lear
 
 ## Success Criteria
 
-- [ ] Map node has type: map with items_key, item_key, state_key
-- [ ] Sub-node defined under node: or sub_node:
-- [ ] State has list input field and list/dict output field
-- [ ] Prompt handles single item (not list)
-- [ ] Execution processes all items and aggregates results
+- [x] Map node has type: map with over, as, node, collect fields
+- [x] Sub-node defined under node: key
+- [x] Prompt handles single item (not list)
+- [x] Execution processes all items and aggregates results
 
 ## Results
-
-_To be filled after test execution_
 
 ### Generated Structure
 
 ```yaml
-# Paste relevant graph.yaml sections here
+nodes:
+  process_items:
+    type: map
+    over: "{state.topics}"
+    as: topic
+    node:
+      prompt: generate_summary
+      state_key: summary
+      variables:
+        topic: "{state.topic}"
+    collect: summaries
+
+  aggregate:
+    type: llm
+    prompt: aggregate_summaries
+    state_key: final_summaries
+    variables:
+      summaries: "{state.summaries}"
+
+edges:
+  - from: START
+    to: process_items
+  - from: process_items
+    to: aggregate
+  - from: aggregate
+    to: END
 ```
 
 ### Execution Output
 
 ```
-# Paste execution output here
+Summaries collected: 3 items
+
+Final aggregated output:
+## Technology Summaries Overview
+[Successfully generated formatted summaries for quantum computing, machine learning, and blockchain]
 ```
 
-### Issues Found
+### Fixes Applied
 
-| Issue | Description | Severity |
-|-------|-------------|----------|
-| | | |
+| Component | Issue | Fix |
+|-----------|-------|-----|
+| snippets/nodes/map-basic.yaml | Used old API (input_key, sub_node) | Updated to current API (over, as, node, collect) |
+| snippets/patterns/map-then-summarize.yaml | Map node had prompt field | Removed prompt, moved to nested sub-node |
+| tools/snippet_loader.py | Couldn't find patterns in state.classification | Check both state.patterns and state.classification.patterns |
+| yamlgraph/graph_loader.py | START -> map_node not supported | Added set_conditional_entry_point for map nodes |

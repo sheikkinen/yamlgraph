@@ -156,7 +156,12 @@ def _process_edge(
     edge_type = edge.get("type")
 
     if from_node == "START":
-        graph.set_entry_point(to_node)
+        if to_node in map_nodes:
+            # START -> map node: use conditional entry point with Send function
+            map_edge_fn, sub_node_name = map_nodes[to_node]
+            graph.set_conditional_entry_point(map_edge_fn, [sub_node_name])
+        else:
+            graph.set_entry_point(to_node)
     elif from_node in map_nodes and to_node in map_nodes:
         # Edge from map node TO another map node: sub_node → map_edge_fn
         _, from_sub = map_nodes[from_node]
