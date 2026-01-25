@@ -221,10 +221,10 @@ The yamlgraph library likely exposes a GraphLoader class that orchestrates the i
 
 ### **4.3 Integration with Model Context Protocol (MCP)**
 
-A key differentiator for Sheikkinen's work is the integration with MCP. The sheikkinen-forge-mcp server 7 exposes the Stable Diffusion Forge API as a standardized tool interface.
+A key differentiator for Sheikkinen's work is the integration with MCP. MCP servers can expose local AI services (such as Stable Diffusion) as standardized tool interfaces.
 
-* **Mechanism**: In the yamlgraph config, an MCP client would be defined as a node. When the graph executes this node, it sends a JSON-RPC request to the local MCP server (running on port 7860, for example).
-* **Benefit**: This decouples the agent logic from the heavy GPU inference. The agent (running in yamlgraph) can be lightweight, while the image generation happens in a separate, dedicated process managed by the MCP server.
+* **Mechanism**: In the yamlgraph config, an MCP client could be defined as a node. When the graph executes this node, it sends a JSON-RPC request to the local MCP server.
+* **Benefit**: This decouples the agent logic from heavy GPU inference. The agent (running in yamlgraph) can be lightweight, while image generation happens in a separate, dedicated process managed by the MCP server.
 
 ## ---
 
@@ -295,7 +295,7 @@ Tools like yamlgraph signal the beginning of **Agent Ops**. Just as DevOps stand
 
 ### **7.2 The Rise of Local-First Orchestration**
 
-The developer's use of **MCP (Model Context Protocol)** 7 alongside yamlgraph highlights a shift towards local-first orchestration. Instead of relying entirely on cloud APIs, the yamlgraph agent orchestrates a mix of cloud intelligence (Claude/GPT-4) and local capability (Local Stable Diffusion Forge server). This hybrid architecture allows for:
+The potential integration with **MCP (Model Context Protocol)** alongside yamlgraph highlights a shift towards local-first orchestration. Instead of relying entirely on cloud APIs, the yamlgraph agent could orchestrate a mix of cloud intelligence (Claude/GPT-4) and local capability (local AI services via MCP). This hybrid architecture allows for:
 
 * **Privacy**: Sensitive generation tasks happen locally.
 * **Cost Efficiency**: Offloading heavy generation to local GPUs rather than paying API fees.
@@ -324,7 +324,7 @@ While care must be taken to distinguish it from unrelated data tools like nextme
 4. My AI Art Pipeline by sheikkinen on DeviantArt, avattu tammikuuta 25, 2026, [https://www.deviantart.com/sheikkinen/journal/My-AI-Art-Pipeline-1264011267](https://www.deviantart.com/sheikkinen/journal/My-AI-Art-Pipeline-1264011267)
 5. Graph API overview \- Docs by LangChain, avattu tammikuuta 25, 2026, [https://docs.langchain.com/oss/python/langgraph/graph-api](https://docs.langchain.com/oss/python/langgraph/graph-api)
 6. sheikkinen/statemachine-engine \- GitHub, avattu tammikuuta 25, 2026, [https://github.com/sheikkinen/statemachine-engine](https://github.com/sheikkinen/statemachine-engine)
-7. Forge API MCP Server \- LobeHub, avattu tammikuuta 25, 2026, [https://lobehub.com/mcp/sheikkinen-forge-mcp](https://lobehub.com/mcp/sheikkinen-forge-mcp)
+7. Model Context Protocol - Anthropic, avattu tammikuuta 25, 2026, [https://modelcontextprotocol.io/](https://modelcontextprotocol.io/)
 8. nextmetaphor/yaml-graph: Utility to help define graph ... \- GitHub, avattu tammikuuta 25, 2026, [https://github.com/nextmetaphor/yaml-graph](https://github.com/nextmetaphor/yaml-graph)
 9. aucontraire/cognivault \- GitHub, avattu tammikuuta 25, 2026, [https://github.com/aucontraire/cognivault](https://github.com/aucontraire/cognivault)
 10. LangGraph vs AutoGen vs CrewAI: Complete AI Agent Framework ..., avattu tammikuuta 25, 2026, [https://latenode.com/blog/platform-comparisons-alternatives/automation-platform-comparisons/langgraph-vs-autogen-vs-crewai-complete-ai-agent-framework-comparison-architecture-analysis-2025](https://latenode.com/blog/platform-comparisons-alternatives/automation-platform-comparisons/langgraph-vs-autogen-vs-crewai-complete-ai-agent-framework-comparison-architecture-analysis-2025)
