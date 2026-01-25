@@ -57,7 +57,7 @@ user: |
   From graph:
   {assembled_graph}
 
-  Output each prompt with its filename.
+  Output each prompt with its filename (always use .yaml extension, e.g., "classify.yaml", "process_input.yaml").
 
 schema:
   name: GeneratedPrompts
