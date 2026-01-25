@@ -10,7 +10,7 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 | Agent + Websearch | ✅ | ✅ | ✅ | [Test case](05-agent-tools.md) |
 | Router | ✅ | ✅ | ✅ | [Test case](01-router.md) - Generator fixed |
 | Map | ✅ | ✅ | ✅ | [Test case](02-map.md) - Generator + framework fixed |
-| Interrupt | ⬜ | ⬜ | ⬜ | [Test case](03-interrupt.md) |
+| Interrupt | ✅ | ✅ | ✅ | [Test case](03-interrupt.md) - Checkpointer auto-added |
 | Subgraph | ⬜ | ⬜ | ⬜ | [Test case](04-subgraph.md) |
 
 ## Generator Capability Gaps
@@ -21,7 +21,7 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 | Router nodes | ✅ | Single combined node, dict routes, intent field |
 | Agent + websearch | ✅ | Built-in DuckDuckGo |
 | Map nodes | ✅ | over/as/node/collect pattern, START->map supported |
-| Interrupt nodes | ⚠️ | Snippet exists, no checkpointer config |
+| Interrupt nodes | ✅ | Checkpointer auto-added, LLM-generated questions |
 | Subgraph creation | ❌ | Only generates main graph |
 | Custom Python tools | ⚠️ | Stubs generated, not functional |
 
@@ -38,7 +38,7 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 
 | Issue | Pattern | Description | Status |
 |-------|---------|-------------|--------|
-| No checkpointer | interrupt | Generator does not add checkpointer config | Open |
+| ~~No checkpointer~~ | interrupt | ~~Generator does not add checkpointer config~~ | ✅ Fixed (auto-adds memory checkpointer) |
 | No subgraph files | subgraph | Only generates main graph | Open |
 | ~~Untested map~~ | map | ~~Snippet exists but not validated~~ | ✅ Fixed |
 
@@ -46,9 +46,9 @@ Testing the yamlgraph-generator's ability to produce working graphs for each pat
 
 1. [x] Run router test → ✅ **PASSED** (generator fixed)
 2. [x] Run map test → ✅ **PASSED** (generator + framework fixed)
-3. [ ] Run interrupt test → update status
+3. [x] Run interrupt test → ✅ **PASSED** (checkpointer auto-added)
 4. [x] Update generator based on findings → ✅ **Complete**
-5. [ ] Re-run remaining tests after fixes
+5. [ ] Subgraph test (deferred - multi-file generation)
 
 ## Generator Improvements Made
 
