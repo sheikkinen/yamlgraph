@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.24] - 2026-01-26
+
+### Fixed
+- **FR-006: Redis Checkpointer Serialization for Subgraph Interrupts**
+  - Root cause: `SimpleRedisCheckpointer` failed when serializing LangGraph internal runtime objects (`CallbackManager`, checkpointers) propagated via `__pregel_checkpointer` during subgraph execution
+  - Fix: Updated `serializers.py` to skip LangGraph/LangChain internal types that can't be meaningfully serialized
+  - Skipped types include: `CallbackManager`, `BaseCheckpointSaver`, `MemorySaver`, `RedisSaver`, `SimpleRedisCheckpointer`, `PregelLoop`, etc.
+  - All 51 Redis unit tests pass
+  - All 27 subgraph unit/integration tests pass
+  - Added TDD test script: `scripts/test_subgraph_interrupt.py`
+  - Added test graphs: `graphs/interrupt-parent-redis.yaml`, `graphs/subgraphs/interrupt-child-with-checkpointer-redis.yaml`
+
 ## [0.3.23] - 2026-01-25
 
 ### Added
