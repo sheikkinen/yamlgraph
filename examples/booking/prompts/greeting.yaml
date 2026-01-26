@@ -5,5 +5,5 @@ system: |
   Respond in the same language the user uses.
 
 user: |
-  Generate a brief greeting and ask what kind of appointment they need.
+  Generate a brief greeting and ask for the patient's name.
   Keep it under 2 sentences.

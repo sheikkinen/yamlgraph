@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 DB_PATH = os.getenv("BOOKING_DB_PATH", "booking.db")
 
 # Graph path
-GRAPH_PATH = os.getenv("BOOKING_GRAPH_PATH", "examples/booking/graphs/booking.yaml")
+GRAPH_PATH = os.getenv("BOOKING_GRAPH_PATH", "examples/booking/graph.yaml")
 
 # Global resources
 _db: BookingDB | None = None
@@ -36,6 +36,10 @@ async def lifespan(app):
     _db = BookingDB(DB_PATH)
     _db.init_schema()
     logger.info(f"✅ Database initialized: {DB_PATH}")
+
+    # Set global DB for tool handlers
+    from examples.booking.nodes.slots_handler import set_global_db
+    set_global_db(_db)
 
     # Try to load graph (optional - works without for REST-only mode)
     try:

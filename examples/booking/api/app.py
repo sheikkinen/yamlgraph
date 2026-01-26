@@ -191,7 +191,7 @@ def create_app(db: BookingDB | None = None, graph: Any | None = None) -> FastAPI
         try:
             result = await run_graph_async(
                 app.state.graph,
-                initial_state={"input": request.message},
+                initial_state={"input": request.message, "service_name": "Dr. Smith"},
                 config=config,
             )
         except Exception as e:
@@ -200,9 +200,10 @@ def create_app(db: BookingDB | None = None, graph: Any | None = None) -> FastAPI
         # Check for interrupt
         if "__interrupt__" in result:
             interrupt_value = result["__interrupt__"][0].value
-            question = interrupt_value.get("question") or interrupt_value.get(
-                "prompt", str(interrupt_value)
-            )
+            if isinstance(interrupt_value, dict):
+                question = interrupt_value.get("question") or interrupt_value.get("prompt", str(interrupt_value))
+            else:
+                question = str(interrupt_value)
             return ChatResponse(
                 status="waiting",
                 question=question,
@@ -239,9 +240,10 @@ def create_app(db: BookingDB | None = None, graph: Any | None = None) -> FastAPI
         # Check for another interrupt
         if "__interrupt__" in result:
             interrupt_value = result["__interrupt__"][0].value
-            question = interrupt_value.get("question") or interrupt_value.get(
-                "prompt", str(interrupt_value)
-            )
+            if isinstance(interrupt_value, dict):
+                question = interrupt_value.get("question") or interrupt_value.get("prompt", str(interrupt_value))
+            else:
+                question = str(interrupt_value)
             return ChatResponse(
                 status="waiting",
                 question=question,

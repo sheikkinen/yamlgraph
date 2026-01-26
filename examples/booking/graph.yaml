@@ -9,8 +9,7 @@ description: Appointment booking with tool integration
 
 # Checkpointer required for interrupt nodes
 checkpointer:
-  type: sqlite
-  path: ":memory:"
+  type: memory
 
 defaults:
   prompts_relative: true
@@ -31,6 +30,9 @@ state:
   greeting: str
   slots_response: str
   confirmation: str
+  appointment_id: str
+  cancellation: dict
+  cancellation_display: str
 
 # Python tools for booking operations
 tools:
@@ -43,8 +45,14 @@ tools:
   book_slot:
     type: python
     module: examples.booking.nodes.slots_handler
-    function: book_slot
+    function: book_appointment
     description: "Book the selected slot"
+
+  cancel_appointment:
+    type: python
+    module: examples.booking.nodes.slots_handler
+    function: cancel_appointment
+    description: "Cancel an existing appointment"
 
 nodes:
   # Step 1: Greet and ask what they need
@@ -77,7 +85,7 @@ nodes:
     resume_key: selected_slot
 
   # Step 6: Book the selected slot
-  confirm_booking:
+  book_slot:
     type: python
     tool: book_slot
 
@@ -99,8 +107,8 @@ edges:
   - from: present_slots
     to: await_selection
   - from: await_selection
-    to: confirm_booking
-  - from: confirm_booking
+    to: book_slot
+  - from: book_slot
     to: farewell
   - from: farewell
     to: END

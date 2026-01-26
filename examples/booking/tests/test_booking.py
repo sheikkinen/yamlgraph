@@ -140,7 +140,7 @@ class TestBookSlot:
 
     def test_books_selected_slot(self):
         """Should book the selected slot."""
-        from examples.booking.nodes.slots_handler import book_slot
+        from examples.booking.nodes.slots_handler import book_appointment
 
         state = {
             "selected_slot": "slot_1",
@@ -148,7 +148,7 @@ class TestBookSlot:
             "patient_phone": "+358401234567",
         }
 
-        result = book_slot(state)
+        result = book_appointment(state)
 
         assert "booking" in result
         assert "booking_display" in result
@@ -157,21 +157,134 @@ class TestBookSlot:
 
     def test_defaults_to_first_slot(self):
         """Should default to first slot if selected not found."""
-        from examples.booking.nodes.slots_handler import book_slot
+        from examples.booking.nodes.slots_handler import book_appointment
 
         state = {
             "selected_slot": "nonexistent",
             "patient_name": "Bob",
         }
 
-        result = book_slot(state)
+        result = book_appointment(state)
 
         assert result["booking"]["slot"]["id"] == "slot_0"
 
     def test_generates_booking_id(self):
         """Should generate unique booking ID."""
-        from examples.booking.nodes.slots_handler import book_slot
+        from examples.booking.nodes.slots_handler import book_appointment
 
-        result = book_slot({"selected_slot": "slot_2"})
+        result = book_appointment({"selected_slot": "slot_2"})
 
         assert len(result["booking_id"]) == 8
+
+
+class TestCancelAppointment:
+    """Test cancel_appointment handler."""
+
+    def test_cancels_existing_appointment(self):
+        """Should cancel an existing appointment."""
+        from examples.booking.nodes.slots_handler import cancel_appointment
+
+        # First create a booking
+        from examples.booking.nodes.slots_handler import book_appointment
+        booking_result = book_appointment({
+            "selected_slot": "slot_1",
+            "patient_name": "Alice",
+        })
+        booking_id = booking_result["booking_id"]
+
+        # Now cancel it
+        state = {"appointment_id": booking_id}
+        result = cancel_appointment(state)
+
+        assert "cancellation" in result
+        assert "cancellation_display" in result
+        assert result["cancellation"]["id"] == booking_id
+
+    def test_cancel_nonexistent_appointment(self):
+        """Should handle nonexistent appointment."""
+        from examples.booking.nodes.slots_handler import cancel_appointment
+
+        result = cancel_appointment({"appointment_id": "nonexistent"})
+
+        assert "error" in result
+        assert "Unable to cancel" in result["cancellation_display"]
+
+
+class TestDBIntegration:
+    """Test tool handlers with DB integration."""
+
+    def test_check_availability_with_db(self, tmp_path):
+        """Should use DB when available."""
+        from examples.booking.api.db import BookingDB
+        from examples.booking.nodes.slots_handler import check_availability
+
+        # Create test DB
+        db_path = tmp_path / "test.db"
+        db = BookingDB(str(db_path))
+        db.init_schema()
+
+        # Create calendar and slots
+        cal = db.create_calendar("Test Clinic", "provider")
+        db.create_slot(cal.id, datetime(2026, 1, 26, 9, 0), datetime(2026, 1, 26, 10, 0))
+        db.create_slot(cal.id, datetime(2026, 1, 26, 11, 0), datetime(2026, 1, 26, 12, 0))
+
+        state = {"db": db}
+        result = check_availability(state)
+
+        assert len(result["available_slots"]) == 2
+        assert "Test Clinic" in result["slots_display"]
+
+    def test_book_appointment_with_db(self, tmp_path):
+        """Should book using DB."""
+        from examples.booking.api.db import BookingDB
+        from examples.booking.nodes.slots_handler import book_appointment
+
+        # Create test DB
+        db_path = tmp_path / "test.db"
+        db = BookingDB(str(db_path))
+        db.init_schema()
+
+        # Create calendar and slot
+        cal = db.create_calendar("Test Clinic", "provider")
+        slot = db.create_slot(cal.id, datetime(2026, 1, 26, 9, 0), datetime(2026, 1, 26, 10, 0))
+
+        state = {
+            "db": db,
+            "selected_slot": slot.id,
+            "patient_name": "Alice",
+            "patient_phone": "+358401234567",
+        }
+        result = book_appointment(state)
+
+        assert "booking" in result
+        assert result["booking"]["patient_name"] == "Alice"
+        assert result["booking"]["slot_id"] == slot.id
+
+        # Check slot is now unavailable
+        updated_slot = db.get_slot(slot.id)
+        assert not updated_slot.available
+
+    def test_cancel_appointment_with_db(self, tmp_path):
+        """Should cancel using DB."""
+        from examples.booking.api.db import BookingDB
+        from examples.booking.nodes.slots_handler import book_appointment, cancel_appointment
+
+        # Create test DB
+        db_path = tmp_path / "test.db"
+        db = BookingDB(str(db_path))
+        db.init_schema()
+
+        # Create calendar, slot, and appointment
+        cal = db.create_calendar("Test Clinic", "provider")
+        slot = db.create_slot(cal.id, datetime(2026, 1, 26, 9, 0), datetime(2026, 1, 26, 10, 0))
+        appointment = db.create_appointment(slot.id, "Alice", "+358401234567")
+
+        state = {"db": db, "appointment_id": appointment.id}
+        result = cancel_appointment(state)
+
+        assert "cancellation" in result
+        assert result["cancellation"]["status"] == "cancelled"
+
+        # Check slot is now available again
+        updated_slot = db.get_slot(slot.id)
+        assert updated_slot.available
