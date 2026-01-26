@@ -1,0 +1,37 @@
+version: "1.0"
+name: interrupt-parent-with-checkpointer-child
+description: Parent graph testing subgraph that HAS its own checkpointer (FR-006 bug)
+
+checkpointer:
+  type: memory
+
+state:
+  user_input: str
+  child_phase: str
+  child_data: str
+  final_result: str
+
+nodes:
+  run_child:
+    type: subgraph
+    graph: subgraphs/interrupt-child-with-checkpointer.yaml
+    input_mapping:
+      user_input: input_message
+    output_mapping:
+      final_result: extracted_data
+    interrupt_output_mapping:
+      child_phase: phase
+      child_data: extracted_data
+
+  done:
+    type: passthrough
+    output:
+      final_result: "all done with checkpointer child"
+
+edges:
+  - from: START
+    to: run_child
+  - from: run_child
+    to: done
+  - from: done
+    to: END

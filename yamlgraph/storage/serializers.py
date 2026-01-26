@@ -13,6 +13,42 @@ from uuid import UUID
 
 import orjson
 
+# LangGraph/LangChain internal types that should be skipped during serialization
+# These are runtime objects that can't be meaningfully serialized
+_SKIP_TYPES: tuple[str, ...] = (
+    # Callback managers
+    "CallbackManager",
+    "BaseCallbackManager",
+    "CallbackManagerMixin",
+    "AsyncCallbackManager",
+    "RunManager",
+    "CallbackManagerForChainRun",
+    "AsyncCallbackManagerForChainRun",
+    # Checkpointers (propagated via __pregel_checkpointer)
+    "BaseCheckpointSaver",
+    "MemorySaver",
+    "SqliteSaver",
+    "RedisSaver",
+    "AsyncRedisSaver",
+    "SimpleRedisCheckpointer",
+    # Other LangGraph internals
+    "PregelLoop",
+    "SyncPregelLoop",
+    "AsyncPregelLoop",
+)
+
+
+def _should_skip_object(obj: Any) -> bool:
+    """Check if object should be skipped during serialization.
+
+    Returns True for LangGraph/LangChain internal runtime objects
+    that can't be serialized (callbacks, checkpointers, run managers, etc.).
+    """
+    type_name = type(obj).__name__
+    return type_name in _SKIP_TYPES or any(
+        base.__name__ in _SKIP_TYPES for base in type(obj).__mro__
+    )
+
 
 def serialize_key(key: Any) -> str:
     """Serialize a dict key to a JSON-safe string.
@@ -67,6 +103,9 @@ def serialize_value(obj: Any) -> Any:
     # Skip functions/callables - LangGraph internals may include these
     if callable(obj) and not isinstance(obj, type):
         return {"__type__": "function", "value": None}
+    # Skip LangGraph/LangChain internal runtime objects (callbacks, run managers)
+    if _should_skip_object(obj):
+        return {"__type__": "skipped", "value": type(obj).__name__}
     raise TypeError(f"Cannot serialize {type(obj)}")
 
 

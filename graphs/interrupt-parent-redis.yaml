@@ -1,0 +1,40 @@
+version: "1.0"
+name: interrupt-parent-redis
+description: Parent graph with redis-simple checkpointer for testing FR-006 bug
+
+# This is the real-world scenario that reproduces the bug
+checkpointer:
+  type: redis-simple
+  url: "${REDIS_URL}"
+  key_prefix: "test-fr006-parent:"
+
+state:
+  user_input: str
+  child_phase: str
+  child_data: str
+  final_result: str
+
+nodes:
+  run_child:
+    type: subgraph
+    graph: subgraphs/interrupt-child-with-checkpointer-redis.yaml
+    input_mapping:
+      user_input: input_message
+    output_mapping:
+      final_result: extracted_data
+    interrupt_output_mapping:
+      child_phase: phase
+      child_data: extracted_data
+
+  done:
+    type: passthrough
+    output:
+      final_result: "all done with redis checkpointer"
+
+edges:
+  - from: START
+    to: run_child
+  - from: run_child
+    to: done
+  - from: done
+    to: END

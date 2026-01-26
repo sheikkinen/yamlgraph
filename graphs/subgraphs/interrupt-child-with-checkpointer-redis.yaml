@@ -1,0 +1,46 @@
+version: "1.0"
+name: interrupt-child-with-checkpointer-redis
+description: Child graph WITH redis checkpointer config (for testing FR-006 bug)
+
+# This checkpointer should be IGNORED when used as a subgraph!
+# The parent's checkpointer should be used instead.
+# BUG: With redis-simple, the subgraph restarts instead of resuming.
+checkpointer:
+  type: redis-simple
+  url: "${REDIS_URL}"
+  key_prefix: "test-fr006-child:"
+
+state:
+  input_message: str
+  phase: str
+  extracted_data: str
+  question: str
+  user_answer: str
+
+nodes:
+  process:
+    type: passthrough
+    output:
+      phase: "processing"
+      extracted_data: "partial result from child-redis"
+
+  ask_user:
+    type: interrupt
+    message: "What is your answer? (from child-redis)"
+    state_key: question
+    resume_key: user_answer
+
+  finalize:
+    type: passthrough
+    output:
+      phase: "complete"
+
+edges:
+  - from: START
+    to: process
+  - from: process
+    to: ask_user
+  - from: ask_user
+    to: finalize
+  - from: finalize
+    to: END
