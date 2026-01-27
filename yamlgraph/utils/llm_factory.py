@@ -16,7 +16,7 @@ from yamlgraph.config import DEFAULT_MODELS
 logger = logging.getLogger(__name__)
 
 # Type alias for supported providers
-ProviderType = Literal["anthropic", "mistral", "openai", "replicate", "xai"]
+ProviderType = Literal["anthropic", "lmstudio", "mistral", "openai", "replicate", "xai"]
 
 # Thread-safe cache for LLM instances
 _llm_cache: dict[tuple, BaseChatModel] = {}
@@ -110,6 +110,16 @@ def create_llm(
                 temperature=temperature,
                 base_url="https://api.x.ai/v1",
                 api_key=os.getenv("XAI_API_KEY"),
+            )
+        elif selected_provider == "lmstudio":
+            from langchain_openai import ChatOpenAI
+
+            base_url = os.getenv("LMSTUDIO_BASE_URL") or "http://localhost:1234/v1"
+            llm = ChatOpenAI(
+                model=selected_model,
+                temperature=temperature,
+                base_url=base_url,
+                api_key="not-needed",  # Local server, no API key required
             )
         else:  # anthropic (default)
             from langchain_anthropic import ChatAnthropic

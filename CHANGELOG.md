@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.29] - 2026-01-27
+
+### Added
+- **LM Studio Provider Support**
+  - New `lmstudio` provider for local LLM inference via LM Studio
+  - Uses OpenAI-compatible API with custom `base_url`
+  - No API key required (local server)
+  - Config: `LMSTUDIO_BASE_URL`, `LMSTUDIO_MODEL`
+  - Default model: `qwen2.5-coder-7b-instruct`
+  - 8 unit tests for provider integration
+
 ## [0.3.28] - 2026-01-27
 
 ### Added

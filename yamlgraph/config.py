@@ -37,6 +37,7 @@ DEFAULT_MAX_TOKENS = 4096
 #   ANTHROPIC_API_KEY, MISTRAL_API_KEY, OPENAI_API_KEY, REPLICATE_API_TOKEN, XAI_API_KEY
 DEFAULT_MODELS = {
     "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
+    "lmstudio": os.getenv("LMSTUDIO_MODEL", "qwen2.5-coder-7b-instruct"),
     "mistral": os.getenv("MISTRAL_MODEL", "mistral-large-latest"),
     "openai": os.getenv("OPENAI_MODEL", "gpt-4o"),
     "replicate": os.getenv("REPLICATE_MODEL", "ibm-granite/granite-4.0-h-small"),
