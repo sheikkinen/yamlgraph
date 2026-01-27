@@ -7,8 +7,7 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-import yaml
-
+from yamlgraph.cli.helpers import GraphLoadError, load_graph_config
 from yamlgraph.config import WORKING_DIR
 from yamlgraph.tools.graph_linter import lint_graph
 
@@ -135,13 +134,11 @@ def cmd_graph_validate(args: Namespace) -> None:
     """
     graph_path = Path(args.graph_path)
 
-    if not graph_path.exists():
-        print(f"❌ Graph file not found: {graph_path}")
-        sys.exit(1)
-
     try:
-        with open(graph_path) as f:
-            config = yaml.safe_load(f)
+        config = load_graph_config(graph_path)
+        if config is None:
+            print(f"❌ Empty YAML file: {graph_path}")
+            sys.exit(1)
 
         # Run validations
         errors, warnings = _validate_required_fields(config)
@@ -156,8 +153,8 @@ def cmd_graph_validate(args: Namespace) -> None:
         # Report results
         _report_validation_result(graph_path, config, errors, warnings)
 
-    except yaml.YAMLError as e:
-        print(f"❌ Invalid YAML: {e}")
+    except GraphLoadError as e:
+        print(f"❌ {e}")
         sys.exit(1)
     except Exception as e:
         print(f"❌ Error validating graph: {e}")

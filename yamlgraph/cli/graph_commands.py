@@ -15,9 +15,9 @@ from pathlib import Path
 
 import yaml
 
-# Import from split modules
 from yamlgraph.cli.graph_mermaid import cmd_graph_mermaid
 from yamlgraph.cli.graph_validate import cmd_graph_lint, cmd_graph_validate
+from yamlgraph.cli.helpers import GraphLoadError, load_graph_config
 
 
 def parse_vars(var_list: list[str] | None) -> dict[str, str]:
@@ -156,9 +156,8 @@ def cmd_graph_list(args: Namespace) -> None:
 
     for path in yaml_files:
         try:
-            with open(path) as f:
-                config = yaml.safe_load(f)
-            description = config.get("description", "")
+            config = load_graph_config(path)
+            description = config.get("description", "") if config else ""
             print(f"  {path.name}")
             if description:
                 print(f"    {description[:60]}")
@@ -172,13 +171,11 @@ def cmd_graph_info(args: Namespace) -> None:
     """Show information about a graph."""
     graph_path = Path(args.graph_path)
 
-    if not graph_path.exists():
-        print(f"❌ Graph file not found: {graph_path}")
-        sys.exit(1)
-
     try:
-        with open(graph_path) as f:
-            config = yaml.safe_load(f)
+        config = load_graph_config(graph_path)
+        if config is None:
+            print(f"❌ Empty YAML file: {graph_path}")
+            sys.exit(1)
 
         name = config.get("name", graph_path.stem)
         description = config.get("description", "No description")
@@ -217,6 +214,9 @@ def cmd_graph_info(args: Namespace) -> None:
 
         print()
 
+    except GraphLoadError as e:
+        print(f"❌ {e}")
+        sys.exit(1)
     except Exception as e:
         print(f"❌ Error reading graph: {e}")
         sys.exit(1)

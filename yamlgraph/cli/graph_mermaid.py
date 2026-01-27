@@ -7,7 +7,7 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-import yaml
+from yamlgraph.cli.helpers import GraphLoadError, load_graph_config
 
 
 def generate_mermaid(config: dict) -> str:
@@ -82,13 +82,11 @@ def cmd_graph_mermaid(args: Namespace) -> None:
     """Generate Mermaid diagram from a graph."""
     graph_path = Path(args.graph_path)
 
-    if not graph_path.exists():
-        print(f"❌ Graph file not found: {graph_path}")
-        sys.exit(1)
-
     try:
-        with open(graph_path) as f:
-            config = yaml.safe_load(f)
+        config = load_graph_config(graph_path)
+        if config is None:
+            print(f"❌ Empty YAML file: {graph_path}")
+            sys.exit(1)
 
         mermaid = generate_mermaid(config)
 
@@ -99,6 +97,9 @@ def cmd_graph_mermaid(args: Namespace) -> None:
         else:
             print(mermaid)
 
+    except GraphLoadError as e:
+        print(f"❌ {e}")
+        sys.exit(1)
     except Exception as e:
         print(f"❌ Error generating mermaid: {e}")
         sys.exit(1)
