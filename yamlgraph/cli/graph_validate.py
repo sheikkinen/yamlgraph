@@ -7,7 +7,7 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-from yamlgraph.cli.helpers import GraphLoadError, load_graph_config
+from yamlgraph.cli.helpers import GraphLoadError, require_graph_config
 from yamlgraph.config import WORKING_DIR
 from yamlgraph.tools.graph_linter import lint_graph
 
@@ -135,10 +135,7 @@ def cmd_graph_validate(args: Namespace) -> None:
     graph_path = Path(args.graph_path)
 
     try:
-        config = load_graph_config(graph_path)
-        if config is None:
-            print(f"❌ Empty YAML file: {graph_path}")
-            sys.exit(1)
+        config = require_graph_config(graph_path)
 
         # Run validations
         errors, warnings = _validate_required_fields(config)

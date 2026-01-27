@@ -17,7 +17,11 @@ import yaml
 
 from yamlgraph.cli.graph_mermaid import cmd_graph_mermaid
 from yamlgraph.cli.graph_validate import cmd_graph_lint, cmd_graph_validate
-from yamlgraph.cli.helpers import GraphLoadError, load_graph_config
+from yamlgraph.cli.helpers import (
+    GraphLoadError,
+    load_graph_config,
+    require_graph_config,
+)
 
 
 def parse_vars(var_list: list[str] | None) -> dict[str, str]:
@@ -172,10 +176,7 @@ def cmd_graph_info(args: Namespace) -> None:
     graph_path = Path(args.graph_path)
 
     try:
-        config = load_graph_config(graph_path)
-        if config is None:
-            print(f"❌ Empty YAML file: {graph_path}")
-            sys.exit(1)
+        config = require_graph_config(graph_path)
 
         name = config.get("name", graph_path.stem)
         description = config.get("description", "No description")

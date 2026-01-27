@@ -44,4 +44,25 @@ def load_graph_config(path: str | Path) -> dict[str, Any] | None:
         raise GraphLoadError(f"Invalid YAML in {path}: {e}") from e
 
 
-__all__ = ["load_graph_config", "GraphLoadError"]
+def require_graph_config(path: str | Path) -> dict[str, Any]:
+    """Load graph config, raising if empty or missing.
+
+    Like load_graph_config but guarantees a non-None return.
+    Use this when an empty YAML file is an error condition.
+
+    Args:
+        path: Path to the graph YAML file
+
+    Returns:
+        Parsed YAML dict (never None)
+
+    Raises:
+        GraphLoadError: If file not found, invalid YAML, or empty
+    """
+    config = load_graph_config(path)
+    if config is None:
+        raise GraphLoadError(f"Empty YAML file: {path}")
+    return config
+
+
+__all__ = ["load_graph_config", "require_graph_config", "GraphLoadError"]
