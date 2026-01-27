@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.28] - 2026-01-27
+
+### Added
+- **RAG Tool Demo Fixes & Script**
+  - Fixed `examples/rag/graph.yaml` structure: flat YAML (not nested `graph:`), proper `from/to` edges
+  - Added `rag_retrieve_node()` state-based wrapper for `type: python` nodes
+  - Fixed `prompts/answer.yaml` schema format (`schema:` with `name/fields`)
+  - Added `examples/rag/demo.sh` script for one-command demo execution
+  - Added `vectorstore/` to `.gitignore`
+
+### Fixed
+- **Code Duplication Reduction** (0.3.27 continuation)
+  - Core yamlgraph: 2.17% → 0.71% duplication
+  - Extracted `build_skip_error_state()` helper to `error_handlers.py`
+  - Moved `Chunk` dataclass to `examples/book_translator/models.py`
+  - Simplified `storyboard/replicate_tool.py` to re-export from shared
+
 ## [0.3.27] - 2026-01-27
 
 ### Fixed

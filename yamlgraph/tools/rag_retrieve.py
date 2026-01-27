@@ -189,3 +189,44 @@ def _get_embedding(text: str, model: str) -> list[float]:
     )
 
     return response.data[0].embedding
+
+
+def rag_retrieve_node(state: dict[str, Any]) -> dict[str, Any]:
+    """State-based wrapper for rag_retrieve for type: python nodes.
+
+    Reads arguments from state keys:
+    - rag_collection: Collection name (required)
+    - rag_query: Search query (required)
+    - rag_top_k: Number of results (default 5)
+    - rag_threshold: Minimum score (optional)
+    - rag_db_path: Database path (default ./vectorstore)
+
+    Or from node args in state:
+    - _node_args: dict with collection, query, top_k, etc.
+
+    Returns:
+        Dict with 'context' key containing retrieval results
+    """
+    # Check for node args (passed by graph loader)
+    node_args = state.get("_node_args", {})
+
+    collection = node_args.get("collection") or state.get("rag_collection")
+    query = node_args.get("query") or state.get("rag_query")
+    top_k = node_args.get("top_k") or state.get("rag_top_k", 5)
+    threshold = node_args.get("threshold") or state.get("rag_threshold")
+    db_path = node_args.get("db_path") or state.get("rag_db_path", "./vectorstore")
+
+    if not collection:
+        raise ValueError("rag_collection or args.collection required in state")
+    if not query:
+        raise ValueError("rag_query or args.query required in state")
+
+    results = rag_retrieve(
+        collection=collection,
+        query=query,
+        top_k=int(top_k),
+        threshold=float(threshold) if threshold else None,
+        db_path=db_path,
+    )
+
+    return {"context": results}

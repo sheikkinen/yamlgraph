@@ -1,3 +1,10 @@
+schema:
+  name: Answer
+  fields:
+    answer:
+      type: str
+      description: The answer to the question, grounded in the context
+
 system: |
   You are a helpful assistant that answers questions based on the provided context.
 
@@ -15,8 +22,3 @@ user: |
   Question: {{ question }}
 
   Please answer the question based on the context above.
-
-output_schema:
-  answer:
-    type: str
-    description: The answer to the question, grounded in the context
