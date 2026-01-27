@@ -1,0 +1,32 @@
+# RAG Pipeline Example
+# Retrieves relevant documents and generates an answer
+
+graph:
+  name: rag-example
+  description: Retrieval-Augmented Generation pipeline
+
+  state:
+    question: str
+    context: list = []
+    answer: str = ""
+
+  nodes:
+    retrieve:
+      type: tool
+      tool: yamlgraph.tools.rag_retrieve
+      args:
+        collection: my_docs
+        query: "{state.question}"
+        top_k: 5
+      state_key: context
+
+    answer:
+      prompt: answer
+      variables:
+        context: "{state.context}"
+        question: "{state.question}"
+
+  edges:
+    - START -> retrieve
+    - retrieve -> answer
+    - answer -> END

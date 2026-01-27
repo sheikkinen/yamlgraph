@@ -225,3 +225,37 @@ def check_loop_limit(
         logger.warning(f"Node {node_name} hit loop limit ({loop_limit})")
         return True
     return False
+
+
+def build_skip_error_state(
+    node_name: str,
+    state_key: str,
+    error_message: str,
+    state: dict,
+) -> dict:
+    """Build state update dict for skip-on-error pattern.
+
+    Common pattern used by tool nodes when on_error="skip".
+
+    Args:
+        node_name: Name of the node
+        state_key: Key to store (None) output under
+        error_message: Error message to record
+        state: Current state (to get existing errors)
+
+    Returns:
+        State update dict with error recorded
+    """
+    errors = list(state.get("errors") or [])
+    errors.append(
+        PipelineError(
+            node=node_name,
+            type=ErrorType.UNKNOWN_ERROR,
+            message=error_message,
+        )
+    )
+    return {
+        state_key: None,
+        "current_step": node_name,
+        "errors": errors,
+    }

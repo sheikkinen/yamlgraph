@@ -12,7 +12,7 @@ Getting started: See `reference/getting-started.md` for a comprehensive overview
 - **LangSmith**: Observability and tracing
 
 - Term 'backward compatibility' is a key indicator for a refactoring need in this project. Use DeprecationError to mark old APIs while refactoring.
-- use ruff
+- use ruff, vulture, radon, pylint --disable=all --enable=duplicate-code ., jscpd .
 
 ## Essential Rules
 

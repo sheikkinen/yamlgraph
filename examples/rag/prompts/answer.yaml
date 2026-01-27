@@ -1,0 +1,22 @@
+system: |
+  You are a helpful assistant that answers questions based on the provided context.
+
+  If the context doesn't contain relevant information, say so honestly.
+  Always cite the source documents when possible.
+
+user: |
+  Context from documents:
+  {% for doc in context %}
+  ---
+  Source: {{ doc.source }}
+  {{ doc.content }}
+  {% endfor %}
+
+  Question: {{ question }}
+
+  Please answer the question based on the context above.
+
+output_schema:
+  answer:
+    type: str
+    description: The answer to the question, grounded in the context

@@ -11,7 +11,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from yamlgraph.models.schemas import ErrorType, PipelineError
+from yamlgraph.error_handlers import build_skip_error_state
 from yamlgraph.tools.shell import ShellToolConfig, execute_shell_tool
 from yamlgraph.utils.expressions import resolve_template
 
@@ -98,19 +98,12 @@ def create_tool_node(
 
             if on_error == "skip":
                 # Return with error tracked but don't raise
-                errors = list(state.get("errors") or [])
-                errors.append(
-                    PipelineError(
-                        node=node_name,
-                        type=ErrorType.UNKNOWN_ERROR,
-                        message=result.error or "Tool execution failed",
-                    )
+                return build_skip_error_state(
+                    node_name=node_name,
+                    state_key=state_key,
+                    error_message=result.error or "Tool execution failed",
+                    state=state,
                 )
-                return {
-                    state_key: None,
-                    "current_step": node_name,
-                    "errors": errors,
-                }
             else:
                 # on_error == "fail" - raise exception
                 raise RuntimeError(

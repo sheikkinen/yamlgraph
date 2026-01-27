@@ -1,31 +1,9 @@
 """Text chunking strategies for translation."""
 
 import re
-from dataclasses import dataclass
 from pathlib import Path
 
-
-@dataclass
-class Chunk:
-    """A text chunk with context."""
-
-    index: int
-    title: str
-    text: str
-    context_before: str
-    context_after: str
-    char_count: int
-
-    def to_dict(self) -> dict:
-        """Convert to dictionary for state serialization."""
-        return {
-            "index": self.index,
-            "title": self.title,
-            "text": self.text,
-            "context_before": self.context_before,
-            "context_after": self.context_after,
-            "char_count": self.char_count,
-        }
+from examples.book_translator.models import Chunk
 
 
 def split_by_llm(state: dict, context_chars: int = 500) -> dict:

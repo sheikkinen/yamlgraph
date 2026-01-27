@@ -85,19 +85,9 @@ def lint_graph(
 
 
 # Re-export for backwards compatibility
+# Note: Check function names come from their respective modules
 __all__ = [
     "LintIssue",
     "LintResult",
     "lint_graph",
-    # Re-export check functions for direct use
-    "check_state_declarations",
-    "check_tool_references",
-    "check_prompt_files",
-    "check_edge_coverage",
-    "check_node_types",
-    "check_router_patterns",
-    "check_map_patterns",
-    "check_interrupt_patterns",
-    "check_agent_patterns",
-    "check_subgraph_patterns",
 ]
