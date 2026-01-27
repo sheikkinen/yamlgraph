@@ -14,6 +14,7 @@ import re
 from typing import Any
 
 from yamlgraph.utils.expressions import resolve_state_path
+from yamlgraph.utils.parsing import parse_literal
 
 # Regex patterns for expression parsing
 # Valid operators: <=, >=, ==, !=, <, > (strict matching)
@@ -37,41 +38,6 @@ def resolve_value(path: str, state: dict) -> Any:
         Resolved value or None if not found
     """
     return resolve_state_path(path, state)
-
-
-def parse_literal(value_str: str) -> Any:
-    """Parse a literal value from expression.
-
-    Args:
-        value_str: String representation of value
-
-    Returns:
-        Parsed Python value
-    """
-    value_str = value_str.strip()
-
-    # Handle quoted strings
-    if (value_str.startswith('"') and value_str.endswith('"')) or (
-        value_str.startswith("'") and value_str.endswith("'")
-    ):
-        return value_str[1:-1]
-
-    # Handle special keywords
-    if value_str.lower() == "true":
-        return True
-    if value_str.lower() == "false":
-        return False
-    if value_str.lower() == "null" or value_str.lower() == "none":
-        return None
-
-    # Handle numbers
-    try:
-        if "." in value_str:
-            return float(value_str)
-        return int(value_str)
-    except ValueError:
-        # Return as string if not a number
-        return value_str
 
 
 def evaluate_comparison(

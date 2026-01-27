@@ -136,40 +136,8 @@ def _parse_operand(operand_str: str, state: dict[str, Any]) -> Any:
     return _parse_literal(operand_str)
 
 
-def _parse_literal(value_str: str) -> Any:
-    """Parse a literal value.
-
-    Args:
-        value_str: String representation
-
-    Returns:
-        Parsed Python value
-    """
-    value_str = value_str.strip()
-
-    # Quoted string
-    if (value_str.startswith('"') and value_str.endswith('"')) or (
-        value_str.startswith("'") and value_str.endswith("'")
-    ):
-        return value_str[1:-1]
-
-    # Boolean
-    if value_str.lower() == "true":
-        return True
-    if value_str.lower() == "false":
-        return False
-
-    # None
-    if value_str.lower() in ("null", "none"):
-        return None
-
-    # Number
-    try:
-        if "." in value_str:
-            return float(value_str)
-        return int(value_str)
-    except ValueError:
-        return value_str
+# Import shared parsing utility (aliased to preserve internal name)
+from yamlgraph.utils.parsing import parse_literal as _parse_literal  # noqa: E402
 
 
 def _apply_operator(left: Any, operator: str, right: Any) -> Any:
