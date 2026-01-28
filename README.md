@@ -266,6 +266,31 @@ def process_result(state: InterviewDemoState) -> None:
     print(state["questions"])  # IDE autocomplete works!
 ```
 
+### JSON Schema for YAML Validation
+
+Export JSON Schema for VS Code YAML extension support:
+
+```bash
+# Export schema to file
+yamlgraph schema export --output schemas/graph-schema.json
+
+# Print to stdout
+yamlgraph schema export
+
+# Get path to bundled schema
+yamlgraph schema path
+```
+
+Configure VS Code (`.vscode/settings.json`):
+
+```json
+{
+  "yaml.schemas": {
+    "./schemas/graph-schema.json": ["**/graphs/*.yaml", "**/graph.yaml"]
+  }
+}
+```
+
 ## Documentation
 
 📚 **Start here:** [reference/README.md](reference/README.md) - Complete index of all 18 reference docs

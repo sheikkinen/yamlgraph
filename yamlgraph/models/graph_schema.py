@@ -178,3 +178,23 @@ def validate_graph_schema(config: dict[str, Any]) -> GraphConfigSchema:
         pydantic.ValidationError: If validation fails
     """
     return GraphConfigSchema.model_validate(config)
+
+
+def export_graph_json_schema() -> dict[str, Any]:
+    """Export graph configuration as JSON Schema for IDE support.
+
+    Returns a JSON Schema dict compatible with VS Code YAML extension
+    and other JSON Schema validators.
+
+    Returns:
+        JSON Schema dict with $schema, $id, and full type definitions
+    """
+    schema = GraphConfigSchema.model_json_schema()
+
+    # Add JSON Schema metadata
+    schema["$schema"] = "http://json-schema.org/draft-07/schema#"
+    schema["$id"] = "https://yamlgraph.dev/schemas/graph-v1.json"
+    schema["title"] = "YamlGraph Graph Configuration"
+    schema["description"] = "Schema for YamlGraph graph.yaml files"
+
+    return schema

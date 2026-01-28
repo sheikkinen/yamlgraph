@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "EdgeConfig": {
+      "description": "Configuration for a graph edge.",
+      "properties": {
+        "from": {
+          "description": "Source node",
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Target node(s)",
+          "title": "To"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Condition expression",
+          "title": "Condition"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "EdgeConfig",
+      "type": "object"
+    },
+    "NodeConfig": {
+      "additionalProperties": true,
+      "description": "Configuration for a single graph node.",
+      "properties": {
+        "type": {
+          "default": "llm",
+          "description": "Node type",
+          "title": "Type",
+          "type": "string"
+        },
+        "prompt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Prompt template name",
+          "title": "Prompt"
+        },
+        "state_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "State key for output",
+          "title": "State Key"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 2,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "on_error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "On Error"
+        },
+        "fallback": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback"
+        },
+        "variables": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Variables",
+          "type": "object"
+        },
+        "requires": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Requires",
+          "type": "array"
+        },
+        "routes": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Router routes",
+          "title": "Routes"
+        },
+        "over": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Map over expression",
+          "title": "Over"
+        },
+        "as": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "As"
+        },
+        "node": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Map sub-node",
+          "title": "Node"
+        },
+        "collect": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Map collect key",
+          "title": "Collect"
+        },
+        "tools": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "max_iterations": {
+          "default": 10,
+          "minimum": 1,
+          "title": "Max Iterations",
+          "type": "integer"
+        }
+      },
+      "title": "NodeConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "description": "Schema for YamlGraph graph.yaml files",
+  "properties": {
+    "version": {
+      "default": "1.0",
+      "title": "Version",
+      "type": "string"
+    },
+    "name": {
+      "default": "unnamed",
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "title": "Description",
+      "type": "string"
+    },
+    "defaults": {
+      "additionalProperties": true,
+      "title": "Defaults",
+      "type": "object"
+    },
+    "nodes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/NodeConfig"
+      },
+      "title": "Nodes",
+      "type": "object"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/EdgeConfig"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "tools": {
+      "additionalProperties": true,
+      "title": "Tools",
+      "type": "object"
+    },
+    "loop_limits": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Loop Limits",
+      "type": "object"
+    }
+  },
+  "required": [
+    "nodes",
+    "edges"
+  ],
+  "title": "YamlGraph Graph Configuration",
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yamlgraph.dev/schemas/graph-v1.json"
+}

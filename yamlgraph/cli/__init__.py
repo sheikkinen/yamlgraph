@@ -21,6 +21,8 @@ from yamlgraph.cli.commands import (
     cmd_resume,
     cmd_trace,
 )
+from yamlgraph.cli.graph_commands import cmd_graph_dispatch
+from yamlgraph.cli.schema_commands import cmd_schema_dispatch
 
 __all__ = [
     # Submodules
@@ -77,7 +79,6 @@ def create_parser() -> argparse.ArgumentParser:
     export_parser.set_defaults(func=cmd_export)
 
     # Graph command group (universal runner)
-    from yamlgraph.cli.graph_commands import cmd_graph_dispatch
 
     graph_parser = subparsers.add_parser(
         "graph", help="Universal graph runner and utilities"
@@ -153,6 +154,29 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     graph_parser.set_defaults(func=cmd_graph_dispatch)
+
+    # === Schema commands (FR-009) ===
+    schema_parser = subparsers.add_parser(
+        "schema", help="JSON Schema export for IDE support"
+    )
+    schema_subparsers = schema_parser.add_subparsers(
+        dest="schema_command", help="Schema subcommands"
+    )
+
+    # schema export
+    schema_export_parser = schema_subparsers.add_parser(
+        "export", help="Export graph schema as JSON Schema"
+    )
+    schema_export_parser.add_argument(
+        "--output", "-o", type=str, help="Output file (default: stdout)"
+    )
+
+    # schema path
+    schema_subparsers.add_parser(
+        "path", help="Print path to bundled JSON Schema"
+    )
+
+    schema_parser.set_defaults(func=cmd_schema_dispatch)
 
     return parser
 

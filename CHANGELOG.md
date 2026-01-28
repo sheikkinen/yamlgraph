@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.32] - 2026-01-28
+
+### Added
+- **FR-009: JSON Schema Export for IDE Support**
+  - New `yamlgraph schema export` CLI command for JSON Schema generation
+  - New `yamlgraph schema path` to get bundled schema location
+  - Export Pydantic-based schema for VS Code YAML extension support
+  - Bundled `graph-v1.json` schema in package
+  - New `get_schema_path()` function in public API
+  - 22 unit tests for schema export functionality
+
 ## [0.3.31] - 2026-01-28
 
 ### Added
