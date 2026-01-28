@@ -189,7 +189,9 @@ class TestSchemaCliCommands:
 
         assert callable(cmd_schema_path)
 
-    def test_cmd_schema_export_outputs_json(self, capsys: pytest.CaptureFixture) -> None:
+    def test_cmd_schema_export_outputs_json(
+        self, capsys: pytest.CaptureFixture
+    ) -> None:
         """Test schema export prints valid JSON to stdout."""
         from argparse import Namespace
 

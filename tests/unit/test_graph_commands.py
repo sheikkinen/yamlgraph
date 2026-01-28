@@ -200,9 +200,7 @@ class TestCmdGraphRun:
     @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
     @patch("yamlgraph.graph_loader.compile_graph")
     @patch("yamlgraph.graph_loader.load_graph_config")
-    def test_invokes_graph_with_vars(
-        self, mock_load_config, mock_compile, mock_get_cp
-    ):
+    def test_invokes_graph_with_vars(self, mock_load_config, mock_compile, mock_get_cp):
         """Should invoke graph with parsed vars as initial state."""
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
@@ -401,6 +399,8 @@ class TestCmdGraphValidate:
         from yamlgraph.cli import create_parser
 
         parser = create_parser()
-        args = parser.parse_args(["graph", "validate", "examples/demos/yamlgraph/graph.yaml"])
+        args = parser.parse_args(
+            ["graph", "validate", "examples/demos/yamlgraph/graph.yaml"]
+        )
         assert args.graph_command == "validate"
         assert args.graph_path == "examples/demos/yamlgraph/graph.yaml"

@@ -66,6 +66,12 @@ def compile_node(
     if prompts_dir:
         prompts_dir = Path(prompts_dir)
 
+    # Build effective defaults with prompts settings merged
+    effective_defaults = dict(config.defaults)
+    effective_defaults["prompts_relative"] = prompts_relative
+    if prompts_dir:
+        effective_defaults["prompts_dir"] = str(prompts_dir)
+
     node_type = node_config.get("type", NodeType.LLM)
 
     if node_type == NodeType.TOOL:
@@ -81,9 +87,8 @@ def compile_node(
             tools,
             websearch_tools,
             python_tools,
+            defaults=effective_defaults,
             graph_path=config.source_path,
-            prompts_dir=prompts_dir,
-            prompts_relative=prompts_relative,
         )
         graph.add_node(node_name, node_fn)
     elif node_type == NodeType.MAP:
@@ -91,7 +96,7 @@ def compile_node(
             node_name,
             enriched_config,
             graph,
-            config.defaults,
+            effective_defaults,
             callable_registry,
             graph_path=config.source_path,
         )
@@ -129,12 +134,7 @@ def compile_node(
         )
         graph.add_node(node_name, node_fn)
     else:
-        # LLM and router nodes
-        # Merge prompts settings into defaults for node function
-        effective_defaults = dict(config.defaults)
-        effective_defaults["prompts_relative"] = prompts_relative
-        if prompts_dir:
-            effective_defaults["prompts_dir"] = str(prompts_dir)
+        # LLM and router nodes - use effective_defaults with prompts settings
         node_fn = create_node_function(
             node_name,
             enriched_config,

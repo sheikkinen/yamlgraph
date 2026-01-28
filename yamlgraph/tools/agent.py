@@ -129,9 +129,8 @@ def create_agent_node(
     websearch_tools: dict[str, Any] | None = None,
     python_tools: dict[str, PythonToolConfig] | None = None,
     *,
+    defaults: dict[str, Any] | None = None,
     graph_path: Path | None = None,
-    prompts_dir: Path | None = None,
-    prompts_relative: bool = False,
 ) -> Callable[[dict], dict]:
     """Create an agent node that loops with tool calls.
 
@@ -146,9 +145,8 @@ def create_agent_node(
         tools: Registry of available shell tools
         websearch_tools: Registry of web search tools (LangChain StructuredTool)
         python_tools: Registry of Python tools (PythonToolConfig)
+        defaults: Default configuration including prompts_relative/prompts_dir
         graph_path: Path to graph YAML file (for relative prompt resolution)
-        prompts_dir: Base prompts directory
-        prompts_relative: If True, resolve prompts relative to graph_path
 
     Returns:
         Node function that runs the agent loop
@@ -160,10 +158,18 @@ def create_agent_node(
         - prompt: Prompt file name (default: "agent")
         - tool_results_key: Optional key to store raw tool outputs
     """
+    if defaults is None:
+        defaults = {}
     if websearch_tools is None:
         websearch_tools = {}
     if python_tools is None:
         python_tools = {}
+
+    # Extract prompts config from defaults (consistent with llm_nodes.py)
+    prompts_relative = defaults.get("prompts_relative", False)
+    prompts_dir = defaults.get("prompts_dir")
+    if prompts_dir:
+        prompts_dir = Path(prompts_dir)
 
     tool_names = node_config.get("tools", [])
     max_iterations = node_config.get("max_iterations", 5)

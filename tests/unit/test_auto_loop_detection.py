@@ -4,7 +4,6 @@ TDD RED phase - these tests will fail until implementation.
 """
 
 
-
 class TestDetectLoopNodes:
     """Tests for detect_loop_nodes function."""
 
