@@ -197,16 +197,26 @@ class TestCmdGraphRun:
         with pytest.raises(SystemExit):
             cmd_graph_run(args)
 
-    @patch("yamlgraph.graph_loader.load_and_compile")
-    def test_invokes_graph_with_vars(self, mock_load):
+    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.graph_loader.compile_graph")
+    @patch("yamlgraph.graph_loader.load_graph_config")
+    def test_invokes_graph_with_vars(
+        self, mock_load_config, mock_compile, mock_get_cp
+    ):
         """Should invoke graph with parsed vars as initial state."""
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
+        mock_config = MagicMock()
+        mock_load_config.return_value = mock_config
+
         mock_graph = MagicMock()
+        mock_compile.return_value = mock_graph
+
+        mock_get_cp.return_value = None  # No checkpointer
+
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "success"}
         mock_graph.compile.return_value = mock_app
-        mock_load.return_value = mock_graph
 
         args = argparse.Namespace(
             graph_path="graphs/yamlgraph.yaml",
@@ -223,6 +233,83 @@ class TestCmdGraphRun:
         call_args = mock_app.invoke.call_args[0][0]
         assert call_args["topic"] == "AI"
         assert call_args["style"] == "casual"
+
+    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.graph_loader.compile_graph")
+    @patch("yamlgraph.graph_loader.load_graph_config")
+    def test_uses_checkpointer_from_graph(
+        self, mock_load_config, mock_compile, mock_get_cp
+    ):
+        """Should use checkpointer from graph config when --thread provided."""
+        from yamlgraph.cli.graph_commands import cmd_graph_run
+
+        # Setup mocks
+        mock_config = MagicMock()
+        mock_load_config.return_value = mock_config
+
+        mock_graph = MagicMock()
+        mock_compile.return_value = mock_graph
+
+        mock_checkpointer = MagicMock()
+        mock_get_cp.return_value = mock_checkpointer
+
+        mock_app = MagicMock()
+        mock_app.invoke.return_value = {"result": "success"}
+        mock_graph.compile.return_value = mock_app
+
+        args = argparse.Namespace(
+            graph_path="graphs/interview.yaml",
+            var=["input=start"],
+            thread="session-123",
+            export=False,
+        )
+
+        with patch.object(Path, "exists", return_value=True):
+            cmd_graph_run(args)
+
+        # Verify checkpointer was retrieved and used
+        mock_get_cp.assert_called_once_with(mock_config)
+        mock_graph.compile.assert_called_once_with(checkpointer=mock_checkpointer)
+
+        # Verify thread_id was passed in config
+        call_kwargs = mock_app.invoke.call_args[1]
+        assert call_kwargs["config"]["configurable"]["thread_id"] == "session-123"
+
+    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    @patch("yamlgraph.graph_loader.compile_graph")
+    @patch("yamlgraph.graph_loader.load_graph_config")
+    def test_uses_checkpointer_even_without_thread(
+        self, mock_load_config, mock_compile, mock_get_cp
+    ):
+        """Should use checkpointer from graph config even without --thread."""
+        from yamlgraph.cli.graph_commands import cmd_graph_run
+
+        mock_config = MagicMock()
+        mock_load_config.return_value = mock_config
+
+        mock_graph = MagicMock()
+        mock_compile.return_value = mock_graph
+
+        mock_checkpointer = MagicMock()
+        mock_get_cp.return_value = mock_checkpointer
+
+        mock_app = MagicMock()
+        mock_app.invoke.return_value = {"result": "success"}
+        mock_graph.compile.return_value = mock_app
+
+        args = argparse.Namespace(
+            graph_path="graphs/interview.yaml",
+            var=["input=start"],
+            thread=None,
+            export=False,
+        )
+
+        with patch.object(Path, "exists", return_value=True):
+            cmd_graph_run(args)
+
+        # Verify checkpointer was retrieved and used
+        mock_get_cp.assert_called_once_with(mock_config)
+        mock_graph.compile.assert_called_once_with(checkpointer=mock_checkpointer)
 
 
 # =============================================================================

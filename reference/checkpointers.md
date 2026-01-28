@@ -184,6 +184,21 @@ Common patterns:
 - `f"user-{user_id}-{uuid4()}"` — New session each time
 - `f"conversation-{conversation_id}"` — Shared conversation
 
+### CLI Usage
+
+```bash
+# Start a new session with thread ID
+yamlgraph graph run graphs/interview.yaml --thread session-123 --var input=start
+
+# Resume the same session (checkpointer loads saved state)
+yamlgraph graph run graphs/interview.yaml --thread session-123
+
+# Start fresh with a new thread ID
+yamlgraph graph run graphs/interview.yaml --thread session-456 --var input=start
+```
+
+**Key insight:** Same `--thread` value = resume from checkpoint. New value = fresh start.
+
 ## Session Lifecycle
 
 ```

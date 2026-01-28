@@ -100,7 +100,11 @@ def cmd_graph_run(args: Namespace) -> None:
     Usage:
         yamlgraph graph run graphs/yamlgraph.yaml --var topic=AI --var style=casual
     """
-    from yamlgraph.graph_loader import load_and_compile
+    from yamlgraph.graph_loader import (
+        compile_graph,
+        get_checkpointer_for_graph,
+        load_graph_config,
+    )
 
     graph_path = Path(args.graph_path)
 
@@ -121,8 +125,11 @@ def cmd_graph_run(args: Namespace) -> None:
     print()
 
     try:
-        graph = load_and_compile(str(graph_path))
-        app = graph.compile()
+        # Load config and compile with checkpointer
+        graph_config = load_graph_config(str(graph_path))
+        graph = compile_graph(graph_config)
+        checkpointer = get_checkpointer_for_graph(graph_config)
+        app = graph.compile(checkpointer=checkpointer)
 
         # Add thread_id if provided
         config = {}

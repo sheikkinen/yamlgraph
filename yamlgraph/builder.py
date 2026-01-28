@@ -68,6 +68,10 @@ def build_graph(
 def build_resume_graph() -> StateGraph:
     """Build a graph for resuming an interrupted pipeline.
 
+    .. deprecated:: 0.4.0
+        Use `load_and_compile()` with checkpointer instead.
+        See reference/checkpointers.md for modern resume pattern.
+
     This is an alias for build_graph(). Resume works automatically
     because nodes skip execution if their output already exists in state
     (skip_if_exists behavior).
@@ -80,6 +84,14 @@ def build_resume_graph() -> StateGraph:
     Returns:
         StateGraph for resume (same as main pipeline)
     """
+    import warnings
+
+    warnings.warn(
+        "build_resume_graph() is deprecated. Use load_and_compile() with checkpointer "
+        "and --thread flag for modern resume. See reference/checkpointers.md",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return build_graph()
 
 

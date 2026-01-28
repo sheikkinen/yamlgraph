@@ -149,7 +149,23 @@ def cmd_list_runs(args: Namespace) -> None:
 
 
 def cmd_resume(args: Namespace) -> None:
-    """Resume a pipeline from saved state."""
+    """Resume a pipeline from saved state.
+
+    .. deprecated:: 0.4.0
+        Use `yamlgraph graph run <graph.yaml> --thread <id>` instead.
+    """
+    import warnings
+
+    warnings.warn(
+        "yamlgraph resume is deprecated. Use: "
+        "yamlgraph graph run <graph.yaml> --thread <id>",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    print(
+        "⚠️  DEPRECATED: Use 'yamlgraph graph run <graph.yaml> --thread <id>' instead"
+    )
+
     from yamlgraph.builder import build_resume_graph
     from yamlgraph.storage import YamlGraphDB
 
