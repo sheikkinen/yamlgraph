@@ -1,7 +1,7 @@
 # Feature Request: Deprecate Legacy CLI Commands
 
 **Priority:** HIGH  
-**Status:** Proposed  
+**Status:** Phase 1 IMPLEMENTED (v0.4.0)  
 
 ## Summary
 
