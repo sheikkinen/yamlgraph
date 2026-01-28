@@ -20,7 +20,6 @@ checkpointer:
   path: ":memory:"
 
 defaults:
-  provider: mistral
   temperature: 0.7
 
 # Python tools for image generation
@@ -59,8 +58,8 @@ nodes:
   await_dm:
     type: interrupt
     message: |
-      🎲 Turn {state.turn_number} - What happens next?
-      NPCs present: {state.npcs}
+      🎲 Turn {{ state.turn_number }} - What happens next?
+      NPCs present: {{ state.npcs | length }} NPCs
       (Type 'end' to finish the encounter)
     resume_key: dm_input
 

@@ -3,7 +3,6 @@ name: npc-creation
 description: Generate complete D&D NPC from a concept
 
 defaults:
-  provider: mistral
   temperature: 0.7
 
 state:
