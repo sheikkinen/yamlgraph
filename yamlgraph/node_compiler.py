@@ -130,10 +130,15 @@ def compile_node(
         graph.add_node(node_name, node_fn)
     else:
         # LLM and router nodes
+        # Merge prompts settings into defaults for node function
+        effective_defaults = dict(config.defaults)
+        effective_defaults["prompts_relative"] = prompts_relative
+        if prompts_dir:
+            effective_defaults["prompts_dir"] = str(prompts_dir)
         node_fn = create_node_function(
             node_name,
             enriched_config,
-            config.defaults,
+            effective_defaults,
             graph_path=config.source_path,
         )
         graph.add_node(node_name, node_fn)
