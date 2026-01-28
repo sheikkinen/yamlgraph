@@ -233,13 +233,7 @@ yamlgraph graph info graphs/router-demo.yaml # Show graph structure
 yamlgraph graph validate graphs/*.yaml       # Validate graph schemas
 yamlgraph graph lint graphs/*.yaml           # Lint graphs for common issues
 yamlgraph graph codegen graphs/my-graph.yaml # Generate TypedDict for IDE support
-yamlgraph list-runs                          # View recent runs
-yamlgraph resume --thread-id abc123          # Resume a run
-yamlgraph export --thread-id abc123          # Export run to JSON
-
-# Observability (requires LangSmith)
-yamlgraph trace --verbose                    # View execution trace
-yamlgraph mermaid                            # Show pipeline as Mermaid diagram
+yamlgraph graph mermaid graphs/my-graph.yaml # Generate Mermaid diagram
 ```
 
 ### IDE Type Support
@@ -476,8 +470,8 @@ graph LR
 ```
 
 ```bash
-# Resume an interrupted run
-yamlgraph resume --thread-id abc123
+# Resume an interrupted run (using checkpointer)
+yamlgraph graph run graphs/my-graph.yaml --thread abc123
 ```
 
 When resumed:
@@ -637,20 +631,26 @@ edges:
 
 **Load and run**:
 ```python
-from yamlgraph.builder import build_graph
+from yamlgraph.graph_loader import load_and_compile
 
-graph = build_graph().compile()  # Loads from graphs/yamlgraph.yaml
+graph = load_and_compile("graphs/yamlgraph.yaml").compile()
 result = graph.invoke(initial_state)
 ```
 
 ### 5. State Persistence
 
-```python
-from yamlgraph.storage import YamlGraphDB
+Use LangGraph checkpointers for state persistence:
 
-db = YamlGraphDB()
-db.save_state("thread-123", state)
-state = db.load_state("thread-123")
+```yaml
+# In graph.yaml
+checkpointer:
+  type: sqlite
+  path: ~/.yamlgraph/checkpoints.db
+```
+
+```bash
+# Resume from checkpoint
+yamlgraph graph run graphs/my-graph.yaml --thread my-session
 ```
 
 ### 6. LangSmith Tracing

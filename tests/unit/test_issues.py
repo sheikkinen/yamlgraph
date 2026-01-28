@@ -7,7 +7,6 @@ import pytest
 
 from yamlgraph.graph_loader import load_graph_config
 
-
 # =============================================================================
 # Issue 2: Conditions Block is Dead Config
 # =============================================================================

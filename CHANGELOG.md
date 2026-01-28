@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-01-28
+
+### Breaking Changes
+- **FR-012: Legacy CLI Removal** (~1,190 lines deleted)
+  - Removed `yamlgraph list-runs` command
+  - Removed `yamlgraph resume` command
+  - Removed `yamlgraph trace` command
+  - Removed `yamlgraph export` command
+  - Removed `YamlGraphDB` class (use LangGraph checkpointers instead)
+  - Removed `build_resume_graph()` function
+  - Removed `run_pipeline()` function
+  - Removed `yamlgraph/cli/commands.py` and `yamlgraph/cli/validators.py`
+  - Removed `yamlgraph/storage/database.py`
+
+### Changed
+- **FR-012-0**: `yamlgraph graph run --thread` now uses graph's configured checkpointer
+- Refactored `examples/yamlgraph_gen` to use `load_and_compile()` directly
+- Updated docs to reflect modern API (`load_and_compile()` vs deprecated `build_graph()`)
+
+### Migration Guide
+```python
+# Before (deprecated)
+from yamlgraph.builder import build_graph
+graph = build_graph().compile()
+
+# After (recommended)
+from yamlgraph.graph_loader import load_and_compile
+graph = load_and_compile("graphs/my-graph.yaml").compile()
+
+# State persistence: use checkpointers in graph.yaml
+# checkpointer:
+#   type: sqlite
+#   path: ~/.yamlgraph/checkpoints.db
+```
+
 ## [0.3.33] - 2026-01-28
 
 ### Added

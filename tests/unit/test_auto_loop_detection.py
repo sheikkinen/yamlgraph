@@ -3,7 +3,6 @@
 TDD RED phase - these tests will fail until implementation.
 """
 
-import pytest
 
 
 class TestDetectLoopNodes:
@@ -223,7 +222,7 @@ class TestAutoApplySkipIfExists:
             ],
         }
         original_node = dict(config["nodes"]["A"])
-        result = apply_loop_node_defaults(config)
+        apply_loop_node_defaults(config)
 
         # Original should be unchanged
         assert "skip_if_exists" not in original_node

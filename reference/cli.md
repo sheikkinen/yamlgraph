@@ -122,59 +122,6 @@ yamlgraph graph mermaid graphs/reflexion-demo.yaml
 
 ---
 
-## yamlgraph list-runs
-
-List recent pipeline runs from checkpoint storage.
-
-```bash
-yamlgraph list-runs [--limit N]
-```
-
----
-
-## yamlgraph resume
-
-Resume a paused pipeline (typically after interrupt node).
-
-```bash
-yamlgraph resume --thread-id <thread_id> [--value <value>]
-```
-
-**Example:**
-```bash
-# Resume with user input
-yamlgraph resume --thread-id session-123 --value "Alice"
-```
-
----
-
-## yamlgraph trace
-
-Show execution trace for debugging.
-
-```bash
-yamlgraph trace [--verbose]
-```
-
-Requires LangSmith to be configured (`LANGSMITH_API_KEY`).
-
----
-
-## yamlgraph export
-
-Export run results to JSON file.
-
-```bash
-yamlgraph export --thread-id <thread_id> [--output <path>]
-```
-
-**Example:**
-```bash
-yamlgraph export --thread-id abc123 --output results.json
-```
-
----
-
 ## Environment Variables
 
 | Variable | Description |

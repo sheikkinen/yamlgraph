@@ -5,7 +5,6 @@ These models are intentionally NOT imported from yamlgraph.models to
 demonstrate that the framework is truly generic and works with any schema.
 """
 
-from collections.abc import Generator
 from pathlib import Path
 from unittest.mock import MagicMock
 
