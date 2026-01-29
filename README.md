@@ -1126,8 +1126,9 @@ For examples and tutorials, see the [examples/](examples/) directory.
 
 ## License
 
-MIT
+[MIT w/ SWC](LICENSE)
 
 ## Remember
 
 Prompts in yaml templates, graphs in yaml, shared executor, pydantic, data stored in sqlite, langgraph, langsmith, venv, tdd red-green-refactor, modules < 400 lines, kiss
+# sdd
