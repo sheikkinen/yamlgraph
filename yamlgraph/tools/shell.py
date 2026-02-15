@@ -80,7 +80,7 @@ def sanitize_variables(variables: dict[str, Any]) -> dict[str, str]:
     for key, value in variables.items():
         if value is None:
             sanitized[key] = ""
-        elif isinstance(value, (list, dict)):
+        elif isinstance(value, list | dict):
             # Convert complex types to JSON, then quote
             sanitized[key] = shlex.quote(json.dumps(value))
         else:

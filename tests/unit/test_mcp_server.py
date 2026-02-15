@@ -95,7 +95,7 @@ def test_discover_graphs_skips_prompt_yaml(tmp_path: Path):
     graph_dir = tmp_path / "demo"
     graph_dir.mkdir()
     (graph_dir / "prompt.yaml").write_text(
-        "metadata:\n  name: greet\n" "system: You are helpful.\n" "user: Hello {name}\n"
+        "metadata:\n  name: greet\nsystem: You are helpful.\nuser: Hello {name}\n"
     )
 
     graphs = discover_graphs([str(tmp_path / "demo/*.yaml")])

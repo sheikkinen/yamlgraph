@@ -86,7 +86,7 @@ def _serialize_object(obj: Any) -> Any:
         return obj.model_dump()
     elif isinstance(obj, dict):
         return {k: _serialize_object(v) for k, v in obj.items()}
-    elif isinstance(obj, (list, tuple)):
+    elif isinstance(obj, list | tuple):
         return [_serialize_object(item) for item in obj]
     elif hasattr(obj, "isoformat"):
         return obj.isoformat()
@@ -182,7 +182,7 @@ def _extract_scalar_summary(model: BaseModel) -> dict[str, Any]:
             result[field_name] = (
                 field_value[:100] + "..." if len(field_value) > 100 else field_value
             )
-        elif isinstance(field_value, (int, float, bool)):
+        elif isinstance(field_value, int | float | bool):
             result[field_name] = field_value
         elif isinstance(field_value, list):
             result[f"{field_name}_count"] = len(field_value)
