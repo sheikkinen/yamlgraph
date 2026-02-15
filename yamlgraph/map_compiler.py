@@ -14,6 +14,7 @@ from langgraph.types import Send
 from yamlgraph.config import DEFAULT_MAX_MAP_ITEMS
 from yamlgraph.constants import NodeType
 from yamlgraph.node_factory import create_node_function, create_tool_call_node
+from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.python_tool import load_python_function
 from yamlgraph.utils.expressions import resolve_state_expression
 
@@ -111,6 +112,7 @@ def compile_map_node(
     tools_registry: dict[str, Any] | None = None,
     graph_path: Any | None = None,
     python_tools: dict[str, Callable] | None = None,
+    tools: dict[str, Any] | None = None,
 ) -> tuple[Callable[[dict], list[Send]], str]:
     """Compile type: map node using LangGraph Send.
 
@@ -161,6 +163,19 @@ def compile_map_node(
         # Load the actual function from the tool config
         tool_config = python_tools[tool_name]
         sub_node = load_python_function(tool_config)
+    elif sub_node_type == NodeType.AGENT:
+        if tools is None:
+            raise ValueError(
+                f"Map node '{name}' has agent sub-node but no tools registry"
+            )
+        sub_node = create_agent_node(
+            sub_node_name,
+            sub_node_config,
+            tools=tools,
+            python_tools=python_tools or {},
+            defaults=defaults,
+            graph_path=graph_path,
+        )
     else:
         sub_node = create_node_function(
             sub_node_name, sub_node_config, defaults, graph_path=graph_path

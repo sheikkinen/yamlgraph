@@ -349,3 +349,27 @@ class TestCompileMapNodePython:
         assert result["results"][0]["_map_index"] == 0
         # The result should be "processed_test"
         assert result["results"][0]["value"] == "processed_test"
+
+
+class TestCompileMapNodeAgent:
+    """Tests for agent sub-nodes in map nodes (FR-036)."""
+
+    @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
+    def test_agent_subnode_requires_tools_registry(self):
+        """Agent sub-node requires tools registry."""
+        config = {
+            "over": "{items}",
+            "as": "item",
+            "collect": "results",
+            "node": {
+                "type": "agent",
+                "tools": ["websearch"],
+                "prompt": "research",
+                "state_key": "result",
+            },
+        }
+        builder = MagicMock()
+        defaults = {}
+
+        with pytest.raises(ValueError, match="no tools"):
+            compile_map_node("research", config, builder, defaults)
