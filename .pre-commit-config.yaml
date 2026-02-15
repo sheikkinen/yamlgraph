@@ -81,8 +81,8 @@ repos:
   - repo: local
     hooks:
       - id: pytest
-        name: pytest
-        entry: python -m pytest tests/unit/ -q --tb=short
+        name: pytest (unit only, ~15s)
+        entry: bash -c 'python -m pytest tests/unit/ -q --tb=short --no-cov && echo "" && echo "✓ Unit tests passed. Run integration tests separately:" && echo "  pytest tests/integration/ -v"'
         language: system
         pass_filenames: false
         always_run: true
