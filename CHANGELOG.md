@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.40] - 2026-02-15
+
+### Added
+- **FR-036 Phase 1: Agent Sub-nodes in Map** (REQ-YG-040, REQ-YG-041)
+  - `type: agent` now supported in map sub-node configuration
+  - Enables parallel web search and tool-calling loops over dynamic lists
+  - Tools registry passed through map compilation
+  - Unit test for agent sub-node error handling
+- **W014 Linter Check**: Warns when node variables reference undeclared state keys (REQ-YG-069)
+
+### Changed
+- **Pre-commit optimization**: Unit tests only (~18s vs 130s), integration tests run separately
+
+### Fixed
+- Dead code: Prefixed unused signal handler args with underscore (vulture)
+- Code style: UP038 isinstance fix + ruff format
+
 ## [0.4.39] - 2026-02-15
 
 ### Added
