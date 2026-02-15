@@ -20,16 +20,6 @@ repos:
 
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
-        entry: python -m pytest tests/unit/ -q --tb=short
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-
-  - repo: local
-    hooks:
       - id: req-coverage-strict
         name: req_coverage --strict
         entry: python scripts/req_coverage.py --strict
@@ -63,6 +53,36 @@ repos:
       - id: forbid-terms
         name: forbid TODOs and compatibility drift
         entry: bash -c '! find yamlgraph -type f -name "*.py" ! -path "*/__pycache__/*" ! -path "*/.pytest_cache/*" ! -path "*/.mypy_cache/*" ! -path "*/.ruff_cache/*" ! -path "*/.venv/*" -print0 | xargs -0 grep -nE "TODO|FIXME|backward compati(bility)?"'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: jscpd-dup
+        name: jscpd duplicate check (local)
+        entry: bash -c 'npx jscpd yamlgraph --threshold 10 --min-lines 10 --min-tokens 80 --format python --gitignore --reporters console'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: vulture-dead-code
+        name: vulture (dead code)
+        entry: bash -c 'python -m vulture yamlgraph --min-confidence 80'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: python -m pytest tests/unit/ -q --tb=short
         language: system
         pass_filenames: false
         always_run: true

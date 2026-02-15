@@ -49,7 +49,7 @@ def _setup_timeout(timeout: int | None) -> dict | None:
 
     import signal
 
-    def _timeout_handler(signum, frame):
+    def _timeout_handler(_signum, _frame):
         raise TimeoutError(f"Execution timed out after {timeout}s")
 
     old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
