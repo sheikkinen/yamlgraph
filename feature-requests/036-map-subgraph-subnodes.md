@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Implemented (Phase 1)
+**Status:** Implemented (Phase 1: agent) — v0.4.40
 **Effort:** <1 day
 **Requested:** 2026-02-15
 **Accepted:** 2026-02-15
@@ -109,14 +109,14 @@ elif sub_node_type == NodeType.AGENT:
 5. **Docs**: Update `reference/map-nodes.md` sub-node types table
 
 **Acceptance Criteria (Phase 1):**
-- [x] `type: agent` works in map sub-node configuration
-- [x] `tools` list resolved from parent graph's tool registry
-- [x] `max_iterations` respected per map item (via existing agent infrastructure)
-- [x] `_map_index` preserved in output for ordering (via existing wrap_for_reducer)
-- [x] `on_error: skip` works — failed agent items don't crash the pipeline (via existing error handling)
-- [x] `max_items` cap works as before (unchanged)
-- [ ] `websearch` tool works inside map agent sub-node (needs integration test)
-- [x] Tests added for happy path and error cases
+- [ ] `type: agent` works in map sub-node configuration
+- [ ] `tools` list resolved from parent graph's tool registry
+- [ ] `max_iterations` respected per map item
+- [ ] `_map_index` preserved in output for ordering
+- [ ] `on_error: skip` works — failed agent items don't crash the pipeline
+- [ ] `max_items` cap works as before
+- [ ] `websearch` tool works inside map agent sub-node
+- [ ] Tests added for happy path and error cases
 - [ ] Reference docs updated (`reference/map-nodes.md`)
 
 ### Phase 2: Subgraph Support — DEFERRED

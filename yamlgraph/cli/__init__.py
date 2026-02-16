@@ -49,7 +49,14 @@ def create_parser() -> argparse.ArgumentParser:
         "-v",
         action="append",
         default=[],
-        help="Set state variable (key=value), can repeat",
+        help="Set state variable (key=value or key=@file.txt), can repeat",
+    )
+    graph_run_parser.add_argument(
+        "--var-file",
+        type=str,
+        default=None,
+        dest="var_file",
+        help="Load variables from YAML/JSON file (--var overrides)",
     )
     graph_run_parser.add_argument(
         "--thread", "-t", type=str, default=None, help="Thread ID for persistence"

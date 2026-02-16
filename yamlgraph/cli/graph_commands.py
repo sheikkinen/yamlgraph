@@ -1,7 +1,7 @@
 """Graph commands for universal graph runner.
 
 Implements:
-- graph run <path> --var key=value
+- graph run <path> --var key=value --var-file vars.yaml
 - graph info <path>
 - graph lint <path>
 - graph validate <path>
@@ -19,6 +19,8 @@ from yamlgraph.cli.graph_validate import cmd_graph_lint, cmd_graph_validate
 from yamlgraph.cli.helpers import (
     GraphLoadError,
     load_graph_config,
+    load_var_file,
+    parse_vars,
     require_graph_config,
 )
 from yamlgraph.models.state_builder import generate_typeddict_code
@@ -71,31 +73,6 @@ def _teardown_timeout(ctx: dict | None) -> None:
 
     signal.alarm(0)
     signal.signal(signal.SIGALRM, ctx["old_handler"])
-
-
-def parse_vars(var_list: list[str] | None) -> dict[str, str]:
-    """Parse --var key=value arguments into a dict.
-
-    Args:
-        var_list: List of "key=value" strings
-
-    Returns:
-        Dict mapping keys to values
-
-    Raises:
-        ValueError: If a var doesn't contain '='
-    """
-    if not var_list:
-        return {}
-
-    result = {}
-    for item in var_list:
-        if "=" not in item:
-            raise ValueError(f"Invalid var format: '{item}' (expected key=value)")
-        key, value = item.split("=", 1)
-        result[key] = value
-
-    return result
 
 
 def _display_result(result: dict, truncate: bool = True) -> None:
@@ -272,10 +249,12 @@ def cmd_graph_run(args: Namespace) -> None:
         print(f"❌ Graph file not found: {graph_path}")
         sys.exit(1)
 
-    # Parse variables
+    # Parse variables: --var-file provides base, --var overrides
     try:
-        initial_state = parse_vars(args.var)
-    except ValueError as e:
+        file_vars = load_var_file(getattr(args, "var_file", None))
+        cli_vars = parse_vars(args.var)
+        initial_state = {**file_vars, **cli_vars}  # CLI wins on conflict
+    except (ValueError, FileNotFoundError) as e:
         print(f"❌ {e}")
         sys.exit(1)
 

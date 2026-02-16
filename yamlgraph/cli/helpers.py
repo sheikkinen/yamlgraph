@@ -3,6 +3,7 @@
 Shared functions for CLI commands to reduce boilerplate.
 """
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -65,4 +66,73 @@ def require_graph_config(path: str | Path) -> dict[str, Any]:
     return config
 
 
-__all__ = ["load_graph_config", "require_graph_config", "GraphLoadError"]
+def parse_vars(var_list: list[str] | None) -> dict[str, Any]:
+    """Parse --var key=value arguments into a dict.
+
+    Supports @file syntax: --var content=@file.txt reads file content.
+    Only treats value as file path if it starts with @.
+
+    Args:
+        var_list: List of "key=value" strings
+
+    Returns:
+        Dict mapping keys to values
+
+    Raises:
+        ValueError: If a var doesn't contain '='
+        FileNotFoundError: If @file path doesn't exist
+    """
+    if not var_list:
+        return {}
+
+    result: dict[str, Any] = {}
+    for item in var_list:
+        if "=" not in item:
+            raise ValueError(f"Invalid var format: '{item}' (expected key=value)")
+        key, value = item.split("=", 1)
+
+        # @file syntax: read from file
+        if value.startswith("@"):
+            file_path = value[1:]
+            path = Path(file_path)
+            if not path.exists():
+                raise FileNotFoundError(f"File not found: {file_path}")
+            result[key] = path.read_text()
+        else:
+            result[key] = value
+
+    return result
+
+
+def load_var_file(path: str | None) -> dict[str, Any]:
+    """Load variables from YAML or JSON file.
+
+    Args:
+        path: Path to var file, or None
+
+    Returns:
+        Dict of variables from file, or empty dict if path is None
+
+    Raises:
+        FileNotFoundError: If file doesn't exist
+    """
+    if not path:
+        return {}
+
+    file_path = Path(path)
+    if not file_path.exists():
+        raise FileNotFoundError(f"Var file not found: {path}")
+
+    with open(file_path) as f:
+        if path.endswith(".json"):
+            return json.load(f)
+        return yaml.safe_load(f) or {}
+
+
+__all__ = [
+    "load_graph_config",
+    "require_graph_config",
+    "GraphLoadError",
+    "parse_vars",
+    "load_var_file",
+]

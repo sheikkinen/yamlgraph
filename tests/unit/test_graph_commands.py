@@ -131,7 +131,7 @@ class TestParseVars:
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_parse_single_var(self):
         """Single var should parse to dict."""
-        from yamlgraph.cli.graph_commands import parse_vars
+        from yamlgraph.cli.helpers import parse_vars
 
         result = parse_vars(["topic=AI"])
         assert result == {"topic": "AI"}
@@ -139,7 +139,7 @@ class TestParseVars:
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_parse_multiple_vars(self):
         """Multiple vars should parse to dict."""
-        from yamlgraph.cli.graph_commands import parse_vars
+        from yamlgraph.cli.helpers import parse_vars
 
         result = parse_vars(["topic=AI", "style=casual", "count=5"])
         assert result == {"topic": "AI", "style": "casual", "count": "5"}
@@ -147,7 +147,7 @@ class TestParseVars:
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_parse_empty_list(self):
         """Empty list returns empty dict."""
-        from yamlgraph.cli.graph_commands import parse_vars
+        from yamlgraph.cli.helpers import parse_vars
 
         result = parse_vars([])
         assert result == {}
@@ -155,7 +155,7 @@ class TestParseVars:
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_parse_none_returns_empty(self):
         """None returns empty dict."""
-        from yamlgraph.cli.graph_commands import parse_vars
+        from yamlgraph.cli.helpers import parse_vars
 
         result = parse_vars(None)
         assert result == {}
@@ -163,7 +163,7 @@ class TestParseVars:
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_parse_value_with_equals(self):
         """Value containing = should preserve it."""
-        from yamlgraph.cli.graph_commands import parse_vars
+        from yamlgraph.cli.helpers import parse_vars
 
         result = parse_vars(["equation=a=b+c"])
         assert result == {"equation": "a=b+c"}
@@ -171,10 +171,89 @@ class TestParseVars:
     @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
     def test_parse_invalid_format_raises(self):
         """Invalid format (no =) should raise ValueError."""
-        from yamlgraph.cli.graph_commands import parse_vars
+        from yamlgraph.cli.helpers import parse_vars
 
         with pytest.raises(ValueError, match="Invalid"):
             parse_vars(["invalid"])
+
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    def test_parse_var_at_file_reads_content(self, tmp_path):
+        """@file syntax reads file content into var."""
+        from yamlgraph.cli.helpers import parse_vars
+
+        test_file = tmp_path / "content.txt"
+        test_file.write_text("This is the document content.\nLine 2.")
+
+        result = parse_vars([f"document=@{test_file}"])
+
+        assert result == {"document": "This is the document content.\nLine 2."}
+
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    def test_parse_var_at_in_value_stays_literal(self):
+        """@ in middle of value (like email) stays literal."""
+        from yamlgraph.cli.helpers import parse_vars
+
+        result = parse_vars(["email=user@domain.com"])
+
+        assert result == {"email": "user@domain.com"}
+
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    def test_parse_var_at_file_not_found_error(self, tmp_path):
+        """@file with missing file raises clear error."""
+        from yamlgraph.cli.helpers import parse_vars
+
+        with pytest.raises(FileNotFoundError, match="missing.txt"):
+            parse_vars(["content=@/nonexistent/missing.txt"])
+
+
+# =============================================================================
+# load_var_file tests
+# =============================================================================
+
+
+class TestLoadVarFile:
+    """Tests for --var-file loading."""
+
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    def test_load_var_file_yaml(self, tmp_path):
+        """Load variables from YAML file."""
+        from yamlgraph.cli.helpers import load_var_file
+
+        var_file = tmp_path / "vars.yaml"
+        var_file.write_text("topic: AI\nstyle: casual\nitems:\n  - one\n  - two")
+
+        result = load_var_file(str(var_file))
+
+        assert result == {"topic": "AI", "style": "casual", "items": ["one", "two"]}
+
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    def test_load_var_file_json(self, tmp_path):
+        """Load variables from JSON file."""
+        from yamlgraph.cli.helpers import load_var_file
+
+        var_file = tmp_path / "vars.json"
+        var_file.write_text('{"topic": "AI", "count": 5}')
+
+        result = load_var_file(str(var_file))
+
+        assert result == {"topic": "AI", "count": 5}
+
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    def test_load_var_file_none_returns_empty(self):
+        """None path returns empty dict."""
+        from yamlgraph.cli.helpers import load_var_file
+
+        result = load_var_file(None)
+
+        assert result == {}
+
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    def test_load_var_file_not_found_error(self):
+        """Missing file raises clear error."""
+        from yamlgraph.cli.helpers import load_var_file
+
+        with pytest.raises(FileNotFoundError, match="not found"):
+            load_var_file("/nonexistent/vars.yaml")
 
 
 # =============================================================================

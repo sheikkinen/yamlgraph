@@ -6,7 +6,6 @@ Open feature requests and enhancement ideas.
 
 | Feature | Priority | Effort | Status |
 |---------|----------|--------|--------|
-| [Map Agent Sub-Nodes](036-map-subgraph-subnodes.md) | HIGH | <1 day | Accepted |
 | [Auto-detect Loop Nodes](010-auto-detect-loop-nodes.md) | HIGH | 1 day | Proposed |
 | [JS/TS API Client](014-js-api-wrapper.md) | MEDIUM | 3-5 days | Proposed |
 | [Mermaid Improvements](017-mermaid-improvements.md) | MEDIUM | 2-3 days | Proposed |
@@ -22,6 +21,7 @@ Open feature requests and enhancement ideas.
 
 | Feature | Status |
 |---------|--------|
+| [Map Agent Sub-Nodes](036-map-subgraph-subnodes.md) | Implemented (2026-02-15, v0.4.40) |
 | [Native LangGraph Streaming](029-native-langgraph-streaming.md) | Implemented (2026-02-12) |
 | [Multi-Turn Streaming](028-multi-turn-streaming.md) | Implemented (2026-02-12) |
 

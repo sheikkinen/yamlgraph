@@ -25,6 +25,7 @@ Use these as smoke test for new graph development.
 - No heredoc for Python scripts
 - Run shell scripts with redirect to log file. Analyze logs separately.
 - Convert paths with hyphens to snake_case.
+- YAMLGraph and LLM should be used in stead of complex regex
 
 ### Requirement Traceability (ADR-001)
 - Every test function must have `@pytest.mark.req("REQ-YG-XXX")` linking it to a requirement in `ARCHITECTURE.md`.
