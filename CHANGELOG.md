@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.41] - 2026-02-16
+
+### Added
+- **`--var-file` CLI flag**: Load variables from YAML/JSON file
+  - `yamlgraph graph run graph.yaml --var-file config.yaml`
+  - Supports both `.yaml` and `.json` files
+- **`@file` syntax in `--var`**: Read file content into variable
+  - `yamlgraph graph run graph.yaml --var document=@report.txt`
+  - Only treats as file if value starts with `@` (emails like `user@domain.com` stay literal)
+- **Variable precedence**: `--var` overrides `--var-file` values
+- 7 new unit tests for variable loading
+
+### Changed
+- Refactored `parse_vars` and `load_var_file` to `cli/helpers.py` (file size gate compliance)
+
 ## [0.4.40] - 2026-02-15
 
 ### Added
