@@ -98,17 +98,6 @@ repos:
         always_run: true
         stages: [pre-commit]
 
-  - repo: local
-    hooks:
-      - id: absolution
-        name: "Absolution granted"
-        entry: bash -c 'echo ""; echo "**Distill.** After completing a task list, add a metacognitive entry to docs/diary.md."; echo "Name the cognitive trap or insight. Extract a heuristic."; echo "If the heuristic proves recurring, graduate it to the Scripture."; echo ""'
-        language: system
-        pass_filenames: false
-        always_run: true
-        verbose: true
-        stages: [pre-commit]
-
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.3.0
     hooks:
@@ -124,3 +113,14 @@ repos:
         language: system
         stages: [commit-msg]
         always_run: true
+
+  - repo: local
+    hooks:
+      - id: absolution
+        name: "Absolution granted"
+        entry: bash -c 'echo ""; echo "**Distill.** After completing a task list, add a metacognitive entry to docs/diary.md."; echo "Name the cognitive trap or insight. Extract a heuristic."; echo "If the heuristic proves recurring, graduate it to the Scripture."; echo ""'
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true
+        stages: [pre-commit, commit-msg]
