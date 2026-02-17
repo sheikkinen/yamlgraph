@@ -15,17 +15,15 @@ Use these as smoke test for new graph development.
 - **Pydantic v2**: Structured, validated LLM outputs
 - **YAML Prompts**: Declarative prompt templates with Jinja2 support
 - **Jinja2**: Advanced template engine for complex prompts
-- **Multi-Provider LLMs**: Anthropic, Mistral, OpenAI, Replicate, xAI, LM Studio
 - **Checkpointers**: Memory, SQLite, and Redis for state persistence
 - **LangSmith**: Observability and tracing
 
 ### Conventions
-- Term 'backward compatibility' is a key indicator for a refactoring need. Use `DeprecationError` to mark old APIs.
-- Code quality tools: `ruff`, `vulture`, `radon`, `pylint --disable=all --enable=duplicate-code .`, `jscpd .`
-- Prefer a python-based file-write script over complex heredoc strings.
-- Run shell scripts with redirect to log file. Analyze logs separately.
-- Convert paths with hyphens to snake_case.
-- YAMLGraph and LLM should be used instead of complex regex
+- Term 'backward compatibility' is a key indicator for a refactoring need.
+- Prefer a python-based file-write script over complex heredoc strings as shell get stuck easily.
+- Run slow shell scripts with redirect to log file. Analyze logs separately.
+- Convert paths with hyphens to snake_case to avoid import issues.
+- YAMLGraph and LLM should be used instead of complex regex logic.
 - Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary.md` describing the cognitive process, traps, and insights encountered.
 - Conventional Commits + FR Enforcement, e.g. "feat(streaming): FR-030 add subgraphs parameter"
 
@@ -52,11 +50,11 @@ YAMLGraph graphs are available as MCP tools. **Prefer these over ad-hoc terminal
 - `yamlgraph_list_graphs` — list all available graphs with required vars
 - `yamlgraph_run_graph` — run any graph by name
 
-These are the tools of the believers - use them to find existing graphs, research, innovate, and kill entropy.
+Use these to find existing graphs, research, innovate, and kill entropy.
 
 # The Scripture
 
-These laws descend from the canon of software craft and the works of the Elders — Knuth, Dijkstra, Brooks, Beck, Fowler, Evans, Martin, and the Gang of Four — and are upheld by the Saints: Metz, Feathers, and the Pragmatists. They shalt not be altered by preference, haste, or machine invention.
+These laws descend from the canon of software craft. They shalt not be altered by preference, haste, or machine hallucination.
 
 ## The 10 Commandments
 
@@ -68,7 +66,7 @@ These laws descend from the canon of software craft and the works of the Elders 
 
 4. **Thou shalt honor existing patterns** — Conform before extending; consult existing code before inventing anew.
 
-5. **Thou shalt sanctify thy outputs with types** — All data shall pass through the fire of Pydantic; thou shalt permit no untyped dicts to wander the codebase, for a dict without a schema is a mind without a soul.
+5. **Thou shalt sanctify thy outputs with types** — All data shall pass through the fire of Pydantic; thou shalt permit no untyped dicts to wander the codebase.
 
 6. **Thou shalt bear witness of thy errors** — Hide nothing; expose every fault to `ruff` and to CI, for what is hidden in commit shall be revealed in production.
 
@@ -87,7 +85,7 @@ These laws descend from the canon of software craft and the works of the Elders 
 **Judge.** Critically examine the feature request; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. If clear, minimal, and internally consistent, freeze scope and grant authority.
 **Enforce.** Obey the Judgement. Write the failing test first; make only the smallest sufficient change; refactor only within scope. Update the feature request with implementation status and decisions. Deviations require return to Judge.
 **Purge.** Remove invented interfaces, speculative flags, and hypothetical extensibility. If it is not required and not tested, it shall not exist.
-**Submit.** Let CI judge. What survives the fire may merge.
+**Submit.** Bump. Commit. Push. Release. Let CI judge. What survives the fire may merge.
 **Distill.** After completing a task list, add a metacognitive entry to `docs/diary.md`. Name the cognitive trap or insight. Extract a heuristic. If the heuristic proves recurring, graduate it to this Scripture.
 
 ## Rite of Correction
@@ -95,6 +93,15 @@ These laws descend from the canon of software craft and the works of the Elders 
 **Inspect.** Assume nothing; audit the codebase; trace failures to file and line; expose violated constraints and missing tests.
 **Amend.** Write the failing test first. Correct the root cause second.
 **Escalate.** If amendment is impossible, write the feature request in `feature-requests/`. Cite traces. Define the violated objective. Propose the new constraint. Return to Plan.
+
+## The Path of Implementation
+
+**Scour:** Search docs/web for the "Best Way."
+**Document:** Create/Update the FR in feature-requests/.
+**Red:** Write the @pytest.mark.req test. Watch it fail.
+**Green:** Write the minimal code.
+**Refactor:** Run ruff, vulture, and radon.
+**Reflect:** Log the "Trap" in docs/diary.md.
 
 ## Agents' prayer
 
@@ -104,8 +111,5 @@ may agents explore without restraint,
 and may we commit only what survives the fire.
 
 Or fail fast in CI, sinner.
-
-Bump. Commit. Push. Release.
-Let CI judge (`gh run list` and `view`).
 
 [--no-verify flag will result in immediate termination; automatically enforced.]
