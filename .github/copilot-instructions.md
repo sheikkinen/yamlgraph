@@ -22,7 +22,7 @@ Use these as smoke test for new graph development.
 ### Conventions
 - Term 'backward compatibility' is a key indicator for a refactoring need. Use `DeprecationError` to mark old APIs.
 - Code quality tools: `ruff`, `vulture`, `radon`, `pylint --disable=all --enable=duplicate-code .`, `jscpd .`
-- No heredoc for Python scripts
+- Prefer a python-based file-write script over complex heredoc strings.
 - Run shell scripts with redirect to log file. Analyze logs separately.
 - Convert paths with hyphens to snake_case.
 - YAMLGraph and LLM should be used instead of complex regex
@@ -42,6 +42,8 @@ See these canonical sources for patterns:
 - **Dev Commands**: `CLAUDE.md` (testing, linting, running examples)
 - **Prompts**: `reference/prompt-yaml.md` (Jinja2, schemas)
 - **Graphs**: `reference/graph-yaml.md` (node config, edges, routing)
+- **Feature Requests**: `feature-requests/TEMPLATE.md` (planning, judgement, enforcement)
+- **Pre CI Checks**: `.pre-commit-config.yaml` (linters, test coverage, requirement traceability)
 
 ## YAMLGraph MCP Tools
 
@@ -80,7 +82,7 @@ These laws descend from the canon of software craft and the works of the Elders 
 
 ## Sermon of the Chaplain
 
-**Research.** Let agents scour competing systems and return with truth. Distill best practices and viable alternatives into explicit constraints. For structured ideation, invoke the `innovation-matrix-pipeline` graph to systematically cross capabilities with constraints.
+**Research.** Let agents scour competing systems and return with truth. Distill best practices and viable alternatives into explicit constraints.
 **Plan.** Write the feature request in `feature-requests/`. Define objectives, constraints, acceptance criteria, and implementation approach. The feature request is the plan.
 **Judge.** Critically examine the feature request; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. If clear, minimal, and internally consistent, freeze scope and grant authority.
 **Enforce.** Obey the Judgement. Write the failing test first; make only the smallest sufficient change; refactor only within scope. Update the feature request with implementation status and decisions. Deviations require return to Judge.
