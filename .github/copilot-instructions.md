@@ -25,7 +25,8 @@ Use these as smoke test for new graph development.
 - No heredoc for Python scripts
 - Run shell scripts with redirect to log file. Analyze logs separately.
 - Convert paths with hyphens to snake_case.
-- YAMLGraph and LLM should be used in stead of complex regex
+- YAMLGraph and LLM should be used instead of complex regex
+- Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary.md` describing the cognitive process, traps, and insights encountered.
 
 ### Requirement Traceability (ADR-001)
 - Every test function must have `@pytest.mark.req("REQ-YG-XXX")` linking it to a requirement in `ARCHITECTURE.md`.
@@ -84,6 +85,7 @@ These laws descend from the canon of software craft and the works of the Elders 
 **Enforce.** Obey the Judgement. Write the failing test first; make only the smallest sufficient change; refactor only within scope. Deviations require return to Judge.
 **Purge.** Remove invented interfaces, speculative flags, and hypothetical extensibility. If it is not required and not tested, it shall not exist.
 **Submit.** Let CI judge. What survives the fire may merge.
+**Reflect.** After completing a task list, add a metacognitive entry to `docs/diary.md`. Name the cognitive trap or insight. Extract a heuristic. If the heuristic proves recurring, graduate it to this Scripture.
 
 ## Rite of Correction
 
