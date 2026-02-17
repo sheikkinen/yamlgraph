@@ -1,86 +1,96 @@
 # Feature Request: Async interrupt_output_mapping
 
-**Priority:** MEDIUM
-**Type:** Bug
-**Status:** Proposed
-**Effort:** 1 day
+**Priority:** LOW
+**Type:** Documentation / Not a bug
+**Status:** Closed (No Fix Needed)
+**Effort:** 0
 **Requested:** 2026-02-17
+**Closed:** 2026-02-17
 
 ## Summary
 
-`interrupt_output_mapping` in `mode=invoke` subgraph nodes silently fails under async execution (`astream()`). Parent state is never updated when a child graph hits an interrupt.
+~~`interrupt_output_mapping` in `mode=invoke` subgraph nodes silently fails under async execution (`astream()`).~~
 
-## Problem
+**INVESTIGATION RESULT:** This is NOT a bug. The `__pregel_send` mechanism works correctly under async. The perceived "failure" was caused by incorrect stream consumption patterns.
 
-When a parent graph runs via `astream()` and a `mode=invoke` subgraph hits a `GraphInterrupt`, the interrupt handler in `subgraph_nodes.py` attempts to propagate child state to the parent using `__pregel_send`:
+## Investigation (2026-02-17)
 
-```python
-send = config.get("configurable", {}).get("__pregel_send")
-if send:
-    updates = [(k, v) for k, v in parent_updates.items()]
-    send(updates)
-```
+### Original Hypothesis (WRONG)
 
-`__pregel_send` is a **sync-only** LangGraph internal. Under `astream()`, it is `None`. The `if send:` guard silently skips the state update — no error, no warning. The parent never receives the mapped fields (e.g. `response`, `phase`).
+> `__pregel_send` is a sync-only LangGraph internal. Under `astream()`, it is `None`.
 
-This was discovered in a voice call scenario where a subgraph sets `response` via `interrupt_output_mapping` and the streaming layer falls back to `state.values["response"]` — which is always empty in the parent because the mapping never fired.
+### Actual Findings
 
-### Debug evidence
-
-```
-state.tasks[0].interrupts = ()     # always empty after aget_state()
-state.values["response"] = ""      # never populated by interrupt_output_mapping
-```
-
-The log line `FR-006: Subgraph {node_name} mapped state: [keys]` **does** fire, confirming the code reaches the mapping logic — but `send` is `None` so no state is written.
-
-## Proposed Solution
-
-Replace `__pregel_send` with `aget_state()`/checkpoint-based approach, or use LangGraph's async equivalent.
-
-Option A — Read child state via checkpointer (most robust):
+Tested with LangGraph 1.0.6:
 
 ```python
-except GraphInterrupt:
-    if interrupt_output_mapping:
-        child_state = compiled.get_state(child_config)
-        child_output = dict(child_state.values) if child_state else {}
-        parent_updates = _map_output_state(child_output, interrupt_output_mapping)
-        parent_updates["current_step"] = node_name
-        # Return updates instead of using __pregel_send
-        # Let LangGraph merge them into parent state before re-raising
-        return parent_updates  # <-- this won't work with GraphInterrupt re-raise
+# CONFIG_KEY_SEND is available in ALL execution modes:
+send = config.get(CONF, {}).get(CONFIG_KEY_SEND)
+# sync invoke:   send is NOT None ✓
+# async astream: send is NOT None ✓
+# async ainvoke: send is NOT None ✓
 ```
 
-Option B — Log a warning when `send` is `None` (minimal fix):
+The `send()` function IS called — the log line `FR-006: Subgraph run_child mapped state: [keys]` confirms this.
+
+### Root Cause: Stream Mode Behavior
+
+The issue is in how `astream()` is consumed, not in `__pregel_send`:
+
+| Stream Mode | Chunks on Interrupt | `child_phase` visible? |
+|------------|---------------------|------------------------|
+| `updates` (default) | 1 (`__interrupt__`) | ❌ No |
+| `values` | 3 (including full state) | ✓ Yes |
+| `ainvoke()` | N/A | ✓ Yes (combines updates+values) |
+
+**When using `stream_mode="updates"`:**
+- Only node output dicts are yielded
+- `send()` writes go to internal state channels
+- The writes appear in subsequent `values` emissions, NOT in `updates`
+- If consumer breaks on `__interrupt__`, they miss the state
+
+**When using `stream_mode="values"`:**
+- Full accumulated state is yielded after each step
+- `send()` writes ARE visible in the final chunk
+- Pattern: `[initial_state, state_with_interrupt, state_with_mapped_fields]`
+
+### Code Verification
 
 ```python
-if send:
-    send(updates)
-else:
-    logger.warning(
-        f"FR-006: __pregel_send unavailable (async context). "
-        f"interrupt_output_mapping for {node_name} will not propagate. "
-        f"Consider using mode=direct or inlining nodes."
-    )
+# This WORKS - child_phase IS in the third chunk:
+async for chunk in graph.astream(input, config, stream_mode="values"):
+    print(chunk)
+# Chunk 3: {'child_phase': 'processing', 'child_data': '...', ...}
+
+# This appears broken but isn't - different stream mode:
+async for chunk in graph.astream(input, config):  # default: updates
+    if "__interrupt__" in chunk:
+        break  # Consumer stops here, never sees state
 ```
 
-Option C — Make the subgraph node async-aware:
+## Conclusion
 
-Create an async variant of `subgraph_node` that uses `await compiled.ainvoke()` and the async equivalent of `__pregel_send`. This aligns with FR-030 Phase 2 (async mode=invoke).
+No framework fix needed. The behavior is correct per LangGraph semantics:
 
-## Acceptance Criteria
+1. **`send()` works in async** — verified empirically
+2. **`astream(stream_mode="updates")` excludes accumulated state** — by design
+3. **`astream(stream_mode="values")` includes all state** — use this for interrupt workflows
+4. **`ainvoke()` works correctly** — combines both modes internally
 
-- [ ] `interrupt_output_mapping` propagates state under `astream()` OR emits a clear warning
-- [ ] Tests added for async subgraph interrupt propagation
-- [ ] Documentation updated to note async limitation (if warning-only fix)
+## Recommendations
 
-## Alternatives Considered
+For consumers needing mapped state during interrupts:
 
-**Inline subgraph nodes into parent graph** — This is the workaround used in questionnaire-api. The auth flow nodes were moved from a separate subgraph into the navigator graph directly. This eliminates the need for `interrupt_output_mapping` entirely since `response` is set in parent state directly. Works but defeats the purpose of subgraph modularity.
+1. Use `astream(stream_mode="values")` and collect the final chunk
+2. Or use `ainvoke()` which handles this automatically
+3. Or use `get_state()` after stream completes to fetch checkpointed values
 
-## Related
+The integration tests (`test_subgraph_interrupt.py`) pass because they use `invoke()` which has the correct behavior.
 
-- FR-030: Subgraph Token Streaming (Phase 2 — async mode=invoke)
-- `yamlgraph/node_factory/subgraph_nodes.py` lines 186-201
-- LangGraph `__pregel_send` internals
+---
+
+## Original Problem Statement (Archived)
+
+~~When a parent graph runs via `astream()` and a `mode=invoke` subgraph hits a `GraphInterrupt`...~~
+
+(Kept for historical reference — see git history for original content)

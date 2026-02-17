@@ -34,3 +34,28 @@ Metacognitive reflections on development process.
 **Correction:** Stopped. Labeled proposals as "observation, not prescription." Created FR-038 only after explicit prompt to do so. Followed Plan → Judge → Enforce properly for the commit hook.
 **Second insight:** Doctrine contained dead references (`docs/adr/`, `docs/epics/`, `purgatory/`). 31 feature requests exist; 2 ADRs. Practice had diverged. Updated Scripture to match practice, not aspirations.
 **Heuristic:** Gap identification is observation, not prescription. Stop after analysis. Let the gap sit. If it matters, it will return as a real problem — and then follow the rite.
+
+---
+
+## 2026-02-17: FR-039 — The Bug That Wasn't
+
+**Context:** FR-039 claimed `__pregel_send` is "sync-only" and returns `None` under `astream()`. The fix options ranged from warning logs to async variants.
+
+**What I did:** Instead of implementing Option B (the "safe" warning-only fix), I investigated. Wrote a test script, checked LangGraph 1.0.6 internals. Discovered:
+1. `__pregel_send` is NOT `None` under async — empirically proven
+2. The log `FR-006: Subgraph mapped state` fires, confirming `send()` IS called
+3. The "missing state" is a stream mode issue: `stream_mode="updates"` excludes accumulated state; `stream_mode="values"` includes it.
+
+**What the original FR author did wrong:** Observed symptom ("state missing after astream"), reasoned from documentation/memory ("pregel_send is sync-only"), concluded bug exists. Never wrote a test to verify the assumption.
+
+**The trap:** **Armchair debugging** — using mental models instead of empirical tests. The symptom was real (state missing), but the diagnosis was wrong (assumed `send=None`). A 10-line test would have shown `send` is available.
+
+**Second trap narrowly avoided:** I almost just implemented Option B. Had I added a warning log without investigating, the warning would NEVER fire (because `send` is never `None`). The "fix" would have been no-op code, creating false confidence.
+
+**Why the bug report seemed plausible:** The FR cited the log line as evidence: "FR-006 log fires, but send IS None." In hindsight, this was a red flag — if the log fires, the code REACHED the send() call. The author confused "state not visible" with "state not sent."
+
+**Correction:** FR-039 closed as "Not a Bug." The actual fix is consumer education: use `stream_mode="values"` or `ainvoke()` for interrupt workflows.
+
+**Heuristic:** When a bug report includes technical claims about internals ("X is None under Y"), verify the claim with a test before designing fixes. The symptom might be real while the diagnosis is wrong.
+
+**Meta-heuristic:** Bug reports that propose solutions are often wrong about root cause. The solution-space narrows prematurely around a false hypothesis. Start from symptoms, not proposed fixes.
