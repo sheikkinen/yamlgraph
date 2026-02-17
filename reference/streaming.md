@@ -272,6 +272,44 @@ python examples/openai_proxy/demo.py --stream
 python examples/openai_proxy/demo.py --verify
 ```
 
+## Stream Modes Reference
+
+LangGraph's `astream()` supports different modes for different use cases:
+
+| Mode | Yields | Use Case |
+|------|--------|----------|
+| `"updates"` (default) | Node output dicts only | Monitoring node execution |
+| `"values"` | Full accumulated state after each step | Interrupt workflows, state access |
+| `"messages"` | LLM tokens as they're generated | Real-time token streaming |
+
+### Interrupt Workflows
+
+When using `interrupt_output_mapping` with subgraphs, use `stream_mode="values"`:
+
+```python
+# Mapped interrupt state appears in values mode
+async for chunk in graph.astream(input, config, stream_mode="values"):
+    if "__interrupt__" in chunk:
+        print(f"Interrupted with state: {chunk}")
+        # chunk includes mapped fields like 'partial_answers'
+
+# Default updates mode won't include mapped state
+async for chunk in graph.astream(input, config):  # stream_mode="updates"
+    # Only sees {"__interrupt__": ...}, not the mapped fields
+```
+
+**Alternative:** Use `ainvoke()` which combines both modes internally and returns full state.
+
+### Token Streaming
+
+Use `stream_mode="messages"` (via `run_graph_streaming_native()`) for LLM token output:
+
+```python
+# Tokens from all LLM nodes in the graph
+async for token in run_graph_streaming_native(graph_path, state):
+    print(token, end="")
+```
+
 ## See Also
 
 - [Async Usage](async-usage.md) - Full async API reference

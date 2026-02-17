@@ -101,6 +101,23 @@ nodes:
   - Track progress through multi-step subgraph interactions
   - Resume the subgraph from where it left off
 
+**Async streaming note:**
+
+When consuming via `astream()`, use `stream_mode="values"` to see mapped state:
+
+```python
+# ✓ CORRECT: values mode includes accumulated state
+async for chunk in graph.astream(input, config, stream_mode="values"):
+    if "partial_answers" in chunk:
+        print(f"Progress: {chunk['partial_answers']}")
+
+# ✗ Won't see mapped state (updates mode omits accumulated state)
+async for chunk in graph.astream(input, config):  # default: updates
+    ...  # Only sees __interrupt__, not partial_answers
+```
+
+Alternatively, use `ainvoke()` which combines both modes automatically.
+
 **Example: Multi-step questionnaire**
 
 ```yaml
