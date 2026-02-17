@@ -80,6 +80,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: hedging-check
+        name: hedging check (silent fallbacks)
+        entry: bash -c 'python scripts/hedging_check.py yamlgraph --strict'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest (unit only, ~15s)
         entry: bash -c 'python -m pytest tests/unit/ -q --tb=short --no-cov && echo "" && echo "✓ Unit tests passed. Run integration tests separately:" && echo "  pytest tests/integration/ -v"'
