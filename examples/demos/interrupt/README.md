@@ -18,10 +18,24 @@ These graphs test the interaction between:
 | `interrupt-parent-with-checkpointer-child.yaml` | Parent + child both with checkpointers |
 | `subgraphs/interrupt-child.yaml` | Child graph with interrupt |
 | `test_subgraph_interrupt.py` | Test suite |
+| `demo_stream_modes.py` | Demo: stream_mode effects on mapped state visibility |
 
 ## Key Insight
 
 When using interrupts inside subgraphs, the **parent** graph must have the checkpointer, not the child. The child inherits the parent's checkpointer context.
+
+## Stream Mode Demo (FR-039)
+
+When consuming graphs with `interrupt_output_mapping` via `astream()`, the stream mode matters:
+
+```bash
+python examples/demos/interrupt/demo_stream_modes.py
+```
+
+**Summary:**
+- `stream_mode='updates'` (default): Mapped state NOT visible in chunks
+- `stream_mode='values'`: Mapped state IS visible in final chunk
+- `ainvoke()`: Mapped state in return value (recommended)
 
 ## Usage
 
