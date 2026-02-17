@@ -59,3 +59,23 @@ Metacognitive reflections on development process.
 **Heuristic:** When a bug report includes technical claims about internals ("X is None under Y"), verify the claim with a test before designing fixes. The symptom might be real while the diagnosis is wrong.
 
 **Meta-heuristic:** Bug reports that propose solutions are often wrong about root cause. The solution-space narrows prematurely around a false hypothesis. Start from symptoms, not proposed fixes.
+
+---
+
+## 2026-02-17: Vuosikello Slot Matching — The Boundary Between Code and LLM Output
+
+**Context:** Psykologia PS1 lesson plans showed random semester assignments (Y1-Y3 syksy/kevät scattered across PS1 topics). User reported "timing seems random." Duration (75 min) and session types were correct.
+
+**What happened:** `load_data.py` filtered vuosikello slots with exact match: `s.get("module","").upper() == module_upper`. But the LLM-generated vuosikello had full module names like `"PS1: Toimiva ja oppiva ihminen"` instead of bare `"PS1"`. Exact match returned 0 results → fallback to ALL slots → round-robin across all 6 semesters for PS1 topics.
+
+**The trap:** **Schema-code impedance mismatch.** The extraction prompt's schema defines `module` as a string field with description "Module code". The code assumes bare codes (`PS1`). The LLM interprets "module code" as the full identifier. Neither is wrong in isolation — the bug lives in the gap between what the LLM produces and what the code expects.
+
+**Why it wasn't caught earlier:** The fallback `if not module_slots: module_slots = slots` was designed as a safety net but silently masked the real failure. With 0 matches, all slots became candidates, producing plausible-looking but incorrect output. No error, no warning, just wrong data — the hardest bug class.
+
+**Second insight:** Dead code detected. `_assign_vuosikello_slot()` function was never called — the logic had been inlined into `load_data()` during a refactor but the old function was left behind. The dead function still had the old `==` match, so even if someone called it, the bug would persist.
+
+**Fix:** Changed to `.startswith(module_upper)` — tolerant of both `"PS1"` and `"PS1: Toimiva ja oppiva ihminen"`. Removed the dead function. Added test G18 that uses the LLM output format. 29/29 GREEN.
+
+**Heuristic:** When code consumes LLM output, use tolerant matching (prefix, contains, regex) rather than exact equality. LLMs are creative with formatting even within structured schemas. The contract should be "starts with the expected code" not "equals the expected code."
+
+**Meta-heuristic:** Silent fallbacks that produce plausible output are worse than loud failures. A `KeyError` would have surfaced this bug on first run. The "defensive" fallback hid it across 20 lessons.
