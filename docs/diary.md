@@ -79,3 +79,5 @@ Metacognitive reflections on development process.
 **Heuristic:** When code consumes LLM output, use tolerant matching (prefix, contains, regex) rather than exact equality. LLMs are creative with formatting even within structured schemas. The contract should be "starts with the expected code" not "equals the expected code."
 
 **Meta-heuristic:** Silent fallbacks that produce plausible output are worse than loud failures. A `KeyError` would have surfaced this bug on first run. The "defensive" fallback hid it across 20 lessons.
+
+**Graduated to Scripture:** Extended Commandment 6 — "Thou shalt not hedge with silent fallbacks; when a filter yields nothing, raise — never substitute everything." Evidence: two instances in same project (project_dir default, vuosikello fallback), both producing plausible-but-wrong output that passed human review.
