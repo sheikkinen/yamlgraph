@@ -87,3 +87,12 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: feat-requires-fr
+        name: feat commits require FR-XXX
+        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^feat(\\(.*\\))?:\" && ! echo \"$msg\" | grep -qE \"FR-[0-9]+\"; then echo \"ERROR: feat: commits require FR-XXX reference\"; echo \"Example: feat: FR-038 add commit enforcement\"; exit 1; fi'"
+        language: system
+        stages: [commit-msg]
+        always_run: true

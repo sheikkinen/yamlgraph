@@ -27,6 +27,7 @@ Use these as smoke test for new graph development.
 - Convert paths with hyphens to snake_case.
 - YAMLGraph and LLM should be used instead of complex regex
 - Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary.md` describing the cognitive process, traps, and insights encountered.
+- Conventional Commits + FR Enforcement, e.g. "feat(streaming): FR-030 add subgraphs parameter"
 
 ### Requirement Traceability (ADR-001)
 - Every test function must have `@pytest.mark.req("REQ-YG-XXX")` linking it to a requirement in `ARCHITECTURE.md`.
@@ -71,21 +72,21 @@ These laws descend from the canon of software craft and the works of the Elders 
 
 7. **Thou shalt be faithful to TDD** — Red-Green-Refactor; run `pytest` with every change. No bug shall be fixed unless first condemned by a failing test.
 
-8. **Thou shalt kill all entropy and false idols** — Split modules before they bloat; feed the dead to `vulture`; burn duplicates with `jscpd`; sanctify with `radon`. No shims, no adapters, no “compat” flags shalt thou tolerate. Cast legacy code to `purgatory/` and record its sins in `docs/adr/`.
+8. **Thou shalt kill all entropy and false idols** — Split modules before they bloat; feed the dead to `vulture`; burn duplicates with `jscpd`; sanctify with `radon`. No shims, no adapters, no "compat" flags shalt thou tolerate. Delete dead code; record significant removals in commit notes.
 
-9. **Thou shalt define and observe operational truth** — Establish measurable service objectives; instrument and trace execution; treat performance degradation, failure rates, and evaluation drift as production defects. No incident shall be closed without cited traces in LangSmith and recorded rationale in `docs/adr/`.
+9. **Thou shalt define and observe operational truth** — Establish measurable service objectives; instrument and trace execution; treat performance degradation, failure rates, and evaluation drift as production defects. No incident shall be closed without cited traces in LangSmith and recorded rationale in `feature-requests/`.
 
 10. **Thou shalt preserve and improve the doctrine** — Every failure shalt refine the law. After correction, amend tests and linters to guard against recurrence; let success be codified, and let the CHANGELOG.md bear witness to the evolution of the Word.
 
 ## Sermon of the Chaplain
 
 **Research.** Let agents scour competing systems and return with truth. Distill best practices and viable alternatives into explicit constraints. For structured ideation, invoke the `innovation-matrix-pipeline` graph to systematically cross capabilities with constraints.
-**Plan.** Define the next phase with precision, grounded in documentation, existing code, and validated feature requests in `feature-requests/`; express the objective as measurable epics in `docs/epics/`; record architectural decisions in `docs/adr/`; and define the demo scenario and acceptance flow in `docs/demos/`.
-**Judge.** Critically examine the plan; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. If clear, minimal, and internally consistent, freeze scope and grant authority.
-**Enforce.** Obey the Judgement. Write the failing test first; make only the smallest sufficient change; refactor only within scope. Deviations require return to Judge.
+**Plan.** Write the feature request in `feature-requests/`. Define objectives, constraints, acceptance criteria, and implementation approach. The feature request is the plan.
+**Judge.** Critically examine the feature request; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. If clear, minimal, and internally consistent, freeze scope and grant authority.
+**Enforce.** Obey the Judgement. Write the failing test first; make only the smallest sufficient change; refactor only within scope. Update the feature request with implementation status and decisions. Deviations require return to Judge.
 **Purge.** Remove invented interfaces, speculative flags, and hypothetical extensibility. If it is not required and not tested, it shall not exist.
 **Submit.** Let CI judge. What survives the fire may merge.
-**Reflect.** After completing a task list, add a metacognitive entry to `docs/diary.md`. Name the cognitive trap or insight. Extract a heuristic. If the heuristic proves recurring, graduate it to this Scripture.
+**Distill.** After completing a task list, add a metacognitive entry to `docs/diary.md`. Name the cognitive trap or insight. Extract a heuristic. If the heuristic proves recurring, graduate it to this Scripture.
 
 ## Rite of Correction
 
