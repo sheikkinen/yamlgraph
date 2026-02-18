@@ -2,12 +2,18 @@
 
 **Priority:** MEDIUM
 **Type:** Framework Enhancement
-**Status:** Proposed
+**Status:** SUPERSEDED by FR-044d
 **Effort:** 2 days
 **Requested:** 2026-02-18
 **Split from:** FR-044
 
-## Summary
+## Resolution
+
+FR-044d solved this problem by reading existing `state["errors"]` data instead of adding new framework infrastructure. The framework already writes `PipelineError` to `state["errors"]` when `on_error: skip` triggers — FR-044d's `SkipReport` class surfaces this data with ~40 lines of code instead of 2 days of framework changes.
+
+See: `yamlgraph/contrib/progress.py`
+
+## Original Summary
 
 Make `on_error: skip` behavior visible. Currently, 19 occurrences across 10 pipelines silently swallow failures. Items vanish without any indication of what was skipped or why.
 

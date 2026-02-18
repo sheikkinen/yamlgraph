@@ -1,6 +1,6 @@
-# Plan: SkipReport (FR-044a)
+# Plan: SkipReport (FR-044d)
 
-**Status:** IMPLEMENTED
+**Status:** COMPLETE
 **Implemented:** 2026-02-18
 
 ## Implementation Summary
@@ -8,7 +8,8 @@
 - Created `yamlgraph/contrib/progress.py` with `SkipReport` class (~90 lines)
 - Added 5 tests in `tests/unit/test_contrib_progress.py`
 - Added REQ-YG-071 to ARCHITECTURE.md and req_coverage.py
-- Wired into `projects/innovators_toolkit/nodes/assemble_report.py`
+- Wired into `projects/innovators_toolkit/nodes/assemble_report.py` (local project)
+- Added demo to `examples/ocr_cleanup/tools/merger.py` (tracked example)
 - Updated `reference/contrib.md` with SkipReport documentation
 
 **Files created:**
@@ -19,8 +20,11 @@
 - `yamlgraph/contrib/__init__.py` — exports SkipReport
 - `ARCHITECTURE.md` — added REQ-YG-071
 - `scripts/req_coverage.py` — extended ALL_REQS to 72, added REQ-YG-071 to CAP-20
-- `projects/innovators_toolkit/nodes/assemble_report.py` — added SkipReport integration
+- `examples/ocr_cleanup/tools/merger.py` — demo SkipReport integration
+- `examples/ocr_cleanup/README.md` — documented error handling pattern
 - `reference/contrib.md` — added SkipReport documentation
+
+**Tests:** 17 total (5 progress + 12 utils) in CAP-20
 
 ---
 
