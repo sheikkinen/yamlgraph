@@ -43,27 +43,5 @@ user: |
      - Map nodes without error handling
      - Cycles without loop_limits
 
-schema:
-  name: PipelineAudit
-  fields:
-    summary:
-      type: str
-      description: "One-paragraph executive summary of audit findings"
-    quality_gate_coverage:
-      type: str
-      description: "Assessment of quality gate presence across pipelines"
-    silent_fallbacks:
-      type: list[str]
-      description: "List of silent fallback patterns found with file:line references"
-    skip_reporting_gaps:
-      type: list[str]
-      description: "Map nodes with on_error:skip but no downstream skip reporting"
-    shared_patterns:
-      type: list[str]
-      description: "Duplicated patterns that could be extracted"
-    anomalies:
-      type: list[str]
-      description: "Structural anomalies found"
-    risk_rating:
-      type: str
-      description: "Overall risk rating: low, medium, high, critical"
+  Format your analysis with clear headers and bullet points.
+  For each finding, cite the specific graph name, node name, and file path.

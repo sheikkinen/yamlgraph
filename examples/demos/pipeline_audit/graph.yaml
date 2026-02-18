@@ -25,19 +25,19 @@ state:
 tools:
   scan_graphs:
     type: python
-    module: tools.audit_tools
+    module: examples.demos.pipeline_audit.tools.audit_tools
     function: scan_graphs_tool
     description: "Discover and parse all graph YAML files, returning node types, edges, on_error settings, and structure"
 
   scan_python_nodes:
     type: python
-    module: tools.audit_tools
+    module: examples.demos.pipeline_audit.tools.audit_tools
     function: scan_python_nodes_tool
     description: "Scan Python node files for patterns: silent fallbacks, error handling, shared code"
 
   count_patterns:
     type: python
-    module: tools.audit_tools
+    module: examples.demos.pipeline_audit.tools.audit_tools
     function: count_patterns_tool
     description: "Count occurrences of specific patterns across all graph YAML files (on_error:skip, quality gates, map nodes)"
 

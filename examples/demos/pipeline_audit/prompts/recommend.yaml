@@ -40,21 +40,4 @@ user: |
 
   Limit to the top 10 most impactful recommendations.
 
-schema:
-  name: AuditRecommendations
-  fields:
-    quick_wins:
-      type: list[str]
-      description: "Trivial-effort improvements with clear value"
-    quality_improvements:
-      type: list[str]
-      description: "Recommendations for adding quality gates or evaluation"
-    structural_cleanup:
-      type: list[str]
-      description: "Shared code extraction and dead pattern removal"
-    future_considerations:
-      type: list[str]
-      description: "Larger changes that need a feature request"
-    top_priority:
-      type: str
-      description: "The single highest-leverage recommendation with full justification"
+  Format your response with clear headers and numbered items per category.

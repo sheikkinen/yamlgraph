@@ -115,3 +115,58 @@ Previous: [diary-2026-02-17.md](diary-2026-02-17.md) — 10 entries, 10 named tr
 **Heuristic:** When mapping a new protocol to existing architecture, start from your existing abstractions and find where they naturally align. Don't start from the protocol spec and try to build new abstractions. The mapping from `discover_graphs()` → Agent Card and `interrupt_before` → `input_required` was immediate because it matched existing code, not because I designed for A2A.
 
 **Decision deferred:** Whether to proceed to FR and implementation. The brainstorm document provides enough context for informed decision-making.
+
+---
+
+## 2026-02-18: First Audit Run — The Tool Meets Its Own Codebase
+
+**Context:** Built the `pipeline-audit` graph (diary entry above: "Tool Reflection"). Ran it against the full workspace. Three nodes: `collect` (agent with 3 Python tools) → `analyze` (LLM) → `recommend` (LLM).
+
+### What the Audit Found
+
+**Inventory:** 79 graphs, 333 nodes across `examples/` (68 graphs) and `projects/` (11 graphs). The agent called all 3 tools across all 3 directories in 2 iterations — efficient.
+
+**Headline numbers:**
+
+| Metric | Count | Assessment |
+|--------|-------|-----------|
+| Quality gates present | 8/79 (10.1%) | Only 5 are actually blocking |
+| `on_error: skip` without reporting | 7 graphs, 8 map nodes | Silent failure |
+| Bare `except` clauses | 8 | All in kertomus FHIR parsing |
+| `or []` / `or {}` fallbacks | 72 | Across 40 graphs |
+| Maps without any error handling | 24 graphs | Fail-hard on single item |
+| Interrupt nodes without timeout | 19 | All interrupt nodes |
+| Agent nodes without observability | 9 | No audit trail |
+| Inline `model_dump()` (not `to_serializable`) | 34 | FR-044 migration incomplete |
+
+**The LLM's risk rating:** POOR. This feels harsh but the numbers support it. 89.9% of graphs have no quality gate. The 72 silent fallbacks validate Commandment 6 (graduated from the vuosikello incident).
+
+### What Surprised Me
+
+**1. The kertomus project is a structural debt hotspot.** 8 bare `except` clauses + 21 `or []` fallbacks + copy-paste duplication between `kertomus-langgraph/` and `kertomus-scripts/`. This is a legacy project (pre-Scripture) that was never audited. The audit quantified what I vaguely knew: "kertomus needs cleanup" became "kertomus has 29 critical issues."
+
+**2. The 34 `model_dump()` instances.** FR-044 migrated 10 files to `to_serializable()`, but the audit found 34 remaining. Most are in projects/ and kertomus — places I didn't scan during the FR-044 migration because I only searched `examples/`. The tool found what manual `grep` missed because it searched everywhere.
+
+**3. Quality gates are rarer than I thought.** I knew most pipelines lacked them (diary: "Quality Gates Are Afterthoughts"). But 10.1% is worse than "most." And 2 of the 8 are informational-only (kertomus `validate` logs but doesn't block). The effective blocking gate rate is 5/79 = 6.3%.
+
+### What Didn't Work
+
+**Schema validation failed twice.** The `analyze` prompt had `list[str]` fields. Haiku returned paragraph-length strings instead of list items. The `recommend` prompt had the same issue. Fix: removed schemas, used free-text output. The irony: the audit tool's own structured output failed the kind of schema validation it was auditing others for.
+
+**The module import path.** The directory was named `pipeline-audit` (hyphen). Python can't import hyphenated modules. Had to rename to `pipeline_audit` and use full dotted path (`examples.demos.pipeline_audit.tools.audit_tools`). This is exactly the copilot-instructions rule: "Convert paths with hyphens to snake_case to avoid import issues." I wrote the rule but violated it immediately.
+
+### The Trap
+
+**Severity inflation.** The LLM rated 72 `or []` patterns as "HIGH" risk. But many are intentional defensive programming — `state.get('items', []) or []` in a reducer is a valid guard against `None` poisoning the accumulator. The audit can't distinguish "intentional safety net" from "silent failure mask" without semantic context. It counts patterns; it doesn't judge intent.
+
+The 30-40 day remediation estimate the LLM produced is absurd. Most `or []` instances are fine. The bare `except` clauses (8) and unreported skips (7 graphs) are real — that's 2-3 days of work, not 40.
+
+**Heuristic:** Automated audits produce counts, not judgments. The value is in the inventory (now I know *where* all 72 fallbacks are), not in the risk ratings (which lack semantic context). Treat audit output as a census, not a verdict.
+
+### What This Validates
+
+The pipeline audit graph proves the concept from the Tool Reflection entry: "A tool is justified when the work is (a) tedious to do manually, (b) needs to be repeated, and (c) benefits from LLM analysis." The manual version (diary: "The Constraint Shift") took ~2 hours and covered 10 pipelines. The graph version took 2 minutes and covered 79 pipelines with line-level detail. The LLM analysis adds categorization and cross-referencing that `grep` alone can't do.
+
+**What it doesn't validate:** The tool's own quality. The schema failures, the severity inflation, the hallucinated code examples in the analysis (the LLM invented code snippets that look plausible but aren't verbatim from the codebase). The tool needs its own quality gate — which is the FR-043 problem. The meta-recursion is real: the audit tool that finds missing quality gates is itself missing a quality gate.
+
+**Next action:** Fix the 8 bare `except` clauses in kertomus (the only truly critical finding). Wire `SkipReport` into the 7 unreported-skip graphs. Both are concrete, scoped, and validated by evidence. The 72 `or []` patterns need manual triage, not bulk replacement.
