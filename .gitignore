@@ -17,6 +17,7 @@ ENV/
 
 # Planning files
 docs-planning/
+research/
 tmp/
 
 # Symlinks to external projects
