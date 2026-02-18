@@ -103,6 +103,40 @@ def save_results(state: dict) -> dict:
     return {"saved": True}
 ```
 
+### `SkipReport`
+
+Report on skipped/failed nodes by reading `state["errors"]`.
+
+When nodes fail with `on_error: skip`, they write a `PipelineError` to `state["errors"]` but produce no visible output. `SkipReport` reads these errors and provides human-readable summaries.
+
+```python
+from yamlgraph.contrib import SkipReport
+
+def report_skips(state: dict) -> dict:
+    """Report what was skipped during pipeline execution."""
+    report = SkipReport.from_state(state)
+
+    if report.count > 0:
+        report.log()  # Logs at WARNING level
+        return {"skip_summary": report.summary()}
+
+    return {"skip_summary": "All nodes completed successfully."}
+```
+
+**With total count:**
+```python
+# Show X/Y format when you know expected node count
+tool_keys = ["scamper", "five_whys", "jtbd", "first_principles"]
+report = SkipReport.from_state(state, node_keys=tool_keys)
+# Output: "⚠ 2/4 skipped: [scamper: timeout, jtbd: validation error]"
+```
+
+**Methods:**
+- `count` - Number of errors
+- `summary()` - Human-readable string
+- `log()` - Log summary at WARNING level
+- `to_dict()` - JSON-serializable output
+
 ## Why Use These?
 
 **Before (duplicated pattern):**
@@ -126,4 +160,4 @@ data = to_serializable(obj)
 
 - [Map Nodes](map-nodes.md) - Parallel processing with fan-out
 - [Patterns](patterns.md) - Common pipeline patterns
-- [ARCHITECTURE.md](../ARCHITECTURE.md#20-contrib-utilities) - REQ-YG-070 specification
+- [ARCHITECTURE.md](../ARCHITECTURE.md#20-contrib-utilities) - REQ-YG-070, REQ-YG-071 specification

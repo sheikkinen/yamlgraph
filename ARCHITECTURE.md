@@ -278,7 +278,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 17 | Execution Safety Guards | `map_compiler`, `error_handlers`, `graph_loader`, `cli/graph_commands`, `linter/checks_semantic` | REQ-YG-055 – REQ-YG-058 |
 | 18 | Testing & Quality | `tests/conftest`, `tests/unit/test_requirement_enforcement` | REQ-YG-063 |
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – REQ-YG-068 |
-| 20 | Contrib Utilities | `contrib/utils` | REQ-YG-070 |
+| 20 | Contrib Utilities | `contrib/utils`, `contrib/progress` | REQ-YG-070 – REQ-YG-071 |
 
 ### 1. Configuration Loading & Validation
 
@@ -477,6 +477,7 @@ Shared utilities extracted from pipeline patterns. Eliminates copy-paste duplica
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-070 | Contrib utils: `get_map_result()` unwraps single-key `_map_*_sub` dicts; `to_serializable()` converts Pydantic models to dicts recursively | `contrib/utils` |
+| REQ-YG-071 | Contrib progress: `SkipReport` reads `state["errors"]` and provides human-readable skip summaries with counts and node names | `contrib/progress` |
 
 ---
 

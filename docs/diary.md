@@ -4,6 +4,20 @@ Metacognitive reflections on development process.
 
 ---
 
+## 2026-02-18: FR-044d — Data Already Exists, Nobody Reads It
+
+**Context:** FR-044a proposed framework changes to track skipped items. FR-044d proposed reading existing `state["errors"]` instead.
+
+**What I discovered:** The framework already writes `PipelineError` to `state["errors"]` when `on_error: skip` triggers (line 196 in `llm_nodes.py`). The data was there all along — just never surfaced to users.
+
+**The pattern:** When proposing new features, ask: "Does this data already exist somewhere?" Often the infrastructure is in place but not connected. A 40-line utility class (`SkipReport`) that reads existing state is cheaper than framework changes to generate new state.
+
+**The implementation:** 30 minutes TDD. 5 tests → 90 lines of code → wired into innovators_toolkit. FR-044a's 2-day estimate reduced to 30 minutes by reframing from "generate data" to "read existing data."
+
+**Heuristic:** Before adding infrastructure, trace the existing data flow. The 10x cheaper solution may be consuming data that's already produced but discarded.
+
+---
+
 ## 2026-02-18: FR-044c — When "Extraction" Creates More Code
 
 **Context:** FR-044c proposed extracting `slugify()` to contrib.utils. Four implementations existed across the codebase.
