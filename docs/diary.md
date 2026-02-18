@@ -4,6 +4,22 @@ Metacognitive reflections on development process.
 
 ---
 
+## 2026-02-18: FR-044b — Semantic Equivalence in Refactoring
+
+**Context:** FR-044b was the "cleanup" migration of ~21 `model_dump` patterns to use the new `to_serializable()` function from contrib.utils.
+
+**What I did:** Scanned all candidates, inspected each pattern, and noticed `questionnaire/handlers.py` has a local `_to_dict` that returns `{}` for non-dicts — different from `to_serializable` which returns input unchanged.
+
+**The trap narrowly avoided:** **Blind pattern replacement.** The patterns *look* identical: `if hasattr(x, "model_dump"): x = x.model_dump()`. But semantics differ. Some usages have fallbacks (`else: x = {}`), others have continues (`else: continue`), others pass through. Replacing without reading context breaks behavior silently.
+
+**Why it matters:** If I had done a global regex replace, `questionnaire` would break — it relies on `_to_dict` returning `{}` when passed a string, but `to_serializable("string")` returns `"string"`. The bug would surface late as a `TypeError: string indices must be integers`.
+
+**Outcome:** Migrated 10 of 11 files. Documented the skip in FR-044b. Zero regressions.
+
+**Heuristic:** Refactoring to shared utilities requires semantic review, not just syntactic matching. Ask: "What does this return for edge cases?" before replacing.
+
+---
+
 ## 2026-02-18: FR-044 — Judgment Caught Invention Disguised as Extraction
 
 **Context:** FR-044 proposed `yamlgraph.contrib` with Phase 1 being SkipReport for `on_error: skip` visibility.
