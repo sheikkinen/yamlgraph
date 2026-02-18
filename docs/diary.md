@@ -170,3 +170,30 @@ The pipeline audit graph proves the concept from the Tool Reflection entry: "A t
 **What it doesn't validate:** The tool's own quality. The schema failures, the severity inflation, the hallucinated code examples in the analysis (the LLM invented code snippets that look plausible but aren't verbatim from the codebase). The tool needs its own quality gate — which is the FR-043 problem. The meta-recursion is real: the audit tool that finds missing quality gates is itself missing a quality gate.
 
 **Next action:** Fix the 8 bare `except` clauses in kertomus (the only truly critical finding). Wire `SkipReport` into the 7 unreported-skip graphs. Both are concrete, scoped, and validated by evidence. The 72 `or []` patterns need manual triage, not bulk replacement.
+
+---
+
+## 2026-02-18: Confessions — Codifying Technical Debt
+
+**Context:** After reflecting on `noqa` suppressions across codebase, decided to formalize them. Found 33 noqa comments: 2 in framework, 11 in tests, 20 in examples.
+
+**The pattern:** REQ traceability (REQ-YG-001..071) forces every test to cite what requirement it validates. The same pattern applies to lint suppressions — every `# noqa` is a deliberate rule bypass that should be documented and justified.
+
+**The implementation:**
+- `docs/confessions.md`: Registry of all noqa suppressions with CONF-XXX IDs, file links, codes, "sin" (what), and "penance" (why acceptable)
+- `scripts/noqa_coverage.py`: Parallel to `req_coverage.py` — scans codebase for noqa, parses confessions.md, reports gaps
+- Pre-commit hook: `noqa-confession` runs with `--strict` to block commits with undocumented suppressions
+
+**The trap I avoided:** **Complexity creep.** First version tried to exclude the script from scanning itself (it contains example patterns in comments). Second thought: just document the examples as confessions. The script eats its own dogfood. CONF-200..204 are the script's documentation comments.
+
+**Why confessions, not suppressions:** Naming matters. "Suppression registry" is neutral. "Confessions" implies: (1) recognition of deviation from the norm, (2) willingness to explain publicly, (3) a path to absolution (the penance). The religious framing is intentional — it raises the social cost of adding a noqa without thought.
+
+**ID ranges:**
+- CONF-001..009: Framework code (elevated scrutiny — only 2 exist)
+- CONF-010..099: Test code (11 exist — mostly path manipulation)
+- CONF-100..199: Example code (20 exist — runner scripts)
+- CONF-200..299: Scripts (5 exist — the registry's own documentation)
+
+**Heuristic:** Technical debt is invisible until named. A suppression registry forces every exception to be documented, justified, and countable. If the count grows, you have a metric for drift. If it shrinks, you have evidence of cleanup.
+
+**Meta:** This entry itself is a confession — a 30-line noqa registry spawned 280 lines of documentation, 230 lines of enforcement script, and 10 lines of pre-commit config. The cost of formalization is real. The benefit is that the next developer (or LLM) who adds a noqa will be forced to explain why.

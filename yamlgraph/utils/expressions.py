@@ -7,6 +7,8 @@ Use these functions instead of duplicating resolution logic elsewhere.
 import re
 from typing import Any
 
+from yamlgraph.utils.parsing import parse_literal as _parse_literal
+
 # Pattern for arithmetic expressions: {state.field + 1} or {state.a + state.b}
 ARITHMETIC_PATTERN = re.compile(r"^\{(state\.[a-zA-Z_][\w.]*)\s*([+\-*/])\s*(.+)\}$")
 
@@ -139,10 +141,6 @@ def _parse_operand(operand_str: str, state: dict[str, Any]) -> Any:
 
     # Literal value
     return _parse_literal(operand_str)
-
-
-# Import shared parsing utility (aliased to preserve internal name)
-from yamlgraph.utils.parsing import parse_literal as _parse_literal  # noqa: E402
 
 
 def _apply_operator(left: Any, operator: str, right: Any) -> Any:

@@ -32,6 +32,9 @@ Use these as smoke test for new graph development.
 - Run `python scripts/req_coverage.py` to verify all requirements are covered. Use `--detail` for per-test mapping, `--strict` to fail on gaps.
 - When adding a new capability: add requirement(s) to `ARCHITECTURE.md`, extend `ALL_REQS` range and `CAPABILITIES` dict in `scripts/req_coverage.py`, tag tests with the new req ID.
 
+### noqa Confessions
+- Every `# noqa` suppression must be documented in `docs/confessions.md` with a CONF-XXX ID, the error code, sin (what), and penance (why acceptable).
+
 ## Quick Reference
 
 See these canonical sources for patterns:
