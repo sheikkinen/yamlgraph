@@ -11,6 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from yamlgraph.contrib import to_serializable
+
 from .replicate_tool import generate_image
 
 logger = logging.getLogger(__name__)
@@ -66,11 +68,8 @@ def generate_animated_images_node(state: GraphState) -> dict:
 
     for panel_idx, panel in enumerate(animated_panels, 1):
         # Handle Pydantic model or dict
-        if hasattr(panel, "model_dump"):
-            panel_dict = panel.model_dump()
-        elif isinstance(panel, dict):
-            panel_dict = panel
-        else:
+        panel_dict = to_serializable(panel)
+        if not isinstance(panel_dict, dict):
             logger.warning(f"Panel {panel_idx} has unexpected type: {type(panel)}")
             continue
 
@@ -97,11 +96,8 @@ def generate_animated_images_node(state: GraphState) -> dict:
 
     # Save metadata
     story = state.get("story", {})
-    if hasattr(story, "model_dump"):
-        story_dict = story.model_dump()
-    elif isinstance(story, dict):
-        story_dict = story
-    else:
+    story_dict = to_serializable(story)
+    if not isinstance(story_dict, dict):
         story_dict = {}
 
     metadata_path = output_dir / "animated_story.json"

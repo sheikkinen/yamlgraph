@@ -18,6 +18,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from yamlgraph.contrib import to_serializable
+
 from .replicate_tool import edit_image, generate_image
 
 logger = logging.getLogger(__name__)
@@ -53,11 +55,8 @@ def generate_animated_character_images(state: GraphState) -> dict:
         }
 
     # Handle Pydantic model or dict
-    if hasattr(story, "model_dump"):
-        story_dict = story.model_dump()
-    elif isinstance(story, dict):
-        story_dict = story
-    else:
+    story_dict = to_serializable(story)
+    if not isinstance(story_dict, dict):
         story_dict = {}
 
     character_prompt = story_dict.get("character_prompt", "")
@@ -128,11 +127,8 @@ def generate_animated_character_images(state: GraphState) -> dict:
     all_results: list[dict] = []
 
     for panel_idx, panel in enumerate(animated_panels, 1):
-        if hasattr(panel, "model_dump"):
-            panel_dict = panel.model_dump()
-        elif isinstance(panel, dict):
-            panel_dict = panel
-        else:
+        panel_dict = to_serializable(panel)
+        if not isinstance(panel_dict, dict):
             logger.warning(f"Panel {panel_idx} has unexpected type: {type(panel)}")
             continue
 

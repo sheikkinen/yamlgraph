@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from examples.shared.replicate_tool import ImageResult, generate_image
+from yamlgraph.contrib import to_serializable
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +44,9 @@ def generate_scene_image_node(state: GraphState) -> dict:
         }
 
     # Handle Pydantic model or dict
-    if hasattr(scene_prompt, "model_dump"):
-        prompt_text = scene_prompt.model_dump().get("prompt", str(scene_prompt))
-    elif isinstance(scene_prompt, dict):
-        prompt_text = scene_prompt.get("prompt", str(scene_prompt))
+    scene_data = to_serializable(scene_prompt)
+    if isinstance(scene_data, dict):
+        prompt_text = scene_data.get("prompt", str(scene_prompt))
     else:
         prompt_text = str(scene_prompt)
 

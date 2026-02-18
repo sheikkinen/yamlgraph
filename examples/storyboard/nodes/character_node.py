@@ -13,6 +13,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from yamlgraph.contrib import to_serializable
+
 from .replicate_tool import ImageResult, edit_image, generate_image
 
 logger = logging.getLogger(__name__)
@@ -43,11 +45,8 @@ def generate_character_storyboard(state: GraphState) -> dict:
         }
 
     # Handle Pydantic model or dict
-    if hasattr(story, "model_dump"):
-        story_dict = story.model_dump()
-    elif isinstance(story, dict):
-        story_dict = story
-    else:
+    story_dict = to_serializable(story)
+    if not isinstance(story_dict, dict):
         story_dict = {}
 
     # Extract prompts

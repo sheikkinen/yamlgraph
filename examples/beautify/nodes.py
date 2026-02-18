@@ -6,6 +6,8 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
+from yamlgraph.contrib import to_serializable
+
 logger = logging.getLogger(__name__)
 
 THEMES = {
@@ -60,13 +62,8 @@ def render_html(state: dict[str, Any]) -> dict[str, Any]:
     theme = THEMES.get(theme_name, THEMES["dark"])
 
     # Convert Pydantic models to dicts if needed
-    analysis = state.get("analysis") or {}
-    if hasattr(analysis, "model_dump"):
-        analysis = analysis.model_dump()
-
-    mermaid = state.get("mermaid_code") or {}
-    if hasattr(mermaid, "model_dump"):
-        mermaid = mermaid.model_dump()
+    analysis = to_serializable(state.get("analysis") or {})
+    mermaid = to_serializable(state.get("mermaid_code") or {})
 
     title = state.get("title_override") or analysis.get("title", "Graph")
 
@@ -90,9 +87,7 @@ def save_output(state: dict[str, Any]) -> dict[str, Any]:
 
     output_path = state.get("output_path")
     if not output_path:
-        analysis = state.get("analysis") or {}
-        if hasattr(analysis, "model_dump"):
-            analysis = analysis.model_dump()
+        analysis = to_serializable(state.get("analysis") or {})
         name = analysis.get("title", "graph").replace(" ", "-").lower()
         output_dir = Path(__file__).parent / "outputs"
         output_path = output_dir / f"{name}_infographic.html"

@@ -5,6 +5,8 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from yamlgraph.contrib import to_serializable
+
 logger = logging.getLogger(__name__)
 
 # Template directory
@@ -61,8 +63,7 @@ def format_email(state: dict) -> dict:
     if hasattr(ranked_stories, "stories"):
         ranked_stories = ranked_stories.stories
     # Convert Pydantic models to dicts if needed
-    if ranked_stories and hasattr(ranked_stories[0], "model_dump"):
-        ranked_stories = [s.model_dump() for s in ranked_stories]
+    ranked_stories = to_serializable(ranked_stories) if ranked_stories else []
 
     # Try to load template from file
     template_path = TEMPLATES_DIR / "digest.html"

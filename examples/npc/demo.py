@@ -20,6 +20,7 @@ import uuid
 
 from langgraph.types import Command
 
+from yamlgraph.contrib import to_serializable
 from yamlgraph.graph_loader import (
     compile_graph,
     get_checkpointer_for_graph,
@@ -138,9 +139,7 @@ def create_npc(concept_data: dict, index: int) -> dict:
     result = app.invoke(concept_data)
 
     # Extract NPC data from result
-    identity = result.get("identity", {})
-    if hasattr(identity, "model_dump"):
-        identity = identity.model_dump()
+    identity = to_serializable(result.get("identity", {}))
 
     npc_name = identity.get("name", f"NPC_{index}")
     npc_race = identity.get("race", concept_data.get("race", "Unknown"))
@@ -150,13 +149,8 @@ def create_npc(concept_data: dict, index: int) -> dict:
     print(f"    {npc_race} {npc_class}")
 
     # Build flat NPC dict for encounter
-    personality = result.get("personality", {})
-    if hasattr(personality, "model_dump"):
-        personality = personality.model_dump()
-
-    behavior = result.get("behavior", {})
-    if hasattr(behavior, "model_dump"):
-        behavior = behavior.model_dump()
+    personality = to_serializable(result.get("personality", {}))
+    behavior = to_serializable(result.get("behavior", {}))
 
     return {
         "name": npc_name,

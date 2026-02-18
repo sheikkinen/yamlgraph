@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from yamlgraph.contrib import to_serializable
+
 
 def read_file(path: str) -> str:
     """Read file contents."""
@@ -146,8 +148,7 @@ def write_generated_files_node(state: dict) -> dict:
         prompts = list(prompts)
 
     # Convert Pydantic models to dicts if needed
-    if prompts and hasattr(prompts[0], "model_dump"):
-        prompts = [p.model_dump() for p in prompts]
+    prompts = to_serializable(prompts) if prompts else []
 
     # Handle tools - extract from Pydantic model if needed
     if tools:
@@ -155,7 +156,6 @@ def write_generated_files_node(state: dict) -> dict:
             tools = tools.tools
         if isinstance(tools, tuple):
             tools = list(tools)
-        if tools and hasattr(tools[0], "model_dump"):
-            tools = [t.model_dump() for t in tools]
+        tools = to_serializable(tools) if tools else []
 
     return write_generated_files(output_dir, graph_content, prompts, readme, tools)

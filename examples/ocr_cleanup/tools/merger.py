@@ -7,20 +7,7 @@ from __future__ import annotations
 
 from collections import Counter
 
-
-def get_map_result(item: dict | None) -> dict | None:
-    """Extract result from map node output.
-
-    Map nodes store results with keys like '_map_<node_name>_sub'.
-    """
-    if not isinstance(item, dict):
-        return None
-
-    for key, value in item.items():
-        if key.startswith("_map_") and key.endswith("_sub"):
-            return value
-
-    return None
+from yamlgraph.contrib import get_map_result, to_serializable
 
 
 def merge_paragraphs(cleaned_pages: list[dict]) -> dict:
@@ -154,13 +141,11 @@ def merge_paragraphs_node(state: dict) -> dict:
         page_data = get_map_result(item)
 
         if page_data is not None:
-            # Handle Pydantic model or dict
-            if hasattr(page_data, "model_dump"):
-                page_data = page_data.model_dump()
-            elif hasattr(page_data, "dict"):
-                page_data = page_data.dict()
-            elif isinstance(page_data, str):
-                # Skip string representation (shouldn't happen normally)
+            # Convert Pydantic models to dicts
+            page_data = to_serializable(page_data)
+
+            # Skip string representation (shouldn't happen normally)
+            if isinstance(page_data, str):
                 continue
 
             # Add page_num from _map_index if not present

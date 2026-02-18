@@ -14,6 +14,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.errors import GraphInterrupt
 from langgraph.types import Command
 
+from yamlgraph.contrib import to_serializable
+
 logger = logging.getLogger(__name__)
 
 # Module-level caches
@@ -292,17 +294,9 @@ async def create_npcs_from_concepts(concepts: list[dict]) -> list[dict]:
             result = await app.ainvoke(concept_data, config)
 
             # Extract NPC from result
-            identity = result.get("identity", {})
-            if hasattr(identity, "model_dump"):
-                identity = identity.model_dump()
-
-            personality = result.get("personality", {})
-            if hasattr(personality, "model_dump"):
-                personality = personality.model_dump()
-
-            behavior = result.get("behavior", {})
-            if hasattr(behavior, "model_dump"):
-                behavior = behavior.model_dump()
+            identity = to_serializable(result.get("identity", {}))
+            personality = to_serializable(result.get("personality", {}))
+            behavior = to_serializable(result.get("behavior", {}))
 
             npc = {
                 "name": identity.get("name", f"NPC {i + 1}"),
