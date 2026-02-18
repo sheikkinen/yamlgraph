@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections import Counter
 
-from yamlgraph.contrib import get_map_result, to_serializable
+from yamlgraph.contrib import SkipReport, get_map_result, to_serializable
 
 
 def merge_paragraphs(cleaned_pages: list[dict]) -> dict:
@@ -155,4 +155,12 @@ def merge_paragraphs_node(state: dict) -> dict:
             if isinstance(page_data, dict):
                 cleaned_pages.append(page_data)
 
-    return merge_paragraphs(cleaned_pages)
+    result = merge_paragraphs(cleaned_pages)
+
+    # Report skipped pages (FR-044d demo)
+    skip_report = SkipReport.from_state(state)
+    if skip_report.count > 0:
+        skip_report.log()
+        result["skip_report"] = skip_report.to_dict()
+
+    return result

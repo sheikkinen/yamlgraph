@@ -59,6 +59,18 @@ flowchart LR
     C --> |parallel| LN["LLM page N"]
 ```
 
+### Error Handling
+
+The map node uses `on_error: skip` — if an individual page fails (rate limit, timeout), it's skipped rather than failing the entire pipeline. The `merge_paragraphs` node uses `SkipReport` to log and report any skipped pages:
+
+```python
+from yamlgraph.contrib import SkipReport
+
+skip_report = SkipReport.from_state(state)
+if skip_report.count > 0:
+    skip_report.log()  # ⚠ 2 skipped: [cleanup_pages: timeout, ...]
+```
+
 ### Nodes
 
 | Node | Type | Description |
