@@ -19,6 +19,7 @@ A YAML-first framework for building LLM pipelines using:
 - **JSON Extraction** - Auto-extract JSON from LLM responses
 - **LangSmith** - Observability and tracing
 - **JSON Export** - Result serialization
+- **Contrib Utilities** - Shared helpers for map results and Pydantic serialization
 
 ## What is YAMLGraph?
 

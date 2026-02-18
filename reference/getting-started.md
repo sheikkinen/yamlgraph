@@ -16,6 +16,7 @@ YAML-first framework for LLM pipelines. Graphs and prompts are declared in YAML,
 | `yamlgraph/node_factory.py` | Creates node functions from YAML config |
 | `yamlgraph/utils/llm_factory.py` | Multi-provider LLM factory (anthropic/mistral/openai) |
 | `yamlgraph/models/state_builder.py` | Dynamic state class generation |
+| `yamlgraph/contrib/utils.py` | Shared utilities (`get_map_result`, `to_serializable`) |
 
 ## Key Patterns
 

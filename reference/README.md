@@ -47,6 +47,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [LangSmith Tools & Tracing](langsmith-tools.md) | Trace URLs, public sharing, and observability tools |
 | [Prompt Deployment](prompt-deployment.md) | Patterns for updating prompts without rebuild |
 | [MCP Server](mcp-server.md) | Expose graphs as Copilot/MCP tools |
+| [Contrib Utilities](contrib.md) | Shared utilities for map results and serialization |
 
 ### Examples & Guides
 
