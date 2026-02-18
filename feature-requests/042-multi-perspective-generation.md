@@ -1,10 +1,38 @@
 # Feature Request: Multi-Perspective Generation
 
-**Priority:** MEDIUM
+**Priority:** LOW
 **Type:** Feature
-**Status:** Proposed
+**Status:** REJECTED
 **Effort:** 3 days
 **Requested:** 2026-02-17
+
+## Judgment (2026-02-17)
+
+**Verdict:** REJECT — Config complexity doesn't justify the abstraction.
+
+**Reasoning:** The `perspectives:` config with variants, strategies (best_of, merge, vote, score), and synthesis introduces significant framework complexity. Users can already wire fan-out → synthesize explicitly using existing primitives:
+
+```yaml
+nodes:
+  gen_constructivist:
+    type: llm
+    prompt: generate_lesson_constructivist
+    state_key: variant_1
+  gen_direct:
+    type: llm
+    prompt: generate_lesson_direct
+    state_key: variant_2
+  synthesize:
+    type: llm
+    prompt: synthesize_variants
+    state_key: lesson
+```
+
+This is 10 lines of YAML vs. learning a new `perspectives:` DSL. The explicit approach is debuggable, traceable, and requires no new framework code.
+
+**The biopsykososiaalinen problem** (from diary) is better solved by writing better prompts or adding variety at the curriculum design level, not by framework-level multi-perspective generation.
+
+**Alternative:** Document multi-perspective pattern as a recipe. Let users wire it when genuinely needed.
 
 ## Summary
 

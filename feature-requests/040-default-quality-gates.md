@@ -1,10 +1,20 @@
 # Feature Request: Default Quality Gates for Map Nodes
 
-**Priority:** HIGH
+**Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** DEFERRED
 **Effort:** 3 days
 **Requested:** 2026-02-17
+
+## Judgment (2026-02-17)
+
+**Verdict:** DEFER — Revisit after FR-044 (contrib libraries).
+
+**Reasoning:** Real problem, but coupling `review:` config directly to map nodes adds framework complexity. Users can already wire review nodes manually using existing primitives. The map node API is stable; adding optional config increases surface area without proven demand.
+
+**Dependency:** FR-044 (contrib.quality) provides the building blocks. Once `collect_failures()` and review aggregation patterns are extracted and proven, integrating `review:` into map config becomes lower risk.
+
+**Alternative for now:** Document the pattern (generate → review map → retry map) as a recipe in `reference/patterns.md`. Let users wire it explicitly. If 3+ projects adopt the pattern, automate.
 
 ## Summary
 

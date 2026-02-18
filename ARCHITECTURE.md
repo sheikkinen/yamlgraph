@@ -278,6 +278,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 17 | Execution Safety Guards | `map_compiler`, `error_handlers`, `graph_loader`, `cli/graph_commands`, `linter/checks_semantic` | REQ-YG-055 – REQ-YG-058 |
 | 18 | Testing & Quality | `tests/conftest`, `tests/unit/test_requirement_enforcement` | REQ-YG-063 |
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – REQ-YG-068 |
+| 20 | Contrib Utilities | `contrib/utils` | REQ-YG-070 |
 
 ### 1. Configuration Loading & Validation
 
@@ -468,6 +469,14 @@ Expose YAMLGraph graphs as MCP (Model Context Protocol) tools for Copilot and ot
 | REQ-YG-066 | MCP server with stdio transport: expose `yamlgraph_list_graphs` and `yamlgraph_run_graph` tools via MCP protocol | `mcp_server` |
 | REQ-YG-067 | Graph discovery: scan configured directories for `graph.yaml`, parse headers for name/description/required vars | `mcp_server` |
 | REQ-YG-068 | Graph invocation via MCP: compile and invoke any discovered graph with vars, return structured result JSON | `mcp_server` |
+
+### 20. Contrib Utilities
+
+Shared utilities extracted from pipeline patterns. Eliminates copy-paste duplication across projects.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-070 | Contrib utils: `get_map_result()` unwraps single-key `_map_*_sub` dicts; `to_serializable()` converts Pydantic models to dicts recursively | `contrib/utils` |
 
 ---
 

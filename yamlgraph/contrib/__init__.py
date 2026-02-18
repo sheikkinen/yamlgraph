@@ -1,0 +1,12 @@
+"""Contrib utilities for YAMLGraph pipelines.
+
+Shared utilities extracted from common pipeline patterns. These functions
+eliminate copy-paste duplication across projects.
+
+Modules:
+- utils: Core utilities (get_map_result, to_serializable)
+"""
+
+from yamlgraph.contrib.utils import get_map_result, to_serializable
+
+__all__ = ["get_map_result", "to_serializable"]

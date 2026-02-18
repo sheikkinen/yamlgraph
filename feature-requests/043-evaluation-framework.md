@@ -2,9 +2,29 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
-**Effort:** 5 days
+**Status:** APPROVED (Phase 1 only)
+**Effort:** 2 days (Phase 1), 3 days (Phase 2)
 **Requested:** 2026-02-17
+
+## Judgment (2026-02-17)
+
+**Verdict:** SPLIT into phases. Approve Phase 1, defer Phase 2.
+
+**Phase 1 (APPROVED):**
+- Standardized evaluation schema (`EvaluationResult` Pydantic model)
+- `--evaluate` CLI flag that runs a paired evaluation prompt after generation
+- Evaluation results logged to JSON
+- Effort: 2 days
+
+**Phase 2 (DEFERRED):**
+- Baseline comparison (`yamlgraph eval compare`)
+- Regression detection
+- `yamlgraph eval baseline` command
+- Effort: 3 days, revisit after Phase 1 proves useful
+
+**Reasoning:** The core insight is valid — "evaluation is the bottleneck." But the full framework (baselines, comparison, regression detection) is scope creep. Start with the simplest useful thing: a standard way to run and log evaluations. If teams actually use evaluation logs, the comparison tooling becomes justified.
+
+**Dependency:** FR-044 Phase 1 (contrib.progress) should land first to establish the contrib pattern.
 
 ## Summary
 

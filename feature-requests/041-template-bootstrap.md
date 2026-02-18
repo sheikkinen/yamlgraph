@@ -1,10 +1,22 @@
 # Feature Request: First-Class Template Bootstrap (`yamlgraph project init`)
 
-**Priority:** HIGH
+**Priority:** LOW
 **Type:** Feature
-**Status:** Proposed
+**Status:** DEFERRED
 **Effort:** 5 days
 **Requested:** 2026-02-17
+
+## Judgment (2026-02-17)
+
+**Verdict:** DEFER — Pattern exists but isn't adopted yet.
+
+**Reasoning:** The lesson-generator's `render_templates.py` + `bootstrap.yaml` pattern is the only instance of template bootstrapping in the ecosystem. No other project uses it. Generalizing a pattern with N=1 creates dead abstraction.
+
+**Risk:** 5-day effort to build `yamlgraph project init` infrastructure that no one uses because the underlying pattern hasn't proven itself across domains.
+
+**Trigger for revisiting:** When 2+ additional projects manually implement the bootstrap pattern (copy lesson-generator approach), extract the common code. The pattern must prove itself in the wild before automation.
+
+**Alternative for now:** Document the lesson-generator bootstrap pattern as a how-to guide. Let teams copy-paste and adapt. Friction is acceptable at this stage — it filters for real need.
 
 ## Summary
 

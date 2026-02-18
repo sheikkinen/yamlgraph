@@ -8,30 +8,9 @@ Strategy:
 import logging
 
 from examples.book_translator.models import Chunk
+from yamlgraph.contrib import get_map_result
 
 logger = logging.getLogger(__name__)
-
-
-def get_map_result(item: dict | None) -> object | None:
-    """Extract result from map node output.
-
-    Map nodes store results with keys like '_map_<node_name>_sub'.
-    This function finds and returns that result without hardcoding the key.
-
-    Args:
-        item: A single item from a map node's collected output
-
-    Returns:
-        The nested result object (Pydantic model or dict), or None
-    """
-    if not isinstance(item, dict):
-        return None
-
-    for key, value in item.items():
-        if key.startswith("_map_") and key.endswith("_sub"):
-            return value
-
-    return None
 
 
 def split_by_markers(state: dict, context_chars: int = 300) -> dict:
