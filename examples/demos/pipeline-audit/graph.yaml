@@ -1,0 +1,85 @@
+# Pipeline Audit Graph
+# Cross-pipeline structural analysis: quality gates, silent fallbacks,
+# on_error:skip without reporting, shared pattern detection.
+#
+# Usage:
+#   # Audit all known pipeline directories
+#   yamlgraph graph run examples/demos/pipeline-audit/graph.yaml
+#
+#   # Audit a specific directory
+#   yamlgraph graph run examples/demos/pipeline-audit/graph.yaml --var scan_dir="examples/book_translator"
+#
+#   # Focus on a specific concern
+#   yamlgraph graph run examples/demos/pipeline-audit/graph.yaml --var focus="quality_gates"
+
+version: "1.0"
+name: pipeline-audit
+description: Structural audit of YAMLGraph pipelines — quality gates, silent fallbacks, skip reporting, shared patterns
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  scan_dir: str   # Directory to scan (default: scan all known locations)
+  focus: str      # Optional focus area: quality_gates, silent_fallbacks, skip_reporting, shared_patterns
+
+tools:
+  scan_graphs:
+    type: python
+    module: tools.audit_tools
+    function: scan_graphs_tool
+    description: "Discover and parse all graph YAML files, returning node types, edges, on_error settings, and structure"
+
+  scan_python_nodes:
+    type: python
+    module: tools.audit_tools
+    function: scan_python_nodes_tool
+    description: "Scan Python node files for patterns: silent fallbacks, error handling, shared code"
+
+  count_patterns:
+    type: python
+    module: tools.audit_tools
+    function: count_patterns_tool
+    description: "Count occurrences of specific patterns across all graph YAML files (on_error:skip, quality gates, map nodes)"
+
+nodes:
+  # Step 1: Collect structural data from all pipelines
+  collect:
+    type: agent
+    prompt: collect
+    tools: [scan_graphs, scan_python_nodes, count_patterns]
+    max_iterations: 8
+    state_key: inventory
+    variables:
+      scan_dir: "{state.scan_dir}"
+      focus: "{state.focus}"
+
+  # Step 2: Analyze for structural issues
+  analyze:
+    type: llm
+    prompt: analyze
+    state_key: analysis
+    requires: [inventory]
+    variables:
+      inventory: "{state.inventory}"
+      focus: "{state.focus}"
+
+  # Step 3: Produce actionable recommendations
+  recommend:
+    type: llm
+    prompt: recommend
+    state_key: recommendations
+    requires: [inventory, analysis]
+    variables:
+      inventory: "{state.inventory}"
+      analysis: "{state.analysis}"
+      focus: "{state.focus}"
+
+edges:
+  - from: START
+    to: collect
+  - from: collect
+    to: analyze
+  - from: analyze
+    to: recommend
+  - from: recommend
+    to: END

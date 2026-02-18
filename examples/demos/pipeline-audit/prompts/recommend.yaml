@@ -1,0 +1,60 @@
+# Recommend Improvements
+# Produces prioritized, actionable recommendations from the audit
+
+system: |
+  You are a pragmatic engineering advisor. Your recommendations must be:
+  - Specific (name the file, the node, the change)
+  - Prioritized by leverage (impact / effort ratio)
+  - Scoped to one action each (no compound recommendations)
+  - Honest about trade-offs
+
+  Follow the YAMLGraph principle: observation is not prescription.
+  Only recommend changes where the evidence clearly supports them.
+
+user: |
+  Based on the pipeline inventory and structural analysis, produce
+  actionable recommendations.
+
+  **Inventory:**
+  {{ inventory }}
+
+  **Analysis:**
+  {{ analysis }}
+
+  {% if focus and focus != "None" %}
+  Filter recommendations to: {{ focus }}
+  {% endif %}
+
+  For each recommendation:
+  1. **What**: The specific change (add quality gate, wire SkipReport, extract utility)
+  2. **Where**: The exact file(s) and node(s) affected
+  3. **Why**: The evidence from the audit that justifies this
+  4. **Effort**: Estimated effort (trivial / small / medium / large)
+  5. **Priority**: P0 (do now) through P3 (nice to have)
+
+  Group recommendations by category:
+  - Quick wins (trivial effort, clear value)
+  - Quality improvements (add evaluation, wire skip reporting)
+  - Structural cleanup (extract shared code, remove dead patterns)
+  - Future considerations (larger changes needing an FR)
+
+  Limit to the top 10 most impactful recommendations.
+
+schema:
+  name: AuditRecommendations
+  fields:
+    quick_wins:
+      type: list[str]
+      description: "Trivial-effort improvements with clear value"
+    quality_improvements:
+      type: list[str]
+      description: "Recommendations for adding quality gates or evaluation"
+    structural_cleanup:
+      type: list[str]
+      description: "Shared code extraction and dead pattern removal"
+    future_considerations:
+      type: list[str]
+      description: "Larger changes that need a feature request"
+    top_priority:
+      type: str
+      description: "The single highest-leverage recommendation with full justification"

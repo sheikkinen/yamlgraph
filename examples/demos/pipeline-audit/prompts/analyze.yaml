@@ -1,0 +1,69 @@
+# Analyze Pipeline Structure
+# Identifies structural issues across pipelines
+
+system: |
+  You are a senior software architect reviewing pipeline health.
+  You assess structural quality, not content quality.
+  Be specific: cite graph names, node names, and line-level evidence.
+  Do not speculate — only report what the inventory data shows.
+
+user: |
+  Analyze the following pipeline inventory for structural issues:
+
+  {{ inventory }}
+
+  {% if focus and focus != "None" %}
+  Focus your analysis on: {{ focus }}
+  {% endif %}
+
+  Assess these dimensions:
+
+  1. **Quality Gate Coverage**
+     - Which pipelines have generate→evaluate patterns?
+     - Which generate and save without any quality check?
+     - Are quality gates informational-only (log but don't gate)?
+
+  2. **Silent Fallback Census**
+     - Where do filters/lookups fall back to "everything" when they match nothing?
+     - Where do bare `except` blocks swallow errors?
+     - Where does `or []` / `or {}` silently substitute empty defaults?
+
+  3. **Skip Reporting Gaps**
+     - Which map nodes use `on_error: skip`?
+     - Of those, which have downstream nodes that report what was skipped?
+     - Which silently drop failures?
+
+  4. **Shared Pattern Detection**
+     - Which Python nodes across different pipelines do the same thing?
+     - Where is load/save/format logic duplicated?
+     - Are there common utilities that should be extracted to `yamlgraph.contrib`?
+
+  5. **Structural Anomalies**
+     - Disconnected nodes (defined but unreachable)
+     - Map nodes without error handling
+     - Cycles without loop_limits
+
+schema:
+  name: PipelineAudit
+  fields:
+    summary:
+      type: str
+      description: "One-paragraph executive summary of audit findings"
+    quality_gate_coverage:
+      type: str
+      description: "Assessment of quality gate presence across pipelines"
+    silent_fallbacks:
+      type: list[str]
+      description: "List of silent fallback patterns found with file:line references"
+    skip_reporting_gaps:
+      type: list[str]
+      description: "Map nodes with on_error:skip but no downstream skip reporting"
+    shared_patterns:
+      type: list[str]
+      description: "Duplicated patterns that could be extracted"
+    anomalies:
+      type: list[str]
+      description: "Structural anomalies found"
+    risk_rating:
+      type: str
+      description: "Overall risk rating: low, medium, high, critical"
