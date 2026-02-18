@@ -4,6 +4,25 @@ Metacognitive reflections on development process.
 
 ---
 
+## 2026-02-18: FR-044c — When "Extraction" Creates More Code
+
+**Context:** FR-044c proposed extracting `slugify()` to contrib.utils. Four implementations existed across the codebase.
+
+**What I found:** The four implementations have three different behaviors:
+1. `save_lessons`: Remove non-word chars → collapse whitespace → truncate 60
+2. `questionnaire`: Replace non-alnum with hyphen → truncate 50
+3. `beautify`: Replace space with hyphen only (preserves special chars)
+
+**The trap:** **False equivalence.** The functions have the same name in my mind ("slugify") but serve different purposes: Finnish-safe filenames, URL-safe slugs, display titles. A unified `slugify()` would need mode parameters, making it more complex than the 3-line inline versions.
+
+**The math:** ~20 lines across 3 files → ~10 lines in contrib + 6 tests + 3 migrations + docs = net increase.
+
+**Correction:** Rejected FR-044c. Each local implementation is already tested by its pipeline. Extracting creates new surface area to maintain.
+
+**Heuristic:** Before extracting "duplicate" code, verify the implementations are semantically equivalent, not just syntactically similar. If unification requires parameters to handle variants, the abstraction costs more than it saves.
+
+---
+
 ## 2026-02-18: FR-044b — Semantic Equivalence in Refactoring
 
 **Context:** FR-044b was the "cleanup" migration of ~21 `model_dump` patterns to use the new `to_serializable()` function from contrib.utils.

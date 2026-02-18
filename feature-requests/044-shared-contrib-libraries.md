@@ -2,9 +2,10 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** IMPLEMENTED (Phase 1)
+**Status:** COMPLETE
 **Effort:** 1 day (Phase 1), 2 days (Phase 2)
 **Requested:** 2026-02-17
+**Closed:** 2026-02-18
 
 ## Implementation (2026-02-18)
 
@@ -15,17 +16,33 @@
 - Added REQ-YG-070 to ARCHITECTURE.md and req_coverage.py (CAP-20)
 - Refactored `examples/book_translator/nodes/tools.py` to use contrib
 
+**FR-044b Migration COMPLETE:**
+- Migrated 10 example files to use contrib imports
+- Skipped 1 file (questionnaire/handlers.py) due to different semantics
+
+**Phase 2 (contrib.io) DEFERRED:**
+- Research showed patterns are too varied for meaningful abstraction
+- 7 save implementations with 5 different filename conventions
+- Shared code is only 2-3 lines of boilerplate
+
+**FR-044c (slugify) REJECTED:**
+- 4 implementations with 3 different behaviors
+- Unified API would be more complex than inline versions
+
+**FR-044a (skip visibility) SPLIT OFF:**
+- Requires framework changes in `map_compiler.py`, not contrib library
+- See FR-044a for details
+
 **Files created:**
 - `yamlgraph/contrib/__init__.py`
 - `yamlgraph/contrib/utils.py`
 - `tests/unit/test_contrib_utils.py`
+- `reference/contrib.md`
 
 **Files modified:**
 - `ARCHITECTURE.md` — added CAP-20 and REQ-YG-070
 - `scripts/req_coverage.py` — added CAP-20 and extended ALL_REQS
-- `examples/book_translator/nodes/tools.py` — now imports from contrib
-
-**Next:** Phase 2 (contrib.io) is DEFERRED pending evidence of need.
+- 10 example files migrated to use contrib imports
 
 ## Judgment (2026-02-18) — REVISED
 
