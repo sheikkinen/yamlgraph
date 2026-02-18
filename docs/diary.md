@@ -4,6 +4,24 @@ Metacognitive reflections on development process.
 
 ---
 
+## 2026-02-18: FR-044 — Judgment Caught Invention Disguised as Extraction
+
+**Context:** FR-044 proposed `yamlgraph.contrib` with Phase 1 being SkipReport for `on_error: skip` visibility.
+
+**What I did:** During Judgment, I re-read the FR research inventory. It claimed SkipReport was "simple extraction." But the inventory showed: "Category 7: Progress / Reporting — **No dedicated modules found.** 0 of 56 tool files report skip counts."
+
+**The trap:** **Premature abstraction through mislabeling.** The FR claimed to extract an existing pattern, but no pattern existed. SkipReport would be invention, not extraction. The label "extraction" made it feel low-risk, bypassing the scrutiny new features deserve.
+
+**Why it almost worked:** The problem (19 silent `on_error: skip` occurrences) is real. The solution (SkipReport) is reasonable. But the implementation path (contrib library) was wrong — skip visibility requires framework changes in `map_compiler.py`, not a utility function.
+
+**Correction:** Split SkipReport to FR-044a as a framework feature. Revised Phase 1 to extract functions that actually exist: `get_map_result()` (3 duplicates found) and `to_serializable()` pattern (~15 occurrences). Implemented Phase 1 in ~30 minutes.
+
+**Heuristic:** When a feature request claims to "extract" an existing pattern, verify the pattern exists in the codebase. Search for actual code, not descriptions. If the search returns 0 results, it's invention, not extraction — and requires different scrutiny.
+
+**Meta-heuristic:** The language of a feature request shapes scrutiny. "Extract" implies safe, "invent" implies risky. Verify the framing matches reality, especially in your own proposals.
+
+---
+
 ## 2026-02-17: FR-030 — Completionism Bias
 
 **Context:** Needed to confirm `mode=invoke` subgraphs stream tokens with `subgraphs=True`.
