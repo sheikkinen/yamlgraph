@@ -6,6 +6,7 @@ own module, own feeds config, no import coupling.
 """
 
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 from time import struct_time
@@ -18,6 +19,63 @@ logger = logging.getLogger(__name__)
 
 HN_API_BASE = "https://hacker-news.firebaseio.com/v0"
 FEEDS_PATH = Path(__file__).resolve().parent.parent / "feeds.yaml"
+SEEDS_PATH = Path(__file__).resolve().parent.parent / "seeds.yaml"
+DIARY_DIR = Path(__file__).resolve().parent.parent.parent.parent / "docs"
+
+
+# ---------------------------------------------------------------------------
+# Seed extraction and persistence
+# ---------------------------------------------------------------------------
+
+_SEED_RE = re.compile(r"\*\*Seed:\*\*\s*(.+)")
+
+
+def extract_raw_seeds(diary_dir: Path) -> list[str]:
+    """Regex-extract all **Seed:** lines from diary*.md files."""
+    seeds: list[str] = []
+    for path in sorted(diary_dir.glob("diary*.md")):
+        text = path.read_text()
+        for match in _SEED_RE.finditer(text):
+            seeds.append(match.group(1).strip())
+    return seeds
+
+
+def load_seeds(path: Path) -> list[str]:
+    """Read curated seeds from seeds.yaml. Returns [] if missing."""
+    if not path.exists():
+        return []
+    with open(path) as f:
+        data = yaml.safe_load(f)
+    if not isinstance(data, list):
+        return []
+    return data
+
+
+def save_seeds(path: Path, seeds: list[str]) -> None:
+    """Write curated seed list to seeds.yaml."""
+    header = (
+        "# Auto-curated by diary-digest pipeline. Do not edit manually.\n"
+        f"# Last updated: {datetime.now().strftime('%Y-%m-%d')}\n"
+    )
+    with open(path, "w") as f:
+        f.write(header)
+        yaml.dump(seeds, f, default_flow_style=False, allow_unicode=True)
+
+
+def save_seeds_tool(state: dict) -> dict:
+    """Graph tool — write curated seeds to seeds.yaml.
+
+    Reads state.seeds (curated by LLM), writes to file.
+    """
+    seeds = state.get("seeds", [])
+    # Handle Pydantic model or dict
+    if hasattr(seeds, "seeds"):
+        seeds = seeds.seeds
+    if isinstance(seeds, dict):
+        seeds = seeds.get("seeds", [])
+    save_seeds(SEEDS_PATH, seeds)
+    logger.info(f"🌱 Saved {len(seeds)} curated seeds to {SEEDS_PATH}")
+    return {"seeds_saved": True}
 
 
 # ---------------------------------------------------------------------------
@@ -126,15 +184,16 @@ def fetch_all_sources(
 
 
 def load_config(state: dict) -> dict:
-    """Load feeds.yaml and populate state with topics, feeds, seeds, date.
+    """Load feeds.yaml, seeds.yaml, and diary seeds into state.
 
-    Graph tool — reads config, returns state updates.
+    Graph tool — reads config + curated seeds + raw seeds from diary files.
     """
     config = load_feeds_config()
     return {
         "topics": config.get("topics", []),
         "feeds": config.get("feeds", []),
-        "seeds": config.get("seeds", []),
+        "seeds": load_seeds(SEEDS_PATH),
+        "raw_seeds": extract_raw_seeds(DIARY_DIR),
         "date": datetime.now().strftime("%Y-%m-%d"),
     }
 

@@ -6,6 +6,7 @@ Tests cover:
 - Diary entry formatting
 - Append-to-diary behavior
 - No-op when no relevant articles
+- Seed extraction and curation (Phase 2)
 """
 
 from unittest.mock import MagicMock, patch
@@ -293,3 +294,133 @@ class TestNoOpBehavior:
             {"title": "Relevant!", "relevance_score": 0.8},
         ]
         assert should_write_entry(articles, threshold=0.7) is True
+
+
+class TestExtractRawSeeds:
+    """Test regex extraction of Seeds from diary files."""
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_extract_from_single_file(self, tmp_path):
+        """extract_raw_seeds finds **Seed:** lines in diary files."""
+        from examples.diary_digest.nodes.sources import extract_raw_seeds
+
+        diary = tmp_path / "diary.md"
+        diary.write_text(
+            "# Diary\n\n"
+            "**Seed:** What replaces cost?\n\n"
+            "Some text.\n\n"
+            "**Seed:** Could archaeology be a graph?\n"
+        )
+        seeds = extract_raw_seeds(tmp_path)
+        assert len(seeds) == 2
+        assert "What replaces cost?" in seeds
+        assert "Could archaeology be a graph?" in seeds
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_extract_across_multiple_files(self, tmp_path):
+        """extract_raw_seeds scans all diary*.md in directory."""
+        from examples.diary_digest.nodes.sources import extract_raw_seeds
+
+        (tmp_path / "diary.md").write_text("**Seed:** Seed from current.\n")
+        (tmp_path / "diary-2026-02-17.md").write_text("**Seed:** Seed from archive.\n")
+        (tmp_path / "not-a-diary.md").write_text("**Seed:** Should not appear.\n")
+
+        seeds = extract_raw_seeds(tmp_path)
+        assert "Seed from current." in seeds
+        assert "Seed from archive." in seeds
+        assert "Should not appear." not in seeds
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_extract_empty_when_no_seeds(self, tmp_path):
+        """extract_raw_seeds returns empty list when no Seeds found."""
+        from examples.diary_digest.nodes.sources import extract_raw_seeds
+
+        (tmp_path / "diary.md").write_text("# Diary\n\nNo seeds here.\n")
+        seeds = extract_raw_seeds(tmp_path)
+        assert seeds == []
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_extract_ignores_non_seed_bold(self, tmp_path):
+        """Only **Seed:** prefix is matched, not other bold text."""
+        from examples.diary_digest.nodes.sources import extract_raw_seeds
+
+        (tmp_path / "diary.md").write_text(
+            "**Trap:** Not a seed.\n"
+            "**Seed:** This is a seed.\n"
+            "**Heuristic:** Also not a seed.\n"
+        )
+        seeds = extract_raw_seeds(tmp_path)
+        assert seeds == ["This is a seed."]
+
+
+class TestSeedsYaml:
+    """Test seeds.yaml read/write for curated seeds."""
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_load_seeds_from_file(self, tmp_path):
+        """load_seeds reads plain list from seeds.yaml."""
+        from examples.diary_digest.nodes.sources import load_seeds
+
+        seeds_file = tmp_path / "seeds.yaml"
+        seeds_file.write_text(
+            '- "What replaces cost?"\n' '- "Could archaeology be a graph?"\n'
+        )
+        seeds = load_seeds(seeds_file)
+        assert len(seeds) == 2
+        assert "What replaces cost?" in seeds
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_load_seeds_missing_file(self, tmp_path):
+        """load_seeds returns empty list when file doesn't exist."""
+        from examples.diary_digest.nodes.sources import load_seeds
+
+        seeds = load_seeds(tmp_path / "nonexistent.yaml")
+        assert seeds == []
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_save_seeds_writes_file(self, tmp_path):
+        """save_seeds writes curated list to seeds.yaml."""
+        from examples.diary_digest.nodes.sources import load_seeds, save_seeds
+
+        seeds_file = tmp_path / "seeds.yaml"
+        save_seeds(seeds_file, ["Question one?", "Question two?"])
+
+        loaded = load_seeds(seeds_file)
+        assert loaded == ["Question one?", "Question two?"]
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_save_seeds_graph_tool(self):
+        """save_seeds_tool is a graph tool (state -> dict)."""
+        from examples.diary_digest.nodes.sources import save_seeds_tool
+
+        with patch(f"{SRC}.save_seeds") as mock_save:
+            result = save_seeds_tool(
+                {
+                    "seeds": ["Q1?", "Q2?"],
+                }
+            )
+            mock_save.assert_called_once()
+            assert "seeds_saved" in result
+
+
+class TestLoadConfigSeeds:
+    """Test that load_config populates seeds and raw_seeds."""
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_load_config_returns_seeds(self):
+        """load_config reads seeds from seeds.yaml."""
+        from examples.diary_digest.nodes.sources import load_config
+
+        with (
+            patch(f"{SRC}.load_feeds_config") as mock_feeds,
+            patch(f"{SRC}.load_seeds") as mock_seeds,
+            patch(f"{SRC}.extract_raw_seeds") as mock_raw,
+        ):
+            mock_feeds.return_value = {"topics": ["AI"], "feeds": ["http://x"]}
+            mock_seeds.return_value = ["Curated question?"]
+            mock_raw.return_value = ["Raw seed 1", "Raw seed 2"]
+
+            result = load_config({})
+
+        assert result["seeds"] == ["Curated question?"]
+        assert result["raw_seeds"] == ["Raw seed 1", "Raw seed 2"]

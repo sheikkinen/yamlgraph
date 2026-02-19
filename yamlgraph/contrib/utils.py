@@ -58,10 +58,6 @@ def to_serializable(obj: Any) -> Any:
     if hasattr(obj, "model_dump"):
         return to_serializable(obj.model_dump())
 
-    # Legacy Pydantic v1 support (check __fields__ to confirm it's a Pydantic model)
-    if hasattr(obj, "__fields__") and hasattr(obj, "dict") and callable(obj.dict):
-        return to_serializable(obj.dict())
-
     # Recursively handle lists
     if isinstance(obj, list):
         return [to_serializable(item) for item in obj]

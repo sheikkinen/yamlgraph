@@ -15,6 +15,7 @@ state:
   # Populated by load_config
   topics: list
   seeds: list
+  raw_seeds: list
   feeds: list
   date: str
   # Pipeline state
@@ -24,13 +25,14 @@ state:
   relevant_count: int
   diary_entry: str
   written: bool
+  seeds_saved: bool
 
 tools:
   load_config:
     type: python
     module: examples.diary_digest.nodes.sources
     function: load_config
-    description: "Load feeds.yaml — topics, feeds, seeds, date"
+    description: "Load feeds.yaml + seeds.yaml + raw seeds from diary files"
 
   fetch_sources:
     type: python
@@ -49,6 +51,12 @@ tools:
     module: examples.diary_digest.nodes.writing
     function: write_diary
     description: "Format and append diary entry to docs/diary.md"
+
+  save_seeds:
+    type: python
+    module: examples.diary_digest.nodes.sources
+    function: save_seeds_tool
+    description: "Write curated seeds to seeds.yaml"
 
 nodes:
   load_config:
@@ -95,6 +103,20 @@ nodes:
     tool: write_diary
     state_key: written
 
+  curate_seeds:
+    type: llm
+    prompt: curate_seeds
+    variables:
+      seeds: "{state.seeds}"
+      raw_seeds: "{state.raw_seeds}"
+      date: "{state.date}"
+    state_key: seeds
+
+  save_seeds:
+    type: python
+    tool: save_seeds
+    state_key: seeds_saved
+
 edges:
   - from: START
     to: load_config
@@ -104,14 +126,18 @@ edges:
     to: analyze_all
   - from: analyze_all
     to: filter_relevant
-  # Conditional: skip to END if nothing relevant (no-op)
+  # Conditional: skip to curate_seeds if nothing relevant (no-op)
   - from: filter_relevant
     to: synthesize_entry
     condition: relevant_count > 0
   - from: filter_relevant
-    to: END
+    to: curate_seeds
     condition: relevant_count == 0
   - from: synthesize_entry
     to: write_diary
   - from: write_diary
+    to: curate_seeds
+  - from: curate_seeds
+    to: save_seeds
+  - from: save_seeds
     to: END

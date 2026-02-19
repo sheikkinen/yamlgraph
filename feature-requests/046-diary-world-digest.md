@@ -3,7 +3,7 @@
 **FR-046**
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Implemented (Phase 1)
+**Status:** Implemented (Phase 1 + Phase 2)
 **Effort:** 2-3 days
 **Requested:** 2026-02-19
 
@@ -318,12 +318,181 @@ The FR mentions a relevance threshold but doesn't define the behavior. If 0 arti
 
 ### Revised acceptance criteria
 
-- [ ] Fetches HN + configured RSS feeds
-- [ ] Scores articles by relevance to configured topics (title-based, map node)
-- [ ] Fetches full content only for articles above relevance threshold
-- [ ] Produces diary-format entry with `## YYYY-MM-DD: World Digest` header and Seed
-- [ ] No entry written if no articles pass threshold (silent no-op)
-- [ ] `--dry-run` prints entry to stdout without writing
-- [ ] `--commit` stages and commits the diary entry
-- [ ] launchd plist included for macOS scheduling
-- [ ] Tests for entry formatting and no-op behavior
+- [x] Fetches HN + configured RSS feeds
+- [x] Scores articles by relevance to configured topics (title-based, map node)
+- [ ] ~~Fetches full content only for articles above relevance threshold~~ (dropped — title-only scoring is sufficient and cheaper)
+- [x] Produces diary-format entry with `## YYYY-MM-DD: World Digest` header and Seed
+- [x] No entry written if no articles pass threshold (silent no-op)
+- [x] ~~`--dry-run` prints entry to stdout without writing~~ (removed — single-purpose pipeline always writes)
+- [x] ~~`--commit` stages and commits the diary entry~~ (moved to plist shell command — presentation layer concern)
+- [x] launchd plist included for macOS scheduling
+- [x] Tests for entry formatting and no-op behavior
+
+### Phase 1 implementation notes
+
+Implemented and committed (`31f8d3c` through `f9790bf`). Key deviations from judgment:
+- No CLI script — `yamlgraph graph run` is the runner (three-layer compliance)
+- No `dry_run` / `commit` flags — pipeline is single-purpose (write entry). Git commit moved to plist shell command.
+- CONF-206/207 (subprocess noqa) eliminated by removing git operations from write_diary
+- Seeds field removed from feeds.yaml — currently `seeds: []` was never populated. Phase 2 addresses this.
+
+---
+
+## Phase 2: Seed Curation via LLM
+
+### Problem
+
+The synthesis prompt receives `{state.seeds}` to connect articles to open questions, but `load_config` returns `seeds: []` because feeds.yaml no longer has a seeds key and nobody maintained it manually. There are 24 Seeds across 3 diary files — real questions planted by the development process — but they're trapped in prose, never read back.
+
+The naive fix (regex extraction) gives you all 24 Seeds. But Seeds age: some are answered, some are superseded, some are too vague to act on. What's needed is **curation** — an LLM that reads the raw Seeds, the current curated list, and today's diary activity, then produces an updated, focused set.
+
+### Proposed: `curate_seeds` node in the diary-digest graph
+
+Add a terminal node after `write_diary`. The graph becomes:
+
+```
+load_config → fetch_sources → analyze_all (map) → filter_relevant
+    → [relevant_count > 0] → synthesize_entry → write_diary → curate_seeds
+    → [relevant_count == 0] → curate_seeds
+```
+
+The `curate_seeds` node runs on **every** execution, even no-op days (when no articles are relevant). Seed curation is independent of article relevance — a new diary entry from a manual session could have planted new Seeds.
+
+#### Components
+
+| Component | Type | Description |
+|-----------|------|-------------|
+| `load_seeds` | Python tool | Read `examples/diary_digest/seeds.yaml`, return list. Create file if missing. |
+| `extract_raw_seeds` | Python tool | Regex scan `docs/diary*.md` for `**Seed:**` lines. Return all raw seeds. |
+| `curate_seeds` | LLM node | Inputs: current seeds file, raw seeds from diary, today's date. Output: updated curated list. |
+| `save_seeds` | Python tool | Write curated list back to `seeds.yaml`. |
+| `prompts/curate_seeds.yaml` | Prompt | Instructions for curation: add new, retire answered, condense related. |
+
+#### seeds.yaml format
+
+```yaml
+# Auto-curated by diary-digest pipeline. Do not edit manually.
+# Last updated: 2026-02-19
+seeds:
+  - question: "What constraint replaces cost as it approaches zero?"
+    planted: 2026-02-17
+    source: diary-2026-02-17.md
+  - question: "Could protocol archaeology be formalized as a graph?"
+    planted: 2026-02-17
+    source: diary-2026-02-17.md
+  - question: "What other graph.yaml fields have silent linter blind spots?"
+    planted: 2026-02-19
+    source: diary.md
+```
+
+#### Curation prompt behavior
+
+The LLM receives:
+1. **Current curated seeds** (from seeds.yaml, may be empty on first run)
+2. **All raw seeds** (regex-extracted from diary files)
+3. **Today's date** (for aging context)
+
+Instructions:
+- **Add** any raw seed not already in the curated list
+- **Retire** seeds that have been answered by subsequent diary entries or are > 30 days old without activity
+- **Condense** seeds that ask the same underlying question into a single sharper formulation
+- **Cap at 10** — forces prioritization, prevents unbounded growth
+- Output the curated list as structured data (Pydantic schema)
+
+#### State changes
+
+New state fields: `current_seeds`, `raw_seeds`, `curated_seeds`
+`load_config` continues to populate `seeds` from `seeds.yaml` (for the synthesis prompt).
+After curation, `save_seeds` writes the updated list back.
+
+### Acceptance criteria
+
+- [x] `seeds.yaml` created automatically on first run (load_seeds returns [] if missing)
+- [x] Raw seeds extracted from all `docs/diary*.md` files via regex (`extract_raw_seeds`)
+- [x] LLM curates: adds new, retires old, condenses duplicates (`curate_seeds` node + prompt)
+- [x] Curated list capped at 10 seeds (prompt instruction + schema)
+- [x] `seeds.yaml` written back after curation (`save_seeds_tool`)
+- [x] `load_config` reads seeds from `seeds.yaml` for synthesis prompt
+- [x] `curate_seeds` runs even on no-op days (both graph paths converge on curate_seeds)
+- [x] Tests for extract_raw_seeds, load_seeds, save_seeds (9 new tests, 27 total)
+
+### Effort
+
+0.5 day — 2 Python tools (~30 lines each), 1 prompt, graph edges, 3-4 tests.
+
+---
+
+## Phase 2 Judgment
+
+**Date:** 2026-02-19
+**Verdict:** APPROVED with corrections
+
+### What's right
+
+1. **The problem is real.** `seeds: []` is dead code — the synthesis prompt asks about Seeds but receives nothing. 24 Seeds exist in diary files, never read back. The loop is broken.
+2. **LLM curation over regex extraction.** Raw extraction gives 24 Seeds including stale, vague, and answered ones. An LLM can reduce to a focused 10. This is the right tool for the job — it's a judgment call, not a filter.
+3. **Running on every execution.** Seeds change when diary changes, not when articles are relevant. Correct to decouple from the article-relevance conditional.
+4. **Cap at 10.** Forces prioritization. Without a cap, the list grows monotonically and the synthesis prompt drowns in context.
+
+### What needs correction
+
+**1. Too many new state fields.**
+
+`current_seeds`, `raw_seeds`, `curated_seeds` plus the existing `seeds` — four overlapping lists. The graph state becomes confusing.
+
+**Correction:** Use two fields only:
+- `seeds` — loaded from seeds.yaml by `load_config` (already exists, used by synthesis prompt)
+- `raw_seeds` — extracted from diary files by `extract_raw_seeds`
+
+The curate_seeds LLM node receives both and outputs directly to `seeds` (overwriting). The `save_seeds` tool reads `state.seeds` and writes to file. No `curated_seeds` field needed.
+
+**2. `load_seeds` and `extract_raw_seeds` should be one tool.**
+
+Two separate tools that both run at startup, both reading files, both populating state. This is two nodes for one logical step.
+
+**Correction:** Merge into `load_config`. It already reads feeds.yaml — extend it to also:
+- Read seeds.yaml (if exists) → `seeds`
+- Regex-extract from diary files → `raw_seeds`
+
+One tool, one node, two state fields populated.
+
+**3. `save_seeds` is trivial — inline it in `curate_seeds`.**
+
+A 5-line function that writes YAML to a file doesn't need its own tool definition and graph node. The `curate_seeds` Python wrapper can write the file directly after receiving the LLM output.
+
+**Correction:** The curation flow is two nodes, not four:
+1. **`curate_seeds` (LLM)** — receives `seeds` + `raw_seeds` + `date`, outputs curated list
+2. **`save_seeds` (Python)** — writes to seeds.yaml
+
+Actually, even simpler: make `curate_seeds` a Python tool that:
+1. Calls execute_prompt internally? **No** — that violates three-layer. The LLM call must be in the graph YAML.
+
+Keep it as: LLM node `curate_seeds` → Python tool `save_seeds`. Two nodes. The save is trivial but it's a side effect — it belongs in a Python tool, not hidden in an LLM node's post-processing.
+
+**4. seeds.yaml schema is overspecified.**
+
+`planted`, `source` metadata per seed adds complexity for negligible value. The LLM doesn't need to know which file a seed came from — it needs the question text. The 30-day retirement rule based on `planted` date is arbitrary and fragile.
+
+**Correction:** Simple format:
+```yaml
+# Auto-curated by diary-digest. Do not edit manually.
+# Last updated: 2026-02-19
+- "What constraint replaces cost as it approaches zero?"
+- "Could protocol archaeology be formalized as a graph?"
+- "What other graph.yaml fields have silent linter blind spots?"
+```
+
+Plain list of strings. The LLM decides what's stale based on content, not dates.
+
+### Revised Phase 2 scope
+
+| Component | Description |
+|-----------|-------------|
+| `load_config` (modify) | Also reads `seeds.yaml` → `seeds`, regex-extracts diary `**Seed:**` lines → `raw_seeds` |
+| `curate_seeds` LLM node | Prompt: current seeds + raw seeds → curated list (max 10). Schema: `CuratedSeeds(seeds: list[str])` |
+| `save_seeds` Python tool | Writes `state.curated_seeds` to `seeds.yaml` |
+| `prompts/curate_seeds.yaml` | Curation instructions |
+| Graph edges | `write_diary → curate_seeds → save_seeds → END` + `filter_relevant → curate_seeds` (no-op path) |
+| Tests | extract_raw_seeds, seeds.yaml read/write, cap enforcement |
+
+**Effort:** 0.5 day

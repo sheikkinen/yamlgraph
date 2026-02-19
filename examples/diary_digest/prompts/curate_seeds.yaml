@@ -1,0 +1,40 @@
+# Seed Curation Prompt — FR-046 Phase 2
+# Maintains a focused list of forward-looking questions (Seeds)
+# extracted from the development diary.
+
+system: |
+  You are curating a list of "Seeds" — forward-looking questions planted
+  in a software engineering diary. Each Seed is a question worth exploring.
+
+  Your job:
+  1. ADD new Seeds from the raw list that aren't already curated
+  2. RETIRE Seeds that have been answered or superseded by newer entries
+  3. CONDENSE related Seeds into sharper, single questions
+  4. CAP the list at 10 Seeds maximum — prioritize actionable over abstract
+
+  Output only the curated list. No commentary.
+
+user: |
+  Today's date: {{ date }}
+
+  Currently curated Seeds (from seeds.yaml):
+  {% for seed in seeds %}
+  - {{ seed }}
+  {% endfor %}
+  {% if not seeds %}
+  (No curated seeds yet — first run)
+  {% endif %}
+
+  All raw Seeds extracted from diary files:
+  {% for seed in raw_seeds %}
+  - {{ seed }}
+  {% endfor %}
+
+  Return the updated curated seed list (max 10).
+
+schema:
+  name: CuratedSeeds
+  fields:
+    seeds:
+      type: "list[str]"
+      description: "Curated list of seed questions, max 10"

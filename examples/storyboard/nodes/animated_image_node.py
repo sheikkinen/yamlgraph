@@ -11,9 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from examples.shared.replicate_tool import generate_image
 from yamlgraph.contrib import to_serializable
-
-from .replicate_tool import generate_image
 
 logger = logging.getLogger(__name__)
 

@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .replicate_tool import ImageResult, generate_image
+from examples.shared.replicate_tool import ImageResult, generate_image
 
 logger = logging.getLogger(__name__)
 

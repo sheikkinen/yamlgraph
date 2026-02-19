@@ -144,8 +144,6 @@ report = SkipReport.from_state(state, node_keys=tool_keys)
 # This pattern was copied across 10+ pipelines
 if hasattr(obj, "model_dump"):
     data = obj.model_dump()
-elif hasattr(obj, "dict"):
-    data = obj.dict()
 else:
     data = obj
 ```
