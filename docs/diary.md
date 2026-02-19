@@ -106,3 +106,19 @@ TDD implementation of the diary-digest pipeline. The judgment cut 7 nodes to 4-5
 **Heuristic:** If a Seed can be answered by applying an existing rule to existing code, it's not a Seed — it's a TODO. Seeds should point to unexplored territory, not unchecked boxes.
 
 **Seed:** The linter doesn't check `prompts_relative` inside `defaults:` — only at top level. If the linter and runtime disagree on config resolution, what other graph.yaml fields have silent linter blind spots?
+
+---
+
+## 2026-02-19: Phase 2 — Seed Curation and Single-Purpose Purge
+
+Removed `dry_run` and `commit` from the diary-digest pipeline. `dry_run` was a string-truthy hack (`--var dry_run=true` passes "true", a truthy string — it worked by accident). `commit` was subprocess.run for git in a logic-layer function — a presentation concern baked into the pipeline. Both violated three-layer separation. Moved git ops to the plist shell command. Seeds field dropped from feeds.yaml (was `seeds: []`, dead code).
+
+Then Phase 2: close the Seeds loop. 24 Seeds exist across diary files, planted by the development process but never read back. Added `extract_raw_seeds()` to regex-scan diary files for `**Seed:**` lines, `load_seeds/save_seeds` for seeds.yaml persistence, and wired a `curate_seeds` LLM node into the graph. Both paths (articles-found and no-op) converge on curation — Seeds change when diary changes, not when articles are relevant.
+
+The judgement corrections were key: two state fields not four (avoid overlapping `current_seeds`/`curated_seeds`/`seeds` confusion), merge extraction into `load_config` (one tool, one node), plain list format for seeds.yaml (no `planted`/`source` metadata — the LLM judges staleness by content, not dates), cap at 10.
+
+**Trap:** **Pre-commit hooks as hidden co-authors.** The vulture hook auto-modified 3 unrelated files during our commit — deleting Pydantic v1 `.dict()` shims and a dead `replicate_tool.py`. The commit message became misleading (our Phase 2 changes bundled with "remove Pydantic v1 shims"). The hook did the right thing (kill dead code), but the commit lost its story. Hooks that auto-modify files should be separated from hooks that validate — one commits truth, the other enforces it.
+
+**Heuristic:** If a pre-commit hook modifies files, it changes the commit's narrative. Auto-fix hooks (formatting, dead code removal) should run in a dedicated pass, not mixed with feature commits.
+
+**Seed:** The curate_seeds node receives all 24 raw Seeds every run and must decide which 10 to keep. But it has no memory of previous curation decisions — each run starts fresh. Could a diff-based approach (showing what changed since last curation) produce more stable, intentional evolution of the seed list?
