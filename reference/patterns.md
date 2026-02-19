@@ -949,3 +949,144 @@ def process_batch(state: dict) -> dict:
 
     return {"batch_result": results}
 ```
+
+---
+
+## Pattern 11: Monitoring No-Op Pipelines
+
+Pipelines with conditional routing can silently produce no useful output (e.g., "no relevant articles today"). This is operationally valid but can mask failures.
+
+### Problem
+
+A scheduled pipeline runs daily but produces nothing for a week. Is this:
+- **Expected** — Quiet news week, nothing relevant
+- **Broken** — Filter threshold too high, API failing silently
+
+You need to detect consecutive no-op runs without embedding monitoring logic in the graph itself.
+
+### Solution: External Canary Checks
+
+Keep monitoring concerns outside the graph. Three approaches:
+
+#### 1. Shell Wrapper (Simplest)
+
+```bash
+#!/bin/bash
+# run_with_canary.sh
+
+OUTPUT_FILE="/path/to/diary.md"
+LAST_MODIFIED_BEFORE=$(stat -f %m "$OUTPUT_FILE" 2>/dev/null || echo 0)
+
+yamlgraph graph run graphs/diary_digest.yaml
+
+LAST_MODIFIED_AFTER=$(stat -f %m "$OUTPUT_FILE" 2>/dev/null || echo 0)
+
+if [ "$LAST_MODIFIED_BEFORE" = "$LAST_MODIFIED_AFTER" ]; then
+    echo "$(date): No output produced" >> /var/log/yamlgraph_noop.log
+
+    # Alert after N consecutive no-ops
+    NOOP_COUNT=$(tail -7 /var/log/yamlgraph_noop.log | grep -c "No output")
+    if [ "$NOOP_COUNT" -ge 7 ]; then
+        # Send alert (email, Slack, etc.)
+        echo "ALERT: 7 consecutive no-op runs" | mail -s "Pipeline Alert" ops@example.com
+    fi
+fi
+```
+
+#### 2. Git-Based Detection
+
+For pipelines that commit outputs:
+
+```bash
+#!/bin/bash
+# Check if last N commits touched the output file
+
+OUTPUT_FILE="docs/diary.md"
+DAYS_TO_CHECK=7
+
+LAST_TOUCH=$(git log -1 --format="%ci" -- "$OUTPUT_FILE" 2>/dev/null)
+
+if [ -z "$LAST_TOUCH" ]; then
+    echo "WARNING: Output file never committed"
+    exit 1
+fi
+
+DAYS_SINCE=$(( ($(date +%s) - $(date -j -f "%Y-%m-%d" "${LAST_TOUCH:0:10}" +%s)) / 86400 ))
+
+if [ "$DAYS_SINCE" -gt "$DAYS_TO_CHECK" ]; then
+    echo "ALERT: No output for $DAYS_SINCE days (threshold: $DAYS_TO_CHECK)"
+fi
+```
+
+#### 3. LangSmith Dashboard
+
+Use LangSmith's built-in analytics:
+
+1. **Tag runs** with outcome: Add `tags: ["output:yes"]` or `tags: ["output:no"]` based on result
+2. **Dashboard filter**: Create view showing runs tagged `output:no`
+3. **Alert rule**: Trigger when `output:no` count exceeds threshold in time window
+
+```python
+# In your runner script
+from langsmith import Client
+
+client = Client()
+
+# After graph execution
+output_produced = bool(state.get("diary_entry"))
+tag = "output:yes" if output_produced else "output:no"
+
+# LangSmith auto-tags if LANGCHAIN_TAGS env var is set
+# Or manually tag via run metadata
+```
+
+### launchd Integration (macOS)
+
+For scheduled pipelines using launchd:
+
+```xml
+<!-- com.yamlgraph.diary-digest.plist -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yamlgraph.diary-digest</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/path/to/run_with_canary.sh</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>7</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardErrorPath</key>
+    <string>/var/log/yamlgraph/diary-digest.err</string>
+    <key>StandardOutPath</key>
+    <string>/var/log/yamlgraph/diary-digest.log</string>
+</dict>
+</plist>
+```
+
+### Key Points
+
+| Aspect | Recommendation |
+|--------|----------------|
+| **Location** | Outside the graph (shell, cron, monitoring system) |
+| **Detection** | File modification, git history, or LangSmith tags |
+| **Alerting** | After N consecutive no-ops, not on first occurrence |
+| **Threshold** | Depends on pipeline frequency (daily=7, hourly=24) |
+
+### Why Not In-Graph?
+
+1. **Separation of concerns** — Graph defines _what_, monitoring defines _when to alert_
+2. **No state pollution** — Graph state shouldn't track historical run outcomes
+3. **Flexibility** — Different environments need different alerting (dev vs prod)
+4. **Testability** — Graph tests shouldn't depend on monitoring logic
+
+### Related
+
+- [FR-051: Output Shape Contracts](../feature-requests/051-output-shape-contracts.md) — In-graph validation (complementary)
+- [reference/scheduling-agents.md](scheduling-agents.md) — launchd setup guide

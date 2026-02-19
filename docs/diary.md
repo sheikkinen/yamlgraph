@@ -229,3 +229,21 @@ LangSmith Agent Builder reaching GA suggests the ecosystem is moving toward *dec
 **Agent Builder templates & tool registry.** New UI-driven agent scaffolding and tool registry features suggest LangChain is moving toward lower-code agent construction. YAMLGraph's advantage is *declarative transparency*—every decision is in the graph.yaml, not hidden in UI state or runtime defaults. But this only matters if the YAML itself enforces visibility (e.g., flagging `if not results: results = all_items` patterns).
 
 **Seed:** As observability tools (LangSmith) become deployment platforms and agent frameworks mature toward standard patterns, should YAMLGraph's linter enforce a 'confession registry' for invisible decisions—not just flagging silent fallbacks, but requiring explicit YAML annotations for any node that makes an assumption (hardcoded defaults, deferred error handling, implicit retries) before the graph can be deployed?
+
+---
+
+## 2026-02-19: The Plan That Lied — When Warnings Mask Root Causes
+
+**Context:** FR-050 planning began with a taxonomy of "invisible failures" from the diary-digest post-mortem. Four failure categories identified; the first proposed fix was a linter warning: "warn when `skip_if_exists` targets a list/dict type."
+
+**The initial plan contained a factual error.** The proposed warning message said "empty lists are truthy in Python." They're not — `bool([]) == False`. The plan's logic was backwards. Worse: the linter approach would have added noise (warning on all list state keys) without fixing the semantic mismatch.
+
+**What Judgment caught:** The plan addressed a *symptom* (skip triggers unexpectedly) with a *surface patch* (warn about the type). But the root cause was *semantic*: `skip_if_exists` checks existence (`is not None`) when developers expect it to check truthiness (`if value`). A warning doesn't fix wrong behavior — it documents it.
+
+**The revision:** Change `is not None` to truthiness check. One-line fix. Breaking change, yes — but the only thing it breaks is code that was already broken (relying on skip-on-empty-list is the bug, not a feature).
+
+**Trap:** **Proposing mitigation instead of correction.** Linter warnings, documentation updates, and "watch out for this gotcha" notes are tempting because they don't require changing existing behavior. But they accumulate technical debt by preserving wrong semantics. A warning that says "this might not do what you expect" is an admission that the code doesn't do the right thing.
+
+**Heuristic:** If a feature's behavior surprises developers, check if the semantics match intent before adding warnings. A breaking change that aligns behavior with expectation is cheaper than a warning that nobody reads.
+
+**Seed:** How many other YAMLGraph features have "gotcha" documentation that could be replaced by semantic fixes? Is there a pattern of documenting edge cases that should instead be eliminated?
