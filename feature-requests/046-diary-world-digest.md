@@ -228,3 +228,102 @@ Write to `docs/world-digest-YYYY-MM-DD.md` instead of the diary. Avoids diary po
 **Not a risk:**
 - Cost: ~$0.02/run (Claude Haiku for analysis + synthesis)
 - Complexity: 6-node graph, 2 new prompts, 1 new Python tool, rest is reuse
+
+---
+
+## Judgment
+
+**Date:** 2026-02-19
+**Verdict:** APPROVED with scope reduction — Phase 1 only, defer Phases 2-3
+
+### What's right
+
+1. **The problem is real.** 20 diary entries, zero external input. The Seeds point outward but nothing comes back in. This is a genuine gap in the metacognitive loop.
+2. **Reuse is genuine.** `daily_digest/nodes/sources.py` (HN + RSS), `filters.py` (SQLite dedup), `content.py` (article extraction) are tested, deployed code. Not reinventing.
+3. **Output to diary, not email.** Correct decision. The diary is the single pane of glass — a separate file would be ignored (Alternative D is correctly rejected).
+4. **Relevance threshold.** "Skip entry if no articles score above 0.7" is essential. Most days HN has nothing project-relevant. Silent no-op is correct.
+
+### What needs correction
+
+**1. "Auto-derived topics from Seeds" is over-engineered.**
+
+The FR claims `scan_context` should parse Seeds, FRs, CHANGELOG, and recent diary entries to produce dynamic topics. But:
+- There are 18 Seeds. They change weekly, not daily.
+- Active FRs change even less frequently.
+- The LLM analysis already receives the context — it doesn't need pre-computed topic keywords.
+
+**Correction:** Replace `scan_context` with a simpler approach: a static `topics.yaml` file listing project-relevant topics and RSS feeds, manually updated when focus shifts. The LLM synthesis prompt can receive the last 3 Seeds directly as context. Dynamic topic extraction is Phase 3 at earliest — not Phase 1.
+
+**2. The graph has too many nodes.**
+
+7 nodes is the full daily_digest pipeline replicated. But the diary-digest doesn't need:
+- `filter_recent` with SQLite dedup — the digest runs once/day, not repeatedly. A simple "last 24h" filter suffices without persistent dedup.
+- `fetch_content` for all articles — most HN articles are behind paywalls or irrelevant. Fetch content only for articles that pass a title-based relevance pre-filter.
+
+**Correction:** Simplify to 4-5 nodes:
+1. `fetch_sources` — HN + targeted RSS (reuse)
+2. `analyze_all` (map) — title+URL only, score relevance (cheap, fast)
+3. `fetch_relevant_content` — fetch full text only for articles scoring > 0.5
+4. `synthesize_entry` — produce diary entry from relevant articles + Seeds context
+5. `write_diary` — append to diary.md
+
+This halves the API calls on irrelevant-content days.
+
+**3. Phase 2 (scheduling) should be Phase 1.**
+
+The whole point is that this runs automatically. A script that requires manual invocation will be forgotten — that's Alternative B (manual habit), which the FR correctly rejects. The launchd plist is trivial (template already exists in `reference/scheduling-agents.md`). Ship it with the pipeline, not as a separate phase.
+
+**Correction:** Merge scheduling into Phase 1. The plist is 20 lines of XML, not a separate work item.
+
+**4. Phase 3 (Seed tracking) is premature.**
+
+Tracking which Seeds have "received external evidence" requires semantic matching between article content and open-ended questions. This is an evaluation problem (FR-043 territory). The diary entry can mention Seeds manually in the synthesis prompt without building a tracking system.
+
+**Correction:** Defer Phase 3 entirely. The synthesis prompt should say "Here are the 3 most recent Seeds — if any article connects to them, mention it." No tracking infrastructure needed.
+
+**5. "Reuse daily_digest infrastructure" means import coupling.**
+
+`daily_digest/nodes/sources.py` hardcodes `RSS_FEEDS = ["https://lobste.rs/rss", "https://dev.to/feed"]`. These are generic tech news, not project-relevant. The diary-digest needs different feeds (LangGraph changelog, Anthropic blog, Python releases).
+
+**Correction:** Don't import `sources.py` directly. Copy the `fetch_hn()` and `fetch_rss()` functions (they're 30 lines each) into the diary-digest's own tool module. Use a `feeds.yaml` config for RSS URLs. Coupling to daily_digest's feed list is wrong.
+
+**6. Missing: what happens when there's nothing relevant?**
+
+The FR mentions a relevance threshold but doesn't define the behavior. If 0 articles pass the threshold, what happens? An empty diary entry is worse than no entry.
+
+**Correction:** Add explicit acceptance criterion: "If no articles score above relevance threshold, no diary entry is written and the run logs 'No relevant developments today.'"
+
+### Revised scope — Phase 1 (approved)
+
+| Component | Description |
+|-----------|-------------|
+| `scripts/diary_digest.py` | CLI runner with `--dry-run` and `--commit` flags |
+| `scripts/diary_digest_tools.py` | `fetch_sources()`, `fetch_rss()`, `append_to_diary()` |
+| `feeds.yaml` | RSS feed URLs + static topic list |
+| Graph YAML | 4-5 nodes: fetch → analyze (map, title-only) → fetch relevant content → synthesize → write |
+| 2 prompts | `analyze_relevance.yaml`, `synthesize_diary_entry.yaml` |
+| launchd plist | `com.yamlgraph.diary-digest.plist` shipped in `scripts/` |
+| Tests | Context scanning, entry formatting, no-relevant-articles no-op |
+
+**Effort:** 1 day (down from 2-3 days)
+
+### Deferred
+
+| Item | Trigger to revisit |
+|------|-------------------|
+| Dynamic topic extraction from Seeds/FRs | After 2+ weeks of manual `feeds.yaml` updates |
+| Seed tracking ("germinated" status) | When FR-043 evaluation framework exists |
+| GitHub Action alternative | When/if local launchd proves insufficient |
+| SQLite dedup | If duplicate entries actually appear (unlikely at 1x/day cadence) |
+
+### Revised acceptance criteria
+
+- [ ] Fetches HN + configured RSS feeds
+- [ ] Scores articles by relevance to configured topics (title-based, map node)
+- [ ] Fetches full content only for articles above relevance threshold
+- [ ] Produces diary-format entry with `## YYYY-MM-DD: World Digest` header and Seed
+- [ ] No entry written if no articles pass threshold (silent no-op)
+- [ ] `--dry-run` prints entry to stdout without writing
+- [ ] `--commit` stages and commits the diary entry
+- [ ] launchd plist included for macOS scheduling
+- [ ] Tests for entry formatting and no-op behavior
