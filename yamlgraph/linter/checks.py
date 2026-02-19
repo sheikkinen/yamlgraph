@@ -16,6 +16,7 @@ from pydantic import BaseModel
 # Valid node types
 VALID_NODE_TYPES = {
     "agent",
+    "interactive_tool",
     "interrupt",
     "llm",
     "map",
@@ -344,6 +345,19 @@ def check_node_types(graph_path: Path) -> list[LintIssue]:
                     code="E005",
                     message=f"Invalid node type '{node_type}' in node '{node_name}'",
                     fix=f"Use one of: {', '.join(sorted(VALID_NODE_TYPES))}",
+                )
+            )
+        # FR-049 Constraint 3: warn on __ in user node names
+        if "__" in node_name:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W005",
+                    message=(
+                        f"Node name '{node_name}' contains '__' which is "
+                        f"reserved for interactive_tool expansion"
+                    ),
+                    fix="Rename node to avoid double underscores",
                 )
             )
 

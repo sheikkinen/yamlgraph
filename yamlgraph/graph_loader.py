@@ -204,6 +204,11 @@ def load_graph_config(path: str | Path) -> GraphConfig:
     # FR-010: Auto-apply skip_if_exists=false to loop nodes
     config = apply_loop_node_defaults(config)
 
+    # FR-049: Expand interactive_tool nodes before compilation
+    from yamlgraph.interactive_tool import expand_interactive_tools
+
+    config = expand_interactive_tools(config)
+
     return GraphConfig(config, source_path=path.resolve())
 
 

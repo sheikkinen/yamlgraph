@@ -160,6 +160,28 @@ def validate_map_node(node_name: str, node_config: dict[str, Any]) -> None:
             raise ValueError(f"Map node '{node_name}' missing required '{field}' field")
 
 
+def validate_interactive_tool_node(node_name: str, node_config: dict[str, Any]) -> None:
+    """Validate interactive_tool node has required fields.
+
+    Args:
+        node_name: Name of the node
+        node_config: Node configuration dictionary
+
+    Raises:
+        ValueError: If interactive_tool node configuration is invalid
+    """
+    if node_config.get("type") != NodeType.INTERACTIVE_TOOL:
+        return
+
+    required_fields = ["start", "step", "resume_key", "response_key", "loop_until"]
+    for field in required_fields:
+        if field not in node_config:
+            raise ValueError(
+                f"Interactive tool node '{node_name}' missing required "
+                f"'{field}' field"
+            )
+
+
 def validate_config(config: dict[str, Any]) -> None:
     """Validate YAML configuration structure.
 
@@ -177,5 +199,6 @@ def validate_config(config: dict[str, Any]) -> None:
         validate_router_node(node_name, node_config, nodes)
         validate_on_error(node_name, node_config)
         validate_map_node(node_name, node_config)
+        validate_interactive_tool_node(node_name, node_config)
 
     validate_edges(config["edges"])

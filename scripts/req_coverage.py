@@ -161,6 +161,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-21": ("Diary Digest Tools", ["REQ-YG-072"]),
     "CAP-22": ("Code Quality Lints", ["REQ-YG-073"]),
     "CAP-23": ("Skip-If-Exists Truthiness", ["REQ-YG-074"]),
+    "CAP-24": ("Interactive Tool Node", ["REQ-YG-075"]),
 }
 
 

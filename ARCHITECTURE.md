@@ -282,6 +282,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 21 | Diary Digest Tools | `scripts/diary_digest_tools` | REQ-YG-072 |
 | 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073 |
 | 23 | Skip-If-Exists Truthiness | `node_factory/llm_nodes` | REQ-YG-074 |
+| 24 | Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes` | REQ-YG-075 |
 
 ### 1. Configuration Loading & Validation
 
@@ -506,6 +507,14 @@ FR-050: `skip_if_exists` checks truthiness, not existence. Empty collections, em
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-074 | skip_if_exists uses truthiness check: `[]`, `""`, `None`, `0`, `False` do not skip; only truthy values skip | `node_factory/llm_nodes._should_skip_if_exists` |
+
+### 24. Interactive Tool Node
+
+Declarative multi-turn stateful tool integration via config-level expansion.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-075 | Interactive tool node: expand `type: interactive_tool` into start/ask/step/end inline nodes with loop condition, max iterations, and interrupt-based user input | `interactive_tool`, `node_factory/control_nodes`, `utils/conditions` |
 
 ---
 

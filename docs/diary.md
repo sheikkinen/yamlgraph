@@ -8,6 +8,18 @@ Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02
 
 ---
 
+## 2026-02-19: The Coroutine Primitive (FR-049)
+
+**Trap:** "Config-level expansion" sounded simple until three rounds of judgment exposed: conditions.py lacks `in` operator, interrupt idempotency breaks in loops, edge rewriting has no precedent, and the proposed module reference was wrong. The first draft would have crashed at runtime on the second loop iteration (stale interrupt payload) and on any compound `loop_until` expression (no `not` operator). Each judgment round discovered issues invisible to the previous one.
+
+**Heuristic:** *Three reads minimum.* A feature request under 200 lines still needs: (1) surface read for coherence, (2) deep read against actual code paths to find mismatched assumptions, (3) mechanical read simulating runtime execution step-by-step. Round 1 caught scope issues. Round 2 caught wrong modules and missing operators. Round 3 caught the loop-back negation gap. No single pass would have found all three.
+
+**Insight:** The config-level expansion pattern (Constraint 8) is strictly superior to the compile-time expansion originally proposed. By transforming `nodes` + `edges` dicts *before* existing compilation runs, we get: zero changes to `_process_edge()`, zero changes to `compile_node()`, zero new factories. 164 lines of new code. The lesson: when adding a macro that expands to existing primitives, expand at the earliest possible stage — config transformation, not code generation.
+
+**Seed:** Can the config-level expansion pattern be generalized? Other "macro" node types (e.g., wizard, poll, saga) could follow the same pattern: a YAML shorthand that pre-expands into existing primitive nodes. What's the minimal framework for "node type macros" — a registry of `(node_type, config) → (expanded_nodes, expanded_edges)` functions called before compilation?
+
+---
+
 ## 2026-02-20: World Digest — Observability and Agent Evaluation
 
 **LangGraph ecosystem momentum.** Five LangGraph releases (1.0.9, SDK 0.3.6–0.3.8, prebuilt 1.0.8) landed this week, signaling active development on the core orchestration layer YAMLGraph depends on. No breaking changes noted in the release titles, suggesting stability in the foundation.

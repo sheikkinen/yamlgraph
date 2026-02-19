@@ -23,7 +23,7 @@ from yamlgraph.models.state_builder import COMMON_INPUT_FIELDS
 _SENTINEL_NODES = {"START", "END"}
 
 # Node types that do NOT support retry/fallback error handling
-_NON_LLM_NODE_TYPES = {"tool", "python", "tool_call", "passthrough"}
+_NON_LLM_NODE_TYPES = {"tool", "python", "tool_call", "passthrough", "interactive_tool"}
 
 
 def check_cross_references(graph_path: Path) -> list[LintIssue]:

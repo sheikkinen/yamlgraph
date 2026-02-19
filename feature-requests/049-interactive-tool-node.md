@@ -2,10 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged
+**Status:** Enforced (Phase 1)
 **Effort:** 3-5 days (Phase 1: 2 days)
 **Requested:** 2026-02-19
 **Judged:** 2026-02-19 (Round 2: deep code review)
+**Enforced:** 2026-02-19
 
 ## Summary
 
@@ -155,7 +156,7 @@ This ensures SSE consumers see the bot/tool response regardless of stream mode.
 4. **Phase 1 excludes `on_error.output`** — custom output dicts on error are a new concept. Use existing `on_error: skip|retry|fail|fallback` pattern. Defer custom output to Phase 2.
 5. **Calling convention: `func(state) → dict`** — `start`, `step`, `end` tools receive the full state dict and return a state update dict. Same calling convention as `type: python` nodes. No output mapping layer needed — tool functions write directly to state keys.
 6. **`max_iterations` default: 10** — on exhaustion, route through `end` tool (if defined) for cleanup, then exit. When `end` is null, route directly to next edge target. No custom output in Phase 1.
-7. **REQ-YG-073** — new requirement ID for this capability.
+7. **REQ-YG-075** — new requirement ID for this capability.
 8. **Config-level expansion** — expansion must happen as a `GraphConfig` pre-processing step BEFORE `compile_nodes()` runs. Transform `nodes` dict (replace interactive_tool with 3-4 expanded entries) and `edges` list (rewrite incoming edges → `{prefix}__start`, outgoing → `{prefix}__end` or `__step`). This requires ZERO changes to `_process_edge()`, `compile_node()`, or edge processing logic.
 9. **No start error branching in Phase 1** — `__start` always proceeds to `__ask`. No hardcoded `phase` condition. Error handling uses existing `on_error` pattern on expanded nodes.
 10. **Interrupt without idempotency for loops** — the generated `__ask` node must NOT reuse cached payload across loop iterations. Add `idempotent: bool = True` parameter to `create_interrupt_node()`. When `False`, always regenerates message from template. The loop interrupt sets `idempotent=False` so each iteration shows fresh `state[response_key]`.
@@ -173,7 +174,7 @@ This ensures SSE consumers see the bot/tool response regardless of stream mode.
 - Stream mode agnostic (tested with `messages`, `values`, `updates`)
 - Works with all checkpointers (memory, SQLite, Redis)
 - Linter/validator support for the new node type
-- 8-10 unit tests tagged `@pytest.mark.req("REQ-YG-073")`
+- 8-10 unit tests tagged `@pytest.mark.req("REQ-YG-075")`
 
 ### Deferred to Phase 2
 
@@ -199,21 +200,21 @@ The pattern is universal: any external service with a stateful session that requ
 
 ## Acceptance Criteria (Phase 1)
 
-- [ ] `NodeType.INTERACTIVE_TOOL` added to enum
-- [ ] Config-level expansion pre-processor in `graph_loader.py` (Constraint 8)
-- [ ] `start`, `step`, `end` tool hooks via `callable_registry` with `func(state) → dict` convention
-- [ ] `resume_key` and `response_key` state mapping
-- [ ] `loop_until` via `evaluate_condition()` from `conditions.py` (no `in` operator)
-- [ ] `max_iterations` (default 10) with route through `end` tool (if defined) then exit
-- [ ] Existing `on_error` pattern (skip/retry/fail/fallback) — no custom output
-- [ ] `negate_condition()` utility in `conditions.py` (De Morgan's law)
-- [ ] `create_interrupt_node(idempotent=False)` for loop interrupts
-- [ ] Works with all stream modes (`messages`, `values`, `updates`)
-- [ ] Works with all checkpointers (memory, SQLite, Redis)
-- [ ] Linter warns (W-level) on node names containing `__`
-- [ ] Lint/validate support for `interactive_tool` fields
-- [ ] 8-10 unit tests tagged `@pytest.mark.req("REQ-YG-073")`
-- [ ] Documentation with Ninchat and Auth examples
+- [x] `NodeType.INTERACTIVE_TOOL` added to enum
+- [x] Config-level expansion pre-processor in `graph_loader.py` (Constraint 8)
+- [x] `start`, `step`, `end` tool hooks via `callable_registry` with `func(state) → dict` convention
+- [x] `resume_key` and `response_key` state mapping
+- [x] `loop_until` via `evaluate_condition()` from `conditions.py` (no `in` operator)
+- [x] `max_iterations` (default 10) with route through `end` tool (if defined) then exit
+- [x] Existing `on_error` pattern (skip/retry/fail/fallback) — no custom output
+- [x] `negate_condition()` utility in `conditions.py` (De Morgan's law)
+- [x] `create_interrupt_node(idempotent=False)` for loop interrupts
+- [ ] Works with all stream modes (`messages`, `values`, `updates`) — needs integration test
+- [ ] Works with all checkpointers (memory, SQLite, Redis) — needs integration test
+- [x] Linter warns (W-level) on node names containing `__`
+- [x] Lint/validate support for `interactive_tool` fields
+- [x] 8-10 unit tests tagged `@pytest.mark.req("REQ-YG-075")` — 31 tests
+- [ ] Documentation with Ninchat and Auth examples — deferred to usage
 
 ## Alternatives Considered
 

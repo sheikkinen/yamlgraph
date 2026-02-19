@@ -48,12 +48,13 @@ def create_interrupt_node(
     prompt_name = config.get("prompt")
     state_key = config.get("state_key", "interrupt_message")
     resume_key = config.get("resume_key", "user_input")
+    idempotent = config.get("idempotent", True)
 
     def interrupt_fn(state: dict) -> dict:
         # Check if we already have a payload (resuming) - idempotency
         existing_payload = state.get(state_key)
 
-        if existing_payload is not None:
+        if idempotent and existing_payload is not None:
             # Resuming - use stored payload, don't re-execute prompt
             payload = existing_payload
         elif prompt_name:

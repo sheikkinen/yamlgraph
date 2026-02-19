@@ -29,6 +29,7 @@ class TestNodeType:
             "interrupt",
             "subgraph",
             "passthrough",
+            "interactive_tool",
         }
         actual = {nt.value for nt in NodeType}
         assert actual == expected

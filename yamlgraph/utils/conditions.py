@@ -201,3 +201,59 @@ def evaluate_condition(expr: str, state: dict) -> bool:
 
     left_path, operator, right_str = match.groups()
     return evaluate_comparison(left_path, operator, right_str, state)
+
+
+# Operator negation mapping (De Morgan's law)
+_NEGATE_OP = {
+    "==": "!=",
+    "!=": "==",
+    "<": ">=",
+    ">": "<=",
+    "<=": ">",
+    ">=": "<",
+}
+
+
+def negate_condition(expr: str) -> str:
+    """Negate a condition expression using De Morgan's law.
+
+    Transforms the condition into its boolean complement:
+    - Single: flip operator (== ↔ !=, < ↔ >=, etc.)
+    - OR compound: negate each part, join with AND
+    - AND compound: negate each part, join with OR
+
+    Args:
+        expr: Condition expression (same syntax as evaluate_condition)
+
+    Returns:
+        Negated condition string
+
+    Raises:
+        ValueError: If expression is malformed
+
+    Examples:
+        >>> negate_condition("phase == 'done'")
+        "phase != 'done'"
+        >>> negate_condition("a == 'x' or b == 'y'")
+        "a != 'x' and b != 'y'"
+    """
+    expr = expr.strip()
+
+    # Handle compound OR → negate each, join with AND
+    or_parts = _split_compound(expr, "or")
+    if or_parts is not None:
+        return " and ".join(negate_condition(part) for part in or_parts)
+
+    # Handle compound AND → negate each, join with OR
+    and_parts = _split_compound(expr, "and")
+    if and_parts is not None:
+        return " or ".join(negate_condition(part) for part in and_parts)
+
+    # Single comparison — flip operator
+    match = COMPARISON_PATTERN.match(expr)
+    if not match:
+        raise ValueError(f"Cannot negate malformed expression: {expr}")
+
+    left_path, operator, right_str = match.groups()
+    negated_op = _NEGATE_OP[operator]
+    return f"{left_path} {negated_op} {right_str}"
