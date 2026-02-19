@@ -193,3 +193,23 @@ LangSmith Agent Builder reaching GA suggests the ecosystem is moving toward *dec
 **Connection to recent seeds:** The observability emphasis resonates with the 'no-silent-fallback' lint rule seed — if traces are the primary debugging artifact, then silent fallbacks become invisible in logs. The multi-agent scaling focus also raises the question: as complexity grows, what new failure modes emerge that YAML-driven validation could catch early?
 
 **Seed:** As agent frameworks mature and observability becomes standard, should YAMLGraph's linter emit *trace-shape contracts* — declaring what events an agent should emit at each node, and failing validation if a node's implementation could silently skip expected trace points?
+
+---
+
+## 2026-02-19: The Onion of Silent Failures — Demonstrating Before Explaining
+
+**Context:** The diary digest pipeline (FR-046) passed all unit tests, all pre-commit hooks, and had been committed four times. Yet it had never produced a diary entry. The user's quote — *"Thou shalt demonstrate with example — Never explain abstractly; show working code"* — triggered the first actual end-to-end run, which peeled back four layers of failure.
+
+**Layer 1: `skip_if_exists` treats `seeds: []` as "exists."** The curate_seeds node silently skipped because an empty list is truthy in the skip check. Fix: `skip_if_exists: false`.
+
+**Layer 2: `extract_variables` treats Jinja2 keywords as variables.** `{% if not seeds %}` extracted `not` as a required variable. Fix: keyword exclusion set.
+
+**Layer 3: `filter_relevant` can't read map node output.** Map nodes collect as `{_map_index: N, _map_analyze_all_sub: RelevanceScore(...)}`. The filter did `article.get("relevance_score")` at top level — always 0, always empty, always silent. Fix: `_extract_score()` traverses nested models.
+
+**Layer 4: Synthesize prompt can't read flattened articles.** Even after 7 articles passed the filter, they still had map output format (`_map_analyze_all_sub`), not the `article.title`, `article.url` the Jinja2 template expected. Two sub-bugs: (a) `extract_variables` treated `article.content` as requiring top-level `content` variable, (b) `filter_relevant` didn't flatten map output for downstream consumption. Fix: dotted-access root extraction + `_flatten_article()` merging original article data via `_map_index`.
+
+**The trap:** **Testing the parts doesn't test the product.** Every function worked in isolation. Unit test coverage was high. Pre-commit hooks passed. But the integration between map node output format → filter → prompt → synthesize was never exercised. The pipeline's central job — turning RSS feeds into diary entries — was verified by proxy (unit tests on individual tools) rather than by demonstration (running the graph). Each layer's failure was *invisible* to the layer below and *plausible* to the layer above: filter returns `relevant_count: 0` (could be a quiet day), synthesize says "no articles provided" (could be correct), write_diary outputs "No content." (looks like a valid fallback). No component raised an error. The pipeline succeeded at being wrong.
+
+**Heuristic:** A pipeline that succeeds silently with zero output is more dangerous than one that crashes. Add an assertion or warning when a pipeline produces its "no-op" path — the no-op should be the exception, not the default. If the happy path has never been demonstrated end-to-end, the sad path is actually the only path.
+
+**Seed:** Could YAMLGraph graphs declare *expected output shape* at the graph level — e.g., "this graph should produce at least one non-empty diary_entry per run" — and fail validation when the no-op path activates N times consecutively?
