@@ -41,6 +41,10 @@ pip install -e ".[dev]"
 
 # Install with optional features
 pip install -e ".[dev,redis,websearch,storyboard]"
+
+# Install pre-commit hooks (BOTH required)
+pre-commit install
+pre-commit install --hook-type commit-msg
 ```
 
 ### Testing
