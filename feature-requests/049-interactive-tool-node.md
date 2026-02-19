@@ -118,8 +118,10 @@ def create_interactive_tool_node(config: InteractiveToolConfig):
     # Phase 1: start always → ask (no error branching — Constraint 9)
     edges.append(Edge(f"{prefix}__start", f"{prefix}__ask"))
     edges.append(Edge(f"{prefix}__ask", f"{prefix}__step"))
+    # Loop-back uses negated condition (Constraint 11)
+    negated = negate_condition(config.loop_until)
     edges.append(Edge(f"{prefix}__step", f"{prefix}__ask",
-                       condition=f"not ({config.loop_until})"))
+                       condition=negated))
     target = f"{prefix}__end" if config.end else None  # None = next node in parent edges
     edges.append(Edge(f"{prefix}__step", target,
                        condition=config.loop_until))
@@ -157,6 +159,7 @@ This ensures SSE consumers see the bot/tool response regardless of stream mode.
 8. **Config-level expansion** — expansion must happen as a `GraphConfig` pre-processing step BEFORE `compile_nodes()` runs. Transform `nodes` dict (replace interactive_tool with 3-4 expanded entries) and `edges` list (rewrite incoming edges → `{prefix}__start`, outgoing → `{prefix}__end` or `__step`). This requires ZERO changes to `_process_edge()`, `compile_node()`, or edge processing logic.
 9. **No start error branching in Phase 1** — `__start` always proceeds to `__ask`. No hardcoded `phase` condition. Error handling uses existing `on_error` pattern on expanded nodes.
 10. **Interrupt without idempotency for loops** — the generated `__ask` node must NOT reuse cached payload across loop iterations. Add `idempotent: bool = True` parameter to `create_interrupt_node()`. When `False`, always regenerates message from template. The loop interrupt sets `idempotent=False` so each iteration shows fresh `state[response_key]`.
+11. **Condition negation for loop-back edges** — the loop-back edge (`__step` → `__ask`) requires the negated form of `loop_until`. Add `negate_condition(expr: str) → str` utility to `conditions.py` (~20 lines, De Morgan's law for the supported sub-language). Example: `"phase == 'completed' or phase == 'error'"` → `"phase != 'completed' and phase != 'error'"`. The expansion pre-processor uses this to generate complementary edge conditions.
 
 ## Phase 1 Scope (Frozen)
 
@@ -165,6 +168,7 @@ This ensures SSE consumers see the bot/tool response regardless of stream mode.
 - `loop_until` via `evaluate_condition()` from `conditions.py` (compound `or` only, no `in` operator)
 - `max_iterations` (default: 10) with route through `end` tool then exit
 - Config-level expansion pre-processor in `graph_loader.py` (not in `compile_node()`)
+- `negate_condition()` utility in `conditions.py` for loop-back edge generation
 - `create_interrupt_node(idempotent=False)` for loop-mode interrupts
 - Stream mode agnostic (tested with `messages`, `values`, `updates`)
 - Works with all checkpointers (memory, SQLite, Redis)
@@ -202,7 +206,7 @@ The pattern is universal: any external service with a stateful session that requ
 - [ ] `loop_until` via `evaluate_condition()` from `conditions.py` (no `in` operator)
 - [ ] `max_iterations` (default 10) with route through `end` tool (if defined) then exit
 - [ ] Existing `on_error` pattern (skip/retry/fail/fallback) — no custom output
-- [ ] Config-level expansion pre-processor in `graph_loader.py`
+- [ ] `negate_condition()` utility in `conditions.py` (De Morgan's law)
 - [ ] `create_interrupt_node(idempotent=False)` for loop interrupts
 - [ ] Works with all stream modes (`messages`, `values`, `updates`)
 - [ ] Works with all checkpointers (memory, SQLite, Redis)
