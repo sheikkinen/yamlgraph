@@ -83,3 +83,26 @@ TDD implementation of the diary-digest pipeline. The judgment cut 7 nodes to 4-5
 **Heuristic:** When a formatting function serves dual purposes (standalone readability AND append-to-file behavior), test the structural invariants (`contains`) not positional invariants (`startswith`). The position depends on context; the content doesn't.
 
 **Seed:** The CLI runner does LLM calls inline rather than through the graph YAML. Is this a pragmatic shortcut or a violation of the three-layer pattern — and when does a script graduate to a proper graph execution?
+
+---
+
+## 2026-02-19: The Seed That Answered Itself
+
+**Context:** The previous entry's Seed asked: "Is the CLI runner a violation of the three-layer pattern?" Within minutes of writing it, the answer was obvious: yes. `scripts/diary_digest.py` called `execute_prompt()` inline — presentation layer doing logic layer's job. The Seed didn't need to germinate; it was already ripe.
+
+**What changed:**
+- Deleted `scripts/diary_digest.py` (CLI with inline LLM calls)
+- Deleted `scripts/diary_digest_tools.py` (redundant re-export; user called it "entropy")
+- Moved `feeds.yaml` → `examples/diary_digest/feeds.yaml`
+- Split tools into `examples/diary_digest/nodes/sources.py` and `nodes/writing.py`
+- Rewrote `graph.yaml` with 6 nodes: load_config → fetch_sources → analyze_all (map) → filter_relevant → synthesize_entry → write_diary
+- Added conditional edge: `relevant_count == 0` routes to END (the no-op the Judgement demanded)
+- Plist now runs `yamlgraph graph run examples/diary_digest/graph.yaml --var commit=true`
+
+**Module resolution lesson:** Relative imports (`nodes.sources`) fail when CWD is project root because `python_tool.py` adds CWD to `sys.path`. Other example graphs use fully-qualified paths (`examples.diary_digest.nodes.sources`). The pattern was already established — I just hadn't looked.
+
+**Trap:** **Tautological Seeds.** A Seed that asks whether existing code violates a known principle isn't generative — it's a deferred lint finding. The question already contained the answer. A better Seed would have asked something genuinely unknown: "What types of graph orchestration *can't* be expressed in YAML-only?" That requires discovery, not just inspection.
+
+**Heuristic:** If a Seed can be answered by applying an existing rule to existing code, it's not a Seed — it's a TODO. Seeds should point to unexplored territory, not unchecked boxes.
+
+**Seed:** The linter doesn't check `prompts_relative` inside `defaults:` — only at top level. If the linter and runtime disagree on config resolution, what other graph.yaml fields have silent linter blind spots?
