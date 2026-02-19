@@ -46,6 +46,12 @@ Each confession must include:
 - **Sin**: Example pattern showing blanket noqa in documentation comment.
 - **Penance**: Same as CONF-200.
 
+### CONF-205
+- **File**: [scripts/diary_rotate.py](../scripts/diary_rotate.py#L95)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "add", ...])` flagged as untrusted input.
+- **Penance**: Command and args are hardcoded; only file paths from `Path` objects are passed. No user input reaches the shell.
+
 ---
 
 ## Framework Code

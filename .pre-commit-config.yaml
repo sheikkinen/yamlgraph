@@ -20,6 +20,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: diary-rotate
+        name: diary rotation (day change)
+        entry: python scripts/diary_rotate.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: req-coverage-strict
         name: req_coverage --strict
         entry: python scripts/req_coverage.py --strict
