@@ -86,9 +86,11 @@ async def demo_values_mode():
         has_phase = "child_phase" in keys
         has_data = "child_data" in keys
         has_interrupt = "__interrupt__" in keys
-        print(f"  Chunk {len(chunks)}: keys={len(keys)}, "
-              f"child_phase={has_phase}, child_data={has_data}, "
-              f"interrupt={has_interrupt}")
+        print(
+            f"  Chunk {len(chunks)}: keys={len(keys)}, "
+            f"child_phase={has_phase}, child_data={has_data}, "
+            f"interrupt={has_interrupt}"
+        )
 
     print()
     print(f"Total chunks received: {len(chunks)}")

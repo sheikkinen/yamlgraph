@@ -191,36 +191,36 @@ graph.yaml
 # Full a2a_call node config
 my_agent_call:
   type: a2a_call
-  
+
   # Required
   agent_url: "https://agent.example.com"       # A2A server base URL
   message: "{{ state.input }}"                  # Jinja2 template for message text
   state_key: result                             # Where to store output
-  
+
   # Optional — skill selection
   skill: "specific-skill-id"                    # Target specific skill
-  
+
   # Optional — interaction mode
   streaming: false                              # Use SendStreamingMessage
   blocking: true                                # Wait for completion
   timeout: 120                                  # Seconds
-  
+
   # Optional — auth
   auth:
     scheme: bearer                              # bearer, basic, apikey
     token_env: AGENT_API_TOKEN                  # Env var with credential
-  
+
   # Optional — input enrichment
   input_parts:                                  # Additional message parts
     - type: data
       value: "{{ state.structured_input }}"
     - type: file
       url: "{{ state.document_url }}"
-  
+
   # Optional — output handling
   output_mode: "application/json"               # Preferred output media type
   extract: "artifacts[0].parts[0].data"         # JSONPath to extract from result
-  
+
   # Optional — error/multi-turn handling
   on_error: retry                               # skip, fail, retry, fallback
   on_input_required: fail                       # fail, prompt_user, auto_respond

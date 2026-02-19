@@ -38,23 +38,35 @@ def filter_relevant(state: dict) -> dict:
             title = getattr(score_obj, "title", "")
             reason = getattr(score_obj, "reason", "")
         else:
-            score = score_obj.get("relevance_score", 0) if isinstance(score_obj, dict) else article.get("relevance_score", 0)
-            title = score_obj.get("title", "") if isinstance(score_obj, dict) else article.get("title", "")
+            score = (
+                score_obj.get("relevance_score", 0)
+                if isinstance(score_obj, dict)
+                else article.get("relevance_score", 0)
+            )
+            title = (
+                score_obj.get("title", "")
+                if isinstance(score_obj, dict)
+                else article.get("title", "")
+            )
             reason = score_obj.get("reason", "") if isinstance(score_obj, dict) else ""
 
         if isinstance(score, int | float) and score >= threshold:
-            relevant.append({
-                "title": title,
-                "relevance_score": score,
-                "reason": reason,
-                "url": article.get("url", ""),
-                "source": article.get("source", ""),
-            })
+            relevant.append(
+                {
+                    "title": title,
+                    "relevance_score": score,
+                    "reason": reason,
+                    "url": article.get("url", ""),
+                    "source": article.get("source", ""),
+                }
+            )
 
     if not relevant:
         logger.info("📭 No relevant developments today. Silent no-op.")
     else:
-        logger.info(f"✓ {len(relevant)} articles above relevance threshold ({threshold})")
+        logger.info(
+            f"✓ {len(relevant)} articles above relevance threshold ({threshold})"
+        )
 
     return {
         "relevant_articles": relevant,
