@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.43] - 2026-02-19
+
+### Added
+- **FR-044d SkipReport**: `on_error: skip` now returns structured `SkipReport` for visibility
+- **FR-045 A2A Protocol**: Research and feature requests for A2A provider/consumer patterns
+- **FR-046 Diary World Digest**: 8-node pipeline (fetch → analyze → filter → synthesize → write → curate seeds), scheduled via launchd
+- **FR-047 Inline LLM Lint**: Pre-commit hook detects inline LLM orchestration outside YAML
+- **Pipeline-audit graph**: Structural health scanner for graph YAML files
+- **Noqa confession registry**: Enforcement hook ensures all `# noqa` suppressions documented
+- **Diary rotation hook**: Automated diary file rotation on day change via pre-commit
+- **Seed curation**: LLM-curated seed list (capped at 10) integrated into diary-digest pipeline
+- **Pre-commit safety hooks**: `check-merge-conflict`, `check-ast`, `check-toml`, `debug-statements`, `detect-private-key`
+- `__version__` exported from `yamlgraph.__init__`
+
+### Changed
+- **Contrib migration (FR-044b)**: `get_map_result`, `to_serializable` moved to `yamlgraph.contrib.utils`; 10 files migrated
+- **Feed sources upgraded**: Diary-digest feeds expanded 5→9 (added OpenAI, HuggingFace, Google AI, GitHub releases, hnrss.org)
+- **pyproject.toml**: Added `authors`, `keywords`, `classifiers`, `urls`; excluded `tests`/`examples`/`scripts` from package; added `radon`, `vulture`, `pre-commit` to dev deps
+
+### Fixed
+- **Pre-commit hook installation**: `.git/hooks/pre-commit` was missing — only commit-msg hooks ran; now both stages install correctly
+- **Diary-digest map output unwrapping**: `filter_relevant` now extracts scores from Pydantic model wrapper
+- **Relevance scoring**: Replaced overly strict prompt with calibrated 0.0–1.0 rubric; lowered threshold 0.5→0.3
+- **Jinja2 template variable extraction**: Excluded Jinja2 keywords (`for`, `if`, `endif`, etc.) from `extract_variables`
+- **Pydantic v1 shims removed**: Dead `.dict()` compatibility code cleaned up
+
+### Removed
+- `scripts/diary_digest.py` and `scripts/diary_digest_tools.py` (three-layer violation — replaced by graph pipeline)
+- Dead `replicate_tool.py` re-export
+
 ## [0.4.41] - 2026-02-16
 
 ### Added
