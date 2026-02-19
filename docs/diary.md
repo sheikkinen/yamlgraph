@@ -177,3 +177,19 @@ The monday Service + LangSmith article advocates building evaluation frameworks 
 **Heuristic:** A quality gate that doesn't run automatically isn't a gate — it's documentation. Verify infrastructure by observing its effects (count the hooks that ran), not its configuration (read the YAML that defines them).
 
 **Seed:** The pre-commit config has 17 hooks that produce verbose output during commits (~30 lines). As the hook count grows, will developers learn to ignore the output? Should the absolution hook summarize what ran (e.g., "17/17 passed, 1568 tests, 73 reqs") instead of printing a static prayer?
+
+---
+
+## 2026-02-19: World Digest — Observability & Multi-Agent Scaling
+
+**LangChain ecosystem momentum on observability and multi-agent patterns.**
+
+The LangChain newsletter and surrounding releases signal a shift toward *observability as a first-class concern* in agent frameworks. "From Traces to Insights" emphasizes extracting actionable patterns from agent execution traces at scale — a direct counterpoint to silent failures. "On Agent Frameworks and Agent Observability" frames observability as foundational to framework design, not an afterthought.
+
+Multi-agent architecture is crystallizing as a distinct problem space. "Choosing the Right Multi-Agent Architecture" and "Building Multi-Agent Applications with Deep Agents" both treat orchestration patterns as a design decision, not an implementation detail. Remote's case study demonstrates LangGraph handling real-world multi-agent onboarding at scale, validating the framework's production readiness.
+
+LangSmith Agent Builder reaching GA suggests the ecosystem is moving toward *declarative agent definition* — reducing boilerplate and making agent graphs more inspectable. This aligns with YAMLGraph's core thesis: YAML-first definition enables both human readability and automated validation.
+
+**Connection to recent seeds:** The observability emphasis resonates with the 'no-silent-fallback' lint rule seed — if traces are the primary debugging artifact, then silent fallbacks become invisible in logs. The multi-agent scaling focus also raises the question: as complexity grows, what new failure modes emerge that YAML-driven validation could catch early?
+
+**Seed:** As agent frameworks mature and observability becomes standard, should YAMLGraph's linter emit *trace-shape contracts* — declaring what events an agent should emit at each node, and failing validation if a node's implementation could silently skip expected trace points?

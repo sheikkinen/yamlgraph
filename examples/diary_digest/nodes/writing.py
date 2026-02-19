@@ -16,6 +16,55 @@ DIARY_PATH = Path(__file__).resolve().parent.parent.parent.parent / "docs" / "di
 # ---------------------------------------------------------------------------
 
 
+def _extract_score(article: dict) -> float:
+    """Extract relevance_score from article, handling map node nesting.
+
+    Map nodes collect results as:
+        {"_map_index": N, "_map_<name>_sub": RelevanceScore(...)}
+    The score is inside the nested Pydantic model, not at the top level.
+    """
+    # Direct key (flat dict)
+    score = article.get("relevance_score")
+    if isinstance(score, int | float):
+        return float(score)
+
+    # Nested in map node result (Pydantic model or dict under _map_*_sub key)
+    for key, value in article.items():
+        if key.startswith("_map_") and key.endswith("_sub"):
+            if hasattr(value, "relevance_score"):
+                return float(value.relevance_score)
+            if isinstance(value, dict):
+                s = value.get("relevance_score", 0)
+                if isinstance(s, int | float):
+                    return float(s)
+
+    return 0.0
+
+
+def _flatten_article(article: dict, raw_articles: list[dict]) -> dict:
+    """Flatten map output into a single dict with all article fields.
+
+    Merges original article data (via _map_index → raw_articles) with
+    score data from the nested Pydantic model under _map_*_sub keys.
+    """
+    flat: dict = {}
+
+    # Get original article data via _map_index
+    idx = article.get("_map_index")
+    if idx is not None and idx < len(raw_articles):
+        flat.update(raw_articles[idx])
+
+    # Overlay score data from nested Pydantic model
+    for key, value in article.items():
+        if key.startswith("_map_") and key.endswith("_sub"):
+            if hasattr(value, "model_dump"):
+                flat.update(value.model_dump())
+            elif isinstance(value, dict):
+                flat.update(value)
+
+    return flat
+
+
 def filter_relevant(state: dict) -> dict:
     """Filter scored articles by relevance threshold.
 
@@ -26,40 +75,14 @@ def filter_relevant(state: dict) -> dict:
     This function unwraps the Pydantic model to extract the score.
     """
     scored = state.get("scored_articles", [])
-    threshold = 0.3
+    raw = state.get("raw_articles", [])
+    threshold = 0.5
 
     relevant = []
     for article in scored:
-        # Unwrap map node output: the score is inside _map_analyze_all_sub
-        score_obj = article.get("_map_analyze_all_sub", article)
-        # Handle Pydantic model or dict
-        if hasattr(score_obj, "relevance_score"):
-            score = score_obj.relevance_score
-            title = getattr(score_obj, "title", "")
-            reason = getattr(score_obj, "reason", "")
-        else:
-            score = (
-                score_obj.get("relevance_score", 0)
-                if isinstance(score_obj, dict)
-                else article.get("relevance_score", 0)
-            )
-            title = (
-                score_obj.get("title", "")
-                if isinstance(score_obj, dict)
-                else article.get("title", "")
-            )
-            reason = score_obj.get("reason", "") if isinstance(score_obj, dict) else ""
-
-        if isinstance(score, int | float) and score >= threshold:
-            relevant.append(
-                {
-                    "title": title,
-                    "relevance_score": score,
-                    "reason": reason,
-                    "url": article.get("url", ""),
-                    "source": article.get("source", ""),
-                }
-            )
+        score = _extract_score(article)
+        if score >= threshold:
+            relevant.append(_flatten_article(article, raw))
 
     if not relevant:
         logger.info("📭 No relevant developments today. Silent no-op.")

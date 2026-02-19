@@ -113,6 +113,20 @@ class TestExtractVariables:
         assert "x" in variables
 
     @pytest.mark.req("REQ-YG-013")
+    def test_exclude_field_access_in_condition(self):
+        """Should not treat article.content as requiring 'content' variable."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = (
+            "{% for article in articles %}"
+            "{% if article.content %}{{ article.content }}{% endif %}"
+            "{% endfor %}"
+        )
+        variables = extract_variables(template)
+        assert "articles" in variables
+        assert "content" not in variables
+
+    @pytest.mark.req("REQ-YG-013")
     def test_mixed_simple_and_jinja2(self):
         """Should handle templates mixing {var} and {{ var }}."""
         from yamlgraph.utils.template import extract_variables

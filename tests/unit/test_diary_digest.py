@@ -263,6 +263,128 @@ class TestWriteDiary:
         ), "subprocess should not be imported"
 
 
+class TestFilterRelevant:
+    """Test filter_relevant handles map node output structure."""
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_filter_extracts_score_from_map_output(self):
+        """filter_relevant extracts relevance_score from map node structure.
+
+        Map nodes collect results as:
+        {"_map_index": N, "_map_analyze_all_sub": RelevanceScore(...)}
+        """
+        from pydantic import BaseModel
+
+        from examples.diary_digest.nodes.writing import filter_relevant
+
+        class RelevanceScore(BaseModel):
+            title: str
+            relevance_score: float
+            reason: str
+
+        state = {
+            "scored_articles": [
+                {
+                    "_map_index": 0,
+                    "_map_analyze_all_sub": RelevanceScore(
+                        title="LangGraph 2.0 Released",
+                        relevance_score=0.9,
+                        reason="Direct framework relevance",
+                    ),
+                },
+                {
+                    "_map_index": 1,
+                    "_map_analyze_all_sub": RelevanceScore(
+                        title="Sizing chaos",
+                        relevance_score=0.1,
+                        reason="Unrelated",
+                    ),
+                },
+            ]
+        }
+        result = filter_relevant(state)
+        assert result["relevant_count"] == 1
+        assert len(result["relevant_articles"]) == 1
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_filter_flattens_map_output(self):
+        """filter_relevant flattens map output for downstream prompts.
+
+        The synthesize_diary_entry prompt expects article.title, article.url,
+        article.relevance_score etc. at the top level — not nested inside
+        _map_*_sub Pydantic models.
+        """
+        from pydantic import BaseModel
+
+        from examples.diary_digest.nodes.writing import filter_relevant
+
+        class RelevanceScore(BaseModel):
+            title: str
+            relevance_score: float
+            reason: str
+
+        state = {
+            "raw_articles": [
+                {
+                    "title": "LangGraph 2.0",
+                    "url": "https://example.com/lg2",
+                    "source": "HN",
+                    "timestamp": "2026-02-19T07:00:00",
+                },
+                {
+                    "title": "Unrelated",
+                    "url": "https://example.com/no",
+                    "source": "RSS",
+                    "timestamp": "2026-02-19T08:00:00",
+                },
+            ],
+            "scored_articles": [
+                {
+                    "_map_index": 0,
+                    "_map_analyze_all_sub": RelevanceScore(
+                        title="LangGraph 2.0",
+                        relevance_score=0.9,
+                        reason="Direct relevance",
+                    ),
+                },
+                {
+                    "_map_index": 1,
+                    "_map_analyze_all_sub": RelevanceScore(
+                        title="Unrelated",
+                        relevance_score=0.1,
+                        reason="Not relevant",
+                    ),
+                },
+            ],
+        }
+        result = filter_relevant(state)
+        assert result["relevant_count"] == 1
+        article = result["relevant_articles"][0]
+        # Flattened: original fields + score fields at top level
+        assert article["title"] == "LangGraph 2.0"
+        assert article["url"] == "https://example.com/lg2"
+        assert article["source"] == "HN"
+        assert article["relevance_score"] == 0.9
+        assert article["reason"] == "Direct relevance"
+        # No map internal keys
+        assert "_map_index" not in article
+        assert "_map_analyze_all_sub" not in article
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_filter_handles_flat_dict(self):
+        """filter_relevant still works with flat dict articles."""
+        from examples.diary_digest.nodes.writing import filter_relevant
+
+        state = {
+            "scored_articles": [
+                {"title": "Relevant", "relevance_score": 0.8},
+                {"title": "Irrelevant", "relevance_score": 0.2},
+            ]
+        }
+        result = filter_relevant(state)
+        assert result["relevant_count"] == 1
+
+
 class TestNoOpBehavior:
     """Test that no entry is written when nothing is relevant."""
 

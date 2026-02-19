@@ -48,10 +48,11 @@ def extract_variables(template: str) -> set[str]:
     variables.update(re.findall(jinja_loop_pattern, template))
 
     # Jinja2 condition: {% if var %}, {% if not var %}, {% if x and y %}
-    # Extract all word tokens from if/elif expressions, filter keywords later
+    # Extract root identifiers only; skip field accesses (article.content → article)
     jinja_if_blocks = re.findall(r"\{%[-\s]*(?:if|elif)\s+(.*?)%\}", template)
     for block in jinja_if_blocks:
-        variables.update(re.findall(r"\b(\w+)\b", block))
+        for token in re.findall(r"[a-zA-Z_]\w*(?:\.\w+)*", block):
+            variables.add(token.split(".")[0])
 
     # Remove loop iteration variables (they're not inputs)
     # e.g., in "{% for item in items %}", "item" is not required
