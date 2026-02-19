@@ -952,7 +952,242 @@ def process_batch(state: dict) -> dict:
 
 ---
 
-## Pattern 11: Monitoring No-Op Pipelines
+## Pattern 12: Quality Gate for Map Output
+
+Validate map node outputs with LLM-as-judge review, filter failures, and optionally retry.
+
+### Problem
+
+Map nodes generate N items in parallel, but quality varies. Without validation:
+- Low-quality items silently pass through
+- No retry mechanism for failures
+- No aggregate quality metrics
+
+Only ~6% of YAMLGraph pipelines have quality gates. The pattern should be standard.
+
+### Solution: Generate → Review → Filter
+
+Three-stage pipeline with explicit wiring:
+
+```yaml
+version: "1.0"
+name: quality-gate-pattern
+
+nodes:
+  # Stage 1: Generate all items
+  generate_all:
+    type: map
+    source: topics
+    prompt: generate_lesson
+    state_key: lessons
+
+  # Stage 2: Review each item with LLM-as-judge
+  review_all:
+    type: map
+    source: lessons
+    prompt: review_lesson
+    state_key: reviews
+
+  # Stage 3: Filter by score threshold
+  filter_passed:
+    type: python
+    tool: filter_by_score
+    state_key: passed_lessons
+
+  # Stage 4: Report quality metrics
+  report_quality:
+    type: python
+    tool: quality_report
+    state_key: quality_summary
+
+edges:
+  - from: START
+    to: generate_all
+  - from: generate_all
+    to: review_all
+  - from: review_all
+    to: filter_passed
+  - from: filter_passed
+    to: report_quality
+  - from: report_quality
+    to: END
+```
+
+### Review Prompt Schema
+
+Standard schema for LLM-as-judge:
+
+```yaml
+# prompts/review_lesson.yaml
+schema:
+  name: ReviewResult
+  fields:
+    score:
+      type: float
+      description: "Quality score 0.0-1.0"
+      constraints:
+        ge: 0.0
+        le: 1.0
+    passed:
+      type: bool
+      description: "Meets quality threshold (score >= 0.7)"
+    issues:
+      type: list[str]
+      description: "Specific issues found"
+    suggestions:
+      type: list[str]
+      description: "Improvement suggestions"
+
+system: |
+  You are a quality reviewer. Evaluate the lesson content.
+  Score 0.7+ means acceptable quality.
+
+user: |
+  Review this lesson:
+
+  Title: {{ title }}
+  Content: {{ content }}
+
+  Evaluate for:
+  - Accuracy and correctness
+  - Clarity and structure
+  - Completeness
+```
+
+### Filter Tool Implementation
+
+```python
+# nodes/quality_tools.py
+from yamlgraph.contrib import get_map_result
+
+def filter_by_score(state: dict) -> dict:
+    """Filter items by review score threshold."""
+    reviews = state.get("reviews", [])
+    lessons = state.get("lessons", [])
+    threshold = state.get("quality_threshold", 0.7)
+
+    passed = []
+    failed = []
+
+    for i, review_item in enumerate(reviews):
+        review = get_map_result(review_item)
+        lesson = get_map_result(lessons[i]) if i < len(lessons) else None
+
+        if review and review.get("score", 0) >= threshold:
+            passed.append({"lesson": lesson, "review": review})
+        else:
+            failed.append({"lesson": lesson, "review": review})
+
+    return {
+        "passed_lessons": passed,
+        "failed_lessons": failed,
+        "pass_count": len(passed),
+        "fail_count": len(failed),
+    }
+
+
+def quality_report(state: dict) -> dict:
+    """Generate quality summary."""
+    pass_count = state.get("pass_count", 0)
+    fail_count = state.get("fail_count", 0)
+    total = pass_count + fail_count
+
+    return {
+        "quality_summary": {
+            "total": total,
+            "passed": pass_count,
+            "failed": fail_count,
+            "pass_rate": pass_count / total if total > 0 else 0,
+        }
+    }
+```
+
+### With Retry Loop
+
+Add retry for failed items:
+
+```yaml
+nodes:
+  # ... generate_all, review_all, filter_passed as above ...
+
+  # Retry failed items (up to 2 times)
+  retry_failed:
+    type: map
+    source: failed_lessons
+    prompt: regenerate_lesson    # Include feedback from review
+    state_key: retry_results
+    condition: fail_count > 0    # Only if failures exist
+
+  review_retries:
+    type: map
+    source: retry_results
+    prompt: review_lesson
+    state_key: retry_reviews
+    condition: fail_count > 0
+
+  merge_results:
+    type: python
+    tool: merge_passed_and_retried
+    state_key: final_lessons
+
+edges:
+  - from: filter_passed
+    to: retry_failed
+    condition: fail_count > 0
+  - from: filter_passed
+    to: report_quality
+    condition: fail_count == 0
+  - from: retry_failed
+    to: review_retries
+  - from: review_retries
+    to: merge_results
+  - from: merge_results
+    to: report_quality
+
+loop_limits:
+  retry_failed: 2    # Max 2 retry attempts
+```
+
+### Key Points
+
+| Aspect | Recommendation |
+|--------|----------------|
+| **Review schema** | Standardize on `score`, `passed`, `issues` fields |
+| **Threshold** | 0.7 is reasonable default; tune per use case |
+| **Retry limit** | 2-3 attempts max; diminishing returns after |
+| **Cost** | Flash-tier review costs ~$0.001/item |
+| **Parallelism** | Generate and review maps run in parallel |
+
+### When to Use
+
+| Scenario | Quality Gate? |
+|----------|---------------|
+| One-off generation | Optional |
+| Production pipeline | **Recommended** |
+| User-facing content | **Required** |
+| Internal analysis | Optional |
+| High-stakes output | **Required** with human review |
+
+### Anti-Patterns
+
+| ❌ Wrong | ✅ Correct |
+|---------|-----------|
+| Review inside generation | Separate generate and review stages |
+| Silent filter (no report) | Always emit quality metrics |
+| Infinite retry loop | Use `loop_limits` |
+| Review without schema | Use structured `ReviewResult` |
+| Trust LLM unconditionally | Add quality gate for production |
+
+### Related
+
+- [Pattern 3: Self-Correction Loop](patterns.md#pattern-3-self-correction-loop-reflexion) — Single-item refinement
+- [Pattern 8: Parallel Fan-Out](patterns.md#pattern-8-parallel-fan-out-map) — Map node basics
+- [FR-052: Map Output Flattening](../feature-requests/052-map-output-flattening.md) — Simplifies review wiring
+- [contrib.utils](contrib.md#get_map_result) — `get_map_result()` helper
+
+---
+
+## Pattern 13: Monitoring No-Op Pipelines
 
 Pipelines with conditional routing can silently produce no useful output (e.g., "no relevant articles today"). This is operationally valid but can mask failures.
 
