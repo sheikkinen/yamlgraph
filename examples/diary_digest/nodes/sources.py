@@ -1,8 +1,8 @@
-"""Diary digest tools — FR-046.
+"""Source fetching — HN + RSS feeds for diary digest.
 
-Functions for fetching sources (HN + RSS), formatting diary entries,
-and appending them to docs/diary.md. Copied from daily_digest/nodes/sources.py
-per judgment: own module, own feeds config, no import coupling.
+Graph tool functions following the state: dict -> dict pattern.
+Copied from daily_digest/nodes/sources.py per judgment correction #5:
+own module, own feeds config, no import coupling.
 """
 
 import logging
@@ -32,7 +32,7 @@ def load_feeds_config() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Source fetching (copied from daily_digest, per judgment correction #5)
+# Low-level fetch functions
 # ---------------------------------------------------------------------------
 
 
@@ -121,47 +121,34 @@ def fetch_all_sources(
 
 
 # ---------------------------------------------------------------------------
-# Diary entry formatting
+# Graph tool: load_config (state -> dict)
 # ---------------------------------------------------------------------------
 
 
-def format_diary_entry(
-    date_str: str,
-    theme: str,
-    body: str,
-    seed: str,
-) -> str:
-    """Format a diary entry in the canonical format.
+def load_config(state: dict) -> dict:
+    """Load feeds.yaml and populate state with topics, feeds, seeds, date.
 
-    Returns markdown like:
-        \\n---\\n\\n## 2026-02-19: World Digest — Theme\\n\\nbody\\n\\n**Seed:** ...\\n
+    Graph tool — reads config, returns state updates.
     """
-    return (
-        f"\n---\n\n## {date_str}: World Digest — {theme}\n\n"
-        f"{body}\n\n"
-        f"**Seed:** {seed}\n"
-    )
-
-
-def append_to_diary(path: Path, entry: str) -> None:
-    """Append a formatted entry to the diary file."""
-    with open(path, "a") as f:
-        f.write(entry)
+    config = load_feeds_config()
+    return {
+        "topics": config.get("topics", []),
+        "feeds": config.get("feeds", []),
+        "seeds": config.get("seeds", []),
+        "date": datetime.now().strftime("%Y-%m-%d"),
+    }
 
 
 # ---------------------------------------------------------------------------
-# No-op behavior (judgment correction #6)
+# Graph tool: fetch_sources (state -> dict)
 # ---------------------------------------------------------------------------
 
 
-def should_write_entry(
-    articles: list[dict],
-    threshold: float = 0.7,
-) -> bool:
-    """Return True only if at least one article scores above threshold.
+def fetch_sources(state: dict) -> dict:
+    """Fetch HN + RSS articles using feeds from state.
 
-    When no articles are relevant, the digest should be a silent no-op.
+    Graph tool — reads state.feeds, returns {raw_articles: [...]}.
     """
-    if not articles:
-        return False
-    return any(a.get("relevance_score", 0) >= threshold for a in articles)
+    feeds = state.get("feeds", [])
+    articles = fetch_all_sources(feeds=feeds, hn_limit=30, rss_limit=20)
+    return {"raw_articles": articles}

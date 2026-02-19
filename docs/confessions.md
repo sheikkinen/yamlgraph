@@ -53,10 +53,16 @@ Each confession must include:
 - **Penance**: Command and args are hardcoded; only file paths from `Path` objects are passed. No user input reaches the shell.
 
 ### CONF-206
-- **File**: [scripts/diary_digest.py](../scripts/diary_digest.py#L25)
-- **Code**: E402
-- **Sin**: `from scripts.diary_digest_tools import ...` placed after `sys.path.insert()`.
-- **Penance**: The import must come after `sys.path` manipulation so `scripts` is resolvable. Same pattern as daily_digest's `run_digest.py`.
+- **File**: [examples/diary_digest/nodes/writing.py](../examples/diary_digest/nodes/writing.py#L133)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "add", ...])` flagged as untrusted input.
+- **Penance**: Same as CONF-205. Command and args are hardcoded; diary path from `Path` object.
+
+### CONF-207
+- **File**: [examples/diary_digest/nodes/writing.py](../examples/diary_digest/nodes/writing.py#L138)
+- **Code**: S603
+- **Sin**: `subprocess.run(["git", "commit", "-m", ...])` flagged as untrusted input.
+- **Penance**: Same as CONF-205. Only the date string is interpolated, from `datetime`.
 
 ---
 

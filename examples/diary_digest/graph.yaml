@@ -1,6 +1,9 @@
 version: "1.0"
 name: diary_digest
-description: "Fetch world developments relevant to YAMLGraph, output as diary entry (FR-046)"
+description: >
+  Fetch world developments relevant to YAMLGraph, output as diary entry (FR-046).
+  Run: yamlgraph graph run examples/diary_digest/graph.yaml
+  Dry run: yamlgraph graph run examples/diary_digest/graph.yaml --var dry_run=true
 
 defaults:
   provider: anthropic
@@ -10,30 +13,53 @@ defaults:
   prompts_dir: prompts
 
 state:
+  # Populated by load_config
   topics: list
   seeds: list
   feeds: list
   date: str
+  # Pipeline state
   raw_articles: list
   scored_articles: list
   relevant_articles: list
+  relevant_count: int
   diary_entry: str
   written: bool
+  # Flags (passed via --var)
+  dry_run: bool
+  commit: bool
 
 tools:
+  load_config:
+    type: python
+    module: nodes.sources
+    function: load_config
+    description: "Load feeds.yaml — topics, feeds, seeds, date"
+
   fetch_sources:
     type: python
-    module: scripts.diary_digest_tools
-    function: fetch_all_sources
+    module: nodes.sources
+    function: fetch_sources
     description: "Fetch articles from HN + configured RSS feeds"
+
+  filter_relevant:
+    type: python
+    module: nodes.writing
+    function: filter_relevant
+    description: "Filter scored articles by relevance threshold"
 
   write_diary:
     type: python
-    module: scripts.diary_digest_tools
-    function: append_to_diary
-    description: "Append formatted entry to docs/diary.md"
+    module: nodes.writing
+    function: write_diary
+    description: "Format and append diary entry to docs/diary.md"
 
 nodes:
+  load_config:
+    type: python
+    tool: load_config
+    state_key: topics
+
   fetch_sources:
     type: python
     tool: fetch_sources
@@ -43,6 +69,7 @@ nodes:
     type: map
     over: "{state.raw_articles}"
     as: article
+    max_items: 50
     node:
       type: llm
       prompt: analyze_relevance
@@ -53,6 +80,11 @@ nodes:
     collect: scored_articles
     on_error: skip
 
+  filter_relevant:
+    type: python
+    tool: filter_relevant
+    state_key: relevant_articles
+
   synthesize_entry:
     type: llm
     prompt: synthesize_diary_entry
@@ -62,12 +94,28 @@ nodes:
       articles: "{state.relevant_articles}"
     state_key: diary_entry
 
+  write_diary:
+    type: python
+    tool: write_diary
+    state_key: written
+
 edges:
   - from: START
+    to: load_config
+  - from: load_config
     to: fetch_sources
   - from: fetch_sources
     to: analyze_all
   - from: analyze_all
+    to: filter_relevant
+  # Conditional: skip to END if nothing relevant (no-op)
+  - from: filter_relevant
     to: synthesize_entry
+    condition: relevant_count > 0
+  - from: filter_relevant
+    to: END
+    condition: relevant_count == 0
   - from: synthesize_entry
+    to: write_diary
+  - from: write_diary
     to: END

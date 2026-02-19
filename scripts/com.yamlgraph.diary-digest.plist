@@ -10,8 +10,13 @@
     <array>
         <!-- Update this path to your venv python -->
         <string>/Users/sheikki/Documents/src/yamlgraph/.venv/bin/python</string>
-        <string>/Users/sheikki/Documents/src/yamlgraph/scripts/diary_digest.py</string>
-        <string>--commit</string>
+        <string>-m</string>
+        <string>yamlgraph</string>
+        <string>graph</string>
+        <string>run</string>
+        <string>examples/diary_digest/graph.yaml</string>
+        <string>--var</string>
+        <string>commit=true</string>
     </array>
 
     <key>WorkingDirectory</key>
