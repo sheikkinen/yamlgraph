@@ -42,4 +42,24 @@ Previous: [diary-2026-02-18.md](diary-2026-02-18.md) — 5 entries from 2026-02-
 
 **Heuristic:** A metacognitive tool needs both reflection (what happened) and generation (what could happen). Trap + Heuristic + Seed: backward pattern → forward rule → open question. The question is cheaper than the answer but more valuable than silence.
 
-**Seed:** Could the Seeds themselves be harvested — periodically scanning diary entries for unanswered Seeds and surfacing them as a "question backlog" to revisit?
+**Seed:** Could the Seeds themselves be **harvested** — periodically scanning diary entries for unanswered Seeds and surfacing them as a "question backlog" to revisit?
+
+---
+
+## 2026-02-19: The Missing Input — When Metacognition Becomes Solipsism
+
+**Context:** The diary now has Trap + Heuristic + Seed. Three elements, all internally generated. 18 entries across 3 days, zero external input. The diary is a mirror — it reflects what happened inside the project, but has no window to the outside world.
+
+**The gap:** Seeds ask outward-facing questions ("What constraint replaces cost?", "Could protocol archaeology be formalized?", "What's agent↔environment?") but nothing brings answers back in. The process generates forward-looking questions but never checks if the world has already answered them.
+
+**The existing infrastructure:** `examples/daily_digest/` is a working, deployed pipeline. 7 nodes: HN + RSS → filter → analyze (map) → rank → format → email. Runs daily via GitHub Action → Fly.io. Cost: ~$0.02/run. It fetches, analyzes, and delivers — but to an email inbox, about generic tech topics, disconnected from project context.
+
+**The insight:** The daily_digest pipeline is 80% of what's needed. The missing 20% is **context-awareness** — connecting external developments to the project's active work, open Seeds, and in-progress FRs. A generic "AI news" digest is noise. A digest that says "LangGraph 1.1 released — relates to your FR-044a SkipReport work" is signal.
+
+**What FR-046 proposes:** A `diary-digest` graph that reuses daily_digest's source fetching and content extraction, adds a `scan_context` node that reads open Seeds + active FRs from the workspace, and outputs a diary-formatted entry instead of HTML email. Schedulable via cron/launchd/GHA.
+
+**The trap I watched for:** **Scope inflation from enthusiasm.** The first draft wanted real-time monitoring, semantic search over article archives, automated FR creation from news. Cut to: fetch → filter → analyze-in-context → write diary entry. The diary entry format constrains scope naturally — it's one entry per day, not a news dashboard.
+
+**Heuristic:** A metacognitive tool that only looks inward eventually becomes a closed loop. Even a small, automated outside signal — "here's what changed in the world that relates to your open questions" — breaks the loop and connects reflection to reality.
+
+**Seed:** If the diary-digest connects Seeds to external developments, could it also detect when a Seed has been *answered* — marking it as germinated when external evidence addresses the question it posed?
