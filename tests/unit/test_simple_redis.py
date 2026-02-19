@@ -847,3 +847,123 @@ class AsyncIteratorMock:
         item = self.items[self.index]
         self.index += 1
         return item
+
+
+class TestPydanticModelSerialization:
+    """Test BaseModel serialization for PipelineError and other Pydantic models."""
+
+    @pytest.mark.req("REQ-YG-039")
+    def test_serialize_pipeline_error(self):
+        """PipelineError should serialize to dict with __type__='pydantic'."""
+        from yamlgraph.models import PipelineError
+        from yamlgraph.models.schemas import ErrorType
+        from yamlgraph.storage.serializers import serialize_value
+
+        error = PipelineError(
+            type=ErrorType.LLM_ERROR,
+            message="401 Unauthorized",
+            node="generate_opening",
+        )
+        result = serialize_value(error)
+        assert result["__type__"] == "pydantic"
+        assert result["value"]["type"] == "llm_error"
+        assert result["value"]["message"] == "401 Unauthorized"
+        assert result["value"]["node"] == "generate_opening"
+
+    @pytest.mark.req("REQ-YG-039")
+    def test_serialize_pipeline_error_with_details(self):
+        """PipelineError with details dict should serialize cleanly."""
+        from yamlgraph.models import PipelineError
+        from yamlgraph.models.schemas import ErrorType
+        from yamlgraph.storage.serializers import serialize_value
+
+        error = PipelineError(
+            type=ErrorType.VALIDATION_ERROR,
+            message="Schema mismatch",
+            node="validate",
+            details={"expected": "int", "got": "str"},
+        )
+        result = serialize_value(error)
+        assert result["value"]["details"] == {"expected": "int", "got": "str"}
+
+    @pytest.mark.req("REQ-YG-039")
+    def test_serialize_pipeline_error_datetime_field(self):
+        """PipelineError.timestamp should be ISO string in serialized form."""
+        from yamlgraph.models import PipelineError
+        from yamlgraph.models.schemas import ErrorType
+        from yamlgraph.storage.serializers import serialize_value
+
+        error = PipelineError(
+            type=ErrorType.LLM_ERROR,
+            message="timeout",
+            node="gen",
+        )
+        result = serialize_value(error)
+        # model_dump(mode="json") converts datetime to ISO string
+        assert isinstance(result["value"]["timestamp"], str)
+
+    @pytest.mark.req("REQ-YG-039")
+    def test_deserialize_pydantic_returns_plain_dict(self):
+        """Deserialized pydantic type should return plain dict (Option A)."""
+        from yamlgraph.storage.serializers import deserialize_value
+
+        data = {
+            "__type__": "pydantic",
+            "class": "yamlgraph.models.schemas.PipelineError",
+            "value": {
+                "type": "llm_error",
+                "message": "401 Unauthorized",
+                "node": "generate_opening",
+                "timestamp": "2026-02-19T12:00:00",
+                "retryable": False,
+                "details": {},
+            },
+        }
+        result = deserialize_value(data)
+        assert isinstance(result, dict)
+        assert result["type"] == "llm_error"
+        assert result["message"] == "401 Unauthorized"
+
+    @pytest.mark.req("REQ-YG-039")
+    def test_pipeline_error_orjson_roundtrip(self):
+        """PipelineError should survive orjson.dumps/loads roundtrip."""
+        import orjson
+
+        from yamlgraph.models import PipelineError
+        from yamlgraph.models.schemas import ErrorType
+        from yamlgraph.storage.serializers import (
+            deep_deserialize,
+            serialize_value,
+        )
+
+        error = PipelineError(
+            type=ErrorType.LLM_ERROR,
+            message="authentication_error",
+            node="generate",
+            retryable=True,
+            details={"status": 401},
+        )
+        state = {"errors": [error], "output": "hello"}
+        serialized = orjson.dumps(state, default=serialize_value)
+        restored = deep_deserialize(orjson.loads(serialized))
+        assert len(restored["errors"]) == 1
+        assert restored["errors"][0]["message"] == "authentication_error"
+        assert restored["errors"][0]["details"] == {"status": 401}
+        assert restored["output"] == "hello"
+
+    @pytest.mark.req("REQ-YG-039")
+    def test_serialize_arbitrary_pydantic_model(self):
+        """Any BaseModel subclass should serialize, not just PipelineError."""
+        from pydantic import BaseModel, Field
+
+        from yamlgraph.storage.serializers import serialize_value
+
+        class CustomModel(BaseModel):
+            name: str = Field(description="test")
+            score: float = 0.5
+
+        model = CustomModel(name="test", score=0.9)
+        result = serialize_value(model)
+        assert result["__type__"] == "pydantic"
+        assert result["value"]["name"] == "test"
+        assert result["value"]["score"] == 0.9

@@ -12,6 +12,7 @@ from typing import Any
 from uuid import UUID
 
 import orjson
+from pydantic import BaseModel
 
 # LangGraph/LangChain internal types that should be skipped during serialization
 # These are runtime objects that can't be meaningfully serialized
@@ -92,6 +93,12 @@ def unstringify_keys(obj: Any) -> Any:
 
 def serialize_value(obj: Any) -> Any:
     """Serialize non-JSON types for orjson."""
+    if isinstance(obj, BaseModel):
+        return {
+            "__type__": "pydantic",
+            "class": f"{type(obj).__module__}.{type(obj).__qualname__}",
+            "value": obj.model_dump(mode="json"),
+        }
     if isinstance(obj, UUID):
         return {"__type__": "uuid", "value": str(obj)}
     if isinstance(obj, datetime):
@@ -114,6 +121,8 @@ def deserialize_value(obj: dict) -> Any:
     if isinstance(obj, dict) and "__type__" in obj:
         type_name = obj["__type__"]
         value = obj["value"]
+        if type_name == "pydantic":
+            return value  # plain dict, sufficient for checkpoint inspection
         if type_name == "uuid":
             return UUID(value)
         if type_name == "datetime":
