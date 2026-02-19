@@ -101,6 +101,18 @@ class TestExtractVariables:
         assert "loop" not in variables
 
     @pytest.mark.req("REQ-YG-013")
+    def test_exclude_jinja2_keywords(self):
+        """Should exclude Jinja2 keywords: not, and, or, is, in."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{% if not seeds %}empty{% endif %}{% if x and y %}{% endif %}"
+        variables = extract_variables(template)
+        assert "not" not in variables
+        assert "and" not in variables
+        assert "seeds" in variables
+        assert "x" in variables
+
+    @pytest.mark.req("REQ-YG-013")
     def test_mixed_simple_and_jinja2(self):
         """Should handle templates mixing {var} and {{ var }}."""
         from yamlgraph.utils.template import extract_variables

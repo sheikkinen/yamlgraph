@@ -47,9 +47,11 @@ def extract_variables(template: str) -> set[str]:
     jinja_loop_pattern = r"\{%\s*for\s+\w+\s+in\s+(\w+)"
     variables.update(re.findall(jinja_loop_pattern, template))
 
-    # Jinja2 condition: {% if var %} or {% if var.field %}
-    jinja_if_pattern = r"\{%\s*if\s+(\w+)"
-    variables.update(re.findall(jinja_if_pattern, template))
+    # Jinja2 condition: {% if var %}, {% if not var %}, {% if x and y %}
+    # Extract all word tokens from if/elif expressions, filter keywords later
+    jinja_if_blocks = re.findall(r"\{%[-\s]*(?:if|elif)\s+(.*?)%\}", template)
+    for block in jinja_if_blocks:
+        variables.update(re.findall(r"\b(\w+)\b", block))
 
     # Remove loop iteration variables (they're not inputs)
     # e.g., in "{% for item in items %}", "item" is not required
@@ -61,7 +63,19 @@ def extract_variables(template: str) -> set[str]:
     # - state: injected by node_factory
     # - loop: Jinja2 loop context
     # - range: Jinja2 builtin function
-    excluded = {"state", "loop", "range", "true", "false", "none"}
+    excluded = {
+        "state",
+        "loop",
+        "range",
+        "true",
+        "false",
+        "none",
+        "not",
+        "and",
+        "or",
+        "is",
+        "in",
+    }
     variables -= excluded
 
     return variables
