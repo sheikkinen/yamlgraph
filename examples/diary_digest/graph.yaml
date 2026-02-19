@@ -32,25 +32,25 @@ state:
 tools:
   load_config:
     type: python
-    module: nodes.sources
+    module: examples.diary_digest.nodes.sources
     function: load_config
     description: "Load feeds.yaml — topics, feeds, seeds, date"
 
   fetch_sources:
     type: python
-    module: nodes.sources
+    module: examples.diary_digest.nodes.sources
     function: fetch_sources
     description: "Fetch articles from HN + configured RSS feeds"
 
   filter_relevant:
     type: python
-    module: nodes.writing
+    module: examples.diary_digest.nodes.writing
     function: filter_relevant
     description: "Filter scored articles by relevance threshold"
 
   write_diary:
     type: python
-    module: nodes.writing
+    module: examples.diary_digest.nodes.writing
     function: write_diary
     description: "Format and append diary entry to docs/diary.md"
 
