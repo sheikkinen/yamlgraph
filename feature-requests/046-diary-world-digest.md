@@ -188,8 +188,13 @@ Write to `docs/world-digest-YYYY-MM-DD.md` instead of the diary. Avoids diary po
 - Graph YAML
 
 ### Phase 2: Scheduling (0.5 day)
-- `launchd` plist for macOS (local daily run)
-- OR GitHub Action cron → local file (via commit)
+- **macOS local:** `launchd` plist for daily run
+  - Plist at `~/Library/LaunchAgents/com.yamlgraph.diary-digest.plist`
+  - Runs `python scripts/diary_digest.py` at 06:00 daily
+  - Uses `StandardOutPath`/`StandardErrorPath` for logging
+  - `launchctl load/unload` for install/remove
+  - See: [reference/scheduling-agents.md](../reference/scheduling-agents.md)
+- **CI alternative:** GitHub Action cron → commit diary entry
 - `--dry-run` and `--commit` flags
 
 ### Phase 3: Seed tracking (0.5 day)
