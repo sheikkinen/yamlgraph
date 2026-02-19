@@ -8,15 +8,14 @@
 
     <key>ProgramArguments</key>
     <array>
-        <!-- Update this path to your venv python -->
-        <string>/Users/sheikki/Documents/src/yamlgraph/.venv/bin/python</string>
-        <string>-m</string>
-        <string>yamlgraph</string>
-        <string>graph</string>
-        <string>run</string>
-        <string>examples/diary_digest/graph.yaml</string>
-        <string>--var</string>
-        <string>commit=true</string>
+        <string>/bin/zsh</string>
+        <string>-c</string>
+        <string>
+            cd /Users/sheikki/Documents/src/yamlgraph &amp;&amp;
+            .venv/bin/python -m yamlgraph graph run examples/diary_digest/graph.yaml &amp;&amp;
+            git add docs/diary.md &amp;&amp;
+            git commit -m "docs(diary): World Digest"
+        </string>
     </array>
 
     <key>WorkingDirectory</key>

@@ -280,6 +280,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – REQ-YG-068 |
 | 20 | Contrib Utilities | `contrib/utils`, `contrib/progress` | REQ-YG-070 – REQ-YG-071 |
 | 21 | Diary Digest Tools | `scripts/diary_digest_tools` | REQ-YG-072 |
+| 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073 |
 
 ### 1. Configuration Loading & Validation
 
@@ -487,6 +488,14 @@ Scheduled pipeline tools for fetching external developments and appending contex
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-072 | Diary digest: fetch HN/RSS sources, filter by relevance, format diary entries, append to diary.md, no-op when nothing relevant | `scripts/diary_digest_tools` |
+
+### 22. Code Quality Lints
+
+Custom lint checks enforcing architectural patterns beyond standard linters.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-073 | Inline LLM lint: detect scripts with `def main()` that import LLM execution functions without graph loading — flags orchestration code smell | `scripts/lint_inline_llm` |
 
 ---
 

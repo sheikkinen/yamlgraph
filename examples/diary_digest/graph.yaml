@@ -3,7 +3,6 @@ name: diary_digest
 description: >
   Fetch world developments relevant to YAMLGraph, output as diary entry (FR-046).
   Run: yamlgraph graph run examples/diary_digest/graph.yaml
-  Dry run: yamlgraph graph run examples/diary_digest/graph.yaml --var dry_run=true
 
 defaults:
   provider: anthropic
@@ -25,9 +24,6 @@ state:
   relevant_count: int
   diary_entry: str
   written: bool
-  # Flags (passed via --var)
-  dry_run: bool
-  commit: bool
 
 tools:
   load_config:

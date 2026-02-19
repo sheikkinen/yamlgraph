@@ -50,6 +50,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: inline-llm-check
+        name: inline LLM orchestration check
+        entry: python scripts/lint_inline_llm.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: radon-complexity
         name: radon CC gate (block grade D)
         entry: bash -c 'output=$(python -m radon cc yamlgraph/ -n D -s 2>&1); if [ -n "$output" ]; then echo "$output"; echo ""; echo "FAIL -- functions with cyclomatic complexity >= 21 (grade D) detected"; exit 1; fi'

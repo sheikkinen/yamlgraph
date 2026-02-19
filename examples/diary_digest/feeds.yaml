@@ -19,7 +19,3 @@ feeds:
   - https://lobste.rs/rss
   - https://simonwillison.net/atom/everything/
   - https://pythoninsider.blogspot.com/feeds/posts/default
-
-# Recent Seeds for synthesis context (manually updated).
-# The LLM prompt receives these to connect articles back to open questions.
-seeds: []

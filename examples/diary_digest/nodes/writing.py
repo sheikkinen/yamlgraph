@@ -4,13 +4,11 @@ Graph tool functions following the state: dict -> dict pattern.
 """
 
 import logging
-import subprocess
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 DIARY_PATH = Path(__file__).resolve().parent.parent.parent.parent / "docs" / "diary.md"
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
 # ---------------------------------------------------------------------------
@@ -100,7 +98,6 @@ def write_diary(state: dict) -> dict:
     """
     entry_data = state.get("diary_entry", {})
     date_str = state.get("date", "unknown")
-    dry_run = state.get("dry_run", False)
 
     # Handle Pydantic model or dict
     theme = getattr(entry_data, "theme", None) or entry_data.get(
@@ -118,28 +115,7 @@ def write_diary(state: dict) -> dict:
         seed=seed,
     )
 
-    if dry_run:
-        logger.info("--- DRY RUN ---")
-        logger.info(entry)
-        logger.info("--- END DRY RUN ---")
-        return {"written": False}
-
     append_to_diary(DIARY_PATH, entry)
     logger.info(f"✓ Entry appended to {DIARY_PATH}")
-
-    # Auto-commit if requested
-    do_commit = state.get("commit", False)
-    if do_commit:
-        subprocess.run(  # noqa: S603
-            ["git", "add", str(DIARY_PATH)],
-            cwd=PROJECT_ROOT,
-            check=True,
-        )
-        subprocess.run(  # noqa: S603
-            ["git", "commit", "-m", f"docs(diary): World Digest — {date_str}"],
-            cwd=PROJECT_ROOT,
-            check=True,
-        )
-        logger.info("✓ Committed diary entry")
 
     return {"written": True}

@@ -41,13 +41,14 @@ class TestFeedConfig:
         assert len(config["feeds"]) > 0
 
     @pytest.mark.req("REQ-YG-072")
-    def test_feeds_yaml_has_seeds_context(self):
-        """feeds.yaml can optionally include recent seeds for context."""
+    def test_feeds_yaml_has_no_seeds_key(self):
+        """feeds.yaml should NOT contain seeds — they are auto-extracted."""
         from examples.diary_digest.nodes.sources import load_feeds_config
 
         config = load_feeds_config()
-        # seeds is optional but the key should be supported
-        assert isinstance(config.get("seeds", []), list)
+        assert (
+            "seeds" not in config
+        ), "seeds should be auto-extracted from diary, not in feeds.yaml"
 
 
 class TestFetchSources:
@@ -217,6 +218,48 @@ class TestAppendToDiary:
         content = diary.read_text()
         assert "Old content." in content
         assert "New content." in content
+
+
+class TestWriteDiary:
+    """Test write_diary graph tool."""
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_write_diary_always_writes(self, tmp_path, monkeypatch):
+        """write_diary always appends — no dry_run, no commit logic."""
+        from examples.diary_digest.nodes.writing import write_diary
+
+        diary = tmp_path / "diary.md"
+        diary.write_text("# Diary\n")
+        monkeypatch.setattr("examples.diary_digest.nodes.writing.DIARY_PATH", diary)
+
+        state = {
+            "diary_entry": {"theme": "Test", "body": "Body.", "seed": "Q?"},
+            "date": "2026-02-19",
+        }
+        result = write_diary(state)
+
+        assert result == {"written": True}
+        content = diary.read_text()
+        assert "World Digest — Test" in content
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_write_diary_has_no_dry_run(self):
+        """write_diary should not reference dry_run."""
+        import inspect
+
+        from examples.diary_digest.nodes.writing import write_diary
+
+        source = inspect.getsource(write_diary)
+        assert "dry_run" not in source
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_write_diary_has_no_subprocess(self):
+        """write_diary should not import or use subprocess."""
+        import examples.diary_digest.nodes.writing as writing_mod
+
+        assert not hasattr(
+            writing_mod, "subprocess"
+        ), "subprocess should not be imported"
 
 
 class TestNoOpBehavior:

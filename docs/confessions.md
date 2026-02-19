@@ -52,18 +52,6 @@ Each confession must include:
 - **Sin**: `subprocess.run(["git", "add", ...])` flagged as untrusted input.
 - **Penance**: Command and args are hardcoded; only file paths from `Path` objects are passed. No user input reaches the shell.
 
-### CONF-206
-- **File**: [examples/diary_digest/nodes/writing.py](../examples/diary_digest/nodes/writing.py#L133)
-- **Code**: S603
-- **Sin**: `subprocess.run(["git", "add", ...])` flagged as untrusted input.
-- **Penance**: Same as CONF-205. Command and args are hardcoded; diary path from `Path` object.
-
-### CONF-207
-- **File**: [examples/diary_digest/nodes/writing.py](../examples/diary_digest/nodes/writing.py#L138)
-- **Code**: S603
-- **Sin**: `subprocess.run(["git", "commit", "-m", ...])` flagged as untrusted input.
-- **Penance**: Same as CONF-205. Only the date string is interpolated, from `datetime`.
-
 ---
 
 ## Framework Code
