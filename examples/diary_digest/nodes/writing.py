@@ -21,21 +21,40 @@ def filter_relevant(state: dict) -> dict:
 
     Returns relevant_articles list and relevant_count for routing.
     If relevant_count == 0, the graph routes to END (no-op).
+
+    Map nodes wrap results as {'_map_index': N, '_map_analyze_all_sub': RelevanceScore(...)}.
+    This function unwraps the Pydantic model to extract the score.
     """
     scored = state.get("scored_articles", [])
-    threshold = 0.5
+    threshold = 0.3
 
     relevant = []
     for article in scored:
-        score = article.get("relevance_score", 0)
-        # Handle both float and nested Pydantic model
+        # Unwrap map node output: the score is inside _map_analyze_all_sub
+        score_obj = article.get("_map_analyze_all_sub", article)
+        # Handle Pydantic model or dict
+        if hasattr(score_obj, "relevance_score"):
+            score = score_obj.relevance_score
+            title = getattr(score_obj, "title", "")
+            reason = getattr(score_obj, "reason", "")
+        else:
+            score = score_obj.get("relevance_score", 0) if isinstance(score_obj, dict) else article.get("relevance_score", 0)
+            title = score_obj.get("title", "") if isinstance(score_obj, dict) else article.get("title", "")
+            reason = score_obj.get("reason", "") if isinstance(score_obj, dict) else ""
+
         if isinstance(score, int | float) and score >= threshold:
-            relevant.append(article)
+            relevant.append({
+                "title": title,
+                "relevance_score": score,
+                "reason": reason,
+                "url": article.get("url", ""),
+                "source": article.get("source", ""),
+            })
 
     if not relevant:
         logger.info("📭 No relevant developments today. Silent no-op.")
     else:
-        logger.info(f"✓ {len(relevant)} articles above relevance threshold")
+        logger.info(f"✓ {len(relevant)} articles above relevance threshold ({threshold})")
 
     return {
         "relevant_articles": relevant,
@@ -74,11 +93,12 @@ def append_to_diary(path: Path, entry: str) -> None:
 
 def should_write_entry(
     articles: list[dict],
-    threshold: float = 0.7,
+    threshold: float = 0.3,
 ) -> bool:
     """Return True only if at least one article scores above threshold.
 
     When no articles are relevant, the digest should be a silent no-op.
+    Expects articles already unwrapped by filter_relevant.
     """
     if not articles:
         return False

@@ -35,9 +35,6 @@ user: |
   Source: {{ article.source }}
   Relevance: {{ article.relevance_score }}
   Reason: {{ article.reason }}
-  {% if article.content %}
-  Content excerpt: {{ article.content[:800] }}
-  {% endif %}
   {% endfor %}
 
   Write a diary entry body (without the ## header — that will be added separately).

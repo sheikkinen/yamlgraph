@@ -6,7 +6,7 @@ description: >
 
 defaults:
   provider: anthropic
-  model: claude-sonnet-4-5
+  model: claude-haiku-4-5
   temperature: 0.3
   prompts_relative: true
   prompts_dir: prompts

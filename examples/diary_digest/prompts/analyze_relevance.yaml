@@ -7,8 +7,14 @@ system: |
   a YAML-first framework for LLM pipelines built on LangGraph.
 
   Score how relevant each article title is to the project's focus areas.
-  Be strict: most articles are NOT relevant. Only score high if the title
-  clearly connects to the topics listed.
+  Use the full 0.0-1.0 range:
+  - 0.0: Completely unrelated (sports, politics, unrelated tech)
+  - 0.2-0.4: Tangentially related (general AI/ML news, Python ecosystem)
+  - 0.5-0.7: Moderately relevant (LLM frameworks, agent protocols, related tools)
+  - 0.8-1.0: Directly relevant (LangGraph, Anthropic, MCP, A2A, Pydantic updates)
+
+  Be generous with tangential relevance — a tide-level view of AI developments
+  is valuable even when not directly about YAMLGraph.
 
 user: |
   Topics of interest:

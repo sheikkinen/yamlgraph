@@ -122,3 +122,24 @@ The judgement corrections were key: two state fields not four (avoid overlapping
 **Heuristic:** If a pre-commit hook modifies files, it changes the commit's narrative. Auto-fix hooks (formatting, dead code removal) should run in a dedicated pass, not mixed with feature commits.
 
 **Seed:** The curate_seeds node receives all 24 raw Seeds every run and must decide which 10 to keep. But it has no memory of previous curation decisions — each run starts fresh. Could a diff-based approach (showing what changed since last curation) produce more stable, intentional evolution of the seed list?
+
+---
+
+## 2026-02-19: World Digest — Observability & Evaluation at Scale
+
+**LangSmith GA & Ecosystem Maturation**
+LangSmith Agent Builder reached general availability and is now available on Google Cloud Marketplace. This signals the LangChain ecosystem's shift toward production-grade observability and evaluation tooling — directly relevant to YAMLGraph's need for introspection into graph execution and agent behavior.
+
+**Multi-Agent Architecture & Context Patterns**
+Multiple articles this week addressed multi-agent orchestration, context management for deep agents, and connection patterns between sandboxes. These reflect a maturing conversation about how to structure complex agent systems — a design space YAMLGraph must navigate as graphs grow beyond single-node pipelines.
+
+**Production Validation: Remote's LangGraph Scale**
+Remote's case study on using LangChain and LangGraph to onboard thousands of customers demonstrates that the underlying frameworks can handle real-world complexity. This validates YAMLGraph's bet on LangGraph as a foundation, but raises the question: at what scale does YAML-first configuration become a liability versus an asset?
+
+**Model Speed & Reliability Shift**
+Anthropic's announcement of 3.5 Flash emphasizes speed and reliability as the new frontier — moving past raw capability. This aligns with the open seed: *as model costs approach zero, what new constraint becomes dominant?* YAMLGraph's architecture should prepare for latency and evaluation quality to become the binding constraints, not token cost.
+
+**Evaluation Strategy as Day-One Practice**
+The monday Service + LangSmith article advocates building evaluation frameworks from project inception, not retrofit. This echoes YAMLGraph's philosophy of making invisible decisions visible — evaluation criteria should be declared upfront in graph.yaml, not discovered post-hoc through traces.
+
+**Seed:** If evaluation quality becomes the dominant constraint (not cost), should YAMLGraph require a `verification:` block in every graph.yaml node — declaring what "correct" means before execution — and fail the graph if verification questions aren't stated?
