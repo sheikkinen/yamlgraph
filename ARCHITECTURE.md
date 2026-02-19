@@ -281,6 +281,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 20 | Contrib Utilities | `contrib/utils`, `contrib/progress` | REQ-YG-070 – REQ-YG-071 |
 | 21 | Diary Digest Tools | `scripts/diary_digest_tools` | REQ-YG-072 |
 | 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073 |
+| 23 | Skip-If-Exists Truthiness | `node_factory/llm_nodes` | REQ-YG-074 |
 
 ### 1. Configuration Loading & Validation
 
@@ -496,6 +497,14 @@ Custom lint checks enforcing architectural patterns beyond standard linters.
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-073 | Inline LLM lint: detect scripts with `def main()` that import LLM execution functions without graph loading — flags orchestration code smell | `scripts/lint_inline_llm` |
+
+### 23. Skip-If-Exists Truthiness
+
+FR-050: `skip_if_exists` checks truthiness, not existence. Empty collections, empty strings, None, 0, and False do NOT trigger skip.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-074 | skip_if_exists uses truthiness check: `[]`, `""`, `None`, `0`, `False` do not skip; only truthy values skip | `node_factory/llm_nodes._should_skip_if_exists` |
 
 ---
 

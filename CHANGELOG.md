@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-045 A2A Protocol**: Research and feature requests for A2A provider/consumer patterns
 - **FR-046 Diary World Digest**: 8-node pipeline (fetch → analyze → filter → synthesize → write → curate seeds), scheduled via launchd
 - **FR-047 Inline LLM Lint**: Pre-commit hook detects inline LLM orchestration outside YAML
+- **FR-050 Skip-If-Exists Truthiness**: `_should_skip_if_exists()` helper function with truthiness semantics
 - **Pipeline-audit graph**: Structural health scanner for graph YAML files
 - **Noqa confession registry**: Enforcement hook ensures all `# noqa` suppressions documented
 - **Diary rotation hook**: Automated diary file rotation on day change via pre-commit
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `__version__` exported from `yamlgraph.__init__`
 
 ### Changed
+- **FR-050 skip_if_exists semantics (BREAKING)**: Now checks truthiness, not existence. Empty `[]`, `""`, `None`, `0`, `False` do NOT trigger skip — fixes diary-digest curate_seeds bug
 - **Contrib migration (FR-044b)**: `get_map_result`, `to_serializable` moved to `yamlgraph.contrib.utils`; 10 files migrated
 - **Feed sources upgraded**: Diary-digest feeds expanded 5→9 (added OpenAI, HuggingFace, Google AI, GitHub releases, hnrss.org)
 - **pyproject.toml**: Added `authors`, `keywords`, `classifiers`, `urls`; excluded `tests`/`examples`/`scripts` from package; added `radon`, `vulture`, `pre-commit` to dev deps

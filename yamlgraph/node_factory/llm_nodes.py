@@ -27,6 +27,26 @@ from yamlgraph.utils.json_extract import extract_json
 logger = logging.getLogger(__name__)
 
 
+def _should_skip_if_exists(skip_if_exists: bool, state_key: str, state: dict) -> bool:
+    """Check if node should skip based on existing state value.
+
+    FR-050: Uses truthiness check, not existence check.
+    Empty collections ([], {}), empty strings (""), None, 0, and False
+    do NOT trigger skip — only truthy values do.
+
+    Args:
+        skip_if_exists: Whether skip_if_exists is enabled for this node
+        state_key: The state key to check
+        state: Current graph state
+
+    Returns:
+        True if node should skip, False if it should execute
+    """
+    if not skip_if_exists:
+        return False
+    return bool(state.get(state_key))
+
+
 def create_node_function(
     node_name: str,
     node_config: dict,
@@ -114,8 +134,9 @@ def create_node_function(
 
         loop_counts[node_name] = current_count + 1
 
-        # Skip if output exists (resume support) - disabled for loop nodes
-        if skip_if_exists and state.get(state_key) is not None:
+        # Skip if output has truthy value (resume support) - disabled for loop nodes
+        # FR-050: Uses truthiness, not existence — empty [], "", 0 do NOT skip
+        if _should_skip_if_exists(skip_if_exists, state_key, state):
             logger.info(f"Node {node_name} skipped - {state_key} already in state")
             return {"current_step": node_name, "_loop_counts": loop_counts}
 
