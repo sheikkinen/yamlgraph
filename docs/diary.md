@@ -159,3 +159,21 @@ The monday Service + LangSmith article advocates building evaluation frameworks 
 **Model cost inflection point approaching.** Google's 3.5 Flash positioning ("fast enough to think, reliable enough to act") and Anthropic's subscription auth policy shift suggest the market is entering a phase where model cost is no longer the dominant constraint. This echoes the open seed: *as costs approach zero, what becomes the next bottleneck?* For YAMLGraph, this likely means latency, evaluation quality, and user trust become the optimization targets—requiring stronger verification gates and clearer decision trails.
 
 **Seed:** If model cost truly becomes negligible, should YAMLGraph's default optimization target shift from token efficiency to verification latency and decision transparency — and would that require new YAML schema fields for explicit quality gates, confidence thresholds, or audit trails?
+
+---
+
+## 2026-02-19: The Silent Gate — When Infrastructure Lies by Omission
+
+**Context:** Pre-commit hooks were "comprehensive" — 17 hooks covering ruff, pytest, vulture, req-coverage, jscpd, radon, hedging, and more. All passed with `pre-commit run --all-files`. But `.git/hooks/pre-commit` was never installed. Only `.git/hooks/commit-msg` existed. Every `git commit` for the past 2 days ran only 3 commit-msg hooks (conventional-commit, feat-requires-fr, absolution), silently skipping the 14 pre-commit stage hooks that do the real work.
+
+**Root cause:** FR-038 documented `pre-commit install --hook-type commit-msg` but not the base `pre-commit install`. The commit-msg hook was the feature being added; the pre-commit hook was assumed to already exist. Classic assumption gap — the newer, more specific command was documented; the foundational prerequisite was not.
+
+**What slipped through:** Four commits pushed with only commit-msg validation. Formatting issues, trailing whitespace, and potentially any ruff violation, dead code, or test failure could have been committed unchecked. The only reason nothing broke: the codebase was already clean from manual `pre-commit run --all-files` invocations during development.
+
+**The trap:** **Infrastructure confidence without verification.** The presence of a comprehensive `.pre-commit-config.yaml` and the absolution message after every commit created the *feeling* of being guarded. The config file was correct. The hooks ran when manually invoked. But the actual gate — the git hook that triggers automatic execution — was missing. The ceremony (absolution granted) ran because it was a commit-msg hook. The substance (tests, linting, dead code scan) did not.
+
+**Fix:** `pre-commit install` + `pre-commit install --hook-type commit-msg`, documented in CLAUDE.md. Added 5 missing hooks from pre-commit-hooks: check-merge-conflict, check-ast, check-toml, debug-statements, detect-private-key.
+
+**Heuristic:** A quality gate that doesn't run automatically isn't a gate — it's documentation. Verify infrastructure by observing its effects (count the hooks that ran), not its configuration (read the YAML that defines them).
+
+**Seed:** The pre-commit config has 17 hooks that produce verbose output during commits (~30 lines). As the hook count grows, will developers learn to ignore the output? Should the absolution hook summarize what ran (e.g., "17/17 passed, 1568 tests, 73 reqs") instead of printing a static prayer?
