@@ -5,7 +5,7 @@
 **Status:** Judged
 **Effort:** 3-5 days (Phase 1: 2 days)
 **Requested:** 2026-02-19
-**Judged:** 2026-02-19
+**Judged:** 2026-02-19 (Round 2: deep code review)
 
 ## Summary
 
@@ -84,7 +84,7 @@ nodes:
     end: null                        # No cleanup needed
     resume_key: user_message
     response_key: response
-    loop_until: "auth_status in ('finished', 'authenticated', 'expired', 'failed', 'aborted', 'error')"
+    loop_until: "auth_status == 'finished' or auth_status == 'authenticated' or auth_status == 'expired' or auth_status == 'failed' or auth_status == 'aborted' or auth_status == 'error'"
     max_iterations: 5                # Default: 10. Routes to END on exhaustion.
     on_error: skip                   # Uses existing error handling pattern
 ```
@@ -115,11 +115,8 @@ def create_interactive_tool_node(config: InteractiveToolConfig):
         nodes[f"{prefix}__end"] = PythonNode(tool=config.end)
 
     # Edges: start → ask → step → (loop condition) → ask / end
-    edges.append(Edge(f"{prefix}__start", f"{prefix}__ask",
-                       condition=f"phase != 'error'"))
-    if config.end:
-        edges.append(Edge(f"{prefix}__start", f"{prefix}__end",
-                           condition=f"phase == 'error'"))
+    # Phase 1: start always → ask (no error branching — Constraint 9)
+    edges.append(Edge(f"{prefix}__start", f"{prefix}__ask"))
     edges.append(Edge(f"{prefix}__ask", f"{prefix}__step"))
     edges.append(Edge(f"{prefix}__step", f"{prefix}__ask",
                        condition=f"not ({config.loop_until})"))
@@ -131,6 +128,8 @@ def create_interactive_tool_node(config: InteractiveToolConfig):
 ```
 
 Key insight: **compile-time expansion, not runtime subgraph**. The generated nodes live in the parent graph's namespace and use its checkpointer. No `interrupt_output_mapping`. No `__pregel_send`. No stream mode coupling.
+
+**Implementation note**: The expansion above is conceptual. The actual implementation uses **config-level expansion** (Constraint 8): the `GraphConfig` pre-processor rewrites `nodes` + `edges` dicts before `compile_nodes()` runs. The expanded nodes are then compiled by existing factories (`create_python_node`, `create_interrupt_node`). No new factory needed — only a new pre-processor and a `idempotent=False` flag on the loop interrupt (Constraint 10).
 
 ### Response surfacing
 
@@ -149,20 +148,24 @@ This ensures SSE consumers see the bot/tool response regardless of stream mode.
 ## Judgment Constraints
 
 1. **Tool resolution via `callable_registry`** — `start`, `step`, `end` must be Python tool references resolved through the same registry as `type: python` nodes. Not YAML tool names.
-2. **Expression evaluator reuse** — `loop_until` must use `yamlgraph/utils/expression.py`, not a new evaluator.
-3. **No `__` in user node names** — generated internal names use `{prefix}__start`, `{prefix}__ask`, etc. Linter must reject user-defined node names containing `__`.
+2. **Condition evaluator reuse** — `loop_until` must use `evaluate_condition()` from `yamlgraph/utils/conditions.py`, not a new evaluator. Note: `conditions.py` supports `<, >, <=, >=, ==, !=, and, or` — it does **NOT** support `in` operator. All `loop_until` expressions must use compound `or` chains.
+3. **No `__` in user node names** — generated internal names use `{prefix}__start`, `{prefix}__ask`, etc. Linter emits WARNING (not error) for user-defined node names containing `__`.
 4. **Phase 1 excludes `on_error.output`** — custom output dicts on error are a new concept. Use existing `on_error: skip|retry|fail|fallback` pattern. Defer custom output to Phase 2.
-5. **`end` tool output mapping** — when `end` tool returns state updates, they must map to parent graph state keys. Follow `subgraph_nodes.py` output mapping pattern.
-6. **`max_iterations` default: 10** — on exhaustion, route to END (or `end` tool if defined). No custom output in Phase 1.
+5. **Calling convention: `func(state) → dict`** — `start`, `step`, `end` tools receive the full state dict and return a state update dict. Same calling convention as `type: python` nodes. No output mapping layer needed — tool functions write directly to state keys.
+6. **`max_iterations` default: 10** — on exhaustion, route through `end` tool (if defined) for cleanup, then exit. When `end` is null, route directly to next edge target. No custom output in Phase 1.
 7. **REQ-YG-073** — new requirement ID for this capability.
+8. **Config-level expansion** — expansion must happen as a `GraphConfig` pre-processing step BEFORE `compile_nodes()` runs. Transform `nodes` dict (replace interactive_tool with 3-4 expanded entries) and `edges` list (rewrite incoming edges → `{prefix}__start`, outgoing → `{prefix}__end` or `__step`). This requires ZERO changes to `_process_edge()`, `compile_node()`, or edge processing logic.
+9. **No start error branching in Phase 1** — `__start` always proceeds to `__ask`. No hardcoded `phase` condition. Error handling uses existing `on_error` pattern on expanded nodes.
+10. **Interrupt without idempotency for loops** — the generated `__ask` node must NOT reuse cached payload across loop iterations. Add `idempotent: bool = True` parameter to `create_interrupt_node()`. When `False`, always regenerates message from template. The loop interrupt sets `idempotent=False` so each iteration shows fresh `state[response_key]`.
 
 ## Phase 1 Scope (Frozen)
 
-- `start`, `step`, `end` (optional) tool hooks via `callable_registry`
+- `start`, `step`, `end` (optional) tool hooks via `callable_registry`, `func(state) → dict` convention
 - `resume_key` and `response_key` state key mapping
-- `loop_until` via existing expression evaluator
-- `max_iterations` (default: 10) with fallback to END
-- Compile-time expansion to inline nodes in `node_compiler.py`
+- `loop_until` via `evaluate_condition()` from `conditions.py` (compound `or` only, no `in` operator)
+- `max_iterations` (default: 10) with route through `end` tool then exit
+- Config-level expansion pre-processor in `graph_loader.py` (not in `compile_node()`)
+- `create_interrupt_node(idempotent=False)` for loop-mode interrupts
 - Stream mode agnostic (tested with `messages`, `values`, `updates`)
 - Works with all checkpointers (memory, SQLite, Redis)
 - Linter/validator support for the new node type
@@ -174,6 +177,8 @@ This ensures SSE consumers see the bot/tool response regardless of stream mode.
 - `on_max_iterations.output` custom exhaustion output
 - Nested interactive tools (interactive_tool inside map)
 - Dynamic `loop_until` conditions based on LLM decisions
+- `start_error_condition` for error branching after start tool
+- `in` operator support in `conditions.py` (separate FR if needed)
 
 ## Use Cases Beyond Ninchat/Auth
 
@@ -191,15 +196,17 @@ The pattern is universal: any external service with a stateful session that requ
 ## Acceptance Criteria (Phase 1)
 
 - [ ] `NodeType.INTERACTIVE_TOOL` added to enum
-- [ ] Compile-time expansion in `node_compiler.py` (new elif branch)
-- [ ] `start`, `step`, `end` tool hooks via `callable_registry`
+- [ ] Config-level expansion pre-processor in `graph_loader.py` (Constraint 8)
+- [ ] `start`, `step`, `end` tool hooks via `callable_registry` with `func(state) → dict` convention
 - [ ] `resume_key` and `response_key` state mapping
-- [ ] `loop_until` via existing expression evaluator
-- [ ] `max_iterations` (default 10) with route to END
+- [ ] `loop_until` via `evaluate_condition()` from `conditions.py` (no `in` operator)
+- [ ] `max_iterations` (default 10) with route through `end` tool (if defined) then exit
 - [ ] Existing `on_error` pattern (skip/retry/fail/fallback) — no custom output
+- [ ] Config-level expansion pre-processor in `graph_loader.py`
+- [ ] `create_interrupt_node(idempotent=False)` for loop interrupts
 - [ ] Works with all stream modes (`messages`, `values`, `updates`)
 - [ ] Works with all checkpointers (memory, SQLite, Redis)
-- [ ] Linter rejects node names containing `__`
+- [ ] Linter warns (W-level) on node names containing `__`
 - [ ] Lint/validate support for `interactive_tool` fields
 - [ ] 8-10 unit tests tagged `@pytest.mark.req("REQ-YG-073")`
 - [ ] Documentation with Ninchat and Auth examples
