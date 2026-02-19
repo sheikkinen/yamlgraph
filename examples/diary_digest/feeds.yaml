@@ -14,8 +14,15 @@ topics:
   - AI agent orchestration
 
 feeds:
+  # Primary ecosystem — direct dependencies
   - https://blog.langchain.dev/rss/
-  - https://www.anthropic.com/rss.xml
-  - https://lobste.rs/rss
+  - https://github.com/langchain-ai/langgraph/releases.atom
+  - https://github.com/pydantic/pydantic/releases.atom
+  - https://github.com/langchain-ai/langchain/releases.atom
+  # AI industry blogs
+  - https://openai.com/blog/rss.xml
+  - https://huggingface.co/blog/feed.xml
+  - https://blog.google/technology/ai/rss/
+  # Curated aggregators
   - https://simonwillison.net/atom/everything/
-  - https://pythoninsider.blogspot.com/feeds/posts/default
+  - https://hnrss.org/best?q=LLM+OR+langchain+OR+agent+OR+anthropic+OR+pydantic

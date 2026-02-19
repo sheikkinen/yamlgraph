@@ -23,8 +23,8 @@
 - Could a diff-based approach (showing what changed since last curation) produce more
   stable, intentional evolution of the seed list than re-curating all raw Seeds from
   scratch each run?
-- When does a CLI script graduate to a proper graph execution — is the current inline
-  LLM pattern a pragmatic shortcut or a violation of the three-layer architecture?
 - Could a static analysis tool detect 'false duplicate' candidates — functions with
   similar names or structures but different edge-case behaviors — before they're proposed
   for extraction?
+- What if migration scripts included an automatic 'edge case diff' — running both
+  old and new code against boundary inputs and comparing outputs before replacing?
