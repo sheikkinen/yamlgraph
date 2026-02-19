@@ -9,6 +9,18 @@ description = "YAML-first framework for building LLM pipelines with LangGraph"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 license = {text = "MIT"}
+authors = [{name = "Sami Heikkinen"}]
+keywords = ["yaml", "llm", "langgraph", "pipeline", "ai", "agent"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "langchain-anthropic>=0.3.0",
     "langchain-google-genai>=2.0.0",
@@ -29,6 +41,9 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
+    "radon>=6.0.0",
+    "vulture>=2.0",
+    "pre-commit>=3.0.0",
 ]
 analysis = [
     "jedi>=0.19.0",
@@ -83,8 +98,14 @@ mcp = [
 [project.scripts]
 yamlgraph = "yamlgraph.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/sheikkinen/yamlgraph"
+Repository = "https://github.com/sheikkinen/yamlgraph"
+Documentation = "https://github.com/sheikkinen/yamlgraph#readme"
+
 [tool.setuptools.packages.find]
 where = ["."]
+exclude = ["tests*", "examples*", "scripts*", "docs*", "docs-planning*", "feature-requests*", "projects*", "research*", "htmlcov*", "build*", "outputs*"]
 
 [tool.ruff]
 line-length = 88

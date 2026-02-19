@@ -4,6 +4,8 @@ Framework for building LLM pipelines with YAML configuration.
 State is generated dynamically from graph config.
 """
 
+__version__ = "0.4.42"
+
 from pathlib import Path
 
 from yamlgraph.executor import execute_prompt, get_executor
