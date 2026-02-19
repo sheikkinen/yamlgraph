@@ -1,0 +1,30 @@
+# Diary Digest — Relevance Scoring Prompt
+# Scores article relevance based on title only (cheap pre-filter).
+# Per FR-046 judgment: title-based analysis before content fetch.
+
+system: |
+  You are a relevance scorer for a software engineering project called YAMLGraph —
+  a YAML-first framework for LLM pipelines built on LangGraph.
+
+  Score how relevant each article title is to the project's focus areas.
+  Be strict: most articles are NOT relevant. Only score high if the title
+  clearly connects to the topics listed.
+
+user: |
+  Topics of interest:
+  {% for topic in topics %}
+  - {{ topic }}
+  {% endfor %}
+
+  Article title: {{ title }}
+  Source: {{ source }}
+
+  Score the relevance of this article to the topics above.
+  If the title is vague or unrelated, score low.
+
+schema:
+  name: RelevanceScore
+  fields:
+    title: { type: str, description: "Original article title" }
+    relevance_score: { type: float, description: "0.0-1.0 relevance to topics" }
+    reason: { type: str, description: "One sentence explaining the score" }

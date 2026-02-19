@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yamlgraph.diary-digest</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <!-- Update this path to your venv python -->
+        <string>/Users/sheikki/Documents/src/yamlgraph/.venv/bin/python</string>
+        <string>/Users/sheikki/Documents/src/yamlgraph/scripts/diary_digest.py</string>
+        <string>--commit</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/sheikki/Documents/src/yamlgraph</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+        <!-- Set API key here or use dotenv in the script -->
+        <!-- <key>ANTHROPIC_API_KEY</key> -->
+        <!-- <string>sk-ant-...</string> -->
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/diary-digest.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/diary-digest.err</string>
+</dict>
+</plist>

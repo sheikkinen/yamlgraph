@@ -1,0 +1,25 @@
+# feeds.yaml — Static feed config for diary-digest (FR-046)
+# Manually updated when project focus shifts.
+
+topics:
+  - LangGraph releases and features
+  - LangChain ecosystem updates
+  - Anthropic Claude model announcements
+  - MCP protocol specification
+  - A2A protocol specification
+  - Python async patterns
+  - Pydantic updates
+  - LLM evaluation frameworks
+  - YAML-driven AI pipelines
+  - AI agent orchestration
+
+feeds:
+  - https://blog.langchain.dev/rss/
+  - https://www.anthropic.com/rss.xml
+  - https://lobste.rs/rss
+  - https://simonwillison.net/atom/everything/
+  - https://pythoninsider.blogspot.com/feeds/posts/default
+
+# Recent Seeds for synthesis context (manually updated).
+# The LLM prompt receives these to connect articles back to open questions.
+seeds: []

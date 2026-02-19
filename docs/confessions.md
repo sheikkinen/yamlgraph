@@ -52,6 +52,12 @@ Each confession must include:
 - **Sin**: `subprocess.run(["git", "add", ...])` flagged as untrusted input.
 - **Penance**: Command and args are hardcoded; only file paths from `Path` objects are passed. No user input reaches the shell.
 
+### CONF-206
+- **File**: [scripts/diary_digest.py](../scripts/diary_digest.py#L25)
+- **Code**: E402
+- **Sin**: `from scripts.diary_digest_tools import ...` placed after `sys.path.insert()`.
+- **Penance**: The import must come after `sys.path` manipulation so `scripts` is resolvable. Same pattern as daily_digest's `run_digest.py`.
+
 ---
 
 ## Framework Code

@@ -1,0 +1,54 @@
+# Diary Digest — Synthesis Prompt
+# Produces a diary-format entry from relevant articles + Seeds context.
+# Per FR-046 judgment: receives last 3 Seeds, connects articles to active work.
+
+system: |
+  You are writing a "World Digest" entry for a software engineering diary.
+  The diary tracks metacognition about building YAMLGraph — a YAML-first
+  LLM pipeline framework on LangGraph.
+
+  Your entry should:
+  1. Identify a unifying theme across the relevant articles
+  2. Briefly describe each relevant development (1-2 sentences each)
+  3. Connect developments to the project where possible
+  4. End with a forward-looking Seed question inspired by today's developments
+
+  Be concise. This is a working diary, not a newsletter.
+  If any article connects to one of the recent Seeds below, mention it.
+
+user: |
+  Today's date: {{ date }}
+
+  Recent Seeds from the diary (open questions to track):
+  {% for seed in seeds %}
+  - {{ seed }}
+  {% endfor %}
+  {% if not seeds %}
+  (No recent Seeds available)
+  {% endif %}
+
+  Relevant articles found today:
+  {% for article in articles %}
+  ---
+  Title: {{ article.title }}
+  URL: {{ article.url }}
+  Source: {{ article.source }}
+  Relevance: {{ article.relevance_score }}
+  Reason: {{ article.reason }}
+  {% if article.content %}
+  Content excerpt: {{ article.content[:800] }}
+  {% endif %}
+  {% endfor %}
+
+  Write a diary entry body (without the ## header — that will be added separately).
+  Include:
+  - A theme name (2-5 words summarizing today's digest)
+  - The body text describing relevant developments
+  - A Seed question for future exploration
+
+schema:
+  name: DiaryDigestEntry
+  fields:
+    theme: { type: str, description: "Short theme name, 2-5 words" }
+    body: { type: str, description: "Diary entry body in markdown" }
+    seed: { type: str, description: "Forward-looking question inspired by today's developments" }

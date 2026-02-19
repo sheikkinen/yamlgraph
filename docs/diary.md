@@ -63,3 +63,23 @@ Previous: [diary-2026-02-18.md](diary-2026-02-18.md) — 5 entries from 2026-02-
 **Heuristic:** A metacognitive tool that only looks inward eventually becomes a closed loop. Even a small, automated outside signal — "here's what changed in the world that relates to your open questions" — breaks the loop and connects reflection to reality.
 
 **Seed:** If the diary-digest connects Seeds to external developments, could it also detect when a Seed has been *answered* — marking it as germinated when external evidence addresses the question it posed?
+
+---
+
+## 2026-02-19: Enforce — FR-046 Diary World Digest
+
+TDD implementation of the diary-digest pipeline. The judgment cut 7 nodes to 4-5, replaced dynamic context scanning with a static `feeds.yaml`, and demanded no-op on zero-relevance days. Enforced by writing 15 tests first (RED) — all `@pytest.mark.req("REQ-YG-072")` — then implementing the minimal code to pass (GREEN).
+
+**What was built:**
+- `scripts/diary_digest_tools.py` — fetch_hn, fetch_rss, format_diary_entry, append_to_diary, should_write_entry
+- `scripts/diary_digest.py` — CLI with `--dry-run` and `--commit`
+- `feeds.yaml` — static feed config (5 RSS feeds, 10 topics)
+- `examples/diary_digest/` — graph YAML + 2 prompts (analyze_relevance, synthesize_diary_entry)
+- `scripts/com.yamlgraph.diary-digest.plist` — launchd scheduling at 06:00 daily
+- 15 unit tests covering config, fetching, formatting, append, and no-op
+
+**Trap:** The test assumed `format_diary_entry` output starts with the `##` header, but the separator (`\n---\n\n`) comes first. The separator test and header test contradicted each other. Fixed by changing the header assertion from `startswith` to `in`. The trap: testing format assumptions without first defining the canonical format — the separator is part of the entry, not a prefix.
+
+**Heuristic:** When a formatting function serves dual purposes (standalone readability AND append-to-file behavior), test the structural invariants (`contains`) not positional invariants (`startswith`). The position depends on context; the content doesn't.
+
+**Seed:** The CLI runner does LLM calls inline rather than through the graph YAML. Is this a pragmatic shortcut or a violation of the three-layer pattern — and when does a script graduate to a proper graph execution?

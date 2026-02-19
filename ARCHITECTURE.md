@@ -279,6 +279,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 18 | Testing & Quality | `tests/conftest`, `tests/unit/test_requirement_enforcement` | REQ-YG-063 |
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – REQ-YG-068 |
 | 20 | Contrib Utilities | `contrib/utils`, `contrib/progress` | REQ-YG-070 – REQ-YG-071 |
+| 21 | Diary Digest Tools | `scripts/diary_digest_tools` | REQ-YG-072 |
 
 ### 1. Configuration Loading & Validation
 
@@ -478,6 +479,14 @@ Shared utilities extracted from pipeline patterns. Eliminates copy-paste duplica
 |------------|-------------|-------------|
 | REQ-YG-070 | Contrib utils: `get_map_result()` unwraps single-key `_map_*_sub` dicts; `to_serializable()` converts Pydantic models to dicts recursively | `contrib/utils` |
 | REQ-YG-071 | Contrib progress: `SkipReport` reads `state["errors"]` and provides human-readable skip summaries with counts and node names | `contrib/progress` |
+
+### 21. Diary Digest Tools
+
+Scheduled pipeline tools for fetching external developments and appending context-aware diary entries.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-072 | Diary digest: fetch HN/RSS sources, filter by relevance, format diary entries, append to diary.md, no-op when nothing relevant | `scripts/diary_digest_tools` |
 
 ---
 

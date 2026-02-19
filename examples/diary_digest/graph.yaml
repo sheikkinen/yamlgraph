@@ -1,0 +1,73 @@
+version: "1.0"
+name: diary_digest
+description: "Fetch world developments relevant to YAMLGraph, output as diary entry (FR-046)"
+
+defaults:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  temperature: 0.3
+  prompts_relative: true
+  prompts_dir: prompts
+
+state:
+  topics: list
+  seeds: list
+  feeds: list
+  date: str
+  raw_articles: list
+  scored_articles: list
+  relevant_articles: list
+  diary_entry: str
+  written: bool
+
+tools:
+  fetch_sources:
+    type: python
+    module: scripts.diary_digest_tools
+    function: fetch_all_sources
+    description: "Fetch articles from HN + configured RSS feeds"
+
+  write_diary:
+    type: python
+    module: scripts.diary_digest_tools
+    function: append_to_diary
+    description: "Append formatted entry to docs/diary.md"
+
+nodes:
+  fetch_sources:
+    type: python
+    tool: fetch_sources
+    state_key: raw_articles
+
+  analyze_all:
+    type: map
+    over: "{state.raw_articles}"
+    as: article
+    node:
+      type: llm
+      prompt: analyze_relevance
+      variables:
+        title: "{state.article.title}"
+        source: "{state.article.source}"
+        topics: "{state.topics}"
+    collect: scored_articles
+    on_error: skip
+
+  synthesize_entry:
+    type: llm
+    prompt: synthesize_diary_entry
+    variables:
+      date: "{state.date}"
+      seeds: "{state.seeds}"
+      articles: "{state.relevant_articles}"
+    state_key: diary_entry
+
+edges:
+  - from: START
+    to: fetch_sources
+  - from: fetch_sources
+    to: analyze_all
+  - from: analyze_all
+    to: synthesize_entry
+  - from: synthesize_entry
+    to: END
