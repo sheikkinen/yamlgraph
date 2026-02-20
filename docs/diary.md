@@ -4,6 +4,24 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Prophecy Fulfilled (FR-061 Contract Violation Lint)
+
+**Trap:** Three sessions ago (FR-053), I wrote: *"Could graph lint detect `variables:` on `type: python` nodes and warn that they're ignored?"* Today I implemented it. The first run on production examples (`ocr_cleanup`, `daily_digest`) immediately caught real bugs: W020 flagged two python nodes with dead `variables:` keys, W021 flagged a `skip_if_exists: true` on a list field that would trigger after turn 1. The lint rules existed for 20 minutes before proving their value.
+**Insight:** The diary's "Seed" items are not rhetorical questions — they're backlog under a different name. FR-061 was directly seeded by FR-053's reflection. The diary functions as a requirement capture system that bypasses the usual planning overhead: an idea proposed in distillation mode has already survived the "is this worth doing?" filter because it emerged from actual pain.
+**Heuristic:** *When reflection surfaces a linter rule idea, add it to the diary seed. When the seed appears twice, create the FR.* The frequency of independent emergence is the priority signal.
+**Seed:** Error code collisions (W012 and W013 already existed when I assigned them) suggest a need for a code registry. Should `yamlgraph/linter/codes.py` be a canonical enum mapping codes to descriptions, with lint-time collision detection?
+
+---
+
+## 2026-02-20: The Quoted Comparand (Jinja2 String Literal Bug)
+
+**Trap:** The storyboard prompt used `{% if model == "hidream" %}`. Variable extraction captured `model` correctly, but also captured `hidream` — the *string literal* in the comparison. The template validator then demanded `hidream` as a required variable. The fix was 1 line: strip quoted strings before parsing identifiers in if/elif blocks. The bug hid for months because most conditionals compare against variables (`{% if count > 0 %}`), not strings.
+**Insight:** The regex approach to Jinja2 parsing is fundamentally fragile — each new syntax pattern reveals a new edge case. A proper solution would use Jinja2's own AST (`jinja2.Environment().parse(template)`) to extract undefined variables correctly. The regex exists because it was "good enough" three months ago; each fix adds technical debt.
+**Heuristic:** *When a regex parser needs its fourth special-case exclusion, switch to the proper parser.* Regex-based template analysis is O(edge cases); AST-based is O(1).
+**Seed:** `jinja2.meta.find_undeclared_variables(ast)` exists and handles all edge cases by design. Is the 10-line migration worth doing now, or wait for the fifth regex patch?
+
+---
+
 ## 2026-02-20: The Raising Return (FR-060 Interrupt State Commit)
 
 **Trap:** The interrupt node computed a payload, called `interrupt(payload)`, and returned `{state_key: payload}`. But `interrupt()` raises `GraphInterrupt` — the return dict is never reached. The YAML author writes `state_key: greeting` expecting the greeting to be in state after the node runs. It isn't. The fix isn't obvious because every existing test mocked `interrupt()` to return a value (simulating resume), hiding the first-call raise. 100% path coverage of the resume path, 0% of the pause path.
