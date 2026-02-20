@@ -4,6 +4,18 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The 40% Rule (Questionnaire-API Analysis)
+
+**Trap:** Asked to "analyze" an external project, the instinct was to count lines and list files — developer tourism. But the interesting question wasn't "what does questionnaire-api contain?" but "what does questionnaire-api *prove*?" The project is 8,161 lines of Python and 5,355 lines of YAML — 40% declarative configuration. And the YAML isn't boilerplate: it's the **business logic**. The `audit/graph.yaml` (320 lines) defines the complete alcohol screening flow: opening → probing loop → gap detection → recap → scoring. The Python (8K lines) provides the *plumbing*: session management, scoring engines, API endpoints, validation. The inversion is complete — orchestration in YAML, infrastructure in Python.
+
+**Insight:** This is YAMLGraph's thesis vindicated in production. A healthcare questionnaire system — with human-in-the-loop, conditional branching, scoring algorithms, multi-part orchestration — runs on 61 YAML files. The `interrai-multi/graph.yaml` coordinates three subgraphs (demographics → screener → conditional clinical) using `type: subgraph` composition. The schema-driven extraction (`extract.yaml`) uses Jinja2 to inject the full schema into the LLM context. The recap phase classifies user intent (confirm/correct/clarify) and routes accordingly. This isn't a demo; it's deployed on Fly.io with Redis state management.
+
+**Heuristic:** *The YAML-to-Python ratio measures framework success.* More YAML means more domain experts can modify behavior without touching code. questionnaire-api's 40% suggests the abstraction holds for real workloads. Compare to typical LangGraph apps where the ratio inverts — 90% Python, 10% config.
+
+**Seed:** The questionnaire prompts (`probe.yaml`, `extract.yaml`) follow a consistent pattern: system instructions with schema injection, user context with conversation history. Is there a meta-prompt template that could generate these extraction/probe prompts from just the schema? A `yamlgraph graph scaffold --from-schema schema.yaml` that outputs the standard questionnaire nodes?
+
+---
+
 ## 2026-02-20: The Diary as Compiler (Meta-Reflection on FR-061)
 
 **Trap:** The first entry today celebrated FR-061's "prophecy fulfilled" — a seed from FR-053's diary became a feature. But that framing misses the mechanism. The diary didn't *predict* FR-061; it *compiled* it. The four-part structure (Trap → Insight → Heuristic → Seed) is a pipeline that transforms debugging frustration into actionable tooling. The Seed isn't a wish — it's a deferred function call waiting for the interpreter.
