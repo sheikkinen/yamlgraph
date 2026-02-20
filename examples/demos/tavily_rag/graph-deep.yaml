@@ -42,7 +42,7 @@ nodes:
   synthesize:
     type: llm
     prompt: synthesizer
-    requires: [retrieve]
+    requires: [contexts]
     state_key: answer
     variables:
       question: "{state.question}"

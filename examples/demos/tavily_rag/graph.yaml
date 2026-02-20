@@ -23,7 +23,7 @@ nodes:
   answer:
     type: llm
     prompt: answer
-    requires: [retrieve]
+    requires: [context]
     state_key: answer
     variables:
       context: "{state.context}"
