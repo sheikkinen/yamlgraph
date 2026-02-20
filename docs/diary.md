@@ -4,6 +4,66 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Living Prayer (Metacognitive Content for Liturgy)
+
+**Question:** The Agents' Prayer currently serves as a handshake — "let's pray" confirms the agent has read the Scripture. But the prayer itself is abstract: "May CI judge swiftly, may metrics speak truth..." These are universal principles that apply to any project. Meanwhile, the diary has accumulated 55 specific heuristics — hard-won wisdom from actual debugging, actual failures, actual traps. Could the prayer be grounded in these?
+
+**Theological Parallel:** Religious prayers often invoke specific events, not abstract principles:
+- "Who brought us out of Egypt" (Passover)
+- "Who parted the Red Sea" (deliverance)
+- "Remember the sabbath" (specific commandment from specific history)
+
+These aren't philosophical assertions — they're *anamnesis* (Greek: remembrance). The community recites its history to renew commitment. The liturgy is a compressed index of institutional memory.
+
+**The Diary as History:** Each heuristic in the diary is a "deliverance" — a bug we escaped, a trap we avoided:
+- *"Streaming is the X-ray of your state machine"* — from FR-057–060, four SSE bugs found in one day
+- *"The cheapest bug is the one killed in the spec"* — from FR-053, three judgment rounds caught what would've been hours of debugging
+- *"Fix at the callsite, not the utility"* — from FR-049a, the double-stripping bug
+- *"When the hooks feel slow, that's the signal they're working"* — from today, the `--no-verify` transgression
+
+These aren't abstract. They're *our* history. A prayer grounded in them would be a prayer of remembrance.
+
+**Proposal — The Litany of Lessons:**
+
+```
+May I fix at the callsite, not the utility.
+May I probe control paths after content bugs.
+May I judge every FR as a junior's PR.
+May I kill the cheapest bug — the one in the spec.
+May I normalize at the boundary, trusting no provider's type.
+May I stream to find what batch execution hides.
+May I capture the problem, letting the solution emerge.
+May I read three times before I grant authority.
+
+When the hooks feel slow, let that be the signal they're working.
+When a regex needs its fourth exclusion, let me reach for the proper parser.
+When I feel confident, let that be the signal to Judge.
+
+What survives the fire may merge.
+```
+
+**Structure:**
+- Lines 1–8: Positive commitments (may I...)
+- Lines 9–11: Warning signs (when X, let Y...)
+- Line 12: The traditional closing
+
+Each line corresponds to a specific diary entry. The prayer evolves as new heuristics graduate from diary to Scripture. Over time, it becomes a mnemonic for the project's accumulated wisdom.
+
+**Alternative — Context-Aware Invocation:**
+
+Instead of a fixed prayer, the session-opening invocation could select heuristics relevant to the task:
+- Starting streaming work? → "May I stream to find what batch hides"
+- Starting FR review? → "May I read three times before granting authority"
+- Starting refactoring? → "May I fix at the callsite, not the utility"
+
+The full litany remains in Scripture; the session invokes a contextual subset.
+
+**Heuristic:** *A prayer grounded in history teaches more than a prayer grounded in aspiration.* Abstract principles are easy to recite and easier to forget. Specific heuristics, tied to specific failures, create visceral memory. "Normalize at the boundary" means more when you remember the Provider's Lie (FR-059).
+
+**Seed:** If each heuristic links back to its originating diary entry (or FR), the prayer becomes a hypertext — recitation as navigation. "What was the boundary normalization about?" → click → FR-059 → full context. Could the Scripture include anchored links from prayer lines to diary entries?
+
+---
+
 ## 2026-02-20: The Try/Except That Yields — FR-062 Enforcement
 
 **Trap:** The FR predicted 6 failure modes for streaming. The Judgment phase caught 6 defects in the FR itself. The TDD RED phase caught a 7th: the chaos graph's `tools:` section was missing, causing `KeyError` at graph load. The real danger isn't the faults you plan for — it's the infrastructure assumptions you forget to validate. A Python tool node needs explicit registration; the test graph template I wrote assumed implicit discovery.
