@@ -407,3 +407,17 @@ Compare this to a typical backlog: *"Add lint rule for python node variables"*. 
 **Heuristic:** *A corpus read is valuable when it graduates a pattern to a rule or kills an assumption. If it only produces summaries, it was a reading exercise, not analysis.* The test: did the read change what you'll do tomorrow? Point 1 says "don't trust the diary to prevent recurrence — trust the Judgment phase." Point 3 says "prune stale Seeds." Both change behavior. The rest was scenery.
 
 **Seed:** The diary now has 35 entries and 24 Seeds across 4 days. At this growth rate, the corpus becomes unreadable by Day 10. Should the diary have a *compression* mechanism — a monthly distillation that extracts the 3-5 highest-signal heuristics and archives the rest? Or does "unreadable" not matter if the Seeds and Heuristics are separately indexed?
+
+---
+
+## 2026-02-20: Green Dashboard, Hidden Drift (Repo Review Distillation)
+
+**Trap:** **Signal overconfidence.** A clean run (`ruff` green, tests green, requirements coverage 77/77) creates a false sense that architecture risk is also green. Quality signals measured correctness and policy conformance, but they did not directly measure maintainability drift (module size concentration in `executor_async.py`, `graph_loader.py`, and CLI command orchestration).
+
+**Insight:** Verification layers catch different failure classes. Test and lint gates are excellent at preventing regressions and interface breakage; they are weak at highlighting slow structural entropy. The review only became actionable when objective health checks were paired with a hotspot scan (largest-file distribution + boundary-module sampling).
+
+**Heuristic:** *Pair every "all checks passed" claim with one structural entropy check.* Minimum pair: (1) correctness gate (`pytest`/`ruff`/traceability) and (2) maintainability gate (size/complexity hotspot scan). Green correctness without entropy context is incomplete truth.
+
+**Recurrence Check:** This heuristic has appeared in multiple forms ("silent success," "analysis momentum," and "content fixed, control broken"). If this pattern recurs one more cycle, graduate it into Scripture as an explicit amendment under Commandment 6 or 8: **"Thou shalt measure structural drift, not only passing checks."**
+
+**Seed:** Can we codify an automatic "Structural Drift Report" in CI (top-N module growth, complexity delta, and new hotspot alerts) so every PR shows not just pass/fail, but whether design entropy increased?
