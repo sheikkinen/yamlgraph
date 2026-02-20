@@ -13,6 +13,7 @@
 name: character-storyboard
 version: "1.0"
 description: Character-consistent storyboard using image-to-image editing
+prompts_dir: examples/storyboard/prompts
 
 # Declare input state fields
 state:
@@ -30,7 +31,7 @@ tools:
 nodes:
   expand_story:
     type: llm
-    prompt: examples/storyboard/expand_character_story
+    prompt: expand_character_story
     state_key: story
     variables:
       concept: "{state.concept}"

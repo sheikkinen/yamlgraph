@@ -2,6 +2,8 @@ version: "1.0"
 name: storyboard
 description: Generate a visual story with 3-5 panels from a concept
 
+prompts_dir: examples/storyboard/prompts
+
 # Declare input state fields
 state:
   concept: str
@@ -18,7 +20,7 @@ tools:
 nodes:
   expand_story:
     type: llm
-    prompt: examples/storyboard/expand_story
+    prompt: expand_story
     state_key: story
     variables:
       concept: "{state.concept}"

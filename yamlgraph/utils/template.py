@@ -54,7 +54,9 @@ def extract_variables(template: str) -> set[str]:
     for block in jinja_if_blocks:
         # Remove filter expressions: word|filter → word
         block_no_filters = re.sub(r"\|[a-zA-Z_]\w*", "", block)
-        for token in re.findall(r"[a-zA-Z_]\w*(?:\.\w+)*", block_no_filters):
+        # Remove string literals: "string" or 'string'
+        block_no_strings = re.sub(r"[\"'][^\"']*[\"']", "", block_no_filters)
+        for token in re.findall(r"[a-zA-Z_]\w*(?:\.\w+)*", block_no_strings):
             variables.add(token.split(".")[0])
 
     # Remove loop iteration variables (they're not inputs)

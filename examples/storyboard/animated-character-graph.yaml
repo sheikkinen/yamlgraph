@@ -17,6 +17,7 @@
 name: animated-character-storyboard
 version: "1.0"
 description: Character-consistent animated storyboard with first/middle/last frames
+prompts_dir: examples/storyboard/prompts
 
 state:
   concept: str
@@ -37,7 +38,7 @@ nodes:
   # Step 1: Generate character + story panels
   expand_story:
     type: llm
-    prompt: examples/storyboard/expand_character_story
+    prompt: expand_character_story
     state_key: story
     variables:
       concept: "{state.concept}"
@@ -50,7 +51,7 @@ nodes:
     as: panel_prompt
     node:
       type: llm
-      prompt: examples/storyboard/animate_character_panel
+      prompt: animate_character_panel
       state_key: animated_panel
     collect: animated_panels
 
