@@ -4,6 +4,15 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Raising Return (FR-060 Interrupt State Commit)
+
+**Trap:** The interrupt node computed a payload, called `interrupt(payload)`, and returned `{state_key: payload}`. But `interrupt()` raises `GraphInterrupt` — the return dict is never reached. The YAML author writes `state_key: greeting` expecting the greeting to be in state after the node runs. It isn't. The fix isn't obvious because every existing test mocked `interrupt()` to return a value (simulating resume), hiding the first-call raise. 100% path coverage of the resume path, 0% of the pause path.
+**Insight:** The fix was a two-node split: `{name}_prepare` computes and commits the payload (normal return → state applied), then `{name}` reads from state and calls `interrupt()`. The compiler auto-wires `prepare → interrupt` with an internal edge and redirects incoming edges. The `interactive_tool` expansion (FR-049) was the exact precedent — one YAML node becoming multiple internal graph nodes. The key judgment: rejecting two simpler-looking alternatives (consumer-side `snap.interrupts` reading, and pre-interrupt local variable assignment) because both leaked LangGraph internals or were checkpointer-dependent.
+**Heuristic:** *When a framework function raises before returning, state is not committed. If the YAML author's contract says "this key holds the result," the framework must split the commit from the raise.* Never let a side-effect (pause, crash, timeout) prevent a promised state update.
+**Seed:** Are there other LangGraph functions that raise mid-node? `NodeInterrupt`, `RetryPolicy` exceptions, tool errors with `on_error: fail` — do any of these prevent promised state updates? A systematic audit of "raise-before-return" patterns across all node types could surface similar bugs.
+
+---
+
 ## 2026-02-20: The Provider's Lie (FR-059 Content Normalization)
 
 **Trap:** `response.content` is a `str`. That's what LangChain says. That's what OpenAI returns. That's what Mistral returns. Anthropic returns `[{"type": "text", "text": "..."}]` — a list of content blocks. The agent node stored `.content` directly into state and returned it. Downstream, `isinstance(chunk.content, str)` (FR-058's fix!) silently rejected the list. The streaming filter *worked perfectly* — it filtered out non-string content. It just so happened that all Anthropic responses were non-string content. Two correct fixes composed into a silent failure: the normalizer trusted the provider, the filter trusted the normalizer, and no text reached the client.

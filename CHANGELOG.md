@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.52] - 2026-02-20
+
+### Fixed
+- **FR-060 Interrupt node two-node split** (REQ-YG-021): `interrupt()` raises `GraphInterrupt` before the node returns, so `state_key` was never committed. Split `create_interrupt_node()` into `(prepare_fn, interrupt_fn)` tuple: prepare computes and commits payload to state, interrupt reads from state and pauses. `compile_node()` adds both with internal edge; `_process_edge()` redirects incoming edges to prepare node. Works with all checkpointers including `SimpleRedisCheckpointer`. Nine new tests, 17 existing updated.
+
 ## [0.4.51] - 2026-02-20
 
 ### Fixed
