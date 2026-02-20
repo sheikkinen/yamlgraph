@@ -28,6 +28,46 @@ The openai_proxy example has no `config` (no `thread_id`), so multi-turn is impo
 **Predicted FR queue:**
 1. **FR-062**: SSE error propagation — yield error event on exception
 2. **FR-063**: Streaming timeout — configurable max duration before abort
+
+---
+
+## 2026-02-20: The Chaplain Pattern Applied to Self
+
+**Trap:** After writing FR-062 (Streaming Chaos Testing), I *felt* confident it was correct. The code looked plausible. The tests covered the cases. The implementation notes addressed backward compatibility. But "feeling confident" is the trap — it bypasses the Judgment phase.
+
+**Process:** Applied the Scripture's Judgment step to my own FR:
+
+| Defect | Severity | Issue |
+|--------|----------|-------|
+| `yield` in `finally` | CRITICAL | Invalid Python — cannot yield from finally block |
+| Timeout check after yield | CRITICAL | Misses stalls *during* await; only catches gaps between events |
+| `_get_interrupt_payload()` | HIGH | Referenced but never defined |
+| `RateLimitError` | HIGH | Undefined; needs mock exception |
+| Concurrent test assertion | HIGH | Comment says "at least one success" but code checks "both succeed" |
+| `yield_events=False` default | MEDIUM | Defeats purpose — existing consumers still get silent failures |
+
+Eight defects in ~270 lines. The most severe (`yield` in `finally`) would have crashed at runtime. The fix was straightforward once identified:
+```python
+# Wrong: yield from finally (SyntaxError)
+finally:
+    yield StreamEvent(type="interrupt")
+
+# Right: store and yield after
+try:
+    ...
+except:
+    final_event = StreamEvent(type="error")
+if final_event:
+    yield final_event
+```
+
+**Insight:** The Chaplain's "Judge" phase isn't bureaucracy — it's the only defense against plausible-looking code that's actually broken. The FR *read* correctly; the Python would have *failed* correctly. Syntax errors caught at compile time are gifts; semantic errors (like the timeout race) lurk until production.
+
+**Meta-observation:** The Scripture's judgment/amend cycle works on AI-generated code too. The same discipline that validates human plans validates machine plans. FR-062 was written by Claude; FR-062's defects were found by Claude applying Judgment. The process is the safeguard, not the author.
+
+**Heuristic:** *Judge every FR as if reading a junior's PR — assume plausible-looking code hides subtle bugs.* The compilers we trust catch syntax; the Scripture's Judgment phase catches semantics.
+
+**Seed:** Can the Judgment phase be automated? A linter that runs Python AST checks on FR code blocks? That catches `yield` in forbidden contexts, undefined references, assertion contradictions?
 3. **FR-064**: Interrupt signal in stream — yield special event if graph pauses
 4. **FR-065**: Token counting callback — optional handler to accumulate usage
 
