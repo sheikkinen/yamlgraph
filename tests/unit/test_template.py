@@ -113,6 +113,16 @@ class TestExtractVariables:
         assert "x" in variables
 
     @pytest.mark.req("REQ-YG-013")
+    def test_exclude_jinja2_filters(self):
+        """Should exclude Jinja2 filters like |length, |join, |default."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{% if history and history|length > 0 %}has history{% endif %}"
+        variables = extract_variables(template)
+        assert "history" in variables
+        assert "length" not in variables, "length is a filter, not a variable"
+
+    @pytest.mark.req("REQ-YG-013")
     def test_exclude_field_access_in_condition(self):
         """Should not treat article.content as requiring 'content' variable."""
         from yamlgraph.utils.template import extract_variables

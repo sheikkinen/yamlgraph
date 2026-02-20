@@ -49,9 +49,12 @@ def extract_variables(template: str) -> set[str]:
 
     # Jinja2 condition: {% if var %}, {% if not var %}, {% if x and y %}
     # Extract root identifiers only; skip field accesses (article.content → article)
+    # Also skip Jinja2 filters (var|length → only extract var, not length)
     jinja_if_blocks = re.findall(r"\{%[-\s]*(?:if|elif)\s+(.*?)%\}", template)
     for block in jinja_if_blocks:
-        for token in re.findall(r"[a-zA-Z_]\w*(?:\.\w+)*", block):
+        # Remove filter expressions: word|filter → word
+        block_no_filters = re.sub(r"\|[a-zA-Z_]\w*", "", block)
+        for token in re.findall(r"[a-zA-Z_]\w*(?:\.\w+)*", block_no_filters):
             variables.add(token.split(".")[0])
 
     # Remove loop iteration variables (they're not inputs)
