@@ -12,7 +12,7 @@
         <string>-c</string>
         <string>
             cd /Users/sheikki/Documents/src/yamlgraph &amp;&amp;
-            .venv/bin/python -m yamlgraph graph run examples/diary_digest/graph.yaml &amp;&amp;
+            .venv/bin/yamlgraph graph run examples/diary_digest/graph.yaml &amp;&amp;
             git add docs/diary.md &amp;&amp;
             git commit -m "docs(diary): World Digest"
         </string>
