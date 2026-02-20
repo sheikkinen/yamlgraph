@@ -103,6 +103,29 @@ def test_discover_graphs_skips_prompt_yaml(tmp_path: Path):
 
 
 @pytest.mark.req("REQ-YG-067")
+def test_discover_graphs_malformed_yaml_skipped(tmp_path: Path):
+    """Malformed YAML files are skipped, not crash."""
+    from yamlgraph.mcp_server import discover_graphs
+
+    graph_dir = tmp_path / "demo"
+    graph_dir.mkdir()
+    # Write valid graph first
+    (graph_dir / "good.yaml").write_text(
+        "nodes:\n  n1:\n    type: llm\n    prompt: p\n    state_key: out\n"
+        "edges:\n  - from: START\n    to: n1\n  - from: n1\n    to: END\n"
+    )
+    # Invalid YAML: unclosed brace (should be skipped, not crash)
+    (graph_dir / "broken.yaml").write_text("nodes:\n  foo: {unclosed")
+
+    # This should not raise, and should return the good graph
+    graphs = discover_graphs([str(tmp_path / "demo/*.yaml")])
+
+    # Good graph was found, broken was skipped
+    assert len(graphs) == 1
+    assert graphs[0]["name"] == "demo"
+
+
+@pytest.mark.req("REQ-YG-067")
 def test_discover_graphs_empty_dir(tmp_path: Path):
     """Empty or missing dir returns empty list."""
     from yamlgraph.mcp_server import discover_graphs
@@ -273,6 +296,102 @@ async def test_run_graph_timeout():
             "yamlgraph_run_graph",
             {"graph": "hello-world", "vars": {"name": "X", "style": "Y"}},
         )
+
+    assert len(result) == 1
+    parsed = json.loads(result[0].text)
+    assert "error" in parsed
+
+
+@pytest.mark.req("REQ-YG-068")
+@pytest.mark.asyncio
+async def test_call_unknown_tool():
+    """Calling unknown tool returns error, not crash."""
+    from yamlgraph.mcp_server import create_server
+
+    server = create_server(graph_patterns=[])
+    result = await _call_tool(
+        server,
+        "unknown_tool_name",
+        {},
+    )
+
+    assert len(result) == 1
+    parsed = json.loads(result[0].text)
+    assert "error" in parsed
+    assert "Unknown tool" in parsed["error"]
+
+
+@pytest.mark.req("REQ-YG-068")
+@pytest.mark.asyncio
+async def test_run_graph_execution_error():
+    """Graph execution exception returns error, not crash."""
+    from yamlgraph.mcp_server import create_server
+
+    hello_pattern = str(
+        Path(__file__).resolve().parent.parent.parent
+        / "examples"
+        / "demos"
+        / "hello"
+        / "graph.yaml"
+    )
+    server = create_server(graph_patterns=[hello_pattern])
+
+    def failing_invoke(graph_path: str, variables: dict) -> dict:
+        raise RuntimeError("Simulated graph failure")
+
+    with patch("yamlgraph.mcp_server._invoke_graph", side_effect=failing_invoke):
+        result = await _call_tool(
+            server,
+            "yamlgraph_run_graph",
+            {"graph": "hello-world", "vars": {"name": "X", "style": "Y"}},
+        )
+
+    assert len(result) == 1
+    parsed = json.loads(result[0].text)
+    assert "error" in parsed
+    assert "Graph execution failed" in parsed["error"]
+
+
+@pytest.mark.req("REQ-YG-068")
+@pytest.mark.asyncio
+async def test_list_graphs_tool():
+    """yamlgraph_list_graphs tool returns graph summaries."""
+    from yamlgraph.mcp_server import create_server
+
+    hello_pattern = str(
+        Path(__file__).resolve().parent.parent.parent
+        / "examples"
+        / "demos"
+        / "hello"
+        / "graph.yaml"
+    )
+    server = create_server(graph_patterns=[hello_pattern])
+
+    result = await _call_tool(server, "yamlgraph_list_graphs", {})
+
+    assert len(result) == 1
+    parsed = json.loads(result[0].text)
+    assert isinstance(parsed, list)
+    assert len(parsed) >= 1
+    assert "name" in parsed[0]
+    assert "description" in parsed[0]
+    assert "required_vars" in parsed[0]
+
+
+@pytest.mark.req("REQ-YG-068")
+@pytest.mark.asyncio
+async def test_tool_handler_exception():
+    """Exception in tool handler returns error JSON, not crash."""
+    from yamlgraph.mcp_server import create_server
+
+    server = create_server(graph_patterns=[])
+
+    # Patch _handle_list_graphs to raise an exception
+    with patch(
+        "yamlgraph.mcp_server._handle_list_graphs",
+        side_effect=RuntimeError("Handler boom"),
+    ):
+        result = await _call_tool(server, "yamlgraph_list_graphs", {})
 
     assert len(result) == 1
     parsed = json.loads(result[0].text)
