@@ -28,7 +28,7 @@ class TestInterruptNodeJinja2State:
             patch("yamlgraph.executor.execute_prompt", side_effect=capture_execute),
             patch("langgraph.types.interrupt", return_value=None),
         ):
-            node_fn = create_interrupt_node(
+            prepare_fn, _interrupt_fn = create_interrupt_node(
                 node_name="ask_user",
                 config={
                     "type": "interrupt",
@@ -37,7 +37,7 @@ class TestInterruptNodeJinja2State:
             )
 
             state = {"question": "What color?", "context": "design review"}
-            node_fn(state)  # Result unused, we check captured calls
+            prepare_fn(state)  # Payload resolution happens in prepare
 
             assert len(captured_calls) == 1
             call = captured_calls[0]
@@ -64,7 +64,7 @@ class TestInterruptNodeJinja2State:
             patch("yamlgraph.executor.execute_prompt", side_effect=capture_execute),
             patch("langgraph.types.interrupt", return_value=None),
         ):
-            node_fn = create_interrupt_node(
+            prepare_fn, _interrupt_fn = create_interrupt_node(
                 node_name="clarify",
                 config={
                     "type": "interrupt",
@@ -73,7 +73,7 @@ class TestInterruptNodeJinja2State:
             )
 
             state = {"user_input": "test", "session_id": "abc123"}
-            node_fn(state)
+            prepare_fn(state)
 
             call = captured_calls[0]
 

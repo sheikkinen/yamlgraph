@@ -106,15 +106,20 @@ def compile_node(
         node_fn = create_tool_call_node(node_name, enriched_config, callable_registry)
         graph.add_node(node_name, node_fn)
     elif node_type == NodeType.INTERRUPT:
-        # Human-in-the-loop interrupt node
-        node_fn = create_interrupt_node(
+        # FR-060: Two-node split — prepare commits state, interrupt pauses
+        prepare_fn, interrupt_fn = create_interrupt_node(
             node_name,
             enriched_config,
             graph_path=config.source_path,
             prompts_dir=prompts_dir,
             prompts_relative=prompts_relative,
         )
-        graph.add_node(node_name, node_fn)
+        prepare_name = f"{node_name}_prepare"
+        graph.add_node(prepare_name, prepare_fn)
+        graph.add_node(node_name, interrupt_fn)
+        graph.add_edge(prepare_name, node_name)
+        logger.info(f"Added node: {node_name} (type={node_type}, split)")
+        return (node_name, "interrupt_prepare")
     elif node_type == NodeType.PASSTHROUGH:
         # Simple state transformation node
         node_fn = create_passthrough_node(node_name, enriched_config)
@@ -152,7 +157,7 @@ def compile_nodes(
     tools: dict[str, Any],
     python_tools: dict[str, Any],
     callable_registry: dict[str, Callable],
-) -> dict[str, tuple]:
+) -> tuple[dict[str, tuple], set[str]]:
     """Compile all nodes and add to graph.
 
     Args:
@@ -163,9 +168,12 @@ def compile_nodes(
         callable_registry: Loaded callable functions for tool_call nodes
 
     Returns:
-        Dict of map_nodes: name -> (map_edge_fn, sub_node_name)
+        Tuple of:
+        - map_nodes: name -> (map_edge_fn, sub_node_name)
+        - interrupt_nodes: set of node names with prepare split
     """
     map_nodes: dict[str, tuple] = {}
+    interrupt_nodes: set[str] = set()
 
     for node_name, node_config in config.nodes.items():
         result = compile_node(
@@ -178,9 +186,13 @@ def compile_nodes(
             callable_registry,
         )
         if result:
-            map_nodes[result[0]] = result[1]
+            name, info = result
+            if info == "interrupt_prepare":
+                interrupt_nodes.add(name)
+            else:
+                map_nodes[name] = info
 
-    return map_nodes
+    return map_nodes, interrupt_nodes
 
 
 __all__ = ["compile_node", "compile_nodes"]

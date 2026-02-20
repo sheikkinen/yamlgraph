@@ -193,9 +193,12 @@ class TestCompileNodeToolCall:
 
 
 class TestCompileNodeInterrupt:
-    """type=interrupt → create_interrupt_node."""
+    """type=interrupt → create_interrupt_node (two-node split)."""
 
-    @patch("yamlgraph.node_compiler.create_interrupt_node", return_value=lambda s: {})
+    @patch(
+        "yamlgraph.node_compiler.create_interrupt_node",
+        return_value=(lambda s: {}, lambda s: {}),
+    )
     @pytest.mark.req("REQ-YG-007")
     def test_interrupt_branch(self, mock_factory):
         config = _make_config(source_path=Path("/g/graph.yaml"))
@@ -216,7 +219,8 @@ class TestCompileNodeInterrupt:
             callable_registry={},
         )
 
-        assert result is None
+        # FR-060: compile_node returns (name, "interrupt_prepare") for interrupt nodes
+        assert result == ("i", "interrupt_prepare")
         mock_factory.assert_called_once()
 
 

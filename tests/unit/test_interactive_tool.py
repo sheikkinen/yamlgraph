@@ -131,13 +131,13 @@ class TestInterruptIdempotentFlag:
 
         mock_interrupt.return_value = "user reply"
         config = {"message": "old message", "state_key": "msg", "resume_key": "reply"}
-        node_fn = create_interrupt_node("ask", config)
+        prepare_fn, interrupt_fn = create_interrupt_node("ask", config)
 
         state = {"msg": "cached payload"}
-        result = node_fn(state)
+        prep_result = prepare_fn(state)
 
         # Should use cached payload, not config message
-        assert result["msg"] == "cached payload"
+        assert prep_result["msg"] == "cached payload"
 
     @patch("langgraph.types.interrupt")
     @pytest.mark.req("REQ-YG-075")
@@ -152,14 +152,14 @@ class TestInterruptIdempotentFlag:
             "resume_key": "reply",
             "idempotent": False,
         }
-        node_fn = create_interrupt_node("ask", config)
+        prepare_fn, interrupt_fn = create_interrupt_node("ask", config)
 
         # Simulate loop iteration: state_key has old value, but bot_response changed
         state = {"msg": "old bot message", "bot_response": "new bot message"}
-        result = node_fn(state)
+        prep_result = prepare_fn(state)
 
         # Should regenerate from template, not use cached
-        assert result["msg"] == "new bot message"
+        assert prep_result["msg"] == "new bot message"
 
 
 # ---------------------------------------------------------------------------

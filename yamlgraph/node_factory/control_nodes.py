@@ -20,11 +20,12 @@ def create_interrupt_node(
     graph_path: Path | None = None,
     prompts_dir: Path | None = None,
     prompts_relative: bool = False,
-) -> Callable[[GraphState], dict]:
-    """Create an interrupt node that pauses for human input.
+) -> tuple[Callable[[GraphState], dict], Callable[[GraphState], dict]]:
+    """Create an interrupt node split into prepare + interrupt functions.
 
-    Uses LangGraph's native interrupt() function for human-in-the-loop.
-    Handles idempotency by checking state_key before re-executing prompts.
+    FR-060: The prepare function commits payload to state BEFORE
+    interrupt() fires, so state_key holds the payload even when
+    GraphInterrupt is raised.
 
     Args:
         node_name: Name of the node
@@ -38,10 +39,8 @@ def create_interrupt_node(
         prompts_relative: If True, resolve prompts relative to graph_path
 
     Returns:
-        Node function compatible with LangGraph
+        Tuple of (prepare_fn, interrupt_fn) — both compatible with LangGraph
     """
-    from langgraph.types import interrupt
-
     from yamlgraph.executor import execute_prompt
 
     message = config.get("message")
@@ -50,15 +49,13 @@ def create_interrupt_node(
     resume_key = config.get("resume_key", "user_input")
     idempotent = config.get("idempotent", True)
 
-    def interrupt_fn(state: dict) -> dict:
-        # Check if we already have a payload (resuming) - idempotency
+    def prepare_fn(state: dict) -> dict:
+        """Compute and commit payload to state before interrupt fires."""
         existing_payload = state.get(state_key)
 
         if idempotent and existing_payload is not None:
-            # Resuming - use stored payload, don't re-execute prompt
             payload = existing_payload
         elif prompt_name:
-            # First execution with prompt
             payload = execute_prompt(
                 prompt_name,
                 variables=state,
@@ -68,8 +65,6 @@ def create_interrupt_node(
                 state=state,
             )
         elif message is not None:
-            # Static message - check for template syntax and interpolate
-            # Jinja2: {{ or {% | Simple: {word}
             has_template = (
                 "{{" in message
                 or "{%" in message
@@ -77,21 +72,27 @@ def create_interrupt_node(
             )
             payload = format_prompt(message, state, state) if has_template else message
         else:
-            # Fallback: use node name as payload
             payload = {"node": node_name}
 
-        # Native LangGraph interrupt - pauses here on first run
-        # On resume, returns the Command(resume=...) value
-        response = interrupt(payload)
-
         return {
-            state_key: payload,  # Store for idempotency check
-            resume_key: response,  # User's response
+            state_key: payload,
             "current_step": node_name,
         }
 
+    def interrupt_fn(state: dict) -> dict:
+        """Read committed payload from state and call interrupt()."""
+        from langgraph.types import interrupt
+
+        payload = state.get(state_key)
+        response = interrupt(payload)
+        return {
+            resume_key: response,
+            "current_step": node_name,
+        }
+
+    prepare_fn.__name__ = f"{node_name}_prepare"
     interrupt_fn.__name__ = f"{node_name}_interrupt"
-    return interrupt_fn
+    return (prepare_fn, interrupt_fn)
 
 
 def create_passthrough_node(

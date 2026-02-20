@@ -263,6 +263,7 @@ def _process_edge(
     map_nodes: dict[str, tuple],
     router_edges: dict[str, list],
     expression_edges: dict[str, list[tuple[str, str]]],
+    interrupt_nodes: set[str] | None = None,
 ) -> None:
     """Process a single edge and add to graph or edge tracking dicts.
 
@@ -272,11 +273,16 @@ def _process_edge(
         map_nodes: Map node tracking dict
         router_edges: Dict to collect router edges
         expression_edges: Dict to collect expression-based edges
+        interrupt_nodes: Set of interrupt node names with prepare split
     """
     from_node = edge["from"]
     to_node = edge["to"]
     condition = edge.get("condition")
     edge_type = edge.get("type")
+
+    # FR-060: Redirect incoming edges to interrupt prepare node
+    if interrupt_nodes and isinstance(to_node, str) and to_node in interrupt_nodes:
+        to_node = f"{to_node}_prepare"
 
     if from_node == "START":
         if to_node in map_nodes:
@@ -364,14 +370,18 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     tools, python_tools, callable_registry = _parse_all_tools(config)
 
     # Compile all nodes
-    map_nodes = compile_nodes(config, graph, tools, python_tools, callable_registry)
+    map_nodes, interrupt_nodes = compile_nodes(
+        config, graph, tools, python_tools, callable_registry
+    )
 
     # Process edges
     router_edges: dict[str, list] = {}
     expression_edges: dict[str, list[tuple[str, str]]] = {}
 
     for edge in config.edges:
-        _process_edge(edge, graph, map_nodes, router_edges, expression_edges)
+        _process_edge(
+            edge, graph, map_nodes, router_edges, expression_edges, interrupt_nodes
+        )
 
     # Add conditional edges
     _add_conditional_edges(graph, router_edges, expression_edges)
