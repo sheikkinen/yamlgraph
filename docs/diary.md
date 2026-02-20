@@ -21,3 +21,17 @@ Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02
 **Connection to open Seeds:** The observability emphasis echoes the seed "Could 'name the verification question' become a concrete workflow gate" — if agents must state falsifiable questions before acting, that statement becomes a traceable artifact in LangSmith. Similarly, "no-silent-fallback" lint rules would integrate naturally with evaluation frameworks that flag unexpected behavior patterns.
 
 **Seed:** As observability becomes infrastructure (LangSmith in Cloud Marketplace, traces-to-insights pipelines), should YAMLGraph's YAML schema include a mandatory `verification_question` field on agent nodes — making the falsifiable claim explicit and queryable in observability tools?
+
+---
+
+## 2026-02-20: Kill Entropy — The Compat Flag False Idol
+
+**Trap:** "Backward compatibility" as a false idol. After migrating all three examples (diary_digest, ocr_cleanup, book_translator) to use `flatten_output: true`, we still kept `get_map_result()` "for backward compatibility." The function sat there for exactly one commit before being purged per Commandment 8.
+
+**Insight:** Compat shims create technical debt the moment they become unused. The Scripture's "no shims, no adapters, no compat flags" isn't about being aggressive — it's about recognizing that unused code is a lie waiting to confuse future readers.
+
+**Heuristic:** When the last consumer of a compat shim migrates, delete it in the same PR. Don't defer "for one more release" — the release notes become lies when they document features nobody uses.
+
+**Bonus trap:** The linter's `prompts_relative` bug showed inconsistent config reading — `prompts_dir` checked defaults, but `prompts_relative` didn't. This is a category error: options that can appear in `defaults` must always check both locations. When fixing, add a test that exercises the defaults path specifically.
+
+**Seed:** Could the linter validate its own config-reading consistency? A meta-lint rule that scans `resolve_*` functions to ensure every `graph.get("option")` has a corresponding `defaults.get("option")` fallback.
