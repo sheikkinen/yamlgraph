@@ -4,6 +4,15 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Duck That Quacked Too Loudly (FR-058 Streaming Filter)
+
+**Trap:** The streaming filter used `hasattr(chunk, "content")` — a duck-type check that asks "does this thing have content?" Every message type in LangGraph has `.content`: SystemMessage (the full prompt), HumanMessage (the user's input), ToolMessage (raw search data), and intermediate AIMessage with tool_calls ("Let me search for that..."). The filter was designed for LLM nodes that only emit AIMessageChunk. When agent nodes arrived, the duck quacked for everything — 11K chars of system prompt text streamed to production clients before the actual answer.
+**Insight:** The fix was `isinstance(chunk, AIMessageChunk) and not chunk.tool_calls` — replacing duck-typing with explicit type checking. Duck typing is a Python virtue, but streaming filters are security boundaries. Leaking the system prompt to clients is an information disclosure bug. The `hasattr` check was correct for the original scope (LLM-only streaming) but became a vulnerability when agent nodes — with their richer message vocabulary — entered the same pipeline.
+**Heuristic:** *When a filter guards a boundary (client-facing, security, cost), use explicit type checks, not duck typing.* `hasattr` answers "can this object do X?" but the real question is "should this object pass through?" The former is permissive by default; the latter must be restrictive.
+**Seed:** The `not chunk.tool_calls` guard suppresses intermediate agent reasoning ("Let me search for that..."). But some UIs *want* to show agent thinking as a progress indicator. Could a `stream_mode: "verbose"` option yield intermediate steps with a metadata tag, letting clients distinguish reasoning from answer?
+
+---
+
 ## 2026-02-20: The Invisible Accumulator (FR-057 Agent Messages)
 
 **Trap:** The agent node read `existing_messages` from state, prepended them to new messages, ran its tool loop, then returned `{"messages": messages}` — the *full* list including existing. The `Annotated[list, add]` reducer appended all of them to what was already in state. For single-invocation agents (every existing example and test), this is invisible — the agent runs once, returns messages, done. The bug only manifests when an agent is called *again* across interrupt boundaries: turn 1 returns 5, turn 2 returns 10 (5 old + 5 new), state becomes 15. By turn 5: 155 messages, most duplicates. The LLM sees its own prior responses repeated, degrading quality and burning tokens.

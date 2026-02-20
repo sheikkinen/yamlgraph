@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.50] - 2026-02-20
+
+### Fixed
+- **FR-058 Agent streaming message type filter** (REQ-YG-065): `run_graph_streaming_native` now yields only `AIMessageChunk` content without `tool_calls`. Previously, `hasattr(chunk, "content")` duck-type check leaked SystemMessage (prompt text), HumanMessage (echoed input), ToolMessage (raw tool data), and intermediate AIMessage with tool_calls to clients. Replaced with `isinstance(chunk, AIMessageChunk)` + `not chunk.tool_calls` guard. Five new tests.
+
 ## [0.4.49] - 2026-02-20
 
 ### Fixed
