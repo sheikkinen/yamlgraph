@@ -2,44 +2,15 @@
 
 Shared utility functions extracted from common patterns across YAMLGraph pipelines.
 
-> **Note:** For new code, prefer `flatten_output: true` on map nodes (FR-052) instead of using `get_map_result()`. See [map-nodes.md](map-nodes.md#output-flattening-fr-052).
-
 ## Installation
 
 Built into YAMLGraph core - no extra install required.
 
 ```python
-from yamlgraph.contrib import get_map_result, to_serializable
+from yamlgraph.contrib import to_serializable, SkipReport
 ```
 
 ## Functions
-
-### `get_map_result(item)`
-
-Extract the result from a map node output item.
-
-> **Prefer `flatten_output: true`** on the map node instead of using this function.
-> This function is retained for backward compatibility with existing pipelines.
-
-Map nodes store results with keys like `_map_<node_name>_sub`. This function finds and returns that result without hardcoding the key name.
-
-```python
-from yamlgraph.contrib import get_map_result
-
-# Map node returns list of items like:
-# [{"_map_generate_sub": {"title": "Hello"}}, ...]
-
-for item in state["collected_results"]:
-    result = get_map_result(item)
-    if result:
-        print(result["title"])  # "Hello"
-```
-
-**Arguments:**
-- `item` - A single item from a map node's collected output (dict)
-
-**Returns:**
-- The nested result object (Pydantic model or dict), or `None` if not found
 
 ### `to_serializable(obj)`
 
@@ -75,8 +46,10 @@ data = to_serializable(chars)  # [{"name": "A", "level": 1}, ...]
 
 ### Processing Map Node Results
 
+With `flatten_output: true` (FR-052), map results are already at top level. Use `to_serializable()` to convert Pydantic models:
+
 ```python
-from yamlgraph.contrib import get_map_result, to_serializable
+from yamlgraph.contrib import to_serializable
 
 def process_results(state: dict) -> dict:
     """Process collected map results."""
@@ -84,10 +57,9 @@ def process_results(state: dict) -> dict:
 
     processed = []
     for item in items:
-        result = get_map_result(item)
-        if result:
-            # Convert Pydantic models to dicts for JSON output
-            processed.append(to_serializable(result))
+        # With flatten_output: true, fields are at top level
+        # Convert Pydantic models to dicts for JSON output
+        processed.append(to_serializable(item))
 
     return {"processed": processed}
 ```

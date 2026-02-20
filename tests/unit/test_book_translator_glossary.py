@@ -11,69 +11,6 @@ sys.path.insert(0, str(examples_path))
 
 from nodes.tools import merge_terms  # noqa: E402
 
-from yamlgraph.contrib import get_map_result  # noqa: E402
-
-
-class TestGetMapResult:
-    """Tests for the get_map_result helper function."""
-
-    @pytest.mark.req("REQ-YG-014")
-    def test_extracts_map_result(self):
-        """Extract result from standard map node output."""
-        item = {"_map_some_node_sub": {"data": "value"}}
-        result = get_map_result(item)
-        assert result == {"data": "value"}
-
-    @pytest.mark.req("REQ-YG-014")
-    def test_returns_none_for_none_input(self):
-        """Return None when input is None."""
-        assert get_map_result(None) is None
-
-    @pytest.mark.req("REQ-YG-041")
-    def test_returns_none_for_non_dict(self):
-        """Return None when input is not a dict."""
-        assert get_map_result("string") is None
-        assert get_map_result(123) is None
-        assert get_map_result([1, 2, 3]) is None
-
-    @pytest.mark.req("REQ-YG-014")
-    def test_returns_none_for_empty_dict(self):
-        """Return None when dict has no map keys."""
-        assert get_map_result({}) is None
-
-    @pytest.mark.req("REQ-YG-041")
-    def test_returns_none_for_dict_without_map_key(self):
-        """Return None when dict doesn't have _map_*_sub key."""
-        item = {"other_key": "value", "another": 123}
-        assert get_map_result(item) is None
-
-    @pytest.mark.req("REQ-YG-014")
-    def test_handles_various_node_names(self):
-        """Handle different node name patterns."""
-        assert get_map_result({"_map_translate_all_sub": "x"}) == "x"
-        assert get_map_result({"_map_a_sub": "y"}) == "y"
-        assert get_map_result({"_map_long_node_name_sub": "z"}) == "z"
-
-    @pytest.mark.req("REQ-YG-014")
-    def test_returns_first_match_if_multiple(self):
-        """Return a result if multiple map keys exist (edge case)."""
-        item = {"_map_first_sub": "first", "_map_second_sub": "second"}
-        result = get_map_result(item)
-        # Should return one of them (order not guaranteed)
-        assert result in ("first", "second")
-
-    @pytest.mark.req("REQ-YG-014")
-    def test_preserves_pydantic_like_objects(self):
-        """Return Pydantic-like objects as-is."""
-
-        class FakeModel:
-            def __init__(self):
-                self.field = "value"
-
-        model = FakeModel()
-        item = {"_map_node_sub": model}
-        assert get_map_result(item) is model
-
 
 class TestMergeTerms:
     """Tests for glossary term merging."""

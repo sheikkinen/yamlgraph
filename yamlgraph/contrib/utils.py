@@ -8,33 +8,6 @@ from __future__ import annotations
 from typing import Any
 
 
-def get_map_result(item: dict | None) -> Any | None:
-    """Extract result from map node output.
-
-    Map nodes store results with keys like '_map_<node_name>_sub'.
-    This function finds and returns that result without hardcoding the key.
-
-    Args:
-        item: A single item from a map node's collected output
-
-    Returns:
-        The nested result object (Pydantic model or dict), or None
-
-    Example:
-        >>> item = {"_map_generate_sub": {"title": "Hello"}}
-        >>> get_map_result(item)
-        {'title': 'Hello'}
-    """
-    if not isinstance(item, dict):
-        return None
-
-    for key, value in item.items():
-        if key.startswith("_map_") and key.endswith("_sub"):
-            return value
-
-    return None
-
-
 def to_serializable(obj: Any) -> Any:
     """Convert object to JSON-serializable form.
 

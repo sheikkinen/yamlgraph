@@ -1,69 +1,11 @@
 """Tests for yamlgraph.contrib.utils module (FR-044 Phase 1).
 
 Tests for shared utilities extracted from pipeline patterns:
-- get_map_result: unwrap single-key _map_*_sub dicts from map output
 - to_serializable: convert Pydantic models to dicts recursively
 """
 
 import pytest
 from pydantic import BaseModel
-
-
-class TestGetMapResult:
-    """Tests for get_map_result helper function."""
-
-    @pytest.mark.req("REQ-YG-070")
-    def test_extracts_value_from_map_key(self):
-        """Should extract value from _map_*_sub key."""
-        from yamlgraph.contrib.utils import get_map_result
-
-        item = {"_map_generate_sub": {"title": "Hello", "content": "World"}}
-        result = get_map_result(item)
-        assert result == {"title": "Hello", "content": "World"}
-
-    @pytest.mark.req("REQ-YG-070")
-    def test_returns_none_for_none_input(self):
-        """Should return None for None input."""
-        from yamlgraph.contrib.utils import get_map_result
-
-        assert get_map_result(None) is None
-
-    @pytest.mark.req("REQ-YG-070")
-    def test_returns_none_for_non_dict(self):
-        """Should return None for non-dict inputs."""
-        from yamlgraph.contrib.utils import get_map_result
-
-        assert get_map_result("string") is None
-        assert get_map_result(123) is None
-        assert get_map_result([1, 2, 3]) is None
-
-    @pytest.mark.req("REQ-YG-070")
-    def test_returns_none_for_empty_dict(self):
-        """Should return None for empty dict."""
-        from yamlgraph.contrib.utils import get_map_result
-
-        assert get_map_result({}) is None
-
-    @pytest.mark.req("REQ-YG-070")
-    def test_returns_none_for_dict_without_map_key(self):
-        """Should return None for dict without _map_*_sub key."""
-        from yamlgraph.contrib.utils import get_map_result
-
-        assert get_map_result({"title": "Hello"}) is None
-        assert get_map_result({"_other_key": "value"}) is None
-
-    @pytest.mark.req("REQ-YG-070")
-    def test_handles_pydantic_model_value(self):
-        """Should work when value is a Pydantic model."""
-        from yamlgraph.contrib.utils import get_map_result
-
-        class Item(BaseModel):
-            name: str
-
-        item = {"_map_node_sub": Item(name="test")}
-        result = get_map_result(item)
-        assert isinstance(result, Item)
-        assert result.name == "test"
 
 
 class TestToSerializable:
