@@ -177,8 +177,7 @@ def validate_interactive_tool_node(node_name: str, node_config: dict[str, Any]) 
     for field in required_fields:
         if field not in node_config:
             raise ValueError(
-                f"Interactive tool node '{node_name}' missing required "
-                f"'{field}' field"
+                f"Interactive tool node '{node_name}' missing required '{field}' field"
             )
 
 

@@ -179,6 +179,5 @@ def _expand_single(
     edges.extend(new_edges)
 
     logger.info(
-        f"Expanded interactive_tool '{name}' into "
-        f"{3 + (1 if end_tool else 0)} nodes"
+        f"Expanded interactive_tool '{name}' into {3 + (1 if end_tool else 0)} nodes"
     )
