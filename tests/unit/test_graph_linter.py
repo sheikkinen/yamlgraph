@@ -496,6 +496,45 @@ class TestCheckPromptFiles:
         errors = [i for i in issues if i.severity == "error"]
         assert len(errors) == 0
 
+    @pytest.mark.req("REQ-YG-003")
+    def test_prompts_relative_in_defaults(self, temp_graph_dir):
+        """Graph with prompts_relative in defaults should resolve relative to graph file."""
+        # Create graph subdir with colocated prompts
+        subdir = temp_graph_dir / "subdir"
+        subdir.mkdir()
+        prompts_dir = subdir / "prompts"
+        prompts_dir.mkdir()
+        (prompts_dir / "local_prompt.yaml").write_text("system: Test\nuser: Test")
+
+        graph = {
+            "version": "1.0",
+            "name": "test",
+            "defaults": {
+                "prompts_relative": True,
+                "prompts_dir": "prompts",
+            },
+            "nodes": {
+                "step1": {
+                    "type": "llm",
+                    "prompt": "local_prompt",
+                    "state_key": "output",
+                }
+            },
+            "edges": [
+                {"from": "START", "to": "step1"},
+                {"from": "step1", "to": "END"},
+            ],
+        }
+        # Write graph in subdir so prompts resolve relative to it
+        graph_path = subdir / "graph.yaml"
+        import yaml
+
+        graph_path.write_text(yaml.dump(graph))
+
+        issues = check_prompt_files(graph_path, temp_graph_dir)
+        errors = [i for i in issues if i.severity == "error"]
+        assert len(errors) == 0
+
 
 # --- Test check_edge_coverage ---
 

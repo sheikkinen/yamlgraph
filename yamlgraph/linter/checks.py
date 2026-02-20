@@ -88,7 +88,9 @@ def resolve_prompts_dir(graph: dict, graph_path: Path, project_root: Path) -> Pa
     Respects prompts_relative setting to resolve relative to graph file.
     """
     defaults = graph.get("defaults", {})
-    prompts_relative = graph.get("prompts_relative", False)
+    prompts_relative = graph.get("prompts_relative") or defaults.get(
+        "prompts_relative", False
+    )
     prompts_dir_config = graph.get("prompts_dir") or defaults.get("prompts_dir")
 
     if prompts_relative and prompts_dir_config:
