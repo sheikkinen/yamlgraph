@@ -18,19 +18,14 @@ nodes:
   plan:
     type: llm
     prompt: planner
+    parse_json: true
     variables:
       question: "{state.question}"
     state_key: sub_queries
-    schema:
-      name: SubQueries
-      fields:
-        queries:
-          type: list[str]
-          description: "3-5 focused retrieval queries"
 
   retrieve:
     type: map
-    over: "{state.sub_queries.queries}"
+    over: "{state.sub_queries}"
     as: query
     max_items: 5
     node:

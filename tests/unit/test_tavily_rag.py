@@ -213,10 +213,17 @@ class TestTavilyRagGraphYaml:
         nodes = graph["nodes"]
         assert "plan" in nodes
         assert nodes["plan"]["type"] == "llm"
+        # Plan must use parse_json for provider compatibility
+        assert nodes["plan"].get("parse_json") is True
 
         assert "retrieve" in nodes
         assert nodes["retrieve"]["type"] == "map"
-        assert "over" in nodes["retrieve"]
+        # over must reference flat list, not nested .queries path
+        over_expr = nodes["retrieve"]["over"]
+        assert ".queries" not in over_expr, (
+            f"over expression '{over_expr}' uses nested path; "
+            "use flat list[str] with parse_json instead"
+        )
         assert "as" in nodes["retrieve"]
         assert "collect" in nodes["retrieve"]
         assert nodes["retrieve"]["node"]["type"] == "python"

@@ -4,5 +4,10 @@ system: |
   answer comprehensively. Each query should target a different
   aspect of the question.
 
+  Return ONLY a JSON array of strings, no other text.
+  Example: ["query one", "query two", "query three"]
+
 user: |
   Break this question into focused retrieval queries: {question}
+
+  Return ONLY a JSON array of query strings.
