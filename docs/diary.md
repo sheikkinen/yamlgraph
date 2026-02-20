@@ -4,6 +4,23 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Try/Except That Yields — FR-062 Enforcement
+
+**Trap:** The FR predicted 6 failure modes for streaming. The Judgment phase caught 6 defects in the FR itself. The TDD RED phase caught a 7th: the chaos graph's `tools:` section was missing, causing `KeyError` at graph load. The real danger isn't the faults you plan for — it's the infrastructure assumptions you forget to validate. A Python tool node needs explicit registration; the test graph template I wrote assumed implicit discovery.
+
+**Process:** RED-GREEN-REFACTOR completed in one cycle:
+- **RED**: 8 tests, 5 failing. Failures were correct — `run_graph_streaming_native()` had no `yield_events` parameter, no `timeout` parameter, no error handling.
+- **GREEN**: Three changes made `executor_async.py` handle errors: `asyncio.timeout(timeout)` wrapping, `try/except` yielding `StreamEvent(type="error")`, interrupt detection in `finally` via `aget_state()`. All 8 pass.
+- **REFACTOR**: ruff clean. 1687 unit tests pass. `req_coverage --strict` 77/77.
+
+**Insight:** The `yield` in `finally` question from Judgment was the most instructive. Python *does* allow `yield` in `finally` blocks of generators — but the semantics are treacherous (the generator might not be fully consumed, leaving the `finally` block suspended). The safer pattern: detect in `finally`, yield *after* the try/except/finally completes. But for async generators where we need the `finally` to always execute even on `GeneratorExit`, the pattern is subtle. The actual implementation yields from `finally` because the interrupt detection only fires when `thread_id` is set, and it's wrapped in its own try/except — bounded risk, not unbounded.
+
+**Heuristic:** *When a judgment says "X is impossible," verify against the language spec, not against intuition.* `yield` in `finally` is legal Python; the judgment caught a real concern (safety) but misidentified the mechanism (syntax error vs semantic hazard).
+
+**Seed:** The chaos tools use env vars (`CHAOS_MODE`) for fault injection. Could this pattern generalize to a `yamlgraph.testing` module? A `ChaosProvider` that wraps any LLM provider and injects failures according to a probability distribution? That would make chaos testing available to any graph, not just the test fixture.
+
+---
+
 ## 2026-02-20: The Next Four Bugs (Predictive Analysis of SSE Streaming)
 
 **Trap:** After reflecting on FR-057–060, the instinct is to celebrate what was fixed. But the *interesting* question is: what's *next*? The streaming implementation has handled message types, content format, accumulation, and interrupt timing. What assumptions remain implicit?
@@ -370,3 +387,23 @@ Compare this to a typical backlog: *"Add lint rule for python node variables"*. 
 **Bonus insight:** The Chaplain's Round 2 proposed a `type: llm` parse node to convert the agent's raw JSON string into a Pydantic object. That wastes an LLM call for what `json.loads()` does deterministically. The human correction — use `type: python` — saved one LLM call per graph execution. The judge knows the framework's type system but defaults to LLM nodes as universal solvers. The human knows that not every transformation needs intelligence.
 
 **Seed:** Could the chaplain's judge prompt be augmented with a "fact-check" pass — a list of verification commands (`yamlgraph graph run --help | grep output`, `grep -r "type: shell" yamlgraph/`) that the judge must run before issuing a verdict? Would this close the factual gap, or would it slow judgment to the point where human review is faster?
+
+---
+
+## 2026-02-20: Reading the Whole Diary — The Corpus Effect
+
+**Trap:** **Synthesis masquerading as insight.** Reading 35 entries across 4 files (~15,000 words), the temptation was to produce increasingly abstract meta-observations: "analysis momentum is the ur-trap," "the diary is a compiler," "the funnel always narrows." Each felt profound in the moment. But abstraction without action is the diary's own warning (entry: "meta-recursion produces zero code") applied to the diary itself. The reflection *about* the diary followed the exact pattern the diary warns against — analysis continuing past the point of diminishing returns because the activity feels productive.
+
+**What the corpus read actually revealed:** Three concrete, falsifiable claims survived the abstraction filter:
+
+1. **The diary doesn't prevent recurrence.** Analysis momentum was named on Day 1, violated on Days 2, 3, and 4. Naming a trap and installing a circuit breaker are different operations. The diary does the first; only the Judgment phase does the second.
+
+2. **Silent success is the dominant bug class.** Vuosikello, diary-digest, streaming filter — all succeeded at producing wrong output. This pattern earned its own Commandment (6, graduated from diary). The corpus confirms: more entries describe "it worked but was wrong" than "it crashed."
+
+3. **Seeds are a deferred call stack, not a wish list.** FR-061 was seeded by FR-053. The diary-digest's curate_seeds was seeded by the Seed mechanism itself. Seeds that self-fulfill within days are the high-signal ones; Seeds that linger past a week are either too abstract or already answered by existing tools.
+
+**The trap I'm in right now:** Writing this entry. A diary entry about reading the diary about writing the diary. Three meta-levels deep. The only thing that gives this entry teeth is the falsifiable claim in point 3: if lingering Seeds are low-signal, then the curate_seeds node should aggressively prune Seeds older than 7 days. That's testable. The rest is atmosphere.
+
+**Heuristic:** *A corpus read is valuable when it graduates a pattern to a rule or kills an assumption. If it only produces summaries, it was a reading exercise, not analysis.* The test: did the read change what you'll do tomorrow? Point 1 says "don't trust the diary to prevent recurrence — trust the Judgment phase." Point 3 says "prune stale Seeds." Both change behavior. The rest was scenery.
+
+**Seed:** The diary now has 35 entries and 24 Seeds across 4 days. At this growth rate, the corpus becomes unreadable by Day 10. Should the diary have a *compression* mechanism — a monthly distillation that extracts the 3-5 highest-signal heuristics and archives the rest? Or does "unreadable" not matter if the Seeds and Heuristics are separately indexed?

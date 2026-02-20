@@ -1,0 +1,24 @@
+metadata:
+  name: chaos-test
+  description: Graph for streaming chaos testing (FR-062)
+  provider: anthropic
+
+tools:
+  chaos_respond:
+    type: python
+    module: tests.chaos_tools
+    function: chaos_respond
+    description: "Chaos tool that simulates failure modes"
+
+nodes:
+  chaos_node:
+    type: python
+    module: tests.chaos_tools
+    function: chaos_respond
+    state_key: response
+
+edges:
+  - from: START
+    to: chaos_node
+  - from: chaos_node
+    to: END

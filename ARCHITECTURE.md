@@ -284,6 +284,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 23 | Skip-If-Exists Truthiness | `node_factory/llm_nodes` | REQ-YG-074 |
 | 24 | Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes` | REQ-YG-075 |
 | 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
+| 26 | Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
 
 ### 1. Configuration Loading & Validation
 
@@ -524,6 +525,14 @@ Domain-scoped RAG using Tavily search API with `type: python` tool nodes and map
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-076 | Tavily domain RAG: python tool retrieves context via Tavily API with optional `TAVILY_TARGET_DOMAIN` scoping; simple graph (retrieve→answer) and deep graph (plan→map(retrieve)→synthesize) | `examples/demos/tavily_rag` |
+
+### 26. Streaming Error Resilience
+
+Error propagation, timeout support, and interrupt detection for `run_graph_streaming_native()`. Yields `StreamEvent` Pydantic objects for errors and interrupts instead of crashing silently.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-077 | Streaming error resilience: wrap `astream()` with try/except to yield `StreamEvent(type="error")` on exceptions; `asyncio.timeout()` for stall detection; interrupt payload detection via `aget_state()` after stream completes; `yield_events=False` flag for opt-out (raises instead) | `executor_async`, `models/streaming` |
 
 ---
 

@@ -64,6 +64,12 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `kwargs` parameter unused in callback handler.
 - **Penance**: Required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`). Cannot remove without breaking signature compatibility.
 
+### CONF-003
+- **File**: [yamlgraph/executor_async.py](../yamlgraph/executor_async.py#L293)
+- **Code**: ANN001 (missing type annotation for function argument)
+- **Sin**: `state` parameter in `_get_interrupt_payload()` has no type annotation.
+- **Penance**: The type is `langgraph.pregel.types.StateSnapshot` which is a private API. Importing it would couple us to LangGraph internals. The function only accesses `.tasks` and `.interrupts` attributes, which are stable across versions.
+
 ---
 
 ## Test Code
