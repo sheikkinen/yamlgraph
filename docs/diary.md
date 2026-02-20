@@ -35,3 +35,17 @@ Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02
 **Bonus trap:** The linter's `prompts_relative` bug showed inconsistent config reading — `prompts_dir` checked defaults, but `prompts_relative` didn't. This is a category error: options that can appear in `defaults` must always check both locations. When fixing, add a test that exercises the defaults path specifically.
 
 **Seed:** Could the linter validate its own config-reading consistency? A meta-lint rule that scans `resolve_*` functions to ensure every `graph.get("option")` has a corresponding `defaults.get("option")` fallback.
+
+---
+
+## 2026-02-20: Over-Engineering the Already Solved
+
+**Trap:** "Smart version" as a trigger for solution mode. Asked to make absolution "smarter" with failure tracking, I built a wrapper script and log file infrastructure. But pre-commit already shows exactly which hook failed. If absolution runs, everything passed — it's already "smart" by definition.
+
+**Insight:** ruff-format "failures" aren't real failures — they auto-fix and you retry. Real failures stop the chain with clear output. The wrapper/log approach was solving a non-problem.
+
+**Heuristic:** Before adding infrastructure, ask: "What observable problem does this solve?" If the answer is "it would be nice to know X" rather than "users are confused by Y", it's probably unnecessary.
+
+**Metrics:** 60+ lines of wrapper code written, tested, then deleted. Net commit: 26 lines — just the Python script replacing the bash echo.
+
+**Seed:** Could pre-commit hooks have a "commit anyway" escape hatch for non-blocking warnings vs hard failures? Or is the file-modification-as-failure pattern (ruff-format) actually the right design forcing explicit re-staging?
