@@ -13,6 +13,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytest.importorskip(
+    "feedparser",
+    reason="feedparser not installed (install with: pip install -e '.[digest]')",
+)
+
 # Canonical modules under examples/diary_digest/nodes/
 SRC = "examples.diary_digest.nodes.sources"
 WRT = "examples.diary_digest.nodes.writing"
