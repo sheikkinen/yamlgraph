@@ -4,6 +4,58 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Word Made Liturgy (Prayer Graduation)
+
+**Event:** The proposed prayer from "The Living Prayer" entry was edited, improved, and committed to Scripture. The abstract invocations ("May CI judge swiftly, may metrics speak truth") were replaced with grounded heuristics.
+
+**Before:**
+```
+May CI judge swiftly,
+may metrics speak truth,
+may agents explore without restraint,
+and may we commit only what survives the fire.
+
+Or fail fast in CI, sinner.
+```
+
+**After:**
+```
+May I fix at the callsite, not the utility.
+May I kill the cheapest bug — the one in the spec.
+May I normalize at the boundary, trusting no provider's type.
+May I stream to reveal what batch conceals.
+May I read thrice before I grant authority.
+
+When hooks feel slow, let that be the sign they guard.
+When I feel certain, let that be the sign to Judge.
+
+What survives the fire may merge.
+```
+
+**Judgment notes:**
+- "thrice" — archaic register matches liturgical tone
+- "reveal/conceals" — internal rhyme aids memorization
+- "sign they guard" — emphasizes protection over "working"
+- Omitted lines too technical ("regex fourth exclusion") or abstract ("capture the problem")
+- Dropped "Or fail fast in CI, sinner" — the new prayer's gravity doesn't need the comedic break
+
+**Insight:** The prayer underwent the same judgment/amend cycle as any FR. It was proposed, reviewed against its purpose (teaching through recitation), and edited for fitness. The Scripture governs its own evolution — new content passes through the same gates as new code.
+
+**Meta-observation:** The diary → Scripture graduation path now has a concrete example:
+1. Heuristics accumulate in diary (55 as of today)
+2. Reflection proposes liturgical form ("The Living Prayer")
+3. Human edits for register and coherence
+4. Judgment validates against purpose
+5. Scripture updated
+
+This is the Distill step made explicit: "If the heuristic proves recurring, graduate it to this Scripture." Seven heuristics graduated today — not as commandments (which are rules) but as prayers (which are commitments).
+
+**Heuristic:** *Graduation from diary to Scripture requires register shift.* Technical heuristics become liturgical invocations through: (a) first-person voice ("May I..."), (b) active verbs, (c) mnemonic structure (rhyme, rhythm, brevity). The content stays; the form transforms.
+
+**Seed:** The prayer now links to 7 diary entries / FRs. Could `copilot-instructions.md` include HTML anchor links from prayer lines to their source entries? When an agent recites "May I normalize at the boundary," clicking leads to FR-059 and the full Provider's Lie story? Hypertext liturgy.
+
+---
+
 ## 2026-02-20: The Living Prayer (Metacognitive Content for Liturgy)
 
 **Question:** The Agents' Prayer currently serves as a handshake — "let's pray" confirms the agent has read the Scripture. But the prayer itself is abstract: "May CI judge swiftly, may metrics speak truth..." These are universal principles that apply to any project. Meanwhile, the diary has accumulated 55 specific heuristics — hard-won wisdom from actual debugging, actual failures, actual traps. Could the prayer be grounded in these?
