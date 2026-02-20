@@ -1,0 +1,59 @@
+# Interactive Tool Demo — FR-049
+#
+# Demonstrates the `type: interactive_tool` node, which packs
+# a full multi-turn conversation loop into a single YAML node:
+#
+#   quiz (interactive_tool)
+#     └─ expands to ──►  quiz__start → quiz__ask → quiz__step ↺ → quiz__end
+#
+# Run:
+#   yamlgraph graph lint examples/demos/interactive-tool/graph.yaml
+#   yamlgraph graph run  examples/demos/interactive-tool/graph.yaml
+
+version: "1.0"
+name: trivia-quiz
+description: |
+  A 3-question trivia quiz built with a single interactive_tool node.
+  Demonstrates: start/step/end tool wiring, loop_until condition,
+  interrupt/resume for user input, and automatic session summary.
+
+tools:
+  quiz_start:
+    type: python
+    module: examples.demos.interactive_tool.tools.quiz
+    function: quiz_start
+    description: "Initialise a new quiz session"
+  quiz_step:
+    type: python
+    module: examples.demos.interactive_tool.tools.quiz
+    function: quiz_step
+    description: "Evaluate answer and serve next question"
+  quiz_end:
+    type: python
+    module: examples.demos.interactive_tool.tools.quiz
+    function: quiz_end
+    description: "Produce final quiz summary"
+
+state:
+  session_id: str
+  user_answer: str
+  bot_response: str
+  session_done: bool
+  session_summary: str
+
+nodes:
+  quiz:
+    type: interactive_tool
+    start: quiz_start
+    step: quiz_step
+    end: quiz_end
+    resume_key: user_answer
+    response_key: bot_response
+    loop_until: "state.session_done == True"
+    max_iterations: 10
+
+edges:
+  - from: START
+    to: quiz
+  - from: quiz
+    to: END
