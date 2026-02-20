@@ -31,6 +31,26 @@ yamlgraph graph run examples/demos/tavily_rag/graph-deep.yaml \
   --var question="Compare pricing and availability of different services"
 ```
 
+### Example: Scryfall (MTG card lore)
+
+Override the domain at runtime to query any site:
+
+```bash
+# Simple — single retrieval
+TAVILY_TARGET_DOMAIN=scryfall.com \
+  yamlgraph graph run examples/demos/tavily_rag/graph.yaml \
+  --var question="lore of Giada" --full
+
+# Deep — plan + parallel fan-out + synthesize
+TAVILY_TARGET_DOMAIN=scryfall.com \
+  yamlgraph graph run examples/demos/tavily_rag/graph-deep.yaml \
+  --var question="lore of Giada" --full --async
+```
+
+The deep graph decomposes "lore of Giada" into 5 sub-queries (origins,
+card appearances, crossovers, etc.), retrieves each in parallel via Tavily,
+and synthesizes a grounded answer citing Scryfall sources.
+
 ## How It Works
 
 ### Simple Graph
