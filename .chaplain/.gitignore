@@ -1,0 +1,7 @@
+# .chaplain/
+# Chaplain working directory — logs and state
+# Not committed to git
+
+*.log
+*.json
+logs/

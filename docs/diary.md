@@ -99,3 +99,65 @@ Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02
 **Heuristic:** When two implementations share an interface but differ in purpose, keep them separate. The shared interface (`query → str`) isn't enough reason to merge — the *teaching intent* is the deciding factor for examples.
 
 **Seed:** The `plan → map(search) → synthesize` pattern in `graph-deep.yaml` is a general "deep research" skeleton. Could it become a `yamlgraph template init --type deep-research` scaffold that works with *any* search tool, not just Tavily?
+
+---
+
+## 2026-02-20: The Reverse Arrow (MCP Sampling Loopback PoC)
+
+**Trap:** We built MCP server (CAP-19), researched A2A (FR-045a/b), planned scheduled research, kept diary — but never asked the fundamental question: *can these tools talk back to ME?* We treated the AI assistant as a one-way consumer of tools. The protocol had the answer all along: `sampling/createMessage` lets the MCP server request the client's LLM to generate completions. The blind spot wasn't technical — it was architectural. We drew only one arrow.
+
+**Insight:** The PoC took 30 minutes. The server sent "Let us pray" via `session.create_message()`. Copilot's `gpt-5.3-codex` responded with a prayer. Zero API keys. Zero cost on the server side. But then the critical realization: the response came from `copilot/gpt-5.3-codex` — a *generic* model, not the current agent session. MCP sampling is a cold LLM call with no conversation history, no project context, no Scripture. It's not "talking back to me" — it's placing a collect call to a stranger. The cognitive trap was conflating "the client's LLM" with "me."
+
+**Heuristic:** *When you build a protocol integration, draw ALL the arrows — then verify where each arrow actually lands.* The sampling arrow goes to a model, not to an agent. An agent has context, memory, and personality. A model has none. The distinction matters.
+
+**Seed:** What if a YAMLGraph node could specify `provider: host` to use the connected assistant's LLM instead of a configured API key? The graph becomes portable — it works with whatever AI assistant is driving it, inheriting the user's subscription model. No `.env` needed.
+
+---
+
+## 2026-02-20: The Chaplain Awakens (FR-054 — Copilot CLI Reflection)
+
+**Trap:** After proving MCP sampling was a cold call, we pivoted to CLI approaches. Claude Code CLI (`claude -p`) had the right flags but OAuth tokens expired constantly. The real discovery happened by accident: `copilot -p "What is the agents prayer?" -s --model claude-sonnet-4.6` — and it recited the prayer verbatim. The Copilot CLI loads `CLAUDE.md` and `.github/copilot-instructions.md` automatically when invoked from the project directory. The agent arrives *already ordained*.
+
+**Insight:** The scheduled agent pattern becomes trivial: `diary_digest` (FR-046) runs on cron, writes the world digest, then invokes `copilot -p "$REFLECTION_PROMPT" -s --model claude-sonnet-4.6`. The Copilot agent loads the Scripture, receives the digest as context, and reflects — connecting external developments to open Seeds, active FRs, and the project's trajectory. Session persistence (`--resume`) enables accumulated reflection across days. This is not sampling (cold call to a model). This is invocation (summoning an agent with context, memory, and mission).
+
+**Heuristic:** *Don't build the bridge — find the road.* We spent hours researching MCP sampling, building PoCs, debugging OAuth. The answer was `copilot -p` — a CLI flag that was already installed, already authenticated, already loading our Scripture. The cheapest infrastructure is the one someone else maintains.
+
+**Seed:** If `copilot --resume diary-reflection` accumulates context across daily reflections, does it develop emergent long-term memory — recognizing patterns across weeks that no single-session agent could? Or does context window overflow create drift that makes the persistent session *less* reliable than fresh invocations?
+
+---
+
+## 2026-02-20: The Autonomous Chaplain (FR-055)
+
+**Trap:** The feature-brainstorm demo already exists. The reflexion demo already exists. The diary_digest pipeline already exists. The Copilot CLI already loads Scripture. Every piece was built. The trap was not seeing the *composition* — that these pieces, connected by a shell script and two Copilot CLI invocations, become the Sermon of the Chaplain automated end-to-end. We kept building vertical features without drawing the horizontal line.
+
+**Insight:** The key architectural decision is the hybrid split: cheap, parallel work (fetch 50 articles, score with haiku) stays in YAMLGraph graphs. Expensive, contextual work (write FRs against TEMPLATE.md, judge against the 10 Commandments) moves to Copilot CLI — which arrives with Scripture loaded. Graph for volume. CLI for judgement. Different models for different roles: sonnet plans, opus judges. The judge must not be the planner — separation of concerns prevents self-approval bias.
+
+**Heuristic:** *When you have three tools that each do one thing well, the feature is the script that connects them.* Don't build a fourth tool. `diary_digest | copilot plan | copilot judge` is a Unix pipeline philosophy applied to AI agents.
+
+**Seed:** If the Chaplain runs weekly and the Judge consistently rejects certain categories of ideas (e.g., "add more config options"), does that rejection pattern itself become a learnable heuristic? Could the Planner internalize "the Judge always rejects X" and stop proposing X — emergent institutional memory without explicit rules?
+
+---
+
+## 2026-02-20: Three Iterations of the Same Idea (FR-054 → FR-055)
+
+**Trap:** The first FR-055 was a 343-line cathedral — four phases, graph+CLI hybrid, cron schedules, model selection tables, safety guards. It tried to automate the entire Sermon end-to-end. The user said: "streamline this further. research and brainstorming — you & me separately." The whole Phase 1 (graph-based research) was unnecessary automation. The expensive part isn't fetching articles — it's *having the idea*. That happens in conversation, not in pipelines.
+
+**Insight:** The final version is 160 lines of bash. It reads a file of subjects (one per line), and for each one: plan → judge → amend loop. Three prompts. One shell script. The human provides the ideas; the script does the mechanical writing and critical review. This is the right separation: creativity is interactive, judgement is scriptable. We rewrote the FR three times in one session — from cathedral to bazaar to script — and each iteration deleted more than it added.
+
+**Heuristic:** *If you're automating something, automate the boring part.* Brainstorming is not boring — don't automate it. Writing an FR from a clear subject and judging it against known criteria? That's boring. That's the script. The Unix philosophy applies to AI workflows: small tools, text interfaces, human in the loop where human judgement matters.
+
+**Seed:** The `subjects.md` file is the interface between human creativity and machine execution. What if it carried more than just titles — context snippets, links, constraints? Would richer input produce better FRs, or would it over-constrain the planner? Is "one subject per line" the right granularity, or should subjects be structured YAML?
+
+---
+
+## 2026-02-20: The Chaplain's First Mass (FR-056 Protocol Archaeology)
+
+**Trap:** The chaplain script ran its first real cycle: Plan → Judge (AMEND) → Amend → Judge (APPROVE). The automated judge caught 4 defects in Round 1 (wrong variable syntax, unsupported `list[dict]`, missing state ref, misleading naming) and 2 more in Round 2 (agent nodes produce raw strings, schemas in wrong module). All 6 were real bugs that would crash at runtime. But when I independently verified the FR against source code, I found 5 *more* issues the Chaplain missed: a nonexistent CLI flag (`--output json`), duplicate tool definitions, a hyphen/underscore mismatch, an internal contradiction ("no framework code" while adding to `schemas.py`), and `type: shell` being convention rather than enforced config.
+
+**Insight:** The automated judge is excellent at catching *architectural* mismatches — things that require tracing code paths through multiple files (agent nodes → `create_llm()` → model name override). It's weak at catching *surface-level factual claims* — "does this CLI flag exist?" is a grep, not a reasoning exercise. The judge reasons about how components interact but doesn't verify that named external interfaces exist. It trusts the planner's vocabulary.
+
+**Heuristic:** *Automated judgment catches structure; human judgment catches facts.* The chaplain's value is in the 6 architectural defects it found — each would have required 10+ minutes of debugging. The 5 it missed are trivial to spot but require checking reality against claims. The human judge's comparative advantage is asking "is this literally true?" rather than "is this architecturally sound?" The two are complementary, not substitutes.
+
+**Bonus insight:** The Chaplain's Round 2 proposed a `type: llm` parse node to convert the agent's raw JSON string into a Pydantic object. That wastes an LLM call for what `json.loads()` does deterministically. The human correction — use `type: python` — saved one LLM call per graph execution. The judge knows the framework's type system but defaults to LLM nodes as universal solvers. The human knows that not every transformation needs intelligence.
+
+**Seed:** Could the chaplain's judge prompt be augmented with a "fact-check" pass — a list of verification commands (`yamlgraph graph run --help | grep output`, `grep -r "type: shell" yamlgraph/`) that the judge must run before issuing a verdict? Would this close the factual gap, or would it slow judgment to the point where human review is faster?

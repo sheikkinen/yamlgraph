@@ -4,6 +4,11 @@
       "command": ".venv/bin/python3",
       "args": ["yamlgraph/mcp_server.py"],
       "cwd": "/Users/sheikki/Documents/src/yamlgraph"
+    },
+    "loopback-poc": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": ["${workspaceFolder}/scripts/loopback-poc/mcp_server.py"]
     }
   }
 }
