@@ -39,13 +39,13 @@ quiz__start → quiz__ask → quiz__step ↺ → quiz__end
 
 ```bash
 # Non-interactive (canned answers)
-python examples/demos/interactive-tool/run.py
+python examples/demos/interactive_tool/run.py
 
 # Interactive (type your answers)
-python examples/demos/interactive-tool/run.py --interactive
+python examples/demos/interactive_tool/run.py --interactive
 
 # Lint
-yamlgraph graph lint examples/demos/interactive-tool/graph.yaml
+yamlgraph graph lint examples/demos/interactive_tool/graph.yaml
 ```
 
 ## Key Concepts

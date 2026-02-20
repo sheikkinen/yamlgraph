@@ -91,6 +91,10 @@ result = execute_prompt(
 | `tool_call` | Dynamic tool from state |
 | `map` | Parallel execution over list |
 | `python` | Custom Python function |
+| `interrupt` | Human-in-the-loop pause/resume |
+| `passthrough` | State transformation without LLM |
+| `subgraph` | Nested graph execution |
+| `interactive_tool` | Multi-turn conversation loop (start→ask→step↺→end) |
 
 ## CLI Usage
 

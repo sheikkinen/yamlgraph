@@ -222,7 +222,7 @@ Each node in the `nodes` section defines a processing step.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `type` | `string` | `"llm"` | Node type: `llm`, `router`, `agent`, `tool`, `python`, `map`, `interrupt`, `passthrough`, `tool_call`, `subgraph` |
+| `type` | `string` | `"llm"` | Node type: `llm`, `router`, `agent`, `tool`, `python`, `map`, `interrupt`, `passthrough`, `tool_call`, `subgraph`, `interactive_tool` |
 | `prompt` | `string` | varies | Prompt file path (without `.yaml`) |
 | `variables` | `object` | `{}` | Template variable mappings |
 | `state_key` | `string` | node name | State key to store result |
@@ -561,6 +561,52 @@ nodes:
 | `output_mapping` | `dict` | No | Map child state keys to parent state keys |
 
 See [Subgraph Nodes Reference](subgraph-nodes.md) for state mapping patterns and nesting.
+
+### `type: interactive_tool` - Multi-Turn Conversation Loop
+
+Packs a full multi-turn conversation (start → ask → step ↺ → end) into a
+single YAML node. Expands at compile time into `interrupt` and `python` nodes
+with automatic edge wiring — no manual routing needed.
+
+```yaml
+nodes:
+  chat:
+    type: interactive_tool
+    start: chatbot_start           # Python tool: initialise session
+    step: chatbot_step             # Python tool: process each turn
+    end: chatbot_end               # Python tool: summarise (optional)
+    resume_key: user_message       # State key for user input
+    response_key: bot_response     # State key shown to user
+    loop_until: "state.session_done == True"
+    max_iterations: 10             # Safety guard (default: 10)
+```
+
+Expands into:
+
+```
+chat__start → chat__ask → chat__step ↺ → chat__end
+                  ↑              │
+                  └──────────────┘  (loops until condition met)
+```
+
+**Interactive tool properties:**
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `start` | `string` | Yes | Python tool name for session initialisation |
+| `step` | `string` | Yes | Python tool name for processing each turn |
+| `end` | `string` | No | Python tool name for session summary |
+| `resume_key` | `string` | Yes | State key where user input is stored |
+| `response_key` | `string` | Yes | State key for bot response (shown at interrupt) |
+| `loop_until` | `string` | Yes | Condition expression (e.g. `state.done == True`) |
+| `max_iterations` | `int` | No | Maximum loop iterations before forced exit (default: 10) |
+| `on_error` | `string` | No | Error handling for expanded nodes |
+
+Each tool receives the full state dict and returns a state update dict.
+The `end` tool is optional — without it, the step node exits directly to
+the next edge when `loop_until` fires.
+
+See [examples/demos/interactive_tool/](../examples/demos/interactive_tool/) for a working trivia quiz demo.
 
 ### Error Handling Properties
 
