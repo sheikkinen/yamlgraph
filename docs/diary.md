@@ -4,6 +4,37 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Next Four Bugs (Predictive Analysis of SSE Streaming)
+
+**Trap:** After reflecting on FR-057–060, the instinct is to celebrate what was fixed. But the *interesting* question is: what's *next*? The streaming implementation has handled message types, content format, accumulation, and interrupt timing. What assumptions remain implicit?
+
+**Analysis:** The current `run_graph_streaming_native` handles the hot path — tokens flow, types filter, content yields. But the cold paths are unguarded:
+
+| # | Predicted Issue | Why Streaming Exposes It |
+|---|-----------------|--------------------------|
+| 1 | **No error propagation** — exception in generator crashes silently | Batch throws to caller; stream dies mid-iteration with no signal |
+| 2 | **No timeout** — slow LLM holds connection indefinitely | Batch blocks caller; stream holds HTTP connection open forever |
+| 3 | **Interrupt indistinguishable from completion** — stream ends either way | Batch returns `__interrupt__`; stream just stops yielding |
+| 4 | **Token counting impossible** — Usage hardcoded to 0 | Batch can count final response; stream tokens pass through uncounted |
+| 5 | **Connection drop = lost state** — no resume-from-token | Batch is atomic; stream partial state is invisible to client |
+| 6 | **Concurrent session race** — two requests same thread_id | Batch serializes via checkpoint; stream may interleave token writes |
+
+The openai_proxy example has no `config` (no `thread_id`), so multi-turn is impossible. The streaming generator has no `try/except`, so LLM errors vanish. The SSE format has `finish_reason: "stop"` but no `finish_reason: "interrupted"`.
+
+**Insight:** The first four fixed bugs were **content issues** (what data flows through). The next four are **control issues** (what happens when flow breaks). Content bugs manifest as wrong output; control bugs manifest as hangs, silent failures, and inconsistent state. FR-057–060 were discovered by *using* the stream; the next bugs will be discovered by *breaking* it — disconnect mid-stream, timeout, concurrent requests, LLM rate limits.
+
+**Heuristic:** *After fixing content bugs, probe control paths.* The "happy path" reveals data shape issues; the "sad path" reveals flow control issues. A thorough integration tests both.
+
+**Predicted FR queue:**
+1. **FR-062**: SSE error propagation — yield error event on exception
+2. **FR-063**: Streaming timeout — configurable max duration before abort
+3. **FR-064**: Interrupt signal in stream — yield special event if graph pauses
+4. **FR-065**: Token counting callback — optional handler to accumulate usage
+
+**Seed:** Can we add chaos testing to the SSE integration tests? A mock LLM that randomly: (a) throws mid-stream, (b) delays 30s, (c) returns empty chunks, (d) rate-limits. The test asserts the consumer handles each gracefully. Proactive bug discovery instead of production observation.
+
+---
+
 ## 2026-02-20: The SSE Proxy Pattern (Inter-Project Communication)
 
 **Trap:** Reviewing feature requests FR-057 through FR-060, the pattern is striking: all four were filed on the same day (2026-02-20), all HIGH priority, all implemented in 0.5-1 days. They follow a clear causal chain: questionnaire-api builds SSE streaming proxy → discovers agent node leaks system prompt (FR-058) → discovers Anthropic returns list content (FR-059) → discovers messages grow quadratically across turns (FR-057) → discovers interrupt nodes don't set state before pause (FR-060). Each bug was discovered in production, filed as FR, fixed in yamlgraph core, consumed in questionnaire-api within hours.
