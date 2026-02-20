@@ -4,6 +4,26 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The SSE Proxy Pattern (Inter-Project Communication)
+
+**Trap:** Reviewing feature requests FR-057 through FR-060, the pattern is striking: all four were filed on the same day (2026-02-20), all HIGH priority, all implemented in 0.5-1 days. They follow a clear causal chain: questionnaire-api builds SSE streaming proxy → discovers agent node leaks system prompt (FR-058) → discovers Anthropic returns list content (FR-059) → discovers messages grow quadratically across turns (FR-057) → discovers interrupt nodes don't set state before pause (FR-060). Each bug was discovered in production, filed as FR, fixed in yamlgraph core, consumed in questionnaire-api within hours.
+
+**Insight:** Feature requests are the API between projects. Not in the OpenAPI sense — in the *contract* sense. questionnaire-api doesn't submit PRs to yamlgraph; it files FRs describing the **failure mode** observed in production. The FR format (Problem → Proposed Solution → Acceptance Criteria → Related Code) is a bug report that specifies its own fix. The consumer describes the symptom; the framework owner implements the remedy. This separation preserves encapsulation: questionnaire-api doesn't need to understand `executor_async.py` internals; it only needs to describe what went wrong.
+
+The SSE proxy work revealed four framework-level bugs in a single integration effort because streaming exposes timing assumptions that batch execution hides:
+1. **Message types leak** (FR-058): Batch returns final state; streaming reveals intermediate messages
+2. **Content format varies** (FR-059): Batch normalizes; streaming passes through raw types
+3. **State accumulates wrong** (FR-057): Batch doesn't loop; streaming reveals multi-turn growth
+4. **Interrupt timing** (FR-060): Batch doesn't observe mid-node state; streaming needs it before pause
+
+**Heuristic:** *Streaming is the X-ray of your state machine.* If you want to find framework bugs, build a streaming consumer. The real-time constraint exposes every implicit assumption about when state commits, what shape data has, and which intermediate steps were supposed to be invisible.
+
+**Meta-pattern:** The FR chain is a dialogue. FR-058 ("filter message types") begat FR-059 ("normalize content") because the filter (`isinstance(content, str)`) failed on Anthropic's list format. The first fix revealed the second bug. Feature requests are a refactoring conversation between producer and consumer.
+
+**Seed:** The FR-to-implementation cycle today was hours, not days. What's the natural limit? Could the FR format itself be machine-readable (YAML frontmatter), enabling a bot to draft implementation PRs? `trap:` → search similar FRs, `proposed_solution:` → generate patch, `acceptance_criteria:` → generate tests. The FR becomes the spec; the spec compiles to code.
+
+---
+
 ## 2026-02-20: The 40% Rule (Questionnaire-API Analysis)
 
 **Trap:** Asked to "analyze" an external project, the instinct was to count lines and list files — developer tourism. But the interesting question wasn't "what does questionnaire-api contain?" but "what does questionnaire-api *prove*?" The project is 8,161 lines of Python and 5,355 lines of YAML — 40% declarative configuration. And the YAML isn't boilerplate: it's the **business logic**. The `audit/graph.yaml` (320 lines) defines the complete alcohol screening flow: opening → probing loop → gap detection → recap → scoring. The Python (8K lines) provides the *plumbing*: session management, scoring engines, API endpoints, validation. The inversion is complete — orchestration in YAML, infrastructure in Python.
