@@ -382,3 +382,156 @@ class TestAgentWithPythonTools:
 
         assert result["result"] == "Done with both tools"
         assert result["_agent_iterations"] == 3
+
+
+class TestAgentMessagesDelta:
+    """Tests for FR-057: agent returns only new messages, not full history.
+
+    When an agent node is invoked multiple times (e.g., across interrupt
+    boundaries), it must return only the NEW messages (delta) so the
+    `Annotated[list, add]` reducer doesn't cause quadratic growth.
+    """
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_agent_returns_delta_not_full_messages(self, mock_create_llm):
+        """Agent returns only new messages, not the full conversation."""
+        mock_llm = MagicMock()
+        mock_response = MagicMock()
+        mock_response.tool_calls = []
+        mock_response.content = "Answer 1"
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.return_value = mock_response
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "search": ShellToolConfig(command="echo test", description="Search"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["search"],
+            "max_iterations": 5,
+            "state_key": "result",
+        }
+
+        node_fn = create_agent_node("agent", node_config, tools)
+
+        # Simulate first invocation (no existing messages)
+        result1 = node_fn({"input": "Question 1"})
+        msgs1 = result1["messages"]
+
+        # msgs1 should contain: [SystemMessage, HumanMessage, AIMessage]
+        assert len(msgs1) == 3
+
+        # Simulate second invocation WITH existing messages in state
+        # (as if the add reducer already accumulated msgs1)
+        mock_response2 = MagicMock()
+        mock_response2.tool_calls = []
+        mock_response2.content = "Answer 2"
+        mock_llm.invoke.return_value = mock_response2
+
+        result2 = node_fn({"input": "Question 2", "messages": msgs1})
+        msgs2 = result2["messages"]
+
+        # CRITICAL: msgs2 should contain ONLY the delta (new messages),
+        # NOT the full conversation. If the agent returns all messages,
+        # the add reducer would duplicate msgs1.
+        # Delta = [HumanMessage("Question 2"), AIMessage("Answer 2")]
+        assert len(msgs2) == 2, (
+            f"Expected 2 new messages (delta), got {len(msgs2)}. "
+            f"Agent is returning full conversation instead of delta — "
+            f"this causes quadratic growth with the add reducer."
+        )
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_five_turn_loop_linear_growth(self, mock_create_llm):
+        """Simulate 5-turn interrupt loop; verify linear message growth."""
+        mock_llm = MagicMock()
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "search": ShellToolConfig(command="echo test", description="Search"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["search"],
+            "max_iterations": 5,
+            "state_key": "result",
+        }
+
+        node_fn = create_agent_node("agent", node_config, tools)
+
+        # Simulate the add reducer externally
+        accumulated_messages: list = []
+
+        for turn in range(5):
+            mock_response = MagicMock()
+            mock_response.tool_calls = []
+            mock_response.content = f"Answer {turn}"
+            mock_llm.invoke.return_value = mock_response
+
+            state = {"input": f"Question {turn}", "messages": accumulated_messages}
+            result = node_fn(state)
+            delta = result["messages"]
+
+            # Each turn: agent reads existing, adds HumanMessage + AIMessage
+            # Delta should be ONLY the new messages (2 per turn for turns > 0,
+            # 3 for first turn which includes SystemMessage)
+            if turn == 0:
+                assert len(delta) == 3, f"Turn 0: expected 3, got {len(delta)}"
+            else:
+                assert (
+                    len(delta) == 2
+                ), f"Turn {turn}: expected 2 delta msgs, got {len(delta)}"
+
+            # Simulate add reducer
+            accumulated_messages = accumulated_messages + delta
+
+        # After 5 turns: 3 + 2*4 = 11 messages (linear)
+        assert len(accumulated_messages) == 11, (
+            f"Expected 11 messages (linear growth), got {len(accumulated_messages)}. "
+            f"Quadratic growth detected."
+        )
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_max_iterations_returns_delta(self, mock_create_llm):
+        """Max iterations path also returns delta, not full messages."""
+        mock_llm = MagicMock()
+        mock_response = MagicMock()
+        mock_response.tool_calls = [
+            {"id": "call1", "name": "search", "args": {"query": "more"}}
+        ]
+        mock_response.content = "Still searching..."
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.return_value = mock_response
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "search": ShellToolConfig(command="echo result", description="Search"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["search"],
+            "max_iterations": 2,
+            "state_key": "result",
+        }
+
+        node_fn = create_agent_node("agent", node_config, tools)
+
+        # First invocation with no history — builds initial messages
+        result1 = node_fn({"input": "Search"})
+        msgs1 = result1["messages"]
+
+        # Second invocation with accumulated state
+        result2 = node_fn({"input": "Search again", "messages": msgs1})
+        msgs2 = result2["messages"]
+
+        # Should be delta only, not full conversation
+        assert len(msgs2) < len(msgs1) + len(
+            msgs2
+        ), "Max iterations path returning full conversation instead of delta"
+        # More precisely: delta should NOT contain msgs1
+        assert msgs2[0] not in msgs1, "Delta contains messages from previous invocation"

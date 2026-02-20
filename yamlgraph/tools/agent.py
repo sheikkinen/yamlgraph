@@ -272,11 +272,15 @@ def create_agent_node(
             if not response.tool_calls:
                 # Done - LLM finished reasoning
                 logger.info(f"✓ Agent completed after {iteration + 1} iterations")
+                # Return only NEW messages (delta) — the add reducer
+                # appends to existing state, so returning the full list
+                # would cause quadratic growth (FR-057).
+                new_messages = messages[len(existing_messages) :]
                 result = {
                     state_key: response.content,
                     "current_step": node_name,
                     "_agent_iterations": iteration + 1,
-                    "messages": messages,  # Return for accumulation
+                    "messages": new_messages,
                 }
                 if tool_results_key and tool_results:
                     result[tool_results_key] = tool_results
@@ -340,12 +344,14 @@ def create_agent_node(
         # Hit max iterations
         logger.warning(f"Agent hit max iterations ({max_iterations})")
         last_content = messages[-1].content if hasattr(messages[-1], "content") else ""
+        # Return only NEW messages (delta) — see FR-057
+        new_messages = messages[len(existing_messages) :]
         result = {
             state_key: last_content,
             "current_step": node_name,
             "_agent_iterations": max_iterations,
             "_agent_limit_reached": True,
-            "messages": messages,  # Return for accumulation
+            "messages": new_messages,
         }
         if tool_results_key and tool_results:
             result[tool_results_key] = tool_results
