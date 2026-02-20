@@ -74,6 +74,7 @@ nodes:
     over: "{state.raw_articles}"
     as: article
     max_items: 50
+    flatten_output: true  # FR-052: merge _map_analyze_all_sub into items
     node:
       type: llm
       prompt: analyze_relevance

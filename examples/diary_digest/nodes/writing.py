@@ -17,35 +17,21 @@ DIARY_PATH = Path(__file__).resolve().parent.parent.parent.parent / "docs" / "di
 
 
 def _extract_score(article: dict) -> float:
-    """Extract relevance_score from article, handling map node nesting.
+    """Extract relevance_score from article.
 
-    Map nodes collect results as:
-        {"_map_index": N, "_map_<name>_sub": RelevanceScore(...)}
-    The score is inside the nested Pydantic model, not at the top level.
+    With flatten_output: true (FR-052), relevance_score is at top level.
     """
-    # Direct key (flat dict)
-    score = article.get("relevance_score")
+    score = article.get("relevance_score", 0)
     if isinstance(score, int | float):
         return float(score)
-
-    # Nested in map node result (Pydantic model or dict under _map_*_sub key)
-    for key, value in article.items():
-        if key.startswith("_map_") and key.endswith("_sub"):
-            if hasattr(value, "relevance_score"):
-                return float(value.relevance_score)
-            if isinstance(value, dict):
-                s = value.get("relevance_score", 0)
-                if isinstance(s, int | float):
-                    return float(s)
-
     return 0.0
 
 
 def _flatten_article(article: dict, raw_articles: list[dict]) -> dict:
-    """Flatten map output into a single dict with all article fields.
+    """Merge original article data with score data.
 
-    Merges original article data (via _map_index → raw_articles) with
-    score data from the nested Pydantic model under _map_*_sub keys.
+    With flatten_output: true (FR-052), score fields are already at top level.
+    We still need to merge with raw_articles for original fields like 'url'.
     """
     flat: dict = {}
 
@@ -54,13 +40,10 @@ def _flatten_article(article: dict, raw_articles: list[dict]) -> dict:
     if idx is not None and idx < len(raw_articles):
         flat.update(raw_articles[idx])
 
-    # Overlay score data from nested Pydantic model
+    # Overlay score fields (already flattened by FR-052)
     for key, value in article.items():
-        if key.startswith("_map_") and key.endswith("_sub"):
-            if hasattr(value, "model_dump"):
-                flat.update(value.model_dump())
-            elif isinstance(value, dict):
-                flat.update(value)
+        if not key.startswith("_map_"):
+            flat[key] = value
 
     return flat
 
@@ -69,10 +52,9 @@ def filter_relevant(state: dict) -> dict:
     """Filter scored articles by relevance threshold.
 
     Returns relevant_articles list and relevant_count for routing.
-    If relevant_count == 0, the graph routes to END (no-op).
+    If relevant_count == 0, the graph routes to curate_seeds (no-op for diary).
 
-    Map nodes wrap results as {'_map_index': N, '_map_analyze_all_sub': RelevanceScore(...)}.
-    This function unwraps the Pydantic model to extract the score.
+    With flatten_output: true (FR-052), relevance_score is at top level.
     """
     scored = state.get("scored_articles", [])
     raw = state.get("raw_articles", [])

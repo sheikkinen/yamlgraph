@@ -267,38 +267,27 @@ class TestFilterRelevant:
     """Test filter_relevant handles map node output structure."""
 
     @pytest.mark.req("REQ-YG-072")
-    def test_filter_extracts_score_from_map_output(self):
-        """filter_relevant extracts relevance_score from map node structure.
+    def test_filter_extracts_score_from_flattened_output(self):
+        """filter_relevant extracts relevance_score from flattened map output.
 
-        Map nodes collect results as:
-        {"_map_index": N, "_map_analyze_all_sub": RelevanceScore(...)}
+        With flatten_output: true (FR-052), map nodes output:
+        {"_map_index": N, "relevance_score": 0.9, "reason": "..."}
         """
-        from pydantic import BaseModel
-
         from examples.diary_digest.nodes.writing import filter_relevant
-
-        class RelevanceScore(BaseModel):
-            title: str
-            relevance_score: float
-            reason: str
 
         state = {
             "scored_articles": [
                 {
                     "_map_index": 0,
-                    "_map_analyze_all_sub": RelevanceScore(
-                        title="LangGraph 2.0 Released",
-                        relevance_score=0.9,
-                        reason="Direct framework relevance",
-                    ),
+                    "title": "LangGraph 2.0 Released",
+                    "relevance_score": 0.9,
+                    "reason": "Direct framework relevance",
                 },
                 {
                     "_map_index": 1,
-                    "_map_analyze_all_sub": RelevanceScore(
-                        title="Sizing chaos",
-                        relevance_score=0.1,
-                        reason="Unrelated",
-                    ),
+                    "title": "Sizing chaos",
+                    "relevance_score": 0.1,
+                    "reason": "Unrelated",
                 },
             ]
         }
@@ -307,21 +296,13 @@ class TestFilterRelevant:
         assert len(result["relevant_articles"]) == 1
 
     @pytest.mark.req("REQ-YG-072")
-    def test_filter_flattens_map_output(self):
-        """filter_relevant flattens map output for downstream prompts.
+    def test_filter_merges_raw_article_data(self):
+        """filter_relevant merges raw article data via _map_index.
 
-        The synthesize_diary_entry prompt expects article.title, article.url,
-        article.relevance_score etc. at the top level — not nested inside
-        _map_*_sub Pydantic models.
+        With flatten_output: true (FR-052), score fields are at top level.
+        Original article fields (url, source) come from raw_articles.
         """
-        from pydantic import BaseModel
-
         from examples.diary_digest.nodes.writing import filter_relevant
-
-        class RelevanceScore(BaseModel):
-            title: str
-            relevance_score: float
-            reason: str
 
         state = {
             "raw_articles": [
@@ -341,26 +322,22 @@ class TestFilterRelevant:
             "scored_articles": [
                 {
                     "_map_index": 0,
-                    "_map_analyze_all_sub": RelevanceScore(
-                        title="LangGraph 2.0",
-                        relevance_score=0.9,
-                        reason="Direct relevance",
-                    ),
+                    "title": "LangGraph 2.0",
+                    "relevance_score": 0.9,
+                    "reason": "Direct relevance",
                 },
                 {
                     "_map_index": 1,
-                    "_map_analyze_all_sub": RelevanceScore(
-                        title="Unrelated",
-                        relevance_score=0.1,
-                        reason="Not relevant",
-                    ),
+                    "title": "Unrelated",
+                    "relevance_score": 0.1,
+                    "reason": "Not relevant",
                 },
             ],
         }
         result = filter_relevant(state)
         assert result["relevant_count"] == 1
         article = result["relevant_articles"][0]
-        # Flattened: original fields + score fields at top level
+        # Merged: original fields + score fields at top level
         assert article["title"] == "LangGraph 2.0"
         assert article["url"] == "https://example.com/lg2"
         assert article["source"] == "HN"
@@ -368,7 +345,6 @@ class TestFilterRelevant:
         assert article["reason"] == "Direct relevance"
         # No map internal keys
         assert "_map_index" not in article
-        assert "_map_analyze_all_sub" not in article
 
     @pytest.mark.req("REQ-YG-072")
     def test_filter_handles_flat_dict(self):
