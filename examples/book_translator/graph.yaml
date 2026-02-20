@@ -75,6 +75,7 @@ nodes:
     type: map
     over: "{state.chunks}"
     as: chunk
+    flatten_output: true  # FR-052: simplify downstream processing
     node:
       type: llm
       prompt: extract_terms
@@ -97,6 +98,7 @@ nodes:
     type: map
     over: "{state.chunks}"
     as: chunk
+    flatten_output: true  # FR-052: simplify downstream processing
     node:
       type: llm
       prompt: translate_chunk
@@ -117,12 +119,13 @@ nodes:
     type: map
     over: "{state.translations}"
     as: translation
+    flatten_output: true  # FR-052: simplify downstream processing
     node:
       type: llm
       prompt: proofread
       variables:
-        original: "{state.translation._map_translate_all_sub.original}"
-        translated: "{state.translation._map_translate_all_sub.text}"
+        original: "{state.translation.original}"
+        translated: "{state.translation.text}"
         glossary: "{state.glossary}"
     collect: proofread_chunks
     on_error: skip

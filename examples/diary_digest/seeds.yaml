@@ -1,5 +1,5 @@
 # Auto-curated by diary-digest pipeline. Do not edit manually.
-# Last updated: 2026-02-19
+# Last updated: 2026-02-20
 - Should bug reports require a minimal reproduction script as an acceptance criterion
   before any fix is designed — making armchair debugging structurally impossible?
 - 'Could YAMLGraph enforce a ''no-silent-fallback'' lint rule — flagging any `if not
@@ -17,9 +17,6 @@
 - What other categories of invisible decisions (beyond noqa) exist in the codebase
   that would benefit from a confession-style registry — e.g., hardcoded defaults,
   deferred migrations, known limitations?
-- If the linter and runtime disagree on config resolution (e.g., `prompts_relative`
-  in `defaults:`), what other graph.yaml fields have silent blind spots — and how
-  should validation be unified?
 - Could a diff-based approach (showing what changed since last curation) produce more
   stable, intentional evolution of the seed list than re-curating all raw Seeds from
   scratch each run?
@@ -28,3 +25,5 @@
   for extraction?
 - What if migration scripts included an automatic 'edge case diff' — running both
   old and new code against boundary inputs and comparing outputs before replacing?
+- Should the FR template include a mandatory 'evidence' field that requires grep/search
+  results showing the pattern exists before an extraction FR can pass judgment?

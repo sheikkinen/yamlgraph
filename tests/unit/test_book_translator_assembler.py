@@ -26,12 +26,12 @@ class TestJoinChunks:
 
     @pytest.mark.req("REQ-YG-014")
     def test_join_proofread_chunks(self):
-        """Join corrected text from proofread chunks (map node output format)."""
+        """Join corrected text from proofread chunks (flatten_output format FR-052)."""
         state = {
             "proofread_chunks": [
-                {"_map_proofread_all_sub": {"corrected_text": "Chapter 1 translated."}},
-                {"_map_proofread_all_sub": {"corrected_text": "Chapter 2 translated."}},
-                {"_map_proofread_all_sub": {"corrected_text": "Chapter 3 translated."}},
+                {"_map_index": 0, "corrected_text": "Chapter 1 translated."},
+                {"_map_index": 1, "corrected_text": "Chapter 2 translated."},
+                {"_map_index": 2, "corrected_text": "Chapter 3 translated."},
             ],
         }
         result = join_chunks(state)
@@ -45,8 +45,8 @@ class TestJoinChunks:
         """Human-reviewed chunks take priority."""
         state = {
             "proofread_chunks": [
-                {"_map_proofread_all_sub": {"corrected_text": "Auto translation."}},
-                {"_map_proofread_all_sub": {"corrected_text": "Auto translation 2."}},
+                {"_map_index": 0, "corrected_text": "Auto translation."},
+                {"_map_index": 1, "corrected_text": "Auto translation 2."},
             ],
             "reviewed_chunks": {
                 "0": "Human corrected translation.",
@@ -63,8 +63,8 @@ class TestJoinChunks:
         """Chunks should be joined with double newline."""
         state = {
             "proofread_chunks": [
-                {"_map_proofread_all_sub": {"corrected_text": "Part 1"}},
-                {"_map_proofread_all_sub": {"corrected_text": "Part 2"}},
+                {"_map_index": 0, "corrected_text": "Part 1"},
+                {"_map_index": 1, "corrected_text": "Part 2"},
             ],
         }
         result = join_chunks(state)
@@ -84,8 +84,8 @@ class TestJoinChunks:
         """Human review uses string keys for chunk indices."""
         state = {
             "proofread_chunks": [
-                {"_map_proofread_all_sub": {"corrected_text": "Auto 0."}},
-                {"_map_proofread_all_sub": {"corrected_text": "Auto 1."}},
+                {"_map_index": 0, "corrected_text": "Auto 0."},
+                {"_map_index": 1, "corrected_text": "Auto 1."},
             ],
             "reviewed_chunks": {
                 "1": "Human 1.",  # String key

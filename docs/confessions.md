@@ -136,6 +136,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Lambda assigned to variable for signal handler test.
 - **Penance**: Lambda is cleaner than def for trivial no-op handler in test fixture. Accepted for test code.
 
+### CONF-021
+- **File**: [tests/unit/test_book_translator_glossary.py](../tests/unit/test_book_translator_glossary.py#L14)
+- **Code**: E402
+- **Sin**: Import yamlgraph.contrib after sys.path.insert for examples module.
+- **Penance**: Test needs examples path first for nodes.tools, then yamlgraph.contrib for get_map_result backward compatibility helper.
+
 ---
 
 ## Example Code

@@ -8,7 +8,6 @@ Strategy:
 import logging
 
 from examples.book_translator.models import Chunk
-from yamlgraph.contrib import get_map_result
 
 logger = logging.getLogger(__name__)
 
@@ -177,15 +176,14 @@ def merge_terms(state: dict) -> dict:
     merged = dict(existing)
 
     for extraction in extractions:
-        # Handle map node output structure
-        term_result = get_map_result(extraction)
-        if term_result is None:
+        # With flatten_output: true (FR-052), fields are at top level
+        if not isinstance(extraction, dict):
             continue
 
         # Handle Pydantic model or dict
-        terms = getattr(term_result, "terms", None)
-        if terms is None and isinstance(term_result, dict):
-            terms = term_result.get("terms", [])
+        terms = getattr(extraction, "terms", None)
+        if terms is None:
+            terms = extraction.get("terms", [])
         if not terms:
             continue
 
@@ -219,18 +217,14 @@ def check_scores(state: dict, threshold: float = 0.8) -> dict:
     flagged = []
 
     for i, chunk in enumerate(proofread):
-        # Extract proofread result from map node output
-        result = get_map_result(chunk)
-        if result is None:
-            continue
-
-        # Handle Pydantic model or dict
-        if hasattr(result, "quality_score"):
-            score = result.quality_score
-            approved = result.approved
-        elif isinstance(result, dict):
-            score = result.get("quality_score", 1.0)
-            approved = result.get("approved", True)
+        # With flatten_output: true (FR-052), fields are at top level
+        # Handle Pydantic model (hasattr) or dict
+        if hasattr(chunk, "quality_score"):
+            score = chunk.quality_score
+            approved = chunk.approved
+        elif isinstance(chunk, dict):
+            score = chunk.get("quality_score", 1.0)
+            approved = chunk.get("approved", True)
         else:
             continue
 
@@ -265,14 +259,14 @@ def join_chunks(state: dict) -> dict:
             final_parts.append(reviewed_chunks[str_idx])
             continue
 
-        # Extract proofread result from map node output
-        result = get_map_result(chunk)
+        # With flatten_output: true (FR-052), corrected_text is at top level
+        if not isinstance(chunk, dict):
+            continue
 
-        if result is not None:
-            # Get corrected_text from Pydantic model or dict
-            if hasattr(result, "corrected_text"):
-                final_parts.append(result.corrected_text)
-            elif isinstance(result, dict) and "corrected_text" in result:
-                final_parts.append(result["corrected_text"])
+        # Get corrected_text from Pydantic model or dict
+        if hasattr(chunk, "corrected_text"):
+            final_parts.append(chunk.corrected_text)
+        elif "corrected_text" in chunk:
+            final_parts.append(chunk["corrected_text"])
 
     return {"final_text": "\n\n".join(final_parts)}

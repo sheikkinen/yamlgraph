@@ -9,7 +9,9 @@ import pytest
 examples_path = Path(__file__).parent.parent.parent / "examples" / "book_translator"
 sys.path.insert(0, str(examples_path))
 
-from nodes.tools import get_map_result, merge_terms  # noqa: E402
+from nodes.tools import merge_terms  # noqa: E402
+
+from yamlgraph.contrib import get_map_result  # noqa: E402
 
 
 class TestGetMapResult:
@@ -99,19 +101,17 @@ class TestMergeTerms:
 
     @pytest.mark.req("REQ-YG-014")
     def test_merge_new_extractions(self):
-        """Add new terms from extractions (map node format)."""
+        """Add new terms from extractions (flatten_output format FR-052)."""
         state = {
             "glossary": {},
             "term_extractions": [
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [{"source_term": "Hello", "translation": "Hola"}]
-                    }
+                    "_map_index": 0,
+                    "terms": [{"source_term": "Hello", "translation": "Hola"}],
                 },
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [{"source_term": "World", "translation": "Mundo"}]
-                    }
+                    "_map_index": 1,
+                    "terms": [{"source_term": "World", "translation": "Mundo"}],
                 },
             ],
         }
@@ -127,11 +127,10 @@ class TestMergeTerms:
             "glossary": {"Hello": "existing_translation"},
             "term_extractions": [
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [
-                            {"source_term": "Hello", "translation": "new_translation"}
-                        ]
-                    }
+                    "_map_index": 0,
+                    "terms": [
+                        {"source_term": "Hello", "translation": "new_translation"}
+                    ],
                 },
             ],
         }
@@ -159,9 +158,8 @@ class TestMergeTerms:
             "term_extractions": [
                 None,
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [{"source_term": "Valid", "translation": "Válido"}]
-                    }
+                    "_map_index": 0,
+                    "terms": [{"source_term": "Valid", "translation": "Válido"}],
                 },
                 None,
             ],
@@ -171,16 +169,15 @@ class TestMergeTerms:
         assert result["glossary"]["Valid"] == "Válido"
 
     @pytest.mark.req("REQ-YG-014")
-    def test_handle_missing_map_key(self):
-        """Handle extractions without the map node key."""
+    def test_handle_missing_terms_key(self):
+        """Handle extractions without terms key."""
         state = {
             "glossary": {},
             "term_extractions": [
-                {"other_key": "value"},
+                {"_map_index": 0, "other_key": "value"},
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [{"source_term": "Test", "translation": "Prueba"}]
-                    }
+                    "_map_index": 1,
+                    "terms": [{"source_term": "Test", "translation": "Prueba"}],
                 },
             ],
         }
@@ -196,13 +193,12 @@ class TestMergeTerms:
             "glossary": {},
             "term_extractions": [
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [
-                            {"source_term": "", "translation": "Empty source"},
-                            {"source_term": "Valid", "translation": "Válido"},
-                            {"translation": "Missing source"},  # No source_term
-                        ]
-                    }
+                    "_map_index": 0,
+                    "terms": [
+                        {"source_term": "", "translation": "Empty source"},
+                        {"source_term": "Valid", "translation": "Válido"},
+                        {"translation": "Missing source"},  # No source_term
+                    ],
                 },
             ],
         }
@@ -219,13 +215,12 @@ class TestMergeTerms:
             "glossary": {},
             "term_extractions": [
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [
-                            {"source_term": "One", "translation": "Uno"},
-                            {"source_term": "Two", "translation": "Dos"},
-                            {"source_term": "Three", "translation": "Tres"},
-                        ]
-                    }
+                    "_map_index": 0,
+                    "terms": [
+                        {"source_term": "One", "translation": "Uno"},
+                        {"source_term": "Two", "translation": "Dos"},
+                        {"source_term": "Three", "translation": "Tres"},
+                    ],
                 },
             ],
         }
@@ -243,9 +238,8 @@ class TestMergeTerms:
             "glossary": '{"existing": "value"}',
             "term_extractions": [
                 {
-                    "_map_extract_glossary_sub": {
-                        "terms": [{"source_term": "New", "translation": "Nuevo"}]
-                    }
+                    "_map_index": 0,
+                    "terms": [{"source_term": "New", "translation": "Nuevo"}],
                 },
             ],
         }

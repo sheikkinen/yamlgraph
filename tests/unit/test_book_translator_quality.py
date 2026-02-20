@@ -32,16 +32,14 @@ class TestCheckScores:
         state = {
             "proofread_chunks": [
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.95,
-                        "approved": True,
-                    }
+                    "_map_index": 0,
+                    "quality_score": 0.95,
+                    "approved": True,
                 },
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.88,
-                        "approved": True,
-                    }
+                    "_map_index": 1,
+                    "quality_score": 0.88,
+                    "approved": True,
                 },
             ],
         }
@@ -56,22 +54,19 @@ class TestCheckScores:
         state = {
             "proofread_chunks": [
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.95,
-                        "approved": True,
-                    }
+                    "_map_index": 0,
+                    "quality_score": 0.95,
+                    "approved": True,
                 },
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.65,
-                        "approved": False,
-                    }
+                    "_map_index": 1,
+                    "quality_score": 0.65,
+                    "approved": False,
                 },
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.55,
-                        "approved": False,
-                    }
+                    "_map_index": 2,
+                    "quality_score": 0.55,
+                    "approved": False,
                 },
             ],
         }
@@ -90,10 +85,9 @@ class TestCheckScores:
         state = {
             "proofread_chunks": [
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.90,
-                        "approved": False,  # Not approved despite good score
-                    }
+                    "_map_index": 0,
+                    "quality_score": 0.90,
+                    "approved": False,  # Not approved despite good score
                 },
             ],
         }
@@ -108,10 +102,9 @@ class TestCheckScores:
         state = {
             "proofread_chunks": [
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.85,
-                        "approved": True,
-                    }
+                    "_map_index": 0,
+                    "quality_score": 0.85,
+                    "approved": True,
                 },
             ],
         }
@@ -130,13 +123,13 @@ class TestCheckScores:
         state = {
             "proofread_chunks": [
                 {
-                    "_map_proofread_all_sub": {"approved": True}
+                    "_map_index": 0,
+                    "approved": True,
                 },  # No score defaults to 1.0
                 {
-                    "_map_proofread_all_sub": {
-                        "quality_score": 0.95,
-                        "approved": True,
-                    }
+                    "_map_index": 1,
+                    "quality_score": 0.95,
+                    "approved": True,
                 },
             ],
         }
@@ -155,10 +148,11 @@ class TestCheckScores:
             quality_score: float
             approved: bool
 
+        # With flatten_output, Pydantic fields are at top level via hasattr
         state = {
             "proofread_chunks": [
-                {"_map_proofread_all_sub": MockProofreadOutput(0.95, True)},
-                {"_map_proofread_all_sub": MockProofreadOutput(0.65, False)},
+                MockProofreadOutput(0.95, True),
+                MockProofreadOutput(0.65, False),
             ],
         }
         result = check_scores(state, threshold=0.8)

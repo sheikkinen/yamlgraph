@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections import Counter
 
-from yamlgraph.contrib import SkipReport, get_map_result, to_serializable
+from yamlgraph.contrib import SkipReport, to_serializable
 
 
 def merge_paragraphs(cleaned_pages: list[dict]) -> dict:
@@ -131,29 +131,28 @@ def merge_paragraphs_node(state: dict) -> dict:
     """Node wrapper for merge_paragraphs.
 
     Reads map_results from state (output of map node).
-    Extracts actual page data from map node's nested structure.
+    With flatten_output: true (FR-052), page data is at top level.
     """
     raw_results = state.get("map_results", [])
 
-    # Extract actual page data from map node structure
+    # With flatten_output: true, page data is already at top level
     cleaned_pages = []
     for item in raw_results:
-        page_data = get_map_result(item)
+        if not isinstance(item, dict):
+            continue
 
-        if page_data is not None:
-            # Convert Pydantic models to dicts
-            page_data = to_serializable(page_data)
+        # Convert Pydantic models to dicts if needed
+        page_data = to_serializable(item)
 
-            # Skip string representation (shouldn't happen normally)
-            if isinstance(page_data, str):
-                continue
+        # Skip if just _map_index with no data
+        if len(page_data) <= 1 and "_map_index" in page_data:
+            continue
 
-            # Add page_num from _map_index if not present
-            if isinstance(page_data, dict) and "page_num" not in page_data:
-                page_data["page_num"] = item.get("_map_index", 0) + 1
+        # Add page_num from _map_index if not present
+        if "page_num" not in page_data and "_map_index" in page_data:
+            page_data["page_num"] = page_data["_map_index"] + 1
 
-            if isinstance(page_data, dict):
-                cleaned_pages.append(page_data)
+        cleaned_pages.append(page_data)
 
     result = merge_paragraphs(cleaned_pages)
 

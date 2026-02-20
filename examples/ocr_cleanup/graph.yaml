@@ -64,6 +64,7 @@ nodes:
     type: map
     over: "{state.pages}"
     as: page
+    flatten_output: true  # FR-052: simplify downstream processing
     node:
       type: llm
       prompt: cleanup_page
