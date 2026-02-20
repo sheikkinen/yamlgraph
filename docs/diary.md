@@ -4,6 +4,15 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Invisible Accumulator (FR-057 Agent Messages)
+
+**Trap:** The agent node read `existing_messages` from state, prepended them to new messages, ran its tool loop, then returned `{"messages": messages}` — the *full* list including existing. The `Annotated[list, add]` reducer appended all of them to what was already in state. For single-invocation agents (every existing example and test), this is invisible — the agent runs once, returns messages, done. The bug only manifests when an agent is called *again* across interrupt boundaries: turn 1 returns 5, turn 2 returns 10 (5 old + 5 new), state becomes 15. By turn 5: 155 messages, most duplicates. The LLM sees its own prior responses repeated, degrading quality and burning tokens.
+**Insight:** Every existing test called the agent node function exactly once. The test suite had 100% coverage of the return path but 0% coverage of the *accumulation semantics*. The fix was two lines: `messages[len(existing_messages):]` at both return points (normal completion and max-iterations). The test was the hard part — simulating the add reducer externally across 5 turns and asserting linear growth (3 + 2×4 = 11, not 155).
+**Heuristic:** *When a function reads from and writes to the same accumulating state field, test it with two consecutive calls.* Single-invocation tests verify the function's logic but not its interaction with the reducer. The reducer is the implicit contract; the test must exercise it.
+**Seed:** Are there other state fields with `add` reducers where nodes return full state instead of delta? A linter rule could flag any node that reads `state.get("X")` and returns `{"X": ...}` when `X` uses the `add` reducer — the returned value should never contain the input.
+
+---
+
 ## 2026-02-20: Three Rounds of Judgment (FR-053 Tavily RAG)
 
 **Trap:** The initial FR used `item_var` for map nodes (invented syntax), `def tavily_retrieve(query: str)` for python tool nodes (wrong calling convention — they receive `state: dict`), and `variables:` on `type: python` nodes (silently ignored). Two judgment rounds were needed to catch all three. The first round caught the function signature and no-op variables; the map syntax error was caught during research before the first judgment. Without the Judge step, all three would have silently failed at runtime — the function would crash, the variables would vanish, and the map would error on unknown key.

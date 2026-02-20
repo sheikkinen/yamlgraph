@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.49] - 2026-02-20
+
+### Fixed
+- **FR-057 Agent messages quadratic growth** (REQ-YG-018): Agent node now returns only new messages (delta) instead of the full conversation. The `add` reducer on `messages` was causing quadratic growth when agent nodes were invoked multiple times across interrupt boundaries. Both return paths (normal completion and max-iterations) now slice `messages[len(existing_messages):]`. Three new tests: delta return, 5-turn linear growth, max-iterations delta.
+
+### Added
+- **FR-055 Autonomous Chaplain**: `scripts/chaplain.sh` — plan→judge→amend pipeline for automated FR generation from subject lines
+- **Tavily RAG docs**: Scryfall/Giada usage examples in tavily_rag README
+- **Tavily RAG deep graph fix**: `parse_json: true` for provider-compatible query decomposition
+- **Tavily RAG requires fix**: `requires:` checks state keys not node names
+
 ## [0.4.48] - 2026-02-20
 
 ### Fixed
