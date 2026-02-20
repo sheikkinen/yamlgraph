@@ -599,3 +599,204 @@ async def test_run_graph_streaming_native_skips_empty_content():
         tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
         # Empty string is skipped, whitespace is kept (truthy)
         assert tokens == ["Real", "   "]
+
+
+# ==============================================================================
+# FR-058: Filter non-AI messages from agent streaming (REQ-YG-065)
+# ==============================================================================
+
+
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-065")
+async def test_streaming_filters_system_message():
+    """SystemMessage content must NOT be yielded to clients."""
+    from langchain_core.messages import AIMessageChunk
+
+    from yamlgraph.executor_async import run_graph_streaming_native
+
+    # Simulate what an agent node emits: SystemMessage first, then AIMessage
+    system_chunk = MagicMock()
+    system_chunk.content = "You are a helpful assistant."
+    type(system_chunk).__name__ = "SystemMessage"
+
+    async def mock_astream(*args, **kwargs):
+        from langchain_core.messages import SystemMessage
+
+        yield (
+            SystemMessage(content="You are a helpful assistant."),
+            {"langgraph_node": "agent"},
+        )
+        yield (
+            AIMessageChunk(content="The answer is 42"),
+            {"langgraph_node": "agent"},
+        )
+
+    mock_app = AsyncMock()
+    mock_app.astream = mock_astream
+
+    with patch(
+        "yamlgraph.executor_async.load_and_compile_async",
+        return_value=mock_app,
+    ):
+        tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
+        assert tokens == [
+            "The answer is 42"
+        ], f"SystemMessage leaked to client: {tokens}"
+
+
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-065")
+async def test_streaming_filters_human_message():
+    """HumanMessage content must NOT be echoed back to clients."""
+    from langchain_core.messages import AIMessageChunk, HumanMessage
+
+    from yamlgraph.executor_async import run_graph_streaming_native
+
+    async def mock_astream(*args, **kwargs):
+        yield (
+            HumanMessage(content="What is the meaning of life?"),
+            {"langgraph_node": "agent"},
+        )
+        yield (
+            AIMessageChunk(content="42"),
+            {"langgraph_node": "agent"},
+        )
+
+    mock_app = AsyncMock()
+    mock_app.astream = mock_astream
+
+    with patch(
+        "yamlgraph.executor_async.load_and_compile_async",
+        return_value=mock_app,
+    ):
+        tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
+        assert tokens == ["42"], f"HumanMessage echoed to client: {tokens}"
+
+
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-065")
+async def test_streaming_filters_tool_message():
+    """ToolMessage content must NOT leak raw tool data to clients."""
+    from langchain_core.messages import AIMessageChunk, ToolMessage
+
+    from yamlgraph.executor_async import run_graph_streaming_native
+
+    async def mock_astream(*args, **kwargs):
+        yield (
+            ToolMessage(content='{"raw": "tavily search data"}', tool_call_id="call1"),
+            {"langgraph_node": "agent"},
+        )
+        yield (
+            AIMessageChunk(content="Based on search results..."),
+            {"langgraph_node": "agent"},
+        )
+
+    mock_app = AsyncMock()
+    mock_app.astream = mock_astream
+
+    with patch(
+        "yamlgraph.executor_async.load_and_compile_async",
+        return_value=mock_app,
+    ):
+        tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
+        assert tokens == [
+            "Based on search results..."
+        ], f"ToolMessage leaked to client: {tokens}"
+
+
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-065")
+async def test_streaming_filters_ai_message_with_tool_calls():
+    """AIMessageChunk with tool_calls (intermediate) must be suppressed."""
+    from langchain_core.messages import AIMessageChunk
+
+    from yamlgraph.executor_async import run_graph_streaming_native
+
+    # Intermediate: AI decides to call a tool ("Let me search for that...")
+    intermediate = AIMessageChunk(content="Let me search for that...")
+    intermediate.tool_calls = [{"name": "search", "args": {"q": "test"}, "id": "c1"}]
+
+    # Final: AI gives the actual answer (no tool_calls)
+    final = AIMessageChunk(content="The answer is 42")
+
+    async def mock_astream(*args, **kwargs):
+        yield (intermediate, {"langgraph_node": "agent"})
+        yield (final, {"langgraph_node": "agent"})
+
+    mock_app = AsyncMock()
+    mock_app.astream = mock_astream
+
+    with patch(
+        "yamlgraph.executor_async.load_and_compile_async",
+        return_value=mock_app,
+    ):
+        tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
+        assert tokens == [
+            "The answer is 42"
+        ], f"Intermediate tool-calling AI message leaked: {tokens}"
+
+
+@pytest.mark.asyncio
+@pytest.mark.req("REQ-YG-065")
+async def test_streaming_full_agent_conversation():
+    """Simulate full agent node streaming: only final AIMessage content passes."""
+    from langchain_core.messages import (
+        AIMessageChunk,
+        HumanMessage,
+        SystemMessage,
+        ToolMessage,
+    )
+
+    from yamlgraph.executor_async import run_graph_streaming_native
+
+    # Full agent conversation as streamed by LangGraph
+    intermediate_ai = AIMessageChunk(content="I'll search for that.")
+    intermediate_ai.tool_calls = [
+        {"name": "tavily", "args": {"query": "test"}, "id": "c1"}
+    ]
+
+    async def mock_astream(*args, **kwargs):
+        # 1. System prompt (leaked without filter)
+        yield (
+            SystemMessage(content="You are a Terveystalo assistant."),
+            {"langgraph_node": "agent"},
+        )
+        # 2. User input (echoed without filter)
+        yield (
+            HumanMessage(content="Nearest clinic?"),
+            {"langgraph_node": "agent"},
+        )
+        # 3. AI decides to call tool (intermediate)
+        yield (intermediate_ai, {"langgraph_node": "agent"})
+        # 4. Tool result (raw data)
+        yield (
+            ToolMessage(content="Pori clinic: 123 Main St", tool_call_id="c1"),
+            {"langgraph_node": "agent"},
+        )
+        # 5. Final AI answer (this is what clients should see)
+        yield (
+            AIMessageChunk(content="The nearest"),
+            {"langgraph_node": "agent"},
+        )
+        yield (
+            AIMessageChunk(content=" clinic is"),
+            {"langgraph_node": "agent"},
+        )
+        yield (
+            AIMessageChunk(content=" in Pori."),
+            {"langgraph_node": "agent"},
+        )
+
+    mock_app = AsyncMock()
+    mock_app.astream = mock_astream
+
+    with patch(
+        "yamlgraph.executor_async.load_and_compile_async",
+        return_value=mock_app,
+    ):
+        tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
+        assert tokens == [
+            "The nearest",
+            " clinic is",
+            " in Pori.",
+        ], f"Expected only final AI tokens, got: {tokens}"

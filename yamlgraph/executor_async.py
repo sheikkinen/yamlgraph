@@ -15,6 +15,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 
+from langchain_core.messages import AIMessageChunk
 from pydantic import BaseModel
 
 from yamlgraph.config import DEFAULT_TEMPERATURE
@@ -366,12 +367,15 @@ async def run_graph_streaming_native(
         if node_filter and node_name != node_filter:
             continue
 
-        # Yield token content (skip empty chunks and non-string content)
-        # Router nodes emit dict content which must be filtered out
+        # Yield token content — only AI message chunks without tool calls.
+        # Agent nodes emit System, Human, Tool, and intermediate AI messages;
+        # only the final AI answer should reach clients (FR-058).
+        # Router nodes emit dict content which is also filtered out.
         if (
-            hasattr(chunk, "content")
+            isinstance(chunk, AIMessageChunk)
             and chunk.content
             and isinstance(chunk.content, str)
+            and not chunk.tool_calls
         ):
             yield chunk.content
 
