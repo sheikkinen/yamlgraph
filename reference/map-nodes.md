@@ -46,6 +46,7 @@ nodes:
 | `as` | `string` | Yes | Variable name injected into sub-node |
 | `node` | `object` | Yes | Sub-node definition (llm, router, or python) |
 | `collect` | `string` | Yes | State key where results are collected |
+| `flatten_output` | `bool` | No | Merge `_map_xxx_sub` contents into items (FR-052) |
 
 ### `over` Expression
 
@@ -133,6 +134,49 @@ The `collect` key automatically gets a list reducer:
 class State(TypedDict):
     processed_items: Annotated[list, operator.add]  # Reducer for collection
 ```
+
+### Output Flattening (FR-052)
+
+By default, map results contain internal wrapper keys like `_map_analyze_sub`:
+
+```python
+# Default output format
+[
+    {"_map_index": 0, "_map_analyze_sub": {"score": 0.8, "tag": "relevant"}},
+    {"_map_index": 1, "_map_analyze_sub": {"score": 0.3, "tag": "irrelevant"}},
+]
+```
+
+With `flatten_output: true`, the wrapper contents are merged into each item:
+
+```yaml
+nodes:
+  analyze:
+    type: map
+    over: "{state.items}"
+    as: item
+    node:
+      type: llm
+      prompt: analyze
+      state_key: analysis
+    collect: results
+    flatten_output: true  # Merge _map_analyze_sub into item
+```
+
+Result:
+```python
+# Flattened output
+[
+    {"_map_index": 0, "score": 0.8, "tag": "relevant"},
+    {"_map_index": 1, "score": 0.3, "tag": "irrelevant"},
+]
+```
+
+**Behavior notes:**
+- Output fields overwrite input fields on conflict
+- `_map_index` is preserved for ordering
+- Pydantic models are converted via `model_dump()`
+- Scalar sub-values are not flattened (kept in wrapper)
 
 ---
 

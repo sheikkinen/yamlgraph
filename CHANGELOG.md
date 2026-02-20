@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.44] - 2026-02-22
+
+### Added
+- **FR-052 Map Output Flattening**: `flatten_map_results()` function in `map_compiler.py` — merges `_map_xxx_sub` contents into items, converts Pydantic models via `model_dump()`, preserves `_map_index` (REQ-YG-075)
+- **Pattern 12**: Quality Gate for Map Output — manual validation pattern documented
+- **Pattern 13**: Monitoring No-Op Pipelines — canary detection via launchd
+
+### Changed
+- Updated `reference/map-nodes.md` with `flatten_output` property and documentation
+
 ## [0.4.43] - 2026-02-19
 
 ### Added

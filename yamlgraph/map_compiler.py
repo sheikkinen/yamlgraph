@@ -21,6 +21,69 @@ from yamlgraph.utils.expressions import resolve_state_expression
 logger = logging.getLogger(__name__)
 
 
+def flatten_map_results(items: list[dict]) -> list[dict]:
+    """Flatten map node results by merging _map_xxx_sub contents into items.
+
+    FR-052: When flatten_output: true, this function merges the nested
+    _map_xxx_sub dict into each item at the top level, removing the
+    wrapper key.
+
+    Args:
+        items: List of map node results with _map_xxx_sub keys
+
+    Returns:
+        List with flattened items (sub-key contents merged into item)
+
+    Example:
+        >>> items = [{"_map_index": 0, "_map_analyze_sub": {"score": 0.8}}]
+        >>> flatten_map_results(items)
+        [{"_map_index": 0, "score": 0.8}]
+    """
+    if not items:
+        return []
+
+    result = []
+    for item in items:
+        if not isinstance(item, dict):
+            result.append(item)
+            continue
+
+        # Find _map_xxx_sub key
+        sub_key = None
+        for key in item:
+            if key.startswith("_map_") and key.endswith("_sub"):
+                sub_key = key
+                break
+
+        if sub_key is None:
+            # No sub key - pass through unchanged
+            result.append(item)
+            continue
+
+        sub_value = item[sub_key]
+
+        # Handle Pydantic models
+        if hasattr(sub_value, "model_dump"):
+            sub_value = sub_value.model_dump()
+
+        # Scalars can't be flattened - keep wrapper
+        if not isinstance(sub_value, dict):
+            result.append(item)
+            continue
+
+        # Build flattened item: start with non-sub-key fields, then merge sub_value
+        flattened = {}
+        for key, value in item.items():
+            if key != sub_key:
+                flattened[key] = value
+
+        # Merge sub_value (overwrites any conflicts)
+        flattened.update(sub_value)
+        result.append(flattened)
+
+    return result
+
+
 def wrap_for_reducer(
     node_fn: Callable[[dict], dict],
     collect_key: str,

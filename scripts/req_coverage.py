@@ -18,7 +18,7 @@ from collections import defaultdict
 from pathlib import Path
 
 # All known requirements
-ALL_REQS = [f"REQ-YG-{i:03d}" for i in range(1, 75)]
+ALL_REQS = [f"REQ-YG-{i:03d}" for i in range(1, 76)]
 
 # Capability grouping: (cap_id, name, [reqs])
 CAPABILITIES: dict[str, tuple[str, list[str]]] = {
@@ -118,6 +118,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
             "REQ-YG-040",
             "REQ-YG-041",
             "REQ-YG-042",
+            "REQ-YG-075",
         ],
     ),
     "CAP-12": (

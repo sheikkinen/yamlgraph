@@ -66,3 +66,6 @@ vectorstore/
 examples/fun/
 .reqtracer/
 .DS_Store
+
+# Local schedules
+*.plist

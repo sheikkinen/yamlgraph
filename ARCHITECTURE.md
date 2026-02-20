@@ -269,7 +269,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 8 | Error Handling & Reliability | `error_handlers`, `models/schemas`, `executor_base` | REQ-YG-027 – 031 |
 | 9 | CLI Interface | `cli/__init__`, `cli/graph_commands`, `cli/graph_validate`, `cli/deprecation`, `cli/helpers`, `cli/schema_commands` | REQ-YG-032 – 035 |
 | 10 | Export & Serialization | `cli/schema_commands`, `cli/graph_commands`, `storage/export`, `storage/serializers` | REQ-YG-036 – 039 |
-| 11 | Subgraph & Map Processing | `map_compiler`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042 |
+| 11 | Subgraph & Map Processing | `map_compiler`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 075 |
 | 12 | Utilities & Infrastructure | `config`, `constants`, `schema_loader`, `node_factory/base`, `utils/logging`, `utils/parsing`, `utils/sanitize`, `utils/expressions` | REQ-YG-043 – 046 |
 | 13 | LangSmith Tracing | `utils/tracing`, `cli/graph_commands` | REQ-YG-047 |
 | 14 | Graph-Level Streaming | `executor_async`, `node_factory/streaming` | REQ-YG-048 – 049 |
@@ -401,6 +401,7 @@ Parallel fan-out and nested subgraph execution.
 | REQ-YG-040 | Map node compilation | `map_compiler` |
 | REQ-YG-041 | Output wrapping for reduction | `map_compiler.wrap_for_reducer` |
 | REQ-YG-042 | Subgraph node creation | `node_factory/subgraph_nodes` |
+| REQ-YG-075 | Map output flattening: `flatten_map_results()` merges `_map_xxx_sub` contents into items | `map_compiler.flatten_map_results` |
 
 ### 12. Utilities & Infrastructure
 
