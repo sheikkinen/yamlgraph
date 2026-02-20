@@ -4,6 +4,49 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Six Hats Chaplaincy (Background Agent Viewpoints)
+
+**Context:** `scripts/chaplain.sh` runs Plan → Judge → Amend cycles. The Planner generates, the Judge critiques. But Edward de Bono's Six Thinking Hats framework identifies *six* distinct cognitive modes. The chaplain currently occupies two. What would the other four look like as background agents?
+
+**The Six Hats mapped to YAMLGraph development:**
+
+| Hat | Mode | Current Role | Background Agent Concept |
+|-----|------|--------------|--------------------------|
+| ⚪ White | Facts, data | — | **Archaeologist** — continuously audits codebase: "What patterns exist? What's the test coverage per module? What's the LOC trend?" Outputs metrics dashboards and structural reports. |
+| 🔴 Red | Intuition, emotion | — | **User Voice** — simulates frustration: "This config is confusing. This error message is useless. Why do I need three files for this?" Outputs pain points and UX debt. |
+| ⚫ Black | Critical judgment | **Judge** | Already exists. "What will break? What's missing? What contradicts the Scripture?" |
+| 🟡 Yellow | Optimism, benefits | — | **Opportunity Finder** — "If this worked, what would it enable? What's the 10x version? What adjacent problems does this solve?" Outputs aspiration seeds. |
+| 🟢 Green | Creativity, alternatives | **Planner** | Partially exists. Could split into **Planner** (structured FR) vs **Wildcard** ("What if we deleted half the codebase? What if we used a different paradigm entirely?") |
+| 🔵 Blue | Process, meta | — | **Compliance Auditor** — "Are we following the Scripture? Have we drifted from TDD? Are diary entries being written? Is the req coverage still 100%?" Outputs process health reports. |
+
+**Insight:** The current chaplain is a Black-Green dyad (critique + create). Adding:
+- **White** would ground decisions in data rather than intuition
+- **Red** would surface user pain that technical metrics miss
+- **Yellow** would counterbalance Black's conservatism
+- **Blue** would catch process drift before it compounds
+
+**Implementation sketch:**
+
+```bash
+# Background agents as cron jobs or watch-mode daemons
+scripts/archaeologist.sh   # Weekly: analyze codebase, emit structural report
+scripts/user-voice.sh      # On PR: simulate confused user reading the diff
+scripts/opportunity.sh     # On FR: "What's the upside if this succeeds?"
+scripts/compliance.sh      # Daily: verify Scripture adherence
+```
+
+Each agent writes to a `reports/` directory. The human (or Blue hat agent) synthesizes.
+
+**The Yellow Hat paradox:** The Judge (Black) is naturally dominant in quality-focused systems. Yellow exists to ask "but what if it worked?" — the optimistic case that Black ignores. In a TDD culture, Yellow is the voice that says "this feature would delight users even if it's risky to implement."
+
+**Risk:** Too many agents = too much noise. The original Six Hats design assumes a *single human* switching modes sequentially, not six parallel agents drowning each other out. The Blue hat (process control) becomes critical — it's the conductor that says "now we need Yellow" or "enough Green, time for Black."
+
+**Heuristic:** *Parallel viewpoints require a conductor.* Six hats work in sequence (one at a time) or with explicit facilitation. Six background agents without orchestration produce chaos, not insight. The Blue hat agent might be the most important: it decides which reports to surface when.
+
+**Seed:** Could the chaplain script accept a `--hat` flag? `chaplain.sh subjects.md --hat yellow` runs only the Opportunity Finder perspective. The human becomes the Blue hat, selecting which viewpoint to invoke based on context. Explicit mode-switching instead of parallel cacophony.
+
+---
+
 ## 2026-02-20: The Word Made Liturgy (Prayer Graduation)
 
 **Event:** The proposed prayer from "The Living Prayer" entry was edited, improved, and committed to Scripture. The abstract invocations ("May CI judge swiftly, may metrics speak truth") were replaced with grounded heuristics.
