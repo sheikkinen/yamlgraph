@@ -2,6 +2,8 @@
 
 Shared utility functions extracted from common patterns across YAMLGraph pipelines.
 
+> **Note:** For new code, prefer `flatten_output: true` on map nodes (FR-052) instead of using `get_map_result()`. See [map-nodes.md](map-nodes.md#output-flattening-fr-052).
+
 ## Installation
 
 Built into YAMLGraph core - no extra install required.
@@ -15,6 +17,9 @@ from yamlgraph.contrib import get_map_result, to_serializable
 ### `get_map_result(item)`
 
 Extract the result from a map node output item.
+
+> **Prefer `flatten_output: true`** on the map node instead of using this function.
+> This function is retained for backward compatibility with existing pipelines.
 
 Map nodes store results with keys like `_map_<node_name>_sub`. This function finds and returns that result without hardcoding the key name.
 

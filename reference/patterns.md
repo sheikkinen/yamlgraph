@@ -558,6 +558,7 @@ nodes:
     type: map
     over: "{state.items}"         # List to iterate
     as: item                      # Variable name per item
+    flatten_output: true          # FR-052: merge sub-key into items
     node:
       type: llm
       prompt: process_item
@@ -980,6 +981,7 @@ nodes:
     source: topics
     prompt: generate_lesson
     state_key: lessons
+    flatten_output: true  # FR-052: simplifies downstream processing
 
   # Stage 2: Review each item with LLM-as-judge
   review_all:
@@ -987,6 +989,7 @@ nodes:
     source: lessons
     prompt: review_lesson
     state_key: reviews
+    flatten_output: true
 
   # Stage 3: Filter by score threshold
   filter_passed:
@@ -1056,9 +1059,10 @@ user: |
 
 ### Filter Tool Implementation
 
+With `flatten_output: true`, the filter tool is simpler — no `get_map_result()` unwrapping needed:
+
 ```python
 # nodes/quality_tools.py
-from yamlgraph.contrib import get_map_result
 
 def filter_by_score(state: dict) -> dict:
     """Filter items by review score threshold."""
@@ -1069,11 +1073,12 @@ def filter_by_score(state: dict) -> dict:
     passed = []
     failed = []
 
-    for i, review_item in enumerate(reviews):
-        review = get_map_result(review_item)
-        lesson = get_map_result(lessons[i]) if i < len(lessons) else None
+    for i, review in enumerate(reviews):
+        lesson = lessons[i] if i < len(lessons) else None
+        # With flatten_output: true, score is at top level
+        score = review.get("score", 0)
 
-        if review and review.get("score", 0) >= threshold:
+        if score >= threshold:
             passed.append({"lesson": lesson, "review": review})
         else:
             failed.append({"lesson": lesson, "review": review})
@@ -1182,8 +1187,8 @@ loop_limits:
 
 - [Pattern 3: Self-Correction Loop](patterns.md#pattern-3-self-correction-loop-reflexion) — Single-item refinement
 - [Pattern 8: Parallel Fan-Out](patterns.md#pattern-8-parallel-fan-out-map) — Map node basics
-- [FR-052: Map Output Flattening](../feature-requests/052-map-output-flattening.md) — Simplifies review wiring
-- [contrib.utils](contrib.md#get_map_result) — `get_map_result()` helper
+- [FR-052: Map Output Flattening](../feature-requests/052-map-output-flattening.md) — `flatten_output: true` simplifies downstream processing
+- [map-nodes.md](map-nodes.md#output-flattening-fr-052) — Output flattening documentation
 
 ---
 
