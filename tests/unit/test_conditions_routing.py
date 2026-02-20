@@ -195,6 +195,20 @@ class TestEvaluateCondition:
         assert evaluate_condition("critique.score < 0.8", state) is True
         assert evaluate_condition("critique.score >= 0.8", state) is False
 
+    @pytest.mark.req("REQ-YG-075")
+    def test_state_prefix_stripped(self):
+        """Conditions with 'state.' prefix resolve correctly.
+
+        Interactive tool loop_until uses 'state.session_done == True'.
+        The 'state.' prefix must be stripped before path resolution.
+        """
+        state = {"session_done": True, "count": 3}
+        assert evaluate_condition("state.session_done == True", state) is True
+        assert evaluate_condition("state.session_done != True", state) is False
+        assert evaluate_condition("state.count > 2", state) is True
+        # Also works without prefix
+        assert evaluate_condition("session_done == True", state) is True
+
 
 class TestMakeRouterFn:
     """Tests for make_router_fn factory."""

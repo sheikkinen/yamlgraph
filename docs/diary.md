@@ -6,6 +6,14 @@ Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02
 
 ---
 
+## 2026-02-20: The state. Prefix Trap (FR-049a Integration Tests)
+
+**Trap:** All 10 integration tests were written, but 7 failed. The routing bug was invisible: `evaluate_condition("state.session_done != True", {session_done: True})` returned `True`. The `state.` prefix in condition expressions (used by `loop_until`) was passed verbatim to `resolve_state_path()`, which looked up `state` as a top-level key — not found → `None` → `None != True` → `True`. The fix was trivial (strip `state.` in `resolve_value`), but the first attempt broke an edge case test (`{state.state.x}`) by double-stripping in `resolve_state_path` (which `resolve_template` also calls after its own stripping). Scoping the fix to `conditions.py`'s `resolve_value()` — the only callsite affected — was the correct minimal fix.
+
+**Heuristic:** *Fix at the callsite, not the utility.* When a shared utility (`resolve_state_path`) serves multiple callers with different conventions, adding behavior to it risks regressions in other callers. Fix at the specific caller that needs the behavior change. Double-stripping is the classic sign of fixing too deep.
+
+**Seed:** Could `loop_until` expressions be validated at expansion time — checking that referenced state paths actually resolve — to catch prefix issues before runtime?
+
 ---
 
 ## 2026-02-19: The Coroutine Primitive (FR-049)
@@ -61,3 +69,15 @@ Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02
 **Metrics:** 60+ lines of wrapper code written, tested, then deleted. Net commit: 26 lines — just the Python script replacing the bash echo.
 
 **Seed:** Could pre-commit hooks have a "commit anyway" escape hatch for non-blocking warnings vs hard failures? Or is the file-modification-as-failure pattern (ruff-format) actually the right design forcing explicit re-staging?
+
+---
+
+## 2026-02-20: Tavily FR — The Companion Demo Pattern (FR-053)
+
+**Trap:** "Just swap the search provider" — the initial instinct was to parameterize the existing `web-research` demo to support both DuckDuckGo and Tavily. But DuckDuckGo's value is zero-config (no API key), while Tavily's value is richer results (scoring, answer extraction). They serve different audiences. Merging them waters down both stories.
+
+**Insight:** Demo examples are pedagogical, not production code. Each demo should teach *one* clear lesson. The existing `web-research` demo teaches "agent + tool, zero config." The Tavily demo teaches "structured search results + Pydantic validation + map-reduce deep research." Separation is a feature, not duplication.
+
+**Heuristic:** When two implementations share an interface but differ in purpose, keep them separate. The shared interface (`query → str`) isn't enough reason to merge — the *teaching intent* is the deciding factor for examples.
+
+**Seed:** The `plan → map(search) → synthesize` pattern in `graph-deep.yaml` is a general "deep research" skeleton. Could it become a `yamlgraph template init --type deep-research` scaffold that works with *any* search tool, not just Tavily?

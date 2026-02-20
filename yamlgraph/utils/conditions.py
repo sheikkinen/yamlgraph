@@ -64,14 +64,18 @@ def resolve_value(path: str, state: dict) -> Any:
     """Resolve a dotted path to a value from state.
 
     Delegates to consolidated resolve_state_path in expressions module.
+    Strips the optional ``state.`` prefix used in condition expressions
+    (e.g. ``state.session_done == True``).
 
     Args:
-        path: Dotted path like "critique.score"
+        path: Dotted path like "critique.score" or "state.session_done"
         state: State dictionary
 
     Returns:
         Resolved value or None if not found
     """
+    if path.startswith("state."):
+        path = path[6:]
     return resolve_state_path(path, state)
 
 

@@ -1,0 +1,37 @@
+version: "1.0"
+name: stub-chatbot-no-end
+description: FR-049 integration test — interactive_tool without end tool
+
+tools:
+  chatbot_start:
+    type: python
+    module: tests.integration.stubs.chatbot_tool
+    function: chatbot_start
+    description: "Start chatbot session"
+  chatbot_step:
+    type: python
+    module: tests.integration.stubs.chatbot_tool
+    function: chatbot_step
+    description: "Process user turn"
+
+state:
+  session_id: str
+  user_message: str
+  bot_response: str
+  session_done: bool
+
+nodes:
+  chat:
+    type: interactive_tool
+    start: chatbot_start
+    step: chatbot_step
+    resume_key: user_message
+    response_key: bot_response
+    loop_until: "state.session_done == True"
+    max_iterations: 5
+
+edges:
+  - from: START
+    to: chat
+  - from: chat
+    to: END
