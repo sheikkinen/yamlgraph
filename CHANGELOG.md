@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.44] - 2026-02-22
+## [0.4.45] - 2026-02-20
+
+### Changed
+- **Absolution hook**: Migrated from inline bash to Python script (`scripts/absolution.py`) for maintainability
+
+### Fixed
+- **Jinja2 filter extraction**: `extract_variables()` now strips filter expressions (`|length`, `|join` etc.) before parsing — fixes false "missing variable" errors
+- **Linter prompts_relative**: `resolve_prompts_dir()` now checks `defaults.prompts_relative` in addition to graph-level setting
+- **Scheduler plist**: Changed from `python -m yamlgraph` (fails — no `__main__.py`) to `.venv/bin/yamlgraph` CLI entry point
+
+### Removed
+- **`get_map_result()` (BREAKING)**: Deprecated helper removed per Scripture Commandment 8 — use `flatten_output: true` on map nodes instead
+
+## [0.4.44] - 2026-02-20
 
 ### Added
 - **FR-052 Map Output Flattening**: `flatten_output: true` option for map nodes — merges `_map_xxx_sub` contents into items, converts Pydantic models via `model_dump()`, preserves `_map_index` (REQ-YG-075)
