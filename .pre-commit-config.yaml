@@ -152,8 +152,8 @@ repos:
   - repo: local
     hooks:
       - id: absolution
-        name: "Absolution granted"
-        entry: bash -c 'echo ""; echo "**Distill.** After completing a task list, add a metacognitive entry to docs/diary.md."; echo "Name the cognitive trap or insight. Extract a heuristic. Plant a seed — a forward-looking question to grow new ideas."; echo "If the heuristic proves recurring, graduate it to the Scripture."; echo ""'
+        name: "Absolution"
+        entry: python scripts/absolution.py
         language: system
         pass_filenames: false
         always_run: true
