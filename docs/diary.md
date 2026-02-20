@@ -4,6 +4,15 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Provider's Lie (FR-059 Content Normalization)
+
+**Trap:** `response.content` is a `str`. That's what LangChain says. That's what OpenAI returns. That's what Mistral returns. Anthropic returns `[{"type": "text", "text": "..."}]` — a list of content blocks. The agent node stored `.content` directly into state and returned it. Downstream, `isinstance(chunk.content, str)` (FR-058's fix!) silently rejected the list. The streaming filter *worked perfectly* — it filtered out non-string content. It just so happened that all Anthropic responses were non-string content. Two correct fixes composed into a silent failure: the normalizer trusted the provider, the filter trusted the normalizer, and no text reached the client.
+**Insight:** The fix was a 12-line `_normalize_content()` helper at the data source — before the value enters state. It joins text blocks from lists, passes strings through, and converts None to empty string. The key decision: normalize at the *boundary where provider-specific data enters the system*, not at every downstream consumer. One function, two call sites, zero downstream awareness of the provider's type.
+**Heuristic:** *When storing LLM output, normalize at the boundary — don't trust the provider's type.* The `.content` attribute is a shared interface with divergent implementations. Treat it like a wire protocol: deserialize into your canonical type immediately, before any other code touches it.
+**Seed:** Are there other `.content` or `.tool_calls` attributes where provider-specific shapes leak into state? A static analysis that checks `response.content` is always wrapped in a normalizer before state assignment could catch these at lint time.
+
+---
+
 ## 2026-02-20: The Duck That Quacked Too Loudly (FR-058 Streaming Filter)
 
 **Trap:** The streaming filter used `hasattr(chunk, "content")` — a duck-type check that asks "does this thing have content?" Every message type in LangGraph has `.content`: SystemMessage (the full prompt), HumanMessage (the user's input), ToolMessage (raw search data), and intermediate AIMessage with tool_calls ("Let me search for that..."). The filter was designed for LLM nodes that only emit AIMessageChunk. When agent nodes arrived, the duck quacked for everything — 11K chars of system prompt text streamed to production clients before the actual answer.
