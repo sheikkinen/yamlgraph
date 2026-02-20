@@ -535,3 +535,136 @@ class TestAgentMessagesDelta:
         ), "Max iterations path returning full conversation instead of delta"
         # More precisely: delta should NOT contain msgs1
         assert msgs2[0] not in msgs1, "Delta contains messages from previous invocation"
+
+
+class TestAgentNormalizeContent:
+    """Tests for FR-059: normalize response.content to string.
+
+    Anthropic Claude returns content as list of blocks:
+    [{"type": "text", "text": "..."}]. Agent node must normalize
+    to string before storing in state_key.
+    """
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_string_content_passes_through(self, mock_create_llm):
+        """String content is stored unchanged."""
+        mock_llm = MagicMock()
+        mock_response = MagicMock()
+        mock_response.tool_calls = []
+        mock_response.content = "The answer is 42"
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.return_value = mock_response
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "search": ShellToolConfig(command="echo test", description="Search"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["search"],
+            "max_iterations": 5,
+            "state_key": "result",
+        }
+
+        node_fn = create_agent_node("agent", node_config, tools)
+        result = node_fn({"input": "Question"})
+
+        assert result["result"] == "The answer is 42"
+        assert isinstance(result["result"], str)
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_anthropic_list_content_normalized_to_string(self, mock_create_llm):
+        """Anthropic list-of-blocks content is joined into a string."""
+        mock_llm = MagicMock()
+        mock_response = MagicMock()
+        mock_response.tool_calls = []
+        # Anthropic Claude format: list of content blocks
+        mock_response.content = [
+            {"type": "text", "text": "Terveystalo tarjoaa "},
+            {"type": "text", "text": "hammaslääkäripalveluita."},
+        ]
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.return_value = mock_response
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "search": ShellToolConfig(command="echo test", description="Search"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["search"],
+            "max_iterations": 5,
+            "state_key": "result",
+        }
+
+        node_fn = create_agent_node("agent", node_config, tools)
+        result = node_fn({"input": "Hammaslääkäri?"})
+
+        assert isinstance(
+            result["result"], str
+        ), f"Expected str, got {type(result['result'])}: {result['result']}"
+        assert result["result"] == "Terveystalo tarjoaa hammaslääkäripalveluita."
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_none_content_normalized_to_empty_string(self, mock_create_llm):
+        """None content becomes empty string."""
+        mock_llm = MagicMock()
+        mock_response = MagicMock()
+        mock_response.tool_calls = []
+        mock_response.content = None
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.return_value = mock_response
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "search": ShellToolConfig(command="echo test", description="Search"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["search"],
+            "max_iterations": 5,
+            "state_key": "result",
+        }
+
+        node_fn = create_agent_node("agent", node_config, tools)
+        result = node_fn({"input": "Question"})
+
+        assert isinstance(result["result"], str)
+        assert result["result"] == ""
+
+    @patch("yamlgraph.tools.agent.create_llm")
+    @pytest.mark.req("REQ-YG-018")
+    def test_max_iterations_normalizes_content(self, mock_create_llm):
+        """Max-iterations path also normalizes list content to string."""
+        mock_llm = MagicMock()
+        mock_response = MagicMock()
+        mock_response.tool_calls = [
+            {"id": "call1", "name": "search", "args": {"query": "more"}}
+        ]
+        # Anthropic list format on the last message
+        mock_response.content = [
+            {"type": "text", "text": "Still searching..."},
+        ]
+        mock_llm.bind_tools.return_value = mock_llm
+        mock_llm.invoke.return_value = mock_response
+        mock_create_llm.return_value = mock_llm
+
+        tools = {
+            "search": ShellToolConfig(command="echo result", description="Search"),
+        }
+        node_config = {
+            "prompt": "agent",
+            "tools": ["search"],
+            "max_iterations": 1,
+            "state_key": "result",
+        }
+
+        node_fn = create_agent_node("agent", node_config, tools)
+        result = node_fn({"input": "Search"})
+
+        assert isinstance(
+            result["result"], str
+        ), f"Max-iterations path returned {type(result['result'])}"

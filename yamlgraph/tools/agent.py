@@ -24,6 +24,29 @@ from yamlgraph.utils.prompts import load_prompt
 logger = logging.getLogger(__name__)
 
 
+def _normalize_content(content: Any) -> str:
+    """Normalize LLM response content to string.
+
+    Anthropic Claude returns content as a list of blocks:
+    [{"type": "text", "text": "..."}]. This function extracts
+    text from all known formats (FR-059).
+
+    Args:
+        content: LLM response content (str, list, or None)
+
+    Returns:
+        Normalized string content
+    """
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(
+            block.get("text", "") if isinstance(block, dict) else str(block)
+            for block in content
+        )
+    return str(content) if content else ""
+
+
 def build_langchain_tool(name: str, config: ShellToolConfig) -> Callable:
     """Convert shell config to LangChain Tool.
 
@@ -277,7 +300,7 @@ def create_agent_node(
                 # would cause quadratic growth (FR-057).
                 new_messages = messages[len(existing_messages) :]
                 result = {
-                    state_key: response.content,
+                    state_key: _normalize_content(response.content),
                     "current_step": node_name,
                     "_agent_iterations": iteration + 1,
                     "messages": new_messages,
@@ -344,6 +367,7 @@ def create_agent_node(
         # Hit max iterations
         logger.warning(f"Agent hit max iterations ({max_iterations})")
         last_content = messages[-1].content if hasattr(messages[-1], "content") else ""
+        last_content = _normalize_content(last_content)
         # Return only NEW messages (delta) — see FR-057
         new_messages = messages[len(existing_messages) :]
         result = {
