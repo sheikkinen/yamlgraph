@@ -4,6 +4,22 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: The Diary as Compiler (Meta-Reflection on FR-061)
+
+**Trap:** The first entry today celebrated FR-061's "prophecy fulfilled" — a seed from FR-053's diary became a feature. But that framing misses the mechanism. The diary didn't *predict* FR-061; it *compiled* it. The four-part structure (Trap → Insight → Heuristic → Seed) is a pipeline that transforms debugging frustration into actionable tooling. The Seed isn't a wish — it's a deferred function call waiting for the interpreter.
+
+**Insight:** The diary format works because it exploits the **problem-solution asymmetry**. Problems are stable; solutions evolve. FR-053's seed was *"Could lint detect `variables:` on python nodes?"* — the *problem* (silent no-op). Not *"Create W020 rule"* — the *solution*. When I read the seed weeks later during "elaborate linter rules", the problem was still clear, but now I had more context (error codes, FR-061's scope). The seed preserved the *motivation* while allowing the *implementation* to mature.
+
+Compare this to a typical backlog: *"Add lint rule for python node variables"*. Without context, that's a task competing with every other task. The diary entry preserves **why** it matters: the debugging pain, the silent failure, the class of bugs it represents. The context makes the priority obvious.
+
+**Heuristic:** *Capture the problem, not the solution. Let the solution emerge when there's bandwidth.* Seeds should be questions, not specifications. The question preserves optionality; the specification locks in assumptions.
+
+**Meta-heuristic:** *The diary is a priority queue sorted by pain.* Not every bug earns a seed. Only the ones that hurt enough to distill into a question get recorded. And of those seeds, the ones that recur in multiple entries (or match multiple production bugs) naturally rise to the top. Today's session read 17 diary entries, found one seed, and implemented it in 2 hours. The diary was the backlog refinement meeting — it just didn't look like one.
+
+**Seed:** The diary's value comes from the four-part structure, not just the act of writing. Could a structured template enforce this across the team? `trap:`, `insight:`, `heuristic:`, `seed:` as YAML frontmatter, with CI validation that every diary entry has all four fields? Or does mandating the structure destroy the reflective space that produces real insight?
+
+---
+
 ## 2026-02-20: The Prophecy Fulfilled (FR-061 Contract Violation Lint)
 
 **Trap:** Three sessions ago (FR-053), I wrote: *"Could graph lint detect `variables:` on `type: python` nodes and warn that they're ignored?"* Today I implemented it. The first run on production examples (`ocr_cleanup`, `daily_digest`) immediately caught real bugs: W020 flagged two python nodes with dead `variables:` keys, W021 flagged a `skip_if_exists: true` on a list field that would trigger after turn 1. The lint rules existed for 20 minutes before proving their value.
