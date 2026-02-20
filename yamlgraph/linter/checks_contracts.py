@@ -1,0 +1,159 @@
+"""FR-061: Contract violation lint checks.
+
+These checks detect misconfigurations that parse successfully but fail or
+behave incorrectly at runtime — the gap between "valid YAML" and "correct graph".
+
+E012: Hyphen in identifier position (state key, node name, tool name, state_key)
+W020: variables: on type: python (silent no-op)
+W021: skip_if_exists on list field with add reducer
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from yamlgraph.linter.checks import LintIssue, load_graph
+
+
+def check_python_node_variables(graph_path: Path) -> list[LintIssue]:
+    """W020: variables: on type: python is a silent no-op.
+
+    Python nodes receive state dict directly — variables substitution
+    doesn't apply. This is a common mistake when converting from LLM nodes.
+    """
+    issues = []
+    graph = load_graph(graph_path)
+
+    for node_name, node_config in graph.get("nodes", {}).items():
+        if node_config.get("type") == "python" and "variables" in node_config:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W020",
+                    message=f"Node '{node_name}': 'variables' is ignored on type: python. "
+                    "Python tools receive state dict directly via state parameter.",
+                    fix="Remove 'variables' key or use type: llm if variable substitution needed",
+                )
+            )
+    return issues
+
+
+def check_identifier_keys(graph_path: Path) -> list[LintIssue]:
+    """E012: Keys used as Python identifiers must not contain hyphens.
+
+    State keys, node names, and tool names become Python identifiers
+    at runtime. Hyphens are valid in YAML but invalid in Python.
+    """
+    issues = []
+    graph = load_graph(graph_path)
+
+    # Check state keys
+    for key in graph.get("state", {}):
+        if "-" in key:
+            issues.append(
+                LintIssue(
+                    severity="error",
+                    code="E012",
+                    message=f"State key '{key}' contains hyphen — invalid as Python identifier",
+                    fix=f"Rename to '{key.replace('-', '_')}'",
+                )
+            )
+
+    # Check node names (become Python function names)
+    for node_name in graph.get("nodes", {}):
+        if "-" in node_name:
+            issues.append(
+                LintIssue(
+                    severity="error",
+                    code="E012",
+                    message=f"Node name '{node_name}' contains hyphen — invalid as Python identifier",
+                    fix=f"Rename to '{node_name.replace('-', '_')}'",
+                )
+            )
+
+    # Check node state_key values
+    for node_name, node_config in graph.get("nodes", {}).items():
+        state_key = node_config.get("state_key", "")
+        if "-" in state_key:
+            issues.append(
+                LintIssue(
+                    severity="error",
+                    code="E012",
+                    message=f"Node '{node_name}' state_key '{state_key}' contains hyphen",
+                    fix=f"Rename to '{state_key.replace('-', '_')}'",
+                )
+            )
+
+    # Check tool names (used as function names)
+    for tool_name in graph.get("tools", {}):
+        if "-" in tool_name:
+            issues.append(
+                LintIssue(
+                    severity="error",
+                    code="E012",
+                    message=f"Tool name '{tool_name}' contains hyphen — invalid as function name",
+                    fix=f"Rename to '{tool_name.replace('-', '_')}'",
+                )
+            )
+
+    return issues
+
+
+def check_skip_if_exists_add_reducer(graph_path: Path) -> list[LintIssue]:
+    """W021: skip_if_exists on list fields with add reducer is likely wrong.
+
+    Lists are truthy after the first element, so skip_if_exists triggers
+    after turn 1 even when you want to keep generating. LLM nodes default
+    to skip_if_exists=True.
+    """
+    issues = []
+    graph = load_graph(graph_path)
+    state_def = graph.get("state", {})
+
+    for node_name, node_config in graph.get("nodes", {}).items():
+        # skip_if_exists defaults to True for LLM nodes — check both explicit and implicit
+        node_type = node_config.get("type", "llm")
+        skip_if_exists = node_config.get("skip_if_exists")
+
+        # Only LLM nodes have skip_if_exists default True
+        if skip_if_exists is None and node_type == "llm":
+            skip_if_exists = True
+        elif skip_if_exists is None:
+            continue
+
+        if not skip_if_exists:
+            continue
+
+        state_key = node_config.get("state_key")
+        if not state_key:
+            continue
+
+        field_type = state_def.get(state_key, "")
+        is_list = (
+            isinstance(field_type, str)
+            and field_type.startswith("list")
+            or (
+                isinstance(field_type, dict)
+                and field_type.get("type", "").startswith("list")
+            )
+        )
+
+        if is_list:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W021",
+                    message=f"Node '{node_name}': skip_if_exists on list field '{state_key}' "
+                    "— list is truthy after first element, so skip triggers after turn 1",
+                    fix="Set skip_if_exists: false or use a boolean control field instead",
+                )
+            )
+
+    return issues
+
+
+__all__ = [
+    "check_python_node_variables",
+    "check_identifier_keys",
+    "check_skip_if_exists_add_reducer",
+]

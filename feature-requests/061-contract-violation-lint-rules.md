@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-02-20
 **FR:** FR-061
@@ -34,13 +34,13 @@ Add three zero-false-positive lint rules to `yamlgraph/linter/checks.py`:
 
 ```python
 def check_python_node_variables(graph: dict) -> list[LintIssue]:
-    """W012: variables: on type: python is a silent no-op."""
+    """W020: variables: on type: python is a silent no-op."""
     issues = []
     for node_name, node_config in graph.get("nodes", {}).items():
         if node_config.get("type") == "python" and "variables" in node_config:
             issues.append(LintIssue(
                 severity="warning",
-                code="W012",
+                code="W020",
                 message=f"Node '{node_name}': 'variables' is ignored on type: python. "
                         "Python tools receive state dict directly via state parameter.",
                 fix="Remove 'variables' key or use type: llm if variable substitution needed",
@@ -103,7 +103,7 @@ def check_identifier_keys(graph: dict) -> list[LintIssue]:
 
 ```python
 def check_skip_if_exists_add_reducer(graph: dict) -> list[LintIssue]:
-    """W013: skip_if_exists on list fields with add reducer is likely wrong."""
+    """W021: skip_if_exists on list fields with add reducer is likely wrong."""
     issues = []
     state_def = graph.get("state", {})
 
@@ -134,7 +134,7 @@ def check_skip_if_exists_add_reducer(graph: dict) -> list[LintIssue]:
         if is_list:
             issues.append(LintIssue(
                 severity="warning",
-                code="W013",
+                code="W021",
                 message=f"Node '{node_name}': skip_if_exists on list field '{state_key}' "
                         "— list is truthy after first element, so skip triggers after turn 1",
                 fix="Set skip_if_exists: false or use a boolean control field instead",
@@ -145,9 +145,9 @@ def check_skip_if_exists_add_reducer(graph: dict) -> list[LintIssue]:
 
 ## Acceptance Criteria
 
-- [ ] W012 (python node variables) implemented and wired into `lint_graph()`
+- [ ] W020 (python node variables) implemented and wired into `lint_graph()`
 - [ ] E012 (hyphen identifiers) implemented with state, node names, state_key, and tool name checks
-- [ ] W013 (skip_if_exists + list) implemented, including implicit default (True for LLM nodes)
+- [ ] W021 (skip_if_exists + list) implemented, including implicit default (True for LLM nodes)
 - [ ] All three rules have unit tests with positive and negative cases
 - [ ] `yamlgraph graph lint` reports new issues on affected graphs
 - [ ] Existing graphs in `graphs/` and `examples/` pass lint (no regressions)
@@ -160,11 +160,12 @@ Add to `yamlgraph/linter/checks.py` — these are pure config checks, not semant
 
 ### Wiring
 
-Add to `lint_graph()` in `graph_linter.py` (after existing checks):
+Add to `lint_graph()` in `graph_linter.py` (after existing checks). Note: `graph` dict is already loaded at top of function:
 ```python
-all_issues.extend(check_python_node_variables(graph_path))
-all_issues.extend(check_identifier_keys(graph_path))
-all_issues.extend(check_skip_if_exists_add_reducer(graph_path))
+# Pure config checks (no file I/O) — pass graph dict
+all_issues.extend(check_python_node_variables(graph))
+all_issues.extend(check_identifier_keys(graph))
+all_issues.extend(check_skip_if_exists_add_reducer(graph))
 ```
 
 ### Error Codes
@@ -172,8 +173,8 @@ all_issues.extend(check_skip_if_exists_add_reducer(graph_path))
 | Code | Severity | Description |
 |------|----------|-------------|
 | E012 | error | Hyphen in identifier position (state key, node name, tool name, state_key value) |
-| W012 | warning | variables: on type: python (silent no-op) |
-| W013 | warning | skip_if_exists (explicit or implicit) on list field with add reducer |
+| W020 | warning | variables: on type: python (silent no-op) |
+| W021 | warning | skip_if_exists (explicit or implicit) on list field with add reducer |
 
 ## Testing
 
@@ -203,7 +204,7 @@ class TestContractViolationChecks:
         }
         issues = check_python_node_variables(graph)
         assert len(issues) == 1
-        assert issues[0].code == "W012"
+        assert issues[0].code == "W020"
 
     def test_e012_hyphen_state_key(self):
         """Hyphen in state key should error."""
@@ -235,7 +236,7 @@ class TestContractViolationChecks:
         }
         issues = check_skip_if_exists_add_reducer(graph)
         assert len(issues) == 1
-        assert issues[0].code == "W013"
+        assert issues[0].code == "W021"
 
     def test_w013_skip_if_exists_list_implicit(self):
         """Implicit skip_if_exists (default True on LLM) on list field should warn."""
@@ -251,7 +252,7 @@ class TestContractViolationChecks:
         }
         issues = check_skip_if_exists_add_reducer(graph)
         assert len(issues) == 1
-        assert issues[0].code == "W013"
+        assert issues[0].code == "W021"
 
     def test_w013_no_warn_when_explicit_false(self):
         """No warning when skip_if_exists explicitly set to False."""

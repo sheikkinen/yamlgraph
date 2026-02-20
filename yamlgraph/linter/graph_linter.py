@@ -23,6 +23,11 @@ from yamlgraph.linter.checks import (
     check_state_declarations,
     check_tool_references,
 )
+from yamlgraph.linter.checks_contracts import (
+    check_identifier_keys,
+    check_python_node_variables,
+    check_skip_if_exists_add_reducer,
+)
 from yamlgraph.linter.checks_semantic import (
     check_cross_references,
     check_edge_types,
@@ -91,6 +96,11 @@ def lint_graph(
     all_issues.extend(check_interrupt_patterns(graph_path, project_root))
     all_issues.extend(check_agent_patterns(graph_path, project_root))
     all_issues.extend(check_subgraph_patterns(graph_path, project_root))
+
+    # FR-061: Contract violation checks
+    all_issues.extend(check_python_node_variables(graph_path))
+    all_issues.extend(check_identifier_keys(graph_path))
+    all_issues.extend(check_skip_if_exists_add_reducer(graph_path))
 
     # Determine validity (no errors)
     has_errors = any(issue.severity == "error" for issue in all_issues)
