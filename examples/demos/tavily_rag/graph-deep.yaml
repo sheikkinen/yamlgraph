@@ -1,0 +1,59 @@
+version: "1.0"
+name: tavily-deep-rag
+description: Multi-query RAG with parallel retrieval via Tavily
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  question: str
+
+tools:
+  tavily_retrieve:
+    type: python
+    module: examples.demos.tavily_rag.nodes.tavily_retrieve
+    function: tavily_retrieve
+    description: "Retrieve content from target domain via Tavily"
+
+nodes:
+  plan:
+    type: llm
+    prompt: planner
+    variables:
+      question: "{state.question}"
+    state_key: sub_queries
+    schema:
+      name: SubQueries
+      fields:
+        queries:
+          type: list[str]
+          description: "3-5 focused retrieval queries"
+
+  retrieve:
+    type: map
+    over: "{state.sub_queries.queries}"
+    as: query
+    max_items: 5
+    node:
+      type: python
+      tool: tavily_retrieve
+      state_key: context
+    collect: contexts
+
+  synthesize:
+    type: llm
+    prompt: synthesizer
+    requires: [retrieve]
+    state_key: answer
+    variables:
+      question: "{state.question}"
+      contexts: "{state.contexts}"
+
+edges:
+  - from: START
+    to: plan
+  - from: plan
+    to: retrieve
+  - from: retrieve
+    to: synthesize
+  - from: synthesize
+    to: END

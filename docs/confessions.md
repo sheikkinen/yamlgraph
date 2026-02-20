@@ -136,6 +136,24 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Lambda assigned to variable for signal handler test.
 - **Penance**: Lambda is cleaner than def for trivial no-op handler in test fixture. Accepted for test code.
 
+### CONF-021
+- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L84)
+- **Code**: F401
+- **Sin**: Import `tavily_retrieve` after `sys.path.insert` appears unused (used via module reload).
+- **Penance**: Import triggers module loading for test; removing it breaks the test.
+
+### CONF-022
+- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L127)
+- **Code**: F401
+- **Sin**: Same as CONF-021 — import for domain-scoping test.
+- **Penance**: Same as CONF-021.
+
+### CONF-023
+- **File**: [tests/unit/test_tavily_rag.py](../tests/unit/test_tavily_rag.py#L161)
+- **Code**: F401
+- **Sin**: Same as CONF-021 — import for no-domain fallback test.
+- **Penance**: Same as CONF-021.
+
 ---
 
 ## Example Code
@@ -262,6 +280,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: E402
 - **Sin**: linter import after sys.path setup.
 - **Penance**: Runner script pattern.
+
+### CONF-122
+- **File**: [examples/demos/tavily_rag/nodes/tavily_retrieve.py](../examples/demos/tavily_rag/nodes/tavily_retrieve.py#L50)
+- **Code**: F811
+- **Sin**: Redefinition of `TavilySearchResults` in except branch (imports real or creates stub).
+- **Penance**: Graceful degradation pattern — function raises clear error if package missing rather than crashing on import.
 
 ---
 

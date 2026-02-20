@@ -1,81 +1,89 @@
-# Feature Request: Tavily Web Research Demo
+# Feature Request: Tavily Domain RAG Demo
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-02-20
 
 ## Summary
 
-Add a Tavily-powered web research example to `examples/demos/tavily-research/` that demonstrates structured search results, Pydantic-validated outputs, and the map-reduce deep research pattern. Complements the existing DuckDuckGo-based `web-research` demo with Tavily's richer API (answer extraction, relevance scoring, raw content).
+Add a Tavily-powered domain-scoped RAG example to `examples/demos/tavily-rag/` that retrieves content from a configured target domain (`TAVILY_TARGET_DOMAIN`) and grounds LLM answers in the retrieved results. Demonstrates the "retrieve → answer" RAG pattern using Tavily as a zero-indexing retrieval layer — no vector store setup needed, just set a domain and ask questions.
 
 ## Problem
 
-The existing `examples/demos/web-research/` demo uses DuckDuckGo via `ddgs`, which returns simple title/URL/snippet results with no API key required. This is great for zero-config demos, but production research pipelines need:
+The existing RAG example (`examples/rag/`) requires pre-indexing documents into a local ChromaDB vector store before querying. This is the right pattern for production but creates friction for demos and prototyping:
 
-1. **Higher-quality results** — Tavily is optimized for AI agents; returns relevance-scored, deduplicated content.
-2. **Answer extraction** — Tavily's `include_answer=True` provides a pre-synthesized answer alongside raw results.
-3. **Raw content** — `include_raw_content=True` returns full page text, not just snippets.
-4. **Structured schema validation** — Tavily results map naturally to Pydantic models, demonstrating YAMLGraph's inline schema feature.
-5. **Deep research pattern** — A map-reduce example that fans out sub-queries in parallel, showcasing YAMLGraph's map nodes with Tavily.
+1. **Setup overhead** — Must run `index_docs.py` before querying; cold start for new domains.
+2. **Static corpus** — Only answers from pre-indexed documents; no fresh web content.
+3. **Domain exploration** — When scoping to a specific website (e.g., `terveystalo.com`), you want live retrieval of current pages, not a snapshot.
 
-No existing demo shows Tavily integration or the "plan → parallel search → synthesize" pattern.
+Tavily solves this by searching a specific domain in real-time with `include_domains`, returning relevance-scored content that the LLM treats as retrieved context — a "live RAG" pattern with zero indexing.
+
+**Key insight:** Tavily's `include_domains` + `include_raw_content` turns any website into a queryable knowledge base without indexing infrastructure.
 
 ## Proposed Solution
 
 ### File Structure
 
 ```
-examples/demos/tavily-research/
+examples/demos/tavily-rag/
 ├── README.md
-├── graph.yaml              # Simple: search → summarize
-├── graph-deep.yaml         # Advanced: plan → map(search) → synthesize
+├── graph.yaml              # Core: retrieve → answer (domain-scoped RAG)
+├── graph-deep.yaml         # Advanced: plan → map(retrieve) → synthesize
 ├── prompts/
-│   ├── researcher.yaml     # System prompt for search synthesis
+│   ├── answer.yaml         # Ground answer in retrieved context
 │   ├── planner.yaml        # Breaks query into sub-queries (deep)
 │   └── synthesizer.yaml    # Merges parallel results (deep)
 └── nodes/
-    └── tavily_search.py    # Tavily tool wrapper
+    ├── __init__.py
+    └── tavily_retrieve.py  # Tavily retrieval tool (domain-scoped)
 ```
 
-### A. Tavily Tool (`nodes/tavily_search.py`)
+### A. Tavily Retrieval Tool (`nodes/tavily_retrieve.py`)
 
 ```python
-"""Tavily search tool for YAMLGraph.
+"""Tavily domain-scoped retrieval tool for YAMLGraph.
 
-Provides structured web search via Tavily API.
+Retrieves content from a target domain via Tavily API.
+Acts as a zero-indexing RAG retrieval layer.
+
 Requires: pip install tavily-python
           export TAVILY_API_KEY="your-key"
+          export TAVILY_TARGET_DOMAIN="example.com"  # optional, scopes search
 
-Usage in graph YAML (agent or tool node):
+Usage in graph YAML:
     tools:
-      tavily_search:
+      tavily_retrieve:
         type: python
-        module: examples.demos.tavily_research.nodes.tavily_search
-        function: tavily_search
-        description: "Search the web using Tavily AI-optimized search"
+        module: examples.demos.tavily_rag.nodes.tavily_retrieve
+        function: tavily_retrieve
+        description: "Retrieve content from target domain via Tavily"
 """
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 
 logger = logging.getLogger(__name__)
 
 
-def tavily_search(query: str, max_results: int = 5) -> str:
-    """Search the web using Tavily.
+def tavily_retrieve(state: dict) -> str:
+    """Retrieve domain-scoped content using Tavily.
+
+    Called by YAMLGraph as a type: python node. Receives full state dict.
+    Reads query from state["query"] (map sub-node) or state["question"].
 
     Args:
-        query: Search query string
-        max_results: Maximum number of results (default: 5)
+        state: Full state dictionary from YAMLGraph
 
     Returns:
-        Formatted string with search results including answer and sources
+        Formatted context string with sources and content
     """
+    query = state.get("query") or state.get("question", "")
+    max_results = state.get("max_results", 5)
+
     if not query or not query.strip():
         return "Error: Search query is empty"
 
@@ -90,143 +98,157 @@ def tavily_search(query: str, max_results: int = 5) -> str:
 
     try:
         client = TavilyClient(api_key=api_key)
-        response = client.search(
-            query=query,
-            max_results=max_results,
-            include_answer=True,
-        )
+        kwargs: dict = {
+            "query": query,
+            "max_results": max_results,
+            "include_answer": True,
+            "include_raw_content": True,
+        }
+        # Scope to target domain if configured
+        target_domain = os.environ.get("TAVILY_TARGET_DOMAIN")
+        if target_domain:
+            kwargs["include_domains"] = [target_domain]
 
-        lines = [f"Search results for '{query}':\n"]
+        response = client.search(**kwargs)
 
-        # Include Tavily's pre-synthesized answer if available
+        sections: list[str] = []
+
+        # Tavily's pre-synthesized answer
         answer = response.get("answer")
         if answer:
-            lines.append(f"Quick Answer: {answer}\n")
+            sections.append(f"Summary: {answer}\n")
 
-        # Format individual results
+        # Individual retrieved pages
         for i, result in enumerate(response.get("results", []), 1):
             title = result.get("title", "No title")
             url = result.get("url", "No URL")
             content = result.get("content", "")
+            raw = result.get("raw_content", "")
             score = result.get("score", 0)
 
-            lines.append(f"{i}. [{score:.2f}] {title}")
-            lines.append(f"   URL: {url}")
-            if content:
-                lines.append(f"   {content}")
-            lines.append("")
+            sections.append(f"[Source {i}] (relevance: {score:.2f})")
+            sections.append(f"Title: {title}")
+            sections.append(f"URL: {url}")
+            # Prefer raw_content (full page) over snippet
+            text = raw[:2000] if raw else content
+            if text:
+                sections.append(text)
+            sections.append("---")
 
-        return "\n".join(lines)
+        if not sections:
+            domain_note = f" on {target_domain}" if target_domain else ""
+            return f"No results found for '{query}'{domain_note}"
+
+        return "\n".join(sections)
 
     except Exception as e:
-        logger.warning(f"Tavily search failed: {e}")
-        return f"Error: Search failed - {e}"
+        logger.warning(f"Tavily retrieval failed: {e}")
+        return f"Error: Retrieval failed - {e}"
 ```
 
-### B. Simple Graph (`graph.yaml`)
+### B. RAG Graph (`graph.yaml`)
 
 ```yaml
 version: "1.0"
-name: tavily-research
-description: Research a topic using Tavily AI-optimized search
+name: tavily-rag
+description: Domain-scoped RAG using Tavily as retrieval layer
 prompts_relative: true
 prompts_dir: prompts
 
 state:
-  topic: str
+  question: str
 
 tools:
-  tavily_search:
+  tavily_retrieve:
     type: python
-    module: examples.demos.tavily_research.nodes.tavily_search
-    function: tavily_search
-    description: "Search the web using Tavily AI-optimized search engine"
+    module: examples.demos.tavily_rag.nodes.tavily_retrieve
+    function: tavily_retrieve
+    description: "Retrieve content from target domain via Tavily"
 
 nodes:
-  research:
-    type: agent
-    prompt: researcher
-    tools: [tavily_search]
-    max_iterations: 5
-    state_key: research
+  retrieve:
+    type: python
+    tool: tavily_retrieve
+    state_key: context
 
-  summarize:
+  answer:
     type: llm
-    prompt: researcher_summarize
-    requires: [research]
-    state_key: summary
+    prompt: answer
+    requires: [retrieve]
+    state_key: answer
     variables:
-      research: "{state.research}"
-      topic: "{state.topic}"
+      context: "{state.context}"
+      question: "{state.question}"
 
 edges:
   - from: START
-    to: research
-  - from: research
-    to: summarize
-  - from: summarize
+    to: retrieve
+  - from: retrieve
+    to: answer
+  - from: answer
     to: END
 ```
 
-### C. Deep Research Graph (`graph-deep.yaml`)
+### C. Deep RAG Graph (`graph-deep.yaml`)
 
-Uses plan → map(search) → synthesize pattern:
+Plan → parallel retrieve → synthesize, for broad questions that need multiple angles:
 
 ```yaml
 version: "1.0"
-name: tavily-deep-research
-description: Deep research with parallel sub-query fan-out via Tavily
+name: tavily-deep-rag
+description: Multi-query RAG with parallel retrieval via Tavily
 prompts_relative: true
 prompts_dir: prompts
 
 state:
-  topic: str
+  question: str
 
 tools:
-  tavily_search:
+  tavily_retrieve:
     type: python
-    module: examples.demos.tavily_research.nodes.tavily_search
-    function: tavily_search
-    description: "Search the web using Tavily"
+    module: examples.demos.tavily_rag.nodes.tavily_retrieve
+    function: tavily_retrieve
+    description: "Retrieve content from target domain via Tavily"
 
 nodes:
   plan:
     type: llm
     prompt: planner
     variables:
-      topic: "{state.topic}"
+      question: "{state.question}"
     state_key: sub_queries
     schema:
       name: SubQueries
       fields:
         queries:
           type: list[str]
-          description: "3-5 focused sub-queries to research"
+          description: "3-5 focused retrieval queries"
 
-  search:
+  retrieve:
     type: map
-    prompt: researcher
-    tools: [tavily_search]
-    over: sub_queries.queries
-    item_var: query
-    state_key: search_results
-    max_iterations: 3
+    over: "{state.sub_queries.queries}"
+    as: query
+    node:
+      type: python
+      tool: tavily_retrieve
+      state_key: context
+    collect: contexts
 
   synthesize:
     type: llm
     prompt: synthesizer
-    requires: [search]
-    state_key: report
+    requires: [retrieve]
+    state_key: answer
     variables:
-      topic: "{state.topic}"
-      search_results: "{state.search_results}"
+      question: "{state.question}"
+      contexts: "{state.contexts}"
 
 edges:
   - from: START
     to: plan
   - from: plan
-    to: search
-  - from: search
+    to: retrieve
+  - from: retrieve
     to: synthesize
   - from: synthesize
     to: END
@@ -234,89 +256,101 @@ edges:
 
 ### D. Prompts
 
-**`prompts/researcher.yaml`**
+**`prompts/answer.yaml`**
 ```yaml
 system: |
-  You are a research assistant with access to Tavily web search.
-  Search for current, accurate information about the user's topic.
-  Make multiple searches if needed. Note sources (URLs) for key facts.
+  You are a helpful assistant. Answer the user's question using ONLY
+  the retrieved context below. If the context doesn't contain the
+  answer, say so — do not make up information.
+
+  Always cite sources with their URLs.
 
 user: |
-  Research the following topic: {topic}
+  Question: {question}
+
+  Retrieved Context:
+  {context}
+
+  Answer the question based on the context above. Cite sources.
 ```
 
 **`prompts/planner.yaml`**
 ```yaml
 system: |
-  You are a research planner. Break a broad topic into 3-5 focused
-  sub-queries that together will provide comprehensive coverage.
-  Each sub-query should target a different aspect of the topic.
+  You are a query planner. Break a broad question into 3-5 focused
+  retrieval queries that together will gather enough context to
+  answer comprehensively. Each query should target a different
+  aspect of the question.
 
 user: |
-  Break this topic into focused research sub-queries: {topic}
+  Break this question into focused retrieval queries: {question}
 ```
 
 **`prompts/synthesizer.yaml`**
 ```yaml
 system: |
-  You are a research synthesizer. Combine multiple search results into
-  a coherent, well-organized report. Cite sources with URLs.
-  Resolve contradictions. Highlight areas of consensus and uncertainty.
+  You are a research synthesizer. Combine multiple retrieved contexts
+  into a coherent, well-sourced answer. Use ONLY the provided context.
+  Cite sources with URLs. If contexts conflict, note the discrepancy.
+  Do not make up information.
 
 user: |
-  Topic: {topic}
+  Question: {question}
 
-  Research Results:
-  {search_results}
+  Retrieved Contexts:
+  {contexts}
 
-  Create a comprehensive report with:
-  1. Executive summary
-  2. Key findings by sub-topic
-  3. Sources cited
-  4. Areas needing further research
+  Synthesize a comprehensive answer from the contexts above.
+  Cite sources with URLs.
 ```
 
 ### E. Shared Library Consideration
 
-The Tavily tool could live in `examples/shared/tavily_search.py` alongside the existing `websearch.py` (DuckDuckGo). Both implement the same interface (`query: str, max_results: int -> str`) but with different backends. Decision: start in the demo's `nodes/` dir; promote to `examples/shared/` if reuse emerges.
+The Tavily retrieval tool could live in `examples/shared/tavily_retrieve.py` alongside the existing `websearch.py` (DuckDuckGo). Decision: start in the demo's `nodes/` dir; promote to `examples/shared/` if reuse emerges (e.g., the Ninchat project needs domain-scoped retrieval).
 
 ## Acceptance Criteria
 
-- [ ] `examples/demos/tavily-research/graph.yaml` runs: `yamlgraph graph run examples/demos/tavily-research/graph.yaml --var topic="LangGraph tutorials"`
-- [ ] `examples/demos/tavily-research/graph-deep.yaml` runs with map fan-out
+- [ ] `examples/demos/tavily-rag/graph.yaml` runs: `yamlgraph graph run examples/demos/tavily-rag/graph.yaml --var question="What services are available?"`
+- [ ] `examples/demos/tavily-rag/graph-deep.yaml` runs with map fan-out
 - [ ] Both graphs pass `yamlgraph graph lint`
-- [ ] `nodes/tavily_search.py` returns structured results with relevance scores
+- [ ] `nodes/tavily_retrieve.py` returns full page content with source URLs
+- [ ] `TAVILY_TARGET_DOMAIN` scopes retrieval to a single domain when set
+- [ ] Works without `TAVILY_TARGET_DOMAIN` (open web fallback)
 - [ ] Graceful error when `TAVILY_API_KEY` not set (no crash, clear message)
 - [ ] Graceful error when `tavily-python` not installed
-- [ ] `README.md` documents prerequisites, usage, and architecture
-- [ ] Unit test for `tavily_search()` with mocked API response
+- [ ] `README.md` documents prerequisites, usage, and domain configuration
+- [ ] Unit test for `tavily_retrieve()` with mocked API response
 - [ ] Integration test guarded by `TAVILY_API_KEY` availability
 - [ ] `pyproject.toml` updated — add `tavily` optional extra: `tavily = ["tavily-python>=0.5.0"]`
 - [ ] Diary entry in `docs/diary.md`
 
 ## Alternatives Considered
 
-### 1. Extend existing `web-research` demo
-Rejected. The DuckDuckGo demo is valuable as a zero-config example. Tavily requires an API key and offers different capabilities (answer extraction, scoring). Separate demos serve different audiences.
+### 1. Extend existing `examples/rag/` with Tavily retriever
+Rejected. The existing RAG example demonstrates vector store indexing (ChromaDB), which is a fundamentally different pattern. Tavily domain RAG is "live retrieval" with zero indexing — different audience, different lesson.
 
 ### 2. Use `langchain-tavily` instead of `tavily-python`
-Considered. `langchain-tavily` wraps Tavily as a LangChain tool, which would work with YAMLGraph's agent nodes directly. However, using `tavily-python` directly gives more control over the response format and avoids adding a LangChain community dependency. Could offer both as options in the README.
+Considered. `langchain-tavily` wraps Tavily as a LangChain tool. However, using `tavily-python` directly gives control over `include_domains` and `include_raw_content` params without LangChain community dependency overhead.
 
-### 3. Generic "search provider" abstraction
-Over-engineering for a demo. The tool function is 40 lines. If multiple search providers emerge, abstract then (YAGNI).
+### 3. General web research demo (original FR-053 scope)
+Narrowed. The original scope was open web research. Refocused to domain-scoped RAG because: (a) `TAVILY_TARGET_DOMAIN` is already configured in `.env`, (b) domain-scoped retrieval is a more practical pattern for real projects (e.g., customer support, knowledge base), (c) it complements the existing `web-research` demo rather than competing.
 
 ## Implementation Notes
 
+- `TAVILY_API_KEY` and `TAVILY_TARGET_DOMAIN` are already configured in `.env`.
 - The `tavily-python` package requires Python 3.9+. YAMLGraph requires 3.11+, so no conflict.
 - Tavily free tier: 1,000 searches/month — sufficient for demos and testing.
-- The deep research graph exercises map nodes (FR-030, FR-052), inline schemas (Pydantic), and multi-hop agent patterns — good integration stress test.
-- Consider adding `--provider tavily` or `--search-engine tavily` flag to the existing `web-research` demo in a follow-up, not in this FR.
+- `include_raw_content=True` returns full page text (truncated to 2000 chars per source in the tool to fit LLM context windows).
+- The deep RAG graph uses the correct map node syntax: `over` + `as` + `node:` + `collect:` with `type: python` sub-nodes.
+- Pattern mirrors `examples/rag/` (retrieve → answer) but swaps ChromaDB for Tavily — making it a useful comparison point.
+- `type: python` nodes receive the full state dict as a single argument — the function must use `state: dict` signature, not keyword args. The `variables:` section is ignored for python nodes.
+- The framework wraps non-dict returns into `{state_key: result}`, so returning a plain string is valid.
 
 ## Related
 
-- `examples/demos/web-research/` — Existing DuckDuckGo-based research demo
+- `examples/rag/` — Existing vector store RAG example (ChromaDB)
+- `examples/demos/web-research/` — DuckDuckGo-based open web research
 - `examples/shared/websearch.py` — DuckDuckGo tool implementation
+- `examples/demos/python-map/` — Map node with `type: python` sub-nodes (pattern reference)
 - FR-030: Map concurrency control (parallel sub-queries)
-- FR-031: Native retry policy (Tavily API retries)
-- FR-032: Node-level caching (cache repeated Tavily searches)
-- FR-052: Map output flattening (search result aggregation)
+- FR-032: Node-level caching (cache repeated Tavily retrievals)

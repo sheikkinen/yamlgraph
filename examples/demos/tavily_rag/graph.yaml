@@ -1,0 +1,38 @@
+version: "1.0"
+name: tavily-rag
+description: Domain-scoped RAG using Tavily as retrieval layer
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  question: str
+
+tools:
+  tavily_retrieve:
+    type: python
+    module: examples.demos.tavily_rag.nodes.tavily_retrieve
+    function: tavily_retrieve
+    description: "Retrieve content from target domain via Tavily"
+
+nodes:
+  retrieve:
+    type: python
+    tool: tavily_retrieve
+    state_key: context
+
+  answer:
+    type: llm
+    prompt: answer
+    requires: [retrieve]
+    state_key: answer
+    variables:
+      context: "{state.context}"
+      question: "{state.question}"
+
+edges:
+  - from: START
+    to: retrieve
+  - from: retrieve
+    to: answer
+  - from: answer
+    to: END

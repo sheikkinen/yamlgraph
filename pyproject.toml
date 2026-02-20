@@ -51,6 +51,9 @@ analysis = [
 websearch = [
     "ddgs>=6.0.0",
 ]
+tavily = [
+    "tavily-python>=0.5.0",
+]
 storyboard = [
     "replicate>=0.25.0",
 ]

@@ -4,6 +4,16 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: Three Rounds of Judgment (FR-053 Tavily RAG)
+
+**Trap:** The initial FR used `item_var` for map nodes (invented syntax), `def tavily_retrieve(query: str)` for python tool nodes (wrong calling convention — they receive `state: dict`), and `variables:` on `type: python` nodes (silently ignored). Two judgment rounds were needed to catch all three. The first round caught the function signature and no-op variables; the map syntax error was caught during research before the first judgment. Without the Judge step, all three would have silently failed at runtime — the function would crash, the variables would vanish, and the map would error on unknown key.
+
+**Heuristic:** *The cheapest bug is the one killed in the spec.* Two 5-minute judgment passes saved hours of debugging runtime failures that would have produced confusing errors (state key missing, unexpected argument, silent no-ops). The more layers of abstraction between config and execution, the more judgment rounds the spec needs.
+
+**Seed:** Could graph lint detect `variables:` on `type: python` nodes and warn that they're ignored? Currently this is a silent no-op that misleads authors. (→ candidate for FR-025 linter cross-ref checks.)
+
+---
+
 ## 2026-02-20: Demonstrate, Don't Explain (FR-049 Demo)
 
 **Trap:** After 31 unit tests, 10 integration tests, a bug fix, and full reference docs, the feature still felt abstract. The demo — a trivial 3-question trivia quiz — took 15 minutes to write but made the interactive_tool pattern instantly tangible. The canned-answers mode runs in <1s, proving the whole expand→compile→invoke→resume pipeline works end-to-end without any LLM. The integration tests validated correctness; the demo communicated *intent*.

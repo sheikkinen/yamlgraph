@@ -283,6 +283,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073 |
 | 23 | Skip-If-Exists Truthiness | `node_factory/llm_nodes` | REQ-YG-074 |
 | 24 | Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes` | REQ-YG-075 |
+| 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 
 ### 1. Configuration Loading & Validation
 
@@ -515,6 +516,14 @@ Declarative multi-turn stateful tool integration via config-level expansion.
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-075 | Interactive tool node: expand `type: interactive_tool` into start/ask/step/end inline nodes with loop condition, max iterations, and interrupt-based user input | `interactive_tool`, `node_factory/control_nodes`, `utils/conditions` |
+
+### 25. Tavily Domain RAG Demo
+
+Domain-scoped RAG using Tavily search API with `type: python` tool nodes and map fan-out.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-076 | Tavily domain RAG: python tool retrieves context via Tavily API with optional `TAVILY_TARGET_DOMAIN` scoping; simple graph (retrieve→answer) and deep graph (plan→map(retrieve)→synthesize) | `examples/demos/tavily_rag` |
 
 ---
 
