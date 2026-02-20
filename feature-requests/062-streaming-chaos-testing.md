@@ -29,32 +29,63 @@ These can't be discovered by "using" the stream — they require "breaking" it d
 
 ### Phase 1: Error Propagation (streaming contract)
 
-Wrap the streaming generator in `try/except` with explicit error events:
+Wrap the streaming generator in `try/except` with explicit error events.
+
+**Note:** Cannot `yield` from `finally` block — store interrupt event and yield after:
 
 ```python
-async def run_graph_streaming_native(...) -> AsyncIterator[str | StreamEvent]:
-    """Yields str tokens OR StreamEvent on control signals."""
+async def run_graph_streaming_native(
+    ...,
+    yield_events: bool = True,  # Yield StreamEvent on error/interrupt
+) -> AsyncIterator[str | StreamEvent]:
+    """Yields str tokens. If yield_events=True, also yields StreamEvent on error/interrupt."""
+    app = await load_and_compile_async(graph_path)
+    config = config or {}
+    interrupt_event = None
+
     try:
         async for event in app.astream(...):
             # ... existing filter logic ...
             yield token
     except Exception as e:
-        yield StreamEvent(type="error", error=str(e), error_type=type(e).__name__)
+        if yield_events:
+            yield StreamEvent(type="error", error=str(e), error_type=type(e).__name__)
+        else:
+            raise  # Preserve original behavior if events disabled
     finally:
-        # Check for interrupt
+        # Check for interrupt (but don't yield here — invalid Python)
         state = await app.aget_state(config)
-        if state and state.next:
-            yield StreamEvent(type="interrupt", payload=_get_interrupt_payload(state))
+        if state and state.next and yield_events:
+            interrupt_event = StreamEvent(
+                type="interrupt",
+                payload=_get_interrupt_payload(state),
+            )
+
+    # Yield interrupt event after try/finally completes
+    if interrupt_event:
+        yield interrupt_event
+
+
+def _get_interrupt_payload(state: StateSnapshot) -> Any:
+    """Extract interrupt payload from state snapshot."""
+    if state.tasks and state.tasks[-1].interrupts:
+        return state.tasks[-1].interrupts[-1].value
+    return None
 ```
 
 ```python
+# yamlgraph/models/streaming.py
+from dataclasses import dataclass
+from typing import Any, Literal
+
+
 @dataclass
 class StreamEvent:
-    type: Literal["error", "interrupt", "done"]
+    """Control signal yielded during streaming."""
+    type: Literal["error", "interrupt"]
     error: str | None = None
     error_type: str | None = None
     payload: Any = None
-```
 
 Consumer pattern:
 ```python
@@ -70,27 +101,52 @@ async for item in run_graph_streaming_native(...):
 
 ### Phase 2: Timeout Support
 
+Use `asyncio.timeout()` to properly catch stalls *during* event waiting, not just between events:
+
 ```python
+import asyncio
+
 async def run_graph_streaming_native(
     ...,
     timeout: float | None = None,  # Total stream timeout in seconds
-    token_timeout: float | None = None,  # Max gap between tokens
+    yield_events: bool = True,
 ) -> AsyncIterator[str | StreamEvent]:
+    """
+    Args:
+        timeout: Max total duration for the stream. If exceeded, yields
+            StreamEvent(type="error", error_type="TimeoutError").
+    """
+    app = await load_and_compile_async(graph_path)
+    config = config or {}
 
-    start = time.monotonic()
-    last_token = start
-
-    async for event in app.astream(...):
-        now = time.monotonic()
-        if timeout and (now - start) > timeout:
-            yield StreamEvent(type="error", error="Stream timeout exceeded", error_type="TimeoutError")
-            return
-        if token_timeout and (now - last_token) > token_timeout:
-            yield StreamEvent(type="error", error="Token timeout exceeded", error_type="TokenTimeoutError")
-            return
-        # ... yield token ...
-        last_token = now
+    try:
+        # asyncio.timeout wraps the entire iteration — catches stalls mid-await
+        async with asyncio.timeout(timeout):
+            async for event in app.astream(
+                initial_state, config, stream_mode="messages", subgraphs=subgraphs
+            ):
+                # ... filter and yield tokens ...
+                yield token
+    except asyncio.TimeoutError:
+        if yield_events:
+            yield StreamEvent(
+                type="error",
+                error=f"Stream timeout exceeded ({timeout}s)",
+                error_type="TimeoutError",
+            )
+        else:
+            raise
+    except Exception as e:
+        if yield_events:
+            yield StreamEvent(type="error", error=str(e), error_type=type(e).__name__)
+        else:
+            raise
 ```
+
+**Why `asyncio.timeout()` instead of post-yield check:**
+- Post-yield check (`if now - start > timeout`) only triggers *after* an event arrives
+- If LLM blocks for 60s on one token, the check never runs
+- `asyncio.timeout()` raises during the `async for` await, catching true stalls
 
 ### Phase 3: Chaos Testing Infrastructure
 
@@ -98,6 +154,15 @@ Add mock LLM fixtures that simulate failure modes:
 
 ```python
 # tests/conftest.py
+import asyncio
+import random
+from langchain_core.messages import AIMessageChunk
+
+
+class SimulatedRateLimitError(Exception):
+    """Mock rate limit for testing — real providers use different classes."""
+    pass
+
 
 @pytest.fixture
 def chaos_llm_factory():
@@ -115,7 +180,7 @@ def chaos_llm_factory():
                     if fail_after_tokens and tokens_yielded >= fail_after_tokens:
                         raise RuntimeError("Simulated LLM failure")
                     if rate_limit_after and tokens_yielded >= rate_limit_after:
-                        raise RateLimitError("429 Too Many Requests")
+                        raise SimulatedRateLimitError("429 Too Many Requests")
                     if delay_per_token:
                         await asyncio.sleep(delay_per_token)
                     if random.random() < empty_chunk_probability:
@@ -162,7 +227,7 @@ async def test_streaming_timeout_total(chaos_llm_factory, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_streaming_concurrent_session_race(redis_checkpointer):
-    """Two concurrent streams to same thread_id don't corrupt state."""
+    """Two concurrent streams to same thread_id: one succeeds, one fails cleanly."""
     config = {"configurable": {"thread_id": "race-test"}}
 
     async def stream_session(message: str):
@@ -177,13 +242,21 @@ async def test_streaming_concurrent_session_race(redis_checkpointer):
         return_exceptions=True,
     )
 
-    # At least one should fail cleanly (not corrupt)
-    # Exact behavior TBD — maybe second gets "session locked" error?
-    assert not any(isinstance(r, Exception) for r in results), "Should handle race gracefully"
+    # Expect: one succeeds (list of events), one fails with error event or exception
+    # The key invariant: no state corruption, no interleaved tokens
+    successes = [r for r in results if isinstance(r, list)]
+    assert len(successes) >= 1, "At least one stream should complete"
+
+    # If both completed, check neither has corrupted data
+    for result in successes:
+        errors = [e for e in result if isinstance(e, StreamEvent) and e.type == "error"]
+        # Session race should surface as error event, not silent corruption
+        if errors:
+            assert "locked" in errors[0].error.lower() or "conflict" in errors[0].error.lower()
 
 
 @pytest.mark.asyncio
-async def test_streaming_rate_limit_retry(chaos_llm_factory, monkeypatch):
+async def test_streaming_rate_limit_error(chaos_llm_factory, monkeypatch):
     """Rate limit error surfaces as retriable error event."""
     llm = chaos_llm_factory(rate_limit_after=2)
     monkeypatch.setattr("yamlgraph.utils.llm_factory.create_llm", lambda **k: llm)
@@ -193,6 +266,21 @@ async def test_streaming_rate_limit_retry(chaos_llm_factory, monkeypatch):
     errors = [e for e in events if isinstance(e, StreamEvent) and e.type == "error"]
     assert len(errors) == 1
     assert "429" in errors[0].error or "RateLimit" in errors[0].error_type
+
+
+@pytest.mark.asyncio
+async def test_streaming_empty_chunks_no_busywait(chaos_llm_factory, monkeypatch):
+    """Empty chunks are filtered without busy-wait or yield."""
+    llm = chaos_llm_factory(empty_chunk_probability=0.5)
+    monkeypatch.setattr("yamlgraph.utils.llm_factory.create_llm", lambda **k: llm)
+
+    events = [e async for e in run_graph_streaming_native("test.yaml", {})]
+
+    tokens = [e for e in events if isinstance(e, str)]
+    # Should get some tokens (not all filtered as empty)
+    assert len(tokens) >= 1
+    # No token should be empty string
+    assert all(t.strip() for t in tokens)
 ```
 
 ### Phase 4: Integration with openai_proxy
@@ -253,18 +341,38 @@ async def stream_response():
 2. Phase 3 (chaos fixtures) enables testing Phases 1, 2, and 4
 3. Phase 2 (timeouts) and Phase 4 (proxy integration) can parallelize
 
-**Breaking change consideration:**
-Return type changes from `AsyncIterator[str]` to `AsyncIterator[str | StreamEvent]`. Existing consumers using `async for token in ...` will receive unexpected types. Options:
-- **Option A:** New function `run_graph_streaming_native_v2()` — clean but duplicates
-- **Option B:** Add `raw=True` parameter that preserves old behavior
-- **Option C:** Require explicit opt-in via `yield_events=True` (default False)
+**Breaking change: `yield_events` defaults to `True`**
 
-Recommend **Option C** for backward compatibility:
+Return type changes from `AsyncIterator[str]` to `AsyncIterator[str | StreamEvent]`.
+
+**Rationale:** The whole point of FR-062 is to stop silent failures. Defaulting to `False` means existing consumers *still* get silent failures — defeating the purpose. Better to fix all consumers now than propagate the bug.
+
+**Migration for existing consumers:**
 ```python
-async def run_graph_streaming_native(
-    ...,
-    yield_events: bool = False,  # If True, yields StreamEvent on error/interrupt
-) -> AsyncIterator[str] | AsyncIterator[str | StreamEvent]:
+# Before: assumes only strings
+async for token in run_graph_streaming_native("graph.yaml", state):
+    print(token, end="")
+
+# After: handle both types
+async for item in run_graph_streaming_native("graph.yaml", state):
+    if isinstance(item, str):
+        print(item, end="")
+    elif isinstance(item, StreamEvent) and item.type == "error":
+        print(f"\nError: {item.error}")
+
+# Or: opt out explicitly
+async for token in run_graph_streaming_native("graph.yaml", state, yield_events=False):
+    print(token, end="")  # Exceptions propagate as before
 ```
 
-Existing code unchanged. New consumers opt into events.
+**Affected consumers:**
+- `examples/openai_proxy/api/app.py` — update to handle `StreamEvent`
+- `questionnaire-api` SSE routes — update to format error/interrupt events
+- Any direct callers — check for `StreamEvent` type
+
+**CHANGELOG entry:**
+```markdown
+### Breaking Changes
+- `run_graph_streaming_native()` now yields `StreamEvent` on error/interrupt by default.
+  Pass `yield_events=False` to restore previous behavior (silent failures).
+```
