@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.44] - 2026-02-22
 
 ### Added
-- **FR-052 Map Output Flattening**: `flatten_map_results()` function in `map_compiler.py` — merges `_map_xxx_sub` contents into items, converts Pydantic models via `model_dump()`, preserves `_map_index` (REQ-YG-075)
+- **FR-052 Map Output Flattening**: `flatten_output: true` option for map nodes — merges `_map_xxx_sub` contents into items, converts Pydantic models via `model_dump()`, preserves `_map_index` (REQ-YG-075)
+  - `flatten_map_results()` function in `map_compiler.py`
+  - `flatten_output` field in `NodeConfig` model
+  - Wired through `wrap_for_reducer` in `compile_map_node`
 - **Pattern 12**: Quality Gate for Map Output — manual validation pattern documented
 - **Pattern 13**: Monitoring No-Op Pipelines — canary detection via launchd
 

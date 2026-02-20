@@ -70,6 +70,9 @@ class NodeConfig(BaseModel):
     item_var: str | None = Field(default=None, alias="as")
     node: dict[str, Any] | None = Field(default=None, description="Map sub-node")
     collect: str | None = Field(default=None, description="Map collect key")
+    flatten_output: bool = Field(
+        default=False, description="Merge _map_xxx_sub contents into items (FR-052)"
+    )
 
     # Tool/Agent fields
     tools: list[str] = Field(default_factory=list)

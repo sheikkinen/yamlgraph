@@ -136,3 +136,82 @@ class TestFlattenOutput:
         assert flattened[0]["_error"] is None
         assert flattened[0]["extra"] == "data"
         assert "_map_process_sub" not in flattened[0]
+
+
+class TestWrapForReducerFlatten:
+    """Tests for wrap_for_reducer with flatten_output option."""
+
+    @pytest.mark.req("REQ-YG-075")
+    def test_wrap_for_reducer_flatten_output_merges_sub_key(self):
+        """wrap_for_reducer with flatten_output=True should flatten results."""
+        from yamlgraph.map_compiler import wrap_for_reducer
+
+        def node_fn(state: dict) -> dict:
+            return {"result": {"score": 0.8, "tag": "relevant"}}
+
+        wrapped = wrap_for_reducer(node_fn, "collected", "result", flatten_output=True)
+        result = wrapped({"_map_index": 0, "item": "test"})
+
+        # Should be flattened - no _map_xxx_sub wrapper
+        assert result == {
+            "collected": [{"_map_index": 0, "score": 0.8, "tag": "relevant"}]
+        }
+
+    @pytest.mark.req("REQ-YG-075")
+    def test_wrap_for_reducer_flatten_output_false_preserves_structure(self):
+        """wrap_for_reducer with flatten_output=False (default) preserves structure."""
+        from yamlgraph.map_compiler import wrap_for_reducer
+
+        def node_fn(state: dict) -> dict:
+            return {"result": {"score": 0.8, "tag": "relevant"}}
+
+        wrapped = wrap_for_reducer(node_fn, "collected", "result", flatten_output=False)
+        result = wrapped({"_map_index": 0, "item": "test"})
+
+        # Should have normal flattened output (no _map_xxx_sub key in this case
+        # because result.get("result") extracts the dict directly)
+        assert result == {
+            "collected": [{"_map_index": 0, "score": 0.8, "tag": "relevant"}]
+        }
+
+    @pytest.mark.req("REQ-YG-075")
+    def test_wrap_for_reducer_flatten_with_default_state_key_mismatch(self):
+        """Test flattening when state_key doesn't match node output.
+
+        This simulates the real bug: sub-node defaults state_key to node_name,
+        but wrap_for_reducer defaults to "result". The result is the full
+        dict gets included as extracted value with the node_name key.
+        """
+        from yamlgraph.map_compiler import wrap_for_reducer
+
+        def node_fn(state: dict) -> dict:
+            # Simulates what create_node_function produces when state_key
+            # defaults to node_name (e.g., "_map_analyze_sub")
+            return {"_map_analyze_sub": {"score": 0.8, "tag": "relevant"}}
+
+        # state_key="result" doesn't exist, so extracted = full dict
+        wrapped = wrap_for_reducer(node_fn, "collected", "result", flatten_output=True)
+        result = wrapped({"_map_index": 0, "item": "test"})
+
+        # With flatten_output=True, the _map_analyze_sub contents are merged
+        assert result == {
+            "collected": [{"_map_index": 0, "score": 0.8, "tag": "relevant"}]
+        }
+
+    @pytest.mark.req("REQ-YG-075")
+    def test_wrap_for_reducer_flatten_without_mismatch(self):
+        """Without flatten_output, the _map_xxx_sub key is preserved."""
+        from yamlgraph.map_compiler import wrap_for_reducer
+
+        def node_fn(state: dict) -> dict:
+            return {"_map_analyze_sub": {"score": 0.8, "tag": "relevant"}}
+
+        wrapped = wrap_for_reducer(node_fn, "collected", "result", flatten_output=False)
+        result = wrapped({"_map_index": 0, "item": "test"})
+
+        # Without flatten_output, the full dict is included with the key
+        assert result == {
+            "collected": [
+                {"_map_index": 0, "_map_analyze_sub": {"score": 0.8, "tag": "relevant"}}
+            ]
+        }

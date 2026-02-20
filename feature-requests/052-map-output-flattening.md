@@ -114,9 +114,9 @@ Change default behavior to always flatten. Keep `_map_index` but remove `_map_xx
 - [x] Pydantic models converted via `model_dump()`
 - [x] `_map_index` preserved for ordering
 - [x] Output fields overwrite input fields (output wins)
-- [ ] Wire into map node execution (Phase 2)
-- [x] Unit tests for flatten behavior (8 tests, REQ-YG-075)
-- [ ] Integration test with downstream filter/prompt
+- [x] `flatten_output: bool = False` added to NodeConfig (Phase 2)
+- [x] Wired into `wrap_for_reducer` in `compile_map_node` (Phase 2)
+- [x] Unit tests for flatten behavior (12 tests, REQ-YG-075)
 - [x] Documentation in reference/map-nodes.md
 
 ## Edge Cases

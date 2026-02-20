@@ -88,6 +88,7 @@ def wrap_for_reducer(
     node_fn: Callable[[dict], dict],
     collect_key: str,
     state_key: str,
+    flatten_output: bool = False,
 ) -> Callable[[dict], dict]:
     """Wrap sub-node output for Annotated reducer aggregation.
 
@@ -98,6 +99,7 @@ def wrap_for_reducer(
         node_fn: The original node function
         collect_key: State key where results are collected
         state_key: Key to extract from node result
+        flatten_output: If True, merge _map_xxx_sub contents into items (FR-052)
 
     Returns:
         Wrapped function that outputs in reducer-compatible format
@@ -162,6 +164,12 @@ def wrap_for_reducer(
             else:
                 extracted = {"_map_index": state["_map_index"], "value": extracted}
 
+        # FR-052: Flatten if requested
+        if flatten_output and isinstance(extracted, dict):
+            flattened = flatten_map_results([extracted])
+            if flattened:
+                extracted = flattened[0]
+
         return {collect_key: [extracted]}
 
     return wrapped
@@ -198,6 +206,7 @@ def compile_map_node(
     item_var = config["as"]
     sub_node_name = f"_map_{name}_sub"
     collect_key = config["collect"]
+    flatten_output = config.get("flatten_output", False)
     sub_node_config = dict(config["node"])  # Copy to avoid mutating original
     state_key = sub_node_config.get("state_key", "result")
     sub_node_type = sub_node_config.get("type", "llm")
@@ -244,7 +253,7 @@ def compile_map_node(
             sub_node_name, sub_node_config, defaults, graph_path=graph_path
         )
 
-    wrapped_node = wrap_for_reducer(sub_node, collect_key, state_key)
+    wrapped_node = wrap_for_reducer(sub_node, collect_key, state_key, flatten_output)
     builder.add_node(sub_node_name, wrapped_node)
 
     # Create fan-out edge function using Send
