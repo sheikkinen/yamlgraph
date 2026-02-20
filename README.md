@@ -289,4 +289,11 @@ For production deployments, consider:
 
 ## Remember
 
-Prompts in yaml templates, graphs in yaml, shared executor, pydantic, data stored in sqlite, langgraph, langsmith, venv, tdd red-green-refactor, modules < 400 lines, kiss
+Read the Scripture in .github/copilot-instructions.md.
+
+Base process with Opus 4.5:
+ - new feature specific chat
+ - "Let us pray"
+ - "Plan new project/xxxx"
+ - "Judge" & "Amend" loop
+ - "Enforce"
