@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.46] - 2026-02-20
+
+### Added
+- **FR-049 Interactive Tool Node** (CAP-24, REQ-YG-075): New `type: interactive_tool` node that expands a single YAML node into a full multi-turn conversation loop (`__start` → `__ask` → `__step` ↺ → `__end`) at compile time
+  - Config-level expansion via `expand_interactive_tools()` — no new factory needed
+  - `loop_until` condition with automatic `negate_condition()` for loop-back routing
+  - `max_iterations` safety guard, optional `end` tool, `on_error` propagation
+  - 31 unit tests + 10 integration tests (stub chatbot, sync/async, SQLite, streaming)
+- **Trivia quiz demo**: `examples/demos/interactive_tool/` — deterministic 3-question quiz showcasing the full interactive_tool pattern (no LLM needed)
+- **Reference docs**: `interactive_tool` node type section in `graph-yaml.md` with properties table and expansion diagram; added missing node types to `getting-started.md`
+
+### Fixed
+- **Condition evaluation `state.` prefix**: `resolve_value()` in `conditions.py` now strips the `state.` prefix from paths (e.g. `state.session_done == True`), fixing `loop_until` routing that silently resolved to `None`
+
 ## [0.4.45] - 2026-02-20
 
 ### Changed

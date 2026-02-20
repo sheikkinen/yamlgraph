@@ -4,6 +4,14 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-02-19.md](diary-2026-02-19.md) — 13 entries from 2026-02-19.
 
+## 2026-02-20: Demonstrate, Don't Explain (FR-049 Demo)
+
+**Trap:** After 31 unit tests, 10 integration tests, a bug fix, and full reference docs, the feature still felt abstract. The demo — a trivial 3-question trivia quiz — took 15 minutes to write but made the interactive_tool pattern instantly tangible. The canned-answers mode runs in <1s, proving the whole expand→compile→invoke→resume pipeline works end-to-end without any LLM. The integration tests validated correctness; the demo communicated *intent*.
+
+**Heuristic:** *A demo is not a test.* Tests prove constraints hold. Demos prove the abstraction is worth having. If you can't build a self-contained demo in 15 minutes, the abstraction may be too complex — or you don't understand it well enough yet.
+
+**Seed:** Could `yamlgraph graph init --template interactive_tool` scaffold a project with the quiz skeleton, letting users replace the tools with their own logic? Template-based bootstrapping (FR-041) meets macro expansion.
+
 ---
 
 ## 2026-02-20: The state. Prefix Trap (FR-049a Integration Tests)
