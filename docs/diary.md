@@ -683,4 +683,16 @@ Output showed:
 
 The agent stated its question, defined success, self-assessed, and provided trace — all from prompt engineering, not graph config.
 
+### Downstream Impact
+
+| Component | Effect |
+|-----------|--------|
+| `prompts/*.yaml` | New pattern available: teach verification in system prompt |
+| `examples/demos/` | New reference implementation at `verified-search/` |
+| Agent tool usage | More focused — agent states criteria before exploring |
+| LangSmith traces | `reasoning_trace` field makes decisions explicit |
+| Future agent prompts | Should consider: does this need verification? |
+
+**Not affected:** Graph loader, node factory, executor — pattern is pure prompt engineering.
+
 **Seed:** Could a lint rule detect "prompt logic in graph config"? If a node config contains words like "must", "always", "before", "criteria" — warn that it might be prompt leakage.
