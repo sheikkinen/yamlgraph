@@ -482,7 +482,7 @@ The pattern: **correct local fixes compose into global failures**. Each individu
 | **MCP ecosystem** | Medium | `yamlgraph_run_graph` already works; expand to more tools |
 | **Evaluation-first design** | High | Add `verification_question` field per agent node |
 | **Graph scaffolding** | Medium | `yamlgraph graph init --template reflexion` |
-| **Visual graph editor** | High | Mermaid → interactive YAML |
+| **Agent-writable graphs** | Low | LLM generates/modifies graph YAML directly |
 | **LangGraph Cloud deployment** | Medium | Package as deployable unit |
 | **Provider-specific optimizations** | Low | Batch API for GPT, prompt caching for Claude |
 | **Streaming error events** | Done | FR-062 implemented |
@@ -561,13 +561,32 @@ The pattern: **correct local fixes compose into global failures**. Each individu
 
 6. **Graph scaffolding CLI** — `yamlgraph graph init reflexion --name my-graph` generates skeleton.
 
-7. **Visual graph preview** — `yamlgraph graph viz examples/demos/router/graph.yaml` outputs SVG.
+7. **Provider benchmark suite** — Same prompt, all 7 providers, measure latency/cost/quality.
 
-8. **Provider benchmark suite** — Same prompt, all 7 providers, measure latency/cost/quality.
+8. **YAML schema for IDE** — JSON Schema for `graph.yaml` files, enable VS Code validation.
 
-9. **YAML schema for IDE** — JSON Schema for `graph.yaml` files, enable VS Code validation.
+9. **Contribution guidelines** — `CONTRIBUTING.md` with PR template requiring FR link.
 
-10. **Contribution guidelines** — `CONTRIBUTING.md` with PR template requiring FR link.
+---
+
+### Correction: The Visual Tooling Trap
+
+**Struck from the record:** "Visual graph preview" and "Visual graph editor" suggestions.
+
+**Why it was wrong:** YAMLGraph's entire thesis is that **YAML is the visualization**. The graph structure is readable. The nodes are named. The edges are explicit. Adding Mermaid/SVG/UI is solving a problem that doesn't exist — and worse, it undermines the core value proposition.
+
+**The design constraint I forgot:**
+- YAMLGraph is AI-editable by design
+- No UI, ever
+- Text is the interface
+- Agents read YAML, agents write YAML
+- Visual tools create a human dependency that YAML eliminates
+
+**Why the trap is seductive:** Visual tools *feel* like progress. Diagrams *look* professional. But they're a crutch for bad structure. If a graph needs a diagram to be understood, the graph is too complex — simplify the graph, don't add visualization.
+
+**Heuristic:** *When tempted to visualize, simplify instead. YAML that needs a diagram is YAML that needs refactoring.*
+
+**The deeper insight:** This is the same trap as "add a GUI" or "add a dashboard." The friction of text-only interfaces is a feature — it forces clarity at the source. Visual tools let complexity hide behind pretty boxes.
 
 ---
 
