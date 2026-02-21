@@ -62,9 +62,44 @@ process_topic() {
     echo "📋 Processing: $topic"
     echo "   Draft: $draft_file"
 
+    # Pre-create draft file with template (so Copilot only needs edit permission)
+    cat > "$draft_file" << EOF
+# Feature Request: FR-${fr_num} ${topic}
+
+**Priority:** MEDIUM
+**Type:** Enhancement
+**Status:** Draft
+**Effort:** TBD
+**Requested:** $(date +%Y-%m-%d)
+
+## Summary
+
+${topic}
+
+## Problem
+
+[To be filled by Copilot]
+
+## Proposed Solution
+
+[To be filled by Copilot]
+
+## Acceptance Criteria
+
+- [ ] [To be filled by Copilot]
+
+## Alternatives Considered
+
+[To be filled by Copilot]
+
+## Related
+
+[To be filled by Copilot]
+EOF
+
     # Plan phase
     echo "📝 Plan..."
-    run_copilot "Plan a solution for: $topic. Create a feature request document in $draft_file following the template in feature-requests/TEMPLATE.md. Use FR number $fr_num."
+    run_copilot "Edit the draft FR in $draft_file. Fill in all [To be filled by Copilot] sections following the patterns in feature-requests/TEMPLATE.md. Research the topic: $topic"
 
     # Judge loop (max 3 cycles)
     local cycles=0
