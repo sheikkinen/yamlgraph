@@ -2,9 +2,10 @@
 """Rotate docs/diary.md when the day has changed.
 
 If the most recent entry date in diary.md is before today:
-  1. Move diary.md → diary-YYYY-MM-DD.md (with -N suffix if exists)
-  2. Create fresh diary.md with header + Previous link
-  3. Stage both files with git add
+  1. Import pending entries from ~/scheduled-yamlgraphs/outputs/
+  2. Move diary.md → diary-YYYY-MM-DD.md (with -N suffix if exists)
+  3. Create fresh diary.md with header + Previous link
+  4. Stage both files with git add
 
 Run standalone:
     python scripts/diary_rotate.py          # rotate if needed
@@ -17,6 +18,7 @@ Pre-commit hook:
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -26,6 +28,7 @@ from pathlib import Path
 
 DIARY = Path("docs/diary.md")
 DATE_RE = re.compile(r"^## (\d{4}-\d{2}-\d{2}):")
+SCHEDULED_OUTPUTS = Path(os.path.expanduser("~/scheduled-yamlgraphs/outputs"))
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -98,12 +101,77 @@ def git_add(*paths: Path) -> None:
     )
 
 
+def import_scheduled_entries() -> int:
+    """Import pending diary entries from ~/scheduled-yamlgraphs/outputs/.
+
+    Converts World Digest format to diary entry format, appends to diary.md,
+    and removes the processed file.
+
+    Returns count of imported entries.
+    """
+    if not SCHEDULED_OUTPUTS.exists():
+        return 0
+
+    imported = 0
+    for entry_file in sorted(SCHEDULED_OUTPUTS.glob("diary_entry_*.md")):
+        content = entry_file.read_text()
+
+        # Check if already imported (search for unique content in diary)
+        diary_content = DIARY.read_text() if DIARY.exists() else ""
+
+        # Extract date from filename: diary_entry_20260221.md → 2026-02-21
+        match = re.search(r"diary_entry_(\d{4})(\d{2})(\d{2})\.md", entry_file.name)
+        if not match:
+            continue
+
+        entry_date = f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
+
+        # Skip if this date's World Digest already exists in diary
+        if f"## {entry_date}: World Digest" in diary_content:
+            print(f"⏭️  Skipping {entry_file.name} (already in diary)")
+            entry_file.unlink()
+            continue
+
+        # Convert format: "# World Digest — Theme" → "## YYYY-MM-DD: World Digest — Theme"
+        # Remove "**Date:** YYYY-MM-DD" line
+        lines = content.splitlines()
+        converted_lines = []
+
+        for line in lines:
+            if line.startswith("# World Digest"):
+                # Convert heading
+                theme = line[len("# World Digest — ") :]
+                converted_lines.append(f"## {entry_date}: World Digest — {theme}")
+            elif line.startswith("**Date:**"):
+                # Skip the date line
+                continue
+            else:
+                converted_lines.append(line)
+
+        converted = "\n".join(converted_lines)
+
+        # Append to diary with separator
+        with open(DIARY, "a") as f:
+            f.write(f"\n---\n\n{converted.strip()}\n")
+
+        print(f"📥 Imported {entry_file.name} → {DIARY}")
+        entry_file.unlink()
+        imported += 1
+
+    return imported
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 
 def main() -> int:
+    # Always try to import pending entries first (even if no rotation needed)
+    imported = import_scheduled_entries()
+    if imported > 0:
+        git_add(DIARY)
+
     if not DIARY.exists():
         return 0
 
