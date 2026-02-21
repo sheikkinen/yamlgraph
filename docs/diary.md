@@ -722,39 +722,203 @@ The agent stated its question, defined success, self-assessed, and provided trac
 **Heuristic:** *When replacing an implementation, the old tests are as important as the new ones. New tests prove capability; old tests prove compatibility.*
 
 **Seed:** Should every FR that replaces an implementation explicitly require "run existing tests first, then add new tests"? The order matters — if new tests pass but old tests fail, you've made progress at the cost of regression.
+---
+
+## 2026-02-21: The Philosopher's Distillation — Compendium for Future Maintainers
+
+**Context:** Read the complete diary corpus (70+ entries, ~30K words, 2026-02-17 to 2026-02-21). Stepped back to distill the unseen patterns for those who inherit this codebase.
+
+### The Three Costumes of One Trap
+
+Across all entries, the same demon wears different masks:
+
+| Mask | Manifestation | True Name |
+|------|---------------|-----------|
+| **Quick confidence** | "It looks right" → bypass judgment → `--no-verify` | **Impatience** |
+| **Downstream fix** | Belt-and-suspenders guards proliferate; root cause untouched | **Impatience** |
+| **Symptom patch** | Debug permissions when the issue is sandbox; debug None when the issue is schema | **Impatience** |
+
+The antidote is the same in all cases: **slow down at the boundary**.
+
+### The Boundary Principle (Master Heuristic)
+
+The recurring wisdom across FR-057–060, the temperature bug, the Provider's Lie, the vuosikello fallback:
+
+> ***Normalize at the boundary where external data enters the system, not downstream where it manifests.***
+
+| Boundary | What Crosses |
+|----------|--------------|
+| Schema default | Provider-agnostic value (not `None`) |
+| Provider `.content` | Canonical `str` (not list-of-blocks) |
+| State read before return | Delta only (not accumulated full state) |
+| Streaming filter | Explicit type check (not duck typing) |
+| Sandbox/TCC | Access context, not file permissions |
+
+**The sign you've missed the boundary:** You're adding guards in multiple files for the same value.
+
+### The Ten Named Traps
+
+| # | Trap | Symptom | Cure |
+|---|------|---------|------|
+| 1 | **Completionism Bias** | Reading source instead of writing a test | Write the test first |
+| 2 | **Analysis Momentum** | Gap list becomes TODO list by inertia | Stop after analysis; let problems return naturally |
+| 3 | **Armchair Debugging** | Mental model instead of empirical test | 10-line verification before 100-line fix |
+| 4 | **False Equivalence** | "These look the same" → unified abstraction adds complexity | Verify semantic equivalence, not syntactic |
+| 5 | **Silent Fallback** | `if not results: results = all_items` → plausible wrong output | Raise, never substitute |
+| 6 | **Invention Disguised** | "Extraction" FR for pattern that doesn't exist | Grep before proposing |
+| 7 | **Tool-Solution Bias** | Every insight needs a pipeline | Ask: "Is this a sentence or a tool?" |
+| 8 | **Signal Overconfidence** | Green dashboard → assume architecture is healthy | Pair correctness checks with entropy checks |
+| 9 | **Severity Inflation** | Automated audit counts patterns, not intent | Treat output as census, not verdict |
+| 10 | **Tautological Seed** | Seed asks something you can answer by grep | Seeds should point to unexplored territory |
+
+### The Composition Theorem
+
+> *Correct local fixes compose into global failures.*
+
+FR-058's filter worked perfectly. FR-059's normalizer worked perfectly. The temperature schema change worked perfectly. Each individual test passes. **The interaction between changes reveals the gap no single test could see.**
+
+This is why streaming "is the X-ray of your state machine." It exposes timing and composition that batch execution hides.
+
+**Corollary:** After any fix that touches data flow, trace the downstream path manually.
+
+### The Seed as Deferred Call Stack
+
+Seeds that self-fulfill within days are high-signal. Seeds that linger past a week are either:
+- Too abstract to act on
+- Already answered by existing tooling
+- Tautological (can be answered by grep)
+
+**The diary is a priority queue sorted by pain.** Only bugs that hurt enough to distill earn a seed. The frequency of independent emergence is the priority signal.
+
+### The Graduated Heuristics (Now in Scripture)
+
+| Heuristic | Source Entry | Prayer Line |
+|-----------|--------------|-------------|
+| Fix at the callsite, not the utility | FR-049a `state.` prefix | *May I fix at the callsite, not the utility* |
+| The cheapest bug is the one in the spec | FR-053 three judgment rounds | *May I kill the cheapest bug — the one in the spec* |
+| Normalize at the boundary | FR-059 Provider's Lie | *May I normalize at the boundary, trusting no provider's type* |
+| Streaming reveals what batch conceals | FR-057–060 cluster | *May I stream to reveal what batch conceals* |
+| When hooks feel slow, they guard | `--no-verify` transgression | *When hooks feel slow, let that be the sign they guard* |
+| When certain, Judge | Self-judgment entry | *When I feel certain, let that be the sign to Judge* |
+
+### The Six Hats for Future Maintainers
+
+| Hat | Role | When to Invoke |
+|-----|------|----------------|
+| ⚪ White (Archaeologist) | Facts, metrics | Starting analysis, weekly review |
+| 🔴 Red (User Voice) | Friction, pain | After any config change |
+| ⚫ Black (Judge) | What breaks | Before any merge |
+| 🟡 Yellow (Opportunity) | What's enabled | After capability added |
+| 🟢 Green (Wildcard) | What if | When stuck |
+| 🔵 Blue (Compliance) | Process health | When drift suspected |
+
+**The orchestration rule:** Parallel viewpoints need a conductor. The Blue hat decides which viewpoint matters *now*.
+
+### The Ironic Pattern (Self-Reference)
+
+The entry about process was committed without process (`--no-verify`). The fix for FR-058 enabled the bug in FR-059. The diary about preventing recurrence didn't prevent recurrence.
+
+**The meta-lesson:** Naming a trap and installing a circuit breaker are different operations. The diary does the first; only the Judgment phase does the second.
+
+### What the Diary Teaches
+
+1. **Capture the problem, not the solution.** Solutions evolve; problems are stable.
+2. **A demo is not a test.** Tests prove constraints; demos prove the abstraction is worth having.
+3. **Three reads minimum.** Surface for coherence, deep for code paths, mechanical for runtime simulation.
+4. **When a regex needs its fourth exclusion, switch to the proper parser.**
+5. **Automate the boring part.** Brainstorming is not boring — don't automate it.
+
+### The Infrastructure Truth
+
+> *A quality gate that doesn't run automatically isn't a gate — it's documentation.*
+
+17 pre-commit hooks defined. Zero installed in `.git/hooks/pre-commit`. The ceremony (absolution) ran; the substance (tests) did not. **Verify infrastructure by observing effects, not reading config.**
+
+### A Closing Meditation
+
+If the diary grows linearly and the Seeds grow linearly, both become unreadable. The diary has compression (rotation, digests, graduation). The Seeds have curation.
+
+But what compresses the *heuristics*? 55+ lessons, some overlapping, some superseded. Could a future entry distill them into 7 laws? Or is the sprawl itself the point: evidence that wisdom isn't systematic, but earned incident by incident, failure by failure?
+
+**Heuristic:** *The corpus is not meant to be read — it's meant to be searched. When a trap recurs, grep the diary. The answer is already there, waiting.*
+
+**Seed:** Could the diary have a semantic index — a graph where each trap links to its cure, each cure links to its source FR, and each FR links to its diary entry? Not for human reading, but for agent retrieval. The diary as a knowledge graph, not a log.
 
 ---
 
-## 2026-02-21: FR-066 — The Irreducible Complexity
+## 2026-02-21: The Four-Agent Chaplaincy — Architecture Reflection
 
-**Context:** FR-066 targeted three high-CC functions for refactoring. Targets: ≤8, ≤10, ≤6.
+**Context:** Current work divided across 4 separate Opus 4.5 agents: Planner (🟢), Judge (⚫), Enforcer (TDD), Philosopher (Meta). No automation. Shared communication via FRs.
 
-**Actual results:**
+### The Current Architecture
 
-| Function | Before | After | Target | Gap |
-|----------|--------|-------|--------|-----|
-| `resolve_prompt_path` | 20 | 15 | ≤8 | -7 |
-| `_process_edge` | 18 | 13 | ≤10 | -3 |
-| `check_expression_syntax` | 18 | 3 | ≤6 | ✓ |
+```
+         ┌─────────────────────────────────────────┐
+         │           HUMAN (Blue Hat)              │
+         │         Orchestrates, decides           │
+         └─────────────────┬───────────────────────┘
+                           │
+        ┌──────────────────┼──────────────────────┐
+        │                  │                      │
+        ▼                  ▼                      ▼
+   ┌─────────┐       ┌─────────┐           ┌─────────┐
+   │ PLANNER │──FR──▶│  JUDGE  │──Verdict──▶│ENFORCER│
+   │  (🟢)   │       │  (⚫)   │           │  (TDD)  │
+   └─────────┘       └─────────┘           └─────────┘
+        │                                       │
+        │                                       │
+        └───────────────┐   ┌───────────────────┘
+                        ▼   ▼
+                   ┌───────────┐
+                   │PHILOSOPHER│
+                   │   (Meta)  │
+                   └───────────┘
+```
 
-**The Trap:** Setting CC targets without analyzing what the CC *represents*. The FR assumed complexity could be eliminated by extraction. But:
+### What's Working
 
-- `resolve_prompt_path` has 5 resolution strategies, each with conditional applicability based on 3 boolean flags. The remaining CC (15) represents actual decision paths users care about.
-- `_process_edge` has 8 edge type cases that are mutually exclusive. Extracting handlers reduces nesting but not decision count.
-- `check_expression_syntax` had *interleaved* logic — three independent checks tangled in one loop. Extraction cleanly separated them, yielding CC 3.
+1. **Separation of concerns** — Planner doesn't judge its own work. Judge doesn't implement. Enforcer doesn't philosophize mid-commit.
+2. **FRs as the API** — Shared artifact is text. Machine-readable, human-reviewable, version-controlled. No hidden state.
+3. **Human as Blue Hat** — Decides which agent when. Prevents runaway recursion, ensures judgment at transitions.
+4. **Stateless agents** — Each invocation starts fresh. No accumulated drift. FR carries all context.
 
-**The insight:** CC measures decision paths. Some decisions are *essential* — they represent real business logic. Others are *accidental* — artifacts of how code was structured. Refactoring can only eliminate accidental complexity.
+### What's Missing (Six Hats Gaps)
 
-**Pattern recognition:**
-- When CC comes from *nested* conditions (if inside if), extraction helps.
-- When CC comes from *sequential* conditions (elif chain), extraction changes structure but not decisions.
-- When checks are *independent* (can run in any order), extraction is high-value.
+| Gap | Symptom | Missing Hat |
+|-----|---------|-------------|
+| No systematic fact-gathering | Metrics ad-hoc | ⚪ White (Archaeologist) |
+| User friction discovered late | Pain in production | 🔴 Red (User Voice) |
+| Opportunities by accident | No "what does this enable?" | 🟡 Yellow (Opportunity) |
+| Process health unchecked | Philosopher distills but doesn't audit | 🔵 Blue (incomplete) |
 
-**Heuristic:** *Before targeting a CC number, ask: is this complexity essential or accidental? Essential complexity survives refactoring; accidental complexity can be eliminated.*
+### The Boundary Principle Applied
 
-**What worked:**
-- Existing test suites (61 tests total) caught zero regressions
-- Strategy pattern for prompts made resolution order explicit
-- Lint check extraction made each rule independently testable
+FRs are the boundary between agents. Each agent reads structured artifact, produces structured artifact. No leaky state, no implicit handoffs. **This is correct.**
 
-**Seed:** Could `radon` be extended to distinguish decision types? A metric that flags "independent checks in single function" would identify high-value extraction candidates versus "sequential routing" that can't be reduced.
+But: Who decides when to invoke each agent? Currently the human. This prevents self-approval. But frequency of each viewpoint depends on human discipline. Judge gets invoked (it's in the Sermon). Archaeologist never runs (no ritual summons it).
+
+### Architectural Insight
+
+The automated Chaplain.sh (Plan → Judge → Amend) produced 8 defects in 270 lines — good! — but needed human to verify defects were real. The four-agent manual architecture is the correct response:
+
+> *Automate the boring part. Orchestration is not boring.*
+
+Agents do work. Human decides when. This is Unix philosophy for AI: small, stateless tools composing via text.
+
+### What Could Be Added (Without Automation)
+
+| Addition | Trigger | Output |
+|----------|---------|--------|
+| Archaeologist session | Weekly, manually | Metrics report → diary |
+| User Voice session | After config changes | Pain points → FR comments |
+| Opportunity scan | After major FR | "What does this enable?" addendum |
+
+These aren't new agents — they're **prompts for existing agents**. Planner + Yellow prompt = Opportunity Finder. Judge + White prompt = Archaeologist.
+
+**Heuristic:** *Four agents, one human conductor. The agents play instruments; the human sets the tempo.*
+
+**Seed:** At what scale does human orchestration become the bottleneck? If FRs increase to 10/day, does the model need a lightweight dispatcher that routes FRs to agents by content type?
+
+---
+
+*What survives the fire may merge.*
