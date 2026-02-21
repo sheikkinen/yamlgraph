@@ -18,11 +18,11 @@ while true; do
 
     # Plan
     echo "📝 Plan..."
-    copilot --allow-all-paths -p "**Plan.** Read $topic_file. Write the feature request in $DRAFTS/. Define objectives, constraints, acceptance criteria, and implementation approach. The feature request is the plan. Follow feature-requests/TEMPLATE.md. Delete $topic_file when complete."
+    copilot --allow-all-paths --allow-all-tools -p "**Plan.** Read $topic_file. Write the feature request in $DRAFTS/. Define objectives, constraints, acceptance criteria, and implementation approach. The feature request is the plan. Follow feature-requests/TEMPLATE.md. Delete $topic_file when complete."
 
     # Judge
     echo "⚖️  Judge..."
-    copilot --allow-all-paths -p "**Judge.** Examine the FR in $DRAFTS/. Critically examine the feature request; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. If clear, minimal, and internally consistent: freeze scope, grant authority, move to feature-requests/. If not: write issues into the file and move back to $INBOX/."
+    copilot --allow-all-paths --allow-all-tools -p "**Judge.** Examine the FR in $DRAFTS/. Critically examine the feature request; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. APPROVE: If clear, minimal, and internally consistent - freeze scope, grant authority, move to feature-requests/. AMEND: If needs work - write issues into the file and move back to $INBOX/. REJECT: If unfeasible - add **Status:** Rejected to the file and move to feature-requests/."
 
     echo ""
 done
