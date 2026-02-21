@@ -191,3 +191,17 @@ I confidently recommended something that cannot be done.
 **Graduated heuristic candidate:** *Treat security boundaries as affordances, not obstacles. Ask "why is this blocked?" before "how do I unblock it?"*
 
 **Seed:** Should the Scripture include a commandment about respecting platform security boundaries? "Thou shalt not bypass what the OS protects without first understanding why it protects."
+
+## 2026-02-21: The Provider's Temperature Wall
+
+**Context:** Running White Hat graphs after fixing scheduled diary_digest. `code-analysis` failed with `temperature=None` validation error for Gemini.
+
+**Trap:** Schema declared `temperature: float | None = Field(default=None)`. Python's `dict.get("temperature", 0.7)` returns `None` when key exists with value `None` — it doesn't fall back. The None propagated through three layers before Gemini rejected it. Belt-and-suspenders fixes were added before identifying the root cause.
+
+**Insight:** This is the same pattern as FR-059 (Provider's Lie): **normalization must happen at the boundary, not downstream**. The schema is the boundary. If a value is required by any provider, the schema should provide a real default, not `None`.
+
+**Heuristic:** *Schema defaults should never require runtime null-coalescing. If downstream code needs a value, the schema must provide one.*
+
+**Recurrence Check:** First instance of this pattern for temperature; similar to prior provider normalization issues.
+
+**Seed:** Should Pydantic schemas distinguish "user explicitly set None" from "user omitted field"? If so, should YAMLGraph use `UNSET` sentinels for truly optional overrides — making intent explicit at the boundary?

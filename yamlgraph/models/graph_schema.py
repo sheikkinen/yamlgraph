@@ -56,7 +56,7 @@ class NodeConfig(BaseModel):
     type: str = Field(default=NodeType.LLM, description="Node type")
     prompt: str | None = Field(default=None, description="Prompt template name")
     state_key: str | None = Field(default=None, description="State key for output")
-    temperature: float | None = Field(default=None, ge=0, le=2)
+    temperature: float = Field(default=0.7, ge=0, le=2)
     provider: str | None = Field(default=None)
     on_error: str | None = Field(default=None)
     fallback: dict[str, Any] | None = Field(default=None)

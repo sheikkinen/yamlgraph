@@ -28,7 +28,7 @@ _cache_lock = threading.Lock()
 def create_llm(
     provider: ProviderType | None = None,
     model: str | None = None,
-    temperature: float = 0.7,
+    temperature: float | None = 0.7,
     max_tokens: int | None = None,
 ) -> BaseChatModel:
     """Create an LLM instance with multi-provider support.
@@ -74,6 +74,10 @@ def create_llm(
             f"Invalid provider: {selected_provider}. "
             f"Must be one of: {', '.join(DEFAULT_MODELS.keys())}"
         )
+
+    # Ensure temperature has a value (some providers reject None)
+    if temperature is None:
+        temperature = 0.7
 
     # Determine model (parameter > env var > default)
     # Note: DEFAULT_MODELS already handles env var via config.py

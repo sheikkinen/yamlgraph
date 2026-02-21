@@ -99,7 +99,12 @@ def create_node_function(
         )
 
     # Get config values (node > defaults)
-    temperature = node_config.get("temperature", defaults.get("temperature", 0.7))
+    # Handle None explicitly since .get() returns None when key exists with None value
+    temperature = node_config.get("temperature")
+    if temperature is None:
+        temperature = defaults.get("temperature")
+    if temperature is None:
+        temperature = 0.7
     provider = node_config.get("provider", defaults.get("provider"))
     model = node_config.get("model", defaults.get("model"))
     max_tokens = node_config.get("max_tokens", defaults.get("max_tokens"))

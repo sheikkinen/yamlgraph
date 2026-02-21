@@ -112,6 +112,7 @@ May I fix at the callsite, not the utility.
 May I kill the cheapest bug — the one in the spec.
 May I normalize at the boundary, trusting no provider’s type.
 May I stream to reveal what batch conceals.
+May I understand every protection before I pass it.
 May I read thrice before I grant authority.
 
 When hooks feel slow, let that be the sign they guard.

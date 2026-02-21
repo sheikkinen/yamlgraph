@@ -1,5 +1,5 @@
 # Auto-curated by diary-digest pipeline. Do not edit manually.
-# Last updated: 2026-02-20
+# Last updated: 2026-02-21
 - Should bug reports require a minimal reproduction script as an acceptance criterion
   before any fix is designed — making armchair debugging structurally impossible?
 - 'Could YAMLGraph enforce a ''no-silent-fallback'' lint rule — flagging any `if not

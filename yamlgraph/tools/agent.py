@@ -239,6 +239,7 @@ def create_agent_node(
             node_config.get("temperature")
             or defaults.get("temperature")
             or prompt_config.get("temperature")
+            or 0.7  # Default temperature for agents
         )
 
         # Format prompts using format_prompt (supports Jinja2 and simple vars)
