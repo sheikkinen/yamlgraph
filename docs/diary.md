@@ -256,4 +256,29 @@ Based on the commit history, here's a **feature-level summary** of the developme
 #### 4. **Test Coverage Improvement**
    - `1debdaa`: MCP server error paths testing - improved coverage from 72% → 83%
 
-#### 5. **Code Quality
+---
+
+## 2026-02-21: The Debugging Instinct — Fix at Source, Not Downstream
+
+**Context:** Running White Hat graphs to verify temperature fix. `code-analysis` failed with `temperature=None` for Gemini.
+
+**Trap:** I immediately added "belt-and-suspenders" fixes in three downstream locations (llm_nodes.py, agent.py, llm_factory.py) before tracing the root cause. The user had to redirect: *"wasn't the issue in graph_schema.py:59?"* — yes, the schema allowed `None` as default.
+
+**The Pattern:** This is the same mistake as the Provider's Lie (FR-059). The instinct is to patch where the error *manifests*, not where it *originates*. Defensive code proliferates; the actual boundary (schema) remains leaky.
+
+**Why it happens:**
+1. Faster to add a guard than trace the call chain
+2. Belt-and-suspenders *feels* safer (more protection = better, right?)
+3. The symptom location is obvious; the cause requires archaeology
+
+**The cost:** Three defensive guards that should never trigger. If the schema is correct, they're dead code. If the schema breaks again, they mask the symptom instead of failing fast.
+
+**Heuristic graduated:** *Fix at the boundary, not downstream. If you find yourself adding defensive guards in multiple places, you haven't found the root cause yet.*
+
+**Automation win:** Extended the diary automation loop. Now two scheduled jobs run nightly:
+- `diary_digest` at 03:00 — World news synthesis
+- `git_report` at 03:10 — 3-day rolling development summary
+
+Both auto-import to diary on pre-commit. The human doesn't write scheduled entries; they accumulate automatically and get curated on commit.
+
+**Seed:** Could a linter detect "defensive guard proliferation" — multiple `if x is None: x = default` guards for the same variable across files — and warn that a schema boundary fix might be missing?
