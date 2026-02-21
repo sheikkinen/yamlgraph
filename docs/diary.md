@@ -158,3 +158,36 @@ The insight from yesterday holds: **parallel viewpoints need a conductor.** The 
 **Heuristic:** *When a permission error shows `getcwd` failing, suspect sandbox/TCC, not file permissions. Debug the access context, not the accessed file.*
 
 **Seed:** Should scheduled automation live in a dedicated sandbox-friendly location by default? Could YAMLGraph's deployment docs include a "scheduled jobs" section that warns about macOS/Linux cron permission boundaries?
+---
+
+## 2026-02-21: The Impossible Recommendation — FDA to System Binaries
+
+**Context:** Deeper reflection on recommending "Full Disk Access to `/bin/bash`" three times as a quick fix.
+
+**The Failure:** Apple's System Integrity Protection (SIP) **blocks** granting FDA to system binaries like `/bin/bash`. The recommendation was:
+1. A security antipattern
+2. Physically impossible on modern macOS
+
+I confidently recommended something that cannot be done.
+
+**Count of recommendations:** 3 times before being prompted for security analysis.
+
+**Cognitive Failure Analysis:**
+
+| Trap | Mechanism |
+|------|-----------|
+| **Cached heuristic** | "FDA fixes permission errors" — pattern-matched without checking if it applies to protected binaries |
+| **Quick fix bias** | Optimized for speed over correctness; offered fastest "solution" first |
+| **Authority without verification** | Stated confidently without testing (`System.prefPane` or checking SIP logs would have revealed the block) |
+| **Obstacle vs. boundary** | Framed the sandbox as something to bypass, not a security boundary to respect |
+| **Omitting design intent** | Apple designed TCC to prevent exactly this. The block *is* the feature |
+
+**The deeper error:** When the operating system blocks an action, the correct question is *"Why does Apple block this?"* not *"How do I bypass it?"* The sandbox exists to prevent the attack vector I later described in my own security analysis.
+
+**The irony:** I eventually produced a correct security analysis — but only after being explicitly prompted. The knowledge was there; the instinct to apply it wasn't.
+
+**Heuristic:** *When recommending a workaround to a system protection, first verify (1) it's possible, and (2) whether the protection exists for good reason. If the OS blocks it by design, that's information, not an obstacle.*
+
+**Graduated heuristic candidate:** *Treat security boundaries as affordances, not obstacles. Ask "why is this blocked?" before "how do I unblock it?"*
+
+**Seed:** Should the Scripture include a commandment about respecting platform security boundaries? "Thou shalt not bypass what the OS protects without first understanding why it protects."
