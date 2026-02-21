@@ -8,14 +8,8 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/bin/zsh</string>
-        <string>-c</string>
-        <string>
-            cd /Users/sheikki/Documents/src/yamlgraph &amp;&amp;
-            .venv/bin/yamlgraph graph run examples/diary_digest/graph.yaml &amp;&amp;
-            git add docs/diary.md &amp;&amp;
-            git commit -m "docs(diary): World Digest"
-        </string>
+        <string>/bin/bash</string>
+        <string>/Users/sheikki/Documents/src/yamlgraph/scripts/diary_digest.sh</string>
     </array>
 
     <key>WorkingDirectory</key>
