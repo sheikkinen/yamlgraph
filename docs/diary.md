@@ -422,3 +422,159 @@ The pattern: **correct local fixes compose into global failures**. Each individu
 **Meta-heuristic:** *After any fix that touches data flow, trace the downstream path manually.* The tests verify isolated correctness; the trace reveals compositional semantics.
 
 **Seed:** Could the diary format include a "Downstream Impact" field? Entries that fix data flow would explicitly name which downstream consumers might now see different input. A forced composition audit at write time, not debug time.
+
+---
+
+## 2026-02-21: System-Wide Reflection — YAMLGraph at v0.4.52
+
+**Scope:** Complete audit across copilot-instructions, README, ARCHITECTURE, reference docs, examples, diary, and ~15K lines of framework code.
+
+---
+
+### The Vision Assessment
+
+**Original Thesis:** *60-80% of AI workflows can be defined entirely in YAML without writing Python.*
+
+**Validation Evidence:**
+- `questionnaire-api` (external project): 40% YAML, 60% Python — the YAML handles all orchestration
+- 28 demo graphs in `examples/demos/` covering: routers, reflexion, agents, maps, interrupts, subgraphs
+- NPC production pattern: YAML graph + Python session adapter + HTMX frontend
+- 7 LLM providers supported through configuration, not code
+
+**Counter-evidence:**
+- Complex tool logic still requires Python (`tools/agent.py`, `tools/shell.py`)
+- Interactive tool expansion required 164 lines of Python
+- Schema validation edge cases (temperature=None) leak through YAML boundaries
+
+**Verdict:** The 60-80% claim is **approximately correct** for orchestration-focused workflows. The remaining 20-40% is irreducibly Python: presentation layers, external API integrations, and edge-case behavior that YAML can't express.
+
+---
+
+### SWOT Analysis
+
+#### Strengths
+
+| Strength | Evidence |
+|----------|----------|
+| **Declarative orchestration** | 26 capabilities, 77 requirements, all configurable via YAML |
+| **Multi-provider abstraction** | 7 LLM providers (Anthropic, Google, Mistral, OpenAI, Replicate, xAI, LM Studio) via single factory |
+| **Rigorous process** | Scripture (10 commandments), TDD enforcement, req traceability (77/77), noqa confessions |
+| **Self-documenting** | ARCHITECTURE.md (1069 lines), reference docs, diary with graduated heuristics |
+| **Production-ready patterns** | NPC example, streaming support, checkpointing, human-in-loop |
+| **Comprehensive linting** | 20+ lint rules, semantic checks, cycle detection, contract validation |
+| **Observability** | LangSmith integration, token tracking, trace URL sharing |
+
+#### Weaknesses
+
+| Weakness | Impact | Mitigation Path |
+|----------|--------|-----------------|
+| **No static typing for state** | IDE can't catch `{state.typo}` | Linter W014 catches some; full LSP would catch all |
+| **Regex-based Jinja2 parsing** | Edge cases (quotes, nested filters) | Migrate to `jinja2.meta.find_undeclared_variables()` |
+| **Test coverage gaps** | Single-invocation tests miss accumulation bugs | Add multi-turn test fixtures |
+| **Module sprawl** | 15K lines across 60+ files | Some consolidation possible (e.g., unify node_factory subpackage) |
+| **Schema boundary leaks** | `None` defaults propagate downstream | Belt-and-suspenders vs. fix-at-source discipline |
+| **Documentation drift** | Reference docs can lag implementation | Automated doc generation from schemas |
+
+#### Opportunities
+
+| Opportunity | Effort | Impact |
+|-------------|--------|--------|
+| **MCP ecosystem** | Medium | `yamlgraph_run_graph` already works; expand to more tools |
+| **Evaluation-first design** | High | Add `verification_question` field per agent node |
+| **Graph scaffolding** | Medium | `yamlgraph graph init --template reflexion` |
+| **Visual graph editor** | High | Mermaid → interactive YAML |
+| **LangGraph Cloud deployment** | Medium | Package as deployable unit |
+| **Provider-specific optimizations** | Low | Batch API for GPT, prompt caching for Claude |
+| **Streaming error events** | Done | FR-062 implemented |
+
+#### Threats
+
+| Threat | Probability | Impact | Response |
+|--------|-------------|--------|----------|
+| **LangGraph API churn** | Medium | High | Pin versions, abstract via graph_loader |
+| **Agent Builder competition** | High | Medium | Differentiate on YAML-first simplicity |
+| **Provider API changes** | Low | Medium | Factory pattern isolates impact |
+| **Process atrophy** | Medium | High | Automated diary, scheduled reports, absolution hook |
+| **Complexity creep** | High | Medium | Kill entropy via vulture, radon, jscpd |
+
+---
+
+### Code Archaeology Summary
+
+| Metric | Value | Trend |
+|--------|-------|-------|
+| Framework LOC | 15,203 | Stable |
+| Unit tests | 1,695 | Growing |
+| Coverage | ~87% | Stable |
+| Feature requests | 62 | Active |
+| Diary entries | 70+ | Growing |
+| Capabilities | 26 | Growing |
+| Requirements | 77 | Growing |
+| LLM providers | 7 | Stable |
+
+**Hotspots by complexity (radon):**
+- `graph_loader.py` (B) — orchestrates entire compilation
+- `tools/agent.py` (B) — ReAct loop complexity
+- `executor_base.py` (B) — retry and error handling
+
+**Module sizes (lines):**
+- `graph_loader.py`: 385 (within limit)
+- `executor.py`: ~400 (at limit)
+- `ARCHITECTURE.md`: 1,069 (reference doc, acceptable)
+
+---
+
+### The Scripture's Effectiveness
+
+**What works:**
+- **TDD enforcement** — Red-Green-Refactor catches bugs early (FR-062 chaos tests)
+- **Req traceability** — 77/77 coverage, CI blocks gaps
+- **Diary → Scripture graduation** — 7 heuristics moved to Prayer
+- **Pre-commit hooks** — 26 checks including pytest, vulture, jscpd
+
+**What needs strengthening:**
+- **Judge phase** — FR-062 had 8 defects in 270 lines; some could have been caught earlier
+- **Downstream impact** — Fixes compose into failures (FR-058 → FR-059 → temperature bug)
+- **Platform awareness** — macOS sandbox (TCC) wasn't in mental model
+
+**Process health indicator:** The `--no-verify` transgression was caught in diary, not in production. The process caught its own violation — that's a healthy feedback loop.
+
+---
+
+### Improvement Suggestions (Prioritized)
+
+#### P0 — Critical (Do Now)
+
+1. **Migrate Jinja2 parsing to AST** — `jinja2.meta.find_undeclared_variables()` eliminates regex edge cases. 10-line change, high impact.
+
+2. **Multi-turn test fixtures** — Add `@pytest.fixture` that simulates 3+ invocations of the same node with accumulating state. Would have caught FR-057 earlier.
+
+#### P1 — Important (Next Sprint)
+
+3. **Downstream impact field** — Add optional `downstream:` section to diary entries. Forces composition thinking at write time.
+
+4. **Hat flag for chaplain** — `chaplain.sh subjects.md --hat yellow` runs only Opportunity Finder. Makes Six Hats actionable.
+
+5. **Schema LSP** — Generate `.d.ts` or Python stubs from graph schema. IDE catches `{state.typo}` at edit time, not lint time.
+
+#### P2 — Nice to Have (Backlog)
+
+6. **Graph scaffolding CLI** — `yamlgraph graph init reflexion --name my-graph` generates skeleton.
+
+7. **Visual graph preview** — `yamlgraph graph viz examples/demos/router/graph.yaml` outputs SVG.
+
+8. **Provider benchmark suite** — Same prompt, all 7 providers, measure latency/cost/quality.
+
+9. **YAML schema for IDE** — JSON Schema for `graph.yaml` files, enable VS Code validation.
+
+10. **Contribution guidelines** — `CONTRIBUTING.md` with PR template requiring FR link.
+
+---
+
+### The Meta-Observation
+
+This reflection itself is a YAMLGraph artifact. The git_report (running at 03:10) produced the development summary. The diary_digest (running at 03:00) provides ecosystem context. The manual entries capture judgment. The system reflects on itself through the tools it builds.
+
+**The heuristic:** *Build tools that audit tools. The diary that captures bugs should be generated by the framework that has bugs.*
+
+**Seed:** Could `yamlgraph graph audit` run the Six Hats against the framework itself? White (metrics), Red (UX friction), Black (what will break), Yellow (what's unlocked), Green (what if), Blue (process health). A meta-graph that ingests the codebase and outputs a structured assessment.
