@@ -115,3 +115,46 @@ The insight from yesterday holds: **parallel viewpoints need a conductor.** The 
 **Seed:** Could the chaplain script accept `--hat white|red|black|yellow|green|blue` to run a single viewpoint? The human becomes the Blue Hat, selecting context-appropriate perspectives. `chaplain.sh subjects.md --hat yellow` runs only the Opportunity Finder.
 
 ---
+
+---
+
+## 2026-02-21: World Digest — Agent Orchestration & Observability Maturity
+
+**LangGraph ecosystem momentum:** Five LangGraph releases (1.0.9, SDK 0.3.6–0.3.8, prebuilt 1.0.8) landed this period, signaling active stabilization of the core framework YAMLGraph depends on. The SDK increments suggest refinement of deployment and integration patterns.
+
+**Agent architecture patterns crystallizing:** LangChain's recent content wave covers multi-agent orchestration (Cord, Deep Agents, Agent Builder templates), context management, and sandbox connection patterns. These represent the design space YAMLGraph must eventually support declaratively—moving from imperative LangGraph code to YAML-driven composition.
+
+**Observability becoming table stakes:** LangSmith's Google Cloud Marketplace availability and the "Traces to Insights" piece signal that observability is no longer optional. YAMLGraph will need to emit structured traces by default, not as an afterthought. The Remote case study demonstrates LangGraph in production at scale, raising the bar for what "production-ready" means.
+
+**Evaluation frameworks maturing:** The monday + LangSmith case study shows code-first evaluation strategies becoming standard practice. This connects to the recent Seed about whether bug reports should require minimal reproduction scripts—evaluation rigor is shifting left.
+
+**Tension emerging:** Agent Builder's rapid feature expansion (chat, file uploads, tool registry) suggests the ecosystem is moving toward higher-level abstractions. YAMLGraph's bet on YAML-first configuration must prove it reduces cognitive load compared to code-first frameworks, not just add another layer.
+
+**Seed:** As LangGraph stabilizes and Agent Builder abstracts further, should YAMLGraph's YAML schema explicitly model observability hooks (trace naming, span boundaries, evaluation gates) rather than treating them as post-hoc instrumentation — making evaluation-first design a first-class concern from graph definition?
+---
+
+## 2026-02-21: The Sandbox Trap — launchd vs. macOS Privacy
+
+**Context:** `diary_digest` launchd job kept failing with `PermissionError: Operation not permitted: '.venv/pyvenv.cfg'`. Multiple iterations of "fix the script" before realizing the root cause.
+
+**The Trap:** Debugging the symptom, not the system. I created a wrapper script, modified paths, checked file permissions — all while the actual problem was macOS sandbox blocking launchd's access to `~/Documents/` entirely.
+
+**The Clue I Missed:** `getcwd: cannot access parent directories: Operation not permitted` — this wasn't a file permission issue, it was a directory *access* issue. The sandbox blocks the entire path traversal, not just individual files.
+
+**Security Analysis Surfaced:**
+- Full Disk Access to `/bin/bash` = every bash script gets access to Documents, Mail, Photos, iCloud
+- Symlinks resolve to destination, so `~/bin/script → ~/Documents/...` still fails
+- The "quick fix" was the wrong fix
+
+**Options matrix:**
+
+| Approach | Security | Effort | Maintenance |
+|----------|----------|--------|-------------|
+| FDA to `/bin/bash` | ⚠️ Risky | 10s | Low |
+| FDA to isolated `/usr/local/bin/bash-launchd` | Acceptable | 2min | Medium |
+| Move project to `~/Developer/` | ✅ Clean | 5min | Low |
+| Isolated `~/scheduled-yamlgraphs/` | ✅ Best | 15min | Medium |
+
+**Heuristic:** *When a permission error shows `getcwd` failing, suspect sandbox/TCC, not file permissions. Debug the access context, not the accessed file.*
+
+**Seed:** Should scheduled automation live in a dedicated sandbox-friendly location by default? Could YAMLGraph's deployment docs include a "scheduled jobs" section that warns about macOS/Linux cron permission boundaries?
