@@ -146,6 +146,62 @@ class TestExtractVariables:
         assert "name" in variables
         assert "topic" in variables
 
+    # FR-064: AST-based extraction tests (edge cases regex cannot handle)
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_extract_jinja2_comment(self):
+        """Variables inside Jinja2 comments should be ignored."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{# {{ foo }} #}{{ bar }}"
+        variables = extract_variables(template)
+        assert variables == {"bar"}
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_extract_jinja2_raw_block(self):
+        """Variables inside {% raw %} blocks should be ignored."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{% raw %}{{ not_a_var }}{% endraw %}{{ real }}"
+        variables = extract_variables(template)
+        assert variables == {"real"}
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_extract_jinja2_macro(self):
+        """Macro parameters should not be extracted; call arguments should."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{% macro m(a) %}{{ a }}{% endmacro %}{{ m(x) }}"
+        variables = extract_variables(template)
+        assert variables == {"x"}
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_extract_jinja2_ternary(self):
+        """Ternary expressions should extract all three variables."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{{ x if cond else y }}"
+        variables = extract_variables(template)
+        assert variables == {"x", "cond", "y"}
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_extract_jinja2_dict_literal(self):
+        """Dict literal keys should not be extracted; values should."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = '{{ {"key": value}.key }}'
+        variables = extract_variables(template)
+        assert variables == {"value"}
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_extract_jinja2_set_stmt(self):
+        """{% set %} creates local; the source variable should be extracted."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{% set local = external %}{{ local }}"
+        variables = extract_variables(template)
+        assert variables == {"external"}
+
 
 class TestValidateVariables:
     """Tests for validate_variables function."""

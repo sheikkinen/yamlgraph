@@ -2,9 +2,11 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
-**Effort:** 0.5 days
+**Status:** Implemented
+**Effort:** 0.5 days (actual: 15 minutes)
 **Requested:** 2026-02-21
+**Judged:** 2026-02-21
+**Implemented:** 2026-02-21
 
 ## Summary
 
@@ -22,13 +24,18 @@ jinja_loop_pattern = r"\{%\s*for\s+\w+\s+in\s+(\w+)"
 jinja_if_blocks = re.findall(r"\{%[-\s]*(?:if|elif)\s+(.*?)%\}", template)
 ```
 
-**Known edge cases that break:**
-1. Quoted string comparands: `{% if x == "test" %}` — extracts "test" as variable
-2. Nested filters: `{{ items | join(", ") | upper }}` — may extract filter names
-3. Complex conditionals: `{% if x.y and z|length > 0 %}` — attribute access confusion
-4. Inline comments: `{# comment #}` — not handled
+### Verified Failing Edge Cases (6/15 tests fail)
 
-**Real bug encountered:** Diary entry "The Quoted Comparand Trap" (2026-02-20) documented that `{% if x == "literal" %}` incorrectly extracted "literal" as a required variable.
+| Case | Template | Regex Result | Correct Result |
+|------|----------|--------------|----------------|
+| **comment** | `{# {{ foo }} #}{{ bar }}` | `{foo, bar}` ❌ | `{bar}` |
+| **raw block** | `{% raw %}{{ not_a_var }}{% endraw %}{{ real }}` | `{not_a_var, real}` ❌ | `{real}` |
+| **macro** | `{% macro m(a) %}{{ a }}{% endmacro %}{{ m(x) }}` | `{a, m}` ❌ | `{x}` |
+| **ternary** | `{{ x if cond else y }}` | `{x}` ❌ | `{x, cond, y}` |
+| **dict literal** | `{{ {"key": value}.key }}` | `{}` ❌ | `{value}` |
+| **set stmt** | `{% set local = external %}{{ local }}` | `{local}` ❌ | `{external}` |
+
+**Real bug encountered:** Diary entry "The Quoted Comparand Trap" (2026-02-20) documented that `{% if x == "literal" %}` incorrectly extracted "literal" as a required variable. (Note: This specific case now passes after prior regex fixes, but the 6 cases above do not.)
 
 ## Proposed Solution
 
@@ -64,19 +71,41 @@ def extract_variables(template: str) -> set[str]:
         variables = set(re.findall(simple_pattern, template))
 
     # Remove built-in names
-    excluded = {"state", "loop", "range", "true", "false", "none"}
+    excluded = {"state", "loop", "range", "true", "false", "none", "self"}
     return variables - excluded
 ```
 
 ## Acceptance Criteria
 
-- [ ] `extract_variables()` uses `jinja2.meta.find_undeclared_variables()` for Jinja2 templates
-- [ ] Simple `{var}` format still works (backward compatibility)
-- [ ] Edge case: `{% if x == "literal" %}` → extracts `x`, not `literal`
-- [ ] Edge case: `{{ items | join(", ") }}` → extracts `items`, not `join`
-- [ ] Edge case: `{% for item in items %}{{ item }}{% endfor %}` → extracts `items`, not `item`
-- [ ] Tests added for each edge case
-- [ ] No performance regression (AST parse is fast for typical prompt sizes)
+### Tests to Add (Red Phase)
+- [x] `test_extract_jinja2_comment` — `{# {{ foo }} #}{{ bar }}` → `{bar}`
+- [x] `test_extract_jinja2_raw_block` — `{% raw %}{{ not_a_var }}{% endraw %}{{ real }}` → `{real}`
+- [x] `test_extract_jinja2_macro` — `{% macro m(a) %}{{ a }}{% endmacro %}{{ m(x) }}` → `{x}`
+- [x] `test_extract_jinja2_ternary` — `{{ x if cond else y }}` → `{x, cond, y}`
+- [x] `test_extract_jinja2_dict_literal` — `{{ {"key": value}.key }}` → `{value}`
+- [x] `test_extract_jinja2_set_stmt` — `{% set local = external %}{{ local }}` → `{external}`
+
+### Implementation (Green Phase)
+- [x] `extract_variables()` uses `jinja2.meta.find_undeclared_variables()` for Jinja2 templates
+- [x] Simple `{var}` format still works (backward compatibility)
+- [x] Mixed `{var}` + `{{ var }}` syntax supported (regression caught and fixed)
+- [x] Exclude list includes `self` (Jinja2 macro context) in addition to `state`, `loop`, `range`, etc.
+- [x] All 6 new tests pass
+- [x] All 23 existing tests in `test_template.py` still pass (29 total)
+
+### Verification
+- [x] No performance regression (AST parse is fast for typical prompt sizes)
+- [x] `pytest tests/unit/test_template.py -v` passes (29/29)
+- [x] `pytest tests/unit/ -q` passes (1698/1698)
+
+## Implementation Order (The Path)
+
+1. **Red**: Added 6 failing tests to `tests/unit/test_template.py` ✓
+2. **Green**: Replaced regex with AST in `extract_variables()` ✓
+3. **Regression**: Mixed `{var}` + `{{ var }}` test failed — added simple pattern extraction for mixed syntax ✓
+4. **Refactor**: Dead regex patterns removed (~40 lines → ~20 lines) ✓
+5. **Verify**: `pytest tests/unit/test_template.py -v` — 29/29 pass ✓
+6. **Reflect**: Diary entry added
 
 ## Downstream Impact
 

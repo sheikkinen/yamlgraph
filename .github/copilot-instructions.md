@@ -24,8 +24,36 @@ Use these as smoke test for new graph development.
 - Run slow shell scripts with redirect to log file. Analyze logs separately.
 - Convert paths with hyphens to snake_case to avoid import issues.
 - YAMLGraph and LLM should be used instead of complex regex logic.
-- Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary.md` describing the cognitive process, traps, insights encountered, and a **Seed:** — a forward-looking question to promote new ideas.
 - Conventional Commits + FR Enforcement, e.g. "feat(streaming): FR-030 add subgraphs parameter"
+- Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary.md` describing the cognitive process, traps, insights encountered, and a **Seed:** — a forward-looking question to promote new ideas. If the heuristic proves recurring, graduate it to this Scripture.
+
+### The Knowledge Graph of the Diary
+
+*Graduated from recurring diary patterns (FR-057–060). The causal chain from trap to cure:*
+
+```yaml
+nodes:
+  boundary:
+    description: "Where external meets internal"
+    children: [schema, provider, state, streaming, platform]
+
+  trap:
+    description: "Impatience in three costumes"
+    children: [quick_confidence, downstream_fix, symptom_patch]
+
+  cure:
+    description: "Slow down at the boundary"
+
+edges:
+  - trap -> manifests -> symptom
+  - symptom -> traced_to -> boundary
+  - boundary -> fixed_by -> normalize
+  - normalize -> becomes -> cure
+
+the_one_law: |
+  Normalize at the boundary where external data enters,
+  not downstream where it manifests.
+```
 
 ### Requirement Traceability (ADR-001)
 - Every test function must have `@pytest.mark.req("REQ-YG-XXX")` linking it to a requirement in `ARCHITECTURE.md`.

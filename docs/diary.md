@@ -696,3 +696,29 @@ The agent stated its question, defined success, self-assessed, and provided trac
 **Not affected:** Graph loader, node factory, executor — pattern is pure prompt engineering.
 
 **Seed:** Could a lint rule detect "prompt logic in graph config"? If a node config contains words like "must", "always", "before", "criteria" — warn that it might be prompt leakage.
+
+---
+
+## 2026-02-21: FR-064 — The 10-Line Fix That Wasn't
+
+**Context:** Diary SWOT identified "Migrate Jinja2 parsing to AST" as P0: "10-line change, high impact." Implemented FR-064.
+
+**What actually happened:**
+- 6 failing tests written (Red) — 5 minutes
+- AST implementation — 3 minutes
+- **Regression caught**: mixed `{var}` + `{{ var }}` test failed
+- Fix added: extract simple placeholders alongside AST for mixed syntax — 2 minutes
+- All 29 tests pass, 1698 unit tests pass — 5 minutes total
+
+**The Trap:** "10 lines" assumed pure replacement. The existing test suite revealed a case the FR didn't anticipate: mixed simple and Jinja2 syntax in the same template. Without the existing `test_mixed_simple_and_jinja2`, the regression would have shipped.
+
+**Code delta:**
+- Before: ~70 lines of regex patterns with edge-case handling
+- After: ~25 lines using `jinja2.meta.find_undeclared_variables()` + one regex for simple syntax
+- Net: -45 lines, +6 edge cases handled correctly
+
+**The insight:** The existing test suite is the real safety net. The 6 new tests proved the new implementation works for edge cases; the 23 existing tests proved it doesn't regress. Neither alone is sufficient.
+
+**Heuristic:** *When replacing an implementation, the old tests are as important as the new ones. New tests prove capability; old tests prove compatibility.*
+
+**Seed:** Should every FR that replaces an implementation explicitly require "run existing tests first, then add new tests"? The order matters — if new tests pass but old tests fail, you've made progress at the cost of regression.

@@ -11,6 +11,8 @@ import logging
 import re
 from typing import Any
 
+from jinja2 import Environment, meta
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,6 +20,8 @@ def extract_variables(template: str) -> set[str]:
     """Extract all variable names required by a template.
 
     Handles both simple {var} and Jinja2 {{ var }}, {% for x in var %} syntax.
+    Uses Jinja2's AST parser for Jinja2 templates to correctly handle edge cases
+    like comments, raw blocks, macros, ternary expressions, and set statements.
 
     Args:
         template: Template string with placeholders
@@ -34,57 +38,29 @@ def extract_variables(template: str) -> set[str]:
     """
     variables: set[str] = set()
 
-    # Simple format: {var} - but NOT {{ (Jinja2)
-    # Match {word} but not {{word}} - use negative lookbehind/lookahead
-    simple_pattern = r"(?<!\{)\{(\w+)\}(?!\})"
-    variables.update(re.findall(simple_pattern, template))
+    # Check if template uses Jinja2 syntax
+    is_jinja = "{{" in template or "{%" in template
 
-    # Jinja2 variable: {{ var }} or {{ var.field }}
-    jinja_var_pattern = r"\{\{\s*(\w+)"
-    variables.update(re.findall(jinja_var_pattern, template))
-
-    # Jinja2 loop: {% for x in var %}
-    jinja_loop_pattern = r"\{%\s*for\s+\w+\s+in\s+(\w+)"
-    variables.update(re.findall(jinja_loop_pattern, template))
-
-    # Jinja2 condition: {% if var %}, {% if not var %}, {% if x and y %}
-    # Extract root identifiers only; skip field accesses (article.content → article)
-    # Also skip Jinja2 filters (var|length → only extract var, not length)
-    jinja_if_blocks = re.findall(r"\{%[-\s]*(?:if|elif)\s+(.*?)%\}", template)
-    for block in jinja_if_blocks:
-        # Remove filter expressions: word|filter → word
-        block_no_filters = re.sub(r"\|[a-zA-Z_]\w*", "", block)
-        # Remove string literals: "string" or 'string'
-        block_no_strings = re.sub(r"[\"'][^\"']*[\"']", "", block_no_filters)
-        for token in re.findall(r"[a-zA-Z_]\w*(?:\.\w+)*", block_no_strings):
-            variables.add(token.split(".")[0])
-
-    # Remove loop iteration variables (they're not inputs)
-    # e.g., in "{% for item in items %}", "item" is not required
-    loop_iter_pattern = r"\{%\s*for\s+(\w+)\s+in"
-    loop_vars = set(re.findall(loop_iter_pattern, template))
-    variables -= loop_vars
+    if is_jinja:
+        # Use Jinja2 AST for correctness
+        env = Environment()
+        ast = env.parse(template)
+        variables = meta.find_undeclared_variables(ast)
+        # Also extract simple {var} placeholders (mixed syntax support)
+        simple_pattern = r"(?<!\{)\{(\w+)\}(?!\})"
+        variables.update(re.findall(simple_pattern, template))
+    else:
+        # Simple {var} format only
+        simple_pattern = r"\{(\w+)\}"
+        variables = set(re.findall(simple_pattern, template))
 
     # Remove common non-input variables
     # - state: injected by node_factory
     # - loop: Jinja2 loop context
     # - range: Jinja2 builtin function
-    excluded = {
-        "state",
-        "loop",
-        "range",
-        "true",
-        "false",
-        "none",
-        "not",
-        "and",
-        "or",
-        "is",
-        "in",
-    }
-    variables -= excluded
-
-    return variables
+    # - self: Jinja2 macro context
+    excluded = {"state", "loop", "range", "true", "false", "none", "self"}
+    return variables - excluded
 
 
 def validate_variables(
