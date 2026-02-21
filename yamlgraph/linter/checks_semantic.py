@@ -155,17 +155,9 @@ def _build_known_state_fields(graph: dict) -> set[str]:
     return fields
 
 
-def check_expression_syntax(graph_path: Path) -> list[LintIssue]:
-    """Check condition and variable expression syntax.
-
-    W801 — condition uses {braces} or state. prefix (should be bare names)
-    W007 — variable expression uses {name} without state. prefix
-    W014 — {state.X} references field not in known state
-    """
+def _check_w801_condition_braces(graph: dict) -> list[LintIssue]:
+    """W801: condition uses {braces} or state. prefix (should be bare names)."""
     issues: list[LintIssue] = []
-    graph = load_graph(graph_path)
-
-    # W801: condition expressions should NOT have braces or state. prefix
     for edge in graph.get("edges", []):
         condition = edge.get("condition")
         if not condition or not isinstance(condition, str):
@@ -179,60 +171,83 @@ def check_expression_syntax(graph_path: Path) -> list[LintIssue]:
                     fix="Remove {{ }} braces and 'state.' prefix from condition expression",
                 )
             )
+    return issues
 
-    # Build known state fields (shared by W007 and W014)
+
+def _check_w007_bare_refs(
+    node_name: str, value: str, known_fields: set[str]
+) -> list[LintIssue]:
+    """W007: variable {name} without state. prefix where name is known state field."""
+    issues: list[LintIssue] = []
+    protected = value.replace("{{", "\x00").replace("}}", "\x01")
+    for ref in re.findall(r"\{(\w+)\}", protected):
+        if ref in known_fields:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W007",
+                    message=(
+                        f"Variable '{{{{ {ref} }}}}' in node '{node_name}' "
+                        f"appears to reference state field '{ref}' "
+                        f"without 'state.' prefix"
+                    ),
+                    fix=f"Use '{{{{state.{ref}}}}}' instead of '{{{{{ref}}}}}'",
+                )
+            )
+    return issues
+
+
+def _check_w014_unknown_state_refs(
+    node_name: str, value: str, known_fields: set[str]
+) -> list[LintIssue]:
+    """W014: {state.X} where X is not in known fields."""
+    issues: list[LintIssue] = []
+    protected = value.replace("{{", "\x00").replace("}}", "\x01")
+    for ref in re.findall(r"\{state\.(\w+)", protected):
+        if ref not in known_fields:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W014",
+                    message=(
+                        f"'{{{{state.{ref}}}}}' in node '{node_name}' "
+                        f"references undeclared state field '{ref}'"
+                    ),
+                    fix=f"Add '{ref}: str' to the state section or check for typos",
+                )
+            )
+    return issues
+
+
+def _extract_expression_values(node_config: dict) -> list[str]:
+    """Extract all string values from expression-bearing sections."""
+    values: list[str] = []
+    for section in ("variables", "output", "args", "input_mapping"):
+        mapping = node_config.get(section) or {}
+        if isinstance(mapping, dict):
+            values.extend(v for v in mapping.values() if isinstance(v, str))
+    if isinstance(node_config.get("over"), str):
+        values.append(node_config["over"])
+    return values
+
+
+def check_expression_syntax(graph_path: Path) -> list[LintIssue]:
+    """Check condition and variable expression syntax.
+
+    W801 — condition uses {braces} or state. prefix (should be bare names)
+    W007 — variable expression uses {name} without state. prefix
+    W014 — {state.X} references field not in known state
+    """
+    graph = load_graph(graph_path)
+    issues = _check_w801_condition_braces(graph)
     known_fields = _build_known_state_fields(graph)
 
     for node_name, node_config in graph.get("nodes", {}).items():
-        # Collect all string values from expression-bearing sections
-        expr_values: list[tuple[str, str]] = []  # (section_label, value)
-        for section in ("variables", "output", "args", "input_mapping"):
-            mapping = node_config.get(section) or {}
-            if not isinstance(mapping, dict):
-                continue
-            for _key, value in mapping.items():
-                if isinstance(value, str):
-                    expr_values.append((section, value))
-        # Also check 'over' (single string value, e.g. map nodes)
-        over = node_config.get("over")
-        if isinstance(over, str):
-            expr_values.append(("over", over))
-
-        for _section, value in expr_values:
-            protected = value.replace("{{", "\x00").replace("}}", "\x01")
-
-            # W007: bare {name} that matches a known state field
-            bare_refs = re.findall(r"\{(\w+)\}", protected)
-            for ref in bare_refs:
-                if ref in known_fields:
-                    issues.append(
-                        LintIssue(
-                            severity="warning",
-                            code="W007",
-                            message=(
-                                f"Variable '{{{{ {ref} }}}}' in node '{node_name}' "
-                                f"appears to reference state field '{ref}' "
-                                f"without 'state.' prefix"
-                            ),
-                            fix=f"Use '{{{{state.{ref}}}}}' instead of '{{{{{ref}}}}}'",
-                        )
-                    )
-
-            # W014: {state.X} where X is not in known fields
-            state_refs = re.findall(r"\{state\.(\w+)", protected)
-            for ref in state_refs:
-                if ref not in known_fields:
-                    issues.append(
-                        LintIssue(
-                            severity="warning",
-                            code="W014",
-                            message=(
-                                f"'{{{{state.{ref}}}}}' in node '{node_name}' "
-                                f"references undeclared state field '{ref}'"
-                            ),
-                            fix=f"Add '{ref}: str' to the state section or check for typos",
-                        )
-                    )
+        for value in _extract_expression_values(node_config):
+            issues.extend(_check_w007_bare_refs(node_name, value, known_fields))
+            issues.extend(
+                _check_w014_unknown_state_refs(node_name, value, known_fields)
+            )
 
     return issues
 

@@ -21,6 +21,42 @@ from yamlgraph.config import PROMPTS_DIR
 logger = logging.getLogger(__name__)
 
 
+def _resolve_graph_relative_with_dir(
+    prompt_name: str, graph_path: Path, prompts_dir: Path
+) -> Path | None:
+    """Strategy 1: graph_path.parent / prompts_dir / {prompt_name}.yaml"""
+    yaml_path = graph_path.parent / prompts_dir / f"{prompt_name}.yaml"
+    return yaml_path if yaml_path.exists() else None
+
+
+def _resolve_explicit_dir(prompt_name: str, prompts_dir: Path) -> Path | None:
+    """Strategy 2: prompts_dir / {prompt_name}.yaml"""
+    yaml_path = prompts_dir / f"{prompt_name}.yaml"
+    return yaml_path if yaml_path.exists() else None
+
+
+def _resolve_graph_relative(prompt_name: str, graph_path: Path) -> Path | None:
+    """Strategy 3: graph_path.parent / {prompt_name}.yaml"""
+    yaml_path = graph_path.parent / f"{prompt_name}.yaml"
+    return yaml_path if yaml_path.exists() else None
+
+
+def _resolve_default(prompt_name: str) -> Path | None:
+    """Strategy 4: PROMPTS_DIR / {prompt_name}.yaml"""
+    yaml_path = PROMPTS_DIR / f"{prompt_name}.yaml"
+    return yaml_path if yaml_path.exists() else None
+
+
+def _resolve_external_fallback(prompt_name: str) -> Path | None:
+    """Strategy 5: {parent}/prompts/{basename}.yaml for external examples"""
+    parts = prompt_name.rsplit("/", 1)
+    if len(parts) == 2:
+        parent_dir, basename = parts
+        yaml_path = Path(parent_dir) / "prompts" / f"{basename}.yaml"
+        return yaml_path if yaml_path.exists() else None
+    return None
+
+
 def resolve_prompt_path(
     prompt_name: str,
     prompts_dir: Path | None = None,
@@ -59,7 +95,7 @@ def resolve_prompt_path(
         >>> resolve_prompt_path("opening", prompts_dir="prompts", graph_path=Path("graphs/demo.yaml"), prompts_relative=True)
         PosixPath('/path/to/graphs/prompts/opening.yaml')
     """
-    # Validate prompts_relative requires graph_path
+    # Validation
     if prompts_relative and graph_path is None and prompts_dir is None:
         raise ValueError("graph_path required when prompts_relative=True")
 
@@ -69,59 +105,45 @@ def resolve_prompt_path(
             f"falling back to prompts_dir '{prompts_dir}' without graph-relative resolution"
         )
 
-    tried_paths: list[str] = []  # Track for debug logging
+    # Build strategy list based on config
+    strategies: list[tuple[str, Path | None]] = []
 
-    # 1. Graph-relative with explicit prompts_dir (combine them)
     if prompts_relative and prompts_dir is not None and graph_path is not None:
-        graph_dir = Path(graph_path).parent
-        yaml_path = graph_dir / prompts_dir / f"{prompt_name}.yaml"
-        tried_paths.append(f"1:graph-relative+prompts_dir:{yaml_path}")
-        if yaml_path.exists():
-            logger.debug(f"Prompt resolved via graph-relative+prompts_dir: {yaml_path}")
-            return yaml_path
-        # Fall through if not found
+        strategies.append(
+            (
+                "graph-relative+dir",
+                _resolve_graph_relative_with_dir(
+                    prompt_name, Path(graph_path), Path(prompts_dir)
+                ),
+            )
+        )
 
-    # 2. Explicit prompts_dir (absolute path or CWD-relative)
     if prompts_dir is not None:
-        prompts_dir = Path(prompts_dir)
-        yaml_path = prompts_dir / f"{prompt_name}.yaml"
-        tried_paths.append(f"2:explicit_prompts_dir:{yaml_path}")
-        if yaml_path.exists():
-            logger.debug(f"Prompt resolved via explicit prompts_dir: {yaml_path}")
-            return yaml_path
-        # Fall through to other resolution methods
+        strategies.append(
+            (
+                "explicit-dir",
+                _resolve_explicit_dir(prompt_name, Path(prompts_dir)),
+            )
+        )
 
-    # 3. Graph-relative resolution (without explicit prompts_dir)
     if prompts_relative and graph_path is not None:
-        graph_dir = Path(graph_path).parent
-        yaml_path = graph_dir / f"{prompt_name}.yaml"
-        tried_paths.append(f"3:graph-relative:{yaml_path}")
-        if yaml_path.exists():
-            logger.debug(f"Prompt resolved via graph-relative: {yaml_path}")
-            return yaml_path
-        # Fall through to default
+        strategies.append(
+            (
+                "graph-relative",
+                _resolve_graph_relative(prompt_name, Path(graph_path)),
+            )
+        )
 
-    # 4. Default: use global PROMPTS_DIR
-    default_dir = PROMPTS_DIR if prompts_dir is None else prompts_dir
-    yaml_path = Path(default_dir) / f"{prompt_name}.yaml"
-    tried_paths.append(f"4:default_PROMPTS_DIR:{yaml_path}")
-    if yaml_path.exists():
-        logger.debug(f"Prompt resolved via default PROMPTS_DIR: {yaml_path}")
-        return yaml_path
+    strategies.append(("default", _resolve_default(prompt_name)))
+    strategies.append(("external-fallback", _resolve_external_fallback(prompt_name)))
 
-    # 5. Fallback: external example location {parent}/prompts/{basename}.yaml
-    parts = prompt_name.rsplit("/", 1)
-    if len(parts) == 2:
-        parent_dir, basename = parts
-        alt_path = Path(parent_dir) / "prompts" / f"{basename}.yaml"
-        tried_paths.append(f"5:external_fallback:{alt_path}")
-        if alt_path.exists():
-            logger.debug(f"Prompt resolved via external fallback: {alt_path}")
-            return alt_path
+    # Return first match
+    for name, path in strategies:
+        if path:
+            logger.debug(f"Prompt resolved via {name}: {path}")
+            return path
 
-    # Log all tried paths for debugging
-    logger.debug(f"Prompt '{prompt_name}' not found. Tried: {tried_paths}")
-    raise FileNotFoundError(f"Prompt not found: {yaml_path}")
+    raise FileNotFoundError(f"Prompt not found: {prompt_name}")
 
 
 def load_prompt(

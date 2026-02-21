@@ -268,7 +268,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#extension-points) for detailed guides on:
 
 ## Code Quality Standards
 
-- **Module size**: Target < 400 lines, max 500 (split into submodules if exceeded)
+- **Module size**: Target < 400 lines, max 450 (split into submodules if exceeded)
 - **TDD**: Red-Green-Refactor approach mandatory
 - **Type hints**: Required on all public functions
 - **Python 3.11+**: Use `|` for unions, not `Union[]`

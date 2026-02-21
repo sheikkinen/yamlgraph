@@ -722,3 +722,39 @@ The agent stated its question, defined success, self-assessed, and provided trac
 **Heuristic:** *When replacing an implementation, the old tests are as important as the new ones. New tests prove capability; old tests prove compatibility.*
 
 **Seed:** Should every FR that replaces an implementation explicitly require "run existing tests first, then add new tests"? The order matters — if new tests pass but old tests fail, you've made progress at the cost of regression.
+
+---
+
+## 2026-02-21: FR-066 — The Irreducible Complexity
+
+**Context:** FR-066 targeted three high-CC functions for refactoring. Targets: ≤8, ≤10, ≤6.
+
+**Actual results:**
+
+| Function | Before | After | Target | Gap |
+|----------|--------|-------|--------|-----|
+| `resolve_prompt_path` | 20 | 15 | ≤8 | -7 |
+| `_process_edge` | 18 | 13 | ≤10 | -3 |
+| `check_expression_syntax` | 18 | 3 | ≤6 | ✓ |
+
+**The Trap:** Setting CC targets without analyzing what the CC *represents*. The FR assumed complexity could be eliminated by extraction. But:
+
+- `resolve_prompt_path` has 5 resolution strategies, each with conditional applicability based on 3 boolean flags. The remaining CC (15) represents actual decision paths users care about.
+- `_process_edge` has 8 edge type cases that are mutually exclusive. Extracting handlers reduces nesting but not decision count.
+- `check_expression_syntax` had *interleaved* logic — three independent checks tangled in one loop. Extraction cleanly separated them, yielding CC 3.
+
+**The insight:** CC measures decision paths. Some decisions are *essential* — they represent real business logic. Others are *accidental* — artifacts of how code was structured. Refactoring can only eliminate accidental complexity.
+
+**Pattern recognition:**
+- When CC comes from *nested* conditions (if inside if), extraction helps.
+- When CC comes from *sequential* conditions (elif chain), extraction changes structure but not decisions.
+- When checks are *independent* (can run in any order), extraction is high-value.
+
+**Heuristic:** *Before targeting a CC number, ask: is this complexity essential or accidental? Essential complexity survives refactoring; accidental complexity can be eliminated.*
+
+**What worked:**
+- Existing test suites (61 tests total) caught zero regressions
+- Strategy pattern for prompts made resolution order explicit
+- Lint check extraction made each rule independently testable
+
+**Seed:** Could `radon` be extended to distinguish decision types? A metric that flags "independent checks in single function" would identify high-value extraction candidates versus "sequential routing" that can't be reduced.

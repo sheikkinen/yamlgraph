@@ -11,12 +11,12 @@ from typing import Any
 
 import yaml
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from langgraph.graph import END, StateGraph
+from langgraph.graph import StateGraph
 
 from yamlgraph.data_loader import load_data_files
+from yamlgraph.edge_compiler import _add_conditional_edges, _process_edge
 from yamlgraph.models.state_builder import build_state_class
 from yamlgraph.node_compiler import compile_nodes
-from yamlgraph.routing import make_expr_router_fn, make_router_fn
 from yamlgraph.storage.checkpointer_factory import get_checkpointer
 from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
 from yamlgraph.tools.shell import parse_tools
@@ -255,102 +255,6 @@ def _parse_all_tools(
         )
 
     return tools, python_tools, callable_registry
-
-
-def _process_edge(
-    edge: dict[str, Any],
-    graph: StateGraph,
-    map_nodes: dict[str, tuple],
-    router_edges: dict[str, list],
-    expression_edges: dict[str, list[tuple[str, str]]],
-    interrupt_nodes: set[str] | None = None,
-) -> None:
-    """Process a single edge and add to graph or edge tracking dicts.
-
-    Args:
-        edge: Edge configuration dict
-        graph: StateGraph to add edges to
-        map_nodes: Map node tracking dict
-        router_edges: Dict to collect router edges
-        expression_edges: Dict to collect expression-based edges
-        interrupt_nodes: Set of interrupt node names with prepare split
-    """
-    from_node = edge["from"]
-    to_node = edge["to"]
-    condition = edge.get("condition")
-    edge_type = edge.get("type")
-
-    # FR-060: Redirect incoming edges to interrupt prepare node
-    if interrupt_nodes and isinstance(to_node, str) and to_node in interrupt_nodes:
-        to_node = f"{to_node}_prepare"
-
-    if from_node == "START":
-        if to_node in map_nodes:
-            # START -> map node: use conditional entry point with Send function
-            map_edge_fn, sub_node_name = map_nodes[to_node]
-            graph.set_conditional_entry_point(map_edge_fn, [sub_node_name])
-        else:
-            graph.set_entry_point(to_node)
-    elif from_node in map_nodes and to_node in map_nodes:
-        # Edge from map node TO another map node: sub_node → map_edge_fn
-        _, from_sub = map_nodes[from_node]
-        to_map_edge_fn, to_sub = map_nodes[to_node]
-        graph.add_conditional_edges(from_sub, to_map_edge_fn, [to_sub])
-    elif isinstance(to_node, str) and to_node in map_nodes:
-        # Edge TO a map node: use conditional edge with Send function
-        map_edge_fn, sub_node_name = map_nodes[to_node]
-        graph.add_conditional_edges(from_node, map_edge_fn, [sub_node_name])
-    elif from_node in map_nodes:
-        # Edge FROM a map node: wire sub_node to next_node for fan-in
-        _, sub_node_name = map_nodes[from_node]
-        target = END if to_node == "END" else to_node
-        graph.add_edge(sub_node_name, target)
-    elif edge_type == "conditional" and isinstance(to_node, list):
-        # Router-style conditional edge: store for later processing
-        router_edges[from_node] = to_node
-    elif condition:
-        # Expression-based condition (e.g., "critique.score < 0.8")
-        if from_node not in expression_edges:
-            expression_edges[from_node] = []
-        target = END if to_node == "END" else to_node
-        expression_edges[from_node].append((condition, target))
-    elif to_node == "END":
-        graph.add_edge(from_node, END)
-    else:
-        graph.add_edge(from_node, to_node)
-
-
-def _add_conditional_edges(
-    graph: StateGraph,
-    router_edges: dict[str, list],
-    expression_edges: dict[str, list[tuple[str, str]]],
-) -> None:
-    """Add router and expression conditional edges to graph.
-
-    Args:
-        graph: StateGraph to add edges to
-        router_edges: Router-style conditional edges
-        expression_edges: Expression-based conditional edges
-    """
-    # Add router conditional edges
-    for source_node, target_nodes in router_edges.items():
-        route_mapping = {target: target for target in target_nodes}
-        graph.add_conditional_edges(
-            source_node,
-            make_router_fn(target_nodes),
-            route_mapping,
-        )
-
-    # Add expression-based conditional edges
-    for source_node, expr_edges in expression_edges.items():
-        targets = {target for _, target in expr_edges}
-        targets.add(END)  # Always include END as fallback
-        route_mapping = {t: (END if t == END else t) for t in targets}
-        graph.add_conditional_edges(
-            source_node,
-            make_expr_router_fn(expr_edges, source_node),
-            route_mapping,
-        )
 
 
 def compile_graph(config: GraphConfig) -> StateGraph:

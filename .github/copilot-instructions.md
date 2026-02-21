@@ -1,5 +1,7 @@
 # GitHub Copilot Instructions - YAMLGraph
 
+This document is executable doctrine: violations are defects, not suggestions.
+
 Getting started: See `reference/getting-started.md` for a comprehensive overview of the YAMLGraph framework, its core files, key patterns, and essential rules, to be obeyed through the established rite: research, planning, TDD, implementation, and verification.
 
 **Quickstart**: To validate and run a simple graph, use the CLI commands:
@@ -29,30 +31,15 @@ Use these as smoke test for new graph development.
 
 ### The Knowledge Graph of the Diary
 
-*Graduated from recurring diary patterns (FR-057–060). The causal chain from trap to cure:*
+*Graduated from recurring diary patterns. The causal chain from trap to cure:*
 
 ```yaml
-nodes:
-  boundary:
-    description: "Where external meets internal"
-    children: [schema, provider, state, streaming, platform]
-
-  trap:
-    description: "Impatience in three costumes"
-    children: [quick_confidence, downstream_fix, symptom_patch]
-
-  cure:
-    description: "Slow down at the boundary"
-
-edges:
-  - trap -> manifests -> symptom
-  - symptom -> traced_to -> boundary
-  - boundary -> fixed_by -> normalize
-  - normalize -> becomes -> cure
-
 the_one_law: |
   Normalize at the boundary where external data enters,
   not downstream where it manifests.
+
+boundaries: [schema, provider, state, streaming, platform]
+traps: [quick_confidence, downstream_fix, symptom_patch]
 ```
 
 ### Requirement Traceability (ADR-001)
