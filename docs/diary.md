@@ -343,3 +343,82 @@ tail -f ~/scheduled-yamlgraphs/logs/*.log
 ### Why ~/scheduled-yamlgraphs/ instead of ~/Documents/?
 
 macOS TCC sandbox blocks launchd from accessing `~/Documents/` without Full Disk Access. Moving the scheduler outside `Documents` avoids permission issues while keeping the source repo in its natural location.
+
+---
+
+## 2026-02-21: Meta-Reflection — The Recurring Traps
+
+**Context:** Reading two days of diary entries (40+ entries, ~10K words). Stepping back to find the meta-patterns.
+
+### The Three Failure Modes
+
+Across all entries, the same three cognitive traps recur:
+
+| Trap | Manifestation | Antidote |
+|------|---------------|----------|
+| **Fix downstream, not at source** | Belt-and-suspenders guards proliferate; root cause remains | *"If you're adding guards in multiple places, you haven't found the boundary"* |
+| **Quick confidence** | "It looks right" bypasses judgment; `--no-verify` bypasses hooks | *"When I feel certain, let that be the sign to Judge"* |
+| **Patch the symptom** | Debug file permissions when the issue is sandbox; debug None guards when the issue is schema defaults | *"When getcwd fails, suspect TCC, not file perms"* |
+
+These aren't three traps — they're **one trap in three costumes**: the instinct to optimize for speed over correctness. Adding a guard is faster than tracing the call chain. Feeling confident is faster than re-reading the FR. Patching the symptom is faster than understanding the system.
+
+### The Boundary Principle
+
+The recurring heuristic across FR-057, FR-058, FR-059, FR-060, and today's temperature fix:
+
+> *Normalize at the boundary where external data enters the system.*
+
+| Boundary | What to Normalize |
+|----------|-------------------|
+| Schema default values | `None` → sensible real default |
+| Provider `.content` type | `list[block]` → `str` |
+| LLM response shape | Tool calls, usage metadata |
+| State read before return | Existing messages from accumulating fields |
+| Streaming filter | `AIMessageChunk` only, not every message type |
+
+The boundary isn't where the error manifests. It's where the untrusted data crosses into trusted state.
+
+### The Diary as Infrastructure
+
+The diary now runs itself:
+- `diary_digest` (03:00) — external context (news, ecosystem)
+- `git_report` (03:10) — internal context (repo analysis)
+- Pre-commit import — manual entries + scheduled entries → unified diary
+
+This creates a **feedback loop**: the diary captures heuristics → heuristics inform graphs → graphs generate diary content → content surfaces new heuristics.
+
+The Six Hats entry identified the missing viewpoint: **White Hat (facts/data)**. The git_report is exactly that — an automated archaeologist running nightly. The world_digest is Yellow Hat (opportunities from ecosystem changes). The manual entries are Black Hat (judgment/critique). The diary is assembling itself into a multi-viewpoint system.
+
+### Graduated Heuristics This Period
+
+| From Entry | Heuristic | Status |
+|------------|-----------|--------|
+| The Debugging Instinct | *Fix at the boundary, not downstream* | → Prayer line candidate |
+| The Sandbox Trap | *When getcwd fails, suspect TCC* | → Platform-specific |
+| The Provider's Lie | *Normalize at data entry, not data use* | → Already in Prayer |
+| The --no-verify Transgression | *When hooks feel slow, they're working* | → Already in Prayer |
+
+### Seed Completion Rate
+
+| Seed | Status | Duration |
+|------|--------|----------|
+| "Detect `variables:` on python nodes" (FR-053) | → FR-061, implemented | 2 weeks |
+| "Chaos testing for streaming" (FR-060) | → FR-062, implemented | 2 days |
+| "Scheduled git report" (today) | → Implemented | Same day |
+| "Hat flag for chaplain" (Six Hats) | Open | — |
+| "Jinja2 AST instead of regex" (Quoted Comparand) | Open | — |
+
+The fast seeds are infrastructure. The slow seeds require design decisions.
+
+### The Ironic Pattern
+
+Multiple entries describe discovering a bug, then discovering that an earlier "fix" for a different bug had masked or enabled the current one:
+- FR-058's filter worked perfectly — then silently rejected Anthropic's list content (FR-059)
+- FR-059's normalizer worked perfectly — but the schema allowed `None` through (temperature bug)
+- The `--no-verify` bypass was rationalized as efficiency — while writing about the importance of process
+
+The pattern: **correct local fixes compose into global failures**. Each individual change passes its own tests. The interaction between changes reveals the gap a single test couldn't see. This is why streaming "is the X-ray of your state machine" — it exposes timing and composition that batch execution hides.
+
+**Meta-heuristic:** *After any fix that touches data flow, trace the downstream path manually.* The tests verify isolated correctness; the trace reveals compositional semantics.
+
+**Seed:** Could the diary format include a "Downstream Impact" field? Entries that fix data flow would explicitly name which downstream consumers might now see different input. A forced composition audit at write time, not debug time.
