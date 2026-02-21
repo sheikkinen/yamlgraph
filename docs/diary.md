@@ -282,3 +282,64 @@ Based on the commit history, here's a **feature-level summary** of the developme
 Both auto-import to diary on pre-commit. The human doesn't write scheduled entries; they accumulate automatically and get curated on commit.
 
 **Seed:** Could a linter detect "defensive guard proliferation" — multiple `if x is None: x = default` guards for the same variable across files — and warn that a schema boundary fix might be missing?
+---
+
+## 📋 Scheduled YAMLGraph Infrastructure (2026-02-21)
+
+*Special entry documenting the automated diary generation system.*
+
+### Location
+```
+~/scheduled-yamlgraphs/
+├── .venv/                      # Isolated Python 3.11 + yamlgraph 0.4.52
+├── diary_digest/               # World news synthesis graph
+│   ├── graph.yaml
+│   ├── prompts/
+│   └── seeds.yaml
+├── git_report/                 # 3-day rolling dev summary graph
+│   ├── graph.yaml
+│   └── prompts/
+├── outputs/
+│   ├── diary_digest/           # diary_entry_YYYYMMDD.md
+│   └── git_report/             # report_YYYYMMDD_HHMMSS.txt
+├── run_digest.sh               # Runner script (sources ~/.env)
+└── run_git_report.sh           # Runner script (PROVIDER=anthropic)
+```
+
+### Schedule (launchd)
+
+| Job | Plist | Time | Provider | Period |
+|-----|-------|------|----------|--------|
+| `com.yamlgraph.diary-digest` | `~/Library/LaunchAgents/` | 03:00 | google (default) | Daily news |
+| `com.yamlgraph.git-report` | `~/Library/LaunchAgents/` | 03:10 | anthropic | 3-day rolling |
+
+### Pre-commit Integration
+
+`scripts/diary_rotate.py` runs on every commit:
+1. `import_scheduled_entries()` — Imports `diary_entry_*.md` from `outputs/diary_digest/`
+2. `import_git_reports()` — Imports `report_*.txt` from `outputs/git_report/`
+3. Diary rotation (if day changed)
+
+### Manual Commands
+
+```bash
+# Test diary digest
+~/scheduled-yamlgraphs/run_digest.sh
+
+# Test git report
+~/scheduled-yamlgraphs/run_git_report.sh
+
+# Trigger immediately
+launchctl start com.yamlgraph.diary-digest
+launchctl start com.yamlgraph.git-report
+
+# Check status
+launchctl list | grep yamlgraph
+
+# View logs
+tail -f ~/scheduled-yamlgraphs/logs/*.log
+```
+
+### Why ~/scheduled-yamlgraphs/ instead of ~/Documents/?
+
+macOS TCC sandbox blocks launchd from accessing `~/Documents/` without Full Disk Access. Moving the scheduler outside `Documents` avoids permission issues while keeping the source repo in its natural location.
