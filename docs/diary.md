@@ -205,3 +205,55 @@ I confidently recommended something that cannot be done.
 **Recurrence Check:** First instance of this pattern for temperature; similar to prior provider normalization issues.
 
 **Seed:** Should Pydantic schemas distinguish "user explicitly set None" from "user omitted field"? If so, should YAMLGraph use `UNSET` sentinels for truly optional overrides — making intent explicit at the boundary?
+
+---
+
+## 2026-02-21: Git Report
+
+Perfect! Now I have enough information to provide a comprehensive analysis. Let me summarize the development from the last 3 days:
+
+## Git Repository Analysis: Last 3 Days
+
+Based on the commit history, here's a **feature-level summary** of the development:
+
+### **Active Development Period**
+- **Timeframe**: February 20-21, 2026 (last 3 days)
+- **Total Commits**: ~30 recent commits visible
+- **Primary Developer**: Sami J P Heikkinen
+
+---
+
+### **Major Features & Work Items**
+
+#### 1. **Streaming Error Resilience (FR-062)** ⭐ Major Feature
+   - **Commit**: `01042bf` (Feb 20)
+   - **Focus**: Implementing robust error handling for async streaming operations
+   - **Changes**:
+     - Added `StreamEvent` Pydantic model for typed error/interrupt signals
+     - Wrapped `astream()` with try/except exception handling
+     - Implemented asyncio timeout for stall detection
+     - Added interrupt detection via `aget_state()`
+     - Added `yield_events=False` flag for backward compatibility
+   - **Testing**: 8 new unit tests with chaos fixtures
+   - **Related Documentation**: Updated ARCHITECTURE.md and req_coverage.py
+
+#### 2. **Schema Configuration Fix** 🔧 Bug Fix
+   - **Commit**: `7f9419a` (Feb 21 - Most Recent)
+   - **Issue**: Default temperature parameter causing Gemini provider failures
+   - **Solution**: Changed `NodeConfig.temperature` default from `None` to `0.7`
+   - **Safety**: Added guards in `llm_nodes.py`, `agent.py`, and `llm_factory.py`
+   - **Impact**: Fixed "White Hat" graphs (system-status, code-analysis, diary_digest)
+
+#### 3. **Diary Rotation Enhancement** 📅 Feature Addition
+   - **Commit**: `40e49f6` (Feb 21)
+   - **Enhancement**: Diary rotation now imports scheduled entries from `~/scheduled-yamlgraphs`
+   - **Changes**: Expanded `diary_rotate.py` script with 72 lines of new functionality
+
+---
+
+### **Secondary Work**
+
+#### 4. **Test Coverage Improvement**
+   - `1debdaa`: MCP server error paths testing - improved coverage from 72% → 83%
+
+#### 5. **Code Quality

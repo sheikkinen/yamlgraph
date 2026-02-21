@@ -161,6 +161,95 @@ def import_scheduled_entries() -> int:
     return imported
 
 
+def import_git_reports() -> int:
+    """Import git reports from ~/scheduled-yamlgraphs/outputs/git_report/.
+
+    Parses CLI output (text format), extracts report field,
+    formats as diary entry, appends to diary.md,
+    and renames processed files to .imported.
+
+    Returns count of imported reports.
+    """
+    git_report_dir = SCHEDULED_OUTPUTS / "git_report"
+    if not git_report_dir.exists():
+        return 0
+
+    imported = 0
+    for report_file in sorted(git_report_dir.glob("report_*.txt")):
+        content = report_file.read_text()
+
+        # Extract date from filename: report_20260221_080000.txt → 2026-02-21
+        match = re.search(r"report_(\d{4})(\d{2})(\d{2})_", report_file.name)
+        if not match:
+            continue
+
+        entry_date = f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
+
+        # Check if already in diary
+        diary_content = DIARY.read_text() if DIARY.exists() else ""
+        if f"## {entry_date}: Git Report" in diary_content:
+            print(f"⏭️  Skipping {report_file.name} (already in diary)")
+            report_file.rename(report_file.with_suffix(".imported"))
+            continue
+
+        # Extract report field from CLI output
+        # Format: report: title="..." summary="..." key_findings=[...]
+        report_match = re.search(
+            r'report:\s*title="([^"]*)".*?summary="([^"]*)".*?'
+            r"key_findings=\[([^\]]*)\]",
+            content,
+            re.DOTALL,
+        )
+
+        if report_match:
+            title = report_match.group(1)
+            summary = report_match.group(2).replace("\\n", "\n")
+            findings_raw = report_match.group(3)
+            # Parse findings: 'item1', 'item2', ...
+            findings = re.findall(r"'([^']*)'", findings_raw)
+
+            entry_lines = [
+                f"## {entry_date}: Git Report — {title}",
+                "",
+                summary,
+                "",
+            ]
+
+            if findings:
+                entry_lines.append("**Key Findings:**")
+                for finding in findings:
+                    entry_lines.append(f"- {finding}")
+                entry_lines.append("")
+        else:
+            # Fallback: extract analysis section
+            analysis_match = re.search(
+                r"analysis:\s*(.+?)(?=\n\s*report:|$)", content, re.DOTALL
+            )
+            if analysis_match:
+                analysis = analysis_match.group(1).strip()
+                entry_lines = [
+                    f"## {entry_date}: Git Report",
+                    "",
+                    analysis[:2000],  # Truncate if too long
+                    "",
+                ]
+            else:
+                print(f"⚠️  Could not parse report: {report_file.name}")
+                continue
+
+        entry = "\n".join(entry_lines)
+
+        # Append to diary
+        with open(DIARY, "a") as f:
+            f.write(f"\n---\n\n{entry.strip()}\n")
+
+        print(f"📥 Imported git report {report_file.name} → {DIARY}")
+        report_file.rename(report_file.with_suffix(".imported"))
+        imported += 1
+
+    return imported
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -169,6 +258,7 @@ def import_scheduled_entries() -> int:
 def main() -> int:
     # Always try to import pending entries first (even if no rotation needed)
     imported = import_scheduled_entries()
+    imported += import_git_reports()
     if imported > 0:
         git_add(DIARY)
 
