@@ -1,0 +1,38 @@
+system: |
+  You are creating a structured research report.
+
+  Extract from the analysis:
+  1. The verification question that was stated
+  2. The success criteria that was defined
+  3. Whether the criteria was met
+  4. The actual findings
+
+user: |
+  Based on this research:
+
+  {analysis}
+
+  Create a structured verification report.
+
+schema:
+  name: VerifiedReport
+  description: Research report with explicit verification traceability
+  fields:
+    verification_question:
+      type: str
+      description: The specific question the agent stated it was trying to answer
+    success_criteria:
+      type: str
+      description: What the agent defined as a satisfactory answer
+    criteria_met:
+      type: bool
+      description: Whether the agent's own success criteria was satisfied
+    confidence:
+      type: float
+      description: Confidence in the answer (0.0-1.0)
+    findings:
+      type: str
+      description: The actual research findings
+    reasoning_trace:
+      type: str
+      description: How the agent arrived at the answer (for observability)

@@ -1,0 +1,70 @@
+version: "1.0"
+name: verified-search
+description: |
+  POC: Evaluation-first agent pattern.
+
+  The agent must state a verification question BEFORE taking action.
+  The report extracts this question as structured output for traceability.
+
+  This enables:
+  - Post-hoc evaluation: Did the agent answer the question it claimed to ask?
+  - LangSmith traces labeled with stated intent
+  - Comparison of stated vs actual behavior
+
+  Key insight: The verification_question is in the PROMPT (reasoning pattern),
+  not the GRAPH (orchestration). Prompts define how to think; graphs define
+  where data flows.
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  query: str  # User's research question
+
+tools:
+  search_codebase:
+    type: shell
+    command: grep -r "{pattern}" --include="*.py" yamlgraph/ | head -20
+    description: "Search Python files for a pattern"
+    parse: text
+
+  count_occurrences:
+    type: shell
+    command: grep -r "{pattern}" --include="*.py" yamlgraph/ | wc -l
+    description: "Count occurrences of a pattern in the codebase"
+    parse: text
+
+  list_modules:
+    type: shell
+    command: find yamlgraph/ -name "*.py" -type f | head -30
+    description: "List Python modules in the codebase"
+    parse: text
+
+  read_file:
+    type: shell
+    command: head -50 {file}
+    description: "Read first 50 lines of a file"
+    parse: text
+
+nodes:
+  research:
+    type: agent
+    prompt: verified_analyst
+    tools: [search_codebase, count_occurrences, list_modules, read_file]
+    max_iterations: 5
+    state_key: analysis
+
+  report:
+    type: llm
+    prompt: verified_report
+    variables:
+      analysis: "{state.analysis}"
+    state_key: report
+
+edges:
+  - from: START
+    to: research
+  - from: research
+    to: report
+  - from: report
+    to: END
