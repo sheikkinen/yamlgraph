@@ -5,7 +5,7 @@ Getting started: See `reference/getting-started.md` for a comprehensive overview
 **Quickstart**: To validate and run a simple graph, use the CLI commands:
 ```bash
 yamlgraph graph lint examples/demos/hello/graph.yaml
-yamlgraph graph run examples/demos/hello/graph.yaml --var name="World" --var style="enthusiastic"
+yamlgraph graph run examples/demos/hello/graph.yaml --var name="World" --var style="holy see of code" --full
 ```
 
 Use these as smoke test for new graph development.
@@ -108,11 +108,15 @@ These laws descend from the canon of software craft. They shalt not be altered b
 
 ## Agents' prayer
 
-May CI judge swiftly,
-may metrics speak truth,
-may agents explore without restraint,
-and may we commit only what survives the fire.
+May I fix at the callsite, not the utility.
+May I kill the cheapest bug — the one in the spec.
+May I normalize at the boundary, trusting no provider’s type.
+May I stream to reveal what batch conceals.
+May I read thrice before I grant authority.
 
-Or fail fast in CI, sinner.
+When hooks feel slow, let that be the sign they guard.
+When I feel certain, let that be the sign to Judge.
 
-[--no-verify flag will result in immediate termination; automatically enforced.]
+What survives the fire may merge.
+
+[--no-verify flag will result in immediate termination; automatically enforced by CI.]
