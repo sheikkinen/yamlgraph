@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Done
+**Status:** Draft
 **Effort:** 0.5 day
 **Requested:** 2026-02-21
 
@@ -18,35 +18,46 @@ Manual invocation of "Plan... → Judge... → Amend..." requires human to type 
 
 ```
 .chaplain/
-├── inbox/       # Drop topic files here
-├── drafts/      # Intermediate state
-└── watch.sh     # The loop
+├── inbox/       # Drop topic files here (or FR with issues returns here)
+├── drafts/      # FR being judged
+└── watch.sh     # Two prompts, file-driven loop
 ```
 
-**watch.sh core:**
+### watch.sh
+
 ```bash
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+echo "👀 Watching .chaplain/inbox/"
+
 while true; do
-    topic_file=$(find .chaplain/inbox -name "*.md" | head -1)
+    topic_file=$(find .chaplain/inbox -name "*.md" -type f | head -1)
     [[ -z "$topic_file" ]] && { sleep 5; continue; }
 
-    topic=$(cat "$topic_file")
-    slug=$(basename "$topic_file" .md)
+    echo "📋 Processing: $topic_file"
 
     # Plan
-    copilot -p "Plan a solution for: $topic. Document as FR."
+    copilot --allow-all-paths -p "**Plan.** Read $topic_file. Write the feature request in .chaplain/drafts/. Define objectives, constraints, acceptance criteria, and implementation approach. The feature request is the plan. Follow feature-requests/TEMPLATE.md. Delete $topic_file when complete."
 
-    # Judge loop (max 3 cycles)
-    for i in 1 2 3; do
-        verdict=$(copilot -p "Judge FR in .chaplain/drafts/$slug.md")
-        [[ "$verdict" == *APPROVE* ]] && break
-        [[ "$verdict" == *AMEND* ]] && copilot -p "Amend FR $slug.md"
-    done
-
-    # Move approved FR to feature-requests/
-    mv .chaplain/drafts/$slug.md feature-requests/
-    rm "$topic_file"
+    # Judge
+    copilot --allow-all-paths -p "**Judge.** Examine the FR in .chaplain/drafts/. Critically examine the feature request; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. If clear, minimal, and internally consistent: freeze scope, grant authority, move to feature-requests/. If not: write issues into the file and move back to .chaplain/inbox/."
 done
 ```
+
+### Flow
+
+```
+inbox/topic.md
+    ↓ Plan
+drafts/XXX-slug.md
+    ↓ Judge
+    ├── APPROVE → feature-requests/XXX-slug.md (done)
+    └── NEEDS WORK → inbox/XXX-slug.md (re-enters loop)
+```
+
+**Key insight:** Judge returning file to inbox re-triggers Plan, which now sees an FR with issues and fixes them. Loop continues until Judge approves.
 
 **Usage:**
 ```bash
@@ -59,12 +70,12 @@ echo "Map node timeout" > .chaplain/inbox/map-timeout.md
 
 ## Acceptance Criteria
 
-- [x] `watch.sh` processes inbox files in order
-- [x] Plan creates draft FR with next number
-- [x] Judge outputs APPROVE/AMEND/REJECT
-- [x] Amend loop runs max 3 times
-- [x] Approved FRs moved to `feature-requests/`
-- [x] Rejected FRs marked `.rejected.md`
+- [ ] `watch.sh` only watches and calls copilot (no file ops in shell)
+- [ ] `prompts/plan.md` creates draft with next FR number
+- [ ] `prompts/judge.md` moves/renames files and outputs DONE
+- [ ] `prompts/amend.md` fixes issues in draft
+- [ ] Loop exits when judge outputs DONE
+- [ ] Max 3 amend cycles
 
 ## Alternatives Considered
 
