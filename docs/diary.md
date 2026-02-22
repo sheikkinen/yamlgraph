@@ -6,6 +6,60 @@ Previous: [diary-2026-02-20.md](diary-2026-02-20.md) — 32 entries, 2026-02-19 
 
 ---
 
+## 2026-02-22: The skip_if_exists Loop Trap (OC-005 Probe-Recap)
+
+**Context:** OC-005 probe-recap feature was implemented and "working" — tests passed, graph compiled. But live call looped on the same greeting instead of probing for missing fields. Log evidence: `Node generate_probe skipped - next_utterance already in state`.
+
+**Trap: Default Skip Semantics.** LLM nodes default to `skip_if_exists: true` — sensible for linear pipelines where you don't want to re-generate what's already there. But in loops, the node writes to the same state key on each iteration. The previous value triggers skip, the old utterance repeats, and the user hears the same question forever.
+
+**The TDD awakening:** User insisted: *"No bug shall be fixed without condemning test."* The failing test came first:
+```python
+def test_generate_probe_skips_disabled():
+    probe_node = config.nodes.get("generate_probe", {})
+    assert probe_node.get("skip_if_exists") is False, (
+        "generate_probe must have skip_if_exists: false"
+    )
+```
+Test failed: `got 'None'`. Added `skip_if_exists: false`. Test passed. Live call worked.
+
+**Pattern recognition:** This was the *second* skip_if_exists bug in the same graph:
+1. `generate_recap` → fixed earlier by changing `state_key: recap` to `state_key: next_utterance`
+2. `generate_goodbye` → needed explicit `skip_if_exists: false` (caught by earlier test)
+3. `generate_probe` → same issue, same fix
+
+**Compounding issue:** The live call ended before goodbye audio finished playing. `speak` sends audio to Twilio and returns immediately; `end_call` hangs up before the TTS stream completes. The graph logic is correct but the timing isn't.
+
+**Heuristic:** *Any LLM node in a cycle that writes to the same state key needs `skip_if_exists: false`. Default skip semantics break loop-based regeneration.*
+
+**Graduated pattern:** Consider extending `apply_loop_node_defaults()` to auto-detect LLM nodes in cycles and set `skip_if_exists: false`. Currently it only handles loop counters, not skip semantics.
+
+**Seed:** Should `speak` → `end_call` have a delay to let TTS finish? Or should there be a formal "wait for audio completion" mechanism via Twilio's `mark` events before terminating? The goodbye was generated and sent — but the caller may not have heard it.
+
+---
+
+## 2026-02-22: The "Hang" That Wasn't
+
+**Context:** User reported pytest "hanging." Ran `pytest tests/ -q --no-cov 2>&1 | tail -50`. Test suite never completed. Initial hypothesis: infinite loop, blocking I/O, or stalled async.
+
+**Trap: Tail Never Arrives.** Piping to `tail` means you see nothing until the process completes. If a test *fails* early and pytest stops, `tail` still waits for EOF. From the user's perspective, the process "hangs" — but it's actually waiting for input that will never come because pytest already exited with a failure buried in the unparsed output.
+
+**The Fix:** Use `pytest -x` (fail-fast). Output streams immediately. The first failure shows up as it happens, not after 1800 tests worth of buffered dots. Found `test_goodbye_generates_new_utterance` failing — `generate_goodbye` missing `skip_if_exists: false` in graph.yaml. Then `test_thinking_budget_runs_successfully` — deprecated model + wrong state format.
+
+**Compounding issue:** The `claude-3-7-sonnet-20250219` model hit 404 *in production test run*, not proactively upgraded. Model deprecation warnings in langchain-anthropic don't fail tests; they just print and proceed. The actual failure was a runtime 404 three months after deprecation notice.
+
+**Fixes applied:**
+1. `projects/outcaller/graph.yaml`: Added `skip_if_exists: false` to `generate_goodbye`
+2. `test_thinking_budget_integration.py`: Fixed state format (`"name": "str"` not `{"type": "str"}`)
+3. `test_thinking_budget_integration.py`: Updated model `claude-3-7-sonnet` → `claude-sonnet-4`
+
+**Heuristic:** *When pytest "hangs," don't add timeouts — add `-x`. Streaming visibility beats post-hoc parsing. The hang is usually a silent failure, not an infinite loop.*
+
+**Graduated pattern:** This is "normalize at the boundary" applied to debugging. Don't transform the output (`tail`) before you understand it. Let it flow raw until the problem is visible.
+
+**Seed:** Should there be a pre-commit hook that checks for deprecated model names? A static scan of `**/graph.yaml` and test files for model strings against a known-deprecated list could catch this before 404s in CI.
+
+---
+
 ## 2026-02-22: The MagicMock Truthiness Trap (FR-074 / Inquisitor Audit)
 
 **Context:** The Inquisitor audited `projects/outcaller` and FR-071/FR-072. Two unit tests had been failing silently — `test_speak_generates_tts_and_sends` and `test_listen_raises_on_no_loop`. Both passed in CI's integration-skip path but failed locally.

@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-from yamlgraph.graph_loader import load_graph_config_from_dict
+from yamlgraph.graph_loader import GraphConfig, compile_graph
 
 
 @pytest.mark.req("REQ-YG-083")
@@ -19,11 +19,15 @@ from yamlgraph.graph_loader import load_graph_config_from_dict
 def test_thinking_budget_runs_successfully():
     """Integration test: graph with thinking_budget executes successfully."""
     # Simple graph with thinking enabled
-    graph_config = {
+    graph_config_dict = {
         "defaults": {
             "provider": "anthropic",
-            "model": "claude-3-7-sonnet-20250219",
+            "model": "claude-haiku-4-5",
             "thinking_budget": 1024,  # minimum valid budget
+        },
+        "state": {
+            "name": "str",
+            "style": "str",
         },
         "nodes": {
             "greet": {
@@ -35,8 +39,9 @@ def test_thinking_budget_runs_successfully():
     }
 
     # Load and compile graph
-    graph = load_graph_config_from_dict(graph_config)
-    compiled = graph.compile()
+    config = GraphConfig(graph_config_dict)
+    state_graph = compile_graph(config)
+    compiled = state_graph.compile()
 
     # Run with a simple input
     result = compiled.invoke(
