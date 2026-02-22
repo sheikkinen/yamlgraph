@@ -546,6 +546,7 @@ Outbound Twilio voice call with ElevenLabs TTS/STT, demonstrating YAMLGraph as o
 | REQ-YG-080 | Telco demo: listen_and_transcribe node streams Twilio audio to ElevenLabs scribe_v2_realtime and returns committed transcript | `projects/outcaller/nodes` |
 | REQ-YG-081 | Telco demo: WebSocket coordinator bridges asyncio event loop and synchronous tool nodes via thread-safe Queue | `projects/outcaller/nodes/coordinator` |
 | REQ-YG-082 | Telco demo: ElevenLabs built-in VAD (commit_strategy=vad) replaces webrtcvad; no audioop dependency | `projects/outcaller/nodes` |
+| REQ-YG-083 | `thinking_budget` YAML field on graph `defaults` and per-node; validated as `0` or `≥ 1024`; passed as `thinking={"type":"enabled","budget_tokens":N}` to `ChatAnthropic` with forced `temperature=1` (override before cache key); raises on non-Anthropic provider; included in LLM cache key | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` |
 
 ---
 

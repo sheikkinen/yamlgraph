@@ -42,6 +42,7 @@ Start here and progress in order:
 | [python-map/](python-map/) | `map`, `python` | Python sub-nodes in map |
 | [safety-guards/](safety-guards/) | `router`, `llm` | Input/output guardrails |
 | [multi-turn/](multi-turn/) | `interrupt` | Multi-turn conversation with memory |
+| [thinking/](thinking/) | `llm` | Extended thinking budget (FR-071) |
 
 ## Running Demos
 

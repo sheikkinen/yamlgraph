@@ -21,6 +21,7 @@ from yamlgraph.linter.checks import (
     check_node_types,
     check_prompt_files,
     check_state_declarations,
+    check_thinking_budget,
     check_tool_references,
 )
 from yamlgraph.linter.checks_contracts import (
@@ -101,6 +102,9 @@ def lint_graph(
     all_issues.extend(check_python_node_variables(graph_path))
     all_issues.extend(check_identifier_keys(graph_path))
     all_issues.extend(check_skip_if_exists_add_reducer(graph_path))
+
+    # FR-071: Thinking budget checks
+    all_issues.extend(check_thinking_budget(graph_path))
 
     # Determine validity (no errors)
     has_errors = any(issue.severity == "error" for issue in all_issues)
