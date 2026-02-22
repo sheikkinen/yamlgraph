@@ -6,6 +6,25 @@ Previous: [diary-2026-02-20.md](diary-2026-02-20.md) — 32 entries, 2026-02-19 
 
 ---
 
+## 2026-02-22: Worktree Divergence & Multi-Agent Collision
+
+**Context:** FR-071 thinking_budget feature was being developed locally while a Copilot worktree (sonnet-4-5) made parallel commits to main. When attempting to push local work, `git pull --rebase` revealed 9 conflicting files — the same feature implemented twice by different agents.
+
+**Trap: Silent Parallel Work.** Worktrees operate asynchronously. Without explicit coordination, multiple agents can implement the same feature simultaneously, each unaware of the other's progress. The damage surfaces only at merge time, when conflicts force manual reconciliation.
+
+**Compounding Failures.** After resolving conflicts, the commit still failed due to:
+1. **File size gate**: `checks.py` at 473 lines (max 450) — extracted `check_thinking_budget` to new `checks_providers.py`
+2. **Radon CC gate**: `create_llm` at CC 25 (max 20) — extracted 7 provider helpers + `_dispatch_provider`
+3. **Test assumption drift**: `analyze.yaml` changed from `user:` to `prompt:` key, breaking test assertion
+
+Each gate failure required a fix before the next could be evaluated. The commit loop: fix → try → fail next gate → fix again.
+
+**Heuristic:** *Before starting feature work, check remote. Before pushing, check remote. Worktrees are fire-and-forget grenades — pull the pin, walk away, expect shrapnel.*
+
+**Seed:** Could a pre-push hook query GitHub for open worktree branches and warn if they touch the same files as local changes? A "collision detection" gate before the merge-conflict storm hits.
+
+---
+
 ## 2026-02-22: The Collection-Time Pollution Trap
 
 **Context:** FR-071 telco tests used module-level `sys.modules` mocking to stub optional dependencies (twilio, elevenlabs, websockets). This caused mysterious test failures in unrelated files.
