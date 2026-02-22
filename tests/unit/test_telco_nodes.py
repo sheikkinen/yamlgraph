@@ -1,24 +1,64 @@
 """Unit tests for Telco Voice Call Demo (FR-071).
 
 Tests for REQ-YG-078 through REQ-YG-082.
+
+Note: Uses conftest.py fixture to mock optional dependencies (twilio, elevenlabs,
+websockets, httpx) without polluting other tests during collection.
 """
 
 from __future__ import annotations
 
 import asyncio
-import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Mock the optional dependencies before importing the module
-sys.modules["twilio"] = MagicMock()
-sys.modules["twilio.rest"] = MagicMock()
-sys.modules["elevenlabs"] = MagicMock()
-sys.modules["websockets"] = MagicMock()
-sys.modules["websockets.sync"] = MagicMock()
-sys.modules["websockets.sync.client"] = MagicMock()
-sys.modules["httpx"] = MagicMock()
+# Define constants for mocked modules - actual mocking done in fixture below
+_MOCK_MODULES = [
+    "twilio",
+    "twilio.rest",
+    "elevenlabs",
+    "websockets",
+    "websockets.sync",
+    "websockets.sync.client",
+    "httpx",
+]
+
+
+@pytest.fixture(autouse=True, scope="module")
+def _mock_telco_dependencies():
+    """Mock optional telco dependencies for this module only.
+
+    Uses fixture (runs at execution time) instead of module-level code
+    (runs at collection time) to avoid polluting other tests.
+    """
+    import sys
+
+    # Save originals
+    originals = {key: sys.modules.get(key) for key in _MOCK_MODULES}
+
+    # Install mocks
+    for mod in _MOCK_MODULES:
+        sys.modules[mod] = MagicMock()
+
+    # Clear any cached imports of outcaller modules
+    to_clear = [k for k in sys.modules if k.startswith("projects.outcaller")]
+    for k in to_clear:
+        del sys.modules[k]
+
+    yield
+
+    # Restore originals
+    for key, original in originals.items():
+        if original is None:
+            sys.modules.pop(key, None)
+        else:
+            sys.modules[key] = original
+
+    # Clear cached imports again
+    to_clear = [k for k in sys.modules if k.startswith("projects.outcaller")]
+    for k in to_clear:
+        del sys.modules[k]
 
 
 @pytest.mark.req("REQ-YG-078")
