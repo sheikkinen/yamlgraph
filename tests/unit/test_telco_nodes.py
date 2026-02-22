@@ -139,6 +139,7 @@ class TestSpeak:
         from projects.outcaller.nodes import coordinator, twilio_call
 
         mock_session = MagicMock()
+        mock_session.is_disconnected = False  # Not disconnected
 
         # Mock ElevenLabs client - convert() returns iterator of MP3 chunks
         mock_client = MagicMock()
@@ -166,6 +167,7 @@ class TestSpeak:
         from projects.outcaller.nodes import coordinator, twilio_call
 
         mock_session = MagicMock()
+        mock_session.is_disconnected = False  # Not disconnected
 
         with patch.object(coordinator, "get_active_session", return_value=mock_session):
             result = twilio_call.speak({"next_utterance": "[DONE]"})
@@ -184,6 +186,7 @@ class TestListenAndTranscribe:
         mock_session = MagicMock()
         mock_loop = MagicMock()
         mock_session.loop = mock_loop
+        mock_session.is_disconnected = False  # Not disconnected
 
         # Mock asyncio.run_coroutine_threadsafe to populate result_holder
         mock_future = MagicMock()
@@ -221,6 +224,7 @@ class TestListenAndTranscribe:
 
         mock_session = MagicMock()
         mock_session.loop = None  # No event loop
+        mock_session.is_disconnected = False  # Not disconnected, but no loop
 
         with (
             patch.object(coordinator, "get_active_session", return_value=mock_session),
@@ -260,6 +264,7 @@ class TestListenAndTranscribe:
         mock_session = MagicMock()
         mock_loop = MagicMock()
         mock_session.loop = mock_loop
+        mock_session.is_disconnected = False  # Not disconnected
 
         with (
             patch.object(coordinator, "get_active_session", return_value=mock_session),
