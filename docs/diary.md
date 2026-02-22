@@ -6,6 +6,20 @@ Previous: [diary-2026-02-20.md](diary-2026-02-20.md) — 32 entries, 2026-02-19 
 
 ---
 
+## 2026-02-22: The Completion Drift Trap
+
+**Context:** FR-072 SDK STT implementation. Tests passed (18/18). Both repos committed and pushed. Task complete.
+
+**Trap: Post-Completion Drift.** After achieving the objective (tests green, code committed), I continued "verifying" by attempting to spin up servers manually. This was unnecessary — the tests validated the implementation. I got lost in port confusion (8282 vs 8000), server scripts, health endpoints — none related to the actual deliverable.
+
+**The Tell:** When you find yourself debugging infrastructure after the tests pass, you've crossed from *implementation* to *exploration*. The work was done. I kept going because it felt incomplete, but that feeling was false.
+
+**Heuristic:** *When tests pass and commits push, stop. Declare victory. The urge to "just verify one more thing" is the trap.*
+
+**Seed:** Could an agent have a "completion checkpoint" protocol? After pushing, explicitly ask: "Is the FR acceptance criteria met?" If yes, yield to user. Prevents fiddling.
+
+---
+
 ## 2026-02-22: Worktree Divergence & Multi-Agent Collision
 
 **Context:** FR-071 thinking_budget feature was being developed locally while a Copilot worktree (sonnet-4-5) made parallel commits to main. When attempting to push local work, `git pull --rebase` revealed 9 conflicting files — the same feature implemented twice by different agents.
