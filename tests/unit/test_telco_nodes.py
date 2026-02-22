@@ -290,6 +290,24 @@ class TestListenAndTranscribe:
         # Should use method call pattern instead
         assert "stt.on(" in source, "Should register event handler with stt.on()"
 
+    def test_stt_send_uses_base64_dict_not_raw_bytes(self) -> None:
+        """stt.send() requires dict with audio_base_64 key, not raw bytes.
+
+        Bug: stt.send(frame) fails with:
+            AttributeError: 'bytes' object has no attribute 'get'
+
+        ElevenLabs SDK expects: {"audio_base_64": base64_encoded_string}
+        """
+        import inspect
+
+        from projects.outcaller.nodes import twilio_call
+
+        source = inspect.getsource(twilio_call.listen_and_transcribe)
+
+        # Must base64 encode audio before sending
+        assert "base64" in source, "Should use base64 encoding for SDK send()"
+        assert "audio_base_64" in source, "SDK requires dict with audio_base_64 key"
+
 
 @pytest.mark.req("REQ-YG-081")
 class TestCoordinator:
