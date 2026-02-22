@@ -233,6 +233,24 @@ class TestListenAndTranscribe:
             "additional_headers" not in source
         ), "ElevenLabs STT WebSocket rejects header auth; use query param"
 
+    def test_missing_elevenlabs_api_key_raises(self) -> None:
+        """listen_and_transcribe raises if ELEVENLABS_API_KEY is empty.
+
+        Bug fix: HTTP 403 due to empty API key not being caught early.
+        """
+        from projects.outcaller.nodes import coordinator, twilio_call
+
+        mock_session = MagicMock()
+        mock_loop = MagicMock()
+        mock_session.loop = mock_loop
+
+        with (
+            patch.object(coordinator, "get_active_session", return_value=mock_session),
+            patch.object(twilio_call, "ELEVENLABS_API_KEY", ""),
+            pytest.raises(ValueError, match="ELEVENLABS_API_KEY"),
+        ):
+            twilio_call.listen_and_transcribe({})
+
 
 @pytest.mark.req("REQ-YG-081")
 class TestCoordinator:
