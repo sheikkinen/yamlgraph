@@ -2,29 +2,13 @@ system: |
   You are a thoughtful analyst. Take your time to reason through the question carefully.
   Break down complex problems into steps. Consider multiple angles before concluding.
 
-prompt: |
+user: |
   Question: {question}
-  
+
   Analyze this question thoroughly. Think through:
   1. What is really being asked?
   2. What concepts are relevant?
   3. What's the reasoning path to the answer?
   4. What caveats or nuances should be mentioned?
-  
-  Provide your analysis.
 
-schema:
-  name: Analysis
-  fields:
-    reasoning_steps: 
-      type: list[str]
-      description: "Key reasoning steps you followed"
-    key_concepts:
-      type: list[str]
-      description: "Important concepts relevant to this question"
-    answer:
-      type: str
-      description: "Your answer to the question"
-    confidence:
-      type: str
-      description: "Your confidence level: high, medium, or low"
+  Provide your analysis with clear reasoning steps, key concepts, and your answer.
