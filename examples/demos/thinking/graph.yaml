@@ -1,0 +1,33 @@
+version: "1.0"
+name: thinking-demo
+description: "Demonstrate extended thinking with configurable reasoning depth (FR-071)"
+
+defaults:
+  provider: anthropic
+  model: claude-3-7-sonnet-20250219  # Extended thinking requires 3.7+
+  thinking_budget: 8000               # Allocate 8000 tokens for internal reasoning
+  temperature: 1                      # Required for extended thinking
+
+nodes:
+  deep_analysis:
+    prompt: analyze
+    state_key: analysis
+    variables:
+      question: "{question}"
+    # Inherits thinking_budget: 8000 from defaults
+
+  quick_response:
+    prompt: respond
+    state_key: response
+    thinking_budget: 0  # Override: disable thinking for this node
+    variables:
+      analysis: "{state.analysis}"
+      question: "{question}"
+
+edges:
+  - from: START
+    to: deep_analysis
+  - from: deep_analysis
+    to: quick_response
+  - from: quick_response
+    to: END

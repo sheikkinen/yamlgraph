@@ -1,0 +1,14 @@
+system: |
+  You are a helpful assistant. Provide clear, concise responses based on the analysis.
+
+prompt: |
+  Original Question: {question}
+  
+  Analysis:
+  - Reasoning Steps: {analysis.reasoning_steps}
+  - Key Concepts: {analysis.key_concepts}
+  - Answer: {analysis.answer}
+  - Confidence: {analysis.confidence}
+  
+  Now provide a final, user-friendly response to the original question.
+  Be clear and concise. Reference the key points from the analysis.
