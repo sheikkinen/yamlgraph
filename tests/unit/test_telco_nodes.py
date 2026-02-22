@@ -18,6 +18,8 @@ _MOCK_MODULES = [
     "twilio",
     "twilio.rest",
     "elevenlabs",
+    "elevenlabs.realtime",
+    "elevenlabs.realtime.scribe",
     "websockets",
     "websockets.sync",
     "websockets.sync.client",
@@ -33,13 +35,27 @@ def _mock_telco_dependencies():
     (runs at collection time) to avoid polluting other tests.
     """
     import sys
+    from enum import Enum
 
     # Save originals
     originals = {key: sys.modules.get(key) for key in _MOCK_MODULES}
 
+    # Create mock enums for ElevenLabs SDK
+    class MockAudioFormat(Enum):
+        ULAW_8000 = "ulaw_8000"
+        PCM_16000 = "pcm_16000"
+
+    class MockCommitStrategy(Enum):
+        VAD = "vad"
+        MANUAL = "manual"
+
     # Install mocks
     for mod in _MOCK_MODULES:
         sys.modules[mod] = MagicMock()
+
+    # Set up elevenlabs.realtime.scribe with proper enums
+    sys.modules["elevenlabs.realtime.scribe"].AudioFormat = MockAudioFormat
+    sys.modules["elevenlabs.realtime.scribe"].CommitStrategy = MockCommitStrategy
 
     # Clear any cached imports of outcaller modules
     to_clear = [k for k in sys.modules if k.startswith("projects.outcaller")]
@@ -212,11 +228,11 @@ class TestListenAndTranscribe:
         ):
             twilio_call.listen_and_transcribe({})
 
-    def test_stt_url_has_api_key_in_query_string(self) -> None:
-        """ElevenLabs WebSocket STT requires API key in query string, not headers.
+    def test_stt_uses_elevenlabs_sdk(self) -> None:
+        """STT uses ElevenLabs SDK with ULAW_8000 format (matches Twilio mulaw directly).
 
-        Bug fix: HTTP 403 when using additional_headers for xi-api-key.
-        The streaming STT endpoint only accepts auth via query parameter.
+        FR-072: SDK handles auth internally, no raw websockets needed.
+        ULAW_8000 format means no ffmpeg transcoding required.
         """
         import inspect
 
@@ -224,14 +240,15 @@ class TestListenAndTranscribe:
 
         source = inspect.getsource(twilio_call.listen_and_transcribe)
 
-        # API key MUST be in query string (not headers)
+        # Must use ElevenLabs SDK, not raw websockets
+        assert "ElevenLabs(" in source, "Should use ElevenLabs SDK client"
         assert (
-            "xi-api-key=" in source or "xi-api-key={" in source
-        ), "ElevenLabs STT URL must include xi-api-key in query string"
-        # Should NOT use additional_headers for auth
+            "AudioFormat.ULAW_8000" in source
+        ), "Should use ULAW_8000 to match Twilio format directly"
+        # Should NOT use raw websockets
         assert (
-            "additional_headers" not in source
-        ), "ElevenLabs STT WebSocket rejects header auth; use query param"
+            "websockets.connect" not in source
+        ), "Should use SDK, not raw websockets (avoids HTTP 403)"
 
     def test_missing_elevenlabs_api_key_raises(self) -> None:
         """listen_and_transcribe raises if ELEVENLABS_API_KEY is empty.
