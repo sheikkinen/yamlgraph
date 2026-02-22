@@ -1166,3 +1166,17 @@ Token explosion discovered: Gemini 2.5 Flash "thinking" causes 134 → 1,246 →
 **Seed:** If voice works, what about video? Could the same graph.yaml drive a video avatar (HeyGen/D-ID) where the TTS node becomes a video-generation node? The structure is identical — only the side-effect layer changes.
 
 ---
+
+## 2026-02-22 — Judgement as Verification, Not Opinion
+
+**Context:** Judging FR-074 (outcall probe-recap). A well-structured FR with 4 identified issues, each with a concrete resolution.
+
+**Trap: Rubber-stamp approval.** The FR was well-written enough that the temptation was to approve on surface clarity alone. But "reads well" ≠ "works." The critical step was verifying claims against the actual codebase — especially the condition routing semantics (`is_outcall != true` when `is_outcall` is missing from state). That specific path depends on `total=False` in the TypedDict and `None != True` evaluating to `True` in the condition parser. Without verifying these two implementation details, approval would have been faith-based.
+
+**Insight:** The Judge phase isn't about style or preference — it's about verifying that the proposed solution *actually works* given the existing system's mechanics. The three verification axes: (1) do the referenced interfaces exist as claimed, (2) do the edge conditions handle all runtime states correctly, (3) is the scope genuinely minimal.
+
+**Heuristic:** *Judge by tracing execution paths through real code, not by reading prose. A well-written FR is necessary but not sufficient.*
+
+**Seed:** Could the Chaplain automate verification? A `chaplain judge` command could parse FR code references, check they exist, and run condition evaluations against sample state dicts — turning judgement from manual audit into executable proof.
+
+---
