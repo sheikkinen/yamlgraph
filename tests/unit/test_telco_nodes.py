@@ -212,6 +212,27 @@ class TestListenAndTranscribe:
         ):
             twilio_call.listen_and_transcribe({})
 
+    def test_stt_url_has_api_key_in_query_string(self) -> None:
+        """ElevenLabs WebSocket STT requires API key in query string, not headers.
+
+        Bug fix: HTTP 403 when using additional_headers for xi-api-key.
+        The streaming STT endpoint only accepts auth via query parameter.
+        """
+        import inspect
+
+        from projects.outcaller.nodes import twilio_call
+
+        source = inspect.getsource(twilio_call.listen_and_transcribe)
+
+        # API key MUST be in query string (not headers)
+        assert (
+            "xi-api-key=" in source or "xi-api-key={" in source
+        ), "ElevenLabs STT URL must include xi-api-key in query string"
+        # Should NOT use additional_headers for auth
+        assert (
+            "additional_headers" not in source
+        ), "ElevenLabs STT WebSocket rejects header auth; use query param"
+
 
 @pytest.mark.req("REQ-YG-081")
 class TestCoordinator:
