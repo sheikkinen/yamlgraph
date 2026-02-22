@@ -285,6 +285,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 24 | Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes` | REQ-YG-075 |
 | 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 | 26 | Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
+| 27 | Telco Voice Call Demo | `projects/outcaller` | REQ-YG-078 – 082 |
 
 ### 1. Configuration Loading & Validation
 
@@ -533,6 +534,18 @@ Error propagation, timeout support, and interrupt detection for `run_graph_strea
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-077 | Streaming error resilience: wrap `astream()` with try/except to yield `StreamEvent(type="error")` on exceptions; `asyncio.timeout()` for stall detection; interrupt payload detection via `aget_state()` after stream completes; `yield_events=False` flag for opt-out (raises instead) | `executor_async`, `models/streaming` |
+
+### 27. Telco Voice Call Demo
+
+Outbound Twilio voice call with ElevenLabs TTS/STT, demonstrating YAMLGraph as orchestrator with Python tool nodes for telephony I/O.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-078 | Telco demo: YAMLGraph orchestrates outbound Twilio voice call via type:python tool nodes | `projects/outcaller` |
+| REQ-YG-079 | Telco demo: speak node performs TTS via ElevenLabs eleven_flash_v2_5 and transcodes to mulaw 8kHz via ffmpeg | `projects/outcaller/nodes` |
+| REQ-YG-080 | Telco demo: listen_and_transcribe node streams Twilio audio to ElevenLabs scribe_v2_realtime and returns committed transcript | `projects/outcaller/nodes` |
+| REQ-YG-081 | Telco demo: WebSocket coordinator bridges asyncio event loop and synchronous tool nodes via thread-safe Queue | `projects/outcaller/nodes/coordinator` |
+| REQ-YG-082 | Telco demo: ElevenLabs built-in VAD (commit_strategy=vad) replaces webrtcvad; no audioop dependency | `projects/outcaller/nodes` |
 
 ---
 

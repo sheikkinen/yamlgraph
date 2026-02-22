@@ -97,6 +97,12 @@ fsm = [
 mcp = [
     "mcp>=1.0.0",
 ]
+telco = [
+    "twilio>=9.0.0",
+    "elevenlabs>=1.0.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+]
 
 [project.scripts]
 yamlgraph = "yamlgraph.cli:main"
