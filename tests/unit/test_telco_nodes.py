@@ -268,6 +268,28 @@ class TestListenAndTranscribe:
         ):
             twilio_call.listen_and_transcribe({})
 
+    def test_stt_on_called_with_callback_not_as_decorator(self) -> None:
+        """stt.on() must be called with callback arg, not as @decorator.
+
+        Bug: @stt.on("transcript") fails with:
+            RealtimeConnection.on() missing 1 required positional argument: 'callback'
+
+        The ElevenLabs SDK requires stt.on("event", callback) not decorator syntax.
+        """
+        import inspect
+
+        from projects.outcaller.nodes import twilio_call
+
+        source = inspect.getsource(twilio_call.listen_and_transcribe)
+
+        # Should NOT use @stt.on decorator pattern (causes missing callback error)
+        assert (
+            "@stt.on(" not in source
+        ), "SDK requires stt.on(event, callback), not @stt.on(event) decorator"
+
+        # Should use method call pattern instead
+        assert "stt.on(" in source, "Should register event handler with stt.on()"
+
 
 @pytest.mark.req("REQ-YG-081")
 class TestCoordinator:
