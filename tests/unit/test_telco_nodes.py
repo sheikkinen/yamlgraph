@@ -240,9 +240,9 @@ class TestListenAndTranscribe:
         """
         import inspect
 
-        from projects.outcaller.nodes import twilio_call
+        from projects.outcaller.nodes import stt
 
-        source = inspect.getsource(twilio_call.listen_and_transcribe)
+        source = inspect.getsource(stt.listen_and_transcribe)
 
         # Must use ElevenLabs SDK, not raw websockets
         assert "ElevenLabs(" in source, "Should use ElevenLabs SDK client"
@@ -259,7 +259,7 @@ class TestListenAndTranscribe:
 
         Bug fix: HTTP 403 due to empty API key not being caught early.
         """
-        from projects.outcaller.nodes import coordinator, twilio_call
+        from projects.outcaller.nodes import coordinator, stt
 
         mock_session = MagicMock()
         mock_loop = MagicMock()
@@ -268,10 +268,10 @@ class TestListenAndTranscribe:
 
         with (
             patch.object(coordinator, "get_active_session", return_value=mock_session),
-            patch.object(twilio_call, "ELEVENLABS_API_KEY", ""),
+            patch.object(stt, "ELEVENLABS_API_KEY", ""),
             pytest.raises(ValueError, match="ELEVENLABS_API_KEY"),
         ):
-            twilio_call.listen_and_transcribe({})
+            stt.listen_and_transcribe({})
 
     def test_stt_on_called_with_callback_not_as_decorator(self) -> None:
         """stt.on() must be called with callback arg, not as @decorator.
@@ -283,9 +283,9 @@ class TestListenAndTranscribe:
         """
         import inspect
 
-        from projects.outcaller.nodes import twilio_call
+        from projects.outcaller.nodes import stt
 
-        source = inspect.getsource(twilio_call.listen_and_transcribe)
+        source = inspect.getsource(stt.listen_and_transcribe)
 
         # Should NOT use @stt.on decorator pattern (causes missing callback error)
         assert (
@@ -305,9 +305,9 @@ class TestListenAndTranscribe:
         """
         import inspect
 
-        from projects.outcaller.nodes import twilio_call
+        from projects.outcaller.nodes import stt
 
-        source = inspect.getsource(twilio_call.listen_and_transcribe)
+        source = inspect.getsource(stt.listen_and_transcribe)
 
         # Must base64 encode audio before sending
         assert "base64" in source, "Should use base64 encoding for SDK send()"
@@ -321,9 +321,9 @@ class TestListenAndTranscribe:
         """
         import inspect
 
-        from projects.outcaller.nodes import twilio_call
+        from projects.outcaller.nodes import stt
 
-        source = inspect.getsource(twilio_call.listen_and_transcribe)
+        source = inspect.getsource(stt.listen_and_transcribe)
 
         # Must use the correct event name
         assert (
@@ -382,10 +382,10 @@ class TestNoAudioopDependency:
         """Module uses ffmpeg subprocess, not audioop."""
         import inspect
 
-        from projects.outcaller.nodes import twilio_call
+        from projects.outcaller.nodes import tts
 
-        # Check that audioop is not imported in the module
-        source = inspect.getsource(twilio_call)
+        # Check that audioop is not imported in the TTS module
+        source = inspect.getsource(tts)
         assert "import audioop" not in source
         assert "from audioop" not in source
         # Uses subprocess (Popen for streaming)
@@ -393,9 +393,10 @@ class TestNoAudioopDependency:
 
     def test_no_silence_detection_helper(self) -> None:
         """FR-072: _is_silence deleted - ElevenLabs VAD replaces custom detection."""
-        from projects.outcaller.nodes import twilio_call
+        from projects.outcaller.nodes import stt, tts
 
-        assert not hasattr(twilio_call, "_is_silence")
+        assert not hasattr(tts, "_is_silence")
+        assert not hasattr(stt, "_is_silence")
 
 
 @pytest.mark.req("REQ-YG-078")
