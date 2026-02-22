@@ -6,6 +6,36 @@ Previous: [diary-2026-02-20.md](diary-2026-02-20.md) — 32 entries, 2026-02-19 
 
 ---
 
+## 2026-02-22: The Collection-Time Pollution Trap
+
+**Context:** FR-071 telco tests used module-level `sys.modules` mocking to stub optional dependencies (twilio, elevenlabs, websockets). This caused mysterious test failures in unrelated files.
+
+**Trap:** Module-level code runs at **import time** during pytest **collection**, not at test execution time. When pytest collects all tests, it imports all test files. Module-level mocking pollutes `sys.modules` for the entire test session.
+
+```python
+# ❌ WRONG - Runs at collection, pollutes all subsequent tests
+sys.modules["websockets"] = MagicMock()  # Module level
+
+# ✅ CORRECT - Runs at execution, restores after
+@pytest.fixture(autouse=True, scope="module")
+def _mock_dependencies():
+    originals = {k: sys.modules.get(k) for k in MOCK_MODULES}
+    for mod in MOCK_MODULES:
+        sys.modules[mod] = MagicMock()
+    yield
+    for k, v in originals.items():
+        if v is None: sys.modules.pop(k, None)
+        else: sys.modules[k] = v
+```
+
+**Heuristic:** *Module-level side effects are collection-time bombs. Move them to fixtures.*
+
+**Secondary trap:** The `--no-verify` bypass was rationalized as "pre-existing issues" — a concept that doesn't exist per Scripture. All tests must pass.
+
+**Seed:** Could pytest collection be made side-effect-safe by default? A linter rule that forbids `sys.modules` assignments at module level in test files?
+
+---
+
 ## 2026-02-21: Six Hats — Concrete Viewpoint Implementations
 
 **Context:** Yesterday's "Six Hats Chaplaincy" entry mapped de Bono's six modes to abstract agent roles. Today: what *concrete tools and techniques* could implement each viewpoint?
