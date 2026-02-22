@@ -101,7 +101,7 @@ class TestElevenLabsSTT:
     def test_transcribe_generated_audio(self, elevenlabs_client):
         """Generate TTS, transcode, then transcribe back.
 
-        REQ-YG-080: ElevenLabs scribe_v1 STT.
+        REQ-YG-080: ElevenLabs scribe_v2 STT via SDK.
         """
         test_text = "The quick brown fox jumps over the lazy dog."
 
@@ -163,33 +163,24 @@ class TestElevenLabsSTT:
         wav_data = _pcm_to_wav(pcm_data, sample_rate=16000)
         print(f"  WAV: {len(wav_data)} bytes")
 
-        # Transcribe via ElevenLabs STT
-        import httpx
-
-        response = httpx.post(
-            "https://api.elevenlabs.io/v1/speech-to-text",
-            headers={"xi-api-key": os.getenv("ELEVENLABS_API_KEY")},
-            files={"file": ("audio.wav", wav_data, "audio/wav")},
-            data={"model_id": "scribe_v1"},
-            timeout=30.0,
+        # Transcribe via ElevenLabs SDK
+        result = elevenlabs_client.speech_to_text.convert(
+            model_id="scribe_v2",
+            file=wav_data,
+            language_code="en",
         )
-        assert response.status_code == 200, f"STT failed: {response.text}"
-
-        result = response.json()
-        transcript = result.get("text", "")
+        transcript = result.text or ""
         print(f"✓ Transcribed: '{transcript}'")
 
         # Verify transcription is similar to original
         assert len(transcript) > 10, "Transcript too short"
 
     @pytest.mark.req("REQ-YG-082")
-    def test_transcribe_silence_fails_gracefully(self):
+    def test_transcribe_silence_fails_gracefully(self, elevenlabs_client):
         """Verify silence/empty audio returns error or empty.
 
         REQ-YG-082: Handle silence without crashing.
         """
-        import httpx
-
         # Create 1 second of silence (mulaw silence = 0xFF)
         silence_mulaw = bytes([0xFF] * 8000)
 
@@ -220,20 +211,17 @@ class TestElevenLabsSTT:
 
         wav_data = _pcm_to_wav(pcm_data, sample_rate=16000)
 
-        response = httpx.post(
-            "https://api.elevenlabs.io/v1/speech-to-text",
-            headers={"xi-api-key": os.getenv("ELEVENLABS_API_KEY")},
-            files={"file": ("audio.wav", wav_data, "audio/wav")},
-            data={"model_id": "scribe_v1"},
-            timeout=30.0,
-        )
-
-        # Silence may return 400 or empty transcript
-        if response.status_code == 200:
-            transcript = response.json().get("text", "")
+        # Silence may raise an error or return empty transcript
+        try:
+            result = elevenlabs_client.speech_to_text.convert(
+                model_id="scribe_v2",
+                file=wav_data,
+                language_code="en",
+            )
+            transcript = result.text or ""
             print(f"✓ Silence returned: '{transcript}'")
-        else:
-            print(f"✓ Silence returned HTTP {response.status_code}")
+        except Exception as e:
+            print(f"✓ Silence raised error (expected): {e}")
 
 
 def _pcm_to_wav(pcm_data: bytes, sample_rate: int = 16000) -> bytes:

@@ -204,9 +204,20 @@ def extract_req_markers(filepath: Path) -> dict[str, list[str]]:
 
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
+            # Extract class-level @pytest.mark.req decorators
+            class_reqs: list[str] = []
+            for decorator in node.decorator_list:
+                class_reqs.extend(_extract_req_from_decorator(decorator))
+
             for item in node.body:
                 if isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef):
                     _process_func(item, node.name)
+                    # Also apply class-level reqs to test methods
+                    if item.name.startswith("test") and class_reqs:
+                        key = f"{stem}::{node.name}::{item.name}"
+                        for req in class_reqs:
+                            if key not in req_map[req]:
+                                req_map[req].append(key)
         elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             _process_func(node, None)
 
