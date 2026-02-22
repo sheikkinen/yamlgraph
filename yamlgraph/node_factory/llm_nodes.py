@@ -108,6 +108,9 @@ def create_node_function(
     provider = node_config.get("provider", defaults.get("provider"))
     model = node_config.get("model", defaults.get("model"))
     max_tokens = node_config.get("max_tokens", defaults.get("max_tokens"))
+    thinking_budget = node_config.get("thinking_budget")
+    if thinking_budget is None:
+        thinking_budget = defaults.get("thinking_budget")
     state_key = node_config.get("state_key", node_name)
     variable_templates = node_config.get("variables", {})
     requires = node_config.get("requires", [])
@@ -171,6 +174,7 @@ def create_node_function(
                     prompts_relative=prompts_relative,
                     state=state,
                     max_tokens=max_tokens,
+                    thinking_budget=thinking_budget,
                 )
                 return result, None
             except Exception as e:

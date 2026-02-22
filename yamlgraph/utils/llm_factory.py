@@ -30,6 +30,7 @@ def create_llm(
     model: str | None = None,
     temperature: float | None = 0.7,
     max_tokens: int | None = None,
+    thinking_budget: int | None = None,
 ) -> BaseChatModel:
     """Create an LLM instance with multi-provider support.
 
@@ -37,7 +38,8 @@ def create_llm(
     Provider can be specified via parameter or PROVIDER environment variable.
     Model can be specified via parameter or {PROVIDER}_MODEL environment variable.
 
-    LLM instances are cached by (provider, model, temperature, max_tokens) to improve performance.
+    LLM instances are cached by (provider, model, temperature, max_tokens, thinking_budget)
+    to improve performance.
 
     Args:
         provider: LLM provider ("anthropic", "mistral", "openai", "replicate", "xai").
@@ -45,12 +47,14 @@ def create_llm(
         model: Model name. Defaults to {PROVIDER}_MODEL env var or provider default.
         temperature: Temperature for generation (0.0-1.0).
         max_tokens: Maximum output tokens. None means provider default.
+        thinking_budget: Anthropic extended thinking budget_tokens (0 or ≥1024, FR-071).
+                        Only valid for provider="anthropic". Forces temperature=1.
 
     Returns:
         Configured LLM instance.
 
     Raises:
-        ValueError: If provider is invalid.
+        ValueError: If provider is invalid or thinking_budget used with non-Anthropic.
 
     Examples:
         >>> # Use default Anthropic
@@ -64,6 +68,9 @@ def create_llm(
 
         >>> # Use xAI Grok
         >>> llm = create_llm(provider="xai", model="grok-beta")
+
+        >>> # Enable extended thinking
+        >>> llm = create_llm(provider="anthropic", thinking_budget=8000)
     """
     # Determine provider (parameter > env var > default)
     selected_provider = provider or os.getenv("PROVIDER") or "anthropic"
@@ -75,16 +82,45 @@ def create_llm(
             f"Must be one of: {', '.join(DEFAULT_MODELS.keys())}"
         )
 
+    # Validate thinking_budget is only used with Anthropic
+    if thinking_budget is not None and thinking_budget >= 1024:
+        if selected_provider != "anthropic":
+            raise ValueError(
+                f"thinking_budget is only supported for provider='anthropic', "
+                f"got provider='{selected_provider}'"
+            )
+
     # Ensure temperature has a value (some providers reject None)
     if temperature is None:
         temperature = 0.7
+
+    # Track if we override temperature for warning
+    temperature_overridden = False
+    original_temperature = temperature
+
+    # Override temperature to 1 if thinking is enabled (Anthropic requirement)
+    if (
+        thinking_budget is not None
+        and thinking_budget >= 1024
+        and selected_provider == "anthropic"
+    ):
+        if temperature != 1:
+            temperature_overridden = True
+            original_temperature = temperature
+            temperature = 1
 
     # Determine model (parameter > env var > default)
     # Note: DEFAULT_MODELS already handles env var via config.py
     selected_model = model or DEFAULT_MODELS[selected_provider]
 
-    # Create cache key
-    cache_key = (selected_provider, selected_model, temperature, max_tokens)
+    # Create cache key (includes thinking_budget, uses overridden temperature)
+    cache_key = (
+        selected_provider,
+        selected_model,
+        temperature,
+        max_tokens,
+        thinking_budget,
+    )
 
     # Thread-safe cache access
     with _cache_lock:
@@ -152,12 +188,28 @@ def create_llm(
         else:  # anthropic (default)
             from langchain_anthropic import ChatAnthropic
 
+            anthropic_kwargs = optional_kwargs.copy()
+
+            # Add thinking parameter if budget is enabled
+            if thinking_budget is not None and thinking_budget >= 1024:
+                anthropic_kwargs["thinking"] = {
+                    "type": "enabled",
+                    "budget_tokens": thinking_budget,
+                }
+
             llm = ChatAnthropic(
-                model=selected_model, temperature=temperature, **optional_kwargs
+                model=selected_model, temperature=temperature, **anthropic_kwargs
             )
 
         # Cache the instance
         _llm_cache[cache_key] = llm
+
+        # Emit warning after caching if temperature was overridden
+        if temperature_overridden:
+            logger.warning(
+                f"Temperature overridden from {original_temperature} to 1.0 "
+                f"(required for extended thinking with budget={thinking_budget})"
+            )
 
         return llm
 

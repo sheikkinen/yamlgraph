@@ -78,6 +78,7 @@ Default configuration applied to all nodes unless overridden.
 defaults:
   provider: mistral       # Default LLM provider
   temperature: 0.7        # Default temperature
+  thinking_budget: 8000   # Anthropic extended thinking budget (0 or ≥1024, FR-071)
   prompts_relative: true  # Resolve prompts relative to graph file
   prompts_dir: path/to   # Explicit prompts directory (optional)
 ```
@@ -86,6 +87,7 @@ defaults:
 |----------|------|---------|-------------|
 | `provider` | `string` | env-based | Default LLM provider |
 | `temperature` | `float` | `0.7` | Default temperature |
+| `thinking_budget` | `int` | `None` | Anthropic extended thinking tokens (0 or ≥1024; forces temp=1) |
 | `prompts_relative` | `bool` | `false` | Resolve prompts relative to graph file |
 | `prompts_dir` | `string` | `prompts/` | Explicit prompts directory path |
 
@@ -230,6 +232,7 @@ Each node in the `nodes` section defines a processing step.
 | `temperature` | `float` | from defaults | LLM temperature |
 | `provider` | `string` | from defaults | LLM provider |
 | `max_tokens` | `int` | from config | Maximum output tokens for this node's LLM call |
+| `thinking_budget` | `int` | from defaults | Anthropic extended thinking tokens (0 or ≥1024; forces temp=1, FR-071) |
 | `skip_if_exists` | `bool` | `true` | Skip if state key has truthy value (FR-050: `[]`, `""`, `None` do NOT skip) |
 | `parse_json` | `bool` | `false` | Extract JSON from LLM response |
 | `stream` | `bool` | `false` | Enable token-by-token streaming |

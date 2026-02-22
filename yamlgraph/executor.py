@@ -41,6 +41,7 @@ def execute_prompt(
     prompts_relative: bool = False,
     state: dict | None = None,
     max_tokens: int | None = None,
+    thinking_budget: int | None = None,
 ) -> T | str:
     """Execute a YAML prompt with optional structured output.
 
@@ -59,6 +60,7 @@ def execute_prompt(
         prompts_dir: Explicit prompts directory override
         prompts_relative: If True, resolve prompts relative to graph_path
         state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
+        thinking_budget: Anthropic extended thinking budget_tokens (0 or ≥1024, FR-071)
 
     Returns:
         Parsed Pydantic model if output_model provided, else raw string
@@ -83,6 +85,7 @@ def execute_prompt(
         prompts_relative=prompts_relative,
         state=state,
         max_tokens=max_tokens,
+        thinking_budget=thinking_budget,
     )
 
 
@@ -121,6 +124,7 @@ class PromptExecutor:
         provider: str | None = None,
         model: str | None = None,
         max_tokens: int | None = None,
+        thinking_budget: int | None = None,
     ) -> BaseChatModel:
         """Get or create cached LLM instance.
 
@@ -131,6 +135,7 @@ class PromptExecutor:
             provider=provider,
             model=model,
             max_tokens=max_tokens,
+            thinking_budget=thinking_budget,
         )
 
     def _invoke_with_retry(
@@ -189,6 +194,7 @@ class PromptExecutor:
         prompts_relative: bool = False,
         state: dict | None = None,
         max_tokens: int | None = None,
+        thinking_budget: int | None = None,
     ) -> T | str:
         """Execute a prompt using cached LLM with retry logic.
 
@@ -208,6 +214,7 @@ class PromptExecutor:
             prompts_dir: Explicit prompts directory override
             prompts_relative: If True, resolve prompts relative to graph_path
             state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
+            thinking_budget: Anthropic extended thinking budget_tokens (0 or ≥1024)
 
         Raises:
             ValueError: If required template variables are missing
@@ -228,6 +235,7 @@ class PromptExecutor:
             provider=resolved_provider,
             model=resolved_model,
             max_tokens=max_tokens,
+            thinking_budget=thinking_budget,
         )
 
         return self._invoke_with_retry(llm, messages, output_model)

@@ -58,6 +58,10 @@ class NodeConfig(BaseModel):
     state_key: str | None = Field(default=None, description="State key for output")
     temperature: float = Field(default=0.7, ge=0, le=2)
     provider: str | None = Field(default=None)
+    thinking_budget: int | None = Field(
+        default=None,
+        description="Anthropic extended thinking budget_tokens (0 or ≥1024)",
+    )
     on_error: str | None = Field(default=None)
     fallback: dict[str, Any] | None = Field(default=None)
     variables: dict[str, str] = Field(default_factory=dict)
@@ -87,6 +91,18 @@ class NodeConfig(BaseModel):
         if v is not None and v not in ErrorHandler.all_values():
             valid = ", ".join(ErrorHandler.all_values())
             raise ValueError(f"Invalid on_error '{v}'. Valid: {valid}")
+        return v
+
+    @field_validator("thinking_budget")
+    @classmethod
+    def validate_thinking_budget(cls, v: int | None) -> int | None:
+        """Validate thinking_budget is None, 0, or >= 1024."""
+        if v is not None and v != 0 and v < 1024:
+            raise ValueError(
+                f"thinking_budget must be None, 0, or >= 1024, got {v}"
+            )
+        if v is not None and v < 0:
+            raise ValueError(f"thinking_budget must be non-negative, got {v}")
         return v
 
     @model_validator(mode="after")
@@ -141,6 +157,19 @@ class GraphConfigSchema(BaseModel):
     )
 
     model_config = {"extra": "allow"}
+
+    @model_validator(mode="after")
+    def validate_defaults_thinking_budget(self) -> "GraphConfigSchema":
+        """Validate thinking_budget in defaults dict."""
+        if "thinking_budget" in self.defaults:
+            v = self.defaults["thinking_budget"]
+            if v is not None and v != 0 and v < 1024:
+                raise ValueError(
+                    f"thinking_budget must be None, 0, or >= 1024, got {v}"
+                )
+            if v is not None and v < 0:
+                raise ValueError(f"thinking_budget must be non-negative, got {v}")
+        return self
 
     @model_validator(mode="after")
     def validate_router_targets(self) -> "GraphConfigSchema":
