@@ -6,6 +6,29 @@ Previous: [diary-2026-02-20.md](diary-2026-02-20.md) — 32 entries, 2026-02-19 
 
 ---
 
+## 2026-02-22: The MagicMock Truthiness Trap (FR-074 / Inquisitor Audit)
+
+**Context:** The Inquisitor audited `projects/outcaller` and FR-071/FR-072. Two unit tests had been failing silently — `test_speak_generates_tts_and_sends` and `test_listen_raises_on_no_loop`. Both passed in CI's integration-skip path but failed locally.
+
+**Trap: MagicMock Defaults Are Truthy.** When production code checks `session.is_disconnected`, a bare `MagicMock()` returns a truthy `MagicMock` object — not `False`. The test never reaches the logic under test; it silently exits through the guard clause. The assertion error reads `assert '' == 'Hello!'` — a symptom three layers removed from the cause. The cognitive trap: you debug the assertion, inspect the TTS pipeline, trace ffmpeg mocking — all wrong. The real defect is a single missing line: `mock_session.is_disconnected = False`.
+
+**Compounding finding:** The `req_coverage.py` traceability script was blind to class-level `@pytest.mark.req` decorators, so these 21 unit tests never appeared in the requirement coverage report. CAP-27 showed 9 tests (all integration); the real count was 34. The two failures were invisible at both the test and the traceability level — a double blindness.
+
+**The Fix Chain:**
+1. `mock_session.is_disconnected = False` in both tests → 21/21 pass
+2. `extract_req_markers()` propagates class-level decorators → CAP-27: 9 → 34 tests
+3. Integration test `scribe_v1` → replaced with SDK-based `scribe_v2_realtime` tests
+4. `server.py` SIM105 fix → ruff clean
+5. `twilio_call.py` 448→185 lines → split into `tts.py` (122) + `stt.py` (178)
+
+**Heuristic:** *When mocking objects with boolean properties, explicitly set them. `MagicMock()` is truthy; `MagicMock().anything` is truthy. The default is never the safe default.*
+
+**Graduated pattern:** This is "normalize at the boundary" applied to test setup. The mock boundary must reproduce the contract — not just the type, but the truthiness semantics.
+
+**Seed:** Should `TelcoSession` use `@property` with an explicit return type annotation for `is_disconnected`? If the mock had `spec=TelcoSession`, would `MagicMock(spec=TelcoSession).is_disconnected` return the right default? Could `spec_set` prevent this class of bug entirely?
+
+---
+
 ## 2026-02-22: The Completion Drift Trap
 
 **Context:** FR-072 SDK STT implementation. Tests passed (18/18). Both repos committed and pushed. Task complete.
@@ -1073,4 +1096,73 @@ This is an active **YAMLGraph** project with intense feature development. The la
 #### 🌊 **FR-062: Streaming Error Resilience** (Feb 18+)
 - Chaos testing for SSE streaming
 - Error recovery mechanisms (yield_events=True default)
-- Streaming r
+- Streaming resilience patterns
+
+---
+
+## 2026-02-22: Outcaller Reflection — Voice as Modality Proof
+
+**Context:** Reviewed FR-071 Outcaller project — outbound Twilio voice calls with ElevenLabs TTS/STT, orchestrated by YAMLGraph.
+
+### What Outcaller Proves
+
+The demo validates that **YAMLGraph can orchestrate real-time I/O systems**, not just LLM pipelines. The graph doesn't care that TTS/STT involves audio streams and WebSockets — it sees them as tool nodes with state input/output. The abstraction holds.
+
+```
+CLI → YAMLGraph → LLM (conversation) → TTS → Twilio Media Stream
+                      ↑                          ↓
+               (loop)  ← STT ← Twilio Audio ←───┘
+```
+
+### Architectural Patterns That Transfer
+
+**Pattern 1: Streaming Pipeline**
+```
+Source → Transform → Sink (concurrent, no buffering)
+```
+ElevenLabs → ffmpeg → Twilio. No intermediate buffer. Same pattern applies to video generation, chat-to-TTS, any real-time media flow.
+
+**Pattern 2: Session Coordinator**
+```
+Async event loop (daemon thread) ↔ Sync tool nodes (via Queue)
+```
+Bridges async WebSocket world with synchronous YAMLGraph tool invocations. Applies to any bidirectional real-time protocol.
+
+**Pattern 3: Conditional Conversation Loop**
+```
+generate → speak → listen → accumulate → (route by content) → generate
+```
+The loop structure is modality-agnostic. Swap TTS/STT tools for video avatar tools; the conversation logic (YAML) stays identical.
+
+### Analogous Implementations
+
+| Use Case | Modification | Business Value |
+|----------|--------------|----------------|
+| **Inbound call center** | Answer instead of initiate | 60-70% routine call deflection |
+| **Interview scheduler** | Add calendar_book tool | 80% recruiter time saved |
+| **Appointment reminders** | Map node + subgraph per appointment | Reduce no-shows |
+| **Emergency notifications** | Parallel map with max_concurrency | Critical alert delivery |
+| **Voice surveys** | Adaptive questioning via router | Replace expensive phone research |
+| **Medication adherence** | Add EHR update + escalation tools | Reduce hospital readmissions |
+
+### The Meta-Insight
+
+**Three-Layer Pattern scales to real-time systems:**
+
+| Layer | Outcaller Instance |
+|-------|-------------------|
+| Presentation | ngrok + Twilio webhook |
+| Logic | graph.yaml (routing, LLM conversation) |
+| Side Effects | twilio_call.py, tts.py, stt.py |
+
+The YAML stays clean. The Python handles I/O boundaries. The pattern doesn't change for different modalities.
+
+### Latency Analysis (from LangSmith)
+
+Token explosion discovered: Gemini 2.5 Flash "thinking" causes 134 → 1,246 → 3,504 token growth. 14.27s response time unacceptable for voice. Solution: `thinking_budget: 0` in graph.yaml metadata.
+
+**Heuristic:** *For real-time systems, disable reasoning tokens. Latency budget trumps reasoning depth.*
+
+**Seed:** If voice works, what about video? Could the same graph.yaml drive a video avatar (HeyGen/D-ID) where the TTS node becomes a video-generation node? The structure is identical — only the side-effect layer changes.
+
+---
