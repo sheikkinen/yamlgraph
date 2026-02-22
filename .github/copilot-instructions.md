@@ -22,6 +22,7 @@ Use these as smoke test for new graph development.
 
 ### Conventions
 - Term 'backward compatibility' is a key indicator for a refactoring need.
+- Term 'pre-exiting failure' doesn't exist; likely cause: test pollution.
 - Prefer a python-based file-write script over complex heredoc strings as shell get stuck easily.
 - Run slow shell scripts with redirect to log file. Analyze logs separately.
 - Convert paths with hyphens to snake_case to avoid import issues.

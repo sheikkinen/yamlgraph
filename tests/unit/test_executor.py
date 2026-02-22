@@ -21,7 +21,9 @@ class TestLoadPrompt:
         """Should load analyze prompt."""
         prompt = load_prompt("analyze")
         assert "system" in prompt
-        assert "{content}" in prompt["user"]
+        # analyze.yaml uses 'prompt' key instead of 'user'
+        assert "prompt" in prompt
+        assert "{question}" in prompt["prompt"]
 
     @pytest.mark.req("REQ-YG-014")
     def test_load_nonexistent_prompt(self):

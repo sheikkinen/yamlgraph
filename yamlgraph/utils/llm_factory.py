@@ -25,6 +25,110 @@ _llm_cache: dict[tuple, BaseChatModel] = {}
 _cache_lock = threading.Lock()
 
 
+# --- Provider-specific helper functions ---
+
+
+def _create_google_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create Google Generative AI LLM."""
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
+    return ChatGoogleGenerativeAI(
+        model=model,
+        temperature=temperature,
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
+        **kwargs,
+    )
+
+
+def _create_mistral_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create Mistral AI LLM."""
+    from langchain_mistralai import ChatMistralAI
+
+    return ChatMistralAI(model=model, temperature=temperature, **kwargs)
+
+
+def _create_openai_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create OpenAI LLM."""
+    from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(model=model, temperature=temperature, **kwargs)
+
+
+def _create_xai_llm(model: str, temperature: float, **kwargs: object) -> BaseChatModel:
+    """Create xAI Grok LLM."""
+    from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(
+        model=model,
+        temperature=temperature,
+        base_url="https://api.x.ai/v1",
+        api_key=os.getenv("XAI_API_KEY"),
+        **kwargs,
+    )
+
+
+def _create_lmstudio_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create LM Studio local LLM."""
+    from langchain_openai import ChatOpenAI
+
+    base_url = os.getenv("LMSTUDIO_BASE_URL") or "http://localhost:1234/v1"
+    return ChatOpenAI(
+        model=model,
+        temperature=temperature,
+        base_url=base_url,
+        api_key="not-needed",
+        **kwargs,
+    )
+
+
+def _create_anthropic_llm(
+    model: str, temperature: float, thinking_budget: int | None = None, **kwargs: object
+) -> BaseChatModel:
+    """Create Anthropic Claude LLM."""
+    from langchain_anthropic import ChatAnthropic
+
+    anthropic_kwargs = dict(kwargs)
+    if thinking_budget is not None and thinking_budget >= 1024:
+        anthropic_kwargs["thinking"] = {
+            "type": "enabled",
+            "budget_tokens": thinking_budget,
+        }
+
+    return ChatAnthropic(model=model, temperature=temperature, **anthropic_kwargs)
+
+
+def _dispatch_provider(
+    provider: str,
+    model: str,
+    temperature: float,
+    thinking_budget: int | None,
+    **kwargs: object,
+) -> BaseChatModel:
+    """Dispatch to appropriate provider-specific creation function."""
+    if provider == "google":
+        return _create_google_llm(model, temperature, **kwargs)
+    if provider == "mistral":
+        return _create_mistral_llm(model, temperature, **kwargs)
+    if provider == "openai":
+        return _create_openai_llm(model, temperature, **kwargs)
+    if provider == "replicate":
+        return _create_replicate_llm(model, temperature, **kwargs)
+    if provider == "xai":
+        return _create_xai_llm(model, temperature, **kwargs)
+    if provider == "lmstudio":
+        return _create_lmstudio_llm(model, temperature, **kwargs)
+    # Default: anthropic
+    return _create_anthropic_llm(model, temperature, thinking_budget, **kwargs)
+
+
 def create_llm(
     provider: ProviderType | None = None,
     model: str | None = None,
@@ -83,12 +187,15 @@ def create_llm(
         )
 
     # Validate thinking_budget is only used with Anthropic
-    if thinking_budget is not None and thinking_budget >= 1024:
-        if selected_provider != "anthropic":
-            raise ValueError(
-                f"thinking_budget is only supported for provider='anthropic', "
-                f"got provider='{selected_provider}'"
-            )
+    if (
+        thinking_budget is not None
+        and thinking_budget >= 1024
+        and selected_provider != "anthropic"
+    ):
+        raise ValueError(
+            f"thinking_budget is only supported for provider='anthropic', "
+            f"got provider='{selected_provider}'"
+        )
 
     # Ensure temperature has a value (some providers reject None)
     if temperature is None:
@@ -103,11 +210,11 @@ def create_llm(
         thinking_budget is not None
         and thinking_budget >= 1024
         and selected_provider == "anthropic"
+        and temperature != 1
     ):
-        if temperature != 1:
-            temperature_overridden = True
-            original_temperature = temperature
-            temperature = 1
+        temperature_overridden = True
+        original_temperature = temperature
+        temperature = 1
 
     # Determine model (parameter > env var > default)
     # Note: DEFAULT_MODELS already handles env var via config.py
@@ -137,69 +244,18 @@ def create_llm(
         )
 
         # Build optional kwargs (only include max_tokens if set)
-        optional_kwargs = {}
+        optional_kwargs: dict[str, object] = {}
         if max_tokens is not None:
             optional_kwargs["max_tokens"] = max_tokens
 
-        if selected_provider == "google":
-            from langchain_google_genai import ChatGoogleGenerativeAI
-
-            llm = ChatGoogleGenerativeAI(
-                model=selected_model,
-                temperature=temperature,
-                google_api_key=os.getenv("GOOGLE_API_KEY"),
-                **optional_kwargs,
-            )
-        elif selected_provider == "mistral":
-            from langchain_mistralai import ChatMistralAI
-
-            llm = ChatMistralAI(
-                model=selected_model, temperature=temperature, **optional_kwargs
-            )
-        elif selected_provider == "openai":
-            from langchain_openai import ChatOpenAI
-
-            llm = ChatOpenAI(
-                model=selected_model, temperature=temperature, **optional_kwargs
-            )
-        elif selected_provider == "replicate":
-            llm = _create_replicate_llm(selected_model, temperature, **optional_kwargs)
-        elif selected_provider == "xai":
-            from langchain_openai import ChatOpenAI
-
-            llm = ChatOpenAI(
-                model=selected_model,
-                temperature=temperature,
-                base_url="https://api.x.ai/v1",
-                api_key=os.getenv("XAI_API_KEY"),
-                **optional_kwargs,
-            )
-        elif selected_provider == "lmstudio":
-            from langchain_openai import ChatOpenAI
-
-            base_url = os.getenv("LMSTUDIO_BASE_URL") or "http://localhost:1234/v1"
-            llm = ChatOpenAI(
-                model=selected_model,
-                temperature=temperature,
-                base_url=base_url,
-                api_key="not-needed",  # Local server, no API key required
-                **optional_kwargs,
-            )
-        else:  # anthropic (default)
-            from langchain_anthropic import ChatAnthropic
-
-            anthropic_kwargs = optional_kwargs.copy()
-
-            # Add thinking parameter if budget is enabled
-            if thinking_budget is not None and thinking_budget >= 1024:
-                anthropic_kwargs["thinking"] = {
-                    "type": "enabled",
-                    "budget_tokens": thinking_budget,
-                }
-
-            llm = ChatAnthropic(
-                model=selected_model, temperature=temperature, **anthropic_kwargs
-            )
+        # Dispatch to provider-specific creation
+        llm = _dispatch_provider(
+            selected_provider,
+            selected_model,
+            temperature,
+            thinking_budget,
+            **optional_kwargs,
+        )
 
         # Cache the instance
         _llm_cache[cache_key] = llm

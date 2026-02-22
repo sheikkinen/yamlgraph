@@ -21,7 +21,6 @@ from yamlgraph.linter.checks import (
     check_node_types,
     check_prompt_files,
     check_state_declarations,
-    check_thinking_budget,
     check_tool_references,
 )
 from yamlgraph.linter.checks_contracts import (
@@ -29,6 +28,7 @@ from yamlgraph.linter.checks_contracts import (
     check_python_node_variables,
     check_skip_if_exists_add_reducer,
 )
+from yamlgraph.linter.checks_providers import check_thinking_budget
 from yamlgraph.linter.checks_semantic import (
     check_cross_references,
     check_edge_types,
