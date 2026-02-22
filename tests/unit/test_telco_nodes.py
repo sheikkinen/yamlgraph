@@ -308,6 +308,23 @@ class TestListenAndTranscribe:
         assert "base64" in source, "Should use base64 encoding for SDK send()"
         assert "audio_base_64" in source, "SDK requires dict with audio_base_64 key"
 
+    def test_stt_uses_correct_event_name(self) -> None:
+        """stt.on() must use 'committed_transcript' not 'transcript'.
+
+        Bug: stt.on("transcript", ...) never fires — wrong event name.
+        SDK uses RealtimeEvents.COMMITTED_TRANSCRIPT = 'committed_transcript'
+        """
+        import inspect
+
+        from projects.outcaller.nodes import twilio_call
+
+        source = inspect.getsource(twilio_call.listen_and_transcribe)
+
+        # Must use the correct event name
+        assert (
+            "committed_transcript" in source
+        ), "Should use 'committed_transcript' event, not 'transcript'"
+
 
 @pytest.mark.req("REQ-YG-081")
 class TestCoordinator:
