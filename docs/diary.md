@@ -6,6 +6,23 @@ Previous: [diary-2026-02-20.md](diary-2026-02-20.md) — 32 entries, 2026-02-19 
 
 ---
 
+## 2026-02-22: OC-007 Refusal Detection Needed
+
+**Observation:** During live call testing, when user says "I don't want to answer that" the system continues probing for the same field. This creates a frustrating loop where the caller feels unheard.
+
+**Required behavior:** Detect explicit refusals ("I don't want to answer", "skip this", "none of your business", "pass") and mark the field as *refused* rather than *missing*. A refused field should not be re-asked.
+
+**Implementation options:**
+1. Add `refused_fields: list[str]` to state alongside `missing_fields`
+2. Special extraction value: `{"field_name": "[REFUSED]"}` that persists and filters from missing
+3. Prompt engineering: instruct extraction LLM to output `null` vs `"[REFUSED]"` to distinguish "not mentioned" from "explicitly declined"
+
+**Edge case:** What if user refuses all fields? Should recap still happen? Probably yes — confirm "You've declined to answer all questions. Is that correct?"
+
+**Seed:** Could refusal detection be a general YAMLGraph pattern? A `refusal_detector` pre-filter that intercepts transcript before extraction and flags intent?
+
+---
+
 ## 2026-02-22: The skip_if_exists Loop Trap (OC-005 Probe-Recap)
 
 **Context:** OC-005 probe-recap feature was implemented and "working" — tests passed, graph compiled. But live call looped on the same greeting instead of probing for missing fields. Log evidence: `Node generate_probe skipped - next_utterance already in state`.
