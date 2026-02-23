@@ -6,6 +6,96 @@ Previous: [diary-2026-02-22.md](diary-2026-02-22.md) — 12 entries from 2026-02
 
 ---
 
+## 2026-02-23: Inquisitor Audit — Seed Germination and Tooling TDD Gap
+
+**Context:** Audited the latest 5 commits (`b7b3bb4`..`52c6b33`) against the Scripture. Commits span FR-073 (unit test perf), FR-076 (inquisitor script + post-commit hook), v0.4.54 release, and FR-077 (CHANGELOG commit enforcement).
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits with scope and FR tags (`feat(hooks)`, `feat(chaplain)`, `perf`, `chore`). Commandment 10 format upheld.
+- ✓ COMPLIANT — CHANGELOG.md updated for all `feat`/`perf` commits. FR-077's own commit includes its CHANGELOG entry — the hook now enforces this structurally. The prior audit's ✗ VIOLATION (missing CHANGELOG in feat commits) is now impossible to repeat.
+- ✓ COMPLIANT — All `# noqa` suppressions (ANN001 in `executor_async.py`, ARG002 in `token_tracker.py`) are confessed in `docs/confessions.md` with CONF-002 and CONF-003 IDs. No unconfessed sins.
+- ✓ COMPLIANT — FR-076 and FR-077 are dev tooling (`.chaplain/`, `.pre-commit-config.yaml`), not framework capabilities. No ARCHITECTURE.md requirement needed per ADR-001 scope.
+- ⚠ DRIFT — Three `feat` commits (FR-076 × 2, FR-077) introduce zero tests. These are shell scripts and pre-commit hook config — arguably outside TDD scope — but Commandment 7 makes no exception for commit type. The prior audit flagged the same gap for `fix(diary)`. The pattern recurs: tooling changes escape test discipline.
+
+**Notable:** FR-077 directly implements the Seed planted by the prior Inquisitor audit: *"Should `pre-commit` enforce that every `feat`/`fix` commit touches `CHANGELOG.md`?"* — the answer was yes, and it shipped within the same day. This is the first observed instance of a diary Seed germinating into a feature. The doctrine's feedback loop (Distill → Seed → Plan → Enforce) is functioning.
+
+**Heuristic:** *Seeds are not rhetorical. When a Seed asks "should X be enforced?", treat it as a latent feature request. If the answer is obviously yes, skip Judge and go straight to Enforce — the Seed already contains the spec.*
+
+**Seed:** The tooling TDD gap recurs across three audits now. Should the Scripture carve an explicit exception for dev-tooling commits (`scripts/`, `.chaplain/`, hook configs), or should integration tests be written for hooks (e.g., test that a feat commit without CHANGELOG is rejected)? The current ambiguity lets the same ⚠ DRIFT appear in every audit without resolution.
+
+---
+
+## 2026-02-23: Inquisitor Audit — Post-Release Compliance Check (v0.4.54)
+
+**Context:** Automated Inquisitor audit of the 5 most recent commits (`948caf9`..`c2f0e7d`), spanning diary rotation, FR-073 test performance, FR-076 inquisitor tooling, and the v0.4.54 release. Triggered by FR-076 post-commit hook.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits with scope and FR tags where applicable (`feat(chaplain)`, `perf`, `chore(diary)`, `chore`). Commandment 10 format upheld.
+- ✓ COMPLIANT — CHANGELOG.md updated in release commit `c2f0e7d` covering both FR-076 and FR-073. The prior Inquisitor audit flagged missing CHANGELOG entries; the release commit remediated this before push. Self-correcting loop confirmed.
+- ✓ COMPLIANT — All `# noqa` suppressions (`ANN001` in `executor_async.py`, `ARG002` in `token_tracker.py`) are confessed in `docs/confessions.md` with CONF-002 and CONF-003 IDs. No unconfessed sins.
+- ✓ COMPLIANT — FR-076 is dev tooling (`.chaplain/`, `.pre-commit-config.yaml`), not a framework capability. No ARCHITECTURE.md requirement needed per ADR-001 scope (framework capabilities only).
+- ⚠ DRIFT — FR-073 and FR-076 lack individual diary distillation entries. The prior Inquisitor audit entry covers their compliance gaps indirectly, but the Sermon demands reflection on *cognitive process*, not just compliance status. What trap was encountered during test optimization? What insight emerged from building the inquisitor? These are unrecorded.
+
+**Heuristic:** *An audit that finds prior violations already fixed is evidence the feedback loop works — but only if the fix was intentional, not accidental. The release commit bundled CHANGELOG entries that were missing at feat-time. Track whether this pattern recurs: are CHANGELOG entries being deferred to release commits as habit, or was this a one-time catch-up?*
+
+**Seed:** Should the Inquisitor distinguish between "violation remediated before push" (self-correction) and "violation shipped to main" (escaped defect)? The current audit runs post-commit on main, so it can only witness the final state. A pre-push audit could catch drift *before* it merges.
+
+---
+
+## 2026-02-23: Inquisitor Audit — CHANGELOG and TDD Gaps in Tooling Commits
+
+**Context:** Audited the latest 5 commits (`8664452`..`ffe96b2`) against the Scripture. Commits span FR-076 (inquisitor script), FR-073 (unit test perf), diary rotation, and a diary-rotate bug fix.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits (`feat`, `perf`, `chore`, `fix` with scope and FR tag). Commandment 10 format upheld.
+- ✓ COMPLIANT — All `# noqa` suppressions (`ANN001`, `ARG002`, `S603`) are documented in `docs/confessions.md` with CONF-XXX IDs. No unconfessed sins.
+- ✗ VIOLATION — FR-076 introduced two `feat` commits (inquisitor script + post-commit hook) with **no CHANGELOG entry**. Commandment 10: "let the CHANGELOG.md bear witness." A `feat` is user-facing by convention; it must be logged.
+- ✗ VIOLATION — `fix(diary): rotate before importing scheduled entries` (`ffe96b2`) fixed a bug in `diary_rotate.py` with **no failing test**. No test file for `diary_rotate.py` exists. Commandment 7: "No bug shall be fixed unless first condemned by a failing test."
+- ⚠ DRIFT — FR-073 (`perf: reduce unit test time`) and FR-076 have no diary distillation entries. The 2026-02-23 diary entries cover unrelated work (Judge's Trap, doc drift, world digest). Sermon: Distill requires reflection after completing a task list.
+
+**Heuristic:** *Dev-tooling commits (`scripts/`, `.chaplain/`, `.pre-commit-config.yaml`) receive less scrutiny than framework code, creating a blind spot. The Scripture makes no exception for "internal" changes — a `feat` is a `feat`, a `fix` demands a test. Apply the same rigor to the forge as to the sword.*
+
+**Seed:** Should `pre-commit` enforce that every `feat`/`fix` commit touches `CHANGELOG.md`? A simple hook checking `git diff --cached --name-only | grep CHANGELOG.md` when the commit message starts with `feat` or `fix` would make this structurally impossible to forget.
+
+---
+
+## 2026-02-23: Reflection — The Shape of YAMLGraph at v0.4.54
+
+**Context:** Stepped back from feature work to survey the whole organism. What has this project become? What are its proportions? What pressures are acting on it?
+
+**The Numbers:**
+
+| Layer | Lines | Ratio to Core |
+|-------|------:|:---:|
+| Core framework (`yamlgraph/`) | 11,935 | 1.0× |
+| Tests | 36,230 | 3.0× |
+| Examples | 25,103 | 2.1× |
+| Projects | 29,144 | 2.4× |
+| YAML (prompts + graphs) | 38,575 | 3.2× |
+| Documentation (markdown) | 96,828 | 8.1× |
+| Scripts | 2,058 | 0.2× |
+
+652 commits. 91 releases. 28 capabilities. 83 requirements. 1,781 passing tests (1,959 req-tagged). 65 source files. 144 test files. 56 example graphs. 7 diary archives. 190 commits in the last 7 days alone.
+
+**Observation 1: The docs outweigh the code 8:1.** The framework is ~12K lines. The documentation — ARCHITECTURE.md, CHANGELOG, diary, feature requests, reference docs, README — is ~97K lines. This is unusual. Most projects are code-heavy and doc-light. Here the doctrine, the diary, the feature requests, the changelog — they are the primary artifact. The code is the *residue* of a documented decision process. This is either a profound insight about software engineering or an unsustainable overhead. Possibly both.
+
+**Observation 2: The test ratio is healthy but the *kind* of testing matters.** 3:1 test-to-code ratio. All 83 requirements covered. Zero ruff violations. But 1,781 tests running in 19.5 seconds means most are fast unit tests with mocked LLMs. The integration tests (27 files) require API keys and likely aren't running in CI. The coverage *number* is high; the coverage *confidence* depends on how well the mocks reflect real provider behavior. The One Law says "normalize at the boundary where external data enters" — are the mocks faithful to those boundaries?
+
+**Observation 3: The project is growing satellite mass.** `projects/` (29K lines) and `examples/` (25K lines) together outweigh the core 4.5:1. The outcaller project has its own requirement numbering (`OC-XXX`). The NPC example has its own architecture doc. These are no longer examples — they're applications built on YAMLGraph. The gravitational question: does the framework serve the applications, or do the applications drive the framework? Recent commits show OC-tagged work (outcaller) being moved between repos, suggesting the boundary is still negotiated.
+
+**Observation 4: The Chaplain is becoming infrastructure.** `watch.sh` polls for inbox items and generates feature requests. `inquisitor.sh` audits commits against doctrine. Post-commit hooks trigger audits. This is a closed feedback loop: commit → audit → diary → insight → doctrine → commit. The Scripture is not just documentation — it's executable process. But the Chaplain tooling has no tests (FR-076 introduced `inquisitor.sh` with no test file). The forge is unforged.
+
+**Observation 5: Velocity is extraordinary — 190 commits in 7 days — but the commit type distribution tells a story.** 166 `feat`, 152 `docs`, 95 `fix`, 57 `refactor`, 70 `chore`. The feat:fix ratio of 1.7:1 suggests features are landing faster than they break — or that fix commits are catching bugs within the same day (many fix commits reference the same FR as the feature). The 57 refactor commits are a healthy sign: the codebase is being reshaped, not just accreted.
+
+**Heuristic:** *When documentation outweighs code 8:1, the project's primary output is decisions, not software. The code is a side effect of the decision process. This means the highest-leverage improvement isn't faster code — it's faster, better decisions. The Chaplain loop (watch → plan → judge → enforce → distill) is an attempt to automate decision quality. Guard it.*
+
+**Seed:** At what ratio does documentation become a liability instead of an asset? The diary alone is ~3,000 lines across 7 days. If a new contributor arrived tomorrow, would they read the diary — or would they skip straight to the code? Is the diary for the builder or for the building? And if it's for the builder: what happens when the builder changes?
+
+---
+
 ## 2026-02-23: The Judge's Trap — Premature Requirement Allocation
 
 **Context:** FR-075 audit revealed REQ-YG-078–082 (telco demo) were reserved in ARCHITECTURE.md capability table, but FR-075 originally proposed *releasing* them because outcaller uses `OC-XXX` numbering.

@@ -1,1 +1,0 @@
-- Protocol archaeology graph — Given a GitHub repo URL, extract endpoint URLs, auth flows, message formats, and error handling into a structured integration brief
