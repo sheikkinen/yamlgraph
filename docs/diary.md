@@ -6,6 +6,61 @@ Previous: [diary-2026-02-22.md](diary-2026-02-22.md) — 12 entries from 2026-02
 
 ---
 
+## 2026-02-23: FR-079 — The State-Based Unification
+
+**Context:** Completed FR-079 "Unify Incaller and Outcaller Under Shared Root" — prompted sharing and WebSocket handler extraction between two telco projects.
+
+**Trap:** The initial Judgement proposed `metadata.vars.call_context` — a path that doesn't exist in LangGraph. Quick confidence almost led to implementation before verifying the API. The correction came from researching how state actually flows: LLM nodes with no explicit `variables:` get filtered state, so adding `call_context` to state and setting it in the first tool node was sufficient. Zero framework changes.
+
+**Insight:** Parameterization at the state level is more composable than at the metadata level. The first tool node (`initiate_call` / `await_call`) is the natural place to inject context because it's the entry point for each graph instance. Any downstream node can read `call_context` without knowing how it was set.
+
+**Line-count reduction:**
+- `outcaller/server.py`: 148 → 42 lines (−72%)
+- `incaller/server.py`: 187 → 80 lines (−57%)
+- Combined WebSocket handler: 240 duplicated lines → 1 canonical source (134 lines)
+
+**Heuristic:** *When unifying duplicated code between sibling projects, find the natural parameterization boundary — the earliest point where the two flows diverge. Parameterize at that boundary, not downstream. For shared prompts, that boundary is state initialization; for shared handlers, it's the session injection.*
+
+**Seed:** The symlink approach (`incaller/prompts/shared → ../../outcaller/prompts/shared`) is a filesystem-level abstraction. Would a graph-level abstraction be more robust — e.g., a `prompt_path_alias` in graph.yaml that maps `shared/*` to an external directory? Or does the symlink's simplicity (no framework changes, visible in `ls -la`) outweigh its fragility (breaks if repo structure changes)?
+
+---
+
+## 2026-02-23: Inquisitor Audit — The Expanding Blind Spot
+
+**Context:** 15th Inquisitor audit of the latest 5 commits (`376bcda`..`3a9e01d`). One new commit since last audit: `3a9e01d` (`refactor(FR-078): delete relocated project tests`) — deletes 10 test files (3047 lines) from `tests/unit/` and `tests/integration/` that were copied to `projects/{outcaller,incaller}/tests/` in the prior commit. This is the second half of the FR-078 two-commit operation. The remaining 4 commits (`e603f29`, `fbede87`, `67461e6`, `376bcda`) have been audited in rounds #11–#14 and are frozen.
+
+**Findings:**
+
+- ✓ COMPLIANT — `3a9e01d` follows Conventional Commits with scope and FR tag (`refactor(FR-078):`). Feature request `FR-078-relocate-project-tests.md` exists. `req_coverage.py` passes cleanly (all CAPs green). No noqa suppressions existed in the deleted files, so `confessions.md` remains consistent. The deletion is the clean second step of a planned two-commit operation. Commandments 1, 3, 10, ADR-001 upheld.
+- ⚠ DRIFT — No CHANGELOG entry for FR-078 across either commit (`e603f29` or `3a9e01d`). The `refactor:` prefix is exempt from FR-077 enforcement, so technically compliant. But the combined operation removed 3047 lines and 8 requirements from framework tracking — a structural change invisible to CHANGELOG readers. 2nd consecutive audit flagging this. The window to add a retroactive entry is closing.
+- ⚠ DRIFT — The `noqa_coverage.py` scanner blind spot has grown. `projects/` now contains 9 noqa suppressions (up from 3 when first flagged in audit #10). FR-078's test relocation copied `conftest.py` files with `# noqa: E402` into `projects/{outcaller,incaller}/tests/`. The scanner reports 43/44/0 — true count is 52 suppressions. Known limitation per audit #13 reclassification, but the gap is widening with each relocation. The 44-vs-43 documented-vs-actual count also reveals 1 orphaned confession (documented noqa no longer exists in scanned code).
+- ⚠ DRIFT — No `Co-authored-by` trailers. 12th consecutive audit. Dead letter policy per audit #12 reclassification.
+- ⚠ DRIFT — No dedicated diary entry for FR-078 completion. The two-commit refactoring (`e603f29` + `3a9e01d`) represents a significant architectural decision — severing project tests from the framework — but the only reflection exists in audit entries #14 and #15 (this one). The Sermon's Distill step was served by proxy, not by the author.
+
+**Heuristic:** *When a scanner's blind spot grows proportionally with the codebase it excludes, the exclusion is not a static decision — it is an accelerating debt. The `projects/` exclusion was acceptable at 3 suppressions; at 9, it has tripled in 2 commits. Each relocation or new project file widens the gap without any signal. A scanner should either scan everything or explicitly report what it skips, so growth in the excluded zone is visible without an Inquisitor to count it.*
+
+**Seed:** The `noqa_coverage.py` scanner reports 44 confessions but only 43 live suppressions — meaning 1 confession documents a noqa that no longer exists. Should orphaned confessions be pruned automatically (to keep the document honest), or preserved as archaeological record (to document what once needed suppression and why it was resolved)?
+
+---
+
+## 2026-02-23: Inquisitor Audit — The Severed Umbilical
+
+**Context:** 14th Inquisitor audit of the latest 5 commits (`d45764e`..`e603f29`). One new commit since last audit: `e603f29` (`refactor(FR-078): relocate project tests to project repos`) — re-tags probe-recap tests from `REQ-YG-083/084/085` to `OC-005` (project namespace), removes CAP-27 (Telco) and CAP-29 (Incaller) from `req_coverage.py`, copies test files to `projects/{outcaller,incaller}/tests/`, and updates `ALL_REQS` to exclude project requirements (078–082, 084–086). The remaining 4 commits (`fbede87`, `67461e6`, `376bcda`, `d45764e`) have been audited in rounds #7–#13 and are frozen.
+
+**Findings:**
+
+- ✓ COMPLIANT — `e603f29` follows Conventional Commits with scope and FR tag (`refactor(FR-078):`). Feature request `FR-078-relocate-project-tests.md` exists — planning before coding (Commandment 1). `req_coverage.py` passes cleanly: all framework CAPs green, no uncovered requirements. The architectural decision — framework tracks framework reqs, projects track their own — is coherent and documented. Commandments 1, 3, 10 upheld.
+- ⚠ DRIFT — Tests in `tests/unit/test_probe_recap.py` and `tests/unit/test_questionnaire_flow.py` are re-tagged from `REQ-YG-*` to `OC-005`, a project namespace ID. `OC-005` is not tracked by `req_coverage.py` — making the tags decorative. They satisfy the letter of ADR-001 (every test has a `@pytest.mark.req` tag) but not the spirit (tags should be verified by tooling). Until project repos have their own `req_coverage.py`, these tags are assertions nobody checks.
+- ⚠ DRIFT — No CHANGELOG entry for FR-078. The `refactor:` prefix is exempt from FR-077 enforcement, so technically compliant. However, removing 8 requirements from framework tracking is a significant structural change that warrants changelog visibility. Future archaeologists will wonder when CAP-27/29 disappeared.
+- ⚠ DRIFT — No dedicated diary entry for the FR-078 refactoring itself. The commit includes prior audit diary entries (#11–#13) but no reflection on the cognitive process of severing project tests from the framework. The Sermon's Distill step was skipped. This audit partially compensates.
+- ⚠ DRIFT — No `Co-authored-by` trailer. 11th consecutive audit. Dead letter policy.
+
+**Heuristic:** *When relocating ownership (tests, requirements, configs) from a monorepo to project repos, the tags must travel with their verification tooling. A `@pytest.mark.req("OC-005")` tag without a corresponding `req_coverage.py` in the project repo is a dangling pointer — it looks like traceability but provides none. The test of a tag is not its presence but whether something fails when the tagged requirement is unmet.*
+
+**Seed:** FR-078 creates a two-tier requirement system: framework reqs verified by `scripts/req_coverage.py`, and project reqs tagged but unverified. Should each project in `projects/` carry a minimal `req_coverage.py` (or a shared one parameterized by project), so that `OC-005` tags are as enforceable as `REQ-YG-*` tags? Or should unverified tags be stripped entirely to avoid false confidence?
+
+---
+
 ## 2026-02-23: Inquisitor Audit — The RED Before Green
 
 **Context:** 13th Inquisitor audit of the latest 5 commits (`3c98b6b`..`fbede87`). One new commit since last audit: `fbede87` (`test(IC-001): add tests for SIN-1 user_refused, SIN-2 goodbye schema`) — adds 64 lines of RED tests to `tests/unit/test_incaller.py`. These are deliberately failing tests for two bugs discovered during the IC-001 joint audit of incaller/outcaller. The remaining 4 commits (`67461e6`, `376bcda`, `d45764e`, `3c98b6b`) have been audited in rounds #7–#12 and are frozen.
