@@ -284,7 +284,9 @@ async def test_run_graph_timeout():
     def slow_invoke(graph_path: str, variables: dict) -> dict:
         import time
 
-        time.sleep(10)  # simulate slow graph
+        # FR-073: Only needs to exceed INVOKE_TIMEOUT=0.1s to test timeout path.
+        # Was 10s, causing thread-pool starvation (~9s delay in subsequent tests).
+        time.sleep(0.5)
         return {}
 
     with (

@@ -87,7 +87,8 @@ async def test_streaming_timeout(monkeypatch):
     from yamlgraph.executor_async import run_graph_streaming_native
 
     monkeypatch.setenv("CHAOS_MODE", "slow")
-    monkeypatch.setenv("CHAOS_DELAY", "5")
+    # FR-073: Only needs to exceed timeout=0.5s. Was 5s, causing slow teardown.
+    monkeypatch.setenv("CHAOS_DELAY", "1")
 
     events = []
     async for item in run_graph_streaming_native(CHAOS_GRAPH, {}, timeout=0.5):
