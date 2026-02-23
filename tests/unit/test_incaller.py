@@ -245,3 +245,67 @@ class TestReusesOutcaller:
         assert callable(TelcoSession)
         assert callable(get_active_session)
         assert callable(set_active_session)
+
+
+@pytest.mark.req("REQ-YG-084")
+class TestIC001SIN1UserRefused:
+    """IC-001 SIN-1: extract_answers must propagate user_refused to state."""
+
+    def test_extract_answers_returns_user_refused(self) -> None:
+        """extract_answers includes user_refused in return dict when LLM says True."""
+        from unittest.mock import MagicMock
+
+        from projects.outcaller.nodes.probe_recap import extract_answers
+
+        # Mock state with minimal required fields
+        state = {
+            "target_fields": [{"id": "name", "description": "Your name"}],
+            "extracted": {"name": None},
+            "transcript": "I'm not interested, please take me off your list.",
+            "answers": [],
+            "prompts_dir": "projects/outcaller/prompts",
+        }
+
+        # Mock the execute_prompt to return user_refused=True
+        mock_result = MagicMock()
+        mock_result.updates = {"name": None}
+        mock_result.user_refused = True
+
+        # Patch in yamlgraph.executor since that's where it's imported from
+        with (
+            patch(
+                "yamlgraph.executor.execute_prompt",
+                return_value=mock_result,
+            ),
+            patch(
+                "yamlgraph.schema_loader.load_schema_from_yaml",
+                return_value=MagicMock(),
+            ),
+        ):
+            result = extract_answers(state)
+
+        # SIN-1: This should include user_refused, but currently doesn't
+        assert "user_refused" in result, "extract_answers must return user_refused"
+        assert result["user_refused"] is True
+
+
+@pytest.mark.req("REQ-YG-084")
+class TestIC001SIN2GoodbyeRefusedType:
+    """IC-001 SIN-2: goodbye_refused prompt should return string, not Pydantic model."""
+
+    def test_goodbye_refused_returns_string(self) -> None:
+        """goodbye_refused prompt should return plain string for speak() node."""
+        from pathlib import Path
+
+        from yamlgraph.utils.prompts import load_prompt
+
+        # Load the prompt config
+        prompts_dir = Path(__file__).parent.parent.parent / "projects/outcaller/prompts"
+        config = load_prompt("goodbye_refused", prompts_dir=str(prompts_dir))
+
+        # SIN-2: This prompt has a schema but should NOT (all other next_utterance prompts are plain strings)
+        # The presence of a schema causes execute_prompt to return a Pydantic model, not string
+        assert config.get("schema") is None, (
+            "goodbye_refused should not have a schema - "
+            "all next_utterance prompts must return plain strings for speak() node"
+        )
