@@ -16,6 +16,9 @@ defaults:
 
 # Declare input variables for --var arguments
 state:
+  # Project-specific prompts directory (for reusable probe_recap tools)
+  prompts_dir: str
+
   # Call info (set by await_call)
   call_info: dict
   # Caller info (set by await_call from Twilio webhook)

@@ -22,6 +22,28 @@ Manual integration test for IC-000 inbound voice call demo.
 
 ---
 
+## Pre-Test Validation: Dialogue Prompts (No Twilio)
+
+Before running live tests, verify the dialogue logic works:
+
+```bash
+python test_dialogue_e2e.py
+```
+
+### Expected Output
+
+- [x] parse_targets → 2 targets parsed
+- [x] check_missing → phase: probe
+- [x] generate_probe → conversational question generated
+- [x] extract_answers → both fields extracted from response
+- [x] check_missing → phase: recap
+- [x] generate_recap → summary generated
+- [x] goodbye → farewell with [DONE] marker
+
+**Status:** ✅ PASSED (2026-02-23)
+
+---
+
 ## Test 1: Start Script Execution
 
 ```bash

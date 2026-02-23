@@ -1,5 +1,6 @@
 # projects/incaller/prompts/goodbye_refused.yaml
 # IC-000: Polite exit when caller declines to continue
+# IC-001 SIN-2: No schema - all next_utterance prompts must return plain strings for speak() node
 name: goodbye_refused
 description: Polite exit when caller declines to participate
 
@@ -13,10 +14,3 @@ user: |
   Generate a polite, brief goodbye. Thank them for calling.
 
   End your message with [DONE] marker so the call can end.
-
-schema:
-  name: GoodbyeRefused
-  fields:
-    goodbye:
-      type: str
-      description: Brief polite goodbye message ending with [DONE]

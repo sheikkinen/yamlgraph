@@ -1,6 +1,6 @@
 """Integration tests for outcaller probe-recap (OC-005).
 
-Tests REQ-YG-083, REQ-YG-084, REQ-YG-085.
+OC-005: Outcaller probe-recap capability (target extraction, phase routing, confirmation).
 """
 
 from pathlib import Path
@@ -12,7 +12,7 @@ from yamlgraph.graph_loader import load_graph_config
 GRAPH_PATH = Path("projects/outcaller/graph.yaml")
 
 
-@pytest.mark.req("REQ-YG-083")
+@pytest.mark.req("OC-005")
 def test_outcaller_graph_compiles():
     """The outcaller graph should compile without errors."""
     config = load_graph_config(GRAPH_PATH)
@@ -28,7 +28,7 @@ def test_outcaller_graph_compiles():
     assert "generate_goodbye" in config.nodes
 
 
-@pytest.mark.req("REQ-YG-084")
+@pytest.mark.req("OC-005")
 def test_outcaller_graph_has_targets_branching():
     """The graph should have conditional edges for targets-based routing."""
     config = load_graph_config(GRAPH_PATH)
@@ -53,7 +53,7 @@ def test_outcaller_graph_has_targets_branching():
     assert "targets == None" in response_edge.get("condition", "")
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 def test_outcaller_graph_has_recap_routing():
     """The graph should have conditional edges for recap confirmation loop."""
     config = load_graph_config(GRAPH_PATH)
@@ -80,7 +80,7 @@ def test_outcaller_graph_has_recap_routing():
     assert correction_edge.get("to") == "apply_corrections"
 
 
-@pytest.mark.req("REQ-YG-083")
+@pytest.mark.req("OC-005")
 def test_outcaller_new_state_keys():
     """The graph should define new state keys for probe-recap."""
     config = load_graph_config(GRAPH_PATH)
@@ -97,7 +97,7 @@ def test_outcaller_new_state_keys():
     assert "recap_count" in state
 
 
-@pytest.mark.req("REQ-YG-084")
+@pytest.mark.req("OC-005")
 def test_outcaller_loop_limits_defined():
     """All nodes in cycles should have loop limits."""
     config = load_graph_config(GRAPH_PATH)
@@ -117,7 +117,7 @@ def test_outcaller_loop_limits_defined():
         assert node in limits, f"Missing loop limit for {node}"
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 def test_generate_goodbye_skips_disabled():
     """generate_goodbye must have skip_if_exists: false to overwrite recap utterance.
 
@@ -140,7 +140,7 @@ def test_generate_goodbye_skips_disabled():
     )
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 def test_generate_goodbye_node_executes_when_utterance_exists():
     """generate_goodbye must execute even when next_utterance already has a value.
 
@@ -157,7 +157,7 @@ def test_generate_goodbye_node_executes_when_utterance_exists():
     assert _should_skip_if_exists(True, "next_utterance", state_with_value) is True
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 def test_generate_recap_writes_to_next_utterance():
     """generate_recap must write to next_utterance so speak can use it.
 
@@ -178,7 +178,7 @@ def test_generate_recap_writes_to_next_utterance():
     )
 
 
-@pytest.mark.req("REQ-YG-084")
+@pytest.mark.req("OC-005")
 def test_generate_probe_skips_disabled():
     """generate_probe must have skip_if_exists: false to generate new questions.
 

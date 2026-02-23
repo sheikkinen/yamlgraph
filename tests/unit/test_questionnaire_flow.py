@@ -5,9 +5,7 @@ Tests the full questionnaire logic independent of telco/speech layers:
 - Recap flow: recap → analyze → confirm or correct
 - Edge cases: probe limit, recap limit, empty targets
 
-REQ-YG-083: Outcaller probe-recap target extraction
-REQ-YG-084: Outcaller probe-recap phase routing
-REQ-YG-085: Outcaller probe-recap confirmation/correction loop
+OC-005: Outcaller probe-recap capability (target extraction, phase routing, confirmation)
 """
 
 from typing import Any
@@ -76,7 +74,7 @@ def simulate_questionnaire_turn(
     return state
 
 
-@pytest.mark.req("REQ-YG-083")
+@pytest.mark.req("OC-005")
 class TestQuestionnaireProbeFlow:
     """Test the probe loop state machine."""
 
@@ -164,7 +162,7 @@ class TestQuestionnaireProbeFlow:
         assert state["extracted"]["age"] == "28"
 
 
-@pytest.mark.req("REQ-YG-084")
+@pytest.mark.req("OC-005")
 class TestQuestionnaireProbeLimit:
     """Test probe limit enforcement."""
 
@@ -215,7 +213,7 @@ class TestQuestionnaireProbeLimit:
         assert state["missing_fields"] == ["age", "city"]
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 class TestQuestionnaireRecapFlow:
     """Test the recap confirmation/correction loop."""
 
@@ -299,7 +297,7 @@ class TestQuestionnaireRecapFlow:
         assert state["extracted"]["age"] == "50"  # Unchanged
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 class TestQuestionnaireRecapLimit:
     """Test recap correction limit enforcement."""
 
@@ -328,7 +326,7 @@ class TestQuestionnaireRecapLimit:
         assert state["extracted"]["name"] == "Name3"
 
 
-@pytest.mark.req("REQ-YG-083")
+@pytest.mark.req("OC-005")
 class TestQuestionnaireEdgeCases:
     """Test edge cases in questionnaire flow."""
 
@@ -414,7 +412,7 @@ class TestQuestionnaireEdgeCases:
         assert "unknown_field" not in result["extracted"]
 
 
-@pytest.mark.req("REQ-YG-084")
+@pytest.mark.req("OC-005")
 class TestQuestionnaireStateTransitions:
     """Test state machine transition correctness."""
 
@@ -494,7 +492,7 @@ def questionnaire_after_collection(
     return state
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 class TestQuestionnaireEndToEndFlow:
     """End-to-end tests for the complete questionnaire state machine.
 
@@ -702,7 +700,7 @@ def readme_example_after_collection(
     return state
 
 
-@pytest.mark.req("REQ-YG-083")
+@pytest.mark.req("OC-005")
 class TestReadmeExampleWorkflow:
     """Tests matching the README example: caller_name|satisfaction|feedback.
 

@@ -17,8 +17,13 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-# All known requirements
-ALL_REQS = [f"REQ-YG-{i:03d}" for i in range(1, 87)]
+# All known requirements (framework only)
+# REQ-YG-078-082 (CAP-27) and REQ-YG-084-086 (CAP-29) relocated to projects/ with OC/IC-XXX tags
+_ALL_FRAMEWORK_REQS = (
+    list(range(1, 78))  # REQ-YG-001 through REQ-YG-077
+    + [83]  # REQ-YG-083 (CAP-28 Thinking Budget)
+)
+ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
 # Capability grouping: (cap_id, name, [reqs])
 CAPABILITIES: dict[str, tuple[str, list[str]]] = {
@@ -164,15 +169,9 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-24": ("Interactive Tool Node", ["REQ-YG-075"]),
     "CAP-25": ("Tavily Domain RAG Demo", ["REQ-YG-076"]),
     "CAP-26": ("Streaming Error Resilience", ["REQ-YG-077"]),
-    "CAP-27": (
-        "Telco Voice Call Demo",
-        ["REQ-YG-078", "REQ-YG-079", "REQ-YG-080", "REQ-YG-081", "REQ-YG-082"],
-    ),
+    # CAP-27 (Telco Voice Call Demo) removed - tests relocated to projects/outcaller/
+    # CAP-29 (Incaller Voice Demo) removed - tests relocated to projects/incaller/
     "CAP-28": ("Graph-Level Thinking Budget", ["REQ-YG-083"]),
-    "CAP-29": (
-        "Incaller Voice Demo",
-        ["REQ-YG-084", "REQ-YG-085", "REQ-YG-086"],
-    ),
 }
 
 

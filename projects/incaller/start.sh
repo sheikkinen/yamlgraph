@@ -130,8 +130,9 @@ echo ""
 # Default to targets mode if no args provided
 if [[ $# -eq 0 ]]; then
     yamlgraph graph run graph.yaml \
+        --var 'prompts_dir=projects/incaller/prompts' \
         --var 'targets=caller_name:Your full name|reason:Why are you calling' \
         --full
 else
-    yamlgraph graph run graph.yaml "$@" --full
+    yamlgraph graph run graph.yaml --var 'prompts_dir=projects/incaller/prompts' "$@" --full
 fi

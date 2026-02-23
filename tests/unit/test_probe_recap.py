@@ -6,17 +6,15 @@ Tests for:
 - check_missing: Compute missing fields and set phase routing
 - apply_corrections: Merge caller corrections into extracted dict
 
-REQ-YG-083: Outcaller probe-recap target extraction
-REQ-YG-084: Outcaller probe-recap phase routing
-REQ-YG-085: Outcaller probe-recap confirmation/correction loop
+OC-005: Outcaller probe-recap capability (target extraction, phase routing, confirmation)
 """
 
 import pytest
 
 
-@pytest.mark.req("REQ-YG-083")
+@pytest.mark.req("OC-005")
 class TestParseTargets:
-    """REQ-YG-083: Parse targets string into structured fields."""
+    """OC-005: Parse targets string into structured fields."""
 
     def test_parse_simple_targets(self) -> None:
         """Parse two simple key:description pairs."""
@@ -71,9 +69,9 @@ class TestParseTargets:
         assert result["target_fields"][0]["description"] == "Your name"
 
 
-@pytest.mark.req("REQ-YG-083")
+@pytest.mark.req("OC-005")
 class TestExtractAnswers:
-    """REQ-YG-083: Extract answers from transcript and merge into existing dict."""
+    """OC-005: Extract answers from transcript and merge into existing dict."""
 
     def test_extract_merges_non_null_values(self) -> None:
         """Non-null extractions are merged; null values preserve existing."""
@@ -131,9 +129,9 @@ class TestExtractAnswers:
         assert result["probe_count"] == 2
 
 
-@pytest.mark.req("REQ-YG-084")
+@pytest.mark.req("OC-005")
 class TestCheckMissing:
-    """REQ-YG-084: Compute missing fields and route to probe/recap."""
+    """OC-005: Compute missing fields and route to probe/recap."""
 
     def test_check_missing_all_missing(self) -> None:
         """All fields missing -> phase = 'probe'."""
@@ -188,9 +186,9 @@ class TestCheckMissing:
         assert result["phase"] == "recap"  # Exit to recap despite missing
 
 
-@pytest.mark.req("REQ-YG-085")
+@pytest.mark.req("OC-005")
 class TestApplyCorrections:
-    """REQ-YG-085: Apply caller corrections from recap response."""
+    """OC-005: Apply caller corrections from recap response."""
 
     def test_apply_corrections_merges_values(self) -> None:
         """Corrections are merged into extracted dict."""
