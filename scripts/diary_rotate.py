@@ -256,12 +256,6 @@ def import_git_reports() -> int:
 
 
 def main() -> int:
-    # Always try to import pending entries first (even if no rotation needed)
-    imported = import_scheduled_entries()
-    imported += import_git_reports()
-    if imported > 0:
-        git_add(DIARY)
-
     if not DIARY.exists():
         return 0
 
@@ -271,26 +265,33 @@ def main() -> int:
         return 0
 
     today = date.today()
-    if latest >= today:
-        # Still the same day — no rotation needed
-        return 0
 
     # --- Dry-run mode ---
     if "--check" in sys.argv:
+        if latest >= today:
+            return 0  # No rotation needed
         print(f"diary rotation needed: latest entry {latest}, today {today}")
         return 1
 
-    # --- Rotate ---
-    dest = archive_path(latest)
-    summary = one_line_summary(DIARY)
+    # --- Rotate BEFORE importing (bug fix: import adds today's date) ---
+    if latest < today:
+        dest = archive_path(latest)
+        summary = one_line_summary(DIARY)
 
-    print(f"📓 Rotating diary: {DIARY} → {dest}")
-    shutil.move(str(DIARY), str(dest))
+        print(f"📓 Rotating diary: {DIARY} → {dest}")
+        shutil.move(str(DIARY), str(dest))
 
-    create_fresh_diary(dest.name, summary)
-    print(f"📓 Created fresh {DIARY} (Previous: {dest.name})")
+        create_fresh_diary(dest.name, summary)
+        print(f"📓 Created fresh {DIARY} (Previous: {dest.name})")
 
-    git_add(dest, DIARY)
+        git_add(dest, DIARY)
+
+    # Import scheduled entries AFTER rotation check
+    imported = import_scheduled_entries()
+    imported += import_git_reports()
+    if imported > 0:
+        git_add(DIARY)
+
     return 0
 
 
