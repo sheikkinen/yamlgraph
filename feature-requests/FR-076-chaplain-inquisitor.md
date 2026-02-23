@@ -119,6 +119,75 @@ docs/diary.md (new entry appended)
 2. **Integrate into watch.sh** — Run audit after each Plan→Judge cycle. Rejected: separating concerns keeps each script single-purpose. Can be composed externally.
 3. **Scheduled CI job** — Run inquisitor in CI on push. Interesting for future but requires CI copilot access. Record as seed.
 
+## Phase 2: Pre-commit Background Trigger
+
+**Status:** Planned
+
+### Problem
+
+The inquisitor requires manual invocation. Developers forget to run it. Doctrine drifts silently between audits.
+
+### Solution
+
+Add a pre-commit hook that spawns the inquisitor as a background process. The commit proceeds immediately; the audit runs asynchronously and writes findings to diary for the *next* commit to surface.
+
+### Pre-commit Hook
+
+```yaml
+# .pre-commit-config.yaml (add to local hooks)
+- repo: local
+  hooks:
+    - id: inquisitor-background
+      name: inquisitor (async audit)
+      entry: bash -c 'nohup .chaplain/inquisitor.sh > .chaplain/inquisitor.log 2>&1 &'
+      language: system
+      pass_filenames: false
+      always_run: true
+      stages: [post-commit]  # Run AFTER commit succeeds
+```
+
+**Key details:**
+- **`post-commit` stage** — Doesn't block the commit; runs after success
+- **`nohup ... &`** — Detaches from terminal, survives hook exit
+- **`.chaplain/inquisitor.log`** — Captures output for debugging (gitignored)
+
+### .gitignore Addition
+
+```
+.chaplain/inquisitor.log
+```
+
+### Flow
+
+```
+Developer commits
+    ↓ (pre-commit hooks run synchronously)
+Commit succeeds
+    ↓ (post-commit hook triggers)
+inquisitor.sh spawns in background
+    ↓ (developer continues working)
+Audit completes
+    ↓
+docs/diary.md updated
+    ↓ (next commit shows diary change)
+Developer sees "modified: docs/diary.md" in next git status
+```
+
+### Acceptance Criteria (Phase 2)
+
+- [x] Add `inquisitor-background` hook to `.pre-commit-config.yaml`
+- [x] Hook uses `post-commit` stage
+- [x] Hook spawns background process (`nohup ... &`)
+- [x] Output redirected to `.chaplain/inquisitor.log`
+- [x] `.chaplain/inquisitor.log` added to `.gitignore`
+- [ ] Diary entry appears in `git status` of next commit
+
+### Constraints
+
+- **Non-blocking** — Commit must not wait for audit
+- **Fail-safe** — If inquisitor fails, commit still succeeded; developer sees error in log
+- **Single instance** — If inquisitor already running, second invocation should exit early (optional: `flock` guard)
+
 ## Related
 
 - `.chaplain/watch.sh` — FR-068, the Plan→Judge loop this mirrors

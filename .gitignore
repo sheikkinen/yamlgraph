@@ -49,6 +49,9 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 
+# Chaplain logs
+.chaplain/inquisitor.log
+
 # Custom graphs
 projects/
 13485/
