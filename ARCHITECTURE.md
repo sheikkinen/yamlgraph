@@ -261,7 +261,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 |---|-----------|----------------|--------------|
 | 1 | Configuration Loading & Validation | `graph_loader`, `models/graph_schema`, `utils/validators`, `linter/`, `data_loader` | REQ-YG-001 – 004 |
 | 2 | Graph Compilation | `graph_loader`, `node_compiler` | REQ-YG-005 – 008 |
-| 3 | Node Execution | `node_factory/llm_nodes`, `node_factory/streaming`, `utils/llm_factory`, `utils/llm_factory_async` | REQ-YG-009 – 011 |
+| 3 | Node Execution | `node_factory/llm_nodes`, `node_factory/streaming`, `utils/llm_factory`, `utils/llm_factory_async` | REQ-YG-009 – 011, 050 |
 | 4 | Prompt Execution | `executor`, `executor_base`, `executor_async`, `utils/prompts`, `utils/template`, `utils/json_extract` | REQ-YG-012 – 016 |
 | 5 | Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/shell`, `tools/python_tool` | REQ-YG-017 – 020 |
 | 6 | Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023 |
@@ -272,10 +272,10 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 11 | Subgraph & Map Processing | `map_compiler`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 075 |
 | 12 | Utilities & Infrastructure | `config`, `constants`, `schema_loader`, `node_factory/base`, `utils/logging`, `utils/parsing`, `utils/sanitize`, `utils/expressions` | REQ-YG-043 – 046 |
 | 13 | LangSmith Tracing | `utils/tracing`, `cli/graph_commands` | REQ-YG-047 |
-| 14 | Graph-Level Streaming | `executor_async`, `node_factory/streaming` | REQ-YG-048 – 049 |
+| 14 | Graph-Level Streaming | `executor_async`, `node_factory/streaming` | REQ-YG-048 – 049, 065 |
 | 15 | Expression Language | `utils/expressions`, `utils/conditions`, `utils/parsing` | REQ-YG-051, REQ-YG-052 |
 | 16 | Linter Cross-Reference & Semantic Checks | `linter/checks`, `linter/checks_semantic`, `linter/graph_linter` | REQ-YG-053, REQ-YG-054, REQ-YG-069 |
-| 17 | Execution Safety Guards | `map_compiler`, `error_handlers`, `graph_loader`, `cli/graph_commands`, `linter/checks_semantic` | REQ-YG-055 – REQ-YG-058 |
+| 17 | Execution Safety Guards | `map_compiler`, `error_handlers`, `graph_loader`, `cli/graph_commands`, `linter/checks_semantic` | REQ-YG-055 – 062, 064 |
 | 18 | Testing & Quality | `tests/conftest`, `tests/unit/test_requirement_enforcement` | REQ-YG-063 |
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – REQ-YG-068 |
 | 20 | Contrib Utilities | `contrib/utils`, `contrib/progress` | REQ-YG-070 – REQ-YG-071 |
@@ -286,6 +286,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 | 26 | Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
 | 27 | Telco Voice Call Demo | `projects/outcaller` | REQ-YG-078 – 082 |
+| 28 | Graph-Level Thinking Budget | `models/graph_schema`, `utils/llm_factory` | REQ-YG-083 |
 
 ### 1. Configuration Loading & Validation
 
