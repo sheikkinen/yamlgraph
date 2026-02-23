@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.54] - 2026-02-23
+
+### Added
+- **FR-076 Chaplain Inquisitor**: `.chaplain/inquisitor.sh` — one-shot audit script that checks recent commits against the Scripture (CLAUDE.md doctrine), classifies findings as ✓ COMPLIANT / ⚠ DRIFT / ✗ VIOLATION, and appends results to `docs/diary.md`
+  - Post-commit hook: `inquisitor-background` spawns audit asynchronously after each commit
+  - Output logged to `.chaplain/inquisitor.log` (gitignored)
+
+### Changed
+- **FR-073 Unit test performance**: Reduced unit test time from 32s → ~19s (40% improvement)
+  - `test_mcp_server.py`: `time.sleep(10)` → `time.sleep(0.5)` (thread-pool starvation fix)
+  - `test_streaming_chaos.py`: `CHAOS_DELAY=5` → `CHAOS_DELAY=1` (async teardown speed)
+
 ## [0.4.53] - 2026-02-22
 
 ### Added
