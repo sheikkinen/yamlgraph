@@ -152,6 +152,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: changelog-required
+        name: feat/fix commits require CHANGELOG.md
+        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^(feat|fix)(\\(.*\\))?:\" && ! git diff --cached --name-only | grep -qE \"^CHANGELOG\\.md$\"; then echo \"ERROR: feat:/fix: commits must include CHANGELOG.md changes\"; echo \"Add your entry under the current [Unreleased] or version heading.\"; exit 1; fi'"
+        language: system
+        stages: [commit-msg]
+        always_run: true
+
+  - repo: local
+    hooks:
       - id: absolution
         name: "Absolution"
         entry: python scripts/absolution.py

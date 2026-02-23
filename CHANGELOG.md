@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.54] - 2026-02-23
 
 ### Added
+- **FR-077 CHANGELOG commit enforcement**: `feat:` and `fix:` commits now require `CHANGELOG.md` to be staged; blocks commits missing changelog entries
 - **FR-076 Chaplain Inquisitor**: `.chaplain/inquisitor.sh` — one-shot audit script that checks recent commits against the Scripture (CLAUDE.md doctrine), classifies findings as ✓ COMPLIANT / ⚠ DRIFT / ✗ VIOLATION, and appends results to `docs/diary.md`
   - Post-commit hook: `inquisitor-background` spawns audit asynchronously after each commit
   - Output logged to `.chaplain/inquisitor.log` (gitignored)
