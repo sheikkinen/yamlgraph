@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.55] - 2026-02-23
+
+### Added
+- **IC-000 Incaller Voice Demo** (REQ-YG-084–086): Inbound Twilio voice call with ElevenLabs TTS/STT
+  - `projects/incaller/`: Receives incoming calls to Twilio phone number
+  - `await_call`: New node starts HTTP+WS server, waits for `/incoming` webhook (300s timeout)
+  - `/incoming` webhook: Returns TwiML `<Connect><Stream>` for bidirectional audio
+  - Reuses outcaller TTS/STT/probe-recap nodes — only `await_call` is new
+  - TelcoSession extended with `caller_number` field and `start_with_app()` method
+  - 7 prompts adapted for inbound tone ("Thank you for calling...")
+  - Unit tests: `test_incaller.py` (9 pass) covering all three requirements
+
 ## [0.4.54] - 2026-02-23
 
 ### Added
