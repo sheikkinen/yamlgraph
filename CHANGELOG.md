@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reuses outcaller TTS/STT/probe-recap nodes — only `await_call` is new
   - TelcoSession extended with `caller_number` field and `start_with_app()` method
   - 7 prompts adapted for inbound tone ("Thank you for calling...")
+  - `start.sh`: Automated setup — starts ngrok, updates Twilio webhook via API, runs graph
   - Unit tests: `test_incaller.py` (9 pass) covering all three requirements
 
 ## [0.4.54] - 2026-02-23

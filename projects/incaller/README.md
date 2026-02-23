@@ -124,7 +124,27 @@ twilio phone-numbers:update +358454918222 \
   --voice-url="https://your-subdomain.ngrok.io/incoming"
 ```
 
-## Usage
+## Quick Start (Automated)
+
+The easiest way to run the incaller:
+
+```bash
+# 1. Copy and edit .env
+cp .env.example .env
+# Edit .env with your Twilio and ElevenLabs credentials
+
+# 2. Run the start script
+./start.sh
+```
+
+The script automatically:
+1. Starts ngrok on port 8080
+2. Updates your Twilio phone number webhook
+3. Runs the voicebot graph
+
+Then just dial your Twilio number!
+
+## Usage (Manual)
 
 ### Targets Mode (Structured Data Collection)
 
