@@ -6,6 +6,24 @@ Previous: [diary-2026-02-22.md](diary-2026-02-22.md) — 12 entries from 2026-02
 
 ---
 
+## 2026-02-23: Inquisitor Audit — The Audit Loop
+
+**Context:** 6th manual Inquisitor audit of the latest 5 commits (`01b51ff`..`52c6b33`). Three of the five commits are `chore: Inquisitor audit` diary entries. The remaining two (`892ee07` chaplain cleanup, `52c6b33` FR-077 CHANGELOG enforcement) have been audited in all five prior rounds. No new productive code has shipped since the 3rd audit.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits (`chore:`, `feat(hooks):`). CHANGELOG covers the `feat` commit (FR-077). All `# noqa` suppressions (CONF-002, CONF-003) remain confessed. No new suppressions introduced. Structural compliance is solid and has been stable across 6 audits.
+- ✗ VIOLATION — The tooling TDD gap was escalated to ✗ in audit #5 with a concrete remedy (add `## Tooling Exception` to CLAUDE.md). Two commits have landed since that escalation — both are audit entries. The decision remains unmade. The Sermon: "every failure shalt refine the law." Six audits have identified the failure; zero have refined the law.
+- ✗ VIOLATION — The Inquisitor has become the primary commit source: 3 of the last 5 commits are audit diary entries. The audit mechanism, designed to detect entropy (Commandment 8), is now *generating* entropy. Each audit re-examines the same frozen commits, produces the same findings, and adds ~20 lines to `diary.md` — a net increase in project surface area with zero information gain.
+- ⚠ DRIFT — All 5 commits lack `Co-authored-by` trailers and commit bodies. The `892ee07` deletion of 4 files (213+ lines) still has no commit body explaining rationale. This is the 3rd audit flagging it; the commit is frozen so the finding is permanent — but it signals a habit gap in commit discipline.
+- ⚠ DRIFT — `docs/diary.md` is now 267 lines with 6 audit entries covering the same 2 substantive commits. The diary rotation script exists (`scripts/diary_rotate.py`) but hasn't triggered, suggesting the threshold hasn't been reached or rotation is manual. The signal-to-noise ratio of the diary is degrading.
+
+**Heuristic:** *An audit that audits only prior audits has zero information gain — it is a fixed point in a feedback loop. The Inquisitor must refuse to re-examine commits it has already judged. When the top-of-stack commits are all audit entries, the correct action is not another audit but a decision on the open findings. Observation without action is not diligence — it is ceremony.*
+
+**Seed:** The Inquisitor needs a termination condition: if all commits since the last audit are audit-only commits, the Inquisitor should emit "No new work to audit" and exit without appending to the diary. This converts an infinite loop into a halting function. Should this guard live in the post-commit hook, or in the audit script itself?
+
+---
+
 ## 2026-02-23: Inquisitor Audit — Decision Debt Compounding
 
 **Context:** Manual Inquisitor audit of the 5 most recent commits (`9084530`..`8664452`): chore audit entry, chaplain cleanup (4 file deletions), FR-077 CHANGELOG enforcement, v0.4.54 release, FR-076 post-commit inquisitor. This is the 5th audit in the current cycle.
@@ -21,6 +39,24 @@ Previous: [diary-2026-02-22.md](diary-2026-02-22.md) — 12 entries from 2026-02
 **Heuristic:** *An audit that repeatedly flags the same issue without triggering a decision is not auditing — it is complaining. The Inquisitor's role is not merely to observe but to force resolution. When a finding survives 3 audits, the next audit must either (a) record the explicit decision that closes it, or (b) file a feature request that schedules the decision. Observing the same drift forever is itself entropy.*
 
 **Seed:** The tooling TDD question must die in the next commit — not the next audit. Concrete proposal: add a `## Tooling Exception` section to CLAUDE.md stating that dev-tooling commits (`scripts/`, `.chaplain/`, `.pre-commit-config.yaml`) are exempt from Commandment 7 (TDD) but must include a `Tested-manually: <description>` trailer in the commit message. This trades automated test coverage for documented manual verification — an honest compromise that closes the loop without pretending shell hooks are untestable.
+
+---
+
+## 2026-02-23: Inquisitor Audit — Decision Debt Reaches Critical Mass
+
+**Context:** Audited the latest 5 commits (`c2f0e7d`..`2a5515b`) against the Scripture. Commits: two `chore: Inquisitor audit` diary additions, `chore: chaplain cleanup` (deleted 213-line `scripts/chaplain.sh` + 3 `.chaplain/` files), `feat(hooks): FR-077 enforce CHANGELOG.md in feat/fix commits`, and `chore: release 0.4.54`.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits format. `feat(hooks)` carries scope and FR tag. `chore` commits properly prefixed. Commandment 10 upheld.
+- ✓ COMPLIANT — CHANGELOG.md entry present for FR-077 (`feat` commit). `chore` commits correctly omitted. No feat/fix shipped without changelog. The FR-077 hook now structurally prevents this — prior ✗ VIOLATION is now impossible.
+- ✓ COMPLIANT — Both `# noqa` suppressions in `yamlgraph/` (CONF-002: ARG002, CONF-003: ANN001) remain confessed in `docs/confessions.md`. No new suppressions introduced.
+- ⚠ DRIFT — `892ee07` (`chore: chaplain cleanup`) deleted `scripts/chaplain.sh` (213 lines) and 3 `.chaplain/` files with a bare one-line commit message and no body explaining removal rationale. Commandment 8: "record significant removals in commit notes." This is the **2nd consecutive audit** flagging this exact commit — it cannot be retroactively fixed without rewriting history, but the pattern must not recur.
+- ✗ VIOLATION — The tooling TDD gap is now **5 audits old**. FR-077 introduced a pre-commit hook with zero tests. The prior audit explicitly escalated this from ⚠ DRIFT to a decision debt, proposed two concrete paths (exempt tooling from Commandment 7, or require integration tests), and asked for resolution. Neither path was taken. Per the prior audit's own heuristic: *"A recurring ⚠ that persists across 4+ audits without resolution is itself a ✗ VIOLATION — not of the code, but of the feedback loop."* The Sermon demands "every failure shalt refine the law." The law has not been refined. This is now a ✗.
+
+**Heuristic:** *Audits that repeatedly flag the same drift without driving a decision are performative, not corrective. An Inquisitor who notes the same sin five times and does not escalate to Judgement is complicit in the entropy. When findings recur, the audit itself must change: either resolve the ambiguity by proposing a Scripture amendment, or close the finding as accepted risk with an explicit exception.*
+
+**Seed:** This audit escalated the tooling TDD gap from ⚠ to ✗. The next action is not another audit — it is a Judgement. Concrete question for the Judge: create `feature-requests/FR-078-tooling-test-policy.md` that decides once: are `scripts/`, `.chaplain/`, and `.pre-commit-config.yaml` changes exempt from Commandment 7 (with documented rationale), or must they carry integration tests (with a test template)? Until FR-078 exists, this ✗ will appear in every future audit.
 
 ---
 
