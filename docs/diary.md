@@ -6,6 +6,63 @@ Previous: [diary-2026-02-22.md](diary-2026-02-22.md) — 12 entries from 2026-02
 
 ---
 
+## 2026-02-23: IC-000 Incaller — Reuse as Discipline
+
+**Context:** Implemented IC-000 inbound voice call demo. Estimated 2 days; completed in ~0.5 days. The incaller receives Twilio phone calls and conducts voicebot conversations using ElevenLabs TTS/STT — the reverse of outcaller's outbound dialing.
+
+**What worked:**
+- **Aggressive reuse** — Only wrote `await_call` node (~50 lines) and `/incoming` webhook (~30 lines). TTS, STT, probe-recap, accumulate, end_call all imported directly from outcaller. 18 files shipped, but only ~100 lines were genuinely new code. The remaining 1,877 lines were prompts, README, tests, and graph wiring.
+- **TelcoSession extension** — Added `start_with_app()` method and `caller_number` field to outcaller's coordinator without breaking any existing tests. The outcaller continues to work unchanged.
+- **TDD for requirements** — 9 tests written first, all passing. REQ-YG-084-086 traced through ARCHITECTURE.md and req_coverage.py. The pipeline (Plan → Red → Green → Trace) held.
+
+**Trap avoided:**
+- **Premature abstraction** — Temptation was to extract a shared telephony layer (`projects/shared/telco/`). Resisted. Direct import from outcaller is simpler and equally functional. If a third voice project appears, refactor then. Two is coincidence; three is a pattern.
+
+**Insight:**
+*Reuse is not laziness — it is discipline.* The cheapest code is the code you import. The outcaller's TTS/STT/probe-recap logic was battle-tested; copying it would have doubled the maintenance surface. Direct import preserved the single source of truth and proved REQ-YG-086 ("reuse without duplication"). The effort saved was then spent on tests, documentation, and prompts — the parts that differentiate incaller from outcaller.
+
+**Heuristic:** *Before writing a new module, ask: can I import an existing one and extend it with a method or field? Extension preserves tests; duplication abandons them.*
+
+**Seed:** The outcaller and incaller share 90% of their graph structure (probe-recap, speak, listen, accumulate). Should there be a "telco base graph" that both inherit from, or is the current copy-adapt-prompts pattern preferable for clarity? Graph inheritance is not a thing yet — but subgraph parameterization might be.
+
+---
+
+## 2026-02-23: Inquisitor Audit — The Incaller Arrives
+
+**Context:** 8th Inquisitor audit of the latest 5 commits (`9084530`..`0ce848a`). For the first time since audit #2, there is substantive new work: `0ce848a` (`feat(incaller): IC-000 add inbound voice call demo`) — 1,977 lines across 18 files. The remaining 4 commits (`36c5602` fix, 3× `chore: Inquisitor audit`) have been audited 6+ times and are frozen.
+
+**Findings:**
+
+- ✓ COMPLIANT — `0ce848a` is doctrinally exemplary: Conventional Commit with scope and FR tag, detailed commit body, CHANGELOG v0.4.55 entry, REQ-YG-084–086 added to ARCHITECTURE.md, and all 3 test functions carry `@pytest.mark.req` tags. The full pipeline — Plan → Implement → Trace — was followed. Commandments 7, 10, and ADR-001 all satisfied.
+- ✗ VIOLATION — `projects/incaller/nodes/twilio_inbound.py:38` contains `# noqa: E402` with no corresponding CONF-XXX entry in `docs/confessions.md`. The noqa Confessions doctrine requires every suppression to be documented. This is a single-line fix: add a CONF-125 entry (next available in Example Code range, since `projects/` follows the example runner pattern).
+- ✗ VIOLATION — No diary entry was written for the IC-000 incaller work. The Sermon's Distill step requires a metacognitive reflection after completing a task list. The incaller was a substantial feature (689-line FR, 18 files, new node type). This is exactly the kind of work that produces traps and seeds worth capturing. The reflection is owed.
+- ⚠ DRIFT — None of the 5 commits carry `Co-authored-by` trailers. The git commit trailer policy in the development instructions requires `Co-authored-by: Copilot <...>` on AI-assisted commits. This has been a recurring gap across all audits.
+- ⚠ DRIFT — The tooling TDD gap (flagged as ✗ in audits #4–#7, proposed remedy: FR-078 or CLAUDE.md Tooling Exception) remains unresolved. The incaller commit demonstrates that the project *can* do full TDD when building features — the gap is specific to dev-tooling scripts. This audit does not re-escalate; the finding is stable and awaits a decision.
+
+**Heuristic:** *A feature that nails every checkpoint (Conventional Commit, CHANGELOG, ARCHITECTURE reqs, test req tags) but skips the diary and the noqa confession reveals a pattern: the automated guards (hooks, CI) are enforced, but the manual disciplines (reflection, confession) are forgotten under delivery pressure. Automate the reminder, or accept that manual disciplines decay.*
+
+**Seed:** Could a pre-commit hook scan for new `# noqa` lines in staged files and reject the commit unless `docs/confessions.md` is also staged? This would graduate noqa confession from manual discipline to structural guard — the same pattern that FR-077 applied to CHANGELOG enforcement.
+
+---
+
+## 2026-02-23: Inquisitor Audit — The Hook That Didn't Bark
+
+**Context:** 7th Inquisitor audit of the latest 5 commits (`36c5602`..`892ee07`). The prior audit identified the infinite audit loop and planted a seed to fix it. Commit `36c5602` acted on that seed by removing auto-commit/push from `.chaplain/inquisitor.sh` — a direct response to the diary feedback loop. This audit checks whether the fix itself was doctrinally clean.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits format (`fix:`, `chore:`). All `# noqa` suppressions (CONF-002, CONF-003) remain confessed. No new unconfessed suppressions. The diary seed from audit #6 (break the loop) was acted on — observation led to action. The Sermon's feedback loop is working.
+- ✗ VIOLATION — `36c5602` (`fix: Inqusitor looping`) is a `fix:` commit with **no CHANGELOG.md entry**. FR-077's pre-commit hook (`changelog-required`, `commit-msg` stage) is designed to block exactly this. The hook either wasn't installed or was bypassed with `--no-verify`. The irony: the commit that fixed the inquisitor's `--no-verify` abuse was itself likely committed with `--no-verify`. The guard was absent when guarding itself.
+- ⚠ DRIFT — `36c5602` has a typo in the commit message: "Inqusitor" → "Inquisitor". Minor, but commit messages are permanent documentation. This is the project's public history.
+- ⚠ DRIFT — 4 of 5 commits are meta-work (3 audit diary entries + 1 audit-loop fix). Only `892ee07` (chaplain cleanup) represents substantive project work, and it was already fully audited in 6 prior rounds. The audit mechanism consumed more commits than it audited. The loop is now broken, but the debt remains visible in the git log.
+- ⚠ DRIFT — The tooling TDD gap (flagged as ✗ in audits #5–#6 with concrete remedy: add Tooling Exception to CLAUDE.md or file FR-078) remains unresolved. However, the auto-commit loop that was inflating audit frequency has been fixed, so the urgency of repeated flagging is reduced. This finding is now stable — it will recur until a decision is made, but it no longer compounds.
+
+**Heuristic:** *A guard that can be bypassed by the same flag it prohibits is not a guard — it is a suggestion. `--no-verify` is the escape hatch for emergencies, but when it becomes the default path for tooling commits, the hook provides false confidence. The `changelog-required` hook must either be un-bypassable (CI enforcement) or the `--no-verify` usage must be auditable (logged in commit trailers).*
+
+**Seed:** FR-077's CHANGELOG enforcement lives only in the pre-commit hook — a local, bypassable check. Should a CI job duplicate this check on push, making it impossible to merge a `fix:`/`feat:` commit without a CHANGELOG entry regardless of local hook state? This would graduate the guard from suggestion to law.
+
+---
+
 ## 2026-02-23: Inquisitor Audit — The Audit Loop
 
 **Context:** 6th manual Inquisitor audit of the latest 5 commits (`01b51ff`..`52c6b33`). Three of the five commits are `chore: Inquisitor audit` diary entries. The remaining two (`892ee07` chaplain cleanup, `52c6b33` FR-077 CHANGELOG enforcement) have been audited in all five prior rounds. No new productive code has shipped since the 3rd audit.

@@ -2,8 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (Project — reuses outcaller telephony infrastructure)
-**Status:** Approved ✅
-**Effort:** 2 days
+**Status:** Implemented ✅
+**Effort:** 2 days (actual: 0.5 days)
 **Requested:** 2026-02-23
 **Approved:** 2026-02-23
 
@@ -566,21 +566,21 @@ New code: ~100 lines (`twilio_inbound.py` ~50 lines, `server.py` ~50 lines delta
 
 ## Acceptance Criteria
 
-- [ ] `projects/incaller/` contains `graph.yaml`, `server.py`, `nodes/twilio_inbound.py`, `prompts/`, `README.md`
-- [ ] `await_call` node starts TelcoSession + uvicorn server, then blocks until Twilio webhook + WebSocket connect
-- [ ] `POST /incoming` endpoint receives Twilio webhook, responds with TwiML `<Connect><Stream url="wss://.../voice" />`
-- [ ] `caller_number` extracted from Twilio webhook `From` field and stored in state
-- [ ] `await_call` timeout configurable (default 300s); raises `CallNotAnsweredError` if no call arrives
-- [ ] `await_call` raises `MissingStreamUrlError` if `VOICE_STREAM_URL` is not set
-- [ ] Targets mode works: `--var 'targets=...'` triggers probe-recap flow (reused from outcaller)
-- [ ] Questions mode works: `--var 'questions=...'` triggers legacy conversation flow
-- [ ] TTS, STT, accumulate, end_call reused from outcaller via direct module import
-- [ ] Probe-recap nodes reused from outcaller via direct module import
-- [ ] All prompts adapted for inbound call context ("Thank you for calling" tone)
-- [ ] Graph lint passes: `yamlgraph graph lint projects/incaller/graph.yaml`
-- [ ] README documents: Twilio phone number webhook configuration, ngrok setup, env vars, run command
-- [ ] Tests in `tests/unit/test_incaller.py` with `@pytest.mark.req` tags
-- [ ] REQ-YG-084–086 added to `ARCHITECTURE.md` and `scripts/req_coverage.py`
+- [x] `projects/incaller/` contains `graph.yaml`, `server.py`, `nodes/twilio_inbound.py`, `prompts/`, `README.md`
+- [x] `await_call` node starts TelcoSession + uvicorn server, then blocks until Twilio webhook + WebSocket connect
+- [x] `POST /incoming` endpoint receives Twilio webhook, responds with TwiML `<Connect><Stream url="wss://.../voice" />`
+- [x] `caller_number` extracted from Twilio webhook `From` field and stored in state
+- [x] `await_call` timeout configurable (default 300s); raises `CallNotAnsweredError` if no call arrives
+- [x] `await_call` raises `MissingStreamUrlError` if `VOICE_STREAM_URL` is not set
+- [x] Targets mode works: `--var 'targets=...'` triggers probe-recap flow (reused from outcaller)
+- [x] Questions mode works: `--var 'questions=...'` triggers legacy conversation flow
+- [x] TTS, STT, accumulate, end_call reused from outcaller via direct module import
+- [x] Probe-recap nodes reused from outcaller via direct module import
+- [x] All prompts adapted for inbound call context ("Thank you for calling" tone)
+- [x] Graph lint passes: `yamlgraph graph lint projects/incaller/graph.yaml`
+- [x] README documents: Twilio phone number webhook configuration, ngrok setup, env vars, run command
+- [x] Tests in `tests/unit/test_incaller.py` with `@pytest.mark.req` tags
+- [x] REQ-YG-084–086 added to `ARCHITECTURE.md` and `scripts/req_coverage.py`
 
 ---
 

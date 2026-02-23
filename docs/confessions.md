@@ -293,6 +293,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Redefinition of `TavilySearchResults` in except branch (imports real or creates stub).
 - **Penance**: Graceful degradation pattern — function raises clear error if package missing rather than crashing on import.
 
+### CONF-123
+- **File**: [projects/incaller/nodes/twilio_inbound.py](../projects/incaller/nodes/twilio_inbound.py#L38)
+- **Code**: E402
+- **Sin**: Import from outcaller after logger/env setup at module level.
+- **Penance**: REQ-YG-086 requires reusing outcaller nodes. Import must follow env setup that loads incaller's `.env` to avoid polluting outcaller's env vars. Standard pattern matching CONF-015+ (example imports after path setup).
+
 ---
 
 ## Adding New Confessions
