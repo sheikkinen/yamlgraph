@@ -1251,3 +1251,75 @@ Token explosion discovered: Gemini 2.5 Flash "thinking" causes 134 → 1,246 →
 **Seed:** Could the Chaplain automate verification? A `chaplain judge` command could parse FR code references, check they exist, and run condition evaluations against sample state dicts — turning judgement from manual audit into executable proof.
 
 ---
+
+---
+
+## 2026-02-23: World Digest — Observability & Agent Orchestration
+
+
+**LangGraph ecosystem momentum:** Five LangGraph releases shipped this week (SDK 0.3.6–0.3.8, core 1.0.9, prebuilt 1.0.8), signaling active stabilization of the foundation YAMLGraph depends on. The SDK releases suggest refinement of deployment and runtime concerns.
+
+**Agent observability as evaluation:** LangChain's recent focus on agent observability (multiple articles on tracing, behavior analysis, and evaluation frameworks) frames observability not as debugging overhead but as a first-class evaluation tool. This aligns with YAMLGraph's need to surface decision points and verify agent behavior—especially relevant to the seed on 'name the verification question' as a workflow gate.
+
+**Memory and context patterns:** Articles on Agent Builder's memory system and context management for deep agents highlight that agent reliability depends on structured memory and context handling. YAMLGraph's YAML-first approach could formalize these patterns as declarative graph nodes, reducing silent fallbacks and invisible decisions.
+
+**Tool registry and sandbox patterns:** New Agent Builder features (tool registry, file uploads) and the two-pattern analysis of agent-sandbox connections suggest the ecosystem is converging on explicit tool binding and execution isolation. This reinforces YAMLGraph's value: making these connections declarative rather than implicit in Python code.
+
+**Evaluation at scale:** The monday.com + LangSmith case study demonstrates that evaluation strategy must be baked in from day one, not retrofitted. YAMLGraph's architecture should assume every node is observable and every edge is auditable—supporting the 'no-silent-fallback' lint rule seed.
+
+**Connection to open seeds:** The observability focus directly supports the 'name the verification question' gate (agents need to state what they're verifying before acting). The memory and context articles suggest YAMLGraph should formalize 'invisible decisions' in memory handling (hardcoded defaults, deferred migrations) as a confession-style registry.
+
+**Seed:** As agent observability becomes standard infrastructure, should YAMLGraph embed a mandatory 'trace annotation' layer — requiring every node to declare what observable state it expects and what it produces — making silent failures structurally impossible to hide?
+
+---
+
+## 2026-02-23: Git Report
+
+## Repository Analysis: Last 3 Days Development Summary
+
+Based on the git history, here's a **feature-level summary** of recent development:
+
+### 🎯 Major Features Implemented
+
+**1. FR-074: Outcall Probe-Recap (OC-005+) - APPROVED**
+   - Voice callback system for probe recap operations
+   - Redis session-lookup pattern for state management
+   - ElevenLabs TTS integration path (Phase 1)
+   - TTS completion tracking via Twilio marks
+   - Tests for probe recap and outcaller TTS modules
+
+**2. FR-071: Graph-Level Thinking Budget (REQ-YG-083)**
+   - Extended thinking/reasoning support at graph node level
+   - Schema validation (0 or ≥1024 tokens)
+   - Automatic temperature=1 override for LLM calls
+   - Linter warnings with 4 distinct codes (W071-1 through W071-4)
+   - Full demo with configurable reasoning depth
+   - 18 unit tests + 1 integration test
+   - Complete requirement traceability
+
+**3. FR-072: ElevenLabs STT Integration**
+   - Streaming voice pipeline for outcaller
+   - SDK-based Speech-To-Text integration tests
+   - Raw bytes bug fixes and event name corrections
+   - Twilio audio integration for voice modality
+
+**4. FR-068: Chaplain Watch Loop**
+   - Automated feature request workflow system
+   - Plan → Judge → Amend cycle (max 3 iterations)
+   - Inbox polling for topic files
+   - Approved FRs auto-promote to feature-requests/
+   - Dry-run mode for safe testing
+
+### 🔧 Supporting Work
+
+- **Code Refactoring**: FR-066/FR-067 CC distribution and edge compiler extraction
+- **Template Improvements**: FR-064 Jinja2 AST migration for better variable extraction
+- **Documentation**: Multiple diary entries capturing cognitive traps and architectural insights
+- **Testing**: Comprehensive test coverage across telco, STT, thinking budget, and outcaller modules
+
+### 📊 Development Statistics
+
+- **Total commits analyzed**: 50+ recent commits
+- **Files modified**: 60+ files
+- **Key modules touched**: yamlgraph core, telco nodes, outcaller system, linter enhancements
+- **Test cover
