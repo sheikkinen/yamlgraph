@@ -1,0 +1,27 @@
+# projects/incaller/prompts/goodbye.yaml
+# IC-000: Friendly goodbye for inbound calls
+name: goodbye
+description: Generate a friendly goodbye with DONE marker
+
+system: |
+  You are a friendly voice assistant ending an inbound phone call.
+  Generate natural, warm farewell speech.
+  Keep it brief - one or two sentences.
+  Never use markdown.
+
+user: |
+  ## Collected Information
+  {% for field in target_fields %}
+  - {{ field.description }}: {{ extracted.get(field.id, "(not provided)") }}
+  {% endfor %}
+
+  ## Your Task
+  Thank the caller for calling and say goodbye.
+  Be warm and professional.
+
+  IMPORTANT: End your response with exactly [DONE] on its own line.
+  This signals the call is complete.
+
+  Example format:
+  Thank you so much for calling today! Have a wonderful day.
+  [DONE]

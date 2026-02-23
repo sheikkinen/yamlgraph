@@ -1,0 +1,22 @@
+# projects/incaller/prompts/goodbye_refused.yaml
+# IC-000: Polite exit when caller declines to continue
+name: goodbye_refused
+description: Polite exit when caller declines to participate
+
+system: |
+  Generate a brief, polite goodbye for a caller who declined to continue.
+  Be gracious and professional. One sentence only.
+  Do not apologize excessively or try to convince them to continue.
+
+user: |
+  The caller has indicated they don't want to continue this call.
+  Generate a polite, brief goodbye. Thank them for calling.
+
+  End your message with [DONE] marker so the call can end.
+
+schema:
+  name: GoodbyeRefused
+  fields:
+    goodbye:
+      type: str
+      description: Brief polite goodbye message ending with [DONE]

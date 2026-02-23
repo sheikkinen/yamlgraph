@@ -1,0 +1,299 @@
+# projects/incaller/graph.yaml
+# IC-000: Inbound Twilio voice call with ElevenLabs TTS/STT
+# Reuses outcaller TTS/STT/probe-recap (REQ-YG-086)
+version: "1.0"
+name: incaller-voice-demo
+description: Inbound call voicebot with ElevenLabs TTS/STT
+
+metadata:
+  provider: google
+  model: gemini-2.5-flash
+  thinking_budget: 0
+
+defaults:
+  prompts_relative: true
+  prompts_dir: prompts
+
+# Declare input variables for --var arguments
+state:
+  # Call info (set by await_call)
+  call_info: dict
+  # Caller info (set by await_call from Twilio webhook)
+  caller_number: str
+
+  # Conversation mode (legacy questions path)
+  questions: str
+  answers: list
+  transcript: str
+  next_utterance: str
+  last_spoken: str
+  call_disconnected: bool
+  call_done: bool
+  call_result: dict
+
+  # Probe-recap path (OC-005 compatible)
+  targets: str              # Raw "key:desc|key:desc" from CLI
+  target_fields: list       # Parsed [{id, description}] list
+  extracted: dict           # {field_id: value} — structured answers
+  missing_fields: list      # Field IDs not yet extracted
+  phase: str                # "probe" | "recap" — controls routing
+  probe_count: int          # Number of completed probe cycles (max 5)
+  recap_analysis: dict      # RecapAnalysis from LLM
+  recap_count: int          # Number of recap correction iterations (max 3)
+  user_refused: bool        # True when caller declines to participate
+
+loop_limits:
+  speak: 10
+  listen_and_transcribe: 10
+  accumulate_answer: 10
+  generate_probe: 6
+  generate_recap: 4
+  generate_goodbye: 2
+  generate_goodbye_refused: 2
+  generate_response: 10
+  extract_answers: 6
+  check_missing: 6
+  analyze_recap_response: 4
+  apply_corrections: 4
+
+tools:
+  await_call:
+    type: python
+    module: projects.incaller.nodes.twilio_inbound
+    function: await_call
+    description: Start server and wait for inbound Twilio call
+
+  # REQ-YG-086: Reuse outcaller tools without duplication
+  speak:
+    type: python
+    module: projects.outcaller.nodes.twilio_call
+    function: speak
+    description: ElevenLabs TTS → mulaw 8kHz → Twilio WebSocket
+
+  listen_and_transcribe:
+    type: python
+    module: projects.outcaller.nodes.twilio_call
+    function: listen_and_transcribe
+    description: Read Twilio audio → ElevenLabs realtime STT → transcript
+
+  accumulate_answer:
+    type: python
+    module: projects.outcaller.nodes.twilio_call
+    function: accumulate_answer
+    description: Append transcript to answers list in state
+
+  end_call:
+    type: python
+    module: projects.outcaller.nodes.twilio_call
+    function: end_call
+    description: Hang up via Twilio REST; close WebSocket
+
+  # Probe-recap tools (reused from outcaller)
+  parse_targets:
+    type: python
+    module: projects.outcaller.nodes.probe_recap
+    function: parse_targets
+    description: Parse 'key:desc|key:desc' into structured target fields
+
+  extract_answers:
+    type: python
+    module: projects.outcaller.nodes.probe_recap
+    function: extract_answers
+    description: Call LLM for extraction, merge into existing extracted dict
+
+  check_missing:
+    type: python
+    module: projects.outcaller.nodes.probe_recap
+    function: check_missing
+    description: Compute missing fields and set phase for routing
+
+  apply_corrections:
+    type: python
+    module: projects.outcaller.nodes.probe_recap
+    function: apply_corrections
+    description: Apply caller corrections to extracted answers
+
+nodes:
+  await_call:
+    type: python
+    tool: await_call
+    state_key: call_info
+    on_error: fail
+
+  # Legacy questions path
+  generate_response:
+    type: llm
+    prompt: conversation
+    state_key: next_utterance
+
+  speak:
+    type: python
+    tool: speak
+    state_key: last_spoken
+    loop_limit: 10
+    on_error: fail
+
+  listen_and_transcribe:
+    type: python
+    tool: listen_and_transcribe
+    state_key: transcript
+    on_error: fail
+
+  accumulate_answer:
+    type: python
+    tool: accumulate_answer
+    state_key: answers
+
+  end_call:
+    type: python
+    tool: end_call
+    state_key: call_result
+    on_error: fail
+
+  # Probe-recap nodes (OC-005)
+  parse_targets:
+    type: python
+    tool: parse_targets
+    state_key: target_fields
+    on_error: fail
+
+  extract_answers:
+    type: python
+    tool: extract_answers
+    state_key: extracted
+    on_error: fail
+
+  check_missing:
+    type: python
+    tool: check_missing
+    state_key: missing_fields
+    on_error: fail
+
+  generate_probe:
+    type: llm
+    prompt: generate_probe
+    state_key: next_utterance
+    skip_if_exists: false
+
+  generate_recap:
+    type: llm
+    prompt: generate_recap
+    state_key: next_utterance
+
+  analyze_recap_response:
+    type: llm
+    prompt: analyze_recap_response
+    state_key: recap_analysis
+
+  apply_corrections:
+    type: python
+    tool: apply_corrections
+    state_key: extracted
+    on_error: fail
+
+  generate_goodbye:
+    type: llm
+    prompt: goodbye
+    state_key: next_utterance
+    skip_if_exists: false
+
+  generate_goodbye_refused:
+    type: llm
+    prompt: goodbye_refused
+    state_key: next_utterance
+    skip_if_exists: false
+
+edges:
+  - from: START
+    to: await_call
+
+  # === Branching at await_call ===
+  - from: await_call
+    to: parse_targets
+    condition: "targets != None"
+  - from: await_call
+    to: generate_response
+    condition: "targets == None"
+
+  # === Targets path: parse → check → probe/recap ===
+  - from: parse_targets
+    to: check_missing
+
+  - from: check_missing
+    to: generate_recap
+    condition: "phase == \"recap\""
+  - from: check_missing
+    to: generate_probe
+    condition: "phase == \"probe\""
+
+  # === All LLM response nodes → speak ===
+  - from: generate_probe
+    to: speak
+  - from: generate_recap
+    to: speak
+  - from: generate_goodbye
+    to: speak
+  - from: generate_goodbye_refused
+    to: speak
+  - from: generate_response
+    to: speak
+
+  # === After speaking, check if we're done ===
+  - from: speak
+    to: end_call
+    condition: "call_done == True"
+  - from: speak
+    to: end_call
+    condition: "call_disconnected == True"
+  - from: speak
+    to: listen_and_transcribe
+    condition: "call_done != True"
+
+  # === Handle disconnection during listen ===
+  - from: listen_and_transcribe
+    to: end_call
+    condition: "call_disconnected == True"
+  - from: listen_and_transcribe
+    to: accumulate_answer
+    condition: "call_disconnected != True"
+
+  # === Routing after accumulate_answer (mode-dependent) ===
+  - from: accumulate_answer
+    to: generate_response
+    condition: "targets == None"
+  - from: accumulate_answer
+    to: extract_answers
+    condition: "phase == \"probe\""
+  - from: accumulate_answer
+    to: analyze_recap_response
+    condition: "phase == \"recap\""
+
+  # === Extraction → check or exit on refusal ===
+  - from: extract_answers
+    to: generate_goodbye_refused
+    condition: "user_refused == True"
+  - from: extract_answers
+    to: check_missing
+    condition: "user_refused != True"
+
+  # === Recap response routing ===
+  - from: analyze_recap_response
+    to: generate_goodbye_refused
+    condition: "recap_analysis.user_refused == True"
+  - from: analyze_recap_response
+    to: generate_goodbye
+    condition: "recap_analysis.is_confirmed == True"
+  - from: analyze_recap_response
+    to: generate_goodbye
+    condition: "recap_count >= 3"
+  - from: analyze_recap_response
+    to: apply_corrections
+    condition: "recap_analysis.is_confirmed != True"
+
+  # === Correction loop ===
+  - from: apply_corrections
+    to: generate_recap
+
+  # === Terminal ===
+  - from: end_call
+    to: END

@@ -287,6 +287,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 26 | Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
 | 27 | Telco Voice Call Demo | `projects/outcaller` | REQ-YG-078 – 082 |
 | 28 | Graph-Level Thinking Budget | `models/graph_schema`, `utils/llm_factory` | REQ-YG-083 |
+| 29 | Incaller Voice Demo | `projects/incaller` | REQ-YG-084 – 086 |
 
 ### 1. Configuration Loading & Validation
 
@@ -548,6 +549,9 @@ Outbound Twilio voice call with ElevenLabs TTS/STT, demonstrating YAMLGraph as o
 | REQ-YG-081 | Telco demo: WebSocket coordinator bridges asyncio event loop and synchronous tool nodes via thread-safe Queue | `projects/outcaller/nodes/coordinator` |
 | REQ-YG-082 | Telco demo: ElevenLabs built-in VAD (commit_strategy=vad) replaces webrtcvad; no audioop dependency | `projects/outcaller/nodes` |
 | REQ-YG-083 | `thinking_budget` YAML field on graph `defaults` and per-node; validated as `0` or `≥ 1024`; passed as `thinking={"type":"enabled","budget_tokens":N}` to `ChatAnthropic` with forced `temperature=1` (override before cache key); raises on non-Anthropic provider; included in LLM cache key | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` |
+| REQ-YG-084 | Incaller: `await_call` node starts HTTP+WS server and blocks until inbound Twilio call connects | `projects/incaller/nodes/twilio_inbound` |
+| REQ-YG-085 | Incaller: `POST /incoming` webhook responds with TwiML `<Connect><Stream>` for Twilio Media Streams | `projects/incaller/server` |
+| REQ-YG-086 | Incaller: reuses outcaller TTS, STT, probe-recap, and coordinator without code duplication | `projects/incaller` |
 
 ---
 

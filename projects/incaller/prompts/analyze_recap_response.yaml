@@ -1,0 +1,42 @@
+# projects/incaller/prompts/analyze_recap_response.yaml
+# IC-000: Analyze caller's response to recap confirmation
+name: analyze_recap_response
+description: Analyze caller's response to recap - confirm or extract corrections
+
+system: |
+  You are analyzing a caller's response to a recap confirmation.
+  Determine if they confirmed everything or if they want to make corrections.
+  Extract any corrections they mentioned.
+
+user: |
+  ## Recap Given
+  {{ next_utterance }}
+
+  ## Current Values
+  {% for field in target_fields %}
+  - {{ field.id }}: {{ extracted.get(field.id, "null") }}
+  {% endfor %}
+
+  ## Caller's Response
+  {{ transcript }}
+
+  ## Your Task
+  Analyze if the caller:
+  1. Confirmed (said "yes", "correct", "that's right", etc.)
+  2. Wants corrections (mentioned different values, said "no", "actually", etc.)
+
+  Set is_confirmed=true only if they clearly agreed.
+  If they mentioned any corrections, extract the field_id and new_value pairs.
+
+schema:
+  name: RecapAnalysis
+  fields:
+    is_confirmed:
+      type: bool
+      description: True if caller confirmed all information is correct
+    corrections:
+      type: dict[str, str]
+      description: Map of field_id to corrected value (empty if confirmed)
+    user_refused:
+      type: bool
+      description: "True if caller wants to end call (e.g. 'forget it', 'I don't want to continue')"
