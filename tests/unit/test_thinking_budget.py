@@ -116,17 +116,17 @@ class TestCreateLLMThinking:
 
     def test_thinking_budget_forces_temperature_one(self):
         """thinking_budget >= 1024 forces temperature=1."""
-        llm = create_llm(
-            provider="anthropic", thinking_budget=8000, temperature=0.7
-        )
+        llm = create_llm(provider="anthropic", thinking_budget=8000, temperature=0.7)
         assert isinstance(llm, ChatAnthropic)
         assert llm.temperature == 1
 
     def test_thinking_budget_non_anthropic_raises(self):
         """thinking_budget >= 1024 with non-Anthropic provider raises."""
-        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
-            with pytest.raises(ValueError, match="(?i)thinking_budget.*anthropic"):
-                create_llm(provider="openai", thinking_budget=8000)
+        with (
+            patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}),
+            pytest.raises(ValueError, match="(?i)thinking_budget.*anthropic"),
+        ):
+            create_llm(provider="openai", thinking_budget=8000)
 
     def test_thinking_budget_in_cache_key(self):
         """thinking_budget is included in LLM cache key."""
@@ -145,9 +145,7 @@ class TestCreateLLMThinking:
     def test_temperature_override_before_cache_key(self):
         """Temperature override happens before cache key computation."""
         # First call with temperature=0.5 and thinking_budget=8000
-        llm1 = create_llm(
-            provider="anthropic", thinking_budget=8000, temperature=0.5
-        )
+        llm1 = create_llm(provider="anthropic", thinking_budget=8000, temperature=0.5)
         # Second call with temperature=1 and thinking_budget=8000
         llm2 = create_llm(provider="anthropic", thinking_budget=8000, temperature=1)
 
