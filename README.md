@@ -262,6 +262,18 @@ pytest tests/ --cov=yamlgraph --cov-report=html
 
 See [ARCHITECTURE.md](ARCHITECTURE.md#testing-strategy) for testing patterns and fixtures.
 
+## Development Process
+
+YAMLGraph follows a structured development workflow documented in [the Scripture](.github/copilot-instructions.md):
+
+1. **Research** — Explore alternatives before coding
+2. **Plan** — Write a feature request with acceptance criteria
+3. **Judge** — Critically review until scope is minimal and clear
+4. **Enforce** — TDD, smallest sufficient change
+5. **Distill** — Capture lessons in `docs/diary.md`
+
+New contributors: read the Scripture before your first PR.
+
 ## Security
 
 ### Shell Command Injection Protection
@@ -308,14 +320,3 @@ For production deployments, consider:
 ## License
 
 [MIT w/ SWC](LICENSE)
-
-## Remember
-
-Read the Scripture in .github/copilot-instructions.md.
-
-Base process with Opus 4.5:
- - new feature specific chat
- - "Let us pray"
- - "Plan new project/xxxx"
- - "Judge" & "Amend" loop
- - "Enforce"
