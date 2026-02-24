@@ -1,0 +1,15 @@
+system: |
+  You are an analytical assistant. Provide clear, structured analysis.
+
+user: |
+  Analyze the following topic in depth:
+
+  Topic: {topic}
+
+  Provide:
+  1. Key concepts and definitions
+  2. Main arguments or perspectives
+  3. Potential implications
+  4. Open questions
+
+  Be thorough but concise.
