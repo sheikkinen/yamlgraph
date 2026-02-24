@@ -288,7 +288,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 27 | Telco Voice Call Demo | `projects/outcaller` | OC-000 – OC-008 (project-tracked) |
 | 28 | Graph-Level Thinking Budget | `models/graph_schema`, `utils/llm_factory` | REQ-YG-083 |
 | ~~29~~ | ~~Incaller Voice Demo~~ | ~~consolidated into outcaller (OC-008)~~ | IC-000, IC-001 (project-tracked) |
-| 30 | Copilot Node | `node_factory/copilot_node`, `node_compiler` | REQ-YG-087 – REQ-YG-089 |
+| 30 | Copilot Node | `node_factory/copilot_node`, `node_compiler` | REQ-YG-087, REQ-YG-089 |
 
 ### 1. Configuration Loading & Validation
 

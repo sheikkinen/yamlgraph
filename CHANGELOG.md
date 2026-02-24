@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **FR-083 Commit-Msg Hook Bug** Fix `bash -c` positional argument bug in both `feat-requires-fr` and `changelog-required` pre-commit hooks. Added `_` placeholder to both hook entries so the commit message file properly becomes `$1`. Removed stale `backend: sampling` CHANGELOG entry for FR-081 (was deleted in FR-082 teardown). Added 19 integration tests for commit-msg hook behavior.
+- **FR-087 Stale REQ Range** Replace stale `REQ-YG-087–089` range notation with explicit `REQ-YG-087, REQ-YG-089` in ARCHITECTURE.md and CHANGELOG.md since REQ-YG-088 was removed during FR-082 teardown.
 
 ### Changed
 - **FR-084 Watch.sh Migration** Migrate `.chaplain/watch.sh` from inline copilot calls to `yamlgraph graph run`. Added `.chaplain/graph.yaml` (Plan→Judge workflow) and `.chaplain/prompts/{plan,judge}.yaml`. The bash script is now a thin polling wrapper; all workflow logic lives in the YAMLGraph graph.
@@ -18,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.56] - 2026-02-24
 
 ### Added
-- **FR-081 Copilot Node Type** (CAP-30, REQ-YG-087–089): New `copilot` node for delegating to GitHub Copilot CLI
+- **FR-081 Copilot Node Type** (CAP-30, REQ-YG-087, REQ-YG-089): New `copilot` node for delegating to GitHub Copilot CLI
   - `type: copilot` — invokes Copilot CLI with `--silent` flag and configurable `cli_flags`
   - `backend: cli` — subprocess execution with list-based command (injection-safe)
   - `cli_flags`: `allow_all_paths`, `allow_all_tools`, `model` options
