@@ -8,6 +8,24 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — Scope Drift and Persistent Gaps
+
+**Context:** Audit of the latest 5 commits (`7894440`..`fb09db5`). One `feat:` commit (FR-080, 53 infrastructure tests), one `chore:` commit (FR-080 label but containing FR-081 feature request), two `docs:` commits (FR-078 ARCHITECTURE update, FR-079 diary), one `docs(FR-079):` marking implementation. All human-authored.
+
+**Findings:**
+
+- ✗ VIOLATION — `feat(testing): FR-080` (`5ff37df`) still has no CHANGELOG.md entry. This is the **3rd consecutive audit** flagging this. FR-077's `changelog-required` hook was either bypassed or failed silently. Per the previous audit's own heuristic, persistent drift past 3 audits should escalate to ✗ VIOLATION. Escalated.
+- ⚠ DRIFT — HEAD commit `fb09db5` labeled `chore: FR-080` contains `feature-requests/FR-081-copilot-node.md` (325 lines). The commit scope misattributes FR-081 artifacts to FR-080. Each FR should be its own atomic commit scope — traceability suffers when deliverables are bundled under the wrong tag.
+- ⚠ DRIFT — FR-080 still lacks a dedicated diary reflection (Distill step). 2nd audit flagging this. The cognitive process of testing infrastructure scripts — what was fragile, what surprised, what patterns emerged — was never captured.
+- ⚠ DRIFT — "Git Report" entry (line ~66) still contains leaked LLM preamble ("Perfect! Now I have enough context."). 3rd consecutive audit. Per escalation heuristic, this should be next to escalate.
+- ✓ COMPLIANT — ADR-001 upheld across all changes: 25 new test functions tagged `@pytest.mark.req('REQ-YG-063')`, noqa confessions complete (CONF-024–033), Conventional Commits format followed, `req_coverage.py` passes.
+
+**Heuristic:** When a commit bundles unrelated deliverables under a single FR tag, it obscures traceability — `git log --grep=FR-081` will miss `fb09db5`. Atomic FR scope per commit is not aesthetic preference; it is the mechanism that makes `git log` a reliable audit trail. Treat scope misattribution as a traceability defect.
+
+**Seed:** Should a pre-commit hook parse the commit message's FR tag and cross-check it against the paths of staged files (e.g., `feature-requests/FR-081-*` requires `FR-081` in the message)? This would catch scope misattribution at commit time rather than at audit.
+
+---
+
 ## 2026-02-24: Inquisitor Audit — FR-080 CHANGELOG Enforcement Gap
 
 **Context:** Audit of the latest 5 commits (`3a9e01d`..`5ff37df`). One `feat:` commit (FR-080, +1228 lines of infrastructure test coverage), two `docs:` commits (FR-079 diary/ARCHITECTURE), one `docs(FR-079):` marking implementation, one `refactor(FR-078):` deleting relocated tests. The `feat:` commit is the only one subject to FR-077 CHANGELOG enforcement.
