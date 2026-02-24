@@ -8,6 +8,24 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — Housekeeping Commits and Persistent CHANGELOG Drift
+
+**Context:** Inquisitor audit of the latest 5 commits (`e603f29`..`033fdd5`). All five are housekeeping: two `refactor(FR-078):` commits relocating/deleting project tests (3047 lines removed), two `docs:` commits (FR-079 diary reflection, ARCHITECTURE.md update), and one `docs(FR-079):` marking implementation complete. No new features or capabilities were introduced. All commits authored by human (no Co-authored-by trailer expected).
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits with scope and FR tags. `req_coverage.py` passes cleanly. ARCHITECTURE.md was updated in `033fdd5` to document the FR-078/OC-008 relocation. Both framework `# noqa` suppressions (ANN001, ARG002) are confessed in `docs/confessions.md`. ADR-001, Commandments 1, 3, 10 upheld.
+- ⚠ DRIFT — No CHANGELOG entry for FR-078 across either commit (`e603f29`, `3a9e01d`). The `refactor:` prefix is exempt from FR-077 enforcement, so technically compliant. However, this is the **4th consecutive audit** flagging this gap. Removing 3047 lines and 8 requirements from framework tracking is a structural change that warrants visibility. The window for a retroactive entry has effectively closed; the version (0.4.55) is already published.
+- ⚠ DRIFT — FR-078 has no dedicated diary entry. The cognitive process of severing project tests from the framework — a significant architectural boundary decision — was only captured indirectly through audit entries #14 and #15 (now in `diary-2026-02-23.md`). The Sermon's Distill step was served by proxy, not by the author.
+- ⚠ DRIFT — The "Git Report" entry (line 28) contains leaked LLM preamble ("Perfect! Now I have enough context.") and lacks the canonical diary format (**Context:**, **Heuristic:**, **Seed:**). This is a content-quality drift: diary entries should be authored reflections, not raw LLM output pasted verbatim.
+- ✓ COMPLIANT — FR-079 has a dedicated diary reflection (commit `4396700`) and the feature request was marked as implemented (`7894440`). The Sermon's full cycle — Plan, Enforce, Distill — was followed.
+
+**Heuristic:** When a drift is flagged across 3+ consecutive audits without resolution, it has graduated from drift to accepted practice. Either amend the doctrine to codify the exception, or schedule a corrective action. Persistent drift erodes the audit's authority — each unfixed finding teaches the team that audit warnings are advisory, not binding.
+
+**Seed:** Should the Inquisitor track a "drift backlog" — a persistent list of unresolved ⚠ findings with escalation thresholds (e.g., 3 audits → auto-escalate to ✗ VIOLATION)? This would formalize the decay signal and prevent indefinite drift.
+
+---
+
 ## 2026-02-24: World Digest — Observability and Agent Orchestration
 
 
