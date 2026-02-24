@@ -235,6 +235,49 @@ class TestCopilotNodeCLI:
             prompt_text = cmd[prompt_idx]
             assert "AI Safety" in prompt_text
 
+    def test_nested_variable_resolution(self, tmp_path: Path) -> None:
+        """Variables like {state.result.output} should resolve Pydantic attributes."""
+        from yamlgraph.models.schemas import CopilotResult
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        # Use pipe syntax to ensure YAML doesn't misparse {var} as dict
+        prompt_file.write_text(
+            "system: Review this\nuser: |\n  Review: {previous_output}"
+        )
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "review",
+            "backend": "cli",
+            "variables": {"previous_output": "{state.analysis.output}"},
+        }
+
+        # State contains a CopilotResult Pydantic model
+        state = {
+            "analysis": CopilotResult(
+                output="The analysis found key insights",
+                exit_code=0,
+                backend="cli",
+            )
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Review complete"
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            node_fn = create_copilot_node("test_copilot", config)
+            node_fn(state)
+
+            # The prompt should contain the nested attribute value
+            cmd = mock_run.call_args[0][0]
+            prompt_idx = cmd.index("-p") + 1
+            prompt_text = cmd[prompt_idx]
+            assert "The analysis found key insights" in prompt_text
+
 
 @pytest.mark.req("REQ-YG-087")
 class TestCopilotNodeNodeCompiler:

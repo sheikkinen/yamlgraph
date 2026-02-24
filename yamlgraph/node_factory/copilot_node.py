@@ -6,7 +6,6 @@ FR-081: Copilot Node Type.
 
 import asyncio
 import logging
-import re
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
@@ -15,6 +14,7 @@ from typing import Any
 from yamlgraph.executor_base import format_prompt
 from yamlgraph.models.schemas import CopilotResult
 from yamlgraph.node_factory.base import GraphState
+from yamlgraph.utils.expressions import resolve_state_expression
 from yamlgraph.utils.prompts import load_prompt
 
 logger = logging.getLogger(__name__)
@@ -26,36 +26,30 @@ DEFAULT_TIMEOUT = 300
 def _resolve_variables(
     variables: dict[str, str], state: dict[str, Any]
 ) -> dict[str, Any]:
-    """Resolve variable references like {state.key} from state.
+    """Resolve variable references like {state.key} or {state.key.attr} from state.
+
+    Uses the consolidated resolve_state_expression which supports:
+    - Simple paths: {state.field}
+    - Nested paths: {state.analysis.output}
+    - Object attributes: {state.result.score} for Pydantic models
 
     Args:
-        variables: Dict of var_name -> expression (may contain {state.x})
+        variables: Dict of var_name -> expression (may contain {state.x.y})
         state: Current graph state
 
     Returns:
         Dict with resolved values
     """
     resolved = {}
-    pattern = re.compile(r"\{state\.(\w+)\}")
-
     for key, expr in variables.items():
         if isinstance(expr, str):
-            # Replace {state.key} with actual state value
-            match = pattern.match(expr)
-            if match:
-                state_key = match.group(1)
-                resolved[key] = state.get(state_key, "")
-            elif "{state." in expr:
-                # Multiple replacements or partial match
-                def replacer(m: re.Match) -> str:
-                    return str(state.get(m.group(1), ""))
-
-                resolved[key] = pattern.sub(replacer, expr)
-            else:
-                resolved[key] = expr
+            try:
+                resolved[key] = resolve_state_expression(expr, state)
+            except KeyError:
+                # Path not found - use empty string as fallback
+                resolved[key] = ""
         else:
             resolved[key] = expr
-
     return resolved
 
 

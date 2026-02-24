@@ -6,6 +6,60 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — The Fossilized CHANGELOG Persists
+
+**Context:** Audit of latest 5 commits (`ea737f3`..`ecb06bd`). One `feat:` commit (`4152cb1`, FR-082 sampling backend). One `docs(copilot-mcp):` commit (`ecb06bd`, sampling backend example with 5 new files). One `docs(diary):` reflection (`7d0b368`). One `docs:` Scripture cleanup (`2ad5006`). One `chore:` README update (`ea737f3`). The audit window captures the post-FR-082 delivery including an example that exercises the now-working sampling backend.
+
+**Findings:**
+
+- ✗ VIOLATION — CHANGELOG.md line 14 still states `backend: sampling — deferred (raises NotImplementedError, requires MCP loopback)`. This is the **3rd consecutive audit** flagging this. Commit `4152cb1` replaced the stub with a working `session.create_message()` implementation. Commit `ecb06bd` now adds a full `examples/copilot_mcp/` example exercising sampling — you cannot demonstrate a feature that the CHANGELOG claims raises `NotImplementedError`. The contradiction is now compounded: the codebase has both implementation *and* example, while the CHANGELOG describes a stub.
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits with correct scoping: `docs(copilot-mcp):`, `docs(diary):`, `feat(mcp):`, `docs:`, `chore:`.
+- ✓ COMPLIANT — ADR-001 fully upheld. REQ-YG-088 defined in ARCHITECTURE.md. All sampling tests carry `@pytest.mark.req("REQ-YG-088")` (5 tests). All `# noqa` suppressions (ANN001, ARG002) documented in `docs/confessions.md`.
+- ✓ COMPLIANT — Diary reflection written for FR-082 (ContextVar threading pattern) with Trap/Heuristic/Gotcha/Seed.
+- ⚠ DRIFT — Commit `ecb06bd` adds `examples/copilot_mcp/` (5 files, 211 insertions) as a standalone `docs:` commit after the `feat:` commit. The example demonstrates `backend: sampling` but there is no CHANGELOG entry noting the example's existence. Examples are typically listed in CHANGELOG alongside the feature (see FR-081's entry: `examples/copilot/: Plan → Judge → Summarize demo`). This asymmetry suggests the example was an afterthought rather than part of the delivery cycle.
+
+**Heuristic:** A violation that survives 3 audits without correction reveals a process gap: audits record but do not compel. The Inquisitor writes to `docs/diary.md` only — it cannot amend `CHANGELOG.md`. The person who reads the audit must also be the person who acts on it. If nobody reads the diary between audits, the audit loop is open — it detects without correcting, which is monitoring without alerting.
+
+**Seed:** Should the Inquisitor audit produce a machine-readable artifact (e.g., a `docs/audit-violations.json`) that a pre-commit hook or CI step can check? This would close the loop: audit detects → artifact records → hook blocks commit until violation is resolved. The diary remains for human reflection; the artifact becomes the enforcement mechanism.
+
+---
+
+## 2026-02-24: Inquisitor Audit — CHANGELOG Contradicts Codebase
+
+**Context:** Audit of latest 5 commits (`0e3754f`..`4152cb1`). One `feat:` commit (`4152cb1`, FR-082 sampling backend — replaces `NotImplementedError` stub with working `session.create_message()` call, 5 new tests, new `mcp_context.py` module). One `docs:` commit (`2ad5006`, Scripture cleanup + pre-commit `.venv/bin/python` fix). One `chore:` README update (`ea737f3`). One version bump (`5c1dc27`, v0.4.56 for FR-081). One `docs:` FR-081 examples (`0e3754f`).
+
+**Findings:**
+
+- ✗ VIOLATION — CHANGELOG.md line 14 states `backend: sampling` — "deferred (raises `NotImplementedError`, requires MCP loopback)" but commit `4152cb1` replaced that stub with a working implementation. The CHANGELOG now **actively contradicts** the codebase. This is worse than a missing entry — it is misinformation that will mislead the next reader. The `changelog-required` hook (still broken, `$0/$1` bug, 6th audit cycle) cannot catch this because the violation is semantic, not structural.
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits: `feat(mcp):`, `docs:`, `chore:`, `chore:`, `docs(copilot-node):` — correctly scoped with FR tags where applicable.
+- ✓ COMPLIANT — ADR-001 upheld. REQ-YG-088 existed in ARCHITECTURE.md from FR-081. All 5 new tests carry `@pytest.mark.req("REQ-YG-088")`. Feature request `FR-082-sampling-backend.md` follows full Sermon cycle (Plan → Judge → Enforce → Distill).
+- ✓ COMPLIANT — FR-082 has a diary reflection ("Threading State Without Polluting State") with Trap/Heuristic/Seed. No new `# noqa` suppressions.
+- ⚠ DRIFT — Commit `2ad5006` touched `.pre-commit-config.yaml` to fix hook paths (bare `python` → `.venv/bin/python`) but did not fix the `$0/$1` bug in the `changelog-required` hook in the same file. A contributor edited the guard file, saw adjacent guards, and still left the known bug. Proximity did not trigger correction.
+
+**Heuristic:** A CHANGELOG that contradicts the code is an active hazard, not just missing documentation. When a `feat:` commit transforms a `NotImplementedError` into working code, the prior CHANGELOG entry describing the stub becomes a lie. Audits that check "does a CHANGELOG entry exist?" miss this class of error — the check must also ask "does the existing entry still describe reality?"
+
+**Seed:** Should the bump/release script include a `grep -q NotImplementedError` sanity check against CHANGELOG descriptions that mention "deferred" or "not implemented"? Stale CHANGELOG entries that describe removed limitations are a new category of documentation debt — not missing docs, but **fossilized docs** that preserve a state that no longer exists.
+
+---
+
+## 2026-02-24: Inquisitor Audit — The Chronic Hook and the Missing Entry
+
+**Context:** Audit of latest 5 commits (`5c1dc27`..`7d0b368`). One `feat:` commit (`4152cb1`, FR-082 sampling backend — 5 new tests, `mcp_context.py` module, 611 lines changed). One diary reflection (`7d0b368`). One docs cleanup (`2ad5006`). One README update (`ea737f3`). One version bump/tag (`5c1dc27`, v0.4.56). The audit window captures the FR-082 delivery cycle atop the freshly-tagged v0.4.56.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits: `docs(diary):`, `feat(mcp):`, `docs:`, `chore:`, `chore:` — all correctly scoped with FR tags where applicable.
+- ✓ COMPLIANT — ADR-001 fully upheld. REQ-YG-088 (sampling backend) was already defined in ARCHITECTURE.md before implementation. All 5 new tests carry `@pytest.mark.req("REQ-YG-088")`. Diary entry written with Trap/Heuristic/Gotcha/Seed.
+- ✓ COMPLIANT — All `# noqa` suppressions (ANN001, ARG002) documented in `docs/confessions.md` with CONF-XXX IDs. No new suppressions introduced.
+- ✗ VIOLATION — `feat(mcp): FR-082` (`4152cb1`) has no CHANGELOG.md entry. This is a `feat:` commit introducing a new backend implementation — it requires a CHANGELOG entry per Commandment 10. The `changelog-required` hook still carries the `$0/$1` bash bug (5th consecutive audit flagging this). The hook remains structurally incapable of enforcement.
+- ⚠ DRIFT — The `docs:` commit (`2ad5006`) bundles three unrelated changes: Scripture cleanup, pre-commit python path fix, and test mock fix for Python 3.13. Each is a distinct concern that warrants its own commit for traceability. Atomic commits aid bisection and review.
+
+**Heuristic:** A violation that survives 5 audits without correction is no longer a violation — it is policy. Either fix the hook and add the CHANGELOG entry, or formally document that CHANGELOG enforcement is manual-only. The current state is the worst of both worlds: a guard that exists but doesn't guard, audits that flag but don't fix. Ambiguity in enforcement is itself a defect.
+
+**Seed:** The `docs:` commit bundling 3 concerns suggests commit granularity guidelines are absent from the Scripture. Should there be a Commandment on atomic commits — "one logical change per commit" — or would that add friction without proportional value?
+
+---
+
 ## 2026-02-24: FR-082 — Threading State Without Polluting State
 
 **Context:** Implemented MCP sampling backend for copilot node. The challenge: thread an MCP session object from async tool handler → thread pool executor → sync graph node, without adding infrastructure to graph state.
