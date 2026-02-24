@@ -44,9 +44,16 @@ def _resolve_variables(
     for key, expr in variables.items():
         if isinstance(expr, str):
             try:
-                resolved[key] = resolve_state_expression(expr, state)
-            except KeyError:
+                value = resolve_state_expression(expr, state)
+                logger.debug(f"[resolve] {key}={expr!r} -> {type(value).__name__}")
+                resolved[key] = value
+            except KeyError as e:
                 # Path not found - use empty string as fallback
+                logger.warning(f"[resolve] {key}={expr!r} KeyError: {e}")
+                resolved[key] = ""
+            except Exception as e:
+                # Catch any other resolution errors
+                logger.warning(f"[resolve] {key}={expr!r} error: {e}")
                 resolved[key] = ""
         else:
             resolved[key] = expr
