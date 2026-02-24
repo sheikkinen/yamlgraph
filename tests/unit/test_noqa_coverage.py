@@ -142,7 +142,6 @@ class TestMain:
 
         with (
             patch.object(noqa_coverage, "SCAN_DIRS", ["yamlgraph"]),
-            patch.object(noqa_coverage.Path, "__new__", return_value=tmp_path),
             patch.object(noqa_coverage.sys, "argv", ["noqa_coverage.py"]),
         ):
             # Patch Path(__file__).parent.parent to return tmp_path
