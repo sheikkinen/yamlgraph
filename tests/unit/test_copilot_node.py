@@ -297,6 +297,189 @@ class TestCopilotNodeNodeCompiler:
         assert NodeType.requires_prompt("copilot") is True
 
 
+@pytest.mark.req("REQ-YG-087")
+class TestCopilotNodeErrorHandling:
+    """Tests for copilot node error handling paths."""
+
+    def test_missing_state_key_raises(self, tmp_path: Path) -> None:
+        """Should raise ValueError when state_key is missing."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            # state_key intentionally missing
+        }
+
+        with pytest.raises(ValueError, match="requires 'state_key'"):
+            create_copilot_node("test_copilot", config)
+
+    def test_timeout_expired_raises(self, tmp_path: Path) -> None:
+        """Should raise RuntimeError with helpful message on timeout."""
+        import subprocess
+
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "timeout": 10,
+        }
+
+        with patch(
+            "subprocess.run",
+            side_effect=subprocess.TimeoutExpired(cmd="copilot", timeout=10),
+        ):
+            node_fn = create_copilot_node("test_copilot", config)
+
+            with pytest.raises(RuntimeError, match="timed out after 10s"):
+                node_fn({})
+
+    def test_variable_keyerror_fallback(self, tmp_path: Path) -> None:
+        """Variables with missing state keys should fallback to empty string."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello {value}")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "variables": {"value": "{state.nonexistent_key}"},
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            node_fn = create_copilot_node("test_copilot", config)
+            # State doesn't have 'nonexistent_key' - should fallback to ""
+            node_fn({})
+
+            cmd = mock_run.call_args[0][0]
+            prompt_idx = cmd.index("-p") + 1
+            prompt_text = cmd[prompt_idx]
+            # Variable should be empty string, not the placeholder
+            assert "{state.nonexistent_key}" not in prompt_text
+
+    def test_variable_resolution_generic_error_fallback(self, tmp_path: Path) -> None:
+        """Variables that cause non-KeyError exceptions should fallback to empty."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello {value}")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "variables": {"value": "{state.data}"},
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.returncode = 0
+
+        # Mock resolve_state_expression to raise a non-KeyError exception
+        with (
+            patch("subprocess.run", return_value=mock_result) as mock_run,
+            patch(
+                "yamlgraph.node_factory.copilot_node.resolve_state_expression",
+                side_effect=ValueError("Unexpected error"),
+            ),
+        ):
+            node_fn = create_copilot_node("test_copilot", config)
+            # Should fallback to empty string, not crash
+            node_fn({"data": "test"})
+
+            cmd = mock_run.call_args[0][0]
+            prompt_idx = cmd.index("-p") + 1
+            prompt_text = cmd[prompt_idx]
+            # Variable should be empty string due to fallback
+            assert "Unexpected error" not in prompt_text
+
+    def test_relative_prompt_path(self, tmp_path: Path) -> None:
+        """Relative prompt paths should use load_prompt."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        # Create graph in a subdirectory with prompts
+        graph_dir = tmp_path / "graphs"
+        graph_dir.mkdir()
+        prompts_dir = tmp_path / "prompts"
+        prompts_dir.mkdir()
+
+        prompt_file = prompts_dir / "test.yaml"
+        prompt_file.write_text("system: Test system\nuser: Hello")
+
+        config = {
+            "type": "copilot",
+            "prompt": "test.yaml",  # Relative path
+            "state_key": "result",
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.returncode = 0
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch(
+                "yamlgraph.node_factory.copilot_node.load_prompt"
+            ) as mock_load_prompt,
+        ):
+            mock_load_prompt.return_value = {
+                "system": "Test system",
+                "user": "Hello",
+            }
+            node_fn = create_copilot_node("test_copilot", config)
+            node_fn({})
+
+            # load_prompt should have been called for relative path
+            mock_load_prompt.assert_called_once()
+
+    def test_literal_variable_passthrough(self, tmp_path: Path) -> None:
+        """Non-string variables should pass through unchanged."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello {count}")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "variables": {"count": 42},  # Non-string value
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            node_fn = create_copilot_node("test_copilot", config)
+            node_fn({})
+
+            cmd = mock_run.call_args[0][0]
+            prompt_idx = cmd.index("-p") + 1
+            prompt_text = cmd[prompt_idx]
+            # Non-string value should be converted properly
+            assert "42" in prompt_text
+
+
 @pytest.mark.req("REQ-YG-089")
 class TestCopilotNodeComposition:
     """Tests for copilot node composition with other patterns."""
