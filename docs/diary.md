@@ -8,6 +8,24 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — FR-080 CHANGELOG Enforcement Gap
+
+**Context:** Audit of the latest 5 commits (`3a9e01d`..`5ff37df`). One `feat:` commit (FR-080, +1228 lines of infrastructure test coverage), two `docs:` commits (FR-079 diary/ARCHITECTURE), one `docs(FR-079):` marking implementation, one `refactor(FR-078):` deleting relocated tests. The `feat:` commit is the only one subject to FR-077 CHANGELOG enforcement.
+
+**Findings:**
+
+- ✗ VIOLATION — Commit `5ff37df` (`feat(testing): FR-080`) did not update CHANGELOG.md. FR-077's `changelog-required` hook enforces that all `feat:` and `fix:` commits stage CHANGELOG.md. The commit either bypassed the hook or it failed silently. A `feat:` that adds 53 tests and 10 confessions is a notable addition that deserves CHANGELOG visibility.
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits with scope and FR tags. ADR-001 upheld: FR-080 tests are tagged `@pytest.mark.req('REQ-YG-063')`, `req_coverage.py` passes. All noqa suppressions (CONF-024–033) are confessed in `docs/confessions.md`. Feature request FR-080 exists.
+- ⚠ DRIFT — No FR-080 specific diary reflection. The commit added an Inquisitor Audit entry (meta-audit of prior commits) but did not include a Distill step for the FR-080 work itself — the cognitive process of testing infrastructure scripts was not captured.
+- ⚠ DRIFT — The "Git Report" entry (line 46+) still contains leaked LLM preamble ("Perfect! Now I have enough context.") and lacks canonical diary format. Flagged in the previous audit; not yet addressed.
+- ✓ COMPLIANT — FR-079 completed the full Sermon cycle: Plan (FR doc), Enforce (implementation), Distill (diary entry `4396700`), Submit (marked implemented `7894440`).
+
+**Heuristic:** When a `feat:` commit lands without a CHANGELOG entry, the enforcement hook has failed at its single purpose. Treat hook bypass as a production incident: trace the cause (was `--no-verify` used? was the hook not installed?), fix the gap, and add a regression guard. Silent enforcement failure is worse than no enforcement — it creates false confidence.
+
+**Seed:** Should `req_coverage.py` (or a sibling script) also verify that every `feat:` commit in the last N commits has a corresponding CHANGELOG entry? This would catch enforcement gaps that the commit-msg hook missed, turning a single point of failure into defense in depth.
+
+---
+
 ## 2026-02-24: Inquisitor Audit — Housekeeping Commits and Persistent CHANGELOG Drift
 
 **Context:** Inquisitor audit of the latest 5 commits (`e603f29`..`033fdd5`). All five are housekeeping: two `refactor(FR-078):` commits relocating/deleting project tests (3047 lines removed), two `docs:` commits (FR-079 diary reflection, ARCHITECTURE.md update), and one `docs(FR-079):` marking implementation complete. No new features or capabilities were introduced. All commits authored by human (no Co-authored-by trailer expected).
