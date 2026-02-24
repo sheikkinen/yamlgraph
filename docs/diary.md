@@ -6,6 +6,20 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: FR-081 Copilot Node — Pattern Recognition in Error Handling
+
+**Context:** Implemented FR-081 (Copilot Node Type) — new `copilot` node for delegating to GitHub Copilot CLI. TDD approach: 12 tests across 4 test classes, 276-line implementation.
+
+**Trap Encountered:** Regex Pattern Mismatch — Test `test_graceful_file_not_found` expected `RuntimeError` with pattern `copilot.*not found|not installed`. Error message was "Copilot CLI not found..." where "Copilot" (uppercase) appeared AFTER "not found" in the string. Pattern `copilot.*not found` requires "copilot" to PRECEDE "not found". Quick fix: changed message to "copilot binary not found..." so the pattern matches. Similar issue in sampling test — needed `(?i)` for case-insensitive matching.
+
+**Insight:** Test regex patterns are contracts. When the error message structure changes, regex patterns silently fail to match — pytest shows the original exception, not a clear "regex mismatch" error. The traceback shows the exception being raised, not the regex failing. This is a debugging trap: you spend time wondering why the exception isn't caught, when actually it IS caught but the regex doesn't match.
+
+**Heuristic:** When `pytest.raises(..., match=...)` fails, check regex before debugging exception handling. Use `(?i)` for case-insensitive matching by default when error message case isn't semantically important.
+
+**Seed:** Should YAMLGraph standardize error message structure to always put key terms (node type, error class) in a predictable position, making test patterns more robust? E.g., `"{NodeType} error: {description}"` convention.
+
+---
+
 ---
 
 ## 2026-02-24: Inquisitor Audit — Chronic Violations and Enforcement Decay
