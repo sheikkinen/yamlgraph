@@ -1,8 +1,17 @@
-# YamlGraph
+# YAMLGraph
+
+> **Build production AI pipelines in minutes, not days.**
+> Define your entire LLM workflow in YAML — routing, loops, agents, human-in-the-loop — and run it with one command.
+> No boilerplate. Multi-provider. Observable. Version-controlled.
 
 [![PyPI version](https://badge.fury.io/py/yamlgraph.svg)](https://pypi.org/project/yamlgraph/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+```bash
+pip install yamlgraph
+yamlgraph graph run examples/demos/hello/graph.yaml --var name="World" --var style="enthusiastic"
+```
 
 A YAML-first framework for building LLM pipelines using:
 
