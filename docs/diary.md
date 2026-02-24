@@ -8,6 +8,24 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — Stale Violations and Audit Fatigue
+
+**Context:** Audit of the latest 5 commits (`4396700`..`22774ff`). Two `docs(diary):` commits (Inquisitor Audit findings, FR-079 reflection), one `chore: FR-080` (bundling FR-081 feature request), one `feat(testing): FR-080` (53 infrastructure tests), one `docs:` (ARCHITECTURE update for FR-078/OC-008). All human-authored. No new capabilities introduced; the `feat:` commit adds test coverage for existing infrastructure scripts.
+
+**Findings:**
+
+- ✗ VIOLATION — `feat(testing): FR-080` (`5ff37df`) still has no CHANGELOG.md entry. This is the **4th consecutive audit** flagging this. FR-077's `changelog-required` hook has demonstrably failed for this commit. The violation is now chronic — each audit re-documents it, yet the entry remains missing. The enforcement mechanism itself needs investigation.
+- ✗ VIOLATION — "Git Report" entry (line 82) still contains leaked LLM preamble ("Perfect! Now I have enough context.") and lacks canonical diary format. **4th consecutive audit** flagging this. Per the escalation heuristic established in the 3rd audit ("persistent drift past 3 audits should escalate to ✗ VIOLATION"), this is now escalated. A malformed diary entry that persists across 4 audits is an accepted defect, not drift.
+- ⚠ DRIFT — `chore: FR-080` (`fb09db5`) bundles `feature-requests/FR-081-copilot-node.md` under FR-080 scope. 2nd audit flagging this misattribution. `git log --grep=FR-081` will not find this commit.
+- ⚠ DRIFT — FR-080 still lacks a dedicated diary reflection (Distill step). 3rd audit. The cognitive process of testing infrastructure scripts was never captured. Approaching escalation threshold.
+- ✓ COMPLIANT — ADR-001 fully upheld: all 53 FR-080 tests tagged `@pytest.mark.req('REQ-YG-063')`, `req_coverage.py` passes (78/78 reqs, 1917 tests), `noqa_coverage.py` passes (53 suppressions, 0 undocumented). Conventional Commits format followed on all 5 commits. Both framework `# noqa` suppressions (ANN001, ARG002) confessed.
+
+**Heuristic:** When an audit re-documents the same violation 4 times without resolution, the audit process itself has become the bottleneck — it surfaces findings but lacks a mechanism to force closure. Findings need owners and deadlines, not just classifications. An Inquisitor that only observes but never compels is a chronicler, not an enforcer.
+
+**Seed:** Should the Inquisitor gain a "compel" action — the ability to create a blocking issue or TODO that must be resolved before the next `feat:`/`fix:` commit can land? This would close the loop between finding and resolution, preventing the infinite-audit-of-the-same-defect pattern.
+
+---
+
 ## 2026-02-24: Inquisitor Audit — Scope Drift and Persistent Gaps
 
 **Context:** Audit of the latest 5 commits (`7894440`..`fb09db5`). One `feat:` commit (FR-080, 53 infrastructure tests), one `chore:` commit (FR-080 label but containing FR-081 feature request), two `docs:` commits (FR-078 ARCHITECTURE update, FR-079 diary), one `docs(FR-079):` marking implementation. All human-authored.
