@@ -22,6 +22,7 @@ from pathlib import Path
 _ALL_FRAMEWORK_REQS = (
     list(range(1, 78))  # REQ-YG-001 through REQ-YG-077
     + [83]  # REQ-YG-083 (CAP-28 Thinking Budget)
+    + [87, 88, 89]  # REQ-YG-087–089 (CAP-30 Copilot Node)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -172,6 +173,14 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     # CAP-27 (Telco Voice Call Demo) removed - tests relocated to projects/outcaller/
     # CAP-29 (Incaller Voice Demo) removed - tests relocated to projects/incaller/
     "CAP-28": ("Graph-Level Thinking Budget", ["REQ-YG-083"]),
+    "CAP-30": (
+        "Copilot Node",
+        [
+            "REQ-YG-087",
+            "REQ-YG-088",
+            "REQ-YG-089",
+        ],
+    ),
 }
 
 

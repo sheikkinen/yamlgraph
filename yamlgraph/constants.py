@@ -21,6 +21,7 @@ class NodeType(StrEnum):
     SUBGRAPH = "subgraph"
     PASSTHROUGH = "passthrough"
     INTERACTIVE_TOOL = "interactive_tool"
+    COPILOT = "copilot"
 
     @classmethod
     def requires_prompt(cls, node_type: str) -> bool:
@@ -32,7 +33,7 @@ class NodeType(StrEnum):
         Returns:
             True if the node type requires a prompt
         """
-        return node_type in (cls.LLM, cls.ROUTER)
+        return node_type in (cls.LLM, cls.ROUTER, cls.COPILOT)
 
 
 class ErrorHandler(StrEnum):

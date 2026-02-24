@@ -122,3 +122,23 @@ class GenericReport(BaseModel):
         default_factory=dict,
         description="Additional key-value data (author, version, tags, etc.)",
     )
+
+
+# =============================================================================
+# Copilot Node Result (REQ-YG-087)
+# =============================================================================
+
+
+class CopilotResult(BaseModel):
+    """Structured result from copilot node execution.
+
+    Wraps the unstructured text output from Copilot CLI or MCP sampling
+    in a structured envelope with execution metadata.
+    """
+
+    output: str = Field(description="Raw Copilot response text")
+    exit_code: int = Field(
+        default=0, description="Process exit code (cli backend only)"
+    )
+    model: str | None = Field(default=None, description="Model used (if reported)")
+    backend: str = Field(description="Execution backend: 'cli' or 'sampling'")

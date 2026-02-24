@@ -13,6 +13,7 @@ from langgraph.graph import StateGraph
 from yamlgraph.constants import NodeType
 from yamlgraph.map_compiler import compile_map_node
 from yamlgraph.node_factory import (
+    create_copilot_node,
     create_interrupt_node,
     create_node_function,
     create_passthrough_node,
@@ -123,6 +124,16 @@ def compile_node(
     elif node_type == NodeType.PASSTHROUGH:
         # Simple state transformation node
         node_fn = create_passthrough_node(node_name, enriched_config)
+        graph.add_node(node_name, node_fn)
+    elif node_type == NodeType.COPILOT:
+        # Copilot CLI or MCP sampling node (FR-081)
+        node_fn = create_copilot_node(
+            node_name,
+            enriched_config,
+            graph_path=config.source_path,
+            prompts_dir=prompts_dir,
+            prompts_relative=prompts_relative,
+        )
         graph.add_node(node_name, node_fn)
     elif node_type == NodeType.SUBGRAPH:
         # Subgraph node - compose graphs from YAML

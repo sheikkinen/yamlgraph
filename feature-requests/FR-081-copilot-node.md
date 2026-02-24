@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Approved (Judgement 2026-02-24)
+**Status:** Implemented (2026-02-24)
 **Effort:** 5 days
 **Requested:** 2026-02-24
 **FR:** FR-081
@@ -323,3 +323,23 @@ Create a separate config class like `SubgraphNodeConfig`. Rejected: the subgraph
 - `examples/fsm-router/` — FSM-router pattern for state-based routing
 - `yamlgraph/interactive_tool.py` — Prior art: config-level node expansion pattern
 - CAP-19 / REQ-YG-066–068 — MCP server interface
+
+## Implementation Notes
+
+**Implemented:** 2026-02-24
+
+| File | Change |
+|------|--------|
+| `yamlgraph/constants.py` | Added `COPILOT = "copilot"` to NodeType enum |
+| `yamlgraph/models/graph_schema.py` | Extended NodeConfig with `backend`, `cli_flags`, `timeout` fields |
+| `yamlgraph/models/schemas.py` | Added CopilotResult model |
+| `yamlgraph/node_factory/copilot_node.py` | New file - create_copilot_node factory (276 lines) |
+| `yamlgraph/node_factory/__init__.py` | Export create_copilot_node |
+| `yamlgraph/node_compiler.py` | Added dispatch for NodeType.COPILOT |
+| `tests/unit/test_copilot_node.py` | 11 tests covering REQ-YG-087, REQ-YG-089 |
+| `tests/unit/test_constants.py` | Added 'copilot' to expected node types |
+| `ARCHITECTURE.md` | Added CAP-30 and REQ-YG-087–089 |
+| `scripts/req_coverage.py` | Updated with new requirements |
+
+**Deferred:**
+- REQ-YG-088 (MCP sampling backend) raises `NotImplementedError` - requires MCP loopback infrastructure
