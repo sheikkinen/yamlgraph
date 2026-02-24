@@ -40,7 +40,7 @@ the_one_law: |
   not downstream where it manifests.
 
 boundaries: [schema, provider, state, streaming, platform]
-traps: [quick_confidence, downstream_fix, symptom_patch]
+traps: [quick_confidence, downstream_fix, symptom_patch, intent_drift]
 ```
 
 ### Requirement Traceability (ADR-001)
