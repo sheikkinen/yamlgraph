@@ -141,6 +141,21 @@ Key patterns demonstrated:
 
 See [examples/npc/architecture.md](examples/npc/architecture.md) for full documentation.
 
+### projects/ vs examples/
+
+| Aspect | `examples/` | `projects/` |
+|--------|-------------|-------------|
+| **Purpose** | Demonstrate YAMLGraph patterns and capabilities | Standalone applications with domain-specific goals |
+| **Requirements** | Framework-scoped (REQ-YG-XXX) | Project-scoped (OC-XXX, IC-XXX, etc.) |
+| **Traceability** | Tracked by `scripts/req_coverage.py` | Own traceability, excluded from framework coverage |
+| **Tests** | Optional for demos, required for complex examples | Required |
+| **Scope** | Illustrate framework features | May diverge from framework patterns for domain reasons |
+
+**Graduation criteria** — An example becomes a project when:
+1. It accumulates domain-specific requirements worth tracking independently
+2. It needs dedicated test coverage beyond framework validation
+3. Its requirements would pollute the framework requirement namespace (see §27 Telco relocation)
+
 ---
 
 ## Module Architecture

@@ -21,6 +21,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Prompt YAML](prompt-yaml.md) | Prompt templates: schemas, messages, Jinja2 |
 | [CLI Reference](cli.md) | Command-line interface: run, lint, validate |
 | [Common Patterns](patterns.md) | Copy-paste patterns for pipelines |
+| [Expressions](expressions.md) | Value and condition expression syntax |
 
 ### Node Types
 
@@ -36,6 +37,8 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | `passthrough` | [§ Passthrough nodes](graph-yaml.md#type-passthrough---state-transformation) | [passthrough-nodes.md](passthrough-nodes.md) |
 | `tool_call` | [§ Tool call nodes](graph-yaml.md#type-tool_call---dynamic-tool-execution) | [tool-call-nodes.md](tool-call-nodes.md) |
 | `subgraph` | [§ Subgraph nodes](graph-yaml.md#type-subgraph---nested-graph) | [subgraph-nodes.md](subgraph-nodes.md) |
+| `copilot` | [§ Copilot nodes](graph-yaml.md#type-copilot---copilot-cli-delegation) | - |
+| `interactive_tool` | [§ Interactive tool](graph-yaml.md#type-interactive_tool---multi-turn-conversation-loop) | - |
 
 ### Advanced Features
 
@@ -48,6 +51,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Prompt Deployment](prompt-deployment.md) | Patterns for updating prompts without rebuild |
 | [MCP Server](mcp-server.md) | Expose graphs as Copilot/MCP tools |
 | [Contrib Utilities](contrib.md) | Shared utilities for map results and serialization |
+| [Scheduling Agents](scheduling-agents.md) | Run graphs on schedule (launchd, cron, CI) |
 
 ### Examples & Guides
 
@@ -56,6 +60,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Code Analysis](code-analysis.md) | Automated code quality analysis |
 | [Implementation Agent](impl-agent.md) | 14-tool agent for codebase analysis |
 | [Web UI & API](web-ui-api.md) | Serving graphs as web applications |
+| [Intent + Questionnaire](intent-questionnaire-pattern.md) | Multi-graph routing with session registry |
 
 ### Example Architectures
 

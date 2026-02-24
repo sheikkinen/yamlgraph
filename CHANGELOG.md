@@ -11,12 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-083 Commit-Msg Hook Bug** Fix `bash -c` positional argument bug in both `feat-requires-fr` and `changelog-required` pre-commit hooks. Added `_` placeholder to both hook entries so the commit message file properly becomes `$1`. Removed stale `backend: sampling` CHANGELOG entry for FR-081 (was deleted in FR-082 teardown). Added 19 integration tests for commit-msg hook behavior.
 - **FR-087 Stale REQ Range** Replace stale `REQ-YG-087–089` range notation with explicit `REQ-YG-087, REQ-YG-089` in ARCHITECTURE.md and CHANGELOG.md since REQ-YG-088 was removed during FR-082 teardown.
 - **FR-089 Capability Numbering** Remove strikethrough CAP-29 row from ARCHITECTURE.md capability table. Add footnote explaining stable numbering policy (retired capabilities are removed, not renumbered).
+- **FR-091 Missing Node Types** Add `copilot` and `interactive_tool` to `reference/README.md` Node Types table. Add `copilot` to `reference/getting-started.md`.
+- **FR-092 Orphan Docs Index** Link `expressions.md`, `scheduling-agents.md`, and `intent-questionnaire-pattern.md` to `reference/README.md` index.
 
 ### Changed
 - **FR-084 Watch.sh Migration** Migrate `.chaplain/watch.sh` from inline copilot calls to `yamlgraph graph run`. Added `.chaplain/graph.yaml` (Plan→Judge workflow) and `.chaplain/prompts/{plan,judge}.yaml`. The bash script is now a thin polling wrapper; all workflow logic lives in the YAMLGraph graph.
 - **FR-085 Value Statement Field** Add mandatory Value Statement field to FR template (`feature-requests/TEMPLATE.md`). Add Judge criterion 7 (Value Clarity) to `scripts/chaplain-prompts/judge.md`. Graduate `intent_drift` trap to Knowledge Graph (`.github/copilot-instructions.md`).
 - **FR-086 README When NOT to Use** Add honest "When NOT to Use YAMLGraph" section to README.md covering dynamic topology, complex state transformations, custom node types, and multi-modal pipelines. Includes escape hatch guidance for `type: python` nodes.
 - **FR-088 README Development Process** Replace buried "Remember" section with visible "Development Process" section positioned between Testing and Security. Links to Scripture with five-step workflow summary (Research, Plan, Judge, Enforce, Distill).
+- **FR-090 Projects vs Examples** Document `projects/` vs `examples/` distinction in ARCHITECTURE.md with comparison table and graduation criteria.
 
 ## [0.4.56] - 2026-02-24
 
