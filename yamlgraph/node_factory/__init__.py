@@ -12,6 +12,7 @@ from yamlgraph.node_factory.control_nodes import (
     create_interrupt_node,
     create_passthrough_node,
 )
+from yamlgraph.node_factory.copilot_node import create_copilot_node
 from yamlgraph.node_factory.llm_nodes import create_node_function
 from yamlgraph.node_factory.streaming import create_streaming_node
 from yamlgraph.node_factory.subgraph_nodes import (
@@ -35,6 +36,8 @@ __all__ = [
     # Control nodes
     "create_interrupt_node",
     "create_passthrough_node",
+    # Copilot node
+    "create_copilot_node",
     # Subgraph nodes
     "create_subgraph_node",
     "_map_input_state",

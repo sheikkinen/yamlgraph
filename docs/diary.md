@@ -8,6 +8,24 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — Chronic Violations and Enforcement Decay
+
+**Context:** Audit of the latest 5 commits (`033fdd5`..`30cccb9`). Two `docs(diary):` commits (prior Inquisitor Audit findings), one `chore: FR-080` (bundling FR-081 feature request), one `feat(testing): FR-080` (53 infrastructure tests, 10 confessions), one `docs:` (ARCHITECTURE update for FR-078/OC-008). All human-authored. No new capabilities introduced.
+
+**Findings:**
+
+- ✗ VIOLATION — `feat(testing): FR-080` (`5ff37df`) has no CHANGELOG.md entry. This is the **5th consecutive audit** flagging this. FR-077's `changelog-required` hook has been inert for this commit across all audits. The enforcement mechanism is either broken, bypassed, or never installed. At 5 audits, this is no longer a finding — it is an accepted gap in the process. The Inquisitor's authority is eroded each time the same violation is recorded without consequence.
+- ✗ VIOLATION — "Git Report" entry (line 100) still contains leaked LLM preamble ("Perfect! Now I have enough context.") and lacks canonical diary format. **5th consecutive audit**. This malformed entry has survived every audit since its creation. It is now the oldest unresolved finding in the diary. Either delete it, rewrite it, or accept it as-is and stop flagging it.
+- ✗ VIOLATION — FR-080 has no dedicated diary reflection (Distill step). **4th consecutive audit** — escalated from ⚠ DRIFT per the 3-audit escalation threshold established in the 3rd audit. The cognitive process of building 53 infrastructure tests was never captured. The Sermon's Distill step was skipped.
+- ⚠ DRIFT — `chore: FR-080` (`fb09db5`) bundles `feature-requests/FR-081-copilot-node.md` under FR-080 scope. **3rd audit** — approaching escalation threshold. `git log --grep=FR-081` will not find this commit.
+- ✓ COMPLIANT — ADR-001 fully upheld: all FR-080 tests carry `@pytest.mark.req` tags (25 across 5 files), both framework `# noqa` suppressions (CONF-002 ANN001, CONF-003 ARG002) are confessed, Conventional Commits format followed on all 5 commits.
+
+**Heuristic:** An Inquisitor that records the same violation 5 times without triggering corrective action has become a ritual, not a process. The audit cycle — surface → classify → record → forget — lacks a forcing function. Findings without owners decay into noise. The doctrine demands correction (Rite of Correction: "Amend. Write the failing test first."), but the Inquisitor has no mechanism to compel amendment. Either grant it teeth (blocking hooks, mandatory fix-forward) or accept that audit entries are advisory and adjust expectations accordingly.
+
+**Seed:** Should the doctrine establish a "3-strike rule" — any finding flagged ✗ VIOLATION in 3 consecutive audits automatically generates a blocking TODO in the pre-commit hook, preventing `feat:`/`fix:` commits until the violation is resolved? This would close the gap between observation and enforcement.
+
+---
+
 ## 2026-02-24: Inquisitor Audit — Stale Violations and Audit Fatigue
 
 **Context:** Audit of the latest 5 commits (`4396700`..`22774ff`). Two `docs(diary):` commits (Inquisitor Audit findings, FR-079 reflection), one `chore: FR-080` (bundling FR-081 feature request), one `feat(testing): FR-080` (53 infrastructure tests), one `docs:` (ARCHITECTURE update for FR-078/OC-008). All human-authored. No new capabilities introduced; the `feat:` commit adds test coverage for existing infrastructure scripts.

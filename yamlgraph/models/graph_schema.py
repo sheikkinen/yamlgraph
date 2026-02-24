@@ -82,6 +82,17 @@ class NodeConfig(BaseModel):
     tools: list[str] = Field(default_factory=list)
     max_iterations: int = Field(default=10, ge=1)
 
+    # Copilot node fields (REQ-YG-087)
+    backend: str | None = Field(
+        default=None, description="Copilot backend: 'cli' or 'sampling'"
+    )
+    cli_flags: dict[str, Any] | None = Field(
+        default=None, description="CLI flags for copilot node (allow_all_paths, etc.)"
+    )
+    timeout: int | None = Field(
+        default=None, description="Timeout in seconds for copilot node (default 300)"
+    )
+
     model_config = {"extra": "allow", "populate_by_name": True}
 
     @field_validator("on_error")
@@ -98,9 +109,7 @@ class NodeConfig(BaseModel):
     def validate_thinking_budget(cls, v: int | None) -> int | None:
         """Validate thinking_budget is None, 0, or >= 1024."""
         if v is not None and v != 0 and v < 1024:
-            raise ValueError(
-                f"thinking_budget must be None, 0, or >= 1024, got {v}"
-            )
+            raise ValueError(f"thinking_budget must be None, 0, or >= 1024, got {v}")
         if v is not None and v < 0:
             raise ValueError(f"thinking_budget must be non-negative, got {v}")
         return v

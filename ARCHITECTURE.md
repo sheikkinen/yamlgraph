@@ -288,6 +288,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 27 | Telco Voice Call Demo | `projects/outcaller` | OC-000 – OC-008 (project-tracked) |
 | 28 | Graph-Level Thinking Budget | `models/graph_schema`, `utils/llm_factory` | REQ-YG-083 |
 | ~~29~~ | ~~Incaller Voice Demo~~ | ~~consolidated into outcaller (OC-008)~~ | IC-000, IC-001 (project-tracked) |
+| 30 | Copilot Node | `node_factory/copilot_node`, `node_compiler` | REQ-YG-087 – REQ-YG-089 |
 
 ### 1. Configuration Loading & Validation
 
@@ -554,6 +555,16 @@ Outbound Twilio voice call with ElevenLabs TTS/STT, demonstrating YAMLGraph as o
 | ~~REQ-YG-084~~ | Incaller: `await_call` node starts HTTP+WS server and blocks until inbound Twilio call connects | Consolidated into outcaller, see IC-000 |
 | ~~REQ-YG-085~~ | Incaller: `POST /incoming` webhook responds with TwiML `<Connect><Stream>` for Twilio Media Streams | Consolidated into outcaller, see IC-000 |
 | ~~REQ-YG-086~~ | Incaller: reuses outcaller TTS, STT, probe-recap, and coordinator without code duplication | Consolidated into outcaller, see IC-000 |
+
+### 30. Copilot Node
+
+New `copilot` node type that delegates graph processing to Copilot CLI or MCP sampling, replacing shell-script orchestration with a first-class YAML-declarable node.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-087 | Copilot node executes via CLI backend with configurable flags and timeout; `--silent` always forced; list-based `subprocess.run()` for injection safety; graceful `FileNotFoundError` when copilot binary missing | `node_factory/copilot_node`, `node_compiler`, `constants.NodeType.COPILOT` |
+| REQ-YG-088 | Copilot node executes via MCP sampling loopback when available; calls `session.create_message()` in MCP server context | `node_factory/copilot_node` |
+| REQ-YG-089 | Copilot node composes with router, map, and FSM-router patterns; standard node guarantees apply (requires, on_error, skip_if_exists, loop protection) | `node_factory/copilot_node`, `node_compiler` |
 
 ---
 
