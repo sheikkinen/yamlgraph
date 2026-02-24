@@ -160,6 +160,66 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Same as CONF-021 — import for no-domain fallback test.
 - **Penance**: Same as CONF-021.
 
+### CONF-024
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L20)
+- **Code**: E402
+- **Sin**: noqa pattern inside test fixture string — testing the noqa detector.
+- **Penance**: Test fixture strings must contain realistic patterns to test detection.
+
+### CONF-025
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L30)
+- **Code**: F401
+- **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
+- **Penance**: Same as CONF-024.
+
+### CONF-026
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L30)
+- **Code**: F403
+- **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
+- **Penance**: Same as CONF-024.
+
+### CONF-027
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L42)
+- **Code**: ALL
+- **Sin**: Same as CONF-024 — blanket noqa pattern inside test fixture string.
+- **Penance**: Same as CONF-024.
+
+### CONF-028
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L53)
+- **Code**: E402
+- **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
+- **Penance**: Same as CONF-024.
+
+### CONF-029
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L55)
+- **Code**: F401
+- **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
+- **Penance**: Same as CONF-024.
+
+### CONF-030
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L68)
+- **Code**: E402
+- **Sin**: Same as CONF-024 — noqa pattern inside test fixture string.
+- **Penance**: Same as CONF-024.
+
+### CONF-031
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L135)
+- **Code**: E402
+- **Sin**: Same as CONF-024 — noqa pattern inside confessions test fixture.
+- **Penance**: Same as CONF-024.
+
+### CONF-032
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L165)
+- **Code**: E402
+- **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
+- **Penance**: Same as CONF-024.
+
+### CONF-033
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L189)
+- **Code**: E402
+- **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
+- **Penance**: Same as CONF-024.
+
 ---
 
 ## Example Code
