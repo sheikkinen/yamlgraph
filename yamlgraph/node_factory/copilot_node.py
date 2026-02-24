@@ -1,10 +1,9 @@
 """Copilot node factory.
 
-Creates nodes that delegate to Copilot CLI or MCP sampling.
+Creates nodes that delegate to Copilot CLI.
 FR-081: Copilot Node Type.
 """
 
-import asyncio
 import logging
 import subprocess
 from collections.abc import Callable
@@ -114,14 +113,13 @@ def create_copilot_node(
     prompts_dir: Path | None = None,
     prompts_relative: bool = False,
 ) -> Callable[[GraphState], dict]:
-    """Create a copilot node that delegates to Copilot CLI or MCP sampling.
+    """Create a copilot node that delegates to Copilot CLI.
 
     Args:
         node_name: Name of the node
         config: Node configuration with keys:
             - prompt: Prompt template path
             - state_key: Where to store CopilotResult (required)
-            - backend: "cli" (default) or "sampling"
             - cli_flags: Dict with allow_all_paths, allow_all_tools, model
             - timeout: Timeout in seconds (default 300)
             - variables: Variable mappings like {state.key}
@@ -136,7 +134,6 @@ def create_copilot_node(
     """
     prompt_path = config.get("prompt")
     state_key = config.get("state_key")
-    backend = config.get("backend", "cli")
     cli_flags = config.get("cli_flags", {})
     timeout = config.get("timeout", DEFAULT_TIMEOUT)
     variables_config = config.get("variables", {})
@@ -145,7 +142,7 @@ def create_copilot_node(
         raise ValueError(f"Copilot node '{node_name}' requires 'state_key'")
 
     def copilot_fn(state: GraphState) -> dict:
-        """Execute copilot with CLI or sampling backend."""
+        """Execute copilot with CLI backend."""
         # Resolve variables from state
         resolved_vars = _resolve_variables(variables_config, state)
 
@@ -158,25 +155,13 @@ def create_copilot_node(
             prompts_relative=prompts_relative,
         )
 
-        if backend == "cli":
-            return _execute_cli(
-                node_name=node_name,
-                prompt=rendered_prompt,
-                state_key=state_key,
-                cli_flags=cli_flags,
-                timeout=timeout,
-            )
-        elif backend == "sampling":
-            return _execute_sampling(
-                node_name=node_name,
-                prompt=rendered_prompt,
-                state_key=state_key,
-                timeout=timeout,
-            )
-        else:
-            raise ValueError(
-                f"Unknown backend '{backend}' for copilot node '{node_name}'"
-            )
+        return _execute_cli(
+            node_name=node_name,
+            prompt=rendered_prompt,
+            state_key=state_key,
+            cli_flags=cli_flags,
+            timeout=timeout,
+        )
 
     copilot_fn.__name__ = f"copilot_{node_name}"
     return copilot_fn
@@ -254,73 +239,6 @@ def _execute_cli(
             f"Copilot CLI timed out after {timeout}s in node '{node_name}'. "
             f"Consider increasing 'timeout' or simplifying the prompt."
         ) from e
-
-
-def _execute_sampling(
-    node_name: str,
-    prompt: str,
-    state_key: str,
-    timeout: int,
-) -> dict:
-    """Execute copilot via MCP sampling backend.
-
-    REQ-YG-088: Calls session.create_message() when in MCP server context.
-
-    Args:
-        node_name: Name of the node for error messages
-        prompt: Rendered prompt text
-        state_key: Where to store result
-        timeout: Timeout in seconds for the sampling call
-
-    Returns:
-        State update dict with CopilotResult
-    """
-    from yamlgraph.mcp_context import get_mcp_context
-
-    session, loop = get_mcp_context()
-    if session is None or loop is None:
-        raise RuntimeError(
-            f"Sampling backend for node '{node_name}' requires MCP server context. "
-            f"Run the graph via the YAMLGraph MCP server, or use backend='cli'."
-        )
-
-    # Lazy import mcp.types to avoid hard dependency for non-MCP usage
-    import mcp.types as types
-
-    logger.info(f"[{node_name}] Executing copilot sampling with timeout={timeout}s")
-
-    coro = session.create_message(
-        messages=[
-            types.SamplingMessage(
-                role="user",
-                content=types.TextContent(type="text", text=prompt),
-            )
-        ],
-        max_tokens=4096,
-    )
-
-    future = asyncio.run_coroutine_threadsafe(coro, loop)
-    result = future.result(timeout=timeout)
-
-    # Extract response text - handle both TextContent and string fallback
-    if hasattr(result.content, "text"):
-        response_text = result.content.text
-    else:
-        response_text = str(result.content)
-
-    model_used = getattr(result, "model", None)
-
-    logger.info(f"[{node_name}] Copilot sampling completed successfully")
-
-    return {
-        state_key: CopilotResult(
-            output=response_text,
-            exit_code=0,
-            model=model_used,
-            backend="sampling",
-        ),
-        "current_step": node_name,
-    }
 
 
 __all__ = ["create_copilot_node"]

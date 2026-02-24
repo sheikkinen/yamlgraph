@@ -19,10 +19,11 @@ from pathlib import Path
 
 # All known requirements (framework only)
 # REQ-YG-078-082 (CAP-27) and REQ-YG-084-086 (CAP-29) relocated to projects/ with OC/IC-XXX tags
+# REQ-YG-088 (sampling backend) was DROPPED as overengineering (FR-082)
 _ALL_FRAMEWORK_REQS = (
     list(range(1, 78))  # REQ-YG-001 through REQ-YG-077
     + [83]  # REQ-YG-083 (CAP-28 Thinking Budget)
-    + [87, 88, 89]  # REQ-YG-087–089 (CAP-30 Copilot Node)
+    + [87, 89]  # REQ-YG-087, REQ-YG-089 (CAP-30 Copilot Node) — 088 dropped
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -177,7 +178,6 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
         "Copilot Node",
         [
             "REQ-YG-087",
-            "REQ-YG-088",
             "REQ-YG-089",
         ],
     ),

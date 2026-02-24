@@ -6,6 +6,44 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: FR-082 Sampling Backend — Teardown
+
+**Context:** After implementing MCP sampling backend for copilot nodes (FR-082), found that multi-node chains fail due to state serialization issues. `CopilotResult` objects lose attributes when passed between LangGraph nodes. The `backend: cli` already works reliably for the same use cases.
+
+**Trap:** Sunk cost bias. Having invested 2 days implementing sampling (context threading, async bridge, MCP session propagation), the temptation was to debug further. But: CLI works, sampling doesn't, and the value delta is marginal.
+
+**Heuristic:** "Does this add value beyond existing solutions?" Should be asked *before* implementing.
+
+**Gotcha:** MCP sampling creates isolated LLM sessions — debugging requires understanding the invisible boundary between host LLM and sampled responses. Log files written by the MCP server don't appear where you expect because it's a separate process.
+
+**Decision:** DROPPED. Removed:
+- `yamlgraph/mcp_context.py` (ContextVar threading)
+- `examples/copilot_mcp/` (sampling demo)
+- `_execute_sampling()` function
+- REQ-YG-088 from requirements
+
+**Seed:** For future MCP integrations, consider: "What happens when this runs in a subprocess?"
+
+---
+
+## 2026-02-24: Inquisitor Audit — The Fifth Bell Tolls
+
+**Context:** Audit of latest 5 commits (`4152cb1`..`707e03d`). The window captures the full FR-082 sampling backend delivery cycle: feature implementation, diary reflection, example addition, bug fix, and a second diary entry with bundled debug logging. Two previous audits flagged the same CHANGELOG violation — this is the 5th consecutive detection.
+
+**Findings:**
+
+- ✗ VIOLATION — CHANGELOG.md line 14 **still** states `backend: sampling — deferred (raises NotImplementedError)`. This is the **5th consecutive audit** flagging this contradiction. The codebase now has: implementation (`4152cb1`), example (`ecb06bd`), and a bug fix (`73644fd`) — three commits of evidence that sampling works. The previous audit proposed escalation at 3 audits. We are now at 5 with no corrective action. The CHANGELOG has become an unreliable record.
+- ✗ VIOLATION — Commit `73644fd` (`fix(copilot): support nested variable paths`) still has **no CHANGELOG entry**. Flagged in the previous audit. No `### Fixed` section exists in version `0.4.56`. Two consecutive audits, zero action.
+- ⚠ DRIFT — Commit `707e03d` scoped as `docs(diary):` bundles a **production code change** (11 lines of debug logging and error handling added to `copilot_node.py`) with a diary reflection. The `docs:` scope actively misrepresents the commit contents. Previous audit flagged `73644fd` for similar bundling — but that commit at least used `fix:` scope, which implies code. Here the scope conceals the change.
+- ✓ COMPLIANT — ADR-001 upheld. All test classes carry `@pytest.mark.req` tags (REQ-YG-087, REQ-YG-088, REQ-YG-089). Both `# noqa` suppressions (ANN001, ARG002) documented in `docs/confessions.md`.
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits format syntactically: `docs(diary):`, `fix(copilot):`, `docs(copilot-mcp):`, `docs(diary):`, `feat(mcp):`.
+
+**Heuristic:** Detection without correction is surveillance, not governance. Five audits have identified the same CHANGELOG falsehood. The diary records findings faithfully, but diary entries have no assignee, no notification, no deadline. The audit process has proven it can detect — it has also proven it cannot compel. A violation that outlives 3 audits should exit the diary and enter a system with teeth: a GitHub issue, a blocking CI check, or a pre-commit hook that cross-references `feat:` commits against CHANGELOG diffs.
+
+**Seed:** Could a pre-commit hook verify that `feat:` and `fix:` commits include a CHANGELOG modification? The hook already enforces Conventional Commits format — extending it to require CHANGELOG co-modification for feature/fix commits would close the audit-to-correction gap mechanically, removing reliance on humans reading diary entries.
+
+---
+
 ## 2026-02-24: Sampling Backend — Testability vs Architectural Elegance
 
 **Context:** Implemented FR-082 (MCP sampling backend for copilot nodes). During integration testing, hit a bug where `{state.analysis.output}` appeared as literal placeholder in downstream nodes. Spent significant time debugging with file-based logging, only to realize: the MCP server runs in a separate process, so `/tmp/debug.log` writes don't appear in the expected filesystem.
