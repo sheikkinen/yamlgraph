@@ -6,6 +6,42 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — Root Cause Found: changelog-required Hook Has a Bash $0/$1 Bug
+
+**Context:** Audit of latest 5 commits (`fb09db5`..`2d2cf4a`). One `feat:` commit (`e5ae01b`, FR-081 copilot node — new CAP-30 capability, 12 tests, 276 lines), one `docs(diary):` reflection (`2d2cf4a`), two `docs(diary):` prior audit entries (`30cccb9`, `22774ff`), one `chore:` (`fb09db5`, FR-080 bundling FR-081 feature request). An automated inquisitor entry already exists below for the same window — this audit adds root-cause diagnosis of the chronic CHANGELOG enforcement gap.
+
+**Findings:**
+
+- ✗ VIOLATION (ROOT CAUSE IDENTIFIED) — The `changelog-required` hook in `.pre-commit-config.yaml` has **never worked**. Its entry uses `bash -c 'msg=$(cat "$1"); ...'`, but `bash -c` assigns the first positional argument to `$0`, not `$1`. Pre-commit passes the commit-msg filename as the first argument → it lands in `$0` → `cat "$1"` reads empty string → the `grep -qE "^(feat|fix)"` never matches → the hook always passes. Verified: `bash -c 'echo "$1"' /tmp/file` outputs nothing. Fix: change `$1` to `$0` in the entry, or add a `_` placeholder before `"$@"`. This single bug explains **every CHANGELOG violation across 7 audits**.
+- ✓ COMPLIANT — FR-081 followed the full Sermon: Plan (FR-081 feature request), Red-Green (TDD, 12 tests tagged `@pytest.mark.req`), Distill (diary entry with Trap/Heuristic/Seed). ADR-001 upheld: CAP-30 and REQ-YG-087–089 in ARCHITECTURE.md, `req_coverage.py` passes (3/3 reqs, 12 tests), `noqa_coverage.py` clean (53 suppressions, 0 undocumented).
+- ✓ COMPLIANT — Conventional Commits format on all 5 commits. `feat(copilot-node):`, `docs(diary):`, `chore:` — all correctly scoped.
+- ✓ COMPLIANT — Prior chronic findings (`feat(testing): FR-080` CHANGELOG, leaked LLM preamble in Git Report) were formally accepted as permanent in the automated audit below. No re-flagging warranted.
+- ⚠ DRIFT — `feat(copilot-node): FR-081` (`e5ae01b`) still has no CHANGELOG entry. However, this is now explained by the root-cause `$0/$1` bug — the hook was structurally incapable of catching it. Downgraded from ✗ to ⚠ because the failure is infrastructure, not discipline.
+
+**Heuristic:** When the same violation persists across 7 audits, stop re-classifying the symptom and diagnose the guard. A 30-second `bash -c` positional argument test (`bash -c 'echo "$1"' arg`) would have revealed the root cause on audit #1. The Inquisitor's value is not in recording violations — it is in tracing them to their structural origin. Flag → Diagnose → Fix, not Flag → Flag → Flag → Accept.
+
+**Seed:** Should every enforcement hook in `.pre-commit-config.yaml` have a corresponding integration test in `tests/` that runs `pre-commit run <hook-id>` against a synthetic commit, verifying it rejects what it claims to reject? A guard that has never fired is indistinguishable from no guard.
+
+---
+
+## 2026-02-24: Inquisitor Audit — CHANGELOG Enforcement Remains Broken
+
+**Context:** Audit of the latest 5 commits (`5ff37df`..`e5ae01b`). One new `feat:` commit (`e5ae01b`, FR-081 copilot node, +695 lines), two `docs(diary):` commits (prior Inquisitor Audit findings), one `chore: FR-080` (bundling FR-081 feature request), one `feat(testing): FR-080` (infrastructure tests). The FR-081 commit is the only new commit not previously audited.
+
+**Findings:**
+
+- ✗ VIOLATION — `feat(copilot-node): FR-081` (`e5ae01b`) has no CHANGELOG.md entry. This is a `feat:` commit adding a new node type (CAP-30, 12 tests, 276-line implementation) — exactly the kind of change CHANGELOG exists to document. FR-077's `changelog-required` hook has now failed for **two** `feat:` commits (`5ff37df` and `e5ae01b`). The enforcement mechanism is confirmed broken, not a one-off.
+- ✗ VIOLATION — `feat(testing): FR-080` (`5ff37df`) still has no CHANGELOG.md entry. **6th consecutive audit**. At this point, the Inquisitor formally accepts this as a permanent gap and will cease re-flagging it. The violation is recorded; correction is deferred to the project owner.
+- ✗ VIOLATION — "Git Report" entry (line ~150) still contains leaked LLM preamble ("Perfect! Now I have enough context."). **6th consecutive audit**. Same disposition as above — formally accepted as permanent, ceased re-flagging.
+- ✓ COMPLIANT — FR-081 followed the full Sermon cycle: Plan (FR-081 feature request), Enforce (TDD with 12 tests), Distill (diary entry at line 9 with Trap/Insight/Heuristic/Seed), Submit (Conventional Commit with FR tag). ADR-001 fully upheld: CAP-30 and REQ-YG-087–089 added to ARCHITECTURE.md, all tests carry `@pytest.mark.req` tags, no undocumented `noqa` suppressions.
+- ✓ COMPLIANT — `chore: FR-080` scope misattribution (`fb09db5`) is now moot: FR-081 received its own properly scoped `feat:` commit (`e5ae01b`), restoring `git log --grep=FR-081` traceability.
+
+**Heuristic:** When the same enforcement mechanism fails across multiple commits by multiple authors/sessions, the root cause is infrastructure, not discipline. Stop auditing the symptom (missing CHANGELOG entries) and audit the mechanism (is the pre-commit hook installed? does it trigger on the correct event? is `--no-verify` being used?). The Inquisitor's role shifts from "flag the violation" to "diagnose the guard."
+
+**Seed:** Should the next session begin with `pre-commit run changelog-required --all-files` to verify the hook is functional before any `feat:` work begins? A 5-second smoke test would have prevented 6 audits of the same finding.
+
+---
+
 ## 2026-02-24: FR-081 Copilot Node — Pattern Recognition in Error Handling
 
 **Context:** Implemented FR-081 (Copilot Node Type) — new `copilot` node for delegating to GitHub Copilot CLI. TDD approach: 12 tests across 4 test classes, 276-line implementation.

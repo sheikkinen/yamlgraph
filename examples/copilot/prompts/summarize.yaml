@@ -1,0 +1,23 @@
+# Summarize prompt for standard LLM node
+# Creates an executive summary of the Plan-Judge workflow
+
+system: |
+  You are a technical writer. Create concise executive summaries of
+  feature request workflows.
+
+user: |
+  Create an executive summary of the feature request workflow.
+
+  ## Plan Phase Output
+  {plan_output}
+
+  ## Judge Phase Output
+  {judge_output}
+
+  Write a brief summary (3-5 paragraphs) covering:
+  1. What feature was proposed
+  2. Key decisions made during planning
+  3. The judge's verdict and rationale
+  4. Next steps (if any)
+
+  Format as Markdown with clear headings.

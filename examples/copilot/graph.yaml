@@ -1,0 +1,69 @@
+# Copilot Node Demo - Plan → Judge → Summarize
+# FR-081: Demonstrates copilot node type delegating to GitHub Copilot CLI
+# Based on .chaplain/watch.sh Plan-Judge workflow
+
+version: "1.0"
+name: copilot-workflow
+description: Feature request workflow using copilot nodes for planning and judgement
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  topic_file: str        # Path to the topic file (e.g., .chaplain/inbox/topic.md)
+  drafts_dir: str        # Output directory for drafts
+
+nodes:
+  # Stage 1: Plan - Copilot reads topic and drafts feature request
+  plan:
+    type: copilot
+    prompt: plan
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+      drafts_dir: "{state.drafts_dir}"
+    state_key: plan_result
+    timeout: 300
+
+  # Stage 2: Judge - Copilot examines the draft and renders verdict
+  judge:
+    type: copilot
+    prompt: judge
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      drafts_dir: "{state.drafts_dir}"
+    state_key: judge_result
+    timeout: 300
+
+  # Stage 3: Summarize - Standard LLM node creates executive summary
+  summarize:
+    type: llm
+    prompt: summarize
+    variables:
+      plan_output: "{state.plan_result.output}"
+      judge_output: "{state.judge_result.output}"
+    state_key: summary
+
+edges:
+  - from: START
+    to: plan
+  - from: plan
+    to: judge
+  - from: judge
+    to: summarize
+  - from: summarize
+    to: END
+
+exports:
+  summary:
+    format: markdown
+    filename: workflow_summary.md

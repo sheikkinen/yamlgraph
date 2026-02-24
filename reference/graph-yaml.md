@@ -419,6 +419,101 @@ nodes:
 
 **Note:** The Python function must be defined in the `tools` section with `type: python`.
 
+### `type: copilot` - Copilot CLI Delegation
+
+Delegate complex reasoning tasks to GitHub Copilot CLI. The copilot node invokes the `copilot` command with your prompt, giving it access to the full project context (Scripture, file system, MCP tools).
+
+**FR-081** | **CAP-30** | **REQ-YG-087, REQ-YG-088, REQ-YG-089**
+
+```yaml
+nodes:
+  plan_feature:
+    type: copilot
+    prompt: plan                    # Prompt template
+    backend: cli                    # cli | sampling (sampling not yet implemented)
+    cli_flags:
+      allow_all_paths: true         # --allow-all-paths flag
+      allow_all_tools: true         # --allow-all-tools flag
+      model: claude-sonnet-4        # Optional model override
+    variables:
+      topic_file: "{state.topic}"
+    state_key: plan_result
+    timeout: 300                    # Timeout in seconds (default: 300)
+```
+
+**Copilot node properties:**
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `prompt` | `string` | required | Name of prompt template |
+| `backend` | `string` | `"cli"` | Execution backend: `cli` or `sampling` |
+| `cli_flags` | `object` | `{}` | CLI flags (see below) |
+| `timeout` | `int` | `300` | Timeout in seconds |
+| `state_key` | `string` | node name | State key for CopilotResult |
+| `variables` | `object` | `{}` | Variables for prompt template |
+| `requires` | `list[str]` | `[]` | Required state keys |
+| `on_error` | `string` | `"fail"` | Error handling: `skip`, `fail`, `retry` |
+
+**CLI flags:**
+
+| Flag | Type | CLI Argument | Description |
+|------|------|--------------|-------------|
+| `allow_all_paths` | `bool` | `--allow-all-paths` | Allow file system access |
+| `allow_all_tools` | `bool` | `--allow-all-tools` | Allow all MCP tools |
+| `model` | `string` | `--model <model>` | Override default model |
+
+**Notes:**
+- The `--silent` flag is always added automatically
+- Command is executed as a list (no shell injection risk)
+- The `sampling` backend raises `NotImplementedError` (requires MCP loopback infrastructure)
+
+**CopilotResult:**
+
+The node returns a `CopilotResult` object in the state:
+
+```python
+class CopilotResult(BaseModel):
+    output: str        # Copilot's response text
+    exit_code: int     # Process exit code (0 = success)
+    model: str | None  # Model used (if specified)
+    backend: str       # "cli" or "sampling"
+```
+
+Access in subsequent nodes:
+```yaml
+variables:
+  plan_text: "{state.plan_result.output}"
+```
+
+**Example - Plan-Judge Workflow:**
+
+```yaml
+# Based on .chaplain/watch.sh pattern
+nodes:
+  plan:
+    type: copilot
+    prompt: plan
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic}"
+    state_key: plan_result
+
+  judge:
+    type: copilot
+    prompt: judge
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+    variables:
+      draft_file: "{state.plan_result.output}"
+    state_key: verdict
+```
+
+See [examples/copilot/](../examples/copilot/) for a complete demo.
+
 ### `type: map` - Parallel Fan-Out Node
 
 Process each item in a list in parallel using LangGraph's `Send()` API.
