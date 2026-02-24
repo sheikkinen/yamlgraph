@@ -4,6 +4,7 @@ Creates nodes that delegate to Copilot CLI or MCP sampling.
 FR-081: Copilot Node Type.
 """
 
+import asyncio
 import logging
 import re
 import subprocess
@@ -169,6 +170,7 @@ def create_copilot_node(
                 node_name=node_name,
                 prompt=rendered_prompt,
                 state_key=state_key,
+                timeout=timeout,
             )
         else:
             raise ValueError(
@@ -257,6 +259,7 @@ def _execute_sampling(
     node_name: str,
     prompt: str,
     state_key: str,
+    timeout: int,
 ) -> dict:
     """Execute copilot via MCP sampling backend.
 
@@ -266,16 +269,57 @@ def _execute_sampling(
         node_name: Name of the node for error messages
         prompt: Rendered prompt text
         state_key: Where to store result
+        timeout: Timeout in seconds for the sampling call
 
     Returns:
         State update dict with CopilotResult
     """
-    # REQ-YG-088: MCP sampling backend - deferred pending MCP loopback infrastructure
-    # See scripts/loopback-poc/ for proof-of-concept
-    raise NotImplementedError(
-        f"Sampling backend not yet implemented for node '{node_name}'. "
-        f"Use backend='cli' for now."
+    from yamlgraph.mcp_context import get_mcp_context
+
+    session, loop = get_mcp_context()
+    if session is None or loop is None:
+        raise RuntimeError(
+            f"Sampling backend for node '{node_name}' requires MCP server context. "
+            f"Run the graph via the YAMLGraph MCP server, or use backend='cli'."
+        )
+
+    # Lazy import mcp.types to avoid hard dependency for non-MCP usage
+    import mcp.types as types
+
+    logger.info(f"[{node_name}] Executing copilot sampling with timeout={timeout}s")
+
+    coro = session.create_message(
+        messages=[
+            types.SamplingMessage(
+                role="user",
+                content=types.TextContent(type="text", text=prompt),
+            )
+        ],
+        max_tokens=4096,
     )
+
+    future = asyncio.run_coroutine_threadsafe(coro, loop)
+    result = future.result(timeout=timeout)
+
+    # Extract response text - handle both TextContent and string fallback
+    if hasattr(result.content, "text"):
+        response_text = result.content.text
+    else:
+        response_text = str(result.content)
+
+    model_used = getattr(result, "model", None)
+
+    logger.info(f"[{node_name}] Copilot sampling completed successfully")
+
+    return {
+        state_key: CopilotResult(
+            output=response_text,
+            exit_code=0,
+            model=model_used,
+            backend="sampling",
+        ),
+        "current_step": node_name,
+    }
 
 
 __all__ = ["create_copilot_node"]

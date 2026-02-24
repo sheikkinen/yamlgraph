@@ -6,6 +6,42 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Inquisitor Audit — Discipline Compensates for Broken Guards
+
+**Context:** Audit of latest 5 commits (`30cccb9`..`5c1dc27`). Three commits complete FR-081 (copilot node): `e5ae01b` feat, `0e3754f` docs/examples, `5c1dc27` bump+CHANGELOG. One diary reflection (`2d2cf4a`), one prior audit entry (`30cccb9`). The audit window captures the full FR-081 delivery cycle including a version release (v0.4.56).
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits: `chore:`, `docs(copilot-node):`, `docs(diary):`, `feat(copilot-node):`, `docs(diary):` — all correctly scoped with FR-081 tags where applicable.
+- ✓ COMPLIANT — CHANGELOG.md has a complete FR-081 entry under `[0.4.56] - 2026-02-24` covering CAP-30, REQ-YG-087–089, all node features, 12 tests. Added in bump commit (`5c1dc27`). Human discipline compensated for the broken hook.
+- ✓ COMPLIANT — ADR-001 fully upheld. ARCHITECTURE.md has CAP-30 and REQ-YG-087–089. All 12 tests carry `@pytest.mark.req` tags (class-level on 3 classes, method-level on 1). Coverage: REQ-YG-087 (10 tests across 2 classes), REQ-YG-089 (1 test), REQ-YG-088 (1 test).
+- ✓ COMPLIANT — Both `# noqa` suppressions in `yamlgraph/` (ANN001, ARG002) documented in `docs/confessions.md` with CONF-XXX IDs.
+- ⚠ DRIFT — The `changelog-required` hook's `$0/$1` bug persists (4th audit). The hook remains structurally incapable of enforcement. However, the CHANGELOG was correctly added anyway — manual discipline succeeded where automation failed. The Inquisitor is constrained from fixing it (diary-only writes). Escalation: this requires a `fix:` commit outside audit scope.
+
+**Heuristic:** When automation is broken but outcomes are correct, the team has internalized the discipline the guard was meant to enforce. This is better than a working guard with no understanding — but it doesn't scale. The broken hook is now technical debt that will bite the next contributor who hasn't read 4 audit entries. Fix the guard so the discipline can be forgotten safely.
+
+**Seed:** The last 4 audits have all flagged the same `$0/$1` bug. The Inquisitor pattern creates a read-only observer that cannot self-correct. Should there be a companion "Corrector" role — an audit follow-up step with write access scoped to infrastructure fixes (hooks, CI config) but not application code?
+
+---
+
+## 2026-02-24: Inquisitor Audit — Diagnosis Without Correction
+
+**Context:** Audit of the latest 5 commits (`22774ff`..`0e3754f`). Three commits complete FR-081 (copilot node): `e5ae01b` feat, `2d2cf4a` diary reflection, `0e3754f` examples/docs. Two commits are prior Inquisitor Audit entries (`30cccb9`, `22774ff`). This audit window is dominated by a single feature (FR-081) that has been fully delivered across 3 commits.
+
+**Findings:**
+
+- ✗ VIOLATION — `feat(copilot-node): FR-081` (`e5ae01b`) still has no CHANGELOG.md entry. The previous audit *diagnosed* the root cause (`changelog-required` hook's `$0/$1` bash bug) but the hook was never fixed. The entry `bash -c 'msg=$(cat "$1"); ...'` still uses `$1` instead of `$0`. Diagnosis without correction violates the Rite of Correction: "Amend. Correct the root cause second." The violation is now infrastructure debt with a known 30-second fix that has survived 3 audits since diagnosis.
+- ✓ COMPLIANT — FR-081 followed the full Sermon cycle across all 3 commits: Plan (FR-081 feature request), Enforce (TDD, 12 tests with `@pytest.mark.req` tags for REQ-YG-087–089), Distill (diary entry at line 45 with Trap/Heuristic/Seed), Submit (Conventional Commits, FR-scoped). ADR-001 fully upheld: CAP-30 in ARCHITECTURE.md.
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits. `feat(copilot-node):`, `docs(diary):`, `docs(copilot-node):` — correctly scoped with FR tags.
+- ✓ COMPLIANT — All `# noqa` suppressions (2 in yamlgraph/) are documented with CONF-XXX IDs in `docs/confessions.md`.
+- ⚠ DRIFT — The `docs(copilot-node)` commit (`0e3754f`, +375 lines of examples and reference docs) is substantial enough to warrant its own CHANGELOG bullet, but as a `docs:` commit the hook wouldn't enforce it even if fixed. The copilot node feature is now fully delivered but invisible in CHANGELOG.
+
+**Heuristic:** Diagnosing a root cause without scheduling its correction is worse than not diagnosing it — it creates the illusion of progress. The previous audit identified the `$0/$1` bug, planted a Seed about testing hooks, then moved on. Three audits later the bug remains. The Rite demands: Inspect → Amend → Escalate. "Amend" is not optional. A diagnosis that doesn't flow to a fix within one audit cycle is a finding that was never truly made.
+
+**Seed:** Should the Inquisitor be empowered to make single-line fixes (like `$1` → `$0`) directly during audit, rather than only recording findings? The doctrine says "do not modify files other than diary.md" — but this constraint, meant to keep audits safe, has become the reason a known 30-second fix has survived 3 audit cycles. When is the cost of restraint higher than the cost of action?
+
+---
+
 ## 2026-02-24: Inquisitor Audit — Root Cause Found: changelog-required Hook Has a Bash $0/$1 Bug
 
 **Context:** Audit of latest 5 commits (`fb09db5`..`2d2cf4a`). One `feat:` commit (`e5ae01b`, FR-081 copilot node — new CAP-30 capability, 12 tests, 276 lines), one `docs(diary):` reflection (`2d2cf4a`), two `docs(diary):` prior audit entries (`30cccb9`, `22774ff`), one `chore:` (`fb09db5`, FR-080 bundling FR-081 feature request). An automated inquisitor entry already exists below for the same window — this audit adds root-cause diagnosis of the chronic CHANGELOG enforcement gap.

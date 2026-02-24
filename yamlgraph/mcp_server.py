@@ -20,6 +20,7 @@ Configure in .mcp.json:
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import glob
 import json
 import logging
@@ -209,7 +210,7 @@ def create_server(
             if name == "yamlgraph_list_graphs":
                 return _handle_list_graphs(graphs)
             elif name == "yamlgraph_run_graph":
-                return await _handle_run_graph(arguments, graph_lookup)
+                return await _handle_run_graph(arguments, graph_lookup, server)
             else:
                 return [
                     types.TextContent(
@@ -247,6 +248,7 @@ def _handle_list_graphs(
 async def _handle_run_graph(
     arguments: dict[str, Any],
     graph_lookup: dict[str, dict[str, Any]],
+    server: Server | None = None,
 ) -> list[types.TextContent]:
     """Invoke a graph and return result as JSON."""
     graph_name = arguments.get("graph", "")
@@ -270,9 +272,26 @@ async def _handle_run_graph(
     graph_path = graph_info["path"]
 
     loop = asyncio.get_event_loop()
+
+    # FR-082: Propagate MCP session via ContextVar for sampling backend
+    if server is not None:
+        try:
+            from yamlgraph.mcp_context import set_mcp_context
+
+            session = server.request_context.session
+            set_mcp_context(session, loop)
+        except LookupError:
+            # No request context available (e.g., in unit tests)
+            pass
+
+    # Copy context so thread inherits the ContextVars
+    ctx = contextvars.copy_context()
+
     try:
         result = await asyncio.wait_for(
-            loop.run_in_executor(_executor, _invoke_graph, graph_path, variables),
+            loop.run_in_executor(
+                _executor, ctx.run, _invoke_graph, graph_path, variables
+            ),
             timeout=INVOKE_TIMEOUT,
         )
     except TimeoutError:
