@@ -285,9 +285,9 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 24 | Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes` | REQ-YG-075 |
 | 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 | 26 | Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
-| 27 | Telco Voice Call Demo | `projects/outcaller` | REQ-YG-078 – 082 |
+| 27 | Telco Voice Call Demo | `projects/outcaller` | OC-000 – OC-008 (project-tracked) |
 | 28 | Graph-Level Thinking Budget | `models/graph_schema`, `utils/llm_factory` | REQ-YG-083 |
-| 29 | Incaller Voice Demo | `projects/incaller` | REQ-YG-084 – 086 |
+| ~~29~~ | ~~Incaller Voice Demo~~ | ~~consolidated into outcaller (OC-008)~~ | IC-000, IC-001 (project-tracked) |
 
 ### 1. Configuration Loading & Validation
 
@@ -541,17 +541,19 @@ Error propagation, timeout support, and interrupt detection for `run_graph_strea
 
 Outbound Twilio voice call with ElevenLabs TTS/STT, demonstrating YAMLGraph as orchestrator with Python tool nodes for telephony I/O.
 
+> **Note (FR-078, OC-008):** Telco requirements were relocated from REQ-YG-078–086 to project-specific tags (OC-XXX, IC-XXX) in `projects/outcaller`. Incaller was consolidated into outcaller. Framework only tracks REQ-YG-083 (thinking budget).
+
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-078 | Telco demo: YAMLGraph orchestrates outbound Twilio voice call via type:python tool nodes | `projects/outcaller` |
-| REQ-YG-079 | Telco demo: speak node performs TTS via ElevenLabs eleven_flash_v2_5 and transcodes to mulaw 8kHz via ffmpeg | `projects/outcaller/nodes` |
-| REQ-YG-080 | Telco demo: listen_and_transcribe node streams Twilio audio to ElevenLabs scribe_v2_realtime and returns committed transcript | `projects/outcaller/nodes` |
-| REQ-YG-081 | Telco demo: WebSocket coordinator bridges asyncio event loop and synchronous tool nodes via thread-safe Queue | `projects/outcaller/nodes/coordinator` |
-| REQ-YG-082 | Telco demo: ElevenLabs built-in VAD (commit_strategy=vad) replaces webrtcvad; no audioop dependency | `projects/outcaller/nodes` |
+| ~~REQ-YG-078~~ | Telco demo: YAMLGraph orchestrates outbound Twilio voice call via type:python tool nodes | Relocated to OC-000 |
+| ~~REQ-YG-079~~ | Telco demo: speak node performs TTS via ElevenLabs eleven_flash_v2_5 and transcodes to mulaw 8kHz via ffmpeg | Relocated to OC-001 |
+| ~~REQ-YG-080~~ | Telco demo: listen_and_transcribe node streams Twilio audio to ElevenLabs scribe_v2_realtime and returns committed transcript | Relocated to OC-002 |
+| ~~REQ-YG-081~~ | Telco demo: WebSocket coordinator bridges asyncio event loop and synchronous tool nodes via thread-safe Queue | Relocated to OC-003 |
+| ~~REQ-YG-082~~ | Telco demo: ElevenLabs built-in VAD (commit_strategy=vad) replaces webrtcvad; no audioop dependency | Relocated to OC-004 |
 | REQ-YG-083 | `thinking_budget` YAML field on graph `defaults` and per-node; validated as `0` or `≥ 1024`; passed as `thinking={"type":"enabled","budget_tokens":N}` to `ChatAnthropic` with forced `temperature=1` (override before cache key); raises on non-Anthropic provider; included in LLM cache key | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` |
-| REQ-YG-084 | Incaller: `await_call` node starts HTTP+WS server and blocks until inbound Twilio call connects | `projects/incaller/nodes/twilio_inbound` |
-| REQ-YG-085 | Incaller: `POST /incoming` webhook responds with TwiML `<Connect><Stream>` for Twilio Media Streams | `projects/incaller/server` |
-| REQ-YG-086 | Incaller: reuses outcaller TTS, STT, probe-recap, and coordinator without code duplication | `projects/incaller` |
+| ~~REQ-YG-084~~ | Incaller: `await_call` node starts HTTP+WS server and blocks until inbound Twilio call connects | Consolidated into outcaller, see IC-000 |
+| ~~REQ-YG-085~~ | Incaller: `POST /incoming` webhook responds with TwiML `<Connect><Stream>` for Twilio Media Streams | Consolidated into outcaller, see IC-000 |
+| ~~REQ-YG-086~~ | Incaller: reuses outcaller TTS, STT, probe-recap, and coordinator without code duplication | Consolidated into outcaller, see IC-000 |
 
 ---
 
