@@ -34,6 +34,19 @@ A YAML-first framework for building LLM pipelines using:
 
 **YAMLGraph** is a declarative LLM pipeline orchestration framework that lets you define complex AI workflows entirely in YAML—no Python required for 60-80% of use cases. Built on LangGraph, it provides multi-provider LLM support (Anthropic, Google/Gemini, OpenAI, Mistral, Replicate, xAI, LM Studio), parallel batch processing via map nodes (using LangGraph Send), LLM-driven conditional routing, graph-level streaming, and human-in-the-loop interrupts with checkpointing. Pipelines are version-controlled, linted, and observable via LangSmith. The key insight: by constraining the API surface to YAML + Jinja2 templates + Pydantic schemas, YAMLGraph trades some flexibility for dramatically faster prototyping, easier maintenance, and built-in best practices—making it ideal for teams who want production-ready AI pipelines without the complexity of full-code frameworks.
 
+## When NOT to Use YAMLGraph
+
+YAMLGraph trades flexibility for simplicity. Consider raw LangGraph or other tools when:
+
+| Scenario | Why YAMLGraph isn't ideal |
+|----------|--------------------------|
+| **Dynamic graph topology** | Graph structure is compiled from YAML at load time; edges cannot be added or removed at runtime |
+| **Complex state transformations** | YAML expressions support basic arithmetic and list operations; multi-step logic belongs in Python |
+| **Custom node types per-invoke** | Node types are fixed at compile time (though model and provider can vary per-invoke) |
+| **Native multi-modal pipelines** | Text is the only native modality; image/audio requires custom Python nodes via `type: python` |
+
+**Rule of thumb:** If you're fighting the YAML to express your logic, use Python — either via `type: python` nodes within YAMLGraph, or raw LangGraph for full control.
+
 ## Installation
 
 ### From PyPI
