@@ -6,6 +6,59 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Detecting the Unblessed Commit
+
+**Context:** After fixing the `$0/$1` hook bug (FR-083), considered: what about `--no-verify`? It bypasses all local hooks entirely, leaving no trace in git metadata. The sin is invisible.
+
+**Trap:** Believing that a working hook is sufficient enforcement. A hook is a speed bump, not a wall. Any commit can bypass it with `--no-verify`, and there is no git-native way to detect this after the fact.
+
+**Detection Strategies:**
+
+1. **Absence of evidence** — If a post-commit hook writes to a log (e.g., `hooks_executed.log`), missing entries for commits in a range indicate bypass.
+2. **CI discrepancy** — If CI runs the same checks and fails on a landed commit, the hook was either broken or bypassed.
+3. **Post-hoc audit** — The Inquisitor pattern: compare actual commits against rules. Any violation in HEAD that a working hook would catch = bypass.
+
+**The "Blessing" Pattern:**
+
+```python
+# In post-commit or absolution.py
+def record_blessing(sha: str):
+    """Record that hooks ran for this commit."""
+    with open(".chaplain/blessed.log", "a") as f:
+        f.write(f"{sha}\n")
+
+def audit_blessings(commits: list[str]) -> list[str]:
+    """Return commits that lack blessing records."""
+    blessed = set(Path(".chaplain/blessed.log").read_text().splitlines())
+    return [c for c in commits if c not in blessed]
+```
+
+Any commit without a blessing entry is "unblessed" — hooks were bypassed. The Inquisitor could flag these with `✗ UNBLESSED — commit {sha} bypassed hooks`.
+
+**Heuristic:** A hook that can be bypassed is a suggestion, not a rule. Defense in depth requires a second layer: either CI enforcement (can't bypass) or post-hoc audit (can detect). The Scripture's `[--no-verify flag will result in immediate termination]` assumes CI catches what hooks miss.
+
+**Seed:** Should absolution.py maintain a `blessed.log` of commits that passed through hooks, allowing the Inquisitor to flag "unblessed" commits? This makes bypass visible without preventing it — detection rather than prevention.
+
+---
+
+## 2026-02-24: Inquisitor Audit — The Ledger Half-Mended
+
+**Context:** Audit of latest 5 commits (`73644fd`..`5f83717`). Window covers: nested variable path fix, diary reflection, sampling backend teardown (FR-082), coverage hardening, and hook bug fix (FR-083). HEAD (`5f83717`) is unpushed. This is the 8th consecutive audit. Previous 7 audits flagged CHANGELOG violations — this audit checks whether the FR-083 fix resolved them.
+
+**Findings:**
+
+- ✓ COMPLIANT — **Sampling backend stale entry cleaned.** The `backend: sampling — deferred` line was removed from 0.4.56 by `5f83717`. The 7-audit saga of contradictory CHANGELOG content is partially resolved. 0.4.57 entry correctly documents the hook fix under `### Fixed` with FR-083 traceability.
+- ✗ VIOLATION — **0.4.56 still claims "REQ-YG-087–089" and "12 tests covering all three requirements."** REQ-YG-088 was removed in `b7a68f0`. Only 2 requirement IDs remain (087, 089). 18 test functions exist across 4 test classes. The range notation and test count in the CHANGELOG are factually wrong. The 0.4.57 entry did not correct these residual inaccuracies.
+- ✗ VIOLATION — **`73644fd` (`fix(copilot): nested variable paths`) still has no CHANGELOG entry.** 5th consecutive audit flagging this. Neither 0.4.56 nor 0.4.57 mention this fix. A user reading the CHANGELOG has no record that nested state paths like `{state.result.output}` are now supported.
+- ⚠ DRIFT — **ARCHITECTURE.md line 291 says `REQ-YG-087 – REQ-YG-089`**, implying 3 requirements. The individual requirement rows (lines 565–566) correctly show only 087 and 089. The summary table is stale. Flagged in previous audit — still uncorrected.
+- ✓ COMPLIANT — **ADR-001 and noqa Confessions fully upheld.** All test classes carry `@pytest.mark.req` tags. New hook tests tagged `REQ-YG-002`. Both `# noqa` suppressions (ANN001, ARG002) documented as CONF-002 and CONF-003. All 5 commits use syntactically valid Conventional Commits. Diary entries exist for the task lifecycle.
+
+**Heuristic:** Half-mending is worse than not mending. FR-083 fixed the most egregious lie (sampling backend that doesn't exist) but left two smaller lies in the same paragraph (wrong req range, wrong test count). A reader who trusts the CHANGELOG because the big lie was fixed will now trust the small lies too. When correcting a record, apply the correction to the entire record, not just the most visible error.
+
+**Seed:** The hook fix (FR-083) now mechanically enforces CHANGELOG co-modification for `feat:` and `fix:` commits. But `refactor:` commits that remove features (`b7a68f0`) still pass without CHANGELOG updates. Should the `changelog-required` hook expand its scope to `refactor:` commits, or would that create too much friction for internal refactoring that doesn't affect users?
+
+---
+
 ## 2026-02-24: FR-083 — The Hooks That Never Hooked
 
 **Context:** Six consecutive Inquisitor audits flagged the same CHANGELOG violation. Investigation revealed a deeper problem: the pre-commit hooks designed to enforce CHANGELOG and FR-XXX requirements *never actually enforced anything*. Both `feat-requires-fr` and `changelog-required` hooks used `bash -c 'script $1'` but `bash -c` assigns the first positional argument to `$0`, not `$1`. The commit message file landed in `$0`, `$1` was empty, `cat "$1"` read nothing, and the hooks unconditionally passed.
