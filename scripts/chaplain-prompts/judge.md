@@ -16,6 +16,7 @@ Evaluate against these criteria:
 4. **Testability** — Can every acceptance criterion be verified by a test? "Should work well" is not testable.
 5. **Effort Realism** — Is the estimate honest? Check similar past FRs.
 6. **Scripture Compliance** — Does it honor the 10 Commandments? Especially: "Kill entropy", "Types not dicts", "YAML prompts only".
+7. **Value Clarity** — Does the FR contain a Value Statement that names who benefits and how? Reject if absent or vague ("improves things", "makes it better").
 
 ## Verdict
 

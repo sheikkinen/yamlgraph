@@ -10,6 +10,11 @@
 
 Brief description of the feature or bug.
 
+## Value Statement
+
+<!-- One sentence: Who benefits and how. -->
+<!-- Example: "Graph authors get immediate feedback on broken edges, reducing debug time from minutes to seconds." -->
+
 ## Problem
 
 What problem does this solve? Why is it needed?
