@@ -423,14 +423,13 @@ nodes:
 
 Delegate complex reasoning tasks to GitHub Copilot CLI. The copilot node invokes the `copilot` command with your prompt, giving it access to the full project context (Scripture, file system, MCP tools).
 
-**FR-081** | **CAP-30** | **REQ-YG-087, REQ-YG-088, REQ-YG-089**
+**FR-081** | **CAP-30** | **REQ-YG-087, REQ-YG-089**
 
 ```yaml
 nodes:
   plan_feature:
     type: copilot
     prompt: plan                    # Prompt template
-    backend: cli                    # cli | sampling (sampling not yet implemented)
     cli_flags:
       allow_all_paths: true         # --allow-all-paths flag
       allow_all_tools: true         # --allow-all-tools flag

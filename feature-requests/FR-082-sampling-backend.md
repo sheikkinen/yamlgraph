@@ -2,14 +2,29 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Implemented
-**Verdict:** APPROVE
+**Status:** DROPPED
+**Verdict:** OVERENGINEERING
 **Judged:** 2026-02-24
-**Implemented:** 2026-02-24
-**Effort:** 2 days
+**Implemented:** 2026-02-24 (then removed)
+**Removed:** 2026-02-24
+**Effort:** 2 days (wasted)
 **Requested:** 2026-02-24
 **FR:** FR-082
 **Parent:** FR-081 (Copilot Node Type)
+
+## Post-Mortem: Why Dropped
+
+**Root cause:** Multi-node chains with sampling backend failed due to state serialization issues between LangGraph nodes. `CopilotResult` objects lose their `.output` attribute when passed between nodes, causing `{state.analysis.output}` to resolve to empty string.
+
+**Value assessment:**
+- Single-node sampling works (via loopback-poc)
+- Multi-node chains are the actual use case
+- `backend: cli` already solves the same problem with better testability
+- Debugging MCP sampling is extremely difficult (separate process, no direct visibility)
+
+**Lesson:** Before implementing, ask: "Does this add value beyond existing solutions?"
+
+The CLI backend (`backend: cli`) works reliably for multi-node chains. Sampling was a solution seeking a problem.
 
 ## Summary
 

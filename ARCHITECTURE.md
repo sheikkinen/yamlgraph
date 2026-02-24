@@ -558,12 +558,11 @@ Outbound Twilio voice call with ElevenLabs TTS/STT, demonstrating YAMLGraph as o
 
 ### 30. Copilot Node
 
-New `copilot` node type that delegates graph processing to Copilot CLI or MCP sampling, replacing shell-script orchestration with a first-class YAML-declarable node.
+New `copilot` node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node.
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-087 | Copilot node executes via CLI backend with configurable flags and timeout; `--silent` always forced; list-based `subprocess.run()` for injection safety; graceful `FileNotFoundError` when copilot binary missing | `node_factory/copilot_node`, `node_compiler`, `constants.NodeType.COPILOT` |
-| REQ-YG-088 | Copilot node executes via MCP sampling loopback when available; calls `session.create_message()` in MCP server context | `node_factory/copilot_node` |
 | REQ-YG-089 | Copilot node composes with router, map, and FSM-router patterns; standard node guarantees apply (requires, on_error, skip_if_exists, loop protection) | `node_factory/copilot_node`, `node_compiler` |
 
 ---
