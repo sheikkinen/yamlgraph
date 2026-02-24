@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.56] - 2026-02-24
+
+### Added
+- **FR-081 Copilot Node Type** (CAP-30, REQ-YG-087–089): New `copilot` node for delegating to GitHub Copilot CLI
+  - `type: copilot` — invokes Copilot CLI with `--silent` flag and configurable `cli_flags`
+  - `backend: cli` — subprocess execution with list-based command (injection-safe)
+  - `backend: sampling` — deferred (raises `NotImplementedError`, requires MCP loopback)
+  - `cli_flags`: `allow_all_paths`, `allow_all_tools`, `model` options
+  - `timeout` field (default 300s) per-node configurable
+  - `CopilotResult` model: `output`, `exit_code`, `model`, `backend`
+  - `examples/copilot/`: Plan → Judge → Summarize demo based on `.chaplain/watch.sh`
+  - `reference/graph-yaml.md`: Full `type: copilot` documentation section
+  - 12 tests covering all three requirements
+
 ## [0.4.55] - 2026-02-23
 
 ### Added
