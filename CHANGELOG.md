@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-084 Watch.sh Migration** Migrate `.chaplain/watch.sh` from inline copilot calls to `yamlgraph graph run`. Added `.chaplain/graph.yaml` (Plan→Judge workflow) and `.chaplain/prompts/{plan,judge}.yaml`. The bash script is now a thin polling wrapper; all workflow logic lives in the YAMLGraph graph.
 - **FR-085 Value Statement Field** Add mandatory Value Statement field to FR template (`feature-requests/TEMPLATE.md`). Add Judge criterion 7 (Value Clarity) to `scripts/chaplain-prompts/judge.md`. Graduate `intent_drift` trap to Knowledge Graph (`.github/copilot-instructions.md`).
 - **FR-086 README When NOT to Use** Add honest "When NOT to Use YAMLGraph" section to README.md covering dynamic topology, complex state transformations, custom node types, and multi-modal pipelines. Includes escape hatch guidance for `type: python` nodes.
+- **FR-088 README Development Process** Replace buried "Remember" section with visible "Development Process" section positioned between Testing and Security. Links to Scripture with five-step workflow summary (Research, Plan, Judge, Enforce, Distill).
 
 ## [0.4.56] - 2026-02-24
 
