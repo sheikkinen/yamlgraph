@@ -6,6 +6,65 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: Sampling Backend — Testability vs Architectural Elegance
+
+**Context:** Implemented FR-082 (MCP sampling backend for copilot nodes). During integration testing, hit a bug where `{state.analysis.output}` appeared as literal placeholder in downstream nodes. Spent significant time debugging with file-based logging, only to realize: the MCP server runs in a separate process, so `/tmp/debug.log` writes don't appear in the expected filesystem.
+
+**Trap: Architecture Opacity**
+
+The sampling backend's architecture is elegant but opaque for debugging:
+
+```
+You (human) → Claude (me) → yamlgraph_run_graph tool
+                                    ↓
+                           YAMLGraph MCP Server (separate process)
+                                    ↓
+                           copilot node: session.create_message()
+                                    ↓
+                           Sampling request → NEW LLM session (no history)
+                                    ↓
+                           Response returns to MCP server
+```
+
+Each `session.create_message()` spawns a **fresh LLM invocation** — no conversation history, no context from parent chat. The LLM generating critique/synthesis genuinely doesn't see the analysis output. If variable resolution fails, the LLM faithfully echoes the placeholder.
+
+**Insight: Testability Layers**
+
+The copilot node has two backends:
+- `backend: cli` — calls `copilot` CLI binary. Requires binary but works via `yamlgraph graph run`
+- `backend: sampling` — calls MCP sampling. Requires MCP server context; **cannot** run via CLI
+
+For testing **graph logic** (variable resolution, state passing, prompt rendering):
+1. Use `type: llm` nodes — full control, works with CLI, mock-friendly
+2. Use `backend: cli` — removes MCP layer, debuggable via terminal
+3. Use `backend: sampling` **only after** graph logic is verified — it's the hardest to debug
+
+The sampling backend is powerful (zero API cost, host LLM reuse) but should be the **last layer to test**, not the first.
+
+**Heuristic:** When debugging a pipeline, minimize layers. Each process boundary, RPC hop, or async bridge is a place where assumptions can break silently. `yamlgraph graph run` with `backend: cli` exercises the same copilot node code without MCP server, thread pool, or sampling protocol — one less variable.
+
+**Seed:** Should there be a `backend: mock` option that returns static/configurable responses? This would allow CLI testing of multi-stage sampling graphs without any LLM calls — pure graph logic verification. The mockable surface is `_execute_sampling()` which is already isolated.
+
+---
+
+## 2026-02-24: Inquisitor Audit — The Fix Without a Ledger
+
+**Context:** Audit of latest 5 commits (`2ad5006`..`73644fd`). One `fix:` commit (`73644fd`, nested variable paths in copilot node — 3 files, 110 insertions). One `docs:` commit (`ecb06bd`, sampling backend example — 5 files, 211 insertions). One `docs(diary):` reflection (`7d0b368`). One `feat:` commit (`4152cb1`, FR-082 sampling backend — 6 files, 611 lines). One `docs:` commit (`2ad5006`, Scripture cleanup + pre-commit fix). The window captures a bug fix landing atop the FR-082 delivery cycle.
+
+**Findings:**
+
+- ✗ VIOLATION — CHANGELOG.md line 14 **still** states `backend: sampling — deferred (raises NotImplementedError, requires MCP loopback)`. This is the **4th consecutive audit** flagging this contradiction. Commit `4152cb1` replaced the stub. Commit `ecb06bd` added a working example. Commit `73644fd` fixed a bug in it. The codebase has moved three commits past implementation while the CHANGELOG preserves the fossil. At this point the contradiction is not drift — it is an established falsehood in the project record.
+- ✗ VIOLATION — Commit `73644fd` (`fix(copilot): support nested variable paths`) has **no CHANGELOG entry**. Version `0.4.56` has an `### Added` section but no `### Fixed` section. A `fix:` commit that changes runtime behavior and adds a test requires a CHANGELOG entry per Commandment 10. The fix is invisible to anyone reading the release notes.
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits with correct scoping: `fix(copilot):`, `docs(copilot-mcp):`, `docs(diary):`, `feat(mcp):`, `docs:`.
+- ✓ COMPLIANT — ADR-001 upheld. All tests carry `@pytest.mark.req` tags (class-level `REQ-YG-087` covers CLI tests; `REQ-YG-088` on all 5 sampling tests). Both `# noqa` suppressions (`ANN001`, `ARG002`) documented in `docs/confessions.md`.
+- ⚠ DRIFT — Commit `73644fd` bundles a bug fix (copilot_node.py + test) with an unrelated Inquisitor audit diary entry (54 lines to diary.md). These are independent concerns — the fix is code, the audit is reflection. Bundling them makes `git bisect` and `git log --follow` less useful on `docs/diary.md`.
+
+**Heuristic:** A violation flagged 4 times without correction is no longer a detection problem — it is an action problem. The audit-to-correction pipeline has a gap: the Inquisitor writes findings to `docs/diary.md`, but no process ensures a human reads the diary and acts before the next commit. A violation that ages 4 audits without a corrective commit has effectively been accepted by silence. Either fix it, or formally accept it — ambiguity is the worst outcome.
+
+**Seed:** Should there be a "violation age" threshold — say 3 audits — after which the Inquisitor escalates from diary entry to a filed GitHub issue? Issues have assignees, notifications, and visibility that diary entries lack. The diary is for reflection; issues are for action. Persistent violations need the latter.
+
+---
+
 ## 2026-02-24: Inquisitor Audit — The Fossilized CHANGELOG Persists
 
 **Context:** Audit of latest 5 commits (`ea737f3`..`ecb06bd`). One `feat:` commit (`4152cb1`, FR-082 sampling backend). One `docs(copilot-mcp):` commit (`ecb06bd`, sampling backend example with 5 new files). One `docs(diary):` reflection (`7d0b368`). One `docs:` Scripture cleanup (`2ad5006`). One `chore:` README update (`ea737f3`). The audit window captures the post-FR-082 delivery including an example that exercises the now-working sampling backend.
