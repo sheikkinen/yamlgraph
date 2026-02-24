@@ -145,7 +145,7 @@ repos:
     hooks:
       - id: feat-requires-fr
         name: feat commits require FR-XXX
-        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^feat(\\(.*\\))?:\" && ! echo \"$msg\" | grep -qE \"FR-[0-9]+\"; then echo \"ERROR: feat: commits require FR-XXX reference\"; echo \"Example: feat: FR-038 add commit enforcement\"; exit 1; fi'"
+        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^feat(\\(.*\\))?:\" && ! echo \"$msg\" | grep -qE \"FR-[0-9]+\"; then echo \"ERROR: feat: commits require FR-XXX reference\"; echo \"Example: feat: FR-038 add commit enforcement\"; exit 1; fi' _"
         language: system
         stages: [commit-msg]
         always_run: true
@@ -154,7 +154,7 @@ repos:
     hooks:
       - id: changelog-required
         name: feat/fix commits require CHANGELOG.md
-        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^(feat|fix)(\\(.*\\))?:\" && ! git diff --cached --name-only | grep -qE \"^CHANGELOG\\.md$\"; then echo \"ERROR: feat:/fix: commits must include CHANGELOG.md changes\"; echo \"Add your entry under the current [Unreleased] or version heading.\"; exit 1; fi'"
+        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^(feat|fix)(\\(.*\\))?:\" && ! git diff --cached --name-only | grep -qE \"^CHANGELOG\\.md$\"; then echo \"ERROR: feat:/fix: commits must include CHANGELOG.md changes\"; echo \"Add your entry under the current [Unreleased] or version heading.\"; exit 1; fi' _"
         language: system
         stages: [commit-msg]
         always_run: true
