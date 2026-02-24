@@ -1,0 +1,50 @@
+# .chaplain/graph.yaml — Production Plan → Judge workflow
+# FR-084: Migrated from examples/copilot/graph.yaml
+# Uses copilot nodes (FR-081) to delegate to GitHub Copilot CLI
+
+version: "1.0"
+name: chaplain-plan-judge
+description: Plan → Judge workflow for feature request creation
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  topic_file: str        # Path to the topic file (e.g., .chaplain/inbox/topic.md)
+  drafts_dir: str        # Output directory for drafts
+
+nodes:
+  # Stage 1: Plan - Copilot reads topic and drafts feature request
+  plan:
+    type: copilot
+    prompt: plan
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+      drafts_dir: "{state.drafts_dir}"
+    state_key: plan_result
+    timeout: 300
+
+  # Stage 2: Judge - Copilot examines the draft and renders verdict
+  judge:
+    type: copilot
+    prompt: judge
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      drafts_dir: "{state.drafts_dir}"
+    state_key: judge_result
+    timeout: 300
+
+edges:
+  - from: START
+    to: plan
+  - from: plan
+    to: judge
+  - from: judge
+    to: END

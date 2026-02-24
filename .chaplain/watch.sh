@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# .chaplain/watch.sh — Simplified Plan → Judge loop
-# FR-068: Only watches and calls copilot (no file ops in shell)
+# .chaplain/watch.sh — Thin polling wrapper for Plan → Judge workflow
+# FR-084: Delegates to yamlgraph graph run (copilot nodes via FR-081)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -15,14 +15,10 @@ while true; do
     [[ -z "$topic_file" ]] && { sleep "$POLL"; continue; }
 
     echo "📋 Processing: $topic_file"
-
-    # Plan
-    echo "📝 Plan..."
-    copilot --allow-all-paths --allow-all-tools -p "**Plan.** Read $topic_file. Write the feature request in $DRAFTS/. Define objectives, constraints, acceptance criteria, and implementation approach. The feature request is the plan. Follow feature-requests/TEMPLATE.md. Delete $topic_file when complete."
-
-    # Judge
-    echo "⚖️  Judge..."
-    copilot --allow-all-paths --allow-all-tools -p "**Judge.** Examine the FR in $DRAFTS/. Critically examine the feature request; resolve contradictions; eliminate ambiguity; refine constraints and acceptance criteria until the path is explicit and minimal. APPROVE: If clear, minimal, and internally consistent - freeze scope, grant authority, move to feature-requests/. AMEND: If needs work - write issues into the file and move back to $INBOX/. REJECT: If unfeasible - add **Status:** Rejected to the file and move to feature-requests/."
+    yamlgraph graph run .chaplain/graph.yaml \
+        --var topic_file="$topic_file" \
+        --var drafts_dir="$DRAFTS" \
+        --full
 
     echo ""
 done

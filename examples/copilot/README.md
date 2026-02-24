@@ -89,5 +89,6 @@ Access in subsequent nodes: `{state.plan_result.output}`
 ## See Also
 
 - [FR-081](../../feature-requests/FR-081-copilot-node.md) - Feature request
-- [.chaplain/watch.sh](../../.chaplain/watch.sh) - Original shell script
+- [.chaplain/graph.yaml](../../.chaplain/graph.yaml) - **Production consumer** (Plan→Judge, no summarize)
+- [.chaplain/watch.sh](../../.chaplain/watch.sh) - Polling wrapper using this pattern
 - [reference/graph-yaml.md](../../reference/graph-yaml.md#type-copilot---copilot-cli-delegation) - Full documentation
