@@ -6,6 +6,28 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: FR-082 — Threading State Without Polluting State
+
+**Context:** Implemented MCP sampling backend for copilot node. The challenge: thread an MCP session object from async tool handler → thread pool executor → sync graph node, without adding infrastructure to graph state.
+
+**Trap:** The initial instinct was to pass `session` as a parameter through the call stack. But this would pollute the graph invocation signature — every function from `_invoke_graph` to individual node factories would need to accept and forward an MCP session parameter they don't use. Infrastructure leaking into business logic.
+
+**Solution:** `contextvars.ContextVar` provides implicit threading without signature pollution:
+1. Set context in async handler: `set_mcp_context(session, loop)`
+2. Copy context: `ctx = contextvars.copy_context()`
+3. Run in executor: `ctx.run(_invoke_graph, ...)`
+4. Read from anywhere: `session, loop = get_mcp_context()`
+
+The sync→async boundary required `asyncio.run_coroutine_threadsafe()` to call `session.create_message()` from the thread pool.
+
+**Heuristic:** ContextVars are the tool for threading infrastructure concerns — sessions, tracing contexts, request IDs — without polluting function signatures. If you're about to add a parameter that 90% of the call stack doesn't use, reach for ContextVar instead.
+
+**Gotcha:** Importing `asyncio` inside a function body breaks `patch()` targeting. The test mocked `yamlgraph.node_factory.copilot_node.asyncio.run_coroutine_threadsafe` but the import was happening inside the function at runtime, so the mock never applied. Moving the import to module level fixed it instantly. When mocking, the target must exist at the module level *before* the function runs.
+
+**Seed:** The `LookupError` guard (`try: server.request_context.session except LookupError: pass`) means copilot nodes with `backend: sampling` silently fall through to... nothing, in unit test contexts. Should there be a `YAMLGRAPH_REQUIRE_MCP_CONTEXT=true` env var that makes this failure loud in CI, so graphs that require sampling are tested properly?
+
+---
+
 ## 2026-02-24: Inquisitor Audit — Discipline Compensates for Broken Guards
 
 **Context:** Audit of latest 5 commits (`30cccb9`..`5c1dc27`). Three commits complete FR-081 (copilot node): `e5ae01b` feat, `0e3754f` docs/examples, `5c1dc27` bump+CHANGELOG. One diary reflection (`2d2cf4a`), one prior audit entry (`30cccb9`). The audit window captures the full FR-081 delivery cycle including a version release (v0.4.56).
