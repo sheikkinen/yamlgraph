@@ -6,6 +6,58 @@ Previous: [diary-2026-02-23.md](diary-2026-02-23.md) — 23 entries from 2026-02
 
 ---
 
+## 2026-02-24: FR-083 — The Hooks That Never Hooked
+
+**Context:** Six consecutive Inquisitor audits flagged the same CHANGELOG violation. Investigation revealed a deeper problem: the pre-commit hooks designed to enforce CHANGELOG and FR-XXX requirements *never actually enforced anything*. Both `feat-requires-fr` and `changelog-required` hooks used `bash -c 'script $1'` but `bash -c` assigns the first positional argument to `$0`, not `$1`. The commit message file landed in `$0`, `$1` was empty, `cat "$1"` read nothing, and the hooks unconditionally passed.
+
+**Trap:** Confidence in green checks. The hooks showed "Passed" on every commit since FR-038 (8 months ago). The green checkmark created false confidence that enforcement was happening. Nobody tested what the hooks *actually* did — only that they didn't crash.
+
+**Gotcha:** `bash -c` positional argument semantics. Per `bash(1)`: "If the -c option is present, then commands are read from the first non-option argument command_string. If there are arguments after the command_string, the first argument is assigned to `$0`". The canonical pattern is `bash -c 'script $1' _ arg` where `_` occupies `$0` so `arg` becomes `$1`.
+
+**Heuristic:** A violation that survives 5 audits is no longer a bug — it's policy. The hooks didn't enforce policy; they *pretended* to enforce policy while actually enforcing nothing. When a guard is known but ineffective, the system operates as if unguarded. The fix isn't just adding `_` — it's adding 19 integration tests that verify the hooks actually reject what they claim to reject.
+
+**Decision:** Fixed by appending ` _` to both hook entries. Added `tests/unit/test_precommit_hooks.py` with 19 tests covering all commit type × enforcement combinations. Removed stale `backend: sampling` CHANGELOG entry from FR-081 (sampling was removed in FR-082 teardown but CHANGELOG wasn't updated).
+
+**Seed:** How many other "green check" validations in the pre-commit pipeline are similarly hollow? The hooks *looked* like enforcement. What percentage of CI systems have guards that pass unconditionally due to configuration bugs? Should there be a meta-test that verifies guards *can* fail?
+
+---
+
+## 2026-02-24: Inquisitor Audit — Seven Bells, Same Lie
+
+**Context:** Audit of latest 5 commits (`ecb06bd`..`430853b`). Window covers the full sampling backend lifecycle: example addition, bug fix, diary reflection, teardown, and coverage hardening. HEAD (`430853b`) is unpushed and adds 183 lines of tests. Previous audit (6th consecutive) flagged CHANGELOG contradiction — this is the 7th.
+
+**Findings:**
+
+- ✗ VIOLATION — **CHANGELOG still contradicts codebase (7th consecutive audit).** Version 0.4.56 claims: `backend: sampling — deferred`, `REQ-YG-087–089`, and `12 tests`. Reality: sampling is deleted, REQ-YG-088 is removed, and 18 test functions exist covering 2 requirements. Neither `b7a68f0` (which dropped the feature) nor `430853b` (which added tests) updated the CHANGELOG. The record is now wrong on three separate facts in the same bullet.
+- ✗ VIOLATION — **No `### Fixed` section for `73644fd`** (`fix(copilot): support nested variable paths`). A `fix:` commit without a CHANGELOG entry. **4th consecutive audit** flagging this. The fix is well-tested and req-tagged, but invisible to users reading the CHANGELOG.
+- ⚠ DRIFT — **ARCHITECTURE.md capability table still says `REQ-YG-087 – REQ-YG-089`** (line 291), implying three requirements. Only REQ-YG-087 and REQ-YG-089 exist; the range notation is misleading after REQ-YG-088 removal. The individual requirement rows are correct — only the summary table is stale.
+- ✓ COMPLIANT — **ADR-001 upheld in HEAD.** New test class `TestCopilotNodeErrorHandling` carries `@pytest.mark.req("REQ-YG-087")`. All 4 req-tagged test classes map to living requirements. Both `# noqa` suppressions (ANN001, ARG002) documented in `docs/confessions.md` (CONF-002, CONF-003).
+- ✓ COMPLIANT — **All 5 commits follow Conventional Commits syntactically.** Diary entries exist for the task lifecycle. Commit `707e03d` still bundles production code under `docs:` scope (flagged in previous audit), but the modified code was later deleted by `b7a68f0`, so the misrepresentation is moot.
+
+**Heuristic:** Seven audits, same violation. The audit process has proven three things: (1) it can detect, (2) it cannot compel, (3) the human reads these entries but treats CHANGELOG correction as lower priority than feature work. The diary is not the enforcement mechanism — it is the archaeological record. The cure must be mechanical: a pre-commit hook that fails when `feat:`/`fix:`/`refactor:` commits lack a CHANGELOG diff. Until that hook exists, this finding will recur at audit 8, 9, 10, and beyond.
+
+**Seed:** The CHANGELOG violation has persisted across an entire feature lifecycle (implementation → bug fix → teardown → test hardening). At what point does a stale CHANGELOG become a user-facing bug rather than a process deviation? If a user reads 0.4.56 release notes and tries `backend: sampling`, they hit a missing feature. Should the version number bump to 0.4.57 to signal the breaking change?
+
+---
+
+## 2026-02-24: Inquisitor Audit — The Ledger Lies
+
+**Context:** Audit of latest 5 commits (`7d0b368`..`b7a68f0`). The window captures the full lifecycle of FR-082 sampling backend: diary reflection, example addition, bug fix, second diary entry, and final teardown (drop). HEAD (`b7a68f0`) is unpushed, meaning the CHANGELOG will ship as-is unless corrected before push.
+
+**Findings:**
+
+- ✗ VIOLATION — **CHANGELOG actively contradicts codebase.** Version 0.4.56 claims: `backend: sampling — deferred (raises NotImplementedError)`, `REQ-YG-087–089`, and `12 tests covering all three requirements`. After `b7a68f0`: sampling is deleted, REQ-YG-088 is removed from ARCHITECTURE.md, and only 2 requirement IDs remain. The CHANGELOG describes a feature that no longer exists. This is the **6th consecutive audit** flagging CHANGELOG inaccuracy. The refactor commit that dropped the feature still did not update the CHANGELOG.
+- ✗ VIOLATION — **No `### Fixed` section** for `73644fd` (`fix(copilot): support nested variable paths`). A `fix:` commit without a CHANGELOG entry. **3rd consecutive audit** flagging this. The fix itself was well-executed (test added, req-tagged), but the record is silent.
+- ⚠ DRIFT — Commit `707e03d` scoped as `docs(diary):` but modifies 11 lines of production code in `copilot_node.py` (debug logging, error handling). The `docs:` scope misrepresents the change. **2nd consecutive audit** flagging scope misrepresentation in this series.
+- ✓ COMPLIANT — ADR-001 upheld. REQ-YG-088 cleanly removed from ARCHITECTURE.md, `req_coverage.py`, and test file in the same commit (`b7a68f0`). Remaining tests carry `@pytest.mark.req("REQ-YG-087")` and `@pytest.mark.req("REQ-YG-089")`. Both `# noqa` suppressions (ANN001, ARG002) documented in `docs/confessions.md`.
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits format syntactically. Diary entries exist for the task lifecycle (3 reflections across the 5 commits).
+
+**Heuristic:** A record that isn't updated when reality changes isn't a record — it's a lie with a timestamp. The CHANGELOG survived 6 audits unchanged because audits write to the diary, not to the CHANGELOG. The correction must happen at the source: whoever writes `refactor:` or `fix:` commits must update the CHANGELOG in the same commit. The unpushed HEAD is the last chance before this ships.
+
+**Seed:** The previous audit proposed a pre-commit hook requiring CHANGELOG co-modification for `feat:`/`fix:` commits. Should `refactor:` commits that *remove* features also trigger this hook? A feature removal is more disorienting to users than a feature addition — the CHANGELOG says it exists, but it doesn't.
+
+---
+
 ## 2026-02-24: FR-082 Sampling Backend — Teardown
 
 **Context:** After implementing MCP sampling backend for copilot nodes (FR-082), found that multi-node chains fail due to state serialization issues. `CopilotResult` objects lose attributes when passed between LangGraph nodes. The `backend: cli` already works reliably for the same use cases.

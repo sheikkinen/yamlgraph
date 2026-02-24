@@ -5,13 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.57] - 2026-02-24
+
+### Fixed
+- **FR-083 Commit-Msg Hook Bug** Fix `bash -c` positional argument bug in both `feat-requires-fr` and `changelog-required` pre-commit hooks. Added `_` placeholder to both hook entries so the commit message file properly becomes `$1`. Removed stale `backend: sampling` CHANGELOG entry for FR-081 (was deleted in FR-082 teardown). Added 19 integration tests for commit-msg hook behavior.
+
 ## [0.4.56] - 2026-02-24
 
 ### Added
 - **FR-081 Copilot Node Type** (CAP-30, REQ-YG-087–089): New `copilot` node for delegating to GitHub Copilot CLI
   - `type: copilot` — invokes Copilot CLI with `--silent` flag and configurable `cli_flags`
   - `backend: cli` — subprocess execution with list-based command (injection-safe)
-  - `backend: sampling` — deferred (raises `NotImplementedError`, requires MCP loopback)
   - `cli_flags`: `allow_all_paths`, `allow_all_tools`, `model` options
   - `timeout` field (default 300s) per-node configurable
   - `CopilotResult` model: `output`, `exit_code`, `model`, `backend`
