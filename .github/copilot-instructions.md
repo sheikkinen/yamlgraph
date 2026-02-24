@@ -113,15 +113,6 @@ These laws descend from the canon of software craft. They shalt not be altered b
 **Amend.** Write the failing test first. Correct the root cause second.
 **Escalate.** If amendment is impossible, write the feature request in `feature-requests/`. Cite traces. Define the violated objective. Propose the new constraint. Return to Plan.
 
-## The Path of Implementation
-
-**Scour:** Search docs/web for the "Best Way."
-**Document:** Create/Update the FR in feature-requests/.
-**Red:** Write the @pytest.mark.req test. Watch it fail.
-**Green:** Write the minimal code.
-**Refactor:** Run ruff, vulture, and radon.
-**Reflect:** Log the "Trap" and plant a "Seed" in docs/diary.md.
-
 ## Agents' prayer
 
 May I fix at the callsite, not the utility.

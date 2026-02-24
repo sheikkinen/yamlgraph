@@ -209,13 +209,13 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Same as CONF-024.
 
 ### CONF-032
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L165)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L164)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
 - **Penance**: Same as CONF-024.
 
 ### CONF-033
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L189)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L188)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
 - **Penance**: Same as CONF-024.
