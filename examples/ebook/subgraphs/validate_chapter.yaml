@@ -1,0 +1,59 @@
+# Judge-Amend Subgraph for Chapter Validation
+# FR-103: Validates chapter content against cited source files
+# Input: chapter content with inline file citations
+# Output: validated/amended chapter + validation status
+
+version: "1.0"
+name: validate_chapter
+description: Judge-amend cycle for eBook chapter validation
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  # Input from parent graph
+  chapter: str  # Chapter content with inline citations (e.g., "As defined in `file`:")
+  # Internal state
+  judgment: str  # Structured judgment from judge node
+  amended_chapter: str  # Fixed chapter content (if amend runs)
+  # Output
+  validation_passed: bool
+
+nodes:
+  judge:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      chapter: "{state.chapter}"
+    state_key: judgment
+    timeout: 300
+
+  amend:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      chapter: "{state.chapter}"
+      judgment: "{state.judgment}"
+    state_key: amended_chapter
+    timeout: 300
+
+edges:
+  - from: START
+    to: judge
+  # Judge passes → END directly
+  - from: judge
+    to: END
+    condition: '"{state.judgment}" contains "PASSED"'
+  # Judge fails → amend → END
+  - from: judge
+    to: amend
+    condition: '"{state.judgment}" contains "FAILED"'
+  - from: amend
+    to: END

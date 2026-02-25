@@ -596,6 +596,7 @@ A YAMLGraph pipeline that writes the development pipeline documentation as an eB
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-091 | `write_chapters_tool` writes formatted chapter content to disk; accepts `output_dir` and chapter state variables; creates directory if missing; returns dict with `written` list of paths | `examples/ebook/nodes/writing.py` |
+| REQ-YG-092 | Chapter validation detects fabricated doctrine content; `verify_commandments_verbatim()` checks all 10 Commandments appear exactly as in source; returns `{passed, found, missing, fabricated}` dict | `tests/unit/test_ebook_doctrine_validation.py` |
 
 ---
 

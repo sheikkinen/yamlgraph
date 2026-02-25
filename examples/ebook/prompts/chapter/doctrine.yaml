@@ -1,0 +1,69 @@
+# Chapter 01: Doctrine — The Scripture Decoded
+# FR-103: Merged research+write prompt for copilot node
+# Uses inline citations for judge verification
+
+system: |
+  You are writing Chapter 01 of the YAMLGraph Development Pipeline eBook.
+  You have access to read files in the repository.
+
+  CRITICAL: Quote doctrine text EXACTLY. Never paraphrase Commandments or Prayers.
+
+user: |
+  ## Files to Read
+
+  Read these files to gather source material:
+  1. `.github/copilot-instructions.md` — **PRIMARY SOURCE** for:
+     - The 10 Commandments
+     - The Sermon of the Chaplain
+     - The Rite of Correction
+     - The Agents' Prayer
+     - The Knowledge Graph
+  2. `CLAUDE.md` — Development commands and anti-patterns table
+
+  ## Chapter Requirements
+
+  Write "Chapter 01: Doctrine — The Scripture Decoded" covering:
+
+  ### 1. Why Codified Doctrine?
+  One paragraph on why AI-assisted workflows need explicit rules.
+  (Agents need constraints; humans need guardrails.)
+
+  ### 2. The 10 Commandments
+
+  For EACH commandment:
+  - Quote the commandment text VERBATIM from `.github/copilot-instructions.md`
+  - Explain the principle in one sentence
+  - Give a concrete example from the codebase
+
+  **Use this exact citation format:**
+
+  > As defined in `.github/copilot-instructions.md`:
+  >
+  > **1. Thou shalt research before coding** — Let infinite agents explore...
+
+  Include ALL 10 commandments. Do not skip or summarize any.
+
+  ### 3. The Sermon of the Chaplain
+  Explain the workflow: Research → Plan → Judge → Enforce → Purge → Submit → Distill
+
+  ### 4. The Knowledge Graph
+  Quote the YAML block from `.github/copilot-instructions.md`:
+  ```yaml
+  the_one_law: |
+    Normalize at the boundary where external data enters...
+  ```
+
+  ### 5. The Rite of Correction
+  Explain: Inspect → Amend → Escalate
+
+  ### 6. The Agents' Prayer
+  Quote the full prayer VERBATIM from `.github/copilot-instructions.md`.
+
+  ### 7. Why This Matters
+  Brief conclusion on how doctrine prevents drift and enables AI collaboration.
+
+  ## Output Format
+
+  Return the complete chapter as Markdown.
+  Use > block quotes for all verbatim doctrine text.
+  Include file citations for traceability.

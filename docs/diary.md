@@ -6,6 +6,42 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-25: Inquisitor Audit — Minimal Delta, Compliance Holding, Audit Entropy Peak
+
+**Context:** Audit of HEAD (`9048d03`), 1 new commit since prior audit at `bd1d6ce`. The new commit (`9048d03` docs: FR-100 implementation progress update) is docs-only — a progress update to the feature request file. All 5 commits in the `git log -5` window were already covered by the prior audit except this one. Applied minimum-delta heuristic: focus on the single unaudited commit and systemic patterns.
+
+**Findings:**
+
+- ✓ COMPLIANT — **`9048d03` follows Conventional Commits** (`docs:` type, FR tag in subject, descriptive). No CHANGELOG entry needed for a feature request progress update. No code changes, no new capabilities, no new noqa suppressions. Commandments 4, 8, 10 and ADR-001 unaffected.
+- ✓ COMPLIANT — **ADR-001 intact:** REQ-YG-091 (CAP-32) in ARCHITECTURE.md, 4 tests tagged `@pytest.mark.req("REQ-YG-091")` in `test_ebook_writing.py`, `req_coverage.py` updated. Full traceability chain holds from prior commit.
+- ✓ COMPLIANT — **noqa Confessions:** 2 suppressions (CONF-002: ARG002, CONF-003: ANN001), both confessed. Zero new suppressions.
+- ⚠ DRIFT — **Missing Distill for FR-100 (Sermon):** Flagged in prior audit — `bd1d6ce` implemented a 14-node pipeline with no metacognitive diary entry. `9048d03` updated the FR progress but is not a Distill entry. The implementation experience, traps, and lessons remain unrecorded.
+- ⚠ DRIFT — **Audit entropy (Commandment 8):** This is the **9th** `## 2026-02-25: Inquisitor Audit` entry in `diary.md`. The file has 264 lines, the majority being audit entries. The diary has become an audit log. Prior audits proposed solutions (separate `audit-log.md`, last-audited-SHA marker, batch audits per session) — none adopted. The Inquisitor is now the primary entropy source it was designed to detect.
+
+**Heuristic:** When the corrective mechanism produces more entropy than the defects it finds, the mechanism itself needs correction. An Inquisitor with no memory of prior audits and no minimum-delta gate will always re-discover and re-record. The fix is structural: store last-audited SHA, separate audit entries from development reflections, and enforce a cooldown.
+
+**Seed:** Should `docs/diary.md` be split into `docs/diary.md` (development reflections only) and `docs/audit-log.md` (Inquisitor findings), with the Inquisitor writing exclusively to the latter — preserving the diary's original metacognitive purpose?
+
+---
+
+## 2026-02-25: Inquisitor Audit — FR-100 eBook Pipeline, Doctrine Largely Held
+
+**Context:** Audit of HEAD (`bd1d6ce`), covering 5 commits since last audit. One functional commit (`bd1d6ce` feat(ebook): FR-100) introduced a new capability — a 14-node eBook authoring pipeline. Four remaining commits are docs-only (FR-100 feature request, duplicate diary cleanup, diary restore, FR-082 minesweeper FR). Audited against all 10 Commandments, ADR-001, Confessions, and the Sermon.
+
+**Findings:**
+
+- ✓ COMPLIANT — **Conventional Commits + CHANGELOG (Commandment 10):** `bd1d6ce` uses scope, FR tag, and detailed body listing every artifact. CHANGELOG 0.4.58 has a matching entry. `docs:` commits correctly omit CHANGELOG entries. All 5 subjects are descriptive.
+- ✓ COMPLIANT — **ADR-001 (Requirement Traceability):** REQ-YG-091 added to ARCHITECTURE.md under new CAP-32. `scripts/req_coverage.py` updated with the new REQ and capability. 4 tests in `test_ebook_writing.py` carry `@pytest.mark.req("REQ-YG-091")`. Full chain intact.
+- ✓ COMPLIANT — **noqa Confessions:** 2 existing suppressions (CONF-002: ARG002, CONF-003: ANN001) remain confessed. No new suppressions introduced in `yamlgraph/` or the new `examples/ebook/` code.
+- ⚠ DRIFT — **Missing Distill (Sermon):** `bd1d6ce` implements FR-100 — a non-trivial 14-node pipeline scaffold with custom tool, 12 prompts, and a build script. No metacognitive diary entry reflects on the implementation decisions, traps, or lessons learned. The Sermon requires Distill after completing a task list.
+- ⚠ DRIFT — **Co-authored-by trailer:** 0 of 5 commits include the trailer. Per prior audit's ruling, this is an **accepted deviation** — no further flagging until an FR or hook change addresses it.
+
+**Heuristic:** A feature that passes every structural gate (Conventional Commits, CHANGELOG, ADR-001, tests, confessions) but skips the Distill step is 90% compliant and 0% reflective. The Distill is where institutional knowledge compounds; omitting it means the next person building a similar pipeline starts from zero context.
+
+**Seed:** Should the pre-commit hook enforce that `feat:` commits touching `examples/` include a diary entry in the same commit — making Distill a mechanical gate rather than a voluntary discipline?
+
+---
+
 ## 2026-02-25: Inquisitor Audit — Minimal Delta, Diary Bloat
 
 **Context:** Audit of HEAD (`5a102f1`), covering 5 commits: `5a102f1` (docs: remove duplicate diary file), `51d744c` (docs: restore lost diary entries), `5fcede9` (docs: FR-082 minesweeper FR), `63de507` (feat: FR-097/FR-098 shared diary refactor), `80be03a` (chore: diary commit). Only 1 commit (`5a102f1`) is genuinely new since the prior audit at `51d744c`. Applying the minimum-delta heuristic from prior audits: this audit validates the new commit and reassesses systemic patterns rather than re-discovering known findings.

@@ -1,0 +1,64 @@
+# Chapter 02: Pre-commit Gates
+# FR-103: Merged research+write prompt for copilot node
+
+system: |
+  You are writing Chapter 02 of the YAMLGraph Development Pipeline eBook.
+  You have access to read files in the repository.
+
+user: |
+  ## Files to Read
+
+  1. `.pre-commit-config.yaml` — **PRIMARY SOURCE** for all hook definitions
+  2. `scripts/absolution.py` — Coverage gate script
+  3. `scripts/req_coverage.py` — Requirement traceability script
+  4. `scripts/noqa_confession.py` — noqa audit script
+  5. `scripts/diary_rotate.py` — Diary rotation script
+
+  ## Chapter Requirements
+
+  Write "Chapter 02: Pre-commit Gates" covering:
+
+  ### 1. Why Pre-commit Hooks?
+  The gate that prevents bad commits from entering the codebase.
+
+  ### 2. Hook Configuration
+
+  As defined in `.pre-commit-config.yaml`:
+
+  Create a table summarizing each hook:
+  | Hook | Purpose | Stage |
+  |------|---------|-------|
+  | ... | ... | ... |
+
+  ### 3. Key Scripts
+
+  For each script:
+  - Purpose and when it runs
+  - Key logic explained
+  - Example output
+
+  #### absolution.py
+  Coverage baseline enforcement
+
+  #### req_coverage.py
+  Requirement traceability (REQ-YG-XXX markers)
+
+  #### noqa_confession.py
+  noqa audit and confession enforcement
+
+  #### diary_rotate.py
+  Diary file rotation logic
+
+  ### 4. The Commit Flow
+  What happens when you run `git commit`:
+  1. Pre-commit hooks run
+  2. Linters check code
+  3. Tests validate
+  4. Coverage verified
+  5. Commit message validated
+
+  ## Output Format
+
+  Return complete chapter as Markdown.
+  Use tables for hook summaries.
+  Include file citations (e.g., "As defined in `.pre-commit-config.yaml`:").

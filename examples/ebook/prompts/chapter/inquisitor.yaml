@@ -1,0 +1,50 @@
+# Chapter 04: The Inquisitor
+# FR-103: Merged research+write prompt for copilot node
+
+system: |
+  You are writing Chapter 04 of the YAMLGraph Development Pipeline eBook.
+  You have access to read files in the repository.
+
+user: |
+  ## Files to Read
+
+  1. `.chaplain/inquisitor.sh` — Audit script
+  2. `.pre-commit-config.yaml` — Post-commit hook definition
+  3. `docs/diary.md` — Sample audit entries
+
+  ## Chapter Requirements
+
+  Write "Chapter 04: The Inquisitor" covering:
+
+  ### 1. What is the Inquisitor?
+  The post-commit auditor that examines changes after they're committed.
+
+  ### 2. When It Runs
+
+  As defined in `.pre-commit-config.yaml`:
+  - The post-commit hook trigger
+  - What conditions activate it
+
+  ### 3. The Audit Process
+
+  As defined in `.chaplain/inquisitor.sh`:
+  - What it examines
+  - How it reports findings
+  - Where results are logged
+
+  ### 4. Sample Audit Entry
+
+  Show an example from `docs/diary.md` of an Inquisitor audit entry:
+  - The structure
+  - What gets recorded
+  - How issues are flagged
+
+  ### 5. Relationship to Chaplain
+  How Inquisitor complements the pre-commit Chaplain:
+  - Chaplain: prevents bad commits (pre-commit)
+  - Inquisitor: audits what got through (post-commit)
+
+  ## Output Format
+
+  Return complete chapter as Markdown.
+  Include file citations for traceability.
