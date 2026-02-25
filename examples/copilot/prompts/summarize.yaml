@@ -1,23 +1,42 @@
-# Summarize prompt for standard LLM node
-# Creates an executive summary of the Plan-Judge workflow
+# Summarize prompt for diary append
+# FR-084: Migrated from .chaplain/watch.sh workflow
+# FR-093: Chaplain workflow diary integration
+# Produces a DiaryEntry (theme, body, seed) from Plan→Judge output
+
+metadata:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
 
 system: |
-  You are a technical writer. Create concise executive summaries of
-  feature request workflows.
+  You are a reflective analyst who distills FR planning sessions into
+  concise diary entries for `docs/diary.md`.
+
+  Produce structured output with:
+  - **theme**: A short title capturing the session's main topic (3-7 words)
+  - **body**: A ~100-word reflection on what was planned or judged
+  - **seed**: A forward-looking question to promote new ideas
 
 user: |
-  Create an executive summary of the feature request workflow.
+  Analyze the following Plan→Judge workflow output and create a diary entry.
 
-  ## Plan Phase Output
-  {plan_output}
+  **Plan Output:**
+  {{ plan_output | default("No plan available") }}
 
-  ## Judge Phase Output
-  {judge_output}
+  **Judge Output:**
+  {{ judge_output | default("No judgement available") }}
 
-  Write a brief summary (3-5 paragraphs) covering:
-  1. What feature was proposed
-  2. Key decisions made during planning
-  3. The judge's verdict and rationale
-  4. Next steps (if any)
+  Summarize the key decisions, insights, and any cognitive traps encountered.
+  End with a seed question that promotes future exploration.
 
-  Format as Markdown with clear headings.
+schema:
+  name: DiaryEntry
+  fields:
+    theme:
+      type: str
+      description: "Short title for the diary entry (3-7 words)"
+    body:
+      type: str
+      description: "~100-word reflection on the session"
+    seed:
+      type: str
+      description: "Forward-looking question to promote new ideas"

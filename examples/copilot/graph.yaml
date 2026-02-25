@@ -1,6 +1,8 @@
-# Copilot Node Demo - Plan → Judge → Summarize
+# Copilot Node Demo - Plan → Judge → Summarize → Write Diary
 # FR-081: Demonstrates copilot node type delegating to GitHub Copilot CLI
-# Based on .chaplain/watch.sh Plan-Judge workflow
+# FR-084: Based on .chaplain/watch.sh Plan-Judge workflow
+# FR-093: Added summarize + write_diary for automatic diary append
+# FR-098: Consolidated from .chaplain/graph.yaml
 
 version: "1.0"
 name: copilot-workflow
@@ -9,12 +11,19 @@ description: Feature request workflow using copilot nodes for planning and judge
 prompts_relative: true
 prompts_dir: prompts
 
-defaults:
-  temperature: 0.7
-
 state:
   topic_file: str        # Path to the topic file (e.g., .chaplain/inbox/topic.md)
   drafts_dir: str        # Output directory for drafts
+  date: str              # Date for diary entry (YYYY-MM-DD)
+  diary_prefix: str      # Diary entry prefix (default: Chaplain)
+  diary_entry: dict      # Output from summarize node (theme, body, seed)
+  written: bool          # True after diary append
+
+tools:
+  write_diary_tool:
+    type: python
+    module: examples.shared.diary
+    function: write_diary
 
 nodes:
   # Stage 1: Plan - Copilot reads topic and drafts feature request
@@ -29,7 +38,7 @@ nodes:
       topic_file: "{state.topic_file}"
       drafts_dir: "{state.drafts_dir}"
     state_key: plan_result
-    timeout: 300
+    timeout: 500
 
   # Stage 2: Judge - Copilot examines the draft and renders verdict
   judge:
@@ -42,16 +51,22 @@ nodes:
     variables:
       drafts_dir: "{state.drafts_dir}"
     state_key: judge_result
-    timeout: 300
+    timeout: 500
 
-  # Stage 3: Summarize - Standard LLM node creates executive summary
+  # Stage 3: Summarize - LLM distills Plan→Judge into diary entry
   summarize:
     type: llm
     prompt: summarize
     variables:
-      plan_output: "{state.plan_result.output}"
-      judge_output: "{state.judge_result.output}"
-    state_key: summary
+      plan_output: "{state.plan_result}"
+      judge_output: "{state.judge_result}"
+    state_key: diary_entry
+
+  # Stage 4: Write - Append formatted entry to docs/diary.md
+  write_diary:
+    type: python
+    tool: write_diary_tool
+    state_key: written
 
 edges:
   - from: START
@@ -61,9 +76,6 @@ edges:
   - from: judge
     to: summarize
   - from: summarize
+    to: write_diary
+  - from: write_diary
     to: END
-
-exports:
-  summary:
-    format: markdown
-    filename: workflow_summary.md

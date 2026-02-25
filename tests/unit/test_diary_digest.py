@@ -264,7 +264,7 @@ class TestWriteDiary:
 
         diary = tmp_path / "diary.md"
         diary.write_text("# Diary\n")
-        monkeypatch.setattr("examples.diary_digest.nodes.writing.DIARY_PATH", diary)
+        monkeypatch.setattr("examples.shared.diary.DIARY_PATH", diary)
 
         state = {
             "diary_entry": {"theme": "Test", "body": "Body.", "seed": "Q?"},
@@ -307,7 +307,7 @@ class TestWriteDiary:
 
         diary = tmp_path / "diary.md"
         diary.write_text("# Diary\n")
-        monkeypatch.setattr("examples.diary_digest.nodes.writing.DIARY_PATH", diary)
+        monkeypatch.setattr("examples.shared.diary.DIARY_PATH", diary)
 
         # Simulate Pydantic model repr as stored in state
         state = {
@@ -522,7 +522,7 @@ class TestSeedsYaml:
 
         seeds_file = tmp_path / "seeds.yaml"
         seeds_file.write_text(
-            '- "What replaces cost?"\n' '- "Could archaeology be a graph?"\n'
+            '- "What replaces cost?"\n- "Could archaeology be a graph?"\n'
         )
         seeds = load_seeds(seeds_file)
         assert len(seeds) == 2

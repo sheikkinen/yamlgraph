@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-02-25
+**Implemented:** 2026-02-25
 
 ## Summary
 
@@ -88,15 +89,15 @@ Update `tests/unit/test_diary_digest.py` import paths for `format_diary_entry`, 
 
 ## Acceptance Criteria
 
-- [ ] `examples/shared/diary.py` contains `format_diary_entry()`, `append_to_diary()`, `should_write_entry()`, and `write_diary()`
-- [ ] `DIARY_PATH` in `examples/shared/diary.py` resolves correctly to `docs/diary.md`
-- [ ] `.chaplain/graph.yaml` tool references `module: examples.shared.diary`
-- [ ] `examples/diary_digest/graph.yaml` write_tool references `module: examples.shared.diary`
-- [ ] `examples/diary_digest/nodes/writing.py` re-exports shared functions (backward compatibility)
-- [ ] `filter_relevant` and its helpers remain in `examples/diary_digest/nodes/writing.py`
-- [ ] No duplicate function bodies (re-exports only)
-- [ ] All existing tests pass with updated imports
-- [ ] `ruff check` passes on modified files
+- [x] `examples/shared/diary.py` contains `format_diary_entry()`, `append_to_diary()`, `should_write_entry()`, and `write_diary()`
+- [x] `DIARY_PATH` in `examples/shared/diary.py` resolves correctly to `docs/diary.md`
+- [x] `.chaplain/graph.yaml` tool references `module: examples.shared.diary`
+- [x] `examples/diary_digest/graph.yaml` write_tool references `module: examples.shared.diary`
+- [x] `examples/diary_digest/nodes/writing.py` re-exports shared functions (backward compatibility)
+- [x] `filter_relevant` and its helpers remain in `examples/diary_digest/nodes/writing.py`
+- [x] No duplicate function bodies (re-exports only)
+- [x] All existing tests pass with updated imports
+- [x] `ruff check` passes on modified files
 
 ## Alternatives Considered
 

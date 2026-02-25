@@ -2,9 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-02-25
+**Implemented:** 2026-02-25
 
 ## Summary
 
@@ -77,25 +78,25 @@ The copilot graph has `defaults: temperature: 0.7` which the chaplain graph does
 
 ## Acceptance Criteria
 
-- [ ] `examples/copilot/graph.yaml` contains all 4 stages: Plan → Judge → Summarize → Write Diary
-- [ ] `examples/copilot/graph.yaml` tool declaration uses `examples.diary_digest.nodes.writing` with `# TODO: FR-097` comment
-- [ ] `examples/copilot/prompts/summarize.yaml` uses DiaryEntry schema with theme, body, seed
-- [ ] `examples/copilot/prompts/summarize.yaml` uses Jinja2 syntax with `{{ plan_output | default(...) }}`
-- [ ] `examples/copilot/prompts/plan.yaml` and `judge.yaml` include FR-084 provenance comments
-- [ ] Graph variables map to `{state.plan_result}` (full object, not `.output`)
-- [ ] `exports` section is removed from the merged graph
-- [ ] `.chaplain/watch.sh` references `examples/copilot/graph.yaml`
-- [ ] `.chaplain/graph.yaml` and `.chaplain/prompts/` are deleted
-- [ ] `yamlgraph graph lint examples/copilot/graph.yaml` passes
-- [ ] `examples/copilot/README.md` documents the full 4-stage workflow
-- [ ] `ARCHITECTURE.md` REQ-YG-090 file paths updated to `examples/copilot/` locations
-- [ ] `defaults` section removed from merged graph (dead config)
-- [ ] No remaining references to `.chaplain/graph.yaml` in the codebase (except CHANGELOG, historical FR docs, and diary entries)
-- [ ] Tests pass (no existing tests depend on `.chaplain/graph.yaml` path)
+- [x] `examples/copilot/graph.yaml` contains all 4 stages: Plan → Judge → Summarize → Write Diary
+- [x] `examples/copilot/graph.yaml` tool declaration uses `examples.shared.diary` (FR-097 landed concurrently)
+- [x] `examples/copilot/prompts/summarize.yaml` uses DiaryEntry schema with theme, body, seed
+- [x] `examples/copilot/prompts/summarize.yaml` uses Jinja2 syntax with `{{ plan_output | default(...) }}`
+- [x] `examples/copilot/prompts/plan.yaml` and `judge.yaml` include FR-084 provenance comments
+- [x] Graph variables map to `{state.plan_result}` (full object, not `.output`)
+- [x] `exports` section is removed from the merged graph
+- [x] `.chaplain/watch.sh` references `examples/copilot/graph.yaml`
+- [x] `.chaplain/graph.yaml` and `.chaplain/prompts/` are deleted
+- [x] `yamlgraph graph lint examples/copilot/graph.yaml` passes
+- [x] `examples/copilot/README.md` documents the full 4-stage workflow
+- [x] `ARCHITECTURE.md` REQ-YG-090 file paths updated to `examples/copilot/` locations
+- [x] `defaults` section removed from merged graph (dead config)
+- [x] No remaining references to `.chaplain/graph.yaml` in the codebase (except CHANGELOG, historical FR docs, and diary entries)
+- [x] Tests pass (no existing tests depend on `.chaplain/graph.yaml` path)
 
 ## Constraints
 
-- **FR-097 ordering**: FR-097 (shared diary module) is NOT a prerequisite. The merged graph accepts the cross-example import as tech debt with a `# TODO: FR-097` marker. When FR-097 lands, it updates the module path in the merged graph — a single-line change.
+- **FR-097 synergy**: FR-097 (shared diary module) landed concurrently, so the merged graph uses `examples.shared.diary` directly — no tech debt marker needed.
 - **No new features**: This is a pure consolidation. No new stages, prompts, or capabilities are introduced.
 - **Backward compatible**: `.chaplain/watch.sh` continues to work identically after the path change.
 

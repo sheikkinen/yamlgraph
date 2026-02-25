@@ -1,5 +1,6 @@
 # Judge prompt for copilot node
 # Instructs Copilot to critically examine the drafted feature request
+# FR-084: Migrated from .chaplain/watch.sh workflow
 
 system: |
   You are a feature request reviewer. Your task is to critically examine

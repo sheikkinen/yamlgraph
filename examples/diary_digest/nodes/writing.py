@@ -1,14 +1,32 @@
-"""Diary digest output tools — filtering, formatting, writing.
+"""Diary digest output tools — filtering and diary_digest-specific helpers.
 
 Graph tool functions following the state: dict -> dict pattern.
+FR-097: Shared diary writing utilities moved to examples.shared.diary.
 """
 
 import logging
-from pathlib import Path
+
+# Re-export shared diary utilities for backward compatibility (FR-097)
+from examples.shared.diary import (
+    DIARY_PATH,
+    append_to_diary,
+    format_diary_entry,
+    should_write_entry,
+    write_diary,
+)
+
+__all__ = [
+    # Shared (re-exported from examples.shared.diary)
+    "DIARY_PATH",
+    "format_diary_entry",
+    "append_to_diary",
+    "should_write_entry",
+    "write_diary",
+    # Local (diary_digest-specific)
+    "filter_relevant",
+]
 
 logger = logging.getLogger(__name__)
-
-DIARY_PATH = Path(__file__).resolve().parent.parent.parent.parent / "docs" / "diary.md"
 
 
 # ---------------------------------------------------------------------------
@@ -77,106 +95,3 @@ def filter_relevant(state: dict) -> dict:
         "relevant_articles": relevant,
         "relevant_count": len(relevant),
     }
-
-
-# ---------------------------------------------------------------------------
-# Pure functions (tested directly)
-# ---------------------------------------------------------------------------
-
-
-def format_diary_entry(
-    date_str: str,
-    theme: str,
-    body: str,
-    seed: str,
-    prefix: str = "World Digest",
-) -> str:
-    """Format a diary entry in the canonical format.
-
-    Args:
-        date_str: Date string (YYYY-MM-DD)
-        theme: Entry theme/title
-        body: Entry body content
-        seed: Forward-looking question
-        prefix: Header prefix (default "World Digest", use "Chaplain" for FR runs)
-
-    Returns:
-        Formatted markdown entry
-    """
-    return (
-        f"\n---\n\n## {date_str}: {prefix} — {theme}\n\n"
-        f"{body}\n\n"
-        f"**Seed:** {seed}\n"
-    )
-
-
-def append_to_diary(path: Path, entry: str) -> None:
-    """Append a formatted entry to the diary file."""
-    with open(path, "a") as f:
-        f.write(entry)
-
-
-def should_write_entry(
-    articles: list[dict],
-    threshold: float = 0.3,
-) -> bool:
-    """Return True only if at least one article scores above threshold.
-
-    When no articles are relevant, the digest should be a silent no-op.
-    Expects articles already unwrapped by filter_relevant.
-    """
-    if not articles:
-        return False
-    return any(a.get("relevance_score", 0) >= threshold for a in articles)
-
-
-# ---------------------------------------------------------------------------
-# Graph tool: write_diary (state -> dict)
-# ---------------------------------------------------------------------------
-
-
-def write_diary(state: dict) -> dict:
-    """Format and append diary entry from synthesized LLM output.
-
-    Graph tool — reads diary_entry from state (Pydantic model with
-    theme, body, seed fields), formats it, and appends to docs/diary.md.
-    """
-    entry_data = state.get("diary_entry", {})
-    date_str = state.get("date", "unknown")
-    prefix = state.get("diary_prefix", "World Digest")
-
-    # Handle Pydantic model, dict, or string representation
-    if isinstance(entry_data, str):
-        # Parse string representation like: theme='...' body='...' seed='...'
-        import re
-
-        theme_match = re.search(r"theme='([^']+)'", entry_data)
-        # Body can contain quotes, so match until ' seed='
-        body_match = re.search(r"body='(.+?)'\s+seed='", entry_data, re.DOTALL)
-        seed_match = re.search(r"seed='([^']+)'", entry_data)
-        theme = theme_match.group(1) if theme_match else "Developments"
-        body = body_match.group(1) if body_match else "No content."
-        seed = seed_match.group(1) if seed_match else "What did we miss?"
-    else:
-        theme = getattr(entry_data, "theme", None) or entry_data.get(
-            "theme", "Developments"
-        )
-        body = getattr(entry_data, "body", None) or entry_data.get(
-            "body", "No content."
-        )
-        seed = getattr(entry_data, "seed", None) or entry_data.get(
-            "seed", "What did we miss?"
-        )
-
-    entry = format_diary_entry(
-        date_str=date_str,
-        theme=theme,
-        body=body,
-        seed=seed,
-        prefix=prefix,
-    )
-
-    append_to_diary(DIARY_PATH, entry)
-    logger.info(f"✓ Entry appended to {DIARY_PATH}")
-
-    return {"written": True}
