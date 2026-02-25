@@ -6,6 +6,24 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-25: Inquisitor Audit — FR-103 Cycle Complete, Doctrine Holding
+
+**Context:** Audit of HEAD (`0704063`), covering 5 commits: `0704063` (docs: FR-103 diary), `b0fa74c` (feat: FR-103 judge-amend subgraph), `9048d03` (docs: FR-100 progress), `bd1d6ce` (feat: FR-100 ebook scaffold), `e909641` (docs: FR-100 feature request). Two `feat` commits introduce new capabilities (CAP-32, REQ-YG-091, REQ-YG-092). Audited against all 10 Commandments, ADR-001, Confessions, and the Sermon.
+
+**Findings:**
+
+- ✓ COMPLIANT — **Conventional Commits + CHANGELOG (Commandment 10):** All 5 commits use correct type/scope/FR-tag format. Both `feat` commits have corresponding CHANGELOG 0.4.58 entries. `docs:` commits correctly omit CHANGELOG entries.
+- ✓ COMPLIANT — **ADR-001 (Requirement Traceability):** REQ-YG-091 (4 tests in `test_ebook_writing.py`) and REQ-YG-092 (4 tests in `test_ebook_doctrine_validation.py`) all carry `@pytest.mark.req` tags. Both requirements documented in ARCHITECTURE.md. `req_coverage.py` updated.
+- ✓ COMPLIANT — **noqa Confessions:** 2 suppressions (CONF-002: ARG002, CONF-003: ANN001) remain confessed. No new suppressions introduced across the 5-commit range.
+- ✓ COMPLIANT — **Distill (Sermon):** FR-103 has a diary entry (`0704063`) documenting the normalize-at-boundary trap, the FR-101→FR-102→FR-103 convergence path, and a seed for generalizing the judge-amend pattern. This resolves the prior audit's drift finding about missing Distill for this work.
+- ⚠ DRIFT — **Co-authored-by trailer:** 0/5 commits include the required `Co-authored-by: Copilot` trailer. Accepted deviation per prior ruling — no further escalation until a pre-commit hook addresses this mechanically.
+
+**Heuristic:** A full FR cycle (FR-100→FR-101→FR-102→FR-103) that ends with a diary entry closing every prior audit finding is the doctrine working as designed. The iterative narrowing from 32 nodes to a minimal judge-amend subgraph is exactly the Research→Plan→Judge→Enforce→Distill sermon in practice.
+
+**Seed:** The diary now has 23 entries (322 lines), with audit entries outnumbering development reflections. Should rotation to a dated archive (e.g., `diary-2026-02-25.md`) trigger when entry count exceeds 10 per day — preserving the current file as a rolling window of the most recent work?
+
+---
+
 ## 2026-02-25: FR-103 Judge-Amend Subgraph — The Normalize-at-Boundary Trap
 
 **Context:** FR-100 pipeline ran successfully but produced 9/10 fabricated Commandments in Ch01 Doctrine. Root cause: research→write split lost verbatim quotes. The LLM invented content from summaries instead of citing source files.
@@ -25,6 +43,24 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 **Heuristic:** When hallucination appears late in pipeline, trace backward to find where verbatim content was converted to summary. The fix is moving the raw source access closer to the generation point — ideally into the same prompt.
 
 **Seed:** Could the judge-amend subgraph pattern be generalized as a reusable validation primitive? A `validate_with_sources` subgraph that takes content + cited files and returns corrected content?
+
+---
+
+## 2026-02-25: Inquisitor Audit — FR-103 Judge-Amend, Full Compliance
+
+**Context:** Audit of HEAD (`b0fa74c`), 1 new commit since prior audit at `9048d03`. The commit (`feat(ebook): FR-103 judge-amend subgraph pattern`) introduces a validation subgraph, 6 merged chapter prompts, judge/amend prompts, 4 new tests, and a Distill diary entry. Minimum-delta heuristic applied.
+
+**Findings:**
+
+- ✓ COMPLIANT — **Conventional Commits + CHANGELOG (Commandment 10):** `b0fa74c` uses `feat(ebook):` scope, FR-103 tag, detailed body with 7 bullet points. CHANGELOG 0.4.58 has a matching FR-103 entry with REQ-YG-092.
+- ✓ COMPLIANT — **ADR-001 (Requirement Traceability):** REQ-YG-092 in ARCHITECTURE.md under CAP-32. `req_coverage.py` updated. 4 tests in `test_ebook_doctrine_validation.py` carry `@pytest.mark.req("REQ-YG-092")`. Full chain intact.
+- ✓ COMPLIANT — **noqa Confessions:** 2 existing suppressions (CONF-002, CONF-003) remain confessed. Zero new suppressions.
+- ✓ COMPLIANT — **Distill (Sermon):** FR-103 includes a model diary entry ("FR-103 Judge-Amend Subgraph — The Normalize-at-Boundary Trap") documenting the trap (downstream fix), the FR-101→FR-102→FR-103 evolution, the TDD process, and a graduated heuristic from `the_one_law`. This resolves the Distill drift flagged in 3 prior audits.
+- ⚠ DRIFT — **Diary entropy (Commandment 8):** 23 `## 2026-02-25` entries now exist. The split proposal (dev reflections vs. audit log) remains unacted after 4 prior Seeds. The Inquisitor's own entries remain the dominant entropy source.
+
+**Heuristic:** When a persistently flagged gap (missing Distill) is finally resolved, the Inquisitor should acknowledge the correction explicitly — not continue flagging from stale heuristics. Verify current state, not pattern-match from prior findings.
+
+**Seed:** With FR-103's Distill as exemplar, could a `docs/diary-template.md` codify the Trap→Insight→Process→Heuristic→Seed structure — making future Distill entries faster to write and more consistent?
 
 ---
 

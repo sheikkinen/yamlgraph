@@ -14,28 +14,41 @@ subgraphs:
   validate_chapter: subgraphs/validate_chapter.yaml
 
 state:
-  output_dir: str          # Target directory (docs/ebook/)
-  date: str                # Authoring date (YYYY-MM-DD)
-  # Chapter outputs (copilot nodes produce markdown directly)
+  output_dir: str
+  date: str
   chapter_introduction: str
   chapter_doctrine: str
   chapter_precommit: str
   chapter_chaplain: str
   chapter_inquisitor: str
   chapter_diary: str
-  # Validated chapter outputs (after judge-amend)
-  validated_introduction: str
-  validated_doctrine: str
-  validated_precommit: str
-  validated_chaplain: str
-  validated_inquisitor: str
-  validated_diary: str
+  written: list
 
 tools:
-  persist_chapter:
+  persist_introduction:
     type: python
     module: examples.ebook.nodes.writing
-    function: persist_chapter
+    function: persist_introduction
+  persist_doctrine:
+    type: python
+    module: examples.ebook.nodes.writing
+    function: persist_doctrine
+  persist_precommit:
+    type: python
+    module: examples.ebook.nodes.writing
+    function: persist_precommit
+  persist_chaplain:
+    type: python
+    module: examples.ebook.nodes.writing
+    function: persist_chaplain
+  persist_inquisitor:
+    type: python
+    module: examples.ebook.nodes.writing
+    function: persist_inquisitor
+  persist_diary:
+    type: python
+    module: examples.ebook.nodes.writing
+    function: persist_diary
 
 nodes:
   # ── Chapter 00: Introduction ──
@@ -55,16 +68,11 @@ nodes:
     input_mapping:
       chapter: chapter_introduction
     output_mapping:
-      validated_introduction: chapter
-    state_key: validated_introduction
+      chapter_introduction: amended_chapter
 
-  persist_introduction:
-    type: tool
-    tool: persist_chapter
-    variables:
-      content: "{state.validated_introduction}"
-      filename: "00-introduction.md"
-      output_dir: "{state.output_dir}"
+  save_introduction:
+    type: python
+    tool: persist_introduction
 
   # ── Chapter 01: Doctrine ──
   write_doctrine:
@@ -83,16 +91,11 @@ nodes:
     input_mapping:
       chapter: chapter_doctrine
     output_mapping:
-      validated_doctrine: chapter
-    state_key: validated_doctrine
+      chapter_doctrine: amended_chapter
 
-  persist_doctrine:
-    type: tool
-    tool: persist_chapter
-    variables:
-      content: "{state.validated_doctrine}"
-      filename: "01-doctrine.md"
-      output_dir: "{state.output_dir}"
+  save_doctrine:
+    type: python
+    tool: persist_doctrine
 
   # ── Chapter 02: Pre-commit Gates ──
   write_precommit:
@@ -111,16 +114,11 @@ nodes:
     input_mapping:
       chapter: chapter_precommit
     output_mapping:
-      validated_precommit: chapter
-    state_key: validated_precommit
+      chapter_precommit: amended_chapter
 
-  persist_precommit:
-    type: tool
-    tool: persist_chapter
-    variables:
-      content: "{state.validated_precommit}"
-      filename: "02-precommit-gates.md"
-      output_dir: "{state.output_dir}"
+  save_precommit:
+    type: python
+    tool: persist_precommit
 
   # ── Chapter 03: Chaplain Pipeline ──
   write_chaplain:
@@ -139,16 +137,11 @@ nodes:
     input_mapping:
       chapter: chapter_chaplain
     output_mapping:
-      validated_chaplain: chapter
-    state_key: validated_chaplain
+      chapter_chaplain: amended_chapter
 
-  persist_chaplain:
-    type: tool
-    tool: persist_chapter
-    variables:
-      content: "{state.validated_chaplain}"
-      filename: "03-chaplain-pipeline.md"
-      output_dir: "{state.output_dir}"
+  save_chaplain:
+    type: python
+    tool: persist_chaplain
 
   # ── Chapter 04: Inquisitor ──
   write_inquisitor:
@@ -167,16 +160,11 @@ nodes:
     input_mapping:
       chapter: chapter_inquisitor
     output_mapping:
-      validated_inquisitor: chapter
-    state_key: validated_inquisitor
+      chapter_inquisitor: amended_chapter
 
-  persist_inquisitor:
-    type: tool
-    tool: persist_chapter
-    variables:
-      content: "{state.validated_inquisitor}"
-      filename: "04-inquisitor.md"
-      output_dir: "{state.output_dir}"
+  save_inquisitor:
+    type: python
+    tool: persist_inquisitor
 
   # ── Chapter 05: Diary System ──
   write_diary:
@@ -195,66 +183,53 @@ nodes:
     input_mapping:
       chapter: chapter_diary
     output_mapping:
-      validated_diary: chapter
-    state_key: validated_diary
+      chapter_diary: amended_chapter
 
-  persist_diary:
-    type: tool
-    tool: persist_chapter
-    variables:
-      content: "{state.validated_diary}"
-      filename: "05-diary-system.md"
-      output_dir: "{state.output_dir}"
+  save_diary:
+    type: python
+    tool: persist_diary
 
 edges:
-  # Chapter 00: Introduction
   - from: START
     to: write_introduction
   - from: write_introduction
     to: validate_introduction
   - from: validate_introduction
-    to: persist_introduction
+    to: save_introduction
 
-  # Chapter 01: Doctrine
-  - from: persist_introduction
+  - from: save_introduction
     to: write_doctrine
   - from: write_doctrine
     to: validate_doctrine
   - from: validate_doctrine
-    to: persist_doctrine
+    to: save_doctrine
 
-  # Chapter 02: Pre-commit Gates
-  - from: persist_doctrine
+  - from: save_doctrine
     to: write_precommit
   - from: write_precommit
     to: validate_precommit
   - from: validate_precommit
-    to: persist_precommit
+    to: save_precommit
 
-  # Chapter 03: Chaplain Pipeline
-  - from: persist_precommit
+  - from: save_precommit
     to: write_chaplain
   - from: write_chaplain
     to: validate_chaplain
   - from: validate_chaplain
-    to: persist_chaplain
+    to: save_chaplain
 
-  # Chapter 04: Inquisitor
-  - from: persist_chaplain
+  - from: save_chaplain
     to: write_inquisitor
   - from: write_inquisitor
     to: validate_inquisitor
   - from: validate_inquisitor
-    to: persist_inquisitor
+    to: save_inquisitor
 
-  # Chapter 05: Diary System
-  - from: persist_inquisitor
+  - from: save_inquisitor
     to: write_diary
   - from: write_diary
     to: validate_diary
   - from: validate_diary
-    to: persist_diary
-
-  # End
-  - from: persist_diary
+    to: save_diary
+  - from: save_diary
     to: END
