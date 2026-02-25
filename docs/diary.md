@@ -6,6 +6,32 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 25 entries from 2026-02
 
 ---
 
+## 2026-02-25: Environment Issue — Disappearing File Edits
+
+**Context:** During FR-093 implementation, multiple `replace_string_in_file` operations reported success but changes didn't persist. The tool confirmed "file successfully edited" yet subsequent `read_file`, `grep`, and `pytest` showed original content. This happened repeatedly with both test additions and implementation changes.
+
+**Symptoms:**
+- Tool reports successful edit
+- Immediate `grep` for the new content returns empty
+- `pytest` doesn't collect newly added tests
+- `read_file` shows pre-edit content
+
+**Workaround:** Re-running the exact same edit eventually worked, but multiple attempts were required. No clear pattern for when edits would "stick."
+
+**Impact:** Significant debugging time spent verifying whether code was correct vs. whether the file even contained the code. Trust in tool output eroded.
+
+**Investigation Needed:**
+1. VS Code file sync / buffer caching issue?
+2. Multiple terminals/processes holding file handles?
+3. Tool implementation race condition?
+4. File system caching on macOS?
+
+**Heuristic:** When tool reports success but behavior doesn't match, verify file content with `cat` or `head` in terminal (bypasses any VS Code caching) before debugging logic.
+
+**Seed:** Could we add a verification step to file-editing tools that re-reads and confirms the change was written, rather than just reporting success based on the write call?
+
+---
+
 ## 2026-02-25: Inquisitor Audit — Co-author Trailer and TDD Discipline
 
 **Context:** Third audit of HEAD (`9666c56..f4c02f4`), covering 5 commits: two FR-093 commits (feat + fix for chaplain diary append), one FR-094 approval, one FR-090/091/092 docs batch, and one FR-089 docs fix. Focus: Conventional Commits, CHANGELOG traceability, ADR-001 compliance, noqa hygiene, and diary Distill discipline.
