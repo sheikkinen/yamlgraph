@@ -13,10 +13,8 @@ state:
   # Input from parent graph
   chapter: str  # Chapter content with inline citations (e.g., "As defined in `file`:")
   # Internal state
-  judgment: str  # Structured judgment from judge node
+  judgment: str  # Detailed feedback from judge
   amended_chapter: str  # Fixed chapter content (if amend runs)
-  # Output
-  validation_passed: bool
 
 nodes:
   judge:
@@ -47,13 +45,8 @@ nodes:
 edges:
   - from: START
     to: judge
-  # Judge passes → END directly
-  - from: judge
-    to: END
-    condition: '"{state.judgment}" contains "PASSED"'
-  # Judge fails → amend → END
+  # Always run amend - it will pass through unchanged if judge passed
   - from: judge
     to: amend
-    condition: '"{state.judgment}" contains "FAILED"'
   - from: amend
     to: END

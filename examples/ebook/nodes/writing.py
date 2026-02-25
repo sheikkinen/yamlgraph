@@ -85,3 +85,54 @@ def persist_chapter(state: dict) -> dict:
 
     logger.info("Persisted %s", filepath)
     return {"persisted": str(filepath)}
+
+
+# ── Per-chapter persist functions (FR-103) ──
+# Each reads from the appropriate state key and writes to disk
+
+
+def persist_introduction(state: dict) -> dict:
+    """Persist chapter 00: Introduction."""
+    return _persist_one(state, "chapter_introduction", "00-introduction.md")
+
+
+def persist_doctrine(state: dict) -> dict:
+    """Persist chapter 01: Doctrine."""
+    return _persist_one(state, "chapter_doctrine", "01-doctrine.md")
+
+
+def persist_precommit(state: dict) -> dict:
+    """Persist chapter 02: Pre-commit Gates."""
+    return _persist_one(state, "chapter_precommit", "02-precommit-gates.md")
+
+
+def persist_chaplain(state: dict) -> dict:
+    """Persist chapter 03: Chaplain Pipeline."""
+    return _persist_one(state, "chapter_chaplain", "03-chaplain-pipeline.md")
+
+
+def persist_inquisitor(state: dict) -> dict:
+    """Persist chapter 04: Inquisitor."""
+    return _persist_one(state, "chapter_inquisitor", "04-inquisitor.md")
+
+
+def persist_diary(state: dict) -> dict:
+    """Persist chapter 05: Diary System."""
+    return _persist_one(state, "chapter_diary", "05-diary-system.md")
+
+
+def _persist_one(state: dict, state_key: str, filename: str) -> dict:
+    """Helper: persist a single chapter from state to file."""
+    content = state.get(state_key, "")
+    output_dir = Path(state.get("output_dir", "docs/ebook"))
+
+    if not content:
+        logger.warning("No content for %s", filename)
+        return {"persisted": None}
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    filepath = output_dir / filename
+    filepath.write_text(content)
+
+    logger.info("📄 Persisted %s", filepath)
+    return {"persisted": str(filepath)}

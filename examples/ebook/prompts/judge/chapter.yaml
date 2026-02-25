@@ -40,15 +40,16 @@ user: |
   ## VERDICT: [PASSED or FAILED]
 
   ### Files Verified
-  - `file1.md` — verified
-  - `file2.yaml` — verified
+  - `file1.md` — verified / issues found
 
   ### Issues Found
-  [If FAILED, list specific issues with file:line references]
+  [If FAILED, list SPECIFIC issues:]
+  - Line "X quoted text" does not match source (actual: "Y actual text")
+  - Commandment 3 is fabricated — not in source file
+  - Missing Commandments: 7, 8, 9
 
-  ### Fabrication Check
-  [Report any fabricated content detected]
+  ### What to Fix
+  [Concrete instructions for amend node]
   ```
 
-  If all quoted content matches sources exactly, output "VERDICT: PASSED".
-  If ANY quote doesn't match or fabrication is detected, output "VERDICT: FAILED".
+  Start with the verdict line. Be specific about what's wrong.
