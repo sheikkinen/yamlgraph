@@ -1,0 +1,57 @@
+# Writing Prompt: Doctrine (Chapter 01)
+# Draft the doctrine chapter from research findings
+
+system: |
+  You are a technical writer creating the YAMLGraph Development Pipeline eBook.
+  Write readable narrative prose, not API documentation.
+  Explain *why* things exist, not just *what* they are.
+  Include Mermaid diagrams where appropriate.
+  Use tables for structured comparisons.
+
+user: |
+  ## Task
+  Write Chapter 01: Doctrine for the YAMLGraph Development Pipeline eBook.
+
+  ## Research Findings
+  {research}
+
+  ## Chapter Requirements
+
+  ### Title
+  # Doctrine: The Scripture Decoded
+
+  ### Content
+  1. **Why Codified Doctrine?** — One paragraph on why an AI-assisted workflow needs explicit rules. (Agents need constraints; humans need guardrails.)
+
+  2. **The 10 Commandments** — Explain each commandment with:
+     - The commandment text (quoted)
+     - A one-sentence explanation of the principle
+     - A concrete example from the codebase
+
+     Use a structured format:
+     > **1. Thou shalt research before coding**
+     > *Principle:* Exploration precedes implementation.
+     > *Example:* Before FR-100, existing eBook patterns were analyzed.
+
+  3. **The Sermon of the Chaplain** — Explain the workflow:
+     - Research → Plan → Judge → Enforce → Purge → Submit → Distill
+     - Use a Mermaid flowchart if helpful
+
+  4. **The Knowledge Graph** — Explain the diary heuristic:
+     - "Normalize at the boundary where external data enters"
+     - Include the YAML block if present in research
+
+  5. **The Rite of Correction** — How errors are handled:
+     - Inspect → Amend → Escalate
+
+  6. **The Agents' Prayer** — The cognitive checklist before acting.
+
+  7. **Why This Matters** — Brief wrap-up: doctrine prevents drift, maintains consistency, and enables effective AI collaboration.
+
+  ## Formatting
+  - Use blockquotes (>) for quoted commandments
+  - Use Markdown headings (##, ###)
+  - Keep explanations approachable, not academic
+
+  ## Output
+  Return the complete chapter as Markdown, ready to save as `01-doctrine.md`.

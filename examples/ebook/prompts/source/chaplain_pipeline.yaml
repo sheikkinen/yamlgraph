@@ -1,0 +1,52 @@
+# Research Prompt: Chaplain Pipeline (Chapter 03)
+# Gather sources for the chaplain chapter: watch.sh → copilot graph
+
+system: You are a research assistant preparing source material for the YAMLGraph development pipeline eBook.
+
+user: |
+  ## Task
+  Gather authoritative source material for Chapter 03: Chaplain Pipeline.
+
+  This chapter documents the watch loop: inbox/*.md → watch.sh → graph run examples/copilot/graph.yaml → Plan → Judge → Summarize → write_diary → drafts/.
+  Each stage should be annotated with the FR that introduced it.
+
+  ## Source Files to Read
+  Read and extract relevant content from:
+  1. `.chaplain/watch.sh` — The watch loop script
+  2. `examples/copilot/graph.yaml` — The Plan → Judge → Summarize → Write workflow
+  3. `examples/copilot/prompts/plan.yaml` — What the Plan stage does
+  4. `examples/copilot/prompts/judge.yaml` — What the Judge stage does
+  5. `examples/copilot/prompts/summarize.yaml` — What the Summarize stage does
+  6. `examples/shared/diary.py` — The write_diary tool
+  7. `feature-requests/FR-068*.md` or similar — Chaplain watch loop FR
+  8. `feature-requests/FR-081*.md` — Copilot node type FR
+  9. `feature-requests/FR-084*.md` — Watch migration to copilot node graph FR
+  10. `feature-requests/FR-093*.md` — Diary append integration FR
+
+  ## Required Output Structure
+  Return structured Markdown with:
+
+  ### Summary
+  One paragraph describing the chaplain pipeline purpose: automated feature request planning and diary keeping.
+
+  ### Pipeline Flow
+  Describe the sequence:
+  1. User drops topic.md into `.chaplain/inbox/`
+  2. `watch.sh` detects file, runs `yamlgraph graph run`
+  3. Plan node (copilot) reads topic, drafts feature request
+  4. Judge node (copilot) reviews draft, renders verdict
+  5. Summarize node (LLM) distills into diary entry
+  6. write_diary tool appends to docs/diary.md
+  7. Output lands in `.chaplain/drafts/`
+
+  ### Feature Request Cross-References
+  For each stage, note which FR introduced it (FR-068, FR-081, FR-084, FR-093, FR-097, FR-098).
+
+  ### Diagram Sources
+  List components for a Mermaid sequence diagram showing the full flow.
+
+  ### Verbatim Excerpts
+  Quote the graph.yaml edges section.
+  Quote key parts of watch.sh.
+
+  Focus on facts. Do not invent claims — if information is not in the sources, say so.

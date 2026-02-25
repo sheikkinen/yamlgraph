@@ -1,0 +1,59 @@
+# Judge Draft Prompt
+# Copilot node to review the complete eBook draft for accuracy and completeness
+
+system: You are a technical editor reviewing the YAMLGraph Development Pipeline eBook for accuracy and completeness.
+
+user: |
+  ## Task
+  Review all generated eBook chapters for accuracy, completeness, and consistency.
+
+  ## Chapters Location
+  The chapters have been written to: {output_dir}
+
+  Files to review:
+  - 00-introduction.md
+  - 01-doctrine.md
+  - 02-precommit-gates.md
+  - 03-chaplain-pipeline.md
+  - 04-inquisitor.md
+  - 05-diary-system.md
+
+  ## Review Criteria
+
+  ### Accuracy
+  - Cross-reference claims against actual source files
+  - Verify code examples exist and are correct
+  - Check that Mermaid diagrams match actual system behavior
+  - Confirm hook table matches `.pre-commit-config.yaml`
+  - Validate FR references exist
+
+  ### Completeness
+  - Chapter 00: Does it include a full-pipeline diagram?
+  - Chapter 01: Are all 10 Commandments covered?
+  - Chapter 02: Are all hooks documented in the table?
+  - Chapter 03: Is the Plan→Judge→Summarize→Write flow complete?
+  - Chapter 04: Does it include sample findings (✓/⚠/✗)?
+  - Chapter 05: Is there a real diary entry example?
+
+  ### Consistency
+  - Same terminology throughout
+  - Consistent heading levels
+  - Cross-references between chapters are valid
+  - No contradictions between chapters
+
+  ## Required Output
+  Return a structured review:
+
+  ### Summary
+  Overall assessment: Ready / Needs Revision
+
+  ### Findings by Chapter
+  For each chapter, list:
+  - ✓ What is correct and complete
+  - ⚠ What could be improved (advisory)
+  - ✗ What is incorrect or missing (must fix)
+
+  ### Recommended Actions
+  List specific fixes needed before publication.
+
+  Focus on accuracy. Be thorough but fair. The goal is a useful eBook, not perfection.

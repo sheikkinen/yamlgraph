@@ -1,0 +1,49 @@
+# Research Prompt: Inquisitor (Chapter 04)
+# Gather sources for the inquisitor chapter: background audit loop
+
+system: You are a research assistant preparing source material for the YAMLGraph development pipeline eBook.
+
+user: |
+  ## Task
+  Gather authoritative source material for Chapter 04: Inquisitor.
+
+  This chapter documents the inquisitor: background doctrinal compliance audit after every commit.
+  How the post-commit hook fires inquisitor.sh. The four audit steps (Gather → Investigate → Judge → Record).
+  Sample ✓/⚠/✗ findings table.
+
+  ## Source Files to Read
+  Read and extract relevant content from:
+  1. `.chaplain/inquisitor.sh` — The audit script
+  2. `examples/copilot/prompts/inquisitor_*` if present — Audit prompts
+  3. `.git/hooks/post-commit` or `.pre-commit-config.yaml` — How inquisitor fires
+  4. `feature-requests/FR-076*.md` — Inquisitor FR
+  5. `docs/diary.md` — Recent entries mentioning Inquisitor findings
+
+  ## Required Output Structure
+  Return structured Markdown with:
+
+  ### Summary
+  One paragraph describing the inquisitor purpose: background compliance audit that runs after commits.
+
+  ### Audit Flow
+  Describe the four steps:
+  1. Gather: What context is collected? (recent commits, changed files)
+  2. Investigate: What does the copilot node check?
+  3. Judge: How are findings classified?
+  4. Record: Where do findings go?
+
+  ### Hook Integration
+  How does the post-commit hook (or pre-commit hook) trigger inquisitor.sh?
+
+  ### Findings Classification
+  - ✓ (Pass): What does this mean?
+  - ⚠ (Warning): What triggers a warning?
+  - ✗ (Fail): What triggers a fail?
+
+  ### Diagram Sources
+  List components for a Mermaid flowchart showing Gather → Investigate → Judge → Record.
+
+  ### Sample Findings
+  Extract or construct a sample findings table with at least one example of each classification (✓, ⚠, ✗).
+
+  Focus on facts. Do not invent claims — if information is not in the sources, say so.
