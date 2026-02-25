@@ -59,3 +59,29 @@ def write_chapters_tool(state: dict) -> dict:
         logger.info("Wrote %s", filepath)
 
     return {"written": written}
+
+
+def persist_chapter(state: dict) -> dict:
+    """Persist a single chapter to disk.
+
+    FR-103: Per-chapter persistence for resumability.
+
+    Args:
+        state: Graph state containing:
+            - content: Chapter content to write
+            - filename: Target filename (e.g., "01-doctrine.md")
+            - output_dir: Target directory (default: docs/ebook/)
+
+    Returns:
+        dict with 'persisted' key containing the filepath
+    """
+    content = state.get("content", "")
+    filename = state.get("filename", "chapter.md")
+    output_dir = Path(state.get("output_dir", "docs/ebook"))
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    filepath = output_dir / filename
+    filepath.write_text(content)
+
+    logger.info("Persisted %s", filepath)
+    return {"persisted": str(filepath)}

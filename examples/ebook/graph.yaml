@@ -1,7 +1,7 @@
 # eBook Authoring Pipeline
-# FR-100: YAMLGraph Development Pipeline eBook
-# Writes the development pipeline documentation as an eBook
-# Uses copilot nodes for research, LLM nodes for writing
+# FR-103: Merged write + judge-amend subgraph pattern
+# Uses copilot nodes for writing with inline file citations
+# Judge-amend subgraph validates each chapter against cited sources
 
 version: "1.0"
 name: ebook-pipeline
@@ -10,192 +10,251 @@ description: Write the YAMLGraph development pipeline eBook chapter by chapter
 prompts_relative: true
 prompts_dir: prompts
 
+subgraphs:
+  validate_chapter: subgraphs/validate_chapter.yaml
+
 state:
   output_dir: str          # Target directory (docs/ebook/)
   date: str                # Authoring date (YYYY-MM-DD)
-  # Research outputs (copilot nodes)
-  research_introduction: str
-  research_doctrine: str
-  research_precommit: str
-  research_chaplain: str
-  research_inquisitor: str
-  research_diary: str
-  # Chapter outputs (LLM nodes)
+  # Chapter outputs (copilot nodes produce markdown directly)
   chapter_introduction: str
   chapter_doctrine: str
   chapter_precommit: str
   chapter_chaplain: str
   chapter_inquisitor: str
   chapter_diary: str
-  # Judge output
-  judge_result: str
-  # Write output
-  written: list
+  # Validated chapter outputs (after judge-amend)
+  validated_introduction: str
+  validated_doctrine: str
+  validated_precommit: str
+  validated_chaplain: str
+  validated_inquisitor: str
+  validated_diary: str
 
 tools:
-  write_chapters_tool:
+  persist_chapter:
     type: python
     module: examples.ebook.nodes.writing
-    function: write_chapters_tool
+    function: persist_chapter
 
 nodes:
   # ── Chapter 00: Introduction ──
-  research_introduction:
+  write_introduction:
     type: copilot
-    prompt: source/introduction
+    prompt: chapter/introduction
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: research_introduction
+    state_key: chapter_introduction
     timeout: 300
 
-  write_introduction:
-    type: llm
-    prompt: write/introduction
+  validate_introduction:
+    type: subgraph
+    graph: subgraphs/validate_chapter.yaml
+    input_mapping:
+      chapter: chapter_introduction
+    output_mapping:
+      validated_introduction: chapter
+    state_key: validated_introduction
+
+  persist_introduction:
+    type: tool
+    tool: persist_chapter
     variables:
-      research: "{state.research_introduction}"
-      date: "{state.date}"
-    state_key: chapter_introduction
+      content: "{state.validated_introduction}"
+      filename: "00-introduction.md"
+      output_dir: "{state.output_dir}"
 
   # ── Chapter 01: Doctrine ──
-  research_doctrine:
+  write_doctrine:
     type: copilot
-    prompt: source/doctrine
+    prompt: chapter/doctrine
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: research_doctrine
+    state_key: chapter_doctrine
     timeout: 300
 
-  write_doctrine:
-    type: llm
-    prompt: write/doctrine
+  validate_doctrine:
+    type: subgraph
+    graph: subgraphs/validate_chapter.yaml
+    input_mapping:
+      chapter: chapter_doctrine
+    output_mapping:
+      validated_doctrine: chapter
+    state_key: validated_doctrine
+
+  persist_doctrine:
+    type: tool
+    tool: persist_chapter
     variables:
-      research: "{state.research_doctrine}"
-    state_key: chapter_doctrine
+      content: "{state.validated_doctrine}"
+      filename: "01-doctrine.md"
+      output_dir: "{state.output_dir}"
 
   # ── Chapter 02: Pre-commit Gates ──
-  research_precommit:
+  write_precommit:
     type: copilot
-    prompt: source/precommit_gates
+    prompt: chapter/precommit_gates
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: research_precommit
+    state_key: chapter_precommit
     timeout: 300
 
-  write_precommit:
-    type: llm
-    prompt: write/precommit_gates
+  validate_precommit:
+    type: subgraph
+    graph: subgraphs/validate_chapter.yaml
+    input_mapping:
+      chapter: chapter_precommit
+    output_mapping:
+      validated_precommit: chapter
+    state_key: validated_precommit
+
+  persist_precommit:
+    type: tool
+    tool: persist_chapter
     variables:
-      research: "{state.research_precommit}"
-    state_key: chapter_precommit
+      content: "{state.validated_precommit}"
+      filename: "02-precommit-gates.md"
+      output_dir: "{state.output_dir}"
 
   # ── Chapter 03: Chaplain Pipeline ──
-  research_chaplain:
+  write_chaplain:
     type: copilot
-    prompt: source/chaplain_pipeline
+    prompt: chapter/chaplain_pipeline
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: research_chaplain
+    state_key: chapter_chaplain
     timeout: 300
 
-  write_chaplain:
-    type: llm
-    prompt: write/chaplain_pipeline
+  validate_chaplain:
+    type: subgraph
+    graph: subgraphs/validate_chapter.yaml
+    input_mapping:
+      chapter: chapter_chaplain
+    output_mapping:
+      validated_chaplain: chapter
+    state_key: validated_chaplain
+
+  persist_chaplain:
+    type: tool
+    tool: persist_chapter
     variables:
-      research: "{state.research_chaplain}"
-    state_key: chapter_chaplain
+      content: "{state.validated_chaplain}"
+      filename: "03-chaplain-pipeline.md"
+      output_dir: "{state.output_dir}"
 
   # ── Chapter 04: Inquisitor ──
-  research_inquisitor:
+  write_inquisitor:
     type: copilot
-    prompt: source/inquisitor
+    prompt: chapter/inquisitor
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: research_inquisitor
+    state_key: chapter_inquisitor
     timeout: 300
 
-  write_inquisitor:
-    type: llm
-    prompt: write/inquisitor
+  validate_inquisitor:
+    type: subgraph
+    graph: subgraphs/validate_chapter.yaml
+    input_mapping:
+      chapter: chapter_inquisitor
+    output_mapping:
+      validated_inquisitor: chapter
+    state_key: validated_inquisitor
+
+  persist_inquisitor:
+    type: tool
+    tool: persist_chapter
     variables:
-      research: "{state.research_inquisitor}"
-    state_key: chapter_inquisitor
+      content: "{state.validated_inquisitor}"
+      filename: "04-inquisitor.md"
+      output_dir: "{state.output_dir}"
 
   # ── Chapter 05: Diary System ──
-  research_diary:
+  write_diary:
     type: copilot
-    prompt: source/diary_system
+    prompt: chapter/diary_system
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: research_diary
+    state_key: chapter_diary
     timeout: 300
 
-  write_diary:
-    type: llm
-    prompt: write/diary_system
-    variables:
-      research: "{state.research_diary}"
-    state_key: chapter_diary
+  validate_diary:
+    type: subgraph
+    graph: subgraphs/validate_chapter.yaml
+    input_mapping:
+      chapter: chapter_diary
+    output_mapping:
+      validated_diary: chapter
+    state_key: validated_diary
 
-  # ── Judge Draft ──
-  judge_draft:
-    type: copilot
-    prompt: judge_draft
-    backend: cli
-    cli_flags:
-      allow_all_paths: true
-      allow_all_tools: true
+  persist_diary:
+    type: tool
+    tool: persist_chapter
     variables:
+      content: "{state.validated_diary}"
+      filename: "05-diary-system.md"
       output_dir: "{state.output_dir}"
-    state_key: judge_result
-    timeout: 500
-
-  # ── Write Chapters ──
-  write_chapters:
-    type: python
-    tool: write_chapters_tool
-    state_key: written
 
 edges:
-  # Sequential chapter authoring
+  # Chapter 00: Introduction
   - from: START
-    to: research_introduction
-  - from: research_introduction
     to: write_introduction
   - from: write_introduction
-    to: research_doctrine
-  - from: research_doctrine
+    to: validate_introduction
+  - from: validate_introduction
+    to: persist_introduction
+
+  # Chapter 01: Doctrine
+  - from: persist_introduction
     to: write_doctrine
   - from: write_doctrine
-    to: research_precommit
-  - from: research_precommit
+    to: validate_doctrine
+  - from: validate_doctrine
+    to: persist_doctrine
+
+  # Chapter 02: Pre-commit Gates
+  - from: persist_doctrine
     to: write_precommit
   - from: write_precommit
-    to: research_chaplain
-  - from: research_chaplain
+    to: validate_precommit
+  - from: validate_precommit
+    to: persist_precommit
+
+  # Chapter 03: Chaplain Pipeline
+  - from: persist_precommit
     to: write_chaplain
   - from: write_chaplain
-    to: research_inquisitor
-  - from: research_inquisitor
+    to: validate_chaplain
+  - from: validate_chaplain
+    to: persist_chaplain
+
+  # Chapter 04: Inquisitor
+  - from: persist_chaplain
     to: write_inquisitor
   - from: write_inquisitor
-    to: research_diary
-  - from: research_diary
+    to: validate_inquisitor
+  - from: validate_inquisitor
+    to: persist_inquisitor
+
+  # Chapter 05: Diary System
+  - from: persist_inquisitor
     to: write_diary
   - from: write_diary
-    to: write_chapters
-  - from: write_chapters
-    to: judge_draft
-  - from: judge_draft
+    to: validate_diary
+  - from: validate_diary
+    to: persist_diary
+
+  # End
+  - from: persist_diary
     to: END

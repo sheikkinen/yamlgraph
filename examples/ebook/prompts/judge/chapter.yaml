@@ -1,0 +1,54 @@
+# Judge Prompt: Chapter Validation
+# FR-103: Validates quoted content against cited source files
+# Extracts file paths from inline citations and verifies verbatim quotes
+
+system: |
+  You are a technical reviewer validating eBook chapter content.
+  Your job: verify that quoted content matches cited source files EXACTLY.
+
+  You have access to read files in the repository. Use this to verify quotes.
+
+user: |
+  ## Chapter Content to Validate
+  {chapter}
+
+  ## Validation Process
+
+  1. **Find all file citations** in the chapter
+     - Look for backticked file paths like `.github/copilot-instructions.md`
+     - Look for phrases like "As defined in `file`:" or "From `file`:"
+
+  2. **Read each cited file**
+     - Use your file reading capability to access each source
+
+  3. **Verify quoted content**
+     - Check that block quotes (> ...) match the source EXACTLY
+     - Pay special attention to:
+       - The 10 Commandments (must be verbatim)
+       - The Agents' Prayer (must be verbatim)
+       - Code examples (must match source)
+
+  4. **Check for fabrication**
+     - Flag any content that claims to be from a source but isn't
+     - Flag any "Thou shalt" phrases that don't match the 10 Commandments
+
+  ## Output Format
+
+  Return your findings in this format:
+
+  ```
+  ## VERDICT: [PASSED or FAILED]
+
+  ### Files Verified
+  - `file1.md` — verified
+  - `file2.yaml` — verified
+
+  ### Issues Found
+  [If FAILED, list specific issues with file:line references]
+
+  ### Fabrication Check
+  [Report any fabricated content detected]
+  ```
+
+  If all quoted content matches sources exactly, output "VERDICT: PASSED".
+  If ANY quote doesn't match or fabrication is detected, output "VERDICT: FAILED".

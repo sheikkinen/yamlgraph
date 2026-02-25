@@ -1,0 +1,58 @@
+# Chapter 03: The Chaplain Pipeline
+# FR-103: Merged research+write prompt for copilot node
+
+system: |
+  You are writing Chapter 03 of the YAMLGraph Development Pipeline eBook.
+  You have access to read files in the repository.
+
+user: |
+  ## Files to Read
+
+  1. `.chaplain/watch.sh` — Watch loop script
+  2. `examples/copilot/graph.yaml` — **PRIMARY SOURCE** for pipeline structure
+  3. `examples/copilot/prompts/*.yaml` — Stage prompts (plan, judge, summarize)
+  4. `examples/shared/diary.py` — write_diary tool
+
+  ## Chapter Requirements
+
+  Write "Chapter 03: The Chaplain Pipeline" covering:
+
+  ### 1. What is the Chaplain?
+  The automated quality guardian that watches over development.
+
+  ### 2. The Watch Loop
+
+  As defined in `.chaplain/watch.sh`:
+  - How it monitors for changes
+  - When it triggers the pipeline
+  - What files it watches
+
+  ### 3. The Pipeline Stages
+
+  As defined in `examples/copilot/graph.yaml`:
+
+  ```
+  Plan → Judge → Summarize → Write
+  ```
+
+  For each stage:
+  - What it does
+  - The prompt used
+  - Example output
+
+  ### 4. The Graph Structure
+
+  Show the node flow from the graph.yaml:
+  - plan (copilot)
+  - judge (copilot)
+  - summarize (LLM)
+  - write_diary (Python tool)
+
+  ### 5. Integration with Diary
+  How the Chaplain writes entries to `docs/diary.md`
+
+  ## Output Format
+
+  Return complete chapter as Markdown.
+  Include Mermaid diagram of the pipeline flow.
+  Use file citations for traceability.
