@@ -145,14 +145,28 @@ def write_diary(state: dict) -> dict:
     date_str = state.get("date", "unknown")
     prefix = state.get("diary_prefix", "World Digest")
 
-    # Handle Pydantic model or dict
-    theme = getattr(entry_data, "theme", None) or entry_data.get(
-        "theme", "Developments"
-    )
-    body = getattr(entry_data, "body", None) or entry_data.get("body", "No content.")
-    seed = getattr(entry_data, "seed", None) or entry_data.get(
-        "seed", "What did we miss?"
-    )
+    # Handle Pydantic model, dict, or string representation
+    if isinstance(entry_data, str):
+        # Parse string representation like: theme='...' body='...' seed='...'
+        import re
+
+        theme_match = re.search(r"theme='([^']+)'", entry_data)
+        # Body can contain quotes, so match until ' seed='
+        body_match = re.search(r"body='(.+?)'\s+seed='", entry_data, re.DOTALL)
+        seed_match = re.search(r"seed='([^']+)'", entry_data)
+        theme = theme_match.group(1) if theme_match else "Developments"
+        body = body_match.group(1) if body_match else "No content."
+        seed = seed_match.group(1) if seed_match else "What did we miss?"
+    else:
+        theme = getattr(entry_data, "theme", None) or entry_data.get(
+            "theme", "Developments"
+        )
+        body = getattr(entry_data, "body", None) or entry_data.get(
+            "body", "No content."
+        )
+        seed = getattr(entry_data, "seed", None) or entry_data.get(
+            "seed", "What did we miss?"
+        )
 
     entry = format_diary_entry(
         date_str=date_str,

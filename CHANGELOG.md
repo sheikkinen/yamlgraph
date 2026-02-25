@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-094 Memory Nodes** Approve declarative `memory_read` / `memory_write` node types for cross-session semantic memory via LanceDB. REQ-YG-091, REQ-YG-092.
 
 ### Fixed
+- **FR-093 Diary Entry Parsing** Fix `write_diary()` failing to append when `diary_entry` arrives as Pydantic model string representation (e.g., `theme='...' body='...' seed='...'`). Added regex parsing branch to handle this serialization format from LLM structured output.
 - **FR-083 Commit-Msg Hook Bug** Fix `bash -c` positional argument bug in both `feat-requires-fr` and `changelog-required` pre-commit hooks. Added `_` placeholder to both hook entries so the commit message file properly becomes `$1`. Removed stale `backend: sampling` CHANGELOG entry for FR-081 (was deleted in FR-082 teardown). Added 19 integration tests for commit-msg hook behavior.
 - **FR-087 Stale REQ Range** Replace stale `REQ-YG-087–089` range notation with explicit `REQ-YG-087, REQ-YG-089` in ARCHITECTURE.md and CHANGELOG.md since REQ-YG-088 was removed during FR-082 teardown.
 - **FR-089 Capability Numbering** Remove strikethrough CAP-29 row from ARCHITECTURE.md capability table. Add footnote explaining stable numbering policy (retired capabilities are removed, not renumbered).

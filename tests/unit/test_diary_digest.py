@@ -295,6 +295,34 @@ class TestWriteDiary:
             writing_mod, "subprocess"
         ), "subprocess should not be imported"
 
+    @pytest.mark.req("REQ-YG-090")
+    def test_write_diary_parses_string_representation(self, tmp_path, monkeypatch):
+        """write_diary handles Pydantic model string representation from LLM.
+
+        When diary_entry comes from LLM structured output via state serialization,
+        it may arrive as: theme='...' body='...' seed='...' (Pydantic repr).
+        This test ensures write_diary can parse this format.
+        """
+        from examples.diary_digest.nodes.writing import write_diary
+
+        diary = tmp_path / "diary.md"
+        diary.write_text("# Diary\n")
+        monkeypatch.setattr("examples.diary_digest.nodes.writing.DIARY_PATH", diary)
+
+        # Simulate Pydantic model repr as stored in state
+        state = {
+            "diary_entry": "theme='FR-096 Approved' body='The FR was approved with clear scope.' seed='What patterns emerged?'",
+            "date": "2026-02-25",
+            "diary_prefix": "Chaplain",
+        }
+        result = write_diary(state)
+
+        assert result == {"written": True}
+        content = diary.read_text()
+        assert "## 2026-02-25: Chaplain — FR-096 Approved" in content
+        assert "The FR was approved with clear scope." in content
+        assert "What patterns emerged?" in content
+
 
 class TestFilterRelevant:
     """Test filter_relevant handles map node output structure."""
