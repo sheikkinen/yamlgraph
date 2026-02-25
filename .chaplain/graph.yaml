@@ -1,10 +1,11 @@
 # .chaplain/graph.yaml — Production Plan → Judge workflow
 # FR-084: Migrated from examples/copilot/graph.yaml
+# FR-093: Added summarize + write_diary for automatic diary append
 # Uses copilot nodes (FR-081) to delegate to GitHub Copilot CLI
 
 version: "1.0"
 name: chaplain-plan-judge
-description: Plan → Judge workflow for feature request creation
+description: Plan → Judge → Diary workflow for feature request creation
 
 prompts_relative: true
 prompts_dir: prompts
@@ -12,6 +13,16 @@ prompts_dir: prompts
 state:
   topic_file: str        # Path to the topic file (e.g., .chaplain/inbox/topic.md)
   drafts_dir: str        # Output directory for drafts
+  date: str              # Date for diary entry (YYYY-MM-DD)
+  diary_prefix: str      # Diary entry prefix (default: Chaplain)
+  diary_entry: dict      # Output from summarize node (theme, body, seed)
+  written: bool          # True after diary append
+
+tools:
+  write_diary_tool:
+    type: python
+    module: examples.diary_digest.nodes.writing
+    function: write_diary
 
 nodes:
   # Stage 1: Plan - Copilot reads topic and drafts feature request
@@ -26,7 +37,7 @@ nodes:
       topic_file: "{state.topic_file}"
       drafts_dir: "{state.drafts_dir}"
     state_key: plan_result
-    timeout: 300
+    timeout: 500
 
   # Stage 2: Judge - Copilot examines the draft and renders verdict
   judge:
@@ -39,7 +50,22 @@ nodes:
     variables:
       drafts_dir: "{state.drafts_dir}"
     state_key: judge_result
-    timeout: 300
+    timeout: 500
+
+  # Stage 3: Summarize - LLM distills Plan→Judge into diary entry
+  summarize:
+    type: llm
+    prompt: summarize
+    variables:
+      plan_output: "{state.plan_result}"
+      judge_output: "{state.judge_result}"
+    state_key: diary_entry
+
+  # Stage 4: Write - Append formatted entry to docs/diary.md
+  write_diary:
+    type: python
+    tool: write_diary_tool
+    state_key: written
 
 edges:
   - from: START
@@ -47,4 +73,8 @@ edges:
   - from: plan
     to: judge
   - from: judge
+    to: summarize
+  - from: summarize
+    to: write_diary
+  - from: write_diary
     to: END

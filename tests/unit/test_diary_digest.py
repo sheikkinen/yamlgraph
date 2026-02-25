@@ -189,6 +189,34 @@ class TestDiaryEntryFormatting:
         )
         assert entry.startswith("\n---\n\n##")
 
+    @pytest.mark.req("REQ-YG-090")
+    def test_format_diary_entry_with_custom_prefix(self):
+        """format_diary_entry accepts a custom prefix parameter."""
+        from examples.diary_digest.nodes.writing import format_diary_entry
+
+        entry = format_diary_entry(
+            date_str="2026-02-25",
+            theme="Chaplain Review",
+            body="Plan-Judge workflow completed.",
+            seed="What patterns emerged?",
+            prefix="Chaplain",
+        )
+        assert "## 2026-02-25: Chaplain — Chaplain Review" in entry
+        assert "World Digest" not in entry
+
+    @pytest.mark.req("REQ-YG-090")
+    def test_format_diary_entry_default_prefix(self):
+        """format_diary_entry defaults to 'World Digest' prefix."""
+        from examples.diary_digest.nodes.writing import format_diary_entry
+
+        entry = format_diary_entry(
+            date_str="2026-02-25",
+            theme="Test",
+            body="Body",
+            seed="Seed?",
+        )
+        assert "## 2026-02-25: World Digest — Test" in entry
+
 
 class TestAppendToDiary:
     """Test appending entries to diary.md."""
