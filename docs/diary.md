@@ -6,6 +6,42 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 25 entries from 2026-02
 
 ---
 
+## 2026-02-25: Inquisitor Audit — Redundant Audits and Stale Trailer Rule
+
+**Context:** Fourth audit of HEAD (`dec470a`), covering 5 commits: `dec470a` (chore: FRs commit), `9666c56` (fix: FR-093 string repr), `eb966cc` (feat: FR-093 diary append), `7b00537` (feat: FR-094 memory nodes), `96aa12a` (docs: FR-090/091/092). Three prior Inquisitor audits already exist in this diary covering overlapping ranges. This audit focuses on what's new and what's stale.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits follow Conventional Commits. CHANGELOG 0.4.57 has matching entries for every feat/fix/docs commit. `eb966cc` added REQ-YG-090 to ARCHITECTURE.md; 3 tests tagged `@pytest.mark.req("REQ-YG-090")` including the regression test in `9666c56`. Fix commit wrote the failing test first (TDD observed). Commandments 7 and 10, ADR-001 all upheld.
+- ✓ COMPLIANT — Both `# noqa` suppressions (ANN001 in `executor_async.py`, ARG002 in `token_tracker.py`) confessed as CONF-003 and CONF-002. No new suppressions introduced.
+- ⚠ DRIFT — `dec470a` ("chore: FRs commit") bundles 5 feature requests (FR-095–FR-099), a test file, and 117 diary lines in a single commit with an opaque message. No scope, no FR tags, empty body. Technically valid Conventional Commits but violates the spirit of traceability — `git log --oneline` reveals nothing about what was planned.
+- ⚠ DRIFT — Co-authored-by trailer missing on 4 of 5 commits. This is the fourth consecutive audit flagging the same gap. The prior audit correctly diagnosed this as a specification bug ("a doctrine rule flagged three times without correction is not a compliance failure — it is a specification bug"). No amendment has been made. Continued flagging is noise.
+- ⚠ DRIFT — Three prior Inquisitor audits in this diary cover the same commit range (`96aa12a..dec470a`). Each re-discovers the same trailer finding and produces overlapping COMPLIANT verdicts. The audit process is generating entropy, not reducing it — violating Commandment 8.
+
+**Heuristic:** An audit that re-discovers known findings without triggering correction is itself a source of entropy. The Inquisitor needs a "last audited SHA" marker and a minimum-delta rule: no audit unless N new commits exist beyond the last audited SHA. Without this, the Rite of Correction degrades into the Rite of Repetition.
+
+**Seed:** Should the Inquisitor store its last-audited SHA in a `.inquisitor` state file (or session DB), and refuse to run until the commit range contains genuinely unaudited work?
+
+---
+
+## 2026-02-25: Inquisitor Audit — Terse Chores and the Trailer That Won't Stick
+
+**Context:** Fourth audit of HEAD (`80be03a`), covering 5 commits: two `chore:` housekeeping commits (diary + FRs), one `fix(chaplain):` for FR-093 string repr parsing, one `feat(chaplain):` for FR-093 diary append, and one `feat(memory):` for FR-094 approval. Examined Conventional Commits, CHANGELOG traceability, ADR-001 compliance, noqa confessions, Co-authored-by trailers, and diary Distill discipline.
+
+**Findings:**
+
+- ✓ COMPLIANT — All 5 commits use Conventional Commits format. CHANGELOG 0.4.57 has entries for every functional change (FR-093 feat + fix, FR-094 approval). `chore:` commits correctly omit CHANGELOG entries. Commandment 10 upheld.
+- ✓ COMPLIANT — FR-093 added REQ-YG-090 to ARCHITECTURE.md. Tests carry `@pytest.mark.req("REQ-YG-090")`. Fix commit `9666c56` added failing test before code fix — TDD Rite observed. FR-094 defers REQ-YG-091/092 until implementation lands. ADR-001 satisfied.
+- ✓ COMPLIANT — Both existing `# noqa` suppressions (ANN001 → CONF-003, ARG002 → CONF-002) remain properly confessed. No new suppressions introduced. Confessions doctrine intact.
+- ⚠ DRIFT — Co-authored-by trailer absent from 4 of 5 commits (only `7b00537` has it). This is the **fourth consecutive audit** flagging this gap. The third audit explicitly recommended amending the Scripture to scope the rule or enforce it via commit-msg hook. Neither action has been taken. At this point the finding is no longer drift — it is a known, tolerated specification defect.
+- ⚠ DRIFT — `80be03a` ("chore: diary commit") and `dec470a` ("chore: FRs commit") follow Conventional Commits in letter but not spirit. Subject lines should describe *what* changed, not merely *what type of file was touched*. Compare: "chore: add FR-095 through FR-099 planning docs" vs. "chore: FRs commit." Terse subjects defeat `git log --oneline` as a changelog substitute.
+
+**Heuristic:** An audit finding repeated four times without remediation is not drift — it is accepted practice. Either amend the rule to match reality or enforce it mechanically. Human willpower is not a reliable control; pre-commit hooks are. The same applies to commit message quality: if terse subjects keep appearing, add a `commit-msg` hook that rejects subjects shorter than 20 characters.
+
+**Seed:** Could a `commit-msg` hook enforce both the Co-authored-by trailer (when in a Copilot session) and a minimum subject-line length, collapsing two recurring audit findings into a single mechanical gate?
+
+---
+
 ## 2026-02-25: Environment Issue — Disappearing File Edits
 
 **Context:** During FR-093 implementation, multiple `replace_string_in_file` operations reported success but changes didn't persist. The tool confirmed "file successfully edited" yet subsequent `read_file`, `grep`, and `pytest` showed original content. This happened repeatedly with both test additions and implementation changes.
@@ -148,3 +184,27 @@ FR-099, proposing a Chaplain Inbox Smoke Test, was approved after a thorough rev
 The session addressed an inbox entry explicitly stating "Do not plan. Judgement: pass." This was recognized as a test of inbox pattern throughput, not a genuine feature request. The planning phase appropriately copied the entry to drafts and cleared the inbox, adhering to the instruction. The subsequent judging process rigorously evaluated the draft, confirming its lack of scope, acceptance criteria, and implementation details. It correctly identified the self-declared 'pass' as a contradiction to the Chaplain's structured rite. Ultimately, the entry was rejected as a pipeline test artifact, its purpose served, with its underlying need for inbox validation already addressed by FR-099. This workflow demonstrated robust handling of non-standard inputs.
 
 **Seed:** How can the system be further refined to automatically flag or route test artifacts and other non-feature-request entries, preventing them from entering the full Plan-Judge cycle?
+
+---
+
+## 2026-02-19: World Digest — Test
+
+Body.
+
+**Seed:** Q?
+
+---
+
+## 2026-02-25: Chaplain — FR-096 Approved
+
+The FR was approved with clear scope.
+
+**Seed:** What patterns emerged?
+
+---
+
+## 2026-02-25: Chaplain — Inbox Test Judgement and Process Adherence
+
+A recent inbox entry, explicitly stating "Do not plan. Judgement: pass," served as a test of the initial planning workflow. The plan phase correctly processed it by moving it directly to drafts, confirming the inbox throughput. However, the subsequent judgement phase critically evaluated the entry's content. Despite the embedded instruction, the entry was soundly rejected for lacking any defined scope, acceptance criteria, or implementation details, violating the core `TEMPLATE.md` requirements and the Sermon's principle of challenging assumptions. This highlighted the robustness of the judgement process, preventing pre-emption and reinforcing that all requests, even tests, must adhere to established standards for proper evaluation.
+
+**Seed:** How can we design future tests for `chaplain`'s operational pipeline that also conform to the `feature-requests/TEMPLATE.md` structure, providing measurable criteria for the test's success?

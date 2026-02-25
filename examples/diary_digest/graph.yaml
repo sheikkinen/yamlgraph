@@ -48,7 +48,7 @@ tools:
 
   write_diary:
     type: python
-    module: examples.diary_digest.nodes.writing
+    module: examples.shared.diary
     function: write_diary
     description: "Format and append diary entry to docs/diary.md"
 

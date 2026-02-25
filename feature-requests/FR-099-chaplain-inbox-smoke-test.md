@@ -30,7 +30,7 @@ The test entry that prompted this FR ("Testing inbox pattern throughput") demons
 ### 1. Graph lint validation (already available)
 
 ```bash
-yamlgraph graph lint .chaplain/graph.yaml
+yamlgraph graph lint examples/copilot/graph.yaml
 ```
 
 This validates the graph YAML compiles, prompts resolve, and edges are consistent. No LLM needed.
@@ -56,11 +56,11 @@ echo "🧪 Chaplain smoke test: validating pipeline..."
 
 # Step 1: Lint the graph
 echo "  📐 Linting graph..."
-yamlgraph graph lint .chaplain/graph.yaml
+yamlgraph graph lint examples/copilot/graph.yaml
 
 # Step 2: Validate graph compiles with test variables
 echo "  🔧 Compiling graph with test variables..."
-yamlgraph graph info .chaplain/graph.yaml
+yamlgraph graph info examples/copilot/graph.yaml
 
 echo "✅ Chaplain pipeline validated (no LLM calls made)"
 ```
@@ -73,7 +73,7 @@ echo "✅ Chaplain pipeline validated (no LLM calls made)"
 
 # Full pipeline test (requires API keys, invokes LLM)
 echo "# Test\nSmoke test topic." > .chaplain/inbox/_smoke-test.md
-yamlgraph graph run .chaplain/graph.yaml \
+yamlgraph graph run examples/copilot/graph.yaml \
     --var topic_file=".chaplain/inbox/_smoke-test.md" \
     --var drafts_dir=".chaplain/drafts" \
     --var date="$(date +%Y-%m-%d)" \
@@ -101,5 +101,6 @@ yamlgraph graph run .chaplain/graph.yaml \
 - FR-068: Chaplain watch loop (the pipeline being tested)
 - FR-084: Copilot watch migration (current graph-based implementation)
 - FR-080: Infrastructure script tests (broader test coverage initiative)
-- `.chaplain/graph.yaml` — The graph under test
+- FR-098: Consolidated graph to `examples/copilot/graph.yaml`
+- `examples/copilot/graph.yaml` — The graph under test
 - `.chaplain/watch.sh` — The polling wrapper

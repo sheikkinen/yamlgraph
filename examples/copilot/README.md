@@ -1,15 +1,16 @@
 # Copilot Node Demo
 
 **FR-081:** Demonstrates the `copilot` node type for delegating to GitHub Copilot CLI.
+**FR-098:** Consolidated from `.chaplain/graph.yaml` — now the canonical Plan→Judge→Diary workflow.
 
 ## Overview
 
-This example replicates the `.chaplain/watch.sh` Plan-Judge workflow as a YAMLGraph pipeline with an additional summarization step using a standard LLM node.
+This example implements the complete Plan-Judge-Diary workflow as a YAMLGraph pipeline. It combines copilot nodes (delegating to GitHub Copilot CLI) with a standard LLM summarize node and a Python tool for diary append.
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Plan (copilot)│────▶│  Judge (copilot)│────▶│ Summarize (llm) │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Plan (copilot)│────▶│  Judge (copilot)│────▶│ Summarize (llm) │────▶│ Write Diary (py)│
+└─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
 ## Node Types
@@ -18,7 +19,8 @@ This example replicates the `.chaplain/watch.sh` Plan-Judge workflow as a YAMLGr
 |------|------|---------|-------------|
 | `plan` | `copilot` | `cli` | Reads topic file, drafts feature request |
 | `judge` | `copilot` | `cli` | Examines draft, renders APPROVE/AMEND/REJECT |
-| `summarize` | `llm` | - | Creates executive summary |
+| `summarize` | `llm` | - | Creates DiaryEntry (theme, body, seed) |
+| `write_diary` | `python` | - | Appends entry to docs/diary.md |
 
 ## Usage
 
@@ -33,13 +35,20 @@ echo "# Add caching to the LLM factory" > .chaplain/inbox/caching-idea.md
 yamlgraph graph run examples/copilot/graph.yaml \
   --var topic_file=".chaplain/inbox/caching-idea.md" \
   --var drafts_dir=".chaplain/drafts" \
+  --var date="$(date +%Y-%m-%d)" \
+  --var diary_prefix="Chaplain" \
   --full
 ```
 
 3. Check outputs:
 ```bash
 cat .chaplain/drafts/*.md     # The drafted feature request
-cat workflow_summary.md       # Executive summary
+tail -30 docs/diary.md        # Diary entry appended
+```
+
+Or use the polling wrapper:
+```bash
+.chaplain/watch.sh            # Watches .chaplain/inbox/ for topics
 ```
 
 ## Requirements
@@ -52,8 +61,9 @@ cat workflow_summary.md       # Executive summary
 1. **`backend: cli`** - Invokes Copilot CLI with `--silent` flag
 2. **`cli_flags`** - Configures `allow_all_paths`, `allow_all_tools`
 3. **Variable substitution** - `{state.topic_file}` references
-4. **Mixed node types** - Copilot nodes + standard LLM node
-5. **Sequential workflow** - Plan → Judge → Summarize
+4. **Mixed node types** - Copilot nodes + LLM node + Python tool
+5. **4-stage workflow** - Plan → Judge → Summarize → Write Diary
+6. **Diary append** - Automatic entry creation via `examples.shared.diary`
 
 ## Configuration
 
@@ -69,7 +79,7 @@ nodes:
     variables:
       topic_file: "{state.topic_file}"
     state_key: plan_result
-    timeout: 300              # 5 minute timeout
+    timeout: 500              # 8+ minute timeout for complex planning
 ```
 
 ## CopilotResult
@@ -84,11 +94,15 @@ class CopilotResult(BaseModel):
     backend: str     # "cli" or "sampling"
 ```
 
-Access in subsequent nodes: `{state.plan_result.output}`
+Access in subsequent nodes:
+- **Full object**: `{state.plan_result}` — stringifies via `__str__`, includes exit code and backend
+- **Output only**: `{state.plan_result.output}` — just the response text
+
+The summarize prompt uses the full object with Jinja2 `default()` filters for graceful degradation.
 
 ## See Also
 
-- [FR-081](../../feature-requests/FR-081-copilot-node.md) - Feature request
-- [.chaplain/graph.yaml](../../.chaplain/graph.yaml) - **Production consumer** (Plan→Judge, no summarize)
-- [.chaplain/watch.sh](../../.chaplain/watch.sh) - Polling wrapper using this pattern
+- [FR-081](../../feature-requests/FR-081-copilot-node.md) - Copilot node feature request
+- [FR-098](../../feature-requests/FR-098-consolidate-watch-graph.md) - Consolidation feature request
+- [.chaplain/watch.sh](../../.chaplain/watch.sh) - Polling wrapper using this graph
 - [reference/graph-yaml.md](../../reference/graph-yaml.md#type-copilot---copilot-cli-delegation) - Full documentation

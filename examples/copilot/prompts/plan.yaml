@@ -1,5 +1,6 @@
 # Plan prompt for copilot node
 # Instructs Copilot to read topic file and draft feature request
+# FR-084: Migrated from .chaplain/watch.sh workflow
 
 system: |
   You are a feature request planner. Your task is to transform a rough topic

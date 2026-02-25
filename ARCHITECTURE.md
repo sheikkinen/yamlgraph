@@ -583,11 +583,11 @@ New `copilot` node type that delegates graph processing to Copilot CLI, replacin
 
 ### 31. Chaplain Diary Append
 
-Extends the `.chaplain/graph.yaml` Plan→Judge workflow with automatic diary entry creation after each run.
+Extends the Plan→Judge workflow (now in `examples/copilot/graph.yaml` per FR-098) with automatic diary entry creation after each run.
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-090 | `format_diary_entry()` accepts configurable `prefix` parameter (default "World Digest"); `.chaplain/graph.yaml` includes `summarize` (LLM) and `write_diary` (Python) nodes; `watch.sh` passes `date` and `diary_prefix` vars | `examples/diary_digest/nodes/writing`, `.chaplain/graph.yaml`, `.chaplain/prompts/summarize.yaml` |
+| REQ-YG-090 | `format_diary_entry()` accepts configurable `prefix` parameter (default "World Digest"); `examples/copilot/graph.yaml` includes `summarize` (LLM) and `write_diary` (Python) nodes; `watch.sh` passes `date` and `diary_prefix` vars | `examples/shared/diary`, `examples/copilot/graph.yaml`, `examples/copilot/prompts/summarize.yaml` |
 
 ---
 

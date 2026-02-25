@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `watch.sh` passes `--var date` and `--var diary_prefix=Chaplain` to graph
   - `.chaplain/prompts/summarize.yaml` with inline Pydantic schema
 - **FR-094 Memory Nodes** Approve declarative `memory_read` / `memory_write` node types for cross-session semantic memory via LanceDB. REQ-YG-091, REQ-YG-092.
+- **FR-097 Shared Diary Module** Move diary writing utilities to `examples/shared/diary.py` for neutral ownership. Re-exports in `examples/diary_digest/nodes/writing.py` maintain backward compatibility.
+- **FR-098 Copilot Graph Consolidation** Merge `.chaplain/graph.yaml` into `examples/copilot/graph.yaml` as canonical 4-stage workflow (Plan → Judge → Summarize → Write Diary). Delete `.chaplain/graph.yaml` and `.chaplain/prompts/`. Update `.chaplain/watch.sh` to reference consolidated graph.
 
 ### Fixed
 - **FR-093 Diary Entry Parsing** Fix `write_diary()` failing to append when `diary_entry` arrives as Pydantic model string representation (e.g., `theme='...' body='...' seed='...'`). Added regex parsing branch to handle this serialization format from LLM structured output.
