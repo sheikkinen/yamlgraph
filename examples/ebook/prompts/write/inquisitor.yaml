@@ -1,0 +1,84 @@
+# Writing Prompt: Inquisitor (Chapter 04)
+# Draft the inquisitor chapter from research findings
+
+system: |
+  You are a technical writer creating the YAMLGraph Development Pipeline eBook.
+  Write readable narrative prose, not API documentation.
+  Explain *why* things exist, not just *what* they are.
+  Include Mermaid diagrams where appropriate.
+  Use tables for structured comparisons.
+
+user: |
+  ## Task
+  Write Chapter 04: Inquisitor for the YAMLGraph Development Pipeline eBook.
+
+  ## Research Findings
+  {research}
+
+  ## Chapter Requirements
+
+  ### Title
+  # Inquisitor: Background Compliance Audit
+
+  ### Content
+  1. **What is the Inquisitor?** — One paragraph: an automated audit that runs after commits to check doctrinal compliance.
+
+  2. **Why Background Audits?** — Pre-commit catches syntax and format. The Inquisitor catches semantic drift and doctrinal violations that require deeper analysis.
+
+  3. **Audit Flow Diagram** — Mermaid flowchart:
+     ```mermaid
+     flowchart LR
+       A[Commit] --> B[Post-commit hook]
+       B --> C[inquisitor.sh]
+       C --> D[Gather context]
+       D --> E[Investigate]
+       E --> F[Judge findings]
+       F --> G[Record to diary]
+     ```
+
+  4. **The Four Audit Steps** —
+
+     #### 1. Gather
+     - What context is collected?
+     - Recent commits, changed files, relevant history
+
+     #### 2. Investigate
+     - What does the copilot node analyze?
+     - What questions does it ask about the changes?
+
+     #### 3. Judge
+     - How are findings classified?
+     - What criteria determine ✓/⚠/✗?
+
+     #### 4. Record
+     - Where do findings go?
+     - How are they formatted in the diary?
+
+  5. **Findings Classification Table** —
+     | Symbol | Classification | Meaning | Example |
+     |--------|---------------|---------|---------|
+     | ✓ | Pass | Compliant with doctrine | Tests added for new feature |
+     | ⚠ | Warning | Advisory, not blocking | TODO comment found |
+     | ✗ | Fail | Doctrinal violation | Missing requirement tag |
+
+  6. **Sample Findings** — Show a complete findings table from a real or realistic audit:
+     | Check | Result | Notes |
+     |-------|--------|-------|
+     | Requirement coverage | ✓ | All new tests tagged |
+     | CHANGELOG updated | ✓ | Entry added |
+     | Hardcoded prompts | ✓ | None found |
+     | Dead code | ⚠ | vulture flagged unused function |
+     | noqa without confession | ✗ | Line 45 missing CONF-XXX |
+
+  7. **Integration** — How inquisitor.sh integrates:
+     - Triggered by post-commit hook
+     - Runs asynchronously (doesn't block)
+     - Results appear in next diary entry
+
+  ## Formatting
+  - Use Mermaid flowchart
+  - Use emoji symbols (✓/⚠/✗) consistently
+  - Use tables for findings
+
+  ## Output
+  Return the complete chapter as Markdown, ready to save as `04-inquisitor.md`.

@@ -1,0 +1,201 @@
+# eBook Authoring Pipeline
+# FR-100: YAMLGraph Development Pipeline eBook
+# Writes the development pipeline documentation as an eBook
+# Uses copilot nodes for research, LLM nodes for writing
+
+version: "1.0"
+name: ebook-pipeline
+description: Write the YAMLGraph development pipeline eBook chapter by chapter
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  output_dir: str          # Target directory (docs/ebook/)
+  date: str                # Authoring date (YYYY-MM-DD)
+  # Research outputs (copilot nodes)
+  research_introduction: str
+  research_doctrine: str
+  research_precommit: str
+  research_chaplain: str
+  research_inquisitor: str
+  research_diary: str
+  # Chapter outputs (LLM nodes)
+  chapter_introduction: str
+  chapter_doctrine: str
+  chapter_precommit: str
+  chapter_chaplain: str
+  chapter_inquisitor: str
+  chapter_diary: str
+  # Judge output
+  judge_result: str
+  # Write output
+  written: list
+
+tools:
+  write_chapters_tool:
+    type: python
+    module: examples.ebook.nodes.writing
+    function: write_chapters_tool
+
+nodes:
+  # ── Chapter 00: Introduction ──
+  research_introduction:
+    type: copilot
+    prompt: source/introduction
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    state_key: research_introduction
+    timeout: 300
+
+  write_introduction:
+    type: llm
+    prompt: write/introduction
+    variables:
+      research: "{state.research_introduction}"
+      date: "{state.date}"
+    state_key: chapter_introduction
+
+  # ── Chapter 01: Doctrine ──
+  research_doctrine:
+    type: copilot
+    prompt: source/doctrine
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    state_key: research_doctrine
+    timeout: 300
+
+  write_doctrine:
+    type: llm
+    prompt: write/doctrine
+    variables:
+      research: "{state.research_doctrine}"
+    state_key: chapter_doctrine
+
+  # ── Chapter 02: Pre-commit Gates ──
+  research_precommit:
+    type: copilot
+    prompt: source/precommit_gates
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    state_key: research_precommit
+    timeout: 300
+
+  write_precommit:
+    type: llm
+    prompt: write/precommit_gates
+    variables:
+      research: "{state.research_precommit}"
+    state_key: chapter_precommit
+
+  # ── Chapter 03: Chaplain Pipeline ──
+  research_chaplain:
+    type: copilot
+    prompt: source/chaplain_pipeline
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    state_key: research_chaplain
+    timeout: 300
+
+  write_chaplain:
+    type: llm
+    prompt: write/chaplain_pipeline
+    variables:
+      research: "{state.research_chaplain}"
+    state_key: chapter_chaplain
+
+  # ── Chapter 04: Inquisitor ──
+  research_inquisitor:
+    type: copilot
+    prompt: source/inquisitor
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    state_key: research_inquisitor
+    timeout: 300
+
+  write_inquisitor:
+    type: llm
+    prompt: write/inquisitor
+    variables:
+      research: "{state.research_inquisitor}"
+    state_key: chapter_inquisitor
+
+  # ── Chapter 05: Diary System ──
+  research_diary:
+    type: copilot
+    prompt: source/diary_system
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    state_key: research_diary
+    timeout: 300
+
+  write_diary:
+    type: llm
+    prompt: write/diary_system
+    variables:
+      research: "{state.research_diary}"
+    state_key: chapter_diary
+
+  # ── Judge Draft ──
+  judge_draft:
+    type: copilot
+    prompt: judge_draft
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+    state_key: judge_result
+    timeout: 500
+
+  # ── Write Chapters ──
+  write_chapters:
+    type: python
+    tool: write_chapters_tool
+    state_key: written
+
+edges:
+  # Sequential chapter authoring
+  - from: START
+    to: research_introduction
+  - from: research_introduction
+    to: write_introduction
+  - from: write_introduction
+    to: research_doctrine
+  - from: research_doctrine
+    to: write_doctrine
+  - from: write_doctrine
+    to: research_precommit
+  - from: research_precommit
+    to: write_precommit
+  - from: write_precommit
+    to: research_chaplain
+  - from: research_chaplain
+    to: write_chaplain
+  - from: write_chaplain
+    to: research_inquisitor
+  - from: research_inquisitor
+    to: write_inquisitor
+  - from: write_inquisitor
+    to: research_diary
+  - from: research_diary
+    to: write_diary
+  - from: write_diary
+    to: write_chapters
+  - from: write_chapters
+    to: judge_draft
+  - from: judge_draft
+    to: END

@@ -1,0 +1,89 @@
+# Writing Prompt: Diary System (Chapter 05)
+# Draft the diary system chapter from research findings
+
+system: |
+  You are a technical writer creating the YAMLGraph Development Pipeline eBook.
+  Write readable narrative prose, not API documentation.
+  Explain *why* things exist, not just *what* they are.
+  Include Mermaid diagrams where appropriate.
+  Use tables for structured comparisons.
+
+user: |
+  ## Task
+  Write Chapter 05: Diary System for the YAMLGraph Development Pipeline eBook.
+
+  ## Research Findings
+  {research}
+
+  ## Chapter Requirements
+
+  ### Title
+  # Diary System: Metacognitive Reflection
+
+  ### Content
+  1. **What is the Diary?** — One paragraph: a living document that captures learnings, extracts heuristics, and plants seeds for future work.
+
+  2. **The Purpose** — Why keep a development diary?
+     - Metacognitive reflection: thinking about thinking
+     - Heuristic extraction: turning experience into reusable patterns
+     - Seed planting: forward-looking questions that drive innovation
+
+  3. **Entry Schema** — The canonical format:
+     ```markdown
+     ---
+
+     ## YYYY-MM-DD: Prefix — Theme
+
+     Body content describing the context, insights, and learnings.
+
+     **Seed:** A forward-looking question to grow new ideas.
+     ```
+
+     Explain each part:
+     - Date: When the entry was created
+     - Prefix: Source (World Digest, Chaplain, Inquisitor)
+     - Theme: Brief topic description
+     - Body: The main content
+     - Seed: A question that may become future work
+
+  4. **Real Example** — Include 1-2 complete diary entries from the research.
+
+  5. **Rotation Logic** — How diary_rotate.py works:
+     - Detects when the date changes
+     - Archives current diary to `diary-YYYY-MM-DD.md`
+     - Creates fresh diary with link to previous
+     - Header format: `Previous: [diary-YYYY-MM-DD.md](diary-YYYY-MM-DD.md) — N entries`
+
+  6. **Digest Generation** — The diary_digest graph:
+
+     ```mermaid
+     flowchart LR
+       A[Read diary.md] --> B[Filter relevant]
+       B --> C[Synthesize themes]
+       C --> D[Generate digest]
+       D --> E[Write entry]
+     ```
+
+     Explain each node's purpose.
+
+  7. **Seed → Feature Request Cycle** — How seeds become work:
+     - Example: A seed asking "Could we automate X?" leads to FR-XXX
+     - The diary is not just a log — it's a planning artifact
+
+  8. **The Knowledge Graph** — How recurring heuristics graduate to doctrine:
+     - Pattern appears in multiple entries
+     - Gets extracted to `.github/copilot-instructions.md`
+     - Example: "normalize at the boundary"
+
+  9. **Living Documentation** — The diary as proof of the pipeline working:
+     - Self-documenting machinery in action
+     - History of decisions and learnings
+     - Searchable, diffable, version-controlled
+
+  ## Formatting
+  - Use code blocks for schema examples
+  - Use Mermaid for digest pipeline
+  - Include blockquotes for example entries
+
+  ## Output
+  Return the complete chapter as Markdown, ready to save as `05-diary-system.md`.

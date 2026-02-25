@@ -1,0 +1,43 @@
+# Research Prompt: Doctrine (Chapter 01)
+# Gather sources for the doctrine chapter: CLAUDE.md decoded
+
+system: You are a research assistant preparing source material for the YAMLGraph development pipeline eBook.
+
+user: |
+  ## Task
+  Gather authoritative source material for Chapter 01: Doctrine.
+
+  This chapter decodes CLAUDE.md — the 10 Commandments, Sermon of the Chaplain, Rite of Correction, and Agents' Prayer.
+  It should explain each element with concrete codebase examples.
+
+  ## Source Files to Read
+  Read and extract relevant content from:
+  1. `.github/copilot-instructions.md` — The Scripture section with 10 Commandments, Sermon, Rite, Prayer
+  2. `CLAUDE.md` — Development commands and anti-patterns table
+  3. `reference/getting-started.md` — Core patterns referenced by doctrine
+  4. `docs/confessions.md` — noqa confession pattern (Commandment on bearing witness)
+
+  ## Required Output Structure
+  Return structured Markdown with:
+
+  ### Summary
+  One paragraph describing the purpose of codified doctrine in an AI-assisted development workflow.
+
+  ### Key Facts
+  - List the 10 Commandments with brief one-line explanations
+  - What is "Research, Plan, Judge, Enforce, Purge, Submit, Distill"?
+  - What is the Knowledge Graph entry "normalize at the boundary"?
+  - What is the Rite of Correction?
+  - What is the Agents' Prayer?
+
+  ### Verbatim Excerpts
+  Quote the full 10 Commandments (or first few words of each).
+  Quote the Knowledge Graph YAML block if present.
+
+  ### Code Examples
+  Find concrete examples in the codebase that demonstrate:
+  - Research before coding (feature request creation)
+  - Pydantic validation (Commandment 5: sanctify outputs with types)
+  - TDD pattern (Commandment 7)
+
+  Focus on facts. Do not invent claims — if information is not in the sources, say so.

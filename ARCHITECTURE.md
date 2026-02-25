@@ -589,6 +589,14 @@ Extends the Plan→Judge workflow (now in `examples/copilot/graph.yaml` per FR-0
 |------------|-------------|-------------|
 | REQ-YG-090 | `format_diary_entry()` accepts configurable `prefix` parameter (default "World Digest"); `examples/copilot/graph.yaml` includes `summarize` (LLM) and `write_diary` (Python) nodes; `watch.sh` passes `date` and `diary_prefix` vars | `examples/shared/diary`, `examples/copilot/graph.yaml`, `examples/copilot/prompts/summarize.yaml` |
 
+### 32. eBook Authoring Pipeline (FR-100)
+
+A YAMLGraph pipeline that writes the development pipeline documentation as an eBook.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-091 | `write_chapters_tool` writes formatted chapter content to disk; accepts `output_dir` and chapter state variables; creates directory if missing; returns dict with `written` list of paths | `examples/ebook/nodes/writing.py` |
+
 ---
 
 ## Key Data Flows
