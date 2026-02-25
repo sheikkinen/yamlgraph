@@ -6,6 +6,28 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-25: FR-103 Judge-Amend Subgraph — The Normalize-at-Boundary Trap
+
+**Context:** FR-100 pipeline ran successfully but produced 9/10 fabricated Commandments in Ch01 Doctrine. Root cause: research→write split lost verbatim quotes. The LLM invented content from summaries instead of citing source files.
+
+**Trap:** *Downstream Fix.* Initial reaction (FR-101) proposed elaborate 32-node pipeline with per-section persistence and 24 checkpoint calls. This was treating the symptom (hallucination visible late) rather than the cause (verbatim quotes lost at research boundary).
+
+**Insight:** The Scripture's `the_one_law` applies directly: "Normalize at the boundary where external data enters, not downstream where it manifests." The fix was merging research+write into a single copilot node with inline citations — the prompt itself reads the source files, not a separate research node producing summaries.
+
+**Process:**
+1. FR-101 created (32 nodes) → Judged AMEND for over-engineering
+2. FR-102 consolidated 5 options → Too sprawling, no clear winner
+3. FR-103 distilled to minimal pattern: merged chapter prompts + judge-amend subgraph
+4. TDD: wrote `verify_commandments_verbatim()` test first (4 tests)
+5. Implementation: 6 merged prompts, subgraph, rewired graph
+6. Pre-commit caught YAML quoting issue in subgraph conditions
+
+**Heuristic:** When hallucination appears late in pipeline, trace backward to find where verbatim content was converted to summary. The fix is moving the raw source access closer to the generation point — ideally into the same prompt.
+
+**Seed:** Could the judge-amend subgraph pattern be generalized as a reusable validation primitive? A `validate_with_sources` subgraph that takes content + cited files and returns corrected content?
+
+---
+
 ## 2026-02-25: Inquisitor Audit — Minimal Delta, Compliance Holding, Audit Entropy Peak
 
 **Context:** Audit of HEAD (`9048d03`), 1 new commit since prior audit at `bd1d6ce`. The new commit (`9048d03` docs: FR-100 implementation progress update) is docs-only — a progress update to the feature request file. All 5 commits in the `git log -5` window were already covered by the prior audit except this one. Applied minimum-delta heuristic: focus on the single unaudited commit and systemic patterns.
