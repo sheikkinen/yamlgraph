@@ -2,9 +2,33 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Approved
+**Status:** In Progress
 **Effort:** 3 days
 **Requested:** 2026-02-25
+**Implemented:** 2026-02-25 (scaffold)
+
+## Implementation Progress
+
+### Commit bd1d6ce — Scaffold Complete
+- ✅ `examples/ebook/graph.yaml` exists and passes `yamlgraph graph lint`
+- ✅ Research prompts exist for all six chapters in `examples/ebook/prompts/source/`
+- ✅ Writing prompts exist for all six chapters in `examples/ebook/prompts/write/`
+- ✅ `judge_draft.yaml` prompt exists in `examples/ebook/prompts/`
+- ✅ A Python write-chapters tool in `examples/ebook/nodes/writing.py`
+- ✅ A unit test for the `write_chapters_tool` exists in `tests/unit/test_ebook_writing.py`
+- ✅ REQ-YG-091, CAP-32 added to ARCHITECTURE.md and req_coverage.py
+- ✅ `docs/ebook/README.md` with pandoc build instructions
+- ✅ `docs/ebook/_build.sh` produces HTML via pandoc
+- ✅ `docs/ebook/dist/` already covered by existing `.gitignore` pattern
+
+### Remaining Work (Phase 4-5)
+- [ ] Run the full authoring pipeline to generate chapters
+- [ ] Review output for accuracy; iterate on prompts
+- [ ] Judge findings and address issues
+- [ ] Final read-through of all chapters
+
+### Notes
+- Renamed `research/` prompts directory to `source/` to avoid `.gitignore` conflict with global `research/` pattern
 
 ## Summary
 
