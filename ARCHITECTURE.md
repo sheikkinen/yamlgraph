@@ -581,6 +581,14 @@ New `copilot` node type that delegates graph processing to Copilot CLI, replacin
 | REQ-YG-087 | Copilot node executes via CLI backend with configurable flags and timeout; `--silent` always forced; list-based `subprocess.run()` for injection safety; graceful `FileNotFoundError` when copilot binary missing | `node_factory/copilot_node`, `node_compiler`, `constants.NodeType.COPILOT` |
 | REQ-YG-089 | Copilot node composes with router, map, and FSM-router patterns; standard node guarantees apply (requires, on_error, skip_if_exists, loop protection) | `node_factory/copilot_node`, `node_compiler` |
 
+### 31. Chaplain Diary Append
+
+Extends the `.chaplain/graph.yaml` Plan→Judge workflow with automatic diary entry creation after each run.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-090 | `format_diary_entry()` accepts configurable `prefix` parameter (default "World Digest"); `.chaplain/graph.yaml` includes `summarize` (LLM) and `write_diary` (Python) nodes; `watch.sh` passes `date` and `diary_prefix` vars | `examples/diary_digest/nodes/writing`, `.chaplain/graph.yaml`, `.chaplain/prompts/summarize.yaml` |
+
 ---
 
 ## Key Data Flows

@@ -24,6 +24,7 @@ _ALL_FRAMEWORK_REQS = (
     list(range(1, 78))  # REQ-YG-001 through REQ-YG-077
     + [83]  # REQ-YG-083 (CAP-28 Thinking Budget)
     + [87, 89]  # REQ-YG-087, REQ-YG-089 (CAP-30 Copilot Node) — 088 dropped
+    + [90]  # REQ-YG-090 (CAP-31 Chaplain Diary Append)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -181,6 +182,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
             "REQ-YG-089",
         ],
     ),
+    "CAP-31": ("Chaplain Diary Append", ["REQ-YG-090"]),
 }
 
 

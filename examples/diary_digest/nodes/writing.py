@@ -89,14 +89,22 @@ def format_diary_entry(
     theme: str,
     body: str,
     seed: str,
+    prefix: str = "World Digest",
 ) -> str:
     """Format a diary entry in the canonical format.
 
-    Returns markdown like:
-        \\n---\\n\\n## 2026-02-19: World Digest — Theme\\n\\nbody\\n\\n**Seed:** ...\\n
+    Args:
+        date_str: Date string (YYYY-MM-DD)
+        theme: Entry theme/title
+        body: Entry body content
+        seed: Forward-looking question
+        prefix: Header prefix (default "World Digest", use "Chaplain" for FR runs)
+
+    Returns:
+        Formatted markdown entry
     """
     return (
-        f"\n---\n\n## {date_str}: World Digest — {theme}\n\n"
+        f"\n---\n\n## {date_str}: {prefix} — {theme}\n\n"
         f"{body}\n\n"
         f"**Seed:** {seed}\n"
     )
@@ -135,6 +143,7 @@ def write_diary(state: dict) -> dict:
     """
     entry_data = state.get("diary_entry", {})
     date_str = state.get("date", "unknown")
+    prefix = state.get("diary_prefix", "World Digest")
 
     # Handle Pydantic model or dict
     theme = getattr(entry_data, "theme", None) or entry_data.get(
@@ -150,6 +159,7 @@ def write_diary(state: dict) -> dict:
         theme=theme,
         body=body,
         seed=seed,
+        prefix=prefix,
     )
 
     append_to_diary(DIARY_PATH, entry)
