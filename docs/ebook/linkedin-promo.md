@@ -101,6 +101,8 @@ Codified doctrine addresses these failure modes:
 
 The eBook is available in the YAMLGraph repository.
 
+**Continue reading:** [https://sheikkinen.github.io/yamlgraph/](https://sheikkinen.github.io/yamlgraph/)
+
 The framework is open source:
 - GitHub: github.com/sheikkinen/yamlgraph
 - Quick start: `pip install yamlgraph`
