@@ -1,0 +1,167 @@
+# Chapter 08: The Wizard Behind the Curtain
+# Technical deep-dive into the YAMLGraph engine, linter, and quality toolchain
+
+system: |
+  You are writing the final chapter of the YAMLGraph Development Pipeline eBook.
+  You have access to read ALL files in the repository. Use that access liberally.
+
+  CRITICAL: Quote source code EXACTLY as it appears in source files.
+  Read the actual Python modules — don't guess at their contents.
+
+user: |
+  ## Output File
+
+  Write the completed chapter to: `{output_dir}/{filename}`
+
+  ## Your Mission
+
+  Pull back the curtain on the YAMLGraph engine itself. This is the technical
+  deep-dive: the Python modules, the linter architecture, the quality toolchain
+  (radon, vulture, jscpd, ruff), and the scripts that keep entropy at bay.
+
+  The reader has seen what YAMLGraph does (chapters 00-07). Now show them
+  how the engine is built, how the linter catches errors before runtime,
+  and how the quality gates enforce Commandment 8.
+
+  ## Source Material — Read These Files
+
+  **The engine (`yamlgraph/` directory):**
+  - `yamlgraph/graph_loader.py` — the compilation orchestrator
+  - `yamlgraph/node_compiler.py` — node registration
+  - `yamlgraph/edge_compiler.py` — edge wiring
+  - `yamlgraph/map_compiler.py` — map node fan-out
+  - `yamlgraph/executor.py` — prompt execution
+  - `yamlgraph/executor_base.py` — base executor
+  - `yamlgraph/executor_async.py` — async wrapper
+  - `yamlgraph/routing.py` — conditional routing
+  - `yamlgraph/schema_loader.py` — Pydantic schema from YAML
+  - `yamlgraph/data_loader.py` — data file loading
+  - `yamlgraph/error_handlers.py` — on_error handling
+  - `yamlgraph/config.py` — configuration
+  - `yamlgraph/constants.py` — constants
+  - `yamlgraph/mcp_server.py` — MCP server
+
+  **Node factory (`yamlgraph/node_factory/`):**
+  - `yamlgraph/node_factory/base.py` — base node functions
+  - `yamlgraph/node_factory/llm_nodes.py` — LLM/router nodes
+  - `yamlgraph/node_factory/control_nodes.py` — python/passthrough
+  - `yamlgraph/node_factory/tool_nodes.py` — agent/tool_call
+  - `yamlgraph/node_factory/copilot_node.py` — copilot nodes
+  - `yamlgraph/node_factory/subgraph_nodes.py` — subgraph nodes
+  - `yamlgraph/node_factory/streaming.py` — streaming support
+
+  **Models (`yamlgraph/models/`):**
+  - `yamlgraph/models/graph_schema.py` — GraphConfig Pydantic model
+  - `yamlgraph/models/state_builder.py` — dynamic TypedDict generation
+  - `yamlgraph/models/schemas.py` — shared schemas
+
+  **Linter (`yamlgraph/linter/`):**
+  - `yamlgraph/linter/graph_linter.py` — linter orchestrator
+  - `yamlgraph/linter/checks.py` — core checks
+  - `yamlgraph/linter/checks_contracts.py` — contract checks
+  - `yamlgraph/linter/checks_providers.py` — provider checks
+  - `yamlgraph/linter/checks_semantic.py` — semantic checks
+  - `yamlgraph/linter/patterns/` — pattern-specific checks (router, map, agent, subgraph, interrupt)
+
+  **Utilities (`yamlgraph/utils/`):**
+  - `yamlgraph/utils/llm_factory.py` — multi-provider factory
+  - `yamlgraph/utils/expressions.py` — expression parser
+  - `yamlgraph/utils/conditions.py` — condition evaluator
+  - `yamlgraph/utils/sanitize.py` — shell injection protection
+  - `yamlgraph/utils/prompts.py` — prompt loading
+  - `yamlgraph/utils/template.py` — Jinja2 templating
+  - `yamlgraph/utils/validators.py` — validation utilities
+  - `yamlgraph/utils/token_tracker.py` — token usage tracking
+
+  **CLI (`yamlgraph/cli/`):**
+  - `yamlgraph/cli/graph_commands.py` — run/list/info/lint/codegen
+  - `yamlgraph/cli/graph_validate.py` — validate command
+  - `yamlgraph/cli/helpers.py` — shared CLI helpers
+
+  **Quality toolchain:**
+  - `.pre-commit-config.yaml` — all hooks
+  - `scripts/req_coverage.py` — requirement traceability
+  - `scripts/noqa_coverage.py` — noqa confession enforcement
+  - `scripts/absolution.py` — final hook (Distill reminder)
+  - `scripts/hedging_check.py` — silent fallback detector
+  - `scripts/lint_inline_llm.py` — inline LLM detection
+  - `scripts/diary_rotate.py` — diary management
+
+  **Doctrine:**
+  - `.github/copilot-instructions.md` — Commandment 8, the Knowledge Graph
+
+  ## Chapter Structure
+
+  ### 1. The Engine at a Glance
+  - Module map: show the directory structure of `yamlgraph/`
+  - Total lines (~12k) across ~50 modules — a small, focused engine
+  - Key design: each compiler stage is a separate module
+
+  ### 2. The Compiler Pipeline (the real code)
+  - `graph_loader.py` orchestrates: load → validate → build state → compile nodes → wire edges
+  - `node_compiler.py` registers nodes into the StateGraph
+  - `edge_compiler.py` wires edges (including conditional routing)
+  - `map_compiler.py` handles fan-out for map nodes
+  - Show real function signatures and docstrings from these files
+
+  ### 3. The Node Factory
+  - Factory pattern: `node_factory/` with one module per node category
+  - `base.py` — shared pre-checks, loop protection, skip_if_exists
+  - `llm_nodes.py` — LLM and router node creation
+  - `control_nodes.py` — python and passthrough
+  - `tool_nodes.py` — agent and tool_call
+  - `copilot_node.py` — GitHub Copilot integration
+  - Show how a node function is constructed
+
+  ### 4. The Linter
+  - `graph_linter.py` orchestrates all checks
+  - Check categories: structural (`checks.py`), contracts (`checks_contracts.py`), providers (`checks_providers.py`), semantic (`checks_semantic.py`)
+  - Pattern-specific linters in `linter/patterns/` (router, map, agent, subgraph, interrupt)
+  - Show real check function names and what they catch
+  - The linter catches at YAML-load time what would otherwise fail at runtime
+
+  ### 5. The Quality Toolchain
+  - **Commandment 8** demands: "kill all entropy and false idols"
+  - Walk through every hook in `.pre-commit-config.yaml`:
+    - `ruff` — linting and formatting
+    - `radon` — cyclomatic complexity gate (block grade D, CC ≥ 21)
+    - `vulture` — dead code detection (min-confidence 80)
+    - `jscpd` — duplicate code detection (threshold 10, min-lines 10)
+    - `file-size-gate` — module size enforcement (>450 error, >400 warn)
+    - `forbid-terms` — TODO/FIXME/backward-compatibility drift
+    - `hedging-check` — silent fallback detection
+    - `inline-llm-check` — inline LLM orchestration detection
+    - `req-coverage-strict` — requirement traceability
+    - `noqa-confession` — noqa suppression documentation
+    - `pytest` — unit tests
+    - `conventional-pre-commit` — commit message format
+    - `feat-requires-fr` — FR reference enforcement
+    - `changelog-required` — CHANGELOG enforcement
+    - `absolution` — final summary with Distill reminder
+    - `inquisitor-background` — async post-commit audit
+
+  ### 6. The Utilities
+  - `llm_factory.py` — provider abstraction
+  - `expressions.py` — the expression parser that resolves `{state.field.subfield}`
+  - `sanitize.py` — shell injection protection (shlex.quote)
+  - `template.py` — Jinja2 integration
+  - `token_tracker.py` — cost awareness
+
+  ### 7. What the Numbers Say
+  - Read the actual module sizes and report them
+  - Show that the file-size-gate keeps modules under 450 lines
+  - Mention the radon/vulture/jscpd results if you can run or infer them
+
+  ## Style Guide
+
+  - This is the "show the machinery" chapter — read the actual code
+  - Quote real function signatures, docstrings, and module headers
+  - Let the code speak: show what each module does by reading it
+  - Connect the toolchain back to Commandment 8
+  - End as the final chapter of the book — bring it home
+
+  ## Output Format
+
+  Start with `# Chapter 08: The Wizard Behind the Curtain`.
+  End with a closing that references Commandment 8 and the Knowledge Graph
+  from `.github/copilot-instructions.md`.

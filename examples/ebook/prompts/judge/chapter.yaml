@@ -1,6 +1,5 @@
 # Judge Prompt: Chapter Validation
-# FR-103: Validates quoted content against cited source files
-# Extracts file paths from inline citations and verifies verbatim quotes
+# FR-103: Read chapter from file, validate, write judgment to same file
 
 system: |
   You are a technical reviewer validating eBook chapter content.
@@ -9,8 +8,9 @@ system: |
   You have access to read files in the repository. Use this to verify quotes.
 
 user: |
-  ## Chapter Content to Validate
-  {chapter}
+  ## Input File
+
+  Read the chapter from: `{output_dir}/{filename}`
 
   ## Validation Process
 
@@ -32,12 +32,17 @@ user: |
      - Flag any content that claims to be from a source but isn't
      - Flag any "Thou shalt" phrases that don't match the 10 Commandments
 
-  ## Output Format
+  ## Output
 
-  Return your findings in this format:
+  Append your judgment to the same file: `{output_dir}/{filename}`
 
-  ```
-  ## VERDICT: [PASSED or FAILED]
+  Add a section at the end:
+
+  ```markdown
+  ---
+  ## JUDGMENT
+
+  ### VERDICT: [PASSED or FAILED]
 
   ### Files Verified
   - `file1.md` — verified / issues found
@@ -46,7 +51,7 @@ user: |
   [If FAILED, list SPECIFIC issues:]
   - Line "X quoted text" does not match source (actual: "Y actual text")
   - Commandment 3 is fabricated — not in source file
-  - Missing Commandments: 7, 8, 9
+  ```
 
   ### What to Fix
   [Concrete instructions for amend node]

@@ -1,0 +1,95 @@
+# Chapter 07: YAMLGraph Core — How It Works, How to Use It, How to Extend It
+
+system: |
+  You are writing Chapter 07 of the YAMLGraph Development Pipeline eBook.
+  You have access to read ALL files in the repository. Use that access liberally.
+
+  CRITICAL: Quote source code and YAML EXACTLY as it appears in source files.
+  Show REAL examples from examples/demos/ — never invent YAML or code.
+
+user: |
+  ## Output File
+
+  Write the completed chapter to: `{output_dir}/{filename}`
+
+  ## Your Mission
+
+  Write a comprehensive chapter covering the YAMLGraph framework itself:
+  how YAML compiles to LangGraph, every node type with real examples,
+  and how to extend and deploy it. This is the technical core of the book.
+
+  ## Source Material
+
+  Read these files to build the chapter from real content:
+
+  **Architecture & internals:**
+  - `CLAUDE.md` — Three-layer pattern, compilation pipeline, anti-patterns, security, env vars
+  - `ARCHITECTURE.md` — Design philosophy, state management, extension points
+  - `reference/getting-started.md` — Core files, key patterns
+
+  **YAML references:**
+  - `reference/graph-yaml.md` — Complete graph YAML spec
+  - `reference/prompt-yaml.md` — Complete prompt YAML spec
+  - `reference/expressions.md` — Variable/expression syntax
+  - `reference/patterns.md` — Common pipeline patterns
+
+  **Node type references:**
+  - `reference/map-nodes.md`, `reference/subgraph-nodes.md`
+  - `reference/tool-call-nodes.md`, `reference/passthrough-nodes.md`
+  - `reference/streaming.md`
+
+  **Real examples (quote verbatim):**
+  - `examples/demos/hello/graph.yaml` + `examples/demos/hello/prompts/greet.yaml`
+  - `examples/demos/router/graph.yaml`
+  - `examples/demos/map/graph.yaml`
+  - `examples/demos/subgraph/graph.yaml`
+  - `examples/demos/thinking/graph.yaml`
+
+  **Extension & production:**
+  - `yamlgraph/utils/llm_factory.py` — Provider factory
+  - `yamlgraph/tools/` — Tool implementations
+  - `reference/checkpointers.md`, `reference/async-usage.md`
+  - `reference/streaming.md`, `reference/mcp-server.md`
+  - `reference/web-ui-api.md`, `reference/prompt-deployment.md`
+  - `reference/cli.md` — CLI commands
+
+  ## Chapter Structure
+
+  Organize the chapter into three major parts:
+
+  ### Part I: How It Works
+  - The three-layer architecture (quote diagram from CLAUDE.md)
+  - The compilation pipeline (YAML → GraphConfig → StateGraph → CompiledGraph)
+  - Graph YAML anatomy — show the file structure, then hello/graph.yaml as real example
+  - Prompt YAML anatomy — show the structure, then hello/prompts/greet.yaml
+  - Dynamic state management — auto-generated from state_key fields
+  - Node execution flow (pre-checks → loop protection → resume → execute → return dict)
+
+  ### Part II: How to Use It
+  - Node type catalog — table overview, then each type with a REAL example:
+    - LLM (hello), Router (router), Map (map), Subgraph (subgraph), Agent, Python, Passthrough, Tool Call, Copilot
+  - Expression syntax for variables
+  - Common patterns (linear, router+merge, fan-out/fan-in, loops)
+  - CLI commands to run, lint, validate, info
+
+  ### Part III: How to Extend It
+  - Adding LLM providers (show llm_factory.py, provider priority chain, env vars table)
+  - Adding custom tools (security model: shlex.quote, no eval)
+  - Checkpointers (memory, SQLite, Redis)
+  - Streaming, async, MCP server, FastAPI integration
+  - Anti-patterns table (quote from CLAUDE.md)
+  - Close with the Agents' Prayer from `.github/copilot-instructions.md`
+
+  ## Style Guide
+
+  - Trust the source files — read them and let their content shape the chapter
+  - Every claim must trace to a real file
+  - Show complete YAML files, not snippets
+  - Include CLI commands readers can actually run
+  - This replaces three planned chapters — be thorough but not repetitive
+
+  ## Output Format
+
+  Start with `# Chapter 07: YAMLGraph Core`.
+  End with the Agents' Prayer as closing words.
+

@@ -1,7 +1,6 @@
 # eBook Authoring Pipeline
-# FR-103: Merged write + judge-amend subgraph pattern
-# Uses copilot nodes for writing with inline file citations
-# Judge-amend subgraph validates each chapter against cited sources
+# FR-103: File-based write → judge → amend pattern
+# Each node reads/writes directly to the chapter file
 
 version: "1.0"
 name: ebook-pipeline
@@ -10,48 +9,23 @@ description: Write the YAMLGraph development pipeline eBook chapter by chapter
 prompts_relative: true
 prompts_dir: prompts
 
-subgraphs:
-  validate_chapter: subgraphs/validate_chapter.yaml
-
 state:
   output_dir: str
-  date: str
-  chapter_introduction: str
-  chapter_doctrine: str
-  chapter_precommit: str
-  chapter_chaplain: str
-  chapter_inquisitor: str
-  chapter_diary: str
-  written: list
-
-tools:
-  persist_introduction:
-    type: python
-    module: examples.ebook.nodes.writing
-    function: persist_introduction
-  persist_doctrine:
-    type: python
-    module: examples.ebook.nodes.writing
-    function: persist_doctrine
-  persist_precommit:
-    type: python
-    module: examples.ebook.nodes.writing
-    function: persist_precommit
-  persist_chaplain:
-    type: python
-    module: examples.ebook.nodes.writing
-    function: persist_chaplain
-  persist_inquisitor:
-    type: python
-    module: examples.ebook.nodes.writing
-    function: persist_inquisitor
-  persist_diary:
-    type: python
-    module: examples.ebook.nodes.writing
-    function: persist_diary
+  # Per-chapter filenames (passed as initial vars)
+  filename_introduction: str
+  filename_doctrine: str
+  filename_precommit: str
+  filename_chaplain: str
+  filename_inquisitor: str
+  filename_diary: str
+  filename_traceability: str
+  # Tracking
+  current_chapter: str
 
 nodes:
-  # ── Chapter 00: Introduction ──
+  # ══════════════════════════════════════════════════════════════════
+  # Chapter 00: Introduction
+  # ══════════════════════════════════════════════════════════════════
   write_introduction:
     type: copilot
     prompt: chapter/introduction
@@ -59,22 +33,41 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: chapter_introduction
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_introduction}"
+    state_key: current_chapter
     timeout: 300
 
-  validate_introduction:
-    type: subgraph
-    graph: subgraphs/validate_chapter.yaml
-    input_mapping:
-      chapter: chapter_introduction
-    output_mapping:
-      chapter_introduction: amended_chapter
+  judge_introduction:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_introduction}"
+    state_key: current_chapter
+    timeout: 300
 
-  save_introduction:
-    type: python
-    tool: persist_introduction
+  amend_introduction:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_introduction}"
+    state_key: current_chapter
+    timeout: 300
 
-  # ── Chapter 01: Doctrine ──
+  # ══════════════════════════════════════════════════════════════════
+  # Chapter 01: Doctrine
+  # ══════════════════════════════════════════════════════════════════
   write_doctrine:
     type: copilot
     prompt: chapter/doctrine
@@ -82,22 +75,41 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: chapter_doctrine
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_doctrine}"
+    state_key: current_chapter
     timeout: 300
 
-  validate_doctrine:
-    type: subgraph
-    graph: subgraphs/validate_chapter.yaml
-    input_mapping:
-      chapter: chapter_doctrine
-    output_mapping:
-      chapter_doctrine: amended_chapter
+  judge_doctrine:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_doctrine}"
+    state_key: current_chapter
+    timeout: 300
 
-  save_doctrine:
-    type: python
-    tool: persist_doctrine
+  amend_doctrine:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_doctrine}"
+    state_key: current_chapter
+    timeout: 300
 
-  # ── Chapter 02: Pre-commit Gates ──
+  # ══════════════════════════════════════════════════════════════════
+  # Chapter 02: Pre-commit Gates
+  # ══════════════════════════════════════════════════════════════════
   write_precommit:
     type: copilot
     prompt: chapter/precommit_gates
@@ -105,22 +117,41 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: chapter_precommit
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_precommit}"
+    state_key: current_chapter
     timeout: 300
 
-  validate_precommit:
-    type: subgraph
-    graph: subgraphs/validate_chapter.yaml
-    input_mapping:
-      chapter: chapter_precommit
-    output_mapping:
-      chapter_precommit: amended_chapter
+  judge_precommit:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_precommit}"
+    state_key: current_chapter
+    timeout: 300
 
-  save_precommit:
-    type: python
-    tool: persist_precommit
+  amend_precommit:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_precommit}"
+    state_key: current_chapter
+    timeout: 300
 
-  # ── Chapter 03: Chaplain Pipeline ──
+  # ══════════════════════════════════════════════════════════════════
+  # Chapter 03: Chaplain Pipeline
+  # ══════════════════════════════════════════════════════════════════
   write_chaplain:
     type: copilot
     prompt: chapter/chaplain_pipeline
@@ -128,22 +159,41 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: chapter_chaplain
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_chaplain}"
+    state_key: current_chapter
     timeout: 300
 
-  validate_chaplain:
-    type: subgraph
-    graph: subgraphs/validate_chapter.yaml
-    input_mapping:
-      chapter: chapter_chaplain
-    output_mapping:
-      chapter_chaplain: amended_chapter
+  judge_chaplain:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_chaplain}"
+    state_key: current_chapter
+    timeout: 300
 
-  save_chaplain:
-    type: python
-    tool: persist_chaplain
+  amend_chaplain:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_chaplain}"
+    state_key: current_chapter
+    timeout: 300
 
-  # ── Chapter 04: Inquisitor ──
+  # ══════════════════════════════════════════════════════════════════
+  # Chapter 04: Inquisitor
+  # ══════════════════════════════════════════════════════════════════
   write_inquisitor:
     type: copilot
     prompt: chapter/inquisitor
@@ -151,22 +201,41 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: chapter_inquisitor
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_inquisitor}"
+    state_key: current_chapter
     timeout: 300
 
-  validate_inquisitor:
-    type: subgraph
-    graph: subgraphs/validate_chapter.yaml
-    input_mapping:
-      chapter: chapter_inquisitor
-    output_mapping:
-      chapter_inquisitor: amended_chapter
+  judge_inquisitor:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_inquisitor}"
+    state_key: current_chapter
+    timeout: 300
 
-  save_inquisitor:
-    type: python
-    tool: persist_inquisitor
+  amend_inquisitor:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_inquisitor}"
+    state_key: current_chapter
+    timeout: 300
 
-  # ── Chapter 05: Diary System ──
+  # ══════════════════════════════════════════════════════════════════
+  # Chapter 05: Diary System
+  # ══════════════════════════════════════════════════════════════════
   write_diary:
     type: copilot
     prompt: chapter/diary_system
@@ -174,62 +243,135 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    state_key: chapter_diary
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_diary}"
+    state_key: current_chapter
     timeout: 300
 
-  validate_diary:
-    type: subgraph
-    graph: subgraphs/validate_chapter.yaml
-    input_mapping:
-      chapter: chapter_diary
-    output_mapping:
-      chapter_diary: amended_chapter
+  judge_diary:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_diary}"
+    state_key: current_chapter
+    timeout: 300
 
-  save_diary:
-    type: python
-    tool: persist_diary
+  amend_diary:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_diary}"
+    state_key: current_chapter
+    timeout: 300
+
+  # ══════════════════════════════════════════════════════════════════
+  # Chapter 06: Requirement Traceability Matrix
+  # ══════════════════════════════════════════════════════════════════
+  write_traceability:
+    type: copilot
+    prompt: chapter/traceability
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_traceability}"
+    state_key: current_chapter
+    timeout: 300
+
+  judge_traceability:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_traceability}"
+    state_key: current_chapter
+    timeout: 300
+
+  amend_traceability:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename_traceability}"
+    state_key: current_chapter
+    timeout: 300
 
 edges:
+  # Chapter 00: Introduction
   - from: START
     to: write_introduction
   - from: write_introduction
-    to: validate_introduction
-  - from: validate_introduction
-    to: save_introduction
+    to: judge_introduction
+  - from: judge_introduction
+    to: amend_introduction
 
-  - from: save_introduction
+  # Chapter 01: Doctrine
+  - from: amend_introduction
     to: write_doctrine
   - from: write_doctrine
-    to: validate_doctrine
-  - from: validate_doctrine
-    to: save_doctrine
+    to: judge_doctrine
+  - from: judge_doctrine
+    to: amend_doctrine
 
-  - from: save_doctrine
+  # Chapter 02: Pre-commit Gates
+  - from: amend_doctrine
     to: write_precommit
   - from: write_precommit
-    to: validate_precommit
-  - from: validate_precommit
-    to: save_precommit
+    to: judge_precommit
+  - from: judge_precommit
+    to: amend_precommit
 
-  - from: save_precommit
+  # Chapter 03: Chaplain Pipeline
+  - from: amend_precommit
     to: write_chaplain
   - from: write_chaplain
-    to: validate_chaplain
-  - from: validate_chaplain
-    to: save_chaplain
+    to: judge_chaplain
+  - from: judge_chaplain
+    to: amend_chaplain
 
-  - from: save_chaplain
+  # Chapter 04: Inquisitor
+  - from: amend_chaplain
     to: write_inquisitor
   - from: write_inquisitor
-    to: validate_inquisitor
-  - from: validate_inquisitor
-    to: save_inquisitor
+    to: judge_inquisitor
+  - from: judge_inquisitor
+    to: amend_inquisitor
 
-  - from: save_inquisitor
+  # Chapter 05: Diary System
+  - from: amend_inquisitor
     to: write_diary
   - from: write_diary
-    to: validate_diary
-  - from: validate_diary
-    to: save_diary
-  - from: save_diary
+    to: judge_diary
+  - from: judge_diary
+    to: amend_diary
+
+  # Chapter 06: Requirement Traceability Matrix
+  - from: amend_diary
+    to: write_traceability
+  - from: write_traceability
+    to: judge_traceability
+  - from: judge_traceability
+    to: amend_traceability
+  - from: amend_traceability
     to: END

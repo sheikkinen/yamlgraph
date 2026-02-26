@@ -6,6 +6,61 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-26: FR-103 eBook Pipeline — The Simplification Arc
+
+**Context:** FR-100 → FR-101 → FR-102 → FR-103 represents a complete feature arc for the eBook authoring pipeline. The final implementation: 7 per-chapter graphs (graph-ch00.yaml through graph-ch06.yaml) with a unified write→judge→amend pattern. Each chapter gets its own 3-node graph. Variables reduced to just `output_dir` and `filename`.
+
+**Trap:** *Accretion through iteration.* Each FR iteration added complexity to solve perceived problems:
+- FR-100: Initial scaffold with research→write split (hallucination source)
+- FR-101: 32-node pipeline with elaborate checkpointing (over-engineered)
+- FR-102: Subgraph with input/output mapping (complexity for complexity's sake)
+- FR-103: File-based pattern with per-chapter filenames (still 21 nodes in main graph)
+
+The breakthrough came when the user asked: "how to run one chapter separately?" — revealing that the monolithic graph forced full pipeline runs. The solution wasn't `--start-node`/`--end-node` flags; it was **separate graphs per chapter**.
+
+**Heuristic:** When you find yourself wishing for partial execution flags, you've designed the wrong unit of work. A good pipeline is composed of small, independently-runnable graphs — not a monolith with escape hatches. The copilot node pattern (agent reads/writes files) makes composition trivial because state flows through the filesystem, not through graph state mapping.
+
+**Technical insight:** The file-based pattern eliminates subgraph input/output mapping entirely:
+```yaml
+# Complex: subgraph mapping
+input_mapping:
+  chapter_content: content
+output_mapping:
+  validated: validated_chapter
+
+# Simple: file-based
+variables:
+  output_dir: "{state.output_dir}"
+  filename: "{state.filename}"
+```
+Files are the original shared state. When copilot nodes all operate on the same file path, the agent becomes stateless — it reads the file, does work, writes the file. No mapping required.
+
+**Seed:** Could a `graph-composition` CLI command chain multiple single-chapter graphs into a batch run? E.g., `yamlgraph graph compose graph-ch00.yaml graph-ch01.yaml --var output_dir=docs/ebook/v1` — maintaining isolation while enabling sequential execution?
+
+**User reflection:** The copilot node encapsulates an agentic process that *prefers* file-based operation — agents naturally read files, do work, write files. We struggled to give the copilot node meaningful and big enough tasks; repeatedly, the write→judge→amend cycle felt like over-engineering. The judge/amend step was questioned multiple times ("is this really needed?"). Visibility into what the agent was doing was also dropped multiple times during iteration.
+
+**Root cause:** Lack of a precise FR from the start. FR-100 was vague ("write an eBook"), FR-101/102/103 were reactive corrections. A tighter initial spec — defining chapter scope, output format, and success criteria before coding — would have prevented the accretion trap. The Sermon says "Plan" before "Enforce", but we planned after we started building.
+
+---
+
+## 2026-02-25: Inquisitor Audit — Post-Fix Persistence, Doctrine Intact
+
+**Context:** Audit of HEAD (`a9bffc8`), covering 5 commits: `a9bffc8` (fix: FR-103 per-chapter persistence), `0704063` (docs: FR-103 diary), `b0fa74c` (feat: FR-103 judge-amend subgraph), `9048d03` (docs: FR-100 progress), `bd1d6ce` (feat: FR-100 ebook scaffold). Two `feat` and one `fix` commit introduce or restore capabilities. Audited against Commandments, ADR-001, Confessions, and the Sermon.
+
+**Findings:**
+
+- ✓ COMPLIANT — **Conventional Commits + CHANGELOG (Commandment 10):** All 5 commits use correct type/scope/FR-tag format (`fix(ebook):`, `docs:`, `feat(ebook):`). Both `feat` commits and the `fix` commit have corresponding CHANGELOG 0.4.58 entries under Added and Fixed sections. `docs:` commits correctly omit CHANGELOG entries.
+- ✓ COMPLIANT — **ADR-001 (Requirement Traceability):** REQ-YG-091 and REQ-YG-092 both present in ARCHITECTURE.md. 8 tests across `test_ebook_writing.py` (4) and `test_ebook_doctrine_validation.py` (4) all carry `@pytest.mark.req` tags. Full chain intact.
+- ✓ COMPLIANT — **noqa Confessions:** Zero new `# noqa` suppressions introduced across the 5-commit range. 2 framework suppressions (CONF-002, CONF-003) and all example/test/script suppressions remain confessed. `confessions.md` comprehensive.
+- ⚠ DRIFT — **Co-authored-by trailer:** 0/5 commits include the required `Co-authored-by: Copilot` trailer. Recurring accepted deviation — awaiting mechanical enforcement via pre-commit hook.
+- ⚠ DRIFT — **Diary entropy (Commandment 8):** 25 entries for 2026-02-25 in 340 lines. `scripts/diary_rotate.py` exists but hasn't been invoked. This is the 5th+ audit flagging diary bloat. The Inquisitor's own entries remain the dominant entropy contributor.
+
+**Heuristic:** When the same drift is flagged across 5+ audits without resolution, the finding has graduated from observation to technical debt. Either apply the existing fix (`diary_rotate.py`) or accept the drift formally — repeated flagging without action is itself entropy.
+
+**Seed:** Could audit findings be accumulated in a lightweight structure (e.g., a session-scoped table or a YAML sidecar) and flushed to diary.md only once per session — collapsing N audits into one entry per working period?
+
+---
+
 ## 2026-02-25: Inquisitor Audit — FR-103 Cycle Complete, Doctrine Holding
 
 **Context:** Audit of HEAD (`0704063`), covering 5 commits: `0704063` (docs: FR-103 diary), `b0fa74c` (feat: FR-103 judge-amend subgraph), `9048d03` (docs: FR-100 progress), `bd1d6ce` (feat: FR-100 ebook scaffold), `e909641` (docs: FR-100 feature request). Two `feat` commits introduce new capabilities (CAP-32, REQ-YG-091, REQ-YG-092). Audited against all 10 Commandments, ADR-001, Confessions, and the Sermon.

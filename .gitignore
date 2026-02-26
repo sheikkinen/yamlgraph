@@ -72,3 +72,4 @@ examples/fun/
 
 # Local schedules
 *.plist
+docs/ebook/v*/

@@ -1,6 +1,5 @@
 # Chapter 01: Doctrine — The Scripture Decoded
-# FR-103: Merged research+write prompt for copilot node
-# Uses inline citations for judge verification
+# FR-103: Write chapter directly to file
 
 system: |
   You are writing Chapter 01 of the YAMLGraph Development Pipeline eBook.
@@ -9,6 +8,10 @@ system: |
   CRITICAL: Quote doctrine text EXACTLY. Never paraphrase Commandments or Prayers.
 
 user: |
+  ## Output File
+
+  Write the completed chapter to: `{output_dir}/{filename}`
+
   ## Files to Read
 
   Read these files to gather source material:

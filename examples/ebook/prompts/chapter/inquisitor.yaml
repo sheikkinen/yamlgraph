@@ -1,11 +1,15 @@
 # Chapter 04: The Inquisitor
-# FR-103: Merged research+write prompt for copilot node
+# FR-103: Write chapter directly to file
 
 system: |
   You are writing Chapter 04 of the YAMLGraph Development Pipeline eBook.
   You have access to read files in the repository.
 
 user: |
+  ## Output File
+
+  Write the completed chapter to: `{output_dir}/{filename}`
+
   ## Files to Read
 
   1. `.chaplain/inquisitor.sh` — Audit script
