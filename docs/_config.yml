@@ -1,0 +1,21 @@
+# Jekyll configuration for GitHub Pages
+# Disable Liquid processing for Markdown files containing Jinja2 syntax
+
+# Use kramdown for Markdown processing
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+# Disable Liquid templating globally for all pages
+# This prevents {% %} Jinja2 syntax from being interpreted as Liquid
+defaults:
+  - scope:
+      path: ""
+    values:
+      render_with_liquid: false
+
+# Exclude non-essential files from build
+exclude:
+  - "*.log"
+  - "*.tmp"
