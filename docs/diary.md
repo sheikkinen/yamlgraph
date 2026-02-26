@@ -6,6 +6,42 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-26: Inquisitor Audit — LinkedIn Promo, Aging CHANGELOG Debt
+
+**Context:** Audit of HEAD (`57d9d06`), covering 5 commits: `57d9d06` (docs: FR-103 LinkedIn promo), `771ebdc` (docs: FR-103 v3 generation), `76f2873` (feat: FR-103 per-chapter graphs), `a9bffc8` (fix: FR-103 per-chapter persistence), `0704063` (docs: FR-103 diary). One `feat`, one `fix`, three `docs` commits — all within FR-103 eBook pipeline scope. Audited against Commandments, ADR-001, Confessions, and the Sermon.
+
+**Findings:**
+
+- ✗ VIOLATION — **CHANGELOG gap now 3 audits old (Commandment 10):** `76f2873` (`feat`: per-chapter graphs, parallel runner, `test_copilot_subgraph_variables.py`) still has no CHANGELOG entry. Third consecutive audit citing this. Per the heuristic from the previous audit, this is now "accepted debt" — it must be either fixed before next release or formally waived.
+- ✓ COMPLIANT — **Conventional Commits (Commandment 10):** All 5 commits use correct `type(scope): FR-XXX description` format. The three `docs:` commits correctly omit CHANGELOG entries.
+- ✓ COMPLIANT — **ADR-001 (Requirement Traceability):** REQ-YG-091, REQ-YG-092 present in ARCHITECTURE.md. All 3 tests in `test_copilot_subgraph_variables.py` carry `@pytest.mark.req("REQ-YG-092")`. No orphan tests.
+- ✓ COMPLIANT — **noqa Confessions:** `noqa_coverage.py` reports 53 suppressions, 54 confessions, 0 undocumented. Clean.
+- ⚠ DRIFT — **Co-authored-by trailer:** 0/5 commits include the required trailer. 8th+ audit flagging this. This is no longer drift — it is an unenforced rule. Recommend either adding a `commit-msg` hook to inject the trailer automatically, or removing the requirement from the Scripture.
+
+**Heuristic:** When an audit finding survives three cycles without action, the finding is not the problem — the enforcement mechanism is. Either automate the fix (hook, CI gate) or formally retire the rule. Repeating the same finding indefinitely degrades the audit's signal-to-noise ratio.
+
+**Seed:** Should the Inquisitor maintain a "debt ledger" — a structured table of open violations with age, owner, and deadline — so that aging debt is visible outside diary prose and can be queried programmatically?
+
+---
+
+## 2026-02-26: Inquisitor Audit — v3 Generation, Persistent CHANGELOG Gap
+
+**Context:** Audit of HEAD (`771ebdc`), covering 5 commits: `771ebdc` (docs: FR-103 v3 generation), `76f2873` (feat: FR-103 per-chapter graphs), `a9bffc8` (fix: FR-103 per-chapter persistence), `0704063` (docs: FR-103 diary), `b0fa74c` (feat: FR-103 judge-amend subgraph). One `docs` commit generates 9 eBook chapters (v3); one `feat` adds per-chapter graphs and parallel runner. Audited against Commandments, ADR-001, Confessions, and the Sermon.
+
+**Findings:**
+
+- ✗ VIOLATION — **CHANGELOG gap persists (Commandment 10):** `76f2873` (feat: per-chapter graphs with parallel runner, test_copilot_subgraph_variables.py, FR-104) still has no CHANGELOG entry. Flagged in previous audit; not remediated in subsequent `771ebdc` commit. Two consecutive audits now cite the same gap — the violation is aging.
+- ✓ COMPLIANT — **Conventional Commits (Commandment 10):** All 5 commits use correct `type(scope): FR-XXX description` format. `docs:` commits correctly omit CHANGELOG.
+- ✓ COMPLIANT — **ADR-001 (Requirement Traceability):** REQ-YG-091, REQ-YG-092 in ARCHITECTURE.md. New `test_copilot_subgraph_variables.py` (3 tests) all carry `@pytest.mark.req("REQ-YG-092")`. No orphan tests.
+- ✓ COMPLIANT — **noqa Confessions:** Zero new `# noqa` Python suppressions across the 5-commit range. The `noqa` string in `precommit_gates.yaml` is example content in a prompt, not a code suppression.
+- ⚠ DRIFT — **Co-authored-by trailer:** 0/5 commits include the required trailer. 7th+ audit flagging this. At this point, either enforce mechanically or formally accept as non-enforced convention.
+
+**Heuristic:** When a violation survives two consecutive audits without remediation, it transitions from "finding" to "accepted debt." Accepted debt must be either (a) fixed before next release, or (b) formally documented as a known deviation with rationale. Leaving it in audit limbo creates noise that erodes trust in the audit process itself.
+
+**Seed:** Should the Inquisitor audit carry enforcement authority — e.g., blocking the next version bump until all ✗ VIOLATION items from the previous audit are resolved or formally waived?
+
+---
+
 ## 2026-02-26: Inquisitor Audit — Per-Chapter Graphs, Missing CHANGELOG
 
 **Context:** Audit of HEAD (`76f2873`), covering 5 commits: `76f2873` (feat: FR-103 per-chapter graphs with parallel runner), `a9bffc8` (fix: FR-103 per-chapter persistence), `0704063` (docs: FR-103 diary), `b0fa74c` (feat: FR-103 judge-amend subgraph), `9048d03` (docs: FR-100 progress). Three substantive commits (two `feat`, one `fix`) introduce or restore capabilities. Audited against Commandments, ADR-001, Confessions, and the Sermon.
