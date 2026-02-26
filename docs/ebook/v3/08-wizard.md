@@ -915,7 +915,7 @@ Variable extraction works for both simple `{var}` syntax and full Jinja2:
 def extract_variables(template: str) -> set[str]:
     """Extract all variable names required by a template.
 
-    Handles both simple {var} and Jinja2 {{ var }}, {% for x in var %} syntax.
+    Handles both simple {var} and Jinja2 {% raw %}{{ var }}, {% for x in var %}{% endraw %} syntax.
     Uses Jinja2's AST parser for Jinja2 templates to correctly handle edge cases.
     """
     if is_jinja:

@@ -191,12 +191,12 @@ user: |
 
 # OR: Template (advanced Jinja2)
 template: |
-  {% for item in items %}
+  {% raw %}{% for item in items %}
   {{ item.name }}
-  {% endfor %}
+  {% endfor %}{% endraw %}
 ```
 
-Two template modes exist. **Simple mode** uses `{variable}` placeholders—Python's `str.format()` style. **Jinja2 mode** activates automatically when `{{` or `{%` appears, enabling loops, conditionals, and filters.
+Two template modes exist. **Simple mode** uses `{variable}` placeholders—Python's `str.format()` style. **Jinja2 mode** activates automatically when {% raw %}`{{`{% endraw %} or {% raw %}`{%`{% endraw %} appears, enabling loops, conditionals, and filters.
 
 Here is the complete prompt for the hello demo, from `examples/demos/hello/prompts/greet.yaml`:
 
