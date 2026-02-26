@@ -17,7 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rewired graph to 18 nodes (write→validate→persist per chapter)
   - 4 new doctrine validation tests in `tests/unit/test_ebook_doctrine_validation.py`
 
+- **eBook Landing Page**: Added ToC section to `docs/index.html` with links to all 9 chapters
+
 ### Fixed
+- **GitHub Pages Build**: Added `docs/_config.yml` with `render_with_liquid: false` to prevent Jinja2 template syntax (`{% %}`) from being interpreted as Liquid
+
 - **FR-103 Per-chapter persistence**: Restored visibility and resume capability
   - Added 6 persist functions (`persist_introduction`, `persist_doctrine`, etc.)
   - Graph flow: write→validate→save per chapter (chapters saved immediately)
