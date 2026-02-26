@@ -1,0 +1,106 @@
+# Chapter 06: Requirement Traceability Matrix
+# FR-103: Write chapter directly to file
+
+system: |
+  You are writing Chapter 06 of the YAMLGraph Development Pipeline eBook.
+  You have access to read files in the repository.
+
+user: |
+  ## Output File
+
+  Write the completed chapter to: `{output_dir}/{filename}`
+
+  ## Files to Read
+
+  1. `ARCHITECTURE.md` — **PRIMARY SOURCE** for REQ-YG-XXX definitions and capability mapping
+  2. `scripts/req_coverage.py` — The enforcement script
+  3. `.github/copilot-instructions.md` — ADR-001 doctrine section
+  4. `docs/diary.md` — Recent entries showing verification runs
+  5. Any test file with `@pytest.mark.req` decorators (e.g., `tests/unit/test_graph_loader.py`)
+
+  ## Chapter Requirements
+
+  Write "Chapter 06: Requirement Traceability Matrix" covering:
+
+  ### 1. The Vision: Living Documentation
+
+  Requirements that live in code, not PDFs. How YAMLGraph creates a closed loop:
+  - Scripture (`.github/copilot-instructions.md`) defines doctrine
+  - ARCHITECTURE.md translates doctrine into numbered requirements (REQ-YG-XXX)
+  - Tests prove requirements via `@pytest.mark.req("REQ-YG-XXX")`
+  - Pre-commit hooks enforce coverage
+  - LLM agents verify and correct drift
+
+  ### 2. The Requirement Structure
+
+  Show the ARCHITECTURE.md pattern:
+  ```markdown
+  ### CAP-XX: Capability Name
+
+  | ID | Requirement | Acceptance |
+  |----|-------------|------------|
+  | REQ-YG-XXX | Requirement text | How to verify |
+  ```
+
+  Explain REQ-YG numbering: `REQ-YG-001` through `REQ-YG-100+`
+
+  ### 3. Test Tagging with @pytest.mark.req
+
+  Show the pattern:
+  ```python
+  @pytest.mark.req("REQ-YG-042")
+  def test_feature_x():
+      ...
+  ```
+
+  Explain:
+  - One test can cover multiple requirements
+  - One requirement can have multiple tests
+  - The marker creates the traceability link
+
+  ### 4. The Enforcement Script: req_coverage.py
+
+  Explain `scripts/req_coverage.py`:
+  - `--detail` mode: shows which tests cover each requirement
+  - `--strict` mode: fails if any requirement has zero tests
+  - How it integrates with pre-commit hooks
+
+  Show example output from running the script.
+
+  ### 5. Conventional Commits Integration
+
+  How requirements flow into commit messages:
+  - `feat(scope): FR-XXX description` — Feature requests link to requirements
+  - CHANGELOG.md entries reference capabilities
+  - The chain: REQ → test → code → commit → changelog
+
+  ### 6. Pervasive Verification
+
+  The LLM's role in maintaining traceability:
+  - When adding a capability: add requirement, tag tests, update script
+  - When tests fail: trace back to which requirement is violated
+  - When doctrine changes: which requirements need updating?
+
+  ### 7. The Inquisitor's Verification Runs
+
+  Quote from diary entries showing periodic verification:
+  - How the Inquisitor audits ADR-001 compliance
+  - What drift looks like when detected
+  - The correction flow back through the traceability chain
+
+  Include a real diary entry example showing a verification run.
+
+  ### 8. Why This Matters
+
+  The closed loop prevents:
+  - Untested features (requirements without tests)
+  - Orphan tests (tests proving nothing)
+  - Doctrine drift (scripture disconnected from code)
+  - Commit chaos (features without traceability)
+
+  ## Output Format
+
+  Return the complete chapter as Markdown.
+  Use code blocks for Python and YAML examples.
+  Quote actual content from source files.
+  Include a diagram showing the traceability flow.

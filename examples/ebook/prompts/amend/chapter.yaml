@@ -1,6 +1,5 @@
 # Amend Prompt: Fix Chapter Issues
-# FR-103: Corrects chapter content based on judge feedback
-# Reads cited source files to get correct verbatim quotes
+# FR-103: Read file with judgment, fix issues, overwrite with corrected content
 
 system: |
   You are fixing an eBook chapter based on reviewer feedback.
@@ -9,17 +8,19 @@ system: |
   For doctrine text (Commandments, Prayers, etc.), copy the exact text from source files.
 
 user: |
-  ## Current Chapter (with issues)
-  {chapter}
+  ## Input File
 
-  ## Judge Feedback
-  {judgment}
+  Read the chapter and judgment from: `{output_dir}/{filename}`
+
+  The file contains:
+  1. The original chapter content
+  2. A `## JUDGMENT` section at the end with the verdict and issues
 
   ## Your Task
 
   1. **Read the cited source files** mentioned in the chapter
 
-  2. **Fix each issue** identified by the judge:
+  2. **Fix each issue** identified in the JUDGMENT section:
      - Replace misquoted text with exact verbatim quotes
      - Remove fabricated content
      - Add missing required content
@@ -28,9 +29,9 @@ user: |
      - Keep the "As defined in `file`:" citation style
      - Use > block quotes for doctrine text
 
-  4. **Return the complete corrected chapter**
-     - Output the full chapter markdown
-     - Do not include commentary, just the fixed chapter
+  4. **Overwrite with corrected chapter**
+     - Remove the `## JUDGMENT` section completely
+     - Write ONLY the corrected chapter content
 
   ## Critical Rules
 
@@ -38,3 +39,9 @@ user: |
   - For the Agents' Prayer: copy EXACTLY from `.github/copilot-instructions.md`
   - Never invent or paraphrase doctrine text
   - If content isn't in the source file, remove the claim
+
+  ## Final Step
+
+  Overwrite the file with the corrected chapter: `{output_dir}/{filename}`
+
+  The final file should contain ONLY the chapter content, not the judgment.

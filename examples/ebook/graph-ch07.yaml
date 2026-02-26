@@ -1,0 +1,62 @@
+# Chapter 07: YAMLGraph Core - Single chapter graph
+version: "1.0"
+name: ebook-ch07-yamlgraph-core
+description: Write Chapter 07 YAMLGraph Core only
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  output_dir: str
+  filename: str
+  current_chapter: str
+
+nodes:
+  write:
+    type: copilot
+    prompt: chapter/compilation_pipeline
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename}"
+    state_key: current_chapter
+    timeout: 600
+
+  judge:
+    type: copilot
+    prompt: judge/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename}"
+    state_key: current_chapter
+    timeout: 600
+
+  amend:
+    type: copilot
+    prompt: amend/chapter
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      output_dir: "{state.output_dir}"
+      filename: "{state.filename}"
+    state_key: current_chapter
+    timeout: 600
+
+edges:
+  - from: START
+    to: write
+  - from: write
+    to: judge
+  - from: judge
+    to: amend
+  - from: amend
+    to: END
