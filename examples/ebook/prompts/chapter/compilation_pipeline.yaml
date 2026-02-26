@@ -1,4 +1,4 @@
-# Chapter 07: YAMLGraph Core — How It Works, How to Use It, How to Extend It
+# Chapter 07: YAMLGraph Core — How It Works and How to Use It
 
 system: |
   You are writing Chapter 07 of the YAMLGraph Development Pipeline eBook.
@@ -14,9 +14,9 @@ user: |
 
   ## Your Mission
 
-  Write a comprehensive chapter covering the YAMLGraph framework itself:
-  how YAML compiles to LangGraph, every node type with real examples,
-  and how to extend and deploy it. This is the technical core of the book.
+  Write a comprehensive chapter covering the YAMLGraph framework:
+  how YAML compiles to LangGraph and every node type with real examples.
+  This is the user-facing technical core of the book.
 
   ## Source Material
 
@@ -45,17 +45,12 @@ user: |
   - `examples/demos/subgraph/graph.yaml`
   - `examples/demos/thinking/graph.yaml`
 
-  **Extension & production:**
-  - `yamlgraph/utils/llm_factory.py` — Provider factory
-  - `yamlgraph/tools/` — Tool implementations
-  - `reference/checkpointers.md`, `reference/async-usage.md`
-  - `reference/streaming.md`, `reference/mcp-server.md`
-  - `reference/web-ui-api.md`, `reference/prompt-deployment.md`
+  **CLI:**
   - `reference/cli.md` — CLI commands
 
   ## Chapter Structure
 
-  Organize the chapter into three major parts:
+  Organize the chapter into two parts:
 
   ### Part I: How It Works
   - The three-layer architecture (quote diagram from CLAUDE.md)
@@ -71,14 +66,7 @@ user: |
   - Expression syntax for variables
   - Common patterns (linear, router+merge, fan-out/fan-in, loops)
   - CLI commands to run, lint, validate, info
-
-  ### Part III: How to Extend It
-  - Adding LLM providers (show llm_factory.py, provider priority chain, env vars table)
-  - Adding custom tools (security model: shlex.quote, no eval)
-  - Checkpointers (memory, SQLite, Redis)
-  - Streaming, async, MCP server, FastAPI integration
   - Anti-patterns table (quote from CLAUDE.md)
-  - Close with the Agents' Prayer from `.github/copilot-instructions.md`
 
   ## Style Guide
 
@@ -86,10 +74,8 @@ user: |
   - Every claim must trace to a real file
   - Show complete YAML files, not snippets
   - Include CLI commands readers can actually run
-  - This replaces three planned chapters — be thorough but not repetitive
 
   ## Output Format
 
   Start with `# Chapter 07: YAMLGraph Core`.
-  End with the Agents' Prayer as closing words.
-
+  End with a brief summary of what makes YAMLGraph different.

@@ -6,6 +6,24 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-26: Inquisitor Audit — Per-Chapter Graphs, Missing CHANGELOG
+
+**Context:** Audit of HEAD (`76f2873`), covering 5 commits: `76f2873` (feat: FR-103 per-chapter graphs with parallel runner), `a9bffc8` (fix: FR-103 per-chapter persistence), `0704063` (docs: FR-103 diary), `b0fa74c` (feat: FR-103 judge-amend subgraph), `9048d03` (docs: FR-100 progress). Three substantive commits (two `feat`, one `fix`) introduce or restore capabilities. Audited against Commandments, ADR-001, Confessions, and the Sermon.
+
+**Findings:**
+
+- ✗ VIOLATION — **CHANGELOG gap (Commandment 10):** HEAD commit `76f2873` is a `feat` adding 9 per-chapter graph files, `run-chapters.sh` parallel runner, FR-104 feature request, and `test_copilot_subgraph_variables.py` (391 lines) — yet CHANGELOG 0.4.58 has no entry for these additions. The prior 4 commits are properly reflected; only the latest `feat` is missing.
+- ✓ COMPLIANT — **Conventional Commits (Commandment 10):** All 5 commits use correct `type(scope): FR-XXX description` format. `docs:` commits omit CHANGELOG entries as expected.
+- ✓ COMPLIANT — **ADR-001 (Requirement Traceability):** REQ-YG-091, REQ-YG-092 in ARCHITECTURE.md. 7 new tests across `test_copilot_subgraph_variables.py` (3) and `test_ebook_doctrine_validation.py` (4) all carry `@pytest.mark.req("REQ-YG-092")`. No orphan tests.
+- ✓ COMPLIANT — **Distill (Sermon):** Diary entry "FR-103 eBook Pipeline — The Simplification Arc" included in HEAD commit, documenting the accretion trap and the unit-of-work heuristic. Comprehensive and reflective.
+- ⚠ DRIFT — **Co-authored-by trailer:** 0/5 commits include the required trailer. Recurring accepted deviation (6th+ audit flagging this).
+
+**Heuristic:** A `feat` commit that ships code without updating CHANGELOG is invisible to users who rely on release notes. The CHANGELOG is the commit's public witness — if the commit is worth a `feat:` prefix, it is worth a CHANGELOG line. Enforce this at the pre-commit level: if `git diff --cached` touches code and the commit message starts with `feat` or `fix`, require CHANGELOG to be staged.
+
+**Seed:** Could a pre-commit hook parse the commit message type (`feat`/`fix`) and reject commits that don't include staged changes to CHANGELOG.md — closing the gap mechanically rather than by audit?
+
+---
+
 ## 2026-02-26: FR-103 eBook Pipeline — The Simplification Arc
 
 **Context:** FR-100 → FR-101 → FR-102 → FR-103 represents a complete feature arc for the eBook authoring pipeline. The final implementation: 7 per-chapter graphs (graph-ch00.yaml through graph-ch06.yaml) with a unified write→judge→amend pattern. Each chapter gets its own 3-node graph. Variables reduced to just `output_dir` and `filename`.
@@ -393,3 +411,64 @@ The FR was approved with clear scope.
 A recent inbox entry, explicitly stating "Do not plan. Judgement: pass," served as a test of the initial planning workflow. The plan phase correctly processed it by moving it directly to drafts, confirming the inbox throughput. However, the subsequent judgement phase critically evaluated the entry's content. Despite the embedded instruction, the entry was soundly rejected for lacking any defined scope, acceptance criteria, or implementation details, violating the core `TEMPLATE.md` requirements and the Sermon's principle of challenging assumptions. This highlighted the robustness of the judgement process, preventing pre-emption and reinforcing that all requests, even tests, must adhere to established standards for proper evaluation.
 
 **Seed:** How can we design future tests for `chaplain`'s operational pipeline that also conform to the `feature-requests/TEMPLATE.md` structure, providing measurable criteria for the test's success?
+
+---
+
+## 2026-02-26: World Digest — Observability & Agent Orchestration
+
+
+**LangGraph releases** (SDK 0.3.7–0.3.9, core 1.0.9, prebuilt 1.0.8) continue steady iteration on the foundation YAMLGraph builds upon. The ecosystem is consolidating around agent observability as a first-class concern: LangSmith marketplace availability, "Agent Observability Powers Agent Evaluation," and "From Traces to Insights" all signal that visibility into agent behavior is becoming table-stakes for production systems.
+
+**Memory and context patterns** are crystallizing across the ecosystem. LangChain's Agent Builder memory system, context management for deep agents, and sandbox connectivity patterns suggest that YAMLGraph's YAML-first approach could benefit from declarative memory and context scoping — avoiding the silent-fallback antipattern by making state assumptions explicit in the graph definition.
+
+**Protocol and integration focus** appears in "Making MCP cheaper via CLI" and "Claude Code Remote Control," hinting that agent-to-tool communication costs and latency are becoming optimization targets. This connects to the open seed about what constraint becomes dominant as model costs approach zero.
+
+**Evaluation as workflow gate** is implicit in the LangSmith + monday case study, which emphasizes "code-first evaluation strategy from day 1." This aligns with the seed about 'name the verification question' — evaluation and verification are moving upstream into design, not downstream into debugging.
+
+The pattern: observability, memory clarity, and evaluation rigor are no longer optional add-ons. YAMLGraph's declarative nature positions it well to bake these concerns into the graph definition itself, rather than bolting them on afterward.
+
+**Seed:** As agent observability becomes standard, could YAMLGraph's YAML schema include a mandatory 'verification_question' field at the graph level — making the falsifiable claim about what the agent should accomplish explicit before any node executes — and surface violations in LangSmith traces?
+
+---
+
+## 2026-02-26: Git Report
+
+## Repository Analysis: Last 3 Days Development Summary
+
+Based on the recent commits and changed files, here's a **feature-level summary** of the development activity:
+
+### **Primary Development Areas**
+
+#### 🎯 **1. eBook Authoring Pipeline (FR-100, FR-101, FR-102, FR-103)**
+The most significant development focus over the last 3 days has been building a complete **eBook authoring automation system**:
+
+- **FR-100**: Built the foundation - a 14-node LLM-powered pipeline that:
+  - Conducts copilot-assisted research (6 source research prompts)
+  - Drafts chapters (6 writing prompts for authoring)
+  - Performs accuracy review with a judge model
+  - Created `write_chapters_tool` for chapter generation
+  - Added build system with pandoc for HTML/PDF rendering
+
+- **FR-103**: Implemented advanced workflow patterns - the latest feature:
+  - Introduced a **judge-amend subgraph** for iterative chapter refinement
+  - Merged source/write prompts into unified chapter prompts with inline citations
+  - Added per-chapter persistence to maintain state and enable resumption
+  - Restructured to 18-node pipeline with write→validate→persist cycle
+  - Created validation tests (4 new doctrine validation tests)
+
+- **FR-101 & FR-102**: Marked as superseded by FR-103's more elegant subgraph approach
+
+#### 🔧 **2. Refactoring & Code Consolidation (FR-097, FR-098)**
+Improved code organization and reusability:
+- **FR-097**: Extracted diary utilities to `examples/shared/diary.py` for reuse across projects
+- **FR-098**: Consolidated `.chaplain/` graph into `examples/copilot/graph.yaml` for unified configuration
+
+#### 📚 **3. Documentation & Feature Requests**
+- Multiple documentation improvements (FR-086 through FR-096)
+- Comprehensive feature request backlog with detailed specifications for upcoming work
+- Diary entries tracking implementation progress
+
+### **Key Metrics**
+- **Commits**: 20+ in the last 3 days
+- **Files Changed**: 50+ files across examples, prompts, tests, and documentation
+- **Test
