@@ -401,5 +401,3 @@ The pre-commit pipeline is the first line of defense — and the most important 
 The philosophy is simple: catch everything early, catch it cheaply, and never let entropy through the gate. What survives the fire may merge.
 
 ---
-
-*Next: [Chapter 03 — Graph YAML Anatomy](./03-graph-yaml-anatomy.md)*

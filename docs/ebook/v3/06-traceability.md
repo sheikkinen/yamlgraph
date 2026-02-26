@@ -13,7 +13,7 @@ The traceability system forms a closed loop through five artifacts:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                  The Traceability Loop                   │
+│                  The Traceability Loop                  │
 │                                                         │
 │   Scripture (.github/copilot-instructions.md)           │
 │       │  defines doctrine (10 Commandments)             │
@@ -483,5 +483,3 @@ The result: at any point, you can answer these questions mechanically:
 When requirements, tests, and code share a single source of truth, traceability is not overhead. It is a feature.
 
 ---
-
-*Next: [Chapter 07](07-precommit-enforcement.md) — The pre-commit gates that enforce all of this mechanically.*
