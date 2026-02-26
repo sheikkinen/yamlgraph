@@ -1,3 +1,7 @@
+---
+render_with_liquid: false
+---
+
 # Chapter 07: YAMLGraph Core
 
 The previous chapters established a development philosophy—research before coding, TDD, structured ideation, continuous refinement. Now we meet the engine that makes it executable: **YAMLGraph**, a YAML-first framework for building LLM pipelines using LangGraph.
@@ -1185,5 +1189,3 @@ YAMLGraph inverts the usual relationship between code and configuration. Instead
 The framework's power comes from three properties working together: **declarative graphs** that separate pipeline logic from business logic, **typed prompts** that validate LLM outputs through Pydantic schemas, and **dynamic state** that eliminates boilerplate while keeping the graph definition as the single source of truth.
 
 Twelve node types cover the full spectrum of LLM pipeline patterns—from simple prompts to parallel fan-out, from conditional routing to nested subgraphs, from tool-using agents to human-in-the-loop interrupts. And when YAML isn't enough, the three-layer architecture gives Python a clean place to live without contaminating the pipeline logic.
-
-The next chapter will put these building blocks to work on a real project.

@@ -1,3 +1,7 @@
+---
+render_with_liquid: false
+---
+
 # Chapter 08: The Wizard Behind the Curtain
 
 > *"The cheapest code is unwritten code."*

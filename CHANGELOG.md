@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **eBook Landing Page**: Added ToC section to `docs/index.html` with links to all 9 chapters
 
 ### Fixed
-- **GitHub Pages Build**: Added `docs/_config.yml` with `render_with_liquid: false` to prevent Jinja2 template syntax (`{% %}`) from being interpreted as Liquid
+- **GitHub Pages Build**: Added `docs/_config.yml` with `render_with_liquid: false` to prevent Jinja2 template syntax (`{% %}`) from being interpreted as Liquid; added per-file front matter to diary entries and ebook chapters containing Jinja2 syntax
 
 - **FR-103 Per-chapter persistence**: Restored visibility and resume capability
   - Added 6 persist functions (`persist_introduction`, `persist_doctrine`, etc.)
