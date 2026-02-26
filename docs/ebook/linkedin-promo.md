@@ -1,21 +1,16 @@
-# The YAML-First Philosophy: Building Production AI Pipelines Without the Chaos
+# The YAML-First Philosophy: Building Production AI Pipelines with Codified Doctrine
 
-**How we went from "move fast and break things" to codified doctrine for AI development**
+**A framework-level approach to the reproducibility crisis in LLM development**
 
 ---
 
-I've spent the last year watching teams struggle with the same problem: building AI pipelines that actually work in production.
+The gap between prototype and production in LLM development remains stubbornly wide. Teams that can spin up a working demo in hours often spend months wrestling with state management, provider abstractions, error propagation, and the kind of implicit knowledge that disappears when engineers change roles.
 
-The pattern is always the same:
-- Day 1: "Let's just wire up a quick LLM call"
-- Week 2: Spaghetti code nobody can debug
-- Month 3: The person who wrote it left, and nobody knows why things work (or don't)
+The root cause is architectural: most LLM pipeline code conflates orchestration logic with business logic, making systems difficult to test, trace, and hand off.
 
-Sound familiar?
+## A Declarative Alternative
 
-## The Insight That Changed Everything
-
-Here's what we discovered: **60-80% of AI workflows can be defined entirely in YAML.**
+YAMLGraph addresses this by inverting the typical approach: **60-80% of AI workflows can be defined entirely in YAML** — graphs, prompts, and schemas — without writing Python code.
 
 No Python classes. No state management boilerplate. No provider-specific code scattered across files.
 
@@ -33,19 +28,19 @@ edges:
     to: END
 ```
 
-That's a complete LLM pipeline. Run it with one command:
+This defines a complete LLM pipeline. Execute with:
 
 ```bash
 yamlgraph graph run graph.yaml --var name="World"
 ```
 
-## But YAML Isn't the Real Story
+## Beyond the Framework: Codified Doctrine
 
-The real breakthrough wasn't the framework. It was **codified doctrine**.
+The more significant contribution is the **development methodology** that surrounds the framework.
 
-When AI agents collaborate with humans on a shared codebase, implicit conventions become a liability. An agent can't infer "how we do things here" from vibes alone.
+When AI agents collaborate with humans on a shared codebase, implicit conventions become liabilities. Agents cannot infer architectural decisions from context alone — they require explicit constraints.
 
-So we wrote down the rules. All of them. We call it The Scripture.
+YAMLGraph addresses this with a formal doctrine called **The Scripture** — executable constraints enforced by linters, pre-commit hooks, and automated checks.
 
 **The 10 Commandments of AI Development:**
 
@@ -60,11 +55,11 @@ So we wrote down the rules. All of them. We call it The Scripture.
 9. Define operational truth — measure everything
 10. Preserve and improve the doctrine — every failure refines the law
 
-These aren't suggestions. They're executable constraints enforced by linters, pre-commit hooks, and automated checks.
+These are not aspirational guidelines — they are enforced at commit time.
 
-## What We Built
+## Documentation
 
-We wrote an eBook documenting this entire approach:
+The methodology is documented in a 9-chapter eBook:
 
 📚 **"Building AI Development Pipelines with YAMLGraph"**
 
@@ -77,11 +72,11 @@ We wrote an eBook documenting this entire approach:
 - Requirement traceability from spec to test
 - YAMLGraph internals and extension points
 
-Every chapter includes working code examples you can run today.
+Each chapter includes runnable examples from the repository.
 
-## The Philosophy in Practice
+## The Development Methodology
 
-Here's the development flow we use:
+The development workflow consists of five phases:
 
 1. **Research** — Let agents explore; distill into constraints
 2. **Plan** — Write the feature request before the code
@@ -89,18 +84,18 @@ Here's the development flow we use:
 4. **Enforce** — Obey the plan; write failing tests first
 5. **Distill** — After completion, extract insights for the next cycle
 
-It sounds rigid. It is rigid. And it works.
+This methodology is intentionally rigid. Rigidity enables reproducibility.
 
 The diary system captures insights from every development session. The chaplaincy pipeline enforces review on every change. The traceability matrix ensures every requirement has a test.
 
-## Why This Matters
+## The Core Value Proposition
 
-LLM-assisted development is here. The question isn't whether to use AI agents — it's how to use them without creating chaos.
+LLM-assisted development introduces new failure modes: hallucinated architectures, inconsistent patterns, and undocumented decisions that compound over time.
 
-Codified doctrine is the answer:
-- Agents get hard boundaries that prevent hallucinated architectures
-- Humans get guardrails that survive team turnover
-- Everyone gets reproducible, traceable, debuggable pipelines
+Codified doctrine addresses these failure modes:
+- Agents operate within hard boundaries that prevent hallucinated architectures
+- Teams retain guardrails that survive personnel turnover
+- Pipelines become reproducible, traceable, and debuggable
 
 ## Get Started
 
@@ -120,12 +115,12 @@ yamlgraph graph run examples/demos/hello/graph.yaml \
 
 ---
 
-*What's your experience with AI-assisted development? Have you found ways to bring order to the chaos? I'd love to hear what's working for your team.*
+The eBook and framework are open source. Contributions and feedback welcome.
 
 #AI #LLM #SoftwareEngineering #DevOps #Python #YAML #LangGraph #OpenSource #MachineLearning #AIDevelopment
 
 ---
 
-## About the Author
+## About
 
-Building AI development pipelines that actually work in production. Creator of YAMLGraph — a YAML-first framework for LLM orchestration.
+YAMLGraph is an open-source YAML-first framework for LLM pipeline orchestration, built on LangGraph with multi-provider support.
