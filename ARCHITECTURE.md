@@ -303,6 +303,9 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 27 | Telco Voice Call Demo | `projects/outcaller` | OC-000 – OC-008 (project-tracked) |
 | 28 | Graph-Level Thinking Budget | `models/graph_schema`, `utils/llm_factory` | REQ-YG-083 |
 | 30 | Copilot Node | `node_factory/copilot_node`, `node_compiler` | REQ-YG-087, REQ-YG-089, REQ-YG-105 |
+| 31 | Chaplain Diary Append | `examples/shared/diary`, `examples/copilot` | REQ-YG-090 |
+| 32 | eBook Authoring Pipeline | `examples/ebook` | REQ-YG-091, REQ-YG-092 |
+| 33 | Worktree Pipeline | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce` | REQ-YG-106 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -598,6 +601,14 @@ A YAMLGraph pipeline that writes the development pipeline documentation as an eB
 |------------|-------------|-------------|
 | REQ-YG-091 | `write_chapters_tool` writes formatted chapter content to disk; accepts `output_dir` and chapter state variables; creates directory if missing; returns dict with `written` list of paths | `examples/ebook/nodes/writing.py` |
 | REQ-YG-092 | Chapter validation detects fabricated doctrine content; `verify_commandments_verbatim()` checks all 10 Commandments appear exactly as in source; returns `{passed, found, missing, fabricated}` dict | `tests/unit/test_ebook_doctrine_validation.py` |
+
+### 33. Worktree Pipeline (FR-106)
+
+Parallel development pipeline via git worktrees, enabling multiple features to be enforced simultaneously without blocking the main working tree.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-106 | Worktree helpers derive branch names from FR paths, construct worktree paths under `tmp/worktrees/`, and validate clean working tree before creation; shell script orchestrates worktree lifecycle with trap-based cleanup; 4-phase graph (implement → test/demo → precommit → PR) chains via session continuations | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml` |
 
 ---
 

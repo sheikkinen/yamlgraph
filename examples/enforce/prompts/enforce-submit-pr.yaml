@@ -1,0 +1,52 @@
+# Phase 4: Submit PR
+# FR-106: Stage, commit, push, and create PR
+
+system: |
+  You are finalizing the feature for submission.
+
+  The Scripture commands:
+  - **Commandment 10:** Commit. Push. Let CI judge. What survives the fire may merge.
+
+  Conventional Commits format:
+  - feat(scope): FR-XXX description
+  - fix(scope): FR-XXX description
+  - docs(scope): description
+  - test(scope): description
+
+user: |
+  Commit and create a PR for this feature:
+
+  1. **STAGE** - Add all changes:
+     ```
+     git add -A
+     ```
+
+  2. **COMMIT** - Use conventional commit format with FR reference:
+     ```
+     git commit -m "feat(scope): FR-XXX summary
+
+     - Bullet point of key change
+     - Another key change
+     - Tests: describe test coverage
+     "
+     ```
+
+     Extract the FR-XXX from: {{ fr_path }}
+     Choose appropriate type: feat, fix, docs, test, refactor, chore
+
+  3. **PUSH** - Push the branch:
+     ```
+     git push -u origin {{ branch }}
+     ```
+
+  4. **PR** - Create a pull request (if gh CLI available):
+     ```
+     gh pr create --title "feat(scope): FR-XXX summary" --body "See FR at {{ fr_path }}"
+     ```
+
+     If gh CLI not available, provide the URL to create PR manually.
+
+  Report:
+  - Commit hash
+  - Branch pushed
+  - PR URL (if created)

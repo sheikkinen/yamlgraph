@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 3 days
 **Requested:** 2026-02-27
 **FR:** FR-106
@@ -183,22 +183,22 @@ Prompt patterns follow the existing `examples/enforcer/prompts/` style (system +
 
 ## Acceptance Criteria
 
-- [ ] `scripts/enforce_worktree.sh` creates an isolated git worktree for a given FR path
-- [ ] The worktree is cleaned up on both success and failure (trap handler)
-- [ ] Script validates clean working tree (both staged and unstaged) before creating worktree
-- [ ] Shared `.venv` is symlinked into the worktree (no redundant installs)
-- [ ] `examples/enforce/graph.yaml` passes `yamlgraph graph lint`
-- [ ] Graph uses `prompts_relative: true` and `prompts_dir: prompts` for prompt resolution
-- [ ] Each copilot node uses session continuations (`resume` flag chaining `implement_result.session_id`)
-- [ ] Pre-commit checks run inside the worktree, not the main tree
-- [ ] PR is created with conventional commit format and FR-XXX reference
-- [ ] Multiple worktree pipelines can run simultaneously without interference (two parallel invocations targeting different branches both succeed without cross-contamination)
-- [ ] Unit tests cover: branch name derivation, worktree path construction
-- [ ] Integration test: shell script creates and cleans up a real worktree (guarded by git availability)
-- [ ] Concurrency test: two parallel `enforce_worktree.sh` invocations targeting different FRs complete independently
-- [ ] Documentation added to `reference/` describing the parallel pipeline workflow
-- [ ] Tests tagged with `@pytest.mark.req` for new requirement IDs (REQ-YG-106+)
-- [ ] `tmp/worktrees/` already in `.gitignore` via `tmp/` — verified, no change needed
+- [x] `scripts/enforce_worktree.sh` creates an isolated git worktree for a given FR path
+- [x] The worktree is cleaned up on both success and failure (trap handler)
+- [x] Script validates clean working tree (both staged and unstaged) before creating worktree
+- [x] Shared `.venv` is symlinked into the worktree (no redundant installs)
+- [x] `examples/enforce/graph.yaml` passes `yamlgraph graph lint`
+- [x] Graph uses `prompts_relative: true` and `prompts_dir: prompts` for prompt resolution
+- [x] Each copilot node uses session continuations (`resume` flag chaining `implement_result.session_id`)
+- [x] Pre-commit checks run inside the worktree, not the main tree
+- [x] PR is created with conventional commit format and FR-XXX reference
+- [x] Multiple worktree pipelines can run simultaneously without interference (two parallel invocations targeting different branches both succeed without cross-contamination)
+- [x] Unit tests cover: branch name derivation, worktree path construction
+- [x] Integration test: shell script creates and cleans up a real worktree (guarded by git availability)
+- [x] Concurrency test: two parallel `enforce_worktree.sh` invocations targeting different FRs complete independently
+- [ ] Documentation added to `reference/` describing the parallel pipeline workflow (deferred: README.md in examples/enforce/ serves this purpose)
+- [x] Tests tagged with `@pytest.mark.req` for new requirement IDs (REQ-YG-106+)
+- [x] `tmp/worktrees/` already in `.gitignore` via `tmp/` — verified, no change needed
 
 ## Constraints
 
