@@ -359,6 +359,18 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Import from outcaller after logger/env setup at module level.
 - **Penance**: REQ-YG-086 requires reusing outcaller nodes. Import must follow env setup that loads incaller's `.env` to avoid polluting outcaller's env vars. Standard pattern matching CONF-015+ (example imports after path setup).
 
+### CONF-124
+- **File**: [examples/demos/session-test/run_demo.py](../examples/demos/session-test/run_demo.py#L24)
+- **Code**: E402
+- **Sin**: Import `Command` from langgraph after `load_dotenv()` call.
+- **Penance**: Environment must be loaded before yamlgraph imports that read API keys. Standard pattern matching interview demo and other HITL examples.
+
+### CONF-125
+- **File**: [examples/demos/session-test/run_demo.py](../examples/demos/session-test/run_demo.py#L26)
+- **Code**: E402
+- **Sin**: Import yamlgraph modules after `load_dotenv()` call.
+- **Penance**: Same as CONF-124 — env vars must be set before yamlgraph imports initialize LLM clients.
+
 ---
 
 ## Adding New Confessions
