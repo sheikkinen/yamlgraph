@@ -48,38 +48,50 @@ def construct_worktree_path(branch: str) -> str:
     return f"tmp/worktrees/{branch}"
 
 
-def validate_clean_working_tree() -> bool:
+def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
     """Validate that the working tree has no uncommitted changes.
 
     Checks both staged and unstaged changes. Creating a worktree from
     a dirty working tree would propagate uncommitted changes.
 
+    Args:
+        exclude_paths: Paths to exclude from the check (e.g., ["docs/diary.md"]).
+                      Use for files that are expected to have changes (inquisitor diary).
+
     Returns:
-        True if working tree is clean
+        True if working tree is clean (excluding allowed paths)
 
     Raises:
-        ValueError: If there are unstaged or staged changes
+        ValueError: If there are unstaged or staged changes in non-excluded files
 
     Example:
         >>> validate_clean_working_tree()  # When clean
         True
-        >>> validate_clean_working_tree()  # When dirty
-        Traceback: ValueError: Working tree has unstaged changes
+        >>> validate_clean_working_tree(exclude_paths=["docs/diary.md"])  # Ignore diary
+        True
     """
+    exclude_paths = exclude_paths or []
+
     # Check unstaged changes
     result_unstaged = subprocess.run(
-        ["git", "diff", "--quiet"],
+        ["git", "diff", "--name-only"],
         capture_output=True,
+        text=True,
     )
-    if result_unstaged.returncode != 0:
-        raise ValueError("Working tree has unstaged changes")
+    unstaged_files = [f for f in result_unstaged.stdout.strip().split("\n") if f]
+    non_excluded_unstaged = [f for f in unstaged_files if f not in exclude_paths]
+    if non_excluded_unstaged:
+        raise ValueError(f"Working tree has unstaged changes: {non_excluded_unstaged}")
 
     # Check staged changes
     result_staged = subprocess.run(
-        ["git", "diff", "--cached", "--quiet"],
+        ["git", "diff", "--cached", "--name-only"],
         capture_output=True,
+        text=True,
     )
-    if result_staged.returncode != 0:
-        raise ValueError("Working tree has staged changes")
+    staged_files = [f for f in result_staged.stdout.strip().split("\n") if f]
+    non_excluded_staged = [f for f in staged_files if f not in exclude_paths]
+    if non_excluded_staged:
+        raise ValueError(f"Working tree has staged changes: {non_excluded_staged}")
 
     return True
