@@ -71,9 +71,11 @@ class TestWorktreeValidation:
 
         from yamlgraph.utils.worktree_helpers import validate_clean_working_tree
 
-        # Mock subprocess to simulate clean tree
+        # Mock subprocess to simulate clean tree (no files in output)
         def mock_run(cmd, **kwargs):
-            result = subprocess.CompletedProcess(cmd, returncode=0)
+            result = subprocess.CompletedProcess(
+                cmd, returncode=0, stdout="", stderr=""
+            )
             return result
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -89,11 +91,13 @@ class TestWorktreeValidation:
 
         def mock_run(cmd, **kwargs):
             call_count[0] += 1
-            # First call: git diff --quiet (unstaged) - fails
+            # First call: git diff --name-only (unstaged) - has changes
             if call_count[0] == 1:
-                return subprocess.CompletedProcess(cmd, returncode=1)
-            # Second call: git diff --cached --quiet (staged) - passes
-            return subprocess.CompletedProcess(cmd, returncode=0)
+                return subprocess.CompletedProcess(
+                    cmd, returncode=0, stdout="src/foo.py\n", stderr=""
+                )
+            # Second call: git diff --cached --name-only (staged) - clean
+            return subprocess.CompletedProcess(cmd, returncode=0, stdout="", stderr="")
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
@@ -110,13 +114,52 @@ class TestWorktreeValidation:
 
         def mock_run(cmd, **kwargs):
             call_count[0] += 1
-            # First call: git diff --quiet (unstaged) - passes
+            # First call: git diff --name-only (unstaged) - clean
             if call_count[0] == 1:
-                return subprocess.CompletedProcess(cmd, returncode=0)
-            # Second call: git diff --cached --quiet (staged) - fails
-            return subprocess.CompletedProcess(cmd, returncode=1)
+                return subprocess.CompletedProcess(
+                    cmd, returncode=0, stdout="", stderr=""
+                )
+            # Second call: git diff --cached --name-only (staged) - has changes
+            return subprocess.CompletedProcess(
+                cmd, returncode=0, stdout="src/bar.py\n", stderr=""
+            )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
         with pytest.raises(ValueError, match="staged changes"):
             validate_clean_working_tree()
+
+    def test_validate_excludes_diary_from_check(self, monkeypatch):
+        """Excluded paths are ignored in validation."""
+        import subprocess
+
+        from yamlgraph.utils.worktree_helpers import validate_clean_working_tree
+
+        def mock_run(cmd, **kwargs):
+            # Return diary.md as modified - should be excluded
+            return subprocess.CompletedProcess(
+                cmd, returncode=0, stdout="docs/diary.md\n", stderr=""
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        # Should pass because diary.md is excluded
+        assert validate_clean_working_tree(exclude_paths=["docs/diary.md"]) is True
+
+    def test_validate_raises_when_non_excluded_files_dirty(self, monkeypatch):
+        """Non-excluded files in dirty state still cause failure."""
+        import subprocess
+
+        from yamlgraph.utils.worktree_helpers import validate_clean_working_tree
+
+        def mock_run(cmd, **kwargs):
+            # Return both excluded and non-excluded files
+            return subprocess.CompletedProcess(
+                cmd, returncode=0, stdout="docs/diary.md\nsrc/foo.py\n", stderr=""
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        # Should fail because src/foo.py is not excluded
+        with pytest.raises(ValueError, match="src/foo.py"):
+            validate_clean_working_tree(exclude_paths=["docs/diary.md"])
