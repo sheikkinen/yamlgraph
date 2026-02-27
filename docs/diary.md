@@ -6,6 +6,47 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-27: FR-105 Session Continuation — Proof by Noir
+
+**Context:** Designed experiment to answer: Does Copilot's `--continue` flag actually preserve conversation context, or does it rebuild from file state? Created `examples/demos/session-test/` with two-node pipeline — Node 1 creates characters, Node 2 writes their meeting using only session memory.
+
+**Experiment Design:**
+- Node 1 (`create_characters`): Invents two characters with unique names and traits
+- Node 2 (`write_meeting`): Prompt references "these two characters" without any character info
+- Node 2 uses `continue_session: true` → `--continue` flag
+- If session works: Node 2 uses exact names and traits from Node 1
+- If session fails: Node 2 invents new characters or is confused
+
+**Result:** Session continuation is **real context preservation**, not file reconstruction.
+
+Noir genre test produced Milo Varnish (forensic accountant, glass eye, prices everything) and Sable Morrigan (ambulance dispatcher, throat scar, hums when nervous). Node 2 — with zero character data in prompt — wrote a scene using both exact names, the glass eye, the pricing quirk ("That conversation? Worth about three hundred"), the scar, and even *Moonlight Serenade* humming. The session memory is genuine.
+
+**Trap Avoided:** Assumed `--continue` might just provide workspace context (recent files edited) rather than actual conversation history. Designed experiment to distinguish these cases. If it had been file-based, Node 2 would have no knowledge of characters invented purely in conversation.
+
+**Heuristic:** *When testing an abstraction's behavior, design experiments where the two hypothesized implementations would produce distinguishably different outputs.* A test that passes under both hypotheses proves nothing. The "characters known only via session memory" design made file-vs-conversation reconstruction produce different observable outcomes.
+
+**Seed:** Session continuation enables multi-agent workflows where context accumulates without explicit state plumbing. What graph patterns become possible when agents can "remember" prior phases? Could the Enforcer's demo phase benefit from knowing *how* the implementation evolved, not just *what* was implemented?
+
+---
+
+## 2026-02-27: Inquisitor Audit — Phantom Slain, Tooling Gate Closes
+
+**Context:** Audit of HEAD (`8915290`), covering 5 commits. High-water mark from prior audit: `8d0e4bf`. Only `8915290` (`feat(req-coverage): FR-107 add architecture cross-check`) is new — 12 files, 504 insertions, 66 deletions. This commit directly addresses the ✗ VIOLATION flagged in three consecutive prior audits (phantom REQ-YG-105) and implements the tooling fix (architecture cross-check) recommended by the Inquisitor's Seeds.
+
+**Findings:**
+
+- ✓ COMPLIANT — **ADR-001: REQ-YG-105 phantom resolved — three-audit violation closed.** REQ-YG-105 now appears in ARCHITECTURE.md (lines 305, 583) with full description. `req_coverage.py --strict` passes. The traceability triangle (architecture → requirement → test) is intact for the first time since FR-105 landed.
+- ✓ COMPLIANT — **Conventional Commits, CHANGELOG, FR traceability (Commandments 10, ADR-001).** `feat(req-coverage): FR-107 ...` — valid format. CHANGELOG entry under [Unreleased]. Feature request `FR-107-req-architecture-cross-check.md` exists and marked Implemented. 3 new tests tagged `@pytest.mark.req("REQ-YG-063")`.
+- ✓ COMPLIANT — **Entropy cleanup (Commandment 8).** Garbage "Git Report" diary entry removed. FR-105 implementation diary added (previously flagged as missing in 3 audits). Net positive entropy reduction in `docs/diary.md`.
+- ✓ COMPLIANT — **noqa Confessions.** 2 existing suppressions (ANN001, ARG002), both confessed in CONF-200/CONF-204. No new suppressions.
+- ⚠ DRIFT — **No FR-107 implementation diary (Sermon: Distill).** Chaplain approval for FR-107 exists. The key insight (phantom requirements, tautological self-validation) is captured in the FR-105 implementation diary, which FR-107 directly resolves. However, the Sermon strictly requires a dedicated metacognitive entry per task. Given the 0.5-day scope and that the insight is recorded, this is minor.
+
+**Heuristic:** The Inquisitor's power is proportional to the tooling behind it. Three audits flagging the same violation produced zero remediation — but the moment the violation was encoded as a CI-blocking check (`req_coverage.py --strict` architecture cross-check), it was fixed in the same commit. Advisory findings decay; automated gates endure. The audit's highest-value output is not the finding itself but the Seed that becomes a tool.
+
+**Seed:** The phantom-requirement gap is now closed by tooling. Are there analogous gaps where the audit relies on manual inspection that could be automated — e.g., verifying CHANGELOG entries exist for every `feat`/`fix` commit, or that every `# noqa` has a matching CONF-XXX in confessions.md?
+
+---
+
 ## 2026-02-27: Inquisitor Audit — Third Strike on Phantom Requirement
 
 **Context:** Audit of HEAD (`8d0e4bf`), covering 5 commits. High-water mark from prior audit: `5544083`. Only `8d0e4bf` (`refactor(examples): simplify enforcer to take only FR ID`) is new — 4 YAML/markdown files, net -15 lines, zero Python. Re-checking the persistent ✗ VIOLATION (REQ-YG-105 phantom requirement) now flagged in two prior audits.
@@ -707,3 +748,11 @@ FR-107, proposing an extension to `req_coverage.py --strict`, has been approved.
 **Heuristic:** A green CI gate only proves what it checks. When adding a new validation dimension (architecture ↔ tests ↔ coverage script), verify that the gate inspects all edges of the traceability triangle, not just one.
 
 **Seed:** Could the same phantom-gap pattern exist in other cross-referencing systems (e.g., CHANGELOG entries vs. feat commits, noqa confessions vs. actual suppressions)?
+
+---
+
+## 2026-02-27: Chaplain — Approving FR-106: Parallel Worktree Pipeline
+
+FR-106, detailing a parallel development pipeline via Git worktrees, was planned and subsequently approved. Key refinements during planning included fixing shell validation, adding crucial metadata flags for prompt resolution, and carefully scoping requirements to REQ-YG-106+. Significant deferrals, like `watch.sh` integration, ensured minimal scope. The judging process confirmed strong clarity, no ambiguities, measurable acceptance criteria, and feasibility, noting that dependencies (FR-081, FR-105) were already implemented. Four non-blocking implementation notes were added, covering aspects like shell test strategy and `.venv` symlink risks, ensuring the FR is now ready for development.
+
+**Seed:** What mechanisms can ensure the non-blocking implementation notes are effectively incorporated during development?
