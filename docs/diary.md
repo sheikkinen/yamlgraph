@@ -6,6 +6,60 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-27: Inquisitor Audit — Third Strike on Phantom Requirement
+
+**Context:** Audit of HEAD (`8d0e4bf`), covering 5 commits. High-water mark from prior audit: `5544083`. Only `8d0e4bf` (`refactor(examples): simplify enforcer to take only FR ID`) is new — 4 YAML/markdown files, net -15 lines, zero Python. Re-checking the persistent ✗ VIOLATION (REQ-YG-105 phantom requirement) now flagged in two prior audits.
+
+**Findings:**
+
+- ✗ VIOLATION — **ADR-001: REQ-YG-105 absent from ARCHITECTURE.md — third consecutive audit.** CAP-30 row (line 305) still lists only `REQ-YG-087, REQ-YG-089`. Tests at `test_copilot_node.py:514` and `test_linter_patterns_copilot.py:13` tag `REQ-YG-105`. `req_coverage.py` includes it in range. The requirement text does not exist in the architecture document. Three audits, zero remediation. This has graduated from debt to delinquency.
+- ✓ COMPLIANT — **Conventional Commits (Commandment 10).** `refactor(examples):` — valid type and scope. Commit message is descriptive and concise.
+- ✓ COMPLIANT — **CHANGELOG & noqa (Commandments 8, 10).** `refactor` on examples correctly omits CHANGELOG. 2 noqa suppressions (ANN001, ARG002) both confessed in CONF-200/CONF-204. No new suppressions.
+- ✓ COMPLIANT — **Code simplification (Commandment 8: Kill entropy).** Net -15 lines. Reduced enforcer interface from multiple path variables to a single `fr_id`. Entropy decreased.
+- ⚠ DRIFT — **FR-105 implementation diary missing (Sermon: Distill) — third audit noting.** Three commits now ship under FR-105 (`38dbfb4` feat, `5544083` docs, `8d0e4bf` refactor) with no metacognitive reflection on the implementation process itself.
+
+**Heuristic:** Three consecutive audits flagging the same unresolved violation exposes a systemic gap: the audit process has no enforcement mechanism beyond diary notation. The Inquisitor can diagnose but cannot compel. Without a blocking gate — whether CI check, pre-commit hook, or structured debt tracker — violations persist indefinitely in the diary's narrative log where they are easily overlooked. The prior audit's Seed (structured debt table) remains the cheapest fix: make violations queryable, not just readable.
+
+**Seed:** Should the Inquisitor be granted authority to create a blocking `docs/debt.md` file that pre-commit or CI checks for unresolved ✗ items, converting audit findings from advisory to enforceable?
+
+---
+
+## 2026-02-27: Inquisitor Audit — Phantom Requirement Persists, Enforcer Demo Lands Clean
+
+**Context:** Audit of HEAD (`5544083`), covering 5 commits. Applying high-water mark: prior audit judged through `38dbfb4`. Only `5544083` (`docs(examples): FR-105 add enforcer pipeline demo`) is new — 4 YAML/markdown files, 182 insertions, zero Python. The prior audit's ✗ VIOLATION (REQ-YG-105 phantom requirement) is re-checked for resolution. Prior DRIFT items (missing FR-105 implementation diary, garbage diary entry) also tracked.
+
+**Findings:**
+
+- ✗ VIOLATION — **ADR-001: REQ-YG-105 still absent from ARCHITECTURE.md.** CAP-30 row at line 305 lists only `REQ-YG-087, REQ-YG-089`. Tests at `test_copilot_node.py:514` and `test_linter_patterns_copilot.py:13` tag `REQ-YG-105`, and `req_coverage.py` includes it in its range, but the requirement text does not exist in the architecture document. Second consecutive audit flagging this. The traceability chain remains broken.
+- ✓ COMPLIANT — **Conventional Commits (Commandment 10).** `5544083` uses `docs(examples): FR-105 ...` — valid type, scope, and FR reference.
+- ✓ COMPLIANT — **CHANGELOG & noqa (Commandments 8, 10).** `docs` commit correctly omits CHANGELOG. 2 noqa suppressions (ANN001, ARG002) both confessed in CONF-200/204. No new suppressions.
+- ⚠ DRIFT — **FR-105 implementation diary still missing (Sermon: Distill).** Two commits now ship under FR-105 (`38dbfb4` feat, `5544083` docs) with no metacognitive reflection on the implementation. The planning diary ("Chaplain Approved") exists but the coding diary does not. This is the second audit noting the gap.
+- ✓ COMPLIANT — **Enforcer demo structure.** `examples/enforcer/` follows the three-layer pattern: graph YAML orchestrates, prompts in `prompts/`, README documents. No hardcoded prompts. State expression `{state.enforce_result.session_id}` correctly uses the new session continuation feature.
+
+**Heuristic:** A violation flagged in two consecutive audits with no intervening fix is no longer drift — it is accruing debt. The prior audit's Seed asked whether `req_coverage.py` should validate against ARCHITECTURE.md text. The answer is now empirically yes: without that cross-check, the phantom requirement survived a full commit cycle undetected by CI. Until the tooling gap is closed, the Inquisitor must manually verify ARCHITECTURE.md on every `feat` audit.
+
+**Seed:** Should unresolved ✗ VIOLATION items from prior audits be tracked in a structured debt table (e.g., `docs/debt.md` or a SQL-based ledger) so they cannot silently age out of the diary's rolling window?
+
+---
+
+## 2026-02-27: Inquisitor Audit — Return from Quiescence, Phantom Requirement Found
+
+**Context:** Audit of HEAD (`38dbfb4`), covering 5 commits. Applying the high-water mark heuristic: commits `e57d8ae`, `cd41906`, `3bdb3c2`, `a90ff61` were already judged compliant in prior audits. Deep audit focused on `38dbfb4` (`feat(copilot): FR-105 add session continuation support`) — the first `feat` commit touching Python since the quiescence window began. This is the "return from quiescence" deep audit anticipated by prior Seeds. Ran `req_coverage.py --strict` (passed: CAP-30 3/3 reqs, 30 tests) and verified all `noqa` suppressions (2 existing, both confessed).
+
+**Findings:**
+
+- ✗ VIOLATION — **ADR-001: REQ-YG-105 missing from ARCHITECTURE.md.** Commit message claims "REQ-YG-105 added to CAP-30" but the requirement appears nowhere in ARCHITECTURE.md. It was added only to `req_coverage.py` (lines 29, 185), making `--strict` pass without an actual architecture entry. The CAP-30 table row still lists only `REQ-YG-087, REQ-YG-089`. The detailed section (### 30. Copilot Node) has two requirement rows, not three. Tests reference a phantom requirement — the traceability chain is broken at the architecture layer.
+- ⚠ DRIFT — **Implementation diary missing (Sermon: Distill).** FR-105 planning/approval is documented ("Chaplain — Copilot Node Session Continuations Approved") but the implementation itself — 994 insertions across 14 files, 12 new tests, new linter patterns — has no metacognitive reflection. The Sermon requires naming cognitive traps and extracting heuristics from the coding process, not just the planning process.
+- ⚠ DRIFT — **Committed garbage diary entry.** The "Git Report" entry at the bottom of diary.md is a verbatim Xcode-license error message offering no insight. This is entropy in a living document (Commandment 8).
+- ✓ COMPLIANT — **Conventional Commits (Commandment 10).** All 5 commits well-formed. `38dbfb4` uses `feat(copilot): FR-105 ...` with scope and FR reference.
+- ✓ COMPLIANT — **CHANGELOG & test tags (Commandment 10, ADR-001).** FR-105 documented under [Unreleased] with full detail. Both test files carry `@pytest.mark.req("REQ-YG-105")`. No new `noqa` suppressions.
+
+**Heuristic:** A green `req_coverage.py --strict` does not prove architectural documentation exists — it only proves tests are tagged and the script's expected range includes the ID. The script validates the test→requirement mapping but not the requirement→architecture-text mapping. ADR-001 compliance requires both: the requirement must be *described* in ARCHITECTURE.md **and** *tagged* in tests. When the coverage script is updated in the same commit as the tests, the cross-check becomes tautological. Fix: `req_coverage.py` should parse ARCHITECTURE.md for requirement IDs and fail if a tagged ID has no corresponding row.
+
+**Seed:** Should `req_coverage.py --strict` be extended to verify that every REQ-YG-XXX in its expected range also appears as a table row in ARCHITECTURE.md, closing the phantom-requirement gap?
+
+---
+
 ## 2026-02-26: Inquisitor Audit — Fifth Docs Window, High-Water Mark Reached
 
 **Context:** Audit of HEAD (`e57d8ae`), covering 5 commits: `e57d8ae` (docs: continue reading link), `cd41906` (docs: link ebook chapters), `3bdb3c2` (fix: raw tags for Jinja2), `a90ff61` (fix: front matter for Liquid), `1760d7e` (fix: Jekyll config). One new commit (`e57d8ae`) since the prior audit; four commits overlap with prior audit window. All docs-only — zero Python files changed. Fifth consecutive docs-only audit window.
@@ -593,50 +647,6 @@ The pattern: observability, memory clarity, and evaluation rigor are no longer o
 
 ---
 
-## 2026-02-26: Git Report
-
-## Repository Analysis: Last 3 Days Development Summary
-
-Based on the recent commits and changed files, here's a **feature-level summary** of the development activity:
-
-### **Primary Development Areas**
-
-#### 🎯 **1. eBook Authoring Pipeline (FR-100, FR-101, FR-102, FR-103)**
-The most significant development focus over the last 3 days has been building a complete **eBook authoring automation system**:
-
-- **FR-100**: Built the foundation - a 14-node LLM-powered pipeline that:
-  - Conducts copilot-assisted research (6 source research prompts)
-  - Drafts chapters (6 writing prompts for authoring)
-  - Performs accuracy review with a judge model
-  - Created `write_chapters_tool` for chapter generation
-  - Added build system with pandoc for HTML/PDF rendering
-
-- **FR-103**: Implemented advanced workflow patterns - the latest feature:
-  - Introduced a **judge-amend subgraph** for iterative chapter refinement
-  - Merged source/write prompts into unified chapter prompts with inline citations
-  - Added per-chapter persistence to maintain state and enable resumption
-  - Restructured to 18-node pipeline with write→validate→persist cycle
-  - Created validation tests (4 new doctrine validation tests)
-
-- **FR-101 & FR-102**: Marked as superseded by FR-103's more elegant subgraph approach
-
-#### 🔧 **2. Refactoring & Code Consolidation (FR-097, FR-098)**
-Improved code organization and reusability:
-- **FR-097**: Extracted diary utilities to `examples/shared/diary.py` for reuse across projects
-- **FR-098**: Consolidated `.chaplain/` graph into `examples/copilot/graph.yaml` for unified configuration
-
-#### 📚 **3. Documentation & Feature Requests**
-- Multiple documentation improvements (FR-086 through FR-096)
-- Comprehensive feature request backlog with detailed specifications for upcoming work
-- Diary entries tracking implementation progress
-
-### **Key Metrics**
-- **Commits**: 20+ in the last 3 days
-- **Files Changed**: 50+ files across examples, prompts, tests, and documentation
-- **Test
-
----
-
 ## 2026-02-27: Chaplain — Copilot Node Session Continuations Approved
 
 The planning session focused on drafting FR-105: Copilot Node Session Continuations. Key decisions included leveraging existing Copilot CLI `--resume` and `--continue` flags and enabling state-based chaining by capturing the session ID from stderr into `CopilotResult`. The feature was scoped to a 2-day effort, encompassing flag injection, `CopilotResult` extension, linter rules, tests, and example updates. The subsequent judging session **approved** FR-105, validating its clear, minimal scope, lack of ambiguities, measurable criteria, and architectural alignment. Minor implementation notes were added, primarily concerning empirical verification of session ID extraction and extending state expression resolution for `cli_flags.resume`.
@@ -670,23 +680,30 @@ A feature request, FR-106, was drafted proposing a parallel development pipeline
 
 ---
 
-## 2026-02-27: Git Report
+## 2026-02-27: Chaplain — FR-106: Parallel Worktree Pipeline Approved
 
-I apologize, but I'm unable to analyze the repository at this moment. The system is encountering an Xcode license agreement error, which is preventing access to the git tools needed to examine the repository history.
+FR-106, detailing a parallel development pipeline via Git worktrees, received approval after a comprehensive planning and judgment cycle. Key planning decisions included removing the non-existent `read_fr` node, establishing graph placement at `examples/enforce/`, and deferring `watch.sh` integration to reduce scope from 5 to 3 days. A concrete concurrency testing strategy was also defined, successfully resolving all initial judgment issues. The judge approved the FR, adding two crucial, non-blocking implementation notes concerning correct prompt path resolution (`prompts_relative: true` and `prompts_dir: prompts`) and refining a shell validation command for a robust clean-tree check. This process significantly refined the FR.
 
-This error typically occurs in macOS environments when:
-- The Xcode command-line tools haven't been properly initialized
-- The Xcode license agreement hasn't been accepted
+**Seed:** How can we integrate more automated checks for common technical conventions and shell script best practices into the initial FR planning phase to catch issues proactively?
 
-To resolve this, the system administrator would need to run:
-```bash
-sudo xcodebuild -license
-```
+---
 
-Once this is resolved, I'll be able to:
-1. **Examine recent commits** (last 3 days)
-2. **Identify changed files** across those commits
-3. **Analyze commit messages** to determine features and improvements
-4. **Provide a feature-level summary** of development activities
+## 2026-02-27: Chaplain — Architecture Cross-Check Approved
 
-Would you be able to help resolve this Xcode license issue, or is there another way I can assist you?
+FR-107, proposing an extension to `req_coverage.py --strict`, has been approved. This feature will cross-check all requirement IDs in `ALL_REQS` against `ARCHITECTURE.md` to ensure no 'phantom requirements' exist without corresponding architectural documentation. The plan leverages the existing `_load_req_descriptions()` parser and is estimated at 0.5 days. The judgment highlighted the clarity, consistency, measurability, and feasibility of the proposal, noting strong alignment with current architecture. Implementation guidance includes adjusting the parser's call location, separating housekeeping ACs, and addressing the REQ-YG-105 gap first.
+
+**Seed:** What other forms of architectural or requirement drift could be proactively detected or prevented through automated checks?
+
+---
+
+## 2026-02-27: FR-105 Implementation — Session Continuations
+
+**Context:** FR-105 added `--resume` and `--continue` flag support to the Copilot node, with session ID capture from stderr into `CopilotResult.session_id`. 994 insertions across 14 files, 12 new tests, new linter patterns.
+
+**Trap: Quick confidence from passing `req_coverage.py --strict`.** The coverage script validated that REQ-YG-105 had tagged tests, but the requirement was never added to ARCHITECTURE.md. The traceability chain (architecture → requirement → test) was broken at the architecture layer. Three consecutive Inquisitor audits flagged this before FR-107 closed the gap by adding architecture cross-checking to the script itself.
+
+**Insight:** When the coverage script and tests are updated in the same commit, the cross-check is tautological — the script validates its own additions. The fix: `req_coverage.py --strict` now also verifies that every requirement ID exists as a table row in ARCHITECTURE.md, closing the phantom-requirement vulnerability.
+
+**Heuristic:** A green CI gate only proves what it checks. When adding a new validation dimension (architecture ↔ tests ↔ coverage script), verify that the gate inspects all edges of the traceability triangle, not just one.
+
+**Seed:** Could the same phantom-gap pattern exist in other cross-referencing systems (e.g., CHANGELOG entries vs. feat commits, noqa confessions vs. actual suppressions)?

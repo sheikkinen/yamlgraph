@@ -257,3 +257,100 @@ def test_smoke():
                 req_coverage.main()
             finally:
                 req_coverage.__file__ = original_file
+
+
+@pytest.mark.req("REQ-YG-063")
+class TestArchitectureCrossCheck:
+    """Tests for architecture cross-check in main() — FR-107."""
+
+    def _setup_covered_env(self, tmp_path: Path, arch_reqs: list[str]) -> None:
+        """Create test dir with a test covering REQ-YG-001 and an ARCHITECTURE.md."""
+        test_dir = tmp_path / "tests" / "unit"
+        test_dir.mkdir(parents=True)
+        test_file = test_dir / "test_smoke.py"
+        test_file.write_text("""\
+import pytest
+
+@pytest.mark.req("REQ-YG-001")
+def test_smoke():
+    pass
+""")
+        # Write ARCHITECTURE.md with given req IDs
+        arch_md = tmp_path / "ARCHITECTURE.md"
+        lines = ["# Requirements\n"]
+        for req in arch_reqs:
+            lines.append(f"| {req} | Description for {req} | modules |\n")
+        arch_md.write_text("".join(lines))
+
+    def test_phantom_req_strict_exits_nonzero(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """--strict exits 1 when a req is in ALL_REQS but missing from ARCHITECTURE.md."""
+        # ARCHITECTURE.md has no REQ-YG-001 row → phantom requirement
+        self._setup_covered_env(tmp_path, arch_reqs=[])
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py", "--strict"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(
+                req_coverage, "CAPABILITIES", {"CAP-01": ("Test", ["REQ-YG-001"])}
+            ),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()
+            finally:
+                req_coverage.__file__ = original_file
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "missing from ARCHITECTURE.md" in captured.out
+        assert "REQ-YG-001" in captured.out
+
+    def test_phantom_req_no_strict_warns_exits_zero(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Without --strict, prints warning but exits zero for undocumented reqs."""
+        self._setup_covered_env(tmp_path, arch_reqs=[])
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(
+                req_coverage, "CAPABILITIES", {"CAP-01": ("Test", ["REQ-YG-001"])}
+            ),
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()  # Should NOT raise SystemExit
+            finally:
+                req_coverage.__file__ = original_file
+
+        captured = capsys.readouterr()
+        assert "missing from ARCHITECTURE.md" in captured.out
+
+    def test_no_false_positive_when_all_documented(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """No warning when all ALL_REQS are documented in ARCHITECTURE.md."""
+        self._setup_covered_env(tmp_path, arch_reqs=["REQ-YG-001"])
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py", "--strict"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(
+                req_coverage, "CAPABILITIES", {"CAP-01": ("Test", ["REQ-YG-001"])}
+            ),
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()  # Should NOT raise SystemExit
+            finally:
+                req_coverage.__file__ = original_file
+
+        captured = capsys.readouterr()
+        assert "missing from ARCHITECTURE.md" not in captured.out

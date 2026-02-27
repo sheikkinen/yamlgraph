@@ -1,0 +1,58 @@
+# Requirement Cross-Check Demo
+# FR-107: Architecture cross-check for phantom requirement detection
+#
+# Runs req_coverage.py to verify the architecture → requirement → test chain
+# and produces a human-readable traceability report.
+#
+# Usage:
+#   yamlgraph graph run examples/demos/req-cross-check/graph.yaml --full
+#   yamlgraph graph run examples/demos/req-cross-check/graph.yaml --var mode="strict" --full
+
+version: "1.0"
+name: req-cross-check
+description: Run architecture cross-check and produce traceability report (FR-107)
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  mode: str  # "normal" (default) or "strict"
+
+tools:
+  run_coverage_normal:
+    type: shell
+    command: python scripts/req_coverage.py 2>&1 || true
+    description: "Run req_coverage.py in normal mode — shows warnings but exits 0"
+    parse: text
+
+  run_coverage_strict:
+    type: shell
+    command: python scripts/req_coverage.py --strict 2>&1 || true
+    description: "Run req_coverage.py in strict mode — exits non-zero on violations"
+    parse: text
+
+nodes:
+  check:
+    type: agent
+    prompt: check
+    tools: [run_coverage_normal, run_coverage_strict]
+    max_iterations: 3
+    state_key: coverage_output
+    variables:
+      mode: "{state.mode}"
+
+  report:
+    type: llm
+    prompt: report
+    requires: [coverage_output]
+    state_key: traceability_report
+    variables:
+      coverage_output: "{state.coverage_output}"
+      mode: "{state.mode}"
+
+edges:
+  - from: START
+    to: check
+  - from: check
+    to: report
+  - from: report
+    to: END

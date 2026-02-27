@@ -603,8 +603,19 @@ def main() -> None:
             f"{still_unresolved_count} unresolvable"
         )
 
-    # Exit code: fail if any requirement uncovered
-    if uncovered and "--strict" in sys.argv:
+    # Architecture cross-check: every req in ALL_REQS must have a row in ARCHITECTURE.md
+    arch_descriptions = _load_req_descriptions(root)
+    arch_req_ids = set(arch_descriptions.keys())
+    all_req_ids = set(ALL_REQS)
+    undocumented = sorted(all_req_ids - arch_req_ids)
+
+    if undocumented:
+        print(f"\n⚠ {len(undocumented)} requirement(s) missing from ARCHITECTURE.md:")
+        for req_id in undocumented:
+            print(f"    {req_id}")
+
+    # Exit code: fail if any requirement uncovered or undocumented (strict mode)
+    if (uncovered or undocumented) and "--strict" in sys.argv:
         sys.exit(1)
 
 

@@ -302,7 +302,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 26 | Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
 | 27 | Telco Voice Call Demo | `projects/outcaller` | OC-000 – OC-008 (project-tracked) |
 | 28 | Graph-Level Thinking Budget | `models/graph_schema`, `utils/llm_factory` | REQ-YG-083 |
-| 30 | Copilot Node | `node_factory/copilot_node`, `node_compiler` | REQ-YG-087, REQ-YG-089 |
+| 30 | Copilot Node | `node_factory/copilot_node`, `node_compiler` | REQ-YG-087, REQ-YG-089, REQ-YG-105 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -580,6 +580,7 @@ New `copilot` node type that delegates graph processing to Copilot CLI, replacin
 |------------|-------------|-------------|
 | REQ-YG-087 | Copilot node executes via CLI backend with configurable flags and timeout; `--silent` always forced; list-based `subprocess.run()` for injection safety; graceful `FileNotFoundError` when copilot binary missing | `node_factory/copilot_node`, `node_compiler`, `constants.NodeType.COPILOT` |
 | REQ-YG-089 | Copilot node composes with router, map, and FSM-router patterns; standard node guarantees apply (requires, on_error, skip_if_exists, loop protection) | `node_factory/copilot_node`, `node_compiler` |
+| REQ-YG-105 | Copilot node session continuations via `--resume` and `--continue` flags; session ID captured from stderr into `CopilotResult.session_id`; state expression resolution for `cli_flags.resume` | `node_factory/copilot_node`, `models/schemas` |
 
 ### 31. Chaplain Diary Append
 
@@ -962,7 +963,7 @@ Generates a traceability matrix from `@pytest.mark.req` markers using AST parsin
 |---------|---------|
 | `python scripts/req_coverage.py` | Summary: per-capability coverage |
 | `python scripts/req_coverage.py --detail` | Full mapping: every test → requirement |
-| `python scripts/req_coverage.py --strict` | CI gate: exits non-zero if any REQ uncovered |
+| `python scripts/req_coverage.py --strict` | CI gate: exits non-zero if any REQ uncovered **or undocumented in ARCHITECTURE.md** |
 
 #### Current Coverage (v0.4.21)
 
