@@ -13,8 +13,7 @@ prompts_relative: true
 prompts_dir: prompts
 
 state:
-  fr_path: str           # Path to feature request file (e.g., feature-requests/FR-105.md)
-  examples_dir: str      # Target directory for demo (e.g., examples/demos/)
+  fr_id: str             # Feature request ID (e.g., "FR-107")
   enforce_result: dict   # Output from enforce phase
   demo_result: dict      # Output from demo phase
 
@@ -28,7 +27,7 @@ nodes:
       allow_all_paths: true
       allow_all_tools: true
     variables:
-      fr_path: "{state.fr_path}"
+      fr_id: "{state.fr_id}"
     state_key: enforce_result
     timeout: 600  # 10 minutes for TDD cycle
 
@@ -42,7 +41,7 @@ nodes:
       allow_all_tools: true
       resume: "{state.enforce_result.session_id}"  # FR-105: Continue same session
     variables:
-      examples_dir: "{state.examples_dir}"
+      fr_id: "{state.fr_id}"
     state_key: demo_result
     timeout: 300  # 5 minutes for demo creation
 

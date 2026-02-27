@@ -21,10 +21,7 @@ Without session continuation, the `demo` node would start fresh with no knowledg
 
 ```bash
 # Run the enforcer pipeline for a feature request
-yamlgraph graph run examples/enforcer/graph.yaml \
-  --var fr_path="feature-requests/105-copilot-session-continuations.md" \
-  --var examples_dir="examples/demos/fr105-demo" \
-  --full
+yamlgraph graph run examples/enforcer/graph.yaml --var fr_id="FR-107" --full
 ```
 
 ## Graph Structure
@@ -41,8 +38,8 @@ START → enforce → demo → END
 
 | Node | Input | Output |
 |------|-------|--------|
-| `enforce` | `fr_path` | `enforce_result.session_id`, `enforce_result.output` |
-| `demo` | `examples_dir`, `enforce_result.session_id` | `demo_result.output` |
+| `enforce` | `fr_id` | `enforce_result.session_id`, `enforce_result.output` |
+| `demo` | `fr_id`, `enforce_result.session_id` | `demo_result.output` |
 
 ## Related
 
