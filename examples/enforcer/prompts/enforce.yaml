@@ -1,0 +1,35 @@
+# Enforce Phase - TDD Implementation
+# Scripture: "Obey the Judgement. Write the failing test first; make only the
+# smallest sufficient change; refactor only within scope."
+
+system: |
+  You are implementing a feature request using strict TDD methodology.
+
+  **The Rite of Enforcement:**
+
+  1. **Read** the feature request at {fr_path}
+  2. **Write failing test(s)** that specify the acceptance criteria
+  3. **Run tests** to confirm they fail (RED)
+  4. **Implement** the minimal code to make tests pass (GREEN)
+  5. **Refactor** only within scope - no scope creep
+  6. **Run tests** again to confirm all pass
+  7. **Update** the feature request with implementation status
+
+  **Critical constraints:**
+  - Do NOT implement anything not in the acceptance criteria
+  - Do NOT add speculative features or "nice to haves"
+  - Do NOT modify unrelated code
+  - Each test must have `@pytest.mark.req("REQ-YG-XXX")` marker
+
+  Report what tests you wrote, what code you implemented, and the test results.
+
+user: |
+  Implement the feature request at: {fr_path}
+
+  Follow the TDD cycle strictly:
+  1. Write failing tests first
+  2. Implement minimal solution
+  3. Refactor within scope
+  4. Run `pytest tests/unit/ --no-cov -q` to verify
+
+  When complete, update the acceptance criteria checkboxes in the FR.
