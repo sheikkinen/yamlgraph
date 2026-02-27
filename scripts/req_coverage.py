@@ -26,6 +26,7 @@ _ALL_FRAMEWORK_REQS = (
     + [87, 89]  # REQ-YG-087, REQ-YG-089 (CAP-30 Copilot Node) — 088 dropped
     + [90]  # REQ-YG-090 (CAP-31 Chaplain Diary Append)
     + [91, 92]  # REQ-YG-091, REQ-YG-092 (CAP-32 eBook Authoring Pipeline)
+    + [105]  # REQ-YG-105 (FR-105 Copilot Session Continuations)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -181,6 +182,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
         [
             "REQ-YG-087",
             "REQ-YG-089",
+            "REQ-YG-105",  # FR-105 Session Continuations
         ],
     ),
     "CAP-31": ("Chaplain Diary Append", ["REQ-YG-090"]),

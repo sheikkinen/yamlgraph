@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **FR-105 Copilot Session Continuations** (CAP-30, REQ-YG-105): Enable multi-task workflows where sequential copilot nodes share a session
+  - `cli_flags.resume`: Resume a specific session by ID (`--resume <id>`)
+  - `cli_flags.continue_session`: Resume most recent session (`--continue`)
+  - `CopilotResult.session_id`: Extracted from CLI stderr for downstream nodes
+  - State expression support: `{state.prev_result.session_id}` in resume
+  - Linter rules: `E-COPILOT-RESUME` (mutual exclusion), `W-COPILOT-SESSION` (pattern warning)
+  - Updated example in `examples/copilot/graph.yaml` with session continuation
+
 ## [0.4.58] - 2026-02-25
 
 ### Added

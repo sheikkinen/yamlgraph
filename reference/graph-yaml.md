@@ -460,6 +460,35 @@ nodes:
 | `allow_all_paths` | `bool` | `--allow-all-paths` | Allow file system access |
 | `allow_all_tools` | `bool` | `--allow-all-tools` | Allow all MCP tools |
 | `model` | `string` | `--model <model>` | Override default model |
+| `resume` | `string` | `--resume <id>` | Resume a specific session (FR-105) |
+| `continue_session` | `bool` | `--continue` | Resume most recent session (FR-105) |
+
+**Session continuation (FR-105):**
+
+Use `resume` or `continue_session` to continue work within an existing Copilot session. This enables multi-task workflows where sequential nodes share context:
+
+```yaml
+nodes:
+  plan:
+    type: copilot
+    prompt: plan
+    cli_flags:
+      allow_all_tools: true
+    state_key: plan_result
+
+  implement:
+    type: copilot
+    prompt: implement
+    cli_flags:
+      allow_all_tools: true
+      resume: "{state.plan_result.session_id}"  # Continue plan's session
+    state_key: implement_result
+```
+
+**Notes:**
+- `resume` and `continue_session` are mutually exclusive (linter enforces this)
+- `resume` supports state expressions like `{state.prev_result.session_id}`
+- Session ID is extracted from CLI stderr and stored in `CopilotResult.session_id`
 
 **Notes:**
 - The `--silent` flag is always added automatically
@@ -472,10 +501,11 @@ The node returns a `CopilotResult` object in the state:
 
 ```python
 class CopilotResult(BaseModel):
-    output: str        # Copilot's response text
-    exit_code: int     # Process exit code (0 = success)
-    model: str | None  # Model used (if specified)
-    backend: str       # "cli" or "sampling"
+    output: str            # Copilot's response text
+    exit_code: int         # Process exit code (0 = success)
+    model: str | None      # Model used (if specified)
+    backend: str           # "cli" or "sampling"
+    session_id: str | None # Session ID for resumption (FR-105)
 ```
 
 Access in subsequent nodes:
@@ -484,10 +514,11 @@ variables:
   plan_text: "{state.plan_result.output}"
 ```
 
-**Example - Plan-Judge Workflow:**
+**Example - Plan-Judge Workflow with Session Continuation:**
 
 ```yaml
 # Based on .chaplain/watch.sh pattern
+# FR-105: Judge resumes plan's session for context continuity
 nodes:
   plan:
     type: copilot
@@ -506,6 +537,7 @@ nodes:
     backend: cli
     cli_flags:
       allow_all_paths: true
+      resume: "{state.plan_result.session_id}"  # FR-105
     variables:
       draft_file: "{state.plan_result.output}"
     state_key: verdict
