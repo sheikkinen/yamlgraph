@@ -504,3 +504,166 @@ class TestCopilotNodeComposition:
         # Node creation should succeed with these fields
         node_fn = create_copilot_node("test_copilot", config)
         assert callable(node_fn)
+
+
+# =============================================================================
+# FR-105: Session Continuation Tests
+# =============================================================================
+
+
+@pytest.mark.req("REQ-YG-105")
+class TestCopilotSessionContinuation:
+    """Tests for copilot node session continuation (FR-105)."""
+
+    def test_resume_flag_passed_to_cli(self, tmp_path: Path) -> None:
+        """cli_flags.resume should pass --resume <value> to copilot CLI."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Continue work")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "cli_flags": {
+                "resume": "abc-123-def",
+            },
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.stderr = ""
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            node_fn = create_copilot_node("test_copilot", config)
+            node_fn({})
+
+            cmd = mock_run.call_args[0][0]
+            assert "--resume" in cmd
+            resume_idx = cmd.index("--resume")
+            assert cmd[resume_idx + 1] == "abc-123-def"
+
+    def test_continue_session_flag_passed_to_cli(self, tmp_path: Path) -> None:
+        """cli_flags.continue_session should pass --continue to copilot CLI."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Continue work")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "cli_flags": {
+                "continue_session": True,
+            },
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.stderr = ""
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            node_fn = create_copilot_node("test_copilot", config)
+            node_fn({})
+
+            cmd = mock_run.call_args[0][0]
+            assert "--continue" in cmd
+
+    def test_resume_with_state_expression(self, tmp_path: Path) -> None:
+        """cli_flags.resume should resolve state expressions like {state.prev.session_id}."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Continue work")
+
+        # Simulate previous CopilotResult in state
+        prev_result = CopilotResult(
+            output="Previous output",
+            exit_code=0,
+            backend="cli",
+            session_id="session-uuid-456",
+        )
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "cli_flags": {
+                "resume": "{state.prev_result.session_id}",
+            },
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.stderr = ""
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            node_fn = create_copilot_node("test_copilot", config)
+            node_fn({"prev_result": prev_result})
+
+            cmd = mock_run.call_args[0][0]
+            assert "--resume" in cmd
+            resume_idx = cmd.index("--resume")
+            assert cmd[resume_idx + 1] == "session-uuid-456"
+
+    def test_session_id_extracted_from_stderr(self, tmp_path: Path) -> None:
+        """CopilotResult.session_id should be populated from CLI stderr."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        # Simulated stderr with session ID (format TBD - empirical verification needed)
+        mock_result.stderr = "Session: abc-123-session-id-xyz"
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result):
+            node_fn = create_copilot_node("test_copilot", config)
+            result = node_fn({})
+
+            copilot_result = result["result"]
+            assert copilot_result.session_id is not None
+            assert "abc-123-session-id-xyz" in copilot_result.session_id
+
+    def test_session_id_none_when_not_found(self, tmp_path: Path) -> None:
+        """CopilotResult.session_id should be None when not extractable."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.stderr = ""  # No session ID in stderr
+        mock_result.returncode = 0
+
+        with patch("subprocess.run", return_value=mock_result):
+            node_fn = create_copilot_node("test_copilot", config)
+            result = node_fn({})
+
+            copilot_result = result["result"]
+            assert copilot_result.session_id is None

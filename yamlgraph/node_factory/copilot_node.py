@@ -2,9 +2,11 @@
 
 Creates nodes that delegate to Copilot CLI.
 FR-081: Copilot Node Type.
+FR-105: Session Continuations.
 """
 
 import logging
+import re
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
@@ -20,6 +22,33 @@ logger = logging.getLogger(__name__)
 
 # Default timeout for copilot CLI (seconds)
 DEFAULT_TIMEOUT = 300
+
+# Regex pattern to extract session ID from Copilot CLI stderr
+# Pattern matches: "Session: <uuid>" or similar formats
+SESSION_ID_PATTERN = re.compile(r"Session:\s*([a-zA-Z0-9-]+)", re.IGNORECASE)
+
+
+def _extract_session_id(stderr: str) -> str | None:
+    """Extract session ID from Copilot CLI stderr output.
+
+    Args:
+        stderr: The stderr output from copilot CLI
+
+    Returns:
+        Session ID string if found, None otherwise.
+        Never fabricates a value — returns None if extraction fails.
+    """
+    if not stderr or not isinstance(stderr, str):
+        return None
+
+    match = SESSION_ID_PATTERN.search(stderr)
+    if match:
+        session_id = match.group(1)
+        logger.debug(f"[session] Extracted session ID: {session_id}")
+        return session_id
+
+    logger.debug("[session] No session ID found in stderr")
+    return None
 
 
 def _resolve_variables(
@@ -161,6 +190,7 @@ def create_copilot_node(
             state_key=state_key,
             cli_flags=cli_flags,
             timeout=timeout,
+            state=state,  # FR-105: pass state for resume expression resolution
         )
 
     copilot_fn.__name__ = f"copilot_{node_name}"
@@ -173,6 +203,7 @@ def _execute_cli(
     state_key: str,
     cli_flags: dict[str, Any],
     timeout: int,
+    state: dict[str, Any] | None = None,
 ) -> dict:
     """Execute copilot via CLI backend.
 
@@ -182,6 +213,7 @@ def _execute_cli(
         state_key: Where to store result
         cli_flags: CLI flags configuration
         timeout: Timeout in seconds
+        state: Current graph state (for resolving resume expressions)
 
     Returns:
         State update dict with CopilotResult
@@ -199,6 +231,25 @@ def _execute_cli(
     if model := cli_flags.get("model"):
         cmd.extend(["--model", model])
 
+    # FR-105: Session continuation flags
+    if resume := cli_flags.get("resume"):
+        # Resolve state expressions like {state.prev_result.session_id}
+        if isinstance(resume, str) and "{state." in resume:
+            if state is None:
+                logger.warning(
+                    f"[{node_name}] Cannot resolve resume expression without state"
+                )
+            else:
+                try:
+                    resume = resolve_state_expression(resume, state)
+                except (KeyError, AttributeError) as e:
+                    logger.warning(f"[{node_name}] Failed to resolve resume: {e}")
+                    resume = None
+        if resume:
+            cmd.extend(["--resume", str(resume)])
+    elif cli_flags.get("continue_session"):
+        cmd.append("--continue")
+
     # Add prompt
     cmd.extend(["-p", prompt])
 
@@ -213,11 +264,15 @@ def _execute_cli(
             timeout=timeout,
         )
 
+        # FR-105: Extract session ID from stderr
+        session_id = _extract_session_id(result.stderr)
+
         copilot_result = CopilotResult(
             output=result.stdout,
             exit_code=result.returncode,
             model=cli_flags.get("model"),
             backend="cli",
+            session_id=session_id,
         )
 
         logger.info(

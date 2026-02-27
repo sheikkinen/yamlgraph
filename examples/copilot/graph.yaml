@@ -3,10 +3,11 @@
 # FR-084: Based on .chaplain/watch.sh Plan-Judge workflow
 # FR-093: Added summarize + write_diary for automatic diary append
 # FR-098: Consolidated from .chaplain/graph.yaml
+# FR-105: Session continuation - judge resumes plan's session
 
 version: "1.0"
 name: copilot-workflow
-description: Feature request workflow using copilot nodes for planning and judgement
+description: Feature request workflow using copilot nodes with session continuation
 
 prompts_relative: true
 prompts_dir: prompts
@@ -41,6 +42,7 @@ nodes:
     timeout: 500
 
   # Stage 2: Judge - Copilot examines the draft and renders verdict
+  # FR-105: Resumes the plan node's Copilot session for context continuity
   judge:
     type: copilot
     prompt: judge
@@ -48,6 +50,7 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
+      resume: "{state.plan_result.session_id}"  # FR-105: Continue same session
     variables:
       drafts_dir: "{state.drafts_dir}"
     state_key: judge_result

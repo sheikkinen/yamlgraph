@@ -40,6 +40,7 @@ from yamlgraph.linter.checks_semantic import (
 )
 from yamlgraph.linter.patterns import (
     check_agent_patterns,
+    check_copilot_patterns,
     check_interrupt_patterns,
     check_map_patterns,
     check_router_patterns,
@@ -97,6 +98,7 @@ def lint_graph(
     all_issues.extend(check_interrupt_patterns(graph_path, project_root))
     all_issues.extend(check_agent_patterns(graph_path, project_root))
     all_issues.extend(check_subgraph_patterns(graph_path, project_root))
+    all_issues.extend(check_copilot_patterns(graph_path))
 
     # FR-061: Contract violation checks
     all_issues.extend(check_python_node_variables(graph_path))
