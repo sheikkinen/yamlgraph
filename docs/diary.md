@@ -6,6 +6,22 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-27: FR-106 Enforce Pipeline — Tooling Mirrors the Doctrine
+
+**Context:** Implemented parallel development pipeline using Git worktrees. Shell script creates isolated environment (`tmp/worktrees/feat/<branch>`), symlinks `.venv`, runs 4-phase copilot graph (implement → test → precommit → submit), cleans up on exit.
+
+**Observation:** The pipeline structure mirrors the Scripture's enforcement rite: Research → Plan → Judge → Enforce → Purge → Submit → Distill. Each phase is a discrete copilot node with session continuation, meaning the agent accumulates context across all four phases. The worktree isolation ensures `main` stays clean while feature work happens in parallel.
+
+**Trap Avoided — Premature Abstraction:** Initial instinct was to make the Python helpers more sophisticated (branch naming patterns, worktree registry, cleanup scheduler). Resisted. Three simple functions suffice: `derive_branch_name()`, `construct_worktree_path()`, `validate_clean_working_tree()`. The shell script handles orchestration. The graph handles LLM interaction. Each layer does one thing.
+
+**Heuristic — Layered Simplicity:** When building automation that spans shell, Python, and YAML, keep each layer minimal. Shell for lifecycle orchestration (git operations, traps, cleanup). Python for pure functions (string transformation, validation). YAML for LLM choreography (prompts, state, edges). Complexity in any layer is a sign the responsibility belongs elsewhere.
+
+**Insight:** The TDD sequence (19 tests written before implementation stabilized) caught several edge cases: untracked files vs staged changes, concurrent worktree paths, script exit codes. The tests serve as executable documentation — reading `test_worktree_helpers.py` explains the contract faster than any prose.
+
+**Seed:** The enforce pipeline assumes sequential phases. What if some phases could run in parallel? Could `test` and `demo` be independent map targets? Would the session context still cohere if phases fork and merge?
+
+---
+
 ## 2026-02-27: Inquisitor Audit — Clean Sheet on Session Test Demo
 
 **Context:** Audit of HEAD (`c89e6e3`), covering 5 commits. High-water mark from prior audit: `8915290`. Only `c89e6e3` (`docs(examples): FR-105 add session continuation test demo`) is new — 9 files, 471 insertions, 75 deletions. Prior audit's ⚠ DRIFT (missing FR-107 diary) is tracked for resolution.
