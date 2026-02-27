@@ -80,27 +80,83 @@ mkdir -p "$(dirname "$WORKTREE_DIR")"
 git worktree add "$WORKTREE_DIR" -b "$BRANCH" "$BASE_BRANCH"
 
 # Symlink shared .venv to avoid redundant installs
-MAIN_VENV="$(pwd)/.venv"
+MAIN_VENV="$(cd - > /dev/null && pwd)/.venv"
 if [[ -d "$MAIN_VENV" ]]; then
     log_info "Symlinking shared .venv..."
     ln -sf "$MAIN_VENV" "$WORKTREE_DIR/.venv"
 fi
 
-# Run the enforce pipeline graph inside the worktree
-log_info "Running enforce pipeline in worktree..."
 cd "$WORKTREE_DIR"
+log_info "Working in: $(pwd)"
 
-# Check if the graph exists (it might not if it's being implemented)
-GRAPH_PATH="examples/enforce/graph.yaml"
-if [[ ! -f "$GRAPH_PATH" ]]; then
-    log_error "Enforce graph not found: $GRAPH_PATH"
-    log_error "The enforce pipeline graph must exist before running this script."
+# Phase 1: Implementation (copilot)
+log_info "Phase 1: Implementation..."
+IMPLEMENT_PROMPT="Read the feature request at $FR_PATH. Follow TDD: write failing tests first, then implement the minimal change to make tests pass. Do not run pre-commit or git commands - just implement the code."
+
+gh copilot /agent --allow-all-paths --allow-all-tools "$IMPLEMENT_PROMPT"
+IMPL_EXIT=$?
+if [[ $IMPL_EXIT -ne 0 ]]; then
+    log_error "Implementation phase failed with exit code $IMPL_EXIT"
     exit 1
 fi
 
-yamlgraph graph run "$GRAPH_PATH" \
-    --var fr_path="$FR_PATH" \
-    --var branch="$BRANCH" \
-    --full
+# Phase 2: Test and Demo (copilot)
+log_info "Phase 2: Test and Demo..."
+TEST_PROMPT="Run pytest for this feature. If tests fail, fix the code. Create a simple demo or example if applicable. Do not run pre-commit or git commands."
+
+gh copilot /agent --allow-all-paths --allow-all-tools --continue "$TEST_PROMPT"
+TEST_EXIT=$?
+if [[ $TEST_EXIT -ne 0 ]]; then
+    log_error "Test phase failed with exit code $TEST_EXIT"
+    exit 1
+fi
+
+# Phase 3: Pre-commit loop (shell runs pre-commit, copilot fixes)
+log_info "Phase 3: Pre-commit checks..."
+MAX_PRECOMMIT_ATTEMPTS=5
+for i in $(seq 1 $MAX_PRECOMMIT_ATTEMPTS); do
+    log_info "Pre-commit attempt $i/$MAX_PRECOMMIT_ATTEMPTS..."
+
+    if pre-commit run --all-files 2>&1 | tee /tmp/precommit-output.txt; then
+        log_info "Pre-commit passed!"
+        break
+    fi
+
+    if [[ $i -eq $MAX_PRECOMMIT_ATTEMPTS ]]; then
+        log_error "Pre-commit failed after $MAX_PRECOMMIT_ATTEMPTS attempts"
+        cat /tmp/precommit-output.txt
+        exit 1
+    fi
+
+    log_warn "Pre-commit failed, asking copilot to fix..."
+    FIX_PROMPT="Pre-commit hooks failed. Here's the output:
+
+$(cat /tmp/precommit-output.txt)
+
+Fix the issues. Do not run pre-commit yourself - I will run it after you fix the code."
+
+    gh copilot /agent --allow-all-paths --allow-all-tools --continue "$FIX_PROMPT"
+done
+
+# Phase 4: Commit and Push (shell)
+log_info "Phase 4: Commit and push..."
+FR_NUM=$(echo "$FR_PATH" | grep -oE 'FR-[0-9]+')
+COMMIT_MSG="feat: $FR_NUM implementation
+
+Auto-generated via enforce_worktree.sh pipeline"
+
+git add -A
+git commit -m "$COMMIT_MSG" --no-verify  # Skip hooks, we already ran them
+git push -u origin "$BRANCH"
+
+# Phase 5: Create PR (shell)
+log_info "Phase 5: Creating PR..."
+PR_TITLE="$FR_NUM: $(head -1 "$FR_PATH" | sed 's/^#* *//')"
+PR_BODY="Automated PR from enforce_worktree.sh
+
+Feature Request: $FR_PATH
+Branch: $BRANCH"
+
+gh pr create --title "$PR_TITLE" --body "$PR_BODY" --base "$BASE_BRANCH" || log_warn "PR creation failed or PR already exists"
 
 log_info "Enforce pipeline completed successfully!"
