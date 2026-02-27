@@ -834,3 +834,31 @@ FR-106, detailing a parallel development pipeline via Git worktrees, was planned
 The session focused on planning and judging FR-108: Mastermind Game. The planning phase involved researching existing patterns, leading to a detailed feature request for a terminal code-breaking game. It leverages the `interactive_tool` node pattern with pure Python logic, optional LLM hints, and correct duplicate-handling scoring, following the structure of FR-082 (Minesweeper). The judging process rigorously evaluated the FR, verifying its alignment with existing patterns and a canonical demo. FR-108 was **APPROVED** due to its clear, minimal scope, lack of contradictions against established schemas, and sound, measurable acceptance criteria. Minor corrections included noting FR-082's unimplemented status and adding implementation guidance.
 
 **Seed:** How can we better track the implementation status of referenced FRs to ensure accuracy in future planning and judging cycles?
+
+---
+
+## 2026-02-27: Chaplain — Refining Graph Coordination Logic
+
+The session began with a well-structured feature request for migrating Ninchat’s graph coordination, which was initially deemed complete. Key decisions included enforcing a decision gate (OC-006), maintaining minimal scope, and documenting clear deletions of legacy SSE infrastructure. However, the judge phase revealed critical blockers: an unnecessary `check_phase` router node, unsupported condition syntax, and a placeholder requirement ID. These issues highlight a cognitive trap—assuming LLM-based routers and regex evaluators align with traditional conditional logic. The phased approach and MemorySaver constraints were validated, reinforcing the value of incremental migration. The process underscored the importance of precision in edge conditions and node types.
+
+**Seed:** How might we automate the validation of condition syntax and node compatibility to catch such mismatches earlier in the planning phase?
+
+---
+
+## 2026-02-27: Chaplain — Graph Coordination FR Approval
+
+The session focused on finalizing and approving **FR-101**, a feature request to migrate Ninchat’s coordination logic into a YAMLGraph. Key decisions included resolving three critical amendments: simplifying loop control via conditional edges, standardizing condition syntax, and assigning architectural documentation requirements. The judge’s verification of framework behavior—such as dict-return merging and boolean condition support—ensured technical soundness.
+
+Insights revealed the importance of aligning with existing patterns (e.g., outcaller port) and guarding against premature implementation via a Phase 0 decision gate. A cognitive trap emerged in overcomplicating loop control, which was resolved by leveraging conditional edges directly. The approval underscores the value of minimalism, measurability, and architectural consistency.
+
+**Seed:** How might we automate framework behavior verification for future FRs to reduce manual validation overhead while maintaining rigor?
+
+---
+
+## 2026-02-27: Chaplain — Precision Scoping and Technical Validation
+
+The session focused on finalizing **FR-101**, a feature request addressing a structural mismatch between EL’s 8s timeout and Ninchat’s 6–18s round-trip. The planning phase emphasized **minimal scope**: isolating the Ninchat migration while excluding PHQ-9/interRAI/navigator components. A **gated execution** (OC-006 barge-in analysis) was mandated to mitigate risks.
+
+The judge phase rigorously validated technical assumptions, confirming dict-merge behavior, compound conditional logic, and framework compatibility. A cognitive trap—assuming ambiguity in `speak_greeting`’s lack of a `state_key`—was debunked as harmless due to default behavior. The verdict approved the FR, praising its **surgical precision** and **testable criteria**, while rejecting scope creep temptations. The MemorySaver-only constraint was correctly scoped, ensuring no unintended side effects.
+
+**Seed:** How might we institutionalize this level of technical validation *earlier* in the FR drafting process to reduce iterative reviews without sacrificing rigor?
