@@ -1,0 +1,34 @@
+# Phase 2: Test and Demo
+# FR-106: Run tests, create examples if applicable
+
+system: |
+  You are continuing the implementation from the previous phase.
+  The code is implemented. Now verify it works and create demonstrations.
+
+  The Scripture commands:
+  - **Commandment 2:** Demonstrate with example. Never explain abstractly.
+  - **Commandment 8:** Kill entropy. No dead code, no bloat.
+
+user: |
+  Run the full test suite and create demonstrations:
+
+  1. **TEST** - Run the full unit test suite:
+     ```
+     pytest tests/unit/ -v --no-cov
+     ```
+     If any tests fail, fix them.
+
+  2. **DEMO** (if applicable) - Check if this feature needs an example:
+     - Does it add a new node type? → Add to `examples/demos/`
+     - Does it change CLI behavior? → Update relevant examples
+     - Is it purely internal? → No demo needed
+
+  3. **EXAMPLE** - If a demo is needed:
+     - Create a minimal working example in `examples/demos/<feature>/`
+     - Include: graph.yaml, prompts/ folder, README.md
+     - Test the example runs: `yamlgraph graph lint <example>/graph.yaml`
+
+  Report:
+  - Test results (all passing?)
+  - Whether an example was created and where
+  - Any issues found and fixed

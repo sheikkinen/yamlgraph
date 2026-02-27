@@ -1,0 +1,97 @@
+# FR-106: End-to-End Enforce Pipeline via Git Worktree
+#
+# Four-phase pipeline:
+# 1. implement - Read FR, implement with TDD
+# 2. test_and_demo - Run tests, create example/demo
+# 3. precommit_check - Run pre-commit hooks, fix failures
+# 4. submit_pr - Commit and create PR
+#
+# All phases chain via session continuations (FR-105), creating a single
+# conversation thread where each phase has full context from prior phases.
+#
+# Usage via orchestration script:
+#   scripts/enforce_worktree.sh feature-requests/FR-106-parallel-worktree-pipeline.md
+
+version: "1.0"
+name: enforce-pipeline
+description: |
+  End-to-end feature enforcement in isolated worktree.
+  Four phases: implement → test/demo → pre-commit → submit PR.
+  All phases chain via session continuations (FR-105).
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  fr_path: str           # Path to the approved feature request
+  branch: str            # Git branch name
+  implement_result: dict
+  test_result: dict
+  precommit_result: dict
+  pr_result: dict
+
+nodes:
+  # Phase 1: Implement with TDD
+  # Read the FR, write failing tests, implement minimal change, refactor
+  implement:
+    type: copilot
+    prompt: enforce-implement
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      fr_path: "{state.fr_path}"
+      branch: "{state.branch}"
+    state_key: implement_result
+    timeout: 3600  # 60 min for TDD cycle
+
+  # Phase 2: Test and Demo
+  # Run full test suite, create/update examples if applicable
+  test_and_demo:
+    type: copilot
+    prompt: enforce-test-demo
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.implement_result.session_id}"
+    state_key: test_result
+    timeout: 600  # 10 min
+
+  # Phase 3: Pre-commit Checks
+  # Run all pre-commit hooks, fix any failures
+  precommit_check:
+    type: copilot
+    prompt: enforce-precommit
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.implement_result.session_id}"
+    state_key: precommit_result
+    timeout: 600  # 10 min for fixes
+
+  # Phase 4: Submit PR
+  # Stage, commit with conventional format + FR ref, push, create PR
+  submit_pr:
+    type: copilot
+    prompt: enforce-submit-pr
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.implement_result.session_id}"
+    variables:
+      branch: "{state.branch}"
+      fr_path: "{state.fr_path}"
+    state_key: pr_result
+    timeout: 120  # 2 min
+
+edges:
+  - from: START
+    to: implement
+  - from: implement
+    to: test_and_demo
+  - from: test_and_demo
+    to: precommit_check
+  - from: precommit_check
+    to: submit_pr
+  - from: submit_pr
+    to: END

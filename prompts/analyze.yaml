@@ -4,19 +4,19 @@ system: |
 
 prompt: |
   Question: {question}
-  
+
   Analyze this question thoroughly. Think through:
   1. What is really being asked?
   2. What concepts are relevant?
   3. What's the reasoning path to the answer?
   4. What caveats or nuances should be mentioned?
-  
+
   Provide your analysis.
 
 schema:
   name: Analysis
   fields:
-    reasoning_steps: 
+    reasoning_steps:
       type: list[str]
       description: "Key reasoning steps you followed"
     key_concepts:
