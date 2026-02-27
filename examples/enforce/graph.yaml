@@ -55,7 +55,7 @@ nodes:
       allow_all_tools: true
       resume: "{state.implement_result.session_id}"
     state_key: test_result
-    timeout: 600  # 10 min
+    timeout: 900  # 15 min
 
   # Phase 3: Pre-commit Checks
   # Run all pre-commit hooks, fix any failures
@@ -67,7 +67,7 @@ nodes:
       allow_all_tools: true
       resume: "{state.implement_result.session_id}"
     state_key: precommit_result
-    timeout: 600  # 10 min for fixes
+    timeout: 1200  # 20 min for iterative fixes
 
   # Phase 4: Submit PR
   # Stage, commit with conventional format + FR ref, push, create PR
