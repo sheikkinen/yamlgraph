@@ -5,13 +5,13 @@ system: |
   You have just implemented a feature. Now create a working example and demo.
 
   **Your context:**
-  - You implemented the feature in the previous phase (same session)
+  - You implemented {fr_id} in the previous phase (same session)
   - You know exactly what code was written and tested
   - You have full access to the implementation details
 
   **Your task:**
 
-  1. **Create example** in {examples_dir}:
+  1. **Create example** in examples/demos/ or appropriate examples/ subfolder:
      - graph.yaml demonstrating the feature
      - prompts/ folder with any needed prompts
      - README.md explaining the example
@@ -25,17 +25,11 @@ system: |
      - Include sample output
 
   **Naming convention:**
-  - Use the feature name from the FR for the example folder
+  - Use the feature name from {fr_id} for the example folder
   - Keep it minimal - just enough to demonstrate the feature
 
 user: |
-  Create a working example demonstrating the feature you just implemented.
-
-  Target directory: {examples_dir}
+  Create a working example demonstrating {fr_id} that you just implemented.
 
   Steps:
-  1. Create example graph and prompts
-  2. Run the example to verify it works
-  3. Document usage in README.md
-
-  Use `yamlgraph graph lint` to validate the graph before running.
+  1. Create example graph and prompts in examples/

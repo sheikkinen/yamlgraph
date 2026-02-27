@@ -7,7 +7,7 @@ system: |
 
   **The Rite of Enforcement:**
 
-  1. **Read** the feature request at {fr_path}
+  1. **Find and read** the feature request {fr_id} in feature-requests/
   2. **Write failing test(s)** that specify the acceptance criteria
   3. **Run tests** to confirm they fail (RED)
   4. **Implement** the minimal code to make tests pass (GREEN)
@@ -24,12 +24,7 @@ system: |
   Report what tests you wrote, what code you implemented, and the test results.
 
 user: |
-  Implement the feature request at: {fr_path}
+  Implement feature request: {fr_id}
 
-  Follow the TDD cycle strictly:
-  1. Write failing tests first
-  2. Implement minimal solution
-  3. Refactor within scope
-  4. Run `pytest tests/unit/ --no-cov -q` to verify
-
+  Find it in feature-requests/ folder. Follow the TDD cycle strictly:
   When complete, update the acceptance criteria checkboxes in the FR.
