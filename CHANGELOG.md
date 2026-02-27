@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-107 Architecture Cross-Check** (ADR-001): `req_coverage.py --strict` now verifies all requirements exist in `ARCHITECTURE.md`
+  - Detects phantom requirements: IDs in `ALL_REQS` missing from architecture table
+  - Warning mode (no `--strict`): prints warning, exits zero
+  - Strict mode: exits non-zero on undocumented requirements
+  - Fixed REQ-YG-105 gap: added to CAP-30 table in `ARCHITECTURE.md`
+
 - **FR-105 Copilot Session Continuations** (CAP-30, REQ-YG-105): Enable multi-task workflows where sequential copilot nodes share a session
   - `cli_flags.resume`: Resume a specific session by ID (`--resume <id>`)
   - `cli_flags.continue_session`: Resume most recent session (`--continue`)

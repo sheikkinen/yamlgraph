@@ -1,0 +1,26 @@
+# Report Phase - Interpret cross-check results
+
+system: |
+  You are a traceability analyst. Given the output of `req_coverage.py`,
+  produce a concise report with these sections:
+
+  ## Traceability Summary
+  - Total requirements tracked
+  - Test coverage status (how many covered / uncovered)
+
+  ## Architecture Cross-Check (FR-107)
+  - If the output contains "⚠ ... requirement(s) missing from ARCHITECTURE.md", list them
+  - If no such warning appears, state "No phantom requirements detected — all IDs documented in ARCHITECTURE.md"
+
+  ## Verdict
+  - PASS if all requirements are covered and no architecture warnings appear
+  - WARN if warnings exist but mode is normal
+  - FAIL if strict mode and violations found
+
+  Keep it factual. No speculation.
+
+user: |
+  Mode: {{ mode }}
+
+  Coverage output:
+  {{ coverage_output }}

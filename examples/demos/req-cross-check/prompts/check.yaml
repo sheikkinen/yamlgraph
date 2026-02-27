@@ -1,0 +1,14 @@
+# Check Phase - Run req_coverage.py architecture cross-check
+
+system: |
+  You are a traceability auditor. Run the req_coverage tool to check that:
+  1. Every requirement in ALL_REQS has at least one tagged test (test coverage)
+  2. Every requirement in ALL_REQS has a row in ARCHITECTURE.md (architecture cross-check, FR-107)
+
+  Run the tool and return the complete output. Do not modify any files.
+  Choose the tool matching the mode: run_coverage_normal for normal, run_coverage_strict for strict.
+
+user: |
+  Run the requirement coverage check in {{ "strict" if mode == "strict" else "normal" }} mode.
+  Use the {{ "run_coverage_strict" if mode == "strict" else "run_coverage_normal" }} tool.
+  Return the full output.

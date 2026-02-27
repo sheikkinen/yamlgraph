@@ -29,7 +29,7 @@ nodes:
     variables:
       fr_id: "{state.fr_id}"
     state_key: enforce_result
-    timeout: 600  # 10 minutes for TDD cycle
+    timeout: 3600  # 60 minutes for TDD cycle
 
   # Phase 2: Demo - Create example using same session
   # FR-105: Resumes enforce session so Copilot has full context of what was implemented
@@ -43,7 +43,7 @@ nodes:
     variables:
       fr_id: "{state.fr_id}"
     state_key: demo_result
-    timeout: 300  # 5 minutes for demo creation
+    timeout: 600  # 10 minutes for demo creation
 
 edges:
   - from: START
