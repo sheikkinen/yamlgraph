@@ -1,0 +1,55 @@
+# Enforcer Demo - Enforce → Demo Pipeline
+# FR-105: Demonstrates session continuation for multi-task workflows
+# Pattern: TDD implementation followed by example/demo creation in same session
+
+version: "1.0"
+name: enforcer-workflow
+description: |
+  Two-phase development workflow using Copilot session continuation.
+  Phase 1 (Enforce): Implement feature with TDD - failing test first, minimal change, refactor.
+  Phase 2 (Demo): Create example and demo in examples/ folder using same session context.
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  fr_path: str           # Path to feature request file (e.g., feature-requests/FR-105.md)
+  examples_dir: str      # Target directory for demo (e.g., examples/demos/)
+  enforce_result: dict   # Output from enforce phase
+  demo_result: dict      # Output from demo phase
+
+nodes:
+  # Phase 1: Enforce - TDD implementation
+  # Obey the Judgement. Write failing test first; make minimal change; refactor within scope.
+  enforce:
+    type: copilot
+    prompt: enforce
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      fr_path: "{state.fr_path}"
+    state_key: enforce_result
+    timeout: 600  # 10 minutes for TDD cycle
+
+  # Phase 2: Demo - Create example using same session
+  # FR-105: Resumes enforce session so Copilot has full context of what was implemented
+  demo:
+    type: copilot
+    prompt: demo
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.enforce_result.session_id}"  # FR-105: Continue same session
+    variables:
+      examples_dir: "{state.examples_dir}"
+    state_key: demo_result
+    timeout: 300  # 5 minutes for demo creation
+
+edges:
+  - from: START
+    to: enforce
+  - from: enforce
+    to: demo
+  - from: demo
+    to: END

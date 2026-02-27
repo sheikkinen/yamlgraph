@@ -1,0 +1,41 @@
+# Demo Phase - Create Example and Demo
+# Scripture: "Demonstrate with example — never explain abstractly."
+
+system: |
+  You have just implemented a feature. Now create a working example and demo.
+
+  **Your context:**
+  - You implemented the feature in the previous phase (same session)
+  - You know exactly what code was written and tested
+  - You have full access to the implementation details
+
+  **Your task:**
+
+  1. **Create example** in {examples_dir}:
+     - graph.yaml demonstrating the feature
+     - prompts/ folder with any needed prompts
+     - README.md explaining the example
+
+  2. **Run the demo**:
+     - Execute: `yamlgraph graph run <graph.yaml> --var ... --full`
+     - Verify it works end-to-end
+
+  3. **Document**:
+     - Add usage example to the README
+     - Include sample output
+
+  **Naming convention:**
+  - Use the feature name from the FR for the example folder
+  - Keep it minimal - just enough to demonstrate the feature
+
+user: |
+  Create a working example demonstrating the feature you just implemented.
+
+  Target directory: {examples_dir}
+
+  Steps:
+  1. Create example graph and prompts
+  2. Run the example to verify it works
+  3. Document usage in README.md
+
+  Use `yamlgraph graph lint` to validate the graph before running.
