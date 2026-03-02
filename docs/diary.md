@@ -946,3 +946,51 @@ The judge phase rigorously validated technical assumptions, confirming dict-merg
 **Heuristic:** *When a working prototype accumulates three or more backlog items that require "creative abuse" of the framework's execution model, the framework is correct but the abstraction is wrong. Write the architectural reflection before the next feature, not after the next outage.*
 
 **Seed:** The navigator pattern dispatches to subgraphs after classification. But voice calls are interrupt-driven — the caller doesn't wait for a subgraph to complete before changing topic. Can LangGraph's interrupt mechanism express "abandon this subgraph, re-route to another" — or does real-time interaction inherently require an event-driven (FSM) outer loop?
+
+---
+
+## 2026-03-02: The Dual-Graph Veto Pattern — Questionnaire-API Deep Dive
+
+**Context:** Research into `questionnaire-api`'s production architecture revealed a pattern that solves the mid-dialogue intent change problem I've been circling in ninchat-voice. The same user input is routed by the API layer to *two* graphs simultaneously — the dialogue graph responsible for the conversation, and a lightweight intent-classifier graph with veto authority. Custom session handling code (session registry, reroute chains, portable state) enables seamless graph switching when the veto fires.
+
+**The Architecture, Concretely.** When a user message arrives at `YamlGraphInterviewSession.process_message()`, the session adapter first checks whether the session is a resume (has existing checkpoint). If so, *before* sending `Command(resume=message)` to the main navigator graph, it runs a parallel classification:
+
+1. **Intent classifier** (`intent-classifier.yaml`) — a 3-node mini-graph: `START → classify → END`. Takes `user_message`, `current_intent`, and `conversation_context` (last 3 messages). Returns `IntentResult`: intent, confidence (0.0–1.0), `is_topic_change` boolean, reasoning.
+
+2. **Veto logic** in `yamlgraph_session.py` lines 181–213 — a tiered decision:
+   - **Crisis always wins.** `intent == "crisis"` triggers immediate crisis handoff. No cooldown, no confidence threshold. The session returns a `crisis` status with helpline info. The graph never sees the message.
+   - **Reroute requires proof.** Topic change needs: (a) not in `SKIP_REROUTE_PHASES` (recap, complete, crisis, emergency), (b) `messages_since_reroute >= 3` (cooldown), (c) new intent differs from stored intent, (d) confidence ≥ 0.8. Only when all four gates pass does the veto fire.
+   - **Otherwise: continue.** The main graph gets `Command(resume=message)` and processes normally.
+
+3. **Session surgery** on reroute. `_handle_reroute()` returns an `InterviewResponse(status="reroute")` to the API route handler, which then: generates a new session ID (`session-abc-r1`), maps the intent to a template (`INTENT_TO_TEMPLATE: elderlycare → interrai-ca, depression → phq9, alcohol → audit`), registers the new session in Redis registry (`session:registry:{base_id}`), and immediately calls `new_session.process_message(trigger_message)` on the new graph. The user sees a seamless transition — one API call, one response, but the graph underneath changed.
+
+4. **Session registry** tracks the reroute chain: `base_id → {active_session_id, active_template, reroute_chain: [{session_id, template}, ...]}`. On subsequent messages, `resolve_session()` follows the chain: if registry says the active session is `session-abc-r2` running `phq9`, that's where the message goes — regardless of what the client thinks it's talking to. Max chain length: 5 (prevents infinite loops).
+
+5. **Portable state** — on reroute, demographic fields (`age`, `gender`, `phone`, etc.) are extracted from the old session's state and made available to the new session. The user doesn't re-enter their age when switching from depression screening to elderly care assessment.
+
+**Trap: Assuming the Graph Must Handle Everything.** In ninchat-voice, I tried to encode intent detection *inside* the graph (`classify_intent` router node at edge level). This creates the Pydantic-vs-string bug, the linter E103 conflict, and — most critically — makes intent change detection synchronous with graph execution. The questionnaire-api pattern is fundamentally different: the API layer owns intent detection, running it *before* the graph sees the message. The graph is purely a dialogue executor. The API is the supervisor. This is the separation of concerns I was missing.
+
+**Trap: Confusing Classification with Veto.** The navigator graph has its own `classify` router node for *initial* routing (first message → which subgraph?). The intent-classifier is a separate graph for *ongoing* monitoring (is the user changing topic mid-conversation?). Two different classification problems:
+- **Initial:** "What does the user want?" — runs once, at graph start, inside the graph.
+- **Ongoing:** "Has the user changed their mind?" — runs on every resume, outside the graph, with conversation context and confidence thresholds.
+
+Mixing these (as I did in ninchat-voice) means the graph's classify node must serve both purposes, which overloads a single node with contradictory ergonomics: first-message routing needs no context, but mid-dialogue detection needs the last 3 messages and a confidence threshold.
+
+**Insight: The API Layer as Immune System.** The veto pattern is like an immune system: every incoming message passes through a checkpoint before reaching the "body" (dialogue graph). Most messages pass through unchanged. But when a crisis keyword appears, or when the user clearly says "actually, I want to talk about something else" with 0.8+ confidence, the immune system intercepts — and the body never has to deal with it. The cooldown (`messages_since_reroute >= 3`) prevents overreaction (autoimmune response). The tiered confidence prevents false positives (the prompt explicitly says "Äiti juo paljon kahvia" in an elderlycare context is NOT alcohol). This is defense-in-depth at the API boundary.
+
+**Insight: Session Identity Is Not Thread Identity.** The reroute chain shows that a single "conversation" (from the user's perspective) may span multiple graph sessions (`session-abc`, `session-abc-r1`, `session-abc-r2`). The session registry is a *virtual identity layer* — it maps the user's conversation identity to the current active graph thread. This decouples the user's perception ("I'm in one conversation") from the system's reality ("you've been through 3 different graphs"). The `get_base_session_id()` function that strips `-rN` suffixes is the normalization boundary.
+
+**Insight: The Reroute Is Also the Trigger Message.** When a reroute fires, the trigger message (the one that caused the intent change) is forwarded to the *new* graph as its first input. The old graph never sees it. This is semantically correct — if the user says "Actually, I'm worried about my drinking", that message should be the first input to the AUDIT questionnaire, not a dead-letter in the elderlycare session. The message is both the veto trigger and the new session's seed.
+
+**Heuristic:** *When a graph needs to detect external events (intent change, crisis, timeout) that alter its own execution path, the detection belongs in the API layer that invokes the graph — not inside the graph itself. The graph should be a pure function of (state, input) → (new_state, output). The API wraps it with guards, interceptors, and routing — the same input, two different interpreters.*
+
+**Applicability to Ninchat-Voice.** The ninchat-voice coordinator can adopt this pattern directly:
+- Extract the `classify_intent` router node from the graph.
+- Create a lightweight `intent-classifier.yaml` mini-graph (3 nodes, ~30 lines).
+- Add veto logic in `server.py` before `Command(resume=message)`.
+- Use the existing `session_registry.py` pattern for reroute tracking.
+- The Pydantic-vs-string bug disappears — Pydantic stays in the classifier graph, the API extracts `.intent` as a plain string for the veto decision.
+
+This validates Diary 2026-03-02's seed: *"Can LangGraph's interrupt mechanism express 'abandon this subgraph, re-route to another'?"* — the answer is: don't make LangGraph express it. Make the API express it, and LangGraph just executes.
+
+**Seed:** The dual-graph pattern runs classification sequentially (block on classifier, then decide, then run main graph). In voice, latency matters — can the classifier and the main graph run in parallel, with the classifier result arriving as a "cancel" signal if the veto fires? Or does the checkpoint-based resume model make parallel speculative execution impossible?
