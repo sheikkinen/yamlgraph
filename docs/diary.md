@@ -6,6 +6,56 @@ Previous: [diary-2026-02-24.md](diary-2026-02-24.md) — 11 entries from 2026-02
 
 ---
 
+## 2026-02-27: FR-109 Enforce — The Boundary Between Framework and Project
+
+**Context:** Enforcing FR-109 (Ninchat Voice Coordinator). TDD cycle: RED (21 tests, 19 failing) → GREEN (all 21 passing) → REFACTOR (ruff clean). Implementation: graph YAML, 2 prompts, 3 node modules, server.py.
+
+**Trap: Framework Bleeding.** First instinct was to register REQ-YG-107 and CAP-34 in ARCHITECTURE.md and req_coverage.py — the standard framework traceability path. But `projects/` folders are private repos with their own requirement namespaces. Outcaller uses `OC-XXX`/`IC-XXX`, not `REQ-YG-XXX`. The framework's req_coverage.py only scans `tests/unit/` and `tests/integration/`, never `projects/*/tests/`. Adding REQ-YG-107 would create an always-uncovered phantom requirement. The wingman caught this: "check the style from outcaller."
+
+**Trap: GraphConfig API Assumptions.** Tests assumed `GraphConfig.nodes` returns Pydantic models with attributes (`.state_key`, `.on_error`, `.from_node`). In reality, `load_graph_config()` returns raw dicts. `GraphConfigSchema` is the Pydantic validator but it's separate from what the loader exposes. Seven tests failed because they accessed attributes instead of dict keys. The fix: `.get("state_key")`, `.get("on_error")`, `.get("from")`.
+
+**Trap: Relative Path Resolution.** The graph YAML set `prompts_dir: prompts/` assuming resolution from project root. But the linter's `resolve_prompts_dir()` resolves relative to `graph_path.parent` — which is `graphs/`, not `projects/ninchat_voice/`. So it looked for `graphs/prompts/` instead of `prompts/`. Fix: `prompts_dir: ../prompts/`.
+
+**Insight: Private repos in a monorepo need boundary discipline.** Framework tooling (ARCHITECTURE.md, req_coverage.py, pre-commit hooks) should not reference `projects/` contents. Projects reference the framework (import `yamlgraph.*`), not the other way around. This is the same one_law: normalize at the boundary where external data enters.
+
+**Heuristic:** *When a project lives under `projects/`, use project-local requirement IDs (XX-NNN) and project-local conftest enforcement. Never register project requirements in framework-level ARCHITECTURE.md or req_coverage.py.*
+
+**Seed:** Should `projects/` have a shared conftest pattern that auto-discovers the project prefix from directory name? e.g., `ninchat_voice` → `NV-`, `outcaller` → `OC-`. This would standardize the convention without manual configuration.
+
+---
+
+## 2026-02-27: FR-109 Second Judgement — The Syntax You Invent Does Not Exist
+
+**Context:** Second Judgement of FR-109 after amendments resolved all 12 original defects. 17-point codebase cross-reference audit. Found 3 new defects (1 critical, 2 moderate) plus 3 observations.
+
+**Trap: Wishful Syntax.** The graph YAML used `- START -> await_call` arrow syntax for 8 of 12 edges. This syntax does not exist in the framework. FR-033 (sequence syntax) was proposed but never implemented. The `EdgeConfig` schema requires `from:`/`to:` dict format. No existing graph in the monorepo uses arrow syntax. The Planner wrote the YAML as they wished it looked, not as the framework parses it. J-13 would have caused an immediate parse failure on the first `yamlgraph graph lint`.
+
+**Trap: Phantom State Key.** The `create_session` node declared `state_key: ninchat_session`, expecting a dict `{bot_greeting, queue_id}` to be stored under that key. But `python_tool.py:158` ignores `state_key` when the function returns a dict — it merges all keys directly. So `bot_greeting` and `queue_id` appear at state root, while `ninchat_session` is never populated. The state spec table listed it as a real key read by two nodes. The existing `ninchat-inquiry-rewrite` graph gets this right: no `state_key` on dict-returning nodes.
+
+**Insight: The second Judgement catches what the amendment introduced.** The first Judgement found what the plan omitted (TelcoSession, state declarations). The second Judgement found what the amendment invented (arrow syntax, phantom state). Each round of writing introduces its own errors because the writer's mental model diverges from the framework's actual behavior. The audit must re-verify after amendment, not just confirm checkboxes.
+
+**Heuristic:** *After amending, re-judge. The amendment writes new code claims that weren't in the original plan and therefore were never audited.* Treat amended sections as fresh claims requiring the same cross-reference rigor as the original.
+
+**Seed:** Should `yamlgraph graph lint` validate that `state_key` on a `type: python` node is actually populated by the function's return type? A static check could warn when a dict-returning function has a `state_key` that doesn't match any key in the returned dict.
+
+---
+
+## 2026-02-27: FR-109 Amendment — The Judge Must Amend What the Planner Omits
+
+**Context:** FR-109 (Graph-as-Coordinator for Ninchat Voice) went through the full rite: Research → Plan → Judge → Amend. The Judgement found 12 defects (5 critical, 4 moderate, 3 minor). The Amendment rewrote the entire FR to resolve all 12 inline, producing a 543-line spec that is internally consistent and traceable.
+
+**Trap: Quick Confidence.** The original plan said "port from outcaller" for voice functions without acknowledging that every voice function depends on `TelcoSession` — a 350-line async/threading coordinator holding audio queues, event loops, and mark synchronization. The plan casually proposed porting `speak()` and `listen()` as if they were self-contained. They are not. J-1 caught this: the cheapest fix was import, not port. The trap was assuming "port" means "copy the function" when the function's entire operational context is an external singleton.
+
+**Trap: Downstream Fix.** The prompt reuse claim ("ninchat_mediator.yaml reused unmodified") was false for the greeting case — the prompt references `{user_message}` which doesn't exist at greeting time. J-3 caught this. The fix was normalize at the boundary: separate prompt for greeting, Jinja2 conditional for response. The plan should have caught this by reading the prompt template, not assuming reuse.
+
+**Insight: The Judgement phase is the most valuable phase.** Planning generates plausible structure. Judging cross-references every claim against the actual codebase. Of the 12 defects, 5 were critical — meaning the implementation would have failed at runtime if the plan had been followed literally. The Judge found what the Planner's confidence concealed.
+
+**Heuristic:** *When a plan says "port from X", enumerate X's dependencies before granting authority.* A function is not portable unless its entire call graph is accounted for. Module-level singletons are the most dangerous — they look like ordinary function calls but carry hidden global state.
+
+**Seed:** Could the linter (`yamlgraph graph lint`) detect when a `type: python` tool references a module that imports from outside `projects/<current>/`? This would surface cross-project dependencies (like TelcoSession) at lint time, before a Judge has to find them manually.
+
+---
+
 ## 2026-02-27: Inquisitor Audit — FR-107 Diary Escalated to Violation
 
 **Context:** Audit of HEAD (`bb62d3c`), covering 5 commits. High-water mark from prior audit: `a012852`. New commit: `bb62d3c` (`docs(diary): FR-106 enforce pipeline reflection`). Full 5-commit window: bb62d3c, a012852, c89e6e3, 8915290, 8d0e4bf. `req_coverage.py --strict` passes clean. All 56 noqa suppressions confessed.
@@ -862,3 +912,37 @@ The session focused on finalizing **FR-101**, a feature request addressing a str
 The judge phase rigorously validated technical assumptions, confirming dict-merge behavior, compound conditional logic, and framework compatibility. A cognitive trap—assuming ambiguity in `speak_greeting`’s lack of a `state_key`—was debunked as harmless due to default behavior. The verdict approved the FR, praising its **surgical precision** and **testable criteria**, while rejecting scope creep temptations. The MemorySaver-only constraint was correctly scoped, ensuring no unintended side effects.
 
 **Seed:** How might we institutionalize this level of technical validation *earlier* in the FR drafting process to reduce iterative reviews without sacrificing rigor?
+
+---
+
+## 2026-02-27: Planner — FR-109 Second Amendment
+
+**Context:** Second judge→amend cycle on FR-109 (renamed from FR-101). The first amendment resolved 12 defects; the second judgement found 3 new defects (J-13 critical, J-14 moderate, J-15 moderate) plus 2 observations (O-2, O-3) — all introduced by the first amendment's creative additions.
+
+**Trap: Amendment Drift.** Each amendment cycle introduces new claims that weren't in the original. Arrow syntax (J-13) was invented for readability but doesn't exist in the framework. `ConnectionPool` (J-15) was confabulated from a module-level dict. `state_key` on dict-returning nodes (J-14) was cargo-culted from LLM node patterns where it's meaningful. The trap: *confidence from having just fixed 12 defects lowers vigilance for the next batch.* The cure: every material claim in an amendment must be re-verified against source, not assumed correct because the surrounding context was just validated.
+
+**Insight: Observation Promotion.** O-2 (`on_error` default) and O-3 (`call_disconnected` guard) were flagged as "not defects" but both represented real design gaps. In voice context, silently absorbing an LLM error means speaking garbage; ignoring caller hangup means forwarding silence to Ninchat. Observations should be treated as defects-in-waiting until consciously resolved.
+
+**Heuristic:** *The amendment that fixes N defects introduces ~N/4 new ones. Budget a re-judgement after every amendment.* This converges: 12 → 3 → (expected ~1). If the ratio doesn't decrease, the plan's abstraction level is wrong.
+
+**Seed:** Can the judge→amend cycle be partially automated by extracting edge syntax, state_key usage, and connection patterns into lintable schema constraints — so that J-13/J-14/J-15-class defects are caught by tooling, not by human audit?
+
+---
+
+## 2026-03-02: FR-109 — From Plan to Live Telephony to Architectural Reckoning
+
+**Context:** FR-109 (Ninchat Voice Coordinator) went from TDD enforcement through two live phone calls to an architectural reflection document with four epics. The full arc: RED (21 tests, 19 failing) → GREEN (21 passing) → live call 1 (port bug, caller hung up after greeting) → port fix → live call 2 (two-turn conversation with Ninchat dental bot) → intent router addition → live call 3 (goodbye correctly routed, skipping Ninchat round-trip) → architectural reflections → backlog epics.
+
+**Trap: The Working Prototype Trap.** Two successful phone calls created momentum to keep building on the current architecture. The graph worked — calls connected, greetings spoke, dental information was relayed in Finnish. But "working" masked three structural debts: (1) a god module (`voice_ws.py`, 372 lines, four interleaved concerns), (2) stringly-typed edge conditions that already had a bug (Pydantic object vs bare string in intent condition), and (3) a sequential execution model that cannot express concurrency (barge-in impossible). The trap: *success in the demo creates resistance to architectural criticism.* The prototype works, so why redesign?
+
+**Trap: The One-Line Fix Illusion.** The port mismatch (`VOICE_SERVER_PORT` defaulting to 8080 while ngrok tunneled to 8765) was a one-line fix. But the root cause was boundary normalization failure — the shell script and the Python process each had their own notion of the port, loaded from different defaults. The Scripture says: *normalize at the boundary where external data enters.* The `.env` file was the boundary; neither the shell nor Python normalized there. One-line fix, systemic lesson.
+
+**Insight: The Graph Is a Disguised FSM.** The YAML graph has 12 nodes, 15 edges, conditional branches, a router, and a conversation loop. The edges encode `listen → classify → (goodbye? question?) → ...` transitions. This is a finite state machine in a DAG costume. The insight crystallized when adding the `classify_intent` router: I was encoding FSM transitions as graph conditions and discovering the abstraction mismatch live (Pydantic serialization bug, linter E103 false positive, compiler `unhashable type: list` crash). Each patch was fighting the wrong abstraction.
+
+**Insight: The Navigator Pattern Already Exists.** While reflecting on graph-switching (E4), the research agent discovered that `questionnaire-api/navigator` already implements intent-driven subgraph dispatch in production — `classify → route_by_intent → [run_interrai, run_phq9, run_booking, ninchat_connect]`. The coordinator graph for ninchat-voice doesn't need invention; it needs imitation. The cheapest code is the code someone already wrote.
+
+**Insight: Epics Stratify the Architecture.** The four epics (barge-in, static audio, coordinator graph, graph switching) split cleanly: E2 and E3 are achievable in the current YAML-graph paradigm. E4 works for sequential flows via the navigator pattern. Only E1 (barge-in) — requiring concurrent audio monitoring during TTS — fundamentally demands an event-driven controller (FSM). This stratification prevents premature migration: build E2/E3/E4 with proven patterns, introduce FSM only when E1 forces it.
+
+**Heuristic:** *When a working prototype accumulates three or more backlog items that require "creative abuse" of the framework's execution model, the framework is correct but the abstraction is wrong. Write the architectural reflection before the next feature, not after the next outage.*
+
+**Seed:** The navigator pattern dispatches to subgraphs after classification. But voice calls are interrupt-driven — the caller doesn't wait for a subgraph to complete before changing topic. Can LangGraph's interrupt mechanism express "abandon this subgraph, re-route to another" — or does real-time interaction inherently require an event-driven (FSM) outer loop?
