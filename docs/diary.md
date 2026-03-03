@@ -281,3 +281,46 @@ that would cost days of debugging. The cheapest action returns information, not 
 services. When NC-112c separates services into true processes, both patterns break.
 What's the unified service-handle pattern that works for both in-process and
 inter-process topologies?
+
+## Entry 72 — 2026-03-03: The "Pre-Existing" Lie
+
+**Context:** NC-112b enforcement — wiring real service actions to the FSM coordinator.
+Created 4 mini-graphs, 6 real actions, 6 timed mocks, 4 integration tests. All green.
+Then ran NC-110 pytest: 9 failures in `TestGraphYaml`.
+
+**Trap encountered: *Quick Confidence → False Label.*** My first response was to label
+the 9 failures as "pre-existing" because they also failed before NC-112b (verified via
+`git stash`). The project doctrine explicitly rejects this: "Term 'pre-exiting failure'
+doesn't exist; likely cause: test pollution." The user caught it immediately.
+
+**Root cause:** CWD pollution. Tests used `load_graph_config("projects/ninchat_voice/graphs/...")`
+— a relative path expecting `cwd = yamlgraph root`. But `pytest` was invoked from
+`projects/ninchat_voice/`, making the relative path unresolvable. The graph existed; the
+path was just wrong from that vantage point.
+
+**Fix:** Added `monkeypatch.chdir(ROOT)` autouse fixture to `conftest.py`. Now tests
+pass from both `yamlgraph/` and `projects/ninchat_voice/`. Classic boundary normalization:
+fix at the entry point, not downstream.
+
+**The deeper insight:** "Pre-existing" is a label that kills investigation. Every test
+failure is either (a) a real defect, (b) a test defect, or (c) an environment defect.
+All three deserve fixes. Labeling something "pre-existing" is choosing to carry tech
+debt forward, which is antithetical to "Kill all entropy."
+
+**NC-112b enforcement results:**
+- 4 mini-graphs (lint-verified): intent-classifier, rewrite-greeting, rewrite-response, goodbye
+- 6 real actions: yamlgraph, ninchat_connect, ninchat_send, voice_speak, voice_listen, call_cleanup
+- 6 timed mocks: matching actions with 100ms-1s delays + injection hooks
+- 4 integration tests: timed happy call, hangup during listen, hangup during speak, ninchat error
+- 9 hangup transitions added to coordinator (J-5 mitigation)
+- conftest.py CWD fix: 42/42 NC-110 tests pass from either CWD
+- NC-112a workflow: 5/5 pass (27s)
+- NC-112b integration: 4/4 pass (28s)
+
+**Heuristic:** Never label a failure "pre-existing" — trace it, fix it, or file it.
+The label is cognitive anesthesia: it numbs the urgency without healing the wound.
+
+**Seed:** The conftest CWD fixture works, but it's a band-aid. The real question:
+should ninchat_voice tests use absolute paths computed from `__file__`, or should
+`load_graph_config` itself search upward for a workspace root marker? The former
+is explicit; the latter would make all project tests portable without conftest hacks.
