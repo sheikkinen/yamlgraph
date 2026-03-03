@@ -236,3 +236,48 @@ Real services will return events via socket after 100ms-5s. What happens when th
 receives an event for a state it has already left? Is the engine's event queue durable,
 or are late events silently dropped? This is the dynamic ordering question from Entry 69's
 seed — and NC-112b will answer it empirically.
+
+## Entry 71 — 2026-03-03: The Latency Questions Answered
+
+**Context:** NC-112b planning — Deep research into statemachine-engine internals,
+NC-110 services, architectural options, and fsm-router patterns. Synthesized into a
+feature request for wiring real services to the NC-112a coordinator.
+
+**The seed from Entry 70 asked:** What happens when late events arrive? Are they dropped?
+**Answer (from engine source audit):** Yes. Silently. `_find_transition()` returns None,
+`process_event()` logs DEBUG and returns False. No queue, no retry, no error. If the FSM
+has left the state, the event is gone. This confirmed the HIGH risk but also revealed the
+mitigation: the NC-112b call flow is sequential — only one event is expected per state,
+and only `hangup` can race against it. Adding `hangup` transitions from every dialogue
+state makes the FSM catch the hangup on its next poll after the blocking action returns.
+
+**Trap encountered: *Option Paralysis.*** Four architecture options (A: blocking, B: full
+async, C: hybrid, D: external monitor) plus the v3 process-separation design. The temptation
+was to implement v3 immediately because it's the "correct" architecture. But the research
+showed: (a) NC-110 services are already sync/blocking, (b) the engine's single-threaded poll
+loop makes async dispatch cosmetic — events still queue, (c) the v3 dispatcher pattern
+(return None + socket events) requires IPC protocol design which is orthogonal to proving
+the integration works. **Decision: Option A (blocking, in-process) for NC-112b.** The
+migration path to v3 is mechanical — action bodies become service handlers.
+
+**Second insight: Research answers are better than implementation answers.** Entry 70's
+seed was "what happens when late events arrive?" The naive approach would be to build
+NC-112b and discover empirically. Instead, reading 700 lines of engine source code
+answered 7 questions in 20 minutes — questions that would have taken days to discover
+via debugging. The engine audit (R9) is now the most valuable page in the project.
+
+**Third insight: Existing patterns are more valuable than they appear.** The fsm-router's
+`YamlgraphAction` already solves the yamlgraph-in-engine problem. The intent classifier's
+route-to-event mapping was already designed. The TelcoSession module-level registry was
+already built. NC-112b builds almost entirely from existing pieces — the novelty is the
+composition, not the components.
+
+**Heuristic:** When planning a complex integration, buy certainty with source code
+reading, not with implementation experiments. A 30-minute source audit eliminates risks
+that would cost days of debugging. The cheapest action returns information, not code.
+
+**Seed:** NC-112b actions store `_ninchat_conn` in engine context and retrieve
+`TelcoSession` from module-level registry — two different lifecycle patterns for two
+services. When NC-112c separates services into true processes, both patterns break.
+What's the unified service-handle pattern that works for both in-process and
+inter-process topologies?
