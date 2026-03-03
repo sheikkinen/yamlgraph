@@ -74,3 +74,61 @@ themselves in mock simplicity.
 **Seed:** Now that services take explicit session parameters, is the module-level session
 registry (`get/set/clear_active_session`) still needed? Could the graph state carry the
 session reference directly, eliminating global mutable state entirely?
+
+## Entry 66 — 2026-03-03: Reflections on Reflections
+
+**Context:** Wrote Reflection 4 in `projects/ninchat_voice/architectural-reflections.md`
+after reviewing R1–R3 post-NC-110 implementation. The document is now 4 reflections over
+~750 lines spanning 5 days.
+
+**Trap encountered: *Consistency Illusion.*** Reading three reflections that reach
+different conclusions about FSM necessity (R1: maybe, R2: defer, R3: essential) initially
+feels like contradiction. The trap is demanding premature consistency. Each reflection was
+correct for its information set. R2 only had epic descriptions; R3 had the questionnaire-api
+source code. The "contradiction" is actually convergence — each iteration narrows the
+solution space with harder evidence.
+
+**Insight: Implementation Answers Architectural Questions.** R1–R3 were all written before
+NC-110 (Phase 2). After implementation, the speculative questions resolve naturally:
+- "Can the god module decompose?" → Yes, cleanly into 4+1 modules.
+- "Does the adapter layer add overhead?" → No, it's the testability seam.
+- "Is the session registry still needed?" → For services, no. For FSM, it becomes redundant.
+- "What are Phase 3's prerequisites?" → Services decoupled (done), intent-classifier (not done).
+
+The pattern: architectural reflections converge when interleaved with implementation.
+Pure analysis oscillates between options; building eliminates options.
+
+**Heuristic:** When architectural reflections contradict each other, don't reconcile them —
+implement the next phase and let the code answer. Each phase narrows the decision space
+for the next. Analysis is divergent; implementation is convergent.
+
+**Seed:** The two-source-of-truth tension (graph state for LLM context vs FSM context for
+call lifecycle) is the central design question for Phase 3. Is the clean separation
+("orthogonal concerns") stable under real-world pressure, or will features like
+context-aware greetings ("Welcome back, you were asking about...") force the FSM to read
+graph state, creating the coupling we tried to avoid?
+
+## Entry 67 — 2026-03-03: The Dispatcher Pivot
+
+**Context:** Three architectural iterations of NC-112 in one session. v1 (worker FSMs)
+rejected for pattern leaking. v2 (single-process, direct calls) exposed blocking problem.
+v3 (service-process architecture) resolves both.
+
+**Trap encountered: *Binary Overcorrection.*** When the user rejected Unix socket IPC (v1),
+the correction was "no IPC at all" (v2). This eliminated the pattern leak but introduced a
+new defect: blocking actions making the FSM deaf. The actual problem wasn't sockets — it
+was services-as-FSMs. The overcorrection cost an entire design iteration.
+
+**Insight: Separate the dispatcher from the executor.** The v2 design conflated two roles
+in each action: dispatching (deciding what to do) and executing (doing it). When voice_speak
+both decides to speak AND streams 15 seconds of TTS audio, the FSM can't process other
+events. v3 separates these: actions dispatch commands to services (immediate), services
+report completion via socket (asynchronous). The FSM stays responsive. This is also the
+"three-layer pattern" from CLAUDE.md applied at the process level.
+
+**Heuristic:** When the controller does the work, it can't hear the world. Make the
+controller deaf to work and fluent in events.
+
+**Seed:** The Unix socket protocol between services and coordinator is currently ad-hoc.
+When does ad-hoc JSON become a liability? Is the trigger the second service, the tenth
+message type, or the first bug caused by message ambiguity?
