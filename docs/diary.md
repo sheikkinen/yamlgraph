@@ -194,3 +194,45 @@ interface description is exactly as trustworthy as a hallucinated function signa
 return events synchronously — the entire call flow processes in one engine poll iteration.
 Real services are async — events arrive via socket at unpredictable times. Is there a
 "dynamic audit" pattern that traces actual execution timing to catch ordering assumptions?
+
+## Entry 70 — 2026-03-03: The Database Was the Ghost
+
+**Context:** NC-112a enforcement — building coordinator YAML, 6 Python stub actions,
+test library, and 5 workflow test scenarios via TDD. 4 of 5 passed on first GREEN. Scenario
+5 (error recovery) failed silently — the engine sat in idle for 140+ iterations, never
+processing the `incoming_call` event. The event was sent successfully (control socket
+confirmed) but the engine was deaf to it.
+
+**Trap encountered: *Shared Mutable State Across Test Boundaries.*** The statemachine-engine
+uses a SQLite database (`data/pipeline.db`) for machine state tracking and event storage.
+Previous test runs left stale machine registrations and event records. The new engine instance
+started fresh but the database had ghosts — old machine state entries that confused the event
+routing. The control socket delivered the event, but the engine's internal state tracking
+(driven by the database) silently discarded it.
+
+The fix was trivial: `statemachine-db recreate-database --force` before each test. But
+finding the cause required elimination of 4 competing hypotheses (leftover processes,
+timing issues, JSON parsing failure, control socket routing).
+
+**Second discovery: Engine blocks during action execution.** Scenario 4 (hangup) initially
+failed because the `voice_listen` stub slept for 5s — the engine's main loop awaits
+`action.execute()`, blocking control socket polling entirely. External events (hangup) are
+only processed between main loop iterations. Solution: return `None` from the stub to keep
+the engine responsive. This is the v3 dispatcher pattern — and it was discovered empirically,
+not by reading docs.
+
+**Insight:** In event-driven systems with persistent state, test isolation requires killing
+*three* things: the process, the database, and the socket. Missing any one creates ghosts
+that fail silently. The error recovery test didn't fail loudly (crash, exception, error log)
+— it failed *by absence* (the transition never happened). Absence failures are the hardest
+to diagnose because there's no stack trace, no error message — just silence.
+
+**Heuristic:** Normalize test state at the boundary where external state enters — process,
+database, socket. Do not assume the previous test's cleanup was sufficient. Recreate, don't
+clean.
+
+**Seed:** The stubs process the entire call flow in a single engine poll iteration (~50ms).
+Real services will return events via socket after 100ms-5s. What happens when the engine
+receives an event for a state it has already left? Is the engine's event queue durable,
+or are late events silently dropped? This is the dynamic ordering question from Entry 69's
+seed — and NC-112b will answer it empirically.
