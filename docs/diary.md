@@ -132,3 +132,35 @@ controller deaf to work and fluent in events.
 **Seed:** The Unix socket protocol between services and coordinator is currently ad-hoc.
 When does ad-hoc JSON become a liability? Is the trigger the second service, the tenth
 message type, or the first bug caused by message ambiguity?
+
+## Entry 68 — 2026-03-03: The Orbit Must Decay
+
+**Context:** After writing R7 — a reflection on six reflections and three architecture
+versions. ~3230 lines of architectural documentation, zero lines of coordinator code.
+
+**Trap encountered: *Analysis as Proxy for Progress.*** Each new version of NC-112, each
+new reflection, each new options document feels like forward motion because it produces
+artifacts — topology diagrams, decision matrices, heuristics. The trap: confusing the
+map for the territory. Entry 66 explicitly stated "pure analysis oscillates; building
+eliminates options." Then we produced R5, R6, v2→v3, and an options doc — all analysis,
+no building. **The heuristic was correct. The behavior violated it.**
+
+**Insight: v3 is v1 with one edit.** The final service-process architecture (v3) differs
+from the original multi-process design (v1) in exactly one way: services are plain
+processes, not FSM machines. Same coordinator, same Unix sockets, same IPC topology. The
+v1→v2→v3 journey was: overcorrect (remove all IPC), then correct the overcorrection
+(restore IPC without FSM wrappers). Three iterations for what could have been a single
+surgical amendment to v1: "services are processes, not worker FSMs."
+
+The pattern generalizes: when feedback is imprecise ("that feels wrong"), the correction
+swings wide. When feedback is surgical ("remove the FSM wrapper, keep the process"), the
+correction is proportional. Parsing feedback precisely saves iteration cycles.
+
+**Heuristic:** When you've designed it three times without building it once, the bottleneck
+is no longer understanding — it's commitment. The next document should be a test file,
+not a reflection.
+
+**Seed:** NC-112a defers the command mechanism ("stubs don't need it"). Is this wise
+deferral or analysis-avoidance wearing a pragmatic costume? Will the happy-path stubs
+create false confidence that collapses when real socket communication introduces ordering,
+timing, and failure modes that stubs can't simulate?
