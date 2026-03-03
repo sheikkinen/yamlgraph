@@ -164,3 +164,33 @@ not a reflection.
 deferral or analysis-avoidance wearing a pragmatic costume? Will the happy-path stubs
 create false confidence that collapses when real socket communication introduces ordering,
 timing, and failure modes that stubs can't simulate?
+
+---
+
+## Entry 69 — 2026-03-03: The Source Code Audit
+
+**Context:** Formal judgement of NC-112a. Read statemachine-engine source (~800 lines of
+engine.py, action_loader.py, base.py, cli.py) to verify every assumption in the FR.
+
+**Trap encountered: *Plausible Interface Confidence.*** NC-112a's stubs used
+`context.get("action_params")` and files named `stub_*.py`. Both looked correct — clean
+code, consistent naming, reasonable patterns. Both were completely wrong. The engine passes
+config to `__init__` (not context), and discovers `*_action.py` files (not `stub_*.py`).
+The FR was internally consistent but externally invalid. Confidence in the document's form
+masked errors in substance.
+
+**Insight:** The only reliable way to verify an API contract in a project with no type
+stubs, no API docs, and no test examples for your exact use case is to read the
+implementation. Not the README, not the examples, not the class docstrings — the actual
+execution path from entry point to your code. The 11-row verification table produced
+during judgement (assumption → source file → line → confirmed) is the most valuable
+artifact of the entire NC-112 arc. It took ~30 minutes. It would have saved hours of
+debugging if skipped.
+
+**Heuristic:** Trust no API contract that wasn't verified against source code. A plausible
+interface description is exactly as trustworthy as a hallucinated function signature.
+
+**Seed:** The judgement caught static API violations. What about dynamic behavior? Stubs
+return events synchronously — the entire call flow processes in one engine poll iteration.
+Real services are async — events arrive via socket at unpredictable times. Is there a
+"dynamic audit" pattern that traces actual execution timing to catch ordering assumptions?
