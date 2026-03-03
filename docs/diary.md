@@ -324,3 +324,34 @@ The label is cognitive anesthesia: it numbs the urgency without healing the woun
 should ninchat_voice tests use absolute paths computed from `__file__`, or should
 `load_graph_config` itself search upward for a workspace root marker? The former
 is explicit; the latter would make all project tests portable without conftest hacks.
+
+## Entry 73 — 2026-03-03: The Socket Between Worlds
+
+**Context:** NC-113 — Twilio→FSM bridge via Unix DGRAM socket.
+
+**Trap: The Shared-Process Assumption.** Initial instinct was to put TelcoSession
+and FSM actions in the same process (the statemachine-engine pattern). The user
+rejected this explicitly: "no-go: TelcoSession and FSM actions must share the same
+process." This forced a cleaner architecture: two processes communicating via Unix
+DGRAM socket. The webhook server owns the TelcoSession; the FSM engine owns the
+state machine. Each process does one thing.
+
+**Insight: Protocol Research Before Code.** Spent the first 20 minutes studying the
+engine's `_check_control_socket()` and `SendEventAction._send_via_socket()`. This
+revealed: AF_UNIX DGRAM, JSON envelope `{type, payload, job_id}`, 4096-byte buffer,
+`/tmp/statemachine-control-{name}.sock`. The implementation wrote itself — 102 lines
+of `FsmEventSender`, all behavior discovered from the engine source, not invented.
+
+**Trap: macOS AF_UNIX Path Limit.** Tests failed with `OSError: AF_UNIX path too
+long` because `tmp_path` generates 100+ char paths. macOS has a 104-byte limit
+for Unix socket paths. Fix: use `/tmp/test-fsm-{uuid8}.sock` fixture.
+
+**Heuristic:** When building an IPC client, read the server's receive code first.
+The protocol is already defined — you're writing a translator, not a designer.
+The cheapest specification is running code.
+
+**Seed:** The FSM actions (`voice_speak`, `voice_listen`) still call
+`get_active_session()` — a module-level singleton that only works in-process.
+With separate processes, these actions need a different mechanism to reach
+TelcoSession's audio queues. TCP socket? Shared memory? Named pipes?
+The boundary has moved; the actions must follow.
