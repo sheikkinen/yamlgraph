@@ -217,14 +217,38 @@ class TestRouterEdgeTargets:
         assert len(issues) == 0
 
     @pytest.mark.req("REQ-YG-003")
-    def test_invalid_conditional_edge_to_single(self):
-        """Should error when conditional edge targets router as single node."""
+    def test_guard_condition_to_router_is_valid(self):
+        """Guard condition edges targeting router as single string are valid.
+
+        Guard conditions (condition: "expr") are expression edges that route
+        to the router only when the guard is true.  The edge compiler handles
+        them correctly — E103 should NOT fire for these.
+        """
         graph = {
             "edges": [
                 {
                     "from": "input",
-                    "to": "router1",  # Wrong: should be list for conditional
+                    "to": "router1",  # Guard condition — single string is fine
                     "condition": "state.score > 0.5",
+                }
+            ]
+        }
+
+        issues = check_router_edge_targets("router1", graph)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_type_conditional_to_single_triggers_e103(self):
+        """type: conditional edges targeting router as single node should error.
+
+        Fan-out dispatches (type: conditional) must use list format.
+        """
+        graph = {
+            "edges": [
+                {
+                    "from": "input",
+                    "to": "router1",  # Wrong: type: conditional needs list
+                    "type": "conditional",
                 }
             ]
         }
@@ -304,8 +328,8 @@ class TestRouterPatternsIntegration:
                     "edges": [
                         {
                             "from": "input",
-                            "to": "classify",  # Wrong: should be list for conditional
-                            "condition": "true",
+                            "to": "classify",  # Wrong: type: conditional needs list
+                            "type": "conditional",
                         }
                     ],
                     "defaults": {"prompts_dir": "prompts"},

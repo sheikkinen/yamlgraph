@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **E103 Linter False Positive**: Guard-condition edges (`condition: "expr"`) targeting a router node no longer trigger E103. E103 now only fires for `type: conditional` fan-out edges with a single string target. Previously, valid expression edges to routers were incorrectly flagged, and the suggested fix (`to: [node]`) caused a runtime crash ("unhashable type: 'list'").
+
 ### Added
 - **FR-109 Ninchat Voice Coordinator** (`projects/ninchat_voice`): Graph-as-coordinator for Twilio ↔ Ninchat bot voice calls
   - `graphs/ninchat-voice-coordinator.yaml`: 10-node graph with conditional call-loop and hangup guard
