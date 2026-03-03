@@ -57,6 +57,7 @@ EXCLUDE_DIRS = {
 EXCLUDE_PATHS = {
     "examples/demos/",  # Demos show low-level API usage
     "spike_",  # Research spikes are temporary inline code
+    "projects/",  # Private subprojects with own conventions (FR-109+)
 }
 
 MAIN_PATTERN = re.compile(r"^\s*(async\s+)?def\s+main\s*\(", re.MULTILINE)
