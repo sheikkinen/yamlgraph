@@ -144,10 +144,16 @@ def check_router_edge_targets(node_name: str, graph: dict[str, Any]) -> list[Lin
     for i, edge in enumerate(edges):
         to_node = edge.get("to")
 
-        # Check conditional edges targeting this router
+        # E103 only applies to guard-condition edges targeting a router.
+        # Edges with type: conditional are fan-out dispatches FROM a router
+        # and correctly use list syntax (validated elsewhere).
+        # Guard-condition edges (condition: "expr") with a single string
+        # target are valid expression edges — they route to the router
+        # only when the guard is true, and the edge compiler handles them
+        # correctly as expression_edges.  Skip them.
         if (
             to_node == node_name
-            and edge.get("condition")
+            and edge.get("type") == "conditional"
             and not isinstance(to_node, list)
         ):
             issues.append(
