@@ -306,6 +306,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 31 | Chaplain Diary Append | `examples/shared/diary`, `examples/copilot` | REQ-YG-090 |
 | 32 | eBook Authoring Pipeline | `examples/ebook` | REQ-YG-091, REQ-YG-092 |
 | 33 | Worktree Pipeline | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce` | REQ-YG-106 |
+| 34 | Compiled Graph Cache | `graph_cache`, `executor_async` | REQ-YG-107 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -609,6 +610,14 @@ Parallel development pipeline via git worktrees, enabling multiple features to b
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-106 | Worktree helpers derive branch names from FR paths, construct worktree paths under `tmp/worktrees/`, and validate clean working tree before creation; shell script orchestrates worktree lifecycle with trap-based cleanup; 4-phase graph (implement → test/demo → precommit → PR) chains via session continuations | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml` |
+
+### 34. Compiled Graph Cache (FR-111)
+
+Process-global compiled graph cache so `load_and_compile_async()` results survive module reloads and are shared across all callers within the same Python process.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-107 | Process-global `GRAPH_CACHE` dict in installed package; `load_and_compile_async()` uses cache by default with `cache=None` opt-out; `clear_cache()` for test teardown; cache-hit logs at DEBUG, compile logs at INFO | `graph_cache`, `executor_async` |
 
 ---
 

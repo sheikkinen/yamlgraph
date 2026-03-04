@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **FR-111 Compiled Graph Cache** (CAP-34, REQ-YG-107): Process-global `GRAPH_CACHE` in `yamlgraph/graph_cache.py` so `load_and_compile_async()` results survive action module reloads. Eliminates 1.5–4s recompilation on every LLM action invocation in engines that reload action modules per FSM transition. `cache=None` opt-out for test isolation. Migrates `yamlgraph_action.py` and `yamlgraph_preload_action.py` off local `_GRAPH_CACHE` workarounds. 10 unit tests.
+
 ### Changed
 - **FR-107 Router `route_field`**: Router nodes now require explicit `route_field` config naming the schema field that holds the route key. Replaces hardcoded `tone`/`intent` extraction in `llm_nodes.py`. Pydantic validator enforces presence for `type: router` nodes. All 10 router nodes across 6 graphs + 2 snippet templates updated. NC-111 (Pydantic object in state) solved by design — extracting the named field yields a string.
 

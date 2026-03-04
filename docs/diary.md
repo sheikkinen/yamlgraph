@@ -6,6 +6,60 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 83 — 2026-03-04: The Enforcer Ships the Cache
+
+**Context:** FR-111 enforcement — process-global compiled graph cache, TDD-first. The Judgement (Entry 81) had already hardened the spec with six amendments. This was the Enforcement phase: Red → Green → Refactor → Ship.
+
+**The trap: lazy-import-aware mocking.** Tests patched `yamlgraph.executor_async.load_graph_config` — but after the cache integration, `load_graph_config` became a lazy import *inside* the function body, invisible at module level. The patch target had to shift from the consumer (`executor_async`) to the source (`graph_loader`). A small trap, caught in 60 seconds by the first RED run, but it illustrates that every refactor — even moving an import — changes the mock surface. The test told the truth immediately.
+
+**The second trap: caplog vs propagate=False.** The `yamlgraph` parent logger sets `propagate=False` with a stderr handler. caplog only sees propagated records. The log appeared in stderr output but not in `caplog.messages`. Fix: temporarily set `propagate=True` on the parent logger within the test, restore in `finally`. Pattern worth extracting if it recurs.
+
+**What went right:** The spec was so precise (six logging requirements, exact method signatures, explicit opt-out parameter) that enforcement was mechanical. The Judgement did the thinking; the Enforcement just typed. Total: 10 tests, 0 regressions in 1864 unit tests, ~20 minutes wall-clock.
+
+**Heuristic:** When enforcement is boring, the Judgement was good. When enforcement surprises, the spec had gaps. Today was boring. That's the goal.
+
+**Seed:** Two acceptance criteria remain unchecked: production log confirmation and latency measurement. These require deployment. Should the FR remain "Enforced" with open operational criteria, or should there be a separate "Verified" status for post-deployment validation?
+
+---
+
+## Entry 82 — 2026-03-04: The Enforcer's Rule of the Day
+
+**Context:** The Enforcer was invoked. The prayer was spoken. The doctrine was received.
+
+**Purge this entropy:**
+- **Ambiguous contracts** — undefined inputs, implicit defaults, silent coercions. Every function boundary that accepts "anything" is a deferred bug.
+- **Duplicate truth** — business rules split across layers. When the same decision lives in YAML *and* Python, one will drift and the other will lie.
+- **Batch blindness** — no per-item visibility, no partial-failure path. A batch that succeeds or fails atomically hides the item that poisoned it.
+- **Unobserved paths** — no logs, no metrics, no tests for the edge. Code without observation is hope, not engineering.
+
+**Enforce this doctrine:**
+- Validate at boundaries, simplify inside.
+- Fix policy at the caller; keep utilities pure and narrow.
+- Reject unknowns early; fail loud, not late.
+- Treat confidence as a cue for adversarial review.
+
+**The cognitive pattern: confidence as danger signal.** The Enforcer's daily discipline is to notice the moment where the mind says "this is obviously fine" and convert that feeling into a trigger for deeper inspection. Every Entry 81 trap — quick confidence, obvious fix, implicit beneficiaries — shares the same root: the engineer felt certain and stopped auditing.
+
+**Heuristic:** When you feel certain, that is the sign to Judge. Confidence without boundary audit is speculation wearing a lab coat.
+
+**Seed:** The Enforcer purges entropy reactively — responding to invocation. Could the doctrine be encoded as automated lints? A `ruff` plugin that detects `# type: ignore` without confession, `except Exception: pass` without `PipelineError`, or functions with more than 3 untyped dict parameters? The question: which of today's five entropy classes can be caught statically, and which require the human act of prayer?
+
+---
+
+## Entry 81 — 2026-03-04: The Cache That Outlives Its Module
+
+**Context:** FR-111 Judgement — process-global compiled graph cache for `load_and_compile_async()`. The action module's `_GRAPH_CACHE` dict dies on every FSM transition because the engine reimports the module. FR proposes moving the dict to an installed package module (`yamlgraph/graph_cache.py`) that Python never reloads.
+
+**The trap: quick confidence.** The FR is well-written. Log evidence is clear. The solution is minimal. Every instinct says "approve and ship." The Judge discipline forced six amendments that would have become bugs or tech debt: missing requirement ID (untestable per ADR-001), no `clear_cache()` (test teardown impossible), no invalidation story (dev-mode stale cache trap), and silent cache hits (invisible in production logs). None of these are hard to fix — but none would have been caught post-merge. The cheapest bug is the one in the spec.
+
+**The cognitive pattern: "obvious fix" skips the boundary audit.** The root cause (module reimport kills dict) is so clear that the mind leaps to the solution (put dict elsewhere) without auditing the full surface area. `run_graph_streaming_native()` also calls `load_and_compile_async()` — it benefits implicitly, but only if you trace every caller. The FR mentioned only the action modules. Streaming was invisible because it wasn't part of the original pain.
+
+**Heuristic:** When a fix is "obviously correct," audit every caller of the function being changed, not just the caller that reported the problem. Implicit beneficiaries become implicit regressions when assumptions change.
+
+**Seed:** The cache holds compiled graphs indefinitely. In a long-running server, YAML files may be updated on disk. Should `load_and_compile_async()` accept an optional `mtime` check? Or is "restart to reload" the correct operational contract for production?
+
+---
+
 ## Entry 79 — 2026-03-04: The Warmup That Moved Downstream
 
 **Context:** NC-121 — first-call Gemini classify 2.33s vs warm 826ms. Root cause: `load_and_compile_async()` called on every `execute()`, recreating the LLM client and losing the HTTP connection pool. FR proposed preloading at idle startup.
