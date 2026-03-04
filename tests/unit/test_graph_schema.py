@@ -33,13 +33,15 @@ class TestNodeConfig:
 
     @pytest.mark.req("REQ-YG-002")
     def test_router_with_routes_valid(self):
-        """Router with routes is valid."""
+        """Router with routes and route_field is valid."""
         node = NodeConfig(
             type="router",
             prompt="classify",
+            route_field="tone",
             routes={"positive": "happy", "negative": "sad"},
         )
         assert node.routes == {"positive": "happy", "negative": "sad"}
+        assert node.route_field == "tone"
 
     @pytest.mark.req("REQ-YG-002")
     def test_map_requires_all_fields(self):

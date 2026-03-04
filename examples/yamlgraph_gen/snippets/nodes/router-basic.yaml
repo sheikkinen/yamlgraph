@@ -7,6 +7,7 @@ node:
   __NODE_NAME__:
     type: router
     prompt: __NODE_NAME__
+    route_field: __ROUTE_FIELD__
     routes:
       __ROUTE_A__: handle___ROUTE_A__
       __ROUTE_B__: handle___ROUTE_B__
@@ -17,5 +18,5 @@ node:
     state_key: classification
 
 # Note: Router node includes the prompt field - it calls the LLM to classify,
-# then routes based on the result. The prompt must return an object with
-# 'tone' or 'intent' field (hardcoded in framework).
+# then routes based on the result. route_field names the schema field to
+# extract the route key from (e.g. 'intent', 'tone', 'decision').

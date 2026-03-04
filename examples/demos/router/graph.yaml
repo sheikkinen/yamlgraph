@@ -15,6 +15,7 @@ nodes:
   classify:
     type: router
     prompt: classify_tone
+    route_field: tone
     routes:
       positive: respond_positive
       negative: respond_negative

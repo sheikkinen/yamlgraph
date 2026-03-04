@@ -158,6 +158,7 @@ class TestRouterNodeFunction:
             "type": "router",
             "prompt": "classify_tone",
             "output_model": "yamlgraph.models.GenericReport",
+            "route_field": "tone",
             "routes": {
                 "positive": "respond_positive",
                 "negative": "respond_negative",
@@ -186,6 +187,7 @@ class TestRouterNodeFunction:
             "type": "router",
             "prompt": "classify_tone",
             "output_model": "yamlgraph.models.GenericReport",
+            "route_field": "tone",
             "routes": {
                 "positive": "respond_positive",
                 "negative": "respond_negative",
@@ -198,6 +200,117 @@ class TestRouterNodeFunction:
         result = node_fn({"message": "Huh?"})
 
         assert result.get("_route") == "respond_neutral"
+
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
+    @pytest.mark.req("REQ-YG-022")
+    def test_router_state_key_stores_string_not_pydantic(self, mock_execute):
+        """FR-107: Router state_key stores the route key string via route_field, not a Pydantic object."""
+        mock_classification = MagicMock()
+        mock_classification.intent = "goodbye"
+        mock_classification.tone = None  # Explicit: no tone attr for intent router
+        mock_execute.return_value = mock_classification
+
+        node_config = {
+            "type": "router",
+            "prompt": "classify_intent",
+            "output_model": "yamlgraph.models.GenericReport",
+            "route_field": "intent",
+            "routes": {
+                "goodbye": "say_goodbye",
+                "question": "forward_to_bot",
+            },
+            "default_route": "forward_to_bot",
+            "state_key": "intent",
+        }
+        node_fn = create_node_function("classify", node_config, {})
+
+        result = node_fn({"message": "Bye!"})
+
+        assert result["intent"] == "goodbye"
+        assert isinstance(result["intent"], str)
+
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
+    @pytest.mark.req("REQ-YG-022")
+    def test_router_state_key_stores_route_key_on_match(self, mock_execute):
+        """FR-107: When route matches, state_key stores the matched route key string."""
+        mock_classification = MagicMock()
+        mock_classification.tone = "positive"
+        mock_execute.return_value = mock_classification
+
+        node_config = {
+            "type": "router",
+            "prompt": "classify_tone",
+            "output_model": "yamlgraph.models.GenericReport",
+            "route_field": "tone",
+            "routes": {
+                "positive": "respond_positive",
+                "negative": "respond_negative",
+            },
+            "default_route": "respond_neutral",
+            "state_key": "classification",
+        }
+        node_fn = create_node_function("classify", node_config, {})
+
+        result = node_fn({"message": "I love this!"})
+
+        assert result["classification"] == "positive"
+        assert result["_route"] == "respond_positive"
+
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
+    @pytest.mark.req("REQ-YG-022")
+    def test_router_state_key_stores_route_key_on_default(self, mock_execute):
+        """FR-107: When falling to default_route, state_key still stores the extracted key."""
+        mock_classification = MagicMock()
+        mock_classification.tone = "confused"  # Not in routes
+        mock_execute.return_value = mock_classification
+
+        node_config = {
+            "type": "router",
+            "prompt": "classify_tone",
+            "output_model": "yamlgraph.models.GenericReport",
+            "route_field": "tone",
+            "routes": {
+                "positive": "respond_positive",
+                "negative": "respond_negative",
+            },
+            "default_route": "respond_neutral",
+            "state_key": "classification",
+        }
+        node_fn = create_node_function("classify", node_config, {})
+
+        result = node_fn({"message": "Huh?"})
+
+        # route_key "confused" was extracted but didn't match routes → default_route
+        assert result["classification"] == "confused"
+        assert result["_route"] == "respond_neutral"
+
+    @patch("yamlgraph.node_factory.llm_nodes.execute_prompt")
+    @pytest.mark.req("REQ-YG-022")
+    def test_router_route_field_custom_name(self, mock_execute):
+        """FR-107: Router extracts route key from any explicitly named field."""
+        mock_result = MagicMock()
+        mock_result.decision = "approve"
+        mock_execute.return_value = mock_result
+
+        node_config = {
+            "type": "router",
+            "prompt": "classify",
+            "output_model": "yamlgraph.models.GenericReport",
+            "route_field": "decision",
+            "routes": {
+                "approve": "approve_handler",
+                "reject": "reject_handler",
+            },
+            "default_route": "reject_handler",
+            "state_key": "verdict",
+        }
+        node_fn = create_node_function("classify", node_config, {})
+
+        result = node_fn({})
+
+        assert result["verdict"] == "approve"
+        assert isinstance(result["verdict"], str)
+        assert result["_route"] == "approve_handler"
 
 
 # =============================================================================

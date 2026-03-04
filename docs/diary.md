@@ -6,6 +6,57 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 75 — 2026-03-04: Three Fixes for One Bug
+
+**Context:** NC-114 — auto-disconnect after farewell. Live call reached `idle`
+but Twilio stayed open. Three successive fixes deployed, each revealing a deeper
+layer of the same root cause.
+
+**Layer 1 — The no-op method.** `call_cleanup_action` called `session.shutdown()`.
+Method exists, reads cleanly, tests pass. But `shutdown()` checks `if self._loop
+is None: return` — and `_loop` is only set via `_run_loop()`, only called by `start()`,
+never called when uvicorn manages the WebSocket. The method was a production no-op.
+*Fix:* Replace `shutdown()` with `request_close_ws()` — an `asyncio.Event` created
+at connect time, set via `call_soon_threadsafe`. Added `watch_close` task. Tests
+pass. Deployed. Call still doesn't drop.
+
+**Layer 2 — The double import.** `call_cleanup_action.py` added `ninchat_voice/`
+to `sys.path` and imported `from services.telephony`. `server_fsm.py` imported
+`from projects.ninchat_voice.services.telephony`. Two different module objects,
+two independent `_active_session` globals. `get_active_session()` always returned
+`None`. *Fix:* Unified import path to `projects.ninchat_voice.services.telephony`.
+Deployed. Call still doesn't drop.
+
+**Layer 3 — Separate OS processes.** This is the real boundary. The statemachine
+engine (PID A) and uvicorn (PID B) were forked separately and share no memory.
+`_active_session` in PID B is invisible to PID A by construction. No import path
+fix can bridge this. The module registry pattern was only valid within a single
+process. *Fix:* Send `{"type": "disconnect"}` DGRAM to `/tmp/nv-bridge.sock`.
+`server_fsm._on_disconnect` runs inside uvicorn, calls `session.request_close_ws()`
+directly. Same IPC pattern as `speak` and `listen`. This is architecturally correct.
+
+**Trap: Confident iteration.** Each fix was logically sound for the wrong model
+of the system. The missing mental model step was: *which process is this code
+running in?* The same file can produce different behavior depending on which
+process loads it. Import path is not a process boundary cure.
+
+**Heuristic:** When a cleanup method still doesn't fire after two fixes, stop
+patching and draw the process map. Every module-level singleton is process-local.
+Every IPC call crosses a real boundary. Identify the boundary first, then choose
+the right transport.
+
+**Graduated to Scripture:** *Normalize at the boundary where external data enters.*
+The TelcoSession is a uvicorn resource. All control must flow through the bridge —
+the one point where the two processes already meet.
+
+**Seed:** `voice_speak` and `voice_listen` also reach TelcoSession — but they work
+because their handlers (`_on_speak`, `_on_listen`) run inside `server_fsm.py` (uvicorn),
+not in the engine. The boundary has been correctly mapped. Should all future actions
+that need TelcoSession be implemented as bridge handlers rather than `BaseAction`
+subclasses? When does an action stop being an FSM action and become a bridge protocol?
+
+---
+
 ## Entry 74 — 2026-03-04: The Call That Wouldn't Die
 
 **Context:** Live call #3 succeeded end-to-end — greeting, Q&A, farewell — but the Twilio call remained open after the FSM reached `idle`. The user had to hang up manually.

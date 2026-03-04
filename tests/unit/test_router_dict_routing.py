@@ -1,8 +1,8 @@
 """Tests for router node dict output handling.
 
-Bug: Router nodes only check tone/intent via getattr, so dict outputs
-(e.g., when parse_json is enabled or a JSON prompt is returned) will
-never match and will always fall back to default routing.
+Verifies that router nodes correctly extract route keys from both
+Pydantic model attributes and dict outputs using the explicit
+route_field config (FR-107).
 """
 
 from unittest.mock import patch
@@ -40,6 +40,7 @@ class TestRouterDictOutputRouting:
                 {
                     "type": "router",
                     "prompt": "classify",
+                    "route_field": "tone",
                     "routes": {"positive": "celebrate", "negative": "console"},
                     "default_route": "neutral_handler",
                 },
@@ -71,6 +72,7 @@ class TestRouterDictOutputRouting:
                 {
                     "type": "router",
                     "prompt": "classify",
+                    "route_field": "tone",
                     "parse_json": True,
                     "routes": {"positive": "celebrate", "negative": "console"},
                     "default_route": "neutral_handler",
@@ -103,6 +105,7 @@ class TestRouterDictOutputRouting:
                 {
                     "type": "router",
                     "prompt": "classify",
+                    "route_field": "intent",
                     "parse_json": True,
                     "routes": {"question": "faq", "complaint": "support"},
                     "default_route": "general",
@@ -119,7 +122,7 @@ class TestRouterDictOutputRouting:
 
     @pytest.mark.req("REQ-YG-022")
     def test_router_falls_back_when_key_missing(self) -> None:
-        """Router should fall back to default_route when tone/intent missing."""
+        """Router should fall back to default_route when route_field value is missing."""
         with (
             patch("yamlgraph.node_factory.llm_nodes.execute_prompt") as mock_execute,
             patch(
@@ -134,6 +137,7 @@ class TestRouterDictOutputRouting:
                 {
                     "type": "router",
                     "prompt": "classify",
+                    "route_field": "tone",
                     "parse_json": True,
                     "routes": {"positive": "celebrate", "negative": "console"},
                     "default_route": "neutral_handler",
@@ -146,16 +150,15 @@ class TestRouterDictOutputRouting:
             # Should fall back gracefully, not error out
             assert (
                 result.get("_route") == "neutral_handler"
-            ), f"Router should fall back when tone/intent missing. Got: {result}"
+            ), f"Router should fall back when route_field value missing. Got: {result}"
 
 
-class TestRouterCustomRouteKey:
-    """Tests for custom route_key configuration."""
+class TestRouterCustomRouteField:
+    """Tests for custom route_field configuration (FR-107)."""
 
-    @pytest.mark.xfail(reason="route_key config not yet implemented")
     @pytest.mark.req("REQ-YG-022")
-    def test_router_uses_custom_route_key(self) -> None:
-        """Router should support custom route_key config for dict/model lookup."""
+    def test_router_uses_custom_route_field(self) -> None:
+        """FR-107: Router uses route_field to extract route key from any named field."""
         with (
             patch("yamlgraph.node_factory.llm_nodes.execute_prompt") as mock_execute,
             patch(
@@ -171,7 +174,7 @@ class TestRouterCustomRouteKey:
                     "type": "router",
                     "prompt": "classify",
                     "parse_json": True,
-                    "route_key": "category",  # Custom key - NOT YET IMPLEMENTED
+                    "route_field": "category",
                     "routes": {"urgent": "escalate", "normal": "queue"},
                     "default_route": "triage",
                 },
@@ -180,7 +183,7 @@ class TestRouterCustomRouteKey:
 
             result = node_fn({"input": "Emergency!"})
 
-            # Should use custom route_key
+            # Should use custom route_field
             assert (
                 result.get("_route") == "escalate"
-            ), f"Router should use custom route_key 'category'. Got: {result}"
+            ), f"Router should use route_field 'category'. Got: {result}"

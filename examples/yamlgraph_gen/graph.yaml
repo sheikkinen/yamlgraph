@@ -64,6 +64,7 @@ nodes:
   classify_patterns:
     type: router
     prompt: classify_patterns
+    route_field: intent
     state_key: classification
     routes:
       clear: load_snippets
