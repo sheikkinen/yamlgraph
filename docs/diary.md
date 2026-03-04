@@ -642,3 +642,19 @@ The session revealed a strategic reframe: what began as a proposal for a new lin
 A cognitive trap emerged in assuming novelty; the initial impulse was to build rather than audit existing rules. The judge’s verification confirmed the reframe’s validity, ensuring architectural alignment and feasibility. The precision of scope—limited to string changes and cascading updates—highlighted the value of **incremental, high-leverage adjustments** over expansive feature development.
 
 **Seed:** How might we systematically audit existing warnings for promotion potential before proposing new rules?
+
+---
+
+## 2026-03-05: NC-119b — The Truthy Corpse
+
+**Trap: Downstream Symptom Masking an Upstream Corpse**
+
+NC-119 fixed `yamlgraph_action.py` to persist `context[input_key]`. The theory was sound: write at the boundary where the utterance enters. But the symptom persisted. The second live call returned the same literal `"{event_data.payload.user_utterance}"` string to Ninchat.
+
+The corpse was in the YAML itself and in the action fallback logic. The YAML template referenced `event_data.payload.user_utterance` — a path valid during `classifying` but overwritten by `speak_done` before `forwarding_to_ninchat` runs. The engine, unable to resolve the path, returns the literal template string. That string is truthy. So `params.get('text') or context.get(...)` never fires the fallback.
+
+Two fixes — one at the source (YAML template uses `{user_utterance}`, the persisted context key), one as a defensive guard (detect unresolved `{...}` strings and treat as empty) — completed the cure. The Agents' prayer held: normalize at the boundary, trusting no provider's type. The boundary here was not just where the utterance enters — it was also where the reference path is written in YAML.
+
+**Heuristic:** A `or` fallback is only as good as its guard condition. A literal template string that the engine cannot resolve is truthy, not empty. Any action that falls back from params to context must guard for unresolved template strings explicitly.
+
+**Seed:** How many other actions have `params.get(key) or context.get(key)` without a guard for unresolved templates? Is there a lint rule opportunity: detect `{event_data.payload.*}` references in action params where the state transition chain could overwrite `event_data` before the action runs?
