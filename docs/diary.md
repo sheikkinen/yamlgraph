@@ -6,6 +6,22 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 78 — 2026-03-06: The Second Message
+
+**Context:** NC-117 — Ninchat API returns JSON list as the message payload on multi-turn responses. `_send_and_receive_locked()` and `connect()` both called `.get()` directly on `json.loads(payload_raw)`, which is correct for a dict but crashes with `AttributeError` for a list.
+
+**The trap: assuming the boundary type is stable.** The first live call worked. The bot replied with `{"text": "..."}` — a dict, as expected. The code had been ported from the questionnaire-api prototype where this shape was the only form observed. No test existed to challenge the assumption because the prototype never ran long enough to reach a second turn in the same session. The crash only appeared on the second Ninchat message because Ninchat apparently changes its payload shape after the initial greeting — wrapping multi-part bot responses in a JSON array.
+
+**The cure was the one law.** Normalize at the boundary where external data enters, not downstream where it manifests. The fix belongs inside `_send_and_receive_locked()` and `connect()`, not in `ninchat_send_action.py` where the downstream `.get()` would simply be another crash site with the same root cause. One normalization guard at the WS recv() call eliminates the bug from all future callers.
+
+**Same bug in two places.** Both `_send_and_receive_locked()` and `connect()` had identical `payload.get("text", "")` with no list guard. A single bug in a shared assumption means the fix is always at the shared boundary — not in the two callers that happen to be the current visible crash sites. If a third caller ever reads WS payloads the same way, it will also need the guard, which means the WS recv + parse + normalize sequence is a candidate for extraction into a helper.
+
+**Heuristic confirmed.** When a test only exercises the first call through a new code path, and real data reveals a different type on subsequent calls, the cause is always a boundary assumption made under prototype conditions. Prototype data doesn't span the full behavior surface. The fix: boundary tests must include the second-and-beyond call shapes explicitly.
+
+**Seed:** Should `_recv_payload() -> str` be extracted from both `connect()` and `_send_and_receive_locked()` as a single helper with a shared normalization guarantee, making the list-vs-dict handling unambiguous and tested in one place?
+
+---
+
 ## Entry 77 — 2026-03-04: The State That Existed Only to Justify Itself
 
 **Context:** NC-115 — predefined audio responses. Removed `rewriting_greeting` and `generating_goodbye` from the FSM; bypassed ElevenLabs for two fixed utterances using pre-baked mulaw files.
