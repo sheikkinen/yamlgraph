@@ -13,13 +13,14 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from langchain_core.messages import AIMessageChunk
 from pydantic import BaseModel
 
 from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.executor_base import prepare_messages
+from yamlgraph.graph_cache import GRAPH_CACHE as _DEFAULT_CACHE
 from yamlgraph.models.streaming import StreamEvent
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.llm_factory_async import invoke_async
@@ -258,14 +259,20 @@ async def compile_graph_async(
     return graph.compile(checkpointer=checkpointer)
 
 
-async def load_and_compile_async(path: str) -> CompiledStateGraph:
+async def load_and_compile_async(
+    path: str,
+    *,
+    cache: dict[str, Any] | None = _DEFAULT_CACHE,
+) -> CompiledStateGraph:
     """Load YAML and compile to async-ready graph.
 
-    Convenience function combining load_graph_config, compile_graph,
-    and compile_graph_async.
+    Uses the process-global GRAPH_CACHE by default so compiled graphs survive
+    module reloads and are shared across all callers within the same process.
 
     Args:
         path: Path to YAML graph definition
+        cache: Dict to cache compiled graphs in. Defaults to the process-global
+            GRAPH_CACHE. Pass ``None`` to disable caching (for test isolation).
 
     Returns:
         Compiled graph ready for ainvoke()
@@ -274,13 +281,23 @@ async def load_and_compile_async(path: str) -> CompiledStateGraph:
         >>> app = await load_and_compile_async("graphs/interview.yaml")
         >>> result = await run_graph_async(app, {"input": "hi"}, config)
     """
+    if cache is not None and path in cache:
+        logger.debug("Cache hit: %s", path)
+        return cache[path]
+
     from yamlgraph.graph_loader import compile_graph, load_graph_config
 
+    logger.info("Compiling graph: %s", path)
     config = load_graph_config(path)
-    logger.info(f"Loaded graph config: {config.name} v{config.version}")
+    logger.info("Loaded graph config: %s v%s", config.name, config.version)
 
     state_graph = compile_graph(config)
-    return await compile_graph_async(state_graph, config)
+    compiled = await compile_graph_async(state_graph, config)
+
+    if cache is not None:
+        cache[path] = compiled
+
+    return compiled
 
 
 # ==============================================================================
@@ -329,38 +346,13 @@ async def run_graph_streaming_native(
         config: LangGraph config, e.g. {"configurable": {"thread_id": "t1"}}
         node_filter: If set, only yield tokens from this node name
         subgraphs: If True, also stream tokens from subgraph nodes (mode=direct).
-            When enabled, events include namespace prefix for subgraph tokens.
         yield_events: If True (default), yield StreamEvent on error/interrupt.
             If False, raise exceptions to caller (pre-FR-062 behavior).
         timeout: Total stream timeout in seconds. None means no timeout.
-            Uses asyncio.timeout() which catches stalls mid-await.
 
     Yields:
         str: Token strings from LLM nodes
         StreamEvent: Error or interrupt control signals (when yield_events=True)
-
-    Note:
-        Router nodes emit dict content (classification result), which is
-        automatically filtered out — only string tokens are yielded.
-
-        Subgraph streaming (subgraphs=True) works with mode=direct subgraphs.
-        For mode=invoke subgraphs, tokens are not visible because the child
-        graph runs inside an opaque synchronous wrapper (see FR-030 Phase 2).
-
-    Example:
-        >>> async for token in run_graph_streaming_native(
-        ...     "graph.yaml",
-        ...     {"input": "hello"},
-        ...     {"configurable": {"thread_id": "t1"}},
-        ... ):
-        ...     print(token, end="", flush=True)
-
-    Example (handle errors):
-        >>> async for item in run_graph_streaming_native("graph.yaml", state):
-        ...     if isinstance(item, str):
-        ...         print(item, end="")
-        ...     elif isinstance(item, StreamEvent) and item.type == "error":
-        ...         print(f"Error: {item.error}")
     """
     app = await load_and_compile_async(graph_path)
     config = config or {}

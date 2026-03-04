@@ -28,6 +28,7 @@ _ALL_FRAMEWORK_REQS = (
     + [91, 92]  # REQ-YG-091, REQ-YG-092 (CAP-32 eBook Authoring Pipeline)
     + [105]  # REQ-YG-105 (FR-105 Copilot Session Continuations)
     + [106]  # REQ-YG-106 (CAP-33 Worktree Pipeline)
+    + [107]  # REQ-YG-107 (CAP-34 Compiled Graph Cache)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -189,6 +190,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-31": ("Chaplain Diary Append", ["REQ-YG-090"]),
     "CAP-32": ("eBook Authoring Pipeline", ["REQ-YG-091", "REQ-YG-092"]),
     "CAP-33": ("Worktree Pipeline", ["REQ-YG-106"]),
+    "CAP-34": ("Compiled Graph Cache", ["REQ-YG-107"]),
 }
 
 
