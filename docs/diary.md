@@ -658,3 +658,23 @@ Two fixes — one at the source (YAML template uses `{user_utterance}`, the pers
 **Heuristic:** A `or` fallback is only as good as its guard condition. A literal template string that the engine cannot resolve is truthy, not empty. Any action that falls back from params to context must guard for unresolved template strings explicitly.
 
 **Seed:** How many other actions have `params.get(key) or context.get(key)` without a guard for unresolved templates? Is there a lint rule opportunity: detect `{event_data.payload.*}` references in action params where the state transition chain could overwrite `event_data` before the action runs?
+
+---
+
+## 2026-03-04: NC-120 — When Symptoms Rhyme
+
+**Trap: Symptom Fixation Across Sessions**
+
+NC-119 fixed `yamlgraph_action.py`. NC-119b fixed the YAML template and added an unresolved-template guard. Both felt complete at the time. But a third request — move thankyou before the LLM call — exposed the same structural gap again. The action reorder was blocked by the same root cause that NC-119 and NC-119b had patched around.
+
+Three workarounds, one cause: `event_data` is a single overwritable key. Every event fires, it is gone. No declarative, engine-level way to say keep this payload field alive. Each state that needed cross-event data implemented its own rescue logic.
+
+The Session Break was the diagnostic. The user said: check the docs/dataflow.md — it sounds like you are resolving the same issue time after time. That reframe unlocked the structural view. The right question was not how do I preserve user_utterance here but why does it keep needing preserving?
+
+The fix was small. `context_map` on the `transcribed` event: one declaration in YAML, engine promotes the field before any action runs, survives all downstream events. 7 RED tests, 3 YAML changes, zero new Python. The NC-119 and NC-119b workarounds are now redundant — left in place for compatibility, candidates for removal once NC-120 is proven in production.
+
+The enabling condition: statemachine-engine 1.0.74 already had `context_map` implemented and 9 engine tests passing. The feature existed. The bridge between engine capability and YAML declaration had not been built.
+
+**Heuristic:** When the same patch appears in three different sessions, the patch is a symptom, not a cure. Escalate to structural diagnosis before the fourth occurrence. Checking existing docs for recurring patterns is faster than re-diagnosing from logs.
+
+**Seed:** The NC-119 workarounds are now structurally redundant. Should redundant-with-reason code be marked explicitly with a superseded-by comment so future maintainers know the guard can be safely removed? Could a lint rule flag action params that reference `{event_data.payload.*}` when the same field is already declared in `context_map`?
