@@ -6,7 +6,7 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
-## Entry 78 — 2026-03-06: The Second Message
+## Entry 78 — 2026-03-04: The Second Message
 
 **Context:** NC-117 — Ninchat API returns JSON list as the message payload on multi-turn responses. `_send_and_receive_locked()` and `connect()` both called `.get()` directly on `json.loads(payload_raw)`, which is correct for a dict but crashes with `AttributeError` for a list.
 
@@ -606,6 +606,24 @@ default; concurrent requires explicit event buffering.
 query concurrently, then waits for both to complete before advancing. What minimal extension
 to the engine (event queue buffering? action-level Future join?) would make this safe without
 exposing concurrency to the YAML author?
+
+---
+
+## Entry 75 — 2026-03-04: The Utterance That Fell Through the Floor
+
+**Context:** NC-119 — `user_utterance` lost after `acknowledging` state. Ninchat receives empty string, returns a generic response.
+
+**Trap: The Boundary You Didn't Draw.** `event_data.payload.user_utterance` arrives with `transcribed`. The engine template engine interpolates it into `yamlgraph_action.params["input_value"]` at invocation time. The action uses the value correctly — but never writes it back to `context`. It reads from `event_data`; it stores to `context[output_key]`. The input disappears.
+
+When `acknowledging` fires — and `speak_done` returns with `{}` — `event_data` is overwritten. The value that was in `payload.user_utterance` is gone. The fallback path in `ninchat_send` (`context.get("user_utterance")`) exists but was never populated. Both paths to the value were severed at the same moment.
+
+**Insight: Normalize At the Boundary.** The datum enters the system in `transcribed` payload. The correct place to persist it is where it first becomes available to application logic — at `yamlgraph_action.execute()`, after `input_value` is resolved. One line: `context[input_key] = input_value`. This is the doctrine of Entry 71, applied to input not output.
+
+**Insight: The Dataflow Document Diagnosed the Bug.** Writing `docs/dataflow.md` forced a complete trace of every datum from socket entry to context key. The bug was visible immediately once the table of "Not in context (event_data only)" was written. The document was not documentation of a working system — it was the instrument of diagnosis.
+
+**Heuristic:** When an action reads an interpolated param, it must also write that value to `context`. The engine resolves templates before calling `execute()` — but only once, for that event. Any subsequent event erases the resolution. Every interpolated input is a one-shot read; the action is the last chance to persist it.
+
+**Seed:** `yamlgraph_action` now persists `input_key`. But `variables:` bindings are also interpolated one-shot. If a downstream state needs `user_message` (an alias for `user_utterance`), the same trap applies. Should `variables` bindings also be written to context? Or is the rule: only `input_key` is persisted, all others are ephemeral?
 
 ---
 
