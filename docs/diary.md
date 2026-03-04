@@ -663,6 +663,32 @@ A cognitive trap emerged in assuming novelty; the initial impulse was to build r
 
 ---
 
+## 2026-03-04: NC-122 — Three Wrong Hypotheses and a 490ms Gap
+
+**Trap: Premature Closure on Plausible Explanations**
+
+Call 2 ended while the system was mid-response. The log showed exit code 143, action_loader spam, and a `speaking_response --timeout(30)--> error` transition. Three hypotheses formed in sequence, each plausible, each wrong.
+
+**Hypothesis 1: SIGTERM.** Exit 143 = signal kill. The terminal showed exit 143. Confident. Wrong — exit 143 was the user killing `./start-fsm.sh` from the terminal after the FSM had already returned cleanly to idle. The FSM itself never crashed.
+
+**Hypothesis 2: Bridge did not propagate hangup during TTS.** The `speaking_response --hangup--> closing` guard existed. No hangup arrived. So: the bridge must be swallowing the event. Plausible architecture defect. Wrong — there was no PSTN disconnect. The system disconnected the call, not the caller.
+
+**Hypothesis 3: TTS hung for 30 seconds.** The 50ms action_loader spam looked like a bridge retry loop on a broken connection. Wrong — the spam is the bridge polling `voice_speak` during normal TTS playback. It is always there.
+
+**The truth was in a 490ms gap.** Between the speak command at 14:16:08.454 and `speak_done` at 14:16:38.892 — exactly 30.004 seconds. The `timeout(30)` guard fired at 14:16:38.402. `speak_done` arrived 490ms later. The Ninchat response was a long Finnish dental services paragraph. TTS simply needed ~30 seconds to speak it. The guard fired first, the system tore down the call cleanly, and TTS finished its last sentence into a closing connection.
+
+The fix was one integer: `timeout(30)` → `timeout(60)`. Not a bridge defect, not a crash, not a missing event. A safety net set too tight for long responses.
+
+**The enabling clarity:** Each hypothesis collapsed when the concrete timeline was assembled. Timestamps do not amplify narrative — they falsify it. The question "what events appeared between speak_command and timeout?" returned: nothing. That absence was the answer.
+
+**NC-121 cache confirmed in the same session.** Call 2 warming_up duration: 56ms. Call 1 had been 1.57s (cold). The deferred import fix (`f7a00f8`) worked. Two-call combo completed successfully after the timeout fix.
+
+**Heuristic:** When a call ends abnormally, build the concrete event timeline before forming any hypothesis. The log has timestamps. Count the milliseconds. The gap between the last action log and the timeout is the story — not the exit code, not the error label, not the action_loader volume.
+
+**Seed:** `speaking_response` timeout is now 60s. But what is the right upper bound? It depends on the maximum TTS duration of a rewritten response. If the rewrite prompt enforces a word limit, the maximum TTS duration is calculable. Should the timeout be derived from the prompt constraint rather than set by intuition?
+
+---
+
 ## 2026-03-05: NC-119b — The Truthy Corpse
 
 **Trap: Downstream Symptom Masking an Upstream Corpse**
