@@ -6,6 +6,56 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 74 — 2026-03-04: The Call That Wouldn't Die
+
+**Context:** Live call #3 succeeded end-to-end — greeting, Q&A, farewell — but the Twilio call remained open after the FSM reached `idle`. The user had to hang up manually.
+
+**Trap: Assuming `shutdown()` shuts down.** The method exists, it reads cleanly, and `call_cleanup_action` calls it. The cognitive path stops there. But `shutdown()` checks `if self._loop is None or self._shutdown_event is None: return` — and `_shutdown_event` is only created in `_run_loop()`, which is only called by `start()`, which is never called when uvicorn manages the server. The method was a no-op in production. It *looked* wired; it wasn't.
+
+**Insight: The connection between layers was declared but never plumbed.** The FSM engine thread (`call_cleanup`) and the uvicorn async WebSocket handler lived in separate worlds. `session.shutdown()` was the bridge — but it had a one-way valve that was always closed. The fix was to add a second, simpler bridge: an `asyncio.Event` created *in the uvicorn loop* at WebSocket connect time, set by `call_soon_threadsafe` from the engine thread. This is the canonical cross-thread signal in asyncio, and it required no threading primitives, no locks, no shared state.
+
+**The `watch_close` pattern:** Instead of trying to control the WebSocket from the engine side, we added a third task in the WebSocket handler — `watch_close()` — that simply `await`s the event and then calls `websocket.close(1000)`. When the server closes its side of the Media Streams WebSocket, Twilio terminates the call. No Twilio REST API call needed. One event, one task, one clean close.
+
+**Heuristic graduated:** *A method that does nothing in production is not a safety net — it is a blind spot.* When a cleanup routine calls a method, verify the method's preconditions hold in the actual execution context, not just in test scaffolding.
+
+**Seed:** At what point does a "graceful shutdown" sequence need its own FSM state to ensure each cleanup step (speak farewell → pause → close WS → clear session → reset engine) is observable, retriable, and testable as a unit?
+
+---
+
+## Entry 68 — 2026-03-04: Integration Tests Reveal Configuration Gaps
+
+**Context:** NC-114 integration tests for ninchat_voice LLM graphs. Writing real-LLM
+tests for intent classification, greeting rewrite, response rewrite, and goodbye
+generation against Gemini 2.5 Flash.
+
+**What happened:** 4 of 8 tests failed immediately. The intent-classifier and goodbye
+graphs were missing `state: { user_utterance: str }` declarations. The prompt templates
+use Jinja2 `{{ user_utterance }}`, but the graph never declared the field in its state
+schema — so `resolve_node_variables()` filtered it out as a non-existent key. The
+rewrite graphs passed because their state fields (`bot_greeting`, `bot_response`) were
+explicitly declared.
+
+**Second discovery:** The goodbye graph's coordinator action used `input_key: conversation_summary`
+but the prompt template expected `user_utterance`. This was a latent bug that never
+manifested because goodbye was never reached (the intent classifier was broken). The
+integration tests exposed the full dependency chain.
+
+**Trap: *Cascading Invisibility.*** When a graph fails at validation time (the router
+node issue), all downstream graphs never execute, and their configuration errors remain
+invisible. The intent classifier's broken router prevented goodbye from ever being
+tested in live calls. Integration tests caught both in one pass.
+
+**Heuristic: Integration tests are the first consumer of your configuration graph.**
+Write them before live testing. A graph that compiles is not a graph that runs — the
+variable resolution pipeline (`state → resolve_node_variables → prompt template`) has
+constraints invisible at YAML load time. Test the full `invoke()` path.
+
+**Seed:** Should `yamlgraph graph lint` validate that Jinja2 template variables in
+prompts have matching state keys in the graph? This would catch the `user_utterance`
+gap at lint time, not runtime.
+
+---
+
 ## Entry 67 — 2026-03-04: The Guard That Survives Its State
 
 **Context:** NC-114 e2e Twilio simulator. Building an automated end-to-end test that
@@ -395,3 +445,21 @@ The cheapest specification is running code.
 With separate processes, these actions need a different mechanism to reach
 TelcoSession's audio queues. TCP socket? Shared memory? Named pipes?
 The boundary has moved; the actions must follow.
+
+---
+
+## 2026-03-04: Chaplain — Rediscovering Hidden Lint Validations
+
+The session revealed a critical oversight in the initial gap analysis: the proposed **E003** lint rule for validating `{state.field}` expressions in `variables:` bindings already exists as **W014**. This highlights a cognitive trap—assuming a gap without exhaustively auditing existing checks. The judge’s verdict exposed two blockers: code reuse (**E003**) and functional overlap (**W014**). The reflection underscores how easily technical debt can obscure visibility into current tooling, especially when warnings and errors are semantically similar but scoped differently. The need to justify severity (warning vs. error) also emerged as a non-trivial design choice, requiring trade-offs between strictness and usability.
+
+**Seed:** How might we surface ‘invisible’ lint rules (e.g., W014) earlier in the planning process to avoid redundant work, and what tools could automate this cross-checking?
+
+---
+
+## 2026-03-04: Chaplain — Reframing Warnings into Errors
+
+The session revealed a strategic reframe: what began as a proposal for a new lint rule was discovered to already exist as warning W014. The insight shifted focus toward **promotion rather than creation**, elevating W014 to error status (E007) with minimal code changes—only severity, naming, and test updates. This avoided redundancy while addressing the core need.
+
+A cognitive trap emerged in assuming novelty; the initial impulse was to build rather than audit existing rules. The judge’s verification confirmed the reframe’s validity, ensuring architectural alignment and feasibility. The precision of scope—limited to string changes and cascading updates—highlighted the value of **incremental, high-leverage adjustments** over expansive feature development.
+
+**Seed:** How might we systematically audit existing warnings for promotion potential before proposing new rules?
