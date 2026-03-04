@@ -6,6 +6,46 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 67 — 2026-03-04: The Guard That Survives Its State
+
+**Context:** NC-114 e2e Twilio simulator. Building an automated end-to-end test that
+exercises the full voice call pipeline — engine + bridge + webhook server — without a
+real phone call. During implementation, discovered two related guard bugs.
+
+**Bug 1 (inter-call): Stale guard across calls.** `_bridge_sent_speaking_greeting = True`
+set during call #3 persisted into call #4. `call_cleanup` never cleared it. Fix: cleanup
+now deletes all `_bridge_sent_*` keys.
+
+**Bug 2 (intra-call): Stale guard in dialogue loop.** The engine re-enters `listening`
+after the question→response cycle. But `_bridge_sent_listening` from the first listen
+was still set. The guard prevented the second listen from sending to the bridge. The
+engine got stuck at `listening` forever. Fix: each action now clears guards from OTHER
+states on entry (J-1a), so loop re-entry works.
+
+**Trap: *Guard Scope Blindness.*** The J-1 guard was designed for a single concern (prevent
+re-dispatch within one state visit) but was scoped to outlive its purpose (keyed on state
+name, stored in persistent context). The guard survived its state transition and poisoned
+the next entry. This is a variant of the One Law: "Normalize at the boundary where
+external data enters." The guard's boundary was wrong — it should have been scoped to a
+single state visit, not the entire context lifetime.
+
+**Heuristic: Guards must be scoped to their activation boundary.** If a guard prevents
+duplicate work within one state visit, it must be cleared when leaving that state — not
+just at call cleanup. The cheapest fix is to clear stale guards from other states on
+entry, making the action self-healing.
+
+**E2E design insight:** The three-process architecture (engine subprocess + TestClient +
+bridge listener) with mocked TTS/STT at the boundary is the right abstraction level.
+It caught both guard bugs in 3.8 seconds without a single API call. The bridge socket
+protocol is the true integration boundary; mocking above it (TTS/STT) and below it
+(engine process) gives maximum coverage with minimum cost.
+
+**Seed:** Should the engine emit a `state_entry` event that actions can observe, making
+guards keyed on `(state, entry_count)` instead of just `state`? This would eliminate
+the need for J-1a's stale-guard-clearing logic.
+
+---
+
 ## Entry 64 — 2026-03-03: The Bypass Confession
 
 **Context:** Committing FR-109 CHANGELOG entry + FR rename + convention tweak to yamlgraph main.
