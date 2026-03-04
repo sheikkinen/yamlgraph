@@ -572,6 +572,43 @@ The boundary has moved; the actions must follow.
 
 ---
 
+## Entry 74 — 2026-03-04: The Acknowledgement Before the Oracle
+
+**Context:** NC-118 — Insert `acknowledging` FSM state to play predefined "Kiitos." mulaw
+before dispatching the Ninchat query.
+
+**Trap: The Concurrent Temptation.** First instinct was to fire both `voice_speak("Kiitos.")`
+and `ninchat_send(utterance)` simultaneously from `acknowledging` — overlap TTS latency
+with Ninchat RTT and serve the response before the audio even ends. Clean in theory. Lethal
+in practice: the FSM engine drops events for states that don't match the current state. If
+`ninchat_response` arrives while still in `acknowledging`, it is silently discarded. The engine
+doesn't buffer; it forgets. Entry 71 doctrine: normalize at the boundary where external data
+enters. Here the boundary is the state machine's `_find_transition()` — and it does not
+negotiate. Sequential is safe; concurrent is a silent data-loss trap.
+
+**Insight: TDD Exposes Architecture.** Writing RED tests for `test_acknowledging_state_in_states_list`
+and `test_classifying_to_acknowledging_on_question` before touching the YAML forced a precise
+specification of the change surface: one removed transition, four new transitions, one new
+action block, one states-list entry. The tests didn't describe a wish — they described a
+contract. The YAML edits were mechanical fills into that contract.
+
+**Trap: Async/Sync Boundary in Tests.** `tts.speak()` is synchronous; the test used `await`.
+The error `TypeError: object NoneType can't be used in 'await' expression` was not a TTS bug —
+it was a test writing the wrong shape of function call. The fix was removing `@pytest.mark.asyncio`
+and `await`. Lesson: always check the function signature before deciding test async posture.
+
+**Heuristic:** Before adding a state that fires two actions in parallel, draw the event-drop
+diagram: what happens if action B's result arrives while the FSM is still in the state that
+launched A? If the answer is "silently dropped," the design is wrong. Sequential is the correct
+default; concurrent requires explicit event buffering.
+
+**Seed:** NC-119 deferred. The optimal flow is `acknowledging` launches both TTS and Ninchat
+query concurrently, then waits for both to complete before advancing. What minimal extension
+to the engine (event queue buffering? action-level Future join?) would make this safe without
+exposing concurrency to the YAML author?
+
+---
+
 ## 2026-03-04: Chaplain — Rediscovering Hidden Lint Validations
 
 The session revealed a critical oversight in the initial gap analysis: the proposed **E003** lint rule for validating `{state.field}` expressions in `variables:` bindings already exists as **W014**. This highlights a cognitive trap—assuming a gap without exhaustively auditing existing checks. The judge’s verdict exposed two blockers: code reuse (**E003**) and functional overlap (**W014**). The reflection underscores how easily technical debt can obscure visibility into current tooling, especially when warnings and errors are semantically similar but scoped differently. The need to justify severity (warning vs. error) also emerged as a non-trivial design choice, requiring trade-offs between strictness and usability.
