@@ -67,6 +67,10 @@ class NodeConfig(BaseModel):
     variables: dict[str, str] = Field(default_factory=dict)
     requires: list[str] = Field(default_factory=list)
     routes: dict[str, str] | None = Field(default=None, description="Router routes")
+    route_field: str | None = Field(
+        default=None,
+        description="Field name to extract route key from LLM result (router nodes, FR-107)",
+    )
 
     # Map node fields
     over: str | None = Field(default=None, description="Map over expression")
@@ -122,6 +126,12 @@ class NodeConfig(BaseModel):
 
         if self.type == NodeType.ROUTER and not self.routes:
             raise ValueError("Router node requires 'routes' field")
+
+        if self.type == NodeType.ROUTER and not self.route_field:
+            raise ValueError(
+                "Router node requires 'route_field' — the schema field name "
+                "to extract the route key from (e.g. route_field: intent)"
+            )
 
         if self.type == NodeType.MAP:
             if not self.over:

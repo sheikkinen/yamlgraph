@@ -124,6 +124,7 @@ def create_node_function(
     # Router config
     routes = node_config.get("routes", {})
     default_route = node_config.get("default_route")
+    route_field = node_config.get("route_field")
 
     # Loop limit
     loop_limit = node_config.get("loop_limit")
@@ -194,21 +195,25 @@ def create_node_function(
                 "_loop_counts": loop_counts,
             }
 
-            # Router: add _route to state
-            if node_type == NodeType.ROUTER and routes:
-                # Support both Pydantic models (getattr) and dicts (.get)
+            # Router: add _route to state (FR-107: explicit route_field)
+            if node_type == NodeType.ROUTER and routes and route_field:
+                # Extract route key from the named field
                 if isinstance(result, dict):
-                    route_key = result.get("tone") or result.get("intent")
+                    route_key = result.get(route_field)
                 else:
-                    route_key = getattr(result, "tone", None) or getattr(
-                        result, "intent", None
-                    )
+                    route_key = getattr(result, route_field, None)
+
                 if route_key and route_key in routes:
                     update["_route"] = routes[route_key]
                 elif default_route:
                     update["_route"] = default_route
                 else:
                     update["_route"] = list(routes.values())[0]
+
+                # Store the extracted key string, not the full Pydantic object
+                if route_key is not None:
+                    update[state_key] = route_key
+
                 logger.info(f"Router {node_name} routing to: {update['_route']}")
             return update
 

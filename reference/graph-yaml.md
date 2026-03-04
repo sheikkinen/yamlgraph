@@ -236,6 +236,7 @@ Each node in the `nodes` section defines a processing step.
 | `skip_if_exists` | `bool` | `true` | Skip if state key has truthy value (FR-050: `[]`, `""`, `None` do NOT skip) |
 | `parse_json` | `bool` | `false` | Extract JSON from LLM response |
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
+| `route_field` | `string` | — | **Required for routers.** Schema field to extract route key from (FR-107) |
 
 ### `type: llm` - Standard LLM Node
 
@@ -308,19 +309,21 @@ nodes:
   classify:
     type: router
     prompt: router-demo/classify_tone
-    routes:                          # Maps classification → node
+    route_field: tone                    # Schema field to extract route key from
+    routes:                              # Maps classification → node
       positive: respond_positive
       negative: respond_negative
       neutral: respond_neutral
-    default_route: respond_neutral   # Fallback if no match
+    default_route: respond_neutral       # Fallback if no match
     variables:
       message: "{state.message}"
     state_key: classification
 ```
 
 **Required properties for routers:**
+- `route_field`: The schema field name to extract the route key from (e.g. `intent`, `tone`, `decision`)
 - `routes`: Map of classification values to target nodes
-- Prompt must return an object with `tone`, `intent`, or similar field
+- Prompt must return an object with a field matching `route_field`
 
 ### `type: agent` - Tool-Using Agent
 
@@ -1117,6 +1120,7 @@ nodes:
   classify:
     type: router
     prompt: router-demo/classify_tone
+    route_field: tone
     routes:
       positive: respond_positive
       negative: respond_negative

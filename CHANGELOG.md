@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **FR-107 Router `route_field`**: Router nodes now require explicit `route_field` config naming the schema field that holds the route key. Replaces hardcoded `tone`/`intent` extraction in `llm_nodes.py`. Pydantic validator enforces presence for `type: router` nodes. All 10 router nodes across 6 graphs + 2 snippet templates updated. NC-111 (Pydantic object in state) solved by design — extracting the named field yields a string.
+
 ### Fixed
 - **E103 Linter False Positive**: Guard-condition edges (`condition: "expr"`) targeting a router node no longer trigger E103. E103 now only fires for `type: conditional` fan-out edges with a single string target. Previously, valid expression edges to routers were incorrectly flagged, and the suggested fix (`to: [node]`) caused a runtime crash ("unhashable type: 'list'").
 

@@ -19,15 +19,15 @@ system: |
 
   ## ⚠️ CRITICAL: ROUTER NODE SCHEMA FIELD NAMES
 
-  **For router nodes, the schema MUST use `intent` or `tone` as the classification field name.**
-  This is hardcoded in the YAMLGraph framework (yamlgraph/node_factory/llm_nodes.py:170-172).
+  **For router nodes, the schema field used for routing must match the `route_field` in the graph YAML.**
+  The `route_field` config tells the framework which schema field to extract the route key from.
 
   Router classification schema example:
   ```yaml
   schema:
     name: Classification
     fields:
-      intent:                    # ✅ MUST be 'intent' or 'tone'
+      intent:                    # ✅ Must match route_field in graph.yaml
         type: str
         description: "Classification: exactly one of [category1, category2, category3]"
       confidence:
@@ -35,13 +35,19 @@ system: |
         description: Confidence level (0.0-1.0)
   ```
 
-  **DO NOT use other field names like:**
-  - ❌ `category`
-  - ❌ `classification`
-  - ❌ `sentiment`
-  - ❌ `type`
+  And in graph.yaml:
+  ```yaml
+  classify:
+    type: router
+    prompt: classify
+    route_field: intent          # ← matches schema field name
+    routes:
+      category1: handle_cat1
+      category2: handle_cat2
+  ```
 
-  Use `intent` for classification tasks, `tone` for sentiment/emotion tasks.
+  Use `intent` for classification tasks, `tone` for sentiment/emotion tasks,
+  or any descriptive field name that matches `route_field`.
 
   ## Prompt Format Example
 
