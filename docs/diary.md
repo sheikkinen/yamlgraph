@@ -6,6 +6,47 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 76 — 2026-03-04: The Framework That Became a Dependency
+
+**Context:** Retrospective on the full arc from original `yamlgraph graph run` to the current FSM + bridge architecture.
+
+**What the original was.** The first working system was one command: `yamlgraph graph run ninchat-voice-coordinator.yaml`. One process, one LangGraph `StateGraph`, 8 nodes, 2 live calls. YAMLGraph was the entire orchestrator. The conversation loop, the intent router, the hangup conditional — all encoded as LangGraph edge guards with stringly-typed conditions. `voice_ws.py` (372 lines) owned telephony + TTS + STT + ffmpeg simultaneously.
+
+It worked. The problem: it was a finite state machine wearing a DAG costume. LangGraph has no compile-time model for state transitions. The `call_disconnected == true` edge guard was invisible to `ruff`, untestable in isolation, and already broken (`classify_intent` stored a Pydantic object, not a bare string). YAMLGraph's genuine strengths — prompt templating, Pydantic schemas, structured LLM output — were being used for 2 of the 8 nodes. The other 6 were doing IO work the framework was never designed for.
+
+**What the current is.** YAMLGraph now runs four mini-graphs: intent classifier, greeting rewriter, response rewriter, goodbye generator. Each is 1-3 nodes with a prompt YAML and a Pydantic schema. This is exactly what the framework is for. The conversation coordinator is a real FSM with explicit states, explicit transitions, and a queryable state DB. The telephony stack lives in its own uvicorn process. TTS and STT are workers behind a socket. LLM calls are adapters.
+
+```
+Original:  yamlgraph graph run → everything
+Current:   statemachine-engine → voice_coordinator.yaml
+               ↳ yamlgraph_action → [intent|greeting|response|goodbye].yaml (LLM mini-graphs)
+               ↳ voice_speak/listen → bridge DGRAM → uvicorn (TTS/STT workers)
+               ↳ ninchat_connect/send → NinchatConnection (in-process)
+```
+
+**The architectural delta.**
+
+| Dimension | Original | Current |
+|---|---|---|
+| Orchestration | LangGraph DAG (pretend FSM) | Real FSM (statemachine-engine) |
+| LLM calls | Inline in graph nodes | Mini-graphs via `yamlgraph_action` |
+| State visibility | `graph.invoke()` black box | `statemachine-db machine-state` at any moment |
+| Hangup handling | Conditional edge guard (string) | `hangup` event → state transition |
+| TTS/STT | Blocking in graph node thread | Worker in uvicorn, result via socket |
+| Cleanup | `session.shutdown()` (no-op in prod) | Bridge `disconnect` → `watch_close` → `websocket.close` |
+
+**The irony.** The system was always conceptually an FSM. It took two live calls, a service extraction refactor, and three failed auto-disconnect fixes before the process boundary made the true architecture visible. The conversation coordinator is a state machine. The LLM calls are adapters. The telephony stack is a service. None of these is the same thing as the others — and the original design conflated all three.
+
+**Insight.** A framework generalises a pattern. When you use a framework for something outside its pattern, the framework becomes overhead: you work around it rather than with it. YAMLGraph generalises prompt-template + Pydantic schema + multi-provider LLM. That pattern is real and it fits 4 of the 8 nodes. The remaining 4 were never LLM orchestration — they were telephony IO that belonged in a service. The refactor didn't change the framework; it found the boundary.
+
+**Trap: Inertia of the working system.** "It works" is a reason to not touch it, which is a reason to not see it clearly. The original design's flaws were visible from the first day (`architectural-reflections.md` was written after call #2) but fixing them required complete replacement. The working system was a migration blocker disguised as a success.
+
+**Heuristic:** When a framework is doing more than it was designed for, inventory its strengths against the problem. If fewer than half the nodes need the framework's actual features, the framework is a compatibility shim for something simpler.
+
+**Seed:** YAMLGraph is now a dependency of the FSM, not the runner. Should that be explicit — a `yamlgraph` mini-graph as a first-class node type in `statemachine-engine`, declared in the FSM YAML alongside states? Or does the current `yamlgraph_action` Python wrapper already provide sufficient abstraction, and adding native support would couple two independent projects?
+
+---
+
 ## Entry 75 — 2026-03-04: Three Fixes for One Bug
 
 **Context:** NC-114 — auto-disconnect after farewell. Live call reached `idle`
