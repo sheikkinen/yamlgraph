@@ -6,6 +6,22 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 77 — 2026-03-04: The State That Existed Only to Justify Itself
+
+**Context:** NC-115 — predefined audio responses. Removed `rewriting_greeting` and `generating_goodbye` from the FSM; bypassed ElevenLabs for two fixed utterances using pre-baked mulaw files.
+
+**The trap: states with no inherent purpose.** `rewriting_greeting` existed because the first design had a dynamic greeting template — a bot greeting string that needed LLM rewriting before speech. When NC-115 landed, the question was: what does this state *do* if the text is fixed? It ran a YAMLGraph pipeline to paraphrase a string that was already Finnish, already correct, already at production quality. The LLM was processing a sentence it could only make worse. The state existed not because the system needed it, but because the original architecture assumed LLM mediation at every text boundary. That assumption was never validated against the actual product requirement.
+
+**Two states gone, no scar tissue.** After removal: `connecting_ninchat → speaking_greeting` directly. `classifying → speaking_goodbye` directly. Thirteen states instead of fifteen. No intermediate events `greeting_rewritten` or `goodbye_generated` needed in the config. The transition graph became strictly cleaner. This is what correctly bounded states look like — when you remove them, nothing fills the hole because there was never a hole.
+
+**The mulaw generation boundary.** The implementation reached a hard wall at audio generation: `ELEVENLABS_API_KEY` not in the shell environment. The generation script is correct and committed; the binary output files are not. The pattern: code that depends on external secrets is never fully testable in an automated session without secret injection. The right response was to commit the generation *code* and leave the *output* to a manual step with a clear README comment — not to guess, fabricate, or omit the script. The script is the documentation that makes the binary reproducible.
+
+**lru_cache and test isolation.** The third judge correction from the session before: cache pollution across tests. The cure — `cache_clear()` in an `autouse` fixture before and after each test — follows the one law exactly: normalize at the boundary where data enters the system. The test boundary *is* the entry point. Clearing the cache at test setup ensures the test controls its own world state. Patching `_MANIFEST_PATH` with `tmp_path` ensures no test touches production paths. Both fixes apply at the boundary, not downstream.
+
+**Seed:** What would it look like to lint the FSM config for states that are purely pass-through (no IO, no decision, only event rename)? A state that exists only to rename an event is architectural noise — it can always be replaced by a direct transition with a better event name.
+
+---
+
 ## Entry 76 — 2026-03-04: The Framework That Became a Dependency
 
 **Context:** Retrospective on the full arc from original `yamlgraph graph run` to the current FSM + bridge architecture.
