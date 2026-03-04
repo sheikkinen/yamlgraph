@@ -4,11 +4,12 @@ Framework for building LLM pipelines with YAML configuration.
 State is generated dynamically from graph config.
 """
 
-__version__ = "0.4.44"
+__version__ = "0.4.58"
 
 from pathlib import Path
 
 from yamlgraph.executor import execute_prompt, get_executor
+from yamlgraph.graph_cache import GRAPH_CACHE, clear_cache
 from yamlgraph.graph_loader import load_and_compile
 from yamlgraph.models import (
     ErrorType,
@@ -38,6 +39,9 @@ def get_schema_path() -> Path:
 __all__ = [
     # Graph loader
     "load_and_compile",
+    # Graph cache (FR-111)
+    "GRAPH_CACHE",
+    "clear_cache",
     # Executor
     "execute_prompt",
     "get_executor",

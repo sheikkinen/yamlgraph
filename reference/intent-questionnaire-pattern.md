@@ -217,14 +217,16 @@ async def _resolve_session(
 ### 5. Route Integration
 
 ```python
-# Graph cache for performance (load once per template)
-_graph_cache: dict[str, CompiledGraph] = {}
+# FR-111: load_and_compile_async uses process-global GRAPH_CACHE automatically.
+# No manual cache dict needed — just call the function directly.
+# For custom build functions, use the package-level cache:
+from yamlgraph.graph_cache import GRAPH_CACHE
 
 async def _get_graph_app(template: str) -> CompiledGraph:
     """Get cached graph app for template."""
-    if template not in _graph_cache:
-        _graph_cache[template] = build_graph(template)
-    return _graph_cache[template]
+    if template not in GRAPH_CACHE:
+        GRAPH_CACHE[template] = build_graph(template)
+    return GRAPH_CACHE[template]
 
 async def questionnaire_assessment(request, payload, _):
     # === STEP 1: Resolve BEFORE loading graph ===

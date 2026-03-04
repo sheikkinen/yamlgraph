@@ -13,6 +13,7 @@ YAML-first framework for LLM pipelines. Graphs and prompts are declared in YAML,
 |------|---------|
 | `yamlgraph/graph_loader.py` | Compiles YAML → LangGraph StateGraph |
 | `yamlgraph/executor.py` | `execute_prompt()` - unified LLM call interface |
+| `yamlgraph/graph_cache.py` | Process-global `GRAPH_CACHE` for compiled graphs (FR-111) |
 | `yamlgraph/node_factory.py` | Creates node functions from YAML config |
 | `yamlgraph/utils/llm_factory.py` | Multi-provider LLM factory (anthropic/mistral/openai) |
 | `yamlgraph/models/state_builder.py` | Dynamic state class generation |

@@ -79,7 +79,31 @@ Load and compile a graph for async execution.
 app = await load_and_compile_async("examples/demos/interview/graph.yaml")
 ```
 
-Automatically uses async-compatible checkpointer.
+Automatically uses async-compatible checkpointer and the process-global `GRAPH_CACHE`:
+- **First call**: compiles the graph and caches it (logs `INFO Compiling graph: ...`)
+- **Subsequent calls**: returns the cached compiled graph (logs `DEBUG Cache hit: ...`)
+- **Opt-out**: pass `cache=None` to force recompilation (useful in tests)
+
+```python
+# Disable cache for test isolation
+app = await load_and_compile_async("graph.yaml", cache=None)
+```
+
+### GRAPH_CACHE and clear_cache
+
+The process-global cache lives in `yamlgraph.graph_cache`:
+
+```python
+from yamlgraph.graph_cache import GRAPH_CACHE, clear_cache
+
+# Inspect cached graphs
+print(list(GRAPH_CACHE.keys()))
+
+# Clear all cached graphs (test teardown, hot-reload)
+clear_cache()
+```
+
+Compiled graphs are stateless (thread state lives in the checkpointer), so sharing across concurrent invocations is safe.
 
 ### run_graph_async
 
@@ -108,21 +132,24 @@ app = compile_graph_async(state_graph, config)
 
 ## FastAPI Integration
 
+With `GRAPH_CACHE` (FR-111), no manual global variable is needed — `load_and_compile_async` caches transparently:
+
 ```python
 from fastapi import FastAPI
 from langgraph.types import Command
 from yamlgraph.executor_async import load_and_compile_async, run_graph_async
 
 app = FastAPI()
-graph_app = None
 
 @app.on_event("startup")
 async def startup():
-    global graph_app
-    graph_app = await load_and_compile_async("examples/demos/interview/graph.yaml")
+    # Warm the cache at startup — subsequent calls are instant
+    await load_and_compile_async("graphs/interview.yaml")
 
 @app.post("/chat/{thread_id}")
 async def chat(thread_id: str, message: str):
+    # Cache hit — no recompilation
+    graph_app = await load_and_compile_async("graphs/interview.yaml")
     config = {"configurable": {"thread_id": thread_id}}
     result = await run_graph_async(graph_app, {"input": message}, config)
 
@@ -133,6 +160,7 @@ async def chat(thread_id: str, message: str):
 
 @app.post("/chat/{thread_id}/resume")
 async def resume(thread_id: str, answer: str):
+    graph_app = await load_and_compile_async("graphs/interview.yaml")
     config = {"configurable": {"thread_id": thread_id}}
     result = await run_graph_async(graph_app, Command(resume=answer), config)
     return {"response": result.get("response")}
