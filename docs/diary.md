@@ -6,6 +6,24 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 79 — 2026-03-04: The Warmup That Moved Downstream
+
+**Context:** NC-121 — first-call Gemini classify 2.33s vs warm 826ms. Root cause: `load_and_compile_async()` called on every `execute()`, recreating the LLM client and losing the HTTP connection pool. FR proposed preloading at idle startup.
+
+**The trap: warming at the wrong boundary.** The FR proposed `idle` as the warmup site because that's the earliest moment the FSM runs. It's an instinctively satisfying choice — warm everything before any call arrives. The flaw: `idle` can persist for hours. Any TCP connection warmed at FSM start is dead by the time the first call of the day arrives. The warmup would have been real work for zero benefit in production, with tests passing to confirm the illusion.
+
+**The correction arrived before the code.** The user caught it in planning: "idle might take extended period of time and things might get cold." This is the algorithm working correctly — plan → judge → correct before enforcement. The fix migrated the preload site to `warming_up`, a new transient state entered on every `incoming_call` event, immediately before `connecting_ninchat`. This runs ~90ms and happens once per call, not once per FSM lifetime. The cache persists across calls within the same process — subsequent calls get the instantaneous cache hit.
+
+**Transient state as scoping mechanism.** The `warming_up` state does nothing except compile graphs and return `warmed`. It has no dialogue content. This is correct design: a state whose purpose is a side effect (cache population), not a user-facing event. The FSM state boundary makes the scoping explicit — "things to do before call setup" is a named moment in the protocol, not a scattered pre-flight check in `connecting_ninchat`'s action list.
+
+**The cache is global, the benefit is local.** First call: `warming_up` fills the cache, ~90ms. Second call: `warming_up` runs, finds cache already populated, ~8ms. The LLM client inside the compiled graph object survives across calls — the HTTP pool it holds may or may not remain warm depending on inter-call gap. Cache hit ensures we never recreate the client; whether the connection is warm depends on OS TCP keepalive and SDK behavior. That's acceptable — the client recreation penalty (~1.5s from cold HTTP) is now bounded to the first call after extended idle, not every call.
+
+**Heuristic:** When the "earliest possible" moment for a side effect is also the "potentially coldest" moment by the time it matters — move the side effect downstream to a controlled, per-invocation narrower scope.
+
+**Seed:** Should `warming_up` eventually fire a trivial `ainvoke("ping")` background task to actually warm the HTTP pool? The current implementation compiles the graph and instantiates the LLM client but makes no network request. Measuring first-call classify latency after this commit will reveal whether the client instantiation alone provides meaningful improvement, or whether an explicit warm-up request is necessary.
+
+---
+
 ## Entry 78 — 2026-03-04: The Second Message
 
 **Context:** NC-117 — Ninchat API returns JSON list as the message payload on multi-turn responses. `_send_and_receive_locked()` and `connect()` both called `.get()` directly on `json.loads(payload_raw)`, which is correct for a dict but crashes with `AttributeError` for a list.
