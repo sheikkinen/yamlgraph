@@ -24,9 +24,28 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 86 — 2026-03-05: The dquote Trap and the Commit File Law
+
+**Context:** Testplan execution. All test tiers fixed (NC-115/NC-118 drift in 9 shell scripts + 1 E2E file). When committing the final result, the shell entered `dquote>` and never exited — special characters (`—`, `→`) in the `-m` string opener triggered an unclosed-quote state. The `C-c`, `q`, retry cycle repeated a third time this session.
+
+**The trap: confident inline strings.** The convention already exists in `copilot-instructions.md`: *"shell get stuck easily."* But the rule says *what* (heredoc/cat) without naming the specific failure mode or the cure. So the same mistake recurs: write a long `-m "..."` string, hit a special char or embedded quote, shell enters `dquote>`, all subsequent commands are swallowed, Ctrl-C doesn't help, `q` exits the dquote but the terminal state is uncertain. Time wasted: 2 minutes × N occurrences.
+
+**The cure: `git commit -F /tmp/msg.txt`.** Write the commit message to a temp file with `create_file`. Pass it to git via `-F`. No quoting, no escaping, no heredoc, no dquote trap. The file can contain any unicode, newlines, and special characters freely. This is always safe; the inline form is never safe for multi-line messages.
+
+**The structural insight: the rule must name the cure, not just the danger.** "Shell gets stuck easily" is a warning with no exit path. The actionable form is: *"For multi-line git commit messages, always write to `/tmp/msg.txt` and use `git commit -F /tmp/msg.txt`."* When the cure is named, the dangerous form becomes obviously unnecessary — there is no reason to use `-m` with a multi-line string once you know `-F` exists.
+
+**Graduated to Scripture:** This heuristic is now promoted — the copilot-instructions.md convention line is updated to name the cure explicitly.
+
+**Heuristic:** Never pass multi-line strings inline to shell. Write to file, pass by path. The dangerous form looks convenient until it isn't.
+
+**Seed:** The dquote trap is a recoverable nuisance. A harder version is silent truncation — when a special char ends the string early without entering dquote mode, the commit message is silently shortened. Is there a CI check or pre-commit hook that could detect suspiciously short commit messages (e.g. less than 20 chars) and warn before the push?
+
+---
+
 ## Entry 84 — 2026-03-05: The Right Law, The Wrong Boundary
 
 **Context:** Production log shows FSM in `listening` at 15:38:52. At 15:39:18 a new `incoming_call` arrives — silently dropped. "No transition found." The proposed fix: add an `is_disconnected` guard in `server_fsm.py /incoming` — reject with `<Reject reason="busy"/>` if session is active.
+
 
 **The trap: citing the One Law while violating its intent.** The Law says: *normalize at the boundary where external data enters.* The fix correctly identified `/incoming` as a boundary. But `busy` is not a normalization — it's a business decision masquerading as a guard. Two real scenarios demolish it immediately:
 

@@ -24,6 +24,7 @@ Use these as smoke test for new graph development.
 - Term 'backward compatibility' is a key indicator for a refactoring need.
 - Term 'pre-exiting failure' doesn't exist; likely cause: test pollution.
 - Prefer simple write new file and replace original over complex heredoc/cat strings as shell get stuck easily.
+- For multi-line git commit messages, always write to `/tmp/msg.txt` and use `git commit -F /tmp/msg.txt`. Never use `git commit -m "..."` with multi-line strings — special characters trigger dquote trap.
 - Run slow shell scripts with redirect to log file. Analyze logs separately.
 - Convert paths with hyphens to snake_case to avoid import issues.
 - YAMLGraph and LLM should be used instead of complex regex logic.
