@@ -6,6 +6,24 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 85 — 2026-03-05: The Intermediate State as Normalisation Point
+
+**Context:** NC-123 — production `incoming_call` dropped from `listening` state. Fix: `aborting` intermediate state + `call_abort_action` + `abort_listen` bridge handler. FR written, judged, amended, enforced. 18 tests. Shipped `d2e94cf`.
+
+**The pattern that worked: state as boundary.** Entry 84's heuristic was "find the right boundary." The real fix here moved the boundary *into the FSM itself*. The `aborting` state is a normalisation point: it collapses any mid-call state into a single known entry point before the new call begins. No matter where the FSM was (listening, classifying, speaking), the incoming preemption lands in `aborting` and the same teardown logic runs. This is the One Law applied correctly — normalize at the boundary where the new call enters the FSM, not upstream in the HTTP handler and not downstream in each individual state.
+
+**The cognitive trap avoided: per-state guards.** The naive alternative was adding `incoming_call` transitions for every active state individually (11 states × 1 transition = 11 lines, 11 different actions or duplicated logic). Instead, one wildcard + one state + one action. The FSM's own first-match-wins ordering enforces the idle bypass without any guard code.
+
+**The structural insight: preemption belongs in the state machine.** A new call arriving mid-call is not an error, not a busy condition, and not a boundary violation — it is a valid FSM event with a defined response: abort cleanly, then restart. Modelling it as a state (`aborting`) rather than a guard (`is_disconnected` check) makes the response explicit, testable, and observable in logs. "FSM entered aborting at 15:39:18" is a fact in the trace. "HTTP handler returned 200 because is_disconnected was False" is not.
+
+**NC-122 coupling.** The `_ACTIVE_CALL_STATES` set in `test_nc122_hangup_coverage.py` was a silent gap — `aborting` added to the YAML would have been invisible to the hangup coverage test without the explicit set update. The test guarded what it knew about, not what it didn't know about. Resolution: the fixed set is now tighter, but the deeper fix is that the inverse check (every YAML state in the set) would have caught this automatically. That remains a non-blocking gap.
+
+**Heuristic:** When a new event can arrive in any state, the fix is almost always a single intermediate state — not N transitions, not a boundary guard, not a retry flag. The intermediate state *is* the normalisation point.
+
+**Seed:** The `aborting` state runs `call_abort_action` synchronously in the FSM action thread. `abort_listen` puts a `None` sentinel into the async queue, and `feed_audio()` exits within 0.5s. But `call_abort_action` sends the sentinel and immediately returns `aborted` — it does not *wait* for `feed_audio()` to actually finish before `warming_up` starts preloading graphs. Is there a race where `warming_up`'s `yamlgraph_preload` begins its async work on the event loop while the old `feed_audio()` is still alive and consuming the new caller's first audio frame? If yes, the 0.5s window is the real latency budget for `yamlgraph_preload`'s first await.
+
+---
+
 ## Entry 84 — 2026-03-05: The Right Law, The Wrong Boundary
 
 **Context:** Production log shows FSM in `listening` at 15:38:52. At 15:39:18 a new `incoming_call` arrives — silently dropped. "No transition found." The proposed fix: add an `is_disconnected` guard in `server_fsm.py /incoming` — reject with `<Reject reason="busy"/>` if session is active.
