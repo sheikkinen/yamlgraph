@@ -6,7 +6,21 @@ Previous: [diary-2026-03-04.md](diary-2026-03-04.md) — 17 entries, 2026-03-04.
 
 ---
 
-## Entry 87 — 2026-03-05: The Promotion That Was Always the Answer
+## Entry 88 — 2026-03-05: Documents Are Code Too
+
+**Context:** NC-125 — full audit of all 5 docs in `projects/ninchat_voice/docs/`. Three stale documents found and corrected: `dataflow.md` (4 stale sections), `fsm-research.md` (no tombstone), `architectural-options-event-model.md` (no tombstone, open questions unanswered). Committed `1e3f2e6`.
+
+**The pattern:** Design docs written at pre-implementation time inevitably become stale at the moment the implementation lands. The code was cleaned in NC-124 (NC-118/119/120 bugs fixed) but the docs still described the *problem* as if it were active. Section 6 of `dataflow.md` said "⚠ Data loss point (NC-118 bug)" — not "former bug, here's the fix" — four commits after the fix. The bug note had become a ghost: authoritative-looking, actively misleading.
+
+**The distinction that matters: archival vs. reference.** `fsm-research.md` and `architectural-options-event-model.md` are *design exploration* documents. They record the path taken, not the destination. But without a tombstone header, a reader approaching them cold cannot distinguish "this is the current architecture" from "this was the thinking that led to the architecture." Archival documents need a clear sign at the entry: "this is where we were, not where we are." The resolution notes on open questions in the event model doc transform it from a dangling list of unanswered concerns into a closed decision record.
+
+**The trap: treating docs as done once written.** Documentation debt accumulates silently. Unlike a test that fails red or a type error that fails CI, a stale doc emits no signal. It only manifests when a future reader acts on outdated information. The correct pattern: when closing any NC/FR that fixes a bug, the fix task list should include "update every doc that mentioned this bug."
+
+**Heuristic:** Every active bug marker (⚠, TODO, FIXME, bug status) in documentation is a debt clock. When the bug is fixed, the doc must transition from "here is the problem" to "here is what we built to solve it." Bug descriptions that outlast their fixes are retrospectively misleading.
+
+**Seed:** Could a lint pass detect documentation debt automatically? Grep for known NC/FR numbers in docs, cross-reference their status in `feature-requests/`, flag any doc that mentions bugs marked as implemented. "Traceability for documentation" — the same principle as requirement traceability for tests, applied to prose.
+
+
 
 **Context:** FR-110 — promote linter W014 (undeclared `{state.X}` reference) from warning to error E007. TDD enforcement.
 
