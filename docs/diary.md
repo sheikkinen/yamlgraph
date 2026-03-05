@@ -6,6 +6,30 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 84 — 2026-03-05: The Right Law, The Wrong Boundary
+
+**Context:** Production log shows FSM in `listening` at 15:38:52. At 15:39:18 a new `incoming_call` arrives — silently dropped. "No transition found." The proposed fix: add an `is_disconnected` guard in `server_fsm.py /incoming` — reject with `<Reject reason="busy"/>` if session is active.
+
+**The trap: citing the One Law while violating its intent.** The Law says: *normalize at the boundary where external data enters.* The fix correctly identified `/incoming` as a boundary. But `busy` is not a normalization — it's a business decision masquerading as a guard. Two real scenarios demolish it immediately:
+
+1. **Single number, FSM lagging.** Twilio's PSTN is the serialization authority. A new POST to `/incoming` only arrives *after* the previous call has fully ended at the network level. `session.is_disconnected` may still be False because the STT process is still draining — but the line is free. A `<Reject reason="busy"/>` gives the new legitimate caller a busy signal for a line that Twilio itself knows is idle. Wrong caller experience, wrong diagnosis.
+
+2. **Multiple numbers / forked FSMs.** One singleton `TelcoSession` + one singleton FSM process *cannot* serve concurrent calls regardless of any boundary guard. The session registry, bridge socket path, and engine socket are per-process. Forking requires per-call process spawn or a per-call session multiplexer. The guard just hides that architectural gap.
+
+**What was wrong:** I identified a real boundary (the HTTP handler) and applied a guard (busy-reject) that felt clean at first glance. But the guard assumed "FSM non-idle = line busy," which is false in both deployment models. The cleanup lag between Twilio PSTN and FSM state is not line-busy. Multi-call concurrency is a different class of problem than serialization.
+
+**The correction the user gave:** Both "FSM is lagging behind" and "new calls should be forked" are valid real-world requirements. The proposed boundary fix fails both. The right scope depends on the deployment intent:
+- Single number: the FSM needs a preemption path — `incoming_call` firing mid-call should abort the current call cleanly and start a new one. That's an FSM design question, not a boundary guard.
+- Multi-tenant: per-call FSM process spawn — the singleton architecture is the constraint to remove, not patch.
+
+**The cognitive pattern: confusing symptom location with fix location.** The symptom appeared at the FSM event drop site. The proposed fix moved one step upstream to the HTTP boundary. But "more upstream" is not the same as "correct boundary." The correct boundary for the single-number case is the FSM state machine's own preemption semantics. The correct boundary for multi-tenant is the process lifecycle. I stopped one hop short of the real question.
+
+**Heuristic:** Citing the One Law does not validate the fix. The Law says *which layer* to fix; it says nothing about *what the fix is*. After finding the boundary, ask: does this fix hold under all deployment models, or only the one I currently have in mind?
+
+**Seed:** If the single-number production model is "one call at a time, FSM must clean up before accepting next," what is the acceptable cleanup window? The log gap was 26s. `silence_timeout` fires at 30s. Is the real fix shortening the STT timeout to 10s in `voice_listen`, so the cleanup cycle completes faster and new calls don't arrive during the lag window?
+
+---
+
 ## Entry 83 — 2026-03-04: The Enforcer Ships the Cache
 
 **Context:** FR-111 enforcement — process-global compiled graph cache, TDD-first. The Judgement (Entry 81) had already hardened the spec with six amendments. This was the Enforcement phase: Red → Green → Refactor → Ship.
