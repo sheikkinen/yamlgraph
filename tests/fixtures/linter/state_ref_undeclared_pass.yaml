@@ -1,4 +1,4 @@
-# W014 pass: all {state.X} references resolve to known state fields
+# E007 pass: all {state.X} references resolve to known state fields
 prompts_relative: true
 prompts_dir: prompts
 state:

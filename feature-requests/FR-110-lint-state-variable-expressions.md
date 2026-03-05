@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-03-04
 
@@ -72,17 +72,17 @@ No logic change is required — only the code label and severity string change.
 
 ## Acceptance Criteria
 
-- [ ] `_check_w014_unknown_state_refs` emits `severity="error"` with `code="E007"` for
+- [x] `_check_e007_unknown_state_refs` emits `severity="error"` with `code="E007"` for
       any `{state.X}` where `X` is not in `known_fields`
-- [ ] The old code `W014` no longer appears in any lint output
-- [ ] `yamlgraph graph lint examples/demos/hello/graph.yaml` still exits 0 (no regression)
-- [ ] A graph YAML containing `{state.undeclared}` causes `yamlgraph graph lint` to exit
+- [x] The old code `W014` no longer appears in any lint output
+- [x] `yamlgraph graph lint examples/demos/hello/graph.yaml` still exits 0 (no regression)
+- [x] A graph YAML containing `{state.undeclared}` causes `yamlgraph graph lint` to exit
       non-zero (error, not just warning)
-- [ ] All existing W014 tests in `tests/unit/test_linter_fr025.py` updated to assert
+- [x] All existing W014 tests in `tests/unit/test_linter_fr025.py` updated to assert
       `"E007"` and pass
-- [ ] `ARCHITECTURE.md` REQ-YG-069 updated: `W014` → `E007`, "warn" → "error"
-- [ ] `scripts/req_coverage.py` updated if it maps W014 explicitly
-- [ ] `CHANGELOG.md` updated
+- [x] `ARCHITECTURE.md` REQ-YG-069 updated: `W014` → `E007`, "warn" → "error"
+- [x] `scripts/req_coverage.py` — no W014 mapping existed; no change needed
+- [x] `CHANGELOG.md` updated
 
 ## Alternatives Considered
 

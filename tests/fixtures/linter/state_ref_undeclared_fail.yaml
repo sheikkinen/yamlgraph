@@ -1,4 +1,4 @@
-# W014 fail: {state.unknown_field} not declared anywhere in graph
+# E007 fail: {state.unknown_field} not declared anywhere in graph
 prompts_relative: true
 prompts_dir: prompts
 state:

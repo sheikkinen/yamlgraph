@@ -173,23 +173,24 @@ class TestCheckExpressionSyntax:
         codes = issue_codes(issues)
         assert "W007" in codes
 
-    # --- W014: {state.X} references undeclared field ---
+    # --- E007: {state.X} references undeclared field ---
 
     @pytest.mark.req("REQ-YG-069")
     def test_state_ref_undeclared_pass(self):
-        """All {state.X} refs resolve to known fields — no W014."""
+        """All {state.X} refs resolve to known fields — no E007."""
         issues = check_expression_syntax(FIXTURES / "state_ref_undeclared_pass.yaml")
         codes = issue_codes(issues)
-        assert "W014" not in codes
+        assert "E007" not in codes
 
     @pytest.mark.req("REQ-YG-069")
     def test_state_ref_undeclared_fail(self):
-        """{state.unknown_field} not in known state — W014 raised."""
+        """{state.unknown_field} not in known state — E007 error raised."""
         issues = check_expression_syntax(FIXTURES / "state_ref_undeclared_fail.yaml")
         codes = issue_codes(issues)
-        assert "W014" in codes
-        w014 = [i for i in issues if i.code == "W014"]
-        assert any("unknown_field" in i.message for i in w014)
+        assert "E007" in codes
+        e007 = [i for i in issues if i.code == "E007"]
+        assert any("unknown_field" in i.message for i in e007)
+        assert all(i.severity == "error" for i in e007)
 
 
 # ===========================================================================
@@ -307,7 +308,7 @@ class TestLintGraphIntegration:
             "E702",
             "W801",
             "W007",
-            "W014",
+            "E007",
             "E010",
             "E011",
             "E802",

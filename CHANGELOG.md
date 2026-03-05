@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **FR-110 Promote W014 → E007**: Undeclared `{state.X}` references now emit `severity="error"` with code `E007` (was `W014` warning). `yamlgraph graph lint` exits non-zero on undeclared state refs. (REQ-YG-069)
+
 ## [0.4.59] — 2026-03-04
 
 ### Added
