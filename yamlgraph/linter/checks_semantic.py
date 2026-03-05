@@ -6,7 +6,7 @@ Check functions:
 - check_cross_references (E006, E008)
 - check_passthrough_nodes (E601)
 - check_tool_call_nodes (E701, E702)
-- check_expression_syntax (W801, W007, W014)
+- check_expression_syntax (W801, W007, E007)
 - check_error_handling (E010, E011)
 - check_edge_types (E802)
 """
@@ -197,18 +197,18 @@ def _check_w007_bare_refs(
     return issues
 
 
-def _check_w014_unknown_state_refs(
+def _check_e007_unknown_state_refs(
     node_name: str, value: str, known_fields: set[str]
 ) -> list[LintIssue]:
-    """W014: {state.X} where X is not in known fields."""
+    """E007: {state.X} where X is not in known fields."""
     issues: list[LintIssue] = []
     protected = value.replace("{{", "\x00").replace("}}", "\x01")
     for ref in re.findall(r"\{state\.(\w+)", protected):
         if ref not in known_fields:
             issues.append(
                 LintIssue(
-                    severity="warning",
-                    code="W014",
+                    severity="error",
+                    code="E007",
                     message=(
                         f"'{{{{state.{ref}}}}}' in node '{node_name}' "
                         f"references undeclared state field '{ref}'"
@@ -236,7 +236,7 @@ def check_expression_syntax(graph_path: Path) -> list[LintIssue]:
 
     W801 — condition uses {braces} or state. prefix (should be bare names)
     W007 — variable expression uses {name} without state. prefix
-    W014 — {state.X} references field not in known state
+    E007 — {state.X} references field not in known state
     """
     graph = load_graph(graph_path)
     issues = _check_w801_condition_braces(graph)
@@ -246,7 +246,7 @@ def check_expression_syntax(graph_path: Path) -> list[LintIssue]:
         for value in _extract_expression_values(node_config):
             issues.extend(_check_w007_bare_refs(node_name, value, known_fields))
             issues.extend(
-                _check_w014_unknown_state_refs(node_name, value, known_fields)
+                _check_e007_unknown_state_refs(node_name, value, known_fields)
             )
 
     return issues

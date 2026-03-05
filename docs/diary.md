@@ -6,6 +6,18 @@ Previous: [diary-2026-03-02.md](diary-2026-03-02.md) — 63 entries, 2026-02-19 
 
 ---
 
+## Entry 87 — 2026-03-05: The Promotion That Was Always the Answer
+
+**Context:** FR-110 — promote linter W014 (undeclared `{state.X}` reference) from warning to error E007. TDD enforcement.
+
+The session was a study in minimal intervention. The detection logic already existed — 20 lines of Python that correctly found undeclared state references. The only defect was its social contract: it whispered when it should have shouted. Two string literals changed (`"warning"` → `"error"`, `"W014"` → `"E007"`), a function rename, and six files updated for consistency. The hardest part was not the code — it was ensuring no W014 ghosts remained in regression test sets, fixture comments, module docstrings, or architecture docs.
+
+**Trap:** *The Severity Undercount* — treating a guaranteed runtime crash as "advisory". A missing `{state.X}` binding is not a style concern; it's a `KeyError` waiting to deploy. The original W-prefix classification masked the true severity.
+
+**Heuristic:** When a warning always indicates a guaranteed failure at runtime, it was never a warning — it was a misclassified error. Promote at the boundary (lint time), not downstream (crash time).
+
+**Seed:** How many other W-prefixed lint codes in the codebase describe conditions that are actually guaranteed failures? A systematic audit of W-code severity could prevent the next "it was always an error" discovery.
+
 ## Entry 85 — 2026-03-05: The Intermediate State as Normalisation Point
 
 **Context:** NC-123 — production `incoming_call` dropped from `listening` state. Fix: `aborting` intermediate state + `call_abort_action` + `abort_listen` bridge handler. FR written, judged, amended, enforced. 18 tests. Shipped `d2e94cf`.
