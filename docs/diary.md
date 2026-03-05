@@ -4,6 +4,25 @@ Metacognitive reflections on development process.
 
 Previous: [diary-2026-03-04.md](diary-2026-03-04.md) — 17 entries, 2026-03-04.
 
+## Entry 89 — 2026-03-05: The Two Blind Spots of a Live Call
+
+**Context:** First real call through the full pipeline (ElevenLabs TTS + STT, Ninchat, LangGraph classify/rewrite). Call flowed: greeting → question → Kiitos → classify → Ninchat answer → rewrite → speak → listen again → goodbye → close. But two structural problems became visible only by running the call — not from any test.
+
+**Observation 1 — STT mistakes are invisible in the coordinator log.**
+`server.log` showed `👂 USER: Hamma suolta.` and `coordinator.log` showed only a DEBUG-level `context_map: user_utterance = Hamma suolta.` — invisible at INFO level during normal log monitoring. There is no paired log line that reads "STT heard X → classified as Y". When STT produces an error (Finnish ASR is imperfect — "hammashuolto" becomes "Hamma suolta"), you cannot see it without cross-referencing two log files at different verbosity levels. The information exists. The correlation doesn't.
+
+**Observation 2 — Early speech after TTS is discarded.**
+`stt.py` sleeps 0.3s and calls `clear_inbound()` every time a `listen` command arrives. This is correct for clearing TTS echo (mulaw loopback from Twilio). But `speak_done` is sent only *after* `send_mark_and_wait("tts_complete")` — meaning Twilio has already confirmed all audio was played. Any speech the caller starts during or immediately after TTS has been queuing in `session.inbound`. The 0.3s sleep then the clear wipes it. For a fast Finnish speaker who starts replying the instant silence hits, the opening word or two may be gone. This is not a race between processes — it is an intentional flush that discards real speech.
+
+**The structural insight: tests can only verify specified behaviours.**
+Both blind spots were undetectable before live testing because no test specifies "STT error must be logged at INFO in coordinator" or "inbound audio that arrives after mark is preserved across the echo window." The test suite validated correctness of the happy path; it said nothing about observability or timing resilience. The definition of done stopped at "call completes successfully" rather than "operator can diagnose a failing call."
+
+**Heuristic:** After the first live run of any pipeline, audit two things: (a) can an operator diagnose a failure from logs alone, without cross-referencing processes? (b) are there flush/clear operations that treat legitimate data as stale noise? Both are invisible to unit tests.
+
+**Seed:** The echo-clear window is 0.3s because that felt safe. The correct window is "time between TTS mark received and first inbound audio frame that could plausibly be human speech." ElevenLabs VAD knows when speech starts — could the STT's `on_committed_transcript` fire a "speech_started" event that the bridge uses to gate the clear, rather than a fixed timer?
+
+---
+
 ---
 
 ## Entry 88 — 2026-03-05: Documents Are Code Too
