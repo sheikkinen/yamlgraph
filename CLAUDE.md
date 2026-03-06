@@ -322,12 +322,13 @@ The codebase uses **sync-first with async wrappers**:
 | Variable | Purpose |
 |----------|---------|
 | `ANTHROPIC_API_KEY` | Anthropic authentication |
+| `INCEPTION_API_KEY` | Inception Labs Mercury authentication |
 | `MISTRAL_API_KEY` | Mistral authentication |
 | `OPENAI_API_KEY` | OpenAI authentication |
 | `REPLICATE_API_TOKEN` | Replicate authentication |
 | `XAI_API_KEY` | xAI Grok authentication |
 | `LMSTUDIO_BASE_URL` | LM Studio local server URL |
-| `PROVIDER` | Default LLM provider (anthropic/mistral/openai/replicate/xai/lmstudio) |
+| `PROVIDER` | Default LLM provider (anthropic/google/inception/mistral/openai/replicate/xai/lmstudio) |
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |
 | `LANGCHAIN_PROJECT` | LangSmith project name |

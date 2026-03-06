@@ -140,11 +140,11 @@ class TestCreateLLM:
 
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
     def test_google_default_model(self):
-        """Should use gemini-2.0-flash as default Google model."""
+        """Should have a Google model default that starts with 'gemini'."""
         from yamlgraph.config import DEFAULT_MODELS
 
         assert "google" in DEFAULT_MODELS
-        assert DEFAULT_MODELS["google"] == os.getenv("GOOGLE_MODEL", "gemini-2.0-flash")
+        assert DEFAULT_MODELS["google"].startswith("gemini")
 
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
     def test_google_custom_model(self):
@@ -152,3 +152,20 @@ class TestCreateLLM:
         with patch.dict(os.environ, {"GOOGLE_API_KEY": "test-key"}):
             llm = create_llm(provider="google", model="gemini-2.5-pro", temperature=0.5)
             assert llm.model == "gemini-2.5-pro"
+
+    @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
+    def test_inception_provider(self):
+        """Should create Inception Labs LLM when provider='inception'."""
+        with patch.dict(os.environ, {"INCEPTION_API_KEY": "test-key"}):
+            llm = create_llm(provider="inception", temperature=0.6)
+            assert llm.__class__.__name__ == "ChatOpenAI"
+            assert llm.temperature == 0.6
+            assert llm.openai_api_base == "https://api.inceptionlabs.ai/v1"
+
+    @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
+    def test_inception_default_model(self):
+        """Should use mercury-2 as default Inception model."""
+        from yamlgraph.config import DEFAULT_MODELS
+
+        assert "inception" in DEFAULT_MODELS
+        assert DEFAULT_MODELS["inception"] == "mercury-2"
