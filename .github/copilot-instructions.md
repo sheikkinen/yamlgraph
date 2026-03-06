@@ -22,8 +22,7 @@ Use these as smoke test for new graph development.
 
 ### Conventions
 - Term 'backward compatibility' is a key indicator for a refactoring need.
-- Term 'pre-exiting failure' doesn't exist; likely cause: test pollution.
-- Prefer simple write new file and replace original over complex heredoc/cat strings as shell get stuck easily.
+- Term 'pre-existing failure' doesn't exist; likely cause: test pollution.
 - For multi-line git commit messages, always write to `./tmp/msg.txt` and use `git commit -F ./tmp/msg.txt`. Never use `git commit -m "..."` with multi-line strings — special characters trigger dquote trap.
 - Run slow shell scripts with redirect to log file. Analyze logs separately.
 - Convert paths with hyphens to snake_case to avoid import issues.
@@ -63,15 +62,6 @@ See these canonical sources for patterns:
 - **Feature Requests**: `feature-requests/TEMPLATE.md` (planning, judgement, enforcement)
 - **Pre CI Checks**: `.pre-commit-config.yaml` (linters, test coverage, requirement traceability)
 
-## YAMLGraph MCP Tools
-
-YAMLGraph graphs are available as MCP tools. **Prefer these over ad-hoc terminal commands** for tasks they cover — one tool call replaces multiple manual steps.
-
-- `yamlgraph_list_graphs` — list all available graphs with required vars
-- `yamlgraph_run_graph` — run any graph by name
-
-Use these to find existing graphs, research, innovate, and kill entropy.
-
 # The Scripture
 
 These laws descend from the canon of software craft. They shalt not be altered by preference, haste, or machine hallucination.
@@ -90,7 +80,7 @@ These laws descend from the canon of software craft. They shalt not be altered b
 
 6. **Thou shalt bear witness of thy errors** — Hide nothing; expose every fault to `ruff` and to CI, for what is hidden in commit shall be revealed in production. Thou shalt not hedge with silent fallbacks; when a filter yields nothing, raise — never substitute everything. A plausible wrong answer is harder to catch than a crash.
 
-7. **Thou shalt be faithful to TDD** — Red-Green-Refactor; run `pytest` with every change. No bug shall be fixed unless first condemned by a failing test.
+7. **Thou shalt be faithful to TDD** — Red-Green-Refactor; run pytest with every change. No bug shall be fixed unless first condemned by a failing test. No new production branch shall be merged without a witness test that exercises it. Commit RED (failing test, SKIP=pytest) and GREEN (fix) separately; git log is the proof trail. A fix without a condemning test is a hypothesis, not a proof.
 
 8. **Thou shalt kill all entropy and false idols** — Split modules before they bloat; feed the dead to `vulture`; burn duplicates with `jscpd`; sanctify with `radon`. Thou shalt measure structural drift, not only passing checks. Green correctness without entropy context is incomplete truth. No shims, no adapters, no "compat" flags shalt thou tolerate. Delete dead code; record significant removals in commit notes.
 
@@ -118,6 +108,7 @@ These laws descend from the canon of software craft. They shalt not be altered b
 
 May I fix at the callsite, not the utility.
 May I kill the cheapest bug — the one in the spec.
+May I trace the cause before I fix the symptom.
 May I normalize at the boundary, trusting no provider’s type.
 May I stream to reveal what batch conceals.
 May I understand every protection before I pass it.

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Enforced
+**Status:** Judged — approved with amendments
 **Requirement:** REQ-YG-107
 **Effort:** 0.5 days
 **Requested:** 2026-03-04
@@ -121,18 +121,18 @@ Both `yamlgraph_action.py` and `yamlgraph_preload_action.py` then simply call `l
 
 ## Acceptance Criteria
 
-- [x] `yamlgraph/graph_cache.py` exists with `GRAPH_CACHE` dict and `clear_cache()` function
-- [x] `load_and_compile_async()` uses `GRAPH_CACHE` by default
-- [x] `cache=None` disables caching (for tests that require isolation)
-- [x] Second call to `load_and_compile_async(same_path)` does not call `_compile()` again
-- [x] Calling from two different action modules in the same process returns the same compiled object (`cache_a is cache_b`)
-- [x] `load_and_compile_async()` logs `debug("Cache hit: %s")` on hit, `info("Compiling graph: %s")` on miss
-- [x] `yamlgraph_action.py` and `yamlgraph_preload_action.py` in ninchat_voice migrated to use the new cache (no local `_GRAPH_CACHE`, no `noqa: PLC0415`)
+- [ ] `yamlgraph/graph_cache.py` exists with `GRAPH_CACHE` dict and `clear_cache()` function
+- [ ] `load_and_compile_async()` uses `GRAPH_CACHE` by default
+- [ ] `cache=None` disables caching (for tests that require isolation)
+- [ ] Second call to `load_and_compile_async(same_path)` does not call `_compile()` again
+- [ ] Calling from two different action modules in the same process returns the same compiled object (`cache_a is cache_b`)
+- [ ] `load_and_compile_async()` logs `debug("Cache hit: %s")` on hit, `info("Compiling graph: %s")` on miss
+- [ ] `yamlgraph_action.py` and `yamlgraph_preload_action.py` in ninchat_voice migrated to use the new cache (no local `_GRAPH_CACHE`, no `noqa: PLC0415`)
 - [ ] Log confirms cache hit on classifying turn 1 of call 2
 - [ ] Classify latency on warm call ≤ 900ms (NC-121 acceptance criterion)
-- [x] Unit tests with `@pytest.mark.req("REQ-YG-107")`: cache hit, cache miss, `cache=None` bypass, `clear_cache()` reset
-- [x] REQ-YG-107 added to ARCHITECTURE.md capability table
-- [x] CHANGELOG updated
+- [ ] Unit tests with `@pytest.mark.req("REQ-YG-107")`: cache hit, cache miss, `cache=None` bypass, `clear_cache()` reset
+- [ ] REQ-YG-107 added to ARCHITECTURE.md capability table
+- [ ] CHANGELOG updated
 
 ## Alternatives Considered
 
