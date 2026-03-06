@@ -17,7 +17,14 @@ logger = logging.getLogger(__name__)
 
 # Type alias for supported providers
 ProviderType = Literal[
-    "anthropic", "google", "lmstudio", "mistral", "openai", "replicate", "xai"
+    "anthropic",
+    "google",
+    "inception",
+    "lmstudio",
+    "mistral",
+    "openai",
+    "replicate",
+    "xai",
 ]
 
 # Thread-safe cache for LLM instances
@@ -38,6 +45,21 @@ def _create_google_llm(
         model=model,
         temperature=temperature,
         google_api_key=os.getenv("GOOGLE_API_KEY"),
+        **kwargs,
+    )
+
+
+def _create_inception_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create Inception Labs Mercury LLM."""
+    from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(
+        model=model,
+        temperature=temperature,
+        base_url="https://api.inceptionlabs.ai/v1",
+        api_key=os.getenv("INCEPTION_API_KEY"),
         **kwargs,
     )
 
@@ -115,6 +137,8 @@ def _dispatch_provider(
     """Dispatch to appropriate provider-specific creation function."""
     if provider == "google":
         return _create_google_llm(model, temperature, **kwargs)
+    if provider == "inception":
+        return _create_inception_llm(model, temperature, **kwargs)
     if provider == "mistral":
         return _create_mistral_llm(model, temperature, **kwargs)
     if provider == "openai":

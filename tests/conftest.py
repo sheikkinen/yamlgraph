@@ -5,6 +5,7 @@ These models are intentionally NOT imported from yamlgraph.models to
 demonstrate that the framework is truly generic and works with any schema.
 """
 
+import os
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -12,6 +13,25 @@ import pytest
 from pydantic import BaseModel, Field
 
 from yamlgraph.models import create_initial_state
+
+# =============================================================================
+# Environment Pollution Guard
+# =============================================================================
+# Third-party imports (e.g., litellm via langchain_litellm) call load_dotenv()
+# which traverses parent directories and may load env vars from a .env file
+# outside the worktree. LANGCHAIN_TRACING (v1) causes RuntimeError in
+# langchain_core ≥0.3. This fixture cleans up after each test.
+
+_POLLUTING_ENV_VARS = ("LANGCHAIN_TRACING",)
+
+
+@pytest.fixture(autouse=True)
+def _prevent_env_pollution():
+    """Remove env vars injected by third-party load_dotenv after each test."""
+    yield
+    for var in _POLLUTING_ENV_VARS:
+        os.environ.pop(var, None)
+
 
 # =============================================================================
 # Requirement Traceability Enforcement (ADR-001)

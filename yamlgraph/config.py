@@ -42,6 +42,7 @@ DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MODELS = {
     "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
     "google": os.getenv("GOOGLE_MODEL", "gemini-2.0-flash"),
+    "inception": os.getenv("INCEPTION_MODEL", "mercury-2"),
     "lmstudio": os.getenv("LMSTUDIO_MODEL", "qwen2.5-coder-7b-instruct"),
     "mistral": os.getenv("MISTRAL_MODEL", "mistral-large-latest"),
     "openai": os.getenv("OPENAI_MODEL", "gpt-4o"),
