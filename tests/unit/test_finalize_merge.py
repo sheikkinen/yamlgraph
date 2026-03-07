@@ -235,7 +235,9 @@ class TestChangelogEntry:
         changelog = (repo / "CHANGELOG.md").read_text()
         lines = changelog.splitlines()
         # Find ### Added line
-        added_idx = next(i for i, l in enumerate(lines) if l.strip() == "### Added")
+        added_idx = next(
+            i for i, line in enumerate(lines) if line.strip() == "### Added"
+        )
         # Next non-empty line should be our new entry
         entry_line = lines[added_idx + 1]
         assert "FR-210" in entry_line
@@ -431,7 +433,8 @@ class TestEnforceNextSteps:
             "scripts",
             "enforce_worktree.sh",
         )
-        content = open(enforce_path).read()
+        with open(enforce_path) as f:
+            content = f.read()
         assert "finalize_merge.sh" in content
         assert "After merging" in content or "after merging" in content.lower()
 
@@ -447,11 +450,13 @@ class TestScriptHeader:
 
     def test_script_has_usage_comment(self):
         """Script header includes usage instructions."""
-        content = open(os.path.abspath(_SCRIPT_PATH)).read()
+        with open(os.path.abspath(_SCRIPT_PATH)) as f:
+            content = f.read()
         assert "Usage:" in content
         assert "finalize_merge.sh" in content
 
     def test_script_uses_portable_sed(self):
         """Script uses temp file pattern, not sed -i."""
-        content = open(os.path.abspath(_SCRIPT_PATH)).read()
+        with open(os.path.abspath(_SCRIPT_PATH)) as f:
+            content = f.read()
         assert "sed -i" not in content
