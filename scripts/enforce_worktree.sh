@@ -88,6 +88,10 @@ MAIN_VENV="$MAIN_DIR/.venv"
 if [[ -d "$MAIN_VENV" ]]; then
     log_info "Symlinking shared .venv..."
     ln -sf "$MAIN_VENV" "$WORKTREE_DIR/.venv"
+    # Ensure .venv is gitignored in worktree (prevents symlink from being committed)
+    if ! grep -q "^\.venv$" "$WORKTREE_DIR/.gitignore" 2>/dev/null; then
+        echo ".venv" >> "$WORKTREE_DIR/.gitignore"
+    fi
 fi
 
 cd "$WORKTREE_DIR"
