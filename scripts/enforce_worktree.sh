@@ -54,9 +54,9 @@ log_info "Branch: $BRANCH"
 log_info "Worktree: $WORKTREE_DIR"
 log_info "Base Branch: $BASE_BRANCH"
 
-# Validate clean working tree using Python helper (excludes diary - inquisitor writes there)
+# Validate clean working tree using Python helper (excludes diary and feature-requests/)
 log_info "Validating clean working tree..."
-if ! python3 -c "from yamlgraph.utils.worktree_helpers import validate_clean_working_tree; validate_clean_working_tree(exclude_paths=['docs/diary.md'])" 2>&1; then
+if ! python3 -c "from yamlgraph.utils.worktree_helpers import validate_clean_working_tree; validate_clean_working_tree(exclude_paths=['docs/diary.md', 'feature-requests/'])" 2>&1; then
     log_error "Working tree has uncommitted changes. Commit or stash before running."
     exit 1
 fi

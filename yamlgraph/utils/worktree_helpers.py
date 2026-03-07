@@ -72,6 +72,16 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
     """
     exclude_paths = exclude_paths or []
 
+    def is_excluded(filepath: str) -> bool:
+        """Check if filepath matches any exclude pattern (exact or prefix for dirs)."""
+        for pattern in exclude_paths:
+            if pattern.endswith("/"):
+                if filepath.startswith(pattern):
+                    return True
+            elif filepath == pattern:
+                return True
+        return False
+
     # Check unstaged changes
     result_unstaged = subprocess.run(
         ["git", "diff", "--name-only"],
@@ -79,7 +89,7 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
         text=True,
     )
     unstaged_files = [f for f in result_unstaged.stdout.strip().split("\n") if f]
-    non_excluded_unstaged = [f for f in unstaged_files if f not in exclude_paths]
+    non_excluded_unstaged = [f for f in unstaged_files if not is_excluded(f)]
     if non_excluded_unstaged:
         raise ValueError(f"Working tree has unstaged changes: {non_excluded_unstaged}")
 
@@ -90,7 +100,7 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
         text=True,
     )
     staged_files = [f for f in result_staged.stdout.strip().split("\n") if f]
-    non_excluded_staged = [f for f in staged_files if f not in exclude_paths]
+    non_excluded_staged = [f for f in staged_files if not is_excluded(f)]
     if non_excluded_staged:
         raise ValueError(f"Working tree has staged changes: {non_excluded_staged}")
 
