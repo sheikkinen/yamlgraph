@@ -101,6 +101,13 @@ See these canonical sources for patterns:
 - **Feature Requests**: `feature-requests/TEMPLATE.md` (planning, judgement, enforcement)
 - **Pre CI Checks**: `.pre-commit-config.yaml` (linters, test coverage, requirement traceability)
 
+### Submitting Proposals
+- Write a markdown file to `.chaplain/inbox/` with a descriptive kebab-case filename (e.g., `refactor-state-builder.md`)
+- Content: plain text description of the problem or task — freeform, but actionable
+- The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce automatically
+- For new features, a one-paragraph problem statement suffices — the Chaplain generates the FR and PR
+- Proposals are consumed on pickup (moved out of inbox); rejected FRs are skipped by the enforce pipeline
+
 # The Scripture
 
 These laws descend from the canon of software craft. They shalt not be altered by preference, haste, or machine hallucination.
