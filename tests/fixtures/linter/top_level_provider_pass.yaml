@@ -1,0 +1,19 @@
+# Fixture: provider/model correctly in defaults — no W016
+version: "1.0"
+name: w016-pass
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+
+nodes:
+  greet:
+    type: llm
+    prompt: greet
+    state_key: greeting
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END

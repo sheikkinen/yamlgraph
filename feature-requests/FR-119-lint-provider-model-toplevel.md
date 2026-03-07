@@ -86,16 +86,16 @@ all_issues.extend(check_top_level_provider_model(graph_path))
 
 ## Acceptance Criteria
 
-- [ ] `check_top_level_provider_model()` in `checks_contracts.py` detects `provider`/`model` at YAML top level
-- [ ] Warning code is W016 with severity `warning`
-- [ ] Message includes the key name and instructs to move to `defaults:`
-- [ ] When key exists at top level only → suggests move to `defaults:`
-- [ ] When key exists at both top level and `defaults:` → suggests removing top-level duplicate
-- [ ] When keys are only in `defaults:` → no warning
-- [ ] When keys are only at node level → no warning
-- [ ] When neither key is present at top level → no warning
-- [ ] Wired into `lint_graph()` in `graph_linter.py`
-- [ ] Tests added in `test_linter_contracts.py` with `@pytest.mark.req` marker
+- [x] `check_top_level_provider_model()` in `checks_contracts.py` detects `provider`/`model` at YAML top level
+- [x] Warning code is W016 with severity `warning`
+- [x] Message includes the key name and instructs to move to `defaults:`
+- [x] When key exists at top level only → suggests move to `defaults:`
+- [x] When key exists at both top level and `defaults:` → suggests removing top-level duplicate
+- [x] When keys are only in `defaults:` → no warning
+- [x] When keys are only at node level → no warning
+- [x] When neither key is present at top level → no warning
+- [x] Wired into `lint_graph()` in `graph_linter.py`
+- [x] Tests added in `test_linter_contracts.py` with `@pytest.mark.req` marker
 - [ ] No existing graphs in `examples/` trigger the warning (verify with `yamlgraph graph lint examples/**/graph.yaml`)
 - [ ] Documentation updated: add W016 to lint rule reference if one exists
 

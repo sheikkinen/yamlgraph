@@ -15,6 +15,7 @@ from yamlgraph.linter.checks_contracts import (
     check_identifier_keys,
     check_python_node_variables,
     check_skip_if_exists_add_reducer,
+    check_top_level_provider_model,
 )
 
 
@@ -238,4 +239,109 @@ class TestW021SkipIfExistsAddReducer:
             }
         )
         issues = check_skip_if_exists_add_reducer(graph)
+        assert len(issues) == 0
+
+
+class TestW016TopLevelProviderModel:
+    """W016: provider/model at top level is silently ignored."""
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_provider_at_top_level_only_warns(self):
+        """Top-level provider without defaults should warn to move."""
+        graph = _create_temp_graph(
+            {
+                "provider": "anthropic",
+                "nodes": {"generate": {"type": "llm"}},
+            }
+        )
+        issues = check_top_level_provider_model(graph)
+        assert len(issues) == 1
+        assert issues[0].code == "W016"
+        assert issues[0].severity == "warning"
+        assert "'provider' at top level has no effect" in issues[0].message
+        assert "defaults:" in issues[0].message
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_model_at_top_level_only_warns(self):
+        """Top-level model without defaults should warn to move."""
+        graph = _create_temp_graph(
+            {
+                "model": "claude-haiku-4-5",
+                "nodes": {"generate": {"type": "llm"}},
+            }
+        )
+        issues = check_top_level_provider_model(graph)
+        assert len(issues) == 1
+        assert issues[0].code == "W016"
+        assert "'model' at top level has no effect" in issues[0].message
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_both_provider_and_model_at_top_level_warns(self):
+        """Both keys at top level should produce two warnings."""
+        graph = _create_temp_graph(
+            {
+                "provider": "anthropic",
+                "model": "claude-haiku-4-5",
+                "nodes": {"generate": {"type": "llm"}},
+            }
+        )
+        issues = check_top_level_provider_model(graph)
+        assert len(issues) == 2
+        codes = {i.code for i in issues}
+        assert codes == {"W016"}
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_top_level_and_defaults_duplicate_warns(self):
+        """Key at both top level and defaults should warn to remove top-level."""
+        graph = _create_temp_graph(
+            {
+                "provider": "anthropic",
+                "defaults": {"provider": "anthropic"},
+                "nodes": {"generate": {"type": "llm"}},
+            }
+        )
+        issues = check_top_level_provider_model(graph)
+        assert len(issues) == 1
+        assert issues[0].code == "W016"
+        assert "already set" in issues[0].message
+        assert "remove" in issues[0].fix.lower()
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_only_in_defaults_no_warning(self):
+        """Keys only in defaults block should not warn."""
+        graph = _create_temp_graph(
+            {
+                "defaults": {"provider": "anthropic", "model": "claude-haiku-4-5"},
+                "nodes": {"generate": {"type": "llm"}},
+            }
+        )
+        issues = check_top_level_provider_model(graph)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_only_at_node_level_no_warning(self):
+        """Keys only at node level should not warn."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "generate": {
+                        "type": "llm",
+                        "provider": "openai",
+                        "model": "gpt-4",
+                    }
+                },
+            }
+        )
+        issues = check_top_level_provider_model(graph)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_neither_key_present_no_warning(self):
+        """No provider/model anywhere should not warn."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {"generate": {"type": "llm"}},
+            }
+        )
+        issues = check_top_level_provider_model(graph)
         assert len(issues) == 0
