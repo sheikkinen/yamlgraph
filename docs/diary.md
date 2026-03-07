@@ -6,6 +6,50 @@ Previous: [diary-2026-03-05.md](diary-2026-03-05.md) — 1 entries from 2026-03-
 
 ---
 
+## 2026-03-07: Inquisitor Audit XXI — quiet batch, pipeline self-correction underway
+
+**Context:** Twenty-first audit covering commits `1a73d06`..`a27f3968` (5 commits: `docs(FR)` ×2, `fix(enforce)` ×1, `docs(diary)` ×1, `chore(FR-112)` ×1). Three of these were already covered by Audit XX; two are new (`a27f3968` FR-124, `a6f8379` FR-125). No Python code changed. No tests added or modified. This is a planning-and-housekeeping batch.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits followed across all 5 commits.** Valid prefixes: `docs(FR):`, `fix(enforce):`, `docs(diary):`, `chore(FR-112):`. Commandment 10 satisfied.
+
+2. **✓ COMPLIANT — The one code change has a CHANGELOG entry.** `f3c6b73` (`fix(enforce)`) added a `[Unreleased] → Fixed` line for the worktree bug. No `feat:` commits in this batch, so no CHANGELOG obligation beyond this.
+
+3. **✓ COMPLIANT — noqa confessions current.** Both existing suppressions (`ANN001` in `executor_async.py`, `ARG002` in `token_tracker.py`) are documented in `confessions.md`. No new suppressions introduced.
+
+4. **⚠ DRIFT — Zero Co-authored-by trailers.** All 5 commits lack the Copilot trailer. If any were AI-assisted (likely for the FR documents), the trailer is missing. Minor — these are docs-only commits.
+
+5. **✓ COMPLIANT — Pipeline self-correction in progress.** FR-125 (`enforce-pipeline-finalize`) directly targets the CHANGELOG/status/diary gaps cited in Audits XVIII–XX. FR-124 (`diary-import-cli`) addresses diary automation. The recurring CHANGELOG violation is being escalated to automation rather than repeated as a finding — exactly what the `traps.audit_as_ritual` cure prescribes.
+
+**Heuristic:** *A quiet audit is not a wasted audit.* When the commit batch is all planning and housekeeping, the finding is the absence of violations — proof that the doctrine's friction is directing energy toward automation (FR-124, FR-125) rather than manual compliance. Compliance by design beats compliance by discipline.
+
+**Seed:** FR-125 proposes a "finalize" step for the enforce pipeline. When it lands, should the Inquisitor verify that the finalize step itself is tested (not just the features it finalizes)? A pipeline gate that is never tested is a gate that is never closed.
+
+---
+
+## 2026-03-07: Inquisitor Audit XX — fix lands, CHANGELOG gap persists, commit message drift
+
+**Context:** Twentieth audit covering commits `66e4403`..`f3c6b73` (5 commits: `feat:` ×2, `fix(enforce):` ×1, `docs(diary):` ×1, `chore(FR-112):` ×1). The `fix(enforce)` commit (`f3c6b73`) resolves a real bug — FR file must be committed to `main` before worktree creation so it's visible in the worktree. FR-122 backfills FR-116's CHANGELOG entry and watch_enforce_spawn tests. FR-121 adds an architecture provider count guard (CAP-37, REQ-YG-121). Diary rotation moved 2026-03-06 entries to a separate file.
+
+**Findings:**
+
+1. **✗ VIOLATION — FR-121 `feat:` commit has no CHANGELOG entry.** `66e4403` introduced CAP-37 (architecture provider count guard) with full ADR-001 traceability (REQ-YG-121, `req_coverage.py` updated) but no `[Unreleased]` CHANGELOG line. Commandment 10 violated. Same structural gap identified in Audits XVIII and XIX — `enforce_worktree.sh` does not generate CHANGELOG entries. This is now the fourth consecutive audit citing this defect.
+
+2. **✓ COMPLIANT — ADR-001 traceability exemplary across both feat commits.** FR-121: CAP-37, REQ-YG-121, `req_coverage.py` extended, test tagged `@pytest.mark.req("REQ-YG-121")`. FR-122: tests for FR-116 all tagged `@pytest.mark.req("REQ-YG-116")`. Full chain intact.
+
+3. **⚠ DRIFT — Commit `1a73d06` message cross-references FR-120 but modifies FR-112.** Subject: `chore(FR-112): FR-120 update status Draft→Implemented`. The scope correctly identifies the modified file (FR-112), but the body says "FR-120 update status." If FR-120 is the task that motivated this change, it should be in the body or trailer, not the subject. The reader cannot tell whether FR-112 or FR-120 is being updated.
+
+4. **✓ COMPLIANT — Conventional Commits, noqa confessions, Co-authored-by.** All 5 commits follow valid prefixes. Both noqa suppressions (`ANN001`, `ARG002`) are documented in `confessions.md`. Pipeline-generated commits carry Co-authored-by trailer.
+
+5. **⚠ DRIFT — No implementation diary entries for FR-121 or FR-122.** Sermon's Distill step requires metacognitive reflection per task. The 2026-03-07 "Long March" reflection covers the audit arc broadly but does not record specific cognitive traps or insights from implementing the provider count guard or the watch_enforce_spawn tests. Audit entries are not implementation reflections.
+
+**Heuristic:** *A CHANGELOG violation cited in four consecutive audits is no longer a finding — it is an accepted defect.* Either spawn a feature request to automate CHANGELOG generation in `enforce_worktree.sh`, or formally document the gap as a known limitation. Repeating the same finding without escalation is the "audit as ritual" trap (Scripture: `traps.audit_as_ritual`).
+
+**Seed:** Should the Inquisitor auto-propose a feature request when the same violation appears in 3+ consecutive audits? The `--propose` mechanism already exists for `.chaplain/inbox/` — the missing piece is a persistence layer that tracks violation recurrence across audit sessions.
+
+---
+
 ## 2026-03-07: Reflection — The Inquisitor's Long March and the Pipeline's Blind Spot
 
 **Context:** Reflecting on 19 Inquisitor audits and the evolution of watch→enforce integration. CALCIFIED-3 (provider count 7→8, FR-112 status Draft→Implemented, FR-116 CHANGELOG) survived 10 audits before being resolved — not by the 10th audit's description, but by automated guards (FR-121 cross-check test) and explicit fix commits.
@@ -1287,3 +1331,75 @@ FR-122 addresses a persistent Commandment 10 violation: FR-116's Watch→Enforce
 FR-123 presented itself as a fix for FR-112's status line, but investigation revealed it was a duplicate of already-approved FR-120, which had implemented the exact same fix (v0.4.60). The planning phase correctly identified the duplication and drafted documentation for traceability. The judgment phase reinforced a critical principle: rejecting redundant requests prevents audit clutter and maintains signal-to-noise ratio in the feature request system. This decision exemplifies how systematic verification catches self-defeating proposals before they pollute the record.
 
 **Seed:** How can we design intake workflows to catch duplicates *before* they reach the plan-judge cycle, reducing wasted analysis cycles?
+
+---
+
+## 2026-03-07: Chaplain — Retroactive FR for Completed Architecture Guard
+
+FR-108 documents a completed bug fix—a one-character correction in ARCHITECTURE.md guarded by automated test REQ-YG-121. The plan phase identified and documented the existing fix; the judge phase verified all claims: test exists, requirement registered, doc inconsistency resolved at both locations (lines 219 and 1143). This retroactive FR exemplifies the audit_as_ritual trap from the Knowledge Graph—8 consecutive manual audits preceded the automated guard. The workflow demonstrates how documenting completed work prevents knowledge loss and establishes measurable acceptance criteria retroactively. FR-108 moved to feature-requests/ with full authority granted.
+
+**Seed:** How can we systematize the detection and retroactive documentation of already-implemented fixes to prevent similar audit gaps in other architectural domains?
+
+---
+
+## 2026-03-07: Chaplain — Duplicate Detection and Cleanup Workflow
+
+A Plan→Judge cycle identified and resolved a duplicate feature request entry. FR-122 was already approved and present in the feature-requests directory with a CHANGELOG entry at line 11. The planning phase created a draft noting the duplicate status, which the Judge phase correctly identified as redundant. The stale draft was purged, leaving the canonical approved FR intact. All acceptance criteria were satisfied: CHANGELOG entry confirmed, Inquisitor violation resolved, and FR-077 hook preventing recurrence. This workflow demonstrates effective duplicate detection and cleanup protocols, avoiding unnecessary artifact accumulation while preserving the authoritative source.
+
+**Seed:** How can we strengthen upstream duplicate detection to prevent draft creation for already-resolved items, reducing unnecessary Judge-phase cleanup cycles?
+
+---
+
+## 2026-03-07: Chaplain — Finalize Script Bugs Caught in Review
+
+FR-124 proposed a deterministic `finalize_merge.sh` script to automate CHANGELOG updates, FR status changes, and diary stubs—eliminating LLM involvement in post-merge bookkeeping. The Plan phase produced a solid architectural design, but the Judge phase uncovered three critical implementation bugs: incorrect grep/awk patterns for CHANGELOG parsing (looking for `^\\[Unreleased\\]` instead of `## [Unreleased]`), redundant FR number duplication in entries, and macOS-specific `sed -i ''` syntax. The verdict correctly identified these as fixable issues requiring amendment before approval, preserving the sound design while catching platform-specific and parsing errors that would have failed silently in production.
+
+**Seed:** How can we add pre-commit validation (regex tests, shell linting, cross-platform checks) to catch these pattern and syntax errors before they reach the Judge phase?
+
+---
+
+## 2026-03-07: Chaplain — CLI Framework Mismatch Caught Early
+
+FR-109 proposed a `yamlgraph diary import` CLI command to expose existing diary rotation logic with dry-run and source flags. The plan phase successfully drafted the feature request, but the judge phase uncovered a critical contradiction: the FR specified Click as the CLI framework, while the codebase standardizes on argparse with a dispatcher pattern. Three blocking issues emerged: framework mismatch requiring alignment with existing command patterns, ambiguous refactoring targets needing explicit location decisions, and unassigned requirement placeholders. The FR was amended and returned to inbox for revision—a healthy catch that prevents technical debt accumulation.
+
+**Seed:** How can we establish pre-planning validation rules that detect framework mismatches before drafting, reducing amendment cycles?
+
+---
+
+## 2026-03-07: Chaplain — FR Numbering and Glob Semantics Collision
+
+A diary-import CLI feature request was drafted with solid architectural foundations—argparse dispatcher, explicit module placement, and shared ImportResult abstraction for CLI/pre-commit reuse. However, the Judge identified critical blocking issues: FR-109 number collision (must renumber to FR-124) and ambiguous `--source` semantics around directory replacement vs. glob root behavior. A cosmetic gap in dry-run output documentation was also flagged. The cognitive trap was assuming the next available FR ID without cross-checking existing allocations. The amendment workflow clarifies that architectural soundness alone isn't sufficient—precise semantics and ID hygiene are equally critical for acceptance.
+
+**Seed:** When designing CLI flags with path-based semantics, how can we establish unambiguous test cases early to prevent post-review clarifications on glob behavior?
+
+---
+
+## 2026-03-07: Chaplain — FR-124 Diary Import CLI Approved
+
+FR-124 successfully navigated Plan→Judge workflow and earned APPROVE verdict. Three critical corrections resolved: renumbered from FR-109 (conflict), clarified `--source` semantics to preserve per-function glob patterns, and fixed dry-run output consistency with `📋 Pending scheduled imports` header. Judge validated architectural alignment with existing `DIARY = Path("docs/diary.md")` convention and verified all 12 measurable acceptance criteria. Scope frozen and authority granted. Key insight: Judge identified a subtle cognitive trap—distinguishing explicit `--source /typo` (warn) from default missing (silent) prevents plausible-wrong-answer scenarios during implementation.
+
+**Seed:** How should we design error messaging and validation logic to guide users away from common `--source` path mistakes without creating false positives for legitimate edge cases?
+
+---
+
+## 2026-03-07: Chaplain — FR-125: Pipeline Finalize with Critical Bugs
+
+The planning phase successfully resolved FR numbering conflicts (FR-124 taken, renumbered to FR-125) and fixed all four initial judgement issues: corrected grep/awk patterns, eliminated duplication, removed dead references, and replaced non-portable sed syntax. However, the judge revealed two blocking bugs that halt implementation: an off-by-one error in CHANGELOG insertion logic that places entries in second position instead of first, and a static description that produces meaningless changelog entries instead of extracting the FR summary. Two non-blocking issues were also identified. The feature was moved back to inbox for amendments, highlighting the value of rigorous verification before execution.
+
+**Seed:** How can we detect insertion-logic off-by-one errors earlier in the planning phase—through test cases, visual simulation, or architectural guardrails?
+
+---
+
+## 2026-03-07: Chaplain — Post-merge automation: finalize pipeline closure
+
+Designed and approved FR-125 to enforce post-merge finalization—automating three manual steps: CHANGELOG updates, FR status drift correction, and diary stub generation. The ~70-line shell script integrates into enforce_worktree.sh via deterministic text transforms, with proper fail-fast guards and duplicate-entry protection. Judge validated all 15 acceptance criteria and confirmed the structural problem (git hooks bypass CHANGELOG integration). Minor stale line references corrected via content-pattern lookup. This closes a documented gap where merged features silently escape tracking, risking process decay.
+
+**Seed:** How can we detect and prevent similar "silent process gaps" where automation expectations drift from actual toolchain behavior?
+
+---
+
+## 2026-03-07: Chaplain — Verification step prevents stale proposals
+
+FR-126 proposes adding a verification step to the inquisitor's propose prompt—a minimal, prompt-only change that checks project state before writing proposals. This eliminates stale proposals at the source. The Judge approved the feature, noting its clarity and concrete evidence (FR-123 duplicate). A key refinement: AC #5 was rephrased to test prompt language rather than shell logic, reflecting where the filtering actually lives. The design demonstrates how lightweight prompt engineering can prevent downstream issues. Scope is frozen and authority granted for implementation.
+
+**Seed:** How can we systematically identify other proposal-generation steps where early verification could prevent cascading errors downstream?
