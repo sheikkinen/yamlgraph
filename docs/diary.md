@@ -6,6 +6,50 @@ Previous: [diary-2026-03-05.md](diary-2026-03-05.md) — 1 entries from 2026-03-
 
 ---
 
+## 2026-03-07: Inquisitor Audit XI — ritual threshold breached, escalation due
+
+**Context:** Eleventh audit covering commits `4765fdc`..`ff1faca` (5 commits: FR-116 feat merge, two `chore(enforce)` fixes, FR-115 chaplain approval, FR-115 diary reflection). This audit follows Audit X which covered overlapping commits up to `963a67f`; one new commit (`ff1faca`) has landed since. The audit-to-commit ratio is now approaching 2:1 — more audits than new code.
+
+**Findings:**
+
+1. **✗ VIOLATION — FR-116 CHANGELOG entry missing (4th consecutive audit).** `4765fdc` (`feat: FR-116 implementation (#4)`) added CAP-35, REQ-YG-116, 5 tagged tests, a demo script — `CHANGELOG.md [Unreleased]` still has zero mention. Audits VIII, IX, X, and now XI have flagged this. The `audit_as_ritual` trap (3+ without fix) was breached at Audit X. **This finding will not be re-flagged. It is hereby classified as a release-blocker for the next version bump.**
+
+2. **✓ COMPLIANT — Conventional Commits.** All 5 commits use valid prefixes: `feat:` ×1, `chore(enforce):` ×2, `docs(chaplain):` ×1, `docs(diary):` ×1. Co-authored-by trailers present where Copilot contributed (`963a67f`, `ff1faca`).
+
+3. **✓ COMPLIANT — ADR-001, noqa confessions, diary.** FR-116 traceability exemplary (REQ-YG-116, CAP-35, 5 tagged tests). Both noqa suppressions confessed (CONF-002, CONF-003). Diary entries written for FR-115 judgement including the `tmp/msg.txt` trap.
+
+4. **⚠ DRIFT — Known deviations unchanged.** ARCHITECTURE.md line 1125: "7 providers" (should be 8). FR-112 status: "Draft" (should be "Done"). Formally accepted in Audit VIII; v0.5.0 deadline stands.
+
+5. **⚠ DRIFT — Audit frequency exceeds commit frequency.** The 5-commit window now overlaps significantly with Audit X. The Inquisitor is auditing faster than code is being written, producing diminishing returns. Until new `feat:` or `fix:` commits land, further audits will yield identical findings.
+
+**Heuristic:** *An audit that produces no new findings is a signal to stop auditing and start fixing.* Four audits have flagged FR-116's CHANGELOG gap. The diagnosis is complete; the prescription is written (FR-115 approved, CHANGELOG automation proposed in Audit IX's Seed). Further audits on the same commit window are ritual, not process. The Inquisitor should yield to the Chaplain.
+
+**Seed:** What is the minimum commit delta that justifies a new audit? If the answer is "at least one `feat:` or `fix:` commit since last audit," that rule should be codified in the Inquisitor's invocation script to prevent audit-as-ritual from recurring.
+
+---
+
+## 2026-03-07: Inquisitor Audit X — self-repair in motion, CHANGELOG gap persists
+
+**Context:** Tenth audit covering commits `b14960e`..`963a67f` (5 commits: FR-115/FR-116 chore scaffolding, FR-116 feat PR merge, two enforce_worktree chore fixes, FR-115 chaplain approval). New pattern: the audit process has spawned its own remediation — FR-115 (inquisitor auto-propose) was approved in `963a67f`, designed to automate the very fixes this series of audits has been flagging.
+
+**Findings:**
+
+1. **✗ VIOLATION — FR-116 still missing CHANGELOG entry (3rd consecutive audit).** `4765fdc` (`feat: FR-116 implementation (#4)`) added CAP-35, REQ-YG-116, 5 tagged tests, a demo script — but `CHANGELOG.md [Unreleased]` has zero mention. Audits VIII, IX, and now X have flagged this. Per Audit VII's principle: a finding that persists across 3+ audits without action must either escalate or be formally accepted. **Escalation: FR-116 CHANGELOG entry should block next release.**
+
+2. **✓ COMPLIANT — Conventional Commits.** All 5 commits use valid prefixes: `docs(chaplain):`, `chore(enforce):` ×2, `feat:`, `chore:`. Co-authored-by trailer present where Copilot participated.
+
+3. **✓ COMPLIANT — ADR-001 traceability for FR-116.** REQ-YG-116 in ARCHITECTURE.md, CAP-35, `req_coverage.py` updated, all 5 test functions tagged `@pytest.mark.req("REQ-YG-116")`.
+
+4. **⚠ DRIFT — Known deviations unchanged.** ARCHITECTURE.md line 1125 still reads "7 providers" (should be 8). FR-112 status still "Draft" (should be "Done"). Both formally accepted in Audit VIII with v0.5.0 deadline. No action until release.
+
+5. **✓ COMPLIANT — noqa confessions and diary entries.** Both existing suppressions (ANN001 in executor_async.py, ARG002 in token_tracker.py) covered by confessions. Diary entries exist for the Judgement and prior chaplain work.
+
+**Heuristic:** *When the audit process generates its own feature request (FR-115), the system is self-repairing — but only if the FR ships.* Nine audits produced the diagnosis; the tenth witnesses the prescription (FR-115 approved). The risk now is that FR-115 joins FR-116's CHANGELOG in the backlog of approved-but-unshipped fixes. A process that diagnoses and prescribes but doesn't treat has merely added a step.
+
+**Seed:** FR-115 (auto-propose) is approved and FR-116's CHANGELOG gap is escalated. What is the right forcing function to ensure FR-115 implementation doesn't itself become a recurring audit finding? Should the next Inquisitor audit be conditional — "no audit until FR-115 ships or FR-116 CHANGELOG is written"?
+
+---
+
 ## 2026-03-07: Judgement — FR-115 approved, tmp/msg.txt trap surfaced
 
 **Context:** Judged FR-115 (inquisitor auto-propose). The FR was well-scoped and evidence-backed — 7 consecutive audits documenting the same two violations, costing ~1,700 words to document problems that each require <1 minute to fix. Approved with three non-blocking implementation notes (filename determinism, edge case handling, smoke test procedure).
@@ -1003,3 +1047,21 @@ The workflow began with a draft cleanup: fixing a regex to match bold markdown s
 The plan and judge stages both returned empty outputs with an exit code of 1, indicating an execution failure without any model or session context. This suggests a breakdown in the pipeline before any substantive processing could occur. The lack of diagnostic information points to a possible misconfiguration of the CLI backend or missing dependencies. Cognitive traps include assuming a non‑zero exit code always signifies a specific error type and overlooking the fact that empty outputs can mask deeper systemic issues. Recognizing these blind spots highlights the need for more granular logging and validation checks early in the workflow.
 
 **Seed:** What additional instrumentation could be added to the CLI backend to capture detailed failure reasons before the plan and judge stages terminate?
+
+---
+
+## 2026-03-07: Chaplain — Feature Request Approval Process
+
+The session walked through drafting, validating, and approving FR‑115. The plan stage gathered code patterns, produced a concrete draft, and cleaned up the inbox. The judge then verified the existing inquisitor script, confirmed alignment with the diary audit format, and issued an APPROVE verdict, moving the request into the feature‑requests directory. Key insights included the value of anchoring acceptance criteria to real diary headers and the importance of minimal, evidence‑backed scope (one file, ~20 lines). A cognitive trap surfaced when the heredoc failed to overwrite the file, reminding me to double‑check file‑write operations before committing. Overall, the workflow demonstrated a tight feedback loop between evidence, drafting, and approval.
+
+**Seed:** What additional automated checks could we embed to ensure audit evidence integrity before a feature request is drafted?
+
+## 2026-03-07: Chaplain — Duplicate FR Detection Gap
+
+**Trap:** `stale_context` — The chaplain loop generated FR-117 proposing work already completed by FR-116 (commit `4765fdc`). The inbox topic lacked awareness that the feature had already landed, and the Plan→Judge graph had no mechanism to check existing implementations before drafting.
+
+**Insight:** An autonomous pipeline that produces feature requests must also *consume* its own history. Without a pre-draft duplicate check against recent git log or existing FRs, the loop will periodically rediscover solved problems.
+
+**Heuristic:** Before drafting an FR, grep `feature-requests/` and recent `git log --oneline` for the same slug or keywords. If a match exists, skip or reference it rather than re-proposing.
+
+**Seed:** Should the Plan node in `examples/copilot/graph.yaml` receive a `recent_frs` state variable (e.g., last 20 FR filenames) so it can self-detect duplicates before drafting?
