@@ -311,6 +311,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 35 | Watch→Enforce Integration | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` | REQ-YG-116 |
 | 36 | Inquisitor Auto-Propose | `.chaplain/inquisitor.sh` | REQ-YG-118 |
 | 37 | Architecture Provider Count Guard | `tests/unit/test_architecture_provider_count` | REQ-YG-121 |
+| 38 | Post-Merge Finalization | `scripts/finalize_merge.sh` | REQ-YG-125 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -647,6 +648,16 @@ Cross-check test ensuring the provider count in ARCHITECTURE.md module table mat
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-121 | Test asserts ARCHITECTURE.md module table provider count for `llm_factory.py` equals `len(get_args(ProviderType))`; prevents documentation drift when providers are added or removed | `tests/unit/test_architecture_provider_count` |
+
+---
+
+### 38. Post-Merge Finalization
+
+Automates three post-merge obligations after a PR from the enforce pipeline is merged: CHANGELOG entry, FR status update, and diary reflection stub.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-125 | `scripts/finalize_merge.sh` inserts CHANGELOG entry under `[Unreleased] / ### Added`, updates FR status to `✅ Implemented`, and appends diary reflection stub with Trap/Heuristic/Seed placeholders | `scripts/finalize_merge.sh`, `tests/unit/test_finalize_merge` |
 
 ---
 
