@@ -17,12 +17,32 @@ while true; do
     [[ -z "$topic_file" ]] && { sleep "$POLL"; continue; }
 
     echo "📋 Processing: $topic_file"
+
+    # FR-116: Snapshot feature-requests/ before graph execution
+    before=$(find feature-requests -maxdepth 1 -name "*.md" -type f 2>/dev/null | sort)
+
     yamlgraph graph run examples/copilot/graph.yaml \
         --var topic_file="$topic_file" \
         --var drafts_dir="$DRAFTS" \
         --var date="$(date +%Y-%m-%d)" \
         --var diary_prefix="Chaplain" \
         --full
+
+    # FR-116: Detect new FR and spawn enforce pipeline
+    after=$(find feature-requests -maxdepth 1 -name "*.md" -type f 2>/dev/null | sort)
+    new_fr=$(comm -13 <(echo "$before") <(echo "$after") | head -1)
+
+    if [[ -n "$new_fr" ]]; then
+        if grep -q 'Status.*Rejected' "$new_fr" 2>/dev/null; then
+            echo "⏭️  Skipping rejected FR: $new_fr"
+        else
+            echo "🚀 Spawning enforce pipeline for: $new_fr"
+            mkdir -p tmp
+            LOG="tmp/enforce-$(basename "$new_fr" .md).log"
+            nohup scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 &
+            echo "   PID: $!  Log: $LOG"
+        fi
+    fi
 
     echo ""
 done
