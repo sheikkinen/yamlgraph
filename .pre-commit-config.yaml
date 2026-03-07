@@ -174,7 +174,7 @@ repos:
     hooks:
       - id: inquisitor-background
         name: inquisitor (async audit)
-        entry: bash -c 'nohup .chaplain/inquisitor.sh > .chaplain/inquisitor.log 2>&1 &'
+        entry: bash -c 'nohup .chaplain/inquisitor.sh --propose > .chaplain/inquisitor.log 2>&1 &'
         language: system
         pass_filenames: false
         always_run: true
