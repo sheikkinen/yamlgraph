@@ -61,6 +61,16 @@ if ! python3 -c "from yamlgraph.utils.worktree_helpers import validate_clean_wor
     exit 1
 fi
 
+# Commit FR to main before creating worktree (ensures FR exists in worktree)
+# Uses --no-verify to avoid pre-commit circular dependency
+if ! git diff --quiet -- "$FR_PATH" 2>/dev/null || ! git ls-files --error-unmatch "$FR_PATH" >/dev/null 2>&1; then
+    log_info "Committing FR to main before worktree creation..."
+    git add "$FR_PATH"
+    git commit --no-verify -m "docs(FR): add $(basename "$FR_PATH" .md) for enforce pipeline"
+    git push
+    log_info "FR committed and pushed to main"
+fi
+
 # Save main directory for later use
 MAIN_DIR="$(pwd)"
 
