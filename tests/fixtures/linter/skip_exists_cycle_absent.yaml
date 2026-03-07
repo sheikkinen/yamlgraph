@@ -1,0 +1,30 @@
+# Cycle node WITHOUT skip_if_exists specified — should NOT trigger W015
+# Runtime handles this via apply_loop_node_defaults()
+version: "1.0"
+name: skip-exists-cycle-absent
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+    state_key: draft
+    # skip_if_exists not specified — runtime will set false automatically
+  critique:
+    type: llm
+    prompt: critique
+    state_key: feedback
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: critique
+  - from: critique
+    to: generate
+    condition: "feedback != 'approved'"
+  - from: critique
+    to: END
+    condition: "feedback == 'approved'"
+
+loop_limits:
+  generate: 5
+  critique: 5

@@ -1,0 +1,23 @@
+# Acyclic graph with skip_if_exists: true — should NOT trigger W015
+# skip_if_exists: true is perfectly fine outside cycles
+version: "1.0"
+name: skip-exists-acyclic
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+    state_key: draft
+    skip_if_exists: true  # Fine — no cycle
+  review:
+    type: llm
+    prompt: review
+    state_key: feedback
+    skip_if_exists: true  # Fine — no cycle
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: review
+  - from: review
+    to: END

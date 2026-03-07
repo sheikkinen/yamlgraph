@@ -35,6 +35,7 @@ from yamlgraph.linter.checks_semantic import (
     check_error_handling,
     check_expression_syntax,
     check_passthrough_nodes,
+    check_skip_if_exists_in_cycle,
     check_tool_call_nodes,
     check_unguarded_cycles,
 )
@@ -91,6 +92,7 @@ def lint_graph(
     all_issues.extend(check_error_handling(graph_path))
     all_issues.extend(check_edge_types(graph_path))
     all_issues.extend(check_unguarded_cycles(graph_path))
+    all_issues.extend(check_skip_if_exists_in_cycle(graph_path))
 
     # Pattern-specific checks
     all_issues.extend(check_router_patterns(graph_path, project_root))

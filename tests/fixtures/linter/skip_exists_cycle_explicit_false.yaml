@@ -1,0 +1,31 @@
+# Cycle node with EXPLICIT skip_if_exists: false — should NOT trigger W015
+# This is the correct configuration for a cycle node
+version: "1.0"
+name: skip-exists-cycle-explicit-false
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+    state_key: draft
+    skip_if_exists: false  # Correct — explicit false is fine
+  critique:
+    type: llm
+    prompt: critique
+    state_key: feedback
+    skip_if_exists: false
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: critique
+  - from: critique
+    to: generate
+    condition: "feedback != 'approved'"
+  - from: critique
+    to: END
+    condition: "feedback == 'approved'"
+
+loop_limits:
+  generate: 5
+  critique: 5
