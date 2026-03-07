@@ -5,8 +5,8 @@ description: >
   Run: yamlgraph graph run examples/diary_digest/graph.yaml
 
 defaults:
-  provider: anthropic
-  model: claude-haiku-4-5
+  provider: inception
+  model: mercury-2
   temperature: 0.3
   prompts_relative: true
   prompts_dir: prompts

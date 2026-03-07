@@ -29,6 +29,7 @@ _ALL_FRAMEWORK_REQS = (
     + [105]  # REQ-YG-105 (FR-105 Copilot Session Continuations)
     + [106]  # REQ-YG-106 (CAP-33 Worktree Pipeline)
     + [107]  # REQ-YG-107 (CAP-34 Compiled Graph Cache)
+    + [113]  # REQ-YG-113 (FR-113 Linter W015 skip_if_exists in cycle)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 

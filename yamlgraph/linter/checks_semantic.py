@@ -348,6 +348,51 @@ def check_unguarded_cycles(graph_path: Path) -> list[LintIssue]:
     return issues
 
 
+def check_skip_if_exists_in_cycle(graph_path: Path) -> list[LintIssue]:
+    """Warn when cycle node has explicit skip_if_exists: true.
+
+    W015 — skip_if_exists: true on a node in a cycle.
+
+    When a node participates in a cycle and has skip_if_exists explicitly
+    set to true, it will cache its first output and return stale results
+    on every subsequent iteration — the graph loops but produces no new work.
+
+    Only fires on EXPLICIT `skip_if_exists: true`. Does not warn on nodes
+    that inherit the default, because apply_loop_node_defaults() in
+    graph_loader.py already corrects the default at runtime.
+    """
+    from yamlgraph.graph_loader import detect_loop_nodes
+
+    issues: list[LintIssue] = []
+    graph = load_graph(graph_path)
+
+    edges = graph.get("edges", [])
+    loop_nodes = detect_loop_nodes(edges)
+    nodes = graph.get("nodes", {})
+
+    for node_name in sorted(loop_nodes):
+        node_config = nodes.get(node_name, {})
+        # Only warn on EXPLICIT skip_if_exists: true (not default)
+        if node_config.get("skip_if_exists") is True:
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W015",
+                    message=(
+                        f"Node '{node_name}' is in a cycle with "
+                        f"skip_if_exists: true — it will return "
+                        f"cached output on every iteration"
+                    ),
+                    fix=(
+                        f"Set 'skip_if_exists: false' on node "
+                        f"'{node_name}' or remove the explicit setting"
+                    ),
+                )
+            )
+
+    return issues
+
+
 def check_dynamic_map_without_max_items(
     node_name: str, node_config: dict, graph_config: dict
 ) -> list[LintIssue]:
@@ -394,5 +439,6 @@ __all__ = [
     "check_error_handling",
     "check_edge_types",
     "check_unguarded_cycles",
+    "check_skip_if_exists_in_cycle",
     "check_dynamic_map_without_max_items",
 ]
