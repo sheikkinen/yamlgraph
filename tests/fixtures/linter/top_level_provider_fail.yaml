@@ -1,0 +1,19 @@
+# Fixture: top-level provider/model — should trigger W016
+# This replicates the real bug from commit b14960e
+
+version: "1.0"
+name: w016-fail
+provider: anthropic
+model: claude-haiku-4-5
+
+nodes:
+  greet:
+    type: llm
+    prompt: greet
+    state_key: greeting
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END

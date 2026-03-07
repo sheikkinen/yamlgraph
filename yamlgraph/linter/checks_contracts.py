@@ -152,8 +152,47 @@ def check_skip_if_exists_add_reducer(graph_path: Path) -> list[LintIssue]:
     return issues
 
 
+def check_top_level_provider_model(graph_path: Path) -> list[LintIssue]:
+    """W016: provider/model at top level is silently ignored.
+
+    These keys only take effect inside the defaults: block or per-node.
+    Placing them at top level creates silent configuration drift.
+    """
+    issues = []
+    graph = load_graph(graph_path)
+
+    for key in ("provider", "model"):
+        if key in graph and key not in graph.get("defaults", {}):
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W016",
+                    message=(
+                        f"'{key}' at top level has no effect; "
+                        f"move to 'defaults:' block"
+                    ),
+                    fix=f"defaults:\n  {key}: {graph[key]}",
+                )
+            )
+        elif key in graph and key in graph.get("defaults", {}):
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W016",
+                    message=(
+                        f"'{key}' at top level has no effect "
+                        f"(defaults.{key} already set); remove top-level '{key}'"
+                    ),
+                    fix=f"Remove top-level '{key}:' line",
+                )
+            )
+
+    return issues
+
+
 __all__ = [
     "check_python_node_variables",
     "check_identifier_keys",
     "check_skip_if_exists_add_reducer",
+    "check_top_level_provider_model",
 ]

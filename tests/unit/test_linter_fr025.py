@@ -298,8 +298,8 @@ class TestLintGraphIntegration:
         """All _pass fixtures produce no errors from new checks."""
         pass_fixtures = sorted(FIXTURES.glob("*_pass.yaml"))
         assert (
-            len(pass_fixtures) == 11
-        ), f"Expected 11 pass fixtures, got {len(pass_fixtures)}"
+            len(pass_fixtures) == 12
+        ), f"Expected 12 pass fixtures, got {len(pass_fixtures)}"
         new_codes = {
             "E006",
             "E008",
