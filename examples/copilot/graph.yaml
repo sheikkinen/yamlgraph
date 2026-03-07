@@ -11,6 +11,8 @@ description: Feature request workflow using copilot nodes with session continuat
 
 prompts_relative: true
 prompts_dir: prompts
+provider: anthropic
+model: claude-haiku-4-5
 
 state:
   topic_file: str        # Path to the topic file (e.g., .chaplain/inbox/topic.md)
