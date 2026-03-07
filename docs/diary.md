@@ -6,6 +6,84 @@ Previous: [diary-2026-03-05.md](diary-2026-03-05.md) — 1 entries from 2026-03-
 
 ---
 
+## 2026-03-07: Judgement — FR-115 approved, tmp/msg.txt trap surfaced
+
+**Context:** Judged FR-115 (inquisitor auto-propose). The FR was well-scoped and evidence-backed — 7 consecutive audits documenting the same two violations, costing ~1,700 words to document problems that each require <1 minute to fix. Approved with three non-blocking implementation notes (filename determinism, edge case handling, smoke test procedure).
+
+**Trap — stale tmp/msg.txt:** The heredoc `cat > tmp/msg.txt << 'EOF'` failed silently when chained with `git add && ... && git commit -F`, leaving a previous commit message (`fix(FR-106):`) in the file. The `changelog-required` hook caught it — the stale message triggered the feat/fix CHANGELOG gate. The trap: `tmp/msg.txt` is a shared mutable resource; any prior script can leave residue.
+
+**Heuristic:** *Verify file content after writing, before consuming.* A `cat tmp/msg.txt` between write and `git commit -F` would have caught the stale content immediately. Shared scratch files need explicit overwrite confirmation, not assumed success.
+
+**Seed:** Should `tmp/msg.txt` be replaced by a timestamped or process-scoped file (`tmp/msg-$$.txt`) to prevent cross-invocation contamination? Or should the commit helper be a function that writes-and-commits atomically?
+
+---
+
+## 2026-03-07: Inquisitor Audit IX — CHANGELOG debt compounds, known deviations persist
+
+**Context:** Ninth audit covering commits `63db5d3`..`6c737d9` (5 commits: FR-114 revert, FR-115/FR-116 chore, FR-116 feat PR merge, two enforce_worktree chore fixes). Primary question: has the FR-116 CHANGELOG gap flagged in Audit VIII been addressed? Have the two formally-accepted known deviations (provider count, FR-112 status) changed?
+
+**Findings:**
+
+1. **✗ VIOLATION — FR-116 still missing CHANGELOG entry (2nd audit).** `4765fdc` (`feat: FR-116 implementation`) added CAP-35, REQ-YG-116, 5 tagged tests, a demo script — but `CHANGELOG.md` under `[Unreleased]` has zero mention of FR-116, watch-enforce integration, or worktree spawning. Commandment 10: "let the CHANGELOG bear witness." Audit VIII flagged this; it remains unfixed.
+
+2. **✓ COMPLIANT — FR-116 requirement traceability (ADR-001).** REQ-YG-116 in ARCHITECTURE.md (line 631), CAP-35 (line 311), `req_coverage.py` updated, all 5 test functions tagged `@pytest.mark.req("REQ-YG-116")`. Internal traceability is exemplary.
+
+3. **✓ COMPLIANT — Conventional Commits.** All 5 commits use valid prefixes: `chore(enforce):` ×2, `feat:` ×1, `chore:` ×1. The revert (`63db5d3`) uses git's auto-format which is acceptable. The problematic FR-114 merge commit (`eeb0aa7`) has scrolled out of the 5-commit window.
+
+4. **⚠ DRIFT — Known deviations unchanged.** ARCHITECTURE.md line 1125 still reads "7 providers" (should be 8). FR-112 status still reads "Draft" (should be "Done"). Both formally accepted in Audit VIII with v0.5.0 deadline. No action required until release.
+
+5. **✓ COMPLIANT — noqa confessions.** Both existing suppressions (`ANN001` in executor_async.py, `ARG002` in token_tracker.py) covered by CONF-003 and CONF-002. No new unconfessed suppressions found.
+
+**Heuristic:** *A feat commit that passes ADR-001 traceability (requirements, tests, capability table) but fails CHANGELOG is a systematic gap, not a one-off miss.* The `enforce_worktree.sh` pipeline automates code and test scaffolding but has no CHANGELOG step. When the same gap recurs across consecutive audits, the fix belongs in the pipeline, not in human memory.
+
+**Seed:** Could `enforce_worktree.sh` inject a CHANGELOG entry by parsing the FR title and inserting a line under `[Unreleased] → Added` before committing? The template is mechanical: `- **FR-XXX [Title]**: [one-line summary]. (REQ-YG-XXX)`. Automating this would close the last systematic gap in the feat→merge pipeline.
+
+---
+
+## 2026-03-07: Inquisitor Audit VIII — the ritual persists, a new gap opens
+
+**Context:** Eighth audit covering commits `eeb0aa7`..`92e0a37` (5 commits: FR-114 merge+revert, FR-115/FR-116 chore, FR-116 feat PR merge, enforce worktree exclusion fix). Primary question: did the FR-116 implementation follow full doctrine, and have the persistent wounds from seven prior audits survived an eighth cycle?
+
+**Findings:**
+
+1. **✗ VIOLATION — ARCHITECTURE.md line 1125: "7 providers" (8th audit).** Line 219 says "8 providers." Line 1125 says "7 providers." Eight consecutive audits have flagged this one-character fix. The `audit_as_ritual` trap threshold (3) has been exceeded by 167%. The Inquisitor will no longer re-flag this finding — it is hereby **formally accepted as a known deviation** per Audit VII's Seed. If unfixed by v0.5.0 release, escalate to release-blocker.
+
+2. **✗ VIOLATION — FR-112 Status: "Draft" (8th audit).** Feature shipped in v0.4.60. Same analysis as finding #1. **Formally accepted as known deviation.** Deadline: v0.5.0 release.
+
+3. **✗ VIOLATION — FR-116 missing CHANGELOG entry.** `4765fdc` (`feat: FR-116 implementation`) added a new capability (watch→enforce spawn detection) with ARCHITECTURE.md requirement (REQ-YG-116, CAP-35), 5 tests with `@pytest.mark.req("REQ-YG-116")`, and a demo script — but zero CHANGELOG entry under `[Unreleased]`. Commandment 10 requires the CHANGELOG to bear witness.
+
+4. **✓ COMPLIANT — FR-116 requirement traceability.** ADR-001 fully observed: REQ-YG-116 in ARCHITECTURE.md, `req_coverage.py` updated, all 5 test functions tagged `@pytest.mark.req("REQ-YG-116")`. FR-116 status correctly at "Approved." noqa confessions intact (CONF-002, CONF-003 cover both existing suppressions).
+
+5. **⚠ DRIFT — `eeb0aa7` Conventional Commit violation persists in window.** The FR-114 merge (`FR-114: Feature Request: ...`) still lacks a type prefix and remains in the 5-commit audit window. Its revert (`63db5d3`) uses git's auto-format. Two commits with zero Conventional Commit compliance — but both are net-zero (merge + revert), so the codebase impact is nil.
+
+**Heuristic:** *A feature with tests, requirements, and ARCHITECTURE entries but no CHANGELOG is 90% compliant — and the missing 10% is the part users read.* Internal traceability (ADR-001) was perfect; external communication (CHANGELOG) was forgotten. The pipeline that generated the PR (`enforce_worktree.sh`) automates code changes but not release notes. Automation that covers implementation but not communication creates a new class of drift.
+
+**Seed:** Should `enforce_worktree.sh` — or a pre-commit hook — verify that any commit containing `feat:` also touches CHANGELOG.md? A mechanical gate at commit time would catch the exact gap this audit found, shifting enforcement from audit-after to prevent-before.
+
+---
+
+## 2026-03-07: Inquisitor Audit VII — ritual confirmed, distillation diluted
+
+**Context:** Seventh audit covering commits `7b78a92`..`b14960e` (5 commits: two FR-106 fixes, FR-114 merge+revert, FR-115/FR-116 chore with diary/graph updates). Primary questions: have the two persistent violations survived a seventh cycle? Has the audit process itself changed anything?
+
+**Findings:**
+
+1. **✗ VIOLATION — ARCHITECTURE.md line 1116: "7 providers" (7th audit).** Line 219 reads "8 providers." Line 1116 reads "7 providers." Seven consecutive audits have flagged the same one-character fix. The Knowledge Graph's `audit_as_ritual` trap — "3+ audits without fix → ritual, not process" — has been exceeded by a factor of two. The Inquisitor is now generating more words *about* the bug than the bug contains characters.
+
+2. **✗ VIOLATION — FR-112 Status: "Draft" (7th audit).** Feature shipped in v0.4.60 on 2026-03-06. Fourteen diary paragraphs have discussed this unfixed status field. The cost of documentation about the violation now exceeds the cost of the violation by orders of magnitude.
+
+3. **✗ VIOLATION — `eeb0aa7` lacks Conventional Commit prefix.** Still within the 5-commit audit window. `FR-114: Feature Request: ...` has no `feat:`/`fix:`/`chore:` type. The revert (`63db5d3`) compounds with git's auto-generated format. Two commits, zero prefixes.
+
+4. **⚠ DRIFT — Three near-identical Chaplain diary entries in `b14960e`.** The Sermon says *Distill* — extract one heuristic from experience. Commit `b14960e` added three diary entries ("Failed Execution Reflection", "Empty Outputs, Silent Failures", "Empty Output Failure Analysis") that share identical context (empty outputs, exit_code=1), identical seeds (systematic checks for non-zero exit codes), and near-identical prose. Distillation means compression, not triplication.
+
+5. **✓ COMPLIANT — FR-106 commits and noqa confessions.** `7b78a92` and `1afe25b` follow Conventional Commits with CHANGELOG entries. Both existing noqa suppressions (ANN001, ARG002) have CONF entries. FR-115/FR-116 feature requests have proper status fields.
+
+**Heuristic:** *When the cost of documenting a violation exceeds the cost of fixing it, the process has inverted.* Seven audits × ~150 words each = ~1,050 words written about a one-character fix (`7` → `8`) and a one-word fix (`Draft` → `Done`). The Inquisitor's read-only constraint, designed to preserve separation of concerns, has created a documentation debt that dwarfs the technical debt. A process that generates more entropy about a problem than the problem contains is not auditing — it is amplifying.
+
+**Seed:** Should the Inquisitor audit *itself* for diminishing returns? If a finding persists across N audits without action, the finding should either escalate (block the next release) or be formally accepted as a known deviation — but it must not continue to consume audit bandwidth indefinitely. What is the right N?
+
+---
+
 ## 2026-03-07: Inquisitor Audit VI — merge-revert cycle and ritual violations
 
 **Context:** Sixth audit covering commits `1e28f01`..`63db5d3` (5 commits: three FR-106 enforce_worktree fixes, FR-114 feat merge via PR, immediate FR-114 revert). New pattern: a feature was merged through a PR and reverted within 30 minutes. Persistent violations from five prior audits also re-examined.
@@ -917,3 +995,11 @@ Both the Plan and Judge stages returned empty outputs with exit_code=1, indicati
 The workflow began with a draft cleanup: fixing a regex to match bold markdown status, adding a safe directory creation step, and including a comparison table to differentiate FR-116 from the reverted FR-114. The judge then validated scope, contradictions, acceptance criteria, feasibility, and architectural alignment, confirming the changes were minimal, measurable, and well‑aligned with existing shell scripts. A minor cognitive trap was the initial assumption that a simple grep would capture bolded status strings, which was corrected by broadening the pattern. Overall, the process reinforced the value of concise, pure‑shell solutions and thorough validation before freezing scope.
 
 **Seed:** What automated tools could we integrate to detect and correct regex mismatches in markdown‑based documentation?
+
+---
+
+## 2026-03-07: Chaplain — Failed Execution Reflection
+
+The plan and judge stages both returned empty outputs with an exit code of 1, indicating an execution failure without any model or session context. This suggests a breakdown in the pipeline before any substantive processing could occur. The lack of diagnostic information points to a possible misconfiguration of the CLI backend or missing dependencies. Cognitive traps include assuming a non‑zero exit code always signifies a specific error type and overlooking the fact that empty outputs can mask deeper systemic issues. Recognizing these blind spots highlights the need for more granular logging and validation checks early in the workflow.
+
+**Seed:** What additional instrumentation could be added to the CLI backend to capture detailed failure reasons before the plan and judge stages terminate?
