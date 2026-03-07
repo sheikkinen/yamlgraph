@@ -6,6 +6,77 @@ Previous: [diary-2026-03-05.md](diary-2026-03-05.md) — 1 entries from 2026-03-
 
 ---
 
+## 2026-03-07: The Unjudged Premise — Judge validates execution, not intent
+
+**Context:** Reviewing the Plan → Judge → Amend loop. The Judge examines architectural consistency, implementation completeness, constraint satisfaction, risk identification. But the Judge does *not* examine: "Should this exist at all?" or "Is the value proposition real?"
+
+**The gap:** The value proposition enters unchallenged and emerges unchallenged. Features get perfectly implemented then never used — they pass architectural review but fail "does anyone care?" review.
+
+**Example:** Entry 76 ("The Framework That Became a Dependency") — YAMLGraph-as-conversation-coordinator was implemented, tested, worked, and was architecturally sound. The premise ("YAMLGraph is the right tool for conversation coordination") was never challenged. It took 2 live calls and a refactor to expose the mismatch: it was an FSM wearing a DAG costume. The Judge would have approved it. Production revealed the truth.
+
+**Connection to Six Hats (diary 2026-02-20):**
+- Black Hat (current Judge): "What will break?"
+- Red Hat (missing): "Is the pain real? Does this feel right?"
+- Yellow Hat (missing): "What if it worked?" (optimism counterbalance)
+
+The diary noted: "The Judge (Black) is naturally dominant in quality-focused systems." But this isn't about optimism — it's about premise validation.
+
+**Proposed remedy:** Split "Judge" into two phases:
+1. **Red Hat**: "Is the premise valid? Name a specific user, specific pain, specific moment. If hypothetical, flag."
+2. **Black Hat**: "Is the execution sound?" (current Judge behavior)
+
+**Status:** Observation added to Knowledge Graph as `unchallenged_premise` process pattern. Not yet implemented as a workflow gate — need to see if the pain is real through recurrence, not speculation.
+
+**Heuristic:** *The Judge is a quality gate, not a value gate.* Architectural soundness doesn't prove worth. A perfectly designed feature that solves an imaginary problem is wasted effort with a clean test suite.
+
+**Seed:** If this pattern recurs (features pass Judge but prove unused), the remedy is clear: require evidence of real pain before planning starts. The FR template's "Value Statement" would require a link to a diary entry, user complaint, or live incident — not prose assertions.
+
+---
+
+## 2026-03-07: Inquisitor Audit IV — partial remediation, one wound still open
+
+**Context:** Fourth audit covering commits `ce7cd66`..`55b890b` (5 commits: docs provider-count fix, diary Entry 91, release v0.4.60, FR-112 feat, copilot-instructions chore). Focus: whether the two persistent ✗ VIOLATIONS from prior audits were remediated.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits.** All 5 commits follow `type(scope): description` format. FR reference present on the feature commit. The docs fix (`55b890b`) correctly uses `docs:` prefix.
+
+2. **✓ COMPLIANT — CHANGELOG accurate.** `[0.4.60]` documents both FR-112 and FR-110. Release commit bumps correctly.
+
+3. **⚠ DRIFT — ARCHITECTURE.md partially fixed.** `55b890b` updates line 219 from "7 providers" to "8 providers" and adds Inception to the ASCII diagram. However, line 1115 (`utils/llm_factory.py` row in the module table) still reads "7 providers". No Inception-specific REQ-YG-XXX or CAP-XX was added — tests still use generic REQ-YG-010/011.
+
+4. **✗ VIOLATION — FR-112 still "Status: Draft".** Fourth consecutive audit flagging this. The feature is implemented, tested, merged, released as v0.4.60, and the provider count was even updated — yet the feature request header still says Draft. The Sermon (Enforce) requires updating implementation status.
+
+5. **✓ COMPLIANT — noqa Confessions current.** Both suppressions (`executor_async.py:310 ANN001`, `token_tracker.py:51 ARG002`) documented with CONF-XXX IDs. 102 total confession entries.
+
+**Heuristic:** *Partial remediation is worse than no remediation — it creates the illusion of completion.* The provider count was fixed in the ASCII diagram (line 219) but not in the module table (line 1115). A reader scanning the module table still sees "7 providers." When fixing a violation flagged by audit, grep for *all* occurrences, not just the one cited.
+
+**Seed:** Should the audit itself include a machine-verifiable remediation checklist (e.g., `grep -c "7 providers" ARCHITECTURE.md` must return 0) that can be re-run as a pre-commit hook? Turning prose findings into executable assertions would close the loop between "flagged" and "fixed."
+
+---
+
+## 2026-03-07: Inquisitor Audit — persistent violations survive third inspection
+
+**Context:** Third Inquisitor audit covering commits `41d8588`..`49f3d36` (5 commits: two diary entries, one release, one feature, one chore). Focus: whether the two ✗ VIOLATIONS from the Mar 6 audits were resolved before or after v0.4.60 shipped.
+
+**Findings:**
+
+1. **✗ VIOLATION — ARCHITECTURE.md still says "7 providers" (lines 219, 1114).** Third consecutive audit flagging this. No REQ-YG-XXX or CAP-XX was added for Inception Labs. The drift is now baked into tagged release v0.4.60 and remains on HEAD. The Entry 91 diary acknowledged the gap but no corrective commit followed. ADR-001 traceability broken for the 8th provider.
+
+2. **✗ VIOLATION — FR-112 still "Status: Draft".** Feature is implemented, tested, merged, released, and tagged. The feature request header still reads `Status: Draft`. The Sermon (Enforce) requires updating implementation status. Flagged in both Mar 6 audits; still unresolved.
+
+3. **✓ COMPLIANT — Conventional Commits.** All 5 commits use correct `type(scope): description` format. FR reference present on the feature commit.
+
+4. **✓ COMPLIANT — CHANGELOG accurate.** `[0.4.60]` section documents FR-112 and FR-110. Release commit bumps version correctly.
+
+5. **✓ COMPLIANT — noqa Confessions current.** `scripts/noqa_coverage.py --strict` reports 55/55 documented. No unconfessed suppressions.
+
+**Heuristic:** *A violation that survives three audits is no longer drift — it is policy.* If the project tolerates known ✗ items across multiple audits and a release, the audit process is decorative. Either fix the violations or downgrade them to ⚠ DRIFT with an explicit rationale. Ambiguity between "we should fix this" and "we accept this" erodes the authority of every future finding.
+
+**Seed:** Should persistent violations (same ✗ across ≥2 audits) auto-escalate to a tracked issue or feature request with a deadline? A violation that cannot be closed or explicitly accepted is an open wound in the doctrine.
+
+---
+
 ## 2026-03-07: Empty Inbox ≠ Done
 
 **Context:** v0.4.60 released with FR-112 (Inception Mercury-2) and FR-110 (W014→E007). Inbox is empty — all items processed. But two violations from Mar 6 Inquisitor audit remain unaddressed.
@@ -247,7 +318,7 @@ Based on analysis of the recent commits, here's a feature-level summary of the d
 
 #### **1. FR-106: Parallel Worktree Pipeline (Architecture Enhancement)**
 - **Status**: COMPLETED & REFINED
-- **Commits**: 
+- **Commits**:
   - `a012852` - Initial implementation (parallel worktree execution framework)
   - `16b8d58` - Refactor (optimization for shell orchestration vs copilot execution)
 - **What was built**:
@@ -256,7 +327,7 @@ Based on analysis of the recent commits, here's a feature-level summary of the d
   - Complete example pipeline with 4 prompt templates for code enforcement
   - 19 unit + integration tests including concurrency validation
   - Architectural documentation (CAP-33/REQ-YG-106)
-  
+
 - **Recent refinement** (commit `16b8d58`):
   - Restructured phases to separate concerns:
     - Phases 1-2: Copilot handles code generation (AI tasks)
@@ -273,7 +344,7 @@ Based on analysis of the recent commits, here's a feature-level summary of the d
   - Added REQ-YG-105 documentation gap fixes
   - Created demo pipeline: `examples/demos/req-cross-check/`
   - 3 new validation tests
-  
+
 - **Impact**: Ensures traceability between requirements, code, tests, and documentation
 
 #### **3. FR-105: Copilot Session Continuation Support**
@@ -346,7 +417,7 @@ This is an active **yamlgraph** project repository focused on AI-driven developm
   - Example pipeline: `examples/enforce/` with 4 prompt templates
   - 19 new tests (9 unit + 10 integration tests with concurrency verification)
   - Architecture documentation: Added CAP-33/REQ-YG-106
-  
+
 - **Key Innovation**: Shell handles orchestration while Copilot focuses on code generation. Git operations (commit/push) removed from AI scope.
 - **Scope**: 1,320+ lines added across multiple components
 
@@ -392,8 +463,8 @@ The repository shows **focused development on feature FR-106 (Parallel Worktree 
   - Comprehensive test coverage: 9 unit tests + 10 integration tests (262 lines)
   - Built example pipeline with 4 AI prompts in `examples/enforce/`
   - Architecture updated with CAP-33/REQ-YG-106 specifications
-  
-- **Design Evolution**: 
+
+- **Design Evolution**:
   - Initial architecture (commit a012852): Graph-based pipeline using `graph.yaml`
   - **Refined approach** (commit 16b8d58): Shell-centered orchestration
     - Phase 1-2: GitHub Copilot focuses on code/test generation only
@@ -486,7 +557,7 @@ This period focused on **advanced automation and AI-assisted development workflo
   - **9 unit tests + 10 integration tests** including concurrency validation
   - Added 73-line README with example usage
 
-#### **2. FR-107: Architecture Cross-Check** 
+#### **2. FR-107: Architecture Cross-Check**
 - **Impact**: Requirements-to-code traceability validation
 - **What**: System to verify architectural requirements are properly implemented
 - **Files**: `examples/demos/req-cross-check/` with dedicated graph and prompts
@@ -495,11 +566,11 @@ This period focused on **advanced automation and AI-assisted development workflo
 #### **3. FR-105: Session Continuation Support**
 - **Impact**: Long-running AI conversations can resume intelligently
 - **What**: Copilot enhancement enabling multi-session workflows
-- **Artifacts**: 
+- **Artifacts**:
   - New session test demo
   - Enforcer pipeline example (simplified to accept FR ID only)
 
-#### **4. FR-103: eBook Authoring with Judge-Amend Pipeline** 
+#### **4. FR-103: eBook Authoring with Judge-Amend Pipeline**
 - **Impact**: High-quality automated technical documentation
 - **What**: 9-chapter eBook generation with per-chapter persistence & parallel runner
 - **Artifacts**:

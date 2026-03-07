@@ -21,11 +21,11 @@ Use these as smoke test for new graph development.
 - **LangSmith**: Observability and tracing
 
 ### Conventions
-- Term 'backward compatibility' is a key indicator for a refactoring need.
-- Term 'pre-existing failure' doesn't exist; likely cause: test pollution.
+- The phrase "backward compatibility" is forbidden by pre-commit. It signals reluctance to complete a refactor. If an old contract must be preserved, justify it explicitly in a Feature Request.
+- The phrase "pre-existing failure" is forbidden. A red test suite belongs to the current change author. Most such claims arise from test pollution — hidden state, order dependence, or incomplete isolation. Assume ownership, reproduce the failure, and correct the root cause before proceeding.
 - For multi-line git commit messages, always write to `./tmp/msg.txt` and use `git commit -F ./tmp/msg.txt`. Never use `git commit -m "..."` with multi-line strings — special characters trigger dquote trap.
 - Run slow shell scripts with redirect to log file. Analyze logs separately.
-- Convert paths with hyphens to snake_case to avoid import issues.
+- Convert python code paths with hyphens to snake_case to avoid import issues.
 - YAMLGraph and LLM should be used instead of complex regex logic.
 - Conventional Commits + FR Enforcement, e.g. "feat(streaming): FR-030 add subgraphs parameter"
 - Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary.md` describing the cognitive process, traps, insights encountered, and a **Seed:** — a forward-looking question to promote new ideas. If the heuristic proves recurring, graduate it to this Scripture.
@@ -39,8 +39,47 @@ the_one_law: |
   Normalize at the boundary where external data enters,
   not downstream where it manifests.
 
-boundaries: [schema, provider, state, streaming, platform]
-traps: [quick_confidence, downstream_fix, symptom_patch, intent_drift]
+boundaries:
+  # Where external data/systems meet our code
+  - schema       # LLM output → Pydantic (FR-059: provider's type lie)
+  - provider     # API responses differ (content: str vs list)
+  - state        # Graph state commits vs raises
+  - streaming    # Token shape, timing, interrupts (FR-057–060)
+  - platform     # OS, Python version, locale differences
+  - audit        # Inquisitor findings → enforcement gates
+
+traps:
+  # Cognitive hazards that lead to bugs and drift
+  quick_confidence: "When I feel certain → Judge instead"
+  downstream_fix: "Fix at callsite, not utility → avoid double-stripping"
+  symptom_patch: "Verify root cause with test before designing fix"
+  intent_drift: "Plan says X, code does Y → re-read thrice"
+  false_duplicate: "Syntactic similarity ≠ semantic equivalence"
+  regex_fourth_exclusion: "Fourth special case → switch to proper parser"
+  partial_remediation: "Fix all occurrences, not just cited one"
+  audit_as_ritual: "3+ audits without fix → ritual, not process"
+  plausible_wrong_answer: "Silent fallback harder to catch than crash"
+  framework_costume: "FSM wearing DAG costume → if <50% nodes use core features, wrong tool"
+  working_system_inertia: "'It works' blocks seeing it clearly → inventory fit, not function"
+
+cures:
+  # Patterns that prevent traps
+  test_before_reading: "Write question as test → if passes, stop"
+  tolerant_matching: "prefix/contains/regex, not exact equality for LLM"
+  three_reads: "surface → deep against code → mechanical simulation"
+  streaming_xray: "Real-time constraint exposes implicit assumptions"
+  callsite_fix: "Fix at the specific caller, not the shared utility"
+  spec_kill: "Cheapest bug is the one killed in the spec"
+  judge_as_junior_pr: "Assume plausible code hides subtle bugs"
+
+process:
+  # Workflow patterns
+  graduation: "Heuristic appears twice → create FR; confirmed recurrence → graduate to Scripture"
+  conductor: "Parallel viewpoints need Blue hat to sequence"
+  boring_enforcement: "Boring = Judgement was good; surprise = spec had gaps"
+  audit_gate: "Audit without blocking mechanism = post-mortem before incident"
+  demo_vs_test: "Tests prove constraints; demos prove abstraction worth having"
+  unchallenged_premise: "Judge validates execution, not intent → need Red Hat: 'Is the pain real?'"
 ```
 
 ### Requirement Traceability (ADR-001)
