@@ -15,7 +15,7 @@ YAML-first framework for LLM pipelines. Graphs and prompts are declared in YAML,
 | `yamlgraph/executor.py` | `execute_prompt()` - unified LLM call interface |
 | `yamlgraph/graph_cache.py` | Process-global `GRAPH_CACHE` for compiled graphs (FR-111) |
 | `yamlgraph/node_factory.py` | Creates node functions from YAML config |
-| `yamlgraph/utils/llm_factory.py` | Multi-provider LLM factory (anthropic/mistral/openai) |
+| `yamlgraph/utils/llm_factory.py` | Multi-provider LLM factory (8 providers) |
 | `yamlgraph/models/state_builder.py` | Dynamic state class generation |
 | `yamlgraph/contrib/utils.py` | Shared utilities (`to_serializable`) |
 
@@ -143,10 +143,28 @@ except Exception as e:
 | Variable | Purpose |
 |----------|---------|
 | `ANTHROPIC_API_KEY` | Anthropic auth |
+| `GOOGLE_API_KEY` | Google/Gemini auth |
+| `INCEPTION_API_KEY` | Inception Labs Mercury auth |
 | `MISTRAL_API_KEY` | Mistral auth |
 | `OPENAI_API_KEY` | OpenAI auth |
+| `REPLICATE_API_TOKEN` | Replicate auth |
+| `XAI_API_KEY` | xAI Grok auth |
+| `LMSTUDIO_BASE_URL` | LM Studio local URL |
 | `PROVIDER` | Default provider |
 | `LANGCHAIN_TRACING_V2=true` | Enable LangSmith |
+
+## LLM Providers
+
+| Provider | Model Examples | Notes |
+|----------|----------------|-------|
+| `anthropic` | claude-sonnet-4-20250514 | Default. Best for complex reasoning |
+| `google` | gemini-2.0-flash | Fastest mainstream |
+| `inception` | mercury-2 | Diffusion LLM, 660 t/s, best for structured output |
+| `mistral` | mistral-large-latest | Good cost/quality balance |
+| `openai` | gpt-4.1 | Widely supported |
+| `replicate` | meta/llama-* | Open model hosting |
+| `xai` | grok-beta | Alternative |
+| `lmstudio` | local | Local inference |
 
 ## Code Guidelines
 

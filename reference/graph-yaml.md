@@ -91,6 +91,21 @@ defaults:
 | `prompts_relative` | `bool` | `false` | Resolve prompts relative to graph file |
 | `prompts_dir` | `string` | `prompts/` | Explicit prompts directory path |
 
+**Supported Providers:**
+
+| Provider | Model Default | Env Variable | Notes |
+|----------|---------------|--------------|-------|
+| `anthropic` | `claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` | Default. Best for complex reasoning |
+| `google` | `gemini-2.0-flash` | `GOOGLE_API_KEY` | Fast, multimodal |
+| `inception` | `mercury-2` | `INCEPTION_API_KEY` | Diffusion LLM, 660 t/s output. Ideal for schema-bound nodes |
+| `mistral` | `mistral-large-latest` | `MISTRAL_API_KEY` | Good cost/quality balance |
+| `openai` | `gpt-4o` | `OPENAI_API_KEY` | Widely supported |
+| `replicate` | varies | `REPLICATE_API_TOKEN` | Open models (Llama, etc.) |
+| `xai` | `grok-beta` | `XAI_API_KEY` | Alternative provider |
+| `lmstudio` | local | `LMSTUDIO_BASE_URL` | Local inference via LM Studio |
+
+Provider selection priority: `node.provider` > `defaults.provider` > `PROVIDER` env > `"anthropic"`
+
 **Prompt Resolution Order:**
 1. If `prompts_dir` specified: `{prompts_dir}/{prompt_name}.yaml`
 2. If `prompts_relative: true`: `{graph_dir}/{prompt_name}.yaml`

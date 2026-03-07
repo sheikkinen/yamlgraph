@@ -322,6 +322,7 @@ The codebase uses **sync-first with async wrappers**:
 | Variable | Purpose |
 |----------|---------|
 | `ANTHROPIC_API_KEY` | Anthropic authentication |
+| `GOOGLE_API_KEY` | Google/Gemini authentication |
 | `INCEPTION_API_KEY` | Inception Labs Mercury authentication |
 | `MISTRAL_API_KEY` | Mistral authentication |
 | `OPENAI_API_KEY` | OpenAI authentication |
