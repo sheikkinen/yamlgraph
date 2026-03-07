@@ -66,7 +66,13 @@ fi
 if ! git diff --quiet -- "$FR_PATH" 2>/dev/null || ! git ls-files --error-unmatch "$FR_PATH" >/dev/null 2>&1; then
     log_info "Committing FR to main before worktree creation..."
     git add "$FR_PATH"
-    git commit --no-verify -m "docs(FR): add $(basename "$FR_PATH" .md) for enforce pipeline"
+    mkdir -p ./tmp
+    cat > ./tmp/msg.txt << EOF
+docs(FR): add $(basename "$FR_PATH" .md) for enforce pipeline
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+EOF
+    git commit --no-verify -F ./tmp/msg.txt
     git push
     log_info "FR committed and pushed to main"
 fi
@@ -159,12 +165,17 @@ done
 # Phase 4: Commit and Push (shell)
 log_info "Phase 4: Commit and push..."
 FR_NUM=$(echo "$FR_PATH" | grep -oE 'FR-[0-9]+')
-COMMIT_MSG="feat: $FR_NUM implementation
+mkdir -p ./tmp
+cat > ./tmp/msg.txt << EOF
+feat: $FR_NUM implementation
 
-Auto-generated via enforce_worktree.sh pipeline"
+Auto-generated via enforce_worktree.sh pipeline
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+EOF
 
 git add -A
-git commit -m "$COMMIT_MSG" --no-verify  # Skip hooks, we already ran them
+git commit --no-verify -F ./tmp/msg.txt  # Skip hooks, we already ran them
 git push -u origin "$BRANCH"
 
 # Phase 5: Create PR (shell)

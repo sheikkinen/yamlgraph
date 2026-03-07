@@ -35,6 +35,13 @@ CHANGELOG_REQUIRED_ENTRY = (
     "exit 1; fi' _"
 )
 
+COPILOT_TRAILER_ENTRY = (
+    "bash -c '"
+    'grep -q "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>" "$1" '
+    '|| { echo "✗ Missing Co-authored-by: Copilot trailer"; exit 1; }'
+    "' _"
+)
+
 
 def run_hook_entry(entry: str, commit_msg: str) -> subprocess.CompletedProcess:
     """Run a hook entry with a commit message.
@@ -223,3 +230,72 @@ class TestHookEntryFormat:
         assert CHANGELOG_REQUIRED_ENTRY.endswith(
             "' _"
         ), "Entry must end with ' _' for proper $1 handling"
+
+    def test_copilot_trailer_has_placeholder(self) -> None:
+        """The copilot-trailer entry should have _ placeholder at end."""
+        assert COPILOT_TRAILER_ENTRY.endswith(
+            "' _"
+        ), "Entry must end with ' _' for proper $1 handling"
+
+
+@pytest.mark.req("REQ-YG-002")  # CI/CD infrastructure requirement
+class TestCopilotTrailer:
+    """Tests for copilot-trailer commit-msg hook (FR-132)."""
+
+    def test_commit_without_trailer_rejected(self) -> None:
+        """A commit without Copilot Co-authored-by trailer should be rejected."""
+        result = run_hook_entry(COPILOT_TRAILER_ENTRY, "feat: FR-132 add feature\n")
+        assert result.returncode == 1, "commit without Copilot trailer should fail"
+        assert (
+            "Missing Co-authored-by" in result.stdout
+            or "Missing Co-authored-by" in result.stderr
+        )
+
+    def test_commit_with_trailer_accepted(self) -> None:
+        """A commit with Copilot Co-authored-by trailer should be accepted."""
+        msg = (
+            "feat: FR-132 add trailer enforcement\n"
+            "\n"
+            "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\n"
+        )
+        result = run_hook_entry(COPILOT_TRAILER_ENTRY, msg)
+        assert (
+            result.returncode == 0
+        ), f"commit with Copilot trailer should pass: {result.stdout}"
+
+    def test_trailer_with_body_text_accepted(self) -> None:
+        """A commit with trailer among other body content should be accepted."""
+        msg = (
+            "chore: update dependencies\n"
+            "\n"
+            "Updated all dev dependencies to latest versions.\n"
+            "\n"
+            "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\n"
+        )
+        result = run_hook_entry(COPILOT_TRAILER_ENTRY, msg)
+        assert result.returncode == 0, "commit with trailer and body should pass"
+
+    def test_wrong_copilot_email_rejected(self) -> None:
+        """A commit with wrong Copilot email should be rejected."""
+        msg = (
+            "feat: FR-132 add feature\n"
+            "\n"
+            "Co-authored-by: Copilot <wrong@email.com>\n"
+        )
+        result = run_hook_entry(COPILOT_TRAILER_ENTRY, msg)
+        assert result.returncode == 1, "wrong Copilot email should fail"
+
+    def test_other_coauthor_without_copilot_rejected(self) -> None:
+        """A commit with another Co-authored-by but not Copilot should be rejected."""
+        msg = (
+            "feat: FR-132 add feature\n"
+            "\n"
+            "Co-authored-by: Someone <someone@example.com>\n"
+        )
+        result = run_hook_entry(COPILOT_TRAILER_ENTRY, msg)
+        assert result.returncode == 1, "non-Copilot co-author should still fail"
+
+    def test_empty_commit_message_rejected(self) -> None:
+        """An empty commit message should be rejected."""
+        result = run_hook_entry(COPILOT_TRAILER_ENTRY, "\n")
+        assert result.returncode == 1, "empty message should fail"

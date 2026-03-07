@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-132 Copilot Trailer Enforcement**: Add `copilot-trailer` commit-msg hook rejecting commits missing the Copilot `Co-authored-by` trailer; fix `enforce_worktree.sh` to inject the trailer in both commit points.
 - **FR-128 YAMLGraphication of Enforcer**: Approved FR to replace inline `copilot -p` calls in `enforce_worktree.sh` with `yamlgraph graph run examples/enforce/graph.yaml`, completing the FR-106 declarative enforce pipeline vision.
 - **FR-125 Enforce Pipeline Post-Merge Finalization**: Add a `finalize_merge.sh` script that runs after a PR from the enforce pipeline is merged, automating three post-merge obligations: CHANGELOG entry, FR status update, and diary reflection stub.
 - **FR-116 Watch→Enforce Spawn**: `watch.sh` snapshots `feature-requests/` before graph execution, diffs after via `comm -13`, skips rejected FRs (`Status.*Rejected`), and spawns `enforce_worktree.sh` via `nohup ... &` for approved FRs. Output redirected to `tmp/enforce-<slug>.log`. Pure shell, no state files, no Python helpers. 16 unit tests. (REQ-YG-116)

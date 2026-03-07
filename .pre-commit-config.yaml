@@ -161,6 +161,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: copilot-trailer
+        name: Co-authored-by Copilot trailer
+        entry: "bash -c 'grep -q \"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\" \"$1\" || { echo \"✗ Missing Co-authored-by: Copilot trailer\"; exit 1; }' _"
+        language: system
+        stages: [commit-msg]
+        always_run: true
+
+  - repo: local
+    hooks:
       - id: absolution
         name: "Absolution"
         entry: .venv/bin/python scripts/absolution.py
