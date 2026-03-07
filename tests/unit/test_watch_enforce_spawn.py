@@ -7,6 +7,7 @@ The detection logic is pure shell (ls + comm -13), so tests exercise it
 via subprocess with temporary directory structures.
 """
 
+import contextlib
 import os
 import stat
 import subprocess
@@ -211,7 +212,7 @@ class TestNohupSpawnIsolation:
 
         # Verify PID was reported (enforce is running in background)
         assert "PID:" in output
-        pid_line = [l for l in output.split("\n") if l.startswith("PID:")][0]
+        pid_line = [line for line in output.split("\n") if line.startswith("PID:")][0]
         pid = int(pid_line.split(":")[1])
         assert pid > 0
 
@@ -219,10 +220,8 @@ class TestNohupSpawnIsolation:
         assert "LOG:tmp/enforce-FR-400-spawn.log" in output
 
         # Clean up the sleeping background process
-        try:
+        with contextlib.suppress(ProcessLookupError):
             os.kill(pid, 9)
-        except ProcessLookupError:
-            pass  # Already exited
 
     def test_enforce_log_path_derived_from_fr_slug(self, tmp_path):
         """Log file path is tmp/enforce-<slug>.log based on FR filename."""
