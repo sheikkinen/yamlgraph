@@ -308,6 +308,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 32 | eBook Authoring Pipeline | `examples/ebook` | REQ-YG-091, REQ-YG-092 |
 | 33 | Worktree Pipeline | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce` | REQ-YG-106 |
 | 34 | Compiled Graph Cache | `graph_cache`, `executor_async` | REQ-YG-107 |
+| 35 | Watch→Enforce Integration | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` | REQ-YG-116 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -620,6 +621,14 @@ Process-global compiled graph cache so `load_and_compile_async()` results surviv
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-107 | Process-global `GRAPH_CACHE` dict in installed package; `load_and_compile_async()` uses cache by default with `cache=None` opt-out; `clear_cache()` for test teardown; cache-hit logs at DEBUG, compile logs at INFO | `graph_cache`, `executor_async` |
+
+### 35. Watch→Enforce Integration (FR-116)
+
+Post-graph hook in `watch.sh` that detects new feature request files via ephemeral `find` + `comm -13` diff, skips rejected FRs, and spawns `enforce_worktree.sh` in the background via `nohup` without blocking the polling loop.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-116 | `watch.sh` snapshots `feature-requests/` before graph execution, diffs after with `comm -13` to detect new FRs, skips rejected FRs (matching `Status.*Rejected`), and spawns `enforce_worktree.sh` via `nohup ... &` with output redirected to `tmp/enforce-<slug>.log`; no state files or Python helpers | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` |
 
 ---
 
