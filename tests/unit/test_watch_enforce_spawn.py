@@ -304,10 +304,48 @@ class TestWatchShellIntegration:
         assert ".log" in watch_sh
 
 
+@pytest.mark.req("REQ-YG-116")
+class TestChangelogEntry:
+    """Verify CHANGELOG.md documents FR-116."""
+
+    def test_changelog_contains_fr116_entry(self):
+        """CHANGELOG.md must have an FR-116 entry."""
+        changelog = _read_changelog()
+        assert "FR-116" in changelog
+
+    def test_changelog_fr116_in_unreleased_section(self):
+        """FR-116 entry must appear in the [Unreleased] section."""
+        changelog = _read_changelog()
+        unreleased_start = changelog.index("[Unreleased]")
+        # Find the next versioned section (pattern: ## [x.y.z])
+        next_section = changelog.find("\n## [0.", unreleased_start)
+        unreleased_block = changelog[unreleased_start:next_section]
+        assert "FR-116" in unreleased_block
+
+    def test_changelog_fr116_describes_watch_enforce_integration(self):
+        """FR-116 entry must mention key implementation details."""
+        changelog = _read_changelog()
+        # Must reference the core components
+        assert "watch.sh" in changelog or "watch→enforce" in changelog.lower()
+        assert "enforce_worktree.sh" in changelog or "enforce" in changelog
+
+    def test_changelog_fr116_references_requirement(self):
+        """FR-116 entry must reference REQ-YG-116."""
+        changelog = _read_changelog()
+        assert "REQ-YG-116" in changelog
+
+
 def _read_watch_sh() -> str:
     """Read the current watch.sh content."""
     watch_path = os.path.join(
         os.path.dirname(__file__), "..", "..", ".chaplain", "watch.sh"
     )
     with open(watch_path) as f:
+        return f.read()
+
+
+def _read_changelog() -> str:
+    """Read the current CHANGELOG.md content."""
+    changelog_path = os.path.join(os.path.dirname(__file__), "..", "..", "CHANGELOG.md")
+    with open(changelog_path) as f:
         return f.read()
