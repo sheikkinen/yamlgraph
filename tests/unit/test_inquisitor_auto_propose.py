@@ -141,12 +141,12 @@ class TestInquisitorShellIntegration:
     def test_inquisitor_sh_has_propose_flag_parsing(self):
         """inquisitor.sh parses --propose flag."""
         content = _read_inquisitor_sh()
-        assert '--propose' in content
+        assert "--propose" in content
 
     def test_inquisitor_sh_has_propose_variable(self):
         """inquisitor.sh sets PROPOSE variable."""
         content = _read_inquisitor_sh()
-        assert 'PROPOSE=' in content
+        assert "PROPOSE=" in content
 
     def test_inquisitor_sh_gates_propose_on_flag(self):
         """inquisitor.sh conditionally runs propose block."""

@@ -310,6 +310,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 34 | Compiled Graph Cache | `graph_cache`, `executor_async` | REQ-YG-107 |
 | 35 | Watch→Enforce Integration | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` | REQ-YG-116 |
 | 36 | Inquisitor Auto-Propose | `.chaplain/inquisitor.sh` | REQ-YG-118 |
+| 37 | Architecture Provider Count Guard | `tests/unit/test_architecture_provider_count` | REQ-YG-121 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -638,6 +639,14 @@ Post-graph hook in `watch.sh` that detects new feature request files via ephemer
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-118 | `inquisitor.sh --propose` parses flag, gates a second copilot call that reads up to 5 diary audit entries, detects persistent ✗ violations (≥2 consecutive), classifies as micro-fix or structural gap, writes proposal markdown to `.chaplain/inbox/inquisitor-<slug>.md` with filename-based dedup; without `--propose` the audit-only flow is unchanged | `.chaplain/inquisitor.sh` |
+
+### 37. Architecture Provider Count Guard (FR-121)
+
+Cross-check test ensuring the provider count in ARCHITECTURE.md module table matches the actual `ProviderType` Literal in `llm_factory.py`.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-121 | Test asserts ARCHITECTURE.md module table provider count for `llm_factory.py` equals `len(get_args(ProviderType))`; prevents documentation drift when providers are added or removed | `tests/unit/test_architecture_provider_count` |
 
 ---
 
@@ -1131,7 +1140,7 @@ _loading_stack: ContextVar[list[Path]] = ContextVar("loading_stack")
 | `tools/shell.py` | Shell tool execution | 5 |
 | `tools/python_tool.py` | Python tool integration | 5 |
 | `tools/nodes.py` | Tool node creation | 5 |
-| `utils/llm_factory.py` | Multi-provider LLM factory (7 providers) | 3 |
+| `utils/llm_factory.py` | Multi-provider LLM factory (8 providers) | 3 |
 | `utils/llm_factory_async.py` | Async LLM factory | 3 |
 | `utils/expressions.py` | Template and state path resolution | 4 |
 | `utils/conditions.py` | Condition expression evaluation | 6 |
