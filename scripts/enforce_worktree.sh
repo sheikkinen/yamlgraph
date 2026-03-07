@@ -97,7 +97,7 @@ log_info "Working in: $(pwd)"
 log_info "Phase 1: Implementation..."
 IMPLEMENT_PROMPT="Read the feature request at $FR_PATH. Follow TDD: write failing tests first, then implement the minimal change to make tests pass. Do not run pre-commit or git commands - just implement the code."
 
-gh copilot /agent --allow-all-paths --allow-all-tools "$IMPLEMENT_PROMPT"
+copilot -p "$IMPLEMENT_PROMPT" --allow-all
 IMPL_EXIT=$?
 if [[ $IMPL_EXIT -ne 0 ]]; then
     log_error "Implementation phase failed with exit code $IMPL_EXIT"
@@ -108,7 +108,7 @@ fi
 log_info "Phase 2: Test and Demo..."
 TEST_PROMPT="Run pytest for this feature. If tests fail, fix the code. Create a simple demo or example if applicable. Do not run pre-commit or git commands."
 
-gh copilot /agent --allow-all-paths --allow-all-tools --continue "$TEST_PROMPT"
+copilot -p "$TEST_PROMPT" --allow-all --continue
 TEST_EXIT=$?
 if [[ $TEST_EXIT -ne 0 ]]; then
     log_error "Test phase failed with exit code $TEST_EXIT"
@@ -139,7 +139,7 @@ $(cat /tmp/precommit-output.txt)
 
 Fix the issues. Do not run pre-commit yourself - I will run it after you fix the code."
 
-    gh copilot /agent --allow-all-paths --allow-all-tools --continue "$FIX_PROMPT"
+    copilot -p "$FIX_PROMPT" --allow-all --continue
 done
 
 # Phase 4: Commit and Push (shell)

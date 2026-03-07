@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **FR-106 Enforce Worktree Script**: Save `MAIN_DIR` before worktree operations; cleanup trap now returns to main dir before git operations
+- **FR-106 Copilot CLI Syntax**: Use standalone `copilot -p` with `--allow-all` instead of invalid `gh copilot /agent` syntax
 
 ## [0.4.60] — 2026-03-06
 
