@@ -309,6 +309,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 33 | Worktree Pipeline | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce` | REQ-YG-106 |
 | 34 | Compiled Graph Cache | `graph_cache`, `executor_async` | REQ-YG-107 |
 | 35 | Watch→Enforce Integration | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` | REQ-YG-116 |
+| 36 | Inquisitor Auto-Propose | `.chaplain/inquisitor.sh` | REQ-YG-118 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -629,6 +630,14 @@ Post-graph hook in `watch.sh` that detects new feature request files via ephemer
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-116 | `watch.sh` snapshots `feature-requests/` before graph execution, diffs after with `comm -13` to detect new FRs, skips rejected FRs (matching `Status.*Rejected`), and spawns `enforce_worktree.sh` via `nohup ... &` with output redirected to `tmp/enforce-<slug>.log`; no state files or Python helpers | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` |
+
+### 36. Inquisitor Auto-Propose (FR-118)
+
+`--propose` flag on `inquisitor.sh` detects violations persisting across ≥2 consecutive Inquisitor Audit entries in `docs/diary.md` and writes targeted fix proposals to `.chaplain/inbox/` for the Plan→Judge pipeline.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-118 | `inquisitor.sh --propose` parses flag, gates a second copilot call that reads up to 5 diary audit entries, detects persistent ✗ violations (≥2 consecutive), classifies as micro-fix or structural gap, writes proposal markdown to `.chaplain/inbox/inquisitor-<slug>.md` with filename-based dedup; without `--propose` the audit-only flow is unchanged | `.chaplain/inquisitor.sh` |
 
 ---
 
