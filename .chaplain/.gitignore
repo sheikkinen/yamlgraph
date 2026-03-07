@@ -5,3 +5,4 @@
 *.log
 *.json
 logs/
+.last-enforce-sha
