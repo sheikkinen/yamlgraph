@@ -1,6 +1,6 @@
 # FR-112: Add Inception Labs Mercury-2 Provider
 
-**Status**: Draft
+**Status**: ✅ Implemented (v0.4.60)
 **Priority**: Low
 **Effort**: 30 min
 **Risk**: Low
