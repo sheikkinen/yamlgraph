@@ -32,6 +32,7 @@ _ALL_FRAMEWORK_REQS = (
     + [113]  # REQ-YG-113 (FR-113 Linter W015 skip_if_exists in cycle)
     + [116]  # REQ-YG-116 (CAP-35 Watch→Enforce Integration)
     + [118]  # REQ-YG-118 (CAP-36 Inquisitor Auto-Propose)
+    + [121]  # REQ-YG-121 (CAP-37 Architecture Provider Count Guard)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -196,6 +197,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-34": ("Compiled Graph Cache", ["REQ-YG-107"]),
     "CAP-35": ("Watch→Enforce Integration", ["REQ-YG-116"]),
     "CAP-36": ("Inquisitor Auto-Propose", ["REQ-YG-118"]),
+    "CAP-37": ("Architecture Provider Count Guard", ["REQ-YG-121"]),
 }
 
 
