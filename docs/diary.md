@@ -6,6 +6,50 @@ Previous: [diary-2026-03-05.md](diary-2026-03-05.md) — 1 entries from 2026-03-
 
 ---
 
+## 2026-03-07: Inquisitor Audit XXIII — planning-only batch, trailer calcification continues
+
+**Context:** Twenty-third audit covering commits `f3c6b73`..`5c33f8c` (5 commits: `docs(FR):` ×3, `chore:` ×1, `fix(enforce):` ×1). Zero Python code changed. Zero tests added or modified. This is a pure planning-and-housekeeping batch: three new feature requests (FR-124, FR-125, FR-127), copilot instruction updates, diary entries, and a worktree bug fix. No new capabilities implemented.
+
+**Findings:**
+
+1. **✗ VIOLATION — Zero Co-authored-by trailers across all 5 commits (CALCIFIED-5).** Sixth consecutive audit citing this. Commit `4ef6efd` bundles 116 lines of AI-generated diary entries (including Inquisitor audits). The trailer is unconditionally required by Scripture. FR-127 proposes CI enforcement of Conventional Commits but does not address Co-authored-by — the calcified finding remains unescalated. Per `traps.audit_as_ritual`: "3+ audits without fix → ritual, not process."
+
+2. **⚠ DRIFT — `4ef6efd` is another catch-all commit (9 files, 5+ concerns).** Copilot instructions, diary entries, 4 new FRs, 2 FR deletions — all in one `chore: copilot instructions and fr`. Second consecutive audit citing this exact pattern. The vague subject provides no meaningful signal in `git log`.
+
+3. **✓ COMPLIANT — Conventional Commits format on all 5 commits.** Valid prefixes: `docs(FR):` ×3, `chore:`, `fix(enforce):`. Commandment 10 format requirement satisfied.
+
+4. **✓ COMPLIANT — CHANGELOG current.** `f3c6b73` (fix) has a matching `[Unreleased] → Fixed` entry. No `feat:` commits in this batch — no CHANGELOG obligation beyond the fix.
+
+5. **✓ COMPLIANT — noqa confessions current.** Both suppressions (`ANN001` in `executor_async.py`, `ARG002` in `token_tracker.py`) documented as CONF-003 and CONF-002. No new suppressions introduced.
+
+**Heuristic:** *Escalation without mechanism is just louder complaining.* The Co-authored-by trailer has been cited in six consecutive audits. FR-127 was created for CI Conventional Commit enforcement but does not cover trailers. The fix is a two-line pre-commit hook: `grep -q "Co-authored-by:" || exit 1`. Until enforcement exists in `.pre-commit-config.yaml`, audits citing this finding are performing the `audit_as_ritual` trap — not the cure.
+
+**Seed:** Should Audit XXIV refuse to cite the Co-authored-by trailer again and instead mark it as ACCEPTED-RISK until a pre-commit hook (or FR-127 extension) lands? Repeating a finding that no human reads is noise, not signal.
+
+---
+
+## 2026-03-07: Inquisitor Audit XXII — catch-all commit, missing trailers
+
+**Context:** Twenty-second audit covering commits `b171dee`..`4ef6efd` (5 commits: `chore:` ×1, `docs(FR):` ×2, `fix(enforce):` ×1, `docs(diary):` ×1). Commits 2–5 were already covered by Audit XXI; only `4ef6efd` is new. That commit bundles copilot instructions, diary entries (including AI-generated Inquisitor audits), 4 new feature requests, and 2 FR deletions into a single `chore:` commit. No Python code changed. No tests added.
+
+**Findings:**
+
+1. **✗ VIOLATION — `4ef6efd` lacks Co-authored-by trailer despite AI-generated content.** The commit contains 116 lines of diary entries including Inquisitor audit reflections — clearly AI-assisted. The git commit trailer rule is unconditional: "always include the following Co-authored-by trailer." Fifth consecutive audit citing missing trailers. This is now a CALCIFIED finding per the audit-as-ritual trap.
+
+2. **⚠ DRIFT — `4ef6efd` is a catch-all commit (9 files, 4 unrelated concerns).** Copilot instructions, diary entries, new FRs (FR-120, FR-122, FR-123, FR-126), and deleted FRs (FR-115, FR-116) bundled into one `chore: copilot instructions and fr`. Atomic commit principle violated. The vague subject ("copilot instructions and fr") gives no meaningful signal in `git log`.
+
+3. **✓ COMPLIANT — Conventional Commits format across all 5 commits.** Valid prefixes: `chore:`, `docs(FR):` ×2, `fix(enforce):`, `docs(diary):`. Commandment 10 satisfied on format (though `4ef6efd` subject is imprecise).
+
+4. **✓ COMPLIANT — CHANGELOG current for code changes.** `f3c6b73` (fix) has a matching `[Unreleased] → Fixed` entry. No `feat:` commits in batch, so no CHANGELOG gap.
+
+5. **✓ COMPLIANT — noqa confessions current.** Both existing suppressions (`ANN001` in `executor_async.py`, `ARG002` in `token_tracker.py`) remain documented. No new suppressions introduced.
+
+**Heuristic:** *A catch-all commit is a confession that the work outpaced the discipline.* When accumulating changes across sessions, the temptation is to `git add . && git commit -m "stuff"`. The cure: commit each concern as it completes — copilot instructions alone, then each FR individually, then diary separately. The Co-authored-by trailer absence is now CALCIFIED-4: five consecutive audits without resolution. Per the graduated heuristic, this should spawn a pre-commit hook that rejects commits touching AI-generated files without the trailer.
+
+**Seed:** Should a pre-commit hook enforce Co-authored-by trailers when the diff contains known AI-generated patterns (e.g., diary entries with "Inquisitor Audit" headers, or files in `.github/copilot-instructions.md`)? The pattern is detectable; the enforcement is missing.
+
+---
+
 ## 2026-03-07: Inquisitor Audit XXI — quiet batch, pipeline self-correction underway
 
 **Context:** Twenty-first audit covering commits `1a73d06`..`a27f3968` (5 commits: `docs(FR)` ×2, `fix(enforce)` ×1, `docs(diary)` ×1, `chore(FR-112)` ×1). Three of these were already covered by Audit XX; two are new (`a27f3968` FR-124, `a6f8379` FR-125). No Python code changed. No tests added or modified. This is a planning-and-housekeeping batch.
@@ -1403,3 +1447,19 @@ Designed and approved FR-125 to enforce post-merge finalization—automating thr
 FR-126 proposes adding a verification step to the inquisitor's propose prompt—a minimal, prompt-only change that checks project state before writing proposals. This eliminates stale proposals at the source. The Judge approved the feature, noting its clarity and concrete evidence (FR-123 duplicate). A key refinement: AC #5 was rephrased to test prompt language rather than shell logic, reflecting where the filtering actually lives. The design demonstrates how lightweight prompt engineering can prevent downstream issues. Scope is frozen and authority granted for implementation.
 
 **Seed:** How can we systematically identify other proposal-generation steps where early verification could prevent cascading errors downstream?
+
+---
+
+## 2026-03-07: Chaplain — FR-127 Conventional Commits Enforcement Amended
+
+FR-127 proposed GitHub Actions validation for Conventional Commits on PR titles to close the gap where server-side merges bypass local hooks. The plan was sound—scoped, clear acceptance criteria—but the judge identified three critical gaps: AC #6's conditional `FR-XXX` enforcement can't be handled by the action alone and requires custom scripting; revert handling was flagged in the problem but left unaddressed in the solution; and merge strategy assumptions weren't documented. The verdict was AMEND, moving FR-127 back to inbox. These gaps reveal a common pattern: solutions that appear complete often miss edge cases and conditional logic that require explicit design decisions rather than tool assumptions.
+
+**Seed:** How can we build a checklist or pattern library that surfaces conditional enforcement logic and edge-case handling *during* the planning phase, rather than discovering them in review?
+
+---
+
+## 2026-03-07: Chaplain — FR-127: CI enforcement with security hardening
+
+FR-127 addresses three Judgement inbox gaps: AC #6 (missing `feat` PR title validation), revert handling inconsistency, and undocumented squash-merge dependency. The plan comprehensively resolved all three with a two-step CI workflow, explicit `revert` type support, and documented GitHub settings requirements. Judgement revealed a critical security vulnerability: direct GitHub Actions context interpolation into bash (`${{ github.event.pull_request.title }}`) creates script injection risk. The fix—using `env:` block instead—corrected the implementation without scope creep. FR-127 approved and moved to feature-requests/ with authority to implement.
+
+**Seed:** How can we systematize security review checkpoints in the Plan→Judge workflow to catch injection vulnerabilities before they reach Judgement approval?
