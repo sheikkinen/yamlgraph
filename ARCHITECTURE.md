@@ -216,9 +216,10 @@ See [examples/npc/architecture.md](examples/npc/architecture.md) for full docume
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │ llm_factory.py  │  │ schema_loader.py│  │ utils/prompts.py│
 │ • Multi-provider│  │ • YAML → Pydantic│ │ • load_prompt() │
-│ • 7 providers:  │  │ • JSON Schema   │  │ • resolve_path()│
+│ • 8 providers:  │  │ • JSON Schema   │  │ • resolve_path()│
 │   Anthropic,    │  └─────────────────┘  └─────────────────┘
 │   Google/Gemini,│
+│   Inception,    │
 │   Mistral,      │
 │   OpenAI,       │
 │   Replicate,    │
