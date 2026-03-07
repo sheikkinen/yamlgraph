@@ -61,9 +61,13 @@ if ! python3 -c "from yamlgraph.utils.worktree_helpers import validate_clean_wor
     exit 1
 fi
 
+# Save main directory for later use
+MAIN_DIR="$(pwd)"
+
 # Trap-based cleanup: remove worktree on exit (success or failure)
 cleanup() {
     local exit_code=$?
+    cd "$MAIN_DIR" 2>/dev/null || true
     log_info "Cleaning up worktree: $WORKTREE_DIR"
     git worktree remove "$WORKTREE_DIR" --force 2>/dev/null || true
     # Also delete the branch if it was newly created and has no remote
@@ -80,7 +84,7 @@ mkdir -p "$(dirname "$WORKTREE_DIR")"
 git worktree add "$WORKTREE_DIR" -b "$BRANCH" "$BASE_BRANCH"
 
 # Symlink shared .venv to avoid redundant installs
-MAIN_VENV="$(cd - > /dev/null && pwd)/.venv"
+MAIN_VENV="$MAIN_DIR/.venv"
 if [[ -d "$MAIN_VENV" ]]; then
     log_info "Symlinking shared .venv..."
     ln -sf "$MAIN_VENV" "$WORKTREE_DIR/.venv"
