@@ -308,6 +308,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 32 | eBook Authoring Pipeline | `examples/ebook` | REQ-YG-091, REQ-YG-092 |
 | 33 | Worktree Pipeline | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce` | REQ-YG-106 |
 | 34 | Compiled Graph Cache | `graph_cache`, `executor_async` | REQ-YG-107 |
+| 35 | Mastermind Game | `projects/mastermind` | REQ-YG-093 – REQ-YG-099 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -620,6 +621,20 @@ Process-global compiled graph cache so `load_and_compile_async()` results surviv
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-107 | Process-global `GRAPH_CACHE` dict in installed package; `load_and_compile_async()` uses cache by default with `cache=None` opt-out; `clear_cache()` for test teardown; cache-hit logs at DEBUG, compile logs at INFO | `graph_cache`, `executor_async` |
+
+### 35. Mastermind Game
+
+Terminal Mastermind (code-breaking) game using the `interactive_tool` node pattern. Pure Python game logic with optional LLM hint.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-093 | Two-pass scoring algorithm: exact matches first, then misplaced from remaining pool; handles duplicate colors in both guess and secret correctly | `projects/mastermind/tools/mastermind` |
+| REQ-YG-094 | `game_start` generates random secret code from available colors, initialises empty guess history, renders welcome screen with color legend | `projects/mastermind/tools/mastermind` |
+| REQ-YG-095 | `game_step` evaluates guesses: scores with `_score_guess`, appends to history, detects win (all exact) and loss (guess count >= max_guesses), updates board display | `projects/mastermind/tools/mastermind` |
+| REQ-YG-096 | Input validation: rejects wrong peg count and invalid colors with clear error messages; normalises input to uppercase at the boundary | `projects/mastermind/tools/mastermind` |
+| REQ-YG-097 | Quit command (`q`/`Q`): sets `game_over=True`, `game_won=False` | `projects/mastermind/tools/mastermind` |
+| REQ-YG-098 | Hint command (`h`): calls `execute_prompt` only when at least one `_HINT_PROVIDERS` key is set; returns `"💡 Hint unavailable"` fallback when no key is set (no exception raised) | `projects/mastermind/tools/mastermind` |
+| REQ-YG-099 | `game_end` reveals secret code on loss, formats win/lose summary with guess count | `projects/mastermind/tools/mastermind` |
 
 ---
 

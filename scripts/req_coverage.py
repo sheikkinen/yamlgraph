@@ -30,6 +30,7 @@ _ALL_FRAMEWORK_REQS = (
     + [106]  # REQ-YG-106 (CAP-33 Worktree Pipeline)
     + [107]  # REQ-YG-107 (CAP-34 Compiled Graph Cache)
     + [113]  # REQ-YG-113 (FR-113 Linter W015 skip_if_exists in cycle)
+    + list(range(93, 100))  # REQ-YG-093–099 (CAP-35 Mastermind Game)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -192,6 +193,18 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-32": ("eBook Authoring Pipeline", ["REQ-YG-091", "REQ-YG-092"]),
     "CAP-33": ("Worktree Pipeline", ["REQ-YG-106"]),
     "CAP-34": ("Compiled Graph Cache", ["REQ-YG-107"]),
+    "CAP-35": (
+        "Mastermind Game",
+        [
+            "REQ-YG-093",
+            "REQ-YG-094",
+            "REQ-YG-095",
+            "REQ-YG-096",
+            "REQ-YG-097",
+            "REQ-YG-098",
+            "REQ-YG-099",
+        ],
+    ),
 }
 
 
@@ -469,7 +482,11 @@ def _load_coverage_map(root: Path) -> dict[str, set[str]]:
 
 def main() -> None:
     root = Path(__file__).parent.parent
-    test_dirs = [root / "tests" / "unit", root / "tests" / "integration"]
+    test_dirs = [
+        root / "tests" / "unit",
+        root / "tests" / "integration",
+        root / "projects",
+    ]
 
     # Collect all markers
     all_markers: dict[str, list[str]] = defaultdict(list)
