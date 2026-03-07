@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-125 Enforce Pipeline Post-Merge Finalization**: Add a `finalize_merge.sh` script that runs after a PR from the enforce pipeline is merged, automating three post-merge obligations: CHANGELOG entry, FR status update, and diary reflection stub.
 - **FR-116 Watch→Enforce Spawn**: `watch.sh` snapshots `feature-requests/` before graph execution, diffs after via `comm -13`, skips rejected FRs (`Status.*Rejected`), and spawns `enforce_worktree.sh` via `nohup ... &` for approved FRs. Output redirected to `tmp/enforce-<slug>.log`. Pure shell, no state files, no Python helpers. 16 unit tests. (REQ-YG-116)
 - **FR-113 Linter W015**: Warn when cycle node has explicit `skip_if_exists: true` — the node will cache its first output and return stale results on every iteration. Only fires on explicit setting; runtime `apply_loop_node_defaults()` handles the default case. (REQ-YG-113)
 - **FR-106 Next Steps Output**: Print merge, discard, and cleanup commands after successful PR creation in `enforce_worktree.sh`
