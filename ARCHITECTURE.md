@@ -761,6 +761,14 @@ GitHub Actions job in `commitlint.yml` that blocks merge of `feat` and `fix` PRs
 |------------|-------------|-------------|
 | REQ-YG-148 | `changelog-gate` job in `commitlint.yml` runs `git diff --name-only` against base/head SHAs and fails when `CHANGELOG.md` is absent from diff; job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_changelog_gate` |
 
+### 51. Branch Protection Documentation (FR-150)
+
+GitHub branch protection rules on `main` enforcing squash-merge only, required status checks (`commitlint`, `test`), and no direct pushes. Emergency bypass procedure documented in `reference/break-glass.md`.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-149 | `reference/break-glass.md` documents emergency bypass procedure with audit trail requirements; `CLAUDE.md` contains Branch Protection section listing enforced rules, required status checks, and link to break-glass procedure | `reference/break-glass.md`, `CLAUDE.md`, `tests/unit/test_branch_protection_docs` |
+
 ---
 
 ## Key Data Flows

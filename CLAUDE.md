@@ -284,6 +284,27 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#extension-points) for detailed guides on:
 - CI enforcement via `action-semantic-pull-request@v5` in `.github/workflows/commitlint.yml`
 - Local enforcement via `conventional-pre-commit` in `.pre-commit-config.yaml` (commit-msg hook)
 
+## Branch Protection
+
+The `main` branch is protected by GitHub branch protection rules (FR-150). These rules are the **primary enforcement gate** — all other checks (pre-commit hooks, CI workflows) operate within this structure.
+
+### Rules enforced on `main`
+
+| Rule | Setting | Purpose |
+|------|---------|---------|
+| Require pull request | Enabled (0 approvals) | No direct pushes to `main` |
+| Squash merge only | Merge commits and rebase disabled | PR title = commit message; enforces Conventional Commits |
+| Required status checks | `commitlint`, `test` | PR cannot merge with failing CI |
+
+### Required status checks
+
+- **`commitlint`** (`.github/workflows/commitlint.yml`): Validates PR title follows Conventional Commits format. `feat` PRs must include `FR-XXX` reference.
+- **`test`** (`.github/workflows/workflow.yml`): Runs `pytest` with 80% coverage threshold and `ruff` linting.
+
+### Emergency bypass
+
+Admin overrides are available for legitimate emergencies (broken CI, security hotfix, backup recovery). **Every bypass must be documented** — see [`reference/break-glass.md`](reference/break-glass.md) for the full procedure and audit trail requirements.
+
 ## Testing Patterns
 
 See [ARCHITECTURE.md](ARCHITECTURE.md#testing-strategy) for detailed testing patterns including:

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** ✅ Approved
+**Status:** ✅ Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -52,14 +52,14 @@ Configure GitHub branch protection on `main` via repository settings (Settings �
 
 ## Acceptance Criteria
 
-- [ ] Direct push to `main` is rejected by GitHub for non-admin users
-- [ ] Only squash merge is available as merge strategy in PR UI
-- [ ] `commitlint` workflow is marked as a required status check
-- [ ] PR merge is blocked when `commitlint` check fails
-- [ ] Emergency bypass procedure is documented in `reference/break-glass.md`
-- [ ] `CLAUDE.md` updated with branch protection section
-- [ ] Verify: a PR with non-conventional title cannot be merged
-- [ ] Verify: a `feat` PR without `FR-XXX` reference cannot be merged
+- [x] Direct push to `main` is rejected by GitHub for non-admin users
+- [x] Only squash merge is available as merge strategy in PR UI
+- [x] `commitlint` workflow is marked as a required status check
+- [x] PR merge is blocked when `commitlint` check fails
+- [x] Emergency bypass procedure is documented in `reference/break-glass.md`
+- [x] `CLAUDE.md` updated with branch protection section
+- [x] Verify: a PR with non-conventional title cannot be merged
+- [x] Verify: a `feat` PR without `FR-XXX` reference cannot be merged
 
 ## Alternatives Considered
 
