@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** ✅ Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -57,14 +57,14 @@ def _clean_git_env():
 
 ## Acceptance Criteria
 
-- [ ] `_clean_git_env` fixture exists in `tests/conftest.py`, session-scoped and autouse
-- [ ] All unit tests pass when invoked via `pre-commit run --all-files` (specifically the pytest hook)
-- [ ] No `--no-verify` flag needed for commits that trigger the test hook
-- [ ] Fixture is a no-op when `GIT_*` vars are absent (running outside pre-commit)
-- [ ] Existing tests remain unaffected when run via `pytest` directly
-- [ ] Fixture restores stripped variables after the session (yield-based cleanup)
-- [ ] Tests added: a unit test that verifies `GIT_DIR` is stripped when set, and is a no-op when absent
-- [ ] `@pytest.mark.req` traceability tag added to new test(s)
+- [x] `_clean_git_env` fixture exists in `tests/conftest.py`, session-scoped and autouse
+- [x] All unit tests pass when invoked via `pre-commit run --all-files` (specifically the pytest hook)
+- [x] No `--no-verify` flag needed for commits that trigger the test hook
+- [x] Fixture is a no-op when `GIT_*` vars are absent (running outside pre-commit)
+- [x] Existing tests remain unaffected when run via `pytest` directly
+- [x] Fixture restores stripped variables after the session (yield-based cleanup)
+- [x] Tests added: a unit test that verifies `GIT_DIR` is stripped when set, and is a no-op when absent
+- [x] `@pytest.mark.req` traceability tag added to new test(s)
 
 ## Alternatives Considered
 
