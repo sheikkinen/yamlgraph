@@ -3,7 +3,7 @@
 **ID:** FR-138
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 1 day
 **Requested:** 2026-03-08
 
@@ -106,6 +106,27 @@ scripts/copilot_session_gc.sh --max-age 1
 3. **Count-based pruning (keep N most recent)** — Less predictable than age-based. A user with 50 sessions from today shouldn't have them all deleted just because there are more than N. Rejected.
 
 4. **Wait for Copilot CLI to add `copilot session gc`** — No indication this is planned. The session directory structure is stable and well-understood. A local script solves the immediate problem. Can be deprecated if the CLI adds native support later.
+
+## Judgement
+
+**Verdict:** APPROVE — Scope frozen, authority granted.
+
+**Evaluation:**
+
+1. **Scope: Clear and minimal.** A single shell script with one integration point. No framework coupling. The explicit non-scope (not Python, not in yamlgraph CLI, not count-based) shows disciplined restraint.
+
+2. **No contradictions.** One minor clarification: the design decisions say "`--dry-run` default for first run" which reads as if dry-run is the default mode. The usage examples correctly show it is opt-in. Rephrase to "recommended for first use" during implementation.
+
+3. **Acceptance criteria: Measurable.** All 9 items are binary pass/fail. One gap: the testing AC ("unit test validates age filtering logic") should use a Python test with a temp directory invoking the script via subprocess — this aligns with the existing `tests/unit/` pattern and keeps shell testing simple. No bats dependency needed.
+
+4. **Feasibility: High.** `find -mtime` plus argument parsing is well-understood shell. 1-day estimate is realistic including tests and docs.
+
+5. **Architecture alignment: Good.** Lives in `scripts/` alongside other utilities. Natural counterpart to FR-105 (session capture) and the watch.sh pipeline (session creation). Does not overlap with FR-005 (deferred framework-level session manager).
+
+**Notes for implementation:**
+- The watch.sh integration (`loop_count % 10 == 0`) should document the poll interval so the effective GC frequency is clear.
+- Since this is a dev utility (not a framework capability), formal REQ-YG-XXX traceability in ARCHITECTURE.md is optional. If a pytest test is written, tag it with `@pytest.mark.req("REQ-YG-UTIL")` or an existing infra req.
+- Consider adding `--verbose` flag for debugging (low effort, high diagnostic value).
 
 ## Related
 
