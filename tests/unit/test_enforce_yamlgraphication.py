@@ -153,13 +153,13 @@ class TestEnforceScriptRetainsLifecycle:
 class TestEnforceScriptSize:
     """Verify the script has been thinned appropriately."""
 
-    def test_script_under_150_lines(self):
-        """Thinned script should be under 150 lines (was ~205, target ~80 core + banner)."""
+    def test_script_under_160_lines(self):
+        """Thinned script should be under 160 lines (was ~205, +FR-139 safety guards)."""
         content = _read_enforce_script()
         line_count = len(content.strip().splitlines())
-        assert line_count <= 150, (
-            f"Script has {line_count} lines, expected ≤ 150 after thinning"
-        )
+        assert (
+            line_count <= 160
+        ), f"Script has {line_count} lines, expected ≤ 160 after thinning"
 
 
 @pytest.mark.req("REQ-YG-128")
@@ -173,6 +173,6 @@ class TestEnforceGraphLint:
         graph_path = Path("examples/enforce/graph.yaml")
         result = lint_graph(graph_path)
         errors = [i for i in result.issues if i.severity.value == "error"]
-        assert len(errors) == 0, (
-            f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
-        )
+        assert (
+            len(errors) == 0
+        ), f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
