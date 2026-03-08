@@ -3,6 +3,7 @@
 # FR-076: Quotes the Scripture, audits recent work, writes diary entry
 # FR-118: --propose flag detects persistent violations and writes fix proposals to inbox
 # FR-131: Commit-delta gate aborts when no feat/fix commits since last audit
+# FR-142: Worktree gate suppresses audit in git worktrees (enforce pipeline)
 # Usage: .chaplain/inquisitor.sh [--force] [--propose]
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -16,6 +17,16 @@ while [[ $# -gt 0 ]]; do
         *) shift ;;
     esac
 done
+
+# --- Worktree gate (FR-142) ---
+# In a git worktree, .git is a file (gitdir pointer), not a directory.
+# Suppress audit during enforce pipeline — intermediate commits are WIP.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -n "$REPO_ROOT" && -f "$REPO_ROOT/.git" && -z "$FORCE" ]]; then
+    echo "⏭️  Inquisitor: Running in a git worktree (enforce pipeline in progress). Skipping audit."
+    echo "   Audits run on main after the FR/PR is merged. Use --force to override."
+    exit 0
+fi
 
 # --- Commit-delta gate (FR-131, FR-134) ---
 # Extract HEAD SHA from the last audit's commit range in docs/diary/.

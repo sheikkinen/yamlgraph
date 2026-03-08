@@ -315,7 +315,8 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 39 | Inquisitor Commit-Delta Gate | `.chaplain/inquisitor.sh` | REQ-YG-131 |
 | 40 | Enforce Pipeline Graph Delegation | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml` | REQ-YG-128 |
 | 41 | Clean GIT_* Test Fixture | `tests/conftest.py` | REQ-YG-140 |
-| 42 | Copilot Session GC | `scripts/copilot_session_gc.sh` | REQ-YG-141 |
+| 42 | Inquisitor Worktree Gate | `.chaplain/inquisitor.sh` | REQ-YG-142 |
+| 43 | Copilot Session GC | `scripts/copilot_session_gc.sh` | REQ-YG-141 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -680,7 +681,15 @@ Session-scoped autouse pytest fixture strips `GIT_*` environment variables injec
 |------------|-------------|-------------|
 | REQ-YG-140 | `_clean_git_env` session-scoped autouse fixture strips all `GIT_*` env vars at session start, restores on teardown; no-op when vars absent; prevents pre-commit `GIT_DIR`/`GIT_WORK_TREE` from leaking into subprocess git calls in `tmp_path`-based test repos | `tests/conftest.py`, `tests/unit/test_clean_git_env` |
 
-### 42. Copilot Session GC (FR-138)
+### 42. Inquisitor Worktree Gate (FR-142)
+
+`inquisitor.sh` worktree gate detects git worktree context (`-f "$REPO_ROOT/.git"`) and exits early, suppressing audit and propose phases during enforce pipeline. Placed before commit-delta gate (FR-131); `--force` bypasses.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-142 | `inquisitor.sh` worktree gate checks `-f "$REPO_ROOT/.git"` (file = worktree, directory = main), exits 0 with message when in worktree; `--force` bypasses gate; degrades gracefully when `git rev-parse` fails; gate placed before commit-delta gate (FR-131); pure shell, no Python | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_worktree_gate` |
+
+### 43. Copilot Session GC (FR-138)
 
 Shell script that prunes stale Copilot CLI sessions from `~/.copilot/session-state/` based on age. Supports `--max-age`, `--dry-run`, `--verbose` flags and protects the active session via `$COPILOT_SESSION_ID`.
 
