@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-03-08
 
@@ -86,14 +86,14 @@ No examples should be deleted — `purgatory/` preserves history.
 
 ## Acceptance Criteria
 
-- [ ] Every demo in `examples/demos/` has a corresponding entry in `examples/README.md`
-- [ ] Every top-level example in `examples/` has a corresponding entry in `examples/README.md`
-- [ ] Demos Index is split into Learning / Utility / FR Validation sections
-- [ ] Inclusion criteria documented at top of `examples/README.md`
-- [ ] Each listed entry meets the minimum quality bar (README + runnable artifact)
-- [ ] Low-value entries moved to `purgatory/` with a note in their original location
-- [ ] `yamlgraph graph lint examples/demos/hello/graph.yaml` still passes (smoke test)
-- [ ] No code changes — documentation and file moves only
+- [x] Every demo in `examples/demos/` has a corresponding entry in `examples/README.md`
+- [x] Every top-level example in `examples/` has a corresponding entry in `examples/README.md`
+- [x] Demos Index is split into Learning / Utility / FR Validation sections
+- [x] Inclusion criteria documented at top of `examples/README.md`
+- [x] Each listed entry meets the minimum quality bar (README + runnable artifact)
+- [x] Low-value entries moved to `purgatory/` with a note in their original location
+- [x] `yamlgraph graph lint examples/demos/hello/graph.yaml` still passes (smoke test)
+- [x] No code changes — documentation and file moves only
 
 ## Alternatives Considered
 
