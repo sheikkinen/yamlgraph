@@ -28,7 +28,7 @@ Use these as smoke test for new graph development.
 - Convert python code paths with hyphens to snake_case to avoid import issues.
 - YAMLGraph and LLM should be used instead of complex regex logic.
 - Conventional Commits + FR Enforcement, e.g. "feat(streaming): FR-030 add subgraphs parameter"
-- Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary.md` describing the cognitive process, traps, insights encountered, and a **Seed:** — a forward-looking question to promote new ideas. If the heuristic proves recurring, graduate it to this Scripture.
+- Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary/` describing the cognitive process, traps, insights encountered, and a **Seed:** — a forward-looking question to promote new ideas. If the heuristic proves recurring, graduate it to this Scripture.
 
 ### The Knowledge Graph of the Diary
 
@@ -142,7 +142,7 @@ These laws descend from the canon of software craft. They shalt not be altered b
 **Enforce.** Obey the Judgement. Write the failing test first; make only the smallest sufficient change; refactor only within scope. Update the feature request with implementation status and decisions.
 **Purge.** Remove invented interfaces, speculative flags, and hypothetical extensibility. If it is not required and not tested, it shall not exist.
 **Submit.** Bump. Commit. Push. Release. Tag. Let CI judge. What survives the fire may merge.
-**Distill.** After completing a task list, add a metacognitive entry to `docs/diary.md`. Name the cognitive trap or insight. Extract a heuristic. Plant a **Seed:** — a forward-looking question to grow new ideas. If the heuristic proves recurring, graduate it to this Scripture.
+**Distill.** After completing a task list, add a metacognitive entry to `docs/diary/`. Name the cognitive trap or insight. Extract a heuristic. Plant a **Seed:** — a forward-looking question to grow new ideas. If the heuristic proves recurring, graduate it to this Scripture.
 
 ## Rite of Correction
 

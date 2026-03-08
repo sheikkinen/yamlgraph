@@ -16,13 +16,19 @@ import pytest
 # Shell snippets — mirror the gate logic for isolated testing
 # ---------------------------------------------------------------------------
 
-# Extracts the HEAD SHA from the last audit's commit range in diary.md.
-# Format: `<start_sha>`..`<end_sha>` → captures <end_sha>.
+# Extracts the HEAD SHA from the last audit's commit range in diary folder.
+# Scans docs/diary/*inquisitor-audit* files sorted by name (most recent first).
 _SHA_EXTRACT_SCRIPT = textwrap.dedent("""\
     #!/usr/bin/env bash
     set -euo pipefail
-    DIARY="$1"
-    LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\\.\\.`([a-f0-9]{7,})`.*/\\2/p' "$DIARY" | head -1)
+    DIARY_DIR="$1"
+    LATEST_AUDIT=$(ls "$DIARY_DIR"/*inquisitor-audit* 2>/dev/null || true)
+    LATEST_AUDIT=$(echo "$LATEST_AUDIT" | sort -r | head -1)
+    if [[ -z "$LATEST_AUDIT" ]]; then
+        echo "NO_SHA"
+        exit 0
+    fi
+    LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\\.\\.`([a-f0-9]{7,})`.*/\\2/p' "$LATEST_AUDIT" | head -1)
     echo "${LAST_SHA:-NO_SHA}"
 """)
 
@@ -67,7 +73,7 @@ _FLAG_PARSE_SCRIPT = textwrap.dedent("""\
     echo "PROPOSE=${PROPOSE:-false}"
 """)
 
-# Full gate integration — sets up in a git repo dir, parses diary, runs gate.
+# Full gate integration — sets up in a git repo dir, parses diary folder, runs gate.
 _FULL_GATE_SCRIPT = textwrap.dedent("""\
     #!/usr/bin/env bash
     set -euo pipefail
@@ -84,10 +90,12 @@ _FULL_GATE_SCRIPT = textwrap.dedent("""\
         esac
     done
 
-    # --- Commit-delta gate (FR-131) ---
-    DIARY="docs/diary.md"
-    if [[ -f "$DIARY" ]]; then
-        LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\\.\\.`([a-f0-9]{7,})`.*/\\2/p' "$DIARY" | head -1)
+    # --- Commit-delta gate (FR-131, FR-134) ---
+    DIARY_DIR="docs/diary"
+    LATEST_AUDIT=$(ls "$DIARY_DIR"/*inquisitor-audit* 2>/dev/null || true)
+    LATEST_AUDIT=$(echo "$LATEST_AUDIT" | sort -r | head -1)
+    if [[ -n "$LATEST_AUDIT" ]]; then
+        LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\\.\\.`([a-f0-9]{7,})`.*/\\2/p' "$LATEST_AUDIT" | head -1)
     else
         LAST_SHA=""
     fi
@@ -113,10 +121,10 @@ _FULL_GATE_SCRIPT = textwrap.dedent("""\
 # ---------------------------------------------------------------------------
 
 
-def _run_sha_extract(diary_path: str) -> str:
-    """Run SHA extraction script against a diary file."""
+def _run_sha_extract(diary_dir: str) -> str:
+    """Run SHA extraction script against a diary directory."""
     result = subprocess.run(
-        ["bash", "-c", _SHA_EXTRACT_SCRIPT, "--", diary_path],
+        ["bash", "-c", _SHA_EXTRACT_SCRIPT, "--", diary_dir],
         capture_output=True,
         text=True,
         timeout=10,
@@ -225,46 +233,60 @@ def _read_inquisitor_sh() -> str:
 
 @pytest.mark.req("REQ-YG-131")
 class TestSHAExtraction:
-    """Tests for extracting last audit SHA from diary.md."""
+    """Tests for extracting last audit SHA from diary folder."""
 
-    def test_extracts_sha_from_standard_diary_entry(self, tmp_path):
-        """Standard diary context line yields the end-of-range SHA."""
-        diary = tmp_path / "diary.md"
-        diary.write_text(
+    def test_extracts_sha_from_latest_audit_file(self, tmp_path):
+        """Latest inquisitor-audit file (by name sort) yields the end-of-range SHA."""
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             "**Context:** Audit covering commits "
             "`f3c6b73`..`5c33f8c` (5 commits)\n"
         )
-        assert _run_sha_extract(str(diary)) == "5c33f8c"
+        assert _run_sha_extract(str(diary_dir)) == "5c33f8c"
 
     def test_extracts_sha_from_longer_sha(self, tmp_path):
         """Longer abbreviated SHAs (8+ chars) are extracted correctly."""
-        diary = tmp_path / "diary.md"
-        diary.write_text(
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        (diary_dir / "2026-03-07-inquisitor-audit-xxii.md").write_text(
             "**Context:** commits `a27f3968`..`b171deed` (3 commits)\n"
         )
-        assert _run_sha_extract(str(diary)) == "b171deed"
+        assert _run_sha_extract(str(diary_dir)) == "b171deed"
 
-    def test_returns_first_match_from_multiple_entries(self, tmp_path):
-        """Most recent audit entry (first in file) wins."""
-        diary = tmp_path / "diary.md"
-        diary.write_text(
-            "**Context:** commits `aaa1111`..`bbb2222` (latest)\n"
-            "---\n"
+    def test_returns_most_recent_audit_by_filename(self, tmp_path):
+        """Most recent audit file (by filename sort -r) wins."""
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        (diary_dir / "2026-03-06-inquisitor-audit-xxi.md").write_text(
             "**Context:** commits `ccc3333`..`ddd4444` (older)\n"
         )
-        assert _run_sha_extract(str(diary)) == "bbb2222"
+        (diary_dir / "2026-03-07-inquisitor-audit-xxii.md").write_text(
+            "**Context:** commits `aaa1111`..`bbb2222` (latest)\n"
+        )
+        assert _run_sha_extract(str(diary_dir)) == "bbb2222"
 
-    def test_returns_no_sha_for_empty_diary(self, tmp_path):
-        """Diary with no audit entries yields NO_SHA."""
-        diary = tmp_path / "diary.md"
-        diary.write_text("# Development Diary\n\nNo audits yet.\n")
-        assert _run_sha_extract(str(diary)) == "NO_SHA"
+    def test_returns_no_sha_for_empty_directory(self, tmp_path):
+        """Empty diary directory yields NO_SHA."""
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        assert _run_sha_extract(str(diary_dir)) == "NO_SHA"
+
+    def test_returns_no_sha_when_no_audit_files(self, tmp_path):
+        """Diary directory with no inquisitor-audit files yields NO_SHA."""
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        (diary_dir / "2026-03-07-reflection-fr-125.md").write_text("No audit here.\n")
+        assert _run_sha_extract(str(diary_dir)) == "NO_SHA"
 
     def test_returns_no_sha_for_no_commit_range(self, tmp_path):
-        """Diary text without commit range pattern yields NO_SHA."""
-        diary = tmp_path / "diary.md"
-        diary.write_text("Some text without any commit ranges.\n")
-        assert _run_sha_extract(str(diary)) == "NO_SHA"
+        """Audit file without commit range pattern yields NO_SHA."""
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        (diary_dir / "2026-03-07-inquisitor-audit-xx.md").write_text(
+            "Some text without any commit ranges.\n"
+        )
+        assert _run_sha_extract(str(diary_dir)) == "NO_SHA"
 
 
 # ---------------------------------------------------------------------------
@@ -374,9 +396,9 @@ class TestFullGateIntegration:
                 "chore: cleanup",
             ],
         )
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path))
@@ -392,9 +414,9 @@ class TestFullGateIntegration:
                 "feat: new feature",
             ],
         )
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path))
@@ -410,27 +432,27 @@ class TestFullGateIntegration:
                 "fix: bug fix",
             ],
         )
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
 
-    def test_gate_passes_when_no_diary(self, tmp_path):
-        """Gate degrades gracefully when diary.md doesn't exist (AC-6)."""
+    def test_gate_passes_when_no_diary_dir(self, tmp_path):
+        """Gate degrades gracefully when diary/ directory doesn't exist (AC-6)."""
         _setup_git_repo(tmp_path, ["chore: initial"])
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
 
-    def test_gate_passes_when_diary_has_no_sha(self, tmp_path):
-        """Gate degrades when diary exists but has no audit entries (AC-6)."""
+    def test_gate_passes_when_diary_has_no_audit_files(self, tmp_path):
+        """Gate degrades when diary dir exists but has no audit entries (AC-6)."""
         _setup_git_repo(tmp_path, ["chore: initial"])
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
-            "# Development Diary\n\nNo audits yet.\n"
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-reflection-fr-125.md").write_text(
+            "# Not an audit file\n"
         )
         output = _run_full_gate(str(tmp_path))
         assert "GATE_PASSED" in output
@@ -438,9 +460,9 @@ class TestFullGateIntegration:
     def test_gate_passes_when_sha_unresolvable(self, tmp_path):
         """Gate degrades when diary SHA doesn't exist in repo (AC-6)."""
         _setup_git_repo(tmp_path, ["chore: initial"])
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             "**Context:** commits `0000000`..`fffffff` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path))
@@ -455,9 +477,9 @@ class TestFullGateIntegration:
                 "docs: only docs",
             ],
         )
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path), ["--force"])
@@ -472,9 +494,9 @@ class TestFullGateIntegration:
                 "docs: only docs",
             ],
         )
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path), ["--propose"])
@@ -490,9 +512,9 @@ class TestFullGateIntegration:
                 "docs: only docs",
             ],
         )
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path), ["--force", "--propose"])
@@ -508,9 +530,9 @@ class TestFullGateIntegration:
                 "feat(streaming): add subgraph support",
             ],
         )
-        diary_dir = tmp_path / "docs"
-        diary_dir.mkdir()
-        (diary_dir / "diary.md").write_text(
+        diary_dir = tmp_path / "docs" / "diary"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
             f"**Context:** commits `{shas[0]}`..`{shas[0]}` (1 commit)\n"
         )
         output = _run_full_gate(str(tmp_path))
@@ -541,11 +563,16 @@ class TestInquisitorShellIntegration:
         content = _read_inquisitor_sh()
         assert "Commit-delta gate" in content
 
-    def test_extracts_sha_from_diary(self):
-        """Gate logic reads diary.md and extracts LAST_SHA."""
+    def test_extracts_sha_from_diary_folder(self):
+        """Gate logic scans diary folder for inquisitor-audit files."""
         content = _read_inquisitor_sh()
         assert "LAST_SHA" in content
-        assert "diary.md" in content
+        assert "inquisitor-audit" in content
+
+    def test_uses_filename_sorted_lookup(self):
+        """Gate logic uses sort -r for filename-based ordering."""
+        content = _read_inquisitor_sh()
+        assert "sort -r" in content
 
     def test_counts_actionable_commits(self):
         """Gate logic counts feat/fix commits via git log."""

@@ -17,10 +17,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# --- Commit-delta gate (FR-131) ---
-# Extract HEAD SHA from the last audit's commit range in docs/diary.md.
-# Format: `<start_sha>`..`<end_sha>` → captures <end_sha>.
-LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\.\.`([a-f0-9]{7,})`.*/\2/p' docs/diary.md 2>/dev/null | head -1)
+# --- Commit-delta gate (FR-131, FR-134) ---
+# Extract HEAD SHA from the last audit's commit range in docs/diary/.
+# Scan inquisitor-audit files sorted by name (most recent first).
+LATEST_AUDIT=$(ls docs/diary/*inquisitor-audit* 2>/dev/null || true)
+LATEST_AUDIT=$(echo "$LATEST_AUDIT" | sort -r | head -1)
+if [[ -n "$LATEST_AUDIT" ]]; then
+    LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\.\.`([a-f0-9]{7,})`.*/\2/p' "$LATEST_AUDIT" 2>/dev/null | head -1)
+else
+    LAST_SHA=""
+fi
 if [[ -n "$LAST_SHA" ]] && git rev-parse --verify "$LAST_SHA^{commit}" >/dev/null 2>&1; then
     ACTIONABLE=$(git log --oneline "$LAST_SHA"..HEAD | grep -cE '^[a-f0-9]+ (feat|fix)' || true)
     if [[ "$ACTIONABLE" -eq 0 && -z "$FORCE" ]]; then
@@ -39,7 +45,7 @@ You are the Inquisitor. Your duty: audit the project's recent work against the S
 **Step 1 — Gather Evidence:**
 - Read the latest 5 commits: git log --oneline -5
 - Read the top of CHANGELOG.md (first 30 lines)
-- Read the latest diary entry in docs/diary.md (first entry after the header)
+- Read the latest diary entry from docs/diary/ (most recent file by name)
 - Read CLAUDE.md to refresh the Scripture (Commandments, Sermon, Rite of Correction)
 
 **Step 2 — Investigate:**
@@ -58,7 +64,7 @@ Classify each finding as:
 - ✗ VIOLATION — Doctrine broken, action needed
 
 **Step 4 — Record:**
-Append a new diary entry to docs/diary.md following the established format:
+Create a new diary entry file at docs/diary/YYYY-MM-DD-inquisitor-audit-<number>.md following the format:
 - Header: '## YYYY-MM-DD: Inquisitor Audit — [summary]'
 - **Context:** What was audited and why
 - **Findings:** List of ✓/⚠/✗ items (keep concise — max 5 most significant)
@@ -66,7 +72,7 @@ Append a new diary entry to docs/diary.md following the established format:
 - **Seed:** One forward-looking question
 
 If all findings are COMPLIANT, still record the audit — compliance is worth witnessing.
-Do NOT create or modify any files other than docs/diary.md."
+Do NOT create or modify any files other than docs/diary/."
 
 echo "✅ Inquisitor: Audit complete."
 
@@ -75,7 +81,7 @@ if [[ -n "$PROPOSE" ]]; then
     copilot --allow-all-paths --allow-all-tools -p "**Propose.**
 You are the Inquisitor in propose mode. Your duty: convert persistent violations into fix proposals.
 
-**Step 1 — Read diary:** Read up to the last 5 'Inquisitor Audit' entries from docs/diary.md.
+**Step 1 — Read diary:** Read up to the last 5 'Inquisitor Audit' entries from docs/diary/*inquisitor-audit* files (sorted by name, most recent first).
 **Step 2 — Detect persistence:** Identify ✗ VIOLATION items appearing in ≥2 consecutive audits.
 **Step 3 — Classify:** For each persistent violation:
   - Micro-fix (status field, count, missing entry): propose a direct fix description

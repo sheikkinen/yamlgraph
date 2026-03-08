@@ -55,7 +55,7 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
     a dirty working tree would propagate uncommitted changes.
 
     Args:
-        exclude_paths: Paths to exclude from the check (e.g., ["docs/diary.md"]).
+        exclude_paths: Paths to exclude from the check (e.g., ["docs/diary/"]).
                       Use for files that are expected to have changes (inquisitor diary).
 
     Returns:
@@ -67,7 +67,7 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
     Example:
         >>> validate_clean_working_tree()  # When clean
         True
-        >>> validate_clean_working_tree(exclude_paths=["docs/diary.md"])  # Ignore diary
+        >>> validate_clean_working_tree(exclude_paths=["docs/diary/"])  # Ignore diary
         True
     """
     exclude_paths = exclude_paths or []

@@ -637,7 +637,7 @@ Post-graph hook in `watch.sh` that detects new feature request files via ephemer
 
 ### 36. Inquisitor Auto-Propose (FR-118)
 
-`--propose` flag on `inquisitor.sh` detects violations persisting across ≥2 consecutive Inquisitor Audit entries in `docs/diary.md` and writes targeted fix proposals to `.chaplain/inbox/` for the Plan→Judge pipeline.
+`--propose` flag on `inquisitor.sh` detects violations persisting across ≥2 consecutive Inquisitor Audit entries in `docs/diary/` and writes targeted fix proposals to `.chaplain/inbox/` for the Plan→Judge pipeline.
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -660,7 +660,7 @@ Automates three post-merge obligations after a PR from the enforce pipeline is m
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-125 | `scripts/finalize_merge.sh` inserts CHANGELOG entry under `[Unreleased] / ### Added`, updates FR status to `✅ Implemented`, and appends diary reflection stub with Trap/Heuristic/Seed placeholders | `scripts/finalize_merge.sh`, `tests/unit/test_finalize_merge` |
-| REQ-YG-131 | `inquisitor.sh` commit-delta gate extracts last audit SHA from `docs/diary.md`, counts `feat:`/`fix:` commits since that SHA via `git log`, and aborts with clear message when none found; `--force` bypasses gate; gate degrades gracefully on missing diary, unparseable SHA, or first-ever audit; `--propose` respects gate; gate logic is pure shell | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_gate` |
+| REQ-YG-131 | `inquisitor.sh` commit-delta gate extracts last audit SHA from `docs/diary/`, counts `feat:`/`fix:` commits since that SHA via `git log`, and aborts with clear message when none found; `--force` bypasses gate; gate degrades gracefully on missing diary, unparseable SHA, or first-ever audit; `--propose` respects gate; gate logic is pure shell | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_gate` |
 
 ### 40. Enforce Pipeline Graph Delegation (FR-128)
 

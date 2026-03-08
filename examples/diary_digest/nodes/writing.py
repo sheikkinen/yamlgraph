@@ -6,10 +6,9 @@ FR-097: Shared diary writing utilities moved to examples.shared.diary.
 
 import logging
 
-# Re-export shared diary utilities for backward compatibility (FR-097)
+# Re-export shared diary utilities (FR-097, FR-134)
 from examples.shared.diary import (
-    DIARY_PATH,
-    append_to_diary,
+    DIARY_DIR,
     format_diary_entry,
     should_write_entry,
     write_diary,
@@ -17,9 +16,8 @@ from examples.shared.diary import (
 
 __all__ = [
     # Shared (re-exported from examples.shared.diary)
-    "DIARY_PATH",
+    "DIARY_DIR",
     "format_diary_entry",
-    "append_to_diary",
     "should_write_entry",
     "write_diary",
     # Local (diary_digest-specific)

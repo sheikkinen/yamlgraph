@@ -71,21 +71,11 @@ def _make_repo(tmp_path):
     """)
     )
 
-    # Create docs/diary.md
+    # Create docs/diary/ folder
     docs = repo / "docs"
     docs.mkdir()
-    diary = docs / "diary.md"
-    diary.write_text(
-        textwrap.dedent("""\
-        # Diary
-
-        ## 2026-03-06: Previous Entry
-
-        Some previous reflection.
-
-        **Seed:** What comes next?
-    """)
-    )
+    diary_dir = docs / "diary"
+    diary_dir.mkdir()
 
     # Create feature-requests/ with a sample FR
     fr_dir = repo / "feature-requests"
@@ -361,20 +351,26 @@ class TestFRStatusUpdate:
 
 @pytest.mark.req("REQ-YG-125")
 class TestDiaryStub:
-    """docs/diary.md gets a reflection stub with placeholders."""
+    """docs/diary/ gets a reflection stub file with placeholders."""
 
-    def test_diary_stub_appended(self, tmp_path):
-        """Diary entry has date, FR number, and Trap/Heuristic/Seed placeholders."""
+    def test_diary_stub_written_as_file(self, tmp_path):
+        """Diary entry is written as individual file in docs/diary/."""
         repo = _make_repo(tmp_path)
         fr_rel = _write_fr(repo, "FR-230-diary-test.md", title="Diary Test")
         _run_finalize(repo, fr_rel)
 
-        diary = (repo / "docs" / "diary.md").read_text()
-        assert "FR-230" in diary
-        assert "Implementation Reflection" in diary
-        assert "[What cognitive trap was encountered?]" in diary
-        assert "[What lesson was learned?]" in diary
-        assert "[What question remains?]" in diary
+        diary_dir = repo / "docs" / "diary"
+        assert diary_dir.exists(), "docs/diary/ folder should exist"
+        reflection_files = list(diary_dir.glob("*-reflection-FR-230.md"))
+        assert len(reflection_files) == 1, (
+            f"Expected 1 reflection file, found: {list(diary_dir.iterdir())}"
+        )
+        content = reflection_files[0].read_text()
+        assert "FR-230" in content
+        assert "Implementation Reflection" in content
+        assert "[What cognitive trap was encountered?]" in content
+        assert "[What lesson was learned?]" in content
+        assert "[What question remains?]" in content
 
 
 # ---------------------------------------------------------------------------
