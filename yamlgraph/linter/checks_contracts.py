@@ -168,8 +168,7 @@ def check_top_level_provider_model(graph_path: Path) -> list[LintIssue]:
                     severity="warning",
                     code="W016",
                     message=(
-                        f"'{key}' at top level has no effect; "
-                        f"move to 'defaults:' block"
+                        f"'{key}' at top level has no effect; move to 'defaults:' block"
                     ),
                     fix=f"defaults:\n  {key}: {graph[key]}",
                 )

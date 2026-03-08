@@ -253,7 +253,7 @@ class TestSHAExtraction:
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
-            "**Context:** Audit covering commits " "`f3c6b73`..`5c33f8c` (5 commits)\n"
+            "**Context:** Audit covering commits `f3c6b73`..`5c33f8c` (5 commits)\n"
         )
         assert _run_sha_extract(str(diary_dir)) == "5c33f8c"
 
