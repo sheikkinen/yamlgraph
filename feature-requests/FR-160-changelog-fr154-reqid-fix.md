@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.25 days
 **Requested:** 2026-03-08
 
@@ -33,9 +33,9 @@ Single-line correction in `CHANGELOG.md`:
 
 ## Acceptance Criteria
 
-- [ ] CHANGELOG.md FR-154 entry references `(REQ-YG-150)` instead of `(REQ-YG-146)`
-- [ ] `python scripts/req_coverage.py --strict` passes (no phantom requirement drift)
-- [ ] No other files require changes (verified by grepping for the incorrect pairing)
+- [x] CHANGELOG.md FR-154 entry references `(REQ-YG-150)` instead of `(REQ-YG-146)`
+- [x] `python scripts/req_coverage.py --strict` passes (no phantom requirement drift)
+- [x] No other files require changes (verified by grepping for the incorrect pairing)
 
 ## Alternatives Considered
 

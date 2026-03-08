@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.61] — 2026-03-08
 
 ### Added
-- **FR-154 Architecture Capability Count Guard**: Fix stale capability/requirement counts in ARCHITECTURE.md summary sentence (19→46 capabilities, 68→109 requirements) and add CI guard test to prevent future drift. (REQ-YG-146)
+- **FR-154 Architecture Capability Count Guard**: Fix stale capability/requirement counts in ARCHITECTURE.md summary sentence (19→46 capabilities, 68→109 requirements) and add CI guard test to prevent future drift. (REQ-YG-150)
 - **FR-145 Phantom Requirement Detection**: `req_coverage.py --strict` rejects `@pytest.mark.req` markers referencing requirement IDs absent from `ALL_REQS` or `ARCHITECTURE.md`. (REQ-YG-145)
 - **FR-149 CI CHANGELOG Gate**: Add `changelog-gate` job to `.github/workflows/commitlint.yml` that blocks merge of `feat` and `fix` PRs unless `CHANGELOG.md` is modified in the PR diff. Uses job-level `if` condition to skip for other PR types. Closes the structural gap where server-side squash merges bypass local commit-msg hooks. (REQ-YG-148)
 - **FR-150 Branch Protection for Main**: Configure GitHub branch protection on `main` requiring pull requests, squash-merge only, and required status checks (`commitlint`, `test`). Document emergency bypass procedure in `reference/break-glass.md` and add Branch Protection section to `CLAUDE.md`. (REQ-YG-149)
