@@ -321,6 +321,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 44 | Judge SPLIT Verdict | `examples/copilot/prompts/judge.yaml`, `scripts/chaplain-prompts/judge.md` | REQ-YG-143 |
 | 45 | Diary Reflection Enforcement | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh` | REQ-YG-144 |
 | 46 | Diary Import CLI | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py` | REQ-YG-122 |
+| 47 | Phantom Requirement Detection | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` | REQ-YG-145 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -724,6 +725,14 @@ CLI command to import pending diary entries and git report data into `docs/diary
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-122 | `yamlgraph diary import` CLI command imports pending diary entries and git reports into `docs/diary/` with `--dry-run` and `--source` flags; shared importer returns structured `ImportResult` list; dry-run does not mutate source files; malformed files reported and exit non-zero; explicit missing `--source` emits warning | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py`, `tests/unit/test_diary_importer`, `tests/unit/test_diary_commands` |
+
+### 47. Phantom Requirement Detection (FR-145)
+
+Detect and reject test markers that reference non-existent requirement IDs.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-145 | **Phantom requirement detection**: `req_coverage.py --strict` rejects `@pytest.mark.req` markers referencing requirement IDs absent from `ALL_REQS` or `ARCHITECTURE.md` | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` |
 
 ---
 

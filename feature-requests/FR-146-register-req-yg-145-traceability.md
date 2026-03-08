@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.25 days
 **Requested:** 2026-03-08
 
@@ -85,14 +85,14 @@ Under `### Added`:
 
 ## Acceptance Criteria
 
-- [ ] `REQ-YG-145` exists in `ARCHITECTURE.md` capability summary table (CAP-45) and in a detail section
-- [ ] `REQ-YG-145` is present in `ALL_REQS` via `_ALL_FRAMEWORK_REQS` in `scripts/req_coverage.py`
-- [ ] `CAP-45` entry exists in `CAPABILITIES` dict in `scripts/req_coverage.py`
-- [ ] All 6 `TestPhantomRequirementDetection` tests are tagged `@pytest.mark.req("REQ-YG-145")`, not `REQ-YG-063`
-- [ ] `CHANGELOG.md` `[Unreleased]` section contains FR-145 entry with `REQ-YG-145`
-- [ ] `python scripts/req_coverage.py --strict` passes (no phantom IDs, no uncovered reqs)
-- [ ] `pytest tests/unit/test_req_coverage.py -v` passes (all 6 phantom tests green)
-- [ ] Commit message: `fix(traceability): FR-146 register REQ-YG-145 for phantom requirement detection`
+- [x] `REQ-YG-145` exists in `ARCHITECTURE.md` capability summary table (CAP-47) and in a detail section
+- [x] `REQ-YG-145` is present in `ALL_REQS` via `_ALL_FRAMEWORK_REQS` in `scripts/req_coverage.py`
+- [x] `CAP-47` entry exists in `CAPABILITIES` dict in `scripts/req_coverage.py`
+- [x] All 6 `TestPhantomRequirementDetection` tests are tagged `@pytest.mark.req("REQ-YG-145")`, not `REQ-YG-063`
+- [x] `CHANGELOG.md` `[Unreleased]` section contains FR-145 entry with `REQ-YG-145`
+- [x] `python scripts/req_coverage.py --strict` passes (no phantom IDs, no uncovered reqs)
+- [x] `pytest tests/unit/test_req_coverage.py -v` passes (all 6 phantom tests green)
+- [x] Commit message: `fix(traceability): FR-146 register REQ-YG-145 for phantom requirement detection`
 
 ## Alternatives Considered
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-145 Phantom Requirement Detection**: `req_coverage.py --strict` rejects `@pytest.mark.req` markers referencing requirement IDs absent from `ALL_REQS` or `ARCHITECTURE.md`. (REQ-YG-145)
 - **FR-144 Enforce Diary Reflection Content**: Add `diary-reflection-check` pre-commit hook that rejects commits containing unfilled diary reflection stubs. Modify `finalize_merge.sh` to create diary stubs as untracked files. Unstage existing unfilled stubs (FR-127, FR-128, FR-134) to comply with enforcement. (REQ-YG-144)
 - **FR-124 Diary Import CLI**: `yamlgraph diary import` CLI command imports pending scheduled diary entries and git reports into `docs/diary/` with `--dry-run` and `--source` flags. Extracted shared import logic from `scripts/diary_rotate.py` into `yamlgraph/diary/importer.py`. (REQ-YG-122)
 - **FR-142 Inquisitor Worktree Gate**: Add worktree-detection gate to `inquisitor.sh` that suppresses audit and propose phases when running inside a git worktree (enforce pipeline). Detects via `-f "$REPO_ROOT/.git"`; `--force` bypasses. Placed before commit-delta gate (FR-131). (REQ-YG-142)

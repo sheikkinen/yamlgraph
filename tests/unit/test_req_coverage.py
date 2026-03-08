@@ -356,7 +356,7 @@ def test_smoke():
         assert "missing from ARCHITECTURE.md" not in captured.out
 
 
-@pytest.mark.req("REQ-YG-063")
+@pytest.mark.req("REQ-YG-145")
 class TestPhantomRequirementDetection:
     """Tests for reverse-check: phantom requirement detection — FR-145.
 
