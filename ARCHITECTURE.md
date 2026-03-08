@@ -316,6 +316,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 40 | Enforce Pipeline Graph Delegation | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml` | REQ-YG-128 |
 | 41 | Clean GIT_* Test Fixture | `tests/conftest.py` | REQ-YG-140 |
 | 42 | Inquisitor Worktree Gate | `.chaplain/inquisitor.sh` | REQ-YG-142 |
+| 43 | Copilot Session GC | `scripts/copilot_session_gc.sh` | REQ-YG-141 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -687,6 +688,14 @@ Session-scoped autouse pytest fixture strips `GIT_*` environment variables injec
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-142 | `inquisitor.sh` worktree gate checks `-f "$REPO_ROOT/.git"` (file = worktree, directory = main), exits 0 with message when in worktree; `--force` bypasses gate; degrades gracefully when `git rev-parse` fails; gate placed before commit-delta gate (FR-131); pure shell, no Python | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_worktree_gate` |
+
+### 43. Copilot Session GC (FR-138)
+
+Shell script that prunes stale Copilot CLI sessions from `~/.copilot/session-state/` based on age. Supports `--max-age`, `--dry-run`, `--verbose` flags and protects the active session via `$COPILOT_SESSION_ID`.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-141 | `copilot_session_gc.sh` removes session directories older than `--max-age` days (default 7); `--dry-run` lists candidates without deleting; active session (`$COPILOT_SESSION_ID`) is never removed; exits cleanly when directory is missing; idempotent; logs UUID and age for each removed session | `scripts/copilot_session_gc.sh`, `tests/unit/test_copilot_session_gc` |
 
 ---
 
