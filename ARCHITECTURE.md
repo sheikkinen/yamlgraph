@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **51 capabilities** covering **113 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -325,6 +325,8 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 48 | CHANGELOG Removal Completeness | `CHANGELOG.md` | REQ-YG-146 |
 | 49 | Examples Documentation Audit | `examples/README.md` | REQ-YG-147 |
 | 50 | CI CHANGELOG Gate | `.github/workflows/commitlint.yml` | REQ-YG-148 |
+| 51 | Branch Protection Documentation | `reference/break-glass.md` | REQ-YG-149 |
+| 52 | Architecture Capability Count Guard | `tests/unit/test_architecture_capability_count` | REQ-YG-150 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -768,6 +770,14 @@ GitHub branch protection rules on `main` enforcing squash-merge only, required s
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-149 | `reference/break-glass.md` documents emergency bypass procedure with audit trail requirements; `CLAUDE.md` contains Branch Protection section listing enforced rules, required status checks, and link to break-glass procedure | `reference/break-glass.md`, `CLAUDE.md`, `tests/unit/test_branch_protection_docs` |
+
+### 52. Architecture Capability Count Guard (FR-154)
+
+Guard test ensuring the capability and requirement counts in the summary sentence stay in sync with the actual table.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-150 | **Architecture capability count guard**: CI test verifies the capability and requirement counts in the ARCHITECTURE.md summary sentence match the actual capability table rows and unique REQ-YG-IDs | `tests/unit/test_architecture_capability_count` |
 
 ---
 
