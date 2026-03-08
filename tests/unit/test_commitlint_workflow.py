@@ -51,7 +51,9 @@ def _get_precommit_conventional_types() -> list[str]:
             for hook in repo["hooks"]:
                 if hook["id"] == "conventional-pre-commit":
                     return sorted(hook["args"])
-    raise AssertionError("conventional-pre-commit hook not found in .pre-commit-config.yaml")
+    raise AssertionError(
+        "conventional-pre-commit hook not found in .pre-commit-config.yaml"
+    )
 
 
 @pytest.mark.req("REQ-YG-002")
@@ -104,7 +106,9 @@ class TestWorkflowTypes:
             s for s in steps if "action-semantic-pull-request" in s.get("uses", "")
         )
         types_str = semantic_step["with"]["types"]
-        workflow_types = sorted(t.strip() for t in types_str.strip().split("\n") if t.strip())
+        workflow_types = sorted(
+            t.strip() for t in types_str.strip().split("\n") if t.strip()
+        )
         assert workflow_types == EXPECTED_TYPES, (
             f"Workflow types {workflow_types} != expected {EXPECTED_TYPES}"
         )
@@ -186,9 +190,7 @@ class TestFeatFREnforcement:
         steps = wf["jobs"]["commitlint"]["steps"]
         fr_step = next(s for s in steps if "FR-XXX" in s.get("name", ""))
         run_script = fr_step.get("run", "")
-        assert "FR-[0-9]" in run_script, (
-            "Script must check for FR-[0-9]+ pattern"
-        )
+        assert "FR-[0-9]" in run_script, "Script must check for FR-[0-9]+ pattern"
 
 
 @pytest.mark.req("REQ-YG-002")

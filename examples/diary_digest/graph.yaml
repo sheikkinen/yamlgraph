@@ -50,7 +50,7 @@ tools:
     type: python
     module: examples.shared.diary
     function: write_diary
-    description: "Format and append diary entry to docs/diary.md"
+    description: "Format and append diary entry to docs/diary/"
 
   save_seeds:
     type: python

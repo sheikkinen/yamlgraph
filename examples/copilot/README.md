@@ -20,7 +20,7 @@ This example implements the complete Plan-Judge-Diary workflow as a YAMLGraph pi
 | `plan` | `copilot` | `cli` | Reads topic file, drafts feature request |
 | `judge` | `copilot` | `cli` | Examines draft, renders APPROVE/AMEND/REJECT |
 | `summarize` | `llm` | - | Creates DiaryEntry (theme, body, seed) |
-| `write_diary` | `python` | - | Appends entry to docs/diary.md |
+| `write_diary` | `python` | - | Appends entry to docs/diary/ |
 
 ## Usage
 
@@ -43,7 +43,7 @@ yamlgraph graph run examples/copilot/graph.yaml \
 3. Check outputs:
 ```bash
 cat .chaplain/drafts/*.md     # The drafted feature request
-tail -30 docs/diary.md        # Diary entry appended
+tail -30 docs/diary/        # Diary entry appended
 ```
 
 Or use the polling wrapper:

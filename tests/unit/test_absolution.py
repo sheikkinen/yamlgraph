@@ -25,4 +25,4 @@ class TestMain:
         captured = capsys.readouterr()
         assert "Absolution granted" in captured.out
         assert "Distill" in captured.out
-        assert "diary.md" in captured.out
+        assert "diary/" in captured.out

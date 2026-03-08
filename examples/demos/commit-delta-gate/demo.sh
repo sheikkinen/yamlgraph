@@ -2,8 +2,8 @@
 # FR-131: Commit-delta gate demo
 # Demonstrates the Inquisitor's gate logic that prevents audit-as-ritual.
 #
-# The gate extracts the last audit SHA from docs/diary.md, counts feat/fix
-# commits since that SHA, and blocks if none are found.
+# The gate extracts the last audit SHA from docs/diary/ (inquisitor-audit files),
+# counts feat/fix commits since that SHA, and blocks if none are found.
 #
 # Usage: ./examples/demos/commit-delta-gate/demo.sh
 set -euo pipefail
@@ -15,8 +15,14 @@ echo "════════════════════════�
 echo ""
 
 # --- 1. SHA extraction ---
-echo "📖 Step 1: Extract last audit SHA from docs/diary.md"
-LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\.\.`([a-f0-9]{7,})`.*/\2/p' docs/diary.md 2>/dev/null | head -1)
+echo "📖 Step 1: Extract last audit SHA from docs/diary/"
+LATEST_AUDIT=$(ls docs/diary/*inquisitor-audit* 2>/dev/null || true)
+LATEST_AUDIT=$(echo "$LATEST_AUDIT" | sort -r | head -1)
+if [[ -n "$LATEST_AUDIT" ]]; then
+    LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\.\.`([a-f0-9]{7,})`.*/\2/p' "$LATEST_AUDIT" 2>/dev/null | head -1)
+else
+    LAST_SHA=""
+fi
 if [[ -z "$LAST_SHA" ]]; then
     echo "   No audit SHA found — gate degrades gracefully (PASS)"
 else

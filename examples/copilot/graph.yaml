@@ -69,7 +69,7 @@ nodes:
       judge_output: "{state.judge_result}"
     state_key: diary_entry
 
-  # Stage 4: Write - Append formatted entry to docs/diary.md
+  # Stage 4: Write - Append formatted entry to docs/diary/
   write_diary:
     type: python
     tool: write_diary_tool

@@ -218,53 +218,17 @@ class TestDiaryEntryFormatting:
         assert "## 2026-02-25: World Digest — Test" in entry
 
 
-class TestAppendToDiary:
-    """Test appending entries to diary.md."""
+class TestWriteIndividualFile:
+    """Test that write_diary creates individual files in docs/diary/ (FR-134)."""
 
     @pytest.mark.req("REQ-YG-072")
-    def test_append_adds_entry_to_end(self, tmp_path):
-        """append_to_diary adds entry at end of file."""
-        from examples.diary_digest.nodes.writing import append_to_diary
-
-        diary = tmp_path / "diary.md"
-        diary.write_text("# Development Diary\n\nExisting content.\n")
-
-        entry = "\n---\n\n## 2026-02-19: World Digest — Test\n\nBody.\n\n**Seed:** Q?\n"
-        append_to_diary(diary, entry)
-
-        content = diary.read_text()
-        assert "Existing content." in content
-        assert "## 2026-02-19: World Digest — Test" in content
-        assert content.index("Existing content.") < content.index("World Digest")
-
-    @pytest.mark.req("REQ-YG-072")
-    def test_append_preserves_existing(self, tmp_path):
-        """append_to_diary doesn't modify existing content."""
-        from examples.diary_digest.nodes.writing import append_to_diary
-
-        original = "# Development Diary\n\n## 2026-02-18: Old Entry\n\nOld content.\n"
-        diary = tmp_path / "diary.md"
-        diary.write_text(original)
-
-        entry = "\n---\n\n## 2026-02-19: World Digest — New\n\nNew content.\n"
-        append_to_diary(diary, entry)
-
-        content = diary.read_text()
-        assert "Old content." in content
-        assert "New content." in content
-
-
-class TestWriteDiary:
-    """Test write_diary graph tool."""
-
-    @pytest.mark.req("REQ-YG-072")
-    def test_write_diary_always_writes(self, tmp_path, monkeypatch):
-        """write_diary always appends — no dry_run, no commit logic."""
+    def test_write_creates_individual_file(self, tmp_path, monkeypatch):
+        """write_diary creates a date-prefixed file in the diary directory."""
         from examples.diary_digest.nodes.writing import write_diary
 
-        diary = tmp_path / "diary.md"
-        diary.write_text("# Diary\n")
-        monkeypatch.setattr("examples.shared.diary.DIARY_PATH", diary)
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        monkeypatch.setattr("examples.shared.diary.DIARY_DIR", diary_dir)
 
         state = {
             "diary_entry": {"theme": "Test", "body": "Body.", "seed": "Q?"},
@@ -273,7 +237,49 @@ class TestWriteDiary:
         result = write_diary(state)
 
         assert result == {"written": True}
-        content = diary.read_text()
+        target = diary_dir / "2026-02-19-world-digest.md"
+        assert target.exists()
+        content = target.read_text()
+        assert "World Digest — Test" in content
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_write_does_not_append_to_monolith(self, tmp_path, monkeypatch):
+        """write_diary must NOT create or append to diary.md."""
+        from examples.diary_digest.nodes.writing import write_diary
+
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        monkeypatch.setattr("examples.shared.diary.DIARY_DIR", diary_dir)
+
+        state = {
+            "diary_entry": {"theme": "Test", "body": "Body.", "seed": "Q?"},
+            "date": "2026-02-19",
+        }
+        write_diary(state)
+
+        assert not (tmp_path / "diary.md").exists()
+
+
+class TestWriteDiary:
+    """Test write_diary graph tool."""
+
+    @pytest.mark.req("REQ-YG-072")
+    def test_write_diary_always_writes(self, tmp_path, monkeypatch):
+        """write_diary always writes — no dry_run, no commit logic."""
+        from examples.diary_digest.nodes.writing import write_diary
+
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        monkeypatch.setattr("examples.shared.diary.DIARY_DIR", diary_dir)
+
+        state = {
+            "diary_entry": {"theme": "Test", "body": "Body.", "seed": "Q?"},
+            "date": "2026-02-19",
+        }
+        result = write_diary(state)
+
+        assert result == {"written": True}
+        content = (diary_dir / "2026-02-19-world-digest.md").read_text()
         assert "World Digest — Test" in content
 
     @pytest.mark.req("REQ-YG-072")
@@ -305,9 +311,9 @@ class TestWriteDiary:
         """
         from examples.diary_digest.nodes.writing import write_diary
 
-        diary = tmp_path / "diary.md"
-        diary.write_text("# Diary\n")
-        monkeypatch.setattr("examples.shared.diary.DIARY_PATH", diary)
+        diary_dir = tmp_path / "diary"
+        diary_dir.mkdir()
+        monkeypatch.setattr("examples.shared.diary.DIARY_DIR", diary_dir)
 
         # Simulate Pydantic model repr as stored in state
         state = {
@@ -318,7 +324,7 @@ class TestWriteDiary:
         result = write_diary(state)
 
         assert result == {"written": True}
-        content = diary.read_text()
+        content = (diary_dir / "2026-02-25-chaplain.md").read_text()
         assert "## 2026-02-25: Chaplain — FR-096 Approved" in content
         assert "The FR was approved with clear scope." in content
         assert "What patterns emerged?" in content

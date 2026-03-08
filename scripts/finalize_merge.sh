@@ -10,7 +10,7 @@
 # Prerequisites:
 #   - Must be on main branch with clean working tree
 #   - FR file must exist at the given path
-#   - CHANGELOG.md and docs/diary.md must exist in repo root
+#   - CHANGELOG.md and docs/diary/ must exist in repo root
 #
 # Example:
 #   git checkout main && git pull
@@ -78,10 +78,9 @@ sed 's/^\*\*Status:\*\*.*/\*\*Status:\*\* ✅ Implemented/' "$FR_PATH" > "${FR_P
 # ── Step 3: Diary reflection stub ───────────────────────────────────────────
 
 DATE=$(date +%Y-%m-%d)
-cat >> docs/diary.md << EOF
-
----
-
+mkdir -p docs/diary
+DIARY_ENTRY="docs/diary/${DATE}-reflection-${FR_NUM}.md"
+cat > "$DIARY_ENTRY" << EOF
 ## ${DATE}: ${FR_NUM} — Implementation Reflection
 
 **Context:** Implemented ${FR_TITLE}.
@@ -95,7 +94,7 @@ EOF
 
 # ── Step 4: Commit finalization ──────────────────────────────────────────────
 
-git add CHANGELOG.md "$FR_PATH" docs/diary.md
+git add CHANGELOG.md "$FR_PATH" docs/diary/
 mkdir -p ./tmp
 cat > ./tmp/msg.txt << EOF
 chore: ${FR_NUM} post-merge finalization
@@ -109,4 +108,4 @@ EOF
 git commit -F ./tmp/msg.txt
 
 echo "✅ Finalization complete for ${FR_NUM}"
-echo "📝 Edit docs/diary.md to fill in Trap/Heuristic/Seed"
+echo "📝 Edit docs/diary/${DATE}-reflection-${FR_NUM}.md to fill in Trap/Heuristic/Seed"

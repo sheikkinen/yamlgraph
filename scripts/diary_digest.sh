@@ -20,10 +20,10 @@ source .venv/bin/activate
 yamlgraph graph run examples/diary_digest/graph.yaml
 
 # Commit result if diary was modified
-if git diff --quiet docs/diary.md; then
+if git diff --quiet docs/diary/; then
     echo "No diary changes"
 else
-    git add docs/diary.md
+    git add docs/diary/
     git commit -m "docs(diary): World Digest $(date +%Y-%m-%d)"
     git push
 fi

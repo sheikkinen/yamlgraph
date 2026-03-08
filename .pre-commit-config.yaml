@@ -27,7 +27,7 @@ repos:
   - repo: local
     hooks:
       - id: diary-rotate
-        name: diary rotation (day change)
+        name: diary import (scheduled entries)
         entry: .venv/bin/python scripts/diary_rotate.py
         language: system
         pass_filenames: false

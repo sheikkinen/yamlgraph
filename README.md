@@ -270,7 +270,7 @@ YAMLGraph follows a structured development workflow documented in [the Scripture
 2. **Plan** — Write a feature request with acceptance criteria
 3. **Judge** — Critically review until scope is minimal and clear
 4. **Enforce** — TDD, smallest sufficient change
-5. **Distill** — Capture lessons in `docs/diary.md`
+5. **Distill** — Capture lessons in `docs/diary/`
 
 New contributors: read the Scripture before your first PR.
 
