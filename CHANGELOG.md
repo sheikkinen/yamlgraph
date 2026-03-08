@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **FR-144 Enforce Diary Reflection Content**: Add `diary-reflection-check` pre-commit hook that rejects commits containing unfilled diary reflection stubs. Modify `finalize_merge.sh` to create diary stubs as untracked files. Unstage existing unfilled stubs (FR-127, FR-128, FR-134) to comply with enforcement. (REQ-YG-144)
+- **FR-124 Diary Import CLI**: `yamlgraph diary import` CLI command imports pending scheduled diary entries and git reports into `docs/diary/` with `--dry-run` and `--source` flags. Extracted shared import logic from `scripts/diary_rotate.py` into `yamlgraph/diary/importer.py`. (REQ-YG-122)
 - **FR-142 Inquisitor Worktree Gate**: Add worktree-detection gate to `inquisitor.sh` that suppresses audit and propose phases when running inside a git worktree (enforce pipeline). Detects via `-f "$REPO_ROOT/.git"`; `--force` bypasses. Placed before commit-delta gate (FR-131). (REQ-YG-142)
 - **FR-138 Copilot Session GC**: Shell script `scripts/copilot_session_gc.sh` prunes stale Copilot CLI sessions older than `--max-age` days (default 7). Supports `--dry-run` preview and protects the active session via `$COPILOT_SESSION_ID`. (REQ-YG-141)
 - **FR-136 Judge SPLIT Verdict**: Add fourth verdict (SPLIT) to judge prompts in `examples/copilot/prompts/judge.yaml` and `scripts/chaplain-prompts/judge.md`, enabling decomposition of multi-concern FRs into focused sub-topics. Adds Scope Count evaluation criterion and multi-concern test fixture. (REQ-YG-143)
