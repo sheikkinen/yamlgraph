@@ -39,6 +39,20 @@ class TestProviderIntegration:
         assert len(result) > 0
 
     @pytest.mark.skipif(
+        not os.getenv("DEEPSEEK_API_KEY"), reason="DEEPSEEK_API_KEY not set"
+    )
+    @pytest.mark.req("REQ-YG-010")
+    def test_execute_prompt_with_deepseek_provider(self):
+        """Should execute prompt with DeepSeek provider."""
+        result = execute_prompt(
+            prompt_name="greet",
+            variables={"name": "Dan", "style": "casual"},
+            provider="deepseek",
+        )
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    @pytest.mark.skipif(
         not os.getenv("MISTRAL_API_KEY"), reason="MISTRAL_API_KEY not set"
     )
     @pytest.mark.req("REQ-YG-010")
