@@ -462,7 +462,7 @@ Logging, templating, JSON extraction, environment handling, and shared utilities
 | REQ-YG-043 | Configuration and constants management | `config`, `constants` |
 | REQ-YG-044 | Schema loading and model building | `schema_loader` |
 | REQ-YG-045 | Node factory and resolution | `node_factory/base` |
-| REQ-YG-046 | Logging, parsing, and sanitization utilities | `utils/logging`, `utils/parsing`, `utils/sanitize` |
+| REQ-YG-046 | Logging and parsing utilities | `utils/logging`, `utils/parsing` |
 | REQ-YG-047 | LangSmith trace URL retrieval and sharing | `utils/tracing`, `cli/graph_commands` |
 
 ### 13. LangSmith Tracing

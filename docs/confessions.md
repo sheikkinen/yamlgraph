@@ -377,6 +377,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Import yamlgraph modules after `load_dotenv()` call.
 - **Penance**: Same as CONF-124 — env vars must be set before yamlgraph imports initialize LLM clients.
 
+### CONF-126
+- **File**: [vulture_whitelist.py](../vulture_whitelist.py#L4)
+- **Code**: F401
+- **Sin**: Import `worktree_helpers` functions without using them in Python.
+- **Penance**: Vulture's standard false-positive suppression mechanism. These functions are invoked via `python3 -c` in `scripts/enforce_worktree.sh`, invisible to static analysis. The import makes them visible to Vulture.
+
 ---
 
 ## Adding New Confessions

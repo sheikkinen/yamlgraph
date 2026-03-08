@@ -119,6 +119,7 @@ exclude = ["tests*", "examples*", "scripts*", "docs*", "docs-planning*", "featur
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = ["vulture_whitelist.py"]
 
 [tool.ruff.lint]
 select = [
