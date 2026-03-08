@@ -19,9 +19,9 @@ class TestDeadCodeRemoval:
     def test_sanitize_module_does_not_exist(self):
         """sanitize.py was dead code — it must not exist."""
         sanitize_path = PROJECT_ROOT / "yamlgraph" / "utils" / "sanitize.py"
-        assert not sanitize_path.exists(), (
-            f"Dead code module still exists: {sanitize_path}"
-        )
+        assert (
+            not sanitize_path.exists()
+        ), f"Dead code module still exists: {sanitize_path}"
 
     def test_sanitize_module_not_importable(self):
         """Importing the deleted module must raise ModuleNotFoundError."""
@@ -31,9 +31,7 @@ class TestDeadCodeRemoval:
     def test_sanitize_tests_do_not_exist(self):
         """Orphaned tests for dead code must be removed."""
         test_path = PROJECT_ROOT / "tests" / "unit" / "test_sanitize.py"
-        assert not test_path.exists(), (
-            f"Orphaned test file still exists: {test_path}"
-        )
+        assert not test_path.exists(), f"Orphaned test file still exists: {test_path}"
 
 
 @pytest.mark.req("REQ-YG-046")
@@ -43,9 +41,7 @@ class TestVultureWhitelist:
     def test_whitelist_file_exists(self):
         """vulture_whitelist.py must exist at project root."""
         whitelist_path = PROJECT_ROOT / "vulture_whitelist.py"
-        assert whitelist_path.exists(), (
-            "vulture_whitelist.py missing at project root"
-        )
+        assert whitelist_path.exists(), "vulture_whitelist.py missing at project root"
 
     def test_whitelist_contains_worktree_helpers(self):
         """Whitelist must suppress worktree_helpers false positives."""
