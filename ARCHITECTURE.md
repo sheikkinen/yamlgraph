@@ -319,6 +319,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 42 | Inquisitor Worktree Gate | `.chaplain/inquisitor.sh` | REQ-YG-142 |
 | 43 | Copilot Session GC | `scripts/copilot_session_gc.sh` | REQ-YG-141 |
 | 44 | Judge SPLIT Verdict | `examples/copilot/prompts/judge.yaml`, `scripts/chaplain-prompts/judge.md` | REQ-YG-143 |
+| 45 | Diary Reflection Enforcement | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh` | REQ-YG-144 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -706,6 +707,14 @@ Add a fourth judge verdict (`SPLIT`) for multi-concern feature requests, enablin
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-143 | Judge prompts must include `SPLIT` verdict and Scope Count rubric for multi-concern FR decomposition; unit tests verify both prompt sources and conflict fixture behavior | `examples/copilot/prompts/judge.yaml`, `scripts/chaplain-prompts/judge.md`, `tests/unit/test_judge_split_verdict` |
+
+### 45. Diary Reflection Enforcement (FR-144)
+
+Pre-commit hook `diary-reflection-check` rejects commits when tracked `docs/diary/*reflection*.md` files contain unfilled placeholder text (`[What cognitive trap`, `[What lesson`, `[What question`). `finalize_merge.sh` creates diary stubs as untracked files to avoid hook conflicts.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-144 | `diary-reflection-check` pre-commit hook scans tracked reflection files for unfilled placeholder text and blocks commit; `finalize_merge.sh` creates stubs as untracked files (no `git add` of `docs/diary/`); hook passes when no placeholders remain | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh`, `tests/unit/test_precommit_hooks` |
 
 ---
 

@@ -40,6 +40,7 @@ _ALL_FRAMEWORK_REQS = (
     + [141]  # REQ-YG-141 (CAP-43 Copilot Session GC)
     + [142]  # REQ-YG-142 (CAP-42 Inquisitor Worktree Gate)
     + [143]  # REQ-YG-143 (CAP-44 Judge SPLIT Verdict)
+    + [144]  # REQ-YG-144 (CAP-45 Diary Reflection Enforcement)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -212,6 +213,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-42": ("Inquisitor Worktree Gate", ["REQ-YG-142"]),
     "CAP-43": ("Copilot Session GC", ["REQ-YG-141"]),
     "CAP-44": ("Judge SPLIT Verdict", ["REQ-YG-143"]),
+    "CAP-45": ("Diary Reflection Enforcement", ["REQ-YG-144"]),
 }
 
 
