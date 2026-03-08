@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-138 Copilot Session GC**: Shell script `scripts/copilot_session_gc.sh` prunes stale Copilot CLI sessions older than `--max-age` days (default 7). Supports `--dry-run` preview and protects the active session via `$COPILOT_SESSION_ID`. (REQ-YG-141)
 - **FR-140 Clean GIT_* Test Fixture**: Session-scoped autouse pytest fixture strips `GIT_*` env vars injected by pre-commit, preventing subprocess bleed into `tmp_path`-based test repos. Closes the `--no-verify` bypass loophole. (REQ-YG-140)
 - **FR-134 Diary Folder Refactor — Replace Single File with Date-Prefixed Entries**: Replace the monolithic `docs/diary.md` with a `docs/diary/` folder of date-prefixed entry files, eliminating merge conflicts caused by concurrent appends from `finalize_merge.sh`, `diary_rotate.py`, `inquisitor.sh`, and `examples/shared/diary.py`. (REQ-YG-131)
 - **FR-131 Inquisitor commit-delta gate**: Add a pre-flight gate to `inquisitor.sh` that aborts when no `feat:` or `fix:` commits exist since the last audit, breaking the ritual loop documented in Audits XI–XIII.
