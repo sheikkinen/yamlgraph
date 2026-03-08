@@ -3,6 +3,7 @@
 E012: Hyphen in identifier position (state key, node name, tool name, state_key value)
 W020: variables: on type: python (silent no-op)
 W021: skip_if_exists on list field with add reducer
+W017: on_error: skip silently drops failures (FR-165)
 """
 
 import tempfile
@@ -14,6 +15,7 @@ import yaml
 from yamlgraph.linter.checks_contracts import (
     check_identifier_keys,
     check_python_node_variables,
+    check_silent_fallback,
     check_skip_if_exists_add_reducer,
     check_top_level_provider_model,
 )
@@ -345,3 +347,140 @@ class TestW016TopLevelProviderModel:
         )
         issues = check_top_level_provider_model(graph)
         assert len(issues) == 0
+
+
+class TestW017SilentFallback:
+    """W017: on_error: skip silently drops failures (FR-165)."""
+
+    @pytest.mark.req("REQ-YG-114")
+    def test_on_error_skip_warns(self):
+        """Node with on_error: skip should produce W017 warning."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "summarize": {
+                        "type": "llm",
+                        "prompt": "summarize",
+                        "on_error": "skip",
+                    }
+                }
+            }
+        )
+        issues = check_silent_fallback(graph)
+        assert len(issues) == 1
+        assert issues[0].code == "W017"
+        assert issues[0].severity == "warning"
+        assert "summarize" in issues[0].message
+        assert "silently dropped" in issues[0].message
+
+    @pytest.mark.req("REQ-YG-114")
+    def test_multiple_skip_nodes_warn(self):
+        """Multiple nodes with on_error: skip should each produce a warning."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "fetch": {
+                        "type": "python",
+                        "function": "tools.fetch",
+                        "on_error": "skip",
+                    },
+                    "summarize": {
+                        "type": "llm",
+                        "prompt": "summarize",
+                        "on_error": "skip",
+                    },
+                }
+            }
+        )
+        issues = check_silent_fallback(graph)
+        assert len(issues) == 2
+        assert all(i.code == "W017" for i in issues)
+        node_names = {i.message.split("'")[1] for i in issues}
+        assert node_names == {"fetch", "summarize"}
+
+    @pytest.mark.req("REQ-YG-114")
+    def test_on_error_fail_no_warn(self):
+        """on_error: fail should not produce W017."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "summarize": {
+                        "type": "llm",
+                        "prompt": "summarize",
+                        "on_error": "fail",
+                    }
+                }
+            }
+        )
+        issues = check_silent_fallback(graph)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-114")
+    def test_on_error_fallback_no_warn(self):
+        """on_error: fallback should not produce W017."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "summarize": {
+                        "type": "llm",
+                        "prompt": "summarize",
+                        "on_error": "fallback",
+                        "fallback": {"provider": "openai"},
+                    }
+                }
+            }
+        )
+        issues = check_silent_fallback(graph)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-114")
+    def test_on_error_retry_no_warn(self):
+        """on_error: retry should not produce W017."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "summarize": {
+                        "type": "llm",
+                        "prompt": "summarize",
+                        "on_error": "retry",
+                    }
+                }
+            }
+        )
+        issues = check_silent_fallback(graph)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-114")
+    def test_no_on_error_no_warn(self):
+        """Node without on_error should not produce W017."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "summarize": {
+                        "type": "llm",
+                        "prompt": "summarize",
+                    }
+                }
+            }
+        )
+        issues = check_silent_fallback(graph)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-114")
+    def test_fix_suggests_alternatives(self):
+        """W017 fix should suggest explicit alternatives."""
+        graph = _create_temp_graph(
+            {
+                "nodes": {
+                    "summarize": {
+                        "type": "llm",
+                        "prompt": "summarize",
+                        "on_error": "skip",
+                    }
+                }
+            }
+        )
+        issues = check_silent_fallback(graph)
+        assert len(issues) == 1
+        assert "on_error: fail" in issues[0].fix
+        assert "on_error: fallback" in issues[0].fix
