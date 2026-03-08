@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **53 capabilities** covering **115 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **54 capabilities** covering **116 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -329,6 +329,7 @@ YAMLGraph implements **53 capabilities** covering **115 requirements**. Each cap
 | 52 | Architecture Capability Count Guard | `tests/unit/test_architecture_capability_count` | REQ-YG-150 |
 | 53 | CI Conflict Marker Gate | `.github/workflows/commitlint.yml` | REQ-YG-151 |
 | 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml` | REQ-YG-152 |
+| 55 | Chaplain Inbox Documentation | `CLAUDE.md` | REQ-YG-153 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -796,6 +797,14 @@ CI gate ensuring feat/fix PRs with FR references include a diary reflection file
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-152 | `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs `git diff --name-only` against base/head SHAs, and fails when no `docs/diary/*reflection*fr-{number}*` file is in diff; skips (passes) when PR title has no FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_diary_gate` |
+
+### 23. Chaplain Inbox Documentation
+
+Document the `.chaplain/inbox/` workflow in `CLAUDE.md` so Claude Code sessions can discover and use the autonomous proposal pipeline.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-153 | `CLAUDE.md` contains a "Submitting Proposals" subsection documenting the `.chaplain/inbox/` workflow, matching the canonical source in `.github/copilot-instructions.md` verbatim, placed between the "Development Process" and "Development Commands" sections | `CLAUDE.md`, `tests/unit/test_claude_md_chaplain_inbox` |
 
 ---
 

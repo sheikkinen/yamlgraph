@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -41,11 +41,11 @@ Add a "Submitting Proposals" subsection to `CLAUDE.md`, placed after the "Develo
 
 ## Acceptance Criteria
 
-- [ ] `CLAUDE.md` contains a "### Submitting Proposals" section describing the `.chaplain/inbox/` workflow
-- [ ] Section text matches the canonical source in `.github/copilot-instructions.md` (verbatim)
-- [ ] Section is placed between "Development Process" and "Development Commands"
-- [ ] `grep -c "chaplain/inbox" CLAUDE.md` returns ≥ 1
-- [ ] No duplication or contradiction with existing documentation
+- [x] `CLAUDE.md` contains a "### Submitting Proposals" section describing the `.chaplain/inbox/` workflow
+- [x] Section text matches the canonical source in `.github/copilot-instructions.md` (verbatim)
+- [x] Section is placed between "Development Process" and "Development Commands"
+- [x] `grep -c "chaplain/inbox" CLAUDE.md` returns ≥ 1
+- [x] No duplication or contradiction with existing documentation
 - [ ] PR follows Conventional Commits: `docs(claude-md): FR-163 add chaplain inbox instructions`
 
 ## Alternatives Considered
