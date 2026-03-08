@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 3 days
 **Requested:** 2026-03-08
 
@@ -117,17 +117,17 @@ When `fetch_articles` returns `[]`, the trace logs:
 
 ## Acceptance Criteria
 
-- [ ] `NodeConfig` schema accepts optional `verification` field with `question` (str, required) and `on_fail` (str, optional, default `warn`)
-- [ ] `on_fail` validated to `{"warn", "halt", "retry"}` with Pydantic validator
-- [ ] Runtime evaluator extracts deterministic checks from `question` text (count range, non-empty, contains)
-- [ ] Unrecognized patterns degrade to annotation (info log, no failure)
-- [ ] `warn` appends `VerificationViolation` to `state["errors"]` and continues
-- [ ] `halt` raises `VerificationError` (subclass of `PipelineError`)
-- [ ] `retry` re-executes node up to `max_retries` times, then falls through to `warn`
-- [ ] Lint rule W022 warns on `on_error: skip` without `verification`
-- [ ] Variable interpolation (`{var}`) works in `question` from current state
-- [ ] Tests added (unit: evaluator patterns, integration: node with verification, lint: W022)
-- [ ] Documentation updated (`reference/graph-yaml.md`)
+- [x] `NodeConfig` schema accepts optional `verification` field with `question` (str, required) and `on_fail` (str, optional, default `warn`)
+- [x] `on_fail` validated to `{"warn", "halt", "retry"}` with Pydantic validator
+- [x] Runtime evaluator extracts deterministic checks from `question` text (count range, non-empty, contains)
+- [x] Unrecognized patterns degrade to annotation (info log, no failure)
+- [x] `warn` appends `VerificationViolation` to `state["errors"]` and continues
+- [x] `halt` raises `VerificationError` (subclass of `PipelineError`)
+- [x] `retry` re-executes node up to `max_retries` times, then falls through to `warn`
+- [x] Lint rule W022 warns on `on_error: skip` without `verification`
+- [x] Variable interpolation (`{var}`) works in `question` from current state
+- [x] Tests added (unit: evaluator patterns, integration: node with verification, lint: W022)
+- [x] Documentation updated (`reference/graph-yaml.md`)
 
 ## Alternatives Considered
 

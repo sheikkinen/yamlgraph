@@ -189,9 +189,40 @@ def check_top_level_provider_model(graph_path: Path) -> list[LintIssue]:
     return issues
 
 
+def check_skip_without_verification(graph_path: Path) -> list[LintIssue]:
+    """W022: on_error: skip without verification question (FR-164).
+
+    Nodes using on_error: skip without a verification question risk
+    silent failures — the skip executes without any stated expectation
+    of what correct behavior looks like.
+    """
+    issues = []
+    graph = load_graph(graph_path)
+
+    for node_name, node_config in graph.get("nodes", {}).items():
+        if node_config.get("on_error") == "skip" and not node_config.get(
+            "verification"
+        ):
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W022",
+                    message=(
+                        f"Node '{node_name}' uses on_error: skip without "
+                        f"verification question. Add verification.question to "
+                        f"make skip behavior observable."
+                    ),
+                    fix='Add verification:\n  question: "Will return non-empty"',
+                )
+            )
+
+    return issues
+
+
 __all__ = [
     "check_python_node_variables",
     "check_identifier_keys",
     "check_skip_if_exists_add_reducer",
     "check_top_level_provider_model",
+    "check_skip_without_verification",
 ]

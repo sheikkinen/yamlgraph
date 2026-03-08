@@ -9,6 +9,34 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from yamlgraph.constants import ErrorHandler, NodeType
 
+VALID_ON_FAIL = {"warn", "halt", "retry"}
+
+
+class VerificationConfig(BaseModel):
+    """Configuration for a node's verification gate (FR-164)."""
+
+    question: str = Field(
+        ..., description="Falsifiable prediction about the node's output"
+    )
+    on_fail: str = Field(
+        default="warn",
+        description="Action when prediction is violated: warn | halt | retry",
+    )
+    max_retries: int = Field(
+        default=1,
+        ge=1,
+        description="Max retry attempts when on_fail: retry",
+    )
+
+    @field_validator("on_fail")
+    @classmethod
+    def validate_on_fail(cls, v: str) -> str:
+        """Validate on_fail is a known action."""
+        if v not in VALID_ON_FAIL:
+            valid = ", ".join(sorted(VALID_ON_FAIL))
+            raise ValueError(f"Invalid on_fail '{v}'. Valid: {valid}")
+        return v
+
 
 class SubgraphNodeConfig(BaseModel):
     """Configuration for a subgraph node."""
@@ -97,7 +125,21 @@ class NodeConfig(BaseModel):
         default=None, description="Timeout in seconds for copilot node (default 300)"
     )
 
+    # Verification gate (FR-164)
+    verification: VerificationConfig | None = Field(
+        default=None,
+        description="Verification gate — falsifiable prediction checked after execution",
+    )
+
     model_config = {"extra": "allow", "populate_by_name": True}
+
+    @field_validator("verification", mode="before")
+    @classmethod
+    def parse_verification(cls, v: Any) -> Any:
+        """Parse verification from dict (YAML input) to VerificationConfig."""
+        if isinstance(v, dict):
+            return VerificationConfig(**v)
+        return v
 
     @field_validator("on_error")
     @classmethod

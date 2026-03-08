@@ -23,6 +23,7 @@ from yamlgraph.models import PipelineError
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
 from yamlgraph.utils.expressions import resolve_node_variables
 from yamlgraph.utils.json_extract import extract_json
+from yamlgraph.verification import VerificationError, evaluate_verification
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +133,22 @@ def create_node_function(
     # Skip if exists (default true for resume support, false for loop nodes)
     skip_if_exists = node_config.get("skip_if_exists", True)
 
+    # Verification gate (FR-164)
+    verification_config = node_config.get("verification")
+    if isinstance(verification_config, dict):
+        verification_question = verification_config.get("question")
+        verification_on_fail = verification_config.get("on_fail", "warn")
+        verification_max_retries = verification_config.get("max_retries", 1)
+    elif verification_config is not None:
+        # VerificationConfig Pydantic model (from validated NodeConfig)
+        verification_question = verification_config.question
+        verification_on_fail = verification_config.on_fail
+        verification_max_retries = verification_config.max_retries
+    else:
+        verification_question = None
+        verification_on_fail = None
+        verification_max_retries = 1
+
     def node_fn(state: dict) -> dict:
         """Generated node function."""
         loop_counts = dict(state.get("_loop_counts") or {})
@@ -187,6 +204,54 @@ def create_node_function(
             # Post-process: JSON extraction if enabled (FR-B)
             if parse_json and isinstance(result, str):
                 result = extract_json(result)
+
+            # FR-164: Verification gate — check prediction against actual output
+            if verification_question is not None:
+                violation = evaluate_verification(
+                    question=verification_question,
+                    actual=result,
+                    state=state,
+                )
+                if violation is not None:
+                    violation.node = node_name
+
+                    if verification_on_fail == "halt":
+                        raise VerificationError(node_name, violation)
+
+                    elif verification_on_fail == "retry":
+                        for _attempt in range(verification_max_retries):
+                            retry_result, retry_error = attempt_execute(provider)
+                            if retry_error is not None:
+                                break
+                            if parse_json and isinstance(retry_result, str):
+                                retry_result = extract_json(retry_result)
+                            retry_violation = evaluate_verification(
+                                question=verification_question,
+                                actual=retry_result,
+                                state=state,
+                            )
+                            if retry_violation is None:
+                                # Retry succeeded
+                                result = retry_result
+                                violation = None
+                                break
+                            result = retry_result
+                        # Fall through: if violation still set, append as warn
+
+                    if violation is not None:
+                        # warn (default) or retry exhausted
+                        logger.warning(
+                            f"⚠ Verification violated [{node_name}]: "
+                            f'predicted "{verification_question}", '
+                            f"got {repr(result)} "
+                            f"(check: {violation.check_type}, on_fail: {verification_on_fail})"
+                        )
+                        return {
+                            state_key: result,
+                            "current_step": node_name,
+                            "_loop_counts": loop_counts,
+                            "errors": [violation],
+                        }
 
             logger.info(f"Node {node_name} completed successfully")
             update = {

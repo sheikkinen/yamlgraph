@@ -27,6 +27,7 @@ from yamlgraph.linter.checks_contracts import (
     check_identifier_keys,
     check_python_node_variables,
     check_skip_if_exists_add_reducer,
+    check_skip_without_verification,
     check_top_level_provider_model,
 )
 from yamlgraph.linter.checks_providers import check_thinking_budget
@@ -107,6 +108,9 @@ def lint_graph(
     all_issues.extend(check_python_node_variables(graph_path))
     all_issues.extend(check_identifier_keys(graph_path))
     all_issues.extend(check_skip_if_exists_add_reducer(graph_path))
+
+    # FR-164: Verification gate lint
+    all_issues.extend(check_skip_without_verification(graph_path))
 
     # FR-119: Top-level provider/model detection
     all_issues.extend(check_top_level_provider_model(graph_path))

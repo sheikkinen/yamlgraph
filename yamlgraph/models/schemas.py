@@ -22,6 +22,7 @@ class ErrorType(StrEnum):
     VALIDATION_ERROR = "validation_error"  # Pydantic validation failures
     PROMPT_ERROR = "prompt_error"  # Missing prompt, template errors
     STATE_ERROR = "state_error"  # Missing required state data
+    VERIFICATION_ERROR = "verification_error"  # Verification gate violations (FR-164)
     UNKNOWN_ERROR = "unknown_error"  # Catch-all
 
 
@@ -78,6 +79,16 @@ class PipelineError(BaseModel):
             retryable=retryable,
             details={"exception_type": type(e).__name__},
         )
+
+
+class VerificationViolation(PipelineError):
+    """A node's output violated its stated verification question (FR-164)."""
+
+    prediction: str = Field(description="The original verification question")
+    actual: str = Field(description="String repr of actual output")
+    check_type: str = Field(
+        description="Evaluator pattern: count_range | non_empty | contains | annotation"
+    )
 
 
 # =============================================================================
