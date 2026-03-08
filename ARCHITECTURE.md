@@ -322,6 +322,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 45 | Diary Reflection Enforcement | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh` | REQ-YG-144 |
 | 46 | Diary Import CLI | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py` | REQ-YG-122 |
 | 47 | Phantom Requirement Detection | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` | REQ-YG-145 |
+| 48 | CHANGELOG Removal Completeness | `CHANGELOG.md` | REQ-YG-146 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -733,6 +734,14 @@ Detect and reject test markers that reference non-existent requirement IDs.
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-145 | **Phantom requirement detection**: `req_coverage.py --strict` rejects `@pytest.mark.req` markers referencing requirement IDs absent from `ALL_REQS` or `ARCHITECTURE.md` | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` |
+
+### 48. CHANGELOG Removal Completeness (FR-153)
+
+CHANGELOG.md `[Unreleased]` documents significant file removals per Commandment 8.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-146 | CHANGELOG.md `[Unreleased]` contains a `### Removed` section documenting stale demo file deletions (commit a0e6f00): `examples/cost-router/poc_granite.py`, `scripts/loopback-poc/` (419 lines); section ordering follows Keep a Changelog convention (Added → Removed → Fixed) | `CHANGELOG.md`, `tests/unit/test_demo_cleanup_changelog` |
 
 ---
 
