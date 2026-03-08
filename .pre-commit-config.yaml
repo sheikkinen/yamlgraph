@@ -36,6 +36,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: diary-reflection-check
+        name: diary-reflection-check
+        entry: bash -c 'STUBS=$(git ls-files "docs/diary/*reflection*.md" | xargs grep -l "\[What cognitive trap\|\[What lesson\|\[What question" 2>/dev/null); if [ -n "$STUBS" ]; then echo "❌ Unfilled diary reflection stubs:"; echo "$STUBS"; echo "Fill Trap/Heuristic/Seed sections before committing."; exit 1; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: req-coverage-strict
         name: req_coverage --strict
         entry: .venv/bin/python scripts/req_coverage.py --strict
