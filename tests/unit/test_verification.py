@@ -531,6 +531,146 @@ class TestCountRangeClaim:
 
 
 # =============================================================================
+# FR-166: count_range extraction from Pydantic models
+# =============================================================================
+
+
+class TestCountRangePydanticExtraction:
+    """FR-166: count_range should extract countable from Pydantic models.
+
+    Pydantic BaseModel does not implement __len__. When count_range checks
+    a Pydantic model with a single list field, it should extract that list
+    and count its items rather than reporting 0.
+    """
+
+    @pytest.mark.req("REQ-YG-154")
+    def test_count_range_pydantic_single_list_field_pass(self):
+        """count_range passes when Pydantic model's single list field is in range."""
+        from pydantic import BaseModel
+
+        class KeyPoints(BaseModel):
+            points: list[str]
+
+        model = KeyPoints(points=["a", "b", "c", "d"])  # 4 items
+
+        result = evaluate_verification(
+            question="Will return 3-5 items",
+            actual=model,
+            state={},
+        )
+
+        # Should pass: 4 items is within 3-5 range
+        assert result is None, f"Expected pass, got violation: {result}"
+
+    @pytest.mark.req("REQ-YG-154")
+    def test_count_range_pydantic_single_list_field_fail_too_few(self):
+        """count_range fails when Pydantic model's single list field has too few items."""
+        from pydantic import BaseModel
+
+        class KeyPoints(BaseModel):
+            points: list[str]
+
+        model = KeyPoints(points=["a"])  # 1 item
+
+        result = evaluate_verification(
+            question="Will return 3-5 items",
+            actual=model,
+            state={},
+        )
+
+        # Should fail: 1 item is below 3
+        assert result is not None
+        assert result.check_type == "count_range"
+        assert result.details["actual_count"] == 1
+
+    @pytest.mark.req("REQ-YG-154")
+    def test_count_range_pydantic_single_list_field_fail_too_many(self):
+        """count_range fails when Pydantic model's single list field has too many items."""
+        from pydantic import BaseModel
+
+        class KeyPoints(BaseModel):
+            points: list[str]
+
+        model = KeyPoints(points=["a", "b", "c", "d", "e", "f", "g"])  # 7 items
+
+        result = evaluate_verification(
+            question="Will return 3-5 items",
+            actual=model,
+            state={},
+        )
+
+        # Should fail: 7 items exceeds 5
+        assert result is not None
+        assert result.check_type == "count_range"
+        assert result.details["actual_count"] == 7
+
+    @pytest.mark.req("REQ-YG-154")
+    def test_count_range_pydantic_multiple_list_fields_fallback(self):
+        """count_range with multiple list fields falls back to len(model) = 0."""
+        from pydantic import BaseModel
+
+        class MultiList(BaseModel):
+            items: list[str]
+            tags: list[str]
+
+        model = MultiList(items=["a", "b", "c"], tags=["x", "y"])
+
+        result = evaluate_verification(
+            question="Will return 3-5 items",
+            actual=model,
+            state={},
+        )
+
+        # Ambiguous: multiple list fields, falls through to len(model) = 0
+        # This is expected to fail (0 is not in 3-5 range)
+        assert result is not None
+        assert result.check_type == "count_range"
+        assert result.details["actual_count"] == 0
+
+    @pytest.mark.req("REQ-YG-154")
+    def test_count_range_pydantic_no_list_field_fallback(self):
+        """count_range with no list fields falls back to len(model) = 0."""
+        from pydantic import BaseModel
+
+        class NoList(BaseModel):
+            name: str
+            count: int
+
+        model = NoList(name="test", count=42)
+
+        result = evaluate_verification(
+            question="Will return 3-5 items",
+            actual=model,
+            state={},
+        )
+
+        # No list field, falls through to len(model) = 0
+        assert result is not None
+        assert result.check_type == "count_range"
+        assert result.details["actual_count"] == 0
+
+    @pytest.mark.req("REQ-YG-154")
+    def test_count_range_plain_list_no_regression(self):
+        """count_range with plain list still works (no regression)."""
+        result = evaluate_verification(
+            question="Will return 3-5 items",
+            actual=["a", "b", "c", "d"],
+            state={},
+        )
+        assert result is None  # 4 items in range
+
+    @pytest.mark.req("REQ-YG-154")
+    def test_count_range_plain_dict_no_regression(self):
+        """count_range with plain dict still works (no regression)."""
+        result = evaluate_verification(
+            question="Will return 3-5 items",
+            actual={"a": 1, "b": 2, "c": 3, "d": 4},
+            state={},
+        )
+        assert result is None  # 4 keys in range
+
+
+# =============================================================================
 # Lint: W022 on_error: skip without verification
 # =============================================================================
 
