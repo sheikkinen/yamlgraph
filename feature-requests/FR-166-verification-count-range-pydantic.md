@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Approved
+**Status:** Completed
 **Verdict:** APPROVE — Scope frozen, authority granted
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
@@ -86,14 +86,14 @@ except TypeError:
 
 ## Acceptance Criteria
 
-- [ ] `count_range` check passes when `actual` is a Pydantic model with a single list field containing N items within range
-- [ ] `count_range` check fails correctly when the single list field has items outside range
-- [ ] `count_range` check falls back to `len(actual)` when model has zero or multiple list fields
-- [ ] `count_range` continues to work for plain `list`, `dict`, and `str` inputs (no regression)
-- [ ] `_extract_countable()` is a private helper with dedicated unit tests
-- [ ] Verification gate demo (`examples/demos/verification-gate/`) runs without false violations
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-154")`
-- [ ] No changes to `VerificationConfig` schema or public API
+- [x] `count_range` check passes when `actual` is a Pydantic model with a single list field containing N items within range
+- [x] `count_range` check fails correctly when the single list field has items outside range
+- [x] `count_range` check falls back to `len(actual)` when model has zero or multiple list fields
+- [x] `count_range` continues to work for plain `list`, `dict`, and `str` inputs (no regression)
+- [x] `_extract_countable()` is a private helper with dedicated unit tests
+- [x] Verification gate demo (`examples/demos/verification-gate/`) runs without false violations
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-154")`
+- [x] No changes to `VerificationConfig` schema or public API
 
 ## Alternatives Considered
 
