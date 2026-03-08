@@ -21,6 +21,7 @@ from yamlgraph.models.state_builder import (
     build_state_class,
     create_initial_state,
 )
+from yamlgraph.verification import CountRangeClaim
 
 __all__ = [
     # Framework models
@@ -37,4 +38,6 @@ __all__ = [
     # Dynamic state generation
     "build_state_class",
     "create_initial_state",
+    # Verification claims (FR-166)
+    "CountRangeClaim",
 ]

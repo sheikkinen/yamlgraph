@@ -53,6 +53,7 @@ _ALL_FRAMEWORK_REQS = (
     + [153]  # REQ-YG-153 (CAP-55 Chaplain Inbox Documentation)
     + [154]  # REQ-YG-154 (CAP-56 Verification Gate Pattern)
     + [114]  # REQ-YG-114 (CAP-57 No-Silent-Fallback Lint W017)
+    + [155]  # REQ-YG-155 (CAP-58 Verification Count Range Pydantic)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -240,6 +241,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-54": ("CI Diary Existence Gate", ["REQ-YG-152"]),
     "CAP-55": ("Chaplain Inbox Documentation", ["REQ-YG-153"]),
     "CAP-56": ("Verification Gate Pattern", ["REQ-YG-154"]),
+    "CAP-57": ("Verification Count Range Pydantic", ["REQ-YG-155"]),
 }
 
 
