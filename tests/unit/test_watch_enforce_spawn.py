@@ -313,14 +313,14 @@ class TestChangelogEntry:
         changelog = _read_changelog()
         assert "FR-116" in changelog
 
-    def test_changelog_fr116_in_unreleased_section(self):
-        """FR-116 entry must appear in the [Unreleased] section."""
+    def test_changelog_fr116_in_released_section(self):
+        """FR-116 entry must appear in a released version section."""
         changelog = _read_changelog()
-        unreleased_start = changelog.index("[Unreleased]")
-        # Find the next versioned section (pattern: ## [x.y.z])
-        next_section = changelog.find("\n## [0.", unreleased_start)
-        unreleased_block = changelog[unreleased_start:next_section]
-        assert "FR-116" in unreleased_block
+        # FR-116 was released in v0.4.61
+        version_start = changelog.index("[0.4.61]")
+        next_section = changelog.find("\n## [", version_start + 1)
+        version_block = changelog[version_start:next_section]
+        assert "FR-116" in version_block
 
     def test_changelog_fr116_describes_watch_enforce_integration(self):
         """FR-116 entry must mention key implementation details."""

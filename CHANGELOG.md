@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-- **FR-152 Missing Diary Reflections**: Create missing diary reflections for FR-137 (DeepSeek provider) and FR-145 (phantom requirement detection). Remediates two consecutive audit violations (XXXIV/XXXV) for skipped Distill obligations. (REQ-YG-144)
+## [0.4.61] — 2026-03-08
 
 ### Added
 - **FR-154 Architecture Capability Count Guard**: Fix stale capability/requirement counts in ARCHITECTURE.md summary sentence (19→46 capabilities, 68→109 requirements) and add CI guard test to prevent future drift. (REQ-YG-146)
@@ -35,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stale demo files: `examples/cost-router/poc_granite.py`, `scripts/loopback-poc/` experiment (419 lines, commit a0e6f00)
 
 ### Fixed
+- **FR-152 Missing Diary Reflections**: Create missing diary reflections for DeepSeek provider (FR‑137) and phantom requirement detection (FR‑145). Remediates two consecutive audit violations (XXXIV/XXXV) for skipped Distill obligations. (REQ-YG-144)
 - **FR-139 Enforce Worktree bare=true Corruption Guard**: Add three-layer defense against `.git/config` corruption (env sanitization, cleanup trap restoration, post-run assertion) that can set `bare = true` after worktree operations. (REQ-YG-UTIL)
 - **Enforce Pipeline Timeout**: Increase `submit_pr` timeout from 120s to 500s to prevent premature abort during PR creation
 - **FR-106 Enforce Worktree**: Commit new FR to main before creating worktree, ensuring FR exists in worktree for copilot context
