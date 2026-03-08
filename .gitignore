@@ -75,3 +75,7 @@ examples/fun/
 *.plist
 docs/ebook/v*/
 .venv
+
+# Planning files
+.chaplain/inbox/
+.chaplain/drafts/
