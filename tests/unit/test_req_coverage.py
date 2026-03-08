@@ -354,3 +354,238 @@ def test_smoke():
 
         captured = capsys.readouterr()
         assert "missing from ARCHITECTURE.md" not in captured.out
+
+
+@pytest.mark.req("REQ-YG-063")
+class TestPhantomRequirementDetection:
+    """Tests for reverse-check: phantom requirement detection — FR-145.
+
+    Detects @pytest.mark.req markers that reference IDs not in ALL_REQS.
+    """
+
+    def _setup_env(
+        self,
+        tmp_path: Path,
+        test_code: str,
+        all_reqs: list[str],
+        arch_reqs: list[str] | None = None,
+    ) -> None:
+        """Create test dir with given code and ARCHITECTURE.md."""
+        test_dir = tmp_path / "tests" / "unit"
+        test_dir.mkdir(parents=True)
+        test_file = test_dir / "test_phantom.py"
+        test_file.write_text(test_code)
+        arch_md = tmp_path / "ARCHITECTURE.md"
+        lines = ["# Requirements\n"]
+        for req in arch_reqs or all_reqs:
+            lines.append(f"| {req} | Description for {req} | modules |\n")
+        arch_md.write_text("".join(lines))
+
+    def test_phantom_strict_exits_nonzero(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """--strict exits 1 when test references a req ID not in ALL_REQS."""
+        self._setup_env(
+            tmp_path,
+            test_code="""\
+import pytest
+
+@pytest.mark.req("REQ-YG-FAKE")
+def test_with_phantom():
+    pass
+""",
+            all_reqs=["REQ-YG-001"],
+        )
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py", "--strict"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(req_coverage, "CAPABILITIES", {}),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()
+            finally:
+                req_coverage.__file__ = original_file
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "Phantom requirement IDs" in captured.out
+        assert "REQ-YG-FAKE" in captured.out
+
+    def test_phantom_output_lists_referencing_tests(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Output lists each phantom ID with the test function(s) referencing it."""
+        self._setup_env(
+            tmp_path,
+            test_code="""\
+import pytest
+
+@pytest.mark.req("REQ-YG-GHOST")
+def test_alpha():
+    pass
+
+@pytest.mark.req("REQ-YG-GHOST")
+def test_beta():
+    pass
+""",
+            all_reqs=["REQ-YG-001"],
+        )
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(req_coverage, "CAPABILITIES", {}),
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()
+            finally:
+                req_coverage.__file__ = original_file
+
+        captured = capsys.readouterr()
+        assert "REQ-YG-GHOST" in captured.out
+        assert "2 test(s)" in captured.out
+        assert "test_phantom::test_alpha" in captured.out
+        assert "test_phantom::test_beta" in captured.out
+
+    def test_no_phantom_no_warning(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """No phantom warning when all marker IDs exist in ALL_REQS."""
+        self._setup_env(
+            tmp_path,
+            test_code="""\
+import pytest
+
+@pytest.mark.req("REQ-YG-001")
+def test_valid():
+    pass
+""",
+            all_reqs=["REQ-YG-001"],
+        )
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py", "--strict"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(
+                req_coverage, "CAPABILITIES", {"CAP-01": ("Test", ["REQ-YG-001"])}
+            ),
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()  # Should NOT raise SystemExit
+            finally:
+                req_coverage.__file__ = original_file
+
+        captured = capsys.readouterr()
+        assert "Phantom requirement IDs" not in captured.out
+
+    def test_phantom_without_strict_warns_exits_zero(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Without --strict, prints phantom warning but exits zero."""
+        self._setup_env(
+            tmp_path,
+            test_code="""\
+import pytest
+
+@pytest.mark.req("REQ-YG-NOPE")
+def test_phantom():
+    pass
+""",
+            all_reqs=["REQ-YG-001"],
+        )
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(req_coverage, "CAPABILITIES", {}),
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()  # Should NOT raise SystemExit
+            finally:
+                req_coverage.__file__ = original_file
+
+        captured = capsys.readouterr()
+        assert "Phantom requirement IDs" in captured.out
+        assert "REQ-YG-NOPE" in captured.out
+
+    def test_detail_mode_unaffected(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """--detail output is unaffected by phantom detection."""
+        self._setup_env(
+            tmp_path,
+            test_code="""\
+import pytest
+
+@pytest.mark.req("REQ-YG-001")
+def test_valid():
+    pass
+""",
+            all_reqs=["REQ-YG-001"],
+        )
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py", "--detail"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(
+                req_coverage, "CAPABILITIES", {"CAP-01": ("Test", ["REQ-YG-001"])}
+            ),
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()
+            finally:
+                req_coverage.__file__ = original_file
+
+        captured = capsys.readouterr()
+        assert "DETAILED MAPPING" in captured.out
+        assert "REQ-YG-001" in captured.out
+
+    def test_forward_checks_still_work_with_phantom(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Forward checks (uncovered + undocumented) still trigger alongside phantoms."""
+        self._setup_env(
+            tmp_path,
+            test_code="""\
+import pytest
+
+@pytest.mark.req("REQ-YG-PHANTOM")
+def test_phantom():
+    pass
+""",
+            all_reqs=["REQ-YG-001"],
+            arch_reqs=["REQ-YG-001"],
+        )
+
+        with (
+            patch.object(req_coverage.sys, "argv", ["req_coverage.py", "--strict"]),
+            patch.object(req_coverage, "ALL_REQS", ["REQ-YG-001"]),
+            patch.object(
+                req_coverage, "CAPABILITIES", {"CAP-01": ("Test", ["REQ-YG-001"])}
+            ),
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            original_file = req_coverage.__file__
+            try:
+                req_coverage.__file__ = str(tmp_path / "scripts" / "req_coverage.py")
+                req_coverage.main()
+            finally:
+                req_coverage.__file__ = original_file
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        # Both forward (uncovered) and reverse (phantom) reported
+        assert "UNCOVERED" in captured.out
+        assert "Phantom requirement IDs" in captured.out
