@@ -12,7 +12,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
-@pytest.mark.req("REQ-YG-141")
+@pytest.mark.req("REQ-YG-143")
 class TestJudgeYamlSplitVerdict:
     """examples/copilot/prompts/judge.yaml must include SPLIT verdict."""
 
@@ -54,7 +54,7 @@ class TestJudgeYamlSplitVerdict:
         assert "single responsibility" in content_lower or "orthogonal" in content_lower
 
 
-@pytest.mark.req("REQ-YG-141")
+@pytest.mark.req("REQ-YG-143")
 class TestJudgeMdSplitVerdict:
     """scripts/chaplain-prompts/judge.md must include SPLIT verdict and Scope Count."""
 
@@ -98,7 +98,7 @@ class TestJudgeMdSplitVerdict:
         assert "delete" in content_lower
 
 
-@pytest.mark.req("REQ-YG-141")
+@pytest.mark.req("REQ-YG-143")
 class TestMultiConcernFixture:
     """Smoke-test fixture for a topic that bundles two orthogonal concerns."""
 
