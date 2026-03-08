@@ -3,7 +3,7 @@
 **FR-132**
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Superseded by FR-167
 **Effort:** 0.25 days
 **Requested:** 2026-03-07
 

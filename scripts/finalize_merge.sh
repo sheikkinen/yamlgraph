@@ -102,8 +102,6 @@ chore: ${FR_NUM} post-merge finalization
 - CHANGELOG [Unreleased] entry added
 - FR status updated to Implemented
 - Diary reflection stub created (untracked)
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 EOF
 git commit -F ./tmp/msg.txt
 
