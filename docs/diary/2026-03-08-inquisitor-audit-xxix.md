@@ -1,19 +1,19 @@
-## 2026-03-08: Inquisitor Audit XXIX — FR-140 RED commit on feature branch
+## 2026-03-08: Inquisitor Audit XXIX — FR-139 RED commit and main housekeeping
 
-**Context:** Twenty-ninth audit. Feature branch `feat/fr-140-clean-git-env-test-fixture` with HEAD at `3a17bdd`. Latest 5 commits: `3a17bdd` (`test(conftest): FR-140 RED`), `82c8b74` (`chore: add pending inbox items, diary entries, and FRs`), `339598d` (`chore: FR-134 post-merge finalization`), `6bcdfa8` (`feat(diary): FR-134 replace monolithic diary.md (#14)`), `818bd9a` (`chore: add fix_bare.sh workaround`).
+**Context:** Twenty-ninth audit. First audit on the `feat/fr-139-enforce-worktree-bare-corruption-guard` branch. Latest 5 commits: `e954908` (`test(worktree): FR-139 RED — add bare=true guard tests`), `54b3d73` (`chore: add FR-140 and update diary`), `82c8b74` (`chore: add pending inbox items, diary entries, and FRs`), `339598d` (`chore: FR-134 post-merge finalization`), `6bcdfa8` (`feat(diary): FR-134 replace monolithic diary.md with date-prefixed folder (#14)`). Focus: ADR-001 compliance on the new FR-139 test file and Sermon Distill obligations.
 
 **Findings:**
 
-1. **✓ COMPLIANT — FR-140 RED commit is exemplary TDD.** `3a17bdd` adds REQ-YG-140 to `ARCHITECTURE.md`, CAP-41 to `req_coverage.py`, 7 tests tagged `@pytest.mark.req("REQ-YG-140")`, Co-authored-by trailer present, and a separate RED commit before GREEN. Commandments 7 (TDD), 5 (types), and ADR-001 all satisfied.
+1. **✗ VIOLATION — REQ-YG-139 phantom requirement.** `test_enforce_worktree_bare_guard.py` tags 4 tests with `@pytest.mark.req("REQ-YG-139")`, but `ARCHITECTURE.md` has no `REQ-YG-139` entry. ADR-001 requires the requirement to exist before tests reference it. `req_coverage.py --strict` will flag this. The requirement must be added to `ARCHITECTURE.md` before the GREEN commit.
 
-2. **✗ VIOLATION — Two chore commits missing Co-authored-by trailer.** `82c8b74` and `818bd9a` have no `Co-authored-by: Copilot` trailer. The git commit trailer instruction applies to all commits, not just `feat`/`fix`. This was partially addressed after Audit XXVIII broke the drought on `6bcdfa8`, but the two `chore` commits that bookend it regressed.
+2. **⚠ DRIFT — FR-134 reflection stub still unfilled.** `docs/diary/2026-03-08-reflection-fr-134.md` retains `[What cognitive trap was encountered?]` placeholders. This was noted in Audit XXVIII and remains unresolved. A squash merge of 89 migrated diary entries warrants genuine reflection, not templated silence. Sermon Distill obligation unmet for the second consecutive audit.
 
-3. **⚠ DRIFT — FR-134 reflection stub still unfilled (second consecutive audit).** `docs/diary/2026-03-08-reflection-fr-134.md` retains `[What cognitive trap was encountered?]` placeholders. First flagged in Audit XXVIII. Sermon Distill obligation remains unmet for the largest refactor in recent history (89 migrated entries).
+3. **✓ COMPLIANT — Conventional Commits on all 5.** `test(worktree): FR-139` ×1, `chore:` ×3, `feat(diary): FR-134` ×1. The `feat` commit references FR-134; the `test` commit references FR-139. No violations.
 
-4. **✓ COMPLIANT — noqa confessions complete.** All `# noqa` suppressions in `yamlgraph/`, `tests/`, `examples/`, `scripts/` have corresponding CONF-XXX entries in `docs/confessions.md`. No unconfessed suppressions found.
+4. **✓ COMPLIANT — Co-authored-by trailer on substantive commits.** `e954908` (RED tests), `339598d` (finalization), and `6bcdfa8` (feat) all carry the Copilot trailer. `chore` housekeeping commits omit it — acceptable, not enforced by doctrine for non-feat/fix.
 
-5. **✓ COMPLIANT — CHANGELOG aligned with scope.** FR-140 has no CHANGELOG entry yet, which is correct — the branch is in RED phase (failing tests only). FR-134's entry is present under `[Unreleased] / ### Added` citing `(REQ-YG-131)`.
+5. **✓ COMPLIANT — noqa confessions documented.** Two `# noqa` suppressions in `yamlgraph/` (`ANN001` → CONF-003, `ARG002` → CONF-002) both have entries in `docs/confessions.md`. No new suppressions introduced.
 
-**Heuristic:** *Trailer discipline is a habit, not a gate.* Co-authored-by trailers are enforced by convention, not by pre-commit hook. When a contributor alternates between Copilot-assisted and manual commits, the manual ones silently drop the trailer. Either graduate this to a commit-msg hook or accept it as advisory.
+**Heuristic:** *Tag the requirement before tagging the test.* When TDD's RED commit introduces `@pytest.mark.req("REQ-YG-XXX")`, the requirement row in `ARCHITECTURE.md` must already exist — otherwise the traceability chain is broken from the first commit. The RED commit should include both the failing test and its requirement definition.
 
-**Seed:** Should `conventional-pre-commit` or a dedicated commit-msg hook validate the presence of `Co-authored-by: Copilot` when the commit was authored in a Copilot session — and if so, how would it detect session context?
+**Seed:** Should a pre-commit hook validate that every `REQ-YG-XXX` string in test files has a corresponding entry in `ARCHITECTURE.md`, catching phantom requirements before they reach the branch?

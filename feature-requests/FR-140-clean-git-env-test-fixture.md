@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** ✅ Implemented
+**Status:** Approved
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -57,14 +57,14 @@ def _clean_git_env():
 
 ## Acceptance Criteria
 
-- [x] `_clean_git_env` fixture exists in `tests/conftest.py`, session-scoped and autouse
-- [x] All unit tests pass when invoked via `pre-commit run --all-files` (specifically the pytest hook)
-- [x] No `--no-verify` flag needed for commits that trigger the test hook
-- [x] Fixture is a no-op when `GIT_*` vars are absent (running outside pre-commit)
-- [x] Existing tests remain unaffected when run via `pytest` directly
-- [x] Fixture restores stripped variables after the session (yield-based cleanup)
-- [x] Tests added: a unit test that verifies `GIT_DIR` is stripped when set, and is a no-op when absent
-- [x] `@pytest.mark.req` traceability tag added to new test(s)
+- [ ] `_clean_git_env` fixture exists in `tests/conftest.py`, session-scoped and autouse
+- [ ] All unit tests pass when invoked via `pre-commit run --all-files` (specifically the pytest hook)
+- [ ] No `--no-verify` flag needed for commits that trigger the test hook
+- [ ] Fixture is a no-op when `GIT_*` vars are absent (running outside pre-commit)
+- [ ] Existing tests remain unaffected when run via `pytest` directly
+- [ ] Fixture restores stripped variables after the session (yield-based cleanup)
+- [ ] Tests added: a unit test that verifies `GIT_DIR` is stripped when set, and is a no-op when absent
+- [ ] `@pytest.mark.req` traceability tag added to new test(s)
 
 ## Alternatives Considered
 
@@ -84,3 +84,21 @@ def _clean_git_env():
 - `scripts/enforce_worktree.sh:69`: Uses `--no-verify` (candidate for removal after this fix)
 - Scripture trap: `partial_remediation` — "Fix all occurrences, not just cited one"
 - Scripture cure: `callsite_fix` — fixture is the callsite where external env enters tests
+
+## Judgement
+
+**Verdict: APPROVE** — 2026-03-08
+
+**Evaluation:**
+
+1. **Scope: Clear and minimal.** Single fixture addition to `tests/conftest.py` plus a unit test. No feature creep.
+
+2. **No contradictions.** The session-scope choice (vs the function-scoped `_prevent_env_pollution()` it follows) is explicitly justified: GIT_* vars are static for the pre-commit invocation. The `GIT_TERMINAL_PROMPT` set by `test_finalize_merge.py:155` is in the subprocess `env=` dict, not `os.environ`, so the session-scoped strip is non-conflicting.
+
+3. **Acceptance criteria: All 8 items are measurable.** Pass/fail under `pre-commit run`, fixture existence, yield-based restore, test coverage — all concrete and verifiable.
+
+4. **Feasible.** 0.5-day estimate is realistic for a conftest fixture + unit test. The proposed code is complete and correct.
+
+5. **Architectural alignment: Strong.** Follows the existing `_prevent_env_pollution()` pattern verbatim. Implements boundary normalization per Scripture. Root-cause analysis is sound — the problem is external data entering unsanitized, not downstream test behavior.
+
+**Note for implementer:** No existing REQ-YG-XXX covers test environment sanitization. Add a new requirement to `ARCHITECTURE.md` and tag tests accordingly per ADR-001. The `--no-verify` removal in `scripts/enforce_worktree.sh:69` is correctly out of scope (follow-up).

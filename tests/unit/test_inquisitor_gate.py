@@ -12,6 +12,17 @@ import textwrap
 
 import pytest
 
+# Strip git env vars that pre-commit injects (GIT_INDEX_FILE from stashing).
+_GIT_ENV_POISON = {"GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR"}
+
+
+def _clean_git_env(**extra: str) -> dict[str, str]:
+    """Return os.environ minus git vars that pollute temp-repo subprocess calls."""
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_ENV_POISON}
+    env.update(extra)
+    return env
+
+
 # ---------------------------------------------------------------------------
 # Shell snippets — mirror the gate logic for isolated testing
 # ---------------------------------------------------------------------------
@@ -141,12 +152,11 @@ def _run_gate_decision(
     """Run gate decision script with given inputs."""
     result = subprocess.run(
         ["bash", "-c", _GATE_DECISION_SCRIPT],
-        env={
-            **os.environ,
-            "LAST_SHA": last_sha,
-            "ACTIONABLE": str(actionable),
-            "FORCE": force,
-        },
+        env=_clean_git_env(
+            LAST_SHA=last_sha,
+            ACTIONABLE=str(actionable),
+            FORCE=force,
+        ),
         capture_output=True,
         text=True,
         timeout=10,
@@ -165,28 +175,34 @@ def _run_flag_parse(args: list[str] | None = None) -> str:
 
 def _setup_git_repo(path, commits: list[str]) -> list[str]:
     """Initialize a git repo at *path* and create commits; return short SHAs."""
-    subprocess.run(["git", "init"], cwd=path, capture_output=True, check=True)
+    env = _clean_git_env()
+    subprocess.run(["git", "init"], cwd=path, capture_output=True, check=True, env=env)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
         cwd=path,
         capture_output=True,
         check=True,
+        env=env,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test"],
         cwd=path,
         capture_output=True,
         check=True,
+        env=env,
     )
     shas: list[str] = []
     for i, msg in enumerate(commits):
         (path / f"file_{i}.txt").write_text(f"commit {i}\n")
-        subprocess.run(["git", "add", "."], cwd=path, capture_output=True, check=True)
+        subprocess.run(
+            ["git", "add", "."], cwd=path, capture_output=True, check=True, env=env
+        )
         subprocess.run(
             ["git", "commit", "-m", msg],
             cwd=path,
             capture_output=True,
             check=True,
+            env=env,
         )
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
@@ -194,6 +210,7 @@ def _setup_git_repo(path, commits: list[str]) -> list[str]:
             capture_output=True,
             text=True,
             check=True,
+            env=env,
         )
         shas.append(result.stdout.strip())
     return shas
@@ -204,7 +221,7 @@ def _run_full_gate(test_dir: str, args: list[str] | None = None) -> str:
     cmd = ["bash", "-c", _FULL_GATE_SCRIPT, "--"] + (args or [])
     result = subprocess.run(
         cmd,
-        env={**os.environ, "TEST_DIR": str(test_dir)},
+        env=_clean_git_env(TEST_DIR=str(test_dir)),
         capture_output=True,
         text=True,
         timeout=10,

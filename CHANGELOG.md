@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-106 Next Steps Output**: Print merge, discard, and cleanup commands after successful PR creation in `enforce_worktree.sh`
 
 ### Fixed
+- **FR-139 Enforce Worktree bare=true Corruption Guard**: Add three-layer defense against `.git/config` corruption (env sanitization, cleanup trap restoration, post-run assertion) that can set `bare = true` after worktree operations. (REQ-YG-UTIL)
 - **Enforce Pipeline Timeout**: Increase `submit_pr` timeout from 120s to 500s to prevent premature abort during PR creation
 - **FR-106 Enforce Worktree**: Commit new FR to main before creating worktree, ensuring FR exists in worktree for copilot context
 - **FR-106 Enforce Worktree Script**: Save `MAIN_DIR` before worktree operations; cleanup trap now returns to main dir before git operations

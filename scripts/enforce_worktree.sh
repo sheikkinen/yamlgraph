@@ -84,6 +84,13 @@ cleanup() {
     if ! git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
         git branch -D "$BRANCH" 2>/dev/null || true
     fi
+    # FR-139: Guard against bare=true corruption
+    local bare_after
+    bare_after=$(git config --get core.bare 2>/dev/null || echo "false")
+    if [[ "$bare_after" == "true" ]]; then
+        log_warn "Detected bare=true corruption in .git/config — restoring to bare=false"
+        git config core.bare false
+    fi
     exit $exit_code
 }
 trap cleanup EXIT
@@ -105,6 +112,8 @@ if [[ -d "$MAIN_VENV" ]]; then
 fi
 
 cd "$WORKTREE_DIR"
+# FR-139: Sanitize git env vars to prevent bare=true corruption
+unset GIT_DIR GIT_WORK_TREE 2>/dev/null || true
 log_info "Working in: $(pwd)"
 
 # Delegate all LLM phases to the enforce pipeline graph (FR-128)
@@ -114,6 +123,13 @@ yamlgraph graph run examples/enforce/graph.yaml \
     --var fr_path="$FR_PATH" \
     --var branch="$BRANCH" \
     --full
+
+# FR-139: Post-run assertion — catch mid-run corruption
+cd "$MAIN_DIR"
+if [[ "$(git config --get core.bare 2>/dev/null)" == "true" ]]; then
+    log_error "bare=true detected after pipeline run — restoring"
+    git config core.bare false
+fi
 
 log_info "Enforce pipeline completed successfully!"
 

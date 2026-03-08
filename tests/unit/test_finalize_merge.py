@@ -15,6 +15,17 @@ import textwrap
 
 import pytest
 
+# Strip git env vars that pre-commit injects (GIT_INDEX_FILE from stashing).
+_GIT_ENV_POISON = {"GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR"}
+
+
+def _clean_git_env(**extra: str) -> dict[str, str]:
+    """Return os.environ minus git vars that pollute temp-repo subprocess calls."""
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_ENV_POISON}
+    env.update(extra)
+    return env
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -30,24 +41,29 @@ def _make_repo(tmp_path):
     repo = tmp_path / "repo"
     repo.mkdir()
 
+    env = _clean_git_env()
+
     # Init git repo on main
     subprocess.run(
         ["git", "init", "-b", "main"],
         cwd=repo,
         check=True,
         capture_output=True,
+        env=env,
     )
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
         cwd=repo,
         check=True,
         capture_output=True,
+        env=env,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test"],
         cwd=repo,
         check=True,
         capture_output=True,
+        env=env,
     )
 
     # Create CHANGELOG.md with [Unreleased] / ### Added section
@@ -85,12 +101,15 @@ def _make_repo(tmp_path):
     (repo / "tmp").mkdir()
 
     # Initial commit so we have a clean state
-    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "add", "."], cwd=repo, check=True, capture_output=True, env=env
+    )
     subprocess.run(
         ["git", "commit", "-m", "initial"],
         cwd=repo,
         check=True,
         capture_output=True,
+        env=env,
     )
 
     return repo
@@ -129,12 +148,14 @@ def _write_fr(repo, filename, *, status="Approved", req_id=None, title=None):
         cwd=repo,
         check=True,
         capture_output=True,
+        env=_clean_git_env(),
     )
     subprocess.run(
         ["git", "commit", "-m", f"add {filename}"],
         cwd=repo,
         check=True,
         capture_output=True,
+        env=_clean_git_env(),
     )
 
     return f"feature-requests/{filename}"
@@ -149,11 +170,10 @@ def _run_finalize(repo, fr_rel_path, *, expect_fail=False):
         capture_output=True,
         text=True,
         timeout=30,
-        env={
-            **os.environ,
+        env=_clean_git_env(
             # Prevent git pull from hitting a remote
-            "GIT_TERMINAL_PROMPT": "0",
-        },
+            GIT_TERMINAL_PROMPT="0",
+        ),
     )
     if not expect_fail:
         assert result.returncode == 0, (
@@ -201,6 +221,7 @@ class TestFailFastGuards:
             cwd=repo,
             check=True,
             capture_output=True,
+            env=_clean_git_env(),
         )
         stdout, stderr, rc = _run_finalize(repo, fr_rel, expect_fail=True)
         assert rc != 0
@@ -277,12 +298,19 @@ class TestChangelogEntry:
         # Reset status back to Approved so the script can run status update again
         fr_path = repo / fr_rel
         fr_path.write_text(fr_path.read_text().replace("✅ Implemented", "Approved"))
-        subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "."],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+            env=_clean_git_env(),
+        )
         subprocess.run(
             ["git", "commit", "-m", "reset"],
             cwd=repo,
             check=True,
             capture_output=True,
+            env=_clean_git_env(),
         )
 
         stdout, _, _ = _run_finalize(repo, fr_rel)
@@ -308,12 +336,19 @@ class TestChangelogEntry:
             ## [0.4.60] — 2026-03-06
         """)
         )
-        subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "."],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+            env=_clean_git_env(),
+        )
         subprocess.run(
             ["git", "commit", "-m", "remove added section"],
             cwd=repo,
             check=True,
             capture_output=True,
+            env=_clean_git_env(),
         )
 
         fr_rel = _write_fr(repo, "FR-215-no-added.md", title="No Added Section")
@@ -393,6 +428,7 @@ class TestCommit:
             cwd=repo,
             capture_output=True,
             text=True,
+            env=_clean_git_env(),
         )
         assert "chore: FR-240 post-merge finalization" in result.stdout
 
@@ -407,6 +443,7 @@ class TestCommit:
             cwd=repo,
             capture_output=True,
             text=True,
+            env=_clean_git_env(),
         )
         assert "Co-authored-by: Copilot" in result.stdout
 
