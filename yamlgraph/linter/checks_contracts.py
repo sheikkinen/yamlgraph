@@ -6,6 +6,7 @@ behave incorrectly at runtime — the gap between "valid YAML" and "correct grap
 E012: Hyphen in identifier position (state key, node name, tool name, state_key)
 W020: variables: on type: python (silent no-op)
 W021: skip_if_exists on list field with add reducer
+W017: on_error: skip silently drops failures (FR-165)
 """
 
 from __future__ import annotations
@@ -219,10 +220,41 @@ def check_skip_without_verification(graph_path: Path) -> list[LintIssue]:
     return issues
 
 
+def check_silent_fallback(graph_path: Path) -> list[LintIssue]:
+    """W017: on_error: skip silently drops failures.
+
+    Nodes with on_error: skip swallow errors — the pipeline continues
+    as if nothing happened, producing incomplete or wrong results without
+    any trace of the failure. Use on_error: fail or on_error: fallback instead.
+    """
+    issues = []
+    graph = load_graph(graph_path)
+
+    for node_name, node_config in graph.get("nodes", {}).items():
+        if node_config.get("on_error") == "skip":
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W017",
+                    message=(
+                        f"Node '{node_name}' uses on_error: skip — "
+                        f"failures are silently dropped"
+                    ),
+                    fix=(
+                        "Use on_error: fail (crash loudly), "
+                        "on_error: fallback (with explicit config), "
+                        "or add error state accumulation in a downstream node"
+                    ),
+                )
+            )
+    return issues
+
+
 __all__ = [
     "check_python_node_variables",
     "check_identifier_keys",
     "check_skip_if_exists_add_reducer",
     "check_top_level_provider_model",
     "check_skip_without_verification",
+    "check_silent_fallback",
 ]
