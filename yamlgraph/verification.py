@@ -34,6 +34,27 @@ CONTAINS_RE = re.compile(r"(?:will\s+)?contain\s+(.+)", re.IGNORECASE)
 VAR_RE = re.compile(r"\{(\w+)\}")
 
 
+def _extract_countable(value: Any) -> Any:
+    """Extract a countable value from Pydantic models (FR-166).
+
+    If the value is a Pydantic model with exactly one list field,
+    return that list. Otherwise return the value unchanged.
+
+    Rationale: Pydantic BaseModel does not implement __len__().
+    The common pattern is a wrapper model with one list field
+    (e.g., KeyPoints(points=[...])). Extracting that list allows
+    count_range verification to work transparently.
+
+    Multi-list and no-list models fall through unchanged — no
+    silent wrong answer.
+    """
+    if isinstance(value, BaseModel):
+        list_fields = [v for v in value.model_dump().values() if isinstance(v, list)]
+        if len(list_fields) == 1:
+            return list_fields[0]
+    return value
+
+
 class CountRangeClaim(BaseModel):
     """Parsed count range from verification question (FR-166).
 
@@ -103,8 +124,9 @@ def evaluate_verification(
             min_count=int(count_match.group(1)),
             max_count=int(count_match.group(2)),
         )
+        countable = _extract_countable(actual)
         try:
-            length = len(actual)
+            length = len(countable)
         except TypeError:
             length = 0
 

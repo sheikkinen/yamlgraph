@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-162 Vulture Dead Code Cleanup**: Delete dead `yamlgraph/utils/sanitize.py` module and orphaned `tests/unit/test_sanitize.py` (zero production callers). Add `vulture_whitelist.py` for `worktree_helpers` false positives (shell-invoked via `python3 -c`). Lower Vulture confidence threshold from 80→60. (REQ-YG-046)
 
 ### Fixed
+- **FR-166 Pydantic count_range Extraction**: Add `_extract_countable()` helper that unwraps Pydantic models with a single list field before count_range verification. Fixes bug where `len(BaseModel)` raised `TypeError`, defaulting to 0 and causing false violations on correct LLM outputs. (REQ-YG-154)
 - **Architecture Capability Count**: Correct summary sentence (54→53 capabilities, 116→115 requirements) after FR-157/FR-158 merge conflicts caused over-count
 
 ## [0.4.61] — 2026-03-08
