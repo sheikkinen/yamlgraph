@@ -1,0 +1,45 @@
+# .github/workflows/commitlint.yml
+name: Conventional Commit Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            docs
+            refactor
+            test
+            ci
+            perf
+            style
+            build
+            revert
+          requireScope: false
+          subjectPattern: ^.+$
+          subjectPatternError: "PR title must have a subject after the type prefix"
+
+      - name: feat requires FR-XXX
+        if: startsWith(github.event.pull_request.title, 'feat')
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! echo "$PR_TITLE" | grep -qE 'FR-[0-9]+'; then
+            echo "::error::feat PRs must reference FR-XXX in the title"
+            echo "Example: feat(streaming): FR-030 add subgraphs parameter"
+            exit 1
+          fi
