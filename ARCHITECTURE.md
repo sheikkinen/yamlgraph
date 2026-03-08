@@ -320,6 +320,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 43 | Copilot Session GC | `scripts/copilot_session_gc.sh` | REQ-YG-141 |
 | 44 | Judge SPLIT Verdict | `examples/copilot/prompts/judge.yaml`, `scripts/chaplain-prompts/judge.md` | REQ-YG-143 |
 | 45 | Diary Reflection Enforcement | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh` | REQ-YG-144 |
+| 46 | Diary Import CLI | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py` | REQ-YG-122 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -715,6 +716,14 @@ Pre-commit hook `diary-reflection-check` rejects commits when tracked `docs/diar
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-144 | `diary-reflection-check` pre-commit hook scans tracked reflection files for unfilled placeholder text and blocks commit; `finalize_merge.sh` creates stubs as untracked files (no `git add` of `docs/diary/`); hook passes when no placeholders remain | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh`, `tests/unit/test_precommit_hooks` |
+
+### 46. Diary Import CLI (FR-124)
+
+CLI command to import pending diary entries and git report data into `docs/diary/` with optional dry-run and source selection.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-122 | `yamlgraph diary import` CLI command imports pending diary entries and git reports into `docs/diary/` with `--dry-run` and `--source` flags; shared importer returns structured `ImportResult` list; dry-run does not mutate source files; malformed files reported and exit non-zero; explicit missing `--source` emits warning | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py`, `tests/unit/test_diary_importer`, `tests/unit/test_diary_commands` |
 
 ---
 

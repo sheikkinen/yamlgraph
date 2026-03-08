@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-03-07
 **Judged:** 2026-03-08
@@ -279,20 +279,20 @@ imported = sum(1 for r in results if r.status == "imported")
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph diary import` imports pending diary entries and git reports as individual files into `docs/diary/`
-- [ ] `yamlgraph diary import --dry-run` lists pending files without modifying diary directory
-- [ ] `--source` flag overrides the base directory; both functions preserve their internal glob patterns relative to it
-- [ ] Explicit `--source` with nonexistent path emits a warning before "Nothing to import" (Judge's Note #1)
-- [ ] Dry-run output includes header line with source directory label
-- [ ] Import summary printed to stdout with per-file status
-- [ ] Malformed files are reported with filename and skipped (non-zero exit)
-- [ ] Dry-run does not delete, rename, or otherwise mutate source files (Judge's Note #3)
-- [ ] Missing default source directory prints "Nothing to import" and exits 0
-- [ ] Pre-commit hook still works (uses same extracted `yamlgraph.diary.importer` logic)
-- [ ] Unit tests for CLI command (success, dry-run, empty, missing dir, explicit missing dir warning, malformed)
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-122")`
-- [ ] `REQ-YG-122` added to `ARCHITECTURE.md` and `scripts/req_coverage.py`
-- [ ] Documentation updated (CLI help text sufficient; no new docs page needed)
+- [x] `yamlgraph diary import` imports pending diary entries and git reports as individual files into `docs/diary/`
+- [x] `yamlgraph diary import --dry-run` lists pending files without modifying diary directory
+- [x] `--source` flag overrides the base directory; both functions preserve their internal glob patterns relative to it
+- [x] Explicit `--source` with nonexistent path emits a warning before "Nothing to import" (Judge's Note #1)
+- [x] Dry-run output includes header line with source directory label
+- [x] Import summary printed to stdout with per-file status
+- [x] Malformed files are reported with filename and skipped (non-zero exit)
+- [x] Dry-run does not delete, rename, or otherwise mutate source files (Judge's Note #3)
+- [x] Missing default source directory prints "Nothing to import" and exits 0
+- [x] Pre-commit hook still works (uses same extracted `yamlgraph.diary.importer` logic)
+- [x] Unit tests for CLI command (success, dry-run, empty, missing dir, explicit missing dir warning, malformed)
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-122")`
+- [x] `REQ-YG-122` added to `ARCHITECTURE.md` and `scripts/req_coverage.py`
+- [x] Documentation updated (CLI help text sufficient; no new docs page needed)
 
 ## Alternatives Considered
 
