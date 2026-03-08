@@ -324,6 +324,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 47 | Phantom Requirement Detection | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` | REQ-YG-145 |
 | 48 | CHANGELOG Removal Completeness | `CHANGELOG.md` | REQ-YG-146 |
 | 49 | Examples Documentation Audit | `examples/README.md` | REQ-YG-147 |
+| 50 | CI CHANGELOG Gate | `.github/workflows/commitlint.yml` | REQ-YG-148 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -751,6 +752,14 @@ Every on-disk example and demo is accurately indexed in `examples/README.md` wit
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-147 | `examples/README.md` lists every demo directory and top-level example on disk; demos are split into Learning / Utility / FR Validation sections; inclusion criteria are documented; each listed entry has a `README.md` and at least one runnable artifact (YAML graph, `demo.sh`, or Python script) | `examples/README.md`, `tests/unit/test_examples_readme_audit` |
+
+### 50. CI CHANGELOG Gate (FR-149)
+
+GitHub Actions job in `commitlint.yml` that blocks merge of `feat` and `fix` PRs unless `CHANGELOG.md` is modified in the PR diff. Closes the structural gap where server-side squash merges bypass local commit-msg hooks.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-148 | `changelog-gate` job in `commitlint.yml` runs `git diff --name-only` against base/head SHAs and fails when `CHANGELOG.md` is absent from diff; job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_changelog_gate` |
 
 ---
 
