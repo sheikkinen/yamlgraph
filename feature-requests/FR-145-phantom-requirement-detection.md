@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -71,13 +71,13 @@ if (uncovered or undocumented or phantom_ids) and "--strict" in sys.argv:
 
 ## Acceptance Criteria
 
-- [ ] `req_coverage.py --strict` exits 1 when any `@pytest.mark.req("REQ-YG-XXX")` marker references an ID not in `ALL_REQS`
-- [ ] Output lists each phantom ID with the test file(s) and test function(s) referencing it
-- [ ] Existing forward checks (uncovered reqs, undocumented reqs) continue to work unchanged
-- [ ] Pre-commit hook rejects commits containing phantom requirement markers
-- [ ] Known phantoms (`REQ-YG-UTIL` in FR-139 tests) are either registered properly or replaced with valid IDs before merge
-- [ ] Tests added for the reverse-check logic itself
-- [ ] `req_coverage.py --detail` output is unaffected
+- [x] `req_coverage.py --strict` exits 1 when any `@pytest.mark.req("REQ-YG-XXX")` marker references an ID not in `ALL_REQS`
+- [x] Output lists each phantom ID with the test file(s) and test function(s) referencing it
+- [x] Existing forward checks (uncovered reqs, undocumented reqs) continue to work unchanged
+- [x] Pre-commit hook rejects commits containing phantom requirement markers
+- [x] Known phantoms (`REQ-YG-UTIL` in FR-139 tests) are either registered properly or replaced with valid IDs before merge
+- [x] Tests added for the reverse-check logic itself
+- [x] `req_coverage.py --detail` output is unaffected
 
 ## Alternatives Considered
 
