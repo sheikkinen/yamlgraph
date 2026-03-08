@@ -3,7 +3,7 @@
 **ID:** FR-161
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.25 days
 **Requested:** 2026-03-08
 
@@ -50,12 +50,12 @@ Create two diary reflection files following the established naming convention an
 
 ## Acceptance Criteria
 
-- [ ] `docs/diary/2026-03-08-reflection-fr-150.md` exists with genuine metacognitive content (not placeholder stubs)
-- [ ] `docs/diary/2026-03-08-reflection-fr-154.md` exists with genuine metacognitive content (not placeholder stubs)
-- [ ] Each reflection identifies at least one cognitive trap from the Knowledge Graph (`downstream_fix`, `audit_as_ritual`, or equivalent)
-- [ ] Each reflection contains a forward-looking **Seed** question
-- [ ] Both files follow the naming convention `YYYY-MM-DD-reflection-fr-NNN.md`
-- [ ] Both files pass the `diary-reflection-check` pre-commit hook (no unfilled placeholders)
+- [x] `docs/diary/2026-03-08-reflection-fr-150.md` exists with genuine metacognitive content (not placeholder stubs)
+- [x] `docs/diary/2026-03-08-reflection-fr-154.md` exists with genuine metacognitive content (not placeholder stubs)
+- [x] Each reflection identifies at least one cognitive trap from the Knowledge Graph (`downstream_fix`, `audit_as_ritual`, or equivalent)
+- [x] Each reflection contains a forward-looking **Seed** question
+- [x] Both files follow the naming convention `YYYY-MM-DD-reflection-fr-NNN.md`
+- [x] Both files pass the `diary-reflection-check` pre-commit hook (no unfilled placeholders)
 - [ ] Next inquisitor audit clears both violations (no ✗ VIOLATION for FR-150/FR-154 reflections)
 
 ## Alternatives Considered
