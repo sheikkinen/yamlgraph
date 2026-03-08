@@ -158,3 +158,9 @@ litellm.drop_params
 from yamlgraph.utils.token_tracker import TokenTracker  # noqa: F401 (CONF-126)
 
 TokenTracker.on_llm_end
+
+# --- verification: CountRangeClaim exported for public API (FR-166) ---
+from yamlgraph.verification import CountRangeClaim  # noqa: F401 (CONF-126)
+
+CountRangeClaim
+CountRangeClaim.validate_range  # Pydantic @model_validator

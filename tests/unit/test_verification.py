@@ -1,4 +1,4 @@
-"""Tests for FR-164: Verification Gate Pattern.
+"""Tests for FR-164/FR-166: Verification Gate Pattern.
 
 Tests cover:
 - VerificationConfig schema (question, on_fail, max_retries)
@@ -6,6 +6,7 @@ Tests cover:
 - Variable interpolation in verification questions
 - Runtime behavior (warn, halt, retry)
 - Lint rule W022 (on_error: skip without verification)
+- FR-166: CountRangeClaim Pydantic model (validation, inverted range, structured details)
 """
 
 import tempfile
@@ -436,6 +437,97 @@ class TestVerificationRuntime:
 
         assert result["output"] == "hello"
         assert "errors" not in result
+
+
+# =============================================================================
+# FR-166: CountRangeClaim Pydantic model
+# =============================================================================
+
+
+class TestCountRangeClaim:
+    """FR-166: CountRangeClaim Pydantic model validation."""
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_valid_range_creates_claim(self):
+        """CountRangeClaim(min_count=3, max_count=10) succeeds."""
+        from yamlgraph.verification import CountRangeClaim
+
+        claim = CountRangeClaim(min_count=3, max_count=10)
+        assert claim.min_count == 3
+        assert claim.max_count == 10
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_equal_range_valid(self):
+        """CountRangeClaim(min_count=5, max_count=5) is valid (exact count)."""
+        from yamlgraph.verification import CountRangeClaim
+
+        claim = CountRangeClaim(min_count=5, max_count=5)
+        assert claim.min_count == 5
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_inverted_range_raises(self):
+        """CountRangeClaim(min_count=10, max_count=3) raises ValueError."""
+        from yamlgraph.verification import CountRangeClaim
+
+        with pytest.raises(ValueError, match="Inverted count range"):
+            CountRangeClaim(min_count=10, max_count=3)
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_negative_min_rejected(self):
+        """min_count must be >= 0."""
+        from yamlgraph.verification import CountRangeClaim
+
+        with pytest.raises(ValueError):
+            CountRangeClaim(min_count=-1, max_count=5)
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_zero_range_valid(self):
+        """CountRangeClaim(min_count=0, max_count=0) is valid."""
+        from yamlgraph.verification import CountRangeClaim
+
+        claim = CountRangeClaim(min_count=0, max_count=0)
+        assert claim.min_count == 0
+        assert claim.max_count == 0
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_inverted_range_in_question_raises(self):
+        """'Will return 10-3 items' raises ValueError from CountRangeClaim."""
+        with pytest.raises(ValueError, match="Inverted count range"):
+            evaluate_verification(
+                question="Will return 10-3 items",
+                actual=["a", "b"],
+                state={},
+            )
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_count_range_violation_has_structured_details(self):
+        """Count range violation exposes expected_min, expected_max, actual_count."""
+        result = evaluate_verification(
+            question="Will return 3-10 items",
+            actual=["a"],
+            state={},
+        )
+        assert result is not None
+        assert result.details["expected_min"] == 3
+        assert result.details["expected_max"] == 10
+        assert result.details["actual_count"] == 1
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_count_range_pass_no_violation(self):
+        """Passing count range still returns None (no regression)."""
+        result = evaluate_verification(
+            question="Will return 3-10 items",
+            actual=["a", "b", "c", "d", "e"],
+            state={},
+        )
+        assert result is None
+
+    @pytest.mark.req("REQ-YG-155")
+    def test_count_range_claim_exported(self):
+        """CountRangeClaim is importable from yamlgraph.models."""
+        from yamlgraph.models import CountRangeClaim
+
+        assert CountRangeClaim is not None
 
 
 # =============================================================================
