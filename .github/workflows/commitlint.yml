@@ -43,3 +43,26 @@ jobs:
             echo "Example: feat(streaming): FR-030 add subgraphs parameter"
             exit 1
           fi
+
+  changelog-gate:
+    name: CHANGELOG required for feat/fix
+    runs-on: ubuntu-latest
+    if: >-
+      startsWith(github.event.pull_request.title, 'feat') ||
+      startsWith(github.event.pull_request.title, 'fix')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify CHANGELOG.md modified
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qE '^CHANGELOG\.md$'; then
+            echo "✅ CHANGELOG.md is modified"
+          else
+            echo "::error::feat/fix PRs must include changes to CHANGELOG.md"
+            exit 1
+          fi
