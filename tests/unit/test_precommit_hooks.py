@@ -243,23 +243,14 @@ DIARY_REFLECTION_CHECK_ENTRY = (
 )
 
 
-def run_diary_hook(
-    entry: str, file_paths: list[str]
-) -> subprocess.CompletedProcess:
+def run_diary_hook(entry: str, file_paths: list[str]) -> subprocess.CompletedProcess:
     """Run the diary-reflection-check hook with mocked file list.
 
     Replaces `git ls-files ...` with an echo of the given file paths
     so the grep pattern is tested against real temp files.
     """
-    if file_paths:
-        # Space-separated inside double quotes; xargs splits on whitespace.
-        # Avoids literal newlines that break the outer bash -c '...' quoting.
-        mock_ls = 'echo "' + " ".join(file_paths) + '"'
-    else:
-        mock_ls = "echo ''"
-    modified = entry.replace(
-        'git ls-files "docs/diary/*reflection*.md"', mock_ls
-    )
+    mock_ls = 'echo "' + " ".join(file_paths) + '"' if file_paths else "echo ''"
+    modified = entry.replace('git ls-files "docs/diary/*reflection*.md"', mock_ls)
     result = subprocess.run(
         modified,
         shell=True,
@@ -372,16 +363,16 @@ class TestFinalizeMergeUnstagedDiary:
         ]
         assert git_add_lines, "Expected a git add line in the script"
         for line in git_add_lines:
-            assert "docs/diary" not in line, (
-                f"git add must not include docs/diary/: {line}"
-            )
+            assert (
+                "docs/diary" not in line
+            ), f"git add must not include docs/diary/: {line}"
 
     def test_commit_message_says_untracked(self) -> None:
         """The commit message template must say 'untracked', not 'appended'."""
         content = self.SCRIPT_PATH.read_text()
-        assert "stub appended" not in content, (
-            "Commit message should not say 'appended'"
-        )
-        assert "untracked" in content.lower(), (
-            "Commit message should mention 'untracked'"
-        )
+        assert (
+            "stub appended" not in content
+        ), "Commit message should not say 'appended'"
+        assert (
+            "untracked" in content.lower()
+        ), "Commit message should mention 'untracked'"
