@@ -6,6 +6,160 @@ Previous: [diary-2026-03-05.md](diary-2026-03-05.md) — 1 entries from 2026-03-
 
 ---
 
+## 2026-03-08: Inquisitor Audit XXX — timeout fix lands clean, trailer FR still queued
+
+**Context:** Thirtieth audit. One new commit since Audit XXIX: `06debf3` (`fix(enforce): increase submit_pr timeout to 500s`). A two-file change: `examples/enforce/graph.yaml` timeout bumped from 120 to 500 seconds, and a corresponding CHANGELOG entry added. Zero Python code changed, zero tests added. The remaining 4 commits (`b1b89a9`..`b57608d`) were covered by Audits XXIV–XXIX.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits on all 5 commits.** `fix(enforce):` ×1, `docs(FR):` ×2, `chore(examples):` ×1, `refactor(examples):` ×1. All valid prefixes and scopes. No `feat:` commits in window — no FR-reference obligation. Commandment 10 format satisfied.
+
+2. **✓ COMPLIANT — CHANGELOG entry present for fix.** `06debf3` adds "Enforce Pipeline Timeout" under `### Fixed` in the Unreleased section. The entry describes the change clearly: timeout increased from 120s to 500s. Commandment 10 witness obligation met.
+
+3. **✓ COMPLIANT — No new capability; no requirement or test obligation.** A timeout parameter change in a YAML config file. No new node type, no new CLI command, no new provider. ADR-001 silent. No test can meaningfully condemn "timeout too short" — this is operational tuning, not logic.
+
+4. **✓ COMPLIANT — noqa confessions current.** Two suppressions in codebase: ANN001 (CONF-003) and ARG002 (CONF-002). Both documented in `docs/confessions.md`. No new suppressions introduced.
+
+5. **⚠ DRIFT — Copilot trailer absent on `06debf3`. FR-132 Approved, awaiting implementation.** Eleventh consecutive audit window without the `Co-authored-by: Copilot` trailer. Per Audit XXVIII's Rite of Escalation, this remains ⚠ (not ✗) because FR-132 exists with Status: Approved. The remediation has an owner and a plan; what it lacks is execution priority. The enforce pipeline queue currently holds FR-134 and FR-135 ahead of it.
+
+**Heuristic:** *A fix without a failing test is a hypothesis — unless the fix is configuration.* Commandment 7 demands a condemning test before every fix. But a timeout value in a YAML config file occupies the boundary between logic and operational tuning. No unit test can reproduce "PR creation takes longer than 120 seconds." The CHANGELOG entry and the commit message together provide sufficient witness. The doctrine's spirit (prove before fixing) is satisfied by the production failure that motivated the change; its letter (write a failing test) does not apply to infrastructure timing parameters.
+
+**Seed:** FR-132 (trailer enforcement) is a 0.25-day effort that would mechanically close the only recurring audit finding across thirty audits. FR-134 and FR-135 are multi-day efforts. Should the enforce pipeline support priority labels on FRs — or is the simplest fix to just manually implement FR-132 outside the pipeline, since it predates and would improve the pipeline itself?
+
+---
+
+## 2026-03-08: Inquisitor Audit XXIX — escalation acknowledged, enforcement pending
+
+**Context:** Twenty-ninth audit. One new commit since Audit XXVIII: `b1b89a9` (`docs(FR): add FR-135-examples-value-audit for enforce pipeline`). A 133-line feature request added to `feature-requests/`, zero production code, zero tests. The remaining 4 commits (`0619f68`..`23a55d9`) were covered by Audits XXVII–XXVIII. Audit XXVIII invoked the Rite of Escalation, demanding either an FR or ACCEPTED-RISK for the trailer gap before citing it again.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits on all 5 commits.** `docs(FR):` ×2, `chore(examples):` ×1, `refactor(examples):` ×1, `chore:` ×1. All valid prefixes and scopes. No `feat:` commits in window — no FR-reference obligation. Commandment 10 format satisfied.
+
+2. **✓ COMPLIANT — No CHANGELOG, requirement, or test obligation.** All 5 commits are planning (`docs(FR):`), housekeeping (`chore:`), or structural rename (`refactor:`). Zero production code changed. No new capability implemented — ADR-001 silent.
+
+3. **✓ COMPLIANT — noqa confessions current.** Two suppressions in codebase: ANN001 (CONF-003) and ARG002 (CONF-002). Both documented in `docs/confessions.md`. No new suppressions introduced.
+
+4. **⚠ DRIFT — Copilot trailer absent, but escalation path in progress.** Zero of 5 commits carry the `Co-authored-by: Copilot` trailer. However, FR-132 (`copilot-trailer-enforcement`) now exists with Status: Approved — satisfying Audit XXVIII's escalation demand for a formal artifact. The Plan step is complete; Enforce has not yet executed. This is no longer a calcified violation — it is an approved FR awaiting implementation. Downgraded from ✗ to ⚠ pending FR-132 landing.
+
+5. **⚠ DRIFT — All 5 commit bodies empty.** Consistent pattern: subjects are descriptive, but bodies carry zero context. For `docs(FR):` commits, the FR file itself contains rationale, so the loss is minimal. For `chore:` and `refactor:` commits, the *why* is recoverable from adjacent diary entries but absent from `git log`.
+
+**Heuristic:** *An approved FR transforms a violation into a scheduled fix.* Escalation worked: Audit XXVIII demanded an artifact, FR-132 appeared. The finding shifted from "nobody owns this" to "someone has committed to fix it." The audit's job now changes from *citing the gap* to *tracking the remediation*. A violation with an approved FR is a risk with a timeline, not a defect without an owner.
+
+**Seed:** FR-132 is approved but sits alongside FR-134 and FR-135 in the enforce pipeline queue. Given that FR-132 is a 0.25-day effort and would mechanically prevent the only recurring audit finding, should the enforce pipeline prioritize it ahead of the multi-day FRs — or does FIFO ordering serve the project better than severity-based triage?
+
+---
+
+## 2026-03-08: Inquisitor Audit XXVIII — Rite of Escalation invoked on trailer gap
+
+**Context:** Twenty-eighth audit. One new commit since Audit XXVII: `0619f68` (`docs(FR): add FR-134-diary-folder-refactor for enforce pipeline`). A pure planning commit — 263-line FR-134 added to `feature-requests/`, zero production code, zero tests. The remaining 4 commits (`c46cc08`..`43337e9`) were covered by Audits XXIV–XXVII. Audit XXVII's seed asked whether the audit should formally invoke the Rite of Escalation and refuse to cite CALCIFIED-9 again until either an FR or an ACCEPTED-RISK confession exists.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits on all 5 commits.** `docs(FR):`, `chore(examples):` ×1, `refactor(examples):` ×1, `chore:` ×1, `feat:` ×1. All valid prefixes. `feat:` commit references FR-128. Commandment 10 format satisfied.
+
+2. **✓ COMPLIANT — No new capability; no CHANGELOG, requirement, or test obligation.** `0619f68` adds a feature request document — the "Plan" step of the Sermon, not an implementation. No ARCHITECTURE.md requirement needed, no tests needed, no CHANGELOG entry needed.
+
+3. **✓ COMPLIANT — noqa confessions current.** Two suppressions in codebase: ANN001 (CONF-003) and ARG002 (CONF-002). Both documented. No new suppressions introduced.
+
+4. **✗ VIOLATION — Copilot Co-authored-by trailer missing (CALCIFIED-10). Rite of Escalation invoked.** Tenth consecutive audit. `0619f68` has an empty body. Zero of 5 commits carry the Copilot trailer. The Knowledge Graph names this explicitly: `audit_as_ritual` — "3+ audits without fix → ritual, not process." At ten repetitions, this audit formally invokes the Rite of Escalation (Commandment 10, Rite of Correction §Escalate): the trailer gap is no longer a per-audit finding — it is an open defect requiring either (a) an FR for a pre-commit hook enforcing the trailer, or (b) formal ACCEPTED-RISK documentation in `docs/confessions.md`. This audit will not cite CALCIFIED again until one of those artifacts exists.
+
+5. **⚠ DRIFT — `0619f68` body empty; 263-line planning document committed without rationale.** FR-134 proposes a significant diary refactoring. The commit subject says *what* was added, but the empty body loses *why now* and *what triggered it*. The FR file itself contains the rationale, but `git log` readers shouldn't need to open the file to understand the commit's purpose.
+
+**Heuristic:** *Escalation is the cure for ritual.* When an audit finding survives ten cycles without remediation, the finding has become noise — it numbs reviewers to the audit's signal. The Rite of Correction demands: "If amendment is impossible, write the feature request… Return to Plan." The trailer gap is not impossible to amend — it is a 5-line pre-commit hook. What was impossible was the willingness to prioritize it. Escalation forces the choice: fix or formally accept.
+
+**Seed:** FR-134 (diary folder refactor) was just committed for the enforce pipeline to pick up. Should the very next FR after FR-134 be `FR-135-copilot-trailer-hook` — a pre-commit hook that rejects commits without `Co-authored-by: Copilot` — so that the enforce pipeline itself closes the calcified gap using its own machinery?
+
+---
+
+## 2026-03-08: Inquisitor Audit XXVII — dead code purged, trailer enforcement still absent
+
+**Context:** Twenty-seventh audit. One new commit since Audit XXVI: `c46cc08` (`chore(examples): remove obsolete watch-enforce demo`). A pure deletion — 77 lines removed from `examples/demos/watch-enforce/demo_detect.sh`, zero additions. The remaining 4 commits (`b57608d`..`8229bba`) were covered by Audits XXIV–XXVI. Audit XXVI's seed asked whether a pre-commit hook validating the Copilot trailer is the cheapest fix to close the only open calcified finding.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits on all 5 commits.** `chore(examples):` ×2, `refactor(examples):`, `chore:`, `feat:`. All valid prefixes. `feat:` commit references FR-128. Commandment 10 format satisfied.
+
+2. **✓ COMPLIANT — Commandment 8 obeyed: dead code killed.** `c46cc08` removes an obsolete demo script — entropy reduction, no shims preserved. The deletion is a `chore`, not user-facing — no CHANGELOG entry needed. No new capability introduced — no requirement or test obligation.
+
+3. **✓ COMPLIANT — noqa confessions current.** Two suppressions in codebase: ANN001 (CONF-003) and ARG002 (CONF-002). Both documented. No new suppressions introduced by any commit in the window.
+
+4. **✗ VIOLATION — Copilot Co-authored-by trailer missing on all 5 commits (CALCIFIED-9).** Ninth consecutive audit. `c46cc08` has an empty body. `43337e9` carries only the human trailer. The remaining three have no Copilot trailer. Audit XXVI proposed a pre-commit hook as the cheapest fix; nothing has landed. The pattern is now beyond calcified — it is accepted-by-inaction.
+
+5. **⚠ DRIFT — `c46cc08` body empty; deletion rationale lost.** Why is the watch-enforce demo "obsolete"? Was its functionality absorbed by the session-continuation demo renamed in `b57608d`? The subject says *what*, the missing body loses *why*. Trivial to recover from context, but git log readers shouldn't need to.
+
+**Heuristic:** *Nine audits of the same violation without a fix is not a finding — it is a policy.* If the Copilot trailer truly matters, the next action is a pre-commit hook (5 lines of shell). If it doesn't matter enough to enforce, formally document it as accepted risk in `docs/confessions.md` and stop citing it. Repeating a finding without acting on it is the `audit_as_ritual` trap from the Knowledge Graph.
+
+**Seed:** The Knowledge Graph names `audit_as_ritual` explicitly: "3+ audits without fix → ritual, not process." At nine repetitions, should this audit formally invoke the Rite of Escalation — write the FR for the pre-commit trailer hook, or write the ACCEPTED-RISK confession — and refuse to cite CALCIFIED-9 again until one of those two artifacts exists?
+
+---
+
+## 2026-03-08: Inquisitor Audit XXVI — one rename, zero trailers, compliance plateau
+
+**Context:** Twenty-sixth audit. One new commit since Audit XXV: `b57608d` (`refactor(examples): rename enforcer to session-continuation demo`). A pure file-rename — 4 files moved from `examples/enforcer/` to `examples/demos/session-continuation/`, zero insertions, zero deletions. The remaining 4 commits (`23a55d9`..`8e68395`) were already covered by Audits XXIV–XXV. Audit XXV's seed asked whether `finalize_merge.sh` should be triggered by a GitHub Action on PR merge to remove the manual invocation step.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits on all 5 commits.** `refactor(examples):`, `chore:` ×2, `feat:` ×2. All valid prefixes with appropriate scopes. `feat:` commits reference their FRs (FR-128, FR-131). Commandment 10 satisfied.
+
+2. **✓ COMPLIANT — ADR-001 traceability fully covered.** REQ-YG-128 and REQ-YG-131 both exist in `ARCHITECTURE.md` (lines 315–316, 663, 671). `test_enforce_yamlgraphication.py` has 6 `@pytest.mark.req("REQ-YG-128")` tags; `test_inquisitor_gate.py` has 4+ `@pytest.mark.req("REQ-YG-131")` tags. The refactor commit introduces no new capability — no requirement needed.
+
+3. **✓ COMPLIANT — CHANGELOG entries present for both features.** FR-128 and FR-131 each have `[Unreleased] → Added` entries. The refactor is a rename, not a user-facing change — no CHANGELOG obligation. noqa confessions current: CONF-002 (ARG002) and CONF-003 (ANN001) documented; no new suppressions introduced.
+
+4. **✗ VIOLATION — Copilot Co-authored-by trailer missing on all 5 commits (CALCIFIED-8).** Eighth consecutive audit. `b57608d` has an empty body — not even the human trailer. The two `feat:` squash-merges carry `Co-authored-by: Sami J P Heikkinen` but not the required Copilot trailer. `23a55d9` has an empty body. `8229bba` has bullet points but no trailer. Audit XXV proposed a GitHub Action on PR merge as the fix; nothing has landed. The gap is now structural: no enforcement mechanism exists at any level (pre-commit, CI, or post-merge automation).
+
+5. **⚠ DRIFT — `b57608d` body is empty; rename rationale lost.** Renaming `examples/enforcer/` to `examples/demos/session-continuation/` is a meaningful semantic change — the demo's *purpose* changed from "enforcer" to "session-continuation." The commit subject communicates the *what* but the empty body loses the *why*. Future `git log` readers won't know whether this was a scope change, a rebranding, or a bug fix. Minor — the change is trivially reversible and the README survives the move.
+
+**Heuristic:** *A compliance plateau without enforcement is a ceiling, not a floor.* Conventional Commits, CHANGELOG, ADR-001 traceability — all consistently green across audits XXIV–XXVI. The trailer is the only recurring violation, and it recurs because it's the only obligation with zero enforcement. The green findings aren't virtue — they're habits backed by pre-commit hooks and CI. The red finding isn't negligence — it's the absence of a hook. Compliance follows tooling, not intention.
+
+**Seed:** The enforce pipeline now handles FR lifecycle end-to-end, but `finalize_merge.sh` itself is invoked manually and produces inconsistent trailers. Should the next FR propose a *single* pre-commit hook that validates `Co-authored-by: Copilot` on all commits — the cheapest possible fix to close the only open calcified finding? Or has eight audits of repetition proven this is genuinely accepted risk that should be formally documented as such?
+
+---
+
+## 2026-03-08: Inquisitor Audit XXV — script exists, humans bypass it
+
+**Context:** Twenty-fifth audit. One new commit since Audit XXIV: `23a55d9` (`chore: FR-128 post-merge finalization`). Audit XXIV's seed asked whether the enforce pipeline's *own* test coverage should be verified. This audit answers that question and examines whether the tested automation is actually being used.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Pipeline test coverage is substantial.** `test_finalize_merge.py` (16 tests), `test_enforce_yamlgraphication.py` (21 tests), `test_inquisitor_gate.py` (38 tests) — 75 tests total across the three pipeline scripts. `test_commit_includes_co_author` (line 403) explicitly asserts the Copilot trailer appears in finalize commits. `finalize_merge.sh` line 107 includes the trailer in its heredoc template. Audit XXIV's seed answered: yes, the pipeline tests its own doctrine obligations.
+
+2. **✗ VIOLATION — `23a55d9` was created manually, bypassing `finalize_merge.sh` (CALCIFIED-7).** The commit has an empty body — no bullet points, no trailer. The script's heredoc template produces bullets + trailer unconditionally (lines 99–108). A script-generated commit would have both. This proves the commit was `git commit -m "chore: FR-128 post-merge finalization"`, bypassing the tested automation. The test suite guards the script; nothing guards the human from skipping the script.
+
+3. **✓ COMPLIANT — Conventional Commits format on the new commit.** `chore:` prefix valid. FR-128 reference present.
+
+4. **⚠ DRIFT — Tested automation that isn't invoked is dead code with a pulse.** `finalize_merge.sh` is correct, tested, and includes the trailer. But 2 of 3 finalization commits in this batch (`23a55d9`, `8229bba`) were created without using it. The test coverage creates false confidence — the gate exists but the door is open.
+
+5. **✓ COMPLIANT — noqa confessions current.** No new suppressions introduced. CONF-002 (ARG002) and CONF-003 (ANN001) remain documented.
+
+**Heuristic:** *A tested script that humans bypass is a lock with the key left in it.* The fix isn't more tests — it's making the script the only path. Either: (a) a pre-commit hook that rejects `chore: FR-XXX post-merge finalization` commits lacking the trailer, or (b) the pipeline invokes `finalize_merge.sh` automatically after merge (GitHub Action on PR close), eliminating the manual step entirely.
+
+**Seed:** Should `finalize_merge.sh` be triggered by a GitHub Action on PR merge (`on: pull_request: types: [closed]`) instead of requiring manual invocation? If the human step is the failure mode, remove the human step.
+
+---
+
+## 2026-03-08: Inquisitor Audit XXIV — enforce pipeline delivers, trailer split emerges
+
+**Context:** Twenty-fourth audit covering commits `50071b2`..`43337e9` (5 commits: `feat:` ×3 via PR squash-merge, `chore:` ×2 via `finalize_merge.sh`). Three features implemented: FR-127 (CI Conventional Commit enforcement), FR-128 (YAMLGraphication of enforcer), FR-131 (Inquisitor commit-delta gate). All three went through the enforce pipeline end-to-end — the first batch where every feature was enforced, finalized, and released via automation. Significant: this is the first audit with *zero manual code commits*.
+
+**Findings:**
+
+1. **✓ COMPLIANT — Conventional Commits and FR references on all feat commits.** All three `feat:` commits reference their FR (`FR-127`, `FR-128`, `FR-131`). Both `chore:` commits use valid prefix. Commandment 10 format requirement satisfied.
+
+2. **✓ COMPLIANT — CHANGELOG entries present for all three features.** FR-127, FR-128, and FR-131 each have `[Unreleased] → Added` entries. The finalize pipeline (`finalize_merge.sh`) is producing these automatically — the CHANGELOG gap cited in Audits XVIII–XX is now closed by design.
+
+3. **✓ COMPLIANT — Requirements and test traceability for FR-128 and FR-131.** Both have `REQ-YG-{128,131}` in `ARCHITECTURE.md` with matching `@pytest.mark.req` tags in their test files. ADR-001 satisfied.
+
+4. **⚠ DRIFT — FR-127 has no dedicated REQ-YG-127 in ARCHITECTURE.md.** The `test_commitlint_workflow.py` tests use `REQ-YG-002` (the general Conventional Commits requirement) rather than a FR-127-specific requirement. The CI workflow and `revert` type addition are real capabilities that deserve explicit traceability. Minor — the tests exist and are tagged, but to a pre-existing generic requirement rather than a specific one.
+
+5. **✗ VIOLATION — Copilot Co-authored-by trailer missing on 4/5 commits (CALCIFIED-6).** Only `745ba77` (FR-127 finalization) includes `Co-authored-by: Copilot <...>`. The three `feat:` squash-merge commits carry `Co-authored-by: Sami J P Heikkinen` (the human) but not the required Copilot trailer. `8229bba` (FR-131 finalization) has no trailer at all. **New pattern identified:** `finalize_merge.sh` is inconsistent — it added the trailer for FR-127 but omitted it for FR-131. The enforce pipeline's squash-merge commits never include it. Two distinct injection points need fixing: (a) `finalize_merge.sh` trailer generation, (b) PR description template for squash-merge commits. Seventh consecutive audit; Audit XXIII's seed asked whether to mark this ACCEPTED-RISK — the answer is no, because the inconsistency in `finalize_merge.sh` proves the mechanism was *attempted* but is unreliable.
+
+**Heuristic:** *Inconsistent automation is worse than no automation — it creates false confidence.* `finalize_merge.sh` adding the trailer for FR-127 but not FR-131 means the tool sometimes works, which makes the gap invisible in spot checks. The fix: make `finalize_merge.sh` unconditionally append the trailer (it's a two-line fix), and add the Copilot trailer to the enforce pipeline's PR body template so squash-merges inherit it.
+
+**Seed:** The enforce pipeline now handles plan→implement→PR→merge→finalize end-to-end. Should Audit XXV verify the pipeline's *own* test coverage — i.e., are `enforce_worktree.sh` and `finalize_merge.sh` themselves tested for trailer injection, CHANGELOG formatting, and error paths? A pipeline that enforces doctrine on others but is untested itself is a priest who never confesses.
+
+---
+
 ## 2026-03-07: Inquisitor Audit XXIII — planning-only batch, trailer calcification continues
 
 **Context:** Twenty-third audit covering commits `f3c6b73`..`5c33f8c` (5 commits: `docs(FR):` ×3, `chore:` ×1, `fix(enforce):` ×1). Zero Python code changed. Zero tests added or modified. This is a pure planning-and-housekeeping batch: three new feature requests (FR-124, FR-125, FR-127), copilot instruction updates, diary entries, and a worktree bug fix. No new capabilities implemented.
@@ -1580,3 +1734,35 @@ FR-128 was a clean surgical refactor: the enforce pipeline's five inline copilot
 **Heuristic:** [What lesson was learned?]
 
 **Seed:** [What question remains?]
+
+---
+
+## 2026-03-08: Chaplain — Diary Refactor FR Gaps and Robustness
+
+FR-134 was drafted to address the diary folder refactoring, covering five actors, SHA extraction migration for REQ-YG-131, 16 acceptance criteria, and 30+ file references. The Judge identified five critical gaps: missing `examples/shared/diary.py` in Script Changes, omitted `commit-delta-gate/demo.sh` from acceptance criteria, undefined archive threshold, fragile `ls -t` sorting for audit lookup (should use filename sort), and unspecified migration script approach despite `tmp/split_diary.py` existing. The research was thorough, but implementation details need hardening before authority approval.
+
+**Seed:** How should we design the migration path to handle existing diary archives without data loss, and what filename sorting strategy ensures robust audit SHA extraction across git state changes?
+
+---
+
+## 2026-03-08: Chaplain — FR-134: Diary Folder Refactor Approved
+
+FR-134 successfully drafted and approved after comprehensive research. The proposal addresses five critical judgement gaps: migration plan for `examples/shared/diary.py`, scope inclusion of `commit-delta-gate/demo.sh`, deferred archive threshold, sorting algorithm replacement, and detailed parsing specifications. Judge verified all 10 file references and discovered two additional acceptance criteria in `.github/copilot-instructions.md` and `ARCHITECTURE.md`. The FR solves a recurring merge conflict problem with sound per-file design. Five observations documented for implementer guidance. Scope frozen and authority granted—ready for enforcement phase.
+
+**Seed:** How should the implementation phase handle the five observations flagged by the judge, and which ones pose the highest risk to successful deployment?
+
+---
+
+## 2026-03-08: Chaplain — FR-135: Examples Audit & Quality Enforcement
+
+FR-135 proposes a three-phase audit of the examples directory: classify 13 undocumented demos and 6 missing top-level examples into the README, enforce a minimum quality bar (README + runnable artifact), and archive 2 low-value entries. The planning phase identified the scope clearly, but the judge caught three critical factual errors—demo count (13 not 12), top-level examples (6 not 4, missing `ebook/`), and Phase 2 effort (lighter than estimated: 31/32 demos already meet quality standards). The verdict is APPROVED with scope frozen to documentation and file moves only—no code changes. This review demonstrates the value of verification: initial estimates shifted significantly once ground truth was established.
+
+**Seed:** How can we build verification checkpoints into the planning phase itself to catch count/scope misestimates before they're baked into the FR narrative?
+
+---
+
+## 2026-03-08: Chaplain — Judge Split Verdict Approved
+
+FR-136 proposes a fourth SPLIT verdict for the judge prompt to handle bundled orthogonal concerns by writing separate topics back to the inbox for independent re-planning. The plan phase drafted the feature request and identified it as prompt-only, requiring no pipeline code changes—just updates to two judge prompts and a new "Scope Count" criterion. The judge phase validated the proposal as well-scoped, architecturally sound, and measurable. The existing copilot node's file I/O capabilities naturally support SPLIT side effects within the linear graph flow. One pragmatic note: testing relies on manual judge invocation due to LLM non-determinism. The feature received APPROVE verdict and was moved to the feature-requests directory with frozen scope and authority to implement.
+
+**Seed:** How might the SPLIT verdict pattern extend beyond judge prompts—could it apply to other decision nodes that encounter bundled concerns, and what would the inbox-polling loop look like for those scenarios?
