@@ -14,7 +14,7 @@ user: |
 
   1. `.chaplain/inquisitor.sh` — Audit script
   2. `.pre-commit-config.yaml` — Post-commit hook definition
-  3. `docs/diary.md` — Sample audit entries
+  3. `docs/diary/` — Sample audit entries
 
   ## Chapter Requirements
 
@@ -38,7 +38,7 @@ user: |
 
   ### 4. Sample Audit Entry
 
-  Show an example from `docs/diary.md` of an Inquisitor audit entry:
+  Show an example from `docs/diary/` of an Inquisitor audit entry:
   - The structure
   - What gets recorded
   - How issues are flagged

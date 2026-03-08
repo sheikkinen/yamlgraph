@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-03-08
 
@@ -191,28 +191,28 @@ The original proposal included "move entries older than N days to `docs/diary/ar
 
 ## Acceptance Criteria
 
-- [ ] `docs/diary/` folder exists with naming convention `YYYY-MM-DD-<type>-<id>.md`
-- [ ] `finalize_merge.sh` writes reflection stubs as individual files to `docs/diary/`
-- [ ] `diary_rotate.py` writes scheduled imports (world digests, git reports) as individual files
-- [ ] `examples/shared/diary.py` `write_diary()` creates individual files in `docs/diary/` (DIARY_PATH → DIARY_DIR)
-- [ ] `.chaplain/inquisitor.sh` creates new audit entry files in `docs/diary/`
-- [ ] Inquisitor SHA extraction uses filename-sorted lookup (`sort -r | head -1`), not `ls -t`
-- [ ] Inquisitor propose mode scans `docs/diary/*inquisitor-audit*` files
-- [ ] `enforce_worktree.sh` excludes `docs/diary/` instead of `docs/diary.md`
-- [ ] `worktree_helpers.py` docstring and exclude path updated; tests pass
-- [ ] `diary_digest.sh` stages `docs/diary/` changes
-- [ ] `absolution.py` doctrine reference updated to `docs/diary/`
-- [ ] `examples/demos/commit-delta-gate/demo.sh` updated for folder-based audit lookup
-- [ ] Migration script `scripts/migrate_diary_to_folder.py` splits `docs/diary.md` into individual files
-- [ ] `docs/diary.md` removed after migration
-- [ ] Archived diary files (`docs/diary-YYYY-MM-DD.md`) remain untouched (historical)
-- [ ] Example prompts referencing `docs/diary.md` updated (`examples/ebook/prompts/`, `examples/copilot/`)
-- [ ] Pre-commit `diary-rotate` hook updated for folder-based operation
-- [ ] Tests updated: `test_finalize_merge.py`, `test_inquisitor_gate.py`, `test_diary_rotate.py`, `test_diary_digest.py`, `test_worktree_helpers.py`
-- [ ] `.github/copilot-instructions.md` doctrine references updated (lines 31, 145)
-- [ ] `ARCHITECTURE.md` REQ-YG-131 and inquisitor spec references updated (lines 640, 663)
-- [ ] No merge conflicts occur when two actors write diary entries simultaneously
-- [ ] Archive threshold deferred — no archival logic in this FR
+- [x] `docs/diary/` folder exists with naming convention `YYYY-MM-DD-<type>-<id>.md`
+- [x] `finalize_merge.sh` writes reflection stubs as individual files to `docs/diary/`
+- [x] `diary_rotate.py` writes scheduled imports (world digests, git reports) as individual files
+- [x] `examples/shared/diary.py` `write_diary()` creates individual files in `docs/diary/` (DIARY_PATH → DIARY_DIR)
+- [x] `.chaplain/inquisitor.sh` creates new audit entry files in `docs/diary/`
+- [x] Inquisitor SHA extraction uses filename-sorted lookup (`sort -r | head -1`), not `ls -t`
+- [x] Inquisitor propose mode scans `docs/diary/*inquisitor-audit*` files
+- [x] `enforce_worktree.sh` excludes `docs/diary/` instead of `docs/diary.md`
+- [x] `worktree_helpers.py` docstring and exclude path updated; tests pass
+- [x] `diary_digest.sh` stages `docs/diary/` changes
+- [x] `absolution.py` doctrine reference updated to `docs/diary/`
+- [x] `examples/demos/commit-delta-gate/demo.sh` updated for folder-based audit lookup
+- [x] Migration script `scripts/migrate_diary_to_folder.py` splits `docs/diary.md` into individual files
+- [x] `docs/diary.md` removed after migration
+- [x] Archived diary files (`docs/diary-YYYY-MM-DD.md`) remain untouched (historical)
+- [x] Example prompts referencing `docs/diary.md` updated (`examples/ebook/prompts/`, `examples/copilot/`)
+- [x] Pre-commit `diary-rotate` hook updated for folder-based operation
+- [x] Tests updated: `test_finalize_merge.py`, `test_inquisitor_gate.py`, `test_diary_rotate.py`, `test_diary_digest.py`, `test_worktree_helpers.py`
+- [x] `.github/copilot-instructions.md` doctrine references updated (lines 31, 145)
+- [x] `ARCHITECTURE.md` REQ-YG-131 and inquisitor spec references updated (lines 640, 663)
+- [x] No merge conflicts occur when two actors write diary entries simultaneously
+- [x] Archive threshold deferred — no archival logic in this FR
 
 ## Alternatives Considered
 

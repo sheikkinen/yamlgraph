@@ -32,12 +32,12 @@ class TestEnforceScriptDelegatesToGraph:
     def test_script_passes_fr_path_var(self):
         """Script passes --var fr_path to the graph run."""
         content = _read_enforce_script()
-        assert '--var fr_path=' in content or "--var fr_path=" in content
+        assert "--var fr_path=" in content or "--var fr_path=" in content
 
     def test_script_passes_branch_var(self):
         """Script passes --var branch to the graph run."""
         content = _read_enforce_script()
-        assert '--var branch=' in content or "--var branch=" in content
+        assert "--var branch=" in content or "--var branch=" in content
 
     def test_script_uses_full_flag(self):
         """Script uses --full flag for complete graph output."""
@@ -67,7 +67,7 @@ class TestEnforceScriptNoHardcodedPrompts:
     def test_no_copilot_dash_p_invocations(self):
         """No copilot -p calls remain in the script."""
         content = _read_enforce_script()
-        assert 'copilot -p' not in content
+        assert "copilot -p" not in content
 
 
 @pytest.mark.req("REQ-YG-128")
@@ -86,8 +86,9 @@ class TestEnforceScriptNoInlinePhases:
         lines = content.splitlines()
         # Count git commit occurrences - only the FR commit before worktree is allowed
         git_commit_lines = [
-            l for l in lines
-            if "git commit" in l and "# " not in l.lstrip()[:2]
+            line
+            for line in lines
+            if "git commit" in line and "# " not in line.lstrip()[:2]
         ]
         # The FR commit (line ~69) is acceptable; the phase 4 commit is not
         # After thinning, there should be at most 1 git commit (the FR pre-commit)
@@ -130,7 +131,7 @@ class TestEnforceScriptRetainsLifecycle:
     def test_retains_argument_validation(self):
         """Argument validation is retained."""
         content = _read_enforce_script()
-        assert 'Usage:' in content
+        assert "Usage:" in content
 
     def test_retains_fr_file_check(self):
         """FR file existence check is retained."""

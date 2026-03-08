@@ -13,7 +13,7 @@ def main() -> int:
     print("✓ Absolution granted")
     print()
     print(
-        "**Distill.** After completing a task list, add a metacognitive entry to docs/diary.md."
+        "**Distill.** After completing a task list, add a metacognitive entry to docs/diary/."
     )
     print("Name the cognitive trap or insight. Extract a heuristic.")
     print("Plant a seed — a forward-looking question to grow new ideas.")

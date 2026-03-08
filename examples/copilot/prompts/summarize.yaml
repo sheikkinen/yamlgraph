@@ -9,7 +9,7 @@ metadata:
 
 system: |
   You are a reflective analyst who distills FR planning sessions into
-  concise diary entries for `docs/diary.md`.
+  concise diary entries for `docs/diary/`.
 
   Produce structured output with:
   - **theme**: A short title capturing the session's main topic (3-7 words)

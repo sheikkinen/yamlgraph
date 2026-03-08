@@ -2,15 +2,17 @@
 
 Used by diary_digest and .chaplain workflows.
 FR-097: Extracted from examples/diary_digest/nodes/writing.py for neutral ownership.
+FR-134: Refactored to write individual files to docs/diary/ folder.
 """
 
 import logging
 import re
+from datetime import datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DIARY_PATH = Path(__file__).resolve().parent.parent.parent / "docs" / "diary.md"
+DIARY_DIR = Path(__file__).resolve().parent.parent.parent / "docs" / "diary"
 
 
 # ---------------------------------------------------------------------------
@@ -40,12 +42,6 @@ def format_diary_entry(
     return f"\n---\n\n## {date_str}: {prefix} — {theme}\n\n{body}\n\n**Seed:** {seed}\n"
 
 
-def append_to_diary(path: Path, entry: str) -> None:
-    """Append a formatted entry to the diary file."""
-    with open(path, "a") as f:
-        f.write(entry)
-
-
 def should_write_entry(
     articles: list[dict],
     threshold: float = 0.3,
@@ -66,13 +62,13 @@ def should_write_entry(
 
 
 def write_diary(state: dict) -> dict:
-    """Format and append diary entry from synthesized LLM output.
+    """Format and write diary entry as individual file in docs/diary/.
 
     Graph tool — reads diary_entry from state (Pydantic model with
-    theme, body, seed fields), formats it, and appends to docs/diary.md.
+    theme, body, seed fields), formats it, and writes to docs/diary/.
     """
     entry_data = state.get("diary_entry", {})
-    date_str = state.get("date", "unknown")
+    date_str = state.get("date", datetime.now().strftime("%Y-%m-%d"))
     prefix = state.get("diary_prefix", "World Digest")
 
     # Handle Pydantic model, dict, or string representation
@@ -104,7 +100,11 @@ def write_diary(state: dict) -> dict:
         prefix=prefix,
     )
 
-    append_to_diary(DIARY_PATH, entry)
-    logger.info(f"✓ Entry appended to {DIARY_PATH}")
+    entry_type = prefix.lower().replace(" ", "-")
+    filename = f"{date_str}-{entry_type}.md"
+    entry_path = DIARY_DIR / filename
+    DIARY_DIR.mkdir(parents=True, exist_ok=True)
+    entry_path.write_text(entry)
+    logger.info(f"✓ Entry written to {entry_path}")
 
     return {"written": True}

@@ -129,22 +129,25 @@ class TestWorktreeValidation:
         with pytest.raises(ValueError, match="staged changes"):
             validate_clean_working_tree()
 
-    def test_validate_excludes_diary_from_check(self, monkeypatch):
-        """Excluded paths are ignored in validation."""
+    def test_validate_excludes_diary_folder_from_check(self, monkeypatch):
+        """Excluded directory paths (trailing /) are ignored in validation."""
         import subprocess
 
         from yamlgraph.utils.worktree_helpers import validate_clean_working_tree
 
         def mock_run(cmd, **kwargs):
-            # Return diary.md as modified - should be excluded
+            # Return a file inside docs/diary/ as modified - should be excluded
             return subprocess.CompletedProcess(
-                cmd, returncode=0, stdout="docs/diary.md\n", stderr=""
+                cmd,
+                returncode=0,
+                stdout="docs/diary/2026-03-08-world-digest.md\n",
+                stderr="",
             )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        # Should pass because diary.md is excluded
-        assert validate_clean_working_tree(exclude_paths=["docs/diary.md"]) is True
+        # Should pass because docs/diary/ prefix is excluded
+        assert validate_clean_working_tree(exclude_paths=["docs/diary/"]) is True
 
     def test_validate_raises_when_non_excluded_files_dirty(self, monkeypatch):
         """Non-excluded files in dirty state still cause failure."""
@@ -153,13 +156,16 @@ class TestWorktreeValidation:
         from yamlgraph.utils.worktree_helpers import validate_clean_working_tree
 
         def mock_run(cmd, **kwargs):
-            # Return both excluded and non-excluded files
+            # Return both excluded diary folder file and non-excluded file
             return subprocess.CompletedProcess(
-                cmd, returncode=0, stdout="docs/diary.md\nsrc/foo.py\n", stderr=""
+                cmd,
+                returncode=0,
+                stdout="docs/diary/2026-03-08-world-digest.md\nsrc/foo.py\n",
+                stderr="",
             )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
         # Should fail because src/foo.py is not excluded
         with pytest.raises(ValueError, match="src/foo.py"):
-            validate_clean_working_tree(exclude_paths=["docs/diary.md"])
+            validate_clean_working_tree(exclude_paths=["docs/diary/"])

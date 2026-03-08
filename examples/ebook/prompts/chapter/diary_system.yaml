@@ -12,7 +12,7 @@ user: |
 
   ## Files to Read
 
-  1. `docs/diary.md` — **PRIMARY SOURCE** for schema and examples
+  1. `docs/diary/` — **PRIMARY SOURCE** for schema and examples
   2. `scripts/diary_rotate.py` — Rotation logic
   3. `examples/diary_digest/graph.yaml` — Digest pipeline (if exists)
   4. `examples/shared/diary.py` — Entry format utility
@@ -26,7 +26,7 @@ user: |
 
   ### 2. Entry Schema
 
-  As defined in `docs/diary.md`:
+  As defined in `docs/diary/`:
 
   Show the structure of a diary entry:
   - Date and context
@@ -64,5 +64,5 @@ user: |
   ## Output Format
 
   Return complete chapter as Markdown.
-  Include example diary entries from the actual `docs/diary.md`.
+  Include example diary entries from the actual `docs/diary/`.
   Use file citations for traceability.

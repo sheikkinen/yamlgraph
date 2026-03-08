@@ -15,7 +15,7 @@ user: |
   1. `ARCHITECTURE.md` — **PRIMARY SOURCE** for REQ-YG-XXX definitions and capability mapping
   2. `scripts/req_coverage.py` — The enforcement script
   3. `.github/copilot-instructions.md` — ADR-001 doctrine section
-  4. `docs/diary.md` — Recent entries showing verification runs
+  4. `docs/diary/` — Recent entries showing verification runs
   5. Any test file with `@pytest.mark.req` decorators (e.g., `tests/unit/test_graph_loader.py`)
 
   ## Chapter Requirements

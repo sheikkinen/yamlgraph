@@ -53,7 +53,7 @@ user: |
   - write_diary (Python tool)
 
   ### 5. Integration with Diary
-  How the Chaplain writes entries to `docs/diary.md`
+  How the Chaplain writes entries to `docs/diary/`
 
   ## Output Format
 
