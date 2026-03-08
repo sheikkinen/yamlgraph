@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-134 Diary Folder Refactor — Replace Single File with Date-Prefixed Entries**: Replace the monolithic `docs/diary.md` with a `docs/diary/` folder of date-prefixed entry files, eliminating merge conflicts caused by concurrent appends from `finalize_merge.sh`, `diary_rotate.py`, `inquisitor.sh`, and `examples/shared/diary.py`. (REQ-YG-131)
 - **FR-131 Inquisitor commit-delta gate**: Add a pre-flight gate to `inquisitor.sh` that aborts when no `feat:` or `fix:` commits exist since the last audit, breaking the ritual loop documented in Audits XI–XIII.
 - **FR-128 YAMLGraphication of Enforcer**: Approved FR to replace inline `copilot -p` calls in `enforce_worktree.sh` with `yamlgraph graph run examples/enforce/graph.yaml`, completing the FR-106 declarative enforce pipeline vision.
 - **FR-127 CI Conventional Commit Enforcement**: `.github/workflows/commitlint.yml` validates PR titles against Conventional Commits via `action-semantic-pull-request@v5`; enforces `FR-XXX` reference on `feat` PRs via inline script with env-based variable passing (no script injection). `revert` type added to both CI and local `conventional-pre-commit` hook for parity.
