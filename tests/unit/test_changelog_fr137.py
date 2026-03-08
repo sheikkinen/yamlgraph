@@ -39,24 +39,22 @@ class TestFR137ChangelogEntry:
             "DEEPSEEK_API_KEY" in entry
         ), f"FR-137 entry missing 'DEEPSEEK_API_KEY': {entry}"
 
-    def test_entry_in_unreleased_added_section(self):
-        """Entry lives under [Unreleased] → ### Added."""
+    def test_entry_in_added_section(self):
+        """Entry lives under an ### Added section (released in v0.4.61)."""
         lines = CHANGELOG.read_text().splitlines()
-        unreleased_idx = next(
-            (i for i, ln in enumerate(lines) if "[Unreleased]" in ln), None
-        )
-        assert unreleased_idx is not None, "No [Unreleased] section"
+        version_idx = next((i for i, ln in enumerate(lines) if "[0.4.61]" in ln), None)
+        assert version_idx is not None, "No [0.4.61] section"
 
-        # Find ### Added after [Unreleased]
+        # Find ### Added after [0.4.61]
         added_idx = next(
             (
                 i
-                for i, ln in enumerate(lines[unreleased_idx:], start=unreleased_idx)
+                for i, ln in enumerate(lines[version_idx:], start=version_idx)
                 if ln.strip() == "### Added"
             ),
             None,
         )
-        assert added_idx is not None, "No ### Added under [Unreleased]"
+        assert added_idx is not None, "No ### Added under [0.4.61]"
 
         # Find next section header after ### Added
         next_section_idx = next(
@@ -69,7 +67,7 @@ class TestFR137ChangelogEntry:
         )
 
         added_block = "\n".join(lines[added_idx:next_section_idx])
-        assert "FR-137" in added_block, "FR-137 not in [Unreleased] → ### Added section"
+        assert "FR-137" in added_block, "FR-137 not in [0.4.61] → ### Added section"
 
     def test_entry_position_descending_fr_order(self):
         """FR-137 appears after FR-138 and before FR-136 (descending order)."""

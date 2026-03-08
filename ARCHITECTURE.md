@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **51 capabilities** covering **113 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **52 capabilities** covering **114 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -327,6 +327,7 @@ YAMLGraph implements **51 capabilities** covering **113 requirements**. Each cap
 | 50 | CI CHANGELOG Gate | `.github/workflows/commitlint.yml` | REQ-YG-148 |
 | 51 | Branch Protection Documentation | `reference/break-glass.md` | REQ-YG-149 |
 | 52 | Architecture Capability Count Guard | `tests/unit/test_architecture_capability_count` | REQ-YG-150 |
+| 53 | CI Conflict Marker Gate | `.github/workflows/commitlint.yml` | REQ-YG-151 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -778,6 +779,14 @@ Guard test ensuring the capability and requirement counts in the summary sentenc
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-150 | **Architecture capability count guard**: CI test verifies the capability and requirement counts in the ARCHITECTURE.md summary sentence match the actual capability table rows and unique REQ-YG-IDs | `tests/unit/test_architecture_capability_count` |
+
+### 53. CI Conflict Marker Gate (FR-157)
+
+CI job that fails when unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) are found in tracked files, complementing the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-151 | **CI conflict marker gate**: The `conflict-check` job in `commitlint.yml` greps tracked files (excluding `.github/`) for conflict marker patterns and fails with non-zero exit when found | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_conflict_check` |
 
 ---
 
