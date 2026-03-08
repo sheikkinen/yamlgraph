@@ -314,6 +314,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 38 | Post-Merge Finalization | `scripts/finalize_merge.sh` | REQ-YG-125 |
 | 39 | Inquisitor Commit-Delta Gate | `.chaplain/inquisitor.sh` | REQ-YG-131 |
 | 40 | Enforce Pipeline Graph Delegation | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml` | REQ-YG-128 |
+| 41 | Clean GIT_* Test Fixture | `tests/conftest.py` | REQ-YG-140 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -669,6 +670,14 @@ Automates three post-merge obligations after a PR from the enforce pipeline is m
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-128 | `scripts/enforce_worktree.sh` calls `yamlgraph graph run examples/enforce/graph.yaml` with `--var fr_path` and `--var branch`; no inline prompts (`IMPLEMENT_PROMPT`, `TEST_PROMPT`, `FIX_PROMPT`), no `copilot -p` calls, no pre-commit retry loop, no inline git/PR commands remain | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml`, `tests/unit/test_enforce_yamlgraphication` |
+
+### 41. Clean GIT_* Test Fixture (FR-140)
+
+Session-scoped autouse pytest fixture strips `GIT_*` environment variables injected by pre-commit, preventing subprocess bleed into tests that create temporary git repos. Follows boundary normalization: sanitize external data where it enters the test process.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-140 | `_clean_git_env` session-scoped autouse fixture strips all `GIT_*` env vars at session start, restores on teardown; no-op when vars absent; prevents pre-commit `GIT_DIR`/`GIT_WORK_TREE` from leaking into subprocess git calls in `tmp_path`-based test repos | `tests/conftest.py`, `tests/unit/test_clean_git_env` |
 
 ---
 

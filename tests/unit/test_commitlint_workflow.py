@@ -62,9 +62,9 @@ class TestCommitlintWorkflowExists:
 
     def test_workflow_file_exists(self) -> None:
         """commitlint.yml must exist in .github/workflows/."""
-        assert WORKFLOW_PATH.exists(), (
-            f"Missing: {WORKFLOW_PATH.relative_to(REPO_ROOT)}"
-        )
+        assert (
+            WORKFLOW_PATH.exists()
+        ), f"Missing: {WORKFLOW_PATH.relative_to(REPO_ROOT)}"
 
     def test_workflow_is_valid_yaml(self) -> None:
         """The workflow file must be parseable YAML."""
@@ -79,9 +79,9 @@ class TestWorkflowTrigger:
     def test_triggers_on_pull_request(self) -> None:
         """Workflow must trigger on pull_request events."""
         wf = _load_workflow()
-        assert "pull_request" in wf.get("on", wf.get(True, {})), (
-            "Workflow must trigger on pull_request"
-        )
+        assert "pull_request" in wf.get(
+            "on", wf.get(True, {})
+        ), "Workflow must trigger on pull_request"
 
     def test_triggers_on_required_event_types(self) -> None:
         """Workflow must trigger on opened, edited, synchronize, reopened."""
@@ -89,9 +89,9 @@ class TestWorkflowTrigger:
         pr_config = wf.get("on", wf.get(True, {})).get("pull_request", {})
         event_types = set(pr_config.get("types", []))
         required = {"opened", "edited", "synchronize", "reopened"}
-        assert required <= event_types, (
-            f"Missing PR event types: {required - event_types}"
-        )
+        assert (
+            required <= event_types
+        ), f"Missing PR event types: {required - event_types}"
 
 
 @pytest.mark.req("REQ-YG-002")
@@ -109,9 +109,9 @@ class TestWorkflowTypes:
         workflow_types = sorted(
             t.strip() for t in types_str.strip().split("\n") if t.strip()
         )
-        assert workflow_types == EXPECTED_TYPES, (
-            f"Workflow types {workflow_types} != expected {EXPECTED_TYPES}"
-        )
+        assert (
+            workflow_types == EXPECTED_TYPES
+        ), f"Workflow types {workflow_types} != expected {EXPECTED_TYPES}"
 
     def test_revert_type_included(self) -> None:
         """The 'revert' type must be in the allowed types list."""
@@ -140,16 +140,16 @@ class TestTypeParity:
         ci_types = sorted(t.strip() for t in types_str.strip().split("\n") if t.strip())
 
         local_types = _get_precommit_conventional_types()
-        assert ci_types == local_types, (
-            f"CI types {ci_types} != local hook types {local_types}"
-        )
+        assert (
+            ci_types == local_types
+        ), f"CI types {ci_types} != local hook types {local_types}"
 
     def test_precommit_includes_revert(self) -> None:
         """The local conventional-pre-commit hook must include 'revert' type."""
         local_types = _get_precommit_conventional_types()
-        assert "revert" in local_types, (
-            "revert must be in conventional-pre-commit args for parity"
-        )
+        assert (
+            "revert" in local_types
+        ), "revert must be in conventional-pre-commit args for parity"
 
 
 @pytest.mark.req("REQ-YG-002")
@@ -169,12 +169,12 @@ class TestFeatFREnforcement:
         steps = wf["jobs"]["commitlint"]["steps"]
         fr_step = next(s for s in steps if "FR-XXX" in s.get("name", ""))
         run_script = fr_step.get("run", "")
-        assert "$PR_TITLE" in run_script, (
-            "Script must reference $PR_TITLE from env block"
-        )
-        assert "${{" not in run_script, (
-            "Script must NOT use ${{ }} inline interpolation (injection risk)"
-        )
+        assert (
+            "$PR_TITLE" in run_script
+        ), "Script must reference $PR_TITLE from env block"
+        assert (
+            "${{" not in run_script
+        ), "Script must NOT use ${{ }} inline interpolation (injection risk)"
 
     def test_feat_fr_step_has_conditional(self) -> None:
         """The FR-XXX step must only run for feat PRs (if condition)."""
@@ -201,6 +201,6 @@ class TestWorkflowPermissions:
         """Workflow must declare pull-requests: read permission."""
         wf = _load_workflow()
         perms = wf.get("permissions", {})
-        assert perms.get("pull-requests") == "read", (
-            "Workflow must have pull-requests: read permission"
-        )
+        assert (
+            perms.get("pull-requests") == "read"
+        ), "Workflow must have pull-requests: read permission"
