@@ -19,6 +19,7 @@ ENV/
 docs-planning/
 research/
 tmp/
+purgatory/
 
 # Symlinks to external projects
 matrix
