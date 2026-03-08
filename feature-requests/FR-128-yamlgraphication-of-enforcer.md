@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-03-07
 
@@ -114,18 +114,18 @@ The existing `examples/enforce/graph.yaml` is already well-structured. No change
 
 ## Acceptance Criteria
 
-- [ ] `scripts/enforce_worktree.sh` calls `yamlgraph graph run examples/enforce/graph.yaml` instead of raw `copilot -p`
-- [ ] All inline prompt strings (`IMPLEMENT_PROMPT`, `TEST_PROMPT`, `FIX_PROMPT`) are removed from the shell script
-- [ ] The hardcoded Phase 3 pre-commit retry loop (lines 132-157) is removed — the `precommit_check` copilot node handles iteration via its prompt
-- [ ] The hardcoded Phase 4-5 git/PR commands (lines 159-178) are removed — the `submit_pr` copilot node handles commit and PR creation via its prompt
-- [ ] Worktree lifecycle (create, symlink, cleanup trap) remains in the shell script
-- [ ] `--var fr_path` and `--var branch` are passed to the graph run
-- [ ] `examples/enforce/graph.yaml` passes `yamlgraph graph lint`
-- [ ] Shell script shrinks from ~200 lines to ~80 lines
-- [ ] End-to-end flow: `scripts/enforce_worktree.sh <FR-path>` creates worktree, runs graph, graph executes all four phases, worktree is cleaned up
-- [ ] `.chaplain/watch.sh` integration unchanged (it spawns `enforce_worktree.sh` which now internally uses the graph)
-- [ ] Tests: existing worktree helper unit tests remain green
-- [ ] Documentation: `examples/enforce/README.md` updated to note that the shell script delegates to the graph
+- [x] `scripts/enforce_worktree.sh` calls `yamlgraph graph run examples/enforce/graph.yaml` instead of raw `copilot -p`
+- [x] All inline prompt strings (`IMPLEMENT_PROMPT`, `TEST_PROMPT`, `FIX_PROMPT`) are removed from the shell script
+- [x] The hardcoded Phase 3 pre-commit retry loop (lines 132-157) is removed — the `precommit_check` copilot node handles iteration via its prompt
+- [x] The hardcoded Phase 4-5 git/PR commands (lines 159-178) are removed — the `submit_pr` copilot node handles commit and PR creation via its prompt
+- [x] Worktree lifecycle (create, symlink, cleanup trap) remains in the shell script
+- [x] `--var fr_path` and `--var branch` are passed to the graph run
+- [x] `examples/enforce/graph.yaml` passes `yamlgraph graph lint`
+- [x] Shell script shrinks from ~200 lines to ~80 lines
+- [x] End-to-end flow: `scripts/enforce_worktree.sh <FR-path>` creates worktree, runs graph, graph executes all four phases, worktree is cleaned up
+- [x] `.chaplain/watch.sh` integration unchanged (it spawns `enforce_worktree.sh` which now internally uses the graph)
+- [x] Tests: existing worktree helper unit tests remain green
+- [x] Documentation: `examples/enforce/README.md` updated to note that the shell script delegates to the graph
 
 ## Alternatives Considered
 

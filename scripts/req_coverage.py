@@ -34,6 +34,7 @@ _ALL_FRAMEWORK_REQS = (
     + [118]  # REQ-YG-118 (CAP-36 Inquisitor Auto-Propose)
     + [121]  # REQ-YG-121 (CAP-37 Architecture Provider Count Guard)
     + [125]  # REQ-YG-125 (CAP-38 Post-Merge Finalization)
+    + [128]  # REQ-YG-128 (CAP-40 Enforce Pipeline Graph Delegation)
     + [131]  # REQ-YG-131 (CAP-39 Inquisitor Commit-Delta Gate)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
@@ -202,6 +203,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-37": ("Architecture Provider Count Guard", ["REQ-YG-121"]),
     "CAP-38": ("Post-Merge Finalization", ["REQ-YG-125"]),
     "CAP-39": ("Inquisitor Commit-Delta Gate", ["REQ-YG-131"]),
+    "CAP-40": ("Enforce Pipeline Graph Delegation", ["REQ-YG-128"]),
 }
 
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# enforce_worktree.sh - Parallel Development Pipeline via Git Worktrees (FR-106)
+# enforce_worktree.sh - Parallel Development Pipeline via Git Worktrees (FR-106, FR-128)
 #
-# Creates an isolated git worktree, runs the enforce pipeline graph,
-# and cleans up - enabling parallel feature development.
+# Creates an isolated git worktree, delegates all LLM phases to the
+# enforce pipeline graph, and cleans up on exit.
 #
 # Usage:
 #   scripts/enforce_worktree.sh <feature-request-path> [base-branch]
@@ -11,11 +11,11 @@
 #   scripts/enforce_worktree.sh feature-requests/FR-106-parallel-worktree-pipeline.md
 #   scripts/enforce_worktree.sh feature-requests/FR-107-test.md develop
 #
-# The script:
+# The script (Presentation layer):
 # 1. Validates clean working tree (no uncommitted changes)
 # 2. Creates a git worktree with a branch derived from FR filename
 # 3. Symlinks the shared .venv to avoid redundant installs
-# 4. Runs the enforce pipeline graph inside the worktree
+# 4. Delegates to: yamlgraph graph run examples/enforce/graph.yaml
 # 5. Cleans up the worktree on exit (success or failure)
 
 set -euo pipefail
@@ -107,75 +107,13 @@ fi
 cd "$WORKTREE_DIR"
 log_info "Working in: $(pwd)"
 
-# Phase 1: Implementation (copilot)
-log_info "Phase 1: Implementation..."
-IMPLEMENT_PROMPT="Read the feature request at $FR_PATH. Follow TDD: write failing tests first, then implement the minimal change to make tests pass. Do not run pre-commit or git commands - just implement the code."
-
-copilot -p "$IMPLEMENT_PROMPT" --allow-all
-IMPL_EXIT=$?
-if [[ $IMPL_EXIT -ne 0 ]]; then
-    log_error "Implementation phase failed with exit code $IMPL_EXIT"
-    exit 1
-fi
-
-# Phase 2: Test and Demo (copilot)
-log_info "Phase 2: Test and Demo..."
-TEST_PROMPT="Run pytest for this feature. If tests fail, fix the code. Create a simple demo or example if applicable. Do not run pre-commit or git commands."
-
-copilot -p "$TEST_PROMPT" --allow-all --continue
-TEST_EXIT=$?
-if [[ $TEST_EXIT -ne 0 ]]; then
-    log_error "Test phase failed with exit code $TEST_EXIT"
-    exit 1
-fi
-
-# Phase 3: Pre-commit loop (shell runs pre-commit, copilot fixes)
-log_info "Phase 3: Pre-commit checks..."
-MAX_PRECOMMIT_ATTEMPTS=5
-for i in $(seq 1 $MAX_PRECOMMIT_ATTEMPTS); do
-    log_info "Pre-commit attempt $i/$MAX_PRECOMMIT_ATTEMPTS..."
-
-    if pre-commit run --all-files 2>&1 | tee /tmp/precommit-output.txt; then
-        log_info "Pre-commit passed!"
-        break
-    fi
-
-    if [[ $i -eq $MAX_PRECOMMIT_ATTEMPTS ]]; then
-        log_error "Pre-commit failed after $MAX_PRECOMMIT_ATTEMPTS attempts"
-        cat /tmp/precommit-output.txt
-        exit 1
-    fi
-
-    log_warn "Pre-commit failed, asking copilot to fix..."
-    FIX_PROMPT="Pre-commit hooks failed. Here's the output:
-
-$(cat /tmp/precommit-output.txt)
-
-Fix the issues. Do not run pre-commit yourself - I will run it after you fix the code."
-
-    copilot -p "$FIX_PROMPT" --allow-all --continue
-done
-
-# Phase 4: Commit and Push (shell)
-log_info "Phase 4: Commit and push..."
-FR_NUM=$(echo "$FR_PATH" | grep -oE 'FR-[0-9]+')
-COMMIT_MSG="feat: $FR_NUM implementation
-
-Auto-generated via enforce_worktree.sh pipeline"
-
-git add -A
-git commit -m "$COMMIT_MSG" --no-verify  # Skip hooks, we already ran them
-git push -u origin "$BRANCH"
-
-# Phase 5: Create PR (shell)
-log_info "Phase 5: Creating PR..."
-PR_TITLE="$FR_NUM: $(head -1 "$FR_PATH" | sed 's/^#* *//')"
-PR_BODY="Automated PR from enforce_worktree.sh
-
-Feature Request: $FR_PATH
-Branch: $BRANCH"
-
-gh pr create --title "$PR_TITLE" --body "$PR_BODY" --base "$BASE_BRANCH" || log_warn "PR creation failed or PR already exists"
+# Delegate all LLM phases to the enforce pipeline graph (FR-128)
+# The graph handles: implement → test/demo → pre-commit → submit PR
+log_info "Running enforce pipeline graph..."
+yamlgraph graph run examples/enforce/graph.yaml \
+    --var fr_path="$FR_PATH" \
+    --var branch="$BRANCH" \
+    --full
 
 log_info "Enforce pipeline completed successfully!"
 

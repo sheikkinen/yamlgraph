@@ -13,6 +13,28 @@ This pipeline orchestrates the full Enforce phase:
 
 All phases chain via session continuations (FR-105), giving each phase full context from prior phases.
 
+## Architecture (FR-128)
+
+The `scripts/enforce_worktree.sh` shell script is a **thin Presentation-layer wrapper** that handles worktree lifecycle (create, symlink, cleanup), then delegates all LLM orchestration to this graph:
+
+```
+┌─────────────────────────────────────────┐
+│  enforce_worktree.sh (Presentation)     │
+│  - Validate args, clean tree            │
+│  - Create worktree, symlink .venv       │
+│  - Cleanup on exit                      │
+├─────────────────────────────────────────┤
+│  graph.yaml (Logic)                     │
+│  - implement → test_and_demo            │
+│  - → precommit_check → submit_pr        │
+├─────────────────────────────────────────┤
+│  Copilot CLI (Side Effects)             │
+│  - Code edits, test runs, git, gh       │
+└─────────────────────────────────────────┘
+```
+
+This follows the same delegation pattern as `.chaplain/watch.sh` → `examples/copilot/graph.yaml`.
+
 ## Usage
 
 ### Via Orchestration Script (Recommended)

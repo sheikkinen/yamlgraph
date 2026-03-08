@@ -313,6 +313,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 37 | Architecture Provider Count Guard | `tests/unit/test_architecture_provider_count` | REQ-YG-121 |
 | 38 | Post-Merge Finalization | `scripts/finalize_merge.sh` | REQ-YG-125 |
 | 39 | Inquisitor Commit-Delta Gate | `.chaplain/inquisitor.sh` | REQ-YG-131 |
+| 40 | Enforce Pipeline Graph Delegation | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml` | REQ-YG-128 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -660,6 +661,14 @@ Automates three post-merge obligations after a PR from the enforce pipeline is m
 |------------|-------------|-------------|
 | REQ-YG-125 | `scripts/finalize_merge.sh` inserts CHANGELOG entry under `[Unreleased] / ### Added`, updates FR status to `✅ Implemented`, and appends diary reflection stub with Trap/Heuristic/Seed placeholders | `scripts/finalize_merge.sh`, `tests/unit/test_finalize_merge` |
 | REQ-YG-131 | `inquisitor.sh` commit-delta gate extracts last audit SHA from `docs/diary.md`, counts `feat:`/`fix:` commits since that SHA via `git log`, and aborts with clear message when none found; `--force` bypasses gate; gate degrades gracefully on missing diary, unparseable SHA, or first-ever audit; `--propose` respects gate; gate logic is pure shell | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_gate` |
+
+### 40. Enforce Pipeline Graph Delegation (FR-128)
+
+`scripts/enforce_worktree.sh` delegates all LLM orchestration to `examples/enforce/graph.yaml` instead of inline `copilot -p` calls, completing the three-layer separation: shell handles worktree lifecycle (Presentation), the YAML graph handles LLM phases (Logic), and Copilot CLI handles side effects.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-128 | `scripts/enforce_worktree.sh` calls `yamlgraph graph run examples/enforce/graph.yaml` with `--var fr_path` and `--var branch`; no inline prompts (`IMPLEMENT_PROMPT`, `TEST_PROMPT`, `FIX_PROMPT`), no `copilot -p` calls, no pre-commit retry loop, no inline git/PR commands remain | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml`, `tests/unit/test_enforce_yamlgraphication` |
 
 ---
 
