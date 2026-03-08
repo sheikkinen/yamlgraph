@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-166 CountRangeClaim Pydantic Model**: Replace loose `int` variables in count range verification with a validated `CountRangeClaim` Pydantic model. Inverted ranges (min > max) now fail at parse time. `VerificationViolation.details` populated with structured claim data. (REQ-YG-155)
 - **FR-165 No-Silent-Fallback Lint Rule (W017)**: Add lint rule W017 that flags `on_error: skip` nodes as silent fallback patterns violating Commandment 6. Suggests `on_error: fail` or `on_error: fallback` with explicit fallback node instead. (REQ-YG-114)
 - **FR-164 Verification Gate Pattern**: Add optional `verification` field to node definitions for silent failure detection. LLM states a falsifiable prediction before acting; runtime compares prediction against actual output using cosine similarity. Includes `VerificationConfig` schema, `verification.py` runtime, LLM node integration, linter checks, and demo example. (REQ-YG-064, REQ-YG-065)
 - **FR-163 Chaplain Inbox Instructions in CLAUDE.md**: Add "Submitting Proposals" section to `CLAUDE.md` documenting the `.chaplain/inbox/` workflow, mirroring `.github/copilot-instructions.md`. Closes discovery gap for Claude Code sessions.

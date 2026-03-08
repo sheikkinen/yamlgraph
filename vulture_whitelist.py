@@ -163,3 +163,4 @@ TokenTracker.on_llm_end
 from yamlgraph.verification import CountRangeClaim  # noqa: F401 (CONF-126)
 
 CountRangeClaim
+CountRangeClaim.validate_range  # Pydantic @model_validator

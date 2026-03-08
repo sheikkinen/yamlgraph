@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **56 capabilities** covering **118 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **58 capabilities** covering **119 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
