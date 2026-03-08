@@ -116,8 +116,4 @@ Enable **"Require branches to be up to date before merging"** on the existing re
 - Aligns with existing architecture: extends `commitlint.yml` (already PR-triggered) and FR-150 branch protection.
 - Single responsibility: both changes solve "conflict markers reaching main" — the CI gate catches existing markers, the up-to-date requirement prevents the race condition. Alternative #4 explicitly argues they are interdependent.
 
-**Editorial fixes applied:**
-1. AC #1: "all tracked files" → "tracked files (excluding workflow definitions)" to match the `:!.github` exclusion in the implementation.
-2. Added clarifying note that `*.md.bak` exclusion is defensive (these files should be gitignored).
-
 **No SPLIT warranted:** The CI gate and up-to-date requirement are two halves of one fix. The FR's own Alternative #4 demonstrates the CI gate alone is insufficient — it catches symptoms but not the race condition. Splitting would produce an incomplete FR.
