@@ -82,9 +82,7 @@ class TestDiaryGateJobStructure:
     def test_job_exists(self) -> None:
         """The commitlint workflow must contain a 'diary-gate' job."""
         wf = _load_workflow()
-        assert (
-            "diary-gate" in wf["jobs"]
-        ), "Missing 'diary-gate' job in commitlint.yml"
+        assert "diary-gate" in wf["jobs"], "Missing 'diary-gate' job in commitlint.yml"
 
     def test_job_name(self) -> None:
         """The job display name indicates diary is required for feat/fix."""
@@ -92,9 +90,7 @@ class TestDiaryGateJobStructure:
         job = wf["jobs"]["diary-gate"]
         name = job["name"].lower()
         assert "diary" in name, "Job name must mention diary"
-        assert (
-            "feat" in name or "fix" in name
-        ), "Job name must mention feat or fix"
+        assert "feat" in name or "fix" in name, "Job name must mention feat or fix"
 
     def test_job_condition_checks_feat(self) -> None:
         """The job-level `if` condition must check for 'feat' PR titles."""
@@ -157,9 +153,9 @@ class TestDiaryGateJobStructure:
         run_script = verify_steps[0]["run"]
         assert "reflection" in run_script, "Error must mention reflection"
         assert "Seed" in run_script, "Error must mention Seed question"
-        assert "Cognitive traps" in run_script or "traps" in run_script.lower(), (
-            "Error must mention cognitive traps"
-        )
+        assert (
+            "Cognitive traps" in run_script or "traps" in run_script.lower()
+        ), "Error must mention cognitive traps"
 
 
 # ── Shell Script Logic Tests ───────────────────────────────────────────────
