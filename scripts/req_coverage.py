@@ -36,6 +36,7 @@ _ALL_FRAMEWORK_REQS = (
     + [125]  # REQ-YG-125 (CAP-38 Post-Merge Finalization)
     + [128]  # REQ-YG-128 (CAP-40 Enforce Pipeline Graph Delegation)
     + [131]  # REQ-YG-131 (CAP-39 Inquisitor Commit-Delta Gate)
+    + [140]  # REQ-YG-140 (CAP-41 Clean GIT_* Test Fixture)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -204,6 +205,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-38": ("Post-Merge Finalization", ["REQ-YG-125"]),
     "CAP-39": ("Inquisitor Commit-Delta Gate", ["REQ-YG-131"]),
     "CAP-40": ("Enforce Pipeline Graph Delegation", ["REQ-YG-128"]),
+    "CAP-41": ("Clean GIT Env Test Fixture", ["REQ-YG-140"]),
 }
 
 
