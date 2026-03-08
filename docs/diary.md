@@ -1522,7 +1522,7 @@ The repository shows **active feature development** with a focus on **enforcemen
 #### **1. Enforce Pipeline Finalization (FR-125)** ✅
 - **Status**: Implemented
 - **Impact**: Added post-merge finalization scripts
-- **Changes**: 
+- **Changes**:
   - New `finalize_merge.sh` script (112 lines)
   - Comprehensive test suite (457 lines in `test_finalize_merge.py`)
   - Architecture documentation updates
@@ -1539,7 +1539,7 @@ The repository shows **active feature development** with a focus on **enforcemen
 - **Type**: Documentation/Design phase
 
 #### **4. Copilot Trailer Enforcement (FR-132)** 📋
-- **Status**: Feature Request documented  
+- **Status**: Feature Request documented
 - **Focus**: Enforcing commit trailer standards via copilot
 - **Type**: Documentation/Design phase
 
@@ -1568,3 +1568,15 @@ The repository shows **active feature development** with a focus on **enforcemen
 FR-128 was a clean surgical refactor: the enforce pipeline's five inline copilot -p phases and hardcoded prompts were already fully defined in examples/enforce/graph.yaml (created during FR-106) but never wired in. The fix was to delete ~60 lines of shell (phases 1-5) and replace with a single yamlgraph graph run invocation. The trap to watch: working_system_inertia — the script worked, so the dead graph went unnoticed for multiple FRs. The cure was content-validation TDD: 21 tests assert what the script contains and does not contain, making structural drift impossible without a test failure. The pattern of testing shell script content (read file then assert on strings) recurs across FR-118, FR-125, and now FR-128 — a mature pattern worth recognizing as canonical.
 
 **Seed:** Could the graph linter detect when a prompts_dir has YAML prompts that are not referenced by any graph node, surfacing dead-prompt drift the way vulture surfaces dead Python code?
+
+---
+
+## 2026-03-08: FR-128 — Implementation Reflection
+
+**Context:** Implemented YAMLGraphication of Enforcer Worktree.
+
+**Trap:** [What cognitive trap was encountered?]
+
+**Heuristic:** [What lesson was learned?]
+
+**Seed:** [What question remains?]
