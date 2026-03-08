@@ -319,6 +319,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 42 | Inquisitor Worktree Gate | `.chaplain/inquisitor.sh` | REQ-YG-142 |
 | 43 | Copilot Session GC | `scripts/copilot_session_gc.sh` | REQ-YG-141 |
 | 44 | Judge SPLIT Verdict | `examples/copilot/prompts/judge.yaml`, `scripts/chaplain-prompts/judge.md` | REQ-YG-143 |
+| 45 | Diary Import CLI | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py` | REQ-YG-122 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -706,6 +707,12 @@ Add a fourth judge verdict (`SPLIT`) for multi-concern feature requests, enablin
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-143 | Judge prompts must include `SPLIT` verdict and Scope Count rubric for multi-concern FR decomposition; unit tests verify both prompt sources and conflict fixture behavior | `examples/copilot/prompts/judge.yaml`, `scripts/chaplain-prompts/judge.md`, `tests/unit/test_judge_split_verdict` |
+
+### CAP-45: Diary Import CLI
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-122 | `yamlgraph diary import` CLI command imports pending diary entries and git reports into `docs/diary/` with `--dry-run` and `--source` flags; shared importer returns structured `ImportResult` list; dry-run does not mutate source files; malformed files reported and exit non-zero; explicit missing `--source` emits warning | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py`, `tests/unit/test_diary_importer`, `tests/unit/test_diary_commands` |
 
 ---
 

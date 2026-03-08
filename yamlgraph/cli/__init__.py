@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 
+from yamlgraph.cli.diary_commands import cmd_diary_dispatch
 from yamlgraph.cli.graph_commands import cmd_graph_dispatch
 from yamlgraph.cli.schema_commands import cmd_schema_dispatch
 
@@ -157,6 +158,31 @@ def create_parser() -> argparse.ArgumentParser:
     schema_subparsers.add_parser("path", help="Print path to bundled JSON Schema")
 
     schema_parser.set_defaults(func=cmd_schema_dispatch)
+
+    # === Diary commands (FR-124) ===
+    diary_parser = subparsers.add_parser("diary", help="Diary management commands")
+    diary_subparsers = diary_parser.add_subparsers(
+        dest="diary_command", help="Diary subcommands"
+    )
+
+    # diary import
+    diary_import_parser = diary_subparsers.add_parser(
+        "import", help="Import pending scheduled insights into docs/diary/"
+    )
+    diary_import_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="Show pending imports without modifying diary",
+    )
+    diary_import_parser.add_argument(
+        "--source",
+        type=str,
+        default=None,
+        help="Override source base directory (default: ~/scheduled-yamlgraphs/outputs/)",
+    )
+
+    diary_parser.set_defaults(func=cmd_diary_dispatch)
 
     return parser
 

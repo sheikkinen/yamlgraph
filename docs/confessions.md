@@ -53,7 +53,7 @@ Each confession must include:
 - **Penance**: Command and args are hardcoded; only file paths from `Path` objects are passed. No user input reaches the shell.
 
 ### CONF-206
-- **File**: [scripts/diary_rotate.py](../scripts/diary_rotate.py#L33)
+- **File**: [scripts/diary_rotate.py](../scripts/diary_rotate.py#L36)
 - **Code**: S603
 - **Sin**: `git_add()` helper uses `subprocess.run(["git", "add", ...])` — S603 flags subprocess call with non-constant arguments.
 - **Penance**: Arguments are `Path` objects from the diary folder; command is hardcoded `["git", "add"]`. No shell expansion, no user input.
