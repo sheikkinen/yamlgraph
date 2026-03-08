@@ -148,6 +148,7 @@ except Exception as e:
 | `MISTRAL_API_KEY` | Mistral auth |
 | `OPENAI_API_KEY` | OpenAI auth |
 | `REPLICATE_API_TOKEN` | Replicate auth |
+| `DEEPSEEK_API_KEY` | DeepSeek auth |
 | `XAI_API_KEY` | xAI Grok auth |
 | `LMSTUDIO_BASE_URL` | LM Studio local URL |
 | `PROVIDER` | Default provider |
@@ -162,6 +163,7 @@ except Exception as e:
 | `inception` | mercury-2 | Diffusion LLM, 660 t/s, best for structured output |
 | `mistral` | mistral-large-latest | Good cost/quality balance |
 | `openai` | gpt-4.1 | Widely supported |
+| `deepseek` | deepseek-chat, deepseek-reasoner | Reasoning models |
 | `replicate` | meta/llama-* | Open model hosting |
 | `xai` | grok-beta | Alternative |
 | `lmstudio` | local | Local inference |

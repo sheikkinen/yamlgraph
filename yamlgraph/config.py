@@ -41,6 +41,7 @@ DEFAULT_TEMPERATURE = 0.7
 #   REPLICATE_API_TOKEN, XAI_API_KEY
 DEFAULT_MODELS = {
     "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
+    "deepseek": os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
     "google": os.getenv("GOOGLE_MODEL", "gemini-2.0-flash"),
     "inception": os.getenv("INCEPTION_MODEL", "mercury-2"),
     "lmstudio": os.getenv("LMSTUDIO_MODEL", "qwen2.5-coder-7b-instruct"),

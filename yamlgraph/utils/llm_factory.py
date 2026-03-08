@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Type alias for supported providers
 ProviderType = Literal[
     "anthropic",
+    "deepseek",
     "google",
     "inception",
     "lmstudio",
@@ -33,6 +34,21 @@ _cache_lock = threading.Lock()
 
 
 # --- Provider-specific helper functions ---
+
+
+def _create_deepseek_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create DeepSeek LLM (OpenAI-compatible API)."""
+    from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(
+        model=model,
+        temperature=temperature,
+        base_url="https://api.deepseek.com/v1",
+        api_key=os.getenv("DEEPSEEK_API_KEY"),
+        **kwargs,
+    )
 
 
 def _create_google_llm(
@@ -135,6 +151,8 @@ def _dispatch_provider(
     **kwargs: object,
 ) -> BaseChatModel:
     """Dispatch to appropriate provider-specific creation function."""
+    if provider == "deepseek":
+        return _create_deepseek_llm(model, temperature, **kwargs)
     if provider == "google":
         return _create_google_llm(model, temperature, **kwargs)
     if provider == "inception":
@@ -162,7 +180,7 @@ def create_llm(
 ) -> BaseChatModel:
     """Create an LLM instance with multi-provider support.
 
-    Supports Anthropic (default), Google, Mistral, OpenAI, Replicate, and xAI providers.
+    Supports Anthropic (default), DeepSeek, Google, Mistral, OpenAI, Replicate, and xAI providers.
     Provider can be specified via parameter or PROVIDER environment variable.
     Model can be specified via parameter or {PROVIDER}_MODEL environment variable.
 
@@ -170,7 +188,7 @@ def create_llm(
     to improve performance.
 
     Args:
-        provider: LLM provider ("anthropic", "mistral", "openai", "replicate", "xai").
+        provider: LLM provider ("anthropic", "deepseek", "mistral", "openai", "replicate", "xai").
                  Defaults to PROVIDER env var or "anthropic".
         model: Model name. Defaults to {PROVIDER}_MODEL env var or provider default.
         temperature: Temperature for generation (0.0-1.0).
