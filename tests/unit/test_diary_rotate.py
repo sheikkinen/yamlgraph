@@ -4,7 +4,6 @@ FR-080: Infrastructure Script Unit Tests — Phase 3 (diary_rotate).
 FR-134: Diary folder refactor — individual files, no rotation.
 """
 
-from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
@@ -137,9 +136,7 @@ class TestMain:
 
         with (
             patch.object(diary_rotate, "DIARY_DIR", diary_dir),
-            patch.object(
-                diary_rotate, "SCHEDULED_OUTPUTS", tmp_path / "nonexistent"
-            ),
+            patch.object(diary_rotate, "SCHEDULED_OUTPUTS", tmp_path / "nonexistent"),
         ):
             exit_code = diary_rotate.main()
 
