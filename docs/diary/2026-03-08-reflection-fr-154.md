@@ -1,0 +1,9 @@
+## 2026-03-08: FR-154 — Architecture Capability Count Guard Reflection
+
+**Context:** FR-154 added a guard test in `test_architecture_capability_count.py` that reads `ARCHITECTURE.md`, counts the actual capability table rows and requirement IDs, and asserts they match the prose claim. The prose stated "19 capabilities covering 68 requirements" while the actual document had grown to 46 capabilities and 109 requirements — 27 capabilities added without ever updating the summary. The fix was structural: a test that fails when the counts drift.
+
+**Trap:** *audit_as_ritual* — The capability count was accurate when first written (at CAP-19). As new capabilities were added through subsequent FRs, the prose became stale. No one noticed because the number was treated as decoration, not as a testable claim. Manual discipline failed silently across 27 capability additions — each individual contributor assumed someone else would update the summary, or didn't notice the summary existed. The audits detected the drift but, for three consecutive cycles (XLII → XLIII → XLIV), the detection produced no remediation. Detection without enforcement is ritual, not process.
+
+**Heuristic:** When a document makes quantitative claims about the codebase, guard those claims with a test. Manual discipline decays; structural enforcement closes drift permanently. This mirrors the pattern FR-121 established for provider counts in `ARCHITECTURE.md` — the same class of problem (prose claiming a number that the code has outgrown) solved by the same class of fix (a guard test that reads the document and asserts correctness). If a number appears in prose and that number can be computed, it must be computed.
+
+**Seed:** Should the guard test auto-update the prose counts on failure (fix-on-detect) rather than merely failing, or does the manual correction step serve as a valuable review checkpoint that forces the author to survey what changed?

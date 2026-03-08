@@ -1,0 +1,9 @@
+## 2026-03-08: FR-150 — Branch Protection for Main Reflection
+
+**Context:** FR-150 added GitHub branch protection rules to `main` — requiring pull requests (no direct pushes), squash-merge only, and two required status checks (`commitlint` and `test`). The emergency bypass procedure was documented in `reference/break-glass.md`. This closed the structural gap where prior enforcement gates (FR-127 commitlint, FR-149 CI CHANGELOG gate) operated inside the PR path but could be entirely bypassed by pushing directly to `main`.
+
+**Trap:** *downstream_fix* — Before FR-150, all enforcement existed downstream of the actual merge boundary. Conventional Commits linting, CHANGELOG gates, and test suites ran inside PRs, but a direct `git push origin main` sidestepped every one of them. The instinct was to keep adding more PR-level checks, when the real fix was moving the enforcement boundary upstream to the repository settings level. GitHub's branch protection API creates a true pre-merge gate at the path itself — no local workflow can bypass it. The trap was adding ever-more checks inside an already-guarded path while leaving the unguarded path wide open.
+
+**Heuristic:** When enforcement gates are bypassed by an alternative path (direct push vs PR), the fix is to gate the path itself (branch protection), not add more checks inside the existing path. This is a specific instance of the Knowledge Graph's `the_one_law`: normalize at the boundary where external data enters, not downstream where it manifests. The push-to-main path was the boundary; PR checks were downstream.
+
+**Seed:** Could branch protection rules be declaratively managed in a YAML config file (like `.github/branch-protection.yaml`) and enforced by CI, closing the gap between documented rules and actual GitHub API settings? This would make protection rules version-controlled and auditable, preventing drift between what the team believes is enforced and what GitHub actually enforces.
