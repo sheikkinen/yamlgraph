@@ -44,6 +44,7 @@ _ALL_FRAMEWORK_REQS = (
     + [122]  # REQ-YG-122 (CAP-46 Diary Import CLI)
     + [145]  # REQ-YG-145 (CAP-47 Phantom Requirement Detection)
     + [146]  # REQ-YG-146 (CAP-48 CHANGELOG Removal Completeness)
+    + [147]  # REQ-YG-147 (CAP-49 Examples Documentation Audit)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -219,8 +220,8 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-45": ("Diary Reflection Enforcement", ["REQ-YG-144"]),
     "CAP-46": ("Diary Import CLI", ["REQ-YG-122"]),
     "CAP-47": ("Phantom Requirement Detection", ["REQ-YG-145"]),
-    "CAP-47": ("Phantom Requirement Detection", ["REQ-YG-145"]),
     "CAP-48": ("CHANGELOG Removal Completeness", ["REQ-YG-146"]),
+    "CAP-49": ("Examples Documentation Audit", ["REQ-YG-147"]),
 }
 
 

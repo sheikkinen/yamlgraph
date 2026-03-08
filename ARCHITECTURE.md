@@ -323,6 +323,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 46 | Diary Import CLI | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py` | REQ-YG-122 |
 | 47 | Phantom Requirement Detection | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` | REQ-YG-145 |
 | 48 | CHANGELOG Removal Completeness | `CHANGELOG.md` | REQ-YG-146 |
+| 49 | Examples Documentation Audit | `examples/README.md` | REQ-YG-147 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -742,6 +743,14 @@ CHANGELOG.md `[Unreleased]` documents significant file removals per Commandment 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-146 | CHANGELOG.md `[Unreleased]` contains a `### Removed` section documenting stale demo file deletions (commit a0e6f00): `examples/cost-router/poc_granite.py`, `scripts/loopback-poc/` (419 lines); section ordering follows Keep a Changelog convention (Added → Removed → Fixed) | `CHANGELOG.md`, `tests/unit/test_demo_cleanup_changelog` |
+
+### 49. Examples Documentation Audit (FR-135)
+
+Every on-disk example and demo is accurately indexed in `examples/README.md` with categorized sections and enforced quality bar.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-147 | `examples/README.md` lists every demo directory and top-level example on disk; demos are split into Learning / Utility / FR Validation sections; inclusion criteria are documented; each listed entry has a `README.md` and at least one runnable artifact (YAML graph, `demo.sh`, or Python script) | `examples/README.md`, `tests/unit/test_examples_readme_audit` |
 
 ---
 
