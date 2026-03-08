@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -69,19 +69,19 @@ Run Vulture at the new threshold and resolve any additional findings before merg
 
 ## Acceptance Criteria
 
-- [ ] `vulture_whitelist.py` exists at project root with `worktree_helpers` entries
-- [ ] `.pre-commit-config.yaml` Vulture hook references the whitelist file
-- [ ] `yamlgraph/utils/sanitize.py` is deleted
-- [ ] `tests/unit/test_sanitize.py` is deleted
-- [ ] `REQ-YG-046` in `ARCHITECTURE.md` updated: `utils/sanitize` removed from Key Modules (`utils/logging`, `utils/parsing` remain); Description column updated from "Logging, parsing, and sanitization utilities" to "Logging and parsing utilities"
-- [ ] `build/` stale artifacts cleaned (`build/` already in `.gitignore`)
-- [ ] Vulture `--min-confidence` lowered to 60 with clean pass
-- [ ] `pre-commit run vulture-dead-code` passes with zero findings
-- [ ] `python scripts/req_coverage.py` passes (REQ-YG-046 still covered by `test_logging.py` and `test_parsing.py`)
-- [ ] All existing tests pass (`pytest tests/ -q`)
-- [ ] Tests added: none required (this is a removal, not addition)
-- [ ] CHANGELOG entry for dead code removal
-- [ ] `# noqa: F401` in `vulture_whitelist.py` documented in `docs/confessions.md` with CONF-XXX entry (per project noqa confession rule)
+- [x] `vulture_whitelist.py` exists at project root with `worktree_helpers` entries
+- [x] `.pre-commit-config.yaml` Vulture hook references the whitelist file
+- [x] `yamlgraph/utils/sanitize.py` is deleted
+- [x] `tests/unit/test_sanitize.py` is deleted
+- [x] `REQ-YG-046` in `ARCHITECTURE.md` updated: `utils/sanitize` removed from Key Modules (`utils/logging`, `utils/parsing` remain); Description column updated from "Logging, parsing, and sanitization utilities" to "Logging and parsing utilities"
+- [x] `build/` stale artifacts cleaned (`build/` already in `.gitignore`)
+- [x] Vulture `--min-confidence` lowered to 60 with clean pass
+- [x] `pre-commit run vulture-dead-code` passes with zero findings
+- [x] `python scripts/req_coverage.py` passes (REQ-YG-046 still covered by `test_logging.py` and `test_parsing.py`)
+- [x] All existing tests pass (`pytest tests/ -q`)
+- [x] Tests added: none required (this is a removal, not addition)
+- [x] CHANGELOG entry for dead code removal
+- [x] `# noqa: F401` in `vulture_whitelist.py` documented in `docs/confessions.md` with CONF-XXX entry (per project noqa confession rule)
 
 ## Judgement
 
