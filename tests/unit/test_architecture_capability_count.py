@@ -12,7 +12,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
-@pytest.mark.req("REQ-YG-146")
+@pytest.mark.req("REQ-YG-150")
 class TestArchitectureCapabilityCount:
     """ARCHITECTURE.md summary must reflect actual capability table counts."""
 
@@ -26,9 +26,7 @@ class TestArchitectureCapabilityCount:
         actual_cap_count = len(table_rows)
 
         # Extract count from summary sentence
-        match = re.search(
-            r"implements \*\*(\d+) capabilities\*\*", text
-        )
+        match = re.search(r"implements \*\*(\d+) capabilities\*\*", text)
         assert match, "Could not find capability count in ARCHITECTURE.md"
         documented_count = int(match.group(1))
 
@@ -47,9 +45,7 @@ class TestArchitectureCapabilityCount:
         actual_req_count = len(all_reqs)
 
         # Extract count from summary sentence
-        match = re.search(
-            r"covering \*\*(\d+) requirements\*\*", text
-        )
+        match = re.search(r"covering \*\*(\d+) requirements\*\*", text)
         assert match, "Could not find requirement count in ARCHITECTURE.md"
         documented_count = int(match.group(1))
 
