@@ -66,3 +66,46 @@ jobs:
             echo "::error::feat/fix PRs must include changes to CHANGELOG.md"
             exit 1
           fi
+
+  diary-gate:
+    name: Diary reflection required for feat/fix
+    runs-on: ubuntu-latest
+    if: >-
+      startsWith(github.event.pull_request.title, 'feat') ||
+      startsWith(github.event.pull_request.title, 'fix')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify diary reflection exists
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Extract FR number from PR title
+          FR_NUM=$(echo "$PR_TITLE" | grep -oE 'FR-[0-9]+' | head -1 | sed 's/FR-//')
+
+          if [ -z "$FR_NUM" ]; then
+            echo "⏭️ No FR-XXX reference in title — diary gate skipped"
+            exit 0
+          fi
+
+          echo "🔍 Checking for diary reflection for FR-$FR_NUM..."
+
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qE "docs/diary/.*reflection.*fr-${FR_NUM}[^0-9]"; then
+            echo "✅ Diary reflection found for FR-$FR_NUM"
+          else
+            echo "::error::feat/fix PRs referencing FR-$FR_NUM must include a diary reflection in docs/diary/"
+            echo ""
+            echo "Expected: docs/diary/YYYY-MM-DD-reflection-fr-${FR_NUM}.md"
+            echo ""
+            echo "The diary reflection should document:"
+            echo "  - Cognitive traps encountered"
+            echo "  - Heuristics learned"
+            echo "  - A Seed question for future work"
+            echo ""
+            echo "See docs/diary/ for examples."
+            exit 1
+          fi

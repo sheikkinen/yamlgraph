@@ -3,7 +3,7 @@
 **ID:** FR-158
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -96,15 +96,15 @@ The two gates compose cleanly with no overlap:
 
 ## Acceptance Criteria
 
-- [ ] New job `diary-gate` added to `.github/workflows/commitlint.yml`
-- [ ] `feat` PRs with `FR-XXX` reference and no `docs/diary/*reflection*fr-XXX*.md` in changed files → check fails
-- [ ] `feat` PRs with `FR-XXX` reference and matching diary file in changed files → check passes
-- [ ] `fix` PRs with `FR-XXX` reference follow same logic as `feat`
-- [ ] `fix` PRs without `FR-XXX` reference → check skips (passes)
-- [ ] `chore`, `docs`, `test`, `ci`, `refactor`, `perf`, `style`, `build`, `revert` PRs → job skipped entirely via `if` condition
+- [x] New job `diary-gate` added to `.github/workflows/commitlint.yml`
+- [x] `feat` PRs with `FR-XXX` reference and no `docs/diary/*reflection*fr-XXX*.md` in changed files → check fails
+- [x] `feat` PRs with `FR-XXX` reference and matching diary file in changed files → check passes
+- [x] `fix` PRs with `FR-XXX` reference follow same logic as `feat`
+- [x] `fix` PRs without `FR-XXX` reference → check skips (passes)
+- [x] `chore`, `docs`, `test`, `ci`, `refactor`, `perf`, `style`, `build`, `revert` PRs → job skipped entirely via `if` condition
 - [ ] `diary-gate` added as required status check in branch protection (FR-150)
-- [ ] Error message includes expected file path pattern and content guidance
-- [ ] Documentation: `CLAUDE.md` Branch Protection table updated with new required check
+- [x] Error message includes expected file path pattern and content guidance
+- [x] Documentation: `CLAUDE.md` Branch Protection table updated with new required check
 
 ## Alternatives Considered
 
