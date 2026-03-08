@@ -815,6 +815,7 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-154 | `NodeConfig` accepts optional `verification` field (`VerificationConfig`) with `question` (str, required), `on_fail` (warn\|halt\|retry, default warn), `max_retries` (int, default 1). Runtime evaluator extracts deterministic checks (count_range, non_empty, contains) from question text; unrecognized patterns degrade to annotation. `warn` appends `VerificationViolation` to errors; `halt` raises `VerificationError`; `retry` re-executes then falls to warn. Lint rule W022 warns on `on_error: skip` without verification | `yamlgraph/verification`, `yamlgraph/models/graph_schema`, `yamlgraph/models/schemas`, `yamlgraph/node_factory/llm_nodes`, `yamlgraph/linter/checks_contracts`, `tests/unit/test_verification` |
+| REQ-YG-155 | Count range verification claim parsed into `CountRangeClaim` Pydantic model with `min_count` (int, ge=0), `max_count` (int, ge=0) and `model_validator` enforcing min ≤ max. Inverted ranges raise `ValueError` at parse time. Violation `details` exposes `expected_min`, `expected_max`, `actual_count` for programmatic inspection | `yamlgraph/verification`, `yamlgraph/models/__init__`, `tests/unit/test_verification` |
 
 ---
 

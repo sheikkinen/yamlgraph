@@ -1,4 +1,4 @@
-"""FR-164: Verification gate evaluator.
+"""FR-164/FR-166: Verification gate evaluator.
 
 Deterministic pattern matching for verification questions.
 Extracts testable claims from natural-language predictions and
@@ -15,6 +15,8 @@ import logging
 import re
 from typing import Any
 
+from pydantic import BaseModel, Field, model_validator
+
 from yamlgraph.models.schemas import ErrorType, VerificationViolation
 
 logger = logging.getLogger(__name__)
@@ -30,6 +32,28 @@ CONTAINS_RE = re.compile(r"(?:will\s+)?contain\s+(.+)", re.IGNORECASE)
 
 # Variable interpolation: {var_name}
 VAR_RE = re.compile(r"\{(\w+)\}")
+
+
+class CountRangeClaim(BaseModel):
+    """Parsed count range from verification question (FR-166).
+
+    Validates at the boundary where regex-extracted data enters,
+    ensuring min_count ≤ max_count. An inverted range is a config
+    bug that must be surfaced immediately.
+    """
+
+    min_count: int = Field(ge=0, description="Minimum expected count")
+    max_count: int = Field(ge=0, description="Maximum expected count")
+
+    @model_validator(mode="after")
+    def validate_range(self) -> "CountRangeClaim":
+        """Ensure min ≤ max — inverted ranges are config bugs."""
+        if self.min_count > self.max_count:
+            raise ValueError(
+                f"Inverted count range: min ({self.min_count}) > max ({self.max_count}). "
+                f"Write 'N-M items' where N ≤ M."
+            )
+        return self
 
 
 class VerificationError(Exception):
@@ -75,25 +99,32 @@ def evaluate_verification(
     # Try count_range: "Will return N-M items/documents/..."
     count_match = COUNT_RANGE_RE.search(interpolated)
     if count_match:
-        min_count = int(count_match.group(1))
-        max_count = int(count_match.group(2))
+        claim = CountRangeClaim(
+            min_count=int(count_match.group(1)),
+            max_count=int(count_match.group(2)),
+        )
         try:
             length = len(actual)
         except TypeError:
             length = 0
 
-        if min_count <= length <= max_count:
+        if claim.min_count <= length <= claim.max_count:
             return None
         return VerificationViolation(
             type=ErrorType.VERIFICATION_ERROR,
             message=(
-                f"Count range check failed: expected {min_count}-{max_count} items, "
+                f"Count range check failed: expected {claim.min_count}-{claim.max_count} items, "
                 f"got {length}"
             ),
             node="",  # Filled by caller
             prediction=question,
             actual=repr(actual),
             check_type="count_range",
+            details={
+                "expected_min": claim.min_count,
+                "expected_max": claim.max_count,
+                "actual_count": length,
+            },
         )
 
     # Try non_empty: "Will return non-empty"
