@@ -312,6 +312,7 @@ YAMLGraph implements **19 capabilities** covering **68 requirements**. Each capa
 | 36 | Inquisitor Auto-Propose | `.chaplain/inquisitor.sh` | REQ-YG-118 |
 | 37 | Architecture Provider Count Guard | `tests/unit/test_architecture_provider_count` | REQ-YG-121 |
 | 38 | Post-Merge Finalization | `scripts/finalize_merge.sh` | REQ-YG-125 |
+| 39 | Inquisitor Commit-Delta Gate | `.chaplain/inquisitor.sh` | REQ-YG-131 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -658,6 +659,7 @@ Automates three post-merge obligations after a PR from the enforce pipeline is m
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-125 | `scripts/finalize_merge.sh` inserts CHANGELOG entry under `[Unreleased] / ### Added`, updates FR status to `✅ Implemented`, and appends diary reflection stub with Trap/Heuristic/Seed placeholders | `scripts/finalize_merge.sh`, `tests/unit/test_finalize_merge` |
+| REQ-YG-131 | `inquisitor.sh` commit-delta gate extracts last audit SHA from `docs/diary.md`, counts `feat:`/`fix:` commits since that SHA via `git log`, and aborts with clear message when none found; `--force` bypasses gate; gate degrades gracefully on missing diary, unparseable SHA, or first-ever audit; `--propose` respects gate; gate logic is pure shell | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_gate` |
 
 ---
 
