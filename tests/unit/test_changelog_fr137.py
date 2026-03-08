@@ -35,9 +35,9 @@ class TestFR137ChangelogEntry:
         fr137_lines = [ln for ln in text.splitlines() if "FR-137" in ln]
         assert fr137_lines, "No FR-137 line found"
         entry = fr137_lines[0]
-        assert "DEEPSEEK_API_KEY" in entry, (
-            f"FR-137 entry missing 'DEEPSEEK_API_KEY': {entry}"
-        )
+        assert (
+            "DEEPSEEK_API_KEY" in entry
+        ), f"FR-137 entry missing 'DEEPSEEK_API_KEY': {entry}"
 
     def test_entry_in_unreleased_added_section(self):
         """Entry lives under [Unreleased] → ### Added."""
@@ -69,28 +69,20 @@ class TestFR137ChangelogEntry:
         )
 
         added_block = "\n".join(lines[added_idx:next_section_idx])
-        assert "FR-137" in added_block, (
-            "FR-137 not in [Unreleased] → ### Added section"
-        )
+        assert "FR-137" in added_block, "FR-137 not in [Unreleased] → ### Added section"
 
     def test_entry_position_descending_fr_order(self):
         """FR-137 appears after FR-138 and before FR-136 (descending order)."""
         lines = CHANGELOG.read_text().splitlines()
 
-        fr138_idx = next(
-            (i for i, ln in enumerate(lines) if "FR-138" in ln), None
-        )
-        fr137_idx = next(
-            (i for i, ln in enumerate(lines) if "FR-137" in ln), None
-        )
-        fr136_idx = next(
-            (i for i, ln in enumerate(lines) if "FR-136" in ln), None
-        )
+        fr138_idx = next((i for i, ln in enumerate(lines) if "FR-138" in ln), None)
+        fr137_idx = next((i for i, ln in enumerate(lines) if "FR-137" in ln), None)
+        fr136_idx = next((i for i, ln in enumerate(lines) if "FR-136" in ln), None)
 
         assert fr138_idx is not None, "FR-138 not found in CHANGELOG"
         assert fr137_idx is not None, "FR-137 not found in CHANGELOG"
         assert fr136_idx is not None, "FR-136 not found in CHANGELOG"
 
-        assert fr138_idx < fr137_idx < fr136_idx, (
-            f"Wrong order: FR-138@{fr138_idx}, FR-137@{fr137_idx}, FR-136@{fr136_idx}"
-        )
+        assert (
+            fr138_idx < fr137_idx < fr136_idx
+        ), f"Wrong order: FR-138@{fr138_idx}, FR-137@{fr137_idx}, FR-136@{fr136_idx}"
