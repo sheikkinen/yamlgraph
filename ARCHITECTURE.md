@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **52 capabilities** covering **114 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **54 capabilities** covering **116 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -328,6 +328,7 @@ YAMLGraph implements **52 capabilities** covering **114 requirements**. Each cap
 | 51 | Branch Protection Documentation | `reference/break-glass.md` | REQ-YG-149 |
 | 52 | Architecture Capability Count Guard | `tests/unit/test_architecture_capability_count` | REQ-YG-150 |
 | 53 | CI Conflict Marker Gate | `.github/workflows/commitlint.yml` | REQ-YG-151 |
+| 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml` | REQ-YG-152 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -787,6 +788,14 @@ CI job that fails when unresolved merge conflict markers (`<<<<<<<`, `=======`, 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-151 | **CI conflict marker gate**: The `conflict-check` job in `commitlint.yml` greps tracked files (excluding `.github/`) for conflict marker patterns and fails with non-zero exit when found | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_conflict_check` |
+
+### 54. CI Diary Existence Gate (FR-158)
+
+CI gate ensuring feat/fix PRs with FR references include a diary reflection file in the diff.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-152 | `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs `git diff --name-only` against base/head SHAs, and fails when no `docs/diary/*reflection*fr-{number}*` file is in diff; skips (passes) when PR title has no FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_diary_gate` |
 
 ---
 
