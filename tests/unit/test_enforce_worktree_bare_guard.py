@@ -25,7 +25,7 @@ def _clean_git_env(**extra: str) -> dict[str, str]:
     return env
 
 
-@pytest.mark.req("REQ-YG-UTIL")
+@pytest.mark.req("REQ-YG-106")
 class TestBareCorruptionGuard:
     """Tests for the bare=true corruption guard logic."""
 

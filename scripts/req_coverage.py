@@ -628,6 +628,18 @@ def main() -> None:
             f"{still_unresolved_count} unresolvable"
         )
 
+    # Reverse check: phantom requirement detection (FR-145)
+    all_reqs_set = set(ALL_REQS)
+    phantom_ids = sorted(set(all_markers.keys()) - all_reqs_set)
+
+    if phantom_ids:
+        print("\n⚠ Phantom requirement IDs (in tests but not in ALL_REQS):")
+        for pid in phantom_ids:
+            tests = all_markers[pid]
+            print(f"  {pid} referenced by {len(tests)} test(s):")
+            for t in tests:
+                print(f"    - {t}")
+
     # Architecture cross-check: every req in ALL_REQS must have a row in ARCHITECTURE.md
     arch_descriptions = _load_req_descriptions(root)
     arch_req_ids = set(arch_descriptions.keys())
@@ -639,8 +651,8 @@ def main() -> None:
         for req_id in undocumented:
             print(f"    {req_id}")
 
-    # Exit code: fail if any requirement uncovered or undocumented (strict mode)
-    if (uncovered or undocumented) and "--strict" in sys.argv:
+    # Exit code: fail if any requirement uncovered, undocumented, or phantom (strict mode)
+    if (uncovered or undocumented or phantom_ids) and "--strict" in sys.argv:
         sys.exit(1)
 
 
