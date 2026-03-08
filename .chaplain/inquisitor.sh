@@ -2,13 +2,32 @@
 # .chaplain/inquisitor.sh — Audit loop: Quote → Investigate → Judge → Record
 # FR-076: Quotes the Scripture, audits recent work, writes diary entry
 # FR-118: --propose flag detects persistent violations and writes fix proposals to inbox
-# Usage: .chaplain/inquisitor.sh [--propose]
+# FR-131: Commit-delta gate aborts when no feat/fix commits since last audit
+# Usage: .chaplain/inquisitor.sh [--force] [--propose]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+FORCE=""
 PROPOSE=""
-if [[ "${1:-}" == "--propose" ]]; then
-    PROPOSE="true"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --force) FORCE="true"; shift ;;
+        --propose) PROPOSE="true"; shift ;;
+        *) shift ;;
+    esac
+done
+
+# --- Commit-delta gate (FR-131) ---
+# Extract HEAD SHA from the last audit's commit range in docs/diary.md.
+# Format: `<start_sha>`..`<end_sha>` → captures <end_sha>.
+LAST_SHA=$(sed -nE 's/.*`([a-f0-9]{7,})`\.\.`([a-f0-9]{7,})`.*/\2/p' docs/diary.md 2>/dev/null | head -1)
+if [[ -n "$LAST_SHA" ]] && git rev-parse --verify "$LAST_SHA^{commit}" >/dev/null 2>&1; then
+    ACTIONABLE=$(git log --oneline "$LAST_SHA"..HEAD | grep -cE '^[a-f0-9]+ (feat|fix)' || true)
+    if [[ "$ACTIONABLE" -eq 0 && -z "$FORCE" ]]; then
+        echo "⏭️  Inquisitor: No feat/fix commits since last audit ($LAST_SHA..HEAD). Nothing to audit."
+        echo "   Use --force to override."
+        exit 0
+    fi
 fi
 
 echo "🔍 Inquisitor: Auditing recent work against the Scripture..."
