@@ -1,0 +1,9 @@
+## 2026-03-08: FR-145 — Phantom Requirement Detection Reflection
+
+**Context:** FR-145 extended `scripts/req_coverage.py` with reverse-direction phantom requirement detection. The audit-to-feature pipeline executed perfectly: Audit XXXIII planted the seed, FR-145 was proposed and judged, implementation added `set(all_markers.keys()) - set(ALL_REQS)` to `--strict` mode. Tests referenced non-existent IDs like `REQ-YG-UTIL` — the new gate catches them. The feature closed a gap left by FR-107's forward-only coverage check.
+
+**Trap:** *partial_remediation* — The main task (phantom detection) succeeded, but the post-merge Distill step was skipped. Success in the primary objective created a false completion signal. The audit→seed→feature arc completed beautifully, yet the final obligation — the metacognitive reflection — was dropped. This is the same trap the feature itself was designed to prevent: partial coverage masquerading as complete coverage. The irony is diagnostic: the very cognitive pattern the code guards against (checking one direction but not the other) replayed at the process level (completing the feature but not the reflection).
+
+**Heuristic:** Completion of a task is not completion of the obligation. The Distill step is not optional polish — it is the final acceptance criterion. When a feature's own subject matter mirrors a process gap, treat that resonance as a red flag: the trap you coded against is the trap you are most likely to fall into yourself.
+
+**Seed:** Should `req_coverage.py` or `finalize_merge.sh` auto-generate stub reflection files alongside stub CHANGELOG entries at merge time, ensuring the Distill step cannot be silently skipped? Or would that violate the Sermon's requirement for genuine metacognition by making the reflection feel pre-filled rather than earned?

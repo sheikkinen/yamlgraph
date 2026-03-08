@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **FR-152 Missing Diary Reflections**: Create missing diary reflections for FR-137 (DeepSeek provider) and FR-145 (phantom requirement detection). Remediates two consecutive audit violations (XXXIV/XXXV) for skipped Distill obligations. (REQ-YG-144)
+
 ### Added
 - **FR-145 Phantom Requirement Detection**: `req_coverage.py --strict` rejects `@pytest.mark.req` markers referencing requirement IDs absent from `ALL_REQS` or `ARCHITECTURE.md`. (REQ-YG-145)
 - **FR-144 Enforce Diary Reflection Content**: Add `diary-reflection-check` pre-commit hook that rejects commits containing unfilled diary reflection stubs. Modify `finalize_merge.sh` to create diary stubs as untracked files. Unstage existing unfilled stubs (FR-127, FR-128, FR-134) to comply with enforcement. (REQ-YG-144)

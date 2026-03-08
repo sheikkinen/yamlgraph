@@ -3,7 +3,7 @@
 **ID:** FR-152
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.25 days
 **Requested:** 2026-03-08
 
@@ -48,11 +48,11 @@ Create two diary reflection files following the established naming convention an
 
 ## Acceptance Criteria
 
-- [ ] `docs/diary/2026-03-08-reflection-fr-137.md` exists with genuine metacognitive content (not placeholder stubs)
-- [ ] `docs/diary/2026-03-08-reflection-fr-145.md` exists with genuine metacognitive content (not placeholder stubs)
-- [ ] Each reflection identifies at least one cognitive trap from the Knowledge Graph (`batch_fatigue`, `partial_remediation`, or equivalent)
-- [ ] Each reflection contains a forward-looking **Seed** question
-- [ ] Both files follow the naming convention `YYYY-MM-DD-reflection-fr-NNN.md`
+- [x] `docs/diary/2026-03-08-reflection-fr-137.md` exists with genuine metacognitive content (not placeholder stubs)
+- [x] `docs/diary/2026-03-08-reflection-fr-145.md` exists with genuine metacognitive content (not placeholder stubs)
+- [x] Each reflection identifies at least one cognitive trap from the Knowledge Graph (`batch_fatigue`, `partial_remediation`, or equivalent)
+- [x] Each reflection contains a forward-looking **Seed** question
+- [x] Both files follow the naming convention `YYYY-MM-DD-reflection-fr-NNN.md`
 - [ ] Audit XXXVI (or next) clears both violations (no ⚠ DRIFT or ✗ VIOLATION for FR-137/FR-145 reflections)
 
 ## Alternatives Considered
