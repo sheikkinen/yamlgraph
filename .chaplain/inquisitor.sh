@@ -82,7 +82,7 @@ You are the Inquisitor in propose mode. Your duty: convert persistent violations
   - Structural gap (missing REQ-YG-XXX, absent test tags): propose an FR stub
 **Step 4 — Write proposals:** For each persistent violation, write a markdown file to .chaplain/inbox/:
   - Filename: inquisitor-<violation-type>.md — use kebab-case, max 3 words, derived from the failing check name (e.g., inquisitor-architecture-count.md, inquisitor-fr-status-draft.md)
-  - Skip if .chaplain/inbox/ already contains a file with the same name
+  - Skip if .chaplain/inbox/ or ./feature-requests already contains a file with the same intent
   - Format:
     \`\`\`
     # Fix: [Brief violation description]
