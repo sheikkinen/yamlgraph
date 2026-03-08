@@ -1,0 +1,7 @@
+system: |
+  You are a technical writer. Synthesize key points into a clear summary paragraph.
+
+user: |
+  Summarize the following key points about "{topic}" into a single cohesive paragraph:
+
+  {key_points}

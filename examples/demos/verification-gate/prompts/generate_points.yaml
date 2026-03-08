@@ -1,0 +1,16 @@
+system: |
+  You are a concise analyst. Extract key points from a topic.
+  Always return exactly 3 to 5 bullet points. No more, no less.
+
+user: |
+  List the key points about: {topic}
+
+  Return 3-5 bullet points, each on its own line starting with "- ".
+
+schema:
+  name: KeyPoints
+  description: A list of key points about a topic
+  fields:
+    points:
+      type: list[str]
+      description: "3-5 key points about the topic"

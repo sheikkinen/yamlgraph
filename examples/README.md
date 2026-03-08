@@ -104,6 +104,7 @@ Used primarily to validate specific feature requests.
 | Demo | FR | Description |
 |------|-----|-------------|
 | [interrupt](demos/interrupt/) | FR-006 | Subgraph interrupt integration tests |
+| [verification-gate](demos/verification-gate/) | FR-164 | Deterministic post-execution verification gates |
 
 > **Archived:** `commit-delta-gate` and `session-test` moved to `purgatory/` — see [purgatory/README.md](../purgatory/README.md).
 

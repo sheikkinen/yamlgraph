@@ -1,0 +1,51 @@
+# Verification Gate Pattern - FR-164 Demo
+# Deterministic post-execution checks on LLM outputs.
+#
+# The `verification` field defines falsifiable predictions that are checked
+# after the node executes. This catches silent failures: plausible but wrong
+# results that pass type validation but violate expected constraints.
+
+version: "1.0"
+name: verification-gate-demo
+description: |
+  Demonstrates the verification gate pattern (FR-164).
+  Each node states what it expects; the framework checks after execution.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  topic: str
+
+nodes:
+  generate_points:
+    type: llm
+    prompt: generate_points
+    variables:
+      topic: "{state.topic}"
+    state_key: key_points
+    verification:
+      question: "Will return 3-5 items about {topic}"
+      on_fail: warn
+
+  summarize:
+    type: llm
+    prompt: summarize
+    variables:
+      topic: "{state.topic}"
+      key_points: "{state.key_points}"
+    state_key: summary
+    verification:
+      question: "Will return non-empty"
+      on_fail: halt
+
+edges:
+  - from: START
+    to: generate_points
+  - from: generate_points
+    to: summarize
+  - from: summarize
+    to: END
