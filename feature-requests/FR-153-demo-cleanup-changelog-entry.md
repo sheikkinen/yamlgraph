@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.25 days
 **Requested:** 2026-03-08
 
@@ -37,11 +37,11 @@ Add a `### Removed` section under `[Unreleased]` in CHANGELOG.md, before the exi
 
 ## Acceptance Criteria
 
-- [ ] CHANGELOG.md `[Unreleased]` contains a `### Removed` section
-- [ ] Entry references the three deleted files and commit `a0e6f00`
-- [ ] Entry describes the removal as stale demo cleanup
-- [ ] `grep -c "poc_granite\|loopback-poc" CHANGELOG.md` returns ≥ 1
-- [ ] Section ordering follows Keep a Changelog convention (Added → Changed → Removed → Fixed)
+- [x] CHANGELOG.md `[Unreleased]` contains a `### Removed` section
+- [x] Entry references the three deleted files and commit `a0e6f00`
+- [x] Entry describes the removal as stale demo cleanup
+- [x] `grep -c "poc_granite\|loopback-poc" CHANGELOG.md` returns ≥ 1
+- [x] Section ordering follows Keep a Changelog convention (Added → Changed → Removed → Fixed)
 
 ## Alternatives Considered
 
