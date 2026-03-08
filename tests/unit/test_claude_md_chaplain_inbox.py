@@ -36,8 +36,7 @@ class TestClaudeMdChaplainInbox:
     def test_claude_md_mentions_plan_judge_enforce(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
         assert (
-            "Plan → Judge → Enforce" in content
-            or "Plan → Judge → Enforce" in content
+            "Plan → Judge → Enforce" in content or "Plan → Judge → Enforce" in content
         ), "CLAUDE.md must describe the Plan → Judge → Enforce pipeline"
 
     def test_section_placed_before_development_commands(self):
@@ -46,9 +45,9 @@ class TestClaudeMdChaplainInbox:
         dev_commands_pos = content.find("## Development Commands")
         assert proposals_pos != -1, "Submitting Proposals section not found"
         assert dev_commands_pos != -1, "Development Commands section not found"
-        assert proposals_pos < dev_commands_pos, (
-            "Submitting Proposals must appear before Development Commands"
-        )
+        assert (
+            proposals_pos < dev_commands_pos
+        ), "Submitting Proposals must appear before Development Commands"
 
     def test_section_placed_after_development_process(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
@@ -56,9 +55,9 @@ class TestClaudeMdChaplainInbox:
         proposals_pos = content.find("### Submitting Proposals")
         assert reflect_pos != -1, "'Reflect' section not found"
         assert proposals_pos != -1, "Submitting Proposals section not found"
-        assert reflect_pos < proposals_pos, (
-            "Submitting Proposals must appear after the Reflect section"
-        )
+        assert (
+            reflect_pos < proposals_pos
+        ), "Submitting Proposals must appear after the Reflect section"
 
     def test_matches_canonical_source(self):
         """Section text must match .github/copilot-instructions.md verbatim."""
@@ -70,9 +69,9 @@ class TestClaudeMdChaplainInbox:
             (claude_md, "CLAUDE.md"),
             (copilot_md, "copilot-instructions.md"),
         ]:
-            assert "### Submitting Proposals" in source, (
-                f"{name} missing 'Submitting Proposals' section"
-            )
+            assert (
+                "### Submitting Proposals" in source
+            ), f"{name} missing 'Submitting Proposals' section"
 
         def extract_section(text: str) -> str:
             start = text.index("### Submitting Proposals")
@@ -80,8 +79,10 @@ class TestClaudeMdChaplainInbox:
             rest = text[start + len("### Submitting Proposals") :]
             for i, line in enumerate(rest.split("\n")):
                 if i > 0 and line.startswith("#"):
-                    end = start + len("### Submitting Proposals") + sum(
-                        len(l) + 1 for l in rest.split("\n")[:i]
+                    end = (
+                        start
+                        + len("### Submitting Proposals")
+                        + sum(len(line_text) + 1 for line_text in rest.split("\n")[:i])
                     )
                     return text[start:end].strip()
             return text[start:].strip()
