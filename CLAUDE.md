@@ -32,6 +32,13 @@ Before implementing any feature or fix:
 
 > **Example**: URL-based prompt loading was proposed as a 2-day feature. After reflection, we realized documenting deployment patterns (volume mounts, git-sync, ConfigMaps) solved the same problem without adding framework complexity. See `reference/prompt-deployment.md`.
 
+### Submitting Proposals
+- Write a markdown file to `.chaplain/inbox/` with a descriptive kebab-case filename (e.g., `refactor-state-builder.md`)
+- Content: plain text description of the problem or task — freeform, but actionable
+- The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce automatically
+- For new features, a one-paragraph problem statement suffices — the Chaplain generates the FR and PR
+- Proposals are consumed on pickup (moved out of inbox); rejected FRs are skipped by the enforce pipeline
+
 ## Development Commands
 
 ### Environment Setup
