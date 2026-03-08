@@ -26,6 +26,7 @@ from yamlgraph.linter.checks import (
 from yamlgraph.linter.checks_contracts import (
     check_identifier_keys,
     check_python_node_variables,
+    check_silent_fallback,
     check_skip_if_exists_add_reducer,
     check_skip_without_verification,
     check_top_level_provider_model,
@@ -114,6 +115,9 @@ def lint_graph(
 
     # FR-119: Top-level provider/model detection
     all_issues.extend(check_top_level_provider_model(graph_path))
+
+    # FR-165: Silent fallback detection
+    all_issues.extend(check_silent_fallback(graph_path))
 
     # FR-071: Thinking budget checks
     all_issues.extend(check_thinking_budget(graph_path))

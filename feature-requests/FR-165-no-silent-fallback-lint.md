@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-03-08
 
@@ -105,14 +105,14 @@ W017 is a **warning**, not an error. Existing graphs with `on_error: skip` will 
 
 ## Acceptance Criteria
 
-- [ ] W017 rule added to `yamlgraph/linter/checks_contracts.py` as `check_silent_fallback()`
-- [ ] Rule fires on every `on_error: skip` node
-- [ ] Rule registered in `graph_linter.py` lint pipeline with `# FR-165` comment
-- [ ] Test class `TestW017SilentFallback` with inline graph dicts (pass and fail cases)
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-114")`
-- [ ] `REQ-YG-114` added to `ARCHITECTURE.md` Capability 16 requirements table
-- [ ] `REQ-YG-114` registered in `scripts/req_coverage.py` (`_ALL_FRAMEWORK_REQS` and `CAPABILITIES["CAP-16"]`)
-- [ ] Tests pass: `pytest tests/unit/test_linter_contracts.py -v`
+- [x] W017 rule added to `yamlgraph/linter/checks_contracts.py` as `check_silent_fallback()`
+- [x] Rule fires on every `on_error: skip` node
+- [x] Rule registered in `graph_linter.py` lint pipeline with `# FR-165` comment
+- [x] Test class `TestW017SilentFallback` with inline graph dicts (pass and fail cases)
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-114")`
+- [x] `REQ-YG-114` added to `ARCHITECTURE.md` Capability 16 requirements table
+- [x] `REQ-YG-114` registered in `scripts/req_coverage.py` (`_ALL_FRAMEWORK_REQS` and `CAPABILITIES["CAP-16"]`)
+- [x] Tests pass: `pytest tests/unit/test_linter_contracts.py -v`
 
 ## Out of Scope
 
