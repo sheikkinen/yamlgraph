@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-113 Linter W015**: Warn when cycle node has explicit `skip_if_exists: true` — the node will cache its first output and return stale results on every iteration. Only fires on explicit setting; runtime `apply_loop_node_defaults()` handles the default case. (REQ-YG-113)
 - **FR-106 Next Steps Output**: Print merge, discard, and cleanup commands after successful PR creation in `enforce_worktree.sh`
 
+### Removed
+- Stale demo files: `examples/cost-router/poc_granite.py`, `scripts/loopback-poc/` experiment (419 lines, commit a0e6f00)
+
 ### Fixed
 - **FR-139 Enforce Worktree bare=true Corruption Guard**: Add three-layer defense against `.git/config` corruption (env sanitization, cleanup trap restoration, post-run assertion) that can set `bare = true` after worktree operations. (REQ-YG-UTIL)
 - **Enforce Pipeline Timeout**: Increase `submit_pr` timeout from 120s to 500s to prevent premature abort during PR creation
