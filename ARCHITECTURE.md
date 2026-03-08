@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **54 capabilities** covering **116 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **55 capabilities** covering **117 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -330,6 +330,7 @@ YAMLGraph implements **54 capabilities** covering **116 requirements**. Each cap
 | 53 | CI Conflict Marker Gate | `.github/workflows/commitlint.yml` | REQ-YG-151 |
 | 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml` | REQ-YG-152 |
 | 55 | Chaplain Inbox Documentation | `CLAUDE.md` | REQ-YG-153 |
+| 56 | Verification Gate Pattern | `yamlgraph/verification`, `node_factory/llm_nodes`, `linter/checks_contracts` | REQ-YG-154 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -805,6 +806,14 @@ Document the `.chaplain/inbox/` workflow in `CLAUDE.md` so Claude Code sessions 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-153 | `CLAUDE.md` contains a "Submitting Proposals" subsection documenting the `.chaplain/inbox/` workflow, matching the canonical source in `.github/copilot-instructions.md` verbatim, placed between the "Development Process" and "Development Commands" sections | `CLAUDE.md`, `tests/unit/test_claude_md_chaplain_inbox` |
+
+### 12. Verification Gate Pattern
+
+Per-node runtime verification with deterministic pattern matching. Checks stated predictions against actual node output.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-154 | `NodeConfig` accepts optional `verification` field (`VerificationConfig`) with `question` (str, required), `on_fail` (warn\|halt\|retry, default warn), `max_retries` (int, default 1). Runtime evaluator extracts deterministic checks (count_range, non_empty, contains) from question text; unrecognized patterns degrade to annotation. `warn` appends `VerificationViolation` to errors; `halt` raises `VerificationError`; `retry` re-executes then falls to warn. Lint rule W022 warns on `on_error: skip` without verification | `yamlgraph/verification`, `yamlgraph/models/graph_schema`, `yamlgraph/models/schemas`, `yamlgraph/node_factory/llm_nodes`, `yamlgraph/linter/checks_contracts`, `tests/unit/test_verification` |
 
 ---
 

@@ -93,16 +93,20 @@ from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
     CheckpointConfig,
     DefaultsConfig,
     NodeConfig,
+    VerificationConfig,
 )
 
 NodeConfig.model_config
 NodeConfig.fallback
+NodeConfig.verification
 CheckpointConfig.backend
 DefaultsConfig.model_config
 
 # --- Pydantic validators: called automatically by framework ---
 NodeConfig.validate_thinking_budget
 NodeConfig.validate_node_requirements
+NodeConfig.parse_verification
+VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget
 GraphConfig.validate_router_targets
 GraphConfig.validate_edge_nodes
@@ -112,6 +116,7 @@ from yamlgraph.models.schemas import (  # noqa: F401 (CONF-126)
     CopilotResult,
     GenericReport,
     PipelineError,
+    VerificationViolation,
 )
 
 PipelineError.details
@@ -119,6 +124,9 @@ GenericReport.sections
 GenericReport.recommendations
 CopilotResult.exit_code
 CopilotResult.backend
+VerificationViolation.prediction
+VerificationViolation.actual
+VerificationViolation.check_type
 
 # --- storage: LangGraph BaseCheckpointSaver interface methods ---
 from yamlgraph.storage.checkpointer_factory import (  # noqa: F401 (CONF-126)

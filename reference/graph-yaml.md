@@ -252,6 +252,7 @@ Each node in the `nodes` section defines a processing step.
 | `parse_json` | `bool` | `false` | Extract JSON from LLM response |
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
 | `route_field` | `string` | — | **Required for routers.** Schema field to extract route key from (FR-107) |
+| `verification` | `object` | `null` | Verification gate: falsifiable prediction checked after execution (FR-164) |
 
 ### `type: llm` - Standard LLM Node
 
@@ -776,6 +777,47 @@ nodes:
 | `retry` | Retry up to `max_retries` times |
 | `fail` | Raise exception, halt pipeline |
 | `fallback` | Try `fallback.provider` on failure |
+
+### Verification Gates (FR-164)
+
+Add a `verification` field to any LLM node to state a falsifiable prediction about its output. After execution, the framework checks the prediction using deterministic pattern matching.
+
+```yaml
+nodes:
+  fetch_articles:
+    type: llm
+    prompt: search_articles
+    state_key: articles
+    on_error: skip
+    verification:
+      question: "Will return 3-10 documents about {topic}"
+      on_fail: warn             # warn (default) | halt | retry
+
+  summarize:
+    type: llm
+    prompt: summarize
+    state_key: summary
+    verification:
+      question: "Will contain at least 100 characters"
+      on_fail: halt
+```
+
+| Sub-field | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `question` | `str` | — | **Required.** Falsifiable prediction. Supports `{var}` interpolation from state |
+| `on_fail` | `str` | `warn` | Action on violation: `warn` (log + continue), `halt` (raise), `retry` (re-execute) |
+| `max_retries` | `int` | `1` | Max retry attempts when `on_fail: retry`. Falls through to `warn` after exhaustion |
+
+**Supported patterns:**
+
+| Pattern | Example | Check |
+|---------|---------|-------|
+| Count range | `"Will return 3-10 items"` | `min <= len(result) <= max` |
+| Non-empty | `"Will return non-empty"` | `bool(result)` |
+| Contains | `"Will contain {keyword}"` | `keyword in str(result)` |
+| Custom | Any other text | Annotation only (logged, no failure) |
+
+**Lint rule W022:** Warns when a node uses `on_error: skip` without a verification question.
 
 ---
 
