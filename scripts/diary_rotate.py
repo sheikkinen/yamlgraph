@@ -72,7 +72,7 @@ def import_scheduled_entries() -> int:
 
         for line in lines:
             if line.startswith("# World Digest"):
-                theme = line[len("# World Digest — "):]
+                theme = line[len("# World Digest — ") :]
                 converted_lines.append(f"## {entry_date}: World Digest — {theme}")
             elif line.startswith("**Date:**"):
                 continue

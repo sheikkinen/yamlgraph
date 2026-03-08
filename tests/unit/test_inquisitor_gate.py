@@ -165,9 +165,7 @@ def _run_flag_parse(args: list[str] | None = None) -> str:
 
 def _setup_git_repo(path, commits: list[str]) -> list[str]:
     """Initialize a git repo at *path* and create commits; return short SHAs."""
-    subprocess.run(
-        ["git", "init"], cwd=path, capture_output=True, check=True
-    )
+    subprocess.run(["git", "init"], cwd=path, capture_output=True, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
         cwd=path,
@@ -183,9 +181,7 @@ def _setup_git_repo(path, commits: list[str]) -> list[str]:
     shas: list[str] = []
     for i, msg in enumerate(commits):
         (path / f"file_{i}.txt").write_text(f"commit {i}\n")
-        subprocess.run(
-            ["git", "add", "."], cwd=path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "add", "."], cwd=path, capture_output=True, check=True)
         subprocess.run(
             ["git", "commit", "-m", msg],
             cwd=path,
@@ -240,8 +236,7 @@ class TestSHAExtraction:
         diary_dir = tmp_path / "diary"
         diary_dir.mkdir()
         (diary_dir / "2026-03-07-inquisitor-audit-xxiii.md").write_text(
-            "**Context:** Audit covering commits "
-            "`f3c6b73`..`5c33f8c` (5 commits)\n"
+            "**Context:** Audit covering commits " "`f3c6b73`..`5c33f8c` (5 commits)\n"
         )
         assert _run_sha_extract(str(diary_dir)) == "5c33f8c"
 
@@ -315,9 +310,7 @@ class TestGateDecision:
 
     def test_force_bypasses_gate(self):
         """--force bypasses gate unconditionally (AC-3)."""
-        output = _run_gate_decision(
-            last_sha="abc1234", actionable=0, force="true"
-        )
+        output = _run_gate_decision(last_sha="abc1234", actionable=0, force="true")
         assert "GATE_PASSED:forced" in output
 
     def test_blocked_message_mentions_override(self):
