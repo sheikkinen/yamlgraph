@@ -223,3 +223,165 @@ class TestHookEntryFormat:
         assert CHANGELOG_REQUIRED_ENTRY.endswith(
             "' _"
         ), "Entry must end with ' _' for proper $1 handling"
+
+
+# ── FR-144: Diary Reflection Content Enforcement ────────────────────────────
+
+# The exact entry from .pre-commit-config.yaml for diary-reflection-check hook.
+# Uses git ls-files to scan tracked reflection files for unfilled placeholders.
+DIARY_REFLECTION_CHECK_ENTRY = (
+    "bash -c '"
+    'STUBS=$(git ls-files "docs/diary/*reflection*.md" '
+    "| xargs grep -l "
+    '"\\[What cognitive trap\\|\\[What lesson\\|\\[What question" '
+    "2>/dev/null); "
+    'if [ -n "$STUBS" ]; then '
+    'echo "❌ Unfilled diary reflection stubs:"; '
+    'echo "$STUBS"; '
+    'echo "Fill Trap/Heuristic/Seed sections before committing."; '
+    "exit 1; fi'"
+)
+
+
+def run_diary_hook(
+    entry: str, file_paths: list[str]
+) -> subprocess.CompletedProcess:
+    """Run the diary-reflection-check hook with mocked file list.
+
+    Replaces `git ls-files ...` with an echo of the given file paths
+    so the grep pattern is tested against real temp files.
+    """
+    if file_paths:
+        # Space-separated inside double quotes; xargs splits on whitespace.
+        # Avoids literal newlines that break the outer bash -c '...' quoting.
+        mock_ls = 'echo "' + " ".join(file_paths) + '"'
+    else:
+        mock_ls = "echo ''"
+    modified = entry.replace(
+        'git ls-files "docs/diary/*reflection*.md"', mock_ls
+    )
+    result = subprocess.run(
+        modified,
+        shell=True,
+        capture_output=True,
+        text=True,
+    )
+    return result
+
+
+UNFILLED_STUB = """\
+## 2026-03-08: FR-999 — Implementation Reflection
+
+**Context:** Implemented Something.
+
+**Trap:** [What cognitive trap was encountered?]
+
+**Heuristic:** [What lesson was learned?]
+
+**Seed:** [What question remains?]
+"""
+
+FILLED_REFLECTION = """\
+## 2026-03-08: FR-999 — Implementation Reflection
+
+**Context:** Implemented Something.
+
+**Trap:** quick_confidence — felt certain the regex was right, skipped verification.
+
+**Heuristic:** Always run the pattern against real data before committing.
+
+**Seed:** Can we auto-generate a test fixture from the detection pattern?
+"""
+
+
+@pytest.mark.req("REQ-YG-144")
+class TestDiaryReflectionCheck:
+    """Tests for diary-reflection-check pre-commit hook (FR-144)."""
+
+    def test_unfilled_trap_placeholder_rejected(self, tmp_path: Path) -> None:
+        """A reflection with [What cognitive trap] placeholder is rejected."""
+        f = tmp_path / "reflection.md"
+        f.write_text("**Trap:** [What cognitive trap was encountered?]\n")
+        result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
+        assert result.returncode == 1, f"Unfilled trap should fail: {result.stdout}"
+        assert "Unfilled" in result.stdout
+
+    def test_unfilled_lesson_placeholder_rejected(self, tmp_path: Path) -> None:
+        """A reflection with [What lesson] placeholder is rejected."""
+        f = tmp_path / "reflection.md"
+        f.write_text("**Heuristic:** [What lesson was learned?]\n")
+        result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
+        assert result.returncode == 1, f"Unfilled lesson should fail: {result.stdout}"
+
+    def test_unfilled_question_placeholder_rejected(self, tmp_path: Path) -> None:
+        """A reflection with [What question] placeholder is rejected."""
+        f = tmp_path / "reflection.md"
+        f.write_text("**Seed:** [What question remains?]\n")
+        result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
+        assert result.returncode == 1, f"Unfilled question should fail: {result.stdout}"
+
+    def test_filled_reflection_accepted(self, tmp_path: Path) -> None:
+        """A reflection with real content passes the hook."""
+        f = tmp_path / "reflection.md"
+        f.write_text(FILLED_REFLECTION)
+        result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
+        assert result.returncode == 0, f"Filled reflection should pass: {result.stdout}"
+
+    def test_no_reflection_files_accepted(self) -> None:
+        """When no reflection files exist, the hook passes."""
+        result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [])
+        assert result.returncode == 0, "No files should pass"
+
+    def test_mixed_filled_and_unfilled_rejected(self, tmp_path: Path) -> None:
+        """If any reflection is unfilled, the hook fails even if others are filled."""
+        filled = tmp_path / "filled.md"
+        filled.write_text(FILLED_REFLECTION)
+        unfilled = tmp_path / "unfilled.md"
+        unfilled.write_text(UNFILLED_STUB)
+        result = run_diary_hook(
+            DIARY_REFLECTION_CHECK_ENTRY, [str(filled), str(unfilled)]
+        )
+        assert result.returncode == 1, "Mixed should fail due to unfilled stub"
+
+    def test_full_stub_template_rejected(self, tmp_path: Path) -> None:
+        """The exact stub template from finalize_merge.sh is rejected."""
+        f = tmp_path / "reflection.md"
+        f.write_text(UNFILLED_STUB)
+        result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
+        assert result.returncode == 1, "Full stub template should fail"
+
+
+@pytest.mark.req("REQ-YG-144")
+class TestFinalizeMergeUnstagedDiary:
+    """Tests that finalize_merge.sh leaves diary stubs unstaged (FR-144).
+
+    Static verification — reads the script content to verify the git add
+    line excludes docs/diary/ and the commit message says 'untracked'.
+    """
+
+    SCRIPT_PATH = Path("scripts/finalize_merge.sh")
+
+    def test_git_add_excludes_diary(self) -> None:
+        """The git add line must NOT include docs/diary/."""
+        content = self.SCRIPT_PATH.read_text()
+        # Find the git add line in step 4
+        git_add_lines = [
+            line.strip()
+            for line in content.splitlines()
+            if line.strip().startswith("git add ")
+        ]
+        assert git_add_lines, "Expected a git add line in the script"
+        for line in git_add_lines:
+            assert "docs/diary" not in line, (
+                f"git add must not include docs/diary/: {line}"
+            )
+
+    def test_commit_message_says_untracked(self) -> None:
+        """The commit message template must say 'untracked', not 'appended'."""
+        content = self.SCRIPT_PATH.read_text()
+        assert "stub appended" not in content, (
+            "Commit message should not say 'appended'"
+        )
+        assert "untracked" in content.lower(), (
+            "Commit message should mention 'untracked'"
+        )
