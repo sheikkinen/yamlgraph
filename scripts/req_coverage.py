@@ -42,6 +42,7 @@ _ALL_FRAMEWORK_REQS = (
     + [143]  # REQ-YG-143 (CAP-44 Judge SPLIT Verdict)
     + [144]  # REQ-YG-144 (CAP-45 Diary Reflection Enforcement)
     + [122]  # REQ-YG-122 (CAP-46 Diary Import CLI)
+    + [145]  # REQ-YG-145 (CAP-47 Phantom Requirement Detection)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -216,6 +217,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-44": ("Judge SPLIT Verdict", ["REQ-YG-143"]),
     "CAP-45": ("Diary Reflection Enforcement", ["REQ-YG-144"]),
     "CAP-46": ("Diary Import CLI", ["REQ-YG-122"]),
+    "CAP-47": ("Phantom Requirement Detection", ["REQ-YG-145"]),
 }
 
 
