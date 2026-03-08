@@ -94,18 +94,20 @@ EOF
 
 # ── Step 4: Commit finalization ──────────────────────────────────────────────
 
-git add CHANGELOG.md "$FR_PATH" docs/diary/
+git add CHANGELOG.md "$FR_PATH"
 mkdir -p ./tmp
 cat > ./tmp/msg.txt << EOF
 chore: ${FR_NUM} post-merge finalization
 
 - CHANGELOG [Unreleased] entry added
 - FR status updated to Implemented
-- Diary reflection stub appended
+- Diary reflection stub created (untracked)
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 EOF
 git commit -F ./tmp/msg.txt
 
 echo "✅ Finalization complete for ${FR_NUM}"
-echo "📝 Edit docs/diary/${DATE}-reflection-${FR_NUM}.md to fill in Trap/Heuristic/Seed"
+echo "📝 Fill diary reflection before committing (hook enforced):"
+echo "   ${DIARY_ENTRY}"
+echo "   Replace [What cognitive trap/lesson/question] placeholders with real content."
