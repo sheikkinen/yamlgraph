@@ -34,6 +34,26 @@ def _prevent_env_pollution():
 
 
 # =============================================================================
+# GIT_* Environment Sanitization (FR-140)
+# =============================================================================
+# When pre-commit runs pytest, it injects GIT_DIR, GIT_WORK_TREE, etc.
+# These leak into subprocess git calls in tests that create tmp_path repos,
+# causing git to operate on the pre-commit context instead of the test repo.
+# Stripping at session start follows boundary normalization: sanitize external
+# data where it enters the test process.
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _clean_git_env():
+    """Strip GIT_* env vars injected by pre-commit to prevent subprocess bleed."""
+    git_vars = {k: v for k, v in os.environ.items() if k.startswith("GIT_")}
+    for k in git_vars:
+        del os.environ[k]
+    yield
+    os.environ.update(git_vars)
+
+
+# =============================================================================
 # Requirement Traceability Enforcement (ADR-001)
 # =============================================================================
 # Every test must be linked to a requirement via @pytest.mark.req("REQ-YG-XXX")
