@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-158 Diary Gate CI Job**: Add `diary-gate` job to `.github/workflows/commitlint.yml` that blocks merge of `feat`/`fix` PRs with `FR-XXX` reference unless a diary reflection file exists in the PR diff. Closes the enforcement gap where server-side squash merges bypass local pre-commit diary hooks. (REQ-YG-152)
 - **FR-157 CI Conflict Marker Gate**: Add `conflict-check` job to `.github/workflows/commitlint.yml` that greps tracked files for unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), excluding `.github/` and `*.md.bak`. Complements the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges. Document `conflict-check` status check and "require branches to be up to date" setting in `CLAUDE.md` branch protection table. (REQ-YG-151)
 
+### Fixed
+- **Architecture Capability Count**: Correct summary sentence (54→53 capabilities, 116→115 requirements) after FR-157/FR-158 merge conflicts caused over-count
+
 ## [0.4.61] — 2026-03-08
 
 ### Added
