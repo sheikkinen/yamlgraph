@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -77,13 +77,13 @@ Enable **"Require branches to be up to date before merging"** on the existing re
 
 ## Acceptance Criteria
 
-- [ ] `.github/workflows/commitlint.yml` contains a `conflict-check` job that greps tracked files (excluding workflow definitions) for conflict marker patterns (`<<<<<<<`, `=======`, `>>>>>>>`)
-- [ ] The `conflict-check` job fails with a non-zero exit code when conflict markers are present
-- [ ] The `conflict-check` job passes (exit 0) when no conflict markers are present
+- [x] `.github/workflows/commitlint.yml` contains a `conflict-check` job that greps tracked files (excluding workflow definitions) for conflict marker patterns (`<<<<<<<`, `=======`, `>>>>>>>`)
+- [x] The `conflict-check` job fails with a non-zero exit code when conflict markers are present
+- [x] The `conflict-check` job passes (exit 0) when no conflict markers are present
 - [ ] `conflict-check` is added as a required status check in GitHub branch protection for `main`
 - [ ] "Require branches to be up to date before merging" is enabled on `main` branch protection
-- [ ] `CLAUDE.md` branch protection table updated: new `conflict-check` row and "up-to-date" requirement noted
-- [ ] Tests: manual verification that a PR branch containing conflict markers triggers CI failure (no unit test — this is a CI-only gate)
+- [x] `CLAUDE.md` branch protection table updated: new `conflict-check` row and "up-to-date" requirement noted
+- [x] Tests: manual verification that a PR branch containing conflict markers triggers CI failure (no unit test — this is a CI-only gate)
 
 ## Alternatives Considered
 
