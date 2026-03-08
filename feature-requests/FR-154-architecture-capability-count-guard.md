@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -117,13 +117,13 @@ class TestArchitectureCapabilityCount:
 
 ## Acceptance Criteria
 
-- [ ] ARCHITECTURE.md L273 sentence updated to match actual table counts
-- [ ] Guard test `tests/unit/test_architecture_capability_count.py` exists and passes
-- [ ] Guard test fails if a new capability row is added without updating the sentence
-- [ ] Guard test fails if a new REQ-YG-ID is added without updating the sentence
-- [ ] REQ-YG-146 registered in ARCHITECTURE.md, `req_coverage.py`, and tagged on test
-- [ ] `python scripts/req_coverage.py --strict` passes
-- [ ] `pytest tests/unit/test_architecture_capability_count.py -v` passes
+- [x] ARCHITECTURE.md L273 sentence updated to match actual table counts
+- [x] Guard test `tests/unit/test_architecture_capability_count.py` exists and passes
+- [x] Guard test fails if a new capability row is added without updating the sentence
+- [x] Guard test fails if a new REQ-YG-ID is added without updating the sentence
+- [x] REQ-YG-146 registered in ARCHITECTURE.md, `req_coverage.py`, and tagged on test
+- [x] `python scripts/req_coverage.py --strict` passes
+- [x] `pytest tests/unit/test_architecture_capability_count.py -v` passes
 
 ## Alternatives Considered
 
