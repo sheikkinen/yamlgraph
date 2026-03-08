@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -62,11 +62,11 @@ Extend `.github/workflows/commitlint.yml` with a job that checks whether `CHANGE
 
 ## Acceptance Criteria
 
-- [ ] `feat` PRs targeting `main` without `CHANGELOG.md` in diff → check fails, merge blocked
-- [ ] `fix` PRs targeting `main` without `CHANGELOG.md` in diff → check fails, merge blocked
-- [ ] `feat`/`fix` PRs with `CHANGELOG.md` modified → check passes
-- [ ] `chore`/`docs`/`refactor`/`test`/`ci`/`perf`/`style`/`build` PRs → check skipped (not failed)
-- [ ] Job added to `.github/workflows/commitlint.yml` as a separate job (`changelog-gate`)
+- [x] `feat` PRs targeting `main` without `CHANGELOG.md` in diff → check fails, merge blocked
+- [x] `fix` PRs targeting `main` without `CHANGELOG.md` in diff → check fails, merge blocked
+- [x] `feat`/`fix` PRs with `CHANGELOG.md` modified → check passes
+- [x] `chore`/`docs`/`refactor`/`test`/`ci`/`perf`/`style`/`build` PRs → check skipped (not failed)
+- [x] Job added to `.github/workflows/commitlint.yml` as a separate job (`changelog-gate`)
 - [ ] Check configured as a required status check in branch protection rules for `main`
 
 ## Alternatives Considered
