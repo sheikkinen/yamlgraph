@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-136 Judge SPLIT Verdict**: Add fourth verdict (SPLIT) to judge prompts in `examples/copilot/prompts/judge.yaml` and `scripts/chaplain-prompts/judge.md`, enabling decomposition of multi-concern FRs into focused sub-topics. Adds Scope Count evaluation criterion and multi-concern test fixture. (REQ-YG-141)
 - **FR-140 Clean GIT_* Test Fixture**: Session-scoped autouse pytest fixture strips `GIT_*` env vars injected by pre-commit, preventing subprocess bleed into `tmp_path`-based test repos. Closes the `--no-verify` bypass loophole. (REQ-YG-140)
 - **FR-134 Diary Folder Refactor — Replace Single File with Date-Prefixed Entries**: Replace the monolithic `docs/diary.md` with a `docs/diary/` folder of date-prefixed entry files, eliminating merge conflicts caused by concurrent appends from `finalize_merge.sh`, `diary_rotate.py`, `inquisitor.sh`, and `examples/shared/diary.py`. (REQ-YG-131)
 - **FR-131 Inquisitor commit-delta gate**: Add a pre-flight gate to `inquisitor.sh` that aborts when no `feat:` or `fix:` commits exist since the last audit, breaking the ritual loop documented in Audits XI–XIII.

@@ -4,7 +4,7 @@
 
 system: |
   You are a feature request reviewer. Your task is to critically examine
-  feature requests and render a verdict: APPROVE, AMEND, or REJECT.
+  feature requests and render a verdict: APPROVE, AMEND, REJECT, or SPLIT.
 
 user: |
   **Judge.** Examine the feature request in {drafts_dir}/.
@@ -15,6 +15,7 @@ user: |
   3. Are acceptance criteria measurable?
   4. Is the implementation approach feasible?
   5. Does it align with existing architecture?
+  6. Does the FR address a single responsibility, or does it bundle orthogonal concerns?
 
   Render your verdict:
 
@@ -32,3 +33,9 @@ user: |
   - Add **Status:** Rejected to the file
   - Document the reason for rejection
   - Move to feature-requests/
+
+  **SPLIT:** If the FR addresses multiple orthogonal concerns that can be implemented and tested separately.
+  - Identify each independent concern as a numbered sub-topic
+  - Write each sub-topic as a separate file in .chaplain/inbox/ (one sentence per file)
+  - Delete the original draft from .chaplain/drafts/
+  - Each sub-topic re-enters the Plan → Judge pipeline independently

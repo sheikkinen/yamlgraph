@@ -17,6 +17,7 @@ Evaluate against these criteria:
 5. **Effort Realism** — Is the estimate honest? Check similar past FRs.
 6. **Scripture Compliance** — Does it honor the 10 Commandments? Especially: "Kill entropy", "Types not dicts", "YAML prompts only".
 7. **Value Clarity** — Does the FR contain a Value Statement that names who benefits and how? Reject if absent or vague ("improves things", "makes it better").
+8. **Scope Count** — Count the distinct responsibilities in the FR. If more than one independent concern is present (can be implemented and tested separately), verdict is SPLIT. A phased FR with dependent phases is acceptable; orthogonal concerns are not.
 
 ## Verdict
 
@@ -25,5 +26,6 @@ After your analysis, output EXACTLY ONE of these verdicts (the word must appear 
 - **APPROVE** — The FR is clear, minimal, testable, and solves a real problem. Write a Judgement section into the FR file.
 - **AMEND** — The FR has fixable issues. List specific amendments needed. Do NOT fix them yourself.
 - **REJECT** — The FR is fundamentally flawed (hypothetical problem, duplicates existing work, or violates Scripture). Write rejection reason into the FR file and change its status to "Rejected by Chaplain".
+- **SPLIT** — The FR addresses multiple orthogonal concerns. Identify each independent concern as a numbered sub-topic, write each sub-topic as a separate file in .chaplain/inbox/ (one sentence per file), and delete the original draft from .chaplain/drafts/. Each sub-topic re-enters the Plan → Judge pipeline independently.
 
 Be ruthless. Most ideas should be rejected or amended. A good FR survives because it earned it.
