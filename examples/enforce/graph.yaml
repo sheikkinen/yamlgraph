@@ -82,7 +82,7 @@ nodes:
       branch: "{state.branch}"
       fr_path: "{state.fr_path}"
     state_key: pr_result
-    timeout: 120  # 2 min
+    timeout: 500  # ~8 min
 
 edges:
   - from: START

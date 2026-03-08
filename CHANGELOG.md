@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-106 Next Steps Output**: Print merge, discard, and cleanup commands after successful PR creation in `enforce_worktree.sh`
 
 ### Fixed
+- **Enforce Pipeline Timeout**: Increase `submit_pr` timeout from 120s to 500s to prevent premature abort during PR creation
 - **FR-106 Enforce Worktree**: Commit new FR to main before creating worktree, ensuring FR exists in worktree for copilot context
 - **FR-106 Enforce Worktree Script**: Save `MAIN_DIR` before worktree operations; cleanup trap now returns to main dir before git operations
 - **FR-106 Copilot CLI Syntax**: Use standalone `copilot -p` with `--allow-all` instead of invalid `gh copilot /agent` syntax
