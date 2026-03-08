@@ -275,6 +275,15 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#extension-points) for detailed guides on:
 - **Logging**: Use `logging.getLogger(__name__)` (user-facing prints use emojis: 📝 🔍 ✓ ✗ 🚀)
 - **Deprecation**: Use `DeprecationError` when marking old APIs during refactoring
 
+## Pull Request Conventions
+
+- **PR titles must follow Conventional Commits**: `type(scope): description` (e.g., `feat(streaming): FR-030 add subgraphs parameter`)
+- **Allowed types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`, `style`, `build`, `revert`
+- **`feat` PRs must reference `FR-XXX`** in the title (enforced by CI)
+- **Squash merge is the required merge strategy** — the PR title becomes the commit message on the default branch. Repository settings must restrict to squash merge only (Settings → General → Pull Requests)
+- CI enforcement via `action-semantic-pull-request@v5` in `.github/workflows/commitlint.yml`
+- Local enforcement via `conventional-pre-commit` in `.pre-commit-config.yaml` (commit-msg hook)
+
 ## Testing Patterns
 
 See [ARCHITECTURE.md](ARCHITECTURE.md#testing-strategy) for detailed testing patterns including:
