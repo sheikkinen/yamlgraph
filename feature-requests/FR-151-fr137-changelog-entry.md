@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** ✅ Implemented
 **Effort:** 0.25 days
 **Requested:** 2026-03-08
 
@@ -34,10 +34,10 @@ Insert it in FR-number order among the existing entries (after FR-138, before FR
 
 ## Acceptance Criteria
 
-- [ ] CHANGELOG.md `[Unreleased] → Added` contains an entry referencing FR-137 and DeepSeek
-- [ ] Entry describes the provider addition and required environment variable
-- [ ] Entry is positioned in descending FR-number order consistent with surrounding entries
-- [ ] `grep -c "FR-137" CHANGELOG.md` returns ≥ 1
+- [x] CHANGELOG.md `[Unreleased] → Added` contains an entry referencing FR-137 and DeepSeek
+- [x] Entry describes the provider addition and required environment variable
+- [x] Entry is positioned in descending FR-number order consistent with surrounding entries
+- [x] `grep -c "FR-137" CHANGELOG.md` returns ≥ 1
 
 ## Alternatives Considered
 
