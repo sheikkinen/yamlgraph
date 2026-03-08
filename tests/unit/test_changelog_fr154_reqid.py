@@ -22,9 +22,9 @@ class TestFR154ChangelogReqId:
         fr154_lines = [ln for ln in text.splitlines() if "FR-154" in ln]
         assert fr154_lines, "No FR-154 line found in CHANGELOG.md"
         entry = fr154_lines[0]
-        assert "(REQ-YG-150)" in entry, (
-            f"FR-154 entry has wrong REQ-ID. Expected (REQ-YG-150), got: {entry}"
-        )
+        assert (
+            "(REQ-YG-150)" in entry
+        ), f"FR-154 entry has wrong REQ-ID. Expected (REQ-YG-150), got: {entry}"
 
     def test_fr154_entry_does_not_reference_req_yg_146(self):
         """FR-154 line must NOT contain (REQ-YG-146) — that belongs to CAP-48."""
@@ -32,6 +32,6 @@ class TestFR154ChangelogReqId:
         fr154_lines = [ln for ln in text.splitlines() if "FR-154" in ln]
         assert fr154_lines, "No FR-154 line found in CHANGELOG.md"
         entry = fr154_lines[0]
-        assert "(REQ-YG-146)" not in entry, (
-            f"FR-154 entry still cites wrong REQ-ID (REQ-YG-146): {entry}"
-        )
+        assert (
+            "(REQ-YG-146)" not in entry
+        ), f"FR-154 entry still cites wrong REQ-ID (REQ-YG-146): {entry}"
