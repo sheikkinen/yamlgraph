@@ -49,6 +49,7 @@ _ALL_FRAMEWORK_REQS = (
     + [149]  # REQ-YG-149 (CAP-51 Branch Protection Documentation)
     + [150]  # REQ-YG-150 (CAP-52 Architecture Capability Count Guard)
     + [151]  # REQ-YG-151 (CAP-53 CI Conflict Marker Gate)
+    + [152]  # REQ-YG-152 (CAP-54 CI Diary Existence Gate)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -230,6 +231,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-51": ("Branch Protection Documentation", ["REQ-YG-149"]),
     "CAP-52": ("Architecture Capability Count Guard", ["REQ-YG-150"]),
     "CAP-53": ("CI Conflict Marker Gate", ["REQ-YG-151"]),
+    "CAP-54": ("CI Diary Existence Gate", ["REQ-YG-152"]),
 }
 
 
