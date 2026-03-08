@@ -44,6 +44,21 @@ jobs:
             exit 1
           fi
 
+  conflict-check:
+    name: No conflict markers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for conflict markers
+        run: |
+          if git grep -n -E '^<{7} |^={7}$|^>{7} ' -- ':!.github' ':!*.md.bak'; then
+            echo "::error::Unresolved merge conflict markers found in tracked files"
+            exit 1
+          else
+            echo "✅ No conflict markers found"
+          fi
+
   changelog-gate:
     name: CHANGELOG required for feat/fix
     runs-on: ubuntu-latest

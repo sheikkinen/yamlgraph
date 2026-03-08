@@ -75,7 +75,7 @@ def _run_gate_script(
 # ── YAML Structure Tests ───────────────────────────────────────────────────
 
 
-@pytest.mark.req("REQ-YG-151")
+@pytest.mark.req("REQ-YG-152")
 class TestDiaryGateJobStructure:
     """Verify the diary-gate job exists with correct configuration."""
 
@@ -161,7 +161,7 @@ class TestDiaryGateJobStructure:
 # ── Shell Script Logic Tests ───────────────────────────────────────────────
 
 
-@pytest.mark.req("REQ-YG-151")
+@pytest.mark.req("REQ-YG-152")
 class TestDiaryGateShellLogic:
     """Test the actual bash script that verifies diary reflection in diff."""
 
