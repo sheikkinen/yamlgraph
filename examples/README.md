@@ -2,6 +2,15 @@
 
 Example applications demonstrating YAMLGraph capabilities.
 
+## Inclusion Criteria
+
+Every listed example must have:
+1. A `README.md` explaining what it does and how to run it
+2. At least one runnable YAML graph (or a `demo.sh` / runnable Python script for demos that require programmatic setup)
+3. A clear statement of which YAMLGraph feature it demonstrates
+
+Examples that fail this bar are moved to `purgatory/` (see [purgatory/README.md](../purgatory/README.md)).
+
 ## 🎓 Learning Path
 
 Start here and progress through the demos in order:
@@ -26,43 +35,77 @@ After the learning path, explore production examples below.
 | [book_translator/](book_translator/) | Translate books & documents | Map nodes, parallel translation, glossary, checkpointing |
 | [booking/](booking/) | Appointment booking assistant | Interrupt nodes, tool nodes, multi-turn conversation |
 | [codegen/](codegen/) | Implementation agent | Tool nodes, code analysis, 24 Python tools |
+| [copilot/](copilot/) | Copilot node demo | Copilot CLI delegation, Plan→Judge→Diary workflow (FR-081, FR-098) |
 | [cost-router/](cost-router/) | Multi-provider routing | Router nodes, Granite/Mistral/Claude |
 | [daily_digest/](daily_digest/) | Scheduled news digest | Fly.io deployment, background tasks, email |
+| [diary_digest/](diary_digest/) | Automated diary digest | Data files, feed topics, parallel processing (FR-046) |
+| [ebook/](ebook/) | eBook authoring pipeline | File-based write→judge→amend pattern |
+| [enforce/](enforce/) | Parallel development pipeline | Git worktrees, feature enforcement (FR-106) |
 | [fsm-router/](fsm-router/) | FSM + YAMLGraph integration | statemachine-engine, LLM routing, job orchestration |
 | [npc/](npc/) | D&D NPC generator | Multi-graph, map nodes, parallel NPCs |
 | [ocr_cleanup/](ocr_cleanup/) | OCR text cleanup | Map nodes, PDF extraction, parallel LLM cleanup |
+| [openai_proxy/](openai_proxy/) | OpenAI-compatible guardrail proxy | Echo→validate→respond pipeline, `/v1/chat/completions` |
 | [questionnaire/](questionnaire/) | Feature request collector | Data files, interrupt loops, conditional routing |
 | [rag/](rag/) | RAG pipeline | LanceDB vectorstore, document indexing, retrieval |
+| [rtm-hello/](rtm-hello/) | TDD + requirement traceability | pytest markers, AST-based tooling |
 | [storyboard/](storyboard/) | Visual story generator | Replicate API, image generation |
 | [yamlgraph_gen/](yamlgraph_gen/) | Pipeline generator | Meta-generation, snippet composition, validation |
 | [fastapi_interview.py](fastapi_interview.py) | FastAPI integration | Async execution, interrupt handling, sessions |
-| [demos/soul/](demos/soul/) | Agent personality pattern | Data files, persona definition |
 
 ## Demos Index
 
-Standalone demos in [demos/](demos/):
+### Learning Demos
+
+Standalone demos that teach a single YAMLGraph concept. Ordered by the learning path, then alphabetically.
 
 | Demo | Node Types | Description |
 |------|------------|-------------|
-| [hello](demos/hello/) | `llm` | Minimal example - start here |
+| [hello](demos/hello/) | `llm` | Minimal example — start here |
 | [router](demos/router/) | `router` | Tone-based conditional routing |
 | [map](demos/map/) | `map`, `llm` | Parallel fan-out processing |
 | [reflexion](demos/reflexion/) | `llm` | Self-correction with loop limits |
-| [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |
 | [git-report](demos/git-report/) | `agent` | Git analysis with tools |
-| [memory](demos/memory/) | `agent` | Multi-turn with memory |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |
-| [interrupt](demos/interrupt/) | `subgraph`, `interrupt` | Subgraph interrupt tests |
-| [streaming](demos/streaming/) | `llm` | Token-by-token output |
 | [subgraph](demos/subgraph/) | `subgraph` | Graph composition |
-| [system-status](demos/system-status/) | `tool` | Shell tool execution |
-| [web-research](demos/web-research/) | `agent` | Web search agent |
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
-| [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
 | [data-files](demos/data-files/) | `llm` | External data loading |
+| [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
+| [innovation_matrix](demos/innovation_matrix/) | `llm` | Capability-constraint innovation matrix |
+| [interactive_tool](demos/interactive_tool/) | `interactive_tool` | Multi-turn trivia quiz with user interrupts |
+| [memory](demos/memory/) | `agent` | Multi-turn with memory |
+| [multi-turn](demos/multi-turn/) | `interrupt`, `llm` | Multi-turn streaming with checkpoints (FR-028) |
+| [novel_generator](demos/novel_generator/) | `llm`, `map` | Three-phase story generation with quality gates |
 | [python-map](demos/python-map/) | `map`, `python` | Parallel Python tools |
-| [run-analyzer](demos/run-analyzer/) | - | Analysis utilities |
+| [safety-guards](demos/safety-guards/) | `llm`, `map` | Execution safety with recursion limits (FR-027) |
+| [session-continuation](demos/session-continuation/) | `copilot` | Session persistence across runs |
 | [soul](demos/soul/) | `llm`, `data_files` | Agent personality pattern |
+| [streaming](demos/streaming/) | `llm` | Token-by-token output |
+| [system-status](demos/system-status/) | `tool` | Shell tool execution |
+| [tavily_rag](demos/tavily_rag/) | `python`, `llm` | Domain-specific RAG with Tavily retrieval |
+| [thinking](demos/thinking/) | `llm` | Extended thinking with configurable depth (FR-071) |
+| [verified-search](demos/verified-search/) | `agent`, `llm` | Evaluation-first search with verification |
+| [web-research](demos/web-research/) | `agent` | Web search agent |
+| [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |
+
+### Utility Demos
+
+Tools for codebase analysis — useful for maintainers, not for learning.
+
+| Demo | Description |
+|------|-------------|
+| [pipeline_audit](demos/pipeline_audit/) | Cross-pipeline structural analysis |
+| [req-cross-check](demos/req-cross-check/) | Architecture requirement traceability audit |
+| [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
+
+### FR Validation Demos
+
+Used primarily to validate specific feature requests.
+
+| Demo | FR | Description |
+|------|-----|-------------|
+| [interrupt](demos/interrupt/) | FR-006 | Subgraph interrupt integration tests |
+
+> **Archived:** `commit-delta-gate` and `session-test` moved to `purgatory/` — see [purgatory/README.md](../purgatory/README.md).
 
 ## Running Examples
 
