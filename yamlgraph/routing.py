@@ -49,6 +49,7 @@ def make_router_fn(targets: list[str]) -> Callable[[dict], str]:
 def make_expr_router_fn(
     edges: list[tuple[str, str]],
     source_node: str,
+    loop_exit_target: str | None = None,
 ) -> Callable[[GraphState], str]:
     """Create router that evaluates expression conditions.
 
@@ -58,6 +59,7 @@ def make_expr_router_fn(
     Args:
         edges: List of (condition, target) tuples
         source_node: Name of the source node (for logging)
+        loop_exit_target: Target node when loop limit is reached (FR-172)
 
     Returns:
         Router function that evaluates conditions and returns target
@@ -66,6 +68,8 @@ def make_expr_router_fn(
     def expr_router_fn(state: GraphState) -> str:
         # Check loop limit first
         if state.get("_loop_limit_reached"):
+            if loop_exit_target:
+                return loop_exit_target
             return END
 
         for condition, target in edges:
