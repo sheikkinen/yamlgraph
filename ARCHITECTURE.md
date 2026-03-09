@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **55 capabilities** covering **119 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **56 capabilities** covering **121 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -331,6 +331,7 @@ YAMLGraph implements **55 capabilities** covering **119 requirements**. Each cap
 | 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml` | REQ-YG-152 |
 | 55 | Chaplain Inbox Documentation | `CLAUDE.md` | REQ-YG-153 |
 | 56 | Verification Gate Pattern | `yamlgraph/verification`, `node_factory/llm_nodes`, `linter/checks_contracts` | REQ-YG-154 |
+| 57 | Cross-Graph Session Continuity | `examples/shared/session_handoff`, `examples/copilot/graph.yaml`, `examples/enforce/graph.yaml` | REQ-YG-156, REQ-YG-157 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -816,6 +817,8 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 |------------|-------------|-------------|
 | REQ-YG-154 | `NodeConfig` accepts optional `verification` field (`VerificationConfig`) with `question` (str, required), `on_fail` (warn\|halt\|retry, default warn), `max_retries` (int, default 1). Runtime evaluator extracts deterministic checks (count_range, non_empty, contains) from question text; unrecognized patterns degrade to annotation. `warn` appends `VerificationViolation` to errors; `halt` raises `VerificationError`; `retry` re-executes then falls to warn. Lint rule W022 warns on `on_error: skip` without verification | `yamlgraph/verification`, `yamlgraph/models/graph_schema`, `yamlgraph/models/schemas`, `yamlgraph/node_factory/llm_nodes`, `yamlgraph/linter/checks_contracts`, `tests/unit/test_verification` |
 | REQ-YG-155 | Count range verification claim parsed into `CountRangeClaim` Pydantic model with `min_count` (int, ge=0), `max_count` (int, ge=0) and `model_validator` enforcing min ≤ max. Inverted ranges raise `ValueError` at parse time. Violation `details` exposes `expected_min`, `expected_max`, `actual_count` for programmatic inspection | `yamlgraph/verification`, `yamlgraph/models/__init__`, `tests/unit/test_verification` |
+| REQ-YG-156 | `write_session_id` tool extracts `session_id` from `judge_result` (CopilotResult or dict) and writes to `tmp/last-plan-session-id`. `read_session_id` reads back the value; `cleanup_session_id` removes the file. Empty/missing session ID writes empty string and returns `session_exported: False` | `examples/shared/session_handoff`, `tests/unit/test_session_handoff` |
+| REQ-YG-157 | Enforce pipeline's `implement` node accepts `plan_session_id` state variable and passes `--resume` flag to Copilot CLI when non-empty. Empty or missing `plan_session_id` starts a fresh session (graceful degradation). `watch.sh` threads session ID file to `enforce_worktree.sh` via `--session-id` flag | `examples/enforce/graph.yaml`, `.chaplain/watch.sh`, `scripts/enforce_worktree.sh`, `tests/unit/test_session_handoff` |
 
 ---
 

@@ -44,13 +44,14 @@ def check_copilot_node_structure(
         )
 
     # W-COPILOT-SESSION: Warning if resume looks like a state expression but
-    # doesn't reference a likely session_id path
+    # doesn't reference a likely session_id path.
+    # FR-168: Also accept direct session_id variable names (cross-graph handoff)
     if has_resume:
         resume_val = cli_flags.get("resume", "")
         if (
             isinstance(resume_val, str)
             and "{state." in resume_val
-            and ".session_id" not in resume_val
+            and "session_id" not in resume_val
         ):
             issues.append(
                 LintIssue(

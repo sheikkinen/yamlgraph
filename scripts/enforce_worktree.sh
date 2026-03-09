@@ -32,12 +32,18 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
 # Validate arguments
 if [[ $# -lt 1 ]]; then
-    log_error "Usage: $0 <feature-request-path> [base-branch]"
+    log_error "Usage: $0 <feature-request-path> [base-branch] [--session-id <id>]"
     exit 1
 fi
 
-FR_PATH="$1"
-BASE_BRANCH="${2:-main}"
+# Parse arguments (FR-168: added --session-id flag)
+FR_PATH="" BASE_BRANCH="main" SESSION_ID=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --session-id) SESSION_ID="$2"; shift 2 ;;
+        *) [[ -z "$FR_PATH" ]] && FR_PATH="$1" || BASE_BRANCH="$1"; shift ;;
+    esac
+done
 
 # Validate FR file exists
 if [[ ! -f "$FR_PATH" ]]; then
@@ -116,12 +122,12 @@ cd "$WORKTREE_DIR"
 unset GIT_DIR GIT_WORK_TREE 2>/dev/null || true
 log_info "Working in: $(pwd)"
 
-# Delegate all LLM phases to the enforce pipeline graph (FR-128)
-# The graph handles: implement → test/demo → pre-commit → submit PR
+# Delegate to enforce pipeline graph (FR-128); FR-168: pass plan_session_id
 log_info "Running enforce pipeline graph..."
 yamlgraph graph run examples/enforce/graph.yaml \
     --var fr_path="$FR_PATH" \
     --var branch="$BRANCH" \
+    ${SESSION_ID:+--var plan_session_id="$SESSION_ID"} \
     --full
 
 # FR-139: Post-run assertion — catch mid-run corruption
@@ -138,21 +144,10 @@ echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  NEXT STEPS${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
-echo ""
-echo -e "  ${YELLOW}To merge via command line:${NC}"
-echo "    gh pr merge $BRANCH --squash --delete-branch"
-echo ""
-echo -e "  ${YELLOW}To merge via GitHub web:${NC}"
-echo "    gh pr view $BRANCH --web"
-echo ""
-echo -e "  ${YELLOW}To discard (close PR and delete branch):${NC}"
-echo "    gh pr close $BRANCH --delete-branch"
-echo ""
-echo -e "  ${YELLOW}To delete branch only (if PR already closed):${NC}"
-echo "    git push origin --delete $BRANCH"
-echo "    git branch -D $BRANCH 2>/dev/null || true"
-echo ""
-echo -e "  ${YELLOW}After merging, finalize:${NC}"
-echo "    git checkout main && git pull"
-echo "    scripts/finalize_merge.sh $FR_PATH"
-echo ""
+echo -e "
+  ${YELLOW}To merge:${NC}         gh pr merge $BRANCH --squash --delete-branch
+  ${YELLOW}To view:${NC}          gh pr view $BRANCH --web
+  ${YELLOW}To discard:${NC}       gh pr close $BRANCH --delete-branch
+  ${YELLOW}To delete branch:${NC} git push origin --delete $BRANCH
+  ${YELLOW}After merging:${NC}    git checkout main && git pull && scripts/finalize_merge.sh $FR_PATH
+"

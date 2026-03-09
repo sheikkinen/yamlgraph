@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-03-09
 
@@ -152,15 +152,15 @@ When `plan_session_id` is empty/None, the `resume` expression resolves to a fals
 
 ## Acceptance Criteria
 
-- [ ] Plan-judge graph exports `judge_result.session_id` to `tmp/last-plan-session-id`
-- [ ] `watch.sh` reads session ID file and passes to `enforce_worktree.sh`
-- [ ] `enforce_worktree.sh` accepts optional `--session-id` flag
-- [ ] Enforce graph's `implement` node resumes plan-judge session when session ID is provided
-- [ ] Enforce pipeline still works when no session ID is provided (graceful degradation — fresh session)
-- [ ] Session ID file is cleaned up after consumption (no stale state)
-- [ ] Unit test: session handoff tool writes and reads correctly
-- [ ] Integration test: enforce graph accepts `plan_session_id` variable and passes `--resume` flag
-- [ ] Documentation updated in `reference/graph-yaml.md` (cross-graph session pattern)
+- [x] Plan-judge graph exports `judge_result.session_id` to `tmp/last-plan-session-id`
+- [x] `watch.sh` reads session ID file and passes to `enforce_worktree.sh`
+- [x] `enforce_worktree.sh` accepts optional `--session-id` flag
+- [x] Enforce graph's `implement` node resumes plan-judge session when session ID is provided
+- [x] Enforce pipeline still works when no session ID is provided (graceful degradation — fresh session)
+- [x] Session ID file is cleaned up after consumption (no stale state)
+- [x] Unit test: session handoff tool writes and reads correctly
+- [x] Integration test: enforce graph accepts `plan_session_id` variable and passes `--resume` flag
+- [x] Documentation updated in `reference/graph-yaml.md` (cross-graph session pattern)
 
 ## Constraints
 

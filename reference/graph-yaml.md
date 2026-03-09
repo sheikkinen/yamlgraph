@@ -564,6 +564,44 @@ nodes:
 
 See [examples/copilot/](../examples/copilot/) for a complete demo.
 
+**Cross-Graph Session Continuity (FR-168):**
+
+When two graphs run sequentially (e.g., plan-judge → enforce), you can thread the session ID via file-based handoff:
+
+1. **Export** — The first graph writes `judge_result.session_id` to `tmp/last-plan-session-id` using the `write_session_id` tool from `examples.shared.session_handoff`.
+2. **Thread** — The orchestration script reads the file and passes the session ID as a `--var` to the second graph.
+3. **Resume** — The second graph's first node uses `resume: "{state.plan_session_id}"` to continue the session.
+
+```yaml
+# Graph 1: copilot/graph.yaml (plan-judge pipeline)
+tools:
+  write_session_id_tool:
+    type: python
+    module: examples.shared.session_handoff
+    function: write_session_id
+
+nodes:
+  # ... plan, judge, summarize, write_diary ...
+  export_session:
+    type: python
+    tool: write_session_id_tool
+    state_key: session_exported
+
+# Graph 2: enforce/graph.yaml (enforce pipeline)
+state:
+  plan_session_id: str  # Passed via --var from orchestration script
+
+nodes:
+  implement:
+    type: copilot
+    prompt: enforce-implement
+    cli_flags:
+      resume: "{state.plan_session_id}"  # Resumes plan-judge session
+    state_key: implement_result
+```
+
+When `plan_session_id` is empty or missing, the `resume` expression resolves to a falsy value and the node starts a fresh session.
+
 ### `type: map` - Parallel Fan-Out Node
 
 Process each item in a list in parallel using LangGraph's `Send()` API.

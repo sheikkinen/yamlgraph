@@ -8,6 +8,7 @@
 #
 # All phases chain via session continuations (FR-105), creating a single
 # conversation thread where each phase has full context from prior phases.
+# FR-168: implement node resumes plan-judge session when plan_session_id provided.
 #
 # Usage via orchestration script:
 #   scripts/enforce_worktree.sh feature-requests/FR-106-parallel-worktree-pipeline.md
@@ -25,6 +26,7 @@ prompts_dir: prompts
 state:
   fr_path: str           # Path to the approved feature request
   branch: str            # Git branch name
+  plan_session_id: str   # Optional: session ID from plan-judge pipeline (FR-168)
   implement_result: dict
   test_result: dict
   precommit_result: dict
@@ -33,12 +35,14 @@ state:
 nodes:
   # Phase 1: Implement with TDD
   # Read the FR, write failing tests, implement minimal change, refactor
+  # FR-168: Resumes plan-judge session when plan_session_id is provided
   implement:
     type: copilot
     prompt: enforce-implement
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
+      resume: "{state.plan_session_id}"
     variables:
       fr_path: "{state.fr_path}"
       branch: "{state.branch}"

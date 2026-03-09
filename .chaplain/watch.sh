@@ -39,7 +39,19 @@ while true; do
             echo "🚀 Spawning enforce pipeline for: $new_fr"
             mkdir -p tmp
             LOG="tmp/enforce-$(basename "$new_fr" .md).log"
-            nohup scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 &
+
+            # FR-168: Thread session ID from plan-judge to enforce pipeline
+            session_id=""
+            if [[ -f tmp/last-plan-session-id ]]; then
+                session_id=$(cat tmp/last-plan-session-id)
+                rm -f tmp/last-plan-session-id
+            fi
+
+            if [[ -n "$session_id" ]]; then
+                nohup scripts/enforce_worktree.sh "$new_fr" --session-id "$session_id" > "$LOG" 2>&1 &
+            else
+                nohup scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 &
+            fi
             echo "   PID: $!  Log: $LOG"
         fi
     fi

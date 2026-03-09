@@ -4,6 +4,7 @@
 # FR-093: Added summarize + write_diary for automatic diary append
 # FR-098: Consolidated from .chaplain/graph.yaml
 # FR-105: Session continuation - judge resumes plan's session
+# FR-168: Cross-graph session continuity - export session ID for enforce pipeline
 
 version: "1.0"
 name: copilot-workflow
@@ -29,6 +30,11 @@ tools:
     type: python
     module: examples.shared.diary
     function: write_diary
+
+  write_session_id_tool:
+    type: python
+    module: examples.shared.session_handoff
+    function: write_session_id
 
 nodes:
   # Stage 1: Plan - Copilot reads topic and drafts feature request
@@ -75,6 +81,12 @@ nodes:
     tool: write_diary_tool
     state_key: written
 
+  # Stage 5: Export session ID for cross-graph handoff (FR-168)
+  export_session:
+    type: python
+    tool: write_session_id_tool
+    state_key: session_exported
+
 edges:
   - from: START
     to: plan
@@ -85,4 +97,6 @@ edges:
   - from: summarize
     to: write_diary
   - from: write_diary
+    to: export_session
+  - from: export_session
     to: END
