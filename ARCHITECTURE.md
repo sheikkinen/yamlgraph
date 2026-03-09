@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **56 capabilities** covering **120 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **58 capabilities** covering **122 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -333,6 +333,7 @@ YAMLGraph implements **56 capabilities** covering **120 requirements**. Each cap
 | 56 | Verification Gate Pattern | `yamlgraph/verification`, `node_factory/llm_nodes`, `linter/checks_contracts` | REQ-YG-154 |
 | 57 | Configurable Loop Exit Target | `routing`, `edge_compiler`, `graph_loader`, `linter/checks_semantic` | REQ-YG-093 |
 | 60 | Worktree Venv Corruption Guard | `utils/worktree_helpers`, `scripts/enforce_worktree.sh` | REQ-YG-156 |
+| 61 | Bugfix Pipeline with Condemning Test | `examples/bugfix`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh` | REQ-YG-157 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -820,6 +821,7 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | REQ-YG-155 | Count range verification claim parsed into `CountRangeClaim` Pydantic model with `min_count` (int, ge=0), `max_count` (int, ge=0) and `model_validator` enforcing min ≤ max. Inverted ranges raise `ValueError` at parse time. Violation `details` exposes `expected_min`, `expected_max`, `actual_count` for programmatic inspection | `yamlgraph/verification`, `yamlgraph/models/__init__`, `tests/unit/test_verification` |
 | REQ-YG-093 | `loop_exits` graph-level config maps node names to custom exit targets when loop limit is reached. `GraphConfigSchema` validates as `dict[str, str]` with default `{}`. `make_expr_router_fn` accepts optional `loop_exit_target`; when `_loop_limit_reached` is True, returns configured target instead of `END`. Lint rule E009 validates keys exist in `loop_limits` and targets are valid nodes | `yamlgraph/routing`, `yamlgraph/edge_compiler`, `yamlgraph/graph_loader`, `yamlgraph/models/graph_schema`, `yamlgraph/linter/checks_semantic`, `tests/unit/test_loops` |
 | REQ-YG-156 | **Worktree venv corruption guard**: `validate_venv_health()` raises `FileNotFoundError` when `.venv` directory is missing, `bin/python` is absent, or not executable (no silent skip). `validate_venv_symlink()` raises `OSError` when worktree `.venv` symlink doesn't resolve. `clean_stale_pth_entries()` removes `.pth`/`.egg-link` files referencing a deleted worktree directory to prevent import corruption from dangling editable installs | `yamlgraph/utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `tests/unit/test_worktree_venv_guard` |
+| REQ-YG-157 | **Bugfix pipeline with condemning test**: 4-phase pipeline (`condemn` → `fix` → `verify` → `submit_pr`) in `examples/bugfix/graph.yaml`. Condemn phase writes failing test against unchanged code (SKIP=pytest). `scripts/bugfix_worktree.sh` orchestrates in isolated worktree. `watch.sh` routes `Type.*Bug` FRs to bugfix pipeline. Each phase has dedicated prompt in `examples/bugfix/prompts/`. README documents Commandment 7 compliance | `examples/bugfix`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `tests/unit/test_bugfix_pipeline` |
 
 ---
 

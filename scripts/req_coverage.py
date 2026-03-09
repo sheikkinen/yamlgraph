@@ -55,7 +55,8 @@ _ALL_FRAMEWORK_REQS = (
     + [114]  # REQ-YG-114 (CAP-57 No-Silent-Fallback Lint W017)
     + [155]  # REQ-YG-155 (CAP-58 Verification Count Range Pydantic)
     + [93]  # REQ-YG-093 (CAP-57 Configurable Loop Exit Target)
-    + [156]  # REQ-YG-156 (CAP-58 Worktree Venv Corruption Guard)
+    + [156]  # REQ-YG-156 (CAP-60 Worktree Venv Corruption Guard)
+    + [157]  # REQ-YG-157 (CAP-61 Bugfix Pipeline with Condemning Test)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -246,6 +247,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-57": ("Verification Count Range Pydantic", ["REQ-YG-155"]),
     "CAP-59": ("Configurable Loop Exit Target", ["REQ-YG-093"]),
     "CAP-60": ("Worktree Venv Corruption Guard", ["REQ-YG-156"]),
+    "CAP-61": ("Bugfix Pipeline with Condemning Test", ["REQ-YG-157"]),
 }
 
 

@@ -34,6 +34,7 @@ After the learning path, explore production examples below.
 | [beautify/](beautify/) | Graph → HTML infographic | LLM analysis, Mermaid diagrams, Tailwind CSS |
 | [book_translator/](book_translator/) | Translate books & documents | Map nodes, parallel translation, glossary, checkpointing |
 | [booking/](booking/) | Appointment booking assistant | Interrupt nodes, tool nodes, multi-turn conversation |
+| [bugfix/](bugfix/) | Bug-fix pipeline with condemning test | Copilot nodes, 4-phase workflow, TDD enforcement (FR-173) |
 | [codegen/](codegen/) | Implementation agent | Tool nodes, code analysis, 24 Python tools |
 | [copilot/](copilot/) | Copilot node demo | Copilot CLI delegation, Plan→Judge→Diary workflow (FR-081, FR-098) |
 | [cost-router/](cost-router/) | Multi-provider routing | Router nodes, Granite/Mistral/Claude |
