@@ -74,16 +74,16 @@ For patterns confirmed safe, document **why** they are safe so future changes do
 
 ## Acceptance Criteria
 
-- [ ] `docs/concurrency-safety.md` exists with an entry for each of the 6 candidates
-- [ ] Each entry documents: concurrency model, shared state, safety invariant, evidence (file:line), verdict
-- [ ] Checkpoint write race condition is classified and a follow-up FR created if unsafe
-- [ ] Graph cache concurrency is classified and a follow-up FR created if unsafe
-- [ ] Map node reducer discipline is documented with an example of safe vs unsafe usage
-- [ ] Inquisitor diary filename collision risk is classified and mitigated or FR'd
-- [ ] Safe patterns (MCP, async executor) document why they are safe
-- [ ] No production code changes in this FR (audit + documentation only)
-- [ ] Tests added (test that `docs/concurrency-safety.md` exists and covers all candidates)
-- [ ] Documentation updated (CHANGELOG.md, this FR status)
+- [x] `docs/concurrency-safety.md` exists with an entry for each of the 6 candidates
+- [x] Each entry documents: concurrency model, shared state, safety invariant, evidence (file:line), verdict
+- [x] Checkpoint write race condition is classified and a follow-up FR created if unsafe
+- [x] Graph cache concurrency is classified and a follow-up FR created if unsafe
+- [x] Map node reducer discipline is documented with an example of safe vs unsafe usage
+- [x] Inquisitor diary filename collision risk is classified and mitigated or FR'd
+- [x] Safe patterns (MCP, async executor) document why they are safe
+- [x] No production code changes in this FR (audit + documentation only)
+- [x] Tests added (test that `docs/concurrency-safety.md` exists and covers all candidates)
+- [x] Documentation updated (CHANGELOG.md, this FR status)
 
 ## Alternatives Considered
 
