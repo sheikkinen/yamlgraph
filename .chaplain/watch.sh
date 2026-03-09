@@ -35,6 +35,13 @@ while true; do
     if [[ -n "$new_fr" ]]; then
         if grep -q 'Status.*Rejected' "$new_fr" 2>/dev/null; then
             echo "⏭️  Skipping rejected FR: $new_fr"
+        # FR-173: Route Bug-type FRs to condemning test pipeline
+        elif grep -q 'Type.*Bug' "$new_fr" 2>/dev/null; then
+            echo "🐛 Spawning bugfix pipeline for: $new_fr"
+            mkdir -p tmp
+            LOG="tmp/bugfix-$(basename "$new_fr" .md).log"
+            nohup scripts/bugfix_worktree.sh "$new_fr" > "$LOG" 2>&1 &
+            echo "   PID: $!  Log: $LOG"
         else
             echo "🚀 Spawning enforce pipeline for: $new_fr"
             mkdir -p tmp

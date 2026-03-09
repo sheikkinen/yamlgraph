@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FR-173 Bugfix Pipeline with Condemning Test**: Add dedicated 4-phase bug-fix pipeline (`condemn` → `fix` → `verify` → `submit_pr`) in `examples/bugfix/`. Condemn phase writes failing test against unchanged code before any fix is attempted, enforcing Commandment 7 (TDD). `scripts/bugfix_worktree.sh` orchestrates in isolated worktree. `watch.sh` routes `Type.*Bug` FRs to bugfix pipeline instead of standard enforce. (REQ-YG-157)
 - **FR-172 Configurable Loop Exit Target**: Add `loop_exits` graph-level config that maps node names to custom exit targets when loop limits are reached. Expression routers now route to the configured target instead of unconditionally terminating with `END`. Includes lint rule E009 for validation. (REQ-YG-093)
 - **FR-166 CountRangeClaim Pydantic Model**: Replace loose `int` variables in count range verification with a validated `CountRangeClaim` Pydantic model. Inverted ranges (min > max) now fail at parse time. `VerificationViolation.details` populated with structured claim data. (REQ-YG-155)
 - **FR-165 No-Silent-Fallback Lint Rule (W017)**: Add lint rule W017 that flags `on_error: skip` nodes as silent fallback patterns violating Commandment 6. Suggests `on_error: fail` or `on_error: fallback` with explicit fallback node instead. (REQ-YG-114)
