@@ -32,22 +32,31 @@ while true; do
     after=$(find feature-requests -maxdepth 1 -name "*.md" -type f 2>/dev/null | sort)
     new_fr=$(comm -13 <(echo "$before") <(echo "$after") | head -1)
 
+    # FR-175: Sequential enforcement — wait for each pipeline before next
     if [[ -n "$new_fr" ]]; then
         if grep -q 'Status.*Rejected' "$new_fr" 2>/dev/null; then
             echo "⏭️  Skipping rejected FR: $new_fr"
         # FR-173: Route Bug-type FRs to condemning test pipeline
         elif grep -q 'Type.*Bug' "$new_fr" 2>/dev/null; then
-            echo "🐛 Spawning bugfix pipeline for: $new_fr"
+            echo "🐛 Enforcing bugfix pipeline for: $new_fr (sequential)"
             mkdir -p tmp
             LOG="tmp/bugfix-$(basename "$new_fr" .md).log"
-            nohup scripts/bugfix_worktree.sh "$new_fr" > "$LOG" 2>&1 &
-            echo "   PID: $!  Log: $LOG"
+            EXIT_CODE=0
+            scripts/bugfix_worktree.sh "$new_fr" > "$LOG" 2>&1 || EXIT_CODE=$?
+            echo "   Completed: exit $EXIT_CODE  Log: $LOG"
+            if [[ $EXIT_CODE -ne 0 ]]; then
+                echo "⚠️  Enforcement failed (exit $EXIT_CODE) for: $new_fr — see $LOG"
+            fi
         else
-            echo "🚀 Spawning enforce pipeline for: $new_fr"
             mkdir -p tmp
             LOG="tmp/enforce-$(basename "$new_fr" .md).log"
-            nohup scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 &
-            echo "   PID: $!  Log: $LOG"
+            echo "🚀 Enforcing: $new_fr (sequential, log: $LOG)"
+            EXIT_CODE=0
+            scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 || EXIT_CODE=$?
+            echo "   Completed: exit $EXIT_CODE  Log: $LOG"
+            if [[ $EXIT_CODE -ne 0 ]]; then
+                echo "⚠️  Enforcement failed (exit $EXIT_CODE) for: $new_fr — see $LOG"
+            fi
         fi
     fi
 

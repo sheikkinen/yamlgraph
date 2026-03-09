@@ -7,7 +7,6 @@ The detection logic is pure shell (ls + comm -13), so tests exercise it
 via subprocess with temporary directory structures.
 """
 
-import contextlib
 import os
 import stat
 import subprocess
@@ -161,22 +160,22 @@ class TestLogDirectory:
 
 
 @pytest.mark.req("REQ-YG-116")
-class TestNohupSpawnIsolation:
-    """Tests that enforce is spawned via nohup in background."""
+class TestSequentialSpawnBehavior:
+    """Tests that enforce runs sequentially in foreground (FR-175)."""
 
-    def test_nohup_spawn_does_not_block(self, tmp_path):
-        """Spawned enforce process does not block the caller."""
+    def test_sequential_spawn_blocks_caller(self, tmp_path):
+        """Spawned enforce process blocks the caller until complete."""
         fr_dir = tmp_path / "feature-requests"
         fr_dir.mkdir()
         (fr_dir / "FR-400-spawn.md").write_text("**Status:** Approved\n")
 
-        # Create a mock enforce script that sleeps (simulates long-running)
+        # Create a mock enforce script that sleeps briefly
         enforce_script = tmp_path / "scripts" / "enforce_worktree.sh"
         enforce_script.parent.mkdir(parents=True)
-        enforce_script.write_text("#!/usr/bin/env bash\nsleep 60\n")
+        enforce_script.write_text("#!/usr/bin/env bash\nsleep 0.2\nexit 0\n")
         enforce_script.chmod(enforce_script.stat().st_mode | stat.S_IEXEC)
 
-        # Script that spawns enforce via nohup (mirrors watch.sh logic)
+        # Script that runs enforce sequentially (mirrors FR-175 watch.sh logic)
         spawn_script = textwrap.dedent("""\
             #!/usr/bin/env bash
             set -euo pipefail
@@ -192,9 +191,9 @@ class TestNohupSpawnIsolation:
                 else
                     mkdir -p tmp
                     LOG="tmp/enforce-$(basename "$new_fr" .md).log"
-                    nohup scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 &
-                    ENFORCE_PID=$!
-                    echo "PID:$ENFORCE_PID"
+                    EXIT_CODE=0
+                    scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 || EXIT_CODE=$?
+                    echo "EXIT_CODE:$EXIT_CODE"
                     echo "LOG:$LOG"
                 fi
             fi
@@ -205,23 +204,16 @@ class TestNohupSpawnIsolation:
             env={**os.environ, "TEST_DIR": str(tmp_path)},
             capture_output=True,
             text=True,
-            timeout=5,  # Must complete quickly — enforce is backgrounded
+            timeout=5,
         )
         assert result.returncode == 0, f"Script failed: {result.stderr}"
         output = result.stdout.strip()
 
-        # Verify PID was reported (enforce is running in background)
-        assert "PID:" in output
-        pid_line = [line for line in output.split("\n") if line.startswith("PID:")][0]
-        pid = int(pid_line.split(":")[1])
-        assert pid > 0
+        # Verify exit code was reported (enforce ran in foreground)
+        assert "EXIT_CODE:0" in output
 
         # Verify log path follows convention
         assert "LOG:tmp/enforce-FR-400-spawn.log" in output
-
-        # Clean up the sleeping background process
-        with contextlib.suppress(ProcessLookupError):
-            os.kill(pid, 9)
 
     def test_enforce_log_path_derived_from_fr_slug(self, tmp_path):
         """Log file path is tmp/enforce-<slug>.log based on FR filename."""
@@ -248,7 +240,8 @@ class TestNohupSpawnIsolation:
             if [[ -n "$new_fr" ]]; then
                 mkdir -p tmp
                 LOG="tmp/enforce-$(basename "$new_fr" .md).log"
-                nohup scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 &
+                EXIT_CODE=0
+                scripts/enforce_worktree.sh "$new_fr" > "$LOG" 2>&1 || EXIT_CODE=$?
                 echo "LOG:$LOG"
             fi
         """)
@@ -286,11 +279,14 @@ class TestWatchShellIntegration:
         watch_sh = _read_watch_sh()
         assert "Status.*Rejected" in watch_sh
 
-    def test_watch_sh_uses_nohup_background(self):
-        """watch.sh spawns enforce with nohup and & for background."""
+    def test_watch_sh_uses_sequential_enforcement(self):
+        """watch.sh runs enforce sequentially (FR-175 replaced nohup)."""
         watch_sh = _read_watch_sh()
-        assert "nohup" in watch_sh
         assert "enforce_worktree.sh" in watch_sh
+        # FR-175: Must NOT use nohup (sequential mode)
+        for line in watch_sh.splitlines():
+            if "enforce_worktree.sh" in line:
+                assert "nohup" not in line
 
     def test_watch_sh_creates_log_directory(self):
         """watch.sh creates tmp/ directory for logs."""
