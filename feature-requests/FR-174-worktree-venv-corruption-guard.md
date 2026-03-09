@@ -3,7 +3,7 @@
 **ID:** FR-174
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-03-09
 
@@ -71,19 +71,19 @@ Find and remove `.pth` and `.egg-link` files that reference a worktree directory
 
 ## Acceptance Criteria
 
-- [ ] `validate_venv_health()` raises `FileNotFoundError` when `.venv` directory is missing
-- [ ] `validate_venv_health()` raises `FileNotFoundError` when `.venv/bin/python` is missing
-- [ ] `validate_venv_health()` returns `None` (no error) for a healthy .venv
-- [ ] `validate_venv_symlink()` raises `OSError` when path is not a symlink
-- [ ] `validate_venv_symlink()` raises `OSError` when symlink target doesn't resolve
-- [ ] `validate_venv_symlink()` returns `None` for valid symlink to healthy .venv
-- [ ] `clean_stale_pth_entries()` removes `.pth` files containing worktree path references
-- [ ] `clean_stale_pth_entries()` removes `.egg-link` files containing worktree path references
-- [ ] `clean_stale_pth_entries()` returns empty list when no stale entries exist
-- [ ] `enforce_worktree.sh` fails with clear error when `.venv` is missing (no silent skip)
-- [ ] `enforce_worktree.sh` cleanup removes stale `.pth` entries for the worktree being removed
-- [ ] All tests tagged with `@pytest.mark.req("REQ-YG-156")`
-- [ ] Existing worktree tests (`test_worktree_helpers.py`, `test_enforce_worktree_bare_guard.py`) still pass
+- [x] `validate_venv_health()` raises `FileNotFoundError` when `.venv` directory is missing
+- [x] `validate_venv_health()` raises `FileNotFoundError` when `.venv/bin/python` is missing
+- [x] `validate_venv_health()` returns `None` (no error) for a healthy .venv
+- [x] `validate_venv_symlink()` raises `OSError` when path is not a symlink
+- [x] `validate_venv_symlink()` raises `OSError` when symlink target doesn't resolve
+- [x] `validate_venv_symlink()` returns `None` for valid symlink to healthy .venv
+- [x] `clean_stale_pth_entries()` removes `.pth` files containing worktree path references
+- [x] `clean_stale_pth_entries()` removes `.egg-link` files containing worktree path references
+- [x] `clean_stale_pth_entries()` returns empty list when no stale entries exist
+- [x] `enforce_worktree.sh` fails with clear error when `.venv` is missing (no silent skip)
+- [x] `enforce_worktree.sh` cleanup removes stale `.pth` entries for the worktree being removed
+- [x] All tests tagged with `@pytest.mark.req("REQ-YG-156")`
+- [x] Existing worktree tests (`test_worktree_helpers.py`, `test_enforce_worktree_bare_guard.py`) still pass
 
 ## Alternatives Considered
 

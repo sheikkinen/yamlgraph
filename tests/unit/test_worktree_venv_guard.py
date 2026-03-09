@@ -6,8 +6,6 @@ Tests three guards:
 3. clean_stale_pth_entries — remove dangling .pth/.egg-link files after worktree cleanup
 """
 
-import os
-import stat
 from pathlib import Path
 
 import pytest
