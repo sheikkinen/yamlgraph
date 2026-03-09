@@ -116,6 +116,7 @@ def _add_conditional_edges(
     graph: StateGraph,
     router_edges: dict[str, list],
     expression_edges: dict[str, list[tuple[str, str]]],
+    loop_exits: dict[str, str] | None = None,
 ) -> None:
     """Add router and expression conditional edges to graph.
 
@@ -123,6 +124,7 @@ def _add_conditional_edges(
         graph: StateGraph to add edges to
         router_edges: Router-style conditional edges
         expression_edges: Expression-based conditional edges
+        loop_exits: Map of node name to exit target when loop limit reached (FR-172)
     """
     # Add router conditional edges
     for source_node, target_nodes in router_edges.items():
@@ -135,12 +137,15 @@ def _add_conditional_edges(
 
     # Add expression-based conditional edges
     for source_node, expr_edges in expression_edges.items():
+        loop_exit_target = (loop_exits or {}).get(source_node)
         targets = {target for _, target in expr_edges}
         targets.add(END)  # Always include END as fallback
+        if loop_exit_target:
+            targets.add(loop_exit_target)
         route_mapping = {t: (END if t == END else t) for t in targets}
         graph.add_conditional_edges(
             source_node,
-            make_expr_router_fn(expr_edges, source_node),
+            make_expr_router_fn(expr_edges, source_node, loop_exit_target),
             route_mapping,
         )
 

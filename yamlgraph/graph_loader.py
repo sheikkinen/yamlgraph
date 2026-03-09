@@ -148,6 +148,7 @@ class GraphConfig:
         self.edges = config.get("edges", [])
         self.tools = config.get("tools", {})
         self.loop_limits = config.get("loop_limits", {})
+        self.loop_exits = config.get("loop_exits", {})
         self.checkpointer = config.get("checkpointer")
         # FR-027: Execution safety config
         graph_level_config = config.get("config", {})
@@ -288,7 +289,7 @@ def compile_graph(config: GraphConfig) -> StateGraph:
         )
 
     # Add conditional edges
-    _add_conditional_edges(graph, router_edges, expression_edges)
+    _add_conditional_edges(graph, router_edges, expression_edges, config.loop_exits)
 
     return graph
 

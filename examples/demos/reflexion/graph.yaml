@@ -56,3 +56,6 @@ edges:
 loop_limits:
   critique: 3
   refine: 3
+
+loop_exits:
+  critique: END  # When critique exhausts limit, end gracefully

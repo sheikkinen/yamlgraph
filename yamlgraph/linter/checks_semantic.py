@@ -1,15 +1,4 @@
-"""Semantic & cross-reference linter checks (FR-025, FR-026).
-
-Split from checks.py to keep modules under 400 lines.
-
-Check functions:
-- check_cross_references (E006, E008)
-- check_passthrough_nodes (E601)
-- check_tool_call_nodes (E701, E702)
-- check_expression_syntax (W801, W007, E007)
-- check_error_handling (E010, E011)
-- check_edge_types (E802)
-"""
+"""Semantic & cross-reference linter checks (FR-025, FR-026, FR-172)."""
 
 from __future__ import annotations
 
@@ -26,28 +15,39 @@ _SENTINEL_NODES = {"START", "END"}
 _NON_LLM_NODE_TYPES = {"tool", "python", "tool_call", "passthrough", "interactive_tool"}
 
 
+def _err(code: str, message: str, fix: str) -> LintIssue:
+    """Shorthand for error-severity LintIssue."""
+    return LintIssue(severity="error", code=code, message=message, fix=fix)
+
+
+def _node_fix(node_names: set[str]) -> str:
+    """Build common fix suggestion listing valid node names."""
+    return f"Check spelling; defined nodes: {', '.join(sorted(node_names))}"
+
+
 def check_cross_references(graph_path: Path) -> list[LintIssue]:
-    """Check edge from/to and loop_limits reference existing nodes.
+    """Check edge from/to, loop_limits, and loop_exits reference existing nodes.
 
     E006 — edge endpoint references non-existent node
     E008 — loop_limits key references non-existent node
+    E009 — loop_exits key not in loop_limits or target is invalid (FR-172)
     """
     issues: list[LintIssue] = []
     graph = load_graph(graph_path)
 
     node_names = set(graph.get("nodes", {}).keys())
     valid_targets = node_names | _SENTINEL_NODES
+    fix = _node_fix(node_names)
 
     # E006: edge from/to validation
     for edge in graph.get("edges", []):
         from_node = edge.get("from")
         if from_node and from_node not in valid_targets:
             issues.append(
-                LintIssue(
-                    severity="error",
-                    code="E006",
-                    message=f"Edge 'from' references non-existent node '{from_node}'",
-                    fix=f"Check spelling; defined nodes: {', '.join(sorted(node_names))}",
+                _err(
+                    "E006",
+                    f"Edge 'from' references non-existent node '{from_node}'",
+                    fix,
                 )
             )
         to_value = edge.get("to")
@@ -57,11 +57,10 @@ def check_cross_references(graph_path: Path) -> list[LintIssue]:
         for target in to_targets:
             if target not in valid_targets:
                 issues.append(
-                    LintIssue(
-                        severity="error",
-                        code="E006",
-                        message=f"Edge 'to' references non-existent node '{target}'",
-                        fix=f"Check spelling; defined nodes: {', '.join(sorted(node_names))}",
+                    _err(
+                        "E006",
+                        f"Edge 'to' references non-existent node '{target}'",
+                        fix,
                     )
                 )
 
@@ -69,12 +68,23 @@ def check_cross_references(graph_path: Path) -> list[LintIssue]:
     for key in graph.get("loop_limits", {}):
         if key not in node_names:
             issues.append(
-                LintIssue(
-                    severity="error",
-                    code="E008",
-                    message=f"loop_limits references non-existent node '{key}'",
-                    fix=f"Check spelling; defined nodes: {', '.join(sorted(node_names))}",
+                _err("E008", f"loop_limits references non-existent node '{key}'", fix)
+            )
+
+    # E009: loop_exits validation (FR-172)
+    loop_limits = graph.get("loop_limits", {})
+    for key, target in graph.get("loop_exits", {}).items():
+        if key not in loop_limits:
+            issues.append(
+                _err(
+                    "E009",
+                    f"loop_exits key '{key}' is not in loop_limits",
+                    f"Add '{key}: <limit>' to loop_limits or remove from loop_exits",
                 )
+            )
+        if target != "END" and target not in node_names:
+            issues.append(
+                _err("E009", f"loop_exits target '{target}' is not a valid node", fix)
             )
 
     return issues
@@ -396,39 +406,20 @@ def check_skip_if_exists_in_cycle(graph_path: Path) -> list[LintIssue]:
 def check_dynamic_map_without_max_items(
     node_name: str, node_config: dict, graph_config: dict
 ) -> list[LintIssue]:
-    """Warn when map over: is a dynamic expression without max_items.
-
-    W013 — dynamic fan-out without explicit cap.
-    A dynamic expression is any string containing '{' (state reference).
-    Suppressed when node has max_items or graph config has max_map_items.
-    """
-    issues: list[LintIssue] = []
-
+    """W013: dynamic fan-out without explicit cap."""
     over = node_config.get("over")
     if not isinstance(over, str) or "{" not in over:
-        return issues
-
-    # Suppressed by node-level max_items
-    if "max_items" in node_config:
-        return issues
-
-    # Suppressed by graph-level max_map_items
-    if graph_config.get("max_map_items") is not None:
-        return issues
-
-    issues.append(
+        return []
+    if "max_items" in node_config or graph_config.get("max_map_items") is not None:
+        return []
+    return [
         LintIssue(
             severity="warning",
             code="W013",
-            message=(
-                f"Map node '{node_name}' fans out over dynamic expression "
-                f"'{over}' without max_items"
-            ),
+            message=f"Map node '{node_name}' fans out over dynamic expression '{over}' without max_items",
             fix=f"Add 'max_items: <limit>' to node '{node_name}' or 'max_map_items' to config",
         )
-    )
-
-    return issues
+    ]
 
 
 __all__ = [

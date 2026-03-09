@@ -3,6 +3,7 @@
 TDD tests for expression conditions, loop tracking, and cyclic graphs.
 """
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -427,3 +428,276 @@ class TestReflexionDemoGraph:
         config = load_graph_config("examples/demos/reflexion/graph.yaml")
         graph = compile_graph(config)
         assert graph is not None
+
+
+# =============================================================================
+# Test: Loop Exit Target (FR-172)
+# =============================================================================
+
+
+class TestLoopExits:
+    """Tests for configurable loop exit target when loop limit is reached."""
+
+    # --- Schema & Config ---
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_graph_config_schema_accepts_loop_exits(self):
+        """GraphConfigSchema validates loop_exits as dict[str, str]."""
+        from yamlgraph.models.graph_schema import validate_graph_schema
+
+        config = {
+            "nodes": {
+                "draft": {"prompt": "draft"},
+                "critique": {"prompt": "critique"},
+                "distill": {"prompt": "distill"},
+            },
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "critique"},
+                {"from": "critique", "to": "END"},
+            ],
+            "loop_limits": {"critique": 3},
+            "loop_exits": {"critique": "distill"},
+        }
+        schema = validate_graph_schema(config)
+        assert schema.loop_exits == {"critique": "distill"}
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_graph_config_schema_loop_exits_defaults_empty(self):
+        """Missing loop_exits defaults to empty dict."""
+        from yamlgraph.models.graph_schema import validate_graph_schema
+
+        config = {
+            "nodes": {"draft": {"prompt": "draft"}},
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "END"},
+            ],
+        }
+        schema = validate_graph_schema(config)
+        assert schema.loop_exits == {}
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_graph_config_stores_loop_exits(self):
+        """GraphConfig stores loop_exits from raw config."""
+        from yamlgraph.graph_loader import GraphConfig
+
+        config_dict = {
+            "version": "1.0",
+            "name": "test",
+            "nodes": {
+                "draft": {"prompt": "draft"},
+                "critique": {"prompt": "critique"},
+                "distill": {"prompt": "distill"},
+            },
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "critique"},
+                {"from": "critique", "to": "distill"},
+                {"from": "distill", "to": "END"},
+            ],
+            "loop_limits": {"critique": 3},
+            "loop_exits": {"critique": "distill"},
+        }
+        config = GraphConfig(config_dict)
+        assert config.loop_exits == {"critique": "distill"}
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_graph_config_loop_exits_defaults_empty(self):
+        """Missing loop_exits defaults to empty dict."""
+        from yamlgraph.graph_loader import GraphConfig
+
+        config_dict = {
+            "version": "1.0",
+            "name": "test",
+            "nodes": {"node1": {"prompt": "p1"}},
+            "edges": [{"from": "START", "to": "node1"}, {"from": "node1", "to": "END"}],
+        }
+        config = GraphConfig(config_dict)
+        assert config.loop_exits == {}
+
+    # --- Router behavior ---
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_expr_router_returns_custom_target_on_loop_limit(self):
+        """When _loop_limit_reached and loop_exit_target configured, returns target."""
+        from yamlgraph.routing import make_expr_router_fn
+
+        edges = [("score < 0.8", "refine"), ("score >= 0.8", "END")]
+        router = make_expr_router_fn(edges, "critique", loop_exit_target="distill")
+
+        state = {"_loop_limit_reached": True}
+        assert router(state) == "distill"
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_expr_router_returns_end_on_loop_limit_no_exit(self):
+        """When _loop_limit_reached and no exit configured, returns END (unchanged)."""
+        from langgraph.graph import END
+
+        from yamlgraph.routing import make_expr_router_fn
+
+        edges = [("score < 0.8", "refine"), ("score >= 0.8", "END")]
+        router = make_expr_router_fn(edges, "critique")
+
+        state = {"_loop_limit_reached": True}
+        assert router(state) == END
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_expr_router_evaluates_normally_when_no_loop_limit(self):
+        """When _loop_limit_reached is False, router evaluates conditions normally."""
+        from yamlgraph.routing import make_expr_router_fn
+
+        edges = [("score < 0.8", "refine"), ("score >= 0.8", "END")]
+        router = make_expr_router_fn(edges, "critique", loop_exit_target="distill")
+
+        state = {"score": 0.5, "_loop_limit_reached": False}
+        assert router(state) == "refine"
+
+    # --- End-to-end compilation ---
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_compiles_graph_with_loop_exits(self):
+        """Graph with loop_exits compiles to StateGraph successfully."""
+        from yamlgraph.graph_loader import GraphConfig, compile_graph
+
+        config_dict = {
+            "version": "1.0",
+            "name": "test-loop-exits",
+            "nodes": {
+                "draft": {"prompt": "draft", "state_key": "current_draft"},
+                "critique": {"prompt": "critique", "state_key": "critique"},
+                "refine": {"prompt": "refine", "state_key": "current_draft"},
+                "distill": {"prompt": "distill", "state_key": "summary"},
+            },
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "critique"},
+                {
+                    "from": "critique",
+                    "to": "refine",
+                    "condition": "critique.score < 0.8",
+                },
+                {
+                    "from": "critique",
+                    "to": "END",
+                    "condition": "critique.score >= 0.8",
+                },
+                {"from": "refine", "to": "critique"},
+                {"from": "distill", "to": "END"},
+            ],
+            "loop_limits": {"critique": 3},
+            "loop_exits": {"critique": "distill"},
+        }
+        config = GraphConfig(config_dict)
+        graph = compile_graph(config)
+        assert graph is not None
+
+    # --- Lint rules ---
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_lint_loop_exits_key_not_in_loop_limits(self):
+        """Lint warns when loop_exits key not in loop_limits."""
+        # Create a temp fixture with loop_exits key not in loop_limits
+        import tempfile
+
+        import yaml
+
+        from tests.unit.test_linter_fr025 import issue_codes
+        from yamlgraph.linter.checks_semantic import check_cross_references
+
+        graph = {
+            "nodes": {
+                "draft": {"prompt": "draft"},
+                "critique": {"prompt": "critique"},
+                "distill": {"prompt": "distill"},
+            },
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "critique"},
+                {"from": "critique", "to": "END"},
+            ],
+            "loop_exits": {"draft": "distill"},  # draft not in loop_limits
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+            yaml.dump(graph, f)
+            path = Path(f.name)
+
+        try:
+            issues = check_cross_references(path)
+            codes = issue_codes(issues)
+            assert "E009" in codes
+            e009 = [i for i in issues if i.code == "E009"]
+            assert any("draft" in i.message for i in e009)
+        finally:
+            path.unlink()
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_lint_loop_exits_target_nonexistent(self):
+        """Lint warns when loop_exits value references nonexistent node."""
+        import tempfile
+
+        import yaml
+
+        from tests.unit.test_linter_fr025 import issue_codes
+        from yamlgraph.linter.checks_semantic import check_cross_references
+
+        graph = {
+            "nodes": {
+                "draft": {"prompt": "draft"},
+                "critique": {"prompt": "critique"},
+            },
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "critique"},
+                {"from": "critique", "to": "END"},
+            ],
+            "loop_limits": {"critique": 3},
+            "loop_exits": {"critique": "nonexistent_node"},
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+            yaml.dump(graph, f)
+            path = Path(f.name)
+
+        try:
+            issues = check_cross_references(path)
+            codes = issue_codes(issues)
+            assert "E009" in codes
+            e009 = [i for i in issues if i.code == "E009"]
+            assert any("nonexistent_node" in i.message for i in e009)
+        finally:
+            path.unlink()
+
+    @pytest.mark.req("REQ-YG-093")
+    def test_lint_loop_exits_valid_no_warning(self):
+        """Valid loop_exits config produces no E009."""
+        import tempfile
+
+        import yaml
+
+        from tests.unit.test_linter_fr025 import issue_codes
+        from yamlgraph.linter.checks_semantic import check_cross_references
+
+        graph = {
+            "nodes": {
+                "draft": {"prompt": "draft"},
+                "critique": {"prompt": "critique"},
+                "distill": {"prompt": "distill"},
+            },
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "critique"},
+                {"from": "critique", "to": "END"},
+            ],
+            "loop_limits": {"critique": 3},
+            "loop_exits": {"critique": "distill"},
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+            yaml.dump(graph, f)
+            path = Path(f.name)
+
+        try:
+            issues = check_cross_references(path)
+            codes = issue_codes(issues)
+            assert "E009" not in codes
+        finally:
+            path.unlink()
