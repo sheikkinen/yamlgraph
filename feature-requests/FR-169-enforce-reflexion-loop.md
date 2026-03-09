@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** In Progress
 **Effort:** 2 days
 **Requested:** 2026-03-09
 
@@ -175,22 +175,22 @@ This is bounded and predictable. 5 min per copilot execution is adequate for foc
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `critique` copilot node added to enforce graph after `test_and_demo`
-- [ ] AC-2: `refine` copilot node added with conditional edge from `critique` (score < 0.85)
-- [ ] AC-3: `refine` writes to `refine_result` state key (does NOT overwrite `test_result`)
-- [ ] AC-4: Reflexion loop limited to 2 refine iterations (`loop_limits: critique=3, refine=2`)
-- [ ] AC-5: `loop_exits: { critique: distill_reflection }` configured (uses FR-172 mechanism)
-- [ ] AC-6: `distill_reflection` copilot node writes diary reflection draft to `docs/diary/`
-- [ ] AC-7: Reflection draft follows format: Context, Trap, Heuristic, Seed sections
-- [ ] AC-8: `enforce-critique.yaml` prompt reads FR acceptance criteria and evaluates git diff
-- [ ] AC-9: `enforce-refine.yaml` prompt addresses critique feedback and re-runs tests
-- [ ] AC-10: `enforce-distill.yaml` prompt generates reflection from Scripture's trap vocabulary
-- [ ] AC-11: `finalize_merge.sh` skips stub creation when reflection file already exists
-- [ ] AC-12: Enforce graph still lints: `yamlgraph graph lint examples/enforce/graph.yaml`
-- [ ] AC-13: Unit tests for new graph structure (edges, conditions, loop limits, loop_exits)
-- [ ] AC-14: Integration test: mock copilot run through full reflexion loop
-- [ ] AC-15: Total pipeline worst-case timeout increase ≤ 30 min (1800s)
-- [ ] AC-16: Documentation updated in `examples/enforce/README.md`
+- [x] AC-1: `critique` copilot node added to enforce graph after `test_and_demo`
+- [x] AC-2: `refine` copilot node added with conditional edge from `critique` (score < 0.85)
+- [x] AC-3: `refine` writes to `refine_result` state key (does NOT overwrite `test_result`)
+- [x] AC-4: Reflexion loop limited to 2 refine iterations (`loop_limits: critique=3, refine=2`)
+- [x] AC-5: `loop_exits: { critique: distill_reflection }` configured (uses FR-172 mechanism)
+- [x] AC-6: `distill_reflection` copilot node writes diary reflection draft to `docs/diary/`
+- [x] AC-7: Reflection draft follows format: Context, Trap, Heuristic, Seed sections
+- [x] AC-8: `enforce-critique.yaml` prompt reads FR acceptance criteria and evaluates git diff
+- [x] AC-9: `enforce-refine.yaml` prompt addresses critique feedback and re-runs tests
+- [x] AC-10: `enforce-distill.yaml` prompt generates reflection from Scripture's trap vocabulary
+- [x] AC-11: `finalize_merge.sh` skips stub creation when reflection file already exists
+- [x] AC-12: Enforce graph still lints: `yamlgraph graph lint examples/enforce/graph.yaml`
+- [x] AC-13: Unit tests for new graph structure (edges, conditions, loop limits, loop_exits)
+- [x] AC-14: Integration test: mock copilot run through full reflexion loop
+- [x] AC-15: Total pipeline worst-case timeout increase ≤ 30 min (1800s)
+- [x] AC-16: Documentation updated in `examples/enforce/README.md`
 
 ## Alternatives Considered
 

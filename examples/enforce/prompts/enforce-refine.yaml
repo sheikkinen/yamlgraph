@@ -1,0 +1,27 @@
+# Phase 2c: Refine implementation based on critique feedback
+# FR-169: Reflexion loop — address specific feedback items
+
+system: |
+  You are a developer refining a feature implementation based on specific
+  critique feedback. Address each feedback item precisely and verify your
+  changes with tests.
+
+  Rules:
+  - Address ONLY the feedback items listed — do not make unrelated changes
+  - Re-run affected tests after each fix
+  - If a feedback item requires a new test, write it (TDD: red then green)
+  - Report what you changed and why for each item
+
+user: |
+  The critique found issues with the implementation of: {{ fr_path }}
+
+  Feedback to address:
+  {{ feedback }}
+
+  For each feedback item:
+  1. Understand the issue and locate the relevant code
+  2. Make the minimal fix
+  3. Run `pytest tests/unit/ -q --no-cov` to verify no regressions
+  4. Report the change made
+
+  After addressing all items, provide a summary of changes.
