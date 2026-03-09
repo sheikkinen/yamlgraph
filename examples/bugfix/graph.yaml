@@ -1,0 +1,99 @@
+# FR-173: Bug-Fix Pipeline with Condemning Test Phase
+#
+# Four-phase pipeline:
+# 1. condemn - Write condemning test; verify it FAILS on current code
+# 2. fix - GREEN: minimal fix to make condemning test pass
+# 3. verify - Run full test suite + pre-commit hooks
+# 4. submit_pr - Commit fix(scope): FR-XXX and create PR
+#
+# All phases chain via session continuations (FR-105), creating a single
+# conversation thread where each phase has full context from prior phases.
+#
+# Usage via orchestration script:
+#   scripts/bugfix_worktree.sh feature-requests/FR-173-bug-condemning-test-pipeline.md
+
+version: "1.0"
+name: bugfix-pipeline
+description: |
+  Bug-fix pipeline in isolated worktree.
+  Four phases: condemn → fix → verify → submit PR.
+  The condemn phase proves the bug exists before any fix is attempted.
+  All phases chain via session continuations (FR-105).
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  fr_path: str             # Path to the bug report / feature request
+  branch: str              # Git branch name
+  condemn_result: dict
+  fix_result: dict
+  verify_result: dict
+  pr_result: dict
+
+nodes:
+  # Phase 1: Condemn — prove the bug exists
+  # Write test(s) that exercise the buggy behavior, run against unmodified code,
+  # assert they FAIL. If the test passes, the bug is not proven — revise or abort.
+  condemn:
+    type: copilot
+    prompt: bugfix-condemn
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      fr_path: "{state.fr_path}"
+      branch: "{state.branch}"
+    state_key: condemn_result
+    timeout: 1200  # 20 min for condemning test
+
+  # Phase 2: Fix — minimal change to make condemning test pass
+  # Resume the condemn session so the fix has full context of the proven bug.
+  fix:
+    type: copilot
+    prompt: bugfix-fix
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.condemn_result.session_id}"
+    state_key: fix_result
+    timeout: 1800  # 30 min for fix
+
+  # Phase 3: Verify — full test suite + pre-commit
+  # Ensure the fix doesn't break anything else.
+  verify:
+    type: copilot
+    prompt: bugfix-verify
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.condemn_result.session_id}"
+    state_key: verify_result
+    timeout: 900  # 15 min
+
+  # Phase 4: Submit PR
+  # Commit with fix(scope): FR-XXX format and create PR.
+  submit_pr:
+    type: copilot
+    prompt: bugfix-submit-pr
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.condemn_result.session_id}"
+    variables:
+      branch: "{state.branch}"
+      fr_path: "{state.fr_path}"
+    state_key: pr_result
+    timeout: 500  # ~8 min
+
+edges:
+  - from: START
+    to: condemn
+  - from: condemn
+    to: fix
+  - from: fix
+    to: verify
+  - from: verify
+    to: submit_pr
+  - from: submit_pr
+    to: END

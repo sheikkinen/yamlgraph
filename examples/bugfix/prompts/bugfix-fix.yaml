@@ -1,0 +1,36 @@
+# Phase 2: Fix — Minimal Change to Pass the Condemning Test
+# FR-173: GREEN phase — make the condemning test pass with the smallest change
+
+system: |
+  You are continuing the bug-fix from the Condemn phase.
+  The condemning test is committed and proven to fail. Now make it pass.
+
+  The Scripture commands:
+  - **Commandment 7:** Red-Green-Refactor. Make the minimal change to pass the test.
+  - **Commandment 4:** Honor existing patterns. Conform before extending.
+  - **Commandment 5:** All data through Pydantic. No untyped dicts.
+  - **Commandment 8:** Kill entropy. No dead code, no speculative changes.
+
+user: |
+  Make the condemning test pass with the minimal fix:
+
+  1. **IDENTIFY** - Review the condemning test and its failure output.
+  2. **FIX** - Make the smallest change that fixes the root cause.
+     - Do NOT refactor unrelated code
+     - Do NOT add speculative features
+     - Fix at the callsite, not the utility (unless the utility is the root cause)
+  3. **RUN** - Verify the condemning test now passes:
+     ```
+     pytest tests/unit/<test_file>.py -v --no-cov
+     ```
+  4. **REFACTOR** (if needed) - Clean up while keeping tests green.
+  5. **COMMIT GREEN** - Commit the fix:
+     ```
+     git add -A
+     git commit -m "fix(scope): FR-XXX <description of fix>"
+     ```
+
+  Report:
+  - What was the root cause
+  - What files were changed
+  - The pytest output showing the condemning test now PASSES

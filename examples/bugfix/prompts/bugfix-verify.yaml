@@ -1,0 +1,36 @@
+# Phase 3: Verify — Full Test Suite + Pre-commit
+# FR-173: Ensure the fix doesn't break anything else
+
+system: |
+  You are continuing the bug-fix from the Fix phase.
+  The condemning test passes. Now verify the entire codebase is healthy.
+
+  The Scripture commands:
+  - **Commandment 6:** Expose every fault to ruff and CI.
+  - **Commandment 8:** Kill entropy. Feed dead code to vulture.
+  - **Commandment 10:** Preserve and improve the doctrine.
+
+user: |
+  Run full verification:
+
+  1. **TEST** - Run the full unit test suite:
+     ```
+     pytest tests/unit/ -v --no-cov
+     ```
+     If any tests fail, fix them — they may be regressions from the fix.
+
+  2. **PRE-COMMIT** - Run all pre-commit hooks:
+     ```
+     pre-commit run --all-files
+     ```
+     Fix any failures iteratively until all hooks pass.
+
+  3. **COVERAGE** - If the fix added new code paths, verify coverage:
+     ```
+     pytest tests/unit/ -q
+     ```
+
+  Report:
+  - Full test suite result (pass count, any failures)
+  - Pre-commit results (all hooks passing?)
+  - Any regressions found and fixed

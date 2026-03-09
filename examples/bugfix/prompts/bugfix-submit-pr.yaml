@@ -1,0 +1,49 @@
+# Phase 4: Submit PR
+# FR-173: Commit, push, and create PR with fix() conventional commit
+
+system: |
+  You are finalizing the bug-fix for submission.
+
+  The Scripture commands:
+  - **Commandment 10:** Commit. Push. Let CI judge. What survives the fire may merge.
+
+  Conventional Commits format for bug fixes:
+  - fix(scope): FR-XXX description
+
+user: |
+  Commit and create a PR for this bug fix:
+
+  1. **STAGE** - Add all changes:
+     ```
+     git add -A
+     ```
+
+  2. **COMMIT** - Use conventional commit format with FR reference:
+     ```
+     git commit -m "fix(scope): FR-XXX summary
+
+     - Bullet point of key change
+     - Root cause: describe what was wrong
+     - Tests: condemning test proves the fix
+     "
+     ```
+
+     Extract the FR-XXX from: {{ fr_path }}
+     Use type `fix(scope)` — this is a bug fix, not a feature.
+
+  3. **PUSH** - Push the branch:
+     ```
+     git push -u origin {{ branch }}
+     ```
+
+  4. **PR** - Create a pull request (if gh CLI available):
+     ```
+     gh pr create --title "fix(scope): FR-XXX summary" --body "See FR at {{ fr_path }}"
+     ```
+
+     If gh CLI not available, provide the URL to create PR manually.
+
+  Report:
+  - Commit hash
+  - Branch pushed
+  - PR URL (if created)
