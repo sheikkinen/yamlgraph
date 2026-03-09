@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FR-157 CI Conflict Marker Gate**: Add `conflict-check` job to `.github/workflows/commitlint.yml` that greps tracked files for unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), excluding `.github/` and `*.md.bak`. Complements the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges. Document `conflict-check` status check and "require branches to be up to date" setting in `CLAUDE.md` branch protection table. (REQ-YG-151)
 
 ### Removed
+- **FR-167 Remove Copilot Trailer Requirement**: Remove `Co-authored-by: Copilot` trailer from `finalize_merge.sh` commit message. Delete `test_commit_includes_co_author` test; replace with `test_commit_excludes_co_author_trailer`. Supersede FR-132. (REQ-YG-125)
 - **FR-162 Vulture Dead Code Cleanup**: Delete dead `yamlgraph/utils/sanitize.py` module and orphaned `tests/unit/test_sanitize.py` (zero production callers). Add `vulture_whitelist.py` for `worktree_helpers` false positives (shell-invoked via `python3 -c`). Lower Vulture confidence threshold from 80→60. (REQ-YG-046)
 
 ### Fixed

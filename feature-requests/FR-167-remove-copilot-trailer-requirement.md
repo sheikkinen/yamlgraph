@@ -3,7 +3,7 @@
 **FR-167**
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 
@@ -75,13 +75,13 @@ FR-132 proposed adding the trailer to `enforce_worktree.sh`. Since FR-132 is sup
 
 ## Acceptance Criteria
 
-- [ ] `scripts/finalize_merge.sh` no longer injects `Co-authored-by: Copilot` trailer
-- [ ] `tests/unit/test_finalize_merge.py::test_commit_includes_co_author` deleted
-- [ ] FR-132 status updated to `Superseded by FR-167`
-- [ ] `pytest tests/unit/test_finalize_merge.py -v` passes without the removed test
-- [ ] `ruff check scripts/ yamlgraph/ tests/` clean
-- [ ] No REQ-YG-XXX references need updating (none exist for the trailer)
-- [ ] CHANGELOG.md updated
+- [x] `scripts/finalize_merge.sh` no longer injects `Co-authored-by: Copilot` trailer
+- [x] `tests/unit/test_finalize_merge.py::test_commit_includes_co_author` deleted
+- [x] FR-132 status updated to `Superseded by FR-167`
+- [x] `pytest tests/unit/test_finalize_merge.py -v` passes without the removed test
+- [x] `ruff check scripts/ yamlgraph/ tests/` clean
+- [x] No REQ-YG-XXX references need updating (none exist for the trailer)
+- [x] CHANGELOG.md updated
 
 ## Alternatives Considered
 

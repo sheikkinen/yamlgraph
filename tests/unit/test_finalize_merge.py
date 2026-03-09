@@ -432,10 +432,10 @@ class TestCommit:
         )
         assert "chore: FR-240 post-merge finalization" in result.stdout
 
-    def test_commit_includes_co_author(self, tmp_path):
-        """Commit includes Co-authored-by trailer."""
+    def test_commit_excludes_co_author_trailer(self, tmp_path):
+        """FR-167: Commit must NOT contain Co-authored-by Copilot trailer."""
         repo = _make_repo(tmp_path)
-        fr_rel = _write_fr(repo, "FR-241-coauthor-test.md")
+        fr_rel = _write_fr(repo, "FR-242-no-trailer-test.md")
         _run_finalize(repo, fr_rel)
 
         result = subprocess.run(
@@ -445,7 +445,7 @@ class TestCommit:
             text=True,
             env=_clean_git_env(),
         )
-        assert "Co-authored-by: Copilot" in result.stdout
+        assert "Co-authored-by: Copilot" not in result.stdout
 
 
 # ---------------------------------------------------------------------------
