@@ -3,7 +3,7 @@
     "yamlgraph": {
       "command": ".venv/bin/python3",
       "args": ["yamlgraph/mcp_server.py"],
-      "cwd": "/Users/sheikki/Documents/src/yamlgraph"
+      "cwd": "${workspaceFolder}/"
     },
     "loopback-poc": {
       "type": "stdio",

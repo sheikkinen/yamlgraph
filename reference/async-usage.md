@@ -204,8 +204,114 @@ results = await asyncio.gather(*[
 ])
 ```
 
+## Fire-and-Forget Integration
+
+For event-driven orchestrators (FSMs, actor systems, message queues) where
+`await`-ing a 2–30s LLM call blocks the main loop, use `asyncio.create_task`
+to launch graph execution in the background and dispatch results via an
+external channel.
+
+### Pattern
+
+```python
+import asyncio
+import logging
+from typing import Any, Awaitable, Callable
+
+from yamlgraph.executor_async import load_and_compile_async, run_graph_async
+
+logger = logging.getLogger(__name__)
+
+# Store references to prevent garbage collection
+_background_tasks: set[asyncio.Task] = set()
+
+
+async def launch_graph_background(
+    graph_path: str,
+    initial_state: dict[str, Any],
+    on_success: Callable[[dict], Awaitable[None]],
+    on_failure: Callable[[Exception], Awaitable[None]],
+) -> None:
+    """Fire-and-forget graph execution with result callback.
+
+    The caller returns immediately. When the graph completes,
+    on_success or on_failure is called from the event loop.
+    """
+    app = await load_and_compile_async(graph_path)
+
+    async def _run() -> None:
+        try:
+            result = await run_graph_async(app, initial_state)
+            await on_success(result)
+        except Exception as e:
+            logger.error("Background graph failed: %s", e)
+            await on_failure(e)
+
+    task = asyncio.create_task(_run())
+    # prevent GC — task removes itself when done
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+```
+
+### Guard Keys (Idempotency)
+
+When the caller may re-enter (polling loops, FSM re-dispatch), use a
+state-keyed guard to prevent duplicate launches:
+
+```python
+async def guarded_launch(
+    context: dict[str, Any],
+    guard_key: str,
+    graph_path: str,
+    state: dict[str, Any],
+    on_success,
+    on_failure,
+) -> None:
+    """Launch graph only once per guard_key. Idempotent on re-entry."""
+    if context.get(guard_key):
+        return  # already launched — wait for callback
+
+    context[guard_key] = True
+    await launch_graph_background(graph_path, state, on_success, on_failure)
+```
+
+Clear stale guards when the caller transitions to a new phase:
+
+```python
+# Clear guards from previous phases on re-entry
+stale = [k for k in context if k.startswith("_launched_") and k != guard_key]
+for k in stale:
+    del context[k]
+```
+
+### Result Dispatch
+
+The `on_success` callback bridges graph output back to the orchestrator.
+The channel depends on your system:
+
+| Channel | Use case | Example |
+|---------|----------|---------|
+| Callback | In-process orchestrator | `await orchestrator.dispatch(event)` |
+| Queue | Cross-process pipeline | `await queue.put(result)` |
+| Socket | Separate server process | `sock.sendto(payload, path)` |
+| HTTP | Remote service | `await client.post(url, json=result)` |
+
+### Error Handling
+
+Exceptions inside `create_task` are silent unless caught. The pattern above
+catches in `_run()` and dispatches to `on_failure`. For unhandled task
+exceptions, add a global handler:
+
+```python
+loop = asyncio.get_event_loop()
+loop.set_exception_handler(lambda loop, ctx: logger.error(
+    "Unhandled task error: %s", ctx.get("exception", ctx["message"])
+))
+```
+
 ## See Also
 
 - [Streaming](streaming.md) - Token-by-token output
 - [Interrupt Nodes](interrupt-nodes.md) - Human-in-the-loop
 - [Checkpointers](checkpointers.md) - State persistence
+- [Fire-and-Forget Integration](#fire-and-forget-integration) - Event-driven orchestrators
