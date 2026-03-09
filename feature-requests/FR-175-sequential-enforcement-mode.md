@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-09
 
@@ -67,14 +67,14 @@ fi
 
 ## Acceptance Criteria
 
-- [ ] `watch.sh` runs enforcement pipelines sequentially (foreground, not `nohup ... &`)
-- [ ] `bugfix_worktree.sh` route is also sequential (same treatment as enforce)
-- [ ] Non-zero exit from enforcement does not crash the watch loop
-- [ ] Exit code and log path are printed after each enforcement completes
-- [ ] Existing `set -euo pipefail` does not cause watch loop to abort on enforcement failure
-- [ ] No changes to `enforce_worktree.sh` or `bugfix_worktree.sh` internals
-- [ ] Tests added (shellcheck lint on watch.sh; integration test confirming sequential execution order)
-- [ ] Documentation updated (CHANGELOG.md, this FR status)
+- [x] `watch.sh` runs enforcement pipelines sequentially (foreground, not `nohup ... &`)
+- [x] `bugfix_worktree.sh` route is also sequential (same treatment as enforce)
+- [x] Non-zero exit from enforcement does not crash the watch loop
+- [x] Exit code and log path are printed after each enforcement completes
+- [x] Existing `set -euo pipefail` does not cause watch loop to abort on enforcement failure
+- [x] No changes to `enforce_worktree.sh` or `bugfix_worktree.sh` internals
+- [x] Tests added (shellcheck lint on watch.sh; integration test confirming sequential execution order)
+- [x] Documentation updated (CHANGELOG.md, this FR status)
 
 ## Alternatives Considered
 
