@@ -1,10 +1,14 @@
 # FR-106: End-to-End Enforce Pipeline via Git Worktree
+# FR-169: Reflexion loop between test_and_demo and precommit_check
 #
-# Four-phase pipeline:
-# 1. implement - Read FR, implement with TDD
-# 2. test_and_demo - Run tests, create example/demo
-# 3. precommit_check - Run pre-commit hooks, fix failures
-# 4. submit_pr - Commit and create PR
+# Seven-phase pipeline:
+# 1. implement      - Read FR, implement with TDD
+# 2. test_and_demo  - Run tests, create example/demo
+# 3. critique       - Evaluate implementation against FR acceptance criteria
+# 4. refine         - Address critique feedback (loop with critique, max 2)
+# 5. distill_reflection - Generate diary reflection from critique context
+# 6. precommit_check - Run pre-commit hooks, fix failures
+# 7. submit_pr      - Commit and create PR
 #
 # All phases chain via session continuations (FR-105), creating a single
 # conversation thread where each phase has full context from prior phases.
@@ -16,8 +20,9 @@ version: "1.0"
 name: enforce-pipeline
 description: |
   End-to-end feature enforcement in isolated worktree.
-  Four phases: implement → test/demo → pre-commit → submit PR.
+  Seven phases: implement → test/demo → critique ↔ refine → distill → pre-commit → submit PR.
   All phases chain via session continuations (FR-105).
+  Reflexion loop (FR-169) critiques against FR acceptance criteria.
 
 prompts_relative: true
 prompts_dir: prompts
@@ -27,6 +32,9 @@ state:
   branch: str            # Git branch name
   implement_result: dict
   test_result: dict
+  critique_result: dict    # Critique output with score + feedback
+  refine_result: dict      # Refinement output (separate from test_result)
+  reflection_draft: dict   # Diary reflection content
   precommit_result: dict
   pr_result: dict
 
@@ -56,6 +64,46 @@ nodes:
       resume: "{state.implement_result.session_id}"
     state_key: test_result
     timeout: 900  # 15 min
+
+  # Phase 2b: Critique implementation against FR acceptance criteria
+  critique:
+    type: copilot
+    prompt: enforce-critique
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.implement_result.session_id}"
+    variables:
+      fr_path: "{state.fr_path}"
+    state_key: critique_result
+    timeout: 300
+
+  # Phase 2c: Refine if critique score below threshold
+  refine:
+    type: copilot
+    prompt: enforce-refine
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.implement_result.session_id}"
+    variables:
+      fr_path: "{state.fr_path}"
+      feedback: "{state.critique_result.feedback}"
+    state_key: refine_result
+    timeout: 300
+
+  # Phase 2d: Distill diary reflection from critique context
+  distill_reflection:
+    type: copilot
+    prompt: enforce-distill
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.implement_result.session_id}"
+    variables:
+      fr_path: "{state.fr_path}"
+    state_key: reflection_draft
+    timeout: 300
 
   # Phase 3: Pre-commit Checks
   # Run all pre-commit hooks, fix any failures
@@ -90,8 +138,30 @@ edges:
   - from: implement
     to: test_and_demo
   - from: test_and_demo
+    to: critique
+
+  # Reflexion loop: critique → refine → critique (max 2 refine iterations)
+  - from: critique
+    to: refine
+    condition: critique_result.score < 0.85
+  - from: refine
+    to: critique
+
+  # Exit loop when quality threshold met
+  - from: critique
+    to: distill_reflection
+    condition: critique_result.score >= 0.85
+
+  - from: distill_reflection
     to: precommit_check
   - from: precommit_check
     to: submit_pr
   - from: submit_pr
     to: END
+
+loop_limits:
+  critique: 3
+  refine: 2
+
+loop_exits:
+  critique: distill_reflection

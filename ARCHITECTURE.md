@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **59 capabilities** covering **123 requirements**. Each capability maps to specific modules.
+YAMLGraph implements **60 capabilities** covering **124 requirements**. Each capability maps to specific modules.
 
 ### Capability Summary
 
@@ -335,6 +335,7 @@ YAMLGraph implements **59 capabilities** covering **123 requirements**. Each cap
 | 60 | Worktree Venv Corruption Guard | `utils/worktree_helpers`, `scripts/enforce_worktree.sh` | REQ-YG-156 |
 | 61 | Bugfix Pipeline with Condemning Test | `examples/bugfix`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh` | REQ-YG-157 |
 | 62 | Sequential Enforcement Mode | `.chaplain/watch.sh` | REQ-YG-158 |
+| 63 | Enforce Pipeline Reflexion Loop | `examples/enforce/graph.yaml`, `scripts/finalize_merge.sh` | REQ-YG-159 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -824,6 +825,7 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | REQ-YG-156 | **Worktree venv corruption guard**: `validate_venv_health()` raises `FileNotFoundError` when `.venv` directory is missing, `bin/python` is absent, or not executable (no silent skip). `validate_venv_symlink()` raises `OSError` when worktree `.venv` symlink doesn't resolve. `clean_stale_pth_entries()` removes `.pth`/`.egg-link` files referencing a deleted worktree directory to prevent import corruption from dangling editable installs | `yamlgraph/utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `tests/unit/test_worktree_venv_guard` |
 | REQ-YG-157 | **Bugfix pipeline with condemning test**: 4-phase pipeline (`condemn` → `fix` → `verify` → `submit_pr`) in `examples/bugfix/graph.yaml`. Condemn phase writes failing test against unchanged code (SKIP=pytest). `scripts/bugfix_worktree.sh` orchestrates in isolated worktree. `watch.sh` routes `Type.*Bug` FRs to bugfix pipeline. Each phase has dedicated prompt in `examples/bugfix/prompts/`. README documents Commandment 7 compliance | `examples/bugfix`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `tests/unit/test_bugfix_pipeline` |
 | REQ-YG-158 | **Sequential enforcement mode**: `watch.sh` runs `enforce_worktree.sh` and `bugfix_worktree.sh` in the foreground (no `nohup &`), capturing exit codes. Non-zero exits log a warning and continue the watch loop. Each pipeline completes before the next inbox item is processed, eliminating merge conflicts on shared files (ARCHITECTURE.md, CHANGELOG.md, req_coverage.py) | `.chaplain/watch.sh`, `tests/unit/test_watch_sequential_enforcement` |
+| REQ-YG-159 | **Enforce pipeline reflexion loop**: Critique → refine reflexion loop between `test_and_demo` and `precommit_check` in `examples/enforce/graph.yaml`. Critique evaluates implementation against FR acceptance criteria with score 0.0–1.0; refine addresses feedback when score < 0.85; loop bounded by `loop_limits` (critique: 3, refine: 2) with `loop_exits: { critique: distill_reflection }` (FR-172). `distill_reflection` generates diary entry from Scripture trap vocabulary. `finalize_merge.sh` skips stub creation when pipeline-generated reflection exists. Three new prompts: `enforce-critique.yaml`, `enforce-refine.yaml`, `enforce-distill.yaml` | `examples/enforce/graph.yaml`, `examples/enforce/prompts/`, `scripts/finalize_merge.sh`, `tests/unit/test_enforce_reflexion_loop` |
 
 ---
 

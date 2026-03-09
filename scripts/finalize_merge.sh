@@ -80,7 +80,8 @@ sed 's/^\*\*Status:\*\*.*/\*\*Status:\*\* ✅ Implemented/' "$FR_PATH" > "${FR_P
 DATE=$(date +%Y-%m-%d)
 mkdir -p docs/diary
 DIARY_ENTRY="docs/diary/${DATE}-reflection-${FR_NUM}.md"
-cat > "$DIARY_ENTRY" << EOF
+if [ ! -f "$DIARY_ENTRY" ]; then
+    cat > "$DIARY_ENTRY" << EOF
 ## ${DATE}: ${FR_NUM} — Implementation Reflection
 
 **Context:** Implemented ${FR_TITLE}.
@@ -91,6 +92,9 @@ cat > "$DIARY_ENTRY" << EOF
 
 **Seed:** [What question remains?]
 EOF
+else
+    echo "📝 Diary reflection already exists (pipeline-generated), skipping stub"
+fi
 
 # ── Step 4: Commit finalization ──────────────────────────────────────────────
 
