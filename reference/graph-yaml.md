@@ -29,6 +29,9 @@ edges:                             # Required: Edge definitions
 loop_limits:                       # Optional: Max iterations per node
   node_name: 3
 
+loop_exits:                        # Optional: Custom exit target when loop limit hit
+  node_name: post_loop_node
+
 exports:                           # Optional: Export configuration
   state_key:
     format: markdown
@@ -1064,6 +1067,23 @@ loop_limits:
 ```
 
 **Note:** Use with `skip_if_exists: false` on loop nodes.
+
+## Loop Exits (FR-172)
+
+By default, when a node hits its `loop_limit`, the expression router terminates the graph (`END`). Use `loop_exits` to route to a specific post-loop node instead:
+
+```yaml
+loop_limits:
+  critique: 3
+
+loop_exits:
+  critique: distill_reflection  # When critique hits limit, go here instead of END
+```
+
+**Rules:**
+- Each key in `loop_exits` must also appear in `loop_limits`
+- Each value must be a valid node name (or `END`)
+- Only applies to expression-based conditional edges (not `type: conditional` router edges)
 
 ---
 

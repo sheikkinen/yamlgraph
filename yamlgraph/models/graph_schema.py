@@ -212,6 +212,10 @@ class GraphConfigSchema(BaseModel):
     edges: list[EdgeConfig] = Field(...)
     tools: dict[str, Any] = Field(default_factory=dict)
     loop_limits: dict[str, int] = Field(default_factory=dict)
+    loop_exits: dict[str, str] = Field(
+        default_factory=dict,
+        description="Map of node name to target node when loop limit is reached",
+    )
     data_files: dict[str, str] = Field(
         default_factory=dict,
         description="External YAML data files to load into state at compile time",

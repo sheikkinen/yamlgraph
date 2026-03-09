@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Judged:** 2026-03-09
 **Requested:** 2026-03-09
@@ -111,23 +111,23 @@ Add a lint rule: every node in `loop_exits` must (a) exist in `nodes`, (b) appea
 
 ## Acceptance Criteria
 
-- [ ] `loop_exits` is a valid top-level graph YAML field (dict[str, str])
-- [ ] `GraphConfigSchema` validates `loop_exits` as `dict[str, str]` with default `{}`
-- [ ] `GraphConfig` stores `loop_exits` from raw config
-- [ ] `make_expr_router_fn` accepts optional `loop_exit_target` parameter
-- [ ] When `_loop_limit_reached` is `True` and a `loop_exit_target` is configured, router returns the target instead of `END`
-- [ ] When `_loop_limit_reached` is `True` and no `loop_exit_target` is configured, router returns `END` (unchanged behavior)
-- [ ] `_add_conditional_edges` passes `loop_exit_target` from `loop_exits` config to the expression router
-- [ ] The loop exit target node is included in the route mapping so LangGraph knows it is a valid destination
-- [ ] Lint rule warns when `loop_exits` key references a node not in `loop_limits`
-- [ ] Lint rule warns when `loop_exits` value references a nonexistent node
-- [ ] Reflexion example (`examples/demos/reflexion/graph.yaml`) updated with `loop_exits` demonstrating the pattern
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-093")`
-- [ ] Unit test: expression router returns custom target when loop limit reached
-- [ ] Unit test: expression router returns `END` when loop limit reached and no exit configured
-- [ ] Unit test: end-to-end graph compilation with `loop_exits` config
-- [ ] Unit test: lint detects invalid `loop_exits` references
-- [ ] Documentation updated in `reference/graph-yaml.md`
+- [x] `loop_exits` is a valid top-level graph YAML field (dict[str, str])
+- [x] `GraphConfigSchema` validates `loop_exits` as `dict[str, str]` with default `{}`
+- [x] `GraphConfig` stores `loop_exits` from raw config
+- [x] `make_expr_router_fn` accepts optional `loop_exit_target` parameter
+- [x] When `_loop_limit_reached` is `True` and a `loop_exit_target` is configured, router returns the target instead of `END`
+- [x] When `_loop_limit_reached` is `True` and no `loop_exit_target` is configured, router returns `END` (unchanged behavior)
+- [x] `_add_conditional_edges` passes `loop_exit_target` from `loop_exits` config to the expression router
+- [x] The loop exit target node is included in the route mapping so LangGraph knows it is a valid destination
+- [x] Lint rule warns when `loop_exits` key references a node not in `loop_limits`
+- [x] Lint rule warns when `loop_exits` value references a nonexistent node
+- [x] Reflexion example (`examples/demos/reflexion/graph.yaml`) updated with `loop_exits` demonstrating the pattern
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-093")`
+- [x] Unit test: expression router returns custom target when loop limit reached
+- [x] Unit test: expression router returns `END` when loop limit reached and no exit configured
+- [x] Unit test: end-to-end graph compilation with `loop_exits` config
+- [x] Unit test: lint detects invalid `loop_exits` references
+- [x] Documentation updated in `reference/graph-yaml.md`
 
 ## Alternatives Considered
 

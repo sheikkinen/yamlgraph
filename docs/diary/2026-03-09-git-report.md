@@ -15,7 +15,7 @@ The repository shows **intense, focused development** with **7 major features co
 
 #### **1. FR-166: Pydantic Verification Model Enhancement** ✅ COMPLETED
 - **Status:** Completed with all acceptance criteria met
-- **Changes:** 
+- **Changes:**
   - Added `CountRangeClaim` Pydantic model for structured verification claims
   - Fixed bug where `len(BaseModel)` raised TypeError → now properly extracts countable data
   - Implemented `_extract_countable()` helper for single-list field unwrapping
