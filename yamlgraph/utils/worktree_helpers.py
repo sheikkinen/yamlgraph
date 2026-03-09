@@ -4,10 +4,17 @@ Provides utility functions for git worktree orchestration:
 - derive_branch_name: Extract branch name from FR path
 - construct_worktree_path: Build worktree directory path
 - validate_clean_working_tree: Check for uncommitted changes
+- validate_venv_health: Assert .venv exists with working python (FR-174)
+- validate_venv_symlink: Assert .venv symlink resolves correctly (FR-174)
+- clean_stale_pth_entries: Remove dangling .pth/.egg-link files (FR-174)
 """
 
+import logging
+import os
 import subprocess
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def derive_branch_name(fr_path: str) -> str:
@@ -105,3 +112,99 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
         raise ValueError(f"Working tree has staged changes: {non_excluded_staged}")
 
     return True
+
+
+def validate_venv_health(venv_path: Path) -> None:
+    """Validate that a .venv directory exists and has a working Python binary.
+
+    Fails loudly instead of silently skipping — Commandment 6.
+
+    Args:
+        venv_path: Path to the .venv directory.
+
+    Raises:
+        FileNotFoundError: If .venv is missing, bin/python is absent, or not executable.
+    """
+    if not venv_path.is_dir():
+        raise FileNotFoundError(
+            f".venv does not exist at {venv_path}. "
+            f"Create it with: python -m venv {venv_path}"
+        )
+
+    python_bin = venv_path / "bin" / "python"
+    if not python_bin.exists():
+        raise FileNotFoundError(
+            f".venv/bin/python not found at {python_bin}. "
+            f"The virtual environment may be corrupted — recreate it."
+        )
+
+    if not os.access(python_bin, os.X_OK):
+        raise FileNotFoundError(
+            f".venv/bin/python is not executable at {python_bin}. "
+            f"Fix with: chmod +x {python_bin}"
+        )
+
+
+def validate_venv_symlink(symlink_path: Path, target_path: Path) -> None:
+    """Validate that a .venv symlink in a worktree resolves correctly.
+
+    Args:
+        symlink_path: Path to the .venv symlink in the worktree.
+        target_path: Expected target (the main repo's .venv).
+
+    Raises:
+        OSError: If path is not a symlink or target doesn't resolve.
+    """
+    if not symlink_path.is_symlink():
+        raise OSError(
+            f"{symlink_path} is not a symlink. Expected symlink to {target_path}."
+        )
+
+    if not symlink_path.resolve().exists():
+        raise OSError(
+            f"Symlink {symlink_path} does not resolve — "
+            f"target {target_path} may have been deleted."
+        )
+
+
+def clean_stale_pth_entries(venv_path: Path, worktree_dir: str) -> list[Path]:
+    """Remove .pth and .egg-link files that reference a worktree directory.
+
+    After a worktree is removed, editable installs (pip install -e .) leave
+    dangling .pth/.egg-link files in site-packages pointing to the deleted
+    worktree. This corrupts the main repo's import resolution.
+
+    Args:
+        venv_path: Path to the .venv directory.
+        worktree_dir: Absolute path to the worktree being cleaned up.
+
+    Returns:
+        List of Path objects that were removed (empty if none found).
+    """
+    removed: list[Path] = []
+
+    lib_dir = venv_path / "lib"
+    if not lib_dir.is_dir():
+        return removed
+
+    for site_packages in lib_dir.glob("python*/site-packages"):
+        if not site_packages.is_dir():
+            continue
+
+        for pattern in ("*.pth", "*.egg-link"):
+            for pth_file in site_packages.glob(pattern):
+                try:
+                    content = pth_file.read_text()
+                except OSError:
+                    continue
+
+                if worktree_dir in content:
+                    logger.warning(
+                        "Removing stale %s referencing worktree %s",
+                        pth_file.name,
+                        worktree_dir,
+                    )
+                    pth_file.unlink()
+                    removed.append(pth_file)
+
+    return removed

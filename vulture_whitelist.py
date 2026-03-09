@@ -8,14 +8,20 @@
 
 # --- worktree_helpers: invoked via python3 -c in scripts/enforce_worktree.sh ---
 from yamlgraph.utils.worktree_helpers import (  # noqa: F401 (CONF-126)
+    clean_stale_pth_entries,
     construct_worktree_path,
     derive_branch_name,
     validate_clean_working_tree,
+    validate_venv_health,
+    validate_venv_symlink,
 )
 
 derive_branch_name
 construct_worktree_path
 validate_clean_working_tree
+validate_venv_health
+validate_venv_symlink
+clean_stale_pth_entries
 
 # --- cli/deprecation: tested in test_deprecation.py ---
 from yamlgraph.cli.deprecation import (  # noqa: F401 (CONF-126)
