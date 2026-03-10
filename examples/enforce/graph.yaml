@@ -141,16 +141,17 @@ edges:
     to: critique
 
   # Reflexion loop: critique → refine → critique (max 2 refine iterations)
+  # NOTE: score-based routing disabled — copilot node returns string output,
+  # not structured object. Loop exits via loop_exits or loop_limits instead.
   - from: critique
     to: refine
-    condition: critique_result.score < 0.85
+    condition: "false"  # Disabled: critique_result.score not available
   - from: refine
     to: critique
 
-  # Exit loop when quality threshold met
+  # Default exit: always proceed to distill after critique completes
   - from: critique
     to: distill_reflection
-    condition: critique_result.score >= 0.85
 
   - from: distill_reflection
     to: precommit_check
