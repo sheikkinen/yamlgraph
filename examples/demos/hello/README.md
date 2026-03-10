@@ -5,6 +5,10 @@ Minimal YAMLGraph example demonstrating basic LLM call with variable substitutio
 ## Usage
 
 ```bash
+# Validate the graph
+yamlgraph graph lint examples/demos/hello/graph.yaml
+
+# Run the graph
 yamlgraph graph run examples/demos/hello/graph.yaml \
   --var name="World" --var style="enthusiastic"
 ```
