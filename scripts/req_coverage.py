@@ -60,6 +60,7 @@ _ALL_FRAMEWORK_REQS = (
     + [158]  # REQ-YG-158 (CAP-62 Sequential Enforcement Mode)
     + [159]  # REQ-YG-159 (CAP-63 Enforce Pipeline Reflexion Loop)
     + [160]  # REQ-YG-160 (CAP-64 Concurrency Safety Map)
+    + [161]  # REQ-YG-161 (CAP-65 Hello Demo Documentation)
 )
 ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
 
@@ -254,6 +255,7 @@ CAPABILITIES: dict[str, tuple[str, list[str]]] = {
     "CAP-62": ("Sequential Enforcement Mode", ["REQ-YG-158"]),
     "CAP-63": ("Enforce Pipeline Reflexion Loop", ["REQ-YG-159"]),
     "CAP-64": ("Concurrency Safety Map", ["REQ-YG-160"]),
+    "CAP-65": ("Hello Demo Documentation", ["REQ-YG-161"]),
 }
 
 
