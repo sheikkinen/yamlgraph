@@ -1,0 +1,18 @@
+id: CAP-53
+name: CI Conflict Marker Gate
+description: >
+  CI job that fails when unresolved merge conflict markers are found in tracked
+  files, complementing the local check-merge-conflict pre-commit hook.
+modules:
+  - .github/workflows/commitlint.yml
+  - tests/unit/test_ci_conflict_check
+requirements:
+  - id: REQ-YG-151
+    description: >
+      CI conflict marker gate: The `conflict-check` job in `commitlint.yml`
+      greps tracked files (excluding `.github/`) for conflict marker patterns
+      and fails with non-zero exit when found
+    modules:
+      - .github/workflows/commitlint.yml
+      - tests/unit/test_ci_conflict_check
+fr: FR-157

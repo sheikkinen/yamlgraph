@@ -1,0 +1,21 @@
+id: CAP-11
+name: "Subgraph & Map"
+description: Parallel fan-out and nested subgraph execution.
+modules:
+  - map_compiler
+  - map_compiler.wrap_for_reducer
+  - node_factory/subgraph_nodes
+requirements:
+  - id: REQ-YG-040
+    description: Map node compilation
+    modules:
+      - map_compiler
+  - id: REQ-YG-041
+    description: Output wrapping for reduction
+    modules:
+      - map_compiler.wrap_for_reducer
+  - id: REQ-YG-042
+    description: Subgraph node creation
+    modules:
+      - node_factory/subgraph_nodes
+fr: legacy

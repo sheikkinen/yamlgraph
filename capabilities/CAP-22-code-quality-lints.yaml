@@ -1,0 +1,14 @@
+id: CAP-22
+name: Code Quality Lints
+description: >
+  Custom lint checks enforcing architectural patterns beyond standard linters.
+modules:
+  - scripts/lint_inline_llm
+requirements:
+  - id: REQ-YG-073
+    description: >
+      Inline LLM lint: detect scripts with `def main()` that import LLM
+      execution functions without graph loading — flags orchestration code smell
+    modules:
+      - scripts/lint_inline_llm
+fr: legacy

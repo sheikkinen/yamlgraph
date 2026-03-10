@@ -1,0 +1,19 @@
+id: CAP-24
+name: Interactive Tool Node
+description: >
+  Declarative multi-turn stateful tool integration via config-level expansion.
+modules:
+  - interactive_tool
+  - node_factory/control_nodes
+  - utils/conditions
+requirements:
+  - id: REQ-YG-075
+    description: >
+      Interactive tool node: expand `type: interactive_tool` into
+      start/ask/step/end inline nodes with loop condition, max iterations, and
+      interrupt-based user input
+    modules:
+      - interactive_tool
+      - node_factory/control_nodes
+      - utils/conditions
+fr: legacy

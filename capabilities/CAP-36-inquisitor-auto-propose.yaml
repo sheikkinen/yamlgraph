@@ -1,0 +1,19 @@
+id: CAP-36
+name: Inquisitor Auto-Propose
+description: >
+  --propose flag on inquisitor.sh detects violations persisting across
+  consecutive Inquisitor Audit entries and writes targeted fix proposals to
+  .chaplain/inbox/.
+modules:
+  - .chaplain/inquisitor.sh
+requirements:
+  - id: REQ-YG-118
+    description: >
+      `inquisitor.sh --propose` parses flag, gates a second copilot call that
+      reads up to 5 diary audit entries, detects persistent ✗ violations (≥2
+      consecutive), classifies as micro-fix or structural gap, writes proposal
+      markdown to `.chaplain/inbox/inquisitor-<slug>.md` with filename-based
+      dedup; without `--propose` the audit-only flow is unchanged
+    modules:
+      - .chaplain/inquisitor.sh
+fr: FR-118

@@ -1,0 +1,20 @@
+id: CAP-39
+name: Inquisitor Commit-Delta Gate
+description: >
+  inquisitor.sh commit-delta gate extracts last audit SHA from docs/diary/,
+  counts feat:/fix: commits since that SHA, and aborts when none found.
+modules:
+  - .chaplain/inquisitor.sh
+  - tests/unit/test_inquisitor_gate
+requirements:
+  - id: REQ-YG-131
+    description: >
+      `inquisitor.sh` commit-delta gate extracts last audit SHA from
+      `docs/diary/`, counts `feat:`/`fix:` commits since that SHA via `git log`,
+      and aborts with clear message when none found; `--force` bypasses gate;
+      gate degrades gracefully on missing diary, unparseable SHA, or first-ever
+      audit; `--propose` respects gate; gate logic is pure shell
+    modules:
+      - .chaplain/inquisitor.sh
+      - tests/unit/test_inquisitor_gate
+fr: FR-131

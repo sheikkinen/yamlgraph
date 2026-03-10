@@ -1,0 +1,21 @@
+id: CAP-31
+name: Chaplain Diary Append
+description: >
+  Extends the Plan-Judge workflow with automatic diary entry creation after each
+  run.
+modules:
+  - examples/copilot/graph.yaml
+  - examples/copilot/prompts/summarize.yaml
+  - examples/shared/diary
+requirements:
+  - id: REQ-YG-090
+    description: >
+      `format_diary_entry()` accepts configurable `prefix` parameter (default
+      "World Digest"); `examples/copilot/graph.yaml` includes `summarize` (LLM)
+      and `write_diary` (Python) nodes; `watch.sh` passes `date` and
+      `diary_prefix` vars
+    modules:
+      - examples/shared/diary
+      - examples/copilot/graph.yaml
+      - examples/copilot/prompts/summarize.yaml
+fr: FR-090

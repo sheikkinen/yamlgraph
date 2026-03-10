@@ -1,0 +1,20 @@
+id: CAP-43
+name: Copilot Session GC
+description: >
+  Shell script that prunes stale Copilot CLI sessions from
+  ~/.copilot/session-state/ based on age.
+modules:
+  - scripts/copilot_session_gc.sh
+  - tests/unit/test_copilot_session_gc
+requirements:
+  - id: REQ-YG-141
+    description: >
+      `copilot_session_gc.sh` removes session directories older than `--max-age`
+      days (default 7); `--dry-run` lists candidates without deleting; active
+      session (`$COPILOT_SESSION_ID`) is never removed; exits cleanly when
+      directory is missing; idempotent; logs UUID and age for each removed
+      session
+    modules:
+      - scripts/copilot_session_gc.sh
+      - tests/unit/test_copilot_session_gc
+fr: FR-138

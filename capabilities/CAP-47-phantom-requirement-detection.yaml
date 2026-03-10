@@ -1,0 +1,17 @@
+id: CAP-47
+name: Phantom Requirement Detection
+description: >
+  Detect and reject test markers that reference non-existent requirement IDs.
+modules:
+  - scripts/req_coverage.py
+  - tests/unit/test_req_coverage
+requirements:
+  - id: REQ-YG-145
+    description: >
+      Phantom requirement detection: `req_coverage.py --strict` rejects
+      `@pytest.mark.req` markers referencing requirement IDs absent from
+      `ALL_REQS` or `ARCHITECTURE.md`
+    modules:
+      - scripts/req_coverage.py
+      - tests/unit/test_req_coverage
+fr: FR-145

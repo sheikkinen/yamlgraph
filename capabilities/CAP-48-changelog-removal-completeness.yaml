@@ -1,0 +1,20 @@
+id: CAP-48
+name: CHANGELOG Removal Completeness
+description: >
+  CHANGELOG.md [Unreleased] documents significant file removals per Commandment
+  8.
+modules:
+  - CHANGELOG.md
+  - tests/unit/test_demo_cleanup_changelog
+requirements:
+  - id: REQ-YG-146
+    description: >
+      CHANGELOG.md `[Unreleased]` contains a `### Removed` section documenting
+      stale demo file deletions (commit a0e6f00):
+      `examples/cost-router/poc_granite.py`, `scripts/loopback-poc/` (419
+      lines); section ordering follows Keep a Changelog convention (Added →
+      Removed → Fixed)
+    modules:
+      - CHANGELOG.md
+      - tests/unit/test_demo_cleanup_changelog
+fr: FR-153

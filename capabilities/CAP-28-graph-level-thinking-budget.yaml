@@ -1,0 +1,20 @@
+id: CAP-28
+name: Graph-Level Thinking Budget
+description: >
+  Graph-level and per-node thinking_budget YAML field for Anthropic extended
+  thinking.
+modules:
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/utils/llm_factory.py
+requirements:
+  - id: REQ-YG-083
+    description: >
+      `thinking_budget` YAML field on graph `defaults` and per-node; validated
+      as `0` or `≥ 1024`; passed as
+      `thinking={"type":"enabled","budget_tokens":N}` to `ChatAnthropic` with
+      forced `temperature=1` (override before cache key); raises on
+      non-Anthropic provider; included in LLM cache key
+    modules:
+      - yamlgraph/models/graph_schema.py
+      - yamlgraph/utils/llm_factory.py
+fr: FR-071

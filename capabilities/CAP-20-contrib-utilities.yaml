@@ -1,0 +1,22 @@
+id: CAP-20
+name: Contrib Utilities
+description: >
+  Shared utilities extracted from pipeline patterns. Eliminates copy-paste
+  duplication across projects.
+modules:
+  - contrib/progress
+  - contrib/utils
+requirements:
+  - id: REQ-YG-070
+    description: >
+      Contrib utils: `get_map_result()` unwraps single-key `_map_*_sub` dicts;
+      `to_serializable()` converts Pydantic models to dicts recursively
+    modules:
+      - contrib/utils
+  - id: REQ-YG-071
+    description: >
+      Contrib progress: `SkipReport` reads `state["errors"]` and provides
+      human-readable skip summaries with counts and node names
+    modules:
+      - contrib/progress
+fr: legacy

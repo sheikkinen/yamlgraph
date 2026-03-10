@@ -1,0 +1,27 @@
+id: CAP-15
+name: Expression Language
+description: >
+  Value expressions, condition expressions, literal parsing, and
+  resolve_node_variables batch resolution.
+modules:
+  - utils/conditions
+  - utils/expressions
+  - utils/parsing
+requirements:
+  - id: REQ-YG-051
+    description: >
+      Expression language: value expressions (`{state.path}`, arithmetic,
+      list/dict ops), condition expressions (comparisons, compound AND/OR),
+      literal parsing, `resolve_node_variables` batch resolution
+    modules:
+      - utils/expressions
+      - utils/conditions
+      - utils/parsing
+  - id: REQ-YG-052
+    description: >
+      Expression language hardening: quote-aware compound split, right-side
+      state reference resolution, chained arithmetic detection
+    modules:
+      - utils/conditions
+      - utils/expressions
+fr: legacy

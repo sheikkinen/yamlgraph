@@ -1,0 +1,37 @@
+id: CAP-30
+name: Copilot Node
+description: >
+  New copilot node type that delegates graph processing to Copilot CLI,
+  replacing shell-script orchestration with a first-class YAML-declarable node.
+modules:
+  - constants.NodeType.COPILOT
+  - models/schemas
+  - node_compiler
+  - node_factory/copilot_node
+requirements:
+  - id: REQ-YG-087
+    description: >
+      Copilot node executes via CLI backend with configurable flags and timeout;
+      `--silent` always forced; list-based `subprocess.run()` for injection
+      safety; graceful `FileNotFoundError` when copilot binary missing
+    modules:
+      - node_factory/copilot_node
+      - node_compiler
+      - constants.NodeType.COPILOT
+  - id: REQ-YG-089
+    description: >
+      Copilot node composes with router, map, and FSM-router patterns; standard
+      node guarantees apply (requires, on_error, skip_if_exists, loop
+      protection)
+    modules:
+      - node_factory/copilot_node
+      - node_compiler
+  - id: REQ-YG-105
+    description: >
+      Copilot node session continuations via `--resume` and `--continue` flags;
+      session ID captured from stderr into `CopilotResult.session_id`; state
+      expression resolution for `cli_flags.resume`
+    modules:
+      - node_factory/copilot_node
+      - models/schemas
+fr: FR-082

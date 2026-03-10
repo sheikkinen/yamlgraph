@@ -1,0 +1,19 @@
+id: CAP-42
+name: Inquisitor Worktree Gate
+description: >
+  inquisitor.sh worktree gate detects git worktree context and exits early,
+  suppressing audit and propose phases during enforce pipeline.
+modules:
+  - .chaplain/inquisitor.sh
+  - tests/unit/test_inquisitor_worktree_gate
+requirements:
+  - id: REQ-YG-142
+    description: >
+      `inquisitor.sh` worktree gate checks `-f "$REPO_ROOT/.git"` (file =
+      worktree, directory = main), exits 0 with message when in worktree;
+      `--force` bypasses gate; degrades gracefully when `git rev-parse` fails;
+      gate placed before commit-delta gate (FR-131); pure shell, no Python
+    modules:
+      - .chaplain/inquisitor.sh
+      - tests/unit/test_inquisitor_worktree_gate
+fr: FR-142

@@ -1,0 +1,20 @@
+id: CAP-41
+name: Clean GIT Env Test Fixture
+description: >
+  Session-scoped autouse pytest fixture strips GIT_* environment variables
+  injected by pre-commit, preventing subprocess bleed into tests that create
+  temporary git repos.
+modules:
+  - tests/conftest.py
+  - tests/unit/test_clean_git_env
+requirements:
+  - id: REQ-YG-140
+    description: >
+      `_clean_git_env` session-scoped autouse fixture strips all `GIT_*` env
+      vars at session start, restores on teardown; no-op when vars absent;
+      prevents pre-commit `GIT_DIR`/`GIT_WORK_TREE` from leaking into subprocess
+      git calls in `tmp_path`-based test repos
+    modules:
+      - tests/conftest.py
+      - tests/unit/test_clean_git_env
+fr: FR-140

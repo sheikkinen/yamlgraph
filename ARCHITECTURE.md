@@ -270,7 +270,10 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **62 capabilities** covering **126 requirements**. Each capability maps to specific modules.
+YAMLGraph capabilities are tracked in individual YAML files under `capabilities/`.
+Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
+
+<!-- BEGIN GENERATED CAPABILITIES -->
 
 ### Capability Summary
 
@@ -326,7 +329,6 @@ YAMLGraph implements **62 capabilities** covering **126 requirements**. Each cap
 | 49 | Examples Documentation Audit | `examples/README.md` | REQ-YG-147 |
 | 50 | CI CHANGELOG Gate | `.github/workflows/commitlint.yml` | REQ-YG-148 |
 | 51 | Branch Protection Documentation | `reference/break-glass.md` | REQ-YG-149 |
-| 52 | Architecture Capability Count Guard | `tests/unit/test_architecture_capability_count` | REQ-YG-150 |
 | 53 | CI Conflict Marker Gate | `.github/workflows/commitlint.yml` | REQ-YG-151 |
 | 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml` | REQ-YG-152 |
 | 55 | Chaplain Inbox Documentation | `CLAUDE.md` | REQ-YG-153 |
@@ -337,7 +339,7 @@ YAMLGraph implements **62 capabilities** covering **126 requirements**. Each cap
 | 62 | Sequential Enforcement Mode | `.chaplain/watch.sh` | REQ-YG-158 |
 | 63 | Enforce Pipeline Reflexion Loop | `examples/enforce/graph.yaml`, `scripts/finalize_merge.sh` | REQ-YG-159 |
 | 64 | Concurrency Safety Map | `docs/concurrency-safety.md` | REQ-YG-160 |
-| 65 | Hello Demo Documentation | `examples/demos/hello/README.md` | REQ-YG-161 |
+| 65 | Append-Only Capability Registry | `capabilities/`, `scripts/req_coverage.py` | REQ-YG-161 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -783,14 +785,6 @@ GitHub branch protection rules on `main` enforcing squash-merge only, required s
 |------------|-------------|-------------|
 | REQ-YG-149 | `reference/break-glass.md` documents emergency bypass procedure with audit trail requirements; `CLAUDE.md` contains Branch Protection section listing enforced rules, required status checks, and link to break-glass procedure | `reference/break-glass.md`, `CLAUDE.md`, `tests/unit/test_branch_protection_docs` |
 
-### 52. Architecture Capability Count Guard (FR-154)
-
-Guard test ensuring the capability and requirement counts in the summary sentence stay in sync with the actual table.
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-| REQ-YG-150 | **Architecture capability count guard**: CI test verifies the capability and requirement counts in the ARCHITECTURE.md summary sentence match the actual capability table rows and unique REQ-YG-IDs | `tests/unit/test_architecture_capability_count` |
-
 ### 53. CI Conflict Marker Gate (FR-157)
 
 CI job that fails when unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) are found in tracked files, complementing the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges.
@@ -829,7 +823,9 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | REQ-YG-158 | **Sequential enforcement mode**: `watch.sh` runs `enforce_worktree.sh` and `bugfix_worktree.sh` in the foreground (no `nohup &`), capturing exit codes. Non-zero exits log a warning and continue the watch loop. Each pipeline completes before the next inbox item is processed, eliminating merge conflicts on shared files (ARCHITECTURE.md, CHANGELOG.md, req_coverage.py) | `.chaplain/watch.sh`, `tests/unit/test_watch_sequential_enforcement` |
 | REQ-YG-159 | **Enforce pipeline reflexion loop**: Critique → refine reflexion loop between `test_and_demo` and `precommit_check` in `examples/enforce/graph.yaml`. Critique evaluates implementation against FR acceptance criteria with score 0.0–1.0; refine addresses feedback when score < 0.85; loop bounded by `loop_limits` (critique: 3, refine: 2) with `loop_exits: { critique: distill_reflection }` (FR-172). `distill_reflection` generates diary entry from Scripture trap vocabulary. `finalize_merge.sh` skips stub creation when pipeline-generated reflection exists. Three new prompts: `enforce-critique.yaml`, `enforce-refine.yaml`, `enforce-distill.yaml` | `examples/enforce/graph.yaml`, `examples/enforce/prompts/`, `scripts/finalize_merge.sh`, `tests/unit/test_enforce_reflexion_loop` |
 | REQ-YG-160 | **Concurrency safety map**: `docs/concurrency-safety.md` documents every concurrency pattern in YAMLGraph with verdict (Safe/Conditional/Unsafe), concurrency model, shared mutable state, safety invariant, and file:line evidence. Covers 6 areas: map node fan-out, checkpoint writes, graph cache, inquisitor diary writes, MCP server, async executor. Each entry classifies shared state and serialization mechanism | `docs/concurrency-safety.md`, `tests/unit/test_concurrency_safety_doc` |
-| REQ-YG-161 | **Hello demo documentation**: `examples/demos/hello/README.md` documents the minimal hello-world graph usage including run command, variables, lint validation, pipeline diagram, and learning path | `examples/demos/hello/README.md`, `tests/unit/test_hello_demo_readme` |
+| REQ-YG-161 | **Append-only capability registry**: Individual YAML files in `capabilities/` validated by `scripts/validate_capabilities.py`, aggregated into ARCHITECTURE.md by `scripts/aggregate_capabilities.py`, loaded by `scripts/req_coverage.py`. Pre-commit hook enforces schema on every commit. New FRs add files rather than editing shared artifacts | `capabilities/`, `scripts/validate_capabilities.py`, `scripts/aggregate_capabilities.py`, `scripts/req_coverage.py`, `tests/unit/test_capability_registry.py` |
+
+<!-- END GENERATED CAPABILITIES -->
 
 ---
 
