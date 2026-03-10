@@ -1,7 +1,7 @@
 # FR-182: Hello World Smoke Test
 
-**Status:** Approved  
-**Priority:** Low  
+**Status:** Implemented
+**Priority:** Low
 **Effort:** XS (< 1 hour)
 
 ## Problem Statement
@@ -10,8 +10,8 @@ Need a minimal smoke test to verify the enforce pipeline works end-to-end.
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Add `examples/demos/hello/README.md` with hello world documentation
-- [ ] AC-2: README explains how to run `yamlgraph graph run examples/demos/hello/graph.yaml`
+- [x] AC-1: Add `examples/demos/hello/README.md` with hello world documentation
+- [x] AC-2: README explains how to run `yamlgraph graph run examples/demos/hello/graph.yaml`
 
 ## Implementation Approach
 
