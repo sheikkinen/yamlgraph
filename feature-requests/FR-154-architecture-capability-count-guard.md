@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Implemented
+**Status:** Superseded by FR-177
 **Effort:** 0.5 days
 **Requested:** 2026-03-08
 

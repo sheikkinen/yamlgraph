@@ -270,7 +270,7 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-YAMLGraph implements **62 capabilities** covering **126 requirements**. Each capability maps to specific modules.
+Each capability below maps to specific modules and requirements.
 
 ### Capability Summary
 
@@ -326,7 +326,6 @@ YAMLGraph implements **62 capabilities** covering **126 requirements**. Each cap
 | 49 | Examples Documentation Audit | `examples/README.md` | REQ-YG-147 |
 | 50 | CI CHANGELOG Gate | `.github/workflows/commitlint.yml` | REQ-YG-148 |
 | 51 | Branch Protection Documentation | `reference/break-glass.md` | REQ-YG-149 |
-| 52 | Architecture Capability Count Guard | `tests/unit/test_architecture_capability_count` | REQ-YG-150 |
 | 53 | CI Conflict Marker Gate | `.github/workflows/commitlint.yml` | REQ-YG-151 |
 | 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml` | REQ-YG-152 |
 | 55 | Chaplain Inbox Documentation | `CLAUDE.md` | REQ-YG-153 |
@@ -782,14 +781,6 @@ GitHub branch protection rules on `main` enforcing squash-merge only, required s
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-149 | `reference/break-glass.md` documents emergency bypass procedure with audit trail requirements; `CLAUDE.md` contains Branch Protection section listing enforced rules, required status checks, and link to break-glass procedure | `reference/break-glass.md`, `CLAUDE.md`, `tests/unit/test_branch_protection_docs` |
-
-### 52. Architecture Capability Count Guard (FR-154)
-
-Guard test ensuring the capability and requirement counts in the summary sentence stay in sync with the actual table.
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-| REQ-YG-150 | **Architecture capability count guard**: CI test verifies the capability and requirement counts in the ARCHITECTURE.md summary sentence match the actual capability table rows and unique REQ-YG-IDs | `tests/unit/test_architecture_capability_count` |
 
 ### 53. CI Conflict Marker Gate (FR-157)
 
