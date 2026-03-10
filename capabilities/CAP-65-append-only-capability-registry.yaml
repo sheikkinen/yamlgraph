@@ -1,0 +1,23 @@
+id: CAP-65
+name: Append-Only Capability Registry
+description: >
+  Replace the monolithic CAPABILITIES dict in req_coverage.py with individual
+  YAML files under capabilities/. New FRs add files rather than editing shared
+  artifacts, eliminating merge conflicts on traceability data.
+modules:
+  - capabilities/
+  - scripts/validate_capabilities.py
+  - scripts/req_coverage.py
+requirements:
+  - id: REQ-YG-161
+    description: >
+      Append-only capability registry: individual YAML files in capabilities/
+      validated by scripts/validate_capabilities.py pre-commit hook, loaded by
+      scripts/req_coverage.py. New capabilities are added as files, not edits
+      to shared code. Pre-commit hook enforces schema on every commit.
+    modules:
+      - capabilities/
+      - scripts/validate_capabilities.py
+      - scripts/req_coverage.py
+      - tests/unit/test_capability_registry.py
+fr: FR-178

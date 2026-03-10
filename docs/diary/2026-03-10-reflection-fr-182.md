@@ -1,9 +1,0 @@
-## 2026-03-10: FR-182 — Implementation Reflection
-
-**Context:** FR-182 added documentation for the `examples/demos/hello/` demo — the simplest YAMLGraph graph (START → greet → END). The README already existed with run instructions, so the implementation was documentation-only: verify ACs, write tests, fill gaps. The real work was discovering that the README omitted `yamlgraph graph lint`, a validation step documented in CLAUDE.md's quickstart but absent from the demo's own Usage section.
-
-**Trap:** `working_system_inertia` — "It works" blocks seeing it clearly. The pre-existing README satisfied both stated ACs (`README.md exists`, `run command documented`) before a single line was changed. Three of four tests passed immediately on the RED commit. The temptation was to declare victory: the artifact exists, the ACs are green, ship it. But TDD demands a genuine RED. Cross-referencing CLAUDE.md's quickstart against the hello README revealed the lint gap — a real omission that the stated ACs didn't capture. Without that broader oracle, the enforce cycle would have been ceremonial: tests that never fail teach nothing.
-
-**Heuristic:** Documentation TDD needs a broader oracle than the FR's acceptance criteria. When testing docs, cross-reference the ecosystem — CLI help, quickstarts, sibling demos, `demo.sh` entries — to find gaps the FR author didn't anticipate. The cheapest RED is the one discovered by reading what already exists, not by inventing new requirements.
-
-**Seed:** Could a linter rule (W018?) automatically verify that every demo README documents all CLI verbs exercised in its corresponding `demo.sh` entry? The `demo_hello()` function calls `run_demo` with specific arguments — the README should mirror those. This would graduate the "broader oracle" heuristic from manual cross-referencing to automated enforcement.
