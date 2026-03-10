@@ -1,0 +1,23 @@
+id: CAP-06
+name: "Routing & Flow Control"
+description: >
+  Route across nodes using explicit routes, expression evaluation, and control
+  nodes.
+modules:
+  - node_factory/control_nodes
+  - routing
+  - utils/conditions
+requirements:
+  - id: REQ-YG-021
+    description: "Control node creation (interrupt, passthrough)"
+    modules:
+      - node_factory/control_nodes
+  - id: REQ-YG-022
+    description: Conditional routing functions
+    modules:
+      - routing
+  - id: REQ-YG-023
+    description: Condition expression evaluation
+    modules:
+      - utils/conditions
+fr: legacy

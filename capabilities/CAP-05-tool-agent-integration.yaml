@@ -1,0 +1,30 @@
+id: CAP-05
+name: "Tool & Agent Integration"
+description: >
+  Integrate shell and Python tools into graphs, enable agent loops for
+  tool-calling.
+modules:
+  - node_factory/tool_nodes
+  - tools/agent
+  - tools/nodes
+  - tools/python_tool
+  - tools/shell
+requirements:
+  - id: REQ-YG-017
+    description: Dynamic tool node creation
+    modules:
+      - node_factory/tool_nodes
+  - id: REQ-YG-018
+    description: Agent-driven tool selection and execution
+    modules:
+      - tools/agent
+  - id: REQ-YG-019
+    description: Shell tool integration and execution
+    modules:
+      - tools/shell
+      - tools/nodes
+  - id: REQ-YG-020
+    description: Python tool integration and execution
+    modules:
+      - tools/python_tool
+fr: legacy

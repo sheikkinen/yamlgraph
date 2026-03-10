@@ -1,0 +1,24 @@
+id: CAP-07
+name: State Persistence
+description: >
+  Checkpointers and Redis storage for resuming pipelines and state history.
+modules:
+  - models/state_builder
+  - storage/checkpointer
+  - storage/checkpointer_factory
+  - storage/simple_redis
+requirements:
+  - id: REQ-YG-024
+    description: Dynamic state class generation
+    modules:
+      - models/state_builder
+  - id: REQ-YG-025
+    description: Checkpointer provisioning
+    modules:
+      - storage/checkpointer_factory
+  - id: REQ-YG-026
+    description: State persistence operations (Redis)
+    modules:
+      - storage/simple_redis
+      - storage/checkpointer
+fr: legacy

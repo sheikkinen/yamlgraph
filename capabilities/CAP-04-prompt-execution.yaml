@@ -1,0 +1,39 @@
+id: CAP-04
+name: Prompt Execution
+description: >
+  Load prompt YAML, validate variables, format messages, and run LLM calls sync
+  and async.
+modules:
+  - executor.PromptExecutor
+  - executor.execute_prompt
+  - executor_async
+  - executor_base.format_prompt
+  - utils/expressions
+  - utils/json_extract
+  - utils/prompts
+  - utils/template
+requirements:
+  - id: REQ-YG-012
+    description: Prompt loading and resolution
+    modules:
+      - utils/prompts
+  - id: REQ-YG-013
+    description: Variable resolution and template management
+    modules:
+      - executor_base.format_prompt
+      - utils/expressions
+      - utils/template
+  - id: REQ-YG-014
+    description: Synchronous prompt execution
+    modules:
+      - executor.PromptExecutor
+      - executor.execute_prompt
+  - id: REQ-YG-015
+    description: Asynchronous prompt execution
+    modules:
+      - executor_async
+  - id: REQ-YG-016
+    description: JSON extraction from LLM outputs
+    modules:
+      - utils/json_extract
+fr: legacy

@@ -1,0 +1,98 @@
+id: CAP-17
+name: Execution Safety Guards
+description: >
+  Defense-in-depth guards against infinite loops, unbounded map fan-out, and
+  runaway execution.
+modules:
+  - cli/__init__
+  - cli/graph_commands
+  - config
+  - executor
+  - graph_loader
+  - linter/checks_semantic
+  - linter/graph_linter
+  - linter/patterns/map
+  - llm_factory
+  - map_compiler
+  - models/graph_schema
+  - node_factory/control_nodes
+  - node_factory/llm_nodes
+  - tools/agent
+  - tools/nodes
+  - tools/python_tool
+  - utils/token_tracker
+requirements:
+  - id: REQ-YG-055
+    description: >
+      Map fan-out cap: `max_items` per node and `max_map_items` graph-level
+      default, truncate + warn
+    modules:
+      - map_compiler
+  - id: REQ-YG-056
+    description: >
+      `recursion_limit` exposure via YAML `config:` and CLI `--recursion-limit`,
+      passed to `graph.invoke()`
+    modules:
+      - graph_loader
+      - cli/graph_commands
+      - cli/__init__
+  - id: REQ-YG-057
+    description: >
+      `check_loop_limit()` enforced in tool, python, and passthrough nodes (not
+      just LLM)
+    modules:
+      - tools/nodes
+      - tools/python_tool
+      - node_factory/control_nodes
+  - id: REQ-YG-058
+    description: "Linter W012: warn when cycle node has no `loop_limits` entry"
+    modules:
+      - linter/checks_semantic
+      - linter/graph_linter
+  - id: REQ-YG-059
+    description: >
+      `max_iterations` single source of truth: default 10 everywhere (Pydantic,
+      JSON schema, agent runtime, docs)
+    modules:
+      - tools/agent
+      - models/graph_schema
+  - id: REQ-YG-060
+    description: >
+      `max_tokens` wired from YAML config/node config through `execute_prompt()`
+      to `create_llm()` provider constructor
+    modules:
+      - config
+      - graph_loader
+      - llm_factory
+      - executor
+      - node_factory/llm_nodes
+  - id: REQ-YG-061
+    description: >
+      Global execution timeout via `config.timeout` and CLI `--timeout`,
+      signal.alarm guard on Unix
+    modules:
+      - graph_loader
+      - cli/graph_commands
+      - cli/__init__
+  - id: REQ-YG-062
+    description: >
+      Linter W013: warn when map node `over:` is a dynamic expression without
+      `max_items` or `config.max_map_items`
+    modules:
+      - linter/checks_semantic
+      - linter/patterns/map
+  - id: REQ-YG-064
+    description: >
+      Token usage tracking via `TokenUsageCallbackHandler` callback injected at
+      graph-level; accumulates `input_tokens`, `output_tokens`, `total_calls`
+      across all LLM invocations; CLI `--token-usage` flag prints summary
+    modules:
+      - utils/token_tracker
+      - cli/graph_commands
+      - cli/__init__
+  - id: REQ-YG-113
+    description: "Linter W015: warn when cycle node has explicit `skip_if_exists: true`"
+    modules:
+      - linter/checks_semantic
+      - linter/graph_linter
+fr: legacy

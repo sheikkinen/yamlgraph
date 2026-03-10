@@ -1,0 +1,16 @@
+id: CAP-25
+name: Tavily Domain RAG Demo
+description: >
+  Domain-scoped RAG using Tavily search API with type:python tool nodes and map
+  fan-out.
+modules:
+  - examples/demos/tavily_rag
+requirements:
+  - id: REQ-YG-076
+    description: >
+      Tavily domain RAG: python tool retrieves context via Tavily API with
+      optional `TAVILY_TARGET_DOMAIN` scoping; simple graph (retrieve→answer)
+      and deep graph (plan→map(retrieve)→synthesize)
+    modules:
+      - examples/demos/tavily_rag
+fr: legacy

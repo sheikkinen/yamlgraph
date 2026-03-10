@@ -1,0 +1,16 @@
+id: CAP-37
+name: Architecture Provider Count Guard
+description: >
+  Cross-check test ensuring the provider count in ARCHITECTURE.md module table
+  matches the actual ProviderType Literal in llm_factory.py.
+modules:
+  - tests/unit/test_architecture_provider_count
+requirements:
+  - id: REQ-YG-121
+    description: >
+      Test asserts ARCHITECTURE.md module table provider count for
+      `llm_factory.py` equals `len(get_args(ProviderType))`; prevents
+      documentation drift when providers are added or removed
+    modules:
+      - tests/unit/test_architecture_provider_count
+fr: FR-121

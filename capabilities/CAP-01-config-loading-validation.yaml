@@ -1,0 +1,40 @@
+id: CAP-01
+name: "Config Loading & Validation"
+description: >
+  Load YAML graph configs, validate schemas, build state models, and ensure
+  graph integrity through linting.
+modules:
+  - cli/helpers
+  - cli/helpers.GraphLoadError
+  - data_loader
+  - data_loader.DataFileError
+  - graph_loader.load_graph_config
+  - linter/checks
+  - linter/graph_linter
+  - linter/patterns/*
+  - models/graph_schema
+  - utils/validators
+requirements:
+  - id: REQ-YG-001
+    description: Load graph configurations from YAML files
+    modules:
+      - graph_loader.load_graph_config
+      - cli/helpers
+      - data_loader
+  - id: REQ-YG-002
+    description: Validate graph configuration schemas and structures
+    modules:
+      - models/graph_schema
+      - utils/validators
+  - id: REQ-YG-003
+    description: Perform linting and pattern validation
+    modules:
+      - linter/graph_linter
+      - linter/checks
+      - linter/patterns/*
+  - id: REQ-YG-004
+    description: Handle errors during configuration loading
+    modules:
+      - cli/helpers.GraphLoadError
+      - data_loader.DataFileError
+fr: legacy

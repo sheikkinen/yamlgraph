@@ -1,0 +1,20 @@
+id: CAP-50
+name: CI CHANGELOG Gate
+description: >
+  GitHub Actions job in commitlint.yml that blocks merge of feat and fix PRs
+  unless CHANGELOG.md is modified in the PR diff.
+modules:
+  - .github/workflows/commitlint.yml
+  - tests/unit/test_ci_changelog_gate
+requirements:
+  - id: REQ-YG-148
+    description: >
+      `changelog-gate` job in `commitlint.yml` runs `git diff --name-only`
+      against base/head SHAs and fails when `CHANGELOG.md` is absent from diff;
+      job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for
+      other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full
+      history
+    modules:
+      - .github/workflows/commitlint.yml
+      - tests/unit/test_ci_changelog_gate
+fr: FR-149

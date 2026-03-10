@@ -1,0 +1,32 @@
+id: CAP-12
+name: Utilities
+description: >
+  Logging, templating, JSON extraction, environment handling, and shared
+  utilities.
+modules:
+  - config
+  - constants
+  - node_factory/base
+  - schema_loader
+  - utils/logging
+  - utils/parsing
+requirements:
+  - id: REQ-YG-043
+    description: Configuration and constants management
+    modules:
+      - config
+      - constants
+  - id: REQ-YG-044
+    description: Schema loading and model building
+    modules:
+      - schema_loader
+  - id: REQ-YG-045
+    description: Node factory and resolution
+    modules:
+      - node_factory/base
+  - id: REQ-YG-046
+    description: Logging and parsing utilities
+    modules:
+      - utils/logging
+      - utils/parsing
+fr: legacy

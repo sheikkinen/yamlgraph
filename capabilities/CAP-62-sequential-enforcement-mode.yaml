@@ -1,0 +1,21 @@
+id: CAP-62
+name: Sequential Enforcement Mode
+description: >
+  watch.sh runs enforce and bugfix pipelines in the foreground, eliminating
+  merge conflicts on shared files.
+modules:
+  - .chaplain/watch.sh
+  - tests/unit/test_watch_sequential_enforcement
+requirements:
+  - id: REQ-YG-158
+    description: >
+      Sequential enforcement mode: `watch.sh` runs `enforce_worktree.sh` and
+      `bugfix_worktree.sh` in the foreground (no `nohup &`), capturing exit
+      codes. Non-zero exits log a warning and continue the watch loop. Each
+      pipeline completes before the next inbox item is processed, eliminating
+      merge conflicts on shared files (ARCHITECTURE.md, CHANGELOG.md,
+      req_coverage.py)
+    modules:
+      - .chaplain/watch.sh
+      - tests/unit/test_watch_sequential_enforcement
+fr: FR-175

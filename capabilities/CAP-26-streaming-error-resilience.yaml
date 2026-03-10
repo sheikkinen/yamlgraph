@@ -1,0 +1,20 @@
+id: CAP-26
+name: Streaming Error Resilience
+description: >
+  Error propagation, timeout support, and interrupt detection for
+  run_graph_streaming_native(). Yields StreamEvent Pydantic objects for errors
+  and interrupts instead of crashing silently.
+modules:
+  - executor_async
+  - models/streaming
+requirements:
+  - id: REQ-YG-077
+    description: >
+      Streaming error resilience: wrap `astream()` with try/except to yield
+      `StreamEvent(type="error")` on exceptions; `asyncio.timeout()` for stall
+      detection; interrupt payload detection via `aget_state()` after stream
+      completes; `yield_events=False` flag for opt-out (raises instead)
+    modules:
+      - executor_async
+      - models/streaming
+fr: legacy

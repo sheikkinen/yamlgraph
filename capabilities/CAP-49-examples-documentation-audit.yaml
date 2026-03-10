@@ -1,0 +1,19 @@
+id: CAP-49
+name: Examples Documentation Audit
+description: >
+  Every on-disk example and demo is accurately indexed in examples/README.md
+  with categorized sections and enforced quality bar.
+modules:
+  - examples/README.md
+  - tests/unit/test_examples_readme_audit
+requirements:
+  - id: REQ-YG-147
+    description: >
+      `examples/README.md` lists every demo directory and top-level example on
+      disk; demos are split into Learning / Utility / FR Validation sections;
+      inclusion criteria are documented; each listed entry has a `README.md` and
+      at least one runnable artifact (YAML graph, `demo.sh`, or Python script)
+    modules:
+      - examples/README.md
+      - tests/unit/test_examples_readme_audit
+fr: FR-135

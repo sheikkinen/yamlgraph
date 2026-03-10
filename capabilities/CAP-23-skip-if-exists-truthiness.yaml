@@ -1,0 +1,15 @@
+id: CAP-23
+name: Skip-If-Exists Truthiness
+description: >
+  skip_if_exists checks truthiness, not existence. Empty collections, empty
+  strings, None, 0, and False do NOT trigger skip.
+modules:
+  - node_factory/llm_nodes._should_skip_if_exists
+requirements:
+  - id: REQ-YG-074
+    description: >
+      skip_if_exists uses truthiness check: `[]`, `""`, `None`, `0`, `False` do
+      not skip; only truthy values skip
+    modules:
+      - node_factory/llm_nodes._should_skip_if_exists
+fr: legacy
