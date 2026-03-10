@@ -62,6 +62,10 @@ req: REQ-YG-093
 
 The YAML front matter enables structured aggregation (grouping by type into Added/Fixed/Removed sections). The body is the exact line that currently appears in CHANGELOG.md.
 
+Notes:
+- The `req` field is optional for entries without a requirement mapping
+- The `type` field determines the section: `feat` → Added, `fix` → Fixed, `removal` → Removed
+
 ### Aggregation Script
 
 `scripts/aggregate_changelog.py` reads all fragment files, groups by type, and emits a complete `CHANGELOG.md` to stdout:
@@ -81,6 +85,8 @@ Grouping rules:
 - `type: removal` → `### Removed`
 - Within each section, entries sorted by FR number ascending
 
+Edge case: empty `changelog/unreleased/` (no fragments to move) must be handled gracefully — the Unreleased section is emitted with no entries.
+
 ### Migration Script
 
 `scripts/migrate_changelog.py` performs the one-time split of existing `CHANGELOG.md` into fragment files:
@@ -95,7 +101,7 @@ Grouping rules:
 
 ### finalize_merge.sh Changes
 
-Replace the current CHANGELOG.md insertion logic (lines 50–70) with fragment file creation:
+Replace the current CHANGELOG.md insertion logic (lines 50–71 of `scripts/finalize_merge.sh`) with fragment file creation:
 
 ```bash
 # Before (current):
@@ -114,18 +120,18 @@ EOF
 git add "changelog/unreleased/${FR_NUM}-${SLUG}.md"
 ```
 
-### Gate Updates (Resolves Judgement Issue 2)
+### Gate Updates
 
 Two existing enforcement gates currently require `CHANGELOG.md` modification. Both must be updated to check for fragment files instead:
 
-**Pre-commit hook** (`changelog-required` in `.pre-commit-config.yaml`):
+**Pre-commit hook** (`changelog-required` in `.pre-commit-config.yaml`, lines 183–190):
 ```bash
 # Before: checks git diff --cached --name-only for CHANGELOG.md
 # After: checks git diff --cached --name-only for changelog/unreleased/*.md
 entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^(feat|fix)(\\(.*\\))?:\" && ! git diff --cached --name-only | grep -qE \"^changelog/unreleased/\"; then echo \"ERROR: feat:/fix: commits must include a changelog fragment in changelog/unreleased/\"; exit 1; fi' _"
 ```
 
-**CI job** (`changelog-gate` in `.github/workflows/commitlint.yml`):
+**CI job** (`changelog-gate` in `.github/workflows/commitlint.yml`, lines 62–83):
 ```bash
 # Before: checks PR diff for CHANGELOG.md
 # After: checks PR diff for changelog/unreleased/*.md
@@ -151,6 +157,8 @@ git add changelog/
 git commit -m "chore(release): ${VERSION} changelog freeze"
 ```
 
+Handle empty `changelog/unreleased/` gracefully (no files to move is not an error).
+
 ## Acceptance Criteria
 
 - [ ] `changelog/unreleased/` directory exists with `.gitkeep`
@@ -158,7 +166,7 @@ git commit -m "chore(release): ${VERSION} changelog freeze"
 - [ ] `scripts/migrate_changelog.py` splits existing CHANGELOG.md into fragment files per version
 - [ ] Round-trip test: `migrate → aggregate` reproduces original CHANGELOG content (modulo whitespace)
 - [ ] `scripts/aggregate_changelog.py` generates CHANGELOG.md from fragment files to stdout
-- [ ] Fragment format uses YAML front matter (`type`, `scope`, `req`) + markdown body
+- [ ] Fragment format uses YAML front matter (`type`, `scope`, optional `req`) + markdown body
 - [ ] `finalize_merge.sh` creates fragment file instead of editing CHANGELOG.md
 - [ ] Pre-commit hook `changelog-required` updated to check `changelog/unreleased/*.md` instead of `CHANGELOG.md`
 - [ ] CI job `changelog-gate` updated to check `changelog/unreleased/*.md` instead of `CHANGELOG.md`
@@ -174,15 +182,15 @@ git commit -m "chore(release): ${VERSION} changelog freeze"
 
 **3. towncrier / changie** — Established fragment-based changelog tools. Rejected: adds external dependency for a simple problem; our fragment format is three lines of YAML front matter + one markdown line. The aggregation script is ~80 lines of Python. The cost of the dependency exceeds the cost of the implementation.
 
-**4. Keep CHANGELOG.md tracked with per-PR regeneration (Option C from Judgement)** — `finalize_merge.sh` creates fragment + regenerates CHANGELOG.md. Reduces conflict severity (re-run script vs manual resolution) but does not eliminate it. Rejected in favor of Option A which eliminates the conflict entirely.
+**4. Keep CHANGELOG.md tracked with per-PR regeneration (Option C)** — `finalize_merge.sh` creates fragment + regenerates CHANGELOG.md. Reduces conflict severity (re-run script vs manual resolution) but does not eliminate it. Rejected in favor of Option A which eliminates the conflict entirely.
 
-**5. Keep CHANGELOG.md tracked, staleness guard on release only (Option B from Judgement)** — The towncrier model: CHANGELOG.md may be stale between releases. Rejected: stale tracked files confuse contributors and trigger unnecessary diffs.
+**5. Keep CHANGELOG.md tracked, staleness guard on release only (Option B)** — The towncrier model: CHANGELOG.md may be stale between releases. Rejected: stale tracked files confuse contributors and trigger unnecessary diffs.
 
 ## Related
 
-- `scripts/finalize_merge.sh` — Current CHANGELOG.md writer (lines 50–70, must be modified)
+- `scripts/finalize_merge.sh` — Current CHANGELOG.md writer (lines 50–71, must be modified)
 - `CHANGELOG.md` — 87 KB monolithic file, 1427 lines (to be untracked)
-- `.pre-commit-config.yaml:165–170` — `changelog-required` hook (must be updated)
+- `.pre-commit-config.yaml:183–190` — `changelog-required` hook (must be updated)
 - `.github/workflows/commitlint.yml:62–83` — `changelog-gate` CI job (must be updated)
 - `.gitignore` — Must add `CHANGELOG.md`
 - FR-175 Sequential Enforcement Mode — Reduced but did not eliminate conflict window
@@ -191,7 +199,7 @@ git commit -m "chore(release): ${VERSION} changelog freeze"
 
 **Verdict: APPROVE** — Scope frozen. Authority granted to implement.
 
-**Renumbered:** FR-178 → **FR-179**. FR-178 is already allocated to two existing feature requests (`FR-178-append-only-capability-registry` and `FR-178-eliminate-python-execute-prompt-in-probe-recap`).
+**Renumbered:** FR-178 → **FR-179**. FR-178 is already allocated (FR-178-append-only-capability-registry).
 
 **Evaluation:**
 
@@ -211,10 +219,8 @@ git commit -m "chore(release): ${VERSION} changelog freeze"
 - Choosing Option A from prior Judgement eliminates the conflict surface entirely
 
 **Minor notes (non-blocking):**
-- `finalize_merge.sh` line reference is 50–71, not 50–70 (off by one)
-- Fragment `req` field should be optional for entries without a requirement mapping
-- Release workflow should handle empty `changelog/unreleased/` gracefully (no files to move)
+- `finalize_merge.sh` line reference corrected to 50–71
+- Fragment `req` field is optional for entries without a requirement mapping
+- Release workflow handles empty `changelog/unreleased/` gracefully
 
-These are implementation details, not spec defects. Proceed.
-
-**Judged:** 2026-03-10
+**Judged:** 2026-03-10 (verified by independent review — all line references, file sizes, and gate locations confirmed accurate)
