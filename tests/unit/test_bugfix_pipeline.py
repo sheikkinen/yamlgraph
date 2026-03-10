@@ -78,7 +78,7 @@ class TestBugfixGraphStructure:
         from yamlgraph.linter.graph_linter import lint_graph
 
         result = lint_graph(BUGFIX_GRAPH)
-        errors = [i for i in result.issues if i.severity.value == "error"]
+        errors = [i for i in result.issues if i.severity == "error"]
         assert (
             len(errors) == 0
         ), f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"

@@ -172,7 +172,7 @@ class TestEnforceGraphLint:
 
         graph_path = Path("examples/enforce/graph.yaml")
         result = lint_graph(graph_path)
-        errors = [i for i in result.issues if i.severity.value == "error"]
+        errors = [i for i in result.issues if i.severity == "error"]
         assert (
             len(errors) == 0
         ), f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
