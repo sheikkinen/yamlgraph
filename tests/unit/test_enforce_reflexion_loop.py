@@ -123,25 +123,24 @@ class TestRefineNode:
         graph = _load_graph()
         assert graph["nodes"]["refine"]["timeout"] == 300
 
-    def test_critique_to_refine_has_condition(self):
-        """Edge from critique to refine exists (score routing disabled)."""
+    def test_critique_to_refine_disabled(self):
+        """Edge from critique to refine is disabled (copilot string output)."""
         graph = _load_graph()
         edges = graph["edges"]
         crit_to_refine = [
             e for e in edges if e["from"] == "critique" and e["to"] == "refine"
         ]
-        assert len(crit_to_refine) == 1
-        # NOTE: Score-based routing disabled — copilot returns string, not structured
-        # The condition is 'false' to disable the refine loop until structured output works
-        assert "condition" in crit_to_refine[0]
-        assert crit_to_refine[0]["condition"] == "false"
+        # Reflexion loop disabled: copilot returns string, not structured .score
+        # Will be re-enabled when copilot supports structured output (FR-TBD)
+        assert len(crit_to_refine) == 0
 
-    def test_refine_routes_back_to_critique(self):
-        """Edge from refine goes back to critique (loop)."""
+    def test_refine_to_critique_disabled(self):
+        """Edge from refine to critique is disabled (loop removed)."""
         graph = _load_graph()
         edges = graph["edges"]
         refine_targets = [e["to"] for e in edges if e["from"] == "refine"]
-        assert "critique" in refine_targets
+        # Reflexion loop edges removed until structured output available
+        assert "critique" not in refine_targets
 
 
 # =============================================================================
@@ -334,7 +333,8 @@ class TestEnforceGraphLint:
         from yamlgraph.linter.graph_linter import lint_graph
 
         result = lint_graph(_GRAPH_PATH)
-        errors = [i for i in result.issues if i.severity.value == "error"]
+        # severity is a string, not an enum with .value
+        errors = [i for i in result.issues if i.severity == "error"]
         assert (
             len(errors) == 0
         ), f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
@@ -378,12 +378,10 @@ class TestEdgeFlow:
         assert "test_and_demo" in adj["implement"]
         assert "critique" in adj["test_and_demo"]
 
-        # critique → refine (loop) and critique → distill_reflection (exit)
-        assert "refine" in adj["critique"]
+        # critique → distill_reflection (reflexion loop disabled)
+        # NOTE: critique→refine and refine→critique edges removed until
+        # copilot node supports structured output (FR-TBD)
         assert "distill_reflection" in adj["critique"]
-
-        # refine → critique (loop back)
-        assert "critique" in adj["refine"]
 
         # distill_reflection → precommit_check → submit_pr → END
         assert "precommit_check" in adj["distill_reflection"]
