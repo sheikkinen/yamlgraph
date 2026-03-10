@@ -60,7 +60,7 @@ jobs:
           fi
 
   changelog-gate:
-    name: CHANGELOG required for feat/fix
+    name: Changelog fragment required for feat/fix
     runs-on: ubuntu-latest
     if: >-
       startsWith(github.event.pull_request.title, 'feat') ||
@@ -70,15 +70,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify CHANGELOG.md modified
+      - name: Verify changelog fragment exists
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qE '^CHANGELOG\.md$'; then
-            echo "✅ CHANGELOG.md is modified"
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qE '^changelog/unreleased/'; then
+            echo "✅ Changelog fragment found"
           else
-            echo "::error::feat/fix PRs must include changes to CHANGELOG.md"
+            echo "::error::feat/fix PRs must include a changelog fragment in changelog/unreleased/"
             exit 1
           fi
 

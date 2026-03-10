@@ -1,0 +1,26 @@
+id: CAP-66
+name: Append-Only Changelog
+description: >
+  Replace monolithic CHANGELOG.md with fragment files under changelog/.
+  Each change adds a markdown fragment with YAML front matter (type, scope, req).
+  scripts/aggregate_changelog.py assembles fragments into CHANGELOG.md on demand.
+  Eliminates merge conflicts on the changelog entirely.
+modules:
+  - changelog/
+  - scripts/aggregate_changelog.py
+  - scripts/migrate_changelog.py
+requirements:
+  - id: REQ-YG-162
+    description: >
+      Append-only changelog fragments: individual markdown files in
+      changelog/unreleased/ with YAML front matter (type, scope, req).
+      scripts/aggregate_changelog.py assembles all fragments into
+      CHANGELOG.md grouped by version and type. Pre-commit and CI gates
+      enforce fragment existence for feat/fix PRs. CHANGELOG.md is
+      gitignored and generated on demand.
+    modules:
+      - changelog/
+      - scripts/aggregate_changelog.py
+      - scripts/migrate_changelog.py
+      - tests/unit/test_changelog_fragments.py
+fr: FR-179

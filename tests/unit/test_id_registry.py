@@ -206,9 +206,7 @@ class TestValidateRegistry:
         registry = IdRegistry(
             next_cap=67,
             next_req=165,
-            reserved=[
-                Reservation(fr="FR-181", cap=[65, 66], req=[161, 162, 163, 164])
-            ],
+            reserved=[Reservation(fr="FR-181", cap=[65, 66], req=[161, 162, 163, 164])],
         )
         errors = validate_registry(registry)
         assert errors == []
