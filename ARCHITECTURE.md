@@ -270,7 +270,10 @@ Key flow anchors in code:
 
 ## Capabilities & Requirements Traceability
 
-Each capability below maps to specific modules and requirements.
+YAMLGraph capabilities are tracked in individual YAML files under `capabilities/`.
+Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
+
+<!-- BEGIN GENERATED CAPABILITIES -->
 
 ### Capability Summary
 
@@ -821,6 +824,8 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | REQ-YG-159 | **Enforce pipeline reflexion loop**: Critique → refine reflexion loop between `test_and_demo` and `precommit_check` in `examples/enforce/graph.yaml`. Critique evaluates implementation against FR acceptance criteria with score 0.0–1.0; refine addresses feedback when score < 0.85; loop bounded by `loop_limits` (critique: 3, refine: 2) with `loop_exits: { critique: distill_reflection }` (FR-172). `distill_reflection` generates diary entry from Scripture trap vocabulary. `finalize_merge.sh` skips stub creation when pipeline-generated reflection exists. Three new prompts: `enforce-critique.yaml`, `enforce-refine.yaml`, `enforce-distill.yaml` | `examples/enforce/graph.yaml`, `examples/enforce/prompts/`, `scripts/finalize_merge.sh`, `tests/unit/test_enforce_reflexion_loop` |
 | REQ-YG-160 | **Concurrency safety map**: `docs/concurrency-safety.md` documents every concurrency pattern in YAMLGraph with verdict (Safe/Conditional/Unsafe), concurrency model, shared mutable state, safety invariant, and file:line evidence. Covers 6 areas: map node fan-out, checkpoint writes, graph cache, inquisitor diary writes, MCP server, async executor. Each entry classifies shared state and serialization mechanism | `docs/concurrency-safety.md`, `tests/unit/test_concurrency_safety_doc` |
 | REQ-YG-161 | **Hello demo documentation**: `examples/demos/hello/README.md` documents the minimal hello-world graph usage including run command, variables, lint validation, pipeline diagram, and learning path | `examples/demos/hello/README.md`, `tests/unit/test_hello_demo_readme` |
+
+<!-- END GENERATED CAPABILITIES -->
 
 ---
 
