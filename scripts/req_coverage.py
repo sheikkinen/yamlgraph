@@ -6,6 +6,8 @@ Usage:
     python scripts/req_coverage.py --detail        # per-req test list
     python scripts/req_coverage.py --implementation  # req → code → test links
     python scripts/req_coverage.py --strict        # exit 1 on gaps
+
+FR-178: Loads capabilities from YAML registry under capabilities/
 """
 
 from __future__ import annotations
@@ -17,246 +19,53 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-# All known requirements (framework only)
-# REQ-YG-078-082 (CAP-27) and REQ-YG-084-086 (CAP-29) relocated to projects/ with OC/IC-XXX tags
-# REQ-YG-088 (sampling backend) was DROPPED as overengineering (FR-082)
-_ALL_FRAMEWORK_REQS = (
-    list(range(1, 78))  # REQ-YG-001 through REQ-YG-077
-    + [83]  # REQ-YG-083 (CAP-28 Thinking Budget)
-    + [87, 89]  # REQ-YG-087, REQ-YG-089 (CAP-30 Copilot Node) — 088 dropped
-    + [90]  # REQ-YG-090 (CAP-31 Chaplain Diary Append)
-    + [91, 92]  # REQ-YG-091, REQ-YG-092 (CAP-32 eBook Authoring Pipeline)
-    + [105]  # REQ-YG-105 (FR-105 Copilot Session Continuations)
-    + [106]  # REQ-YG-106 (CAP-33 Worktree Pipeline)
-    + [107]  # REQ-YG-107 (CAP-34 Compiled Graph Cache)
-    + [113]  # REQ-YG-113 (FR-113 Linter W015 skip_if_exists in cycle)
-    + [116]  # REQ-YG-116 (CAP-35 Watch→Enforce Integration)
-    + [118]  # REQ-YG-118 (CAP-36 Inquisitor Auto-Propose)
-    + [121]  # REQ-YG-121 (CAP-37 Architecture Provider Count Guard)
-    + [125]  # REQ-YG-125 (CAP-38 Post-Merge Finalization)
-    + [128]  # REQ-YG-128 (CAP-40 Enforce Pipeline Graph Delegation)
-    + [131]  # REQ-YG-131 (CAP-39 Inquisitor Commit-Delta Gate)
-    + [140]  # REQ-YG-140 (CAP-41 Clean GIT_* Test Fixture)
-    + [141]  # REQ-YG-141 (CAP-43 Copilot Session GC)
-    + [142]  # REQ-YG-142 (CAP-42 Inquisitor Worktree Gate)
-    + [143]  # REQ-YG-143 (CAP-44 Judge SPLIT Verdict)
-    + [144]  # REQ-YG-144 (CAP-45 Diary Reflection Enforcement)
-    + [122]  # REQ-YG-122 (CAP-46 Diary Import CLI)
-    + [145]  # REQ-YG-145 (CAP-47 Phantom Requirement Detection)
-    + [146]  # REQ-YG-146 (CAP-48 CHANGELOG Removal Completeness)
-    + [147]  # REQ-YG-147 (CAP-49 Examples Documentation Audit)
-    + [148]  # REQ-YG-148 (CAP-50 CI CHANGELOG Gate)
-    + [149]  # REQ-YG-149 (CAP-51 Branch Protection Documentation)
-    + [150]  # REQ-YG-150 (CAP-52 Architecture Capability Count Guard)
-    + [151]  # REQ-YG-151 (CAP-53 CI Conflict Marker Gate)
-    + [152]  # REQ-YG-152 (CAP-54 CI Diary Existence Gate)
-    + [153]  # REQ-YG-153 (CAP-55 Chaplain Inbox Documentation)
-    + [154]  # REQ-YG-154 (CAP-56 Verification Gate Pattern)
-    + [114]  # REQ-YG-114 (CAP-57 No-Silent-Fallback Lint W017)
-    + [155]  # REQ-YG-155 (CAP-58 Verification Count Range Pydantic)
-    + [93]  # REQ-YG-093 (CAP-57 Configurable Loop Exit Target)
-    + [156]  # REQ-YG-156 (CAP-60 Worktree Venv Corruption Guard)
-    + [157]  # REQ-YG-157 (CAP-61 Bugfix Pipeline with Condemning Test)
-    + [158]  # REQ-YG-158 (CAP-62 Sequential Enforcement Mode)
-    + [159]  # REQ-YG-159 (CAP-63 Enforce Pipeline Reflexion Loop)
-    + [160]  # REQ-YG-160 (CAP-64 Concurrency Safety Map)
-    + [161]  # REQ-YG-161 (CAP-65 Hello Demo Documentation)
-)
-ALL_REQS = [f"REQ-YG-{i:03d}" for i in _ALL_FRAMEWORK_REQS]
+import yaml
 
-# Capability grouping: (cap_id, name, [reqs])
-CAPABILITIES: dict[str, tuple[str, list[str]]] = {
-    "CAP-01": (
-        "Config Loading & Validation",
-        [
-            "REQ-YG-001",
-            "REQ-YG-002",
-            "REQ-YG-003",
-            "REQ-YG-004",
-        ],
-    ),
-    "CAP-02": (
-        "Graph Compilation",
-        [
-            "REQ-YG-005",
-            "REQ-YG-006",
-            "REQ-YG-007",
-            "REQ-YG-008",
-        ],
-    ),
-    "CAP-03": (
-        "Node Execution",
-        [
-            "REQ-YG-009",
-            "REQ-YG-010",
-            "REQ-YG-011",
-            "REQ-YG-050",
-        ],
-    ),
-    "CAP-04": (
-        "Prompt Execution",
-        [
-            "REQ-YG-012",
-            "REQ-YG-013",
-            "REQ-YG-014",
-            "REQ-YG-015",
-            "REQ-YG-016",
-        ],
-    ),
-    "CAP-05": (
-        "Tool & Agent Integration",
-        [
-            "REQ-YG-017",
-            "REQ-YG-018",
-            "REQ-YG-019",
-            "REQ-YG-020",
-        ],
-    ),
-    "CAP-06": (
-        "Routing & Flow Control",
-        [
-            "REQ-YG-021",
-            "REQ-YG-022",
-            "REQ-YG-023",
-        ],
-    ),
-    "CAP-07": (
-        "State Persistence",
-        [
-            "REQ-YG-024",
-            "REQ-YG-025",
-            "REQ-YG-026",
-        ],
-    ),
-    "CAP-08": (
-        "Error Handling",
-        [
-            "REQ-YG-027",
-            "REQ-YG-028",
-            "REQ-YG-029",
-            "REQ-YG-030",
-            "REQ-YG-031",
-        ],
-    ),
-    "CAP-09": (
-        "CLI Interface",
-        [
-            "REQ-YG-032",
-            "REQ-YG-033",
-            "REQ-YG-034",
-            "REQ-YG-035",
-        ],
-    ),
-    "CAP-10": (
-        "Export & Serialization",
-        [
-            "REQ-YG-036",
-            "REQ-YG-037",
-            "REQ-YG-038",
-            "REQ-YG-039",
-        ],
-    ),
-    "CAP-11": (
-        "Subgraph & Map",
-        [
-            "REQ-YG-040",
-            "REQ-YG-041",
-            "REQ-YG-042",
-            "REQ-YG-075",
-        ],
-    ),
-    "CAP-12": (
-        "Utilities",
-        [
-            "REQ-YG-043",
-            "REQ-YG-044",
-            "REQ-YG-045",
-            "REQ-YG-046",
-        ],
-    ),
-    "CAP-13": ("LangSmith Tracing", ["REQ-YG-047"]),
-    "CAP-14": ("Graph-Level Streaming", ["REQ-YG-048", "REQ-YG-049", "REQ-YG-065"]),
-    "CAP-15": ("Expression Language", ["REQ-YG-051", "REQ-YG-052"]),
-    "CAP-16": (
-        "Linter Cross-Reference",
-        ["REQ-YG-053", "REQ-YG-054", "REQ-YG-069", "REQ-YG-114"],
-    ),
-    "CAP-17": (
-        "Execution Safety Guards",
-        [
-            "REQ-YG-055",
-            "REQ-YG-056",
-            "REQ-YG-057",
-            "REQ-YG-058",
-            "REQ-YG-059",
-            "REQ-YG-060",
-            "REQ-YG-061",
-            "REQ-YG-062",
-            "REQ-YG-064",
-        ],
-    ),
-    "CAP-18": ("Testing & Quality", ["REQ-YG-063"]),
-    "CAP-19": (
-        "MCP Server Interface",
-        [
-            "REQ-YG-066",
-            "REQ-YG-067",
-            "REQ-YG-068",
-        ],
-    ),
-    "CAP-20": ("Contrib Utilities", ["REQ-YG-070", "REQ-YG-071"]),
-    "CAP-21": ("Diary Digest Tools", ["REQ-YG-072"]),
-    "CAP-22": ("Code Quality Lints", ["REQ-YG-073"]),
-    "CAP-23": ("Skip-If-Exists Truthiness", ["REQ-YG-074"]),
-    "CAP-24": ("Interactive Tool Node", ["REQ-YG-075"]),
-    "CAP-25": ("Tavily Domain RAG Demo", ["REQ-YG-076"]),
-    "CAP-26": ("Streaming Error Resilience", ["REQ-YG-077"]),
-    # CAP-27 (Telco Voice Call Demo) removed - tests relocated to projects/outcaller/
-    # CAP-29 (Incaller Voice Demo) removed - tests relocated to projects/incaller/
-    "CAP-28": ("Graph-Level Thinking Budget", ["REQ-YG-083"]),
-    "CAP-30": (
-        "Copilot Node",
-        [
-            "REQ-YG-087",
-            "REQ-YG-089",
-            "REQ-YG-105",  # FR-105 Session Continuations
-        ],
-    ),
-    "CAP-31": ("Chaplain Diary Append", ["REQ-YG-090"]),
-    "CAP-32": ("eBook Authoring Pipeline", ["REQ-YG-091", "REQ-YG-092"]),
-    "CAP-33": ("Worktree Pipeline", ["REQ-YG-106"]),
-    "CAP-34": ("Compiled Graph Cache", ["REQ-YG-107"]),
-    "CAP-35": ("Watch→Enforce Integration", ["REQ-YG-116"]),
-    "CAP-36": ("Inquisitor Auto-Propose", ["REQ-YG-118"]),
-    "CAP-37": ("Architecture Provider Count Guard", ["REQ-YG-121"]),
-    "CAP-38": ("Post-Merge Finalization", ["REQ-YG-125"]),
-    "CAP-39": ("Inquisitor Commit-Delta Gate", ["REQ-YG-131"]),
-    "CAP-40": ("Enforce Pipeline Graph Delegation", ["REQ-YG-128"]),
-    "CAP-41": ("Clean GIT Env Test Fixture", ["REQ-YG-140"]),
-    "CAP-42": ("Inquisitor Worktree Gate", ["REQ-YG-142"]),
-    "CAP-43": ("Copilot Session GC", ["REQ-YG-141"]),
-    "CAP-44": ("Judge SPLIT Verdict", ["REQ-YG-143"]),
-    "CAP-45": ("Diary Reflection Enforcement", ["REQ-YG-144"]),
-    "CAP-46": ("Diary Import CLI", ["REQ-YG-122"]),
-    "CAP-47": ("Phantom Requirement Detection", ["REQ-YG-145"]),
-    "CAP-48": ("CHANGELOG Removal Completeness", ["REQ-YG-146"]),
-    "CAP-49": ("Examples Documentation Audit", ["REQ-YG-147"]),
-    "CAP-50": ("CI CHANGELOG Gate", ["REQ-YG-148"]),
-    "CAP-51": ("Branch Protection Documentation", ["REQ-YG-149"]),
-    "CAP-52": ("Architecture Capability Count Guard", ["REQ-YG-150"]),
-    "CAP-53": ("CI Conflict Marker Gate", ["REQ-YG-151"]),
-    "CAP-54": ("CI Diary Existence Gate", ["REQ-YG-152"]),
-    "CAP-55": ("Chaplain Inbox Documentation", ["REQ-YG-153"]),
-    "CAP-56": ("Verification Gate Pattern", ["REQ-YG-154"]),
-    "CAP-57": ("Verification Count Range Pydantic", ["REQ-YG-155"]),
-    "CAP-59": ("Configurable Loop Exit Target", ["REQ-YG-093"]),
-    "CAP-60": ("Worktree Venv Corruption Guard", ["REQ-YG-156"]),
-    "CAP-61": ("Bugfix Pipeline with Condemning Test", ["REQ-YG-157"]),
-    "CAP-62": ("Sequential Enforcement Mode", ["REQ-YG-158"]),
-    "CAP-63": ("Enforce Pipeline Reflexion Loop", ["REQ-YG-159"]),
-    "CAP-64": ("Concurrency Safety Map", ["REQ-YG-160"]),
-    "CAP-65": ("Hello Demo Documentation", ["REQ-YG-161"]),
-}
+REPO_ROOT = Path(__file__).resolve().parent.parent
+CAPABILITIES_DIR = REPO_ROOT / "capabilities"
+
+
+def load_capabilities_from_registry() -> tuple[list[str], dict[str, tuple[str, list[str]]]]:
+    """Load capabilities from YAML registry files.
+
+    Returns:
+        (all_reqs, capabilities) where:
+        - all_reqs: sorted list of all REQ-YG-XXX IDs
+        - capabilities: dict mapping CAP-ID → (name, [req_ids])
+    """
+    capabilities: dict[str, tuple[str, list[str]]] = {}
+    all_req_ids: set[str] = set()
+
+    if not CAPABILITIES_DIR.exists():
+        raise FileNotFoundError(f"Capabilities directory not found: {CAPABILITIES_DIR}")
+
+    yaml_files = sorted(CAPABILITIES_DIR.glob("CAP-*.yaml"))
+    if not yaml_files:
+        raise FileNotFoundError(f"No capability files found in {CAPABILITIES_DIR}")
+
+    for filepath in yaml_files:
+        with open(filepath) as f:
+            data = yaml.safe_load(f)
+
+        cap_id = data["id"]
+        cap_name = data["name"]
+        req_ids = [req["id"] for req in data.get("requirements", [])]
+
+        capabilities[cap_id] = (cap_name, req_ids)
+        all_req_ids.update(req_ids)
+
+    # Sort requirements by numeric part
+    def req_sort_key(req_id: str) -> int:
+        match = re.search(r"(\d+)$", req_id)
+        return int(match.group(1)) if match else 0
+
+    all_reqs = sorted(all_req_ids, key=req_sort_key)
+
+    return all_reqs, capabilities
+
+
+# Load from YAML registry (FR-178: Append-Only Capability Registry)
+ALL_REQS, CAPABILITIES = load_capabilities_from_registry()
 
 
 def extract_req_markers(filepath: Path) -> dict[str, list[str]]:

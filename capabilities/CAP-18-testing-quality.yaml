@@ -1,0 +1,15 @@
+id: CAP-18
+name: "Testing & Quality"
+description: Requirement traceability enforcement and testing infrastructure.
+modules:
+  - tests/conftest
+  - tests/unit/test_requirement_enforcement
+requirements:
+  - id: REQ-YG-063
+    description: >
+      Requirement traceability enforcement: `pytest_collection_modifyitems` hook
+      structurally enforces ADR-001 — all tests must have `@pytest.mark.req`
+    modules:
+      - tests/conftest
+      - tests/unit/test_requirement_enforcement
+fr: legacy

@@ -1,0 +1,24 @@
+id: CAP-32
+name: eBook Authoring Pipeline
+description: >
+  A YAMLGraph pipeline that writes the development pipeline documentation as an
+  eBook.
+modules:
+  - examples/ebook/nodes/writing.py
+  - tests/unit/test_ebook_doctrine_validation.py
+requirements:
+  - id: REQ-YG-091
+    description: >
+      `write_chapters_tool` writes formatted chapter content to disk; accepts
+      `output_dir` and chapter state variables; creates directory if missing;
+      returns dict with `written` list of paths
+    modules:
+      - examples/ebook/nodes/writing.py
+  - id: REQ-YG-092
+    description: >
+      Chapter validation detects fabricated doctrine content;
+      `verify_commandments_verbatim()` checks all 10 Commandments appear exactly
+      as in source; returns `{passed, found, missing, fabricated}` dict
+    modules:
+      - tests/unit/test_ebook_doctrine_validation.py
+fr: FR-100

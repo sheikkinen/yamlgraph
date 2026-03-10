@@ -1,0 +1,20 @@
+id: CAP-44
+name: Judge SPLIT Verdict
+description: >
+  Add a fourth judge verdict (SPLIT) for multi-concern feature requests,
+  enabling decomposition before implementation.
+modules:
+  - examples/copilot/prompts/judge.yaml
+  - scripts/chaplain-prompts/judge.md
+  - tests/unit/test_judge_split_verdict
+requirements:
+  - id: REQ-YG-143
+    description: >
+      Judge prompts must include `SPLIT` verdict and Scope Count rubric for
+      multi-concern FR decomposition; unit tests verify both prompt sources and
+      conflict fixture behavior
+    modules:
+      - examples/copilot/prompts/judge.yaml
+      - scripts/chaplain-prompts/judge.md
+      - tests/unit/test_judge_split_verdict
+fr: FR-136

@@ -58,6 +58,12 @@ Each confession must include:
 - **Sin**: `git_add()` helper uses `subprocess.run(["git", "add", ...])` — S603 flags subprocess call with non-constant arguments.
 - **Penance**: Arguments are `Path` objects from the diary folder; command is hardcoded `["git", "add"]`. No shell expansion, no user input.
 
+### CONF-207
+- **File**: [scripts/migrate_capabilities.py](../scripts/migrate_capabilities.py#L352)
+- **Code**: E402
+- **Sin**: Module-level import `from req_coverage import CAPABILITIES` appears after `sys.path.insert()` manipulation.
+- **Penance**: The import must occur after sys.path is modified to find `req_coverage.py` in the scripts directory. This is standard Python pattern for runtime path manipulation.
+
 ---
 
 ## Framework Code

@@ -1,0 +1,25 @@
+id: CAP-60
+name: Worktree Venv Corruption Guard
+description: >
+  Worktree venv corruption guard: validate_venv_health() raises on missing or
+  broken venv, clean_stale_pth_entries() prevents import corruption from
+  dangling editable installs.
+modules:
+  - scripts/enforce_worktree.sh
+  - tests/unit/test_worktree_venv_guard
+  - yamlgraph/utils/worktree_helpers
+requirements:
+  - id: REQ-YG-156
+    description: >
+      Worktree venv corruption guard: `validate_venv_health()` raises
+      `FileNotFoundError` when `.venv` directory is missing, `bin/python` is
+      absent, or not executable (no silent skip). `validate_venv_symlink()`
+      raises `OSError` when worktree `.venv` symlink doesn't resolve.
+      `clean_stale_pth_entries()` removes `.pth`/`.egg-link` files referencing a
+      deleted worktree directory to prevent import corruption from dangling
+      editable installs
+    modules:
+      - yamlgraph/utils/worktree_helpers
+      - scripts/enforce_worktree.sh
+      - tests/unit/test_worktree_venv_guard
+fr: FR-174

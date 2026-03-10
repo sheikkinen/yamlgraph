@@ -1,0 +1,27 @@
+id: CAP-10
+name: "Export & Serialization"
+description: >
+  Export results/states in JSON/Markdown, handle serialization for persistence.
+modules:
+  - cli/graph_commands.cmd_graph_codegen
+  - cli/schema_commands
+  - storage/export
+  - storage/serializers
+requirements:
+  - id: REQ-YG-036
+    description: CLI schema export and access
+    modules:
+      - cli/schema_commands
+  - id: REQ-YG-037
+    description: Graph code generation for IDE support
+    modules:
+      - cli/graph_commands.cmd_graph_codegen
+  - id: REQ-YG-038
+    description: Export and management of pipeline results/states
+    modules:
+      - storage/export
+  - id: REQ-YG-039
+    description: Serialization and deserialization utilities
+    modules:
+      - storage/serializers
+fr: legacy

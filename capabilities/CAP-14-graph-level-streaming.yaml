@@ -1,0 +1,28 @@
+id: CAP-14
+name: Graph-Level Streaming
+description: >
+  Stream LLM tokens through the compiled graph pipeline using LangGraph
+  astream(stream_mode="messages"), enabling real-time SSE output.
+modules:
+  - executor_async
+requirements:
+  - id: REQ-YG-048
+    description: >
+      Graph-level streaming: run graph with `astream(stream_mode="messages")`
+      yielding LLM tokens
+    modules:
+      - executor_async
+  - id: REQ-YG-049
+    description: >
+      Streaming with multi-turn: `run_graph_streaming_native()` accepts
+      `Command(resume=...)`, config with thread_id for checkpoint-based resume
+    modules:
+      - executor_async
+  - id: REQ-YG-065
+    description: >
+      Native LangGraph streaming: `run_graph_streaming_native()` uses
+      `astream(stream_mode="messages")` to stream from ALL LLM nodes, with
+      optional `node_filter`
+    modules:
+      - executor_async
+fr: legacy

@@ -1,0 +1,22 @@
+id: CAP-57
+name: Verification Count Range Pydantic
+description: >
+  Count range verification claim parsed into CountRangeClaim Pydantic model with
+  min/max validation.
+modules:
+  - tests/unit/test_verification
+  - yamlgraph/models/__init__
+  - yamlgraph/verification
+requirements:
+  - id: REQ-YG-155
+    description: >
+      Count range verification claim parsed into `CountRangeClaim` Pydantic
+      model with `min_count` (int, ge=0), `max_count` (int, ge=0) and
+      `model_validator` enforcing min ≤ max. Inverted ranges raise `ValueError`
+      at parse time. Violation `details` exposes `expected_min`, `expected_max`,
+      `actual_count` for programmatic inspection
+    modules:
+      - yamlgraph/verification
+      - yamlgraph/models/__init__
+      - tests/unit/test_verification
+fr: FR-166

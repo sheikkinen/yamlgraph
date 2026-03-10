@@ -1,0 +1,22 @@
+id: CAP-33
+name: Worktree Pipeline
+description: >
+  Parallel development pipeline via git worktrees, enabling multiple features to
+  be enforced simultaneously without blocking the main working tree.
+modules:
+  - examples/enforce/graph.yaml
+  - scripts/enforce_worktree.sh
+  - utils/worktree_helpers
+requirements:
+  - id: REQ-YG-106
+    description: >
+      Worktree helpers derive branch names from FR paths, construct worktree
+      paths under `tmp/worktrees/`, and validate clean working tree before
+      creation; shell script orchestrates worktree lifecycle with trap-based
+      cleanup; 4-phase graph (implement → test/demo → precommit → PR) chains via
+      session continuations
+    modules:
+      - utils/worktree_helpers
+      - scripts/enforce_worktree.sh
+      - examples/enforce/graph.yaml
+fr: FR-106

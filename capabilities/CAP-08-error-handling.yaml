@@ -1,0 +1,40 @@
+id: CAP-08
+name: Error Handling
+description: >
+  Error strategies (retry, fallback, skip), sanitization, resilience features.
+modules:
+  - error_handlers
+  - error_handlers.NodeResult
+  - error_handlers.build_skip_error_state
+  - error_handlers.check_loop_limit
+  - error_handlers.check_requirements
+  - executor._invoke_with_retry
+  - executor_base.is_retryable
+  - models/schemas.ErrorType
+  - models/schemas.PipelineError
+requirements:
+  - id: REQ-YG-027
+    description: "Error handling strategies (skip, fail, retry, fallback)"
+    modules:
+      - error_handlers
+  - id: REQ-YG-028
+    description: "Pre-execution validation (requirements, loop limits)"
+    modules:
+      - error_handlers.check_requirements
+      - error_handlers.check_loop_limit
+  - id: REQ-YG-029
+    description: "Error state management (NodeResult, skip updates)"
+    modules:
+      - error_handlers.NodeResult
+      - error_handlers.build_skip_error_state
+  - id: REQ-YG-030
+    description: Error schemas and reporting
+    modules:
+      - models/schemas.PipelineError
+      - models/schemas.ErrorType
+  - id: REQ-YG-031
+    description: Retry capability
+    modules:
+      - executor_base.is_retryable
+      - executor._invoke_with_retry
+fr: legacy

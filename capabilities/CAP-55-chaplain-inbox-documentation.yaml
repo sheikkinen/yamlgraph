@@ -1,0 +1,19 @@
+id: CAP-55
+name: Chaplain Inbox Documentation
+description: >
+  Document the .chaplain/inbox/ workflow in CLAUDE.md so Claude Code sessions
+  can discover and use the autonomous proposal pipeline.
+modules:
+  - CLAUDE.md
+  - tests/unit/test_claude_md_chaplain_inbox
+requirements:
+  - id: REQ-YG-153
+    description: >
+      `CLAUDE.md` contains a "Submitting Proposals" subsection documenting the
+      `.chaplain/inbox/` workflow, matching the canonical source in
+      `.github/copilot-instructions.md` verbatim, placed between the
+      "Development Process" and "Development Commands" sections
+    modules:
+      - CLAUDE.md
+      - tests/unit/test_claude_md_chaplain_inbox
+fr: FR-163

@@ -1,0 +1,18 @@
+id: CAP-38
+name: Post-Merge Finalization
+description: >
+  Automates three post-merge obligations after a PR from the enforce pipeline is
+  merged: CHANGELOG entry, FR status update, and diary reflection stub.
+modules:
+  - scripts/finalize_merge.sh
+  - tests/unit/test_finalize_merge
+requirements:
+  - id: REQ-YG-125
+    description: >
+      `scripts/finalize_merge.sh` inserts CHANGELOG entry under `[Unreleased] /
+      ### Added`, updates FR status to `✅ Implemented`, and appends diary
+      reflection stub with Trap/Heuristic/Seed placeholders
+    modules:
+      - scripts/finalize_merge.sh
+      - tests/unit/test_finalize_merge
+fr: FR-125

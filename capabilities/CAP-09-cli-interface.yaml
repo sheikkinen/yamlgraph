@@ -1,0 +1,32 @@
+id: CAP-09
+name: CLI Interface
+description: >
+  Command-line commands for graph validation, execution, info display, schema
+  export.
+modules:
+  - cli/__init__
+  - cli/__main__
+  - cli/deprecation
+  - cli/graph_commands
+  - cli/helpers
+  - cli/schema_commands
+requirements:
+  - id: REQ-YG-032
+    description: CLI entry point and parser setup
+    modules:
+      - cli/__init__
+      - cli/__main__
+  - id: REQ-YG-033
+    description: Graph command execution and information
+    modules:
+      - cli/graph_commands
+  - id: REQ-YG-034
+    description: Deprecation handling for CLI commands
+    modules:
+      - cli/deprecation
+  - id: REQ-YG-035
+    description: CLI utilities and schema command dispatch
+    modules:
+      - cli/helpers
+      - cli/schema_commands
+fr: legacy

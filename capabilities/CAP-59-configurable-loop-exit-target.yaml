@@ -1,0 +1,29 @@
+id: CAP-59
+name: Configurable Loop Exit Target
+description: >
+  loop_exits graph-level config maps node names to custom exit targets when loop
+  limit is reached.
+modules:
+  - tests/unit/test_loops
+  - yamlgraph/edge_compiler
+  - yamlgraph/graph_loader
+  - yamlgraph/linter/checks_semantic
+  - yamlgraph/models/graph_schema
+  - yamlgraph/routing
+requirements:
+  - id: REQ-YG-093
+    description: >
+      `loop_exits` graph-level config maps node names to custom exit targets
+      when loop limit is reached. `GraphConfigSchema` validates as `dict[str,
+      str]` with default `{}`. `make_expr_router_fn` accepts optional
+      `loop_exit_target`; when `_loop_limit_reached` is True, returns configured
+      target instead of `END`. Lint rule E009 validates keys exist in
+      `loop_limits` and targets are valid nodes
+    modules:
+      - yamlgraph/routing
+      - yamlgraph/edge_compiler
+      - yamlgraph/graph_loader
+      - yamlgraph/models/graph_schema
+      - yamlgraph/linter/checks_semantic
+      - tests/unit/test_loops
+fr: FR-172

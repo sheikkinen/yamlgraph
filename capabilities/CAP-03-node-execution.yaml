@@ -1,0 +1,37 @@
+id: CAP-03
+name: Node Execution
+description: >
+  Create executable node functions for LLM, streaming, tool, interrupt, and
+  subgraph behavior.
+modules:
+  - executor
+  - executor_async
+  - executor_base
+  - node_factory/llm_nodes
+  - node_factory/streaming
+  - utils/llm_factory
+  - utils/llm_factory_async
+requirements:
+  - id: REQ-YG-009
+    description: Node creation and streaming
+    modules:
+      - node_factory/llm_nodes
+      - node_factory/streaming
+  - id: REQ-YG-010
+    description: Synchronous LLM factory management
+    modules:
+      - utils/llm_factory
+  - id: REQ-YG-011
+    description: Asynchronous LLM factory management
+    modules:
+      - utils/llm_factory_async
+  - id: REQ-YG-050
+    description: >
+      Per-node and default-level `model` override: graph YAML `model` field
+      flows through `execute_prompt()` to `create_llm()`
+    modules:
+      - node_factory/llm_nodes
+      - executor
+      - executor_async
+      - executor_base
+fr: legacy

@@ -1,0 +1,24 @@
+id: CAP-46
+name: Diary Import CLI
+description: >
+  CLI command to import pending diary entries and git report data into
+  docs/diary/ with optional dry-run and source selection.
+modules:
+  - tests/unit/test_diary_commands
+  - tests/unit/test_diary_importer
+  - yamlgraph/cli/diary_commands.py
+  - yamlgraph/diary/importer.py
+requirements:
+  - id: REQ-YG-122
+    description: >
+      `yamlgraph diary import` CLI command imports pending diary entries and git
+      reports into `docs/diary/` with `--dry-run` and `--source` flags; shared
+      importer returns structured `ImportResult` list; dry-run does not mutate
+      source files; malformed files reported and exit non-zero; explicit missing
+      `--source` emits warning
+    modules:
+      - yamlgraph/diary/importer.py
+      - yamlgraph/cli/diary_commands.py
+      - tests/unit/test_diary_importer
+      - tests/unit/test_diary_commands
+fr: FR-124

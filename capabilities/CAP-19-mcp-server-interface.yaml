@@ -1,0 +1,27 @@
+id: CAP-19
+name: MCP Server Interface
+description: >
+  Expose YAMLGraph graphs as MCP (Model Context Protocol) tools for Copilot and
+  other AI assistants.
+modules:
+  - mcp_server
+requirements:
+  - id: REQ-YG-066
+    description: >
+      MCP server with stdio transport: expose `yamlgraph_list_graphs` and
+      `yamlgraph_run_graph` tools via MCP protocol
+    modules:
+      - mcp_server
+  - id: REQ-YG-067
+    description: >
+      Graph discovery: scan configured directories for `graph.yaml`, parse
+      headers for name/description/required vars
+    modules:
+      - mcp_server
+  - id: REQ-YG-068
+    description: >
+      Graph invocation via MCP: compile and invoke any discovered graph with
+      vars, return structured result JSON
+    modules:
+      - mcp_server
+fr: legacy

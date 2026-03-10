@@ -1,0 +1,19 @@
+id: CAP-56
+name: Verification Gate Pattern
+description: >
+  Per-node runtime verification with deterministic pattern matching. Checks
+  stated predictions against actual node output.
+modules:
+  - yamlgraph/verification
+  - node_factory/llm_nodes
+  - linter/checks_contracts
+requirements:
+  - id: REQ-YG-154
+    description: >
+      NodeConfig accepts optional verification field (VerificationConfig)
+      with question, on_fail, and count_range for runtime output validation
+    modules:
+      - yamlgraph/verification
+      - node_factory/llm_nodes
+      - linter/checks_contracts
+fr: FR-164

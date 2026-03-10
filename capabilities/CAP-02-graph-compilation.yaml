@@ -1,0 +1,36 @@
+id: CAP-02
+name: Graph Compilation
+description: >
+  Transform validated configs into executable StateGraphs with node compilation,
+  edge wiring, and loop detection.
+modules:
+  - graph_loader
+  - graph_loader.apply_loop_node_defaults
+  - graph_loader.compile_graph
+  - graph_loader.detect_loop_nodes
+  - graph_loader.load_and_compile
+  - node_compiler.compile_node
+  - node_compiler.compile_nodes
+  - node_factory
+requirements:
+  - id: REQ-YG-005
+    description: Load YAML graph definitions into StateGraphs
+    modules:
+      - graph_loader
+      - graph_loader.load_and_compile
+  - id: REQ-YG-006
+    description: "Validate graph structures (cycle detection, loop defaults)"
+    modules:
+      - graph_loader.detect_loop_nodes
+      - graph_loader.apply_loop_node_defaults
+  - id: REQ-YG-007
+    description: Compile individual nodes
+    modules:
+      - node_compiler.compile_node
+      - node_factory
+  - id: REQ-YG-008
+    description: Compile full graph configuration
+    modules:
+      - graph_loader.compile_graph
+      - node_compiler.compile_nodes
+fr: legacy

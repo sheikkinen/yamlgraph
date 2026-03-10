@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **FR-182 Hello Demo Documentation**: Add `yamlgraph graph lint` validation command to `examples/demos/hello/README.md`. Add `test_hello_demo_readme.py` tests for README content (existence, run command, variables, lint validation). Register REQ-YG-161 / CAP-65. (REQ-YG-161)
+- **FR-178 Append-Only Capability Registry**: Replace hardcoded `CAPABILITIES` dict in `scripts/req_coverage.py` with YAML files under `capabilities/`. New capabilities are added as individual files, validated by `scripts/validate_capabilities.py` pre-commit hook. Eliminates merge conflicts on shared traceability artifacts. (REQ-YG-161)
 - **FR-175 Sequential Enforcement Mode**: Replace parallel `nohup ... &` enforcement spawning in `.chaplain/watch.sh` with a sequential queue that waits for each enforcement pipeline to complete before starting the next. Eliminates concurrent PR merge conflicts by serializing enforcement. (REQ-YG-158)
 - **FR-175 Sequential Enforcement Mode**: Replace parallel `nohup ... &` enforcement spawning in `.chaplain/watch.sh` with sequential queue. Each enforcement pipeline completes before the next starts, eliminating merge conflicts on shared bookkeeping files (ARCHITECTURE.md, CHANGELOG.md, req_coverage.py).
 - **FR-166 CountRangeClaim Pydantic Model**: Replace loose `int` variables in count range verification with a validated `CountRangeClaim` Pydantic model. Inverted ranges (min > max) now fail at parse time. `VerificationViolation.details` populated with structured claim data. (REQ-YG-155)

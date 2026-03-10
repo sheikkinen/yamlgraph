@@ -1,0 +1,21 @@
+id: CAP-64
+name: Concurrency Safety Map
+description: >
+  docs/concurrency-safety.md documents every concurrency pattern in YAMLGraph
+  with verdict, model, shared state, and evidence.
+modules:
+  - docs/concurrency-safety.md
+  - tests/unit/test_concurrency_safety_doc
+requirements:
+  - id: REQ-YG-160
+    description: >
+      Concurrency safety map: `docs/concurrency-safety.md` documents every
+      concurrency pattern in YAMLGraph with verdict (Safe/Conditional/Unsafe),
+      concurrency model, shared mutable state, safety invariant, and file:line
+      evidence. Covers 6 areas: map node fan-out, checkpoint writes, graph
+      cache, inquisitor diary writes, MCP server, async executor. Each entry
+      classifies shared state and serialization mechanism
+    modules:
+      - docs/concurrency-safety.md
+      - tests/unit/test_concurrency_safety_doc
+fr: FR-176

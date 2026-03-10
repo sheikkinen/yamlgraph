@@ -1,0 +1,15 @@
+id: CAP-21
+name: Diary Digest Tools
+description: >
+  Scheduled pipeline tools for fetching external developments and appending
+  context-aware diary entries.
+modules:
+  - scripts/diary_digest_tools
+requirements:
+  - id: REQ-YG-072
+    description: >
+      Diary digest: fetch HN/RSS sources, filter by relevance, format diary
+      entries, append to diary.md, no-op when nothing relevant
+    modules:
+      - scripts/diary_digest_tools
+fr: legacy

@@ -170,3 +170,24 @@ from yamlgraph.verification import CountRangeClaim  # noqa: F401 (CONF-126)
 
 CountRangeClaim
 CountRangeClaim.validate_range  # Pydantic @model_validator
+
+# --- id_registry: FR-180 plan-phase ID reservation, called from scripts ---
+from yamlgraph.utils.id_registry import (  # noqa: F401 (CONF-126)
+    PRE_EXISTING_MAX_CAP,
+    PRE_EXISTING_MAX_REQ,
+    format_cap_id,
+    format_req_id,
+    load_registry,
+    reserve_ids,
+    save_registry,
+    validate_registry,
+)
+
+PRE_EXISTING_MAX_CAP
+PRE_EXISTING_MAX_REQ
+load_registry
+reserve_ids
+save_registry
+validate_registry
+format_cap_id
+format_req_id

@@ -1,0 +1,20 @@
+id: CAP-34
+name: Compiled Graph Cache
+description: >
+  Process-global compiled graph cache so load_and_compile_async() results
+  survive module reloads and are shared across all callers within the same
+  Python process.
+modules:
+  - executor_async
+  - graph_cache
+requirements:
+  - id: REQ-YG-107
+    description: >
+      Process-global `GRAPH_CACHE` dict in installed package;
+      `load_and_compile_async()` uses cache by default with `cache=None`
+      opt-out; `clear_cache()` for test teardown; cache-hit logs at DEBUG,
+      compile logs at INFO
+    modules:
+      - graph_cache
+      - executor_async
+fr: FR-111

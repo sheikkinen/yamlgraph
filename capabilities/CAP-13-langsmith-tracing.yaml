@@ -1,0 +1,15 @@
+id: CAP-13
+name: LangSmith Tracing
+description: >
+  Observability via LangSmith: trace URL retrieval, public sharing, and tracer
+  injection.
+modules:
+  - cli/graph_commands
+  - utils/tracing
+requirements:
+  - id: REQ-YG-047
+    description: LangSmith trace URL retrieval and sharing
+    modules:
+      - utils/tracing
+      - cli/graph_commands
+fr: legacy
