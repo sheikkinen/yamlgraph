@@ -124,17 +124,17 @@ class TestRefineNode:
         assert graph["nodes"]["refine"]["timeout"] == 300
 
     def test_critique_to_refine_has_condition(self):
-        """Edge from critique to refine has score threshold condition."""
+        """Edge from critique to refine exists (score routing disabled)."""
         graph = _load_graph()
         edges = graph["edges"]
         crit_to_refine = [
             e for e in edges if e["from"] == "critique" and e["to"] == "refine"
         ]
         assert len(crit_to_refine) == 1
+        # NOTE: Score-based routing disabled — copilot returns string, not structured
+        # The condition is 'false' to disable the refine loop until structured output works
         assert "condition" in crit_to_refine[0]
-        cond = crit_to_refine[0]["condition"]
-        assert "critique_result.score" in cond
-        assert "< 0.85" in cond or "<0.85" in cond
+        assert crit_to_refine[0]["condition"] == "false"
 
     def test_refine_routes_back_to_critique(self):
         """Edge from refine goes back to critique (loop)."""
@@ -350,7 +350,7 @@ class TestEdgeFlow:
     """Complete edge flow through reflexion loop."""
 
     def test_critique_quality_gate_edge(self):
-        """Edge from critique to distill_reflection when score >= 0.85."""
+        """Edge from critique to distill_reflection is unconditional (score routing disabled)."""
         graph = _load_graph()
         edges = graph["edges"]
         quality_edges = [
@@ -359,8 +359,9 @@ class TestEdgeFlow:
             if e["from"] == "critique" and e["to"] == "distill_reflection"
         ]
         assert len(quality_edges) == 1
-        cond = quality_edges[0]["condition"]
-        assert ">= 0.85" in cond or ">=0.85" in cond
+        # NOTE: Score-based routing disabled — critique always proceeds to distill_reflection
+        # No condition = unconditional edge
+        assert "condition" not in quality_edges[0]
 
     def test_full_pipeline_flow(self):
         """Verify the full pipeline edge chain."""
