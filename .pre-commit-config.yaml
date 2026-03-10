@@ -66,6 +66,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: validate-id-registry
+        name: ID registry validation
+        entry: .venv/bin/python scripts/validate_id_registry.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: noqa-confession
         name: noqa_coverage --strict
         entry: .venv/bin/python scripts/noqa_coverage.py --strict
