@@ -3,7 +3,7 @@
 **Priority:** HIGH
 **Type:** Enhancement
 **FR:** FR-179
-**Status:** Approved
+**Status:** In Progress
 **Effort:** 2 days
 **Requested:** 2026-03-09
 
@@ -161,18 +161,18 @@ Handle empty `changelog/unreleased/` gracefully (no files to move is not an erro
 
 ## Acceptance Criteria
 
-- [ ] `changelog/unreleased/` directory exists with `.gitkeep`
-- [ ] `CHANGELOG.md` added to `.gitignore` and untracked via `git rm --cached`
-- [ ] `scripts/migrate_changelog.py` splits existing CHANGELOG.md into fragment files per version
-- [ ] Round-trip test: `migrate → aggregate` reproduces original CHANGELOG content (modulo whitespace)
-- [ ] `scripts/aggregate_changelog.py` generates CHANGELOG.md from fragment files to stdout
-- [ ] Fragment format uses YAML front matter (`type`, `scope`, optional `req`) + markdown body
-- [ ] `finalize_merge.sh` creates fragment file instead of editing CHANGELOG.md
-- [ ] Pre-commit hook `changelog-required` updated to check `changelog/unreleased/*.md` instead of `CHANGELOG.md`
-- [ ] CI job `changelog-gate` updated to check `changelog/unreleased/*.md` instead of `CHANGELOG.md`
-- [ ] No staleness guard needed (CHANGELOG.md is untracked — Option A)
-- [ ] Tests added for `aggregate_changelog.py` and `migrate_changelog.py`
-- [ ] Documentation updated: `CLAUDE.md` release workflow section, `README.md` contributing section
+- [x] `changelog/unreleased/` directory exists with `.gitkeep`
+- [x] `CHANGELOG.md` added to `.gitignore` and untracked via `git rm --cached`
+- [x] `scripts/migrate_changelog.py` splits existing CHANGELOG.md into fragment files per version
+- [x] Round-trip test: `migrate → aggregate` reproduces original CHANGELOG content (modulo whitespace)
+- [x] `scripts/aggregate_changelog.py` generates CHANGELOG.md from fragment files to stdout
+- [x] Fragment format uses YAML front matter (`type`, `scope`, optional `req`) + markdown body
+- [x] `finalize_merge.sh` creates fragment file instead of editing CHANGELOG.md
+- [x] Pre-commit hook `changelog-required` updated to check `changelog/unreleased/*.md` instead of `CHANGELOG.md`
+- [x] CI job `changelog-gate` updated to check `changelog/unreleased/*.md` instead of `CHANGELOG.md`
+- [x] No staleness guard needed (CHANGELOG.md is untracked — Option A)
+- [x] Tests added for `aggregate_changelog.py` and `migrate_changelog.py`
+- [x] Documentation updated: `CLAUDE.md` release workflow section, `README.md` contributing section
 
 ## Alternatives Considered
 

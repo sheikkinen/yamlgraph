@@ -63,7 +63,9 @@ def generate_sections(capabilities: list[dict]) -> str:
         lines.append(f"| {num} | {name} | {modules} | {req_str} |")
 
     lines.append("")
-    lines.append("> Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.")
+    lines.append(
+        "> Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities."
+    )
     lines.append("")
 
     # Detailed sections
@@ -98,7 +100,9 @@ def generate_sections(capabilities: list[dict]) -> str:
 
 def _compact_req_range(reqs: list[str]) -> str:
     """Compact a list of REQ-YG-XXX into range notation where possible."""
-    nums = sorted(int(re.search(r"(\d+)$", r).group(1)) for r in reqs if re.search(r"(\d+)$", r))
+    nums = sorted(
+        int(re.search(r"(\d+)$", r).group(1)) for r in reqs if re.search(r"(\d+)$", r)
+    )
     if not nums:
         return "—"
 
@@ -141,11 +145,7 @@ def update_architecture(content: str, dry_run: bool = False) -> str:
 
     # Replace content between markers
     new_text = (
-        text[: begin_idx + len(BEGIN_MARKER)]
-        + "\n\n"
-        + content
-        + "\n"
-        + text[end_idx:]
+        text[: begin_idx + len(BEGIN_MARKER)] + "\n\n" + content + "\n" + text[end_idx:]
     )
 
     if dry_run:

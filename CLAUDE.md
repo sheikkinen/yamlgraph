@@ -291,6 +291,44 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#extension-points) for detailed guides on:
 - CI enforcement via `action-semantic-pull-request@v5` in `.github/workflows/commitlint.yml`
 - Local enforcement via `conventional-pre-commit` in `.pre-commit-config.yaml` (commit-msg hook)
 
+## Changelog Fragments (FR-179)
+
+`CHANGELOG.md` is **not tracked in git** — it is generated from fragment files on demand. This eliminates merge conflicts entirely.
+
+### Writing a changelog entry
+
+Create a fragment file in `changelog/unreleased/` with YAML front matter:
+
+```markdown
+---
+type: feat
+scope: graph
+req: REQ-YG-162
+---
+- **FR-179 Append-Only Changelog**: Description of the change. (REQ-YG-162)
+```
+
+- `type`: `feat` → Added, `fix` → Fixed, `removal` → Removed
+- `scope`: short scope identifier (e.g., `graph`, `cli`, `streaming`)
+- `req`: optional requirement ID (omit if none)
+
+### Generating CHANGELOG.md locally
+
+```bash
+python scripts/aggregate_changelog.py > CHANGELOG.md
+```
+
+### Release workflow
+
+```bash
+VERSION="0.4.62"
+mkdir -p "changelog/${VERSION}"
+mv changelog/unreleased/*.md "changelog/${VERSION}/"
+python scripts/aggregate_changelog.py > CHANGELOG.md
+git add changelog/
+git commit -m "chore(release): ${VERSION} changelog freeze"
+```
+
 ## Branch Protection
 
 The `main` branch is protected by GitHub branch protection rules (FR-150). These rules are the **primary enforcement gate** — all other checks (pre-commit hooks, CI workflows) operate within this structure.
@@ -301,7 +339,7 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 |------|---------|---------|
 | Require pull request | Enabled (0 approvals) | No direct pushes to `main` |
 | Squash merge only | Merge commits and rebase disabled | PR title = commit message; enforces Conventional Commits |
-| Required status checks | `commitlint`, `test`, `conflict-check`, `diary-gate` | PR cannot merge with failing CI |
+| Required status checks | `commitlint`, `test`, `conflict-check`, `changelog-gate`, `diary-gate` | PR cannot merge with failing CI |
 | Require up to date | Enabled | PRs must be rebased on latest `main` before merge |
 
 ### Required status checks
@@ -309,6 +347,7 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 - **`commitlint`** (`.github/workflows/commitlint.yml`): Validates PR title follows Conventional Commits format. `feat` PRs must include `FR-XXX` reference.
 - **`test`** (`.github/workflows/workflow.yml`): Runs `pytest` with 80% coverage threshold and `ruff` linting.
 - **`conflict-check`** (`.github/workflows/commitlint.yml`): Fails when unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) are found in tracked files (excluding `.github/`). Complements the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges.
+- **`changelog-gate`** (`.github/workflows/commitlint.yml`): Blocks `feat`/`fix` PRs unless a changelog fragment exists in `changelog/unreleased/` (FR-179).
 - **`diary-gate`** (`.github/workflows/commitlint.yml`): Blocks `feat`/`fix` PRs with `FR-XXX` reference unless a diary reflection file exists in the diff.
 
 ### Emergency bypass
