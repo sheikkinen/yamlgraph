@@ -38,6 +38,7 @@ state:
   targets: str              # Raw "key:desc|key:desc" from CLI
   target_fields: list       # Parsed [{id, description}] list
   extracted: dict           # {field_id: value} — structured answers
+  extraction_result: dict   # FR-178: raw LLM output from extract_answers llm node
   missing_fields: list      # Field IDs not yet extracted
   phase: str                # "probe" | "recap" — controls routing
   probe_count: int          # Number of completed probe cycles (max 5)
@@ -55,6 +56,7 @@ loop_limits:
   generate_goodbye_refused: 2
   generate_response: 10
   extract_answers: 6
+  merge_extraction: 6
   check_missing: 6
   analyze_recap_response: 4
   apply_corrections: 4
@@ -98,11 +100,11 @@ tools:
     function: parse_targets
     description: Parse 'key:desc|key:desc' into structured target fields
 
-  extract_answers:
+  merge_extraction:
     type: python
     module: projects.outcaller.nodes.probe_recap
-    function: extract_answers
-    description: Call LLM for extraction, merge into existing extracted dict
+    function: merge_extraction
+    description: Merge non-null llm extraction results into extracted dict (FR-178)
 
   check_missing:
     type: python
@@ -161,8 +163,15 @@ nodes:
     on_error: fail
 
   extract_answers:
+    type: llm
+    prompt: extract_answers
+    state_key: extraction_result
+    skip_if_exists: false
+    on_error: fail
+
+  merge_extraction:
     type: python
-    tool: extract_answers
+    tool: merge_extraction
     state_key: extracted
     on_error: fail
 
@@ -271,11 +280,14 @@ edges:
     to: analyze_recap_response
     condition: "phase == \"recap\""
 
-  # === Extraction → check or exit on refusal ===
+  # === Extraction → merge → check or exit on refusal (FR-178) ===
   - from: extract_answers
+    to: merge_extraction
+
+  - from: merge_extraction
     to: generate_goodbye_refused
     condition: "user_refused == True"
-  - from: extract_answers
+  - from: merge_extraction
     to: check_missing
     condition: "user_refused != True"
 

@@ -3,6 +3,9 @@
 name: extract_answers
 description: Extract field values from user transcript
 
+metadata:
+  provider: google
+
 system: |
   You are an extraction assistant. Given a list of target fields and a user transcript,
   extract values for each field. Return null for fields not clearly stated in the transcript.

@@ -69,18 +69,18 @@ class TestFR137ChangelogEntry:
         added_block = "\n".join(lines[added_idx:next_section_idx])
         assert "FR-137" in added_block, "FR-137 not in [0.4.61] → ### Added section"
 
-    def test_entry_position_descending_fr_order(self):
-        """FR-137 appears after FR-138 and before FR-136 (descending order)."""
+    def test_entry_position_ascending_fr_order(self):
+        """FR-137 appears after FR-136 and before FR-138 (ascending order)."""
         lines = CHANGELOG.read_text().splitlines()
 
-        fr138_idx = next((i for i, ln in enumerate(lines) if "FR-138" in ln), None)
-        fr137_idx = next((i for i, ln in enumerate(lines) if "FR-137" in ln), None)
         fr136_idx = next((i for i, ln in enumerate(lines) if "FR-136" in ln), None)
+        fr137_idx = next((i for i, ln in enumerate(lines) if "FR-137" in ln), None)
+        fr138_idx = next((i for i, ln in enumerate(lines) if "FR-138" in ln), None)
 
-        assert fr138_idx is not None, "FR-138 not found in CHANGELOG"
-        assert fr137_idx is not None, "FR-137 not found in CHANGELOG"
         assert fr136_idx is not None, "FR-136 not found in CHANGELOG"
+        assert fr137_idx is not None, "FR-137 not found in CHANGELOG"
+        assert fr138_idx is not None, "FR-138 not found in CHANGELOG"
 
         assert (
-            fr138_idx < fr137_idx < fr136_idx
-        ), f"Wrong order: FR-138@{fr138_idx}, FR-137@{fr137_idx}, FR-136@{fr136_idx}"
+            fr136_idx < fr137_idx < fr138_idx
+        ), f"Wrong order: FR-136@{fr136_idx}, FR-137@{fr137_idx}, FR-138@{fr138_idx}"
