@@ -1,0 +1,92 @@
+# FR-184: Philosopher Daemon
+# Scans diary entries for recurring patterns and proposes graduations to Scripture
+
+version: "1.0"
+name: philosopher-scan
+description: |
+  Scan diary entries for recurring patterns and propose graduations.
+  Five phases: scan → analyze → propose → reflect → write_diary.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-sonnet-4-5
+
+state:
+  diary_dir: str                # Path to docs/diary/
+  inbox_dir: str                # Path to .chaplain/inbox/
+  lookback_days: int            # How many days back to scan (default: 30)
+  graduation_threshold: int     # Min occurrences to propose graduation (default: 3)
+  date: str                     # Current date for diary entry
+  diary_prefix: str             # Diary entry prefix (default: Philosopher)
+  scan_result: dict             # Extracted markers with counts
+  proposals: list               # Graduation proposals (if any)
+  diary_entry: dict             # Philosopher's own diary entry
+  written: bool                 # True after diary append
+
+tools:
+  scan_diary_tool:
+    type: python
+    module: examples.philosopher.tools
+    function: scan_diary_markers
+  write_diary_tool:
+    type: python
+    module: examples.shared.diary
+    function: write_diary
+  write_proposal_tool:
+    type: python
+    module: examples.philosopher.tools
+    function: write_proposals
+
+nodes:
+  # Stage 1: Scan — Extract markers from diary files
+  scan:
+    type: python
+    tool: scan_diary_tool
+    state_key: scan_result
+
+  # Stage 2: Analyze — LLM detects patterns and proposes graduations
+  analyze:
+    type: llm
+    prompt: analyze
+    variables:
+      scan_result: "{state.scan_result}"
+      graduation_threshold: "{state.graduation_threshold}"
+    state_key: proposals
+
+  # Stage 3: Write proposals to inbox (if any)
+  propose:
+    type: python
+    tool: write_proposal_tool
+    state_key: proposals_written
+
+  # Stage 4: Write Philosopher's own diary entry
+  reflect:
+    type: llm
+    prompt: reflect
+    variables:
+      scan_result: "{state.scan_result}"
+      proposals: "{state.proposals}"
+    state_key: diary_entry
+
+  # Stage 5: Write diary entry to file
+  write_diary:
+    type: python
+    tool: write_diary_tool
+    state_key: written
+
+edges:
+  - from: START
+    to: scan
+  - from: scan
+    to: analyze
+  - from: analyze
+    to: propose
+  - from: propose
+    to: reflect
+  - from: reflect
+    to: write_diary
+  - from: write_diary
+    to: END

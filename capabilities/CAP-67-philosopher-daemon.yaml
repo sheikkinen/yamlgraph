@@ -1,0 +1,17 @@
+id: CAP-67
+name: Philosopher Daemon
+fr: FR-184
+description: >
+  Automates the Philosopher role by scanning diary entries for recurring patterns
+  (Trap, Heuristic, Seed markers) and proposing graduations to Scripture.
+  On-demand daemon writes proposals to .chaplain/inbox/ for Chaplain to process.
+modules:
+  - examples/philosopher/
+  - .chaplain/philosopher.sh
+requirements:
+  - id: REQ-YG-184
+    description: Automated diary pattern scanning and graduation proposals
+    modules:
+      - examples/philosopher/tools.py
+      - examples/philosopher/graph.yaml
+      - .chaplain/philosopher.sh

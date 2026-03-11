@@ -329,6 +329,8 @@ git add changelog/
 git commit -m "chore(release): ${VERSION} changelog freeze"
 ```
 
+For the full bump → commit → push → tag flow including pre-commit hook cascade handling, see [`reference/release-checklist.md`](reference/release-checklist.md).
+
 ## Branch Protection
 
 The `main` branch is protected by GitHub branch protection rules (FR-150). These rules are the **primary enforcement gate** — all other checks (pre-commit hooks, CI workflows) operate within this structure.

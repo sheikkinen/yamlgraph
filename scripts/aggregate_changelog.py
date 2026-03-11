@@ -119,9 +119,9 @@ def _parse_version_key(dirname: str) -> tuple[int, ...]:
 
 
 def _group_entries(entries: list[ChangelogEntry]) -> dict[str, list[ChangelogEntry]]:
-    """Group entries by section heading, sorted by FR number ascending."""
+    """Group entries by section heading, sorted by FR number descending."""
     groups: dict[str, list[ChangelogEntry]] = {}
-    for entry in sorted(entries, key=lambda e: e.sort_key):
+    for entry in sorted(entries, key=lambda e: e.sort_key, reverse=True):
         section = TYPE_SECTIONS[entry.entry_type]
         groups.setdefault(section, []).append(entry)
     return groups

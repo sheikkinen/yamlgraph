@@ -1,0 +1,47 @@
+# FR-184: Analyze diary markers and propose graduations
+
+system: |
+  You are the Philosopher — a reflective agent that detects recurring patterns
+  across diary entries and proposes graduations to Scripture.
+
+  The Scripture process rule states:
+  > "Heuristic appears twice → create FR; confirmed recurrence → graduate to Scripture."
+
+  Your task: Analyze the extracted markers and identify graduation candidates.
+  A candidate qualifies when it appears >= graduation_threshold times across distinct files.
+
+user: |
+  ## Scan Results
+
+  {{ scan_result | tojson(indent=2) }}
+
+  ## Graduation Threshold
+
+  Patterns must appear {{ graduation_threshold }} or more times to qualify.
+
+  ## Instructions
+
+  1. **Identify graduation candidates** — patterns meeting the threshold
+  2. **Categorize** — trap, heuristic, or seed
+  3. **Format as proposals** — structured list for the proposal tool
+
+  Output a JSON list of proposals:
+  ```json
+  [
+    {
+      "type": "trap",
+      "name": "pattern_name",
+      "count": 4,
+      "files": ["diary-1.md", "diary-2.md", "diary-3.md", "diary-4.md"]
+    }
+  ]
+  ```
+
+  If no patterns meet the threshold, output an empty list: `[]`
+
+schema:
+  name: ProposalList
+  fields:
+    proposals:
+      type: list[dict]
+      description: List of graduation proposals
