@@ -2,7 +2,7 @@
 # finalize_merge.sh - Post-Merge Finalization for Enforce Pipeline (FR-125)
 #
 # Automates three post-merge obligations after a PR from the enforce pipeline
-# is merged: CHANGELOG entry, FR status update, and diary reflection stub.
+# is merged: changelog fragment, FR status update, and diary reflection stub.
 #
 # Usage:
 #   scripts/finalize_merge.sh <feature-request-path>
@@ -10,7 +10,7 @@
 # Prerequisites:
 #   - Must be on main branch with clean working tree
 #   - FR file must exist at the given path
-#   - CHANGELOG.md and docs/diary/ must exist in repo root
+#   - changelog/unreleased/ and docs/diary/ must exist in repo root
 #
 # Example:
 #   git checkout main && git pull
@@ -42,33 +42,32 @@ REQ_ID=$(grep -oE 'REQ-YG-[0-9]+' "$FR_PATH" | head -1 || true)
 # Extract first content line from ## Summary for the CHANGELOG description
 FR_SUMMARY=$(awk '/^## Summary/{found=1; next} found && /^[^ #]/{print; exit}' "$FR_PATH")
 
-# ── Step 1: CHANGELOG entry ─────────────────────────────────────────────────
+# ── Step 1: Changelog fragment (FR-179) ─────────────────────────────────────
 
 ENTRY="- **${FR_NUM} ${FR_TITLE}**: ${FR_SUMMARY}"
 [[ -n "$REQ_ID" ]] && ENTRY="${ENTRY} (${REQ_ID})"
 
-# Duplicate guard — skip if FR already in CHANGELOG
-if grep -q "$FR_NUM" CHANGELOG.md; then
-    echo "⚠️  ${FR_NUM} already in CHANGELOG, skipping"
+SLUG=$(echo "$FR_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-')
+FRAGMENT_PATH="changelog/unreleased/${FR_NUM}-${SLUG}.md"
+
+mkdir -p changelog/unreleased
+
+# Duplicate guard — skip if fragment already exists
+if [[ -f "$FRAGMENT_PATH" ]]; then
+    echo "⚠️  ${FR_NUM} fragment already exists, skipping"
 else
-    # Find "### Added" under "## [Unreleased]" and insert after it
-    ADDED_LINE=$(awk '/^## \[Unreleased\]/,/^## \[[0-9]/' CHANGELOG.md | grep -n '### Added' | head -1 | cut -d: -f1 || true)
-    if [[ -n "$ADDED_LINE" ]]; then
-        UNRELEASED_LINE=$(grep -n '^## \[Unreleased\]' CHANGELOG.md | head -1 | cut -d: -f1)
-        INSERT_AT=$((UNRELEASED_LINE + ADDED_LINE - 1))
-        # Portable in-place edit using temp file (platform-incompatible otherwise)
-        sed "${INSERT_AT}a\\
+    REQ_LINE=""
+    [[ -n "$REQ_ID" ]] && REQ_LINE="req: ${REQ_ID}"
+
+    cat > "$FRAGMENT_PATH" << FRAGMENT
+---
+type: feat
+scope: ${SLUG%%-*}
+${REQ_LINE}
+---
 ${ENTRY}
-" CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
-    else
-        # No ### Added section yet — create one
-        UNRELEASED_LINE=$(grep -n '^## \[Unreleased\]' CHANGELOG.md | head -1 | cut -d: -f1)
-        sed "${UNRELEASED_LINE}a\\
-\\
-### Added\\
-${ENTRY}
-" CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
-    fi
+FRAGMENT
+    echo "📝 Created changelog fragment: ${FRAGMENT_PATH}"
 fi
 
 # ── Step 2: FR status update ────────────────────────────────────────────────
@@ -98,12 +97,12 @@ fi
 
 # ── Step 4: Commit finalization ──────────────────────────────────────────────
 
-git add CHANGELOG.md "$FR_PATH"
+git add "changelog/unreleased/" "$FR_PATH"
 mkdir -p ./tmp
 cat > ./tmp/msg.txt << EOF
 chore: ${FR_NUM} post-merge finalization
 
-- CHANGELOG [Unreleased] entry added
+- Changelog fragment created in changelog/unreleased/
 - FR status updated to Implemented
 - Diary reflection stub created (untracked)
 EOF

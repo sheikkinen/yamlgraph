@@ -79,3 +79,6 @@ docs/ebook/v*/
 # Planning files
 .chaplain/inbox/
 .chaplain/drafts/
+
+# Generated files (FR-179: append-only changelog fragments)
+CHANGELOG.md

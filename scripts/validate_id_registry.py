@@ -25,7 +25,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from yamlgraph.utils.id_registry import (
+from yamlgraph.utils.id_registry import (  # noqa: E402
     DEFAULT_REGISTRY_PATH,
     load_registry,
     validate_registry,
@@ -65,7 +65,7 @@ def main() -> int:
     total_caps = sum(len(r.cap) for r in registry.reserved)
     total_reqs = sum(len(r.req) for r in registry.reserved)
 
-    print(f"✅ Registry valid")
+    print("✅ Registry valid")
     print(f"   next_cap: {registry.next_cap}")
     print(f"   next_req: {registry.next_req}")
     print(f"   {total_reservations} reservation(s)")

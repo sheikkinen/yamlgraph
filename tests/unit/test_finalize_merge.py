@@ -87,6 +87,10 @@ def _make_repo(tmp_path):
     """)
     )
 
+    # Create changelog/unreleased/ for fragment files (FR-179)
+    changelog_dir = repo / "changelog" / "unreleased"
+    changelog_dir.mkdir(parents=True)
+
     # Create docs/diary/ folder
     docs = repo / "docs"
     docs.mkdir()
@@ -235,27 +239,21 @@ class TestFailFastGuards:
 
 @pytest.mark.req("REQ-YG-125")
 class TestChangelogEntry:
-    """CHANGELOG.md is updated with a properly formatted entry."""
+    """Changelog fragment is created in changelog/unreleased/ (FR-179)."""
 
-    def test_entry_inserted_under_added(self, tmp_path):
-        """New entry appears immediately after ### Added header."""
+    def test_fragment_created_in_unreleased(self, tmp_path):
+        """New fragment file appears in changelog/unreleased/."""
         repo = _make_repo(tmp_path)
         fr_rel = _write_fr(repo, "FR-210-changelog-test.md", req_id="REQ-YG-210")
         _run_finalize(repo, fr_rel)
 
-        changelog = (repo / "CHANGELOG.md").read_text()
-        lines = changelog.splitlines()
-        # Find ### Added line
-        added_idx = next(
-            i for i, line in enumerate(lines) if line.strip() == "### Added"
-        )
-        # Next non-empty line should be our new entry
-        entry_line = lines[added_idx + 1]
-        assert "FR-210" in entry_line
-        assert entry_line.startswith("- **FR-210")
+        fragments = list((repo / "changelog" / "unreleased").glob("FR-210*.md"))
+        assert len(fragments) == 1, f"Expected 1 fragment, found: {fragments}"
+        content = fragments[0].read_text()
+        assert "FR-210" in content
 
-    def test_entry_format_with_req_id(self, tmp_path):
-        """Entry format: - **FR-NNN Title**: Summary (REQ-YG-XXX)."""
+    def test_fragment_format_with_req_id(self, tmp_path):
+        """Fragment contains YAML front matter with req field."""
         repo = _make_repo(tmp_path)
         fr_rel = _write_fr(
             repo,
@@ -265,32 +263,36 @@ class TestChangelogEntry:
         )
         _run_finalize(repo, fr_rel)
 
-        changelog = (repo / "CHANGELOG.md").read_text()
-        assert "- **FR-211 Format Test**:" in changelog
-        assert "(REQ-YG-211)" in changelog
+        fragments = list((repo / "changelog" / "unreleased").glob("FR-211*.md"))
+        assert len(fragments) == 1
+        content = fragments[0].read_text()
+        assert "- **FR-211 Format Test**:" in content
+        assert "REQ-YG-211" in content
 
-    def test_entry_format_without_req_id(self, tmp_path):
-        """Entry omits (REQ-YG-XXX) when FR has no requirement ID."""
+    def test_fragment_format_without_req_id(self, tmp_path):
+        """Fragment omits req line when FR has no requirement ID."""
         repo = _make_repo(tmp_path)
         fr_rel = _write_fr(repo, "FR-212-no-req.md", title="No Req Feature")
         _run_finalize(repo, fr_rel)
 
-        changelog = (repo / "CHANGELOG.md").read_text()
-        assert "- **FR-212 No Req Feature**:" in changelog
-        assert "REQ-YG" not in changelog.split("FR-212")[1].split("\n")[0]
+        fragments = list((repo / "changelog" / "unreleased").glob("FR-212*.md"))
+        assert len(fragments) == 1
+        content = fragments[0].read_text()
+        assert "- **FR-212 No Req Feature**:" in content
 
     def test_summary_extracted_from_fr(self, tmp_path):
-        """CHANGELOG description comes from FR's ## Summary section."""
+        """Fragment description comes from FR's ## Summary section."""
         repo = _make_repo(tmp_path)
         fr_rel = _write_fr(repo, "FR-213-summary-test.md")
         _run_finalize(repo, fr_rel)
 
-        changelog = (repo / "CHANGELOG.md").read_text()
-        # The summary from _write_fr is "Add a post-merge finalization script for FR-213."
-        assert "post-merge finalization script" in changelog
+        fragments = list((repo / "changelog" / "unreleased").glob("FR-213*.md"))
+        assert len(fragments) == 1
+        content = fragments[0].read_text()
+        assert "post-merge finalization script" in content
 
-    def test_duplicate_entry_guard(self, tmp_path):
-        """Running script twice does not insert duplicate CHANGELOG entry."""
+    def test_duplicate_fragment_guard(self, tmp_path):
+        """Running script twice does not create duplicate fragment."""
         repo = _make_repo(tmp_path)
         fr_rel = _write_fr(repo, "FR-214-dup-test.md", req_id="REQ-YG-214")
         _run_finalize(repo, fr_rel)
@@ -314,13 +316,13 @@ class TestChangelogEntry:
         )
 
         stdout, _, _ = _run_finalize(repo, fr_rel)
-        assert "already in CHANGELOG" in stdout.lower() or "skipping" in stdout.lower()
+        assert "already exists" in stdout.lower() or "skipping" in stdout.lower()
 
-        changelog = (repo / "CHANGELOG.md").read_text()
-        assert changelog.count("**FR-214") == 1
+        fragments = list((repo / "changelog" / "unreleased").glob("FR-214*.md"))
+        assert len(fragments) == 1
 
-    def test_creates_added_section_when_missing(self, tmp_path):
-        """When ### Added doesn't exist under [Unreleased], it is created."""
+    def test_creates_fragment_without_added_section(self, tmp_path):
+        """Fragment created even when CHANGELOG has no ### Added section."""
         repo = _make_repo(tmp_path)
 
         # Rewrite CHANGELOG without ### Added section
@@ -354,9 +356,10 @@ class TestChangelogEntry:
         fr_rel = _write_fr(repo, "FR-215-no-added.md", title="No Added Section")
         _run_finalize(repo, fr_rel)
 
-        changelog = (repo / "CHANGELOG.md").read_text()
-        assert "### Added" in changelog
-        assert "FR-215" in changelog
+        fragments = list((repo / "changelog" / "unreleased").glob("FR-215*.md"))
+        assert len(fragments) == 1
+        content = fragments[0].read_text()
+        assert "FR-215" in content
 
 
 # ---------------------------------------------------------------------------

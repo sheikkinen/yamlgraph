@@ -183,8 +183,8 @@ repos:
   - repo: local
     hooks:
       - id: changelog-required
-        name: feat/fix commits require CHANGELOG.md
-        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^(feat|fix)(\\(.*\\))?:\" && ! git diff --cached --name-only | grep -qE \"^CHANGELOG\\.md$\"; then echo \"ERROR: feat:/fix: commits must include CHANGELOG.md changes\"; echo \"Add your entry under the current [Unreleased] or version heading.\"; exit 1; fi' _"
+        name: feat/fix commits require changelog fragment
+        entry: "bash -c 'msg=$(cat \"$1\"); if echo \"$msg\" | grep -qE \"^(feat|fix)(\\(.*\\))?:\" && ! git diff --cached --name-only | grep -qE \"^changelog/unreleased/\"; then echo \"ERROR: feat:/fix: commits must include a changelog fragment in changelog/unreleased/\"; echo \"Create a fragment file with YAML front matter (type, scope) and entry body.\"; exit 1; fi' _"
         language: system
         stages: [commit-msg]
         always_run: true

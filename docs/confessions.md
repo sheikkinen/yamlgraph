@@ -59,7 +59,7 @@ Each confession must include:
 - **Penance**: Arguments are `Path` objects from the diary folder; command is hardcoded `["git", "add"]`. No shell expansion, no user input.
 
 ### CONF-207
-- **File**: [scripts/migrate_capabilities.py](../scripts/migrate_capabilities.py#L352)
+- **File**: [scripts/migrate_capabilities.py](../scripts/migrate_capabilities.py#L349)
 - **Code**: E402
 - **Sin**: Module-level import `from req_coverage import CAPABILITIES` appears after `sys.path.insert()` manipulation.
 - **Penance**: The import must occur after sys.path is modified to find `req_coverage.py` in the scripts directory. This is standard Python pattern for runtime path manipulation.
@@ -388,6 +388,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: F401
 - **Sin**: Import `worktree_helpers` functions without using them in Python.
 - **Penance**: Vulture's standard false-positive suppression mechanism. These functions are invoked via `python3 -c` in `scripts/enforce_worktree.sh`, invisible to static analysis. The import makes them visible to Vulture.
+
+### CONF-208
+- **File**: [scripts/validate_id_registry.py](../scripts/validate_id_registry.py#L28)
+- **Code**: E402
+- **Sin**: Import from `yamlgraph.utils.id_registry` after `sys.path.insert()`.
+- **Penance**: The `sys.path` modification is required before the import so `yamlgraph` is resolvable when running the script standalone. Standard pattern for repo scripts.
 
 ---
 

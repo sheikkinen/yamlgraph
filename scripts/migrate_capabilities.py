@@ -89,8 +89,7 @@ SECTION_DESC: dict[str, str] = {
         " and control nodes."
     ),
     "CAP-07": (
-        "Checkpointers and Redis storage for resuming pipelines and"
-        " state history."
+        "Checkpointers and Redis storage for resuming pipelines and" " state history."
     ),
     "CAP-08": (
         "Error strategies (retry, fallback, skip), sanitization,"
@@ -115,7 +114,7 @@ SECTION_DESC: dict[str, str] = {
     ),
     "CAP-14": (
         "Stream LLM tokens through the compiled graph pipeline using"
-        " LangGraph astream(stream_mode=\"messages\"), enabling real-time"
+        ' LangGraph astream(stream_mode="messages"), enabling real-time'
         " SSE output."
     ),
     "CAP-15": (
@@ -333,9 +332,7 @@ def _parse_architecture_reqs() -> dict[str, dict[str, str | list[str]]]:
     cap_text = text[cap_start:next_section] if next_section != -1 else text[cap_start:]
 
     req_info: dict[str, dict[str, str | list[str]]] = {}
-    req_pattern = re.compile(
-        r"\|\s*(REQ-YG-\d{3})\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|"
-    )
+    req_pattern = re.compile(r"\|\s*(REQ-YG-\d{3})\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|")
     for match in req_pattern.finditer(cap_text):
         req_id = match.group(1)
         description = match.group(2).strip().replace("**", "")
@@ -399,10 +396,7 @@ def _generate_yaml(
     cap_num = int(cap_id.split("-")[1])
 
     # Determine FR
-    if cap_num <= 26:
-        fr = "legacy"
-    else:
-        fr = FR_MAP.get(cap_id, "legacy")
+    fr = "legacy" if cap_num <= 26 else FR_MAP.get(cap_id, "legacy")
 
     # Capability description
     description = SECTION_DESC.get(cap_id, f"{name} capability")
