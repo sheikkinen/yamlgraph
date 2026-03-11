@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Refactor
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-03-10
 
@@ -145,18 +145,18 @@ that injects state variables.
 
 ## Acceptance Criteria
 
-- [ ] `extract_answers()` in `probe_recap.py` contains zero `execute_prompt()` or
+- [x] `extract_answers()` in `probe_recap.py` contains zero `execute_prompt()` or
       `load_schema_from_yaml()` calls.
-- [ ] `outcaller.yaml` declares an `llm` node (or equivalent) for extraction — no
+- [x] `outcaller.yaml` declares an `llm` node (or equivalent) for extraction — no
       `type: python` node calls an LLM for this step.
-- [ ] Provider for the extraction call is resolved entirely from the `metadata` block
+- [x] Provider for the extraction call is resolved entirely from the `metadata` block
       in `extract_answers.yaml`; changing `PROVIDER` env var does not affect it.
-- [ ] All existing `tests/unit/test_probe_recap.py` tests pass (mocks updated to
+- [x] All existing `tests/unit/test_probe_recap.py` tests pass (mocks updated to
       target the YAML-node boundary if needed).
-- [ ] A new unit test exercises `merge_extraction` with a stubbed `extraction_result`
+- [x] A new unit test exercises `merge_extraction` with a stubbed `extraction_result`
       in state (no LLM call), tagged `@pytest.mark.req("REQ-YG-083")`.
-- [ ] `pytest tests/unit/ -q --no-cov` passes.
-- [ ] `ruff check yamlgraph/ projects/outcaller/` passes.
+- [x] `pytest tests/unit/ -q --no-cov` passes.
+- [x] `ruff check yamlgraph/ projects/outcaller/` passes.
 
 ## Alternatives Considered
 
