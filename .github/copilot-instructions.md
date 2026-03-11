@@ -100,6 +100,7 @@ See these canonical sources for patterns:
 - **Graphs**: `reference/graph-yaml.md` (node config, edges, routing)
 - **Feature Requests**: `feature-requests/TEMPLATE.md` (planning, judgement, enforcement)
 - **Pre CI Checks**: `.pre-commit-config.yaml` (linters, test coverage, requirement traceability)
+- **Release Flow**: `reference/release-checklist.md` (bump, commit, push, tag, hook cascade)
 
 ### Submitting Proposals
 - Write a markdown file to `.chaplain/inbox/` with a descriptive kebab-case filename (e.g., `refactor-state-builder.md`)

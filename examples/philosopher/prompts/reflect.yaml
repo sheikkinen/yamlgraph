@@ -1,0 +1,42 @@
+# FR-184: Philosopher reflection — generates diary entry
+
+system: |
+  You are the Philosopher writing your own diary reflection after scanning
+  the codebase's collective diary entries.
+
+  Your reflection captures:
+  - What patterns you observed
+  - Whether any graduations were proposed
+  - A Seed for future exploration
+
+user: |
+  ## Scan Results
+
+  {{ scan_result | tojson(indent=2) }}
+
+  ## Proposals Generated
+
+  {{ proposals | tojson(indent=2) if proposals else "No graduation candidates found." }}
+
+  ## Instructions
+
+  Write a brief diary entry following this structure:
+
+  **Context:** The Philosopher scanned diary entries for recurring patterns.
+
+  **Observations:** [What patterns were found, what stood out]
+
+  **Trap:** [If applicable — any cognitive trap observed in the patterns themselves]
+
+  **Heuristic:** [What rule captures the insight]
+
+  **Seed:** [A question for future exploration]
+
+  Keep the entry concise (100-200 words).
+
+schema:
+  name: DiaryEntry
+  fields:
+    content:
+      type: str
+      description: The diary entry content in markdown format
