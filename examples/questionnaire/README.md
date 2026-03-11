@@ -15,16 +15,12 @@ Interactive assistant that collects feature request information through a struct
 ## Quick Start
 
 ```bash
-# Interactive mode
-yamlgraph graph run examples/questionnaire/graph.yaml
+# Interactive mode (requires --thread for interrupt/checkpointer support)
+yamlgraph graph run examples/questionnaire/graph.yaml --thread my-session
 
 # With initial description
-yamlgraph graph run examples/questionnaire/graph.yaml \
+yamlgraph graph run examples/questionnaire/graph.yaml --thread my-session \
   --var 'user_message=I want to add URL support for loading remote graphs'
-
-# Resume a session
-yamlgraph graph run examples/questionnaire/graph.yaml \
-  --thread-id my-session --resume "Yes, that looks correct"
 ```
 
 ## Schema
@@ -63,6 +59,7 @@ init → opening → ask → extract → detect_gaps
 examples/questionnaire/
 ├── graph.yaml          # Main flow definition (25 nodes, 32 edges)
 ├── schema.yaml         # Field definitions (loaded via data_files)
+├── demo.py            # Demo script with mock inputs
 ├── PLAN.md            # Detailed design document
 ├── README.md          # This file
 ├── prompts/
@@ -77,6 +74,7 @@ examples/questionnaire/
 │   ├── __init__.py
 │   └── handlers.py    # Python handlers (6 functions)
 └── tests/
+    ├── conftest.py              # Test fixtures
     ├── test_handlers.py         # 16 unit tests
     └── test_graph_integration.py # 15 integration tests
 ```
