@@ -16,7 +16,7 @@ COPILOT_INSTRUCTIONS = REPO_ROOT / ".github" / "copilot-instructions.md"
 
 NEW_TRAP = (
     'infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces'
-    " → apply same rules to the guardrail as to what it guards\""
+    ' → apply same rules to the guardrail as to what it guards"'
 )
 
 
@@ -65,9 +65,7 @@ class TestInfrastructureSelfExemptGraduation:
             ),
             "partial_remediation": '"Fix all occurrences, not just cited one"',
             "audit_as_ritual": '"3+ audits without fix → ritual, not process"',
-            "plausible_wrong_answer": (
-                '"Silent fallback harder to catch than crash"'
-            ),
+            "plausible_wrong_answer": ('"Silent fallback harder to catch than crash"'),
             "framework_costume": (
                 '"FSM wearing DAG costume'
                 ' → if <50% nodes use core features, wrong tool"'
@@ -92,15 +90,9 @@ class TestInfrastructureSelfExemptGraduation:
             "tolerant_matching": (
                 '"prefix/contains/regex, not exact equality for LLM"'
             ),
-            "three_reads": (
-                '"surface → deep against code → mechanical simulation"'
-            ),
-            "streaming_xray": (
-                '"Real-time constraint exposes implicit assumptions"'
-            ),
-            "callsite_fix": (
-                '"Fix at the specific caller, not the shared utility"'
-            ),
+            "three_reads": ('"surface → deep against code → mechanical simulation"'),
+            "streaming_xray": ('"Real-time constraint exposes implicit assumptions"'),
+            "callsite_fix": ('"Fix at the specific caller, not the shared utility"'),
             "spec_kill": '"Cheapest bug is the one killed in the spec"',
             "judge_as_junior_pr": '"Assume plausible code hides subtle bugs"',
         }
@@ -119,19 +111,15 @@ class TestInfrastructureSelfExemptGraduation:
                 '"Heuristic appears twice → create FR;'
                 ' confirmed recurrence → graduate to Scripture"'
             ),
-            "conductor": (
-                '"Parallel viewpoints need Blue hat to sequence"'
-            ),
+            "conductor": ('"Parallel viewpoints need Blue hat to sequence"'),
             "boring_enforcement": (
                 '"Boring = Judgement was good; surprise = spec had gaps"'
             ),
             "audit_gate": (
-                '"Audit without blocking mechanism'
-                ' = post-mortem before incident"'
+                '"Audit without blocking mechanism' ' = post-mortem before incident"'
             ),
             "demo_vs_test": (
-                '"Tests prove constraints;'
-                ' demos prove abstraction worth having"'
+                '"Tests prove constraints;' ' demos prove abstraction worth having"'
             ),
             "unchallenged_premise": (
                 '"Judge validates execution, not intent'
