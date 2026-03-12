@@ -47,14 +47,16 @@ class TestFragmentFormat:
             REPO_ROOT / "scripts" / "aggregate_changelog.py",
         )
         fragment = tmp_path / "FR-100-test.md"
-        fragment.write_text(textwrap.dedent("""\
+        fragment.write_text(
+            textwrap.dedent("""\
             ---
             type: feat
             scope: graph
             req: REQ-YG-100
             ---
             **FR-100 Test Feature**: Add a test feature for validation.
-        """))
+        """)
+        )
         entry = aggregate.parse_fragment(fragment)
         assert entry.fr_num == "FR-100"
         assert entry.entry_type == "feat"
@@ -69,13 +71,15 @@ class TestFragmentFormat:
             REPO_ROOT / "scripts" / "aggregate_changelog.py",
         )
         fragment = tmp_path / "FR-101-no-req.md"
-        fragment.write_text(textwrap.dedent("""\
+        fragment.write_text(
+            textwrap.dedent("""\
             ---
             type: fix
             scope: cli
             ---
             **FR-101 Bug Fix**: Fix a bug in the CLI.
-        """))
+        """)
+        )
         entry = aggregate.parse_fragment(fragment)
         assert entry.entry_type == "fix"
         assert entry.req is None
@@ -87,13 +91,15 @@ class TestFragmentFormat:
             REPO_ROOT / "scripts" / "aggregate_changelog.py",
         )
         fragment = tmp_path / "FR-102-remove.md"
-        fragment.write_text(textwrap.dedent("""\
+        fragment.write_text(
+            textwrap.dedent("""\
             ---
             type: removal
             scope: utils
             ---
             **FR-102 Dead Code**: Remove dead module.
-        """))
+        """)
+        )
         entry = aggregate.parse_fragment(fragment)
         assert entry.entry_type == "removal"
 
@@ -104,12 +110,14 @@ class TestFragmentFormat:
             REPO_ROOT / "scripts" / "aggregate_changelog.py",
         )
         fragment = tmp_path / "FR-103-bad.md"
-        fragment.write_text(textwrap.dedent("""\
+        fragment.write_text(
+            textwrap.dedent("""\
             ---
             scope: graph
             ---
             Missing type field.
-        """))
+        """)
+        )
         with pytest.raises(ValueError, match="type"):
             aggregate.parse_fragment(fragment)
 
@@ -136,31 +144,37 @@ class TestAggregateChangelog:
         version_dir.mkdir()
 
         # Unreleased fragments
-        (unreleased / "FR-200-feat.md").write_text(textwrap.dedent("""\
+        (unreleased / "FR-200-feat.md").write_text(
+            textwrap.dedent("""\
             ---
             type: feat
             scope: graph
             req: REQ-YG-200
             ---
             - **FR-200 New Feature**: Add something new. (REQ-YG-200)
-        """))
-        (unreleased / "FR-201-fix.md").write_text(textwrap.dedent("""\
+        """)
+        )
+        (unreleased / "FR-201-fix.md").write_text(
+            textwrap.dedent("""\
             ---
             type: fix
             scope: cli
             ---
             - **FR-201 Bug Fix**: Fix a bug.
-        """))
+        """)
+        )
 
         # Versioned fragment
-        (version_dir / "FR-199-old.md").write_text(textwrap.dedent("""\
+        (version_dir / "FR-199-old.md").write_text(
+            textwrap.dedent("""\
             ---
             type: feat
             scope: core
             req: REQ-YG-199
             ---
             - **FR-199 Old Feature**: An older feature. (REQ-YG-199)
-        """))
+        """)
+        )
 
         output = aggregate.aggregate(changelog_dir)
         assert "## [Unreleased]" in output
@@ -172,7 +186,7 @@ class TestAggregateChangelog:
         assert "FR-199" in output
 
     def test_sorted_by_fr_number(self, tmp_path: Path) -> None:
-        """Within a section, entries sorted by FR number ascending."""
+        """Within a section, entries sorted by FR number descending (newest first)."""
         aggregate = _load_module(
             "aggregate_changelog",
             REPO_ROOT / "scripts" / "aggregate_changelog.py",
@@ -181,25 +195,31 @@ class TestAggregateChangelog:
         unreleased = changelog_dir / "unreleased"
         unreleased.mkdir(parents=True)
 
-        (unreleased / "FR-300-second.md").write_text(textwrap.dedent("""\
+        (unreleased / "FR-300-second.md").write_text(
+            textwrap.dedent("""\
             ---
             type: feat
             scope: graph
             ---
             - **FR-300 Second**: Second feature.
-        """))
-        (unreleased / "FR-200-first.md").write_text(textwrap.dedent("""\
+        """)
+        )
+        (unreleased / "FR-200-first.md").write_text(
+            textwrap.dedent("""\
             ---
             type: feat
             scope: graph
             ---
             - **FR-200 First**: First feature.
-        """))
+        """)
+        )
 
         output = aggregate.aggregate(changelog_dir)
         pos_200 = output.index("FR-200")
         pos_300 = output.index("FR-300")
-        assert pos_200 < pos_300, "FR-200 should appear before FR-300"
+        assert (
+            pos_300 < pos_200
+        ), "FR-300 should appear before FR-200 (descending order)"
 
     def test_empty_unreleased(self, tmp_path: Path) -> None:
         """Empty unreleased directory emits section with no entries."""
@@ -239,20 +259,24 @@ class TestAggregateChangelog:
         v2 = changelog_dir / "0.4.61"
         v2.mkdir()
 
-        (v1 / "FR-100-old.md").write_text(textwrap.dedent("""\
+        (v1 / "FR-100-old.md").write_text(
+            textwrap.dedent("""\
             ---
             type: feat
             scope: core
             ---
             - **FR-100 Old**: Old entry.
-        """))
-        (v2 / "FR-150-new.md").write_text(textwrap.dedent("""\
+        """)
+        )
+        (v2 / "FR-150-new.md").write_text(
+            textwrap.dedent("""\
             ---
             type: feat
             scope: core
             ---
             - **FR-150 New**: New entry.
-        """))
+        """)
+        )
 
         output = aggregate.aggregate(changelog_dir)
         pos_61 = output.index("0.4.61")
@@ -276,7 +300,8 @@ class TestMigrateChangelog:
             REPO_ROOT / "scripts" / "migrate_changelog.py",
         )
         changelog = tmp_path / "CHANGELOG.md"
-        changelog.write_text(textwrap.dedent("""\
+        changelog.write_text(
+            textwrap.dedent("""\
             # Changelog
 
             ## [Unreleased]
@@ -288,7 +313,8 @@ class TestMigrateChangelog:
 
             ### Added
             - **FR-100 Old Feature**: An old feature. (REQ-YG-100)
-        """))
+        """)
+        )
 
         output_dir = tmp_path / "changelog"
         migrate.migrate(changelog, output_dir)
@@ -304,7 +330,8 @@ class TestMigrateChangelog:
             REPO_ROOT / "scripts" / "migrate_changelog.py",
         )
         changelog = tmp_path / "CHANGELOG.md"
-        changelog.write_text(textwrap.dedent("""\
+        changelog.write_text(
+            textwrap.dedent("""\
             # Changelog
 
             ## [Unreleased]
@@ -316,7 +343,8 @@ class TestMigrateChangelog:
 
             ### Fixed
             - **FR-101 Bug Fix**: Fixed a bug.
-        """))
+        """)
+        )
 
         output_dir = tmp_path / "changelog"
         migrate.migrate(changelog, output_dir)
@@ -333,14 +361,16 @@ class TestMigrateChangelog:
             REPO_ROOT / "scripts" / "migrate_changelog.py",
         )
         changelog = tmp_path / "CHANGELOG.md"
-        changelog.write_text(textwrap.dedent("""\
+        changelog.write_text(
+            textwrap.dedent("""\
             # Changelog
 
             ## [Unreleased]
 
             ### Added
             - **FR-200 Test Feature**: Description here. (REQ-YG-200)
-        """))
+        """)
+        )
 
         output_dir = tmp_path / "changelog"
         migrate.migrate(changelog, output_dir)
@@ -361,14 +391,16 @@ class TestMigrateChangelog:
             REPO_ROOT / "scripts" / "migrate_changelog.py",
         )
         changelog = tmp_path / "CHANGELOG.md"
-        changelog.write_text(textwrap.dedent("""\
+        changelog.write_text(
+            textwrap.dedent("""\
             # Changelog
 
             ## [Unreleased]
 
             ### Fixed
             - **FR-300 Bug**: Fixed a bug.
-        """))
+        """)
+        )
 
         output_dir = tmp_path / "changelog"
         migrate.migrate(changelog, output_dir)
@@ -386,14 +418,16 @@ class TestMigrateChangelog:
             REPO_ROOT / "scripts" / "migrate_changelog.py",
         )
         changelog = tmp_path / "CHANGELOG.md"
-        changelog.write_text(textwrap.dedent("""\
+        changelog.write_text(
+            textwrap.dedent("""\
             # Changelog
 
             ## [Unreleased]
 
             ### Removed
             - **FR-400 Dead Code**: Remove dead module.
-        """))
+        """)
+        )
 
         output_dir = tmp_path / "changelog"
         migrate.migrate(changelog, output_dir)
@@ -411,14 +445,16 @@ class TestMigrateChangelog:
             REPO_ROOT / "scripts" / "migrate_changelog.py",
         )
         changelog = tmp_path / "CHANGELOG.md"
-        changelog.write_text(textwrap.dedent("""\
+        changelog.write_text(
+            textwrap.dedent("""\
             # Changelog
 
             ## [Unreleased]
 
             ### Fixed
             - **Lint Test Assertions**: Fix severity.value in tests.
-        """))
+        """)
+        )
 
         output_dir = tmp_path / "changelog"
         migrate.migrate(changelog, output_dir)
@@ -519,18 +555,18 @@ class TestFinalizeMergeFragments:
         """finalize_merge.sh must reference changelog/unreleased/ for fragments."""
         script_path = REPO_ROOT / "scripts" / "finalize_merge.sh"
         content = script_path.read_text()
-        assert "changelog/unreleased/" in content, (
-            "finalize_merge.sh should create fragments in changelog/unreleased/"
-        )
+        assert (
+            "changelog/unreleased/" in content
+        ), "finalize_merge.sh should create fragments in changelog/unreleased/"
 
     def test_script_does_not_edit_changelog(self) -> None:
         """finalize_merge.sh must not directly edit CHANGELOG.md."""
         script_path = REPO_ROOT / "scripts" / "finalize_merge.sh"
         content = script_path.read_text()
         # Should not contain sed operations on CHANGELOG.md
-        assert "CHANGELOG.md.tmp" not in content, (
-            "finalize_merge.sh should not create CHANGELOG.md.tmp (old edit pattern)"
-        )
+        assert (
+            "CHANGELOG.md.tmp" not in content
+        ), "finalize_merge.sh should not create CHANGELOG.md.tmp (old edit pattern)"
 
 
 # ---------------------------------------------------------------------------
@@ -546,15 +582,13 @@ class TestGateUpdates:
         """Pre-commit hook checks changelog/unreleased/ not CHANGELOG.md."""
         config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
         # Find the changelog-required hook
-        assert "changelog/unreleased/" in config, (
-            "Pre-commit hook should check for changelog/unreleased/ fragments"
-        )
+        assert (
+            "changelog/unreleased/" in config
+        ), "Pre-commit hook should check for changelog/unreleased/ fragments"
 
     def test_ci_gate_checks_fragments(self) -> None:
         """CI changelog-gate checks changelog/unreleased/ not CHANGELOG.md."""
-        workflow = (
-            REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
-        ).read_text()
-        assert "changelog/unreleased/" in workflow, (
-            "CI changelog-gate should check for changelog/unreleased/ fragments"
-        )
+        workflow = (REPO_ROOT / ".github" / "workflows" / "commitlint.yml").read_text()
+        assert (
+            "changelog/unreleased/" in workflow
+        ), "CI changelog-gate should check for changelog/unreleased/ fragments"

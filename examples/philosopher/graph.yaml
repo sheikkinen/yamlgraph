@@ -22,8 +22,8 @@ state:
   date: str                     # Current date for diary entry
   diary_prefix: str             # Diary entry prefix (default: Philosopher)
   scan_result: dict             # Extracted markers with counts
-  proposals: list               # Graduation proposals (if any)
-  diary_entry: dict             # Philosopher's own diary entry
+  proposals: Any                # Graduation proposals (Pydantic model)
+  diary_entry: Any              # Philosopher's own diary entry (Pydantic model)
   written: bool                 # True after diary append
 
 tools:

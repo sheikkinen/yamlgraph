@@ -274,10 +274,13 @@ class TestLogPathConvention:
 # ---------------------------------------------------------------------------
 @pytest.mark.req("REQ-YG-158")
 class TestChangelogEntry:
-    """CHANGELOG.md documents FR-175."""
+    """Changelog fragment documents FR-175."""
 
     def test_changelog_contains_fr175(self):
-        changelog_path = os.path.join(REPO_ROOT, "CHANGELOG.md")
-        with open(changelog_path) as f:
-            content = f.read()
-        assert "FR-175" in content
+        # FR-175 is in unreleased or versioned changelog fragments
+        unreleased_dir = os.path.join(REPO_ROOT, "changelog", "unreleased")
+        fragments = os.listdir(unreleased_dir) if os.path.isdir(unreleased_dir) else []
+        fr175_found = any("FR-175" in f for f in fragments)
+        assert (
+            fr175_found
+        ), "FR-175 changelog fragment must exist in changelog/unreleased/"

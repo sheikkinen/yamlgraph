@@ -16,27 +16,33 @@ user: |
 
   ## Proposals Generated
 
-  {{ proposals | tojson(indent=2) if proposals else "No graduation candidates found." }}
+  {% if proposals and proposals.proposals %}
+  {{ proposals.proposals }}
+  {% else %}
+  No graduation candidates found.
+  {% endif %}
 
   ## Instructions
 
-  Write a brief diary entry following this structure:
+  Write a brief diary entry with these fields:
 
-  **Context:** The Philosopher scanned diary entries for recurring patterns.
+  **theme:** A short title (2-4 words) describing today's focus
 
-  **Observations:** [What patterns were found, what stood out]
+  **body:** The main reflection (100-200 words) covering observations, traps, and heuristics
 
-  **Trap:** [If applicable — any cognitive trap observed in the patterns themselves]
+  **seed:** A single forward-looking question for future exploration
 
-  **Heuristic:** [What rule captures the insight]
-
-  **Seed:** [A question for future exploration]
-
-  Keep the entry concise (100-200 words).
+  Keep the entry concise. The body should be plain text suitable for markdown.
 
 schema:
   name: DiaryEntry
   fields:
-    content:
+    theme:
       type: str
-      description: The diary entry content in markdown format
+      description: Short title for the diary entry (2-4 words)
+    body:
+      type: str
+      description: Main reflection content in markdown format
+    seed:
+      type: str
+      description: A forward-looking question for future exploration

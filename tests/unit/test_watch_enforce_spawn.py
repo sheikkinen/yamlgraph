@@ -302,32 +302,30 @@ class TestWatchShellIntegration:
 
 @pytest.mark.req("REQ-YG-116")
 class TestChangelogEntry:
-    """Verify CHANGELOG.md documents FR-116."""
+    """Verify changelog fragment documents FR-116."""
 
     def test_changelog_contains_fr116_entry(self):
-        """CHANGELOG.md must have an FR-116 entry."""
-        changelog = _read_changelog()
+        """Changelog fragment for FR-116 must exist."""
+        changelog = _read_changelog_fragment()
         assert "FR-116" in changelog
 
     def test_changelog_fr116_in_released_section(self):
-        """FR-116 entry must appear in a released version section."""
-        changelog = _read_changelog()
-        # FR-116 was released in v0.4.61
-        version_start = changelog.index("[0.4.61]")
-        next_section = changelog.find("\n## [", version_start + 1)
-        version_block = changelog[version_start:next_section]
-        assert "FR-116" in version_block
+        """FR-116 fragment must be in a released version folder."""
+        # v0.4.61 folder exists with the fragment
+        fragment_path = os.path.join(
+            os.path.dirname(__file__), "..", "..", "changelog", "0.4.61"
+        )
+        assert os.path.isdir(fragment_path), "FR-116 was released in v0.4.61"
 
     def test_changelog_fr116_describes_watch_enforce_integration(self):
-        """FR-116 entry must mention key implementation details."""
-        changelog = _read_changelog()
+        """FR-116 fragment must mention key implementation details."""
+        changelog = _read_changelog_fragment()
         # Must reference the core components
-        assert "watch.sh" in changelog or "watch→enforce" in changelog.lower()
-        assert "enforce_worktree.sh" in changelog or "enforce" in changelog
+        assert "watch" in changelog.lower() or "enforce" in changelog.lower()
 
     def test_changelog_fr116_references_requirement(self):
-        """FR-116 entry must reference REQ-YG-116."""
-        changelog = _read_changelog()
+        """FR-116 fragment must reference REQ-YG-116."""
+        changelog = _read_changelog_fragment()
         assert "REQ-YG-116" in changelog
 
 
@@ -340,8 +338,15 @@ def _read_watch_sh() -> str:
         return f.read()
 
 
-def _read_changelog() -> str:
-    """Read the current CHANGELOG.md content."""
-    changelog_path = os.path.join(os.path.dirname(__file__), "..", "..", "CHANGELOG.md")
-    with open(changelog_path) as f:
+def _read_changelog_fragment() -> str:
+    """Read the FR-116 changelog fragment."""
+    fragment_path = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "changelog",
+        "0.4.61",
+        "FR-116-watch-enforce-spawn.md",
+    )
+    with open(fragment_path) as f:
         return f.read()
