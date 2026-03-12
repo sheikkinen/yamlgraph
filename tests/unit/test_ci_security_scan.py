@@ -23,7 +23,7 @@ def _load_workflow() -> dict:
 # ── YAML Structure Tests ───────────────────────────────────────────────────
 
 
-@pytest.mark.req("REQ-YG-185")
+@pytest.mark.req("REQ-YG-186")
 class TestSecurityWorkflowExists:
     """Verify the security workflow file exists and is valid YAML."""
 
@@ -41,7 +41,7 @@ class TestSecurityWorkflowExists:
         assert isinstance(wf, dict), "Workflow must be a YAML mapping"
 
 
-@pytest.mark.req("REQ-YG-185")
+@pytest.mark.req("REQ-YG-186")
 class TestSecurityWorkflowTriggers:
     """Verify the workflow triggers on PRs and version tag pushes."""
 
@@ -72,7 +72,7 @@ class TestSecurityWorkflowTriggers:
         assert "v*.*.*" in tags, "Workflow must trigger on push tags matching 'v*.*.*'"
 
 
-@pytest.mark.req("REQ-YG-185")
+@pytest.mark.req("REQ-YG-186")
 class TestSecurityWorkflowPermissions:
     """Verify the workflow has minimal permissions."""
 
@@ -85,7 +85,7 @@ class TestSecurityWorkflowPermissions:
         ), "Workflow must have 'contents: read' permission"
 
 
-@pytest.mark.req("REQ-YG-185")
+@pytest.mark.req("REQ-YG-186")
 class TestSecurityJobStructure:
     """Verify the security job has the correct structure."""
 
@@ -147,7 +147,7 @@ class TestSecurityJobStructure:
 # ── Documentation Tests ───────────────────────────────────────────────────
 
 
-@pytest.mark.req("REQ-YG-185")
+@pytest.mark.req("REQ-YG-186")
 class TestSecurityDocumentation:
     """Verify that CLAUDE.md documents the security status check."""
 

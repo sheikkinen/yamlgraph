@@ -1,4 +1,4 @@
-# FR-184: Philosopher Daemon
+# FR-184/FR-185: Philosopher Daemon
 # Scans diary entries for recurring patterns and proposes graduations to Scripture
 
 version: "1.0"
@@ -22,8 +22,8 @@ state:
   date: str                     # Current date for diary entry
   diary_prefix: str             # Diary entry prefix (default: Philosopher)
   scan_result: dict             # Extracted markers with counts
-  proposals: Any                # Graduation proposals (Pydantic model)
-  diary_entry: Any              # Philosopher's own diary entry (Pydantic model)
+  proposals: dict               # CopilotResult envelope (FR-185)
+  diary_entry: dict             # CopilotResult envelope (FR-185)
   written: bool                 # True after diary append
 
 tools:
@@ -47,14 +47,15 @@ nodes:
     tool: scan_diary_tool
     state_key: scan_result
 
-  # Stage 2: Analyze — LLM detects patterns and proposes graduations
+  # Stage 2: Analyze — Copilot detects patterns and proposes graduations (FR-185)
   analyze:
-    type: llm
+    type: copilot
     prompt: analyze
     variables:
       scan_result: "{state.scan_result}"
       graduation_threshold: "{state.graduation_threshold}"
     state_key: proposals
+    timeout: 300
 
   # Stage 3: Write proposals to inbox (if any)
   propose:
@@ -62,14 +63,15 @@ nodes:
     tool: write_proposal_tool
     state_key: proposals_written
 
-  # Stage 4: Write Philosopher's own diary entry
+  # Stage 4: Write Philosopher's own diary entry (FR-185)
   reflect:
-    type: llm
+    type: copilot
     prompt: reflect
     variables:
       scan_result: "{state.scan_result}"
       proposals: "{state.proposals}"
     state_key: diary_entry
+    timeout: 300
 
   # Stage 5: Write diary entry to file
   write_diary:

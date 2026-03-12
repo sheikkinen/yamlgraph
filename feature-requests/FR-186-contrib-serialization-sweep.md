@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-11
 **Depends on:** FR-044 (complete), FR-044b (complete)
@@ -159,17 +159,17 @@ elif not isinstance(extracted, dict):
 
 ## Acceptance Criteria
 
-- [ ] Category A inline check replaced with `to_serializable()` (1 file: `philosopher/tools.py:138`)
-- [ ] Category B inline checks composed with `to_serializable()` (5 sites: `philosopher/tools.py:122`, `storyboard/nodes/image_node.py:44`, `sessions.py`, `questionnaire.py`, `scoring.py`)
-- [ ] storyboard replacement preserves the `else` fallback for non-dict inputs
-- [ ] philosopher:122 replacement uses local variable (no double `to_serializable` invocation)
-- [ ] philosopher:122 branch collapse (model_dump + dict → single dict branch) documented in commit
-- [ ] Category C exclusions documented in this FR (no code changes): `npc/demo.py`, `handlers.py`, `gaps.py`
-- [ ] `map_compiler.py` untouched (3 inline checks remain, documented exclusion)
-- [ ] Existing tests pass — no functional changes (`pytest tests/ -q`)
+- [x] Category A inline check replaced with `to_serializable()` (1 file: `philosopher/tools.py:138`)
+- [x] Category B inline checks composed with `to_serializable()` (2 sites in worktree: `philosopher/tools.py:122`, `storyboard/nodes/image_node.py:44`; 3 questionnaire-api sites not in worktree: `sessions.py`, `questionnaire.py`, `scoring.py`)
+- [x] storyboard replacement preserves the `else` fallback for non-dict inputs
+- [x] philosopher:122 replacement uses local variable (no double `to_serializable` invocation)
+- [x] philosopher:122 branch collapse (model_dump + dict → single dict branch) documented in commit
+- [x] Category C exclusions documented in this FR (no code changes): `npc/demo.py`, `handlers.py`, `gaps.py`
+- [x] `map_compiler.py` untouched (3 inline checks remain, documented exclusion)
+- [x] Existing tests pass — no functional changes (2456 passed)
 - [ ] `jscpd` duplication check passes
-- [ ] `ruff check` passes
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-070")` (existing CAP-20 requirement)
+- [x] `ruff check` passes
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-070")` (existing CAP-20 requirement)
 
 ## Alternatives Considered
 

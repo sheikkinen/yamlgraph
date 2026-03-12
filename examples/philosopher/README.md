@@ -28,9 +28,9 @@ START → scan → analyze → propose → reflect → write_diary → END
 | Node | Type | Purpose |
 |------|------|---------|
 | `scan` | python | Extract `**Trap:**`, `**Heuristic:**`, `**Seed:**` markers from diary files |
-| `analyze` | llm | Detect patterns meeting graduation threshold |
+| `analyze` | copilot | Detect patterns meeting graduation threshold |
 | `propose` | python | Write graduation proposals to `.chaplain/inbox/` |
-| `reflect` | llm | Generate Philosopher's own diary reflection |
+| `reflect` | copilot | Generate Philosopher's own diary reflection |
 | `write_diary` | python | Append reflection to `docs/diary/` |
 
 ## Output Format

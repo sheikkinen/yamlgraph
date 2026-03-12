@@ -1,4 +1,4 @@
-"""FR-184: Philosopher Daemon tools.
+"""FR-184/FR-185: Philosopher Daemon tools.
 
 Provides scan_diary_markers() and write_proposals() for the philosopher graph.
 """
@@ -6,6 +6,9 @@ Provides scan_diary_markers() and write_proposals() for the philosopher graph.
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
+
+from yamlgraph.contrib import to_serializable
+from yamlgraph.models.schemas import CopilotResult
 
 
 def get_today() -> str:
@@ -116,15 +119,29 @@ def write_proposals(state: dict) -> dict:
     threshold = int(state.get("graduation_threshold", 3))
     proposals_raw = state.get("proposals", [])
 
-    # Unwrap Pydantic model if needed (LLM node returns structured output)
-    if hasattr(proposals_raw, "proposals"):
+    # FR-185: Single parse path — CopilotResult → extract JSON → validate through Pydantic
+    if isinstance(proposals_raw, CopilotResult):
+        from examples.philosopher.models import ProposalList, extract_json
+
+        json_str = extract_json(proposals_raw.output, "analyze")
+        proposal_list = ProposalList.model_validate_json(
+            json_str
+            if json_str.strip().startswith("{")
+            else f'{{"proposals": {json_str}}}'
+        )
+        proposals = proposal_list.proposals
+    elif hasattr(proposals_raw, "proposals"):
         proposals = proposals_raw.proposals
-    elif hasattr(proposals_raw, "model_dump"):
-        proposals = proposals_raw.model_dump().get("proposals", [])
-    elif isinstance(proposals_raw, dict):
-        proposals = proposals_raw.get("proposals", [])
     else:
-        proposals = proposals_raw if isinstance(proposals_raw, list) else []
+        # FR-186: Collapsed model_dump + dict branches into single dict branch
+        # via to_serializable (normalizes both Pydantic models and dicts to dicts)
+        serialized = to_serializable(proposals_raw)
+        if isinstance(serialized, dict):
+            proposals = serialized.get("proposals", [])
+        elif isinstance(serialized, list):
+            proposals = serialized
+        else:
+            proposals = []
 
     scripture_content = state.get("scripture_content", "")
 
@@ -134,12 +151,9 @@ def write_proposals(state: dict) -> dict:
     inbox_dir.mkdir(parents=True, exist_ok=True)
 
     for proposal in proposals:
-        # Handle both dict and Pydantic model
-        if hasattr(proposal, "model_dump"):
-            proposal = proposal.model_dump()
-        elif hasattr(proposal, "get"):
-            pass  # Already a dict
-        else:
+        # FR-186: Use to_serializable instead of inline hasattr check
+        proposal = to_serializable(proposal)
+        if not isinstance(proposal, dict):
             continue  # Skip unknown types
 
         name = proposal.get("name", "")
