@@ -46,6 +46,7 @@ After the learning path, explore production examples below.
 | [npc/](npc/) | D&D NPC generator | Multi-graph, map nodes, parallel NPCs |
 | [ocr_cleanup/](ocr_cleanup/) | OCR text cleanup | Map nodes, PDF extraction, parallel LLM cleanup |
 | [openai_proxy/](openai_proxy/) | OpenAI-compatible guardrail proxy | Echo→validate→respond pipeline, `/v1/chat/completions` |
+| [philosopher/](philosopher/) | Diary pattern scanner | Scripture graduation, chaplaincy daemon (FR-184) |
 | [questionnaire/](questionnaire/) | Feature request collector | Data files, interrupt loops, conditional routing |
 | [rag/](rag/) | RAG pipeline | LanceDB vectorstore, document indexing, retrieval |
 | [rtm-hello/](rtm-hello/) | TDD + requirement traceability | pytest markers, AST-based tooling |

@@ -32,6 +32,7 @@ RETIRED_CAPS = {
     "CAP-29": "Incaller Voice Demo — relocated to projects/incaller/",
     "CAP-52": "Architecture Capability Count Guard — removed by FR-177",
     "CAP-58": "Removed (see git history for details)",
+    "CAP-63": "Enforce Pipeline Reflexion Loop — superseded by FR-183 simplified pipeline",
 }
 
 REQUIRED_FIELDS = {"id", "name", "description", "modules", "requirements", "fr"}

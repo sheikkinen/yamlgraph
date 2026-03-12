@@ -27,7 +27,7 @@ def scan_diary_markers(state: dict) -> dict:
           - file_count: int
     """
     diary_dir = Path(state["diary_dir"])
-    lookback_days = state.get("lookback_days", 30)
+    lookback_days = int(state.get("lookback_days", 30))
 
     heuristics: dict[str, list[str]] = {}
     traps: dict[str, list[str]] = {}
@@ -113,8 +113,19 @@ def write_proposals(state: dict) -> dict:
         dict with written_count, excluded_already_graduated
     """
     inbox_dir = Path(state["inbox_dir"])
-    threshold = state.get("graduation_threshold", 3)
-    proposals = state.get("proposals", [])
+    threshold = int(state.get("graduation_threshold", 3))
+    proposals_raw = state.get("proposals", [])
+
+    # Unwrap Pydantic model if needed (LLM node returns structured output)
+    if hasattr(proposals_raw, "proposals"):
+        proposals = proposals_raw.proposals
+    elif hasattr(proposals_raw, "model_dump"):
+        proposals = proposals_raw.model_dump().get("proposals", [])
+    elif isinstance(proposals_raw, dict):
+        proposals = proposals_raw.get("proposals", [])
+    else:
+        proposals = proposals_raw if isinstance(proposals_raw, list) else []
+
     scripture_content = state.get("scripture_content", "")
 
     written_count = 0
@@ -123,6 +134,14 @@ def write_proposals(state: dict) -> dict:
     inbox_dir.mkdir(parents=True, exist_ok=True)
 
     for proposal in proposals:
+        # Handle both dict and Pydantic model
+        if hasattr(proposal, "model_dump"):
+            proposal = proposal.model_dump()
+        elif hasattr(proposal, "get"):
+            pass  # Already a dict
+        else:
+            continue  # Skip unknown types
+
         name = proposal.get("name", "")
         count = proposal.get("count", 0)
         proposal_type = proposal.get("type", "unknown")

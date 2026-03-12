@@ -43,5 +43,5 @@ schema:
   name: ProposalList
   fields:
     proposals:
-      type: list[dict]
+      type: list[Any]
       description: List of graduation proposals
