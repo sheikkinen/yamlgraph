@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - SQLite state persistence and checkpointing

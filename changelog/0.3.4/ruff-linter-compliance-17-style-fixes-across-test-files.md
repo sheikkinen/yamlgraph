@@ -1,6 +1,6 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - Ruff linter compliance: 17 style fixes across test files
   - Combined nested `with` statements (SIM117)

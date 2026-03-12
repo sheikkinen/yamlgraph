@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - JSON export of pipeline runs

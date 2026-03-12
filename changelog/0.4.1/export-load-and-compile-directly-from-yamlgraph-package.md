@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Export `load_and_compile` directly from `yamlgraph` package

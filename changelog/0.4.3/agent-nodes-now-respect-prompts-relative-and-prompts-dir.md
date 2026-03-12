@@ -1,5 +1,5 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - Agent nodes now respect `prompts_relative` and `prompts_dir` config

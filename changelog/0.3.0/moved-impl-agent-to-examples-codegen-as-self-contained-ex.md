@@ -1,6 +1,6 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Moved impl-agent to `examples/codegen/` as self-contained example
   - Tools: `examples/codegen/tools/` (13 analysis tools)

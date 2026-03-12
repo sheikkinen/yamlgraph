@@ -1,6 +1,6 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Implementation Agent (`graphs/impl-agent.yaml`) for code analysis
   - Analyzes codebases and generates implementation plans
