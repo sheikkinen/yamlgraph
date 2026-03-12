@@ -1,6 +1,7 @@
-"""FR-184: Philosopher Daemon tests.
+"""FR-184/FR-185: Philosopher Daemon tests.
 
-TDD RED phase: Tests for scan_diary_markers() and write_proposals().
+TDD RED phase: Tests for scan_diary_markers(), write_proposals(),
+and FR-185 copilot node migration (extract_json, Pydantic models).
 """
 
 from pathlib import Path
@@ -419,3 +420,384 @@ class TestPhilosopherReadme:
         readme_path = Path("examples/philosopher/README.md")
         content = readme_path.read_text()
         assert "usage" in content.lower() or "Usage" in content
+
+
+# =============================================================================
+# FR-185: Copilot Node Migration Tests
+# =============================================================================
+
+
+class TestExtractJson:
+    """Tests for extract_json() utility (AC-11, AC-13)."""
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_clean_json_array(self):
+        """extract_json should return clean JSON array unchanged."""
+        from examples.philosopher.models import extract_json
+
+        raw = '[{"type": "trap", "name": "quick_confidence", "count": 3, "files": ["d1.md"]}]'
+        result = extract_json(raw, "analyze")
+        assert result == raw
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_clean_json_object(self):
+        """extract_json should return clean JSON object unchanged."""
+        from examples.philosopher.models import extract_json
+
+        raw = '{"theme": "Patterns", "body": "Reflection text", "seed": "What next?"}'
+        result = extract_json(raw, "reflect")
+        assert result == raw
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_fenced_json(self):
+        """extract_json should strip markdown code fences."""
+        from examples.philosopher.models import extract_json
+
+        raw = '```json\n[{"type": "trap", "name": "x", "count": 3, "files": []}]\n```'
+        result = extract_json(raw, "analyze")
+        import json
+
+        parsed = json.loads(result)
+        assert isinstance(parsed, list)
+        assert parsed[0]["name"] == "x"
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_preamble_text(self):
+        """extract_json should strip preamble text before JSON."""
+        from examples.philosopher.models import extract_json
+
+        raw = 'Here are the results:\n\n[{"type": "heuristic", "name": "y", "count": 4, "files": ["a.md"]}]'
+        result = extract_json(raw, "analyze")
+        import json
+
+        parsed = json.loads(result)
+        assert parsed[0]["name"] == "y"
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_malformed_json_raises_pipeline_error(self):
+        """extract_json should raise PipelineError on unparseable input."""
+        from examples.philosopher.models import extract_json
+        from yamlgraph.models import PipelineError
+
+        with pytest.raises(PipelineError):
+            extract_json("This is just plain text with no JSON at all.", "analyze")
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_empty_string_raises_pipeline_error(self):
+        """extract_json should raise PipelineError on empty input."""
+        from examples.philosopher.models import extract_json
+        from yamlgraph.models import PipelineError
+
+        with pytest.raises(PipelineError):
+            extract_json("", "analyze")
+
+
+class TestPhilosopherModels:
+    """Tests for Pydantic models: Proposal, ProposalList, DiaryEntry (AC-10, AC-14)."""
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_proposal_list_validates_json(self):
+        """ProposalList should validate from JSON string."""
+        from examples.philosopher.models import ProposalList
+
+        json_str = '{"proposals": [{"type": "trap", "name": "quick_confidence", "count": 3, "files": ["d1.md", "d2.md", "d3.md"]}]}'
+        result = ProposalList.model_validate_json(json_str)
+        assert len(result.proposals) == 1
+        assert result.proposals[0].name == "quick_confidence"
+        assert result.proposals[0].count == 3
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_proposal_list_empty(self):
+        """ProposalList should accept empty proposals list."""
+        from examples.philosopher.models import ProposalList
+
+        result = ProposalList.model_validate_json('{"proposals": []}')
+        assert result.proposals == []
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_proposal_list_from_array(self):
+        """ProposalList should wrap raw JSON array into proposals field."""
+        from examples.philosopher.models import ProposalList
+        import json
+
+        raw_array = '[{"type": "trap", "name": "x", "count": 3, "files": []}]'
+        wrapped = f'{{"proposals": {raw_array}}}'
+        result = ProposalList.model_validate_json(wrapped)
+        assert len(result.proposals) == 1
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_diary_entry_validates_json(self):
+        """DiaryEntry should validate from JSON string."""
+        from examples.philosopher.models import DiaryEntry
+
+        json_str = '{"theme": "Pattern Scanning", "body": "Today I observed...", "seed": "What patterns emerge next?"}'
+        result = DiaryEntry.model_validate_json(json_str)
+        assert result.theme == "Pattern Scanning"
+        assert "observed" in result.body
+        assert "?" in result.seed
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_diary_entry_rejects_missing_fields(self):
+        """DiaryEntry should reject JSON missing required fields."""
+        from examples.philosopher.models import DiaryEntry
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            DiaryEntry.model_validate_json('{"theme": "Test"}')
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_proposal_has_typed_fields(self):
+        """Proposal fields should be properly typed (not Any)."""
+        from examples.philosopher.models import Proposal
+
+        # Verify fields are strongly typed
+        fields = Proposal.model_fields
+        assert fields["type"].annotation is str
+        assert fields["name"].annotation is str
+        assert fields["count"].annotation is int
+        assert fields["files"].annotation == list[str]
+
+
+class TestWriteProposalsCopilot:
+    """Tests for write_proposals() with CopilotResult input (AC-5, AC-8)."""
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_copilot_result_parsed_through_pydantic(self, tmp_path):
+        """write_proposals should parse CopilotResult.output through ProposalList."""
+        from examples.philosopher.tools import write_proposals
+        from yamlgraph.models.schemas import CopilotResult
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        copilot_output = CopilotResult(
+            output='[{"type": "trap", "name": "quick_confidence", "count": 3, "files": ["d1.md", "d2.md", "d3.md"]}]',
+            exit_code=0,
+        )
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": copilot_output,
+        }
+        result = write_proposals(state)
+
+        assert result["written_count"] == 1
+        files = list(inbox.glob("*.md"))
+        assert len(files) == 1
+        assert "quick_confidence" in files[0].name
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_copilot_result_with_fenced_json(self, tmp_path):
+        """write_proposals should handle CopilotResult with markdown fences."""
+        from examples.philosopher.tools import write_proposals
+        from yamlgraph.models.schemas import CopilotResult
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        copilot_output = CopilotResult(
+            output='```json\n[{"type": "heuristic", "name": "judge_as_junior", "count": 4, "files": ["d1.md", "d2.md", "d3.md", "d4.md"]}]\n```',
+            exit_code=0,
+        )
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": copilot_output,
+        }
+        result = write_proposals(state)
+
+        assert result["written_count"] == 1
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_copilot_result_empty_proposals(self, tmp_path):
+        """write_proposals should handle CopilotResult with empty JSON array."""
+        from examples.philosopher.tools import write_proposals
+        from yamlgraph.models.schemas import CopilotResult
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        copilot_output = CopilotResult(output="[]", exit_code=0)
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": copilot_output,
+        }
+        result = write_proposals(state)
+
+        assert result["written_count"] == 0
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_legacy_pydantic_model_still_works(self, tmp_path):
+        """write_proposals should still work with hasattr(.proposals) objects."""
+        from examples.philosopher.tools import write_proposals
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        class MockProposals:
+            proposals = [{"type": "trap", "name": "x", "count": 3, "files": []}]
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": MockProposals(),
+        }
+        result = write_proposals(state)
+
+        assert result["written_count"] == 1
+
+
+class TestWriteDiaryCopilot:
+    """Tests for write_diary() with CopilotResult input."""
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_copilot_result_diary_entry(self, tmp_path):
+        """write_diary should parse CopilotResult.output through DiaryEntry model."""
+        from examples.shared.diary import DIARY_DIR, write_diary
+        from yamlgraph.models.schemas import CopilotResult
+
+        copilot_output = CopilotResult(
+            output='{"theme": "Pattern Scanning", "body": "Today I observed recurring traps.", "seed": "What patterns will emerge tomorrow?"}',
+            exit_code=0,
+        )
+
+        state = {
+            "diary_entry": copilot_output,
+            "date": "2026-03-11",
+            "diary_prefix": "Philosopher",
+        }
+
+        result = write_diary(state)
+        assert result["written"] is True
+
+        entry_path = DIARY_DIR / "2026-03-11-philosopher.md"
+        if entry_path.exists():
+            content = entry_path.read_text()
+            assert "Pattern Scanning" in content
+            assert "recurring traps" in content
+            assert "Seed:" in content
+            entry_path.unlink()  # Cleanup
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_copilot_result_fenced_diary_entry(self, tmp_path):
+        """write_diary should handle CopilotResult with markdown fences."""
+        from examples.shared.diary import DIARY_DIR, write_diary
+        from yamlgraph.models.schemas import CopilotResult
+
+        copilot_output = CopilotResult(
+            output='```json\n{"theme": "Fenced Entry", "body": "Test body.", "seed": "Test seed?"}\n```',
+            exit_code=0,
+        )
+
+        state = {
+            "diary_entry": copilot_output,
+            "date": "2026-03-11",
+            "diary_prefix": "Philosopher",
+        }
+
+        result = write_diary(state)
+        assert result["written"] is True
+
+        entry_path = DIARY_DIR / "2026-03-11-philosopher.md"
+        if entry_path.exists():
+            content = entry_path.read_text()
+            assert "Fenced Entry" in content
+            entry_path.unlink()  # Cleanup
+
+
+class TestGraphCopilotNodes:
+    """Tests for graph.yaml copilot node configuration (AC-1, AC-2, AC-12)."""
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_analyze_node_is_copilot(self):
+        """analyze node should use type: copilot."""
+        import yaml
+
+        graph_path = Path("examples/philosopher/graph.yaml")
+        with open(graph_path) as f:
+            graph = yaml.safe_load(f)
+
+        assert graph["nodes"]["analyze"]["type"] == "copilot"
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_reflect_node_is_copilot(self):
+        """reflect node should use type: copilot."""
+        import yaml
+
+        graph_path = Path("examples/philosopher/graph.yaml")
+        with open(graph_path) as f:
+            graph = yaml.safe_load(f)
+
+        assert graph["nodes"]["reflect"]["type"] == "copilot"
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_no_cli_flags_on_copilot_nodes(self):
+        """Philosopher copilot nodes should not have cli_flags: allow_all_paths."""
+        import yaml
+
+        graph_path = Path("examples/philosopher/graph.yaml")
+        with open(graph_path) as f:
+            graph = yaml.safe_load(f)
+
+        for node_name in ("analyze", "reflect"):
+            node = graph["nodes"][node_name]
+            assert "cli_flags" not in node, f"{node_name} should not have cli_flags"
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_copilot_nodes_have_timeout(self):
+        """Copilot nodes should have timeout configured."""
+        import yaml
+
+        graph_path = Path("examples/philosopher/graph.yaml")
+        with open(graph_path) as f:
+            graph = yaml.safe_load(f)
+
+        for node_name in ("analyze", "reflect"):
+            node = graph["nodes"][node_name]
+            assert "timeout" in node, f"{node_name} should have timeout"
+
+
+class TestPromptsCopilot:
+    """Tests for prompt YAML changes (AC-3, AC-4)."""
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_analyze_prompt_no_schema(self):
+        """analyze prompt should not have a schema: block."""
+        import yaml
+
+        prompt_path = Path("examples/philosopher/prompts/analyze.yaml")
+        with open(prompt_path) as f:
+            prompt = yaml.safe_load(f)
+
+        assert "schema" not in prompt, "analyze.yaml should not have schema: block"
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_reflect_prompt_no_schema(self):
+        """reflect prompt should not have a schema: block."""
+        import yaml
+
+        prompt_path = Path("examples/philosopher/prompts/reflect.yaml")
+        with open(prompt_path) as f:
+            prompt = yaml.safe_load(f)
+
+        assert "schema" not in prompt, "reflect.yaml should not have schema: block"
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_analyze_prompt_has_json_guard(self):
+        """analyze prompt should include 'output ONLY valid JSON' guard."""
+        prompt_path = Path("examples/philosopher/prompts/analyze.yaml")
+        content = prompt_path.read_text()
+
+        assert "output ONLY valid JSON" in content.upper() or "Output ONLY valid JSON" in content
+
+    @pytest.mark.req("REQ-YG-185")
+    def test_reflect_prompt_has_json_guard(self):
+        """reflect prompt should include 'output ONLY valid JSON' guard."""
+        prompt_path = Path("examples/philosopher/prompts/reflect.yaml")
+        content = prompt_path.read_text()
+
+        assert "output ONLY valid JSON" in content.upper() or "Output ONLY valid JSON" in content
