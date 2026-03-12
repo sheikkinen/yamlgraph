@@ -28,18 +28,24 @@ EOF
 # 4. Bump version
 sed -i '' 's/version = "X.Y.Z"/version = "X.Y.W"/' pyproject.toml
 
-# 5. Stage and commit (expect hook failures)
+# 5. Freeze changelog (move unreleased to versioned folder)
+VERSION="X.Y.W"
+mkdir -p "changelog/${VERSION}"
+mv changelog/unreleased/*.md "changelog/${VERSION}/"
+python scripts/aggregate_changelog.py > CHANGELOG.md
+
+# 6. Stage and commit (expect hook failures)
 git add -A
 git commit -F tmp/msg.txt  # Will likely fail on first try
 
-# 6. Handle hook cascade (repeat until green)
+# 7. Handle hook cascade (repeat until green)
 # - ruff: auto-fixes, re-stage
 # - ruff-format: auto-fixes, re-stage
 # - trailing-whitespace: auto-fixes, re-stage
 # - req_coverage: Add missing capability/requirement to capabilities/*.yaml
 git add -A && git commit -F tmp/msg.txt  # Repeat
 
-# 7. Push and tag
+# 8. Push and tag
 git push
 git tag v0.4.XX
 git push --tags

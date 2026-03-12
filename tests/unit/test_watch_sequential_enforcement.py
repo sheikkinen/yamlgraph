@@ -278,9 +278,13 @@ class TestChangelogEntry:
 
     def test_changelog_contains_fr175(self):
         # FR-175 is in unreleased or versioned changelog fragments
-        unreleased_dir = os.path.join(REPO_ROOT, "changelog", "unreleased")
-        fragments = os.listdir(unreleased_dir) if os.path.isdir(unreleased_dir) else []
-        fr175_found = any("FR-175" in f for f in fragments)
-        assert (
-            fr175_found
-        ), "FR-175 changelog fragment must exist in changelog/unreleased/"
+        changelog_dir = os.path.join(REPO_ROOT, "changelog")
+        fr175_found = False
+        for version_dir in os.listdir(changelog_dir):
+            version_path = os.path.join(changelog_dir, version_dir)
+            if os.path.isdir(version_path):
+                fragments = os.listdir(version_path)
+                if any("FR-175" in f for f in fragments):
+                    fr175_found = True
+                    break
+        assert fr175_found, "FR-175 changelog fragment must exist in changelog/"
