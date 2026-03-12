@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from examples.shared.replicate_tool import ImageResult, generate_image
+from yamlgraph.contrib import to_serializable
 
 logger = logging.getLogger(__name__)
 
@@ -40,13 +41,10 @@ def generate_images_node(state: GraphState) -> dict:
             "error": "No story panels to generate",
         }
 
-    # Handle Pydantic model or dict
-    if hasattr(story, "model_dump"):
-        story_dict = story.model_dump()
-    elif isinstance(story, dict):
-        story_dict = story
-    else:
-        story_dict = {"panels": [str(story)]}
+    # Handle Pydantic model or dict (FR-186: via to_serializable)
+    story_dict = to_serializable(story)
+    if not isinstance(story_dict, dict):
+        story_dict = {"panels": [str(story_dict)]}
 
     # Extract panel prompts (supports dynamic list)
     panels = story_dict.get("panels", [])
