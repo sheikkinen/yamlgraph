@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-12
 
@@ -76,15 +76,15 @@ The `seeds:` section is placed after `process:` and before the closing ``` of th
 
 ## Acceptance Criteria
 
-- [ ] 5 heuristic patterns added to `process:` section in `.github/copilot-instructions.md` with exact text from Proposed Solution
-- [ ] New `seeds:` section added after `process:` section with 3 seed patterns
-- [ ] Section comment `# Forward-looking patterns awaiting implementation` present on `seeds:`
-- [ ] All 8 pattern descriptions are one-liners following existing `key: "trigger → redirect"` convention
-- [ ] `changelog_ci_gate` placed in `process:` (not `seeds:`) with description referencing FR-149
-- [ ] No existing Knowledge Graph entries modified (this FR is additive only)
+- [x] 5 heuristic patterns added to `process:` section in `.github/copilot-instructions.md` with exact text from Proposed Solution
+- [x] New `seeds:` section added after `process:` section with 3 seed patterns
+- [x] Section comment `# Forward-looking patterns awaiting implementation` present on `seeds:`
+- [x] All 8 pattern descriptions are one-liners following existing `key: "trigger → redirect"` convention
+- [x] `changelog_ci_gate` placed in `process:` (not `seeds:`) with description referencing FR-149
+- [x] No existing Knowledge Graph entries modified (this FR is additive only)
 - [ ] Pre-commit hooks pass
-- [ ] Changelog fragment added to `changelog/unreleased/`
-- [ ] Diary reflection documents the graduation ceremony
+- [x] Changelog fragment added to `changelog/unreleased/`
+- [x] Diary reflection documents the graduation ceremony
 
 ## Alternatives Considered
 
