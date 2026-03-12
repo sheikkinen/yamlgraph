@@ -4,6 +4,9 @@ name: Conventional Commit Check
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   pull-requests: read
@@ -81,6 +84,27 @@ jobs:
             echo "::error::feat/fix PRs must include a changelog fragment in changelog/unreleased/"
             exit 1
           fi
+
+  release-hygiene:
+    name: Release hygiene (tag validation)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify changelog folder exists for tag
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          if [ ! -d "changelog/${VERSION}" ]; then
+            echo "::error::Tag v${VERSION} created without changelog/${VERSION}/ folder"
+            echo "Run: scripts/release.sh ${VERSION}"
+            exit 1
+          fi
+          ORPHANS=$(find changelog/unreleased -name '*.md' ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$ORPHANS" -gt 0 ]; then
+            echo "::error::Tag v${VERSION} pushed with ${ORPHANS} orphaned fragments in changelog/unreleased/"
+            exit 1
+          fi
+          echo "✅ Release hygiene passed for v${VERSION}"
 
   diary-gate:
     name: Diary reflection required for feat/fix
