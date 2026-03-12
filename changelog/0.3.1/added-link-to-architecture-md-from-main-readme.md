@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Added link to ARCHITECTURE.md from main README

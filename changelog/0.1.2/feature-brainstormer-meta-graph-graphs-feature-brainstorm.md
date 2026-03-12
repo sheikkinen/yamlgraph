@@ -1,6 +1,6 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Feature Brainstormer meta-graph (`graphs/feature-brainstorm.yaml`)
   - Analyzes YAMLGraph codebase and proposes new features

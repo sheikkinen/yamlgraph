@@ -1,5 +1,5 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - `.gitignore` - Added `tmp/` to ignore temporary test files

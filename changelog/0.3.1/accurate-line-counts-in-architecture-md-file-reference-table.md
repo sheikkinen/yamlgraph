@@ -1,5 +1,5 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - Accurate line counts in ARCHITECTURE.md file reference table

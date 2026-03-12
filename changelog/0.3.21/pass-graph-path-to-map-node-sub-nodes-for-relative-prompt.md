@@ -1,5 +1,5 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - Pass `graph_path` to map node sub-nodes for relative prompt resolution

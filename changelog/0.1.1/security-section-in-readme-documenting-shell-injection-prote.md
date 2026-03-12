@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Security section in README documenting shell injection protection

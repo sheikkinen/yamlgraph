@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Shell command variables sanitized with `shlex.quote()`

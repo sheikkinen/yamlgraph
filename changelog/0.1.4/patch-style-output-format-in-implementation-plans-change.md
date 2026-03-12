@@ -1,6 +1,6 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Patch-style output format in implementation plans
   - Changes now include actual code: `file:LINE ACTION | after: context | code: ...`

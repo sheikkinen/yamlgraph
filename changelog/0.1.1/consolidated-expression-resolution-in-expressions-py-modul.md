@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Consolidated expression resolution in `expressions.py` module

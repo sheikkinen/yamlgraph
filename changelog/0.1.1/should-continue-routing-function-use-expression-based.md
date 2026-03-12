@@ -1,5 +1,5 @@
 ---
 type: removal
-scope: 
+scope:
 ---
 - `should_continue()` routing function - use expression-based conditions

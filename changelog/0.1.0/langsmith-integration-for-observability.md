@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - LangSmith integration for observability

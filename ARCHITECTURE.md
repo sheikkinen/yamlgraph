@@ -342,6 +342,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 65 | Append-Only Capability Registry | `capabilities/`, `scripts/req_coverage.py` | REQ-YG-161 |
 | 66 | Append-Only Changelog | `changelog/`, `scripts/aggregate_changelog.py` | REQ-YG-162 |
 | 67 | Philosopher Daemon | `examples/philosopher/`, `.chaplain/philosopher.sh` | REQ-YG-184 |
+| 68 | CI Dependency Security Scan | `.github/workflows/security.yml` | REQ-YG-185 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -828,6 +829,7 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | REQ-YG-161 | **Append-only capability registry**: Individual YAML files in `capabilities/` validated by `scripts/validate_capabilities.py`, aggregated into ARCHITECTURE.md by `scripts/aggregate_capabilities.py`, loaded by `scripts/req_coverage.py`. Pre-commit hook enforces schema on every commit. New FRs add files rather than editing shared artifacts | `capabilities/`, `scripts/validate_capabilities.py`, `scripts/aggregate_capabilities.py`, `scripts/req_coverage.py`, `tests/unit/test_capability_registry.py` |
 | REQ-YG-162 | **Append-only changelog fragments**: Individual markdown files in `changelog/unreleased/` with YAML front matter (type, scope, req). `scripts/aggregate_changelog.py` assembles all fragments into `CHANGELOG.md` grouped by version and type. Pre-commit and CI gates enforce fragment existence for feat/fix PRs. `CHANGELOG.md` is gitignored and generated on demand | `changelog/`, `scripts/aggregate_changelog.py`, `scripts/migrate_changelog.py`, `tests/unit/test_changelog_fragments.py` |
 | REQ-YG-184 | **Philosopher daemon**: `scan_diary_markers()` extracts `**Trap:**`, `**Heuristic:**`, `**Seed:**` markers from diary files. `write_proposals()` creates graduation proposals in `.chaplain/inbox/` for patterns appearing ≥ graduation_threshold times. 5-node graph (scan → analyze → propose → reflect → write_diary). `philosopher.sh` daemon script runs on-demand. Deduplicates against existing Scripture entries | `examples/philosopher/`, `.chaplain/philosopher.sh`, `tests/unit/test_philosopher.py` |
+| REQ-YG-185 | **CI dependency security scan**: `.github/workflows/security.yml` runs `pip-audit --strict --desc` on every PR and version tag push. Triggers on `pull_request` (opened, synchronize, reopened) and `push: tags: v*.*.*`. Produces a `security` required status check for branch protection. Uses PyPA-endorsed OSV database — no API keys required | `.github/workflows/security.yml`, `tests/unit/test_ci_security_scan.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

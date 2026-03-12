@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Interview demo graph (`graphs/interview-demo.yaml`)

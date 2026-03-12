@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Fixed outdated path: `graphs/impl-agent.yaml` → `examples/codegen/impl-agent.yaml`

@@ -1,0 +1,15 @@
+id: CAP-68
+name: CI Dependency Security Scan
+description: >
+  CI workflow that runs pip-audit to scan Python dependencies for known
+  vulnerabilities (CVEs) on every PR and version tag push.
+fr: FR-187
+modules:
+  - .github/workflows/security.yml
+requirements:
+  - id: REQ-YG-185
+    description: >
+      CI workflow runs pip-audit --strict --desc on every PR and version tag push.
+      Produces a 'security' required status check for branch protection.
+    modules:
+      - .github/workflows/security.yml
