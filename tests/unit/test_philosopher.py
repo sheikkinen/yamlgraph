@@ -475,20 +475,18 @@ class TestExtractJson:
 
     @pytest.mark.req("REQ-YG-185")
     def test_malformed_json_raises_pipeline_error(self):
-        """extract_json should raise PipelineError on unparseable input."""
+        """extract_json should raise ValueError on unparseable input."""
         from examples.philosopher.models import extract_json
-        from yamlgraph.models import PipelineError
 
-        with pytest.raises(PipelineError):
+        with pytest.raises(ValueError):
             extract_json("This is just plain text with no JSON at all.", "analyze")
 
     @pytest.mark.req("REQ-YG-185")
     def test_empty_string_raises_pipeline_error(self):
-        """extract_json should raise PipelineError on empty input."""
+        """extract_json should raise ValueError on empty input."""
         from examples.philosopher.models import extract_json
-        from yamlgraph.models import PipelineError
 
-        with pytest.raises(PipelineError):
+        with pytest.raises(ValueError):
             extract_json("", "analyze")
 
 
@@ -573,6 +571,7 @@ class TestWriteProposalsCopilot:
         copilot_output = CopilotResult(
             output='[{"type": "trap", "name": "quick_confidence", "count": 3, "files": ["d1.md", "d2.md", "d3.md"]}]',
             exit_code=0,
+            backend="cli",
         )
 
         state = {
@@ -599,6 +598,7 @@ class TestWriteProposalsCopilot:
         copilot_output = CopilotResult(
             output='```json\n[{"type": "heuristic", "name": "judge_as_junior", "count": 4, "files": ["d1.md", "d2.md", "d3.md", "d4.md"]}]\n```',
             exit_code=0,
+            backend="cli",
         )
 
         state = {
@@ -619,7 +619,7 @@ class TestWriteProposalsCopilot:
         inbox = tmp_path / "inbox"
         inbox.mkdir()
 
-        copilot_output = CopilotResult(output="[]", exit_code=0)
+        copilot_output = CopilotResult(output="[]", exit_code=0, backend="cli")
 
         state = {
             "inbox_dir": str(inbox),
@@ -663,6 +663,7 @@ class TestWriteDiaryCopilot:
         copilot_output = CopilotResult(
             output='{"theme": "Pattern Scanning", "body": "Today I observed recurring traps.", "seed": "What patterns will emerge tomorrow?"}',
             exit_code=0,
+            backend="cli",
         )
 
         state = {
@@ -691,6 +692,7 @@ class TestWriteDiaryCopilot:
         copilot_output = CopilotResult(
             output='```json\n{"theme": "Fenced Entry", "body": "Test body.", "seed": "Test seed?"}\n```',
             exit_code=0,
+            backend="cli",
         )
 
         state = {

@@ -1,4 +1,4 @@
-# FR-184: Philosopher reflection — generates diary entry
+# FR-184/FR-185: Philosopher reflection — generates diary entry
 
 system: |
   You are the Philosopher writing your own diary reflection after scanning
@@ -16,8 +16,8 @@ user: |
 
   ## Proposals Generated
 
-  {% if proposals and proposals.proposals %}
-  {{ proposals.proposals }}
+  {% if proposals and proposals.output %}
+  {{ proposals.output }}
   {% else %}
   No graduation candidates found.
   {% endif %}
@@ -34,15 +34,8 @@ user: |
 
   Keep the entry concise. The body should be plain text suitable for markdown.
 
-schema:
-  name: DiaryEntry
-  fields:
-    theme:
-      type: str
-      description: Short title for the diary entry (2-4 words)
-    body:
-      type: str
-      description: Main reflection content in markdown format
-    seed:
-      type: str
-      description: A forward-looking question for future exploration
+  IMPORTANT: Output ONLY valid JSON — no markdown fences, no preamble text,
+  no explanation. Your entire response must be a single JSON object.
+
+  Output format:
+  {"theme": "Short Title", "body": "Reflection content...", "seed": "Forward question?"}

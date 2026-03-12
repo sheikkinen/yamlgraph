@@ -1,4 +1,4 @@
-"""FR-184: Philosopher Daemon tools.
+"""FR-184/FR-185: Philosopher Daemon tools.
 
 Provides scan_diary_markers() and write_proposals() for the philosopher graph.
 """
@@ -6,6 +6,8 @@ Provides scan_diary_markers() and write_proposals() for the philosopher graph.
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
+
+from yamlgraph.models.schemas import CopilotResult
 
 
 def get_today() -> str:
@@ -116,13 +118,17 @@ def write_proposals(state: dict) -> dict:
     threshold = int(state.get("graduation_threshold", 3))
     proposals_raw = state.get("proposals", [])
 
-    # Unwrap Pydantic model if needed (LLM node returns structured output)
-    if hasattr(proposals_raw, "proposals"):
+    # FR-185: Single parse path — CopilotResult → extract JSON → validate through Pydantic
+    if isinstance(proposals_raw, CopilotResult):
+        from examples.philosopher.models import ProposalList, extract_json
+
+        json_str = extract_json(proposals_raw.output, "analyze")
+        proposal_list = ProposalList.model_validate_json(
+            json_str if json_str.strip().startswith("{") else f'{{"proposals": {json_str}}}'
+        )
+        proposals = proposal_list.proposals
+    elif hasattr(proposals_raw, "proposals"):
         proposals = proposals_raw.proposals
-    elif hasattr(proposals_raw, "model_dump"):
-        proposals = proposals_raw.model_dump().get("proposals", [])
-    elif isinstance(proposals_raw, dict):
-        proposals = proposals_raw.get("proposals", [])
     else:
         proposals = proposals_raw if isinstance(proposals_raw, list) else []
 
