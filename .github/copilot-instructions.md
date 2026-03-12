@@ -81,6 +81,17 @@ process:
   audit_gate: "Audit without blocking mechanism = post-mortem before incident"
   demo_vs_test: "Tests prove constraints; demos prove abstraction worth having"
   unchallenged_premise: "Judge validates execution, not intent → need Red Hat: 'Is the pain real?'"
+  automation_inherits_doctrine: "Scripts follow same rules as humans → no --no-verify bypass"
+  changelog_ci_gate: "Require changelog fragments at CI, not documentation → FR-149 proved advisory docs insufficient"
+  detection_without_enforcement: "Lint without gate = advisory → add CI block or remove claim"
+  enforcement_at_merge_boundary: "PR merge is last gate → all enforcement must block there"
+  mixed_commits_erode_auditability: "One concern per commit → clear blame, clear revert"
+
+seeds:
+  # Forward-looking patterns awaiting implementation
+  inquisitor_auto_escalation: "Auto-create FR when audit pattern hits threshold"
+  req_coverage_as_universal_gate: "Block PR merge on coverage gaps, not just report"
+  verification_checkpoint_primitive: "Checkpoint/resume for long enforce pipelines"
 ```
 
 ### Requirement Traceability (ADR-001)
