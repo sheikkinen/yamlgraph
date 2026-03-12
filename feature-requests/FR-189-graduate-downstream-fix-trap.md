@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-12
 
@@ -59,10 +59,10 @@ No other Scripture changes are needed. The complementary cure `callsite_fix: "Fi
 
 ## Acceptance Criteria
 
-- [ ] `downstream_fix` description in `.github/copilot-instructions.md` updated to: `"Guard added where symptom manifests → normalize at entry boundary instead"`
-- [ ] No other traps or cures descriptions changed
-- [ ] Pre-commit hooks pass (copilot-instructions content is validated)
-- [ ] Changelog fragment added to `changelog/unreleased/`
+- [x] `downstream_fix` description in `.github/copilot-instructions.md` updated to: `"Guard added where symptom manifests → normalize at entry boundary instead"`
+- [x] No other traps or cures descriptions changed
+- [x] Pre-commit hooks pass (copilot-instructions content is validated)
+- [x] Changelog fragment added to `changelog/unreleased/`
 
 ## Alternatives Considered
 
