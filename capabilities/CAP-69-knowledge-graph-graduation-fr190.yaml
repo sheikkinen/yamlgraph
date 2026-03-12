@@ -1,0 +1,18 @@
+id: CAP-69
+name: Knowledge Graph Graduation (FR-190)
+fr: FR-190
+description: >
+  Graduates the infrastructure_self_exempt trap to the Scripture Knowledge Graph
+  in .github/copilot-instructions.md, based on 3 confirmed diary occurrences
+  (audits 94, 95, 97). Names the cognitive blind spot where meta-tooling
+  exempts itself from the quality gates it enforces.
+modules:
+  - .github/copilot-instructions.md
+requirements:
+  - id: REQ-YG-187
+    description: >
+      infrastructure_self_exempt trap present in Scripture traps section with
+      exact text, no existing traps/cures/process entries changed
+    modules:
+      - .github/copilot-instructions.md
+      - tests/unit/test_knowledge_graph_fr190.py

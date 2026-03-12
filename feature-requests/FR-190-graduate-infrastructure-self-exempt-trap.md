@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-12
 
@@ -56,12 +56,12 @@ No other Scripture changes are needed. The existing `audit_as_ritual` trap and `
 
 ## Acceptance Criteria
 
-- [ ] New `infrastructure_self_exempt` entry added to `traps:` section in `.github/copilot-instructions.md`
-- [ ] Exact text: `infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards"`
-- [ ] No other traps, cures, or process descriptions changed
+- [x] New `infrastructure_self_exempt` entry added to `traps:` section in `.github/copilot-instructions.md`
+- [x] Exact text: `infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards"`
+- [x] No other traps, cures, or process descriptions changed
 - [ ] Pre-commit hooks pass
-- [ ] Changelog fragment added to `changelog/unreleased/`
-- [ ] Diary reflection added to `docs/diary/`
+- [x] Changelog fragment added to `changelog/unreleased/`
+- [x] Diary reflection added to `docs/diary/`
 
 ## Alternatives Considered
 
