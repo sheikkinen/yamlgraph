@@ -3,7 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Enhancement
 **FR:** FR-187
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-12
 
@@ -102,10 +102,10 @@ Update the branch protection table and required status checks section in `CLAUDE
 
 ## Acceptance Criteria
 
-- [ ] `.github/workflows/security.yml` exists with a `security` job running `pip-audit --strict --desc`
-- [ ] The workflow triggers on `pull_request` (opened, synchronize, reopened) and `push: tags: v*.*.*`
-- [ ] `security` is added to required status checks in branch protection for `main`
-- [ ] Documentation updated: add `security` job to the branch protection table in `CLAUDE.md` and the required status checks list
+- [x] `.github/workflows/security.yml` exists with a `security` job running `pip-audit --strict --desc`
+- [x] The workflow triggers on `pull_request` (opened, synchronize, reopened) and `push: tags: v*.*.*`
+- [x] `security` is added to required status checks in branch protection for `main`
+- [x] Documentation updated: add `security` job to the branch protection table in `CLAUDE.md` and the required status checks list
 - [ ] A known-vulnerable dependency (simulated via pinned version) causes the job to fail (manual verification on PR)
 
 ## Alternatives Considered
