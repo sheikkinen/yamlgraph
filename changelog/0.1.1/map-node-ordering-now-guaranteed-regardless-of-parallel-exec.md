@@ -1,5 +1,5 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - Map node ordering now guaranteed regardless of parallel execution timing

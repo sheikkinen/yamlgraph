@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - YAML-based graph definition with `graphs/*.yaml`

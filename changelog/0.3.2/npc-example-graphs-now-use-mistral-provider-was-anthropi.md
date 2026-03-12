@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - NPC example graphs now use `mistral` provider (was `anthropic`)

@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - FastAPI integration example (`examples/fastapi_interview.py`)

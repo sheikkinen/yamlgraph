@@ -1,5 +1,5 @@
 ---
 type: removal
-scope: 
+scope:
 ---
 - Dead `replicate_tool.py` re-export

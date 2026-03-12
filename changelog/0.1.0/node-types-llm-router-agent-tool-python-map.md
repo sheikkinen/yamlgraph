@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Node types: `llm`, `router`, `agent`, `tool`, `python`, `map`

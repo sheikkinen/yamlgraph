@@ -515,8 +515,8 @@ class TestPhilosopherModels:
     @pytest.mark.req("REQ-YG-185")
     def test_proposal_list_from_array(self):
         """ProposalList should wrap raw JSON array into proposals field."""
+
         from examples.philosopher.models import ProposalList
-        import json
 
         raw_array = '[{"type": "trap", "name": "x", "count": 3, "files": []}]'
         wrapped = f'{{"proposals": {raw_array}}}'
@@ -537,8 +537,9 @@ class TestPhilosopherModels:
     @pytest.mark.req("REQ-YG-185")
     def test_diary_entry_rejects_missing_fields(self):
         """DiaryEntry should reject JSON missing required fields."""
-        from examples.philosopher.models import DiaryEntry
         from pydantic import ValidationError
+
+        from examples.philosopher.models import DiaryEntry
 
         with pytest.raises(ValidationError):
             DiaryEntry.model_validate_json('{"theme": "Test"}')
@@ -655,10 +656,13 @@ class TestWriteDiaryCopilot:
     """Tests for write_diary() with CopilotResult input."""
 
     @pytest.mark.req("REQ-YG-185")
-    def test_copilot_result_diary_entry(self, tmp_path):
+    def test_copilot_result_diary_entry(self, tmp_path, monkeypatch):
         """write_diary should parse CopilotResult.output through DiaryEntry model."""
-        from examples.shared.diary import DIARY_DIR, write_diary
+        import examples.shared.diary as diary_mod
+        from examples.shared.diary import write_diary
         from yamlgraph.models.schemas import CopilotResult
+
+        monkeypatch.setattr(diary_mod, "DIARY_DIR", tmp_path)
 
         copilot_output = CopilotResult(
             output='{"theme": "Pattern Scanning", "body": "Today I observed recurring traps.", "seed": "What patterns will emerge tomorrow?"}',
@@ -675,19 +679,21 @@ class TestWriteDiaryCopilot:
         result = write_diary(state)
         assert result["written"] is True
 
-        entry_path = DIARY_DIR / "2026-03-11-philosopher.md"
-        if entry_path.exists():
-            content = entry_path.read_text()
-            assert "Pattern Scanning" in content
-            assert "recurring traps" in content
-            assert "Seed:" in content
-            entry_path.unlink()  # Cleanup
+        entry_path = tmp_path / "2026-03-11-philosopher.md"
+        assert entry_path.exists()
+        content = entry_path.read_text()
+        assert "Pattern Scanning" in content
+        assert "recurring traps" in content
+        assert "Seed:" in content
 
     @pytest.mark.req("REQ-YG-185")
-    def test_copilot_result_fenced_diary_entry(self, tmp_path):
+    def test_copilot_result_fenced_diary_entry(self, tmp_path, monkeypatch):
         """write_diary should handle CopilotResult with markdown fences."""
-        from examples.shared.diary import DIARY_DIR, write_diary
+        import examples.shared.diary as diary_mod
+        from examples.shared.diary import write_diary
         from yamlgraph.models.schemas import CopilotResult
+
+        monkeypatch.setattr(diary_mod, "DIARY_DIR", tmp_path)
 
         copilot_output = CopilotResult(
             output='```json\n{"theme": "Fenced Entry", "body": "Test body.", "seed": "Test seed?"}\n```',
@@ -704,11 +710,10 @@ class TestWriteDiaryCopilot:
         result = write_diary(state)
         assert result["written"] is True
 
-        entry_path = DIARY_DIR / "2026-03-11-philosopher.md"
-        if entry_path.exists():
-            content = entry_path.read_text()
-            assert "Fenced Entry" in content
-            entry_path.unlink()  # Cleanup
+        entry_path = tmp_path / "2026-03-11-philosopher.md"
+        assert entry_path.exists()
+        content = entry_path.read_text()
+        assert "Fenced Entry" in content
 
 
 class TestGraphCopilotNodes:
@@ -794,7 +799,10 @@ class TestPromptsCopilot:
         prompt_path = Path("examples/philosopher/prompts/analyze.yaml")
         content = prompt_path.read_text()
 
-        assert "output ONLY valid JSON" in content.upper() or "Output ONLY valid JSON" in content
+        assert (
+            "output ONLY valid JSON" in content.upper()
+            or "Output ONLY valid JSON" in content
+        )
 
     @pytest.mark.req("REQ-YG-185")
     def test_reflect_prompt_has_json_guard(self):
@@ -802,4 +810,7 @@ class TestPromptsCopilot:
         prompt_path = Path("examples/philosopher/prompts/reflect.yaml")
         content = prompt_path.read_text()
 
-        assert "output ONLY valid JSON" in content.upper() or "Output ONLY valid JSON" in content
+        assert (
+            "output ONLY valid JSON" in content.upper()
+            or "Output ONLY valid JSON" in content
+        )

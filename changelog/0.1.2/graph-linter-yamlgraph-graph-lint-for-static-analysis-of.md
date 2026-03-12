@@ -1,6 +1,6 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Graph linter (`yamlgraph graph lint`) for static analysis of YAML graphs
   - Checks: missing state declarations, undefined tools, missing prompts, unreachable nodes, invalid node types

@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - `mcp` optional dependency group in `pyproject.toml`

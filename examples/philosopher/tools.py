@@ -124,7 +124,9 @@ def write_proposals(state: dict) -> dict:
 
         json_str = extract_json(proposals_raw.output, "analyze")
         proposal_list = ProposalList.model_validate_json(
-            json_str if json_str.strip().startswith("{") else f'{{"proposals": {json_str}}}'
+            json_str
+            if json_str.strip().startswith("{")
+            else f'{{"proposals": {json_str}}}'
         )
         proposals = proposal_list.proposals
     elif hasattr(proposals_raw, "proposals"):

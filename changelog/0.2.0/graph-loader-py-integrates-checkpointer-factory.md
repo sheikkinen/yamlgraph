@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - `graph_loader.py` integrates checkpointer factory
