@@ -344,6 +344,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 67 | Philosopher Daemon | `examples/philosopher/`, `.chaplain/philosopher.sh` | REQ-YG-184 |
 | 68 | CI Dependency Security Scan | `.github/workflows/security.yml` | REQ-YG-185 |
 | 69 | Knowledge Graph Graduation (FR-190) | `.github/copilot-instructions.md` | REQ-YG-187 |
+| 70 | Knowledge Graph Graduation (FR-191) | `.github/copilot-instructions.md` | REQ-YG-188 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -833,6 +834,7 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | REQ-YG-185 | **Philosopher copilot nodes**: `analyze` and `reflect` nodes use `type: copilot` (FR-185). Copilot output validated through `Proposal`, `ProposalList`, `DiaryEntry` Pydantic models in `examples/philosopher/models.py`. `extract_json()` strips markdown fences and preamble. `write_proposals()` uses single CopilotResult → Pydantic parse path. No `cli_flags` (pure reasoning nodes) | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/shared/diary.py` |
 | REQ-YG-186 | **CI dependency security scan**: `.github/workflows/security.yml` runs `pip-audit --strict --desc` on every PR and version tag push. Triggers on `pull_request` (opened, synchronize, reopened) and `push: tags: v*.*.*`. Produces a `security` required status check for branch protection. Uses PyPA-endorsed OSV database — no API keys required | `.github/workflows/security.yml`, `tests/unit/test_ci_security_scan.py` |
 | REQ-YG-187 | **Knowledge Graph graduation (FR-190)**: `infrastructure_self_exempt` trap present in `.github/copilot-instructions.md` traps section with exact text: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards". No existing traps, cures, or process entries changed. Based on 3 confirmed diary occurrences (audits 94, 95, 97) meeting the `process.graduation` threshold | `.github/copilot-instructions.md`, `tests/unit/test_knowledge_graph_fr190.py` |
+| REQ-YG-188 | **Knowledge Graph graduation (FR-191)**: `plausible_wrong_answer` trap in `.github/copilot-instructions.md` traps section updated to graduated description: "Output passes shape check but is semantically wrong → add assertion beyond type validation". Old description removed. No other traps, cures, or process entries changed. Based on 4 confirmed diary occurrences (FR-165, FR-164, FR-184, FR-185) meeting the `process.graduation` threshold | `.github/copilot-instructions.md`, `tests/unit/test_knowledge_graph_fr191.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

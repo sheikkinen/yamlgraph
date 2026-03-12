@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-12
 
@@ -61,10 +61,10 @@ The complementary reference in Commandment 6 ("A plausible wrong answer is harde
 
 ## Acceptance Criteria
 
-- [ ] `plausible_wrong_answer` description in `.github/copilot-instructions.md` updated to: `"Output passes shape check but is semantically wrong → add assertion beyond type validation"`
-- [ ] No other traps or cures descriptions changed
-- [ ] Pre-commit hooks pass
-- [ ] Changelog fragment added to `changelog/unreleased/`
+- [x] `plausible_wrong_answer` description in `.github/copilot-instructions.md` updated to: `"Output passes shape check but is semantically wrong → add assertion beyond type validation"`
+- [x] No other traps or cures descriptions changed
+- [x] Pre-commit hooks pass
+- [x] Changelog fragment added to `changelog/unreleased/`
 
 ## Alternatives Considered
 
