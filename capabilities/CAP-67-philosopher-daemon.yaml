@@ -15,3 +15,9 @@ requirements:
       - examples/philosopher/tools.py
       - examples/philosopher/graph.yaml
       - .chaplain/philosopher.sh
+  - id: REQ-YG-185
+    description: Copilot node migration with Pydantic-validated JSON extraction
+    modules:
+      - examples/philosopher/models.py
+      - examples/philosopher/tools.py
+      - examples/shared/diary.py
