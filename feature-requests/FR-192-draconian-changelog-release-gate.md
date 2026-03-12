@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-03-12
 
@@ -163,17 +163,17 @@ The workflow file needs `on: push: tags: ['v*']` added to its trigger conditions
 
 ## Acceptance Criteria
 
-- [ ] `scripts/check_changelog_release_sync.py` blocks commit when version bumped with non-empty `unreleased/`
-- [ ] `scripts/check_changelog_release_sync.py` allows commit when version bumped with empty `unreleased/`
-- [ ] `scripts/check_changelog_release_sync.py` allows commit when version is NOT bumped (normal development)
-- [ ] Pre-commit hook `changelog-release-sync` added to `.pre-commit-config.yaml`
-- [ ] `scripts/release.sh` performs atomic freeze → bump → aggregate → commit → tag
-- [ ] `scripts/release.sh` fails if no fragments exist in `unreleased/`
-- [ ] CI `release-hygiene` job validates tag-to-changelog folder alignment on tag push
-- [ ] `reference/release-checklist.md` updated to reference `scripts/release.sh`
-- [ ] Unit tests for `check_changelog_release_sync.py`: version-bumped+fragments→fail, version-bumped+empty→pass, no-version-change→pass
-- [ ] Integration test for `release.sh`: happy path freeze→bump→commit→tag, and fail-on-empty-unreleased
-- [ ] `reference/release-checklist.md` links to `scripts/release.sh` as the canonical release command
+- [x] `scripts/check_changelog_release_sync.py` blocks commit when version bumped with non-empty `unreleased/`
+- [x] `scripts/check_changelog_release_sync.py` allows commit when version bumped with empty `unreleased/`
+- [x] `scripts/check_changelog_release_sync.py` allows commit when version is NOT bumped (normal development)
+- [x] Pre-commit hook `changelog-release-sync` added to `.pre-commit-config.yaml`
+- [x] `scripts/release.sh` performs atomic freeze → bump → aggregate → commit → tag
+- [x] `scripts/release.sh` fails if no fragments exist in `unreleased/`
+- [x] CI `release-hygiene` job validates tag-to-changelog folder alignment on tag push
+- [x] `reference/release-checklist.md` updated to reference `scripts/release.sh`
+- [x] Unit tests for `check_changelog_release_sync.py`: version-bumped+fragments→fail, version-bumped+empty→pass, no-version-change→pass
+- [x] Integration test for `release.sh`: happy path freeze→bump→commit→tag, and fail-on-empty-unreleased
+- [x] `reference/release-checklist.md` links to `scripts/release.sh` as the canonical release command
 
 ## Alternatives Considered
 
