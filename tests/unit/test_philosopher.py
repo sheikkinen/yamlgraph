@@ -419,3 +419,88 @@ class TestPhilosopherReadme:
         readme_path = Path("examples/philosopher/README.md")
         content = readme_path.read_text()
         assert "usage" in content.lower() or "Usage" in content
+
+
+# =============================================================================
+# Test: FR-186 — to_serializable migration
+# =============================================================================
+
+
+class TestWriteProposalsToSerializable:
+    """FR-186: write_proposals uses to_serializable for Pydantic model handling."""
+
+    @pytest.mark.req("REQ-YG-070")
+    def test_pydantic_model_proposal_items_are_serialized(self, tmp_path):
+        """Category A (line 138): Pydantic model proposal items should be
+        converted via to_serializable, not inline hasattr."""
+        from pydantic import BaseModel
+
+        from examples.philosopher.tools import write_proposals
+
+        class Proposal(BaseModel):
+            type: str
+            name: str
+            count: int
+            files: list[str]
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": [
+                Proposal(
+                    type="trap",
+                    name="intent_drift",
+                    count=4,
+                    files=["diary-1.md", "diary-2.md", "diary-3.md", "diary-4.md"],
+                ),
+            ],
+        }
+        result = write_proposals(state)
+
+        assert result["written_count"] == 1
+        files = list(inbox.glob("*.md"))
+        assert len(files) == 1
+        assert "intent_drift" in files[0].read_text()
+
+    @pytest.mark.req("REQ-YG-070")
+    def test_pydantic_wrapper_model_proposals_extracted(self, tmp_path):
+        """Category B (line 122): Pydantic wrapper with model_dump().get('proposals')
+        should be handled via to_serializable compose pattern."""
+        from pydantic import BaseModel
+
+        from examples.philosopher.tools import write_proposals
+
+        class ProposalWrapper(BaseModel):
+            proposals: list[dict]
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        wrapper = ProposalWrapper(
+            proposals=[
+                {"type": "trap", "name": "quick_confidence", "count": 3, "files": []},
+            ]
+        )
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": wrapper,
+        }
+        result = write_proposals(state)
+
+        assert result["written_count"] == 1
+
+    @pytest.mark.req("REQ-YG-070")
+    def test_uses_to_serializable_import(self):
+        """FR-186: philosopher/tools.py must import to_serializable from contrib."""
+        import inspect
+
+        import examples.philosopher.tools as mod
+
+        source = inspect.getsource(mod)
+        assert "from yamlgraph.contrib import to_serializable" in source
+        assert "to_serializable(" in source
