@@ -1,10 +1,10 @@
-"""FR-190: Validate graduated infrastructure_self_exempt trap in Scripture.
+"""FR-191: Validate graduated plausible_wrong_answer trap description in Scripture.
 
 The Knowledge Graph in .github/copilot-instructions.md contains trap descriptions
-that are compressed signals for cognitive hazards. FR-190 graduates the
-infrastructure_self_exempt trap based on 3 confirmed diary occurrences
-(audits 94, 95, 97), naming the cognitive blind spot where meta-tooling
-exempts itself from the quality gates it enforces.
+that are compressed signals for cognitive hazards. FR-191 graduates the
+plausible_wrong_answer trap based on 4 confirmed diary occurrences, refining the
+description from variant-specific ("Silent fallback") to pattern-general
+("Output passes shape check but is semantically wrong").
 """
 
 from pathlib import Path
@@ -14,42 +14,53 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COPILOT_INSTRUCTIONS = REPO_ROOT / ".github" / "copilot-instructions.md"
 
-NEW_TRAP = (
-    'infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces'
-    ' → apply same rules to the guardrail as to what it guards"'
+GRADUATED_DESCRIPTION = (
+    'plausible_wrong_answer: "Output passes shape check but is semantically'
+    ' wrong → add assertion beyond type validation"'
 )
 
+OLD_DESCRIPTION = 'plausible_wrong_answer: "Silent fallback harder to catch than crash"'
 
-@pytest.mark.req("REQ-YG-187")
-class TestInfrastructureSelfExemptGraduation:
-    """Validate the new infrastructure_self_exempt trap in the Knowledge Graph."""
+
+@pytest.mark.req("REQ-YG-188")
+class TestPlausibleWrongAnswerGraduation:
+    """Validate the graduated plausible_wrong_answer trap in the Knowledge Graph."""
 
     def test_copilot_instructions_exists(self):
         assert (
             COPILOT_INSTRUCTIONS.is_file()
         ), f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
 
-    def test_infrastructure_self_exempt_trap_present(self):
+    def test_plausible_wrong_answer_has_graduated_description(self):
         content = COPILOT_INSTRUCTIONS.read_text()
-        assert NEW_TRAP in content, (
-            f"infrastructure_self_exempt trap not found in Scripture.\n"
-            f"Expected: {NEW_TRAP}\n"
-            f"Hint: FR-190 requires adding this new trap to the traps section."
+        assert GRADUATED_DESCRIPTION in content, (
+            f"plausible_wrong_answer trap not updated to graduated description.\n"
+            f"Expected: {GRADUATED_DESCRIPTION}\n"
+            f"Hint: FR-191 requires updating the trap from variant-specific "
+            f"to pattern-general language."
+        )
+
+    def test_old_description_removed(self):
+        content = COPILOT_INSTRUCTIONS.read_text()
+        assert OLD_DESCRIPTION not in content, (
+            f"Old plausible_wrong_answer description still present.\n"
+            f"Found: {OLD_DESCRIPTION}\n"
+            f"FR-191 requires replacing this with the graduated description."
         )
 
     def test_trap_in_traps_section(self):
-        """Verify the new trap is in the traps: section, not elsewhere."""
+        """Verify the graduated trap is in the traps: section, not elsewhere."""
         content = COPILOT_INSTRUCTIONS.read_text()
         traps_start = content.index("traps:")
         cures_start = content.index("cures:")
         traps_section = content[traps_start:cures_start]
-        assert "infrastructure_self_exempt:" in traps_section, (
-            "infrastructure_self_exempt must be in the traps: section, "
+        assert "plausible_wrong_answer:" in traps_section, (
+            "plausible_wrong_answer must be in the traps: section, "
             "not elsewhere in the file."
         )
 
     def test_no_other_traps_changed(self):
-        """Verify all existing trap descriptions remain unchanged."""
+        """Verify all other trap descriptions remain unchanged."""
         content = COPILOT_INSTRUCTIONS.read_text()
         expected_traps = {
             "quick_confidence": '"When I feel certain → Judge instead"',
@@ -65,10 +76,6 @@ class TestInfrastructureSelfExemptGraduation:
             ),
             "partial_remediation": '"Fix all occurrences, not just cited one"',
             "audit_as_ritual": '"3+ audits without fix → ritual, not process"',
-            "plausible_wrong_answer": (
-                '"Output passes shape check but is semantically wrong'
-                ' → add assertion beyond type validation"'
-            ),
             "framework_costume": (
                 '"FSM wearing DAG costume'
                 ' → if <50% nodes use core features, wrong tool"'
@@ -76,6 +83,11 @@ class TestInfrastructureSelfExemptGraduation:
             "working_system_inertia": (
                 "\"'It works' blocks seeing it clearly"
                 ' → inventory fit, not function"'
+            ),
+            "infrastructure_self_exempt": (
+                '"Meta-tooling exempted from gates it enforces'
+                " → apply same rules to the guardrail"
+                ' as to what it guards"'
             ),
         }
         for trap_name, description in expected_traps.items():
@@ -93,9 +105,9 @@ class TestInfrastructureSelfExemptGraduation:
             "tolerant_matching": (
                 '"prefix/contains/regex, not exact equality for LLM"'
             ),
-            "three_reads": ('"surface → deep against code → mechanical simulation"'),
-            "streaming_xray": ('"Real-time constraint exposes implicit assumptions"'),
-            "callsite_fix": ('"Fix at the specific caller, not the shared utility"'),
+            "three_reads": '"surface → deep against code → mechanical simulation"',
+            "streaming_xray": '"Real-time constraint exposes implicit assumptions"',
+            "callsite_fix": '"Fix at the specific caller, not the shared utility"',
             "spec_kill": '"Cheapest bug is the one killed in the spec"',
             "judge_as_junior_pr": '"Assume plausible code hides subtle bugs"',
         }
@@ -114,7 +126,7 @@ class TestInfrastructureSelfExemptGraduation:
                 '"Heuristic appears twice → create FR;'
                 ' confirmed recurrence → graduate to Scripture"'
             ),
-            "conductor": ('"Parallel viewpoints need Blue hat to sequence"'),
+            "conductor": '"Parallel viewpoints need Blue hat to sequence"',
             "boring_enforcement": (
                 '"Boring = Judgement was good; surprise = spec had gaps"'
             ),

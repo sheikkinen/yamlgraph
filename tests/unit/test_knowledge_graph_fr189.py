@@ -60,7 +60,10 @@ class TestDownstreamFixGraduation:
             "regex_fourth_exclusion": '"Fourth special case → switch to proper parser"',
             "partial_remediation": '"Fix all occurrences, not just cited one"',
             "audit_as_ritual": '"3+ audits without fix → ritual, not process"',
-            "plausible_wrong_answer": '"Silent fallback harder to catch than crash"',
+            "plausible_wrong_answer": (
+                '"Output passes shape check but is semantically wrong'
+                ' → add assertion beyond type validation"'
+            ),
             "framework_costume": (
                 '"FSM wearing DAG costume'
                 ' → if <50% nodes use core features, wrong tool"'

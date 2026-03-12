@@ -1,0 +1,20 @@
+id: CAP-70
+name: Knowledge Graph Graduation (FR-191)
+fr: FR-191
+description: >
+  Graduates the plausible_wrong_answer trap in the Scripture Knowledge Graph
+  in .github/copilot-instructions.md, based on 4 confirmed diary occurrences
+  (FR-165, FR-164, FR-184, FR-185). Refines description from variant-specific
+  ("Silent fallback") to pattern-general ("Output passes shape check but is
+  semantically wrong → add assertion beyond type validation").
+modules:
+  - .github/copilot-instructions.md
+requirements:
+  - id: REQ-YG-188
+    description: >
+      plausible_wrong_answer trap present in Scripture traps section with
+      exact text, old description removed, no existing traps/cures/process
+      entries changed
+    modules:
+      - .github/copilot-instructions.md
+      - tests/unit/test_knowledge_graph_fr191.py
