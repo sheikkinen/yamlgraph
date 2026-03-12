@@ -156,6 +156,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: changelog-release-sync
+        name: changelog release sync
+        entry: .venv/bin/python scripts/check_changelog_release_sync.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest (unit only, ~20s)
         entry: bash -c '.venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov && echo "" && echo "✓ Unit tests passed. Run integration tests separately:" && echo "  pytest tests/integration/ -v"'

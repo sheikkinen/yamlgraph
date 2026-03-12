@@ -342,9 +342,10 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 65 | Append-Only Capability Registry | `capabilities/`, `scripts/req_coverage.py` | REQ-YG-161 |
 | 66 | Append-Only Changelog | `changelog/`, `scripts/aggregate_changelog.py` | REQ-YG-162 |
 | 67 | Philosopher Daemon | `examples/philosopher/`, `.chaplain/philosopher.sh` | REQ-YG-184 |
-| 68 | CI Dependency Security Scan | `.github/workflows/security.yml` | REQ-YG-185 |
+| 68 | CI Dependency Security Scan | `.github/workflows/security.yml` | REQ-YG-186 |
 | 69 | Knowledge Graph Graduation (FR-190) | `.github/copilot-instructions.md` | REQ-YG-187 |
 | 70 | Knowledge Graph Graduation (FR-191) | `.github/copilot-instructions.md` | REQ-YG-188 |
+| 71 | Release Changelog Sync Gate | `scripts/check_changelog_release_sync.py`, `scripts/release.sh`, `.github/workflows/commitlint.yml` | REQ-YG-189, REQ-YG-190, REQ-YG-191 |
 
 > Capability numbers are stable identifiers. Retired capabilities (e.g., CAP-29) are removed rather than renumbered to preserve cross-references.
 
@@ -835,6 +836,9 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 | REQ-YG-186 | **CI dependency security scan**: `.github/workflows/security.yml` runs `pip-audit --strict --desc` on every PR and version tag push. Triggers on `pull_request` (opened, synchronize, reopened) and `push: tags: v*.*.*`. Produces a `security` required status check for branch protection. Uses PyPA-endorsed OSV database — no API keys required | `.github/workflows/security.yml`, `tests/unit/test_ci_security_scan.py` |
 | REQ-YG-187 | **Knowledge Graph graduation (FR-190)**: `infrastructure_self_exempt` trap present in `.github/copilot-instructions.md` traps section with exact text: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards". No existing traps, cures, or process entries changed. Based on 3 confirmed diary occurrences (audits 94, 95, 97) meeting the `process.graduation` threshold | `.github/copilot-instructions.md`, `tests/unit/test_knowledge_graph_fr190.py` |
 | REQ-YG-188 | **Knowledge Graph graduation (FR-191)**: `plausible_wrong_answer` trap in `.github/copilot-instructions.md` traps section updated to graduated description: "Output passes shape check but is semantically wrong → add assertion beyond type validation". Old description removed. No other traps, cures, or process entries changed. Based on 4 confirmed diary occurrences (FR-165, FR-164, FR-184, FR-185) meeting the `process.graduation` threshold | `.github/copilot-instructions.md`, `tests/unit/test_knowledge_graph_fr191.py` |
+| REQ-YG-189 | **Changelog release sync pre-commit hook**: `check_changelog_release_sync.py` blocks commit when pyproject.toml version field is changed in staged diff AND `changelog/unreleased/` contains `*.md` files (excluding `.gitkeep`); allows commit when version unchanged or unreleased/ is empty; lists orphaned fragment names in error output | `scripts/check_changelog_release_sync.py`, `.pre-commit-config.yaml`, `tests/unit/test_changelog_release_sync.py` |
+| REQ-YG-190 | **Atomic release script**: `scripts/release.sh` validates unreleased/ has fragments, freezes them to `changelog/{VERSION}/`, bumps pyproject.toml version, regenerates CHANGELOG.md via `aggregate_changelog.py`, commits with `-F` (file-based message to avoid dquote trap), and creates git tag; `reference/release-checklist.md` documents `release.sh` as canonical command | `scripts/release.sh`, `reference/release-checklist.md`, `tests/unit/test_changelog_release_sync.py` |
+| REQ-YG-191 | **CI release-hygiene tag-push job**: `release-hygiene` job in `commitlint.yml` triggers on tag push (`v*`), verifies `changelog/{VERSION}/` directory exists for the tagged version, and checks for orphaned fragments in `changelog/unreleased/`; job has if-condition restricting execution to tag push events only | `.github/workflows/commitlint.yml`, `tests/unit/test_changelog_release_sync.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
