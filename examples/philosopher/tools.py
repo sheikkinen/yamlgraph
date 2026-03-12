@@ -91,11 +91,15 @@ def scan_diary_markers(state: dict) -> dict:
             if seed_text not in seeds:
                 seeds[seed_text] = filename
 
+    # Wrap in scan_result key to match graph state_key declaration
+    # (dict returns merge keys directly, so this becomes state.scan_result)
     return {
-        "heuristics": heuristics,
-        "traps": traps,
-        "seeds": seeds,
-        "file_count": file_count,
+        "scan_result": {
+            "heuristics": heuristics,
+            "traps": traps,
+            "seeds": seeds,
+            "file_count": file_count,
+        }
     }
 
 

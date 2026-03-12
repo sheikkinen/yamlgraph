@@ -116,11 +116,12 @@ class TestScanDiaryMarkers:
 
         state = {"diary_dir": str(empty_diary), "lookback_days": 30}
         result = scan_diary_markers(state)
+        scan_result = result["scan_result"]
 
-        assert result["heuristics"] == {}
-        assert result["traps"] == {}
-        assert result["seeds"] == {}
-        assert result["file_count"] == 0
+        assert scan_result["heuristics"] == {}
+        assert scan_result["traps"] == {}
+        assert scan_result["seeds"] == {}
+        assert scan_result["file_count"] == 0
 
     @pytest.mark.req("REQ-YG-184")
     def test_no_markers_returns_empty_counts(self, diary_no_markers):
@@ -129,11 +130,12 @@ class TestScanDiaryMarkers:
 
         state = {"diary_dir": str(diary_no_markers), "lookback_days": 30}
         result = scan_diary_markers(state)
+        scan_result = result["scan_result"]
 
-        assert result["heuristics"] == {}
-        assert result["traps"] == {}
-        assert result["seeds"] == {}
-        assert result["file_count"] == 1
+        assert scan_result["heuristics"] == {}
+        assert scan_result["traps"] == {}
+        assert scan_result["seeds"] == {}
+        assert scan_result["file_count"] == 1
 
     @pytest.mark.req("REQ-YG-184")
     def test_extracts_trap_markers(self, diary_below_threshold):
@@ -142,10 +144,11 @@ class TestScanDiaryMarkers:
 
         state = {"diary_dir": str(diary_below_threshold), "lookback_days": 30}
         result = scan_diary_markers(state)
+        scan_result = result["scan_result"]
 
-        assert "quick_confidence" in result["traps"]
-        assert len(result["traps"]["quick_confidence"]) == 2
-        assert result["file_count"] == 2
+        assert "quick_confidence" in scan_result["traps"]
+        assert len(scan_result["traps"]["quick_confidence"]) == 2
+        assert scan_result["file_count"] == 2
 
     @pytest.mark.req("REQ-YG-184")
     def test_extracts_heuristic_markers(self, diary_below_threshold):
@@ -154,9 +157,10 @@ class TestScanDiaryMarkers:
 
         state = {"diary_dir": str(diary_below_threshold), "lookback_days": 30}
         result = scan_diary_markers(state)
+        scan_result = result["scan_result"]
 
-        assert "Judge when certain" in result["heuristics"]
-        assert len(result["heuristics"]["Judge when certain"]) == 1
+        assert "Judge when certain" in scan_result["heuristics"]
+        assert len(scan_result["heuristics"]["Judge when certain"]) == 1
 
     @pytest.mark.req("REQ-YG-184")
     def test_extracts_seed_markers(self, diary_above_threshold):
@@ -165,8 +169,9 @@ class TestScanDiaryMarkers:
 
         state = {"diary_dir": str(diary_above_threshold), "lookback_days": 30}
         result = scan_diary_markers(state)
+        scan_result = result["scan_result"]
 
-        assert len(result["seeds"]) == 5  # 5 unique seeds
+        assert len(scan_result["seeds"]) == 5  # 5 unique seeds
 
     @pytest.mark.req("REQ-YG-184")
     def test_respects_lookback_window(self, diary_fixture_dir):
@@ -183,9 +188,10 @@ class TestScanDiaryMarkers:
         state = {"diary_dir": str(diary_fixture_dir), "lookback_days": 30}
         # autouse fixture mocks get_today() to return "2026-03-11"
         result = scan_diary_markers(state)
+        scan_result = result["scan_result"]
 
-        assert "recent_trap" in result["traps"]
-        assert "old_trap" not in result["traps"]
+        assert "recent_trap" in scan_result["traps"]
+        assert "old_trap" not in scan_result["traps"]
 
     @pytest.mark.req("REQ-YG-184")
     def test_returns_file_count(self, diary_mixed_markers):
@@ -194,8 +200,9 @@ class TestScanDiaryMarkers:
 
         state = {"diary_dir": str(diary_mixed_markers), "lookback_days": 30}
         result = scan_diary_markers(state)
+        scan_result = result["scan_result"]
 
-        assert result["file_count"] == 3
+        assert scan_result["file_count"] == 3
 
 
 # =============================================================================
