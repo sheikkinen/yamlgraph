@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Shell tool execution with `shlex.quote()` sanitization

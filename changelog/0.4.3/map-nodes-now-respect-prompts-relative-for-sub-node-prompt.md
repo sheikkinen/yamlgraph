@@ -1,5 +1,5 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - Map nodes now respect `prompts_relative` for sub-node prompts

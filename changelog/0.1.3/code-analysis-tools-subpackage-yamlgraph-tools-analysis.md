@@ -1,6 +1,6 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Code analysis tools subpackage (`yamlgraph.tools.analysis`)
   - `get_module_structure` - AST-based structure extraction

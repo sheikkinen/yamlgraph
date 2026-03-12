@@ -1,5 +1,5 @@
 ---
 type: removal
-scope: 
+scope:
 ---
 - Demo prompts from global `prompts/` directory

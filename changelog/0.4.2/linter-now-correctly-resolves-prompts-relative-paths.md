@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Linter now correctly resolves `prompts_relative` paths

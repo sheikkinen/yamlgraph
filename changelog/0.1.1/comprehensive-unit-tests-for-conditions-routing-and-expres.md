@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Comprehensive unit tests for conditions, routing, and expressions

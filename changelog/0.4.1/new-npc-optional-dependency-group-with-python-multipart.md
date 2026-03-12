@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - New `[npc]` optional dependency group with `python-multipart`

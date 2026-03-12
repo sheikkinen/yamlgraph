@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - `python-dotenv` support in proxy for local `.env` loading.

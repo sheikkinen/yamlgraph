@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Renamed getting-started.md to clarify it's for AI coding assistants

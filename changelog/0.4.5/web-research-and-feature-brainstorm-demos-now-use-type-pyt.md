@@ -1,6 +1,6 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Web-research and feature-brainstorm demos now use `type: python` for search
   ```yaml

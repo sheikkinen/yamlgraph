@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Web search tool (`type: websearch`) with DuckDuckGo integration
