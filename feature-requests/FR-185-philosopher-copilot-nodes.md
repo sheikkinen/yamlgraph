@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-11
 **Judged:** 2026-03-11
@@ -293,20 +293,20 @@ No retries — Copilot CLI sessions are not idempotent. On failure, the graph ra
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `analyze` node uses `type: copilot` in `examples/philosopher/graph.yaml`
-- [ ] AC-2: `reflect` node uses `type: copilot` in `examples/philosopher/graph.yaml`
-- [ ] AC-3: `prompts/analyze.yaml` has no `schema:` block; user prompt includes "output ONLY valid JSON" guard
-- [ ] AC-4: `prompts/reflect.yaml` has no `schema:` block; user prompt includes "output ONLY valid JSON" guard
-- [ ] AC-5: `write_proposals()` parses `CopilotResult.output` through `ProposalList` Pydantic model — no multi-way unwrap cascade
-- [ ] AC-6: All 19 existing philosopher tests pass (update as needed for new data shapes)
-- [ ] AC-7: Integration smoke test: `yamlgraph graph lint examples/philosopher/graph.yaml` passes
-- [ ] AC-8: No `ProposalList is not JSON serializable` errors at runtime
-- [ ] AC-9: README.md table updated: `analyze` and `reflect` rows show `copilot` type
-- [ ] AC-10: `ProposalList` and `DiaryEntry` Pydantic models exist in `examples/philosopher/models.py` with typed fields (not `list[Any]`)
-- [ ] AC-11: `extract_json()` utility handles markdown fences, preamble text, and raises `PipelineError` on parse failure
-- [ ] AC-12: No `cli_flags: allow_all_paths` on philosopher copilot nodes (pure reasoning, no filesystem access)
-- [ ] AC-13: New unit tests for `extract_json()` covering: clean JSON, fenced JSON, preamble text, malformed input
-- [ ] AC-14: New unit tests for `ProposalList.model_validate_json()` and `DiaryEntry.model_validate_json()` validation
+- [x] AC-1: `analyze` node uses `type: copilot` in `examples/philosopher/graph.yaml`
+- [x] AC-2: `reflect` node uses `type: copilot` in `examples/philosopher/graph.yaml`
+- [x] AC-3: `prompts/analyze.yaml` has no `schema:` block; user prompt includes "output ONLY valid JSON" guard
+- [x] AC-4: `prompts/reflect.yaml` has no `schema:` block; user prompt includes "output ONLY valid JSON" guard
+- [x] AC-5: `write_proposals()` parses `CopilotResult.output` through `ProposalList` Pydantic model — no multi-way unwrap cascade
+- [x] AC-6: All 19 existing philosopher tests pass (update as needed for new data shapes)
+- [x] AC-7: Integration smoke test: `yamlgraph graph lint examples/philosopher/graph.yaml` passes
+- [x] AC-8: No `ProposalList is not JSON serializable` errors at runtime
+- [x] AC-9: README.md table updated: `analyze` and `reflect` rows show `copilot` type
+- [x] AC-10: `ProposalList` and `DiaryEntry` Pydantic models exist in `examples/philosopher/models.py` with typed fields (not `list[Any]`)
+- [x] AC-11: `extract_json()` utility handles markdown fences, preamble text, and raises `PipelineError` on parse failure
+- [x] AC-12: No `cli_flags: allow_all_paths` on philosopher copilot nodes (pure reasoning, no filesystem access)
+- [x] AC-13: New unit tests for `extract_json()` covering: clean JSON, fenced JSON, preamble text, malformed input
+- [x] AC-14: New unit tests for `ProposalList.model_validate_json()` and `DiaryEntry.model_validate_json()` validation
 
 ## Alternatives Considered
 

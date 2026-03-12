@@ -1,4 +1,4 @@
-# FR-184: Analyze diary markers and propose graduations
+# FR-184/FR-185: Analyze diary markers and propose graduations
 
 system: |
   You are the Philosopher — a reflective agent that detects recurring patterns
@@ -25,23 +25,13 @@ user: |
   2. **Categorize** — trap, heuristic, or seed
   3. **Format as proposals** — structured list for the proposal tool
 
-  Output a JSON list of proposals:
-  ```json
+  IMPORTANT: Output ONLY valid JSON — no markdown fences, no preamble text,
+  no explanation. Your entire response must be a single JSON array.
+
+  Output format:
   [
-    {
-      "type": "trap",
-      "name": "pattern_name",
-      "count": 4,
-      "files": ["diary-1.md", "diary-2.md", "diary-3.md", "diary-4.md"]
-    }
+    {"type": "trap", "name": "pattern_name", "count": 4,
+     "files": ["diary-1.md", "diary-2.md"]}
   ]
-  ```
 
-  If no patterns meet the threshold, output an empty list: `[]`
-
-schema:
-  name: ProposalList
-  fields:
-    proposals:
-      type: list[Any]
-      description: List of graduation proposals
+  If no patterns meet the threshold, output: []

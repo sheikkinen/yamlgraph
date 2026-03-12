@@ -64,15 +64,24 @@ def should_write_entry(
 def write_diary(state: dict) -> dict:
     """Format and write diary entry as individual file in docs/diary/.
 
-    Graph tool — reads diary_entry from state (Pydantic model with
-    theme, body, seed fields), formats it, and writes to docs/diary/.
+    Graph tool — reads diary_entry from state (Pydantic model, CopilotResult,
+    dict, or string with theme/body/seed fields), formats it, and writes to docs/diary/.
     """
     entry_data = state.get("diary_entry", {})
     date_str = state.get("date", datetime.now().strftime("%Y-%m-%d"))
     prefix = state.get("diary_prefix", "World Digest")
 
-    # Handle Pydantic model, dict, or string representation
-    if isinstance(entry_data, str):
+    # FR-185: Handle CopilotResult from copilot nodes
+    from yamlgraph.models.schemas import CopilotResult
+
+    if isinstance(entry_data, CopilotResult):
+        from examples.philosopher.models import DiaryEntry as PhilosopherDiaryEntry
+        from examples.philosopher.models import extract_json
+
+        json_str = extract_json(entry_data.output, "reflect")
+        parsed = PhilosopherDiaryEntry.model_validate_json(json_str)
+        theme, body, seed = parsed.theme, parsed.body, parsed.seed
+    elif isinstance(entry_data, str):
         # Parse string representation like: theme='...' body='...' seed='...'
         theme_match = re.search(r"theme='([^']+)'", entry_data)
         # Body can contain quotes, so match until ' seed='
