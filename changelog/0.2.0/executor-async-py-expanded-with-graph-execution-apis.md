@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - `executor_async.py` expanded with graph execution APIs

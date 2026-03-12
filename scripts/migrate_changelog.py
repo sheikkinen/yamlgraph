@@ -60,9 +60,7 @@ def _extract_scope(line: str) -> str:
     return ""
 
 
-def _make_fragment(
-    entry_type: str, scope: str, req: str | None, body: str
-) -> str:
+def _make_fragment(entry_type: str, scope: str, req: str | None, body: str) -> str:
     """Build fragment file content with YAML front matter."""
     lines = ["---"]
     lines.append(f"type: {entry_type}")
@@ -112,11 +110,7 @@ def _parse_entries(
         ):
             entries.append((current_version, current_section_type, line))
         # Continuation lines (indented, part of multi-line entries)
-        elif (
-            line.startswith("  ")
-            and entries
-            and entries[-1][0] == current_version
-        ):
+        elif line.startswith("  ") and entries and entries[-1][0] == current_version:
             # Append to previous entry
             prev_ver, prev_type, prev_line = entries[-1]
             entries[-1] = (prev_ver, prev_type, prev_line + "\n" + line)
@@ -179,7 +173,9 @@ def migrate(changelog_path: Path, output_dir: Path) -> int:
 
 def main() -> int:
     """Main entry point."""
-    changelog_path = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO_ROOT / "CHANGELOG.md"
+    changelog_path = (
+        Path(sys.argv[1]) if len(sys.argv) > 1 else REPO_ROOT / "CHANGELOG.md"
+    )
     output_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else REPO_ROOT / "changelog"
 
     if not changelog_path.exists():

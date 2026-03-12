@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - `create_node_function()` threads graph_path for relative resolution

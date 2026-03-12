@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Multi-provider LLM support (Anthropic, Mistral, OpenAI)

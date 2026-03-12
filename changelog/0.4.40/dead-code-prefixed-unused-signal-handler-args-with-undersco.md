@@ -1,5 +1,5 @@
 ---
 type: fix
-scope: 
+scope:
 ---
 - Dead code: Prefixed unused signal handler args with underscore (vulture)

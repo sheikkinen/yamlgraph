@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - `analysis` optional dependency group (`pip install yamlgraph[analysis]`)

@@ -1,5 +1,5 @@
 ---
 type: feat
-scope: 
+scope:
 ---
 - Map nodes for parallel fan-out/fan-in processing
