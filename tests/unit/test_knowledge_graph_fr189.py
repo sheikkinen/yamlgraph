@@ -69,6 +69,11 @@ class TestDownstreamFixGraduation:
                 "\"'It works' blocks seeing it clearly"
                 ' → inventory fit, not function"'
             ),
+            "infrastructure_self_exempt": (
+                '"Meta-tooling exempted from gates it enforces'
+                " → apply same rules to the guardrail"
+                ' as to what it guards"'
+            ),
         }
         for trap_name, description in expected_traps.items():
             line = f"{trap_name}: {description}"
