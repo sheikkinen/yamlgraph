@@ -51,7 +51,7 @@ boundaries:
 traps:
   # Cognitive hazards that lead to bugs and drift
   quick_confidence: "When I feel certain → Judge instead"
-  downstream_fix: "Fix at callsite, not utility → avoid double-stripping"
+  downstream_fix: "Guard added where symptom manifests → normalize at entry boundary instead"
   symptom_patch: "Verify root cause with test before designing fix"
   intent_drift: "Plan says X, code does Y → re-read thrice"
   false_duplicate: "Syntactic similarity ≠ semantic equivalence"
