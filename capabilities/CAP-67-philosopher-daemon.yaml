@@ -21,3 +21,10 @@ requirements:
       - examples/philosopher/models.py
       - examples/philosopher/tools.py
       - examples/shared/diary.py
+  - id: REQ-YG-194
+    description: World context loading for philosopher reflection enrichment
+    modules:
+      - examples/philosopher/tools.py
+      - examples/philosopher/graph.yaml
+      - examples/philosopher/prompts/reflect.yaml
+      - docs/world-context.md

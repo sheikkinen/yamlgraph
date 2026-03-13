@@ -165,6 +165,21 @@ def unwrap_challenge(state: dict) -> dict:
     return {"challenge_parsed": verdict.model_dump()}
 
 
+def load_world_context(state: dict) -> dict:
+    """Load world context from a markdown file for philosopher reflection.
+
+    Reads the file at ``world_context_path`` (default ``docs/world-context.md``)
+    and returns its contents under the ``world_context`` state key.
+
+    Returns empty string when the file does not exist, allowing the graph
+    to run gracefully without it.
+    """
+    context_path = Path(state.get("world_context_path", "docs/world-context.md"))
+    if not context_path.exists():
+        return {"world_context": ""}
+    return {"world_context": context_path.read_text()}
+
+
 def write_proposals(state: dict) -> dict:
     """Write graduation proposals to .chaplain/inbox/.
 
