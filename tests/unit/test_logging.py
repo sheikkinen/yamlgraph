@@ -176,6 +176,49 @@ class TestSetupLogging:
         logger = setup_logging()
         assert logger.propagate is False
 
+    @pytest.mark.req("REQ-YG-046")
+    def test_root_logger_level_set(self) -> None:
+        """FR-185: setup_logging configures root logger level."""
+        root = logging.getLogger()
+        original_level = root.level
+        original_handlers = root.handlers[:]
+        try:
+            root.handlers.clear()
+            setup_logging(level="DEBUG")
+            assert root.level == logging.DEBUG
+        finally:
+            root.setLevel(original_level)
+            root.handlers = original_handlers
+
+    @pytest.mark.req("REQ-YG-046")
+    def test_root_logger_handler_added_when_none(self) -> None:
+        """FR-185: root handler added only when no handlers exist."""
+        root = logging.getLogger()
+        original_handlers = root.handlers[:]
+        try:
+            root.handlers.clear()
+            setup_logging(level="INFO")
+            assert len(root.handlers) == 1
+            assert isinstance(root.handlers[0].formatter, StructuredFormatter)
+        finally:
+            root.handlers = original_handlers
+
+    @pytest.mark.req("REQ-YG-046")
+    def test_root_logger_handler_not_duplicated(self) -> None:
+        """FR-185: existing root handlers are not replaced."""
+        root = logging.getLogger()
+        original_handlers = root.handlers[:]
+        try:
+            root.handlers.clear()
+            existing = logging.StreamHandler()
+            root.addHandler(existing)
+            setup_logging(level="INFO")
+            # Should not add another handler
+            assert len(root.handlers) == 1
+            assert root.handlers[0] is existing
+        finally:
+            root.handlers = original_handlers
+
 
 class TestGetLogger:
     """Tests for get_logger function."""
