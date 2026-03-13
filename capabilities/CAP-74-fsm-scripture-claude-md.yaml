@@ -1,0 +1,26 @@
+id: CAP-74
+name: FSM Scripture CLAUDE.md (FR-199)
+fr: FR-199
+description: >
+  Upgrades fsm/CLAUDE.md (statemachine-engine/CLAUDE.md) from a four-line
+  YAGNI/TDD/DRY/KISS summary to the full YAMLGraph doctrine: The 10 Commandments,
+  Sermon of the Chaplain, Rite of Correction, Agents' prayer, Knowledge Graph of
+  the Diary, FSM path/package adaptation table, and Anti-patterns table. All
+  existing FSM-specific sections (Architecture, Usage Patterns, Communication
+  Architecture, Troubleshooting) are preserved intact. Eliminates doctrine drift
+  between the two codebases that share CI, Scripture, and release flow.
+modules:
+  - fsm/CLAUDE.md
+  - tests/unit/test_fsm_claude_md_doctrine.py
+requirements:
+  - id: REQ-YG-195
+    description: >
+      fsm/CLAUDE.md contains all 10 Commandments verbatim, Sermon of the Chaplain,
+      Rite of Correction, Agents' prayer, Knowledge Graph of the Diary (including
+      the_one_law, traps, cures, process, seeds sections), FSM path/package
+      adaptation table mapping yamlgraph constructs to FSM equivalents, Anti-patterns
+      table with FSM-specific wrong/correct pairs, all existing FSM sections preserved,
+      four-line YAGNI/TDD/DRY/KISS block replaced (not duplicated)
+    modules:
+      - fsm/CLAUDE.md
+      - tests/unit/test_fsm_claude_md_doctrine.py
