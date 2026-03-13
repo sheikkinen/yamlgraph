@@ -367,8 +367,8 @@ class TestPhilosopherGraph:
         assert graph_path.exists(), "philosopher graph not found"
 
     @pytest.mark.req("REQ-YG-184")
-    def test_graph_has_five_nodes(self):
-        """Graph should have exactly 5 nodes: scan, analyze, propose, reflect, write_diary."""
+    def test_graph_has_nine_nodes(self):
+        """Graph should have 9 nodes after FR-195: scan, analyze, distill, unwrap_distill, challenge, unwrap_challenge, propose, reflect, write_diary."""
         import yaml
 
         graph_path = Path("examples/philosopher/graph.yaml")
@@ -376,16 +376,13 @@ class TestPhilosopherGraph:
             graph = yaml.safe_load(f)
 
         nodes = list(graph["nodes"].keys())
-        assert len(nodes) == 5
-        assert "scan" in nodes
-        assert "analyze" in nodes
-        assert "propose" in nodes
-        assert "reflect" in nodes
-        assert "write_diary" in nodes
+        assert len(nodes) == 9
+        for name in ["scan", "analyze", "distill", "unwrap_distill", "challenge", "unwrap_challenge", "propose", "reflect", "write_diary"]:
+            assert name in nodes, f"Missing node: {name}"
 
     @pytest.mark.req("REQ-YG-184")
-    def test_graph_is_linear(self):
-        """Graph should have linear edges: scan → analyze → propose → reflect → write_diary."""
+    def test_graph_edge_topology(self):
+        """Graph should have correct edge topology with FR-195 conditional edges."""
         import yaml
 
         graph_path = Path("examples/philosopher/graph.yaml")
@@ -393,16 +390,17 @@ class TestPhilosopherGraph:
             graph = yaml.safe_load(f)
 
         edges = graph["edges"]
-        expected_sequence = [
+        # Unconditional edges that must exist
+        for from_node, to_node in [
             ("START", "scan"),
             ("scan", "analyze"),
-            ("analyze", "propose"),
+            ("analyze", "distill"),
+            ("distill", "unwrap_distill"),
+            ("challenge", "unwrap_challenge"),
             ("propose", "reflect"),
             ("reflect", "write_diary"),
             ("write_diary", "END"),
-        ]
-
-        for from_node, to_node in expected_sequence:
+        ]:
             found = any(e["from"] == from_node and e["to"] == to_node for e in edges)
             assert found, f"Missing edge: {from_node} → {to_node}"
 
@@ -821,3 +819,500 @@ class TestPromptsCopilot:
             "output ONLY valid JSON" in content.upper()
             or "Output ONLY valid JSON" in content
         )
+
+
+# =============================================================================
+# FR-195: Philosopher Challenge Node (Devil's Advocate Gate)
+# =============================================================================
+
+
+class TestChallengeVerdictModel:
+    """Tests for ChallengeVerdict Pydantic model."""
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_approve_verdict(self):
+        """ChallengeVerdict should validate an approve verdict."""
+        from examples.philosopher.models import ChallengeVerdict
+
+        v = ChallengeVerdict(
+            verdict="approve",
+            confidence=0.85,
+            objections=["Minor phrasing overlap"],
+            surviving_arguments=["Distinct root cause", "Actionable fix"],
+        )
+        assert v.verdict == "approve"
+        assert v.confidence == 0.85
+        assert len(v.objections) == 1
+        assert len(v.surviving_arguments) == 2
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_reject_verdict(self):
+        """ChallengeVerdict should validate a reject verdict."""
+        from examples.philosopher.models import ChallengeVerdict
+
+        v = ChallengeVerdict(
+            verdict="reject",
+            confidence=0.92,
+            objections=["False duplicate of existing trap", "Low evidence quality"],
+            surviving_arguments=[],
+        )
+        assert v.verdict == "reject"
+        assert v.confidence == 0.92
+        assert len(v.objections) == 2
+        assert v.surviving_arguments == []
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_confidence_lower_bound(self):
+        """ChallengeVerdict should reject confidence below 0.0."""
+        from pydantic import ValidationError
+
+        from examples.philosopher.models import ChallengeVerdict
+
+        with pytest.raises(ValidationError):
+            ChallengeVerdict(
+                verdict="approve",
+                confidence=-0.1,
+                objections=[],
+                surviving_arguments=[],
+            )
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_confidence_upper_bound(self):
+        """ChallengeVerdict should reject confidence above 1.0."""
+        from pydantic import ValidationError
+
+        from examples.philosopher.models import ChallengeVerdict
+
+        with pytest.raises(ValidationError):
+            ChallengeVerdict(
+                verdict="approve",
+                confidence=1.1,
+                objections=[],
+                surviving_arguments=[],
+            )
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_from_json(self):
+        """ChallengeVerdict should validate from JSON string."""
+        from examples.philosopher.models import ChallengeVerdict
+
+        json_str = '{"verdict": "reject", "confidence": 0.7, "objections": ["weak evidence"], "surviving_arguments": ["partial"]}'
+        v = ChallengeVerdict.model_validate_json(json_str)
+        assert v.verdict == "reject"
+        assert v.confidence == 0.7
+
+
+class TestUnwrapDistill:
+    """Tests for unwrap_distill() tool function."""
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_null_signal_returns_none(self):
+        """unwrap_distill with {"selected": null} returns top_candidate=None."""
+        from examples.philosopher.tools import unwrap_distill
+        from yamlgraph.models.schemas import CopilotResult
+
+        state = {
+            "distill_result": CopilotResult(
+                output='{"selected": null}',
+                exit_code=0,
+                backend="cli",
+            )
+        }
+        result = unwrap_distill(state)
+        assert result == {"top_candidate": None}
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_valid_proposal_returns_dict(self):
+        """unwrap_distill with valid proposal returns validated dict."""
+        from examples.philosopher.tools import unwrap_distill
+        from yamlgraph.models.schemas import CopilotResult
+
+        proposal_json = '{"type": "trap", "name": "quick_confidence", "count": 4, "files": ["d1.md", "d2.md", "d3.md", "d4.md"]}'
+        state = {
+            "distill_result": CopilotResult(
+                output=proposal_json,
+                exit_code=0,
+                backend="cli",
+            )
+        }
+        result = unwrap_distill(state)
+        assert result["top_candidate"] is not None
+        assert result["top_candidate"]["name"] == "quick_confidence"
+        assert result["top_candidate"]["count"] == 4
+        assert len(result["top_candidate"]["files"]) == 4
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_wrapped_selected_proposal(self):
+        """unwrap_distill with {"selected": {...}} unwraps correctly."""
+        from examples.philosopher.tools import unwrap_distill
+        from yamlgraph.models.schemas import CopilotResult
+
+        proposal_json = '{"selected": {"type": "heuristic", "name": "test_before_reading", "count": 5, "files": ["a.md", "b.md", "c.md", "d.md", "e.md"]}}'
+        state = {
+            "distill_result": CopilotResult(
+                output=proposal_json,
+                exit_code=0,
+                backend="cli",
+            )
+        }
+        result = unwrap_distill(state)
+        assert result["top_candidate"]["name"] == "test_before_reading"
+        assert result["top_candidate"]["type"] == "heuristic"
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_missing_distill_result(self):
+        """unwrap_distill with no distill_result returns None."""
+        from examples.philosopher.tools import unwrap_distill
+
+        result = unwrap_distill({})
+        assert result == {"top_candidate": None}
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_non_copilot_result(self):
+        """unwrap_distill with non-CopilotResult returns None."""
+        from examples.philosopher.tools import unwrap_distill
+
+        result = unwrap_distill({"distill_result": "just a string"})
+        assert result == {"top_candidate": None}
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_fenced_json_proposal(self):
+        """unwrap_distill handles markdown-fenced JSON."""
+        from examples.philosopher.tools import unwrap_distill
+        from yamlgraph.models.schemas import CopilotResult
+
+        state = {
+            "distill_result": CopilotResult(
+                output='```json\n{"type": "seed", "name": "auto_escalation", "count": 3, "files": ["x.md", "y.md", "z.md"]}\n```',
+                exit_code=0,
+                backend="cli",
+            )
+        }
+        result = unwrap_distill(state)
+        assert result["top_candidate"]["name"] == "auto_escalation"
+
+
+class TestUnwrapChallenge:
+    """Tests for unwrap_challenge() tool function."""
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_approve_verdict_parsed(self):
+        """unwrap_challenge parses approve verdict correctly."""
+        from examples.philosopher.tools import unwrap_challenge
+        from yamlgraph.models.schemas import CopilotResult
+
+        verdict_json = '{"verdict": "approve", "confidence": 0.85, "objections": ["minor overlap"], "surviving_arguments": ["distinct cause", "actionable"]}'
+        state = {
+            "challenge_result": CopilotResult(
+                output=verdict_json,
+                exit_code=0,
+                backend="cli",
+            )
+        }
+        result = unwrap_challenge(state)
+        assert result["challenge_parsed"]["verdict"] == "approve"
+        assert result["challenge_parsed"]["confidence"] == 0.85
+        assert len(result["challenge_parsed"]["objections"]) == 1
+        assert len(result["challenge_parsed"]["surviving_arguments"]) == 2
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_reject_verdict_parsed(self):
+        """unwrap_challenge parses reject verdict correctly."""
+        from examples.philosopher.tools import unwrap_challenge
+        from yamlgraph.models.schemas import CopilotResult
+
+        verdict_json = '{"verdict": "reject", "confidence": 0.95, "objections": ["false duplicate", "low evidence"], "surviving_arguments": []}'
+        state = {
+            "challenge_result": CopilotResult(
+                output=verdict_json,
+                exit_code=0,
+                backend="cli",
+            )
+        }
+        result = unwrap_challenge(state)
+        assert result["challenge_parsed"]["verdict"] == "reject"
+        assert result["challenge_parsed"]["confidence"] == 0.95
+        assert len(result["challenge_parsed"]["objections"]) == 2
+        assert result["challenge_parsed"]["surviving_arguments"] == []
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_missing_challenge_result(self):
+        """unwrap_challenge with no challenge_result returns reject fallback."""
+        from examples.philosopher.tools import unwrap_challenge
+
+        result = unwrap_challenge({})
+        assert result["challenge_parsed"]["verdict"] == "reject"
+        assert result["challenge_parsed"]["confidence"] == 0.0
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_fenced_verdict(self):
+        """unwrap_challenge handles markdown-fenced JSON."""
+        from examples.philosopher.tools import unwrap_challenge
+        from yamlgraph.models.schemas import CopilotResult
+
+        state = {
+            "challenge_result": CopilotResult(
+                output='```json\n{"verdict": "approve", "confidence": 0.9, "objections": [], "surviving_arguments": ["strong"]}\n```',
+                exit_code=0,
+                backend="cli",
+            )
+        }
+        result = unwrap_challenge(state)
+        assert result["challenge_parsed"]["verdict"] == "approve"
+
+
+class TestWriteProposalsTopCandidate:
+    """Tests for write_proposals() with top_candidate path (FR-195)."""
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_top_candidate_writes_single_proposal(self, tmp_path):
+        """write_proposals with top_candidate dict writes single proposal."""
+        from examples.philosopher.tools import write_proposals
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": [],
+            "top_candidate": {
+                "type": "trap",
+                "name": "quick_confidence",
+                "count": 4,
+                "files": ["d1.md", "d2.md", "d3.md", "d4.md"],
+            },
+        }
+        result = write_proposals(state)
+        assert result["written_count"] == 1
+        files = list(inbox.glob("*.md"))
+        assert len(files) == 1
+        assert "quick_confidence" in files[0].name
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_top_candidate_none_falls_back_to_proposals(self, tmp_path):
+        """write_proposals with top_candidate=None falls back to proposals key."""
+        from examples.philosopher.tools import write_proposals
+        from yamlgraph.models.schemas import CopilotResult
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        copilot_output = CopilotResult(
+            output='[{"type": "trap", "name": "fallback_pattern", "count": 3, "files": ["a.md", "b.md", "c.md"]}]',
+            exit_code=0,
+            backend="cli",
+        )
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": copilot_output,
+            "top_candidate": None,
+        }
+        result = write_proposals(state)
+        assert result["written_count"] == 1
+        files = list(inbox.glob("*.md"))
+        assert "fallback_pattern" in files[0].name
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_top_candidate_below_threshold_skipped(self, tmp_path):
+        """write_proposals with top_candidate below threshold writes nothing."""
+        from examples.philosopher.tools import write_proposals
+
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+
+        state = {
+            "inbox_dir": str(inbox),
+            "graduation_threshold": 3,
+            "proposals": [],
+            "top_candidate": {
+                "type": "trap",
+                "name": "weak_pattern",
+                "count": 2,
+                "files": ["d1.md", "d2.md"],
+            },
+        }
+        result = write_proposals(state)
+        assert result["written_count"] == 0
+
+
+class TestPhilosopherGraphFR195:
+    """Tests for graph.yaml structure changes (FR-195)."""
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_graph_has_distill_node(self):
+        """Graph should have a distill copilot node."""
+        import yaml
+
+        with open("examples/philosopher/graph.yaml") as f:
+            graph = yaml.safe_load(f)
+
+        assert "distill" in graph["nodes"]
+        assert graph["nodes"]["distill"]["type"] == "copilot"
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_graph_has_challenge_node(self):
+        """Graph should have a challenge copilot node."""
+        import yaml
+
+        with open("examples/philosopher/graph.yaml") as f:
+            graph = yaml.safe_load(f)
+
+        assert "challenge" in graph["nodes"]
+        assert graph["nodes"]["challenge"]["type"] == "copilot"
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_graph_has_unwrap_nodes(self):
+        """Graph should have unwrap_distill and unwrap_challenge Python nodes."""
+        import yaml
+
+        with open("examples/philosopher/graph.yaml") as f:
+            graph = yaml.safe_load(f)
+
+        assert "unwrap_distill" in graph["nodes"]
+        assert graph["nodes"]["unwrap_distill"]["type"] == "python"
+        assert "unwrap_challenge" in graph["nodes"]
+        assert graph["nodes"]["unwrap_challenge"]["type"] == "python"
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_graph_state_has_new_keys(self):
+        """Graph state should declare distill_result, top_candidate, challenge_result, challenge_parsed."""
+        import yaml
+
+        with open("examples/philosopher/graph.yaml") as f:
+            graph = yaml.safe_load(f)
+
+        state = graph["state"]
+        for key in ["distill_result", "top_candidate", "challenge_result", "challenge_parsed"]:
+            assert key in state, f"Missing state key: {key}"
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_graph_has_conditional_edges(self):
+        """Graph should have conditional edges from unwrap nodes."""
+        import yaml
+
+        with open("examples/philosopher/graph.yaml") as f:
+            graph = yaml.safe_load(f)
+
+        edges = graph["edges"]
+        # Find conditional edges from unwrap_distill
+        unwrap_distill_edges = [e for e in edges if e["from"] == "unwrap_distill"]
+        assert len(unwrap_distill_edges) == 2
+        conditions = {e.get("condition", ""): e["to"] for e in unwrap_distill_edges}
+        assert "top_candidate != None" in conditions
+        assert "top_candidate == None" in conditions
+
+        # Find conditional edges from unwrap_challenge
+        unwrap_challenge_edges = [e for e in edges if e["from"] == "unwrap_challenge"]
+        assert len(unwrap_challenge_edges) == 2
+        conditions = {e.get("condition", ""): e["to"] for e in unwrap_challenge_edges}
+        assert "challenge_parsed.verdict == 'approve'" in conditions
+        assert "challenge_parsed.verdict != 'approve'" in conditions
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_graph_tool_declarations(self):
+        """Graph should declare unwrap tool functions."""
+        import yaml
+
+        with open("examples/philosopher/graph.yaml") as f:
+            graph = yaml.safe_load(f)
+
+        tools = graph["tools"]
+        assert "unwrap_distill_tool" in tools
+        assert tools["unwrap_distill_tool"]["function"] == "unwrap_distill"
+        assert "unwrap_challenge_tool" in tools
+        assert tools["unwrap_challenge_tool"]["function"] == "unwrap_challenge"
+
+
+class TestPhilosopherPromptsFR195:
+    """Tests for new prompt YAML files (FR-195)."""
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_distill_prompt_exists(self):
+        """distill.yaml prompt should exist."""
+        assert Path("examples/philosopher/prompts/distill.yaml").exists()
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_challenge_prompt_exists(self):
+        """challenge.yaml prompt should exist."""
+        assert Path("examples/philosopher/prompts/challenge.yaml").exists()
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_distill_prompt_has_json_guard(self):
+        """distill prompt should include JSON output guard."""
+        content = Path("examples/philosopher/prompts/distill.yaml").read_text()
+        assert "Output ONLY valid JSON" in content or "output ONLY valid JSON" in content.upper()
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_challenge_prompt_has_json_guard(self):
+        """challenge prompt should include JSON output guard."""
+        content = Path("examples/philosopher/prompts/challenge.yaml").read_text()
+        assert "Output ONLY valid JSON" in content or "output ONLY valid JSON" in content.upper()
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_distill_prompt_no_schema(self):
+        """distill prompt should not have a schema: block (validation in Python)."""
+        import yaml
+
+        with open("examples/philosopher/prompts/distill.yaml") as f:
+            prompt = yaml.safe_load(f)
+        assert "schema" not in prompt
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_challenge_prompt_has_five_axes(self):
+        """challenge prompt should mention all 5 challenge axes."""
+        content = Path("examples/philosopher/prompts/challenge.yaml").read_text().lower()
+        for axis in ["recurrence", "actionability", "specificity", "false duplicate", "evidence"]:
+            assert axis in content, f"Missing challenge axis: {axis}"
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_reflect_prompt_includes_challenge_context(self):
+        """reflect prompt should include challenge_parsed variable."""
+        content = Path("examples/philosopher/prompts/reflect.yaml").read_text()
+        assert "challenge" in content.lower()
+
+
+class TestConditionalRouting:
+    """Tests for conditional edge evaluation (FR-195 routing logic)."""
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_approve_verdict_routes_to_propose(self):
+        """approve verdict condition evaluates to True."""
+        from yamlgraph.utils.conditions import evaluate_condition
+
+        state = {"challenge_parsed": {"verdict": "approve", "confidence": 0.85}}
+        assert evaluate_condition("challenge_parsed.verdict == 'approve'", state) is True
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_reject_verdict_skips_propose(self):
+        """reject verdict condition for propose evaluates to False."""
+        from yamlgraph.utils.conditions import evaluate_condition
+
+        state = {"challenge_parsed": {"verdict": "reject", "confidence": 0.9}}
+        assert evaluate_condition("challenge_parsed.verdict == 'approve'", state) is False
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_reject_routes_to_reflect(self):
+        """reject verdict routes to reflect via != condition."""
+        from yamlgraph.utils.conditions import evaluate_condition
+
+        state = {"challenge_parsed": {"verdict": "reject", "confidence": 0.9}}
+        assert evaluate_condition("challenge_parsed.verdict != 'approve'", state) is True
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_null_top_candidate_routes_to_reflect(self):
+        """null top_candidate routes to reflect."""
+        from yamlgraph.utils.conditions import evaluate_condition
+
+        state = {"top_candidate": None}
+        assert evaluate_condition("top_candidate == None", state) is True
+
+    @pytest.mark.req("REQ-YG-193")
+    def test_present_top_candidate_routes_to_challenge(self):
+        """present top_candidate routes to challenge."""
+        from yamlgraph.utils.conditions import evaluate_condition
+
+        state = {"top_candidate": {"name": "test_pattern"}}
+        assert evaluate_condition("top_candidate != None", state) is True
