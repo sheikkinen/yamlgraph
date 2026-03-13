@@ -377,7 +377,17 @@ class TestPhilosopherGraph:
 
         nodes = list(graph["nodes"].keys())
         assert len(nodes) == 9
-        for name in ["scan", "analyze", "distill", "unwrap_distill", "challenge", "unwrap_challenge", "propose", "reflect", "write_diary"]:
+        for name in [
+            "scan",
+            "analyze",
+            "distill",
+            "unwrap_distill",
+            "challenge",
+            "unwrap_challenge",
+            "propose",
+            "reflect",
+            "write_diary",
+        ]:
             assert name in nodes, f"Missing node: {name}"
 
     @pytest.mark.req("REQ-YG-184")
@@ -1185,7 +1195,12 @@ class TestPhilosopherGraphFR195:
             graph = yaml.safe_load(f)
 
         state = graph["state"]
-        for key in ["distill_result", "top_candidate", "challenge_result", "challenge_parsed"]:
+        for key in [
+            "distill_result",
+            "top_candidate",
+            "challenge_result",
+            "challenge_parsed",
+        ]:
             assert key in state, f"Missing state key: {key}"
 
     @pytest.mark.req("REQ-YG-193")
@@ -1243,13 +1258,19 @@ class TestPhilosopherPromptsFR195:
     def test_distill_prompt_has_json_guard(self):
         """distill prompt should include JSON output guard."""
         content = Path("examples/philosopher/prompts/distill.yaml").read_text()
-        assert "Output ONLY valid JSON" in content or "output ONLY valid JSON" in content.upper()
+        assert (
+            "Output ONLY valid JSON" in content
+            or "output ONLY valid JSON" in content.upper()
+        )
 
     @pytest.mark.req("REQ-YG-193")
     def test_challenge_prompt_has_json_guard(self):
         """challenge prompt should include JSON output guard."""
         content = Path("examples/philosopher/prompts/challenge.yaml").read_text()
-        assert "Output ONLY valid JSON" in content or "output ONLY valid JSON" in content.upper()
+        assert (
+            "Output ONLY valid JSON" in content
+            or "output ONLY valid JSON" in content.upper()
+        )
 
     @pytest.mark.req("REQ-YG-193")
     def test_distill_prompt_no_schema(self):
@@ -1263,8 +1284,16 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_challenge_prompt_has_five_axes(self):
         """challenge prompt should mention all 5 challenge axes."""
-        content = Path("examples/philosopher/prompts/challenge.yaml").read_text().lower()
-        for axis in ["recurrence", "actionability", "specificity", "false duplicate", "evidence"]:
+        content = (
+            Path("examples/philosopher/prompts/challenge.yaml").read_text().lower()
+        )
+        for axis in [
+            "recurrence",
+            "actionability",
+            "specificity",
+            "false duplicate",
+            "evidence",
+        ]:
             assert axis in content, f"Missing challenge axis: {axis}"
 
     @pytest.mark.req("REQ-YG-193")
@@ -1283,7 +1312,9 @@ class TestConditionalRouting:
         from yamlgraph.utils.conditions import evaluate_condition
 
         state = {"challenge_parsed": {"verdict": "approve", "confidence": 0.85}}
-        assert evaluate_condition("challenge_parsed.verdict == 'approve'", state) is True
+        assert (
+            evaluate_condition("challenge_parsed.verdict == 'approve'", state) is True
+        )
 
     @pytest.mark.req("REQ-YG-193")
     def test_reject_verdict_skips_propose(self):
@@ -1291,7 +1322,9 @@ class TestConditionalRouting:
         from yamlgraph.utils.conditions import evaluate_condition
 
         state = {"challenge_parsed": {"verdict": "reject", "confidence": 0.9}}
-        assert evaluate_condition("challenge_parsed.verdict == 'approve'", state) is False
+        assert (
+            evaluate_condition("challenge_parsed.verdict == 'approve'", state) is False
+        )
 
     @pytest.mark.req("REQ-YG-193")
     def test_reject_routes_to_reflect(self):
@@ -1299,7 +1332,9 @@ class TestConditionalRouting:
         from yamlgraph.utils.conditions import evaluate_condition
 
         state = {"challenge_parsed": {"verdict": "reject", "confidence": 0.9}}
-        assert evaluate_condition("challenge_parsed.verdict != 'approve'", state) is True
+        assert (
+            evaluate_condition("challenge_parsed.verdict != 'approve'", state) is True
+        )
 
     @pytest.mark.req("REQ-YG-193")
     def test_null_top_candidate_routes_to_reflect(self):
