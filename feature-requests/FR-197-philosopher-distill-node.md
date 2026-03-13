@@ -3,7 +3,7 @@
 **FR-197**
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-03-13
 
@@ -216,23 +216,23 @@ edges:
 
 ## Acceptance Criteria
 
-- [ ] `distill` copilot node added to philosopher graph between `analyze` and `unwrap_distill`
-- [ ] `distill.yaml` prompt evaluates candidates on recency, severity, evidence spread, and specificity
-- [ ] `distill.yaml` prompt correctly accesses `proposals.output` to resolve the CopilotResult envelope
-- [ ] `distill` prompt outputs single `Proposal` JSON or `{"selected": null}` for no-candidate case
-- [ ] `unwrap_distill` Python tool parses `CopilotResult.output` into validated `Proposal` dict or `None`
-- [ ] `unwrap_distill` handles `{"selected": null}` signal without discarding valid Proposal JSON (key-presence check, not value check)
-- [ ] Null short-circuit: when `top_candidate` is `None`, graph skips `propose` and routes to `reflect`
-- [ ] `write_proposals()` reads `top_candidate` dict when present (single proposal path), falls back to `proposals` key
-- [ ] `distill_result` and `top_candidate` declared in graph state
-- [ ] Tool declaration `unwrap_distill_tool` added to graph YAML
-- [ ] Unit test: `unwrap_distill` with `{"selected": null}` returns `{"top_candidate": None}`
-- [ ] Unit test: `unwrap_distill` with valid proposal JSON returns validated dict
-- [ ] Unit test: `write_proposals` with `top_candidate` dict writes single proposal file
-- [ ] Unit test: conditional routing with `top_candidate != None` reaches `propose`
-- [ ] Unit test: conditional routing with `top_candidate == None` skips to `reflect`
-- [ ] Tests added with `@pytest.mark.req` traceability
-- [ ] Documentation updated (graph description in YAML header reflects distill stage)
+- [x] `distill` copilot node added to philosopher graph between `analyze` and `unwrap_distill`
+- [x] `distill.yaml` prompt evaluates candidates on recency, severity, evidence spread, and specificity
+- [x] `distill.yaml` prompt correctly accesses `proposals.output` to resolve the CopilotResult envelope
+- [x] `distill` prompt outputs single `Proposal` JSON or `{"selected": null}` for no-candidate case
+- [x] `unwrap_distill` Python tool parses `CopilotResult.output` into validated `Proposal` dict or `None`
+- [x] `unwrap_distill` handles `{"selected": null}` signal without discarding valid Proposal JSON (key-presence check, not value check)
+- [x] Null short-circuit: when `top_candidate` is `None`, graph skips `propose` and routes to `reflect`
+- [x] `write_proposals()` reads `top_candidate` dict when present (single proposal path), falls back to `proposals` key
+- [x] `distill_result` and `top_candidate` declared in graph state
+- [x] Tool declaration `unwrap_distill_tool` added to graph YAML
+- [x] Unit test: `unwrap_distill` with `{"selected": null}` returns `{"top_candidate": None}`
+- [x] Unit test: `unwrap_distill` with valid proposal JSON returns validated dict
+- [x] Unit test: `write_proposals` with `top_candidate` dict writes single proposal file
+- [x] Unit test: conditional routing with `top_candidate != None` reaches `propose`
+- [x] Unit test: conditional routing with `top_candidate == None` skips to `reflect`
+- [x] Tests added with `@pytest.mark.req` traceability
+- [x] Documentation updated (graph description in YAML header reflects distill stage)
 
 ## Alternatives Considered
 
