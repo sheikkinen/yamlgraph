@@ -35,10 +35,10 @@ The guard `if not root.handlers` prevents adding duplicate handlers when `setup_
 
 ## Acceptance Criteria
 
-- [ ] `setup_logging(level="DEBUG")` sets root logger to DEBUG
-- [ ] Non-yamlgraph loggers (e.g. `logging.getLogger("projects.foo")`) emit at the configured level
-- [ ] Root handler only added when no handlers exist (idempotent)
-- [ ] Existing yamlgraph logger behavior unchanged
+- [x] `setup_logging(level="DEBUG")` sets root logger to DEBUG
+- [x] Non-yamlgraph loggers (e.g. `logging.getLogger("projects.foo")`) emit at the configured level
+- [x] Root handler only added when no handlers exist (idempotent)
+- [x] Existing yamlgraph logger behavior unchanged
 
 ## Implementation
 
