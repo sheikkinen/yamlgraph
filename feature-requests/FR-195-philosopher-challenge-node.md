@@ -3,7 +3,7 @@
 **FR-195**
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-03-13
 
@@ -280,30 +280,30 @@ state:
 
 ## Acceptance Criteria
 
-- [ ] `distill` copilot node added to philosopher graph between `analyze` and `unwrap_distill`
-- [ ] `distill` prompt YAML selects single strongest candidate; outputs `{"selected": null}` when none qualifies
-- [ ] `unwrap_distill` Python node parses `CopilotResult.output` into validated `Proposal` dict or `None`
-- [ ] Null short-circuit: when `top_candidate` is `None`, graph routes directly to `reflect` (or `load_context` if FR-194 present), skipping `challenge` and `propose`
-- [ ] `challenge` copilot node plays devil's advocate on `top_candidate`
-- [ ] `challenge` prompt YAML challenges along 5 axes (recurrence, actionability, specificity, false duplicate, evidence quality)
-- [ ] `unwrap_challenge` Python node parses `CopilotResult.output` into validated `ChallengeVerdict` dict
-- [ ] Conditional edge routes approved verdicts to `propose`, rejected to `reflect`
-- [ ] `ChallengeVerdict` Pydantic model added to `examples/philosopher/models.py` with `verdict`, `confidence`, `objections`, `surviving_arguments`
-- [ ] `write_proposals()` reads `top_candidate` dict when present (single proposal path), falls back to `proposals` key
-- [ ] `reflect` prompt includes `challenge_parsed` context via Jinja2 conditional rendering
-- [ ] `distill_result`, `top_candidate`, `challenge_result`, `challenge_parsed` declared in graph state
-- [ ] Edge topology accounts for FR-194 `load_context` node (or documents the without-FR-194 fallback)
-- [ ] Tool declarations added for `unwrap_distill_tool` and `unwrap_challenge_tool` in graph YAML
-- [ ] Unit test: `ChallengeVerdict` model validates approve/reject verdicts with confidence bounds
-- [ ] Unit test: `unwrap_distill` with null signal returns `{"top_candidate": None}`
-- [ ] Unit test: `unwrap_distill` with valid proposal returns validated dict
-- [ ] Unit test: `unwrap_challenge` parses approve/reject verdicts correctly
-- [ ] Unit test: `write_proposals` with `top_candidate` dict writes single proposal
-- [ ] Unit test: conditional routing with approve verdict reaches `propose`
-- [ ] Unit test: conditional routing with reject verdict skips to `reflect`
-- [ ] Unit test: null `top_candidate` short-circuits past `challenge` to `reflect`
-- [ ] Tests added with `@pytest.mark.req` traceability
-- [ ] `distill.yaml` and `challenge.yaml` prompt files created in `examples/philosopher/prompts/`
+- [x] `distill` copilot node added to philosopher graph between `analyze` and `unwrap_distill`
+- [x] `distill` prompt YAML selects single strongest candidate; outputs `{"selected": null}` when none qualifies
+- [x] `unwrap_distill` Python node parses `CopilotResult.output` into validated `Proposal` dict or `None`
+- [x] Null short-circuit: when `top_candidate` is `None`, graph routes directly to `reflect` (or `load_context` if FR-194 present), skipping `challenge` and `propose`
+- [x] `challenge` copilot node plays devil's advocate on `top_candidate`
+- [x] `challenge` prompt YAML challenges along 5 axes (recurrence, actionability, specificity, false duplicate, evidence quality)
+- [x] `unwrap_challenge` Python node parses `CopilotResult.output` into validated `ChallengeVerdict` dict
+- [x] Conditional edge routes approved verdicts to `propose`, rejected to `reflect`
+- [x] `ChallengeVerdict` Pydantic model added to `examples/philosopher/models.py` with `verdict`, `confidence`, `objections`, `surviving_arguments`
+- [x] `write_proposals()` reads `top_candidate` dict when present (single proposal path), falls back to `proposals` key
+- [x] `reflect` prompt includes `challenge_parsed` context via Jinja2 conditional rendering
+- [x] `distill_result`, `top_candidate`, `challenge_result`, `challenge_parsed` declared in graph state
+- [x] Edge topology accounts for FR-194 `load_context` node (or documents the without-FR-194 fallback)
+- [x] Tool declarations added for `unwrap_distill_tool` and `unwrap_challenge_tool` in graph YAML
+- [x] Unit test: `ChallengeVerdict` model validates approve/reject verdicts with confidence bounds
+- [x] Unit test: `unwrap_distill` with null signal returns `{"top_candidate": None}`
+- [x] Unit test: `unwrap_distill` with valid proposal returns validated dict
+- [x] Unit test: `unwrap_challenge` parses approve/reject verdicts correctly
+- [x] Unit test: `write_proposals` with `top_candidate` dict writes single proposal
+- [x] Unit test: conditional routing with approve verdict reaches `propose`
+- [x] Unit test: conditional routing with reject verdict skips to `reflect`
+- [x] Unit test: null `top_candidate` short-circuits past `challenge` to `reflect`
+- [x] Tests added with `@pytest.mark.req` traceability
+- [x] `distill.yaml` and `challenge.yaml` prompt files created in `examples/philosopher/prompts/`
 
 ## Alternatives Considered
 

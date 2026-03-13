@@ -1,11 +1,13 @@
-# FR-184/FR-185: Philosopher Daemon
+# FR-184/FR-185/FR-195: Philosopher Daemon
 # Scans diary entries for recurring patterns and proposes graduations to Scripture
+# FR-195: Adds distill/challenge adversarial gate before propose
 
 version: "1.0"
 name: philosopher-scan
 description: |
   Scan diary entries for recurring patterns and propose graduations.
-  Five phases: scan → analyze → propose → reflect → write_diary.
+  Nine phases: scan → analyze → distill → unwrap_distill → [challenge → unwrap_challenge →] propose → reflect → write_diary.
+  The distill/challenge gate (FR-195) prevents weak patterns from reaching .chaplain/inbox/.
 
 prompts_relative: true
 prompts_dir: prompts
@@ -23,6 +25,10 @@ state:
   diary_prefix: str             # Diary entry prefix (default: Philosopher)
   scan_result: dict             # Extracted markers with counts
   proposals: dict               # CopilotResult envelope (FR-185)
+  distill_result: dict          # CopilotResult envelope from distill copilot node (FR-195)
+  top_candidate: dict           # Unwrapped single strongest candidate or null (FR-195)
+  challenge_result: dict        # CopilotResult envelope from challenge copilot node (FR-195)
+  challenge_parsed: dict        # Unwrapped ChallengeVerdict dict (FR-195)
   diary_entry: dict             # CopilotResult envelope (FR-185)
   written: bool                 # True after diary append
 
@@ -39,6 +45,14 @@ tools:
     type: python
     module: examples.philosopher.tools
     function: write_proposals
+  unwrap_distill_tool:
+    type: python
+    module: examples.philosopher.tools
+    function: unwrap_distill
+  unwrap_challenge_tool:
+    type: python
+    module: examples.philosopher.tools
+    function: unwrap_challenge
 
 nodes:
   # Stage 1: Scan — Extract markers from diary files
@@ -57,23 +71,56 @@ nodes:
     state_key: proposals
     timeout: 300
 
-  # Stage 3: Write proposals to inbox (if any)
+  # Stage 3: Distill — Select single strongest candidate (FR-195)
+  distill:
+    type: copilot
+    prompt: distill
+    variables:
+      proposals: "{state.proposals}"
+      scan_result: "{state.scan_result}"
+    state_key: distill_result
+    timeout: 300
+
+  # Stage 4: Unwrap distill result into validated Proposal or None (FR-195)
+  unwrap_distill:
+    type: python
+    tool: unwrap_distill_tool
+    state_key: top_candidate
+
+  # Stage 5: Challenge — Devil's advocate gate (FR-195)
+  challenge:
+    type: copilot
+    prompt: challenge
+    variables:
+      top_candidate: "{state.top_candidate}"
+      scan_result: "{state.scan_result}"
+    state_key: challenge_result
+    timeout: 300
+
+  # Stage 6: Unwrap challenge result into validated ChallengeVerdict (FR-195)
+  unwrap_challenge:
+    type: python
+    tool: unwrap_challenge_tool
+    state_key: challenge_parsed
+
+  # Stage 7: Write proposals to inbox (if approved)
   propose:
     type: python
     tool: write_proposal_tool
     state_key: proposals_written
 
-  # Stage 4: Write Philosopher's own diary entry (FR-185)
+  # Stage 8: Write Philosopher's own diary entry (FR-185/FR-195)
   reflect:
     type: copilot
     prompt: reflect
     variables:
       scan_result: "{state.scan_result}"
       proposals: "{state.proposals}"
+      challenge_parsed: "{state.challenge_parsed}"
     state_key: diary_entry
     timeout: 300
 
-  # Stage 5: Write diary entry to file
+  # Stage 9: Write diary entry to file
   write_diary:
     type: python
     tool: write_diary_tool
@@ -85,7 +132,23 @@ edges:
   - from: scan
     to: analyze
   - from: analyze
+    to: distill
+  - from: distill
+    to: unwrap_distill
+  - from: unwrap_distill
+    to: challenge
+    condition: "top_candidate != None"
+  - from: unwrap_distill
+    to: reflect
+    condition: "top_candidate == None"
+  - from: challenge
+    to: unwrap_challenge
+  - from: unwrap_challenge
     to: propose
+    condition: "challenge_parsed.verdict == 'approve'"
+  - from: unwrap_challenge
+    to: reflect
+    condition: "challenge_parsed.verdict != 'approve'"
   - from: propose
     to: reflect
   - from: reflect

@@ -1,0 +1,30 @@
+id: CAP-73
+name: Philosopher Challenge Node (FR-195)
+fr: FR-195
+description: >
+  Adds distill + challenge copilot nodes with unwrap gates to the philosopher
+  graph, creating an adversarial quality gate (devil's advocate) that prevents
+  weak or coincidental patterns from reaching .chaplain/inbox/. Implements
+  ChallengeVerdict Pydantic model, unwrap_distill/unwrap_challenge tool
+  functions, conditional routing on verdict, and distill/challenge prompt YAMLs.
+modules:
+  - examples/philosopher/models.py
+  - examples/philosopher/tools.py
+  - examples/philosopher/graph.yaml
+  - examples/philosopher/prompts/distill.yaml
+  - examples/philosopher/prompts/challenge.yaml
+  - examples/philosopher/prompts/reflect.yaml
+requirements:
+  - id: REQ-YG-193
+    description: >
+      ChallengeVerdict model with verdict/confidence/objections/surviving_arguments,
+      unwrap_distill parses CopilotResult into Proposal or None, unwrap_challenge
+      parses CopilotResult into ChallengeVerdict, write_proposals reads top_candidate,
+      graph topology with conditional edges, distill/challenge prompts, reflect
+      enriched with challenge context
+    modules:
+      - examples/philosopher/models.py
+      - examples/philosopher/tools.py
+      - examples/philosopher/graph.yaml
+      - examples/philosopher/prompts/
+      - tests/unit/test_philosopher.py
