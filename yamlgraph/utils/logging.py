@@ -81,6 +81,14 @@ def setup_logging(
     # Don't propagate to root logger
     logger.propagate = False
 
+    # Configure root logger so non-yamlgraph modules (e.g. projects.*) respect LOG_LEVEL
+    root = logging.getLogger()
+    root.setLevel(getattr(logging, level.upper()))
+    if not root.handlers:
+        root_handler = logging.StreamHandler(sys.stderr)
+        root_handler.setFormatter(StructuredFormatter(use_json=use_json))
+        root.addHandler(root_handler)
+
     return logger
 
 
