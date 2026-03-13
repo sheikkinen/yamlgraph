@@ -1,6 +1,6 @@
 # Philosopher Daemon
 
-**FR-184** — Automated pattern detection across diary entries.
+**FR-184/FR-194** — Automated pattern detection across diary entries with world context enrichment.
 
 ## Usage
 
@@ -22,7 +22,7 @@ yamlgraph graph run examples/philosopher/graph.yaml \
 ## Graph Topology
 
 ```
-START → scan → analyze → propose → reflect → write_diary → END
+START → scan → analyze → propose → load_context → reflect → write_diary → END
 ```
 
 | Node | Type | Purpose |
@@ -30,7 +30,8 @@ START → scan → analyze → propose → reflect → write_diary → END
 | `scan` | python | Extract `**Trap:**`, `**Heuristic:**`, `**Seed:**` markers from diary files |
 | `analyze` | copilot | Detect patterns meeting graduation threshold |
 | `propose` | python | Write graduation proposals to `.chaplain/inbox/` |
-| `reflect` | copilot | Generate Philosopher's own diary reflection |
+| `load_context` | python | Load external world context from `docs/world-context.md` (FR-194) |
+| `reflect` | copilot | Generate Philosopher's own diary reflection, enriched with world context |
 | `write_diary` | python | Append reflection to `docs/diary/` |
 
 ## Output Format
@@ -79,6 +80,7 @@ Appended to `docs/diary/diary-{date}.md` with prefix "Philosopher":
 | `INBOX` | `.chaplain/inbox` | Output directory for proposals |
 | `LOOKBACK_DAYS` | `30` | How far back to scan |
 | `GRADUATION_THRESHOLD` | `3` | Min occurrences for graduation |
+| `WORLD_CONTEXT_PATH` | `docs/world-context.md` | Path to external world context file (FR-194) |
 
 ## Authority Chain
 

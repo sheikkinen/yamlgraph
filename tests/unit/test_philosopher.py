@@ -366,9 +366,9 @@ class TestPhilosopherGraph:
         graph_path = Path("examples/philosopher/graph.yaml")
         assert graph_path.exists(), "philosopher graph not found"
 
-    @pytest.mark.req("REQ-YG-184")
-    def test_graph_has_nine_nodes(self):
-        """Graph should have 9 nodes after FR-195: scan, analyze, distill, unwrap_distill, challenge, unwrap_challenge, propose, reflect, write_diary."""
+    @pytest.mark.req("REQ-YG-194")
+    def test_graph_has_ten_nodes(self):
+        """Graph should have 10 nodes after FR-194/FR-195: scan, analyze, distill, unwrap_distill, challenge, unwrap_challenge, propose, load_context, reflect, write_diary."""
         import yaml
 
         graph_path = Path("examples/philosopher/graph.yaml")
@@ -376,7 +376,7 @@ class TestPhilosopherGraph:
             graph = yaml.safe_load(f)
 
         nodes = list(graph["nodes"].keys())
-        assert len(nodes) == 9
+        assert len(nodes) == 10
         for name in [
             "scan",
             "analyze",
@@ -385,6 +385,7 @@ class TestPhilosopherGraph:
             "challenge",
             "unwrap_challenge",
             "propose",
+            "load_context",
             "reflect",
             "write_diary",
         ]:
@@ -407,7 +408,8 @@ class TestPhilosopherGraph:
             ("analyze", "distill"),
             ("distill", "unwrap_distill"),
             ("challenge", "unwrap_challenge"),
-            ("propose", "reflect"),
+            ("propose", "load_context"),
+            ("load_context", "reflect"),
             ("reflect", "write_diary"),
             ("write_diary", "END"),
         ]:

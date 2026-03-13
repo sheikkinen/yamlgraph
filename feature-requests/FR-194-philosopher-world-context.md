@@ -3,7 +3,7 @@
 **FR-194**
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-03-13
 
@@ -167,18 +167,18 @@ state:
 
 ## Acceptance Criteria
 
-- [ ] `docs/world-context.md` exists with a documented structure and initial content
-- [ ] `load_world_context()` function returns file contents when file exists
-- [ ] `load_world_context()` returns empty string when file is missing (graceful degradation)
-- [ ] Philosopher graph includes `load_context` node between `propose` and `reflect`
-- [ ] `reflect` prompt conditionally renders world context (omitted when empty)
-- [ ] `world_context` declared in graph state section
-- [ ] Existing philosopher behavior unchanged when `docs/world-context.md` is absent
-- [ ] Unit test: `load_world_context` with existing file returns content
-- [ ] Unit test: `load_world_context` with missing file returns empty string
-- [ ] Unit test: reflect prompt renders with and without world context
-- [ ] Tests added with `@pytest.mark.req` traceability
-- [ ] Documentation updated (README or philosopher example docs)
+- [x] `docs/world-context.md` exists with a documented structure and initial content
+- [x] `load_world_context()` function returns file contents when file exists
+- [x] `load_world_context()` returns empty string when file is missing (graceful degradation)
+- [x] Philosopher graph includes `load_context` node between `propose` and `reflect`
+- [x] `reflect` prompt conditionally renders world context (omitted when empty)
+- [x] `world_context` declared in graph state section
+- [x] Existing philosopher behavior unchanged when `docs/world-context.md` is absent
+- [x] Unit test: `load_world_context` with existing file returns content
+- [x] Unit test: `load_world_context` with missing file returns empty string
+- [x] Unit test: reflect prompt renders with and without world context
+- [x] Tests added with `@pytest.mark.req` traceability
+- [x] Documentation updated (README or philosopher example docs)
 
 ## Alternatives Considered
 

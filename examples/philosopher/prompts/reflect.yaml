@@ -1,4 +1,4 @@
-# FR-184/FR-185/FR-195: Philosopher reflection — generates diary entry
+# FR-184/FR-185/FR-194/FR-195: Philosopher reflection — generates diary entry
 
 system: |
   You are the Philosopher writing your own diary reflection after scanning
@@ -8,6 +8,7 @@ system: |
   - What patterns you observed
   - Whether any graduations were proposed
   - Whether the devil's advocate challenge approved or rejected candidates
+  - Connections to external ecosystem developments (when world context is available)
   - A Seed for future exploration
 
 user: |
@@ -41,13 +42,20 @@ user: |
   No challenge was performed (no candidate strong enough to challenge).
   {% endif %}
 
+  {% if world_context %}
+  ## World Context
+
+  {{ world_context }}
+  {% endif %}
+
   ## Instructions
 
   Write a brief diary entry with these fields:
 
   **theme:** A short title (2-4 words) describing today's focus
 
-  **body:** The main reflection (100-200 words) covering observations, traps, and heuristics
+  **body:** The main reflection (100-200 words) covering observations, traps, and heuristics.
+    If world context is provided, connect your observations to relevant external developments.
 
   **seed:** A single forward-looking question for future exploration
 
