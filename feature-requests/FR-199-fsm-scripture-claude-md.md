@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-13
 
@@ -84,17 +84,17 @@ Troubleshooting, Development Commands) is preserved unchanged above the doctrine
 
 ## Acceptance Criteria
 
-- [ ] `fsm/CLAUDE.md` contains all 10 Commandments verbatim
-- [ ] `fsm/CLAUDE.md` contains Sermon of the Chaplain verbatim
-- [ ] `fsm/CLAUDE.md` contains Rite of Correction verbatim
-- [ ] `fsm/CLAUDE.md` contains Agents' prayer verbatim
-- [ ] `fsm/CLAUDE.md` contains the Knowledge Graph of the Diary verbatim
-- [ ] Path/package adaptation table is present and accurate for FSM project layout
-- [ ] Anti-patterns table is present with FSM-specific wrong/correct pairs
-- [ ] All existing FSM-specific sections (Architecture, Usage, Troubleshooting) are preserved intact
-- [ ] The four-line YAGNI/TDD/DRY/KISS block is replaced, not duplicated
-- [ ] Diary entry written in `docs/diary/` after implementation
-- [ ] No new Python code, tests, or CI changes required (documentation-only change)
+- [x] `fsm/CLAUDE.md` contains all 10 Commandments verbatim
+- [x] `fsm/CLAUDE.md` contains Sermon of the Chaplain verbatim
+- [x] `fsm/CLAUDE.md` contains Rite of Correction verbatim
+- [x] `fsm/CLAUDE.md` contains Agents' prayer verbatim
+- [x] `fsm/CLAUDE.md` contains the Knowledge Graph of the Diary verbatim
+- [x] Path/package adaptation table is present and accurate for FSM project layout
+- [x] Anti-patterns table is present with FSM-specific wrong/correct pairs
+- [x] All existing FSM-specific sections (Architecture, Usage, Troubleshooting) are preserved intact
+- [x] The four-line YAGNI/TDD/DRY/KISS block is replaced, not duplicated
+- [x] Diary entry written in `docs/diary/` after implementation
+- [x] No new Python code, tests, or CI changes required (documentation-only change)
 
 ## Alternatives Considered
 
