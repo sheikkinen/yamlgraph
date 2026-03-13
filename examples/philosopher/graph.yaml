@@ -1,12 +1,13 @@
-# FR-184/FR-185/FR-195: Philosopher Daemon
+# FR-184/FR-185/FR-194/FR-195: Philosopher Daemon
 # Scans diary entries for recurring patterns and proposes graduations to Scripture
 # FR-195: Adds distill/challenge adversarial gate before propose
+# FR-194: Adds world context loading for grounded reflection
 
 version: "1.0"
 name: philosopher-scan
 description: |
   Scan diary entries for recurring patterns and propose graduations.
-  Nine phases: scan → analyze → distill → unwrap_distill → [challenge → unwrap_challenge →] propose → reflect → write_diary.
+  Nine phases: scan → analyze → distill → unwrap_distill → [challenge → unwrap_challenge →] propose → load_context → reflect → write_diary.
   The distill/challenge gate (FR-195) prevents weak patterns from reaching .chaplain/inbox/.
 
 prompts_relative: true
@@ -23,12 +24,14 @@ state:
   graduation_threshold: int     # Min occurrences to propose graduation (default: 3)
   date: str                     # Current date for diary entry
   diary_prefix: str             # Diary entry prefix (default: Philosopher)
+  world_context_path: str       # Path to world context file (default: docs/world-context.md)
   scan_result: dict             # Extracted markers with counts
   proposals: dict               # CopilotResult envelope (FR-185)
   distill_result: dict          # CopilotResult envelope from distill copilot node (FR-195)
   top_candidate: dict           # Unwrapped single strongest candidate or null (FR-195)
   challenge_result: dict        # CopilotResult envelope from challenge copilot node (FR-195)
   challenge_parsed: dict        # Unwrapped ChallengeVerdict dict (FR-195)
+  world_context: str            # External ecosystem context (FR-194)
   diary_entry: dict             # CopilotResult envelope (FR-185)
   written: bool                 # True after diary append
 
@@ -37,6 +40,10 @@ tools:
     type: python
     module: examples.philosopher.tools
     function: scan_diary_markers
+  load_context_tool:
+    type: python
+    module: examples.philosopher.tools
+    function: load_world_context
   write_diary_tool:
     type: python
     module: examples.shared.diary
@@ -109,7 +116,13 @@ nodes:
     tool: write_proposal_tool
     state_key: proposals_written
 
-  # Stage 8: Write Philosopher's own diary entry (FR-185/FR-195)
+  # Stage 8: Load external world context for reflection (FR-194)
+  load_context:
+    type: python
+    tool: load_context_tool
+    state_key: world_context
+
+  # Stage 9: Write Philosopher's own diary entry (FR-185/FR-194/FR-195)
   reflect:
     type: copilot
     prompt: reflect
@@ -117,10 +130,11 @@ nodes:
       scan_result: "{state.scan_result}"
       proposals: "{state.proposals}"
       challenge_parsed: "{state.challenge_parsed}"
+      world_context: "{state.world_context}"
     state_key: diary_entry
     timeout: 300
 
-  # Stage 9: Write diary entry to file
+  # Stage 10: Write diary entry to file
   write_diary:
     type: python
     tool: write_diary_tool
@@ -150,6 +164,8 @@ edges:
     to: reflect
     condition: "challenge_parsed.verdict != 'approve'"
   - from: propose
+    to: load_context
+  - from: load_context
     to: reflect
   - from: reflect
     to: write_diary
