@@ -44,7 +44,10 @@ def _find_fsm_claude_md() -> Path:
     except (subprocess.CalledProcessError, ValueError, IndexError, OSError):
         pass
 
-    pytest.skip("fsm/CLAUDE.md not accessible (symlink broken in this environment)")
+    pytest.skip(
+        "fsm/CLAUDE.md not accessible (symlink broken in this environment)",
+        allow_module_level=True,
+    )
 
 
 FSM_CLAUDE_MD = _find_fsm_claude_md()
