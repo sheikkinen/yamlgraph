@@ -1,4 +1,4 @@
-"""FR-185: Philosopher Pydantic models and JSON extraction utility.
+"""FR-185/FR-195: Philosopher Pydantic models and JSON extraction utility.
 
 Provides validated models for copilot node output and a JSON extraction
 helper that handles markdown fences and preamble text.
@@ -25,6 +25,23 @@ class ProposalList(BaseModel):
     proposals: list[Proposal] = Field(
         default_factory=list,
         description="List of graduation proposals",
+    )
+
+
+class ChallengeVerdict(BaseModel):
+    """Devil's advocate verdict on a graduation candidate (FR-195)."""
+
+    verdict: str = Field(description="'approve' or 'reject'")
+    confidence: float = Field(
+        description="Confidence in verdict (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
+    )
+    objections: list[str] = Field(
+        description="Devil's advocate concerns raised",
+    )
+    surviving_arguments: list[str] = Field(
+        description="Arguments that withstood challenge",
     )
 
 

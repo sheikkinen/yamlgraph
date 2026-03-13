@@ -1,6 +1,7 @@
-"""FR-184/FR-185: Philosopher Daemon tools.
+"""FR-184/FR-185/FR-195: Philosopher Daemon tools.
 
-Provides scan_diary_markers() and write_proposals() for the philosopher graph.
+Provides scan_diary_markers(), write_proposals(), unwrap_distill(),
+and unwrap_challenge() for the philosopher graph.
 """
 
 import re
@@ -103,6 +104,67 @@ def scan_diary_markers(state: dict) -> dict:
     }
 
 
+def unwrap_distill(state: dict) -> dict:
+    """Parse distill CopilotResult into a validated Proposal dict or None (FR-195).
+
+    Does not use extract_json() because distill output is always a JSON object
+    and extract_json's array-first search picks up inner arrays (e.g. files list).
+    """
+    import json
+    import re
+
+    from examples.philosopher.models import Proposal
+
+    raw = state.get("distill_result")
+    if not isinstance(raw, CopilotResult):
+        return {"top_candidate": None}
+
+    # Strip markdown fences
+    text = raw.output.strip()
+    text = re.sub(r"```(?:json)?\s*\n?", "", text).strip()
+    if text.endswith("```"):
+        text = text[:-3].strip()
+
+    # Find outermost JSON object boundaries (always an object, never an array)
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end <= start:
+        raise ValueError(
+            f"No valid JSON object in distill output. Preview: {raw.output[:200]}"
+        )
+    json_str = text[start : end + 1]
+    parsed = json.loads(json_str)
+
+    # Handle {"selected": null} signal — check key presence, not just value
+    if parsed is None or ("selected" in parsed and parsed["selected"] is None):
+        return {"top_candidate": None}
+
+    # If wrapped in {"selected": {...}}, unwrap; otherwise parse directly
+    payload = parsed.get("selected", parsed)
+    proposal = Proposal.model_validate(payload)
+    return {"top_candidate": proposal.model_dump()}
+
+
+def unwrap_challenge(state: dict) -> dict:
+    """Parse challenge CopilotResult into a validated ChallengeVerdict dict (FR-195)."""
+    from examples.philosopher.models import ChallengeVerdict, extract_json
+
+    raw = state.get("challenge_result")
+    if not isinstance(raw, CopilotResult):
+        return {
+            "challenge_parsed": {
+                "verdict": "reject",
+                "confidence": 0.0,
+                "objections": ["No challenge result"],
+                "surviving_arguments": [],
+            }
+        }
+
+    json_str = extract_json(raw.output, "challenge")
+    verdict = ChallengeVerdict.model_validate_json(json_str)
+    return {"challenge_parsed": verdict.model_dump()}
+
+
 def write_proposals(state: dict) -> dict:
     """Write graduation proposals to .chaplain/inbox/.
 
@@ -123,8 +185,14 @@ def write_proposals(state: dict) -> dict:
     threshold = int(state.get("graduation_threshold", 3))
     proposals_raw = state.get("proposals", [])
 
+    # FR-195: Single proposal path via top_candidate (already unwrapped by unwrap_distill)
+    top = state.get("top_candidate")
+    if isinstance(top, dict) and top:
+        from examples.philosopher.models import Proposal
+
+        proposals = [Proposal.model_validate(top)]
     # FR-185: Single parse path — CopilotResult → extract JSON → validate through Pydantic
-    if isinstance(proposals_raw, CopilotResult):
+    elif isinstance(proposals_raw, CopilotResult):
         from examples.philosopher.models import ProposalList, extract_json
 
         json_str = extract_json(proposals_raw.output, "analyze")

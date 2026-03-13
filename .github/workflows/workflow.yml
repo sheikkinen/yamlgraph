@@ -1,6 +1,8 @@
 name: Release to PyPI
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   push:
     tags:
       - 'v*.*.*'  # Trigger on version tags like v1.0.0, v0.1.0, etc.
@@ -32,6 +34,7 @@ jobs:
         run: ruff check yamlgraph/
 
   build:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -58,6 +61,7 @@ jobs:
           path: dist/
 
   publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -76,6 +80,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 
   create-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: publish
     runs-on: ubuntu-latest
     permissions:

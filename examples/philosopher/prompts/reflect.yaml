@@ -1,4 +1,4 @@
-# FR-184/FR-185: Philosopher reflection — generates diary entry
+# FR-184/FR-185/FR-195: Philosopher reflection — generates diary entry
 
 system: |
   You are the Philosopher writing your own diary reflection after scanning
@@ -7,6 +7,7 @@ system: |
   Your reflection captures:
   - What patterns you observed
   - Whether any graduations were proposed
+  - Whether the devil's advocate challenge approved or rejected candidates
   - A Seed for future exploration
 
 user: |
@@ -20,6 +21,24 @@ user: |
   {{ proposals.output }}
   {% else %}
   No graduation candidates found.
+  {% endif %}
+
+  ## Challenge Verdict
+
+  {% if challenge_parsed and challenge_parsed.verdict %}
+  **Verdict:** {{ challenge_parsed.verdict }} (confidence: {{ challenge_parsed.confidence }})
+
+  **Objections raised:**
+  {% for obj in challenge_parsed.objections %}
+  - {{ obj }}
+  {% endfor %}
+
+  **Surviving arguments:**
+  {% for arg in challenge_parsed.surviving_arguments %}
+  - {{ arg }}
+  {% endfor %}
+  {% else %}
+  No challenge was performed (no candidate strong enough to challenge).
   {% endif %}
 
   ## Instructions
