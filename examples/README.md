@@ -66,6 +66,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [map](demos/map/) | `map`, `llm` | Parallel fan-out processing |
 | [reflexion](demos/reflexion/) | `llm` | Self-correction with loop limits |
 | [git-report](demos/git-report/) | `agent` | Git analysis with tools |
+| [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |
 | [subgraph](demos/subgraph/) | `subgraph` | Graph composition |
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |

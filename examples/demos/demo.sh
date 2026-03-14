@@ -101,6 +101,11 @@ demo_subgraph() {
         --var raw_text="LangGraph is a library for building stateful, multi-actor applications with LLMs. It allows developers to create complex AI workflows using a graph-based approach."
 }
 
+demo_horoscope() {
+    run_demo "Daily Horoscope" "$SCRIPT_DIR/horoscope/graph.yaml" \
+        --var date="$(date +%Y-%m-%d)"
+}
+
 demo_costrouter() {
     echo -e "${YELLOW}Cost Router - Routes queries to cost-appropriate models${NC}"
     echo -e "${YELLOW}Using: Replicate/Granite (simple), Mistral (medium), Anthropic (complex)${NC}"
@@ -139,6 +144,7 @@ print_usage() {
     echo "  subgraph    - Subgraph composition demo"
     echo "  costrouter  - Cost-based routing (Replicate/Mistral/Anthropic)"
     echo "  systemstatus - System diagnostics using type: tool nodes"
+    echo "  horoscope   - Daily horoscope for all 12 zodiac signs (map fan-out)"
     echo "  all         - Run all demos (default)"
     echo ""
 }
@@ -203,6 +209,9 @@ case "${1:-all}" in
     systemstatus)
         demo_systemstatus
         ;;
+    horoscope)
+        demo_horoscope
+        ;;
     all)
         echo -e "${YELLOW}🚀 Running all YamlGraph demos...${NC}"
         demo_hello
@@ -218,6 +227,7 @@ case "${1:-all}" in
         demo_webresearch
         demo_costrouter
         demo_systemstatus
+        demo_horoscope
         # Skip interview (requires interaction) and codegen (slow)
         echo ""
         echo -e "${YELLOW}Note: Skipped 'interview' (interactive) and 'codegen' (slow)${NC}"
