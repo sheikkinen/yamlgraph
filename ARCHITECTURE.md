@@ -349,6 +349,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 73 | Philosopher Challenge Node (FR-195) | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/distill.yaml`, … | REQ-YG-193 |
 | 74 | FSM Scripture CLAUDE.md (FR-199) | `fsm/CLAUDE.md`, `tests/unit/test_fsm_claude_md_doctrine.py` | REQ-YG-195 |
 | 75 | Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/`, `.chaplain/lib/diary.py` | REQ-YG-196 |
+| 76 | Horoscope Demo (FR-201) | `examples/demos/horoscope` | REQ-YG-197 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1061,6 +1062,16 @@ Path-based Python tool loading and Chaplain subsystem portability.
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; path resolves relative to CWD; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
+
+---
+
+### 76. Horoscope Demo (FR-201)
+
+Parallel daily horoscope generator using map node with static over: list.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-197 | Map node fans out over 12 zodiac signs in parallel, collects readings, assembles into Markdown document with exports section. Pure YAML graph with co-located prompts, date as runtime variable. | `examples/demos/horoscope`, `tests/integration/test_horoscope_demo.py` |
 
 ---
 

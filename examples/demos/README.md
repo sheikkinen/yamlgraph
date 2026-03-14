@@ -43,6 +43,7 @@ Start here and progress in order:
 | [safety-guards/](safety-guards/) | `router`, `llm` | Input/output guardrails |
 | [multi-turn/](multi-turn/) | `interrupt` | Multi-turn conversation with memory |
 | [thinking/](thinking/) | `llm` | Extended thinking budget (FR-071) |
+| [horoscope/](horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs (FR-201) |
 
 ## Running Demos
 
