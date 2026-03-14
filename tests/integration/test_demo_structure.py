@@ -39,6 +39,7 @@ class TestDemoDirectoryStructure:
             "web-research",
             "subgraph",
             "feature-brainstorm",
+            "horoscope",
         ],
     )
     @pytest.mark.req("REQ-YG-001")
@@ -55,6 +56,7 @@ class TestDemoDirectoryStructure:
             "router",
             "yamlgraph",
             "reflexion",
+            "horoscope",
         ],
     )
     @pytest.mark.req("REQ-YG-001")
