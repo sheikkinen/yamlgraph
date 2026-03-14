@@ -8,6 +8,12 @@ description: Generate daily horoscopes for all 12 zodiac signs in parallel
 prompts_relative: true
 prompts_dir: prompts
 
+tools:
+  save_horoscope:
+    type: python
+    module: examples.demos.horoscope.tools
+    function: save_horoscope
+
 defaults:
   temperature: 0.9
 
@@ -46,15 +52,17 @@ nodes:
       date: "{state.date}"
       readings: "{state.readings}"
 
+  save:
+    type: python
+    tool: save_horoscope
+    state_key: output_path
+
 edges:
   - from: START
     to: generate
   - from: generate
     to: assemble
   - from: assemble
+    to: save
+  - from: save
     to: END
-
-exports:
-  document:
-    format: markdown
-    filename: horoscope.md
