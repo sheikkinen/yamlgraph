@@ -1,15 +1,99 @@
-"""FR-184/FR-185/FR-195: Philosopher Daemon tools.
+"""FR-184/FR-185/FR-195/FR-196: Philosopher Daemon tools with inlined models.
 
 Provides scan_diary_markers(), write_proposals(), unwrap_distill(),
-and unwrap_challenge() for the philosopher graph.
+unwrap_challenge(), and load_world_context() for the philosopher graph.
+
+FR-196: Inlined models.py for portability (no dotted import path required).
 """
 
+import json
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from pydantic import BaseModel, Field
+
 from yamlgraph.contrib import to_serializable
 from yamlgraph.models.schemas import CopilotResult
+
+# --- Inlined models from models.py (FR-196) ---
+
+
+class Proposal(BaseModel):
+    """A single graduation proposal."""
+
+    type: str = Field(description="Category: trap, heuristic, or seed")
+    name: str = Field(description="Pattern name (snake_case)")
+    count: int = Field(description="Occurrence count across diary entries")
+    files: list[str] = Field(description="Diary files where pattern appears")
+
+
+class ProposalList(BaseModel):
+    """Validated list of graduation proposals from analyze node."""
+
+    proposals: list[Proposal] = Field(
+        default_factory=list,
+        description="List of graduation proposals",
+    )
+
+
+class ChallengeVerdict(BaseModel):
+    """Devil's advocate verdict on a graduation candidate (FR-195)."""
+
+    verdict: str = Field(description="'approve' or 'reject'")
+    confidence: float = Field(
+        description="Confidence in verdict (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
+    )
+    objections: list[str] = Field(
+        description="Devil's advocate concerns raised",
+    )
+    surviving_arguments: list[str] = Field(
+        description="Arguments that withstood challenge",
+    )
+
+
+class DiaryEntry(BaseModel):
+    """Validated diary entry from reflect node."""
+
+    theme: str = Field(description="Short title for the diary entry (2-4 words)")
+    body: str = Field(description="Main reflection content in markdown format")
+    seed: str = Field(description="A forward-looking question for future exploration")
+
+
+def extract_json(text: str, node_name: str) -> str:
+    """Extract JSON from copilot output, stripping markdown fences and preamble.
+
+    Strategy:
+    1. Strip markdown code fences (```json ... ```)
+    2. Find first [ or { to last ] or }
+    3. Raise ValueError on failure (no silent fallbacks per Commandment 6)
+    """
+    # Strip markdown fences
+    stripped = re.sub(r"```(?:json)?\s*\n?", "", text).strip()
+    if stripped.endswith("```"):
+        stripped = stripped[:-3].strip()
+
+    # Find JSON boundaries
+    for start_char, end_char in [("[", "]"), ("{", "}")]:
+        start = stripped.find(start_char)
+        end = stripped.rfind(end_char)
+        if start != -1 and end > start:
+            candidate = stripped[start : end + 1]
+            try:
+                json.loads(candidate)
+                return candidate
+            except json.JSONDecodeError:
+                continue
+
+    raise ValueError(
+        f"No valid JSON found in copilot output for node '{node_name}'. "
+        f"Preview: {text[:200]}"
+    )
+
+
+# --- Tools ---
 
 
 def get_today() -> str:
@@ -40,10 +124,12 @@ def scan_diary_markers(state: dict) -> dict:
 
     if not diary_dir.exists():
         return {
-            "heuristics": heuristics,
-            "traps": traps,
-            "seeds": seeds,
-            "file_count": file_count,
+            "scan_result": {
+                "heuristics": heuristics,
+                "traps": traps,
+                "seeds": seeds,
+                "file_count": file_count,
+            }
         }
 
     # Calculate cutoff date
@@ -92,8 +178,6 @@ def scan_diary_markers(state: dict) -> dict:
             if seed_text not in seeds:
                 seeds[seed_text] = filename
 
-    # Wrap in scan_result key to match graph state_key declaration
-    # (dict returns merge keys directly, so this becomes state.scan_result)
     return {
         "scan_result": {
             "heuristics": heuristics,
@@ -110,11 +194,6 @@ def unwrap_distill(state: dict) -> dict:
     Does not use extract_json() because distill output is always a JSON object
     and extract_json's array-first search picks up inner arrays (e.g. files list).
     """
-    import json
-    import re
-
-    from examples.philosopher.models import Proposal
-
     raw = state.get("distill_result")
     if not isinstance(raw, CopilotResult):
         return {"top_candidate": None}
@@ -147,8 +226,6 @@ def unwrap_distill(state: dict) -> dict:
 
 def unwrap_challenge(state: dict) -> dict:
     """Parse challenge CopilotResult into a validated ChallengeVerdict dict (FR-195)."""
-    from examples.philosopher.models import ChallengeVerdict, extract_json
-
     raw = state.get("challenge_result")
     if not isinstance(raw, CopilotResult):
         return {
@@ -203,13 +280,9 @@ def write_proposals(state: dict) -> dict:
     # FR-195: Single proposal path via top_candidate (already unwrapped by unwrap_distill)
     top = state.get("top_candidate")
     if isinstance(top, dict) and top:
-        from examples.philosopher.models import Proposal
-
         proposals = [Proposal.model_validate(top)]
     # FR-185: Single parse path — CopilotResult → extract JSON → validate through Pydantic
     elif isinstance(proposals_raw, CopilotResult):
-        from examples.philosopher.models import ProposalList, extract_json
-
         json_str = extract_json(proposals_raw.output, "analyze")
         proposal_list = ProposalList.model_validate_json(
             json_str

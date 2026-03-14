@@ -64,7 +64,7 @@ class TestLoadPythonFunction:
     def test_raises_on_invalid_function(self):
         """Raises AttributeError for non-existent function."""
         config = PythonToolConfig(module="os.path", function="nonexistent_func")
-        with pytest.raises(AttributeError, match="not found in module"):
+        with pytest.raises(AttributeError, match="not found in"):
             load_python_function(config)
 
     @pytest.mark.req("REQ-YG-020")
@@ -201,6 +201,159 @@ class TestCreatePythonNode:
 
         assert result["my_value"] == 42
         assert result["current_step"] == "test_node"
+
+
+class TestPythonToolConfigPathField:
+    """Tests for PythonToolConfig path field (FR-196, REQ-YG-196)."""
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_config_with_path(self):
+        """Can create config with path instead of module."""
+        config = PythonToolConfig(
+            path=".chaplain/lib/diary.py",
+            function="write_diary",
+        )
+        assert config.path == ".chaplain/lib/diary.py"
+        assert config.function == "write_diary"
+        assert config.module is None
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_config_with_module_still_works(self):
+        """Existing module-based config unchanged."""
+        config = PythonToolConfig(
+            module="os.path",
+            function="join",
+        )
+        assert config.module == "os.path"
+        assert config.path is None
+
+
+class TestLoadPythonFunctionPath:
+    """Tests for path-based loading in load_python_function (FR-196)."""
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_loads_function_from_path(self, tmp_path):
+        """Can load function from a file path."""
+        tool_file = tmp_path / "my_tool.py"
+        tool_file.write_text("def greet(state):\n    return {'greeting': 'hello'}\n")
+        config = PythonToolConfig(
+            path=str(tool_file),
+            function="greet",
+        )
+        func = load_python_function(config)
+        assert callable(func)
+        assert func({}) == {"greeting": "hello"}
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_raises_on_missing_file(self, tmp_path):
+        """Raises FileNotFoundError for non-existent path."""
+        config = PythonToolConfig(
+            path=str(tmp_path / "nonexistent.py"),
+            function="foo",
+        )
+        with pytest.raises(FileNotFoundError, match="Python tool path not found"):
+            load_python_function(config)
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_raises_when_both_path_and_module(self):
+        """Raises ValueError when both path and module are set."""
+        config = PythonToolConfig(
+            path="some/file.py",
+            module="some.module",
+            function="foo",
+        )
+        with pytest.raises(ValueError, match="set 'path' or 'module', not both"):
+            load_python_function(config)
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_raises_when_neither_path_nor_module(self):
+        """Raises ValueError when neither path nor module is set."""
+        config = PythonToolConfig(
+            function="foo",
+        )
+        with pytest.raises(ValueError, match="one of 'path' or 'module' is required"):
+            load_python_function(config)
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_raises_on_missing_function_in_path(self, tmp_path):
+        """Raises AttributeError for non-existent function in path-loaded module."""
+        tool_file = tmp_path / "tool.py"
+        tool_file.write_text("def real_func(): pass\n")
+        config = PythonToolConfig(
+            path=str(tool_file),
+            function="nonexistent",
+        )
+        with pytest.raises(AttributeError, match="not found"):
+            load_python_function(config)
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_path_resolves_relative_to_cwd(self, tmp_path, monkeypatch):
+        """Path field resolves relative to CWD."""
+        tool_file = tmp_path / "tools" / "helper.py"
+        tool_file.parent.mkdir(parents=True, exist_ok=True)
+        tool_file.write_text("def helper(state):\n    return {'ok': True}\n")
+        monkeypatch.chdir(tmp_path)
+
+        config = PythonToolConfig(
+            path="tools/helper.py",
+            function="helper",
+        )
+        func = load_python_function(config)
+        assert func({}) == {"ok": True}
+
+
+class TestParsePythonToolsPath:
+    """Tests for parse_python_tools with path field (FR-196)."""
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_parses_path_based_tool(self):
+        """Extracts tool with path instead of module."""
+        tools_config = {
+            "diary_tool": {
+                "type": "python",
+                "path": ".chaplain/lib/diary.py",
+                "function": "write_diary",
+            },
+        }
+        result = parse_python_tools(tools_config)
+        assert len(result) == 1
+        assert result["diary_tool"].path == ".chaplain/lib/diary.py"
+        assert result["diary_tool"].module is None
+        assert result["diary_tool"].function == "write_diary"
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_skips_tool_with_no_path_or_module(self):
+        """Skips Python tool missing both path and module."""
+        tools_config = {
+            "broken": {
+                "type": "python",
+                "function": "foo",
+            },
+        }
+        result = parse_python_tools(tools_config)
+        assert len(result) == 0
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_parses_mix_of_path_and_module_tools(self):
+        """Parses both path-based and module-based tools."""
+        tools_config = {
+            "path_tool": {
+                "type": "python",
+                "path": ".chaplain/lib/diary.py",
+                "function": "write_diary",
+            },
+            "module_tool": {
+                "type": "python",
+                "module": "json",
+                "function": "dumps",
+            },
+        }
+        result = parse_python_tools(tools_config)
+        assert len(result) == 2
+        assert result["path_tool"].path == ".chaplain/lib/diary.py"
+        assert result["path_tool"].module is None
+        assert result["module_tool"].module == "json"
+        assert result["module_tool"].path is None
 
 
 # Sample functions for testing

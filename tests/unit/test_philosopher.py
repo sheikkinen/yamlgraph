@@ -1,13 +1,47 @@
-"""FR-184/FR-185: Philosopher Daemon tests.
+"""FR-184/FR-185/FR-196: Philosopher Daemon tests.
 
 TDD RED phase: Tests for scan_diary_markers(), write_proposals(),
 and FR-185 copilot node migration (extract_json, Pydantic models).
+
+FR-196: Updated to use path-based loading for .chaplain/graphs/philosopher/tools.py
 """
 
+import importlib.util
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
+# =============================================================================
+# FR-196: Load tools.py from .chaplain/graphs/philosopher/ via spec_from_file_location
+# =============================================================================
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TOOLS_PATH = REPO_ROOT / ".chaplain" / "graphs" / "philosopher" / "tools.py"
+
+
+def _load_philosopher_tools():
+    """Load philosopher tools module from path (FR-196)."""
+    spec = importlib.util.spec_from_file_location("philosopher_tools", TOOLS_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# Module-level imports from the loaded module
+_tools = _load_philosopher_tools()
+scan_diary_markers = _tools.scan_diary_markers
+write_proposals = _tools.write_proposals
+get_today = _tools.get_today
+extract_json = _tools.extract_json
+Proposal = _tools.Proposal
+ProposalList = _tools.ProposalList
+ChallengeVerdict = _tools.ChallengeVerdict
+DiaryEntry = _tools.DiaryEntry
+unwrap_distill = _tools.unwrap_distill
+unwrap_challenge = _tools.unwrap_challenge
+load_world_context = _tools.load_world_context
+
 
 # =============================================================================
 # Fixtures
@@ -17,7 +51,8 @@ import pytest
 @pytest.fixture(autouse=True)
 def mock_today():
     """Mock get_today() to return 2026-03-11 for all tests."""
-    with patch("examples.philosopher.tools.get_today", return_value="2026-03-11"):
+    # FR-196: Patch the loaded module's get_today, not examples.philosopher.tools
+    with patch.object(_tools, "get_today", return_value="2026-03-11"):
         yield
 
 
@@ -112,7 +147,7 @@ class TestScanDiaryMarkers:
     @pytest.mark.req("REQ-YG-184")
     def test_empty_diary_returns_empty_counts(self, empty_diary):
         """Empty diary should return empty marker dicts."""
-        from examples.philosopher.tools import scan_diary_markers
+        # FR-196: Using module-level import
 
         state = {"diary_dir": str(empty_diary), "lookback_days": 30}
         result = scan_diary_markers(state)
@@ -126,7 +161,7 @@ class TestScanDiaryMarkers:
     @pytest.mark.req("REQ-YG-184")
     def test_no_markers_returns_empty_counts(self, diary_no_markers):
         """Files without markers should return empty marker dicts."""
-        from examples.philosopher.tools import scan_diary_markers
+        # FR-196: Using module-level import
 
         state = {"diary_dir": str(diary_no_markers), "lookback_days": 30}
         result = scan_diary_markers(state)
@@ -140,7 +175,7 @@ class TestScanDiaryMarkers:
     @pytest.mark.req("REQ-YG-184")
     def test_extracts_trap_markers(self, diary_below_threshold):
         """Should extract **Trap:** markers with file locations."""
-        from examples.philosopher.tools import scan_diary_markers
+        # FR-196: Using module-level import
 
         state = {"diary_dir": str(diary_below_threshold), "lookback_days": 30}
         result = scan_diary_markers(state)
@@ -153,7 +188,7 @@ class TestScanDiaryMarkers:
     @pytest.mark.req("REQ-YG-184")
     def test_extracts_heuristic_markers(self, diary_below_threshold):
         """Should extract **Heuristic:** markers with file locations."""
-        from examples.philosopher.tools import scan_diary_markers
+        # FR-196: Using module-level import
 
         state = {"diary_dir": str(diary_below_threshold), "lookback_days": 30}
         result = scan_diary_markers(state)
@@ -165,7 +200,7 @@ class TestScanDiaryMarkers:
     @pytest.mark.req("REQ-YG-184")
     def test_extracts_seed_markers(self, diary_above_threshold):
         """Should extract **Seed:** markers with file locations."""
-        from examples.philosopher.tools import scan_diary_markers
+        # FR-196: Using module-level import
 
         state = {"diary_dir": str(diary_above_threshold), "lookback_days": 30}
         result = scan_diary_markers(state)
@@ -176,7 +211,7 @@ class TestScanDiaryMarkers:
     @pytest.mark.req("REQ-YG-184")
     def test_respects_lookback_window(self, diary_fixture_dir):
         """Should only scan files within lookback_days window."""
-        from examples.philosopher.tools import scan_diary_markers
+        # FR-196: Using module-level import
 
         # Create recent file
         (diary_fixture_dir / "diary-2026-03-10.md").write_text(
@@ -196,7 +231,7 @@ class TestScanDiaryMarkers:
     @pytest.mark.req("REQ-YG-184")
     def test_returns_file_count(self, diary_mixed_markers):
         """Should return count of scanned files."""
-        from examples.philosopher.tools import scan_diary_markers
+        # FR-196: Using module-level import
 
         state = {"diary_dir": str(diary_mixed_markers), "lookback_days": 30}
         result = scan_diary_markers(state)
@@ -216,7 +251,7 @@ class TestWriteProposals:
     @pytest.mark.req("REQ-YG-184")
     def test_no_proposals_when_below_threshold(self, tmp_path):
         """Should not write proposals when counts below threshold."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -234,7 +269,7 @@ class TestWriteProposals:
     @pytest.mark.req("REQ-YG-184")
     def test_writes_proposal_at_threshold(self, tmp_path):
         """Should write proposal when count equals threshold."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -255,7 +290,7 @@ class TestWriteProposals:
     @pytest.mark.req("REQ-YG-184")
     def test_writes_multiple_proposals(self, tmp_path):
         """Should write multiple proposals when all meet threshold."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -277,7 +312,7 @@ class TestWriteProposals:
     @pytest.mark.req("REQ-YG-184")
     def test_excludes_already_graduated(self, tmp_path):
         """Should not write proposals for patterns already in Scripture."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -301,7 +336,7 @@ traps:
     @pytest.mark.req("REQ-YG-184")
     def test_proposal_file_format(self, tmp_path):
         """Proposal files should be markdown consumable by Chaplain."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -362,8 +397,8 @@ class TestPhilosopherGraph:
 
     @pytest.mark.req("REQ-YG-184")
     def test_graph_exists(self):
-        """examples/philosopher/graph.yaml should exist."""
-        graph_path = Path("examples/philosopher/graph.yaml")
+        """.chaplain/graphs/philosopher/graph.yaml should exist."""
+        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
         assert graph_path.exists(), "philosopher graph not found"
 
     @pytest.mark.req("REQ-YG-194")
@@ -371,7 +406,7 @@ class TestPhilosopherGraph:
         """Graph should have 10 nodes after FR-194/FR-195: scan, analyze, distill, unwrap_distill, challenge, unwrap_challenge, propose, load_context, reflect, write_diary."""
         import yaml
 
-        graph_path = Path("examples/philosopher/graph.yaml")
+        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
         with open(graph_path) as f:
             graph = yaml.safe_load(f)
 
@@ -396,7 +431,7 @@ class TestPhilosopherGraph:
         """Graph should have correct edge topology with FR-195 conditional edges."""
         import yaml
 
-        graph_path = Path("examples/philosopher/graph.yaml")
+        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
         with open(graph_path) as f:
             graph = yaml.safe_load(f)
 
@@ -427,14 +462,14 @@ class TestPhilosopherReadme:
 
     @pytest.mark.req("REQ-YG-184")
     def test_readme_exists(self):
-        """examples/philosopher/README.md should exist."""
-        readme_path = Path("examples/philosopher/README.md")
+        """.chaplain/graphs/philosopher/README.md should exist."""
+        readme_path = Path(".chaplain/graphs/philosopher/README.md")
         assert readme_path.exists(), "philosopher README not found"
 
     @pytest.mark.req("REQ-YG-184")
     def test_readme_documents_usage(self):
         """README should document usage."""
-        readme_path = Path("examples/philosopher/README.md")
+        readme_path = Path(".chaplain/graphs/philosopher/README.md")
         content = readme_path.read_text()
         assert "usage" in content.lower() or "Usage" in content
 
@@ -450,7 +485,7 @@ class TestExtractJson:
     @pytest.mark.req("REQ-YG-185")
     def test_clean_json_array(self):
         """extract_json should return clean JSON array unchanged."""
-        from examples.philosopher.models import extract_json
+        # FR-196: Using module-level import
 
         raw = '[{"type": "trap", "name": "quick_confidence", "count": 3, "files": ["d1.md"]}]'
         result = extract_json(raw, "analyze")
@@ -459,7 +494,7 @@ class TestExtractJson:
     @pytest.mark.req("REQ-YG-185")
     def test_clean_json_object(self):
         """extract_json should return clean JSON object unchanged."""
-        from examples.philosopher.models import extract_json
+        # FR-196: Using module-level import
 
         raw = '{"theme": "Patterns", "body": "Reflection text", "seed": "What next?"}'
         result = extract_json(raw, "reflect")
@@ -468,7 +503,7 @@ class TestExtractJson:
     @pytest.mark.req("REQ-YG-185")
     def test_fenced_json(self):
         """extract_json should strip markdown code fences."""
-        from examples.philosopher.models import extract_json
+        # FR-196: Using module-level import
 
         raw = '```json\n[{"type": "trap", "name": "x", "count": 3, "files": []}]\n```'
         result = extract_json(raw, "analyze")
@@ -481,7 +516,7 @@ class TestExtractJson:
     @pytest.mark.req("REQ-YG-185")
     def test_preamble_text(self):
         """extract_json should strip preamble text before JSON."""
-        from examples.philosopher.models import extract_json
+        # FR-196: Using module-level import
 
         raw = 'Here are the results:\n\n[{"type": "heuristic", "name": "y", "count": 4, "files": ["a.md"]}]'
         result = extract_json(raw, "analyze")
@@ -493,7 +528,7 @@ class TestExtractJson:
     @pytest.mark.req("REQ-YG-185")
     def test_malformed_json_raises_pipeline_error(self):
         """extract_json should raise ValueError on unparseable input."""
-        from examples.philosopher.models import extract_json
+        # FR-196: Using module-level import
 
         with pytest.raises(ValueError):
             extract_json("This is just plain text with no JSON at all.", "analyze")
@@ -501,7 +536,7 @@ class TestExtractJson:
     @pytest.mark.req("REQ-YG-185")
     def test_empty_string_raises_pipeline_error(self):
         """extract_json should raise ValueError on empty input."""
-        from examples.philosopher.models import extract_json
+        # FR-196: Using module-level import
 
         with pytest.raises(ValueError):
             extract_json("", "analyze")
@@ -513,7 +548,7 @@ class TestPhilosopherModels:
     @pytest.mark.req("REQ-YG-185")
     def test_proposal_list_validates_json(self):
         """ProposalList should validate from JSON string."""
-        from examples.philosopher.models import ProposalList
+        # FR-196: Using module-level import
 
         json_str = '{"proposals": [{"type": "trap", "name": "quick_confidence", "count": 3, "files": ["d1.md", "d2.md", "d3.md"]}]}'
         result = ProposalList.model_validate_json(json_str)
@@ -524,7 +559,7 @@ class TestPhilosopherModels:
     @pytest.mark.req("REQ-YG-185")
     def test_proposal_list_empty(self):
         """ProposalList should accept empty proposals list."""
-        from examples.philosopher.models import ProposalList
+        # FR-196: Using module-level import
 
         result = ProposalList.model_validate_json('{"proposals": []}')
         assert result.proposals == []
@@ -533,7 +568,7 @@ class TestPhilosopherModels:
     def test_proposal_list_from_array(self):
         """ProposalList should wrap raw JSON array into proposals field."""
 
-        from examples.philosopher.models import ProposalList
+        # FR-196: Using module-level import
 
         raw_array = '[{"type": "trap", "name": "x", "count": 3, "files": []}]'
         wrapped = f'{{"proposals": {raw_array}}}'
@@ -543,7 +578,7 @@ class TestPhilosopherModels:
     @pytest.mark.req("REQ-YG-185")
     def test_diary_entry_validates_json(self):
         """DiaryEntry should validate from JSON string."""
-        from examples.philosopher.models import DiaryEntry
+        # FR-196: Using module-level import
 
         json_str = '{"theme": "Pattern Scanning", "body": "Today I observed...", "seed": "What patterns emerge next?"}'
         result = DiaryEntry.model_validate_json(json_str)
@@ -556,7 +591,7 @@ class TestPhilosopherModels:
         """DiaryEntry should reject JSON missing required fields."""
         from pydantic import ValidationError
 
-        from examples.philosopher.models import DiaryEntry
+        # FR-196: Using module-level import
 
         with pytest.raises(ValidationError):
             DiaryEntry.model_validate_json('{"theme": "Test"}')
@@ -564,7 +599,7 @@ class TestPhilosopherModels:
     @pytest.mark.req("REQ-YG-185")
     def test_proposal_has_typed_fields(self):
         """Proposal fields should be properly typed (not Any)."""
-        from examples.philosopher.models import Proposal
+        # FR-196: Using module-level import
 
         # Verify fields are strongly typed
         fields = Proposal.model_fields
@@ -580,7 +615,7 @@ class TestWriteProposalsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_copilot_result_parsed_through_pydantic(self, tmp_path):
         """write_proposals should parse CopilotResult.output through ProposalList."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         inbox = tmp_path / "inbox"
@@ -607,7 +642,7 @@ class TestWriteProposalsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_copilot_result_with_fenced_json(self, tmp_path):
         """write_proposals should handle CopilotResult with markdown fences."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         inbox = tmp_path / "inbox"
@@ -631,7 +666,7 @@ class TestWriteProposalsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_copilot_result_empty_proposals(self, tmp_path):
         """write_proposals should handle CopilotResult with empty JSON array."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         inbox = tmp_path / "inbox"
@@ -651,7 +686,7 @@ class TestWriteProposalsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_legacy_pydantic_model_still_works(self, tmp_path):
         """write_proposals should still work with hasattr(.proposals) objects."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -741,7 +776,7 @@ class TestGraphCopilotNodes:
         """analyze node should use type: copilot."""
         import yaml
 
-        graph_path = Path("examples/philosopher/graph.yaml")
+        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
         with open(graph_path) as f:
             graph = yaml.safe_load(f)
 
@@ -752,7 +787,7 @@ class TestGraphCopilotNodes:
         """reflect node should use type: copilot."""
         import yaml
 
-        graph_path = Path("examples/philosopher/graph.yaml")
+        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
         with open(graph_path) as f:
             graph = yaml.safe_load(f)
 
@@ -763,7 +798,7 @@ class TestGraphCopilotNodes:
         """Philosopher copilot nodes should not have cli_flags: allow_all_paths."""
         import yaml
 
-        graph_path = Path("examples/philosopher/graph.yaml")
+        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
         with open(graph_path) as f:
             graph = yaml.safe_load(f)
 
@@ -776,7 +811,7 @@ class TestGraphCopilotNodes:
         """Copilot nodes should have timeout configured."""
         import yaml
 
-        graph_path = Path("examples/philosopher/graph.yaml")
+        graph_path = Path(".chaplain/graphs/philosopher/graph.yaml")
         with open(graph_path) as f:
             graph = yaml.safe_load(f)
 
@@ -793,7 +828,7 @@ class TestPromptsCopilot:
         """analyze prompt should not have a schema: block."""
         import yaml
 
-        prompt_path = Path("examples/philosopher/prompts/analyze.yaml")
+        prompt_path = Path(".chaplain/graphs/philosopher/prompts/analyze.yaml")
         with open(prompt_path) as f:
             prompt = yaml.safe_load(f)
 
@@ -804,7 +839,7 @@ class TestPromptsCopilot:
         """reflect prompt should not have a schema: block."""
         import yaml
 
-        prompt_path = Path("examples/philosopher/prompts/reflect.yaml")
+        prompt_path = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml")
         with open(prompt_path) as f:
             prompt = yaml.safe_load(f)
 
@@ -813,7 +848,7 @@ class TestPromptsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_analyze_prompt_has_json_guard(self):
         """analyze prompt should include 'output ONLY valid JSON' guard."""
-        prompt_path = Path("examples/philosopher/prompts/analyze.yaml")
+        prompt_path = Path(".chaplain/graphs/philosopher/prompts/analyze.yaml")
         content = prompt_path.read_text()
 
         assert (
@@ -824,7 +859,7 @@ class TestPromptsCopilot:
     @pytest.mark.req("REQ-YG-185")
     def test_reflect_prompt_has_json_guard(self):
         """reflect prompt should include 'output ONLY valid JSON' guard."""
-        prompt_path = Path("examples/philosopher/prompts/reflect.yaml")
+        prompt_path = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml")
         content = prompt_path.read_text()
 
         assert (
@@ -844,7 +879,7 @@ class TestChallengeVerdictModel:
     @pytest.mark.req("REQ-YG-193")
     def test_approve_verdict(self):
         """ChallengeVerdict should validate an approve verdict."""
-        from examples.philosopher.models import ChallengeVerdict
+        # FR-196: Using module-level import
 
         v = ChallengeVerdict(
             verdict="approve",
@@ -860,7 +895,7 @@ class TestChallengeVerdictModel:
     @pytest.mark.req("REQ-YG-193")
     def test_reject_verdict(self):
         """ChallengeVerdict should validate a reject verdict."""
-        from examples.philosopher.models import ChallengeVerdict
+        # FR-196: Using module-level import
 
         v = ChallengeVerdict(
             verdict="reject",
@@ -878,7 +913,7 @@ class TestChallengeVerdictModel:
         """ChallengeVerdict should reject confidence below 0.0."""
         from pydantic import ValidationError
 
-        from examples.philosopher.models import ChallengeVerdict
+        # FR-196: Using module-level import
 
         with pytest.raises(ValidationError):
             ChallengeVerdict(
@@ -893,7 +928,7 @@ class TestChallengeVerdictModel:
         """ChallengeVerdict should reject confidence above 1.0."""
         from pydantic import ValidationError
 
-        from examples.philosopher.models import ChallengeVerdict
+        # FR-196: Using module-level import
 
         with pytest.raises(ValidationError):
             ChallengeVerdict(
@@ -906,7 +941,7 @@ class TestChallengeVerdictModel:
     @pytest.mark.req("REQ-YG-193")
     def test_from_json(self):
         """ChallengeVerdict should validate from JSON string."""
-        from examples.philosopher.models import ChallengeVerdict
+        # FR-196: Using module-level import
 
         json_str = '{"verdict": "reject", "confidence": 0.7, "objections": ["weak evidence"], "surviving_arguments": ["partial"]}'
         v = ChallengeVerdict.model_validate_json(json_str)
@@ -920,7 +955,7 @@ class TestUnwrapDistill:
     @pytest.mark.req("REQ-YG-193")
     def test_null_signal_returns_none(self):
         """unwrap_distill with {"selected": null} returns top_candidate=None."""
-        from examples.philosopher.tools import unwrap_distill
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         state = {
@@ -936,7 +971,7 @@ class TestUnwrapDistill:
     @pytest.mark.req("REQ-YG-193")
     def test_valid_proposal_returns_dict(self):
         """unwrap_distill with valid proposal returns validated dict."""
-        from examples.philosopher.tools import unwrap_distill
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         proposal_json = '{"type": "trap", "name": "quick_confidence", "count": 4, "files": ["d1.md", "d2.md", "d3.md", "d4.md"]}'
@@ -956,7 +991,7 @@ class TestUnwrapDistill:
     @pytest.mark.req("REQ-YG-193")
     def test_wrapped_selected_proposal(self):
         """unwrap_distill with {"selected": {...}} unwraps correctly."""
-        from examples.philosopher.tools import unwrap_distill
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         proposal_json = '{"selected": {"type": "heuristic", "name": "test_before_reading", "count": 5, "files": ["a.md", "b.md", "c.md", "d.md", "e.md"]}}'
@@ -974,7 +1009,7 @@ class TestUnwrapDistill:
     @pytest.mark.req("REQ-YG-193")
     def test_missing_distill_result(self):
         """unwrap_distill with no distill_result returns None."""
-        from examples.philosopher.tools import unwrap_distill
+        # FR-196: Using module-level import
 
         result = unwrap_distill({})
         assert result == {"top_candidate": None}
@@ -982,7 +1017,7 @@ class TestUnwrapDistill:
     @pytest.mark.req("REQ-YG-193")
     def test_non_copilot_result(self):
         """unwrap_distill with non-CopilotResult returns None."""
-        from examples.philosopher.tools import unwrap_distill
+        # FR-196: Using module-level import
 
         result = unwrap_distill({"distill_result": "just a string"})
         assert result == {"top_candidate": None}
@@ -990,7 +1025,7 @@ class TestUnwrapDistill:
     @pytest.mark.req("REQ-YG-193")
     def test_fenced_json_proposal(self):
         """unwrap_distill handles markdown-fenced JSON."""
-        from examples.philosopher.tools import unwrap_distill
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         state = {
@@ -1010,7 +1045,7 @@ class TestUnwrapChallenge:
     @pytest.mark.req("REQ-YG-193")
     def test_approve_verdict_parsed(self):
         """unwrap_challenge parses approve verdict correctly."""
-        from examples.philosopher.tools import unwrap_challenge
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         verdict_json = '{"verdict": "approve", "confidence": 0.85, "objections": ["minor overlap"], "surviving_arguments": ["distinct cause", "actionable"]}'
@@ -1030,7 +1065,7 @@ class TestUnwrapChallenge:
     @pytest.mark.req("REQ-YG-193")
     def test_reject_verdict_parsed(self):
         """unwrap_challenge parses reject verdict correctly."""
-        from examples.philosopher.tools import unwrap_challenge
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         verdict_json = '{"verdict": "reject", "confidence": 0.95, "objections": ["false duplicate", "low evidence"], "surviving_arguments": []}'
@@ -1050,7 +1085,7 @@ class TestUnwrapChallenge:
     @pytest.mark.req("REQ-YG-193")
     def test_missing_challenge_result(self):
         """unwrap_challenge with no challenge_result returns reject fallback."""
-        from examples.philosopher.tools import unwrap_challenge
+        # FR-196: Using module-level import
 
         result = unwrap_challenge({})
         assert result["challenge_parsed"]["verdict"] == "reject"
@@ -1059,7 +1094,7 @@ class TestUnwrapChallenge:
     @pytest.mark.req("REQ-YG-193")
     def test_fenced_verdict(self):
         """unwrap_challenge handles markdown-fenced JSON."""
-        from examples.philosopher.tools import unwrap_challenge
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         state = {
@@ -1079,7 +1114,7 @@ class TestWriteProposalsTopCandidate:
     @pytest.mark.req("REQ-YG-193")
     def test_top_candidate_writes_single_proposal(self, tmp_path):
         """write_proposals with top_candidate dict writes single proposal."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -1104,7 +1139,7 @@ class TestWriteProposalsTopCandidate:
     @pytest.mark.req("REQ-YG-193")
     def test_top_candidate_none_falls_back_to_proposals(self, tmp_path):
         """write_proposals with top_candidate=None falls back to proposals key."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
         from yamlgraph.models.schemas import CopilotResult
 
         inbox = tmp_path / "inbox"
@@ -1130,7 +1165,7 @@ class TestWriteProposalsTopCandidate:
     @pytest.mark.req("REQ-YG-193")
     def test_top_candidate_below_threshold_skipped(self, tmp_path):
         """write_proposals with top_candidate below threshold writes nothing."""
-        from examples.philosopher.tools import write_proposals
+        # FR-196: Using module-level import
 
         inbox = tmp_path / "inbox"
         inbox.mkdir()
@@ -1158,7 +1193,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have a distill copilot node."""
         import yaml
 
-        with open("examples/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
             graph = yaml.safe_load(f)
 
         assert "distill" in graph["nodes"]
@@ -1169,7 +1204,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have a challenge copilot node."""
         import yaml
 
-        with open("examples/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
             graph = yaml.safe_load(f)
 
         assert "challenge" in graph["nodes"]
@@ -1180,7 +1215,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have unwrap_distill and unwrap_challenge Python nodes."""
         import yaml
 
-        with open("examples/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
             graph = yaml.safe_load(f)
 
         assert "unwrap_distill" in graph["nodes"]
@@ -1193,7 +1228,7 @@ class TestPhilosopherGraphFR195:
         """Graph state should declare distill_result, top_candidate, challenge_result, challenge_parsed."""
         import yaml
 
-        with open("examples/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
             graph = yaml.safe_load(f)
 
         state = graph["state"]
@@ -1210,7 +1245,7 @@ class TestPhilosopherGraphFR195:
         """Graph should have conditional edges from unwrap nodes."""
         import yaml
 
-        with open("examples/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
             graph = yaml.safe_load(f)
 
         edges = graph["edges"]
@@ -1233,7 +1268,7 @@ class TestPhilosopherGraphFR195:
         """Graph should declare unwrap tool functions."""
         import yaml
 
-        with open("examples/philosopher/graph.yaml") as f:
+        with open(".chaplain/graphs/philosopher/graph.yaml") as f:
             graph = yaml.safe_load(f)
 
         tools = graph["tools"]
@@ -1249,17 +1284,17 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_distill_prompt_exists(self):
         """distill.yaml prompt should exist."""
-        assert Path("examples/philosopher/prompts/distill.yaml").exists()
+        assert Path(".chaplain/graphs/philosopher/prompts/distill.yaml").exists()
 
     @pytest.mark.req("REQ-YG-193")
     def test_challenge_prompt_exists(self):
         """challenge.yaml prompt should exist."""
-        assert Path("examples/philosopher/prompts/challenge.yaml").exists()
+        assert Path(".chaplain/graphs/philosopher/prompts/challenge.yaml").exists()
 
     @pytest.mark.req("REQ-YG-193")
     def test_distill_prompt_has_json_guard(self):
         """distill prompt should include JSON output guard."""
-        content = Path("examples/philosopher/prompts/distill.yaml").read_text()
+        content = Path(".chaplain/graphs/philosopher/prompts/distill.yaml").read_text()
         assert (
             "Output ONLY valid JSON" in content
             or "output ONLY valid JSON" in content.upper()
@@ -1268,7 +1303,9 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_challenge_prompt_has_json_guard(self):
         """challenge prompt should include JSON output guard."""
-        content = Path("examples/philosopher/prompts/challenge.yaml").read_text()
+        content = Path(
+            ".chaplain/graphs/philosopher/prompts/challenge.yaml"
+        ).read_text()
         assert (
             "Output ONLY valid JSON" in content
             or "output ONLY valid JSON" in content.upper()
@@ -1279,7 +1316,7 @@ class TestPhilosopherPromptsFR195:
         """distill prompt should not have a schema: block (validation in Python)."""
         import yaml
 
-        with open("examples/philosopher/prompts/distill.yaml") as f:
+        with open(".chaplain/graphs/philosopher/prompts/distill.yaml") as f:
             prompt = yaml.safe_load(f)
         assert "schema" not in prompt
 
@@ -1287,7 +1324,9 @@ class TestPhilosopherPromptsFR195:
     def test_challenge_prompt_has_five_axes(self):
         """challenge prompt should mention all 5 challenge axes."""
         content = (
-            Path("examples/philosopher/prompts/challenge.yaml").read_text().lower()
+            Path(".chaplain/graphs/philosopher/prompts/challenge.yaml")
+            .read_text()
+            .lower()
         )
         for axis in [
             "recurrence",
@@ -1301,7 +1340,7 @@ class TestPhilosopherPromptsFR195:
     @pytest.mark.req("REQ-YG-193")
     def test_reflect_prompt_includes_challenge_context(self):
         """reflect prompt should include challenge_parsed variable."""
-        content = Path("examples/philosopher/prompts/reflect.yaml").read_text()
+        content = Path(".chaplain/graphs/philosopher/prompts/reflect.yaml").read_text()
         assert "challenge" in content.lower()
 
 

@@ -2,7 +2,7 @@
 # .chaplain/watch.sh — Thin polling wrapper for Plan → Judge workflow
 # FR-084: Delegates to yamlgraph graph run (copilot nodes via FR-081)
 # FR-093: Added date and diary_prefix vars for diary append
-# FR-098: Consolidated to examples/copilot/graph.yaml
+# FR-098/FR-196: Consolidated to .chaplain/graphs/copilot/graph.yaml
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -21,7 +21,7 @@ while true; do
     # FR-116: Snapshot feature-requests/ before graph execution
     before=$(find feature-requests -maxdepth 1 -name "*.md" -type f 2>/dev/null | sort)
 
-    yamlgraph graph run examples/copilot/graph.yaml \
+    yamlgraph graph run .chaplain/graphs/copilot/graph.yaml \
         --var topic_file="$topic_file" \
         --var drafts_dir="$DRAFTS" \
         --var date="$(date +%Y-%m-%d)" \

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# FR-184: Philosopher Daemon
+# FR-184/FR-196: Philosopher Daemon
 # Scans diary for recurring patterns and proposes graduations to Scripture
+# FR-196: Relocated graph from examples/philosopher/ to .chaplain/graphs/philosopher/
 #
 # Usage: .chaplain/philosopher.sh [--once]
 #   --once: Run once and exit (default mode)
@@ -16,7 +17,7 @@ LOG="tmp/philosopher-$(date +%Y-%m-%d).log"
 
 mkdir -p tmp
 
-yamlgraph graph run examples/philosopher/graph.yaml \
+yamlgraph graph run .chaplain/graphs/philosopher/graph.yaml \
   --var diary_dir="$DIARY_DIR" \
   --var inbox_dir="$INBOX" \
   --var lookback_days="$LOOKBACK_DAYS" \
