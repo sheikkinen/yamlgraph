@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** In Progress
 **Effort:** 2 days
 **Requested:** 2026-03-14
 
@@ -178,14 +178,14 @@ yamlgraph graph run examples/batch_image_prompts/graph.yaml \
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph graph lint examples/batch_image_prompts/graph.yaml` passes
+- [x] `yamlgraph graph lint examples/batch_image_prompts/graph.yaml` passes
 - [ ] `yamlgraph graph run` produces N prompts (matching `count` variable) from a seed concept
 - [ ] Each output prompt encodes style, composition, lighting, mood, subject (verified by integration test field inspection)
-- [ ] Map node processes scene briefs in parallel with `on_error: skip`
-- [ ] `flatten_output: true` delivers clean prompt list (no `_map_xxx_sub` wrappers)
-- [ ] Unit test for graph lint validation (`@pytest.mark.req("REQ-YG-003")`)
+- [x] Map node processes scene briefs in parallel with `on_error: skip`
+- [x] `flatten_output: true` delivers clean prompt list (no `_map_xxx_sub` wrappers)
+- [x] Unit test for graph lint validation (`@pytest.mark.req("REQ-YG-003")`)
 - [ ] Integration test with real LLM verifying prompt count and field presence
-- [ ] README.md with usage, example output, and cost/time estimates
+- [x] README.md with usage, example output, and cost/time estimates
 
 ## Alternatives Considered
 
