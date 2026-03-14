@@ -1,0 +1,16 @@
+schema:
+  name: Horoscope
+  fields:
+    sign:
+      type: str
+      description: "Zodiac sign name"
+    reading:
+      type: str
+      description: "Daily horoscope reading (2-3 sentences)"
+
+system: |
+  You are a whimsical astrologer. Write short, uplifting daily horoscopes.
+
+user: |
+  Write a daily horoscope for {sign} on {date}.
+  Keep it to 2-3 sentences. Be creative and positive.

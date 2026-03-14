@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-14
 
@@ -147,15 +147,15 @@ Add a `demo_horoscope` function and a `horoscope)` case to `examples/demos/demo.
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph graph lint examples/demos/horoscope/graph.yaml` passes with no errors
+- [x] `yamlgraph graph lint examples/demos/horoscope/graph.yaml` passes with no errors
 - [ ] `yamlgraph graph run examples/demos/horoscope/graph.yaml --var date="2026-03-14" --full` executes successfully, producing 12 per-sign readings and one assembled Markdown document
-- [ ] Map node fans out over all 12 signs in parallel (verified by graph structure, not wallclock)
+- [x] Map node fans out over all 12 signs in parallel (verified by graph structure, not wallclock)
 - [ ] Output state key `document` contains valid Markdown with one heading per sign
 - [ ] `exports` section writes `horoscope.md` to the outputs directory
-- [ ] Demo registered in `examples/demos/demo.sh`
-- [ ] No Python code required (pure YAML graph + prompts)
-- [ ] Tests added (graph lint unit test at minimum)
-- [ ] Documentation: demo listed in demos README if one exists
+- [x] Demo registered in `examples/demos/demo.sh`
+- [x] No Python code required (pure YAML graph + prompts)
+- [x] Tests added (graph lint unit test at minimum)
+- [x] Documentation: demo listed in demos README if one exists
 
 ## Alternatives Considered
 

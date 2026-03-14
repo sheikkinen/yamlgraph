@@ -1,0 +1,60 @@
+# Daily Horoscope — Parallel Horoscope Generator (FR-201)
+# Demonstrates: map node with static over: list, exports, date variable
+
+version: "1.0"
+name: daily-horoscope
+description: Generate daily horoscopes for all 12 zodiac signs in parallel
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.9
+
+state:
+  date: str
+
+nodes:
+  generate:
+    type: map
+    over:
+      - Aries
+      - Taurus
+      - Gemini
+      - Cancer
+      - Leo
+      - Virgo
+      - Libra
+      - Scorpio
+      - Sagittarius
+      - Capricorn
+      - Aquarius
+      - Pisces
+    as: sign
+    node:
+      prompt: horoscope
+      state_key: reading
+      variables:
+        sign: "{state.sign}"
+        date: "{state.date}"
+    collect: readings
+
+  assemble:
+    prompt: assemble
+    state_key: document
+    variables:
+      date: "{state.date}"
+      readings: "{state.readings}"
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: assemble
+  - from: assemble
+    to: END
+
+exports:
+  document:
+    format: markdown
+    filename: horoscope.md
