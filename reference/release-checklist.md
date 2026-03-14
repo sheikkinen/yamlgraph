@@ -2,25 +2,24 @@
 
 Quick reference for the bump → commit → push → tag flow when pre-commit hooks and merge conflicts complicate the dance.
 
-## Preferred: Atomic Release Script (FR-192)
+## Canonical Approach: scripts/release.sh
 
-The canonical release command is `scripts/release.sh`. It performs all steps atomically:
+The **recommended** way to release is using the atomic release script:
 
 ```bash
-# One command: freeze → bump → aggregate → commit → tag
-scripts/release.sh 0.4.64
+scripts/release.sh 0.4.XX
 git push && git push --tags
 ```
 
-The script:
-1. Validates `changelog/unreleased/` has fragments (fails if empty)
-2. Freezes fragments → `changelog/{VERSION}/`
-3. Bumps `pyproject.toml` version
-4. Regenerates `CHANGELOG.md` via `aggregate_changelog.py`
-5. Commits with `chore(release): v{VERSION} changelog freeze`
-6. Creates `v{VERSION}` tag
+This script handles all steps atomically:
+1. Validates `changelog/unreleased/` has fragments
+2. Freezes fragments to `changelog/0.4.XX/`
+3. Bumps version in `pyproject.toml`
+4. Regenerates `CHANGELOG.md`
+5. Commits with proper message
+6. Creates the tag
 
-## Manual Flow (if release.sh cannot be used)
+## Manual Flow (Advanced)
 
 ```bash
 # 1. Pull first (avoid divergence)
@@ -110,15 +109,3 @@ git commit -F tmp/msg.txt
 ```
 
 This avoids the dquote trap from special characters in shell strings.
-
-## Release Gates (FR-192)
-
-Three enforcement layers prevent changelog release drift:
-
-| Gate | Layer | What it catches |
-|------|-------|-----------------|
-| `changelog-release-sync` | Pre-commit hook | Version bump with orphaned fragments |
-| `scripts/release.sh` | Atomic script | Ensures correct ordering of freeze → bump → commit → tag |
-| `release-hygiene` | CI (tag push) | Tag without `changelog/{VERSION}/` folder or with orphaned fragments |
-
-The pre-commit hook `changelog-release-sync` (in `.pre-commit-config.yaml`) blocks any commit that bumps the `pyproject.toml` version while `changelog/unreleased/` still contains `.md` fragments. Use `scripts/release.sh` to avoid this — it freezes first, then bumps.
