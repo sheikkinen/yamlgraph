@@ -36,23 +36,22 @@ After the learning path, explore production examples below.
 | [booking/](booking/) | Appointment booking assistant | Interrupt nodes, tool nodes, multi-turn conversation |
 | [bugfix/](bugfix/) | Bug-fix pipeline with condemning test | Copilot nodes, 4-phase workflow, TDD enforcement (FR-173) |
 | [codegen/](codegen/) | Implementation agent | Tool nodes, code analysis, 24 Python tools |
-| [copilot/](copilot/) | Copilot node demo | Copilot CLI delegation, Plan→Judge→Diary workflow (FR-081, FR-098) |
 | [cost-router/](cost-router/) | Multi-provider routing | Router nodes, Granite/Mistral/Claude |
 | [daily_digest/](daily_digest/) | Scheduled news digest | Fly.io deployment, background tasks, email |
 | [diary_digest/](diary_digest/) | Automated diary digest | Data files, feed topics, parallel processing (FR-046) |
 | [ebook/](ebook/) | eBook authoring pipeline | File-based write→judge→amend pattern |
-| [enforce/](enforce/) | Parallel development pipeline | Git worktrees, feature enforcement (FR-106) |
 | [fsm-router/](fsm-router/) | FSM + YAMLGraph integration | statemachine-engine, LLM routing, job orchestration |
 | [npc/](npc/) | D&D NPC generator | Multi-graph, map nodes, parallel NPCs |
 | [ocr_cleanup/](ocr_cleanup/) | OCR text cleanup | Map nodes, PDF extraction, parallel LLM cleanup |
 | [openai_proxy/](openai_proxy/) | OpenAI-compatible guardrail proxy | Echo→validate→respond pipeline, `/v1/chat/completions` |
-| [philosopher/](philosopher/) | Diary pattern scanner | Scripture graduation, chaplaincy daemon (FR-184) |
 | [questionnaire/](questionnaire/) | Feature request collector | Data files, interrupt loops, conditional routing |
 | [rag/](rag/) | RAG pipeline | LanceDB vectorstore, document indexing, retrieval |
 | [rtm-hello/](rtm-hello/) | TDD + requirement traceability | pytest markers, AST-based tooling |
 | [storyboard/](storyboard/) | Visual story generator | Replicate API, image generation |
 | [yamlgraph_gen/](yamlgraph_gen/) | Pipeline generator | Meta-generation, snippet composition, validation |
 | [fastapi_interview.py](fastapi_interview.py) | FastAPI integration | Async execution, interrupt handling, sessions |
+
+> **Note:** Chaplain infrastructure (copilot, enforce, philosopher) relocated to `.chaplain/graphs/` per FR-196.
 
 ## Demos Index
 

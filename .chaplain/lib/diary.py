@@ -3,61 +3,16 @@
 Used by diary_digest and .chaplain workflows.
 FR-097: Extracted from examples/diary_digest/nodes/writing.py for neutral ownership.
 FR-134: Refactored to write individual files to docs/diary/ folder.
-FR-196: DiaryEntry/extract_json inlined to avoid dependency on examples.philosopher.
 """
 
-import json
 import logging
 import re
 from datetime import datetime
 from pathlib import Path
 
-from pydantic import BaseModel, Field
-
 logger = logging.getLogger(__name__)
 
 DIARY_DIR = Path(__file__).resolve().parent.parent.parent / "docs" / "diary"
-
-
-# ---------------------------------------------------------------------------
-# Models (inlined from .chaplain/graphs/philosopher/tools.py for FR-196)
-# ---------------------------------------------------------------------------
-
-
-class DiaryEntry(BaseModel):
-    """Validated diary entry from reflect node."""
-
-    theme: str = Field(description="Short title for the diary entry (2-4 words)")
-    body: str = Field(description="Main reflection content in markdown format")
-    seed: str = Field(description="A forward-looking question for future exploration")
-
-
-def extract_json(text: str, node_name: str) -> str:
-    """Extract JSON from copilot output, stripping markdown fences and preamble.
-
-    Strategy:
-    1. Strip markdown code fences (```json ... ```)
-    2. Find first [ or { to last ] or }
-    3. Raise ValueError on failure (no silent fallbacks per Commandment 6)
-    """
-    # Strip markdown fences
-    stripped = re.sub(r"```(?:json)?\s*\n?", "", text).strip()
-    if stripped.endswith("```"):
-        stripped = stripped[:-3].strip()
-
-    # Find JSON boundaries
-    for start_char, end_char in [("[", "]"), ("{", "}")]:
-        start = stripped.find(start_char)
-        end = stripped.rfind(end_char)
-        if start != -1 and end > start:
-            candidate = stripped[start : end + 1]
-            try:
-                json.loads(candidate)
-                return candidate
-            except json.JSONDecodeError:
-                continue
-
-    raise ValueError(f"No valid JSON found in {node_name} output: {text[:200]}...")
 
 
 # ---------------------------------------------------------------------------
@@ -120,9 +75,11 @@ def write_diary(state: dict) -> dict:
     from yamlgraph.models.schemas import CopilotResult
 
     if isinstance(entry_data, CopilotResult):
-        # FR-196: Use inlined DiaryEntry/extract_json (no examples.philosopher dependency)
+        from examples.philosopher.models import DiaryEntry as PhilosopherDiaryEntry
+        from examples.philosopher.models import extract_json
+
         json_str = extract_json(entry_data.output, "reflect")
-        parsed = DiaryEntry.model_validate_json(json_str)
+        parsed = PhilosopherDiaryEntry.model_validate_json(json_str)
         theme, body, seed = parsed.theme, parsed.body, parsed.seed
     elif isinstance(entry_data, str):
         # Parse string representation like: theme='...' body='...' seed='...'

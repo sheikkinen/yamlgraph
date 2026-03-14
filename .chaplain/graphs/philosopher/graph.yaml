@@ -1,7 +1,8 @@
-# FR-184/FR-185/FR-194/FR-195: Philosopher Daemon
+# FR-184/FR-185/FR-194/FR-195/FR-196: Philosopher Daemon
 # Scans diary entries for recurring patterns and proposes graduations to Scripture
 # FR-195: Adds distill/challenge adversarial gate before propose
 # FR-194: Adds world context loading for grounded reflection
+# FR-196: Relocated from examples/philosopher/ to .chaplain/graphs/philosopher/
 
 version: "1.0"
 name: philosopher-scan
@@ -38,27 +39,27 @@ state:
 tools:
   scan_diary_tool:
     type: python
-    module: examples.philosopher.tools
+    path: .chaplain/graphs/philosopher/tools.py
     function: scan_diary_markers
   load_context_tool:
     type: python
-    module: examples.philosopher.tools
+    path: .chaplain/graphs/philosopher/tools.py
     function: load_world_context
   write_diary_tool:
     type: python
-    module: examples.shared.diary
+    path: .chaplain/lib/diary.py
     function: write_diary
   write_proposal_tool:
     type: python
-    module: examples.philosopher.tools
+    path: .chaplain/graphs/philosopher/tools.py
     function: write_proposals
   unwrap_distill_tool:
     type: python
-    module: examples.philosopher.tools
+    path: .chaplain/graphs/philosopher/tools.py
     function: unwrap_distill
   unwrap_challenge_tool:
     type: python
-    module: examples.philosopher.tools
+    path: .chaplain/graphs/philosopher/tools.py
     function: unwrap_challenge
 
 nodes:

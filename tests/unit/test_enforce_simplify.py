@@ -13,8 +13,8 @@ import yaml
 # Helpers
 # ---------------------------------------------------------------------------
 
-_GRAPH_PATH = Path("examples/enforce/graph.yaml")
-_PROMPTS_DIR = Path("examples/enforce/prompts")
+_GRAPH_PATH = Path(".chaplain/graphs/enforce/graph.yaml")
+_PROMPTS_DIR = Path(".chaplain/graphs/enforce/prompts")
 
 
 def _load_graph() -> dict:

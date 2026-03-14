@@ -4,6 +4,7 @@
 # FR-093: Added summarize + write_diary for automatic diary append
 # FR-098: Consolidated from .chaplain/graph.yaml
 # FR-105: Session continuation - judge resumes plan's session
+# FR-196: Relocated from examples/copilot/ to .chaplain/graphs/copilot/
 
 version: "1.0"
 name: copilot-workflow
@@ -27,7 +28,7 @@ state:
 tools:
   write_diary_tool:
     type: python
-    module: examples.shared.diary
+    path: .chaplain/lib/diary.py
     function: write_diary
 
 nodes:

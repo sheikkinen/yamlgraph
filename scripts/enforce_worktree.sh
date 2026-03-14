@@ -15,7 +15,7 @@
 # 1. Validates clean working tree (no uncommitted changes)
 # 2. Creates a git worktree with a branch derived from FR filename
 # 3. Symlinks the shared .venv to avoid redundant installs
-# 4. Delegates to: yamlgraph graph run examples/enforce/graph.yaml
+# 4. Delegates to: yamlgraph graph run .chaplain/graphs/enforce/graph.yaml (FR-196)
 # 5. Cleans up the worktree on exit (success or failure)
 
 set -euo pipefail
@@ -128,10 +128,10 @@ cd "$WORKTREE_DIR"
 unset GIT_DIR GIT_WORK_TREE 2>/dev/null || true
 log_info "Working in: $(pwd)"
 
-# Delegate all LLM phases to the enforce pipeline graph (FR-128)
+# Delegate all LLM phases to the enforce pipeline graph (FR-128, FR-196)
 # The graph handles: implement → test/demo → pre-commit → submit PR
 log_info "Running enforce pipeline graph..."
-yamlgraph graph run examples/enforce/graph.yaml \
+yamlgraph graph run .chaplain/graphs/enforce/graph.yaml \
     --var fr_path="$FR_PATH" \
     --var branch="$BRANCH" \
     --full
