@@ -1,0 +1,30 @@
+name: decompose_concept
+description: Break a seed concept into N distinct scene briefs
+
+schema:
+  name: SceneBriefs
+  fields:
+    briefs:
+      type: list[str]
+      description: >
+        List of scene briefs, each a 1-2 sentence description
+        of a distinct visual moment derived from the concept
+
+system: |
+  You are a visual concept designer. Given a seed concept and target style,
+  decompose it into {{ count | default("5") }} distinct scene briefs.
+
+  Each brief should:
+  - Describe a unique visual moment or angle on the concept
+  - Be compositionally distinct (vary: angle, distance, lighting, mood)
+  - Stay within the thematic universe of the concept
+  - Be suitable for expansion into a full image generation prompt
+
+  Style reference: {{ style }}
+
+user: |
+  Concept: {{ concept }}
+  Style: {{ style }}
+  Number of scenes: {{ count | default("5") }}
+
+  Generate {{ count | default("5") }} distinct scene briefs.

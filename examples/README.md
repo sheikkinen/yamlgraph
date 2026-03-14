@@ -48,6 +48,7 @@ After the learning path, explore production examples below.
 | [rag/](rag/) | RAG pipeline | LanceDB vectorstore, document indexing, retrieval |
 | [rtm-hello/](rtm-hello/) | TDD + requirement traceability | pytest markers, AST-based tooling |
 | [storyboard/](storyboard/) | Visual story generator | Replicate API, image generation |
+| [batch_image_prompts/](batch_image_prompts/) | Batch image prompt generator | Map node, parallel enrichment, style consistency |
 | [yamlgraph_gen/](yamlgraph_gen/) | Pipeline generator | Meta-generation, snippet composition, validation |
 | [fastapi_interview.py](fastapi_interview.py) | FastAPI integration | Async execution, interrupt handling, sessions |
 
