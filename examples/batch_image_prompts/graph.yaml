@@ -1,0 +1,62 @@
+# Batch Image Prompt Generation Graph
+#
+# Pipeline:
+#   seed_concept → decompose (LLM) → enrich (map) → collect prompts
+#
+# Usage:
+#   yamlgraph graph run examples/batch_image_prompts/graph.yaml \
+#     --var concept="Angel of Death in a dead forest" \
+#     --var style="Beksinski, oil painting, chiaroscuro, melancholic" \
+#     --var count="5" --full
+
+name: batch-image-prompts
+version: "1.0"
+description: Generate a batch of stylistically consistent image prompts from a seed concept
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+
+state:
+  concept: str
+  style: str
+  count: str
+  scenes: any
+  prompts: list
+
+nodes:
+  decompose:
+    type: llm
+    prompt: decompose_concept
+    state_key: scenes
+    variables:
+      concept: "{state.concept}"
+      style: "{state.style}"
+      count: "{state.count}"
+
+  enrich:
+    type: map
+    over: "{state.scenes.briefs}"
+    as: brief
+    node:
+      type: llm
+      prompt: enrich_prompt
+      state_key: enriched
+      variables:
+        style: "{state.style}"
+        concept: "{state.concept}"
+    collect: prompts
+    flatten_output: true
+    on_error: skip
+    max_retries: 1
+    max_items: 20
+
+edges:
+  - from: START
+    to: decompose
+  - from: decompose
+    to: enrich
+  - from: enrich
+    to: END
