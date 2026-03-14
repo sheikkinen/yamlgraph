@@ -1,0 +1,24 @@
+id: CAP-75
+name: Portable Chaplain (FR-196)
+fr: FR-196
+description: >
+  PythonToolConfig supports a `path` field for file-path-based tool loading via
+  importlib.util.spec_from_file_location(). Path resolves relative to CWD.
+  Enables .chaplain/ directory portability by bypassing dotted-package import
+  restrictions. Chaplain graphs, prompts, and Python tools relocated from
+  examples/ to .chaplain/graphs/ for self-contained portability.
+modules:
+  - yamlgraph/tools/python_tool.py
+  - .chaplain/graphs/philosopher/tools.py
+  - .chaplain/lib/diary.py
+  - tests/unit/test_python_nodes.py
+requirements:
+  - id: REQ-YG-196
+    description: >
+      PythonToolConfig supports path field (mutually exclusive with module) for
+      file-path-based Python tool loading via spec_from_file_location; path
+      resolves relative to CWD; validation rejects both-set and neither-set;
+      parse_python_tools accepts path or module in YAML tool definitions
+    modules:
+      - yamlgraph/tools/python_tool.py
+      - tests/unit/test_python_nodes.py

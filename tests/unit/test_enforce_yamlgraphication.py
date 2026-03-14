@@ -1,7 +1,7 @@
 """Tests for FR-128: YAMLGraphication of Enforcer.
 
 Validates that scripts/enforce_worktree.sh delegates all LLM phases to
-examples/enforce/graph.yaml instead of using inline copilot -p calls.
+.chaplain/graphs/enforce/graph.yaml instead of using inline copilot -p calls.
 """
 
 import os
@@ -25,9 +25,9 @@ class TestEnforceScriptDelegatesToGraph:
     """Verify shell script delegates to yamlgraph graph run."""
 
     def test_script_invokes_yamlgraph_graph_run(self):
-        """Script calls yamlgraph graph run examples/enforce/graph.yaml."""
+        """Script calls yamlgraph graph run .chaplain/graphs/enforce/graph.yaml."""
         content = _read_enforce_script()
-        assert "yamlgraph graph run examples/enforce/graph.yaml" in content
+        assert "yamlgraph graph run .chaplain/graphs/enforce/graph.yaml" in content
 
     def test_script_passes_fr_path_var(self):
         """Script passes --var fr_path to the graph run."""
@@ -167,10 +167,10 @@ class TestEnforceGraphLint:
     """Verify the enforce graph passes lint."""
 
     def test_enforce_graph_passes_lint(self):
-        """examples/enforce/graph.yaml passes yamlgraph graph lint."""
+        """.chaplain/graphs/enforce/graph.yaml passes yamlgraph graph lint."""
         from yamlgraph.linter.graph_linter import lint_graph
 
-        graph_path = Path("examples/enforce/graph.yaml")
+        graph_path = Path(".chaplain/graphs/enforce/graph.yaml")
         result = lint_graph(graph_path)
         errors = [i for i in result.issues if i.severity == "error"]
         assert (

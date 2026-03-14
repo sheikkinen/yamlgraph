@@ -14,11 +14,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 @pytest.mark.req("REQ-YG-143")
 class TestJudgeYamlSplitVerdict:
-    """examples/copilot/prompts/judge.yaml must include SPLIT verdict."""
+    """.chaplain/graphs/copilot/prompts/judge.yaml must include SPLIT verdict."""
 
     @pytest.fixture()
     def judge_yaml_content(self) -> str:
-        path = REPO_ROOT / "examples" / "copilot" / "prompts" / "judge.yaml"
+        path = REPO_ROOT / ".chaplain" / "graphs" / "copilot" / "prompts" / "judge.yaml"
         assert path.exists(), f"judge.yaml not found at {path}"
         return path.read_text()
 
