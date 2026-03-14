@@ -70,13 +70,12 @@ class TestHoroscopeDemoConfig:
         assert config.nodes["assemble"]["state_key"] == "document"
 
     @pytest.mark.req("REQ-YG-197")
-    def test_exports_configured(self) -> None:
-        """Exports section writes document as markdown."""
+    def test_save_node_exists(self) -> None:
+        """Graph has a save node for file output."""
         config = load_graph_config(GRAPH_PATH)
-        exports = config.raw_config.get("exports", {})
-        assert "document" in exports
-        assert exports["document"]["format"] == "markdown"
-        assert exports["document"]["filename"] == "horoscope.md"
+        assert "save" in config.nodes
+        assert config.nodes["save"]["type"] == "python"
+        assert config.nodes["save"]["tool"] == "save_horoscope"
 
     @pytest.mark.req("REQ-YG-197")
     def test_date_in_state(self) -> None:
@@ -95,11 +94,13 @@ class TestHoroscopeDemoConfig:
         assert raw.get("prompts_dir") == "prompts"
 
     @pytest.mark.req("REQ-YG-197")
-    def test_no_python_code_required(self) -> None:
-        """Demo is pure YAML — no tools section, no python nodes."""
+    def test_minimal_python_for_file_io(self) -> None:
+        """Demo uses minimal Python — only save_horoscope tool for file I/O."""
         config = load_graph_config(GRAPH_PATH)
         raw = config.raw_config
-        assert "tools" not in raw or raw["tools"] is None
+        tools = raw.get("tools", {})
+        assert len(tools) == 1
+        assert "save_horoscope" in tools
 
 
 class TestHoroscopeDemoCompilation:
