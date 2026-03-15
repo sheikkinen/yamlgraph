@@ -9,6 +9,12 @@ schema:
       description: >
         A detailed image generation prompt (200-400 chars) encoding
         artist style, composition, lighting, mood, subject, and technique
+    concept:
+      type: str
+      description: The overarching concept/theme this image belongs to
+    scene_brief:
+      type: str
+      description: The scene brief that was expanded into this prompt
 
 system: |
   You are an expert image prompt engineer for AI art generation models
@@ -34,3 +40,4 @@ user: |
   Style: {{ style }}
 
   Write one detailed image generation prompt for this scene.
+  Return the prompt_text, and echo back the concept and scene_brief fields.
