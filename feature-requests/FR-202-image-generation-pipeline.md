@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-03-15
 
@@ -208,17 +208,17 @@ yamlgraph graph run examples/image_pipeline/graph.yaml \
 
 ## Acceptance Criteria
 
-- [ ] `generate_concepts` prompt produces a single concept theme as a plain string (unit test with mock LLM) (REQ-YG-198)
-- [ ] `batch_image_prompts` is invoked as a subgraph (not copy-pasted) (REQ-YG-198)
-- [ ] `save_prompts` writes `prompts.txt` to output dir, one prompt per line (REQ-YG-198)
-- [ ] `generate_images` calls Replicate via `shared/replicate_tool.py` with model name `z-image`, saves PNGs to output dir (REQ-YG-198)
-- [ ] Sidecar `.txt` file saved alongside each generated image containing its prompt (REQ-YG-198)
-- [ ] EXIF embedding via `exiftool` is best-effort: works when available, silently skips otherwise (REQ-YG-198)
-- [ ] Graph lints cleanly: `yamlgraph graph lint examples/image_pipeline/graph.yaml` (REQ-YG-198)
+- [x] `generate_concepts` prompt produces a single concept theme as a plain string (unit test with mock LLM) (REQ-YG-198)
+- [x] `batch_image_prompts` is invoked as a subgraph (not copy-pasted) (REQ-YG-198)
+- [x] `save_prompts` writes `prompts.txt` to output dir, one prompt per line (REQ-YG-198)
+- [x] `generate_images` calls Replicate via `shared/replicate_tool.py` with model name `z-image`, saves PNGs to output dir (REQ-YG-198)
+- [x] Sidecar `.txt` file saved alongside each generated image containing its prompt (REQ-YG-198)
+- [x] EXIF embedding via `exiftool` is best-effort: works when available, silently skips otherwise (REQ-YG-198)
+- [x] Graph lints cleanly: `yamlgraph graph lint examples/image_pipeline/graph.yaml` (REQ-YG-198)
 - [ ] End-to-end integration test with `--var style="dark fantasy" --var count="3"` (requires API keys) (REQ-YG-198)
-- [ ] Unit tests for `save_prompts_node` and `generate_images_node` with mocked Replicate (REQ-YG-198)
-- [ ] README.md in `examples/image_pipeline/` with usage examples and optional `exiftool` documentation (REQ-YG-198)
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-198")` (REQ-YG-198)
+- [x] Unit tests for `save_prompts_node` and `generate_images_node` with mocked Replicate (REQ-YG-198)
+- [x] README.md in `examples/image_pipeline/` with usage examples and optional `exiftool` documentation (REQ-YG-198)
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-198")` (REQ-YG-198)
 
 ## Alternatives Considered
 
