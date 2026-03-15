@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import subprocess
+import time
 from pathlib import Path
 
 from examples.shared.replicate_tool import generate_image
@@ -99,7 +100,9 @@ def generate_images_node(state: dict) -> dict:
     image_paths: list[str] = []
 
     for i, prompt in enumerate(prompt_texts, 1):
-        image_path = output_dir / f"image_{i:02d}.png"
+        # Include timestamp in filename (matches zimage-replicate.mjs pattern)
+        timestamp = int(time.time() * 1000)  # milliseconds since epoch
+        image_path = output_dir / f"zimage_{i:02d}_{timestamp}.png"
         logger.info(f"🎨 [{i}/{len(prompt_texts)}] Generating: {prompt[:60]}...")
 
         result = generate_image(prompt, image_path, model_name="z-image")

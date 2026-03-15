@@ -313,8 +313,9 @@ class TestGenerateImagesNode:
 
             generate_images_node(state)
 
-        sidecar = tmp_path / "image_01.txt"
-        assert not sidecar.exists(), "No sidecar when EXIF succeeds"
+        # Check no sidecar .txt files exist (EXIF succeeded)
+        sidecars = list(tmp_path.glob("zimage_*.txt"))
+        assert len(sidecars) == 0, "No sidecar when EXIF succeeds"
 
     def test_writes_sidecar_when_exif_fails(self, tmp_path):
         """Sidecar .txt is fallback when EXIF embedding fails."""
@@ -341,9 +342,10 @@ class TestGenerateImagesNode:
 
             generate_images_node(state)
 
-        sidecar = tmp_path / "image_01.txt"
-        assert sidecar.exists(), "Sidecar must exist when EXIF fails"
-        assert sidecar.read_text() == prompt
+        # Check sidecar .txt exists (EXIF failed, fallback written)
+        sidecars = list(tmp_path.glob("zimage_*.txt"))
+        assert len(sidecars) == 1, "Sidecar must exist when EXIF fails"
+        assert sidecars[0].read_text() == prompt
 
     def test_skips_failed_images(self, tmp_path):
         from examples.shared.replicate_tool import ImageResult
