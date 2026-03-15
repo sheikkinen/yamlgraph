@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from examples.shared.replicate_tool import generate_image
@@ -76,11 +77,32 @@ def _extract_prompt_texts(prompts: list) -> list[str]:
     return texts
 
 
-def generate_images_node(state: dict) -> dict:
-    """Generate images via Replicate from prompts.
+def _generate_single_image(
+    index: int, prompt: str, output_dir: Path, total: int
+) -> tuple[int, str | None, str]:
+    """Generate a single image (worker function for parallel execution).
 
-    Iterates over prompts, generates images via z-image model,
-    saves PNGs and sidecar .txt files to the output directory.
+    Returns:
+        Tuple of (index, image_path_or_none, prompt)
+    """
+    timestamp = int(time.time() * 1000)
+    image_path = output_dir / f"zimage_{index:02d}_{timestamp}.png"
+    logger.info(f"🎨 [{index}/{total}] Generating: {prompt[:60]}...")
+
+    result = generate_image(prompt, image_path, model_name="z-image")
+
+    if result.success and result.path:
+        return (index, str(image_path), prompt)
+    else:
+        logger.warning(f"⚠ Image {index} failed: {result.error}")
+        return (index, None, prompt)
+
+
+def generate_images_node(state: dict) -> dict:
+    """Generate images via Replicate from prompts (parallel execution).
+
+    Uses ThreadPoolExecutor to generate multiple images concurrently.
+    EXIF metadata embedding happens after all images are generated.
 
     Args:
         state: Graph state with 'prompts' list and 'output_dir' path
@@ -97,28 +119,33 @@ def generate_images_node(state: dict) -> dict:
         prompts = state.get("prompts", [])
         prompt_texts = _extract_prompt_texts(prompts)
 
+    total = len(prompt_texts)
+    logger.info(f"🚀 Starting parallel generation of {total} images...")
+
+    # Parallel image generation
+    results: list[tuple[int, str | None, str]] = []
+    with ThreadPoolExecutor(max_workers=min(10, total)) as executor:
+        futures = {
+            executor.submit(_generate_single_image, i, prompt, output_dir, total): i
+            for i, prompt in enumerate(prompt_texts, 1)
+        }
+        for future in as_completed(futures):
+            results.append(future.result())
+
+    # Sort by index to maintain order
+    results.sort(key=lambda x: x[0])
+
+    # Post-process: embed EXIF metadata (sequential — fast, local operation)
     image_paths: list[str] = []
-
-    for i, prompt in enumerate(prompt_texts, 1):
-        # Include timestamp in filename (matches zimage-replicate.mjs pattern)
-        timestamp = int(time.time() * 1000)  # milliseconds since epoch
-        image_path = output_dir / f"zimage_{i:02d}_{timestamp}.png"
-        logger.info(f"🎨 [{i}/{len(prompt_texts)}] Generating: {prompt[:60]}...")
-
-        result = generate_image(prompt, image_path, model_name="z-image")
-
-        if result.success and result.path:
-            image_paths.append(str(image_path))
-            # Embed prompt in EXIF metadata (canonical storage)
-            exif_ok = _embed_exif(image_path, prompt)
+    for _index, path, prompt in results:
+        if path:
+            image_paths.append(path)
+            exif_ok = _embed_exif(Path(path), prompt)
             if not exif_ok:
-                # Fallback: write sidecar .txt if EXIF failed
-                sidecar = image_path.with_suffix(".txt")
+                sidecar = Path(path).with_suffix(".txt")
                 sidecar.write_text(prompt)
                 logger.info(f"📄 Fallback sidecar written: {sidecar.name}")
-        else:
-            logger.warning(f"⚠ Image {i} failed: {result.error}")
 
-    logger.info(f"✅ Generated {len(image_paths)}/{len(prompt_texts)} images")
+    logger.info(f"✅ Generated {len(image_paths)}/{total} images")
 
     return {"images": image_paths}
