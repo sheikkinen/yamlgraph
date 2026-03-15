@@ -15,10 +15,6 @@ description: Generate a batch of stylistically consistent image prompts from a s
 prompts_relative: true
 prompts_dir: prompts
 
-defaults:
-  provider: anthropic
-  model: claude-haiku-4-5
-
 state:
   concept: str
   style: str
