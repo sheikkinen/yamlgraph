@@ -13,7 +13,11 @@ from langgraph.types import Send
 
 from yamlgraph.config import DEFAULT_MAX_MAP_ITEMS
 from yamlgraph.constants import NodeType
-from yamlgraph.node_factory import create_node_function, create_tool_call_node
+from yamlgraph.node_factory import (
+    create_node_function,
+    create_subgraph_node,
+    create_tool_call_node,
+)
 from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.python_tool import load_python_function
 from yamlgraph.utils.expressions import resolve_state_expression
@@ -247,6 +251,13 @@ def compile_map_node(
             python_tools=python_tools or {},
             defaults=defaults,
             graph_path=graph_path,
+        )
+    elif sub_node_type == NodeType.SUBGRAPH:
+        # FR-202: Map over subgraphs for nested pipelines
+        sub_node = create_subgraph_node(
+            sub_node_name,
+            sub_node_config,
+            parent_graph_path=graph_path,
         )
     else:
         sub_node = create_node_function(

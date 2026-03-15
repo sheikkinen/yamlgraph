@@ -76,29 +76,25 @@ class TestImagePipelineGraphStructure:
         node = graph["nodes"]["generate_concepts"]
         assert node["type"] == "llm"
 
-    def test_graph_has_generate_prompts_subgraph_node(self):
+    def test_graph_has_generate_prompts_map_node(self):
+        """generate_prompts is a map node that iterates over concepts."""
         graph = _load_yaml(GRAPH_FILE)
         node = graph["nodes"]["generate_prompts"]
-        assert node["type"] == "subgraph"
+        assert node["type"] == "map"
 
-    def test_subgraph_references_batch_image_prompts(self):
+    def test_map_node_iterates_over_concepts(self):
+        """Map node iterates over concepts list from generate_concepts."""
         graph = _load_yaml(GRAPH_FILE)
         node = graph["nodes"]["generate_prompts"]
-        assert "batch_image_prompts" in node.get("graph", "")
+        assert "concepts" in node.get("over", "")
 
-    def test_subgraph_has_input_mapping(self):
+    def test_map_node_has_subgraph_inner_node(self):
+        """Map node's inner node is a subgraph referencing batch_image_prompts."""
         graph = _load_yaml(GRAPH_FILE)
         node = graph["nodes"]["generate_prompts"]
-        mapping = node.get("input_mapping", {})
-        assert "concept" in mapping
-        assert "style" in mapping
-        assert "count" in mapping
-
-    def test_subgraph_has_output_mapping(self):
-        graph = _load_yaml(GRAPH_FILE)
-        node = graph["nodes"]["generate_prompts"]
-        mapping = node.get("output_mapping", {})
-        assert "prompts" in mapping
+        inner_node = node.get("node", {})
+        assert inner_node.get("type") == "subgraph"
+        assert "batch_image_prompts" in inner_node.get("graph", "")
 
     def test_graph_has_save_prompts_node(self):
         graph = _load_yaml(GRAPH_FILE)
@@ -122,13 +118,14 @@ class TestImagePipelineGraphStructure:
         assert ("generate_images", "END") in edge_pairs
 
     def test_graph_state_declares_required_fields(self):
-        """State must declare style, count, concept, prompts, prompt_file, output_dir, images."""
+        """State must declare style, count, concepts_count, concepts, prompts, etc."""
         graph = _load_yaml(GRAPH_FILE)
         state = graph.get("state", {})
         for field in (
             "style",
             "count",
-            "concept",
+            "concepts_count",
+            "concepts",
             "prompts",
             "prompt_file",
             "output_dir",
@@ -170,12 +167,14 @@ class TestImagePipelinePrompt:
         content = _read(PROMPTS_DIR / "generate_concepts.yaml")
         assert "style" in content
 
-    def test_prompt_has_no_schema(self):
-        """FR-202: No Pydantic schema — returns plain string."""
+    def test_prompt_has_schema_for_concepts_list(self):
+        """FR-202 extended: Prompt has schema for concepts list."""
         prompt = _load_yaml(PROMPTS_DIR / "generate_concepts.yaml")
-        assert "schema" not in prompt, (
-            "generate_concepts must NOT have a schema (plain string output)"
-        )
+        assert (
+            "schema" in prompt
+        ), "generate_concepts must have a schema for ConceptList"
+        schema = prompt["schema"]
+        assert "concepts" in schema.get("fields", {})
 
 
 # ---------------------------------------------------------------------------
@@ -398,6 +397,6 @@ class TestImagePipelineLint:
 
         result = lint_graph(GRAPH_FILE)
         errors = [i for i in result.issues if i.severity == "error"]
-        assert len(errors) == 0, (
-            f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
-        )
+        assert (
+            len(errors) == 0
+        ), f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"

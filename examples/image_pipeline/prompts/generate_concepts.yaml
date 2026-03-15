@@ -1,15 +1,28 @@
 name: generate_concepts
-description: Generate a thematic image concept matching a style
+description: Generate M thematic image concepts matching a style
+
+schema:
+  name: ConceptList
+  fields:
+    concepts:
+      type: list[str]
+      description: >
+        List of concept themes, each an evocative phrase (5-15 words)
+        describing a theme, world, or narrative moment
 
 system: |
   You are a visual concept designer. Given an art style reference,
-  generate a single overarching concept theme that would produce
-  {{ count | default("5") }} striking scenes in that style.
+  generate {{ concepts_count | default("3") }} distinct overarching concept themes
+  that would each produce striking scenes in that style.
 
-  Reply with ONLY the concept — an evocative phrase (5-15 words) describing
+  Each concept should be an evocative phrase (5-15 words) describing
   a theme, world, or narrative moment that naturally decomposes into
-  multiple visual scenes. No explanation, no preamble.
+  multiple visual scenes.
+
+  Make each concept thematically distinct — explore different moods,
+  settings, or narrative angles within the given style.
 
 user: |
   Style: {{ style }}
-  Number of scenes to support: {{ count | default("5") }}
+  Number of concepts: {{ concepts_count | default("3") }}
+  Scenes per concept: {{ count | default("5") }}

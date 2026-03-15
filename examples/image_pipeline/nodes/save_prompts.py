@@ -11,6 +11,30 @@ logger = logging.getLogger(__name__)
 OUTPUT_BASE = Path("outputs/image_pipeline")
 
 
+def _extract_prompt_texts(prompts: list) -> list[str]:
+    """Recursively extract prompt_text values from nested structures.
+
+    Handles:
+    - list[str] → returns as-is
+    - list[dict with prompt_text] → extracts prompt_text
+    - list[dict with nested prompts] → flattens and extracts (map over subgraphs)
+    """
+    texts = []
+    for p in prompts:
+        if isinstance(p, str):
+            texts.append(p)
+        elif isinstance(p, dict):
+            # Check for nested prompts (from map over subgraphs)
+            if "prompts" in p and isinstance(p["prompts"], list):
+                texts.extend(_extract_prompt_texts(p["prompts"]))
+            # Check for direct prompt_text
+            elif "prompt_text" in p:
+                texts.append(p["prompt_text"])
+            else:
+                texts.append(str(p))
+    return texts
+
+
 def save_prompts_node(state: dict) -> dict:
     """Save prompts to a text file, one per line.
 
@@ -30,13 +54,11 @@ def save_prompts_node(state: dict) -> dict:
     if not prompts:
         raise ValueError("No prompts to save")
 
-    # Handle both list[str] and list[dict] with 'prompt_text' key
-    prompt_texts = []
-    for p in prompts:
-        if isinstance(p, dict):
-            prompt_texts.append(p.get("prompt_text", str(p)))
-        else:
-            prompt_texts.append(str(p))
+    # Extract all prompt texts, handling nested structures
+    prompt_texts = _extract_prompt_texts(prompts)
+
+    if not prompt_texts:
+        raise ValueError("No prompt texts found in prompts")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = OUTPUT_BASE / timestamp
@@ -45,6 +67,10 @@ def save_prompts_node(state: dict) -> dict:
     prompt_file = output_dir / "prompts.txt"
     prompt_file.write_text("\n".join(prompt_texts) + "\n")
 
-    logger.info(f"📝 Saved {len(prompts)} prompts to {prompt_file}")
+    logger.info(f"📝 Saved {len(prompt_texts)} prompts to {prompt_file}")
 
-    return {"prompt_file": str(prompt_file), "output_dir": str(output_dir)}
+    return {
+        "prompt_file": str(prompt_file),
+        "output_dir": str(output_dir),
+        "prompt_texts": prompt_texts,
+    }
