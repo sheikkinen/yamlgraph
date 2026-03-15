@@ -371,34 +371,48 @@ class TestGenerateImagesNode:
 
     def test_exif_best_effort_no_exiftool(self, tmp_path):
         """EXIF embedding returns False when exiftool is not available."""
-        from examples.image_pipeline.nodes.generate_images import _embed_exif
+        from examples.image_pipeline.nodes.generate_images import (
+            PromptMetadata,
+            _embed_exif,
+        )
 
         image_path = tmp_path / "test.png"
         image_path.write_bytes(b"fake png")
+        metadata = PromptMetadata(prompt_text="test prompt")
 
         with patch(
             "examples.image_pipeline.nodes.generate_images.subprocess.run",
             side_effect=FileNotFoundError("exiftool not found"),
         ):
-            result = _embed_exif(image_path, "test prompt")
+            result = _embed_exif(image_path, metadata)
             assert result is False, "Should return False when exiftool unavailable"
 
     def test_exif_calls_exiftool_when_available(self, tmp_path):
-        """EXIF embedding calls exiftool and returns True on success."""
-        from examples.image_pipeline.nodes.generate_images import _embed_exif
+        """EXIF embedding calls exiftool with all metadata fields."""
+        from examples.image_pipeline.nodes.generate_images import (
+            PromptMetadata,
+            _embed_exif,
+        )
 
         image_path = tmp_path / "test.png"
         image_path.write_bytes(b"fake png")
+        metadata = PromptMetadata(
+            prompt_text="test prompt",
+            concept="test concept",
+            scene_brief="test brief",
+        )
 
         with patch(
             "examples.image_pipeline.nodes.generate_images.subprocess.run",
         ) as mock_run:
-            result = _embed_exif(image_path, "test prompt")
+            result = _embed_exif(image_path, metadata)
 
         mock_run.assert_called_once()
         args = mock_run.call_args[0][0]
         assert args[0] == "exiftool"
         assert "-Description=test prompt" in args
+        assert "-Title=test concept" in args
+        assert "-Subject=test brief" in args
         assert result is True, "Should return True when exiftool succeeds"
 
     def test_returns_images_list(self, tmp_path):
