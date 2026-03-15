@@ -1,0 +1,81 @@
+# End-to-end style-driven image generation pipeline
+#
+# Pipeline:
+#   generate_concepts (LLM) → generate_prompts (subgraph) → save_prompts → generate_images
+#
+# Usage:
+#   yamlgraph graph run examples/image_pipeline/graph.yaml \
+#     --var style="dark fantasy, ink painting, luis royo" \
+#     --var count="5" --full
+
+name: image-pipeline
+version: "1.0"
+description: End-to-end style-driven image generation pipeline
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  style: str
+  count: str
+  concept: str
+  prompts: list
+  prompt_file: str
+  output_dir: str
+  images: list
+
+tools:
+  save_prompts:
+    type: python
+    module: examples.image_pipeline.nodes.save_prompts
+    function: save_prompts_node
+    description: Save generated prompts to a text file (one per line)
+
+  generate_images:
+    type: python
+    module: examples.image_pipeline.nodes.generate_images
+    function: generate_images_node
+    description: Generate images via Replicate z-image from prompts
+
+nodes:
+  generate_concepts:
+    type: llm
+    prompt: generate_concepts
+    state_key: concept
+    variables:
+      style: "{state.style}"
+      count: "{state.count}"
+
+  generate_prompts:
+    type: subgraph
+    mode: invoke
+    graph: ../batch_image_prompts/graph.yaml
+    input_mapping:
+      concept: concept
+      style: style
+      count: count
+    output_mapping:
+      prompts: prompts
+
+  save_prompts:
+    type: python
+    tool: save_prompts
+    state_key: prompt_file
+    requires: [prompts]
+
+  generate_images:
+    type: python
+    tool: generate_images
+    state_key: images
+    requires: [prompts]
+
+edges:
+  - from: START
+    to: generate_concepts
+  - from: generate_concepts
+    to: generate_prompts
+  - from: generate_prompts
+    to: save_prompts
+  - from: save_prompts
+    to: generate_images
+  - from: generate_images
+    to: END

@@ -350,6 +350,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 74 | FSM Scripture CLAUDE.md (FR-199) | `fsm/CLAUDE.md`, `tests/unit/test_fsm_claude_md_doctrine.py` | REQ-YG-195 |
 | 75 | Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/`, `.chaplain/lib/diary.py` | REQ-YG-196 |
 | 76 | Horoscope Demo (FR-201) | `examples/demos/horoscope` | REQ-YG-197 |
+| 77 | Image Generation Pipeline (FR-202) | `examples/image_pipeline` | REQ-YG-198 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1072,6 +1073,14 @@ Parallel daily horoscope generator using map node with static over: list.
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-197 | Map node fans out over 12 zodiac signs in parallel, collects readings, assembles into Markdown document with exports section. Pure YAML graph with co-located prompts, date as runtime variable. | `examples/demos/horoscope`, `tests/integration/test_horoscope_demo.py` |
+
+### 77. Image Generation Pipeline (FR-202)
+
+End-to-end style-driven image generation: concept → subgraph prompt generation → save → Replicate z-image.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-198 | Image pipeline graph chains generate_concepts (LLM) → batch_image_prompts (subgraph) → save_prompts (Python tool writing prompts.txt) → generate_images (Python tool calling Replicate z-image with sidecar .txt files and best-effort EXIF embedding). | `examples/image_pipeline`, `tests/unit/test_image_pipeline.py` |
 
 ---
 

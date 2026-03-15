@@ -49,6 +49,7 @@ After the learning path, explore production examples below.
 | [rtm-hello/](rtm-hello/) | TDD + requirement traceability | pytest markers, AST-based tooling |
 | [storyboard/](storyboard/) | Visual story generator | Replicate API, image generation |
 | [batch_image_prompts/](batch_image_prompts/) | Batch image prompt generator | Map node, parallel enrichment, style consistency |
+| [image_pipeline/](image_pipeline/) | End-to-end image generation | Subgraph composition, Replicate z-image, file I/O |
 | [yamlgraph_gen/](yamlgraph_gen/) | Pipeline generator | Meta-generation, snippet composition, validation |
 | [fastapi_interview.py](fastapi_interview.py) | FastAPI integration | Async execution, interrupt handling, sessions |
 

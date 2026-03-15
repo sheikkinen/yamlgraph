@@ -1,0 +1,19 @@
+id: CAP-77
+name: Image Generation Pipeline
+description: >
+  End-to-end style-driven image generation pipeline: concept generation via LLM,
+  prompt generation via batch_image_prompts subgraph, save to file, and image
+  generation via Replicate z-image with sidecar files and best-effort EXIF.
+modules:
+  - examples/image_pipeline
+requirements:
+  - id: REQ-YG-198
+    description: >
+      Image pipeline graph chains generate_concepts (LLM) →
+      batch_image_prompts (subgraph) → save_prompts (Python tool writing
+      prompts.txt) → generate_images (Python tool calling Replicate z-image
+      with sidecar .txt files and best-effort EXIF embedding).
+    modules:
+      - examples/image_pipeline
+      - tests/unit/test_image_pipeline.py
+fr: FR-202
