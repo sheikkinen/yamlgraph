@@ -1,12 +1,15 @@
 # End-to-end style-driven image generation pipeline
 #
 # Pipeline:
-#   generate_concepts (LLM) → generate_prompts (subgraph) → save_prompts → generate_images
+#   generate_concepts (LLM) → generate_prompts (map over concepts, subgraph) → save_prompts → generate_images
 #
 # Usage:
 #   yamlgraph graph run examples/image_pipeline/graph.yaml \
 #     --var style="dark fantasy, ink painting, luis royo" \
+#     --var concepts_count="3" \
 #     --var count="5" --full
+#
+# This generates: 3 concepts × 5 prompts = 15 images
 
 name: image-pipeline
 version: "1.0"
@@ -17,8 +20,10 @@ prompts_dir: prompts
 state:
   style: str
   count: str
-  concept: str
+  concepts_count: str
+  concepts: any
   prompts: list
+  prompt_texts: list
   prompt_file: str
   output_dir: str
   images: list
@@ -40,21 +45,30 @@ nodes:
   generate_concepts:
     type: llm
     prompt: generate_concepts
-    state_key: concept
+    state_key: concepts
     variables:
       style: "{state.style}"
       count: "{state.count}"
+      concepts_count: "{state.concepts_count}"
 
   generate_prompts:
-    type: subgraph
-    mode: invoke
-    graph: ../batch_image_prompts/graph.yaml
-    input_mapping:
-      concept: concept
-      style: style
-      count: count
-    output_mapping:
-      prompts: prompts
+    type: map
+    over: "{state.concepts.concepts}"
+    as: concept
+    node:
+      type: subgraph
+      mode: invoke
+      graph: ../batch_image_prompts/graph.yaml
+      input_mapping:
+        concept: concept
+        style: style
+        count: count
+      output_mapping:
+        prompts: prompts
+    collect: prompts
+    flatten_output: true
+    on_error: skip
+    max_items: 10
 
   save_prompts:
     type: python

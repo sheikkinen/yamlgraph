@@ -28,6 +28,30 @@ def _embed_exif(image_path: Path, prompt: str) -> None:
         )
 
 
+def _extract_prompt_texts(prompts: list) -> list[str]:
+    """Recursively extract prompt_text values from nested structures.
+
+    Handles:
+    - list[str] → returns as-is
+    - list[dict with prompt_text] → extracts prompt_text
+    - list[dict with nested prompts] → flattens and extracts (map over subgraphs)
+    """
+    texts = []
+    for p in prompts:
+        if isinstance(p, str):
+            texts.append(p)
+        elif isinstance(p, dict):
+            # Check for nested prompts (from map over subgraphs)
+            if "prompts" in p and isinstance(p["prompts"], list):
+                texts.extend(_extract_prompt_texts(p["prompts"]))
+            # Check for direct prompt_text
+            elif "prompt_text" in p:
+                texts.append(p["prompt_text"])
+            else:
+                texts.append(str(p))
+    return texts
+
+
 def generate_images_node(state: dict) -> dict:
     """Generate images via Replicate from prompts.
 
@@ -40,17 +64,14 @@ def generate_images_node(state: dict) -> dict:
     Returns:
         State update with 'images' list of generated image paths
     """
-    prompts = state.get("prompts", [])
     output_dir = Path(state.get("output_dir", "outputs/image_pipeline"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Handle both list[str] and list[dict] with 'prompt_text' key
-    prompt_texts = []
-    for p in prompts:
-        if isinstance(p, dict):
-            prompt_texts.append(p.get("prompt_text", str(p)))
-        else:
-            prompt_texts.append(str(p))
+    # Use pre-extracted prompt_texts if available (from save_prompts), else extract
+    prompt_texts = state.get("prompt_texts")
+    if not prompt_texts:
+        prompts = state.get("prompts", [])
+        prompt_texts = _extract_prompt_texts(prompts)
 
     image_paths: list[str] = []
 
