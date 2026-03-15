@@ -288,7 +288,8 @@ class TestGenerateImagesNode:
         _, kwargs = mock_gen.call_args
         assert kwargs.get("model_name") == "z-image"
 
-    def test_writes_sidecar_txt_files(self, tmp_path):
+    def test_no_sidecar_when_exif_succeeds(self, tmp_path):
+        """No sidecar .txt when EXIF metadata is successfully written."""
         from examples.shared.replicate_tool import ImageResult
 
         prompt = "A dragon in the sky"
@@ -296,9 +297,15 @@ class TestGenerateImagesNode:
         mock_result = ImageResult(success=True, path=str(tmp_path / "image_01.png"))
         (tmp_path / "image_01.png").write_bytes(b"fake png")
 
-        with patch(
-            "examples.image_pipeline.nodes.generate_images.generate_image",
-            return_value=mock_result,
+        with (
+            patch(
+                "examples.image_pipeline.nodes.generate_images.generate_image",
+                return_value=mock_result,
+            ),
+            patch(
+                "examples.image_pipeline.nodes.generate_images._embed_exif",
+                return_value=True,  # EXIF succeeds
+            ),
         ):
             from examples.image_pipeline.nodes.generate_images import (
                 generate_images_node,
@@ -307,7 +314,35 @@ class TestGenerateImagesNode:
             generate_images_node(state)
 
         sidecar = tmp_path / "image_01.txt"
-        assert sidecar.exists(), "Sidecar .txt file must exist alongside image"
+        assert not sidecar.exists(), "No sidecar when EXIF succeeds"
+
+    def test_writes_sidecar_when_exif_fails(self, tmp_path):
+        """Sidecar .txt is fallback when EXIF embedding fails."""
+        from examples.shared.replicate_tool import ImageResult
+
+        prompt = "A dragon in the sky"
+        state = {"prompts": [prompt], "output_dir": str(tmp_path)}
+        mock_result = ImageResult(success=True, path=str(tmp_path / "image_01.png"))
+        (tmp_path / "image_01.png").write_bytes(b"fake png")
+
+        with (
+            patch(
+                "examples.image_pipeline.nodes.generate_images.generate_image",
+                return_value=mock_result,
+            ),
+            patch(
+                "examples.image_pipeline.nodes.generate_images._embed_exif",
+                return_value=False,  # EXIF fails
+            ),
+        ):
+            from examples.image_pipeline.nodes.generate_images import (
+                generate_images_node,
+            )
+
+            generate_images_node(state)
+
+        sidecar = tmp_path / "image_01.txt"
+        assert sidecar.exists(), "Sidecar must exist when EXIF fails"
         assert sidecar.read_text() == prompt
 
     def test_skips_failed_images(self, tmp_path):
@@ -333,7 +368,7 @@ class TestGenerateImagesNode:
         assert len(result["images"]) == 1
 
     def test_exif_best_effort_no_exiftool(self, tmp_path):
-        """EXIF embedding silently skips when exiftool is not available."""
+        """EXIF embedding returns False when exiftool is not available."""
         from examples.image_pipeline.nodes.generate_images import _embed_exif
 
         image_path = tmp_path / "test.png"
@@ -343,11 +378,11 @@ class TestGenerateImagesNode:
             "examples.image_pipeline.nodes.generate_images.subprocess.run",
             side_effect=FileNotFoundError("exiftool not found"),
         ):
-            # Should not raise
-            _embed_exif(image_path, "test prompt")
+            result = _embed_exif(image_path, "test prompt")
+            assert result is False, "Should return False when exiftool unavailable"
 
     def test_exif_calls_exiftool_when_available(self, tmp_path):
-        """EXIF embedding calls exiftool when available."""
+        """EXIF embedding calls exiftool and returns True on success."""
         from examples.image_pipeline.nodes.generate_images import _embed_exif
 
         image_path = tmp_path / "test.png"
@@ -356,12 +391,13 @@ class TestGenerateImagesNode:
         with patch(
             "examples.image_pipeline.nodes.generate_images.subprocess.run",
         ) as mock_run:
-            _embed_exif(image_path, "test prompt")
+            result = _embed_exif(image_path, "test prompt")
 
         mock_run.assert_called_once()
         args = mock_run.call_args[0][0]
         assert args[0] == "exiftool"
         assert "-Description=test prompt" in args
+        assert result is True, "Should return True when exiftool succeeds"
 
     def test_returns_images_list(self, tmp_path):
         from examples.shared.replicate_tool import ImageResult

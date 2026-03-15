@@ -49,23 +49,34 @@ yamlgraph graph run examples/image_pipeline/graph.yaml \
 ```
 outputs/image_pipeline/{timestamp}/
 ├── prompts.txt          # One prompt per line (zimage-replicate.mjs compatible)
-├── image_01.png         # Generated image
-├── image_01.txt         # Sidecar: prompt used for image_01
+├── image_01.png         # Generated image (prompt embedded in EXIF Description)
 ├── image_02.png
-├── image_02.txt
 └── ...
 ```
 
-## Optional: EXIF Metadata
+If `exiftool` is not available, sidecar `.txt` files are written as fallback.
 
-If `exiftool` is installed on the system, the pipeline embeds each prompt in the image's EXIF `Description` field. This is best-effort — the pipeline works without `exiftool`.
+## Prompt Metadata
 
-Install on macOS:
+Prompts are embedded directly into each image's EXIF `Description` field using `exiftool`. This approach:
+
+- **Keeps prompt and image together** — no separate files to lose
+- **Compatible with image viewers** — many apps display EXIF Description
+- **Same as `zimage-replicate.mjs`** — consistent with standalone script
+
+To read the embedded prompt:
+```bash
+exiftool -Description image_01.png
+```
+
+### Installing exiftool
+
+macOS:
 ```bash
 brew install exiftool
 ```
 
-Install on Ubuntu/Debian:
+Ubuntu/Debian:
 ```bash
 sudo apt-get install libimage-exiftool-perl
 ```

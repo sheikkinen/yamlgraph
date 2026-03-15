@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import logging
 import subprocess
 from pathlib import Path
@@ -12,9 +11,20 @@ from examples.shared.replicate_tool import generate_image
 logger = logging.getLogger(__name__)
 
 
-def _embed_exif(image_path: Path, prompt: str) -> None:
-    """Best-effort EXIF embedding. Requires exiftool on PATH."""
-    with contextlib.suppress(FileNotFoundError, subprocess.CalledProcessError):
+def _embed_exif(image_path: Path, prompt: str) -> bool:
+    """Embed prompt in image EXIF Description field.
+
+    Uses exiftool to write the prompt into the image's EXIF metadata.
+    This is the canonical storage for the prompt — sidecar files are optional.
+
+    Args:
+        image_path: Path to the image file
+        prompt: The prompt text to embed
+
+    Returns:
+        True if metadata was written successfully, False otherwise
+    """
+    try:
         subprocess.run(
             [
                 "exiftool",
@@ -23,9 +33,22 @@ def _embed_exif(image_path: Path, prompt: str) -> None:
                 str(image_path),
             ],
             capture_output=True,
-            timeout=10,
+            timeout=30,
             check=True,
         )
+        logger.debug(f"📝 EXIF written to {image_path.name}")
+        return True
+    except FileNotFoundError:
+        logger.warning("⚠ exiftool not found — install with: brew install exiftool")
+        return False
+    except subprocess.CalledProcessError as e:
+        logger.warning(
+            f"⚠ exiftool failed: {e.stderr.decode() if e.stderr else 'unknown error'}"
+        )
+        return False
+    except subprocess.TimeoutExpired:
+        logger.warning(f"⚠ exiftool timed out for {image_path.name}")
+        return False
 
 
 def _extract_prompt_texts(prompts: list) -> list[str]:
@@ -83,11 +106,13 @@ def generate_images_node(state: dict) -> dict:
 
         if result.success and result.path:
             image_paths.append(str(image_path))
-            # Sidecar file (always written)
-            sidecar = image_path.with_suffix(".txt")
-            sidecar.write_text(prompt)
-            # EXIF embedding (optional, best-effort)
-            _embed_exif(image_path, prompt)
+            # Embed prompt in EXIF metadata (canonical storage)
+            exif_ok = _embed_exif(image_path, prompt)
+            if not exif_ok:
+                # Fallback: write sidecar .txt if EXIF failed
+                sidecar = image_path.with_suffix(".txt")
+                sidecar.write_text(prompt)
+                logger.info(f"📄 Fallback sidecar written: {sidecar.name}")
         else:
             logger.warning(f"⚠ Image {i} failed: {result.error}")
 
