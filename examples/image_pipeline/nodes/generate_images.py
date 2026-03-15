@@ -44,11 +44,19 @@ def generate_images_node(state: dict) -> dict:
     output_dir = Path(state.get("output_dir", "outputs/image_pipeline"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Handle both list[str] and list[dict] with 'prompt_text' key
+    prompt_texts = []
+    for p in prompts:
+        if isinstance(p, dict):
+            prompt_texts.append(p.get("prompt_text", str(p)))
+        else:
+            prompt_texts.append(str(p))
+
     image_paths: list[str] = []
 
-    for i, prompt in enumerate(prompts, 1):
+    for i, prompt in enumerate(prompt_texts, 1):
         image_path = output_dir / f"image_{i:02d}.png"
-        logger.info(f"🎨 [{i}/{len(prompts)}] Generating: {prompt[:60]}...")
+        logger.info(f"🎨 [{i}/{len(prompt_texts)}] Generating: {prompt[:60]}...")
 
         result = generate_image(prompt, image_path, model_name="z-image")
 
@@ -62,6 +70,6 @@ def generate_images_node(state: dict) -> dict:
         else:
             logger.warning(f"⚠ Image {i} failed: {result.error}")
 
-    logger.info(f"✅ Generated {len(image_paths)}/{len(prompts)} images")
+    logger.info(f"✅ Generated {len(image_paths)}/{len(prompt_texts)} images")
 
     return {"images": image_paths}

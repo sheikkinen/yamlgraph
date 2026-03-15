@@ -30,12 +30,20 @@ def save_prompts_node(state: dict) -> dict:
     if not prompts:
         raise ValueError("No prompts to save")
 
+    # Handle both list[str] and list[dict] with 'prompt_text' key
+    prompt_texts = []
+    for p in prompts:
+        if isinstance(p, dict):
+            prompt_texts.append(p.get("prompt_text", str(p)))
+        else:
+            prompt_texts.append(str(p))
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = OUTPUT_BASE / timestamp
     output_dir.mkdir(parents=True, exist_ok=True)
 
     prompt_file = output_dir / "prompts.txt"
-    prompt_file.write_text("\n".join(prompts) + "\n")
+    prompt_file.write_text("\n".join(prompt_texts) + "\n")
 
     logger.info(f"📝 Saved {len(prompts)} prompts to {prompt_file}")
 
