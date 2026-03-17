@@ -34,7 +34,7 @@ def expand_env_vars(value: Any) -> Any:
 
 
 def get_checkpointer(
-    config: dict | None,
+    config: dict | str | None,
 ) -> BaseCheckpointSaver | None:
     """Create checkpointer from config.
 
@@ -44,6 +44,7 @@ def get_checkpointer(
             - url: Redis connection URL (for redis/redis-simple types)
             - path: SQLite file path (for sqlite type)
             - ttl: TTL in minutes (for redis types, default: 60)
+            Or a plain string like "memory" treated as {type: <string>}.
 
     Returns:
         Configured checkpointer or None if config is None
@@ -57,6 +58,10 @@ def get_checkpointer(
     """
     if not config:
         return None
+
+    # Normalize: plain string → dict with type key
+    if isinstance(config, str):
+        config = {"type": config}
 
     cp_type = config.get("type", "memory")
 
@@ -127,7 +132,7 @@ _active_savers: list = []
 
 
 async def get_checkpointer_async(
-    config: dict | None,
+    config: dict | str | None,
 ) -> BaseCheckpointSaver | None:
     """Create async-compatible checkpointer from config.
 
@@ -142,12 +147,17 @@ async def get_checkpointer_async(
             - path: SQLite file path (for sqlite type)
             - ttl: TTL in seconds (for redis types)
             - key_prefix: Key prefix (for redis-simple)
+            Or a plain string like "memory" treated as {type: <string>}.
 
     Returns:
         Configured checkpointer or None if config is None
     """
     if not config:
         return None
+
+    # Normalize: plain string → dict with type key
+    if isinstance(config, str):
+        config = {"type": config}
 
     cp_type = config.get("type", "memory")
 
