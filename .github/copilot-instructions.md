@@ -129,7 +129,7 @@ These laws descend from the canon of software craft. They shalt not be altered b
 
 1. **Thou shalt research before coding** — Let infinite agents explore deep and wide; distill their wisdom into constraints, for the cheapest code is unwritten code. When the domain is broad, invoke structured ideation to cross capabilities with constraints and surface non-obvious directions.
 
-2. **Thou shalt demonstrate with example** — Never explain abstractly; show working code.
+2. **Thou shalt demonstrate with example** — Never explain abstractly; show working code. Code that has not been tested must not be trusted. Code that has not been run must not be demoed.
 
 3. **Thou shalt not utter code in vain** — Keep configuration separate and validated, for code is logic and config is truth.
 

@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Documentation
-**Status:** Enforced ✅
+**Status:** APPROVED WITH REVISION
 **Effort:** 0.5 days
 **Requested:** 2026-03-09
 
