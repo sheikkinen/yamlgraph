@@ -429,6 +429,7 @@ Checkpointers and Redis storage for resuming pipelines and state history.
 | REQ-YG-024 | Dynamic state class generation | `models/state_builder` |
 | REQ-YG-025 | Checkpointer provisioning | `storage/checkpointer_factory` |
 | REQ-YG-026 | State persistence operations (Redis) | `storage/simple_redis`, `storage/checkpointer` |
+| REQ-YG-196 | Checkpointer string shorthand config | `storage/checkpointer_factory` |
 
 ### 8. Error Handling
 

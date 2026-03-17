@@ -424,3 +424,80 @@ class TestShutdownCheckpointers:
 
         # Active savers should be cleared
         assert len(_active_savers) == 0
+
+
+# =============================================================================
+# FR-201: Checkpointer string shorthand config
+# =============================================================================
+
+
+class TestStringShorthandSync:
+    """Test that plain strings are accepted as checkpointer config."""
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_string_memory_returns_in_memory_saver(self):
+        """get_checkpointer("memory") should return InMemorySaver."""
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        saver = get_checkpointer("memory")
+        assert isinstance(saver, InMemorySaver)
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_string_sqlite_returns_sqlite_saver(self):
+        """get_checkpointer("sqlite") should return SqliteSaver with default path."""
+        from langgraph.checkpoint.sqlite import SqliteSaver
+
+        saver = get_checkpointer("sqlite")
+        assert isinstance(saver, SqliteSaver)
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_string_unknown_raises_value_error(self):
+        """get_checkpointer("bogus") should raise ValueError."""
+        with pytest.raises(ValueError, match="Unknown checkpointer type: bogus"):
+            get_checkpointer("bogus")
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_empty_string_returns_none(self):
+        """get_checkpointer("") should return None (falsy)."""
+        assert get_checkpointer("") is None
+
+    @pytest.mark.req("REQ-YG-196")
+    def test_dict_config_still_works(self):
+        """Existing dict configs must not regress."""
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        saver = get_checkpointer({"type": "memory"})
+        assert isinstance(saver, InMemorySaver)
+
+
+class TestStringShorthandAsync:
+    """Test that plain strings are accepted by get_checkpointer_async."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.req("REQ-YG-196")
+    async def test_async_string_memory(self):
+        """get_checkpointer_async("memory") should return MemorySaver."""
+        from langgraph.checkpoint.memory import MemorySaver
+
+        from yamlgraph.storage.checkpointer_factory import get_checkpointer_async
+
+        saver = await get_checkpointer_async("memory")
+        assert isinstance(saver, MemorySaver)
+
+    @pytest.mark.asyncio
+    @pytest.mark.req("REQ-YG-196")
+    async def test_async_string_unknown_raises(self):
+        """get_checkpointer_async("bogus") should raise ValueError."""
+        from yamlgraph.storage.checkpointer_factory import get_checkpointer_async
+
+        with pytest.raises(ValueError, match="Unknown checkpointer type: bogus"):
+            await get_checkpointer_async("bogus")
+
+    @pytest.mark.asyncio
+    @pytest.mark.req("REQ-YG-196")
+    async def test_async_empty_string_returns_none(self):
+        """get_checkpointer_async("") should return None (falsy)."""
+        from yamlgraph.storage.checkpointer_factory import get_checkpointer_async
+
+        result = await get_checkpointer_async("")
+        assert result is None
