@@ -49,7 +49,7 @@ fsm-router/
 ├── config/
 │   └── router.yaml           # FSM state machine config
 ├── actions/
-│   └── yamlgraph_action.py   # Custom action that runs YAMLGraph
+│   └── yamlgraph_async_action.py  # Fire-and-forget action that runs YAMLGraph
 ├── graphs/
 │   ├── classifier.yaml       # Query classification pipeline
 │   ├── simple-responder.yaml # Fast response pipeline
@@ -62,7 +62,7 @@ fsm-router/
 ├── docs/
 │   └── fsm-diagrams/         # Generated Mermaid diagrams for UI
 ├── tests/
-│   └── test_yamlgraph_action.py
+│   └── test_yamlgraph_async_action.py
 ├── run.sh                    # One-command startup script
 └── README.md
 ```
@@ -164,11 +164,13 @@ statemachine-db send-event \
 
 ## How It Works
 
-### 1. YamlgraphAction
+### 1. YamlgraphAsyncAction
 
-See [actions/yamlgraph_action.py](actions/yamlgraph_action.py) - a custom statemachine-engine action that:
-- Loads and runs a YAMLGraph pipeline
-- Returns the `route` field as an FSM event to trigger transitions
+See [actions/yamlgraph_async_action.py](actions/yamlgraph_async_action.py) - a fire-and-forget statemachine-engine action that:
+- Launches a YAMLGraph pipeline as a background asyncio task
+- Returns `None` immediately so the engine event loop stays responsive
+- Dispatches the result event via the engine's control socket when complete
+- Returns the `_route` field or `event_map` match as the FSM transition event
 
 ### 2. Router Integration
 
