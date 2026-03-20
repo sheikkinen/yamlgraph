@@ -9,6 +9,6 @@ pytest tests/ -v
 
 ## Test Categories
 
-1. **Unit tests** - YamlgraphAction in isolation
+1. **Unit tests** - YamlgraphAsyncAction in isolation
 2. **Config validation** - YAML syntax checks
 3. **Integration tests** - FSM + YAMLGraph together (requires both packages)

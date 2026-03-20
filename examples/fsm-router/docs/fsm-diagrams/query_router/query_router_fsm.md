@@ -69,9 +69,9 @@ stateDiagram-v2
 | State | Description | Key Actions |
 |-------|-------------|-------------|
 | `waiting` | Waiting | N/A |
-| `classifying` | Classifying | log, yamlgraph |
-| `simple_response` | Simple Response | log, yamlgraph |
-| `complex_response` | Complex Response | log, yamlgraph |
+| `classifying` | Classifying | log, yamlgraph_async |
+| `simple_response` | Simple Response | log, yamlgraph_async |
+| `complex_response` | Complex Response | log, yamlgraph_async |
 | `completed` | Completed | log |
 | `error` | Error | log, log |
 

@@ -81,8 +81,8 @@ actions:
         message: "📝 Classifying query: {query}"
         level: info
 
-    # Run YAMLGraph classifier pipeline
-    - type: yamlgraph
+    # Run YAMLGraph classifier pipeline (fire-and-forget)
+    - type: yamlgraph_async
       params:
         graph: graphs/classifier.yaml
         input_key: query
@@ -98,7 +98,7 @@ actions:
         message: "⚡ Fast path: {classification.response}"
         level: info
 
-    - type: yamlgraph
+    - type: yamlgraph_async
       params:
         graph: graphs/simple-responder.yaml
         input_key: query
@@ -112,7 +112,7 @@ actions:
         message: "🧠 Deep analysis: {classification.category}"
         level: info
 
-    - type: yamlgraph
+    - type: yamlgraph_async
       params:
         graph: graphs/complex-responder.yaml
         input_key: query
