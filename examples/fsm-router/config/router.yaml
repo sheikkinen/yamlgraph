@@ -25,12 +25,14 @@ states:
   - error
 
 events:
-  - new_query
-  - simple          # Route: simple query
-  - complex         # Route: complex query
-  - code            # Route: code-related query
-  - response_ready
-  - failed
+  new_query:
+    context_map:
+      query: payload.query
+  simple:          # Route: simple query
+  complex:         # Route: complex query
+  code:            # Route: code-related query
+  response_ready:
+  failed:
 
 transitions:
   # Main flow: waiting for queries
