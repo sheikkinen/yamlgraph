@@ -38,6 +38,18 @@ class TestInterruptNodeStructure:
         assert len(issues) == 0
 
     @pytest.mark.req("REQ-YG-003")
+    def test_state_key_satisfies_e302(self):
+        """Should accept state_key as a valid interrupt text source."""
+        node_config = {
+            "type": "interrupt",
+            "state_key": "response",
+            "resume_key": "user_answer",
+        }
+
+        issues = check_interrupt_node_structure("ask_user", node_config)
+        assert len(issues) == 0
+
+    @pytest.mark.req("REQ-YG-003")
     def test_missing_resume_key(self):
         """Should error when resume_key is missing."""
         node_config = {"type": "interrupt", "prompt": "ask_question"}
