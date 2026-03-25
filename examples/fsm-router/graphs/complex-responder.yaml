@@ -10,6 +10,9 @@ defaults:
   provider: mistral
   model: mistral-small-latest
 
+state:
+  query: str
+
 nodes:
   analyze:
     type: llm
