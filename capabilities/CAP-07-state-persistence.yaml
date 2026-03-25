@@ -21,8 +21,4 @@ requirements:
     modules:
       - storage/simple_redis
       - storage/checkpointer
-  - id: REQ-YG-196
-    description: Checkpointer string shorthand config
-    modules:
-      - storage/checkpointer_factory
 fr: legacy

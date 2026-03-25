@@ -38,17 +38,18 @@ def check_interrupt_node_structure(
             )
         )
 
-    # E302: must have either 'prompt' or 'message' field
+    # E302: must have at least one text source
     has_prompt = "prompt" in node_config
     has_message = "message" in node_config
+    has_state_key = "state_key" in node_config
 
-    if not has_prompt and not has_message:
+    if not has_prompt and not has_message and not has_state_key:
         issues.append(
             LintIssue(
                 severity="error",
                 code="E302",
-                message=f"Interrupt node '{node_name}' missing 'prompt' or 'message' field",
-                fix="Add either 'prompt' field (for LLM-generated question) or 'message' field (for static text)",
+                message=f"Interrupt node '{node_name}' missing 'prompt', 'message', or 'state_key' field",
+                fix="Add 'prompt' field (for LLM-generated question), 'message' field (for static text), or 'state_key' field (for pre-computed text)",
             )
         )
     elif has_prompt and has_message:

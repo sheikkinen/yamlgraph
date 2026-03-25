@@ -69,7 +69,7 @@ class TestInterruptNodeStructure:
         assert len(issues) == 1
         assert issues[0].severity == "error"
         assert issues[0].code == "E302"
-        assert "missing 'prompt' or 'message' field" in issues[0].message
+        assert "missing 'prompt', 'message', or 'state_key' field" in issues[0].message
 
     @pytest.mark.req("REQ-YG-003")
     def test_has_both_prompt_and_message(self):
