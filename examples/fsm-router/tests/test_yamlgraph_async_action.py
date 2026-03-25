@@ -2,9 +2,11 @@
 
 import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
+from langgraph.types import Command
 
 # Add example to path for testing
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -171,6 +173,44 @@ class TestYamlgraphAsyncAction:
         assert initial_state["extra_context"] == "some value"
         assert initial_state["from_context"] == "test_router"
 
+    @pytest.mark.asyncio
+    @pytest.mark.req("REQ-YG-049")
+    async def test_action_passes_thread_id_and_input_key_to_dispatch(self, context):
+        """thread_id config is resolved from context and forwarded to dispatcher."""
+        pytest.importorskip("statemachine_engine")
+        from actions.yamlgraph_async_action import YamlgraphAsyncAction
+
+        config = {
+            "params": {
+                "graph": "graphs/test.yaml",
+                "input_key": "user_input",
+                "thread_id": "{session_id}",
+                "success": "done",
+                "failure": "failed",
+            }
+        }
+        context = {
+            **context,
+            "user_input": "resume me",
+            "session_id": "thread-123",
+        }
+        action = YamlgraphAsyncAction(config)
+
+        def capture_create_task(coro):
+            coro.close()
+
+        with (
+            patch(
+                "actions.yamlgraph_async_action.asyncio.create_task",
+                side_effect=capture_create_task,
+            ),
+            patch("actions.yamlgraph_async_action._run_and_dispatch") as mock_dispatch,
+        ):
+            await action.execute(context)
+
+        assert mock_dispatch.call_args.kwargs["input_key"] == "user_input"
+        assert mock_dispatch.call_args.kwargs["thread_id"] == "thread-123"
+
 
 class TestRunAndDispatch:
     """Tests for the _run_and_dispatch background task."""
@@ -200,6 +240,7 @@ class TestRunAndDispatch:
             await _run_and_dispatch(
                 graph_path="/tmp/test.yaml",
                 initial_state={"query": "test"},
+                input_key="query",
                 output_key="result",
                 event_key="",
                 event_map={},
@@ -235,6 +276,7 @@ class TestRunAndDispatch:
             await _run_and_dispatch(
                 graph_path="/tmp/test.yaml",
                 initial_state={"query": "bye"},
+                input_key="query",
                 output_key="intent",
                 event_key="intent",
                 event_map={"goodbye": "on_goodbye", "question": "on_question"},
@@ -266,6 +308,7 @@ class TestRunAndDispatch:
             await _run_and_dispatch(
                 graph_path="/tmp/test.yaml",
                 initial_state={"query": "test"},
+                input_key="query",
                 output_key="result",
                 event_key="",
                 event_map={},
@@ -301,6 +344,7 @@ class TestRunAndDispatch:
             await _run_and_dispatch(
                 graph_path="/tmp/test.yaml",
                 initial_state={"query": "test"},
+                input_key="query",
                 output_key="result",
                 event_key="",
                 event_map={},
@@ -312,6 +356,161 @@ class TestRunAndDispatch:
             )
 
         assert "_graph_running_classifying" not in context
+
+    @pytest.mark.asyncio
+    @pytest.mark.req("REQ-YG-049")
+    async def test_resume_dispatches_continue_event_with_payload(self):
+        """Interrupted runs resume with Command and emit continue when still paused."""
+        pytest.importorskip("statemachine_engine")
+        pytest.importorskip("yamlgraph")
+        from actions.yamlgraph_async_action import _run_and_dispatch
+
+        app = MagicMock()
+        app.aget_state = AsyncMock(
+            side_effect=[
+                SimpleNamespace(next=("awaiting_input",)),
+                SimpleNamespace(next=("awaiting_input",)),
+            ]
+        )
+
+        with (
+            patch(
+                "yamlgraph.executor_async.load_and_compile_async",
+                new_callable=AsyncMock,
+            ) as mock_load,
+            patch(
+                "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
+            ) as mock_run,
+            patch("actions.yamlgraph_async_action._send_event") as mock_send,
+        ):
+            mock_load.return_value = app
+            mock_run.return_value = {"assistant_response": "Need more details"}
+
+            await _run_and_dispatch(
+                graph_path="/tmp/test.yaml",
+                initial_state={"user_input": "continue"},
+                input_key="user_input",
+                output_key="assistant_response",
+                event_key="route",
+                event_map={"continue": "on_follow_up"},
+                success_event="classified",
+                failure_event="failed",
+                machine_name="test_router",
+                thread_id="thread-123",
+            )
+
+        mock_load.assert_awaited_once()
+        assert app.aget_state.await_args_list == [
+            call({"configurable": {"thread_id": "thread-123"}}),
+            call({"configurable": {"thread_id": "thread-123"}}),
+        ]
+        run_app, run_input, run_config = mock_run.await_args.args
+        assert run_app is app
+        assert run_config == {"configurable": {"thread_id": "thread-123"}}
+        assert isinstance(run_input, Command)
+        assert run_input.resume == "continue"
+        mock_send.assert_called_once_with(
+            "test_router",
+            "on_follow_up",
+            {"assistant_response": "Need more details"},
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.req("REQ-YG-049")
+    async def test_done_event_dispatched_after_interrupt_path_completes(self):
+        """Completed interrupt flows emit event_map.done instead of success fallback."""
+        pytest.importorskip("statemachine_engine")
+        pytest.importorskip("yamlgraph")
+        from actions.yamlgraph_async_action import _run_and_dispatch
+
+        app = MagicMock()
+        app.aget_state = AsyncMock(
+            side_effect=[
+                SimpleNamespace(next=()),
+                SimpleNamespace(next=()),
+            ]
+        )
+
+        with (
+            patch(
+                "yamlgraph.executor_async.load_and_compile_async",
+                new_callable=AsyncMock,
+            ) as mock_load,
+            patch(
+                "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
+            ) as mock_run,
+            patch("actions.yamlgraph_async_action._send_event") as mock_send,
+        ):
+            mock_load.return_value = app
+            mock_run.return_value = {"assistant_response": "All set"}
+
+            await _run_and_dispatch(
+                graph_path="/tmp/test.yaml",
+                initial_state={"user_input": "final answer"},
+                input_key="user_input",
+                output_key="assistant_response",
+                event_key="route",
+                event_map={"done": "on_complete"},
+                success_event="classified",
+                failure_event="failed",
+                machine_name="test_router",
+                thread_id="thread-123",
+            )
+
+        mock_run.assert_awaited_once_with(
+            app,
+            {"user_input": "final answer"},
+            {"configurable": {"thread_id": "thread-123"}},
+        )
+        mock_send.assert_called_once_with(
+            "test_router",
+            "on_complete",
+            {"assistant_response": "All set"},
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.req("REQ-YG-049")
+    async def test_legacy_path_uses_existing_event_resolution_without_thread_id(self):
+        """Without thread_id the action keeps the legacy route fallback behavior."""
+        pytest.importorskip("statemachine_engine")
+        pytest.importorskip("yamlgraph")
+        from actions.yamlgraph_async_action import _run_and_dispatch
+
+        app = MagicMock()
+        app.aget_state = AsyncMock()
+
+        with (
+            patch(
+                "yamlgraph.executor_async.load_and_compile_async",
+                new_callable=AsyncMock,
+            ) as mock_load,
+            patch(
+                "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
+            ) as mock_run,
+            patch("actions.yamlgraph_async_action._send_event") as mock_send,
+        ):
+            mock_load.return_value = app
+            mock_run.return_value = {"_route": "complex", "assistant_response": "ok"}
+
+            await _run_and_dispatch(
+                graph_path="/tmp/test.yaml",
+                initial_state={"user_input": "legacy"},
+                input_key="user_input",
+                output_key="assistant_response",
+                event_key="route",
+                event_map={},
+                success_event="classified",
+                failure_event="failed",
+                machine_name="test_router",
+            )
+
+        app.aget_state.assert_not_awaited()
+        mock_run.assert_awaited_once_with(app, {"user_input": "legacy"})
+        mock_send.assert_called_once_with(
+            "test_router",
+            "complex",
+            {"assistant_response": "ok"},
+        )
 
 
 class TestFSMIntegration:

@@ -154,6 +154,42 @@ statemachine-db send-event \
   --payload '{"query": "How do I implement a binary search tree in Python?"}'
 ```
 
+### Interrupt/Resume Configuration
+
+The async action also supports checkpoint-backed multi-turn graphs. To use it:
+
+- configure the YAMLGraph with a checkpointer,
+- pass a stable `thread_id` from the FSM context,
+- map `continue` for paused-again turns and `done` for completed turns.
+
+```yaml
+actions:
+  ask_question:
+    - type: yamlgraph_async
+      params:
+        graph: graphs/questionnaire.yaml
+        input_key: user_input
+        output_key: assistant_response
+        event_key: route
+        thread_id: "{session_id}"
+        event_map:
+          continue: on_follow_up
+          done: on_complete
+          goodbye: on_goodbye
+        success: on_follow_up
+        failure: failed
+```
+
+Behavior with this configuration:
+
+1. First turn starts the graph with `{user_input: ...}` plus `{"configurable": {"thread_id": ...}}`.
+2. If the graph is paused at an interrupt, the next FSM turn resumes with `Command(resume=user_input)`.
+3. If the graph pauses again, the action emits `continue`.
+4. If the graph finishes and `event_map.done` is configured, the action emits `done`.
+5. If no interrupt path is active, the existing `event_map` / `_route` / `success` behavior stays unchanged.
+
+The `thread_id` must stay stable across turns for the same conversation, and the graph itself must be compiled with checkpointing enabled for resume to work.
+
 ### Stop the FSM
 
 ```bash
@@ -171,6 +207,7 @@ See [actions/yamlgraph_async_action.py](actions/yamlgraph_async_action.py) - a f
 - Returns `None` immediately so the engine event loop stays responsive
 - Dispatches the result event via the engine's control socket when complete
 - Returns the `_route` field or `event_map` match as the FSM transition event
+- Resumes interrupted graphs with `Command(resume=...)` when `thread_id` points to a paused checkpoint
 
 ### 2. Router Integration
 
@@ -196,7 +233,7 @@ See [config/router.yaml](config/router.yaml) for full transition definitions:
 
 ```bash
 cd examples/fsm-router
-pytest tests/ -v
+pytest tests/ -v --no-cov
 ```
 
 ## Why This Pattern?

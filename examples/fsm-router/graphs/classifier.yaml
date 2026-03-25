@@ -12,6 +12,9 @@ defaults:
   provider: mistral
   model: mistral-small-latest
 
+state:
+  query: str
+
 nodes:
   classify:
     type: llm

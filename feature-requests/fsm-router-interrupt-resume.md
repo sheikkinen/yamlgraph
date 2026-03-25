@@ -1,8 +1,9 @@
-# Feature Request: Interrupt Resume Support for the FSM Router Example
+# Feature Request: FR-204 Interrupt Resume Support for the FSM Router Example
 
 **Priority:** MEDIUM
+**FR:** FR-204
 **Type:** Enhancement
-**Status:** Approved
+**Status:** In Progress
 **Effort:** 1 day
 **Requested:** 2026-03-25
 
@@ -102,33 +103,33 @@ Implementation is limited to `examples/fsm-router/actions/yamlgraph_async_action
 
 ## Acceptance Criteria
 
-- [ ] `YamlgraphAsyncAction.execute()` accepts `params.thread_id` and passes it
+- [x] `YamlgraphAsyncAction.execute()` accepts `params.thread_id` and passes it
       into `_run_and_dispatch()`.
-- [ ] `_run_and_dispatch()` accepts `input_key` and uses it to populate
+- [x] `_run_and_dispatch()` accepts `input_key` and uses it to populate
       `Command(resume=...)` when resuming an interrupted graph.
-- [ ] When `thread_id` is set, the example builds
+- [x] When `thread_id` is set, the example builds
       `{"configurable": {"thread_id": thread_id}}` and passes it to both
       `app.aget_state()` and `run_graph_async()`.
-- [ ] If `app.aget_state(run_config)` reports `state.next` before execution, the
+- [x] If `app.aget_state(run_config)` reports `state.next` before execution, the
       action resumes with `Command(resume=user_input)` instead of a fresh state
       dict.
-- [ ] If `app.aget_state(run_config)` reports `state.next` after execution, the
+- [x] If `app.aget_state(run_config)` reports `state.next` after execution, the
       action dispatches `event_map.get("continue", success_event)` and includes
       the resolved `output_key` payload when available.
-- [ ] If `app.aget_state(run_config)` reports no pending `next` after execution
+- [x] If `app.aget_state(run_config)` reports no pending `next` after execution
       and `event_map.done` exists, the action dispatches that event.
-- [ ] When no interrupt path is active, existing event behavior remains
+- [x] When no interrupt path is active, existing event behavior remains
       unchanged: `event_map` lookup, `_route` fallback, `success_event`
       fallback, failure dispatch, and guard cleanup still work.
-- [ ] The example keeps `_send_event()` and does not add
+- [x] The example keeps `_send_event()` and does not add
       `FsmEventSender`, `emit_ui_activity()`, `_llm_phase()`, or other
       ninchat-specific infrastructure.
-- [ ] Tests are added or updated in
+- [x] Tests are added or updated in
       `examples/fsm-router/tests/test_yamlgraph_async_action.py` to cover:
       interrupt resume detection, `continue` dispatch, `done` dispatch, and the
       unchanged legacy path.
 - [ ] `pytest examples/fsm-router/tests/ -v` passes.
-- [ ] `examples/fsm-router/README.md` includes an interrupt-based FSM example showing `thread_id`,
+- [x] `examples/fsm-router/README.md` includes an interrupt-based FSM example showing `thread_id`,
       checkpointer usage expectations, and `continue`/`done` event mapping.
 
 ## Alternatives Considered

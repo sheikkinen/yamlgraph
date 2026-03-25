@@ -38,6 +38,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from langgraph.types import Command
 from statemachine_engine.actions.base import BaseAction
 
 logger = logging.getLogger(__name__)
@@ -112,6 +113,24 @@ def _json_safe(value: Any) -> Any:
     return str(value)
 
 
+def _resolve_context_value(
+    value: Any,
+    context: dict[str, Any],
+    *,
+    missing: Any | None = None,
+) -> Any:
+    """Resolve ``{key}`` placeholders from FSM context."""
+    if isinstance(value, str) and value.startswith("{") and value.endswith("}"):
+        return context.get(value[1:-1], missing if missing is not None else value)
+    return value
+
+
+def _has_pending_next(state: Any) -> bool:
+    """Return True when a checkpointed graph has pending interrupt targets."""
+    next_nodes = getattr(state, "next", None)
+    return bool(next_nodes)
+
+
 # ---------------------------------------------------------------------------
 # Background task
 # ---------------------------------------------------------------------------
@@ -119,13 +138,15 @@ def _json_safe(value: Any) -> Any:
 
 async def _run_and_dispatch(
     graph_path: str,
-    initial_state: dict,
+    initial_state: dict[str, Any],
+    input_key: str,
     output_key: str,
     event_key: str,
-    event_map: dict,
+    event_map: dict[str, str],
     success_event: str,
     failure_event: str,
     machine_name: str,
+    thread_id: str | None = None,
     context: dict[str, Any] | None = None,
     guard_key: str | None = None,
 ) -> None:
@@ -135,26 +156,52 @@ async def _run_and_dispatch(
         from yamlgraph.executor_async import load_and_compile_async, run_graph_async
 
         app = await load_and_compile_async(graph_path)
-        result = await run_graph_async(app, initial_state)
+        run_config = {"configurable": {"thread_id": thread_id}} if thread_id else None
+        graph_input: dict[str, Any] | Command = initial_state
+
+        if run_config:
+            before_state = await app.aget_state(run_config)
+            if _has_pending_next(before_state):
+                graph_input = Command(resume=initial_state.get(input_key))
+
+        if run_config:
+            result = await run_graph_async(app, graph_input, run_config)
+        else:
+            result = await run_graph_async(app, graph_input)
 
         # Event resolution: event_map → route → success
         event = success_event
         payload: dict[str, Any] = {}
 
-        if event_map and event_key and isinstance(result, dict):
+        if isinstance(result, dict) and output_key and output_key in result:
+            payload[output_key] = _json_safe(result[output_key])
+
+        interrupt_event_resolved = False
+        if run_config:
+            after_state = await app.aget_state(run_config)
+            if _has_pending_next(after_state):
+                event = event_map.get("continue", success_event)
+                interrupt_event_resolved = True
+            elif done_event := event_map.get("done"):
+                event = done_event
+                interrupt_event_resolved = True
+
+        if (
+            not interrupt_event_resolved
+            and event_map
+            and event_key
+            and isinstance(result, dict)
+        ):
             raw = result.get(event_key)
             mapped = _extract_event(raw, event_map)
             if mapped:
                 logger.info("🗺️ event_map: %s → %s", raw, mapped)
                 event = mapped
-        elif isinstance(result, dict):
+        elif not interrupt_event_resolved and isinstance(result, dict):
             route = result.get("_route") or result.get("route")
             if route:
                 logger.info("🔀 route: %s", route)
                 event = route
-
-        if isinstance(result, dict) and output_key and output_key in result:
-            payload[output_key] = _json_safe(result[output_key])
 
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         logger.info(
@@ -202,18 +249,17 @@ class YamlgraphAsyncAction(BaseAction):
             return params.get("failure", "failed")
 
         input_key = params.get("input_key", "input")
-        input_value = params.get("input_value") or context.get(input_key, "")
-        if (
-            isinstance(input_value, str)
-            and input_value.startswith("{")
-            and input_value.endswith("}")
-        ):
-            input_value = ""
+        input_value = _resolve_context_value(
+            params.get("input_value") or context.get(input_key, ""),
+            context,
+            missing="",
+        )
         output_key = params.get("output_key", "yamlgraph_result")
         event_key = params.get("event_key") or output_key
         event_map = params.get("event_map", {})
         success_event = params.get("success", "completed")
         failure_event = params.get("failure", "failed")
+        thread_id = _resolve_context_value(params.get("thread_id"), context)
 
         # Resolve graph path relative to project root
         action_dir = Path(__file__).resolve().parent.parent
@@ -222,13 +268,9 @@ class YamlgraphAsyncAction(BaseAction):
             resolved = Path(graph_path)
 
         # Build initial state
-        initial_state: dict = {input_key: input_value}
+        initial_state: dict[str, Any] = {input_key: input_value}
         for key, value in params.get("variables", {}).items():
-            if isinstance(value, str) and value.startswith("{") and value.endswith("}"):
-                ctx_key = value[1:-1]
-                initial_state[key] = context.get(ctx_key, value)
-            else:
-                initial_state[key] = value
+            initial_state[key] = _resolve_context_value(value, context)
 
         machine_name = context.get("machine_name", "unknown")
 
@@ -239,12 +281,14 @@ class YamlgraphAsyncAction(BaseAction):
             _run_and_dispatch(
                 graph_path=str(resolved),
                 initial_state=initial_state,
+                input_key=input_key,
                 output_key=output_key,
                 event_key=event_key,
                 event_map=event_map,
                 success_event=success_event,
                 failure_event=failure_event,
                 machine_name=machine_name,
+                thread_id=thread_id,
                 context=context,
                 guard_key=guard_key,
             )
