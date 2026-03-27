@@ -1,0 +1,20 @@
+id: CAP-78
+name: .fi Domain Crawl Demo
+description: >
+  Multi-stage pipeline crawling .fi country-level domains: LLM query planning,
+  DuckDuckGo seed discovery, parallel page crawling via map node, and LLM
+  sitemap summarisation. Demonstrates HTTP tool nodes with map fan-out.
+modules:
+  - examples/demos/fi-domain-crawl
+requirements:
+  - id: REQ-YG-199
+    description: >
+      .fi domain crawl demo: plan node produces search queries (parse_json),
+      discover node filters results to .fi TLD, map node crawls pages in
+      parallel (max_items: 10), summarise node produces sitemap overview.
+      crawl_page handles errors gracefully, returns structured dict with
+      title/links/snippet. No new dependencies — uses digest + websearch extras.
+    modules:
+      - examples/demos/fi-domain-crawl
+      - tests/unit/test_fi_domain_crawl.py
+fr: FR-205

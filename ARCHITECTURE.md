@@ -351,6 +351,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 75 | Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/`, `.chaplain/lib/diary.py` | REQ-YG-196 |
 | 76 | Horoscope Demo (FR-201) | `examples/demos/horoscope` | REQ-YG-197 |
 | 77 | Image Generation Pipeline (FR-202) | `examples/image_pipeline` | REQ-YG-198 |
+| 78 | .fi Domain Crawl Demo (FR-205) | `examples/demos/fi-domain-crawl` | REQ-YG-199 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1082,6 +1083,14 @@ End-to-end style-driven image generation: concept → subgraph prompt generation
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-198 | Image pipeline graph chains generate_concepts (LLM) → batch_image_prompts (subgraph) → save_prompts (Python tool writing prompts.txt) → generate_images (Python tool calling Replicate z-image with sidecar .txt files and best-effort EXIF embedding). | `examples/image_pipeline`, `tests/unit/test_image_pipeline.py` |
+
+### 78. .fi Domain Crawl Demo
+
+Multi-stage pipeline for crawling .fi country-level domains: LLM query planning, DuckDuckGo seed discovery, parallel page crawling via map node, and LLM sitemap summarisation.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-199 | .fi domain crawl demo: plan node produces search queries (parse_json), discover node filters to .fi TLD, map node crawls pages in parallel (max_items: 10), summarise node produces sitemap overview. crawl_page handles errors gracefully. No new dependencies. | `examples/demos/fi-domain-crawl`, `tests/unit/test_fi_domain_crawl.py` |
 
 ---
 
