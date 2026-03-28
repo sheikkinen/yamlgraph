@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-03-27
 
@@ -160,19 +160,19 @@ Install with: `pip install -e ".[digest,websearch]"`
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph graph lint examples/demos/fi-domain-crawl/graph.yaml` passes
+- [x] `yamlgraph graph lint examples/demos/fi-domain-crawl/graph.yaml` passes
 - [ ] `yamlgraph graph run examples/demos/fi-domain-crawl/graph.yaml --var seed_query="Helsinki libraries" --full` produces a markdown sitemap overview
-- [ ] `crawl_page.py` respects timeout (10s default), returns structured dict with title/links/snippet
-- [ ] `crawl_page.py` handles HTTP errors gracefully (returns error dict, does not raise)
-- [ ] `seed_discovery.py` filters results to `.fi` TLD only
-- [ ] Map node parallelism works (crawls multiple pages via `max_items: 10`)
-- [ ] Output `sitemap_overview` contains: domain name, page count, hierarchical link structure, content summaries
-- [ ] Unit tests for `crawl_page` (mocked HTTP) and `seed_discovery` (mocked search API)
-- [ ] README.md with usage instructions, required extras (`digest`, `websearch`), example output
-- [ ] No new core dependencies — uses existing `digest`/`websearch` extras only
-- [ ] Tests added with `@pytest.mark.req` traceability
-- [ ] `plan` node state_key is `search_queries` (not `seed_urls` — output is queries, not URLs)
-- [ ] No `max_pages` state variable — crawl cap is controlled by map node's `max_items` config
+- [x] `crawl_page.py` respects timeout (10s default), returns structured dict with title/links/snippet
+- [x] `crawl_page.py` handles HTTP errors gracefully (returns error dict, does not raise)
+- [x] `seed_discovery.py` filters results to `.fi` TLD only
+- [x] Map node parallelism works (crawls multiple pages via `max_items: 10`)
+- [x] Output `sitemap_overview` contains: domain name, page count, hierarchical link structure, content summaries
+- [x] Unit tests for `crawl_page` (mocked HTTP) and `seed_discovery` (mocked search API)
+- [x] README.md with usage instructions, required extras (`digest`, `websearch`), example output
+- [x] No new core dependencies — uses existing `digest`/`websearch` extras only
+- [x] Tests added with `@pytest.mark.req` traceability
+- [x] `plan` node state_key is `search_queries` (not `seed_urls` — output is queries, not URLs)
+- [x] No `max_pages` state variable — crawl cap is controlled by map node's `max_items` config
 
 ## Amendments from Judgement
 

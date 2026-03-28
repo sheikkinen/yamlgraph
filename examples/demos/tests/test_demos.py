@@ -18,6 +18,7 @@ STANDARD_DEMOS = [
     "code-analysis",
     "data-files",
     "feature-brainstorm",
+    "fi-domain-crawl",
     "five-whys",
     "git-report",
     "hello",
