@@ -82,6 +82,12 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `state` parameter in `_get_interrupt_payload()` has no type annotation.
 - **Penance**: The type is `langgraph.pregel.types.StateSnapshot` which is a private API. Importing it would couple us to LangGraph internals. The function only accesses `.tasks` and `.interrupts` attributes, which are stable across versions.
 
+### CONF-004
+- **File**: [yamlgraph/a2a_server.py](../yamlgraph/a2a_server.py#L44)
+- **Code**: F401
+- **Sin**: Re-imports from `a2a_message` appear unused in `a2a_server.py`.
+- **Penance**: These are public re-exports for backward compatibility — tests and external consumers import from `yamlgraph.a2a_server`. The actual logic lives in `yamlgraph.a2a_message` after the module split to stay under 450 lines.
+
 ---
 
 ## Test Code
@@ -231,6 +237,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
 - **Penance**: Same as CONF-024.
+
+### CONF-034
+- **File**: [tests/unit/test_discovery.py](../tests/unit/test_discovery.py#L36)
+- **Code**: F841
+- **Sin**: `mcp` variable assigned but never used after `importorskip`.
+- **Penance**: `pytest.importorskip("mcp")` is used as an import guard — the test must be skipped if `mcp` is not installed. The returned module is intentionally unused; the call's side effect (skip or proceed) is the purpose.
 
 ---
 

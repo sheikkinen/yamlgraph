@@ -208,14 +208,12 @@ map_pipeline_error
 parse_a2a_message
 
 # --- discovery: shared module used by mcp_server and a2a_server ---
+# (discover_graphs is re-imported by mcp_server and a2a_server)
+# --- a2a_commands: CLI dispatch registered in cli/__init__.py ---
+from yamlgraph.cli.a2a_commands import cmd_a2a_dispatch  # noqa: F401 (CONF-126)
 from yamlgraph.discovery import (  # noqa: F401 (CONF-126)
     DEFAULT_GRAPH_PATTERNS,
     discover_graphs,
 )
-
-# (discover_graphs is re-imported by mcp_server and a2a_server)
-
-# --- a2a_commands: CLI dispatch registered in cli/__init__.py ---
-from yamlgraph.cli.a2a_commands import cmd_a2a_dispatch  # noqa: F401 (CONF-126)
 
 cmd_a2a_dispatch

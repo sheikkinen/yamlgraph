@@ -33,7 +33,7 @@ def test_default_patterns_importable_from_discovery():
 @pytest.mark.req("REQ-YG-206")
 def test_mcp_server_uses_shared_discovery():
     """mcp_server.discover_graphs is the same function as discovery.discover_graphs."""
-    mcp = pytest.importorskip("mcp")  # noqa: F841
+    mcp = pytest.importorskip("mcp")  # noqa: F841 (CONF-034)
     from yamlgraph.discovery import discover_graphs as shared_discover
     from yamlgraph.mcp_server import discover_graphs as mcp_discover
 
@@ -75,8 +75,10 @@ def test_discover_graphs_deduplicates(tmp_path: Path):
     )
 
     # Two patterns that match the same file
-    graphs = discover_graphs([
-        str(tmp_path / "*/graph.yaml"),
-        str(tmp_path / "demo/*.yaml"),
-    ])
+    graphs = discover_graphs(
+        [
+            str(tmp_path / "*/graph.yaml"),
+            str(tmp_path / "demo/*.yaml"),
+        ]
+    )
     assert len(graphs) == 1

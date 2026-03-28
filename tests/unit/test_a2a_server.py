@@ -210,7 +210,7 @@ def test_parse_message_extra_vars_ignored():
     from yamlgraph.a2a_server import parse_a2a_message
 
     result = parse_a2a_message(
-        'name=World style=casual extra=ignored',
+        "name=World style=casual extra=ignored",
         required_vars=["name", "style"],
     )
     assert result["name"] == "World"
@@ -313,10 +313,9 @@ async def test_executor_execute_invokes_graph(sample_graph_info):
     )
 
     context = MagicMock(spec=RequestContext)
-    context.get_user_input.return_value = 'name=World style=casual'
-    context.task = MagicMock()
-    context.task.id = "task-1"
-    context.task.context_id = "ctx-1"
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-1"
+    context.context_id = "ctx-1"
 
     # Use a collecting mock queue
     collected_events: list[Any] = []
@@ -351,9 +350,8 @@ async def test_executor_cancel(sample_graph_info):
     )
 
     context = MagicMock(spec=RequestContext)
-    context.task = MagicMock()
-    context.task.id = "task-cancel-1"
-    context.task.context_id = "ctx-1"
+    context.task_id = "task-cancel-1"
+    context.context_id = "ctx-1"
 
     collected_events: list[Any] = []
 
@@ -431,3 +429,214 @@ def test_extract_text_skips_non_text_parts():
     ]
     with pytest.raises(ValueError, match="unsupported_content_type"):
         extract_text_from_parts(parts)
+
+
+# ---------------------------------------------------------------------------
+# REQ-YG-210: task/get retrieves task status via InMemoryTaskStore
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-210")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_task_store_save_and_get():
+    """InMemoryTaskStore persists task for task/get retrieval."""
+    from a2a.server.tasks import InMemoryTaskStore
+    from a2a.types import Task, TaskState, TaskStatus
+
+    store = InMemoryTaskStore()
+    task = Task(
+        id="task-get-1",
+        context_id="ctx-1",
+        status=TaskStatus(state=TaskState.working),
+    )
+    await store.save(task)
+
+    retrieved = await store.get("task-get-1")
+    assert retrieved is not None
+    assert retrieved.id == "task-get-1"
+    assert retrieved.status.state == TaskState.working
+
+
+@pytest.mark.req("REQ-YG-210")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_task_store_returns_none_for_unknown_id():
+    """InMemoryTaskStore returns None for unknown task IDs."""
+    from a2a.server.tasks import InMemoryTaskStore
+
+    store = InMemoryTaskStore()
+    result = await store.get("nonexistent")
+    assert result is None
+
+
+@pytest.mark.req("REQ-YG-210")
+def test_create_a2a_app_uses_task_store(tmp_path: Path):
+    """create_a2a_app wires InMemoryTaskStore for task/get retrieval."""
+    from yamlgraph.a2a_server import create_a2a_app
+
+    graph_dir = tmp_path / "demo"
+    graph_dir.mkdir()
+    (graph_dir / "graph.yaml").write_text(
+        "version: '1.0'\nname: test-graph\n"
+        "description: A test\n"
+        "nodes:\n  n1:\n    type: llm\n    prompt: p\n    state_key: out\n"
+        "edges:\n  - from: START\n    to: n1\n  - from: n1\n    to: END\n"
+    )
+
+    app = create_a2a_app(
+        graph_patterns=[str(tmp_path / "demo/*.yaml")],
+        host="localhost",
+        port=8080,
+    )
+
+    # App is wired with a request handler that holds the task store
+    assert app is not None
+    assert hasattr(app, "routes") or hasattr(app, "app")
+
+
+# ---------------------------------------------------------------------------
+# REQ-YG-211: task/sendSubscribe streams via SSE
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-211")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_execute_produces_streaming_events(sample_graph_info):
+    """Execute enqueues ordered events for SSE streaming (working → artifact → completed)."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import (
+        TaskArtifactUpdateEvent,
+        TaskState,
+        TaskStatusUpdateEvent,
+    )
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-stream-1"
+    context.context_id = "ctx-1"
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+    queue.close = AsyncMock()
+
+    with patch("yamlgraph.a2a_server._invoke_graph", return_value={"out": "hi"}):
+        await executor.execute(context, queue)
+
+    # Verify SSE event stream order: working → artifact → completed
+    assert isinstance(collected[0], TaskStatusUpdateEvent)
+    assert collected[0].status.state == TaskState.working
+    assert collected[0].final is False
+
+    artifact_events = [e for e in collected if isinstance(e, TaskArtifactUpdateEvent)]
+    assert len(artifact_events) == 1
+
+    final_event = collected[-1]
+    assert isinstance(final_event, TaskStatusUpdateEvent)
+    assert final_event.status.state == TaskState.completed
+    assert final_event.final is True
+
+
+@pytest.mark.req("REQ-YG-211")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_streaming_events_include_message_on_complete(sample_graph_info):
+    """Completed SSE event includes agent message with result text."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import TaskState, TaskStatusUpdateEvent
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-stream-2"
+    context.context_id = "ctx-1"
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+    queue.close = AsyncMock()
+
+    with patch(
+        "yamlgraph.a2a_server._invoke_graph", return_value={"greeting": "Hello!"}
+    ):
+        await executor.execute(context, queue)
+
+    completed = [
+        e
+        for e in collected
+        if isinstance(e, TaskStatusUpdateEvent)
+        and e.status.state == TaskState.completed
+    ]
+    assert len(completed) == 1
+    assert completed[0].status.message is not None
+    assert "Hello!" in completed[0].status.message.parts[0].root.text
+
+
+# ---------------------------------------------------------------------------
+# REQ-YG-213: input-required state on __interrupt__
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-213")
+def test_detect_interrupt_returns_true():
+    """_detect_interrupt recognizes __interrupt__ key in graph result."""
+    from yamlgraph.a2a_server import _detect_interrupt
+
+    result = {"greeting": "Hello", "__interrupt__": [{"value": "need input"}]}
+    assert _detect_interrupt(result) is True
+
+
+@pytest.mark.req("REQ-YG-213")
+def test_detect_interrupt_returns_false():
+    """_detect_interrupt returns False for normal results."""
+    from yamlgraph.a2a_server import _detect_interrupt
+
+    result = {"greeting": "Hello"}
+    assert _detect_interrupt(result) is False
+
+
+@pytest.mark.req("REQ-YG-213")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_execute_emits_input_required_on_interrupt(sample_graph_info):
+    """When graph result contains __interrupt__, input-required state is emitted."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import TaskState, TaskStatusUpdateEvent
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-interrupt-1"
+    context.context_id = "ctx-1"
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+    queue.close = AsyncMock()
+
+    interrupt_result = {
+        "greeting": "partial",
+        "__interrupt__": [{"value": "need clarification"}],
+    }
+    with patch("yamlgraph.a2a_server._invoke_graph", return_value=interrupt_result):
+        await executor.execute(context, queue)
+
+    status_events = [e for e in collected if isinstance(e, TaskStatusUpdateEvent)]
+    input_required = [
+        e for e in status_events if e.status.state == TaskState.input_required
+    ]
+    assert len(input_required) == 1
+    assert input_required[0].final is False

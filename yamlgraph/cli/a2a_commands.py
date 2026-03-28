@@ -59,7 +59,7 @@ def _cmd_a2a_serve(args: argparse.Namespace) -> None:
     port = getattr(args, "port", 8080)
 
     print(f"🚀 Starting A2A server on {host}:{port}")
-    print(f"📋 Agent Card: http://{host}:{port}/.well-known/agent.json")
+    print(f"📋 Agent Card: http://{host}:{port}/.well-known/agent-card.json")
 
     app = create_a2a_app(
         graph_patterns=patterns,
