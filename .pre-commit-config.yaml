@@ -156,6 +156,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: demo-proof-check
+        name: demo-proof-check
+        entry: scripts/check_demo_proof.sh
+        language: script
+        pass_filenames: false
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: changelog-release-sync
         name: changelog release sync
         entry: .venv/bin/python scripts/check_changelog_release_sync.py

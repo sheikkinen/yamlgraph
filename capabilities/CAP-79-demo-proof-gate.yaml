@@ -1,0 +1,32 @@
+id: CAP-79
+name: Demo Proof Gate
+description: >
+  CI gate and pre-commit hook requiring demo-output.log artifact when demos
+  are created or modified, proving the demo was actually executed before merge.
+  Enforces Commandment 2 ("demonstrate with example") at the merge boundary.
+modules:
+  - scripts/check_demo_proof.sh
+  - .github/workflows/commitlint.yml
+  - .pre-commit-config.yaml
+requirements:
+  - id: REQ-YG-200
+    description: >
+      demo-gate CI job in commitlint.yml extracts changed demo directories from
+      git diff (excluding demo-output.log itself), verifies each has a
+      demo-output.log in the diff, exits 1 on missing logs and 0 when no demos
+      changed; job-level if condition restricts to feat/fix PR titles; uses
+      actions/checkout@v4 with fetch-depth: 0; pre-commit hook
+      demo-proof-check calls scripts/check_demo_proof.sh which checks staged
+      files with identical logic; .gitignore negates *.log for
+      examples/demos/*/demo-output.log; CLAUDE.md documents demo-gate in
+      branch protection section; enforcer Phase 2 prompt instructs capturing
+      demo-output.log
+    modules:
+      - scripts/check_demo_proof.sh
+      - .github/workflows/commitlint.yml
+      - .pre-commit-config.yaml
+      - .gitignore
+      - CLAUDE.md
+      - .chaplain/graphs/enforce/prompts/enforce-test-demo.yaml
+      - tests/unit/test_ci_demo_proof_gate.py
+fr: FR-206

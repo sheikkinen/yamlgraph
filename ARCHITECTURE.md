@@ -352,6 +352,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 76 | Horoscope Demo (FR-201) | `examples/demos/horoscope` | REQ-YG-197 |
 | 77 | Image Generation Pipeline (FR-202) | `examples/image_pipeline` | REQ-YG-198 |
 | 78 | .fi Domain Crawl Demo (FR-205) | `examples/demos/fi-domain-crawl` | REQ-YG-199 |
+| 79 | Demo Proof Gate (FR-206) | `scripts/check_demo_proof.sh`, `.github/workflows/commitlint.yml` | REQ-YG-200 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1091,6 +1092,10 @@ Multi-stage pipeline for crawling .fi country-level domains: LLM query planning,
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-199 | .fi domain crawl demo: plan node produces search queries (parse_json), discover node filters to .fi TLD, map node crawls pages in parallel (max_items: 10), summarise node produces sitemap overview. crawl_page handles errors gracefully. No new dependencies. | `examples/demos/fi-domain-crawl`, `tests/unit/test_fi_domain_crawl.py` |
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-200 | `demo-gate` CI job in `commitlint.yml` extracts changed demo directories from `git diff` (excluding `demo-output.log` itself), verifies each has a `demo-output.log` in the diff, exits 1 on missing logs and 0 when no demos changed; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0`; pre-commit hook `demo-proof-check` calls `scripts/check_demo_proof.sh` with identical staged-file logic; `.gitignore` negates `*.log` for `examples/demos/*/demo-output.log`; `CLAUDE.md` documents `demo-gate` in branch protection section; enforcer Phase 2 prompt instructs capturing `demo-output.log` | `scripts/check_demo_proof.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`, `CLAUDE.md`, `tests/unit/test_ci_demo_proof_gate.py` |
 
 ---
 
