@@ -24,6 +24,9 @@ purgatory/
 # Symlinks to external projects
 matrix
 
+# Extracted to separate repos
+projects/scripture-dev/
+
 # Outputs
 outputs/
 *.db
