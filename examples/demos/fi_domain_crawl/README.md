@@ -21,9 +21,9 @@ pip install -e ".[digest,websearch]"
 ## Usage
 
 ```bash
-yamlgraph graph lint examples/demos/fi-domain-crawl/graph.yaml
+yamlgraph graph lint examples/demos/fi_domain_crawl/graph.yaml
 
-yamlgraph graph run examples/demos/fi-domain-crawl/graph.yaml \
+yamlgraph graph run examples/demos/fi_domain_crawl/graph.yaml \
   --var seed_query="Helsinki libraries" --full
 ```
 

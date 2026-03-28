@@ -74,7 +74,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
 | [data-files](demos/data-files/) | `llm` | External data loading |
 | [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
-| [fi-domain-crawl](demos/fi-domain-crawl/) | `map`, `python`, `llm` | .fi domain crawl + sitemap overview |
+| [fi_domain_crawl](demos/fi_domain_crawl/) | `map`, `python`, `llm` | .fi domain crawl + sitemap overview |
 | [five-whys](demos/five-whys/) | `llm` | Fixed-count loop with iterative deepening |
 | [innovation_matrix](demos/innovation_matrix/) | `llm` | Capability-constraint innovation matrix |
 | [interactive_tool](demos/interactive_tool/) | `interactive_tool` | Multi-turn trivia quiz with user interrupts |

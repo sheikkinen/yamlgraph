@@ -11,11 +11,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Directory uses hyphens; importlib handles it, ``from`` syntax cannot.
-_crawl_mod = importlib.import_module("examples.demos.fi-domain-crawl.nodes.crawl_page")
+_crawl_mod = importlib.import_module("examples.demos.fi_domain_crawl.nodes.crawl_page")
 crawl_page = _crawl_mod.crawl_page
 
 _seed_mod = importlib.import_module(
-    "examples.demos.fi-domain-crawl.nodes.seed_discovery"
+    "examples.demos.fi_domain_crawl.nodes.seed_discovery"
 )
 discover_seeds = _seed_mod.discover_seeds
 
@@ -273,7 +273,7 @@ class TestSeedDiscovery:
 class TestFiDomainCrawlGraph:
     """Test the graph.yaml configuration loads correctly."""
 
-    GRAPH_PATH = "examples/demos/fi-domain-crawl/graph.yaml"
+    GRAPH_PATH = "examples/demos/fi_domain_crawl/graph.yaml"
 
     @pytest.mark.req("REQ-YG-199")
     def test_graph_config_loads(self) -> None:
