@@ -1,0 +1,59 @@
+# Five Whys — Iterative Root Cause Analysis
+# Demonstrates fixed-count loop with progressive deepening
+
+version: "1.0"
+name: five-whys
+description: Five Whys root cause analysis — iterative deepening loop
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  problem: str
+
+nodes:
+  ask_why:
+    type: llm
+    prompt: ask_why
+    variables:
+      problem: "{state.problem}"
+      iteration: "{state._loop_counts.ask_why}"
+      previous: "{state.ask_why}"
+    state_key: ask_why
+    skip_if_exists: false
+
+  summarise:
+    type: llm
+    prompt: summarise
+    variables:
+      problem: "{state.problem}"
+      analysis: "{state.ask_why}"
+    state_key: summary
+
+edges:
+  - from: START
+    to: ask_why
+
+  - from: ask_why
+    to: ask_why
+    condition: _loop_counts.ask_why < 5
+
+  - from: ask_why
+    to: summarise
+    condition: _loop_counts.ask_why >= 5
+
+  - from: summarise
+    to: END
+
+loop_limits:
+  ask_why: 5
+
+loop_exits:
+  ask_why: summarise
+
+exports:
+  summary:
+    format: markdown
+    filename: root_cause_analysis.md

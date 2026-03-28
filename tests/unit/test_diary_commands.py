@@ -159,7 +159,11 @@ class TestCmdDiaryImport:
         monkeypatch.chdir(tmp_path)
         (tmp_path / "docs" / "diary").mkdir(parents=True)
 
-        # source=None → defaults to ~/scheduled-yamlgraphs/outputs/ which won't exist
+        # Point DEFAULT_SOURCE to a path that definitely does not exist
+        fake_source = tmp_path / "nonexistent-source"
+        monkeypatch.setattr("yamlgraph.diary.importer.DEFAULT_SOURCE", fake_source)
+
+        # source=None → defaults to DEFAULT_SOURCE which now won't exist
         args = _make_args()
         cmd_diary_import(args)
 

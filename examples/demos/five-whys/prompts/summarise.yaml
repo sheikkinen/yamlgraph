@@ -1,0 +1,29 @@
+schema:
+  name: RootCauseSummary
+  fields:
+    problem:
+      type: str
+      description: "Original problem statement"
+    root_cause:
+      type: str
+      description: "Identified root cause"
+    chain:
+      type: list[str]
+      description: "The five why answers"
+    recommendations:
+      type: list[str]
+      description: "Actionable recommendations to address root cause"
+
+system: |
+  You are a root cause analysis expert. Summarise the Five Whys analysis
+  into a clear report identifying the root cause and recommending actions.
+
+user: |
+  Problem: {problem}
+
+  Five Whys analysis:
+  {% for answer in analysis.chain %}
+  Why {{ loop.index }}: {{ answer }}
+  {% endfor %}
+
+  Identify the root cause and provide actionable recommendations.
