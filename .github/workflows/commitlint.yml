@@ -106,6 +106,52 @@ jobs:
           fi
           echo "✅ Release hygiene passed for v${VERSION}"
 
+  demo-gate:
+    name: Demo proof required for changed demos
+    runs-on: ubuntu-latest
+    if: >-
+      startsWith(github.event.pull_request.title, 'feat') ||
+      startsWith(github.event.pull_request.title, 'fix')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify demo output logs exist
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Find demo directories with changed files (excluding the log itself)
+          CHANGED_DEMOS=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" \
+            | grep -E '^examples/demos/[^/]+/' \
+            | grep -vE 'demo-output\.log$' \
+            | sed 's|examples/demos/\([^/]*\)/.*|\1|' \
+            | sort -u) || true
+
+          if [ -z "$CHANGED_DEMOS" ]; then
+            echo "⏭️ No demo files changed — demo gate skipped"
+            exit 0
+          fi
+
+          MISSING=0
+          for DEMO in $CHANGED_DEMOS; do
+            LOG="examples/demos/${DEMO}/demo-output.log"
+            if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qF "$LOG"; then
+              echo "✅ Demo proof found: $LOG"
+            else
+              echo "::error::Demo '$DEMO' changed but no demo-output.log in diff"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          if [ "$MISSING" -gt 0 ]; then
+            echo ""
+            echo "Run each changed demo and commit the output log:"
+            echo "  yamlgraph graph run examples/demos/<name>/graph.yaml --full 2>&1 | tee examples/demos/<name>/demo-output.log"
+            exit 1
+          fi
+
   diary-gate:
     name: Diary reflection required for feat/fix
     runs-on: ubuntu-latest
