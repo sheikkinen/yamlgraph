@@ -1,0 +1,40 @@
+# Knowledge Graph
+#
+# Graduated from recurring diary patterns.
+# The causal chain from trap to cure.
+#
+# Add your project-specific patterns here.
+
+the_one_law: |
+  Normalize at the boundary where external data enters,
+  not downstream where it manifests.
+
+boundaries: []
+  # Where external data/systems meet your code
+  # Examples:
+  # - schema       # External output → validation
+  # - provider     # API responses differ
+  # - state        # State commits vs raises
+
+traps: {}
+  # Cognitive hazards that lead to bugs and drift
+  # Examples:
+  # quick_confidence: "When I feel certain → Judge instead"
+  # downstream_fix: "Guard added where symptom manifests → normalize at entry"
+
+cures: {}
+  # Patterns that prevent traps
+  # Examples:
+  # test_before_reading: "Write question as test → if passes, stop"
+  # callsite_fix: "Fix at the specific caller, not the shared utility"
+
+process: {}
+  # Workflow patterns
+  # Examples:
+  # graduation: "Heuristic appears twice → create FR; confirmed → graduate to Scripture"
+  # boring_enforcement: "Boring = Judgement was good; surprise = spec had gaps"
+
+seeds: {}
+  # Forward-looking patterns awaiting implementation
+  # Examples:
+  # auto_escalation: "Auto-create FR when audit pattern hits threshold"

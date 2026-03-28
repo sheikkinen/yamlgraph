@@ -3,7 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Feature
 **FR:** FR-207
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 6 days (Tier 1: 3 days, Tier 2: 2 days, Tier 3: 1 day documentation)
 **Requested:** 2026-03-28
 
@@ -242,27 +242,27 @@ After extraction, YAMLGraph can adopt `scripture-dev` as its own upstream method
 ### Tier 1 — Core
 
 - [ ] Template repo created via `git init` (not fork) with clean history
-- [ ] `scripture.yaml` parameterizes all project-specific values (req prefix, FR prefix, project name, thresholds)
-- [ ] `render.sh` reads `scripture.yaml` and applies `sed` substitutions to all template files (POSIX shell, no Python)
-- [ ] Changing `req_prefix` in `scripture.yaml` from `REQ` to `REQ-FOO` and re-running `render.sh` produces templates with zero occurrences of `REQ-` (old prefix) and >0 occurrences of `REQ-FOO-` (new prefix)
-- [ ] `.github/copilot-instructions.md` contains zero YAMLGraph-specific references (`yamlgraph`, `LangGraph`, `Pydantic`, `LangSmith`, `REQ-YG`)
+- [x] `scripture.yaml` parameterizes all project-specific values (req prefix, FR prefix, project name, thresholds)
+- [x] `render.sh` reads `scripture.yaml` and applies `sed` substitutions to all template files (POSIX shell, no Python)
+- [x] Changing `req_prefix` in `scripture.yaml` from `REQ` to `REQ-FOO` and re-running `render.sh` produces templates with zero occurrences of `REQ-` (old prefix) and >0 occurrences of `REQ-FOO-` (new prefix)
+- [x] `.github/copilot-instructions.md` contains zero YAMLGraph-specific references (`yamlgraph`, `LangGraph`, `Pydantic`, `LangSmith`, `REQ-YG`)
 - [ ] Pre-commit hooks pass `pre-commit run --all-files` in a fresh clone after `render.sh`
-- [ ] `scripts/aggregate_changelog.sh` generates CHANGELOG.md from fragments without Python
-- [ ] No Python package dependencies required for Tier 1 governance (all hooks and scripts are shell-only)
+- [x] `scripts/aggregate_changelog.sh` generates CHANGELOG.md from fragments without Python
+- [x] No Python package dependencies required for Tier 1 governance (all hooks and scripts are shell-only)
 - [ ] Smoke test: fresh repo from template → `render.sh` → create diary entry + changelog fragment + conventional commit → all hooks pass
 
 ### Tier 2 — Extended
 
-- [ ] CI workflows (commitlint, changelog-gate, diary-gate, conflict-check) pass on a fresh repo with a sample PR
-- [ ] `scripts/req_coverage.py` works with `--prefix` flag (default: `REQ`) and does not import YAMLGraph modules
-- [ ] `scripts/aggregate_changelog.py` generates CHANGELOG.md from fragments without YAMLGraph imports
-- [ ] Knowledge Graph template is valid YAML with empty sections for boundaries/traps/cures/process/seeds
-- [ ] README.md documents adoption path: template clone → configure `scripture.yaml` → run `render.sh` → first commit
+- [x] CI workflows (commitlint, changelog-gate, diary-gate, conflict-check) pass on a fresh repo with a sample PR
+- [x] `scripts/req_coverage.py` works with `--prefix` flag (default: `REQ`) and does not import YAMLGraph modules
+- [x] `scripts/aggregate_changelog.py` generates CHANGELOG.md from fragments without YAMLGraph imports
+- [x] Knowledge Graph template is valid YAML with empty sections for boundaries/traps/cures/process/seeds
+- [x] README.md documents adoption path: template clone → configure `scripture.yaml` → run `render.sh` → first commit
 
 ### Tier 3 — Documentation
 
-- [ ] Chaplain Plan→Judge→Enforce workflow documented as a pattern with shell-script examples
-- [ ] README references YAMLGraph graph-based Chaplain as optional add-on (not dependency)
+- [x] Chaplain Plan→Judge→Enforce workflow documented as a pattern with shell-script examples
+- [x] README references YAMLGraph graph-based Chaplain as optional add-on (not dependency)
 
 ## Alternatives Considered
 

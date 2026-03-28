@@ -1,0 +1,90 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  # -- Standard hooks -------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: debug-statements
+      - id: detect-private-key
+
+  # -- Local hooks (shell-only, no framework dependency) --------------------
+  - repo: local
+    hooks:
+      - id: diary-reflection-check
+        name: Diary reflection check
+        entry: bash hooks/diary-reflection-check.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: radon-complexity
+        name: Radon complexity gate
+        entry: bash hooks/radon-check.sh
+        language: system
+        types: [python]
+
+      - id: file-size-gate
+        name: File size gate (450 lines max)
+        entry: bash hooks/file-size-check.sh
+        language: system
+        types: [python]
+
+      - id: forbid-terms
+        name: Forbid TODO/FIXME
+        entry: bash hooks/forbid-terms.sh
+        language: system
+        types_or: [python, markdown, yaml]
+
+      - id: jscpd-dup
+        name: Duplicate code detection
+        entry: bash hooks/jscpd-check.sh
+        language: system
+        pass_filenames: false
+
+      - id: vulture-dead-code
+        name: Dead code detection
+        entry: bash hooks/vulture-check.sh
+        language: system
+        types: [python]
+
+  # -- Conventional Commits -------------------------------------------------
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - feat
+          - fix
+          - chore
+          - docs
+          - refactor
+          - test
+          - ci
+          - perf
+          - style
+          - build
+          - revert
+
+  # -- Feature Request enforcement ------------------------------------------
+  - repo: local
+    hooks:
+      - id: feat-requires-fr
+        name: feat commits must reference FR-XXX
+        entry: bash hooks/feat-requires-fr.sh
+        language: system
+        stages: [commit-msg]
+
+      - id: changelog-required
+        name: feat/fix commits require changelog fragment
+        entry: bash hooks/changelog-required.sh
+        language: system
+        stages: [pre-commit]
+        pass_filenames: false

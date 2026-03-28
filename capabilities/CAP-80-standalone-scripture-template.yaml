@@ -1,0 +1,57 @@
+id: CAP-80
+name: Standalone Scripture Template
+description: >
+  Standalone template repository (scripture-dev) extracting governance
+  methodology (Scripture, diary discipline, changelog fragments, pre-commit
+  gates, CI workflows) into a language-agnostic, parameterized template.
+  render.sh reads scripture.yaml and applies sed substitutions from _templates/.
+modules:
+  - projects/scripture-dev/render.sh
+  - projects/scripture-dev/scripture.yaml
+  - projects/scripture-dev/_templates/
+  - projects/scripture-dev/scripts/
+requirements:
+  - id: REQ-YG-201
+    description: >
+      Template parameterization via scripture.yaml + render.sh: POSIX shell
+      script reads YAML config and applies sed substitutions on _templates/
+      source files; re-rendering from _templates/ after config change replaces
+      all __PLACEHOLDER__ markers with new values.
+    modules:
+      - projects/scripture-dev/render.sh
+      - projects/scripture-dev/scripture.yaml
+      - projects/scripture-dev/_templates/
+      - tests/unit/test_scripture_dev_template.py
+  - id: REQ-YG-202
+    description: >
+      Rendered Scripture (copilot-instructions.md, pre-commit-config, hooks)
+      contains zero framework-specific references (yamlgraph, LangGraph,
+      Pydantic, LangSmith, REQ-YG, LangChain); no YAMLGraph-specific hooks.
+    modules:
+      - projects/scripture-dev/_templates/.github/copilot-instructions.md
+      - projects/scripture-dev/_templates/.pre-commit-config.yaml
+      - tests/unit/test_scripture_dev_template.py
+  - id: REQ-YG-203
+    description: >
+      Shell-based changelog aggregation (aggregate_changelog.sh) generates
+      CHANGELOG.md from fragment files without interpreter dependency; Python
+      aggregator (aggregate_changelog.py) available as opt-in upgrade.
+    modules:
+      - projects/scripture-dev/scripts/aggregate_changelog.sh
+      - projects/scripture-dev/scripts/aggregate_changelog.py
+      - tests/unit/test_scripture_dev_template.py
+  - id: REQ-YG-204
+    description: >
+      Configurable requirement traceability: req_coverage.py accepts --prefix
+      flag (default: REQ), scans test files for markers, no framework imports.
+    modules:
+      - projects/scripture-dev/scripts/req_coverage.py
+      - tests/unit/test_scripture_dev_template.py
+  - id: REQ-YG-205
+    description: >
+      Knowledge graph governance template: valid YAML with empty sections for
+      boundaries, traps, cures, process, seeds.
+    modules:
+      - projects/scripture-dev/templates/knowledge-graph.yaml
+      - tests/unit/test_scripture_dev_template.py
+fr: FR-207

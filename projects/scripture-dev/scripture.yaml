@@ -1,0 +1,7 @@
+# Project-specific configuration
+project_name: my-project
+req_prefix: REQ              # Default: REQ (e.g., REQ-001, REQ-002)
+fr_prefix: FR                # Feature request prefix (e.g., FR-001)
+max_file_lines: 450          # File size gate threshold
+max_complexity: 21           # Cyclomatic complexity threshold (radon grade D)
+coverage_threshold: 80       # Minimum test coverage percentage
