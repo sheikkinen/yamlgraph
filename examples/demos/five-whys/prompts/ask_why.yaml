@@ -1,0 +1,36 @@
+schema:
+  name: WhyAnalysis
+  fields:
+    why_number:
+      type: int
+      description: "Which 'why' iteration this is (1-5)"
+    question:
+      type: str
+      description: "The 'why' question being asked"
+    answer:
+      type: str
+      description: "The answer to this why question"
+    chain:
+      type: list[str]
+      description: "All answers so far including this one"
+
+system: |
+  You are a root cause analysis expert using the Five Whys technique.
+  Given a problem, ask "why?" repeatedly, each time digging deeper into
+  the underlying cause. Each answer should be a concise causal statement.
+
+user: |
+  Problem: {problem}
+
+  {% if previous and previous.chain %}
+  Previous analysis:
+  {% for answer in previous.chain %}
+  Why {{ loop.index }}: {{ answer }}
+  {% endfor %}
+
+  Ask why #{{ (previous.chain | length) + 1 }}, digging deeper into the last answer.
+  {% else %}
+  This is the first "why". Ask why this problem occurs.
+  {% endif %}
+
+  Return the why question, your answer, and the full chain of all answers so far.

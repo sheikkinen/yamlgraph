@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-27
 
@@ -190,14 +190,14 @@ yamlgraph graph run examples/demos/five-whys/graph.yaml \
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph graph lint examples/demos/five-whys/graph.yaml` passes
+- [x] `yamlgraph graph lint examples/demos/five-whys/graph.yaml` passes
 - [ ] `yamlgraph graph run` with `--var problem="..."` completes 5 loop iterations then summarises
-- [ ] Each iteration receives and extends the previous chain via Jinja2 `{% for %}`
-- [ ] `loop_limits` and `loop_exits` are configured as safety guards
-- [ ] Export produces `root_cause_analysis.md` with structured output
-- [ ] `README.md` documents the pattern, CLI usage, and what the demo teaches
-- [ ] No Python code required — pure YAML demo
-- [ ] Tests: `five-whys` added to `STANDARD_DEMOS` in `examples/demos/tests/test_demos.py` (structure, loader, and prompt existence tests pass)
+- [x] Each iteration receives and extends the previous chain via Jinja2 `{% for %}`
+- [x] `loop_limits` and `loop_exits` are configured as safety guards
+- [x] Export produces `root_cause_analysis.md` with structured output
+- [x] `README.md` documents the pattern, CLI usage, and what the demo teaches
+- [x] No Python code required — pure YAML demo
+- [x] Tests: `five-whys` added to `STANDARD_DEMOS` in `examples/demos/tests/test_demos.py` (structure, loader, and prompt existence tests pass)
 
 ## Alternatives Considered
 
