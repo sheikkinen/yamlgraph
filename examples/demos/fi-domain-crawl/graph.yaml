@@ -1,0 +1,81 @@
+# .fi Domain Crawl — Country-Level Sitemap Discovery (FR-205)
+# Demonstrates: plan → discover → crawl (map) → summarise pipeline
+
+version: "1.0"
+name: fi-domain-crawl
+description: Crawl .fi domains and produce sitemap-style overviews
+prompts_relative: true
+prompts_dir: prompts
+
+metadata:
+  provider: anthropic
+
+state:
+  seed_query: str
+
+defaults:
+  temperature: 0.3
+
+tools:
+  seed_discovery:
+    type: python
+    module: examples.demos.fi_domain_crawl.nodes.seed_discovery
+    function: discover_seeds
+    description: "Discover .fi domain seed URLs via search"
+
+  crawl_page:
+    type: python
+    module: examples.demos.fi_domain_crawl.nodes.crawl_page
+    function: crawl_page
+    description: "Fetch a URL and extract links, title, and text summary"
+
+nodes:
+  plan:
+    type: llm
+    prompt: plan_crawl
+    parse_json: true
+    variables:
+      seed_query: "{state.seed_query}"
+    state_key: search_queries
+
+  discover:
+    type: python
+    tool: seed_discovery
+    state_key: discovered_urls
+
+  crawl:
+    type: map
+    over: "{state.discovered_urls}"
+    as: url
+    max_items: 10
+    node:
+      type: python
+      tool: crawl_page
+      state_key: page_data
+    collect: crawl_results
+
+  summarise:
+    type: llm
+    prompt: summarise_site
+    requires: [crawl_results]
+    state_key: sitemap_overview
+    variables:
+      seed_query: "{state.seed_query}"
+      crawl_results: "{state.crawl_results}"
+
+edges:
+  - from: START
+    to: plan
+  - from: plan
+    to: discover
+  - from: discover
+    to: crawl
+  - from: crawl
+    to: summarise
+  - from: summarise
+    to: END
+
+exports:
+  sitemap_overview:
+    format: markdown
+    filename: sitemap_overview.md
