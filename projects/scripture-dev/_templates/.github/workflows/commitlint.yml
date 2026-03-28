@@ -1,0 +1,92 @@
+name: Commit Lint & Gates
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  commitlint:
+    name: commitlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PR title (Conventional Commits)
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            docs
+            refactor
+            test
+            ci
+            perf
+            style
+            build
+            revert
+
+      - name: feat requires __FR_PREFIX__-XXX
+        if: startsWith(github.event.pull_request.title, 'feat')
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          if ! echo "$TITLE" | grep -qE '__FR_PREFIX__-[0-9]+'; then
+            echo "::error::feat PRs must reference __FR_PREFIX__-XXX in the title"
+            exit 1
+          fi
+
+  conflict-check:
+    name: conflict-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for unresolved merge conflicts
+        run: |
+          if git grep -lE '^(<<<<<<<|=======|>>>>>>>)' -- ':!.github/'; then
+            echo "::error::Unresolved merge conflict markers found"
+            exit 1
+          fi
+
+  changelog-gate:
+    name: changelog-gate
+    runs-on: ubuntu-latest
+    if: >-
+      startsWith(github.event.pull_request.title, 'feat') ||
+      startsWith(github.event.pull_request.title, 'fix')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require changelog fragment
+        run: |
+          DIFF=$(git diff --name-only origin/main...HEAD)
+          if ! echo "$DIFF" | grep -q '^changelog/unreleased/'; then
+            echo "::error::feat/fix PRs must include a changelog fragment in changelog/unreleased/"
+            exit 1
+          fi
+
+  diary-gate:
+    name: diary-gate
+    runs-on: ubuntu-latest
+    if: >-
+      startsWith(github.event.pull_request.title, 'feat') ||
+      startsWith(github.event.pull_request.title, 'fix')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require diary reflection
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          # Extract FR number if present
+          FR_NUM=$(echo "$TITLE" | grep -oE '__FR_PREFIX__-[0-9]+' | head -1 | tr '[:upper:]' '[:lower:]')
+          if [ -z "$FR_NUM" ]; then
+            echo "No __FR_PREFIX__-XXX in title; diary gate skipped"
+            exit 0
+          fi
+          DIFF=$(git diff --name-only origin/main...HEAD)
+          if ! echo "$DIFF" | grep -qE "docs/diary/.*reflection.*${FR_NUM}"; then
+            echo "::error::feat/fix PRs with __FR_PREFIX__-XXX must include a diary reflection"
+            exit 1
+          fi

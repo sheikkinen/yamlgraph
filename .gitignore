@@ -55,7 +55,8 @@ htmlcov/
 .chaplain/inquisitor.log
 
 # Custom graphs
-projects/
+projects/*
+!projects/scripture-dev/
 13485/
 purgatory/
 
