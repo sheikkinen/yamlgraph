@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1–2 days (backfilling ~35 demo directories requires LLM API calls)
 **Judged:** 2026-03-28
 **Requested:** 2026-03-28
@@ -134,15 +134,15 @@ Update `.chaplain/graphs/enforce/prompts/enforce-test-demo.yaml` to capture demo
 
 ## Acceptance Criteria
 
-- [ ] `scripts/check_demo_proof.sh` exists and detects missing demo logs for staged demo changes
-- [ ] Pre-commit hook `demo-proof-check` added to `.pre-commit-config.yaml`
-- [ ] CI job `demo-gate` added to `.github/workflows/commitlint.yml`
+- [x] `scripts/check_demo_proof.sh` exists and detects missing demo logs for staged demo changes
+- [x] Pre-commit hook `demo-proof-check` added to `.pre-commit-config.yaml`
+- [x] CI job `demo-gate` added to `.github/workflows/commitlint.yml`
 - [ ] `demo-gate` added to branch protection required status checks
-- [ ] Enforcer Phase 2 prompt updated to capture demo output to `demo-output.log`
+- [x] Enforcer Phase 2 prompt updated to capture demo output to `demo-output.log`
 - [ ] Existing demos in `examples/demos/` backfilled with `demo-output.log` (via `demo.sh` or manual run)
-- [ ] `demo-output.log` entries added to relevant `.gitignore` exclusions if needed (should NOT be ignored)
-- [ ] Tests: unit test for `check_demo_proof.sh` logic (REQ-YG-XXX)
-- [ ] Documentation: `CLAUDE.md` branch protection table updated with `demo-gate`
+- [x] `demo-output.log` entries added to relevant `.gitignore` exclusions if needed (should NOT be ignored)
+- [x] Tests: unit test for `check_demo_proof.sh` logic (REQ-YG-200)
+- [x] Documentation: `CLAUDE.md` branch protection table updated with `demo-gate`
 
 ## Demo Plan
 

@@ -27,6 +27,12 @@ user: |
      - Create a minimal working example in `examples/demos/<feature>/`
      - Include: graph.yaml, prompts/ folder, README.md
      - Test the example runs: `yamlgraph graph lint <example>/graph.yaml`
+     - **Run the demo and capture proof:**
+       ```
+       yamlgraph graph run examples/demos/<feature>/graph.yaml \
+         --full 2>&1 | tee examples/demos/<feature>/demo-output.log
+       ```
+     - Stage the demo-output.log alongside the demo files
 
   Report:
   - Test results (all passing?)

@@ -31,6 +31,7 @@ demo/
 
 # Logs
 *.log
+!examples/demos/*/demo-output.log
 examples/*/logs/
 examples/*/*.log
 
