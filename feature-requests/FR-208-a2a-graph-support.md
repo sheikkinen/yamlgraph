@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** In Progress
 **Effort:** 5–7 days
 **Requested:** 2026-03-28
 **Capability:** CAP-81
@@ -168,21 +168,21 @@ Basic text agents work with existing YAML. The server derives everything from th
 
 ## Acceptance Criteria
 
-- [ ] **REQ-YG-206**: `yamlgraph/discovery.py` extracts shared `discover_graphs()` from `mcp_server.py`; MCP server tests still pass
-- [ ] **REQ-YG-207**: `yamlgraph/a2a_server.py` discovers graphs using shared `discover_graphs()`
-- [ ] **REQ-YG-208**: Agent Card auto-generated from graph YAML metadata (name, description, skills) with `authentication: null` default
-- [ ] **REQ-YG-209**: `task/send` invokes graph with variables parsed via Message Parsing Strategy; returns A2A-compliant task response
+- [x] **REQ-YG-206**: `yamlgraph/discovery.py` extracts shared `discover_graphs()` from `mcp_server.py`; MCP server tests still pass
+- [x] **REQ-YG-207**: `yamlgraph/a2a_server.py` discovers graphs using shared `discover_graphs()`
+- [x] **REQ-YG-208**: Agent Card auto-generated from graph YAML metadata (name, description, skills) with `authentication: null` default
+- [x] **REQ-YG-209**: `task/send` invokes graph with variables parsed via Message Parsing Strategy; returns A2A-compliant task response
 - [ ] **REQ-YG-210**: `task/get` retrieves task status via LangGraph checkpointer (thread_id = task_id)
 - [ ] **REQ-YG-211**: `task/sendSubscribe` streams graph execution via SSE using `run_graph_streaming_native()`
-- [ ] **REQ-YG-212**: `task/cancel` cancels running graph execution
+- [x] **REQ-YG-212**: `task/cancel` cancels running graph execution
 - [ ] **REQ-YG-213**: `input-required` state emitted when graph hits `__interrupt__` node
-- [ ] `yamlgraph a2a serve <path>` CLI command starts A2A HTTP server
-- [ ] `yamlgraph a2a card <path>` prints Agent Card JSON
-- [ ] Optional dependency: `pip install yamlgraph[a2a]` installs `a2a-sdk>=0.3,<1.0`
-- [ ] No changes to existing graph YAML schema required
-- [ ] Messages with missing `required_vars` are rejected with structured error
-- [ ] `PipelineError` objects map to A2A error response format per Error Mapping table
-- [ ] Unit tests with mocked A2A SDK (REQ-YG-207, REQ-YG-208, REQ-YG-209)
+- [x] `yamlgraph a2a serve <path>` CLI command starts A2A HTTP server
+- [x] `yamlgraph a2a card <path>` prints Agent Card JSON
+- [x] Optional dependency: `pip install yamlgraph[a2a]` installs `a2a-sdk>=0.3,<1.0`
+- [x] No changes to existing graph YAML schema required
+- [x] Messages with missing `required_vars` are rejected with structured error
+- [x] `PipelineError` objects map to A2A error response format per Error Mapping table
+- [x] Unit tests with mocked A2A SDK (REQ-YG-207, REQ-YG-208, REQ-YG-209)
 - [ ] Integration test: A2A client sends task to hello graph, receives streamed response
 - [ ] Documentation in `reference/a2a-server.md`
 

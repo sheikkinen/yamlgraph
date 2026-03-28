@@ -1,0 +1,57 @@
+id: CAP-81
+name: A2A Protocol Server
+description: >
+  Expose YAMLGraph graphs as A2A (Agent-to-Agent) protocol agents.
+  Supports task lifecycle (send, get, cancel, stream) and auto-generates
+  Agent Cards from graph YAML metadata.
+modules:
+  - a2a_server
+  - discovery
+  - cli/a2a_commands
+requirements:
+  - id: REQ-YG-206
+    description: >
+      Shared graph discovery: extract discover_graphs() from mcp_server.py
+      into discovery.py; both MCP and A2A servers import from it
+    modules:
+      - discovery
+      - mcp_server
+  - id: REQ-YG-207
+    description: >
+      A2A server discovers graphs using shared discover_graphs() and creates
+      YAMLGraphAgentExecutor wired to A2AStarletteApplication
+    modules:
+      - a2a_server
+  - id: REQ-YG-208
+    description: >
+      Agent Card auto-generated from graph YAML metadata (name, description,
+      skills) with streaming=True and no authentication
+    modules:
+      - a2a_server
+  - id: REQ-YG-209
+    description: >
+      Message parsing strategy: JSON → key_value → single_input → fallback;
+      missing required vars rejected; PipelineError maps to A2A error types
+    modules:
+      - a2a_server
+  - id: REQ-YG-210
+    description: >
+      task/get retrieves task status via InMemoryTaskStore
+    modules:
+      - a2a_server
+  - id: REQ-YG-211
+    description: >
+      task/sendSubscribe streams graph execution via SSE
+    modules:
+      - a2a_server
+  - id: REQ-YG-212
+    description: >
+      task/cancel cancels running graph execution
+    modules:
+      - a2a_server
+  - id: REQ-YG-213
+    description: >
+      input-required state emitted when graph hits __interrupt__ node
+    modules:
+      - a2a_server
+fr: FR-208
