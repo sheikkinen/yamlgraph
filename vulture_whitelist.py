@@ -191,3 +191,29 @@ save_registry
 validate_registry
 format_cap_id
 format_req_id
+
+# --- a2a_server: public API tested in test_a2a_server.py (FR-208) ---
+from yamlgraph.a2a_server import (  # noqa: F401 (CONF-126)
+    build_agent_card,
+    create_a2a_app,
+    extract_text_from_parts,
+    map_pipeline_error,
+    parse_a2a_message,
+)
+
+build_agent_card
+create_a2a_app
+extract_text_from_parts
+map_pipeline_error
+parse_a2a_message
+
+# --- discovery: shared module used by mcp_server and a2a_server ---
+# (discover_graphs is re-imported by mcp_server and a2a_server)
+# --- a2a_commands: CLI dispatch registered in cli/__init__.py ---
+from yamlgraph.cli.a2a_commands import cmd_a2a_dispatch  # noqa: F401 (CONF-126)
+from yamlgraph.discovery import (  # noqa: F401 (CONF-126)
+    DEFAULT_GRAPH_PATTERNS,
+    discover_graphs,
+)
+
+cmd_a2a_dispatch

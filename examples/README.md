@@ -71,6 +71,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |
 | [subgraph](demos/subgraph/) | `subgraph` | Graph composition |
+| [a2a_server](demos/a2a_server/) | `a2a` | A2A protocol server exposing graphs as agents (FR-208) |
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
 | [data-files](demos/data-files/) | `llm` | External data loading |
 | [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
