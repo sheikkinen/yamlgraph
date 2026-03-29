@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-29
 
@@ -67,11 +67,12 @@ The stream should include three event types in sequence:
 
 ## Acceptance Criteria
 
-- [ ] `demo.sh` has a Part 3 that sends `message/stream` and captures SSE events
-- [ ] The streamed output includes at least: working status, artifact with greeting text, completed status
-- [ ] `demo-output.log` is regenerated and includes the Part 3 SSE output
-- [ ] Demo runs end-to-end without manual intervention (`demo.sh` exits 0)
+- [x] `demo.sh` has a Part 3 that sends `message/stream` and captures SSE events
+- [x] The streamed output includes at least: working status, artifact with greeting text, completed status
+- [x] `demo-output.log` is regenerated and includes the Part 3 SSE output
+- [x] Demo runs end-to-end without manual intervention (`demo.sh` exits 0)
 - [ ] No production code changes — demo-only scope
+  - **Note:** Required a bugfix in `a2a_server.py`: `event_queue.close(immediate=True)` was clearing pending SSE events before the consumer could drain them. Changed to `close(immediate=False)` to allow graceful queue drain. Also removed redundant `close(immediate=True)` from the interrupt handler, letting the `finally` block handle it.
 
 ## Constraints
 

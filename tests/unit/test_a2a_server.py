@@ -640,3 +640,63 @@ async def test_execute_emits_input_required_on_interrupt(sample_graph_info):
     ]
     assert len(input_required) == 1
     assert input_required[0].final is False
+
+
+# ---------------------------------------------------------------------------
+# FR-209: A2A demo exercises message/stream SSE
+# ---------------------------------------------------------------------------
+
+DEMO_SCRIPT = Path(__file__).resolve().parents[2] / "examples/demos/a2a_server/demo.sh"
+
+
+@pytest.mark.req("REQ-YG-211")
+def test_demo_script_has_streaming_part():
+    """demo.sh includes a Part 3 that calls message/stream for SSE streaming."""
+    content = DEMO_SCRIPT.read_text()
+    assert "Part 3" in content, "demo.sh must have a Part 3 section"
+    assert "message/stream" in content, "Part 3 must call message/stream"
+
+
+@pytest.mark.req("REQ-YG-211")
+def test_demo_script_streaming_uses_timeout():
+    """Streaming curl in demo.sh uses timeout to prevent hanging."""
+    content = DEMO_SCRIPT.read_text()
+    # The streaming curl must have timeout protection
+    assert "timeout" in content, "Streaming curl must use timeout to prevent hanging"
+
+
+@pytest.mark.req("REQ-YG-211")
+def test_demo_script_streaming_accepts_sse():
+    """Streaming curl in demo.sh requests text/event-stream content type."""
+    content = DEMO_SCRIPT.read_text()
+    assert (
+        "text/event-stream" in content
+    ), "Streaming request must Accept text/event-stream"
+
+
+@pytest.mark.req("REQ-YG-211")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_execute_closes_queue_gracefully(sample_graph_info):
+    """EventQueue.close must use immediate=False so SSE consumer can drain all events."""
+    from a2a.server.agent_execution import RequestContext
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-drain-1"
+    context.context_id = "ctx-1"
+
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock()
+    queue.close = AsyncMock()
+
+    with patch("yamlgraph.a2a_server._invoke_graph", return_value={"out": "hi"}):
+        await executor.execute(context, queue)
+
+    # close() must be called with immediate=False to allow consumer drain
+    queue.close.assert_called_once_with(immediate=False)

@@ -74,8 +74,7 @@ class TestInfrastructureSelfExemptGraduation:
                 ' → if <50% nodes use core features, wrong tool"'
             ),
             "working_system_inertia": (
-                "\"'It works' blocks seeing it clearly"
-                ' → inventory fit, not function"'
+                "\"'It works' blocks seeing it clearly → inventory fit, not function\""
             ),
         }
         for trap_name, description in expected_traps.items():
@@ -119,10 +118,10 @@ class TestInfrastructureSelfExemptGraduation:
                 '"Boring = Judgement was good; surprise = spec had gaps"'
             ),
             "audit_gate": (
-                '"Audit without blocking mechanism' ' = post-mortem before incident"'
+                '"Audit without blocking mechanism = post-mortem before incident"'
             ),
             "demo_vs_test": (
-                '"Tests prove constraints;' ' demos prove abstraction worth having"'
+                '"Tests prove constraints; demos prove abstraction worth having"'
             ),
             "unchallenged_premise": (
                 '"Judge validates execution, not intent'

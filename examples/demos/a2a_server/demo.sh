@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# FR-208 A2A Server Demo
-# Demonstrates: agent card generation, server start, task send
+# FR-208 A2A Server Demo (FR-209: streaming extension)
+# Demonstrates: agent card generation, server start, task send, SSE streaming
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -59,6 +59,28 @@ RESPONSE=$(curl -s -X POST "http://localhost:$PORT/" \
     }
   }')
 echo "$RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$RESPONSE"
+echo ""
+
+# --- Part 3: Stream response via SSE ---
+echo "🌊 Part 3: Stream response via message/stream (SSE)"
+echo "  Method: message/stream → Server-Sent Events"
+echo "---"
+
+timeout 30 curl -sN -X POST "http://localhost:$PORT/" \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "message/stream",
+    "params": {
+      "message": {
+        "role": "user",
+        "messageId": "demo-msg-2",
+        "parts": [{"kind": "text", "text": "name=World style=casual"}]
+      }
+    }
+  }' || true
 echo ""
 
 # Cleanup
