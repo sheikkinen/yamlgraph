@@ -1,0 +1,106 @@
+═══════════════════════════════════════════════════
+  FR-208: A2A Protocol Server Demo
+═══════════════════════════════════════════════════
+
+📋 Part 1: Generate Agent Card from graph metadata
+  Command: yamlgraph a2a card examples/demos/hello/
+---
+{
+  "capabilities": {
+    "streaming": true
+  },
+  "defaultInputModes": [
+    "text"
+  ],
+  "defaultOutputModes": [
+    "text"
+  ],
+  "description": "YAMLGraph graphs exposed as A2A agents",
+  "name": "YAMLGraph A2A Server",
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0",
+  "skills": [
+    {
+      "description": "Simple greeting generator demonstrating basic LLM usage",
+      "id": "hello-world",
+      "name": "hello-world",
+      "tags": [
+        "yamlgraph"
+      ]
+    }
+  ],
+  "url": "http://localhost:8080/",
+  "version": "0.4.63"
+}
+
+🚀 Part 2: Start A2A server and send a task
+  Command: yamlgraph a2a serve examples/demos/hello/ --port 9127
+---
+🚀 Starting A2A server on 0.0.0.0:9127
+📋 Agent Card: http://0.0.0.0:9127/.well-known/agent-card.json
+INFO:     127.0.0.1:49908 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+
+📡 Fetching Agent Card from running server:
+INFO:     127.0.0.1:49910 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+{
+    "capabilities": {
+        "streaming": true
+    },
+    "defaultInputModes": [
+        "text"
+    ],
+    "defaultOutputModes": [
+        "text"
+    ],
+    "description": "YAMLGraph graphs exposed as A2A agents",
+    "name": "YAMLGraph A2A Server",
+    "preferredTransport": "JSONRPC",
+    "protocolVersion": "0.3.0",
+    "skills": [
+        {
+            "description": "Simple greeting generator demonstrating basic LLM usage",
+            "id": "hello-world",
+            "name": "hello-world",
+            "tags": [
+                "yamlgraph"
+            ]
+        }
+    ],
+    "url": "http://0.0.0.0:9127/",
+    "version": "0.4.63"
+}
+
+
+📨 Sending message via JSON-RPC (message/send):
+INFO:     127.0.0.1:49912 - "POST / HTTP/1.1" 200 OK
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result": {
+        "contextId": "44183293-15fe-4e2e-ae0c-599d2853ab85",
+        "history": [
+            {
+                "contextId": "44183293-15fe-4e2e-ae0c-599d2853ab85",
+                "kind": "message",
+                "messageId": "demo-msg-1",
+                "parts": [
+                    {
+                        "kind": "text",
+                        "text": "name=World style=casual"
+                    }
+                ],
+                "role": "user",
+                "taskId": "845cabed-59ee-447a-8067-513489d43472"
+            }
+        ],
+        "id": "845cabed-59ee-447a-8067-513489d43472",
+        "kind": "task",
+        "status": {
+            "state": "working"
+        }
+    }
+}
+
+═══════════════════════════════════════════════════
+  ✓ Demo complete
+═══════════════════════════════════════════════════
