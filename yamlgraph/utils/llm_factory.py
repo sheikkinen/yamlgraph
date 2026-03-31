@@ -13,12 +13,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 
 from yamlgraph.config import DEFAULT_MODELS
 
-# Optional: Google Vertex AI (install with: pip install yamlgraph[vertex])
-try:
-    from langchain_google_vertexai import ChatVertexAI
-except ImportError:
-    ChatVertexAI = None  # type: ignore[assignment,misc]
-
 logger = logging.getLogger(__name__)
 
 # Type alias for supported providers
@@ -376,23 +370,19 @@ def _create_vertex_llm(
 ) -> BaseChatModel:
     """Create Google Vertex AI LLM.
 
+    Uses ChatGoogleGenerativeAI with vertexai=True for GCP ADC authentication.
     Requires GOOGLE_CLOUD_PROJECT (or VERTEXAI_PROJECT) and optionally
-    GOOGLE_CLOUD_LOCATION. Authentication is handled by Application Default
-    Credentials (ADC) or a service account key file pointed to by
-    GOOGLE_APPLICATION_CREDENTIALS.
+    GOOGLE_CLOUD_LOCATION.
     """
-    if ChatVertexAI is None:
-        raise ImportError(
-            "langchain-google-vertexai is not installed. "
-            "Install with: pip install 'yamlgraph[vertex]'"
-        )
+    from langchain_google_genai import ChatGoogleGenerativeAI
 
     project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("VERTEXAI_PROJECT")
     location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
-    return ChatVertexAI(
-        model_name=model,
+    return ChatGoogleGenerativeAI(
+        model=model,
         temperature=temperature,
+        vertexai=True,
         project=project,
         location=location,
         **kwargs,
