@@ -885,9 +885,9 @@ class TestExecutionTimeout:
         # Simulate a slow invoke
         import time
 
-        mock_app.invoke.side_effect = lambda *a, **kw: time.sleep(5) or {
-            "result": "late"
-        }
+        mock_app.invoke.side_effect = lambda *a, **kw: (
+            time.sleep(5) or {"result": "late"}
+        )
         mock_graph.compile.return_value = mock_app
 
         args = argparse.Namespace(

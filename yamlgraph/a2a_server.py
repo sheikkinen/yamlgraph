@@ -164,7 +164,6 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                         final=False,
                     )
                 )
-                await event_queue.close(immediate=True)
                 return
 
             # Extract output text from result
@@ -226,9 +225,10 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                 )
             )
         finally:
-            # Signal no more events — use immediate=True since
-            # the SDK's DefaultRequestHandler handles consumer drain.
-            await event_queue.close(immediate=True)
+            # Graceful close: let SSE consumer drain all enqueued events
+            # before closing. immediate=True would clear pending events,
+            # preventing artifact/completed events from reaching the client.
+            await event_queue.close(immediate=False)
 
     async def cancel(
         self,

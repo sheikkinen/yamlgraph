@@ -110,7 +110,7 @@ def diary_at_threshold(diary_fixture_dir):
 def diary_above_threshold(diary_fixture_dir):
     """Diary with markers appearing above threshold (more than 3 times)."""
     for i in range(5):
-        (diary_fixture_dir / f"diary-2026-03-0{i+1}.md").write_text(
+        (diary_fixture_dir / f"diary-2026-03-0{i + 1}.md").write_text(
             f"**Trap:** intent_drift\n**Seed:** Question {i}?\n"
         )
     return diary_fixture_dir
@@ -127,11 +127,11 @@ def diary_mixed_markers(diary_fixture_dir):
     )
     # File 2: same trap + different heuristic
     (diary_fixture_dir / "diary-2026-03-02.md").write_text(
-        "**Trap:** quick_confidence\n" "**Heuristic:** Test before assuming\n"
+        "**Trap:** quick_confidence\n**Heuristic:** Test before assuming\n"
     )
     # File 3: same trap again (now at threshold)
     (diary_fixture_dir / "diary-2026-03-03.md").write_text(
-        "**Trap:** quick_confidence\n" "**Heuristic:** Judge when certain\n"
+        "**Trap:** quick_confidence\n**Heuristic:** Judge when certain\n"
     )
     return diary_fixture_dir
 
