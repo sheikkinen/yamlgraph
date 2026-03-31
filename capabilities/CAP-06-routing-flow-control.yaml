@@ -20,4 +20,9 @@ requirements:
     description: Condition expression evaluation
     modules:
       - utils/conditions
-fr: legacy
+  - id: REQ-YG-214
+    description: "Router route mapping redirects interrupt targets to *_prepare and subgraph interrupt targets to *__run in conditional edge route mappings (FR-211)"
+    modules:
+      - edge_compiler
+      - graph_loader
+fr: FR-211

@@ -288,8 +288,14 @@ def compile_graph(config: GraphConfig) -> StateGraph:
             edge, graph, map_nodes, router_edges, expression_edges, interrupt_nodes
         )
 
-    # Add conditional edges
-    _add_conditional_edges(graph, router_edges, expression_edges, config.loop_exits)
+    # Add conditional edges (FR-211: pass interrupt_nodes for route mapping redirect)
+    _add_conditional_edges(
+        graph,
+        router_edges,
+        expression_edges,
+        config.loop_exits,
+        interrupt_nodes=interrupt_nodes,
+    )
 
     return graph
 

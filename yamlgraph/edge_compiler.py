@@ -117,6 +117,8 @@ def _add_conditional_edges(
     router_edges: dict[str, list],
     expression_edges: dict[str, list[tuple[str, str]]],
     loop_exits: dict[str, str] | None = None,
+    interrupt_nodes: set[str] | None = None,
+    subgraph_interrupt_nodes: set[str] | None = None,
 ) -> None:
     """Add router and expression conditional edges to graph.
 
@@ -125,10 +127,21 @@ def _add_conditional_edges(
         router_edges: Router-style conditional edges
         expression_edges: Expression-based conditional edges
         loop_exits: Map of node name to exit target when loop limit reached (FR-172)
+        interrupt_nodes: Interrupt node names needing *_prepare redirect (FR-211)
+        subgraph_interrupt_nodes: Subgraph interrupt names needing *__run redirect
     """
     # Add router conditional edges
     for source_node, target_nodes in router_edges.items():
-        route_mapping = {target: target for target in target_nodes}
+        # FR-211: Redirect interrupt targets in route mapping while keeping
+        # original names as route labels for make_router_fn matching
+        route_mapping = {}
+        for target in target_nodes:
+            if interrupt_nodes and target in interrupt_nodes:
+                route_mapping[target] = f"{target}_prepare"
+            elif subgraph_interrupt_nodes and target in subgraph_interrupt_nodes:
+                route_mapping[target] = f"{target}__run"
+            else:
+                route_mapping[target] = target
         graph.add_conditional_edges(
             source_node,
             make_router_fn(target_nodes),
