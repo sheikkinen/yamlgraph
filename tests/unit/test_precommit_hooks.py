@@ -6,7 +6,9 @@ These tests invoke the bash hook entries directly via subprocess
 with temporary commit message files to verify the conditional logic.
 """
 
+import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -376,3 +378,106 @@ class TestFinalizeMergeUnstagedDiary:
         assert (
             "untracked" in content.lower()
         ), "Commit message should mention 'untracked'"
+
+
+# ── FR-212: Block AI Co-Author Trailers ─────────────────────────────────────
+
+BLOCK_AI_COAUTHOR_SCRIPT = Path("scripts/block_ai_coauthor.py")
+
+
+def run_block_ai_coauthor(commit_msg: str) -> subprocess.CompletedProcess:
+    """Run block_ai_coauthor.py with a commit message written to a temp file."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write(commit_msg)
+        f.flush()
+        msg_file = f.name
+
+    try:
+        result = subprocess.run(
+            [sys.executable, str(BLOCK_AI_COAUTHOR_SCRIPT), msg_file],
+            capture_output=True,
+            text=True,
+        )
+        return result
+    finally:
+        Path(msg_file).unlink()
+
+
+@pytest.mark.req("REQ-YG-215")
+class TestBlockAICoAuthor:
+    """Tests for block-ai-coauthor commit-msg hook (FR-212)."""
+
+    def test_copilot_trailer_rejected(self) -> None:
+        """Co-authored-by: Copilot trailer must be blocked."""
+        msg = "feat: FR-212 add hook\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\n"
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 1, "Copilot trailer should fail"
+
+    def test_claude_trailer_rejected(self) -> None:
+        """Co-authored-by: Claude trailer must be blocked."""
+        msg = "fix: correct bug\n\nCo-authored-by: Claude <claude@anthropic.com>\n"
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 1, "Claude trailer should fail"
+
+    def test_github_copilot_trailer_rejected(self) -> None:
+        """Co-authored-by: GitHub Copilot trailer must be blocked."""
+        msg = (
+            "fix: correct bug\n\nCo-authored-by: GitHub Copilot <copilot@github.com>\n"
+        )
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 1, "GitHub Copilot trailer should fail"
+
+    def test_chatgpt_trailer_rejected(self) -> None:
+        """Co-authored-by: ChatGPT trailer must be blocked."""
+        msg = "fix: bug\n\nCo-authored-by: ChatGPT <chatgpt@openai.com>\n"
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 1, "ChatGPT trailer should fail"
+
+    def test_gemini_trailer_rejected(self) -> None:
+        """Co-authored-by: Gemini trailer must be blocked."""
+        msg = "fix: bug\n\nCo-authored-by: Gemini <gemini@google.com>\n"
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 1, "Gemini trailer should fail"
+
+    def test_gpt4_trailer_rejected(self) -> None:
+        """Co-authored-by: GPT-4 trailer must be blocked."""
+        msg = "fix: bug\n\nCo-authored-by: GPT-4 <gpt4@openai.com>\n"
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 1, "GPT-4 trailer should fail"
+
+    def test_clean_commit_accepted(self) -> None:
+        """Commit with no AI trailer must pass."""
+        msg = "feat: FR-212 add hook\n\nAdded enforcement hook.\n"
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 0, f"Clean commit should pass: {result.stdout}"
+
+    def test_human_coauthor_accepted(self) -> None:
+        """Human Co-authored-by trailer must pass."""
+        msg = "feat: FR-212 pair programming\n\nCo-authored-by: Alice Smith <alice@example.com>\n"
+        result = run_block_ai_coauthor(msg)
+        assert result.returncode == 0, f"Human co-author should pass: {result.stdout}"
+
+    def test_rejection_output_contains_offending_line(self) -> None:
+        """Rejection must print the offending trailer line."""
+        msg = "fix: bug\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\n"
+        result = run_block_ai_coauthor(msg)
+        combined = result.stdout + result.stderr
+        assert "Co-authored-by" in combined, "Output must show offending line"
+
+    def test_rejection_output_contains_penance(self) -> None:
+        """Rejection must include the penance liturgy."""
+        msg = "fix: bug\n\nCo-authored-by: Claude <claude@anthropic.com>\n"
+        result = run_block_ai_coauthor(msg)
+        combined = result.stdout + result.stderr
+        assert "Confession required" in combined, "Penance liturgy must be printed"
+
+    def test_script_exists_and_is_executable(self) -> None:
+        """scripts/block_ai_coauthor.py must exist and be executable."""
+        assert BLOCK_AI_COAUTHOR_SCRIPT.exists(), "Script file must exist"
+        assert os.access(BLOCK_AI_COAUTHOR_SCRIPT, os.X_OK), "Script must be executable"
+
+    def test_hook_registered_in_precommit_config(self) -> None:
+        """block-ai-coauthor hook must be in .pre-commit-config.yaml at commit-msg stage."""
+        config = Path(".pre-commit-config.yaml").read_text()
+        assert "block-ai-coauthor" in config, "Hook ID must be in pre-commit config"
+        assert "commit-msg" in config, "Hook must use commit-msg stage"

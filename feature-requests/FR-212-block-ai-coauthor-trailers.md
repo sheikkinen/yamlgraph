@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-03-31
 
@@ -137,18 +137,18 @@ if __name__ == "__main__":
 
 ## Acceptance Criteria
 
-- [ ] `scripts/block_ai_coauthor.py` exists and is executable
-- [ ] Hook `block-ai-coauthor` is registered in `.pre-commit-config.yaml` at `commit-msg` stage
-- [ ] Commit message containing `Co-authored-by: Copilot <...>` is **rejected** (exit 1)
-- [ ] Commit message containing `Co-authored-by: Claude <...>` is **rejected** (exit 1)
-- [ ] Commit message containing `Co-authored-by: GitHub Copilot <...>` is **rejected** (exit 1)
-- [ ] Commit message with no AI trailer is **accepted** (exit 0)
-- [ ] Human `Co-authored-by:` trailers (e.g., a real team member) are **accepted** (exit 0)
-- [ ] Rejection output includes the offending line(s) and the full penance liturgy
-- [ ] Unit tests added in `tests/unit/test_precommit_hooks.py` covering all cases above
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-XXX")` (new requirement added to ARCHITECTURE.md)
-- [ ] Changelog fragment added in `changelog/unreleased/`
-- [ ] Diary reflection added in `docs/diary/`
+- [x] `scripts/block_ai_coauthor.py` exists and is executable
+- [x] Hook `block-ai-coauthor` is registered in `.pre-commit-config.yaml` at `commit-msg` stage
+- [x] Commit message containing `Co-authored-by: Copilot <...>` is **rejected** (exit 1)
+- [x] Commit message containing `Co-authored-by: Claude <...>` is **rejected** (exit 1)
+- [x] Commit message containing `Co-authored-by: GitHub Copilot <...>` is **rejected** (exit 1)
+- [x] Commit message with no AI trailer is **accepted** (exit 0)
+- [x] Human `Co-authored-by:` trailers (e.g., a real team member) are **accepted** (exit 0)
+- [x] Rejection output includes the offending line(s) and the full penance liturgy
+- [x] Unit tests added in `tests/unit/test_precommit_hooks.py` covering all cases above
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-215")` (new requirement added to ARCHITECTURE.md)
+- [x] Changelog fragment added in `changelog/unreleased/`
+- [x] Diary reflection added in `docs/diary/`
 
 ## Alternatives Considered
 
