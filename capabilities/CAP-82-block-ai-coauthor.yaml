@@ -1,0 +1,22 @@
+id: CAP-82
+name: Block AI Co-Author Trailers
+description: >
+  Commit-msg hook that detects and blocks AI agent Co-authored-by trailers
+  (Copilot, Claude, ChatGPT, Gemini, GPT-*) before they enter the repository.
+  Prints the offending line(s) and penance liturgy, then exits 1 to block the
+  commit. Human co-authors and clean messages pass silently.
+modules:
+  - scripts/block_ai_coauthor.py
+  - .pre-commit-config.yaml
+requirements:
+  - id: REQ-YG-215
+    description: >
+      block_ai_coauthor.py commit-msg hook: regex-detects AI agent trailers,
+      exits 1 with offending line + penance liturgy; exits 0 for clean and
+      human-only messages; registered as block-ai-coauthor in pre-commit-config
+      at commit-msg stage before absolution
+    modules:
+      - scripts/block_ai_coauthor.py
+      - .pre-commit-config.yaml
+      - tests/unit/test_precommit_hooks.py
+fr: FR-212
