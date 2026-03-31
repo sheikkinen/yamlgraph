@@ -13,6 +13,12 @@ from langchain_core.language_models.chat_models import BaseChatModel
 
 from yamlgraph.config import DEFAULT_MODELS
 
+# Optional: Google Vertex AI (install with: pip install yamlgraph[vertex])
+try:
+    from langchain_google_vertexai import ChatVertexAI
+except ImportError:
+    ChatVertexAI = None  # type: ignore[assignment,misc]
+
 logger = logging.getLogger(__name__)
 
 # Type alias for supported providers
@@ -25,6 +31,7 @@ ProviderType = Literal[
     "mistral",
     "openai",
     "replicate",
+    "vertex",
     "xai",
 ]
 
@@ -163,6 +170,8 @@ def _dispatch_provider(
         return _create_openai_llm(model, temperature, **kwargs)
     if provider == "replicate":
         return _create_replicate_llm(model, temperature, **kwargs)
+    if provider == "vertex":
+        return _create_vertex_llm(model, temperature, **kwargs)
     if provider == "xai":
         return _create_xai_llm(model, temperature, **kwargs)
     if provider == "lmstudio":
@@ -358,6 +367,34 @@ def _create_replicate_llm(
     return ChatLiteLLM(
         model=litellm_model,
         temperature=temperature,
+        **kwargs,
+    )
+
+
+def _create_vertex_llm(
+    model: str, temperature: float, **kwargs: object
+) -> BaseChatModel:
+    """Create Google Vertex AI LLM.
+
+    Requires GOOGLE_CLOUD_PROJECT (or VERTEXAI_PROJECT) and optionally
+    GOOGLE_CLOUD_LOCATION. Authentication is handled by Application Default
+    Credentials (ADC) or a service account key file pointed to by
+    GOOGLE_APPLICATION_CREDENTIALS.
+    """
+    if ChatVertexAI is None:
+        raise ImportError(
+            "langchain-google-vertexai is not installed. "
+            "Install with: pip install 'yamlgraph[vertex]'"
+        )
+
+    project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("VERTEXAI_PROJECT")
+    location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+
+    return ChatVertexAI(
+        model_name=model,
+        temperature=temperature,
+        project=project,
+        location=location,
         **kwargs,
     )
 

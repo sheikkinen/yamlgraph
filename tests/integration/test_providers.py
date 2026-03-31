@@ -186,3 +186,18 @@ class TestJinja2WithProviders:
         )
         assert isinstance(result, str)
         assert len(result) > 0
+
+    @pytest.mark.req("REQ-YG-010")
+    @pytest.mark.skipif(
+        not os.getenv("GOOGLE_CLOUD_PROJECT"),
+        reason="GOOGLE_CLOUD_PROJECT not set (Vertex AI requires GCP project)",
+    )
+    def test_execute_prompt_with_vertex_provider(self):
+        """Should execute prompt with Vertex AI provider (requires GCP credentials)."""
+        result = execute_prompt(
+            prompt_name="greet",
+            variables={"name": "Victor", "style": "formal"},
+            provider="vertex",
+        )
+        assert isinstance(result, str)
+        assert len(result) > 0
