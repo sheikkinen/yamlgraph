@@ -62,8 +62,7 @@ EXISTING_PROCESS_ENTRIES = {
     "audit_gate": ('"Audit without blocking mechanism = post-mortem before incident"'),
     "demo_vs_test": ('"Tests prove constraints; demos prove abstraction worth having"'),
     "unchallenged_premise": (
-        '"Judge validates execution, not intent'
-        " → need Red Hat: 'Is the pain real?'\""
+        "\"Judge validates execution, not intent → need Red Hat: 'Is the pain real?'\""
     ),
 }
 

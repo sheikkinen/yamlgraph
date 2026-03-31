@@ -38,10 +38,10 @@
 ---
 🚀 Starting A2A server on 0.0.0.0:9127
 📋 Agent Card: http://0.0.0.0:9127/.well-known/agent-card.json
-INFO:     127.0.0.1:49908 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57780 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
 
 📡 Fetching Agent Card from running server:
-INFO:     127.0.0.1:49910 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57782 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
 {
     "capabilities": {
         "streaming": true
@@ -72,15 +72,27 @@ INFO:     127.0.0.1:49910 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
 
 
 📨 Sending message via JSON-RPC (message/send):
-INFO:     127.0.0.1:49912 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57784 - "POST / HTTP/1.1" 200 OK
 {
     "id": 1,
     "jsonrpc": "2.0",
     "result": {
-        "contextId": "44183293-15fe-4e2e-ae0c-599d2853ab85",
+        "artifacts": [
+            {
+                "artifactId": "ff2978b0-b291-4bae-b78b-8c00fed1bc96",
+                "name": "graph_output",
+                "parts": [
+                    {
+                        "kind": "text",
+                        "text": "greet\n\n[]\n\ncasual\n\nWorld\n\n# Hey there, World! \ud83d\udc4b\n\nWhat's up! Great to see you around. Hope you're having an absolutely fantastic day and ready to take on whatever comes your way. You've got this, and I'm genuinely excited to connect with you. Let's make something awesome happen together!\n\nCatch you soon! \ud83c\udf1f"
+                    }
+                ]
+            }
+        ],
+        "contextId": "11ba114b-1619-433e-8033-00b706a451b1",
         "history": [
             {
-                "contextId": "44183293-15fe-4e2e-ae0c-599d2853ab85",
+                "contextId": "11ba114b-1619-433e-8033-00b706a451b1",
                 "kind": "message",
                 "messageId": "demo-msg-1",
                 "parts": [
@@ -90,16 +102,38 @@ INFO:     127.0.0.1:49912 - "POST / HTTP/1.1" 200 OK
                     }
                 ],
                 "role": "user",
-                "taskId": "845cabed-59ee-447a-8067-513489d43472"
+                "taskId": "65c622d8-54bc-436f-8158-21c4b33a171d"
             }
         ],
-        "id": "845cabed-59ee-447a-8067-513489d43472",
+        "id": "65c622d8-54bc-436f-8158-21c4b33a171d",
         "kind": "task",
         "status": {
-            "state": "working"
+            "message": {
+                "kind": "message",
+                "messageId": "2017ca51-205f-44e2-83a3-3ca144994a40",
+                "parts": [
+                    {
+                        "kind": "text",
+                        "text": "greet\n\n[]\n\ncasual\n\nWorld\n\n# Hey there, World! \ud83d\udc4b\n\nWhat's up! Great to see you around. Hope you're having an absolutely fantastic day and ready to take on whatever comes your way. You've got this, and I'm genuinely excited to connect with you. Let's make something awesome happen together!\n\nCatch you soon! \ud83c\udf1f"
+                    }
+                ],
+                "role": "agent"
+            },
+            "state": "completed"
         }
     }
 }
+
+🌊 Part 3: Stream response via message/stream (SSE)
+  Method: message/stream → Server-Sent Events
+---
+INFO:     127.0.0.1:57787 - "POST / HTTP/1.1" 200 OK
+data: {"id":2,"jsonrpc":"2.0","result":{"contextId":"692ae6e8-ff6c-465e-8cb6-05ba692ef121","final":false,"kind":"status-update","status":{"state":"working"},"taskId":"bca7fb7e-89fb-43ba-8251-68f2b4aa9bed"}}
+
+data: {"id":2,"jsonrpc":"2.0","result":{"artifact":{"artifactId":"95e9a01f-4b17-42fe-9e64-91e1639bbd37","name":"graph_output","parts":[{"kind":"text","text":"greet\n\n[]\n\ncasual\n\nWorld\n\n# Hey there, World! 👋\n\nWhat's good? Just wanted to drop by and say what's up! You're looking pretty amazing today, honestly. Whether you're spinning through another sunrise, dealing with some chaos, or just vibing in between—you're doing great.\n\nThanks for being such a wild, beautiful, unpredictable place. Never a dull moment with you around! 🌍✨\n\nCatch you around! 😊"}]},"contextId":"692ae6e8-ff6c-465e-8cb6-05ba692ef121","kind":"artifact-update","taskId":"bca7fb7e-89fb-43ba-8251-68f2b4aa9bed"}}
+
+data: {"id":2,"jsonrpc":"2.0","result":{"contextId":"692ae6e8-ff6c-465e-8cb6-05ba692ef121","final":true,"kind":"status-update","status":{"message":{"kind":"message","messageId":"4758468d-e4ac-44ef-a744-6a62de548592","parts":[{"kind":"text","text":"greet\n\n[]\n\ncasual\n\nWorld\n\n# Hey there, World! 👋\n\nWhat's good? Just wanted to drop by and say what's up! You're looking pretty amazing today, honestly. Whether you're spinning through another sunrise, dealing with some chaos, or just vibing in between—you're doing great.\n\nThanks for being such a wild, beautiful, unpredictable place. Never a dull moment with you around! 🌍✨\n\nCatch you around! 😊"}],"role":"agent"},"state":"completed"},"taskId":"bca7fb7e-89fb-43ba-8251-68f2b4aa9bed"}}
+
 
 ═══════════════════════════════════════════════════
   ✓ Demo complete
