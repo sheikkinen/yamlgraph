@@ -1,6 +1,6 @@
 # FR-213: Add Google Vertex AI Provider
 
-**Status**: Approved
+**Status**: Implemented
 **Priority**: Medium
 **Type**: Feature
 **Effort**: 1 hour
@@ -142,18 +142,18 @@ def test_create_llm_vertex(monkeypatch):
 
 ## Acceptance Criteria
 
-- [ ] `create_llm(provider="vertex")` returns a `ChatVertexAI` instance
-- [ ] `GOOGLE_CLOUD_PROJECT` is forwarded to `ChatVertexAI(project=…)`
-- [ ] `GOOGLE_CLOUD_LOCATION` is forwarded (default: `"us-central1"`)
-- [ ] `VERTEX_MODEL` env var overrides default model (`gemini-2.0-flash`)
-- [ ] A graph with `defaults.provider: vertex` runs end-to-end (integration test, skipped if `GOOGLE_CLOUD_PROJECT` not set)
-- [ ] Unit test mocks `ChatVertexAI` and verifies all constructor kwargs
-- [ ] `langchain-google-vertexai` added as optional extra `[vertex]` in `pyproject.toml`
-- [ ] ARCHITECTURE.md provider count updated to 10
-- [ ] `test_provider_type_has_expected_providers` updated and passing
-- [ ] `CLAUDE.md` env var table updated
-- [ ] Changelog fragment written in `changelog/unreleased/`
-- [ ] Diary entry written in `docs/diary/`
+- [x] `create_llm(provider="vertex")` returns a `ChatVertexAI` instance
+- [x] `GOOGLE_CLOUD_PROJECT` is forwarded to `ChatVertexAI(project=…)`
+- [x] `GOOGLE_CLOUD_LOCATION` is forwarded (default: `"us-central1"`)
+- [x] `VERTEX_MODEL` env var overrides default model (`gemini-2.0-flash`)
+- [x] A graph with `defaults.provider: vertex` runs end-to-end (integration test, skipped if `GOOGLE_CLOUD_PROJECT` not set)
+- [x] Unit test mocks `ChatVertexAI` and verifies all constructor kwargs
+- [x] `langchain-google-vertexai` added as optional extra `[vertex]` in `pyproject.toml`
+- [x] ARCHITECTURE.md provider count updated to 10
+- [x] `test_provider_type_has_expected_providers` updated and passing
+- [x] `CLAUDE.md` env var table updated
+- [x] Changelog fragment written in `changelog/unreleased/`
+- [x] Diary entry written in `docs/diary/`
 
 ## Files to Change
 

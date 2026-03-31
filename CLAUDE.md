@@ -406,6 +406,9 @@ The codebase uses **sync-first with async wrappers**:
 |----------|---------|
 | `ANTHROPIC_API_KEY` | Anthropic authentication |
 | `GOOGLE_API_KEY` | Google/Gemini authentication |
+| `GOOGLE_CLOUD_PROJECT` | GCP project for Vertex AI (`provider: vertex`) |
+| `GOOGLE_CLOUD_LOCATION` | Vertex AI region (default: `us-central1`) |
+| `VERTEX_MODEL` | Default model for Vertex AI provider (default: `gemini-2.0-flash`) |
 | `INCEPTION_API_KEY` | Inception Labs Mercury authentication |
 | `MISTRAL_API_KEY` | Mistral authentication |
 | `OPENAI_API_KEY` | OpenAI authentication |

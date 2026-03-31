@@ -60,6 +60,9 @@ storyboard = [
 replicate = [
     "langchain-litellm>=0.3.0",  # includes litellm as dependency
 ]
+vertex = [
+    "langchain-google-vertexai>=2.0.0",
+]
 redis = [
     "langgraph-checkpoint-redis>=0.3.0",
 ]
