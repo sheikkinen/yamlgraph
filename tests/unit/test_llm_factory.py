@@ -172,17 +172,18 @@ class TestCreateLLM:
 
     @pytest.mark.req("REQ-YG-010")
     def test_create_llm_vertex(self, monkeypatch):
-        """Vertex provider creates ChatVertexAI with project and location."""
+        """Vertex provider creates ChatGoogleGenerativeAI with vertexai=True."""
         monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
         monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "europe-west4")
 
-        with patch("yamlgraph.utils.llm_factory.ChatVertexAI") as mock_cls:
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as mock_cls:
             create_llm(provider="vertex", model="gemini-2.0-flash")
             mock_cls.assert_called_once()
             kwargs = mock_cls.call_args[1]
             assert kwargs["project"] == "test-project"
             assert kwargs["location"] == "europe-west4"
-            assert kwargs["model_name"] == "gemini-2.0-flash"
+            assert kwargs["model"] == "gemini-2.0-flash"
+            assert kwargs["vertexai"] is True
 
     @pytest.mark.req("REQ-YG-010")
     def test_vertex_default_location(self, monkeypatch):
@@ -190,7 +191,7 @@ class TestCreateLLM:
         monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
         monkeypatch.delenv("GOOGLE_CLOUD_LOCATION", raising=False)
 
-        with patch("yamlgraph.utils.llm_factory.ChatVertexAI") as mock_cls:
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as mock_cls:
             create_llm(provider="vertex", model="gemini-2.0-flash")
             kwargs = mock_cls.call_args[1]
             assert kwargs["location"] == "us-central1"
@@ -210,7 +211,7 @@ class TestCreateLLM:
         monkeypatch.setenv("VERTEXAI_PROJECT", "fallback-project")
         monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
-        with patch("yamlgraph.utils.llm_factory.ChatVertexAI") as mock_cls:
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as mock_cls:
             create_llm(provider="vertex", model="gemini-2.0-flash")
             kwargs = mock_cls.call_args[1]
             assert kwargs["project"] == "fallback-project"
