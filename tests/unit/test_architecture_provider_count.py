@@ -53,6 +53,7 @@ class TestArchitectureProviderCount:
             "mistral",
             "openai",
             "replicate",
+            "vertex",
             "xai",
         }
         assert providers == expected, (
