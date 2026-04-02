@@ -202,6 +202,33 @@ class TestExtractVariables:
         variables = extract_variables(template)
         assert variables == {"external"}
 
+    @pytest.mark.req("REQ-YG-216")
+    def test_extract_variables_set_in_nested_for_if(self):
+        """{% set %} inside {% for %}{% if %} must not appear as required."""
+        from yamlgraph.utils.template import extract_variables
+
+        template = "{% for i in items %}{% if i %}{% set x = i %}{{ x }}{% endif %}{% endfor %}"
+        result = extract_variables(template)
+        assert result == {"items"}, f"Expected {{'items'}}, got {result}"
+
+    @pytest.mark.req("REQ-YG-216")
+    def test_extract_variables_set_before_use_still_reported(self):
+        """A variable genuinely undeclared must still be reported even if a
+        {% set %} of the same name exists.  Verifies the subtraction does not
+        silently drop real undeclared vars.
+
+        NOTE: Jinja2's find_undeclared_variables already resolves top-level
+        {% set x = y %} correctly (y is reported, x is not), so this test
+        confirms the combined fix does not regress that behaviour.
+        """
+        from yamlgraph.utils.template import extract_variables
+
+        # x is assigned via set, but y is never assigned — y must remain in result
+        template = "{% set x = y %}{{ x }}"
+        result = extract_variables(template)
+        assert "y" in result, f"Expected 'y' in result, got {result}"
+        assert "x" not in result, f"Expected 'x' not in result, got {result}"
+
 
 class TestValidateVariables:
     """Tests for validate_variables function."""
