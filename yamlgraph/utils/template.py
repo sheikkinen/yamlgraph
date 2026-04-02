@@ -12,6 +12,7 @@ import re
 from typing import Any
 
 from jinja2 import Environment, meta
+from jinja2 import nodes as jinja_nodes
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,14 @@ def extract_variables(template: str) -> set[str]:
         env = Environment()
         ast = env.parse(template)
         variables = meta.find_undeclared_variables(ast)
+        # Subtract variables assigned via {% set %} at any nesting depth.
+        # find_undeclared_variables misses nested set targets inside for/if blocks.
+        set_targets = {
+            node.target.name
+            for node in ast.find_all(jinja_nodes.Assign)
+            if isinstance(node.target, jinja_nodes.Name)
+        }
+        variables -= set_targets
         # Also extract simple {var} placeholders (mixed syntax support)
         simple_pattern = r"(?<!\{)\{(\w+)\}(?!\})"
         variables.update(re.findall(simple_pattern, template))

@@ -23,6 +23,10 @@ requirements:
       - executor_base.format_prompt
       - utils/expressions
       - utils/template
+  - id: REQ-YG-216
+    description: extract_variables() subtracts set-statement targets in nested blocks (FR-214)
+    modules:
+      - utils/template
   - id: REQ-YG-014
     description: Synchronous prompt execution
     modules:
