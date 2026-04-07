@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-07
 
@@ -175,17 +175,17 @@ schema:
 
 ## Acceptance Criteria
 
-- [ ] `examples/demos/research-agent/graph.yaml` with 5 nodes following the extract → plan → execute → validate → respond pattern
-- [ ] Uses `type: llm` for structured extraction (`extract_intent`) and validation (`validate_findings`)
-- [ ] Uses `type: agent` with explicit tool whitelists for planning and execution
-- [ ] `plan_research` gets a subset of tools (discovery only); `execute_research` gets all tools
-- [ ] Validation node checks findings against extracted intent; returns structured gaps/confidence
-- [ ] Shell tools use `{placeholder}` variables with descriptions
-- [ ] `examples/demos/research-agent/README.md` documenting the 5-step pattern, usage, and key concepts
-- [ ] `demo-output.log` proving execution via `yamlgraph graph run`
-- [ ] Graph passes `yamlgraph graph lint`
-- [ ] Prompts use `prompts_relative: true` with local `prompts/` directory
-- [ ] Tests: at least one unit test with `@pytest.mark.req` covering graph load/lint
+- [x] `examples/demos/research-agent/graph.yaml` with 5 nodes following the extract → plan → execute → validate → respond pattern
+- [x] Uses `type: llm` for structured extraction (`extract_intent`) and validation (`validate_findings`)
+- [x] Uses `type: agent` with explicit tool whitelists for planning and execution
+- [x] `plan_research` gets a subset of tools (discovery only); `execute_research` gets all tools
+- [x] Validation node checks findings against extracted intent; returns structured gaps/confidence
+- [x] Shell tools use `{placeholder}` variables with descriptions
+- [x] `examples/demos/research-agent/README.md` documenting the 5-step pattern, usage, and key concepts
+- [x] `demo-output.log` proving execution via `yamlgraph graph run`
+- [x] Graph passes `yamlgraph graph lint`
+- [x] Prompts use `prompts_relative: true` with local `prompts/` directory
+- [x] Tests: at least one unit test with `@pytest.mark.req` covering graph load/lint
 
 ## Alternatives Considered
 

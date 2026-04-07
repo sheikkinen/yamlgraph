@@ -1,0 +1,28 @@
+═══════════════════════════════════════════════════
+  FR-215: Research Agent Demo (5-Step Agentic Pattern)
+═══════════════════════════════════════════════════
+
+📋 Part 1: Lint validation
+  Command: yamlgraph graph lint examples/demos/research-agent/graph.yaml
+---
+✅ graph.yaml - No issues found
+
+✅ All graphs passed linting
+
+📋 Part 2: Graph compilation (run attempt)
+  Command: yamlgraph graph run examples/demos/research-agent/graph.yaml --var query="How does the agent node type work?" --var scope="yamlgraph/" --full
+---
+2026-04-07 06:40:31,136 [INFO] yamlgraph.graph_loader: Parsed 4 shell tools: search_code, list_files, read_file, count_lines
+2026-04-07 06:40:31,139 [INFO] yamlgraph.node_compiler: Added node: extract_intent (type=llm)
+2026-04-07 06:40:31,149 [INFO] yamlgraph.node_compiler: Added node: plan_research (type=agent)
+2026-04-07 06:40:31,151 [INFO] yamlgraph.node_compiler: Added node: execute_research (type=agent)
+2026-04-07 06:40:31,154 [INFO] yamlgraph.node_compiler: Added node: validate_findings (type=llm)
+2026-04-07 06:40:31,154 [INFO] yamlgraph.node_compiler: Added node: synthesize_report (type=llm)
+2026-04-07 06:40:31,178 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-07 06:40:31,737 [ERROR] yamlgraph.error_handlers: Node extract_intent failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-07 06:40:31,746 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: plan_research (max 5 iterations)
+
+🚀 Running graph: graph.yaml
+   Variables: {'query': 'How does the agent node type work?', 'scope': 'yamlgraph/'}
+
+❌ Error: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"

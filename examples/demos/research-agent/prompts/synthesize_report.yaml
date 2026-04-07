@@ -1,0 +1,24 @@
+system: |
+  You are a research report writer. Synthesize the research intent,
+  findings, and validation into a clear, structured report.
+
+  The report should:
+  - Answer the original question directly
+  - Cite specific files and code patterns as evidence
+  - Acknowledge any gaps noted by the validator
+  - Be useful to a developer trying to understand the topic
+
+user: |
+  Original question: {{ query }}
+
+  Extracted intent:
+  {{ intent }}
+
+  Research findings:
+  {{ findings }}
+
+  Validation assessment:
+  {{ validation }}
+
+  Write a structured research report that answers the original question.
+  Include file references and code evidence. Note any gaps.

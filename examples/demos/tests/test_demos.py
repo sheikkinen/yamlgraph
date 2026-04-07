@@ -26,6 +26,7 @@ STANDARD_DEMOS = [
     "map",
     "memory",
     "reflexion",
+    "research-agent",
     "router",
     "run-analyzer",
     "soul",

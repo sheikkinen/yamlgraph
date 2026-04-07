@@ -1,0 +1,99 @@
+version: "1.0"
+name: research-agent
+description: >
+  5-step agentic research: extract intent, plan approach,
+  execute research with tools, validate findings, synthesize report.
+
+prompts_relative: true
+prompts_dir: prompts
+
+variables:
+  query:
+    description: Research question to investigate
+    example: "How does the agent node type work?"
+  scope:
+    description: Directory scope for research
+    default: yamlgraph/
+
+tools:
+  search_code:
+    type: shell
+    command: grep -rn "{pattern}" --include="*.py" {scope} | head -20
+    description: Search Python source files for a pattern
+  list_files:
+    type: shell
+    command: find {path} -name "*.py" -type f | head -30
+    description: List Python files in a directory
+  read_file:
+    type: shell
+    command: head -80 {file}
+    description: Read the first 80 lines of a file
+  count_lines:
+    type: shell
+    command: wc -l {file}
+    description: Count lines in a file
+
+nodes:
+  extract_intent:
+    type: llm
+    prompt: extract_intent
+    state_key: intent
+    variables:
+      query: "{query}"
+
+  plan_research:
+    type: agent
+    prompt: plan_research
+    tools: [search_code, list_files]
+    max_iterations: 5
+    state_key: plan
+    requires: [intent]
+    variables:
+      intent: "{state.intent}"
+      scope: "{scope}"
+
+  execute_research:
+    type: agent
+    prompt: execute_research
+    tools: [search_code, list_files, read_file, count_lines]
+    max_iterations: 10
+    state_key: findings
+    tool_results_key: _research_tools
+    requires: [plan]
+    variables:
+      plan: "{state.plan}"
+      scope: "{scope}"
+
+  validate_findings:
+    type: llm
+    prompt: validate_findings
+    state_key: validation
+    requires: [intent, findings]
+    variables:
+      intent: "{state.intent}"
+      findings: "{state.findings}"
+
+  synthesize_report:
+    type: llm
+    prompt: synthesize_report
+    state_key: report
+    requires: [intent, findings, validation]
+    variables:
+      query: "{query}"
+      intent: "{state.intent}"
+      findings: "{state.findings}"
+      validation: "{state.validation}"
+
+edges:
+  - from: START
+    to: extract_intent
+  - from: extract_intent
+    to: plan_research
+  - from: plan_research
+    to: execute_research
+  - from: execute_research
+    to: validate_findings
+  - from: validate_findings
+    to: synthesize_report
+  - from: synthesize_report
+    to: END
