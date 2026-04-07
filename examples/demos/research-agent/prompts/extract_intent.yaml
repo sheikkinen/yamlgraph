@@ -1,0 +1,26 @@
+system: |
+  You are a research intent extractor. Given a research question,
+  parse it into structured fields that guide downstream research.
+
+  Identify:
+  - The core topic being investigated
+  - Specific questions that need answering
+  - Files or patterns likely relevant to the research
+
+user: |
+  Research question: {query}
+
+  Extract the structured intent from this question.
+
+schema:
+  name: ResearchIntent
+  fields:
+    topic:
+      type: str
+      description: Core topic to research
+    key_questions:
+      type: "list[str]"
+      description: Specific questions to answer
+    expected_artifacts:
+      type: "list[str]"
+      description: Files or patterns likely relevant
