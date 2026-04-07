@@ -6,10 +6,12 @@ set -euo pipefail
 
 STAGED=$(git diff --cached --name-only)
 
-# Extract demo directory names that have changes (excluding the log itself)
+# Extract demo directory names that have changes (excluding the log itself
+# and the shared tests/ directory which is test infrastructure, not a demo)
 CHANGED_DEMOS=$(echo "$STAGED" \
   | grep -E '^examples/demos/[^/]+/' \
   | grep -vE 'demo-output\.log$' \
+  | grep -vE '^examples/demos/tests/' \
   | sed 's|examples/demos/\([^/]*\)/.*|\1|' \
   | sort -u) || true
 

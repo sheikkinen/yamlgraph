@@ -1,0 +1,22 @@
+id: CAP-83
+name: Research Agent Demo
+description: >
+  5-step agentic research demo: extract intent (llm) → plan research (agent) →
+  execute research (agent) → validate findings (llm) → synthesize report (llm).
+  Demonstrates bounded agent pipelines with least-privilege tool assignment,
+  explicit validation nodes, and structured Pydantic schemas.
+modules:
+  - examples/demos/research-agent
+requirements:
+  - id: REQ-YG-217
+    description: >
+      Research agent demo: 5-node graph with extract_intent (llm, Pydantic
+      schema), plan_research (agent, discovery tools only), execute_research
+      (agent, all tools), validate_findings (llm, Pydantic schema with
+      gaps/confidence), synthesize_report (llm). Linear flow START→END.
+      prompts_relative: true with local prompts/ directory. Shell tools use
+      placeholder variables. Graph passes yamlgraph lint.
+    modules:
+      - examples/demos/research-agent
+      - tests/unit/test_research_agent_demo.py
+fr: FR-215

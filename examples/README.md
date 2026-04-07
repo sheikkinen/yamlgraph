@@ -68,6 +68,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [router](demos/router/) | `router` | Tone-based conditional routing |
 | [map](demos/map/) | `map`, `llm` | Parallel fan-out processing |
 | [reflexion](demos/reflexion/) | `llm` | Self-correction with loop limits |
+| [research-agent](demos/research-agent/) | `agent`, `llm` | 5-step agentic research (extract → plan → execute → validate → respond) |
 | [git-report](demos/git-report/) | `agent` | Git analysis with tools |
 | [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |
