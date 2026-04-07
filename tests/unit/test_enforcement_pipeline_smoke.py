@@ -117,9 +117,7 @@ class TestWatchRoutingForSmokeTest:
         """A Bug-type FR routes to bugfix pipeline, not standard enforce."""
         fr_dir = tmp_path / "feature-requests"
         fr_dir.mkdir()
-        (fr_dir / "FR-999-bug.md").write_text(
-            "**Status:** Approved\n**Type:** Bug\n"
-        )
+        (fr_dir / "FR-999-bug.md").write_text("**Status:** Approved\n**Type:** Bug\n")
 
         detect_script = textwrap.dedent("""\
             #!/usr/bin/env bash
@@ -219,9 +217,9 @@ class TestWatchShThreeWayRouting:
         reject_pos = content.find("Status.*Rejected")
         bug_pos = content.find("Type.*Bug")
         enforce_pos = content.find("enforce_worktree.sh")
-        assert reject_pos < bug_pos < enforce_pos, (
-            "Routing order must be: reject → bug → enforce"
-        )
+        assert (
+            reject_pos < bug_pos < enforce_pos
+        ), "Routing order must be: reject → bug → enforce"
 
 
 @pytest.mark.req("REQ-YG-217")
@@ -239,9 +237,9 @@ class TestEnforceScriptAcceptsAnyFR:
         )
         with open(script_path) as f:
             content = f.read()
-        assert "Effort" not in content, (
-            "enforce_worktree.sh should not filter by effort level"
-        )
+        assert (
+            "Effort" not in content
+        ), "enforce_worktree.sh should not filter by effort level"
 
     def test_enforce_script_does_not_filter_by_type(self):
         """enforce_worktree.sh does not filter by FR type (routing is in watch.sh)."""
@@ -272,9 +270,7 @@ class TestChangelogEntry:
             "unreleased",
             "FR-217-enforcement-pipeline-smoke-test.md",
         )
-        assert os.path.isfile(fragment_path), (
-            "Changelog fragment for FR-217 must exist"
-        )
+        assert os.path.isfile(fragment_path), "Changelog fragment for FR-217 must exist"
 
     def test_changelog_references_req(self):
         """Changelog fragment must reference REQ-YG-217."""
