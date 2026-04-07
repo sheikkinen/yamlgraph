@@ -1122,6 +1122,7 @@ Extract governance methodology into standalone template repository (`scripture-d
 | REQ-YG-214 | Router conditional edge route mapping redirects interrupt node targets to `{name}_prepare` and subgraph interrupt targets to `{name}__run`, while keeping original names as route labels for `make_router_fn` matching (FR-211) | `yamlgraph/edge_compiler`, `yamlgraph/graph_loader` |
 | REQ-YG-215 | `scripts/block_ai_coauthor.py` commit-msg hook scans `Co-authored-by:` trailers for AI agent patterns (copilot, claude, chatgpt, gemini, gpt-?[0-9]+, github copilot), exits 1 with penance liturgy on match, exits 0 for clean messages and human co-authors; registered as `block-ai-coauthor` in `.pre-commit-config.yaml` at `commit-msg` stage before `absolution` | `scripts/block_ai_coauthor.py`, `.pre-commit-config.yaml`, `tests/unit/test_precommit_hooks.py` |
 | REQ-YG-216 | `extract_variables()` subtracts `{% set %}` assignment targets (including those inside nested `{% for %}`/`{% if %}` blocks) from the undeclared-variables set so that locally-assigned names are never reported as required caller-supplied inputs (FR-214) | `yamlgraph/utils/template.py`, `tests/unit/test_template.py` |
+| REQ-YG-217 | Approved zero-scope FRs enter and exit the enforcement pipeline without error. `watch.sh` three-way routing (reject → bug → enforce) routes non-rejected, non-bug FRs to `enforce_worktree.sh`; `enforce_worktree.sh` does not filter by effort or type (FR-217) | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` |
 
 ---
 

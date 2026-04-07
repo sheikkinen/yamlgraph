@@ -1,0 +1,21 @@
+id: CAP-83
+name: Enforcement Pipeline Smoke Test
+description: >
+  Validates that an approved zero-scope FR enters and exits the Chaplain
+  enforcement pipeline without error — no commits, no branch, no PR produced.
+  Tests the three-way routing in watch.sh (reject / bugfix / enforce) and
+  confirms enforce_worktree.sh has no content-based filtering.
+modules:
+  - .chaplain/watch.sh
+  - scripts/enforce_worktree.sh
+requirements:
+  - id: REQ-YG-217
+    description: >
+      Approved zero-scope FRs enter and exit the enforcement pipeline without
+      error. watch.sh routes non-rejected, non-bug FRs to enforce_worktree.sh;
+      enforce_worktree.sh does not filter by effort or type. The three-way
+      routing order is: reject → bug → enforce.
+    modules:
+      - .chaplain/watch.sh
+      - scripts/enforce_worktree.sh
+fr: FR-217

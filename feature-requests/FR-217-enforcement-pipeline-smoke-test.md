@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0 days
 **Requested:** 2026-04-07
 
@@ -37,12 +37,12 @@ This FR is a pipeline smoke test. The enforcer should:
 
 ## Acceptance Criteria
 
-- [ ] Inbox file consumed and deleted by `watch.sh`
-- [ ] Draft FR generated in `.chaplain/drafts/`
-- [ ] Judge approves (pipeline test with explicit no-op scope)
-- [ ] Enforcement pipeline triggered (not skipped)
-- [ ] Enforcement exits cleanly — no commits, no branch, no PR
-- [ ] No code changes produced
+- [x] Inbox file consumed and deleted by `watch.sh`
+- [x] Draft FR generated in `.chaplain/drafts/`
+- [x] Judge approves (pipeline test with explicit no-op scope)
+- [x] Enforcement pipeline triggered (not skipped)
+- [x] Enforcement exits cleanly — no commits, no branch, no PR
+- [x] No code changes produced
 
 ## Alternatives Considered
 
