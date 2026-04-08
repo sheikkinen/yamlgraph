@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-08
 
@@ -51,11 +51,11 @@ name = Three-layer architecture (Presentation → Logic → Side Effects)
 type = layers
 layers =
     yamlgraph.cli
-    yamlgraph.graph_loader | yamlgraph.node_factory | yamlgraph.executor | yamlgraph.linter | yamlgraph.edge_compiler | yamlgraph.node_compiler | yamlgraph.map_compiler | yamlgraph.routing | yamlgraph.graph_cache | yamlgraph.schema_loader | yamlgraph.data_loader | yamlgraph.discovery | yamlgraph.executor_async | yamlgraph.interactive_tool
-    yamlgraph.tools | yamlgraph.models | yamlgraph.utils | yamlgraph.config | yamlgraph.constants | yamlgraph.storage | yamlgraph.schemas | yamlgraph.contrib | yamlgraph.executor_base | yamlgraph.error_handlers | yamlgraph.verification
+    yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool
+    yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification
 ```
 
-This declares that:
+**Implementation note:** The `:` (colon) delimiter is used instead of `|` (pipe). In import-linter, `|` creates *independent* modules that cannot import from each other within the same layer. The `:` delimiter creates *non-independent* modules, allowing free sibling imports within a layer — which is the intended three-layer semantic. `schemas/` is excluded as it is a data directory (JSON schemas), not a Python package.
 - **Layer 1** (`cli`) may import from Layer 2 and Layer 3
 - **Layer 2** (`graph_loader`, `node_factory`, `executor`, `linter`, `edge_compiler`, `node_compiler`, `map_compiler`, `routing`, `graph_cache`, `schema_loader`, `data_loader`, `discovery`, `executor_async`, `interactive_tool`) may import from Layer 3 only
 - **Layer 3** (`tools`, `models`, `utils`, `config`, `constants`, `storage`, `schemas`, `contrib`, `executor_base`, `error_handlers`, `verification`) may not import from Layer 1 or Layer 2
@@ -89,15 +89,15 @@ If any current imports violate the contract (research found zero violations), do
 
 ## Acceptance Criteria
 
-- [ ] `import-linter>=2.0` added to `dev` dependencies in `pyproject.toml`
-- [ ] `.importlinter` config file committed at repo root declaring three-layer contracts
-- [ ] `lint-imports` passes on current codebase with zero violations
-- [ ] `lint-imports` added to pre-commit as a local system hook
-- [ ] `lint-imports` added to CI workflow as a required check
-- [ ] All current violations (if any) resolved or explicitly documented as exceptions in `docs/confessions.md`
-- [ ] REQ-YG-218 added to ARCHITECTURE.md: "Module imports must not violate declared layer contracts"
-- [ ] Tests: `pytest` test that invokes `lint-imports` programmatically and asserts exit code 0
-- [ ] Documentation updated in CLAUDE.md (Code Quality Standards section)
+- [x] `import-linter>=2.0` added to `dev` dependencies in `pyproject.toml`
+- [x] `.importlinter` config file committed at repo root declaring three-layer contracts
+- [x] `lint-imports` passes on current codebase with zero violations
+- [x] `lint-imports` added to pre-commit as a local system hook
+- [x] `lint-imports` added to CI workflow as a required check
+- [x] All current violations (if any) resolved or explicitly documented as exceptions in `docs/confessions.md`
+- [x] REQ-YG-218 added to ARCHITECTURE.md: "Module imports must not violate declared layer contracts"
+- [x] Tests: `pytest` test that invokes `lint-imports` programmatically and asserts exit code 0
+- [x] Documentation updated in CLAUDE.md (Code Quality Standards section)
 
 ## Alternatives Considered
 

@@ -357,6 +357,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 80 | Standalone Scripture Template (FR-207) | `projects/scripture-dev/` | REQ-YG-201 – 205 |
 | 81 | A2A Protocol Server (FR-208) | `yamlgraph/a2a_server.py`, `yamlgraph/discovery.py`, `yamlgraph/cli/a2a_commands.py` | REQ-YG-206 – 213 |
 | 83 | Research Agent Demo (FR-215) | `examples/demos/research-agent` | REQ-YG-217 |
+| 84 | Import-Linter Boundaries (FR-218) | `.importlinter`, `.pre-commit-config.yaml`, `.github/workflows/workflow.yml` | REQ-YG-218 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1124,6 +1125,14 @@ Extract governance methodology into standalone template repository (`scripture-d
 | REQ-YG-215 | `scripts/block_ai_coauthor.py` commit-msg hook scans `Co-authored-by:` trailers for AI agent patterns (copilot, claude, chatgpt, gemini, gpt-?[0-9]+, github copilot), exits 1 with penance liturgy on match, exits 0 for clean messages and human co-authors; registered as `block-ai-coauthor` in `.pre-commit-config.yaml` at `commit-msg` stage before `absolution` | `scripts/block_ai_coauthor.py`, `.pre-commit-config.yaml`, `tests/unit/test_precommit_hooks.py` |
 | REQ-YG-216 | `extract_variables()` subtracts `{% set %}` assignment targets (including those inside nested `{% for %}`/`{% if %}` blocks) from the undeclared-variables set so that locally-assigned names are never reported as required caller-supplied inputs (FR-214) | `yamlgraph/utils/template.py`, `tests/unit/test_template.py` |
 | REQ-YG-217 | Research agent demo: 5-node graph with extract_intent (llm, Pydantic schema), plan_research (agent, discovery tools only), execute_research (agent, all tools), validate_findings (llm, Pydantic schema with gaps/confidence), synthesize_report (llm). Linear flow START→END. prompts_relative: true with local prompts/ directory. Shell tools use placeholder variables. Graph passes yamlgraph lint. (FR-215) | `examples/demos/research-agent`, `tests/unit/test_research_agent_demo.py` |
+
+### 84. Import-Linter Architectural Boundary Enforcement (FR-218)
+
+Mechanical enforcement of three-layer architecture via `import-linter` contracts.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-218 | `.importlinter` config at repo root declares a `layers` contract with three layers: Presentation (`yamlgraph.cli`), Logic (graph_loader, node_factory, executor, linter, edge_compiler, node_compiler, map_compiler, routing, graph_cache, schema_loader, data_loader, discovery, executor_async, interactive_tool), Side Effects (tools, models, utils, config, constants, storage, contrib, executor_base, error_handlers, verification). `lint-imports` exits 0 on the current codebase. Pre-commit hook and CI step enforce the contract at every commit and PR. (FR-218) | `.importlinter`, `.pre-commit-config.yaml`, `.github/workflows/workflow.yml`, `tests/unit/test_import_linter.py` |
 
 ---
 

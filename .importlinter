@@ -1,0 +1,10 @@
+[importlinter]
+root_package = yamlgraph
+
+[importlinter:contract:three-layer]
+name = Three-layer architecture (Presentation → Logic → Side Effects)
+type = layers
+layers =
+    yamlgraph.cli
+    yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool
+    yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification

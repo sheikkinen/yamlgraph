@@ -1,0 +1,28 @@
+id: CAP-84
+name: Import-Linter Architectural Boundary Enforcement
+description: >
+  Mechanical enforcement of the three-layer architecture
+  (Presentation → Logic → Side Effects) via import-linter contracts.
+  Prevents silent degradation of module boundaries by blocking imports
+  that violate declared layer dependencies at pre-commit and CI.
+modules:
+  - .importlinter
+  - .pre-commit-config.yaml
+  - .github/workflows/workflow.yml
+requirements:
+  - id: REQ-YG-218
+    description: >
+      .importlinter config at repo root declares a layers contract with
+      three layers: Presentation (cli), Logic (graph_loader, node_factory,
+      executor, linter, edge_compiler, node_compiler, map_compiler, routing,
+      graph_cache, schema_loader, data_loader, discovery, executor_async,
+      interactive_tool), Side Effects (tools, models, utils, config, constants,
+      storage, contrib, executor_base, error_handlers, verification).
+      lint-imports exits 0 on the current codebase. Pre-commit hook and CI
+      step enforce the contract at every commit and PR.
+    modules:
+      - .importlinter
+      - .pre-commit-config.yaml
+      - .github/workflows/workflow.yml
+      - tests/unit/test_import_linter.py
+fr: FR-218

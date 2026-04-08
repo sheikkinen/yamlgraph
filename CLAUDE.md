@@ -281,6 +281,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#extension-points) for detailed guides on:
 - **Python 3.11+**: Use `|` for unions, not `Union[]`
 - **Logging**: Use `logging.getLogger(__name__)` (user-facing prints use emojis: 📝 🔍 ✓ ✗ 🚀)
 - **Deprecation**: Use `DeprecationError` when marking old APIs during refactoring
+- **Import boundaries**: Three-layer architecture enforced by `import-linter` (`.importlinter` config). Run `lint-imports` to check. Layer 3 (tools, models, utils) must not import Layer 2 (graph_loader, executor) or Layer 1 (cli).
 
 ## Pull Request Conventions
 
