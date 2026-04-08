@@ -1,0 +1,25 @@
+id: CAP-85
+name: Dependency Rationale Audit
+description: >
+  Audit script that verifies every pyproject.toml dependency (core and optional)
+  has a documented rationale in docs/dependency-rationale.yaml. Follows the
+  noqa_coverage.py registry-audit pattern. Reports undocumented packages and
+  exits 1 in --strict mode. Registered as pre-commit hook.
+modules:
+  - scripts/dependency_rationale.py
+  - docs/dependency-rationale.yaml
+  - .pre-commit-config.yaml
+requirements:
+  - id: REQ-YG-219
+    description: >
+      dependency_rationale.py parses pyproject.toml core and optional
+      dependencies (stripping version specifiers and extras), loads rationale
+      entries from docs/dependency-rationale.yaml, reports undocumented packages
+      in summary mode, exits 1 in --strict when gaps exist, --detail prints all
+      entries; registered as dependency-rationale pre-commit hook
+    modules:
+      - scripts/dependency_rationale.py
+      - docs/dependency-rationale.yaml
+      - .pre-commit-config.yaml
+      - tests/unit/test_dependency_rationale.py
+fr: FR-219

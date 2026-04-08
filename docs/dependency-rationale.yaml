@@ -1,0 +1,246 @@
+# Dependency Rationale Registry
+#
+# Every pyproject.toml dependency (core and optional) must have an entry here.
+# Run: python scripts/dependency_rationale.py --strict
+#
+# FR-219: Dependency Rationale Audit
+
+dependencies:
+  # ─── Core Dependencies ───────────────────────────────────────────────
+
+  langchain-anthropic:
+    rationale: "Anthropic LLM provider integration (Claude models via ChatAnthropic)"
+    modules: ["yamlgraph/utils/llm_factory.py"]
+    added: "0.1.0"
+
+  langchain-google-genai:
+    rationale: "Google Gemini / Vertex AI provider integration"
+    modules: ["yamlgraph/utils/llm_factory.py"]
+    added: "0.4.64"
+
+  langchain-mistralai:
+    rationale: "Mistral AI provider integration"
+    modules: ["yamlgraph/utils/llm_factory.py"]
+    added: "0.1.0"
+
+  langchain-openai:
+    rationale: "OpenAI provider integration (GPT models, DeepSeek, xAI, LM Studio via compatible API)"
+    modules: ["yamlgraph/utils/llm_factory.py"]
+    added: "0.1.0"
+
+  langgraph:
+    rationale: "Core graph orchestration engine — StateGraph compilation, node execution, checkpointing"
+    modules: ["yamlgraph/graph_loader.py", "yamlgraph/executor.py", "yamlgraph/edge_compiler.py"]
+    added: "0.1.0"
+
+  langgraph-checkpoint-sqlite:
+    rationale: "SQLite checkpointer for graph state persistence across runs"
+    modules: ["yamlgraph/storage/checkpointer_factory.py"]
+    added: "0.1.0"
+
+  pydantic:
+    rationale: "Structured LLM output validation — Commandment 5 (all data through Pydantic)"
+    modules: ["yamlgraph/models/", "yamlgraph/schema_loader.py"]
+    added: "0.1.0"
+
+  python-dotenv:
+    rationale: "Load .env files for API keys and configuration"
+    modules: ["yamlgraph/cli/__init__.py"]
+    added: "0.1.0"
+
+  pyyaml:
+    rationale: "YAML parsing for graph definitions, prompt templates, and configuration"
+    modules: ["yamlgraph/data_loader.py", "yamlgraph/graph_loader.py"]
+    added: "0.1.0"
+
+  langsmith:
+    rationale: "LangSmith observability and tracing integration (REQ-YG-047)"
+    modules: ["yamlgraph/utils/tracing.py", "yamlgraph/cli/graph_commands.py"]
+    added: "0.1.0"
+
+  jinja2:
+    rationale: "Advanced template engine for complex prompt templates with loops, conditionals, filters"
+    modules: ["yamlgraph/utils/template.py", "yamlgraph/executor_base.py"]
+    added: "0.2.0"
+
+  # ─── Dev Dependencies ────────────────────────────────────────────────
+
+  pytest:
+    rationale: "Test runner — Commandment 7 (TDD red-green-refactor)"
+    modules: ["tests/"]
+    added: "0.1.0"
+
+  pytest-asyncio:
+    rationale: "Async test support for executor_async and streaming tests"
+    modules: ["tests/"]
+    added: "0.1.0"
+
+  pytest-cov:
+    rationale: "Coverage reporting with 70% minimum threshold"
+    modules: ["pyproject.toml [tool.pytest.ini_options]"]
+    added: "0.1.0"
+
+  ruff:
+    rationale: "Linter and formatter — Commandment 6 (expose every fault)"
+    modules: ["pyproject.toml [tool.ruff]"]
+    added: "0.1.0"
+
+  radon:
+    rationale: "Cyclomatic complexity analysis — Commandment 8 (kill entropy)"
+    modules: ["scripts/"]
+    added: "0.1.0"
+
+  vulture:
+    rationale: "Dead code detection — Commandment 8 (kill entropy)"
+    modules: ["vulture_whitelist.py"]
+    added: "0.1.0"
+
+  pre-commit:
+    rationale: "Git hook framework for pre-commit and commit-msg quality gates"
+    modules: [".pre-commit-config.yaml"]
+    added: "0.1.0"
+
+  # ─── Optional: Analysis ──────────────────────────────────────────────
+
+  jedi:
+    rationale: "Python code analysis for import resolution and module introspection"
+    modules: ["scripts/analysis.sh"]
+    added: "0.3.0"
+
+  # ─── Optional: Web Search ────────────────────────────────────────────
+
+  ddgs:
+    rationale: "DuckDuckGo search integration for web search tool nodes"
+    modules: ["yamlgraph/tools/web_search.py"]
+    added: "0.2.0"
+
+  # ─── Optional: Tavily ────────────────────────────────────────────────
+
+  tavily-python:
+    rationale: "Tavily search API for domain-scoped RAG retrieval"
+    modules: ["examples/demos/tavily_rag/"]
+    added: "0.3.0"
+
+  # ─── Optional: Storyboard ────────────────────────────────────────────
+
+  replicate:
+    rationale: "Replicate API for image generation in storyboard pipeline"
+    modules: ["examples/storyboard/"]
+    added: "0.3.0"
+
+  # ─── Optional: Replicate (LiteLLM) ───────────────────────────────────
+
+  langchain-litellm:
+    rationale: "LiteLLM integration for Replicate-hosted models as LangChain LLM"
+    modules: ["yamlgraph/utils/llm_factory.py"]
+    added: "0.3.0"
+
+  # ─── Optional: Redis ─────────────────────────────────────────────────
+
+  langgraph-checkpoint-redis:
+    rationale: "Redis checkpointer for distributed graph state persistence"
+    modules: ["yamlgraph/storage/checkpointer_factory.py"]
+    added: "0.2.0"
+
+  # ─── Optional: Redis Simple ──────────────────────────────────────────
+
+  redis:
+    rationale: "Direct Redis client for simple key-value session storage"
+    modules: ["yamlgraph/storage/simple_redis.py"]
+    added: "0.3.0"
+
+  orjson:
+    rationale: "Fast JSON serialization for Redis session data"
+    modules: ["yamlgraph/storage/simple_redis.py"]
+    added: "0.3.0"
+
+  # ─── Optional: RAG ───────────────────────────────────────────────────
+
+  lancedb:
+    rationale: "Vector database for RAG embedding storage and retrieval"
+    modules: ["examples/rag/"]
+    added: "0.3.0"
+
+  openai:
+    rationale: "OpenAI embeddings API for RAG vector generation"
+    modules: ["examples/rag/"]
+    added: "0.3.0"
+
+  # ─── Optional: Booking ───────────────────────────────────────────────
+
+  fastapi:
+    rationale: "Web framework for booking API, digest API, NPC server, and telco endpoints"
+    modules: ["examples/booking/", "examples/daily_digest/", "examples/npc/"]
+    added: "0.3.0"
+
+  httpx:
+    rationale: "Async HTTP client for booking and digest API calls"
+    modules: ["examples/booking/", "examples/daily_digest/"]
+    added: "0.3.0"
+
+  uvicorn:
+    rationale: "ASGI server for FastAPI applications"
+    modules: ["examples/booking/", "examples/daily_digest/", "examples/npc/"]
+    added: "0.3.0"
+
+  # ─── Optional: NPC ───────────────────────────────────────────────────
+
+  python-multipart:
+    rationale: "Multipart form data parsing for NPC and digest file uploads"
+    modules: ["examples/npc/", "examples/daily_digest/"]
+    added: "0.3.0"
+
+  # ─── Optional: Digest ────────────────────────────────────────────────
+
+  feedparser:
+    rationale: "RSS/Atom feed parsing for daily digest content ingestion"
+    modules: ["examples/daily_digest/"]
+    added: "0.3.0"
+
+  resend:
+    rationale: "Email delivery service for digest distribution"
+    modules: ["examples/daily_digest/"]
+    added: "0.3.0"
+
+  beautifulsoup4:
+    rationale: "HTML content extraction from fetched web pages"
+    modules: ["examples/daily_digest/"]
+    added: "0.3.0"
+
+  slowapi:
+    rationale: "Rate limiting middleware for digest API endpoints"
+    modules: ["examples/daily_digest/api/"]
+    added: "0.3.0"
+
+  # ─── Optional: FSM ───────────────────────────────────────────────────
+
+  statemachine-engine:
+    rationale: "State machine runtime for FSM-based workflow execution"
+    modules: ["fsm/"]
+    added: "0.4.0"
+
+  # ─── Optional: MCP ───────────────────────────────────────────────────
+
+  mcp:
+    rationale: "Model Context Protocol server for exposing graphs as Copilot tools (CAP-19)"
+    modules: ["yamlgraph/mcp_server.py"]
+    added: "0.4.0"
+
+  # ─── Optional: A2A ───────────────────────────────────────────────────
+
+  a2a-sdk:
+    rationale: "Agent-to-Agent protocol SDK for inter-agent communication (FR-208)"
+    modules: ["yamlgraph/a2a_server.py"]
+    added: "0.4.60"
+
+  # ─── Optional: Telco ─────────────────────────────────────────────────
+
+  twilio:
+    rationale: "Twilio API for telephony integration (voice calls, SMS)"
+    modules: ["projects/incaller/", "projects/outcaller/"]
+    added: "0.4.0"
+
+  elevenlabs:
+    rationale: "ElevenLabs text-to-speech for voice generation in telephony"
+    modules: ["projects/outcaller/"]
+    added: "0.4.0"
