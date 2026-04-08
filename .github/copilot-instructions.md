@@ -47,6 +47,7 @@ boundaries:
   - streaming    # Token shape, timing, interrupts (FR-057–060)
   - platform     # OS, Python version, locale differences
   - audit        # Inquisitor findings → enforcement gates
+  - module_structure  # Python import contracts; cli→graph_loader→tools declared, not assumed (FR-218)
 
 traps:
   # Cognitive hazards that lead to bugs and drift
@@ -62,6 +63,7 @@ traps:
   framework_costume: "FSM wearing DAG costume → if <50% nodes use core features, wrong tool"
   working_system_inertia: "'It works' blocks seeing it clearly → inventory fit, not function"
   infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards"
+  architecture_as_diagram: "Three-layer documented but not contracted → violation possible under deadline pressure; enforce at module boundary with import-linter"
 
 cures:
   # Patterns that prevent traps
