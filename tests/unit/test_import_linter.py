@@ -84,12 +84,9 @@ class TestImportLinterExecution:
     @pytest.mark.req("REQ-YG-218")
     def test_lint_imports_passes(self):
         """lint-imports must exit 0 on the current codebase (zero violations)."""
+        lint_imports = Path(sys.executable).parent / "lint-imports"
         result = subprocess.run(
-            [
-                sys.executable,
-                "-c",
-                "from importlinter.cli import lint_imports_command; lint_imports_command()",
-            ],
+            [str(lint_imports)],
             capture_output=True,
             text=True,
             cwd=REPO_ROOT,

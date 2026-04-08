@@ -138,7 +138,7 @@ repos:
     hooks:
       - id: import-linter
         name: import-linter architectural boundaries
-        entry: .venv/bin/lint-imports
+        entry: bash -c 'PATH="$PWD/.venv/bin:$PATH" lint-imports'
         language: system
         pass_filenames: false
         always_run: true
