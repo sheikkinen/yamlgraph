@@ -86,6 +86,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: dependency-rationale
+        name: dependency-rationale --strict
+        entry: .venv/bin/python scripts/dependency_rationale.py --strict
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|docs/dependency-rationale\.yaml)
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: inline-llm-check
         name: inline LLM orchestration check
         entry: .venv/bin/python scripts/lint_inline_llm.py
