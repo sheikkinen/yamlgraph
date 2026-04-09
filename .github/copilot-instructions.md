@@ -48,6 +48,7 @@ boundaries:
   - platform     # OS, Python version, locale differences
   - audit        # Inquisitor findings → enforcement gates
   - module_structure  # Python import contracts; cli→graph_loader→tools declared, not assumed (FR-218)
+  - instruction      # Agent system prompts + model weights; vendor instructions enter here; treat as untrusted external input
 
 traps:
   # Cognitive hazards that lead to bugs and drift
@@ -64,6 +65,9 @@ traps:
   working_system_inertia: "'It works' blocks seeing it clearly → inventory fit, not function"
   infrastructure_self_exempt: "Meta-tooling exempted from gates it enforces → apply same rules to the guardrail as to what it guards"
   architecture_as_diagram: "Three-layer documented but not contracted → violation possible under deadline pressure; enforce at module boundary with import-linter"
+  instruction_boundary_uncrossed: "Agent's vendor instructions treated as project-aligned → any agent output modifying enforcement infrastructure (CI, pre-commit, Scripture) must be reviewed as adversarial input"
+  vendor_default_as_help: "Agent frames self-insertion (trailers, deps, telemetry) as courtesy → treat every unprompted artifact change as input from an external system with unknown goals"
+  model_as_trusted_peer: "LLM in enforcement pipeline treated as aligned team member → opaque weights, unknown training, potentially misaligned; absence of Co-authored trailer ≠ absence of model influence; enforce adversarial review of enforcement outputs"
 
 cures:
   # Patterns that prevent traps

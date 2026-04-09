@@ -136,6 +136,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: import-linter
+        name: import-linter architectural boundaries
+        entry: bash -c 'PATH="$PWD/.venv/bin:$PATH" lint-imports'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: vulture-dead-code
         name: vulture (dead code)
         entry: bash -c '.venv/bin/python -m vulture yamlgraph vulture_whitelist.py --min-confidence 60'
