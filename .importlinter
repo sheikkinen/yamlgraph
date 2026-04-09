@@ -1,0 +1,14 @@
+[importlinter]
+root_package = yamlgraph
+
+[importlinter:contract:three-layer]
+name = Three-layer architecture (Presentation → Logic → Side Effects)
+type = layers
+# `:` (colon) = non-independent siblings: free imports within the same layer.
+# `|` (pipe)  = independent siblings: no cross-imports within a layer.
+# We use `:` so that logic modules can freely import each other while still
+# being blocked from importing up into cli (Layer 1).
+layers =
+    yamlgraph.cli
+    yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.mcp_server : yamlgraph.a2a_server : yamlgraph.a2a_message
+    yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification
