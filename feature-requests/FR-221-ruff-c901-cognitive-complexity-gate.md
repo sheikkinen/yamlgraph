@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-11
 
@@ -76,13 +76,17 @@ With C901 enabled, the radon CC pre-commit hook (`radon-complexity`) becomes red
 
 ## Acceptance Criteria
 
-- [ ] `C901` added to ruff `select` in `pyproject.toml`
-- [ ] `max-complexity` set to 15 in `[tool.ruff.lint.mccabe]`
-- [ ] `ruff check yamlgraph/` passes (functions above 15 either refactored or granted noqa with confession)
-- [ ] CI workflow (`workflow.yml`) inherits the rule via existing `ruff check yamlgraph/`
-- [ ] Any `# noqa: C901` suppressions documented in `docs/confessions.md`
-- [ ] Decision documented on radon CC gate retention/removal
-- [ ] Tests pass
+- [x] `C901` added to ruff `select` in `pyproject.toml`
+- [x] `max-complexity` set to 15 in `[tool.ruff.lint.mccabe]`
+- [x] `ruff check yamlgraph/` passes (functions above 15 either refactored or granted noqa with confession)
+- [x] CI workflow (`workflow.yml`) inherits the rule via existing `ruff check yamlgraph/`
+- [x] Any `# noqa: C901` suppressions documented in `docs/confessions.md`
+- [x] Decision documented on radon CC gate retention/removal
+- [x] Tests pass
+
+### Radon CC Gate Decision
+
+**Keep both temporarily.** Radon CC (grade D ≥ 21) and ruff C901 (threshold 15) measure different dimensions of complexity. Radon CC catches flat branching; C901 catches deep nesting. The radon CC gate remains as a coarser safety net until C901 threshold is tightened to 10 (post-FR-220 refactors). At that point, radon CC becomes redundant and should be removed.
 
 ## Alternatives Considered
 
