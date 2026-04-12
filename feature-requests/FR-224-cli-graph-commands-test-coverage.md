@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-04-12
 
@@ -148,14 +148,14 @@ Target: both modules ≥ 85% line coverage individually.
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph/cli/graph_commands.py` ≥ 85% line coverage from unit tests
-- [ ] `yamlgraph/cli/graph_validate.py` ≥ 85% line coverage from unit tests
-- [ ] New `tests/unit/test_graph_validate.py` created with tests for all validation helpers and `cmd_graph_lint`
-- [ ] `tests/unit/test_graph_commands.py` extended with tests for `_display_result`, `_get_interrupt_message`, `_setup_timeout`, `_teardown_timeout`, `_build_run_config`, `cmd_graph_codegen`, `cmd_graph_dispatch`, and `cmd_graph_info` happy path
-- [ ] All new tests tagged with `@pytest.mark.req()` linking to REQ-YG-033, REQ-YG-036, or REQ-YG-047
-- [ ] No integration tests — all tests use mocks for LLM calls, file I/O, signal handling
-- [ ] Existing tests continue to pass (`pytest tests/unit/ -q`)
-- [ ] `ruff check` passes on new test files
+- [x] `yamlgraph/cli/graph_commands.py` ≥ 85% line coverage from unit tests
+- [x] `yamlgraph/cli/graph_validate.py` ≥ 85% line coverage from unit tests
+- [x] New `tests/unit/test_graph_validate.py` created with tests for all validation helpers and `cmd_graph_lint`
+- [x] `tests/unit/test_graph_commands.py` extended with tests for `_display_result`, `_get_interrupt_message`, `_setup_timeout`, `_teardown_timeout`, `_build_run_config`, `cmd_graph_codegen`, `cmd_graph_dispatch`, and `cmd_graph_info` happy path
+- [x] All new tests tagged with `@pytest.mark.req()` linking to REQ-YG-033, REQ-YG-036, or REQ-YG-047
+- [x] No integration tests — all tests use mocks for LLM calls, file I/O, signal handling
+- [x] Existing tests continue to pass (`pytest tests/unit/ -q`)
+- [x] `ruff check` passes on new test files
 
 ## Alternatives Considered
 
