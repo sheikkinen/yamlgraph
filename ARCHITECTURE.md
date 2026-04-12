@@ -301,7 +301,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – 068 |
 | 20 | Contrib Utilities | `contrib/progress`, `contrib/utils` | REQ-YG-070 – 071 |
 | 21 | Diary Digest Tools | `scripts/diary_digest_tools` | REQ-YG-072 |
-| 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073 |
+| 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073, 221 |
 | 23 | Skip-If-Exists Truthiness | `node_factory/llm_nodes._should_skip_if_exists` | REQ-YG-074 |
 | 24 | Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes`, `utils/conditions` | REQ-YG-075 |
 | 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
@@ -396,6 +396,7 @@ Create executable node functions for LLM, streaming, tool, interrupt, and subgra
 | REQ-YG-010 | Synchronous LLM factory management | `utils/llm_factory` |
 | REQ-YG-011 | Asynchronous LLM factory management | `utils/llm_factory_async` |
 | REQ-YG-050 | Per-node and default-level `model` override: graph YAML `model` field flows through `execute_prompt()` to `create_llm()` | `node_factory/llm_nodes`, `executor`, `executor_async`, `executor_base` |
+| REQ-YG-223 | LLM node factory decomposed into composable phases: `LLMNodeConfig` frozen dataclass, `resolve_llm_node_config()` pure config resolver, `_apply_verification()`, `_resolve_route()`, `_handle_error()` — each independently testable, all below C901=10 (FR-223) | `node_factory/llm_nodes` |
 
 ### 4. Prompt Execution
 
@@ -593,6 +594,7 @@ Custom lint checks enforcing architectural patterns beyond standard linters.
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-073 | Inline LLM lint: detect scripts with `def main()` that import LLM execution functions without graph loading — flags orchestration code smell | `scripts/lint_inline_llm` |
+| REQ-YG-221 | Ruff C901 cognitive complexity gate: `C901` in ruff select with `max-complexity = 15` in `[tool.ruff.lint.mccabe]`; functions above threshold suppressed with `# noqa: C901` and documented in `docs/confessions.md`; CI inherits via existing `ruff check yamlgraph/` (FR-221) | `pyproject.toml`, `docs/confessions.md` |
 
 ### 23. Skip-If-Exists Truthiness
 

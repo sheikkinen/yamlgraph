@@ -103,7 +103,7 @@ def resolve_prompts_dir(graph: dict, graph_path: Path, project_root: Path) -> Pa
     return project_root / "prompts"
 
 
-def check_state_declarations(
+def check_state_declarations(  # noqa: C901
     graph_path: Path, project_root: Path | None = None
 ) -> list[LintIssue]:
     """Check if variables used in prompts/tools are declared in state."""

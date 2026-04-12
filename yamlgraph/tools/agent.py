@@ -146,7 +146,7 @@ def build_python_tool(name: str, config: PythonToolConfig) -> Any:
     )
 
 
-def create_agent_node(
+def create_agent_node(  # noqa: C901
     node_name: str,
     node_config: dict[str, Any],
     tools: dict[str, ShellToolConfig],

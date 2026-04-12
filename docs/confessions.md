@@ -76,6 +76,24 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `kwargs` parameter unused in callback handler.
 - **Penance**: Required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`). Cannot remove without breaking signature compatibility.
 
+### ~~CONF-005~~ (RESOLVED by FR-223)
+- **Resolved**: `create_node_function` decomposed into `resolve_llm_node_config()`, `_apply_verification()`, `_resolve_route()`, `_handle_error()`. C901 now passes without suppression.
+
+### ~~CONF-006~~ (RESOLVED by FR-223)
+- **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
+
+### CONF-007
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L149)
+- **Code**: C901 (cognitive complexity 19 > 15)
+- **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
+- **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
+
+### CONF-008
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L106)
+- **Code**: C901 (cognitive complexity 16 > 15)
+- **Sin**: `check_state_declarations` traverses graph YAML, resolves prompt references, and extracts template variables.
+- **Penance**: Barely above threshold (16 vs 15). Will be addressed when linter checks are decomposed.
+
 ### CONF-003
 - **File**: [yamlgraph/executor_async.py](../yamlgraph/executor_async.py#L310)
 - **Code**: ANN001 (missing type annotation for function argument)

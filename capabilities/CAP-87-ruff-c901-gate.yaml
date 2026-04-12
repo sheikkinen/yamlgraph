@@ -1,0 +1,22 @@
+id: CAP-87
+name: Ruff C901 Cognitive Complexity Gate
+description: >
+  Enables ruff C901 (mccabe cognitive complexity) in the lint pipeline at
+  threshold 15, closing the gap where radon CC (grade D ≥ 21) misses deeply
+  nested functions. Functions above threshold are suppressed with noqa and
+  documented in docs/confessions.md. CI inherits the rule via existing
+  ruff check yamlgraph/.
+modules:
+  - pyproject.toml
+  - docs/confessions.md
+requirements:
+  - id: REQ-YG-221
+    description: >
+      C901 in ruff select with max-complexity = 15 in [tool.ruff.lint.mccabe];
+      functions above threshold suppressed with # noqa: C901 and documented
+      in docs/confessions.md; CI inherits via existing ruff check yamlgraph/
+    modules:
+      - pyproject.toml
+      - docs/confessions.md
+      - tests/unit/test_ruff_c901_gate.py
+fr: FR-221

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 3 days
 **Requested:** 2026-04-12
 
@@ -122,16 +122,16 @@ def node_fn(state: dict) -> dict:
 
 ## Acceptance Criteria
 
-- [ ] `LLMNodeConfig` frozen dataclass encapsulates all resolved config
-- [ ] `resolve_llm_node_config()` is a pure function (no graph mutations, no closures)
-- [ ] `_apply_verification()` extracted — eliminates retry-loop duplication
-- [ ] `_handle_error()` extracted — 5-way dispatch is a single testable function
-- [ ] `_resolve_route()` extracted — `isinstance` type dispatch is a single testable function
-- [ ] Ruff C901 passes for all functions in `llm_nodes.py` (≤ 10)
+- [x] `LLMNodeConfig` frozen dataclass encapsulates all resolved config
+- [x] `resolve_llm_node_config()` is a pure function (no graph mutations, no closures)
+- [x] `_apply_verification()` extracted — eliminates retry-loop duplication
+- [x] `_handle_error()` extracted — 5-way dispatch is a single testable function
+- [x] `_resolve_route()` extracted — `isinstance` type dispatch is a single testable function
+- [x] Ruff C901 passes for all functions in `llm_nodes.py` (≤ 10)
 - [ ] Radon CC gate tightened to grade B (≤ 10) — currently passes at grade D
-- [ ] All existing LLM node tests pass unchanged
-- [ ] New unit tests cover each extracted phase independently
-- [ ] REQ-YG-223 added to ARCHITECTURE.md and CAP-02
+- [x] All existing LLM node tests pass unchanged
+- [x] New unit tests cover each extracted phase independently
+- [x] REQ-YG-223 added to ARCHITECTURE.md and CAP-02
 
 ## Alternatives Considered
 
