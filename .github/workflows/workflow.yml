@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,digest,websearch]"
+          pip install -e ".[dev,digest,websearch,a2a]"
 
       - name: Run tests
         run: pytest tests/unit/ -v --cov=yamlgraph --cov-fail-under=80

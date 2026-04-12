@@ -349,7 +349,7 @@ def create_node_function(
 
     cfg = resolve_llm_node_config(node_name, node_config, defaults, graph_path)
 
-    def node_fn(state: dict) -> dict:
+    def node_fn(state: dict) -> dict:  # noqa: C901
         """Generated node function."""
         loop_counts = dict(state.get("_loop_counts") or {})
         current_count = loop_counts.get(node_name, 0)

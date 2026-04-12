@@ -160,6 +160,12 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
 - **Penance**: Same as CONF-037 — hardcoded `["git", "diff", "--cached", "--name-only"]` for staged change detection.
 
+### CONF-039
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L352)
+- **Code**: C901 (cognitive complexity > 15)
+- **Sin**: Nested `node_fn` still orchestrates loop guards, requirements checks, execution, verification, routing, and error dispatch in one closure.
+- **Penance**: FR-223 already extracted core helpers (`_apply_verification`, `_resolve_route`, `_handle_error`), but closure structure keeps orchestration complexity above threshold. Suppressed temporarily to preserve node-factory behavior while follow-up decomposition lands.
+
 ---
 
 ## Test Code
@@ -315,6 +321,18 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Code**: F841
 - **Sin**: `mcp` variable assigned but never used after `importorskip`.
 - **Penance**: `pytest.importorskip("mcp")` is used as an import guard — the test must be skipped if `mcp` is not installed. The returned module is intentionally unused; the call's side effect (skip or proceed) is the purpose.
+
+### CONF-035
+- **File**: [tests/unit/test_a2a_commands.py](../tests/unit/test_a2a_commands.py#L130)
+- **Code**: S104
+- **Sin**: Hardcoded bind-all address `0.0.0.0` in test fixture `argparse.Namespace`.
+- **Penance**: Test data simulating CLI arguments for the A2A serve command. Not a real network binding — the server is fully mocked. Required to verify the argument-passing path.
+
+### CONF-036
+- **File**: [tests/unit/test_a2a_message.py](../tests/unit/test_a2a_message.py#L488)
+- **Code**: S104
+- **Sin**: Hardcoded bind-all address `0.0.0.0` in `build_agent_card` test call.
+- **Penance**: Test data verifying Agent Card URL construction. No actual network socket is opened — the function only builds a data structure. Required to test the host-to-URL mapping.
 
 ---
 
