@@ -1,10 +1,12 @@
 """Tests for universal graph runner (Phase 7.2).
 
 TDD tests for `yamlgraph graph run <path>` command.
+Extended by FR-224 for ≥ 85% coverage of cli/graph_commands.py.
 """
 
 import argparse
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -555,3 +557,861 @@ class TestShareTraceFlag:
 
         captured = capsys.readouterr()
         assert captured.out == ""
+
+
+# =============================================================================
+# _display_result tests (FR-224)
+# =============================================================================
+
+
+class TestDisplayResult:
+    """Tests for _display_result helper."""
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_truncates_long_values(self, capsys):
+        """Values >200 chars should be truncated with '...'."""
+        from yamlgraph.cli.graph_commands import _display_result
+
+        long_text = "x" * 300
+        _display_result({"summary": long_text}, truncate=True)
+        captured = capsys.readouterr()
+        assert "..." in captured.out
+        assert len(long_text) != len(captured.out)
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_full_output_no_truncation(self, capsys):
+        """With truncate=False, long values should not be truncated."""
+        from yamlgraph.cli.graph_commands import _display_result
+
+        long_text = "x" * 300
+        _display_result({"summary": long_text}, truncate=False)
+        captured = capsys.readouterr()
+        assert "..." not in captured.out
+        assert long_text in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_skips_internal_keys(self, capsys):
+        """Keys starting with '_' and skip_keys should be omitted."""
+        from yamlgraph.cli.graph_commands import _display_result
+
+        _display_result(
+            {
+                "summary": "hello",
+                "_loop_counts": {},
+                "messages": ["m1"],
+                "errors": ["e1"],
+                "_internal": True,
+            }
+        )
+        captured = capsys.readouterr()
+        assert "summary" in captured.out
+        assert "_loop_counts" not in captured.out
+        assert "messages" not in captured.out
+        assert "errors" not in captured.out
+        assert "_internal" not in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_skips_none_values(self, capsys):
+        """None values should be omitted."""
+        from yamlgraph.cli.graph_commands import _display_result
+
+        _display_result({"present": "yes", "absent": None})
+        captured = capsys.readouterr()
+        assert "present" in captured.out
+        assert "absent" not in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_prints_header(self, capsys):
+        """Should print RESULT header."""
+        from yamlgraph.cli.graph_commands import _display_result
+
+        _display_result({"a": "b"})
+        captured = capsys.readouterr()
+        assert "RESULT" in captured.out
+
+
+# =============================================================================
+# _get_interrupt_message tests (FR-224)
+# =============================================================================
+
+
+class TestGetInterruptMessage:
+    """Tests for _get_interrupt_message helper."""
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_string_value(self):
+        """String interrupt value should be returned directly."""
+        from yamlgraph.cli.graph_commands import _get_interrupt_message
+
+        interrupt_obj = SimpleNamespace(value="What is your name?")
+        result = {"__interrupt__": (interrupt_obj,)}
+        assert _get_interrupt_message(result) == "What is your name?"
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_dict_with_message(self):
+        """Dict interrupt value with 'message' key should return it."""
+        from yamlgraph.cli.graph_commands import _get_interrupt_message
+
+        interrupt_obj = SimpleNamespace(value={"message": "Pick an option"})
+        result = {"__interrupt__": (interrupt_obj,)}
+        assert _get_interrupt_message(result) == "Pick an option"
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_dict_with_question(self):
+        """Dict interrupt value with 'question' key should return it."""
+        from yamlgraph.cli.graph_commands import _get_interrupt_message
+
+        interrupt_obj = SimpleNamespace(value={"question": "Continue?"})
+        result = {"__interrupt__": (interrupt_obj,)}
+        assert _get_interrupt_message(result) == "Continue?"
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_fallback_to_response(self):
+        """Missing interrupt should fallback to 'response' in state."""
+        from yamlgraph.cli.graph_commands import _get_interrupt_message
+
+        result = {"response": "Please confirm"}
+        assert _get_interrupt_message(result) == "Please confirm"
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_empty_interrupt_fallback(self):
+        """Empty interrupt tuple should fallback to default."""
+        from yamlgraph.cli.graph_commands import _get_interrupt_message
+
+        result = {"__interrupt__": ()}
+        assert _get_interrupt_message(result) == "Please provide input:"
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_dict_without_message_or_question(self):
+        """Dict without message/question should stringify."""
+        from yamlgraph.cli.graph_commands import _get_interrupt_message
+
+        interrupt_obj = SimpleNamespace(value={"data": "raw"})
+        result = {"__interrupt__": (interrupt_obj,)}
+        msg = _get_interrupt_message(result)
+        assert "data" in msg
+
+
+# =============================================================================
+# _setup_timeout / _teardown_timeout tests (FR-224)
+# =============================================================================
+
+
+class TestSetupTimeout:
+    """Tests for _setup_timeout helper."""
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_none_returns_none(self):
+        """None timeout should return None."""
+        from yamlgraph.cli.graph_commands import _setup_timeout
+
+        assert _setup_timeout(None) is None
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("platform.system", return_value="Linux")
+    def test_sets_alarm_on_unix(self, _mock_platform):
+        """Should set signal.alarm on Unix."""
+        from yamlgraph.cli.graph_commands import _setup_timeout
+
+        with patch("signal.signal") as mock_signal, patch("signal.alarm") as mock_alarm:
+            mock_signal.return_value = "old_handler"
+            ctx = _setup_timeout(30)
+
+        mock_alarm.assert_called_once_with(30)
+        assert ctx is not None
+        assert ctx["old_handler"] == "old_handler"
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("platform.system", return_value="Windows")
+    def test_windows_skips_with_warning(self, _mock_platform):
+        """Windows should skip timeout and return None."""
+        from yamlgraph.cli.graph_commands import _setup_timeout
+
+        ctx = _setup_timeout(30)
+        assert ctx is None
+
+
+class TestTeardownTimeout:
+    """Tests for _teardown_timeout helper."""
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_none_context_noop(self):
+        """None context should be a no-op."""
+        from yamlgraph.cli.graph_commands import _teardown_timeout
+
+        _teardown_timeout(None)  # Should not raise
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_cancels_alarm(self):
+        """Should cancel alarm and restore handler."""
+        from yamlgraph.cli.graph_commands import _teardown_timeout
+
+        old_handler = MagicMock()
+        with patch("signal.alarm") as mock_alarm, patch("signal.signal") as mock_signal:
+            _teardown_timeout({"old_handler": old_handler})
+
+        mock_alarm.assert_called_once_with(0)
+        mock_signal.assert_called_once()
+
+
+# =============================================================================
+# _build_run_config tests (FR-224)
+# =============================================================================
+
+
+class TestBuildRunConfig:
+    """Tests for _build_run_config helper."""
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.utils.tracing.create_tracer", return_value=None)
+    @patch("yamlgraph.utils.tracing.inject_tracer_config")
+    def test_merges_data_files(self, _mock_inject, _mock_tracer):
+        """Graph config data should be merged into initial_state."""
+        from yamlgraph.cli.graph_commands import _build_run_config
+
+        graph_config = MagicMock()
+        graph_config.data = {"base_key": "base_val"}
+        graph_config.recursion_limit = 25
+        graph_config.timeout = None
+
+        args = argparse.Namespace(
+            thread=None,
+            recursion_limit=None,
+            timeout=None,
+            share_trace=False,
+            token_usage=False,
+        )
+
+        state, config, *_ = _build_run_config(args, graph_config, {"user_key": "uv"})
+        assert state["base_key"] == "base_val"
+        assert state["user_key"] == "uv"
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.utils.tracing.create_tracer", return_value=None)
+    @patch("yamlgraph.utils.tracing.inject_tracer_config")
+    def test_cli_recursion_limit_overrides_yaml(self, _mock_inject, _mock_tracer):
+        """CLI --recursion-limit should override YAML config."""
+        from yamlgraph.cli.graph_commands import _build_run_config
+
+        graph_config = MagicMock()
+        graph_config.data = {}
+        graph_config.recursion_limit = 25
+        graph_config.timeout = None
+
+        args = argparse.Namespace(
+            thread=None,
+            recursion_limit=100,
+            timeout=None,
+            share_trace=False,
+            token_usage=False,
+        )
+
+        _, config, *_ = _build_run_config(args, graph_config, {})
+        assert config["recursion_limit"] == 100
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.utils.tracing.create_tracer", return_value=None)
+    @patch("yamlgraph.utils.tracing.inject_tracer_config")
+    def test_yaml_recursion_limit_when_cli_not_set(self, _mock_inject, _mock_tracer):
+        """YAML recursion_limit should be used when CLI not set."""
+        from yamlgraph.cli.graph_commands import _build_run_config
+
+        graph_config = MagicMock()
+        graph_config.data = {}
+        graph_config.recursion_limit = 50
+        graph_config.timeout = None
+
+        args = argparse.Namespace(
+            thread=None,
+            recursion_limit=None,
+            timeout=None,
+            share_trace=False,
+            token_usage=False,
+        )
+
+        _, config, *_ = _build_run_config(args, graph_config, {})
+        assert config["recursion_limit"] == 50
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.utils.tracing.create_tracer", return_value=None)
+    @patch("yamlgraph.utils.tracing.inject_tracer_config")
+    def test_thread_id_in_config(self, _mock_inject, _mock_tracer):
+        """Thread ID should be set in configurable and initial_state."""
+        from yamlgraph.cli.graph_commands import _build_run_config
+
+        graph_config = MagicMock()
+        graph_config.data = {}
+        graph_config.recursion_limit = 25
+        graph_config.timeout = None
+
+        args = argparse.Namespace(
+            thread="t-42",
+            recursion_limit=None,
+            timeout=None,
+            share_trace=False,
+            token_usage=False,
+        )
+
+        state, config, *_ = _build_run_config(args, graph_config, {})
+        assert config["configurable"]["thread_id"] == "t-42"
+        assert state["thread_id"] == "t-42"
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.utils.tracing.create_tracer", return_value=None)
+    @patch("yamlgraph.utils.tracing.inject_tracer_config")
+    def test_token_usage_callback_added(self, _mock_inject, _mock_tracer):
+        """Token usage flag should add tracker to callbacks."""
+        from yamlgraph.cli.graph_commands import _build_run_config
+
+        graph_config = MagicMock()
+        graph_config.data = {}
+        graph_config.recursion_limit = 25
+        graph_config.timeout = None
+
+        args = argparse.Namespace(
+            thread=None,
+            recursion_limit=None,
+            timeout=None,
+            share_trace=False,
+            token_usage=True,
+        )
+
+        with patch("yamlgraph.utils.token_tracker.create_token_tracker") as mock_create:
+            mock_tracker = MagicMock()
+            mock_create.return_value = mock_tracker
+            _, config, tracker, *_ = _build_run_config(args, graph_config, {})
+
+        assert tracker is mock_tracker
+        assert mock_tracker in config["callbacks"]
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.utils.tracing.create_tracer", return_value=None)
+    @patch("yamlgraph.utils.tracing.inject_tracer_config")
+    def test_cli_vars_override_data(self, _mock_inject, _mock_tracer):
+        """CLI vars (initial_state) should override graph_config.data on collision."""
+        from yamlgraph.cli.graph_commands import _build_run_config
+
+        graph_config = MagicMock()
+        graph_config.data = {"topic": "old", "extra": "kept"}
+        graph_config.recursion_limit = 25
+        graph_config.timeout = None
+
+        args = argparse.Namespace(
+            thread=None,
+            recursion_limit=None,
+            timeout=None,
+            share_trace=False,
+            token_usage=False,
+        )
+
+        state, *_ = _build_run_config(args, graph_config, {"topic": "new"})
+        assert state["topic"] == "new"
+        assert state["extra"] == "kept"
+
+
+# =============================================================================
+# _invoke_graph tests (FR-224)
+# =============================================================================
+
+
+class TestInvokeGraph:
+    """Tests for _invoke_graph helper."""
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_sync_invoke(self):
+        """Sync invoke should call app.invoke."""
+        from yamlgraph.cli.graph_commands import _invoke_graph
+
+        app = MagicMock()
+        app.invoke.return_value = {"result": "ok"}
+        result = _invoke_graph(app, {"input": "x"}, {"key": "val"}, use_async=False)
+        app.invoke.assert_called_once_with({"input": "x"}, config={"key": "val"})
+        assert result == {"result": "ok"}
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_async_invoke(self):
+        """Async invoke should call asyncio.run(app.ainvoke(...))."""
+        from yamlgraph.cli.graph_commands import _invoke_graph
+
+        app = MagicMock()
+
+        async def fake_ainvoke(data, config=None):
+            return {"async": True}
+
+        app.ainvoke = fake_ainvoke
+        result = _invoke_graph(app, {"input": "x"}, {"key": "val"}, use_async=True)
+        assert result == {"async": True}
+
+
+# =============================================================================
+# cmd_graph_codegen tests (FR-224)
+# =============================================================================
+
+
+class TestCmdGraphCodegen:
+    """Tests for cmd_graph_codegen command."""
+
+    @pytest.mark.req("REQ-YG-036")
+    @patch("yamlgraph.cli.graph_commands.load_graph_config")
+    @patch("yamlgraph.cli.graph_commands.generate_typeddict_code")
+    def test_codegen_stdout(self, mock_gen, mock_load, capsys):
+        """Codegen without --output should print to stdout."""
+        from yamlgraph.cli.graph_commands import cmd_graph_codegen
+
+        mock_load.return_value = {"name": "test", "nodes": {}}
+        mock_gen.return_value = "class TestState(TypedDict):\n    pass\n"
+
+        args = argparse.Namespace(
+            graph_path="graph.yaml",
+            output=None,
+            include_base=False,
+        )
+        cmd_graph_codegen(args)
+
+        captured = capsys.readouterr()
+        assert "TestState" in captured.out
+
+    @pytest.mark.req("REQ-YG-036")
+    @patch("yamlgraph.cli.graph_commands.load_graph_config")
+    @patch("yamlgraph.cli.graph_commands.generate_typeddict_code")
+    def test_codegen_to_file(self, mock_gen, mock_load, tmp_path):
+        """Codegen with --output should write to file."""
+        from yamlgraph.cli.graph_commands import cmd_graph_codegen
+
+        mock_load.return_value = {"name": "test", "nodes": {}}
+        mock_gen.return_value = "class TestState(TypedDict):\n    pass\n"
+
+        output_file = tmp_path / "state.py"
+        args = argparse.Namespace(
+            graph_path="graph.yaml",
+            output=str(output_file),
+            include_base=False,
+        )
+        cmd_graph_codegen(args)
+
+        assert output_file.read_text() == "class TestState(TypedDict):\n    pass\n"
+
+    @pytest.mark.req("REQ-YG-036")
+    @patch("yamlgraph.cli.graph_commands.load_graph_config")
+    def test_codegen_graph_load_error(self, mock_load):
+        """GraphLoadError should print error and exit(1)."""
+        from yamlgraph.cli.graph_commands import cmd_graph_codegen
+        from yamlgraph.cli.helpers import GraphLoadError
+
+        mock_load.side_effect = GraphLoadError("not found")
+        args = argparse.Namespace(
+            graph_path="missing.yaml",
+            output=None,
+            include_base=False,
+        )
+        with pytest.raises(SystemExit, match="1"):
+            cmd_graph_codegen(args)
+
+    @pytest.mark.req("REQ-YG-036")
+    @patch("yamlgraph.cli.graph_commands.load_graph_config")
+    def test_codegen_generic_error(self, mock_load):
+        """Generic exception should print error and exit(1)."""
+        from yamlgraph.cli.graph_commands import cmd_graph_codegen
+
+        mock_load.side_effect = RuntimeError("unexpected")
+        args = argparse.Namespace(
+            graph_path="bad.yaml",
+            output=None,
+            include_base=False,
+        )
+        with pytest.raises(SystemExit, match="1"):
+            cmd_graph_codegen(args)
+
+
+# =============================================================================
+# cmd_graph_dispatch tests (FR-224)
+# =============================================================================
+
+
+class TestCmdGraphDispatch:
+    """Tests for cmd_graph_dispatch command routing."""
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.cmd_graph_run")
+    def test_dispatches_run(self, mock_run):
+        """Should dispatch 'run' to cmd_graph_run."""
+        from yamlgraph.cli.graph_commands import cmd_graph_dispatch
+
+        args = argparse.Namespace(graph_command="run")
+        cmd_graph_dispatch(args)
+        mock_run.assert_called_once_with(args)
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.cmd_graph_info")
+    def test_dispatches_info(self, mock_info):
+        """Should dispatch 'info' to cmd_graph_info."""
+        from yamlgraph.cli.graph_commands import cmd_graph_dispatch
+
+        args = argparse.Namespace(graph_command="info")
+        cmd_graph_dispatch(args)
+        mock_info.assert_called_once_with(args)
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.cmd_graph_validate")
+    def test_dispatches_validate(self, mock_validate):
+        """Should dispatch 'validate' to cmd_graph_validate."""
+        from yamlgraph.cli.graph_commands import cmd_graph_dispatch
+
+        args = argparse.Namespace(graph_command="validate")
+        cmd_graph_dispatch(args)
+        mock_validate.assert_called_once_with(args)
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.cmd_graph_lint")
+    def test_dispatches_lint(self, mock_lint):
+        """Should dispatch 'lint' to cmd_graph_lint."""
+        from yamlgraph.cli.graph_commands import cmd_graph_dispatch
+
+        args = argparse.Namespace(graph_command="lint")
+        cmd_graph_dispatch(args)
+        mock_lint.assert_called_once_with(args)
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.cmd_graph_codegen")
+    def test_dispatches_codegen(self, mock_codegen):
+        """Should dispatch 'codegen' to cmd_graph_codegen."""
+        from yamlgraph.cli.graph_commands import cmd_graph_dispatch
+
+        args = argparse.Namespace(graph_command="codegen")
+        cmd_graph_dispatch(args)
+        mock_codegen.assert_called_once_with(args)
+
+    @pytest.mark.req("REQ-YG-033")
+    def test_unknown_command_exits(self):
+        """Unknown subcommand should exit(1)."""
+        from yamlgraph.cli.graph_commands import cmd_graph_dispatch
+
+        args = argparse.Namespace(graph_command="foobar")
+        with pytest.raises(SystemExit, match="1"):
+            cmd_graph_dispatch(args)
+
+
+# =============================================================================
+# cmd_graph_info extended tests (FR-224)
+# =============================================================================
+
+
+class TestCmdGraphInfoExtended:
+    """Extended tests for cmd_graph_info command (FR-224)."""
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.require_graph_config")
+    def test_displays_nodes_and_edges(self, mock_require, capsys):
+        """Should display node list and edge list."""
+        from yamlgraph.cli.graph_commands import cmd_graph_info
+
+        mock_require.return_value = {
+            "name": "MyGraph",
+            "description": "A test graph",
+            "nodes": {
+                "gen": {"type": "llm"},
+                "review": {"type": "prompt"},
+            },
+            "edges": [
+                {"from": "START", "to": "gen"},
+                {"from": "gen", "to": "review"},
+                {"from": "review", "to": "END"},
+            ],
+        }
+        args = argparse.Namespace(graph_path="graph.yaml")
+        cmd_graph_info(args)
+
+        captured = capsys.readouterr()
+        assert "MyGraph" in captured.out
+        assert "A test graph" in captured.out
+        assert "gen (llm)" in captured.out
+        assert "review (prompt)" in captured.out
+        assert "Nodes (2)" in captured.out
+        assert "Edges (3)" in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.require_graph_config")
+    def test_displays_inputs(self, mock_require, capsys):
+        """Should display required inputs."""
+        from yamlgraph.cli.graph_commands import cmd_graph_info
+
+        mock_require.return_value = {
+            "name": "TestGraph",
+            "description": "desc",
+            "nodes": {"a": {"type": "llm"}},
+            "edges": [],
+            "inputs": {
+                "topic": {"required": True},
+                "style": {"required": False, "default": "casual"},
+            },
+        }
+        args = argparse.Namespace(graph_path="graph.yaml")
+        cmd_graph_info(args)
+
+        captured = capsys.readouterr()
+        assert "Inputs (2)" in captured.out
+        assert "--var topic=<value>" in captured.out
+        assert "(required)" in captured.out
+        assert "--var style=<value>" in captured.out
+        assert "(default: casual)" in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.require_graph_config")
+    def test_displays_conditional_edges(self, mock_require, capsys):
+        """Should display conditional edges correctly."""
+        from yamlgraph.cli.graph_commands import cmd_graph_info
+
+        mock_require.return_value = {
+            "name": "Router",
+            "description": "desc",
+            "nodes": {"a": {"type": "llm"}},
+            "edges": [
+                {"from": "a", "to": "b", "condition": "state.x > 0"},
+            ],
+        }
+        args = argparse.Namespace(graph_path="graph.yaml")
+        cmd_graph_info(args)
+
+        captured = capsys.readouterr()
+        assert "(conditional)" in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.require_graph_config")
+    def test_generic_error_exits(self, mock_require):
+        """Generic exception should exit(1)."""
+        from yamlgraph.cli.graph_commands import cmd_graph_info
+
+        mock_require.side_effect = RuntimeError("boom")
+        args = argparse.Namespace(graph_path="graph.yaml")
+        with pytest.raises(SystemExit, match="1"):
+            cmd_graph_info(args)
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.require_graph_config")
+    def test_graph_load_error_exits(self, mock_require):
+        """GraphLoadError should exit(1)."""
+        from yamlgraph.cli.graph_commands import cmd_graph_info
+        from yamlgraph.cli.helpers import GraphLoadError
+
+        mock_require.side_effect = GraphLoadError("missing")
+        args = argparse.Namespace(graph_path="graph.yaml")
+        with pytest.raises(SystemExit, match="1"):
+            cmd_graph_info(args)
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands.require_graph_config")
+    def test_no_inputs_section(self, mock_require, capsys):
+        """Graph without inputs section should not show Inputs."""
+        from yamlgraph.cli.graph_commands import cmd_graph_info
+
+        mock_require.return_value = {
+            "name": "Simple",
+            "description": "desc",
+            "nodes": {"a": {"type": "llm"}},
+            "edges": [],
+        }
+        args = argparse.Namespace(graph_path="graph.yaml")
+        cmd_graph_info(args)
+
+        captured = capsys.readouterr()
+        assert "Inputs" not in captured.out
+
+
+# =============================================================================
+# cmd_graph_run extended tests (FR-224)
+# =============================================================================
+
+
+class TestCmdGraphRunExtended:
+    """Extended tests for cmd_graph_run covering timeout, token usage, etc."""
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands._build_run_config")
+    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.graph_loader.compile_graph")
+    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    def test_var_file_loading(
+        self, mock_cp, mock_compile, mock_load, mock_build, tmp_path
+    ):
+        """--var-file should be loaded and merged."""
+        from yamlgraph.cli.graph_commands import cmd_graph_run
+
+        var_file = tmp_path / "vars.yaml"
+        var_file.write_text("base: value")
+
+        mock_load.return_value = MagicMock()
+        mock_graph = MagicMock()
+        mock_compile.return_value = mock_graph
+        mock_cp.return_value = None
+
+        mock_app = MagicMock()
+        mock_app.invoke.return_value = {"result": "ok"}
+        mock_graph.compile.return_value = mock_app
+
+        mock_build.return_value = (
+            {"base": "value", "topic": "AI"},
+            {},
+            None,  # tracker
+            None,  # timeout
+            None,  # tracer
+            False,  # share
+        )
+
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        args = argparse.Namespace(
+            graph_path=str(tmp_path / "graph.yaml"),
+            var=["topic=AI"],
+            var_file=str(var_file),
+            thread=None,
+            export=False,
+        )
+
+        cmd_graph_run(args)
+        mock_app.invoke.assert_called_once()
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands._build_run_config")
+    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.graph_loader.compile_graph")
+    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    def test_timeout_error_exits(
+        self, mock_cp, mock_compile, mock_load, mock_build, tmp_path, capsys
+    ):
+        """TimeoutError during invoke should exit(1)."""
+        from yamlgraph.cli.graph_commands import cmd_graph_run
+
+        mock_load.return_value = MagicMock()
+        mock_graph = MagicMock()
+        mock_compile.return_value = mock_graph
+        mock_cp.return_value = None
+
+        mock_app = MagicMock()
+        mock_app.invoke.side_effect = TimeoutError("timed out after 5s")
+        mock_graph.compile.return_value = mock_app
+
+        mock_build.return_value = (
+            {},
+            {},
+            None,
+            5,  # timeout
+            None,
+            False,
+        )
+
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        args = argparse.Namespace(
+            graph_path=str(tmp_path / "graph.yaml"),
+            var=[],
+            var_file=None,
+            thread=None,
+            export=False,
+        )
+
+        with (
+            patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None),
+            patch("yamlgraph.cli.graph_commands._teardown_timeout"),
+            pytest.raises(SystemExit, match="1"),
+        ):
+            cmd_graph_run(args)
+
+        captured = capsys.readouterr()
+        assert "timed out" in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands._build_run_config")
+    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.graph_loader.compile_graph")
+    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    def test_token_usage_summary(
+        self, mock_cp, mock_compile, mock_load, mock_build, tmp_path, capsys
+    ):
+        """Token usage summary should be printed when tracker has calls."""
+        from yamlgraph.cli.graph_commands import cmd_graph_run
+
+        mock_load.return_value = MagicMock()
+        mock_graph = MagicMock()
+        mock_compile.return_value = mock_graph
+        mock_cp.return_value = None
+
+        mock_app = MagicMock()
+        mock_app.invoke.return_value = {"output": "done"}
+        mock_graph.compile.return_value = mock_app
+
+        mock_tracker = MagicMock()
+        mock_tracker.total_calls = 2
+        mock_tracker.summary.return_value = {
+            "total_input_tokens": 100,
+            "total_output_tokens": 50,
+            "total_calls": 2,
+        }
+
+        mock_build.return_value = (
+            {},
+            {},
+            mock_tracker,
+            None,
+            None,
+            False,
+        )
+
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        args = argparse.Namespace(
+            graph_path=str(tmp_path / "graph.yaml"),
+            var=[],
+            var_file=None,
+            thread=None,
+            export=False,
+            full=False,
+        )
+
+        with (
+            patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None),
+            patch("yamlgraph.cli.graph_commands._teardown_timeout"),
+        ):
+            cmd_graph_run(args)
+
+        captured = capsys.readouterr()
+        assert "Token usage" in captured.out
+        assert "100 in" in captured.out
+        assert "50 out" in captured.out
+
+    @pytest.mark.req("REQ-YG-033")
+    @patch("yamlgraph.cli.graph_commands._handle_export")
+    @patch("yamlgraph.cli.graph_commands._build_run_config")
+    @patch("yamlgraph.graph_loader.load_graph_config")
+    @patch("yamlgraph.graph_loader.compile_graph")
+    @patch("yamlgraph.graph_loader.get_checkpointer_for_graph")
+    def test_export_flag_triggers_export(
+        self, mock_cp, mock_compile, mock_load, mock_build, mock_export, tmp_path
+    ):
+        """--export flag should trigger _handle_export."""
+        from yamlgraph.cli.graph_commands import cmd_graph_run
+
+        mock_load.return_value = MagicMock()
+        mock_graph = MagicMock()
+        mock_compile.return_value = mock_graph
+        mock_cp.return_value = None
+
+        mock_app = MagicMock()
+        mock_app.invoke.return_value = {"output": "done"}
+        mock_graph.compile.return_value = mock_app
+
+        mock_build.return_value = ({}, {}, None, None, None, False)
+
+        (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
+        args = argparse.Namespace(
+            graph_path=str(tmp_path / "graph.yaml"),
+            var=[],
+            var_file=None,
+            thread=None,
+            export=True,
+            full=False,
+        )
+
+        with (
+            patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None),
+            patch("yamlgraph.cli.graph_commands._teardown_timeout"),
+        ):
+            cmd_graph_run(args)
+
+        mock_export.assert_called_once()
