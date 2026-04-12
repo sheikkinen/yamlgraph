@@ -322,6 +322,18 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: `mcp` variable assigned but never used after `importorskip`.
 - **Penance**: `pytest.importorskip("mcp")` is used as an import guard — the test must be skipped if `mcp` is not installed. The returned module is intentionally unused; the call's side effect (skip or proceed) is the purpose.
 
+### CONF-035
+- **File**: [tests/unit/test_a2a_commands.py](../tests/unit/test_a2a_commands.py#L130)
+- **Code**: S104
+- **Sin**: Hardcoded bind-all address `0.0.0.0` in test fixture `argparse.Namespace`.
+- **Penance**: Test data simulating CLI arguments for the A2A serve command. Not a real network binding — the server is fully mocked. Required to verify the argument-passing path.
+
+### CONF-036
+- **File**: [tests/unit/test_a2a_message.py](../tests/unit/test_a2a_message.py#L488)
+- **Code**: S104
+- **Sin**: Hardcoded bind-all address `0.0.0.0` in `build_agent_card` test call.
+- **Penance**: Test data verifying Agent Card URL construction. No actual network socket is opened — the function only builds a data structure. Required to test the host-to-URL mapping.
+
 ---
 
 ## Example Code
