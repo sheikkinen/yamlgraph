@@ -1,10 +1,12 @@
 """Node Compiler - Compile YAML node configs to LangGraph nodes.
 
 Extracted from graph_loader.py to keep modules under 400 lines.
+Uses a registry pattern (FR-220) to dispatch node types to handlers.
 """
 
 import logging
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -30,6 +32,165 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Context passed to node type handlers (FR-220)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class NodeCompileContext:
+    """All context needed to compile a single node."""
+
+    node_name: str
+    node_config: dict[str, Any]
+    graph: StateGraph
+    config: "GraphConfig"
+    tools: dict[str, Any]
+    python_tools: dict[str, Any]
+    callable_registry: dict[str, Callable]
+    effective_defaults: dict[str, Any]
+    prompts_dir: Path | None
+    prompts_relative: bool
+
+
+# ---------------------------------------------------------------------------
+# Node type handlers — one per node type
+# ---------------------------------------------------------------------------
+
+NodeTypeHandler = Callable[[NodeCompileContext], tuple[str, Any] | None]
+
+
+def _compile_tool_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_tool_node(ctx.node_name, ctx.node_config, ctx.tools)
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+def _compile_python_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_python_node(ctx.node_name, ctx.node_config, ctx.python_tools)
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+def _compile_agent_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_agent_node(
+        ctx.node_name,
+        ctx.node_config,
+        ctx.tools,
+        ctx.python_tools,
+        defaults=ctx.effective_defaults,
+        graph_path=ctx.config.source_path,
+    )
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+def _compile_map_node(ctx: NodeCompileContext) -> tuple[str, Any]:
+    map_edge_fn, sub_node_name = compile_map_node(
+        ctx.node_name,
+        ctx.node_config,
+        ctx.graph,
+        ctx.effective_defaults,
+        ctx.callable_registry,
+        graph_path=ctx.config.source_path,
+        python_tools=ctx.python_tools,
+        tools=ctx.tools,
+    )
+    return (ctx.node_name, (map_edge_fn, sub_node_name))
+
+
+def _compile_tool_call_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_tool_call_node(
+        ctx.node_name, ctx.node_config, ctx.callable_registry
+    )
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+def _compile_interrupt_node(ctx: NodeCompileContext) -> tuple[str, Any]:
+    """FR-060: Two-node split — prepare commits state, interrupt pauses."""
+    prepare_fn, interrupt_fn = create_interrupt_node(
+        ctx.node_name,
+        ctx.node_config,
+        graph_path=ctx.config.source_path,
+        prompts_dir=ctx.prompts_dir,
+        prompts_relative=ctx.prompts_relative,
+    )
+    prepare_name = f"{ctx.node_name}_prepare"
+    ctx.graph.add_node(prepare_name, prepare_fn)
+    ctx.graph.add_node(ctx.node_name, interrupt_fn)
+    ctx.graph.add_edge(prepare_name, ctx.node_name)
+    return (ctx.node_name, "interrupt_prepare")
+
+
+def _compile_passthrough_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_passthrough_node(ctx.node_name, ctx.node_config)
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+def _compile_copilot_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_copilot_node(
+        ctx.node_name,
+        ctx.node_config,
+        graph_path=ctx.config.source_path,
+        prompts_dir=ctx.prompts_dir,
+        prompts_relative=ctx.prompts_relative,
+    )
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+def _compile_subgraph_node(ctx: NodeCompileContext) -> None:
+    if not ctx.config.source_path:
+        raise ValueError(
+            f"Cannot resolve subgraph path for node '{ctx.node_name}': "
+            "parent graph has no source_path"
+        )
+    node_fn = create_subgraph_node(
+        ctx.node_name,
+        ctx.node_config,
+        parent_graph_path=ctx.config.source_path,
+    )
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+def _compile_llm_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_node_function(
+        ctx.node_name,
+        ctx.node_config,
+        ctx.effective_defaults,
+        graph_path=ctx.config.source_path,
+    )
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Registry: NodeType → handler (FR-220)
+# ---------------------------------------------------------------------------
+
+NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
+    NodeType.TOOL: _compile_tool_node,
+    NodeType.PYTHON: _compile_python_node,
+    NodeType.AGENT: _compile_agent_node,
+    NodeType.MAP: _compile_map_node,
+    NodeType.TOOL_CALL: _compile_tool_call_node,
+    NodeType.INTERRUPT: _compile_interrupt_node,
+    NodeType.PASSTHROUGH: _compile_passthrough_node,
+    NodeType.COPILOT: _compile_copilot_node,
+    NodeType.SUBGRAPH: _compile_subgraph_node,
+    NodeType.LLM: _compile_llm_node,
+    NodeType.ROUTER: _compile_llm_node,
+}
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+
 def compile_node(
     node_name: str,
     node_config: dict[str, Any],
@@ -51,15 +212,17 @@ def compile_node(
         callable_registry: Loaded callable functions for tool_call nodes
 
     Returns:
-        Tuple of (node_name, map_info) for map nodes, None otherwise
+        Tuple of (node_name, metadata) for map/interrupt nodes, None otherwise.
+
+    Raises:
+        ValueError: If node type is not registered in NODE_TYPE_HANDLERS.
     """
-    # Copy node config and add loop_limit if specified
+    # Enrich config with loop_limit if specified
     enriched_config = dict(node_config)
     if node_name in config.loop_limits:
         enriched_config["loop_limit"] = config.loop_limits[node_name]
 
-    # Extract prompts path config (FR-A)
-    # Use config attributes which check top-level then defaults
+    # Build prompts path config
     prompts_relative = config.prompts_relative
     prompts_dir = config.prompts_dir
     if prompts_dir:
@@ -71,95 +234,31 @@ def compile_node(
     if prompts_dir:
         effective_defaults["prompts_dir"] = str(prompts_dir)
 
+    # Dispatch via registry (FR-220)
     node_type = node_config.get("type", NodeType.LLM)
+    handler = NODE_TYPE_HANDLERS.get(node_type)
+    if handler is None:
+        raise ValueError(
+            f"Unknown node type: {node_type!r}. "
+            f"Registered types: {sorted(NODE_TYPE_HANDLERS.keys())}"
+        )
 
-    if node_type == NodeType.TOOL:
-        node_fn = create_tool_node(node_name, enriched_config, tools)
-        graph.add_node(node_name, node_fn)
-    elif node_type == NodeType.PYTHON:
-        node_fn = create_python_node(node_name, enriched_config, python_tools)
-        graph.add_node(node_name, node_fn)
-    elif node_type == NodeType.AGENT:
-        node_fn = create_agent_node(
-            node_name,
-            enriched_config,
-            tools,
-            python_tools,
-            defaults=effective_defaults,
-            graph_path=config.source_path,
-        )
-        graph.add_node(node_name, node_fn)
-    elif node_type == NodeType.MAP:
-        map_edge_fn, sub_node_name = compile_map_node(
-            node_name,
-            enriched_config,
-            graph,
-            effective_defaults,
-            callable_registry,
-            graph_path=config.source_path,
-            python_tools=python_tools,
-            tools=tools,
-        )
-        logger.info(f"Added node: {node_name} (type={node_type})")
-        return (node_name, (map_edge_fn, sub_node_name))
-    elif node_type == NodeType.TOOL_CALL:
-        # Dynamic tool call from state
-        node_fn = create_tool_call_node(node_name, enriched_config, callable_registry)
-        graph.add_node(node_name, node_fn)
-    elif node_type == NodeType.INTERRUPT:
-        # FR-060: Two-node split — prepare commits state, interrupt pauses
-        prepare_fn, interrupt_fn = create_interrupt_node(
-            node_name,
-            enriched_config,
-            graph_path=config.source_path,
-            prompts_dir=prompts_dir,
-            prompts_relative=prompts_relative,
-        )
-        prepare_name = f"{node_name}_prepare"
-        graph.add_node(prepare_name, prepare_fn)
-        graph.add_node(node_name, interrupt_fn)
-        graph.add_edge(prepare_name, node_name)
-        logger.info(f"Added node: {node_name} (type={node_type}, split)")
-        return (node_name, "interrupt_prepare")
-    elif node_type == NodeType.PASSTHROUGH:
-        # Simple state transformation node
-        node_fn = create_passthrough_node(node_name, enriched_config)
-        graph.add_node(node_name, node_fn)
-    elif node_type == NodeType.COPILOT:
-        # Copilot CLI or MCP sampling node (FR-081)
-        node_fn = create_copilot_node(
-            node_name,
-            enriched_config,
-            graph_path=config.source_path,
-            prompts_dir=prompts_dir,
-            prompts_relative=prompts_relative,
-        )
-        graph.add_node(node_name, node_fn)
-    elif node_type == NodeType.SUBGRAPH:
-        # Subgraph node - compose graphs from YAML
-        if not config.source_path:
-            raise ValueError(
-                f"Cannot resolve subgraph path for node '{node_name}': "
-                "parent graph has no source_path"
-            )
-        node_fn = create_subgraph_node(
-            node_name,
-            enriched_config,
-            parent_graph_path=config.source_path,
-        )
-        graph.add_node(node_name, node_fn)
-    else:
-        # LLM and router nodes - use effective_defaults with prompts settings
-        node_fn = create_node_function(
-            node_name,
-            enriched_config,
-            effective_defaults,
-            graph_path=config.source_path,
-        )
-        graph.add_node(node_name, node_fn)
+    ctx = NodeCompileContext(
+        node_name=node_name,
+        node_config=enriched_config,
+        graph=graph,
+        config=config,
+        tools=tools,
+        python_tools=python_tools,
+        callable_registry=callable_registry,
+        effective_defaults=effective_defaults,
+        prompts_dir=prompts_dir,
+        prompts_relative=prompts_relative,
+    )
+    result = handler(ctx)
 
     logger.info(f"Added node: {node_name} (type={node_type})")
-    return None
+    return result
 
 
 def compile_nodes(
@@ -206,4 +305,4 @@ def compile_nodes(
     return map_nodes, interrupt_nodes
 
 
-__all__ = ["compile_node", "compile_nodes"]
+__all__ = ["NodeCompileContext", "NODE_TYPE_HANDLERS", "compile_node", "compile_nodes"]

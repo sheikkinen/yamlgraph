@@ -100,6 +100,11 @@ dependencies:
     modules: [".pre-commit-config.yaml"]
     added: "0.1.0"
 
+  import-linter:
+    rationale: "Architectural boundary enforcement — three-layer import contracts (FR-218)"
+    modules: [".importlinter"]
+    added: "0.4.62"
+
   # ─── Optional: Analysis ──────────────────────────────────────────────
 
   jedi:
