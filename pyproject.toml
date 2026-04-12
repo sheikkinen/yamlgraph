@@ -134,14 +134,22 @@ select = [
     "C4",     # flake8-comprehensions
     "UP",     # pyupgrade
     "SIM",    # flake8-simplify
+    "C901",   # mccabe cognitive complexity (FR-221)
 ]
 ignore = [
     "E501",   # Line too long (handled by formatter)
 ]
 
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
 [tool.ruff.lint.per-file-ignores]
 # Vulture whitelist uses bare expressions and grouped imports by design
 "vulture_whitelist.py" = ["B018", "E402"]
+# C901 gate scoped to yamlgraph/ per FR-221; examples/projects/scripts excluded
+"examples/**/*.py" = ["C901"]
+"projects/**/*.py" = ["C901"]
+"scripts/**/*.py" = ["C901"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

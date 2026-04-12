@@ -76,6 +76,30 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `kwargs` parameter unused in callback handler.
 - **Penance**: Required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`). Cannot remove without breaking signature compatibility.
 
+### CONF-005
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L51)
+- **Code**: C901 (cognitive complexity 35 > 15)
+- **Sin**: `create_node_function` builds node closures with nested retry loops, verification, and schema handling.
+- **Penance**: FR-220 targets refactoring this function. Suppressed at threshold 15 pending decomposition.
+
+### CONF-006
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L152)
+- **Code**: C901 (cognitive complexity 26 > 15)
+- **Sin**: `node_fn` (nested closure) handles loop protection, skip-if-exists, prompt execution, verification retries, and error recovery.
+- **Penance**: Tightly coupled to `create_node_function` above. FR-220 will decompose both together.
+
+### CONF-007
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L149)
+- **Code**: C901 (cognitive complexity 19 > 15)
+- **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
+- **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
+
+### CONF-008
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L106)
+- **Code**: C901 (cognitive complexity 16 > 15)
+- **Sin**: `check_state_declarations` traverses graph YAML, resolves prompt references, and extracts template variables.
+- **Penance**: Barely above threshold (16 vs 15). Will be addressed when linter checks are decomposed.
+
 ### CONF-003
 - **File**: [yamlgraph/executor_async.py](../yamlgraph/executor_async.py#L310)
 - **Code**: ANN001 (missing type annotation for function argument)
