@@ -126,7 +126,7 @@ def execute_shell_tool(
         # All user-provided variables are sanitized via shlex.quote() in sanitize_variables()
         # before substitution, preventing shell injection attacks. The command template
         # itself comes from trusted YAML configuration, not user input.
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S602
             command,
             shell=True,  # nosec B602
             capture_output=True,

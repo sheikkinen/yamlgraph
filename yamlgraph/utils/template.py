@@ -44,7 +44,7 @@ def extract_variables(template: str) -> set[str]:
 
     if is_jinja:
         # Use Jinja2 AST for correctness
-        env = Environment()
+        env = Environment()  # noqa: S701
         ast = env.parse(template)
         variables = meta.find_undeclared_variables(ast)
         # Subtract variables assigned via {% set %} at any nesting depth.

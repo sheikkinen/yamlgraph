@@ -134,6 +134,7 @@ select = [
     "C4",     # flake8-comprehensions
     "UP",     # pyupgrade
     "SIM",    # flake8-simplify
+    "S",      # flake8-bandit (security)
 ]
 ignore = [
     "E501",   # Line too long (handled by formatter)
@@ -142,6 +143,12 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # Vulture whitelist uses bare expressions and grouped imports by design
 "vulture_whitelist.py" = ["B018", "E402"]
+# Tests use assert statements and subprocess calls by design
+"tests/**" = ["S101", "S602", "S603", "S607", "S108"]
+# Examples demonstrate patterns; subprocess/binding/assert-in-tests are intentional
+"examples/**" = ["S101", "S603", "S607", "S104", "S105", "S108", "S112"]
+# Scripts use partial executable paths (git, etc.) by design
+"scripts/**" = ["S603", "S607"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
