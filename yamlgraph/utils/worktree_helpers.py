@@ -90,8 +90,8 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
         return False
 
     # Check unstaged changes
-    result_unstaged = subprocess.run(
-        ["git", "diff", "--name-only"],
+    result_unstaged = subprocess.run(  # noqa: S603
+        ["git", "diff", "--name-only"],  # noqa: S607
         capture_output=True,
         text=True,
     )
@@ -101,8 +101,8 @@ def validate_clean_working_tree(exclude_paths: list[str] | None = None) -> bool:
         raise ValueError(f"Working tree has unstaged changes: {non_excluded_unstaged}")
 
     # Check staged changes
-    result_staged = subprocess.run(
-        ["git", "diff", "--cached", "--name-only"],
+    result_staged = subprocess.run(  # noqa: S603
+        ["git", "diff", "--cached", "--name-only"],  # noqa: S607
         capture_output=True,
         text=True,
     )
