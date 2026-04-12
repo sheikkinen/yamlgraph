@@ -33,4 +33,8 @@ requirements:
     modules:
       - graph_loader.compile_graph
       - node_compiler.compile_nodes
-fr: legacy
+  - id: REQ-YG-220
+    description: "Node type registry dispatches compile_node via NODE_TYPE_HANDLERS dict; unknown types raise ValueError (FR-220)"
+    modules:
+      - node_compiler
+fr: FR-220

@@ -383,6 +383,7 @@ Transform validated configs into executable StateGraphs with node compilation, e
 | REQ-YG-006 | Validate graph structures (cycle detection, loop defaults) | `graph_loader.detect_loop_nodes`, `graph_loader.apply_loop_node_defaults` |
 | REQ-YG-007 | Compile individual nodes | `node_compiler.compile_node`, `node_factory` |
 | REQ-YG-008 | Compile full graph configuration | `graph_loader.compile_graph`, `node_compiler.compile_nodes` |
+| REQ-YG-220 | Node type registry dispatches compile_node via `NODE_TYPE_HANDLERS` dict instead of if/elif; unknown types raise `ValueError` (FR-220) | `node_compiler` |
 
 ### 3. Node Execution
 
