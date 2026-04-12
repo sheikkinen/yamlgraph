@@ -1,8 +1,9 @@
-"""Tests for A2A server — FR-208: A2A Protocol Server.
+"""Tests for A2A server — FR-208/FR-225: A2A Protocol Server.
 
-TDD red phase: all tests written before implementation.
-Tests cover message parsing, Agent Card generation, error mapping,
-and the AgentExecutor integration.
+Covers: _invoke_graph, YAMLGraphAgentExecutor (execute, cancel),
+        _resolve_graph, _format_result, create_a2a_app.
+
+Message-layer tests moved to test_a2a_message.py (FR-225).
 """
 
 from __future__ import annotations
@@ -56,228 +57,6 @@ def no_var_graph_info() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# REQ-YG-208: Agent Card generation
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.req("REQ-YG-208")
-def test_build_agent_card_from_graph(sample_graph_info):
-    """Agent Card auto-generated with correct name, description, skills."""
-    from yamlgraph.a2a_server import build_agent_card
-
-    card = build_agent_card(
-        graphs=[sample_graph_info],
-        host="localhost",
-        port=8080,
-    )
-
-    assert card.name == "YAMLGraph A2A Server"
-    assert card.url == "http://localhost:8080/"
-    assert len(card.skills) == 1
-    assert card.skills[0].id == "hello-world"
-    assert card.skills[0].name == "hello-world"
-    assert card.skills[0].description == "Simple greeting generator"
-    assert "yamlgraph" in card.skills[0].tags
-
-
-@pytest.mark.req("REQ-YG-208")
-def test_agent_card_capabilities(sample_graph_info):
-    """Agent Card has streaming=True, push_notifications=None."""
-    from yamlgraph.a2a_server import build_agent_card
-
-    card = build_agent_card(
-        graphs=[sample_graph_info],
-        host="localhost",
-        port=8080,
-    )
-
-    assert card.capabilities.streaming is True
-    assert card.capabilities.push_notifications is None
-
-
-@pytest.mark.req("REQ-YG-208")
-def test_agent_card_no_authentication(sample_graph_info):
-    """Agent Card has no security schemes by default."""
-    from yamlgraph.a2a_server import build_agent_card
-
-    card = build_agent_card(
-        graphs=[sample_graph_info],
-        host="localhost",
-        port=8080,
-    )
-
-    assert card.security_schemes is None
-
-
-@pytest.mark.req("REQ-YG-208")
-def test_agent_card_multi_graph(sample_graph_info, single_var_graph_info):
-    """Multiple graphs become multiple skills in Agent Card."""
-    from yamlgraph.a2a_server import build_agent_card
-
-    card = build_agent_card(
-        graphs=[sample_graph_info, single_var_graph_info],
-        host="localhost",
-        port=9090,
-    )
-
-    assert len(card.skills) == 2
-    skill_ids = {s.id for s in card.skills}
-    assert "hello-world" in skill_ids
-    assert "echo" in skill_ids
-
-
-# ---------------------------------------------------------------------------
-# REQ-YG-209: Message parsing strategy
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_parse_message_json_mode():
-    """JSON object in text is parsed as variables."""
-    from yamlgraph.a2a_server import parse_a2a_message
-
-    result = parse_a2a_message(
-        '{"name": "World", "style": "casual"}',
-        required_vars=["name", "style"],
-    )
-    assert result == {"name": "World", "style": "casual"}
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_parse_message_key_value_mode():
-    """key=value pairs parsed via shlex."""
-    from yamlgraph.a2a_server import parse_a2a_message
-
-    result = parse_a2a_message(
-        'name=World style="holy see of code"',
-        required_vars=["name", "style"],
-    )
-    assert result == {"name": "World", "style": "holy see of code"}
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_parse_message_single_input_mode():
-    """Single required var gets entire text assigned."""
-    from yamlgraph.a2a_server import parse_a2a_message
-
-    result = parse_a2a_message(
-        "Hello World, how are you?",
-        required_vars=["input"],
-    )
-    assert result == {"input": "Hello World, how are you?"}
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_parse_message_fallback_to_input_key():
-    """No required vars and no key=value → assign to 'input' key."""
-    from yamlgraph.a2a_server import parse_a2a_message
-
-    result = parse_a2a_message(
-        "Just some text",
-        required_vars=[],
-    )
-    assert result == {"input": "Just some text"}
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_parse_message_resolution_order():
-    """JSON takes priority over key_value even when text contains '='."""
-    from yamlgraph.a2a_server import parse_a2a_message
-
-    # Valid JSON that also contains '='
-    result = parse_a2a_message(
-        '{"equation": "a=b"}',
-        required_vars=["equation"],
-    )
-    assert result == {"equation": "a=b"}
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_parse_message_missing_required_vars():
-    """Missing required vars raises ValueError with missing keys."""
-    from yamlgraph.a2a_server import parse_a2a_message
-
-    with pytest.raises(ValueError, match="missing_variables"):
-        parse_a2a_message(
-            "name=World",
-            required_vars=["name", "style"],
-        )
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_parse_message_extra_vars_ignored():
-    """Extra variables not in required_vars are included (same as CLI --var)."""
-    from yamlgraph.a2a_server import parse_a2a_message
-
-    result = parse_a2a_message(
-        "name=World style=casual extra=ignored",
-        required_vars=["name", "style"],
-    )
-    assert result["name"] == "World"
-    assert result["style"] == "casual"
-    assert result["extra"] == "ignored"
-
-
-# ---------------------------------------------------------------------------
-# REQ-YG-209: PipelineError → A2A error mapping
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_map_pipeline_error_llm():
-    """LLM_ERROR maps to InternalError."""
-    from a2a.types import InternalError
-
-    from yamlgraph.a2a_server import map_pipeline_error
-    from yamlgraph.models import ErrorType, PipelineError
-
-    err = PipelineError(
-        type=ErrorType.LLM_ERROR,
-        message="Rate limit exceeded",
-        node="greet",
-        retryable=True,
-    )
-    a2a_err = map_pipeline_error(err)
-    assert isinstance(a2a_err, InternalError)
-    assert "Rate limit exceeded" in a2a_err.message
-    assert a2a_err.data["retryable"] is True
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_map_pipeline_error_validation():
-    """VALIDATION_ERROR maps to InvalidParamsError."""
-    from a2a.types import InvalidParamsError
-
-    from yamlgraph.a2a_server import map_pipeline_error
-    from yamlgraph.models import ErrorType, PipelineError
-
-    err = PipelineError(
-        type=ErrorType.VALIDATION_ERROR,
-        message="Field 'name' required",
-        node="greet",
-    )
-    a2a_err = map_pipeline_error(err)
-    assert isinstance(a2a_err, InvalidParamsError)
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_map_pipeline_error_prompt():
-    """PROMPT_ERROR maps to InvalidParamsError."""
-    from a2a.types import InvalidParamsError
-
-    from yamlgraph.a2a_server import map_pipeline_error
-    from yamlgraph.models import ErrorType, PipelineError
-
-    err = PipelineError(
-        type=ErrorType.PROMPT_ERROR,
-        message="Prompt not found",
-        node="greet",
-    )
-    a2a_err = map_pipeline_error(err)
-    assert isinstance(a2a_err, InvalidParamsError)
-
-
-# ---------------------------------------------------------------------------
 # REQ-YG-207: A2A server discovers graphs
 # ---------------------------------------------------------------------------
 
@@ -289,6 +68,128 @@ def test_a2a_server_uses_shared_discovery():
     from yamlgraph.discovery import discover_graphs as shared_discover
 
     assert a2a_discover is shared_discover
+
+
+# ---------------------------------------------------------------------------
+# REQ-YG-068: _invoke_graph
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-207")
+def test_invoke_graph_calls_load_compile_invoke():
+    """_invoke_graph loads config, compiles graph, and invokes with variables."""
+    from yamlgraph.a2a_server import _invoke_graph
+
+    mock_config = MagicMock()
+    mock_sg = MagicMock()
+    mock_compiled = MagicMock()
+    mock_compiled.invoke.return_value = {"out": "result"}
+    mock_sg.compile.return_value = mock_compiled
+
+    with (
+        patch(
+            "yamlgraph.graph_loader.load_graph_config", return_value=mock_config
+        ) as mock_load,
+        patch(
+            "yamlgraph.graph_loader.compile_graph", return_value=mock_sg
+        ) as mock_compile,
+    ):
+        result = _invoke_graph("/tmp/graph.yaml", {"name": "test"})
+
+    mock_load.assert_called_once_with("/tmp/graph.yaml")
+    mock_compile.assert_called_once_with(mock_config)
+    mock_compiled.invoke.assert_called_once_with({"name": "test"})
+    assert result == {"out": "result"}
+
+
+# ---------------------------------------------------------------------------
+# REQ-YG-207: _resolve_graph
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-207")
+def test_resolve_graph_single(sample_graph_info):
+    """Single-graph lookup returns the only graph."""
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+    resolved = executor._resolve_graph("anything")
+    assert resolved["name"] == "hello-world"
+
+
+@pytest.mark.req("REQ-YG-207")
+def test_resolve_graph_multi(sample_graph_info, single_var_graph_info):
+    """Multi-graph lookup returns first graph (default routing)."""
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={
+            "hello-world": sample_graph_info,
+            "echo": single_var_graph_info,
+        },
+    )
+    resolved = executor._resolve_graph("some text")
+    assert resolved is not None
+    assert resolved["name"] in ("hello-world", "echo")
+
+
+# ---------------------------------------------------------------------------
+# REQ-YG-209: _format_result
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-209")
+def test_format_result_string_values():
+    """String values are included directly."""
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(graph_lookup={})
+    text = executor._format_result({"greeting": "Hello!", "detail": "World"})
+    assert "Hello!" in text
+    assert "World" in text
+
+
+@pytest.mark.req("REQ-YG-209")
+def test_format_result_json_values():
+    """Non-string JSON-serializable values are formatted as JSON."""
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(graph_lookup={})
+    text = executor._format_result({"data": {"key": "val"}})
+    assert '"key"' in text
+    assert '"val"' in text
+
+
+@pytest.mark.req("REQ-YG-209")
+def test_format_result_internal_keys_filtered():
+    """Keys starting with _ and 'errors' are filtered out."""
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(graph_lookup={})
+    text = executor._format_result(
+        {
+            "output": "visible",
+            "_internal": "hidden",
+            "errors": [{"msg": "err"}],
+            "thread_id": "tid-123",
+        }
+    )
+    assert "visible" in text
+    assert "hidden" not in text
+    assert "err" not in text
+    assert "tid-123" not in text
+
+
+@pytest.mark.req("REQ-YG-209")
+def test_format_result_empty():
+    """Empty result (all keys filtered) falls back to json.dumps."""
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(graph_lookup={})
+    text = executor._format_result({"_internal": "hidden"})
+    assert text == '{"_internal": "hidden"}'
 
 
 # ---------------------------------------------------------------------------
@@ -334,6 +235,84 @@ async def test_executor_execute_invokes_graph(sample_graph_info):
     ]
     assert any(e.status.state == TaskState.working for e in status_events)
     assert any(e.status.state == TaskState.completed for e in status_events)
+
+
+@pytest.mark.req("REQ-YG-207")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_executor_execute_error_path(sample_graph_info):
+    """Execute enqueues failed state when graph raises an exception."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import TaskState, TaskStatusUpdateEvent
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-err-1"
+    context.context_id = "ctx-1"
+
+    collected_events: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected_events.append(e))
+    queue.close = AsyncMock()
+
+    with patch(
+        "yamlgraph.a2a_server._invoke_graph",
+        side_effect=RuntimeError("Graph exploded"),
+    ):
+        await executor.execute(context, queue)
+
+    status_events = [
+        e for e in collected_events if isinstance(e, TaskStatusUpdateEvent)
+    ]
+    failed = [e for e in status_events if e.status.state == TaskState.failed]
+    assert len(failed) == 1
+    assert failed[0].final is True
+    assert "Graph exploded" in failed[0].status.message.parts[0].root.text
+
+
+@pytest.mark.req("REQ-YG-209")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_executor_execute_pipeline_error_mapping_unreachable(sample_graph_info):
+    """PipelineError is BaseModel, not Exception — the isinstance check in execute()
+    is dead code. This test verifies that a generic exception still produces a failed
+    state with the error message (the actual reachable path).
+    """
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import TaskState, TaskStatusUpdateEvent
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-perr-1"
+    context.context_id = "ctx-1"
+
+    collected_events: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected_events.append(e))
+    queue.close = AsyncMock()
+
+    with patch(
+        "yamlgraph.a2a_server._invoke_graph",
+        side_effect=ValueError("Bad input format"),
+    ):
+        await executor.execute(context, queue)
+
+    status_events = [
+        e for e in collected_events if isinstance(e, TaskStatusUpdateEvent)
+    ]
+    failed = [e for e in status_events if e.status.state == TaskState.failed]
+    assert len(failed) == 1
+    assert "Bad input format" in failed[0].status.message.parts[0].root.text
 
 
 @pytest.mark.req("REQ-YG-212")
@@ -395,40 +374,6 @@ def test_create_a2a_app(tmp_path: Path):
     # Should be a Starlette app (from A2AStarletteApplication)
     assert app is not None
     assert hasattr(app, "routes") or hasattr(app, "app")
-
-
-# ---------------------------------------------------------------------------
-# REQ-YG-209: Text extraction from A2A Message parts
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_extract_text_from_parts():
-    """Multiple TextParts are concatenated with newlines."""
-    from a2a.types import Part, TextPart
-
-    from yamlgraph.a2a_server import extract_text_from_parts
-
-    parts = [
-        Part(root=TextPart(text="name=World")),
-        Part(root=TextPart(text="style=casual")),
-    ]
-    text = extract_text_from_parts(parts)
-    assert text == "name=World\nstyle=casual"
-
-
-@pytest.mark.req("REQ-YG-209")
-def test_extract_text_skips_non_text_parts():
-    """Non-text parts are skipped; if only non-text, raises ValueError."""
-    from a2a.types import DataPart, Part
-
-    from yamlgraph.a2a_server import extract_text_from_parts
-
-    parts = [
-        Part(root=DataPart(data={"key": "val"})),
-    ]
-    with pytest.raises(ValueError, match="unsupported_content_type"):
-        extract_text_from_parts(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -579,29 +524,6 @@ async def test_streaming_events_include_message_on_complete(sample_graph_info):
     assert len(completed) == 1
     assert completed[0].status.message is not None
     assert "Hello!" in completed[0].status.message.parts[0].root.text
-
-
-# ---------------------------------------------------------------------------
-# REQ-YG-213: input-required state on __interrupt__
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.req("REQ-YG-213")
-def test_detect_interrupt_returns_true():
-    """_detect_interrupt recognizes __interrupt__ key in graph result."""
-    from yamlgraph.a2a_server import _detect_interrupt
-
-    result = {"greeting": "Hello", "__interrupt__": [{"value": "need input"}]}
-    assert _detect_interrupt(result) is True
-
-
-@pytest.mark.req("REQ-YG-213")
-def test_detect_interrupt_returns_false():
-    """_detect_interrupt returns False for normal results."""
-    from yamlgraph.a2a_server import _detect_interrupt
-
-    result = {"greeting": "Hello"}
-    assert _detect_interrupt(result) is False
 
 
 @pytest.mark.req("REQ-YG-213")
