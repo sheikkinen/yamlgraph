@@ -48,7 +48,7 @@ def _should_skip_if_exists(skip_if_exists: bool, state_key: str, state: dict) ->
     return bool(state.get(state_key))
 
 
-def create_node_function(
+def create_node_function(  # noqa: C901
     node_name: str,
     node_config: dict,
     defaults: dict,
@@ -149,7 +149,7 @@ def create_node_function(
         verification_on_fail = None
         verification_max_retries = 1
 
-    def node_fn(state: dict) -> dict:
+    def node_fn(state: dict) -> dict:  # noqa: C901
         """Generated node function."""
         loop_counts = dict(state.get("_loop_counts") or {})
         current_count = loop_counts.get(node_name, 0)
