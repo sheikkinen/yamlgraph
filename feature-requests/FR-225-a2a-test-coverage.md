@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2–3 days
 **Requested:** 2026-04-12
 **Judged:** 2026-04-12
@@ -129,17 +129,17 @@ CI workflow (`.github/workflows/workflow.yml`) must install `yamlgraph[a2a]` so 
 
 ## Acceptance Criteria
 
-- [ ] `tests/unit/test_a2a_message.py` exists with tests covering `extract_text_from_parts`, `parse_a2a_message`, `_validate_required_vars`, `map_pipeline_error`, `build_agent_card`, `_detect_interrupt`
-- [ ] `tests/unit/test_a2a_commands.py` exists with tests covering `cmd_a2a_dispatch`, `_resolve_patterns`, `_cmd_a2a_serve`, `_cmd_a2a_card`
-- [ ] `tests/unit/test_a2a_server.py` retains executor/server tests; message-layer tests moved to `test_a2a_message.py`
-- [ ] `pytest --cov=yamlgraph.a2a_message tests/unit/test_a2a_message.py` reports ≥ 85%
-- [ ] `pytest --cov=yamlgraph.a2a_server tests/unit/test_a2a_server.py` reports ≥ 85%
-- [ ] `pytest --cov=yamlgraph.cli.a2a_commands tests/unit/test_a2a_commands.py` reports ≥ 85%
-- [ ] All A2A tests guarded with `pytest.importorskip("a2a")`
-- [ ] All test functions tagged with `@pytest.mark.req("REQ-YG-xxx")` linking to FR-208 requirements (REQ-YG-206 through REQ-YG-213)
-- [ ] No tests require a running A2A server or network access (pure unit tests with mocks)
-- [ ] CI workflow installs `yamlgraph[a2a]` and A2A tests run (not skip) in the standard test job
-- [ ] Existing 32 tests in `test_a2a_server.py` remain passing (no regressions)
+- [x] `tests/unit/test_a2a_message.py` exists with tests covering `extract_text_from_parts`, `parse_a2a_message`, `_validate_required_vars`, `map_pipeline_error`, `build_agent_card`, `_detect_interrupt`
+- [x] `tests/unit/test_a2a_commands.py` exists with tests covering `cmd_a2a_dispatch`, `_resolve_patterns`, `_cmd_a2a_serve`, `_cmd_a2a_card`
+- [x] `tests/unit/test_a2a_server.py` retains executor/server tests; message-layer tests moved to `test_a2a_message.py`
+- [x] `pytest --cov=yamlgraph.a2a_message tests/unit/test_a2a_message.py` reports ≥ 85%
+- [x] `pytest --cov=yamlgraph.a2a_server tests/unit/test_a2a_server.py` reports ≥ 85%
+- [x] `pytest --cov=yamlgraph.cli.a2a_commands tests/unit/test_a2a_commands.py` reports ≥ 85%
+- [x] All A2A tests guarded with `pytest.importorskip("a2a")`
+- [x] All test functions tagged with `@pytest.mark.req("REQ-YG-xxx")` linking to FR-208 requirements (REQ-YG-206 through REQ-YG-213)
+- [x] No tests require a running A2A server or network access (pure unit tests with mocks)
+- [x] CI workflow installs `yamlgraph[a2a]` and A2A tests run (not skip) in the standard test job
+- [x] Existing 32 tests in `test_a2a_server.py` remain passing (no regressions)
 
 ## Implementation Approach
 
