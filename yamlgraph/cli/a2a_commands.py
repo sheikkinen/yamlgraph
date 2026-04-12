@@ -55,7 +55,7 @@ def _cmd_a2a_serve(args: argparse.Namespace) -> None:
     from yamlgraph.a2a_server import create_a2a_app
 
     patterns = _resolve_patterns(args)
-    host = getattr(args, "host", "0.0.0.0")
+    host = getattr(args, "host", "0.0.0.0")  # noqa: S104
     port = getattr(args, "port", 8080)
 
     print(f"🚀 Starting A2A server on {host}:{port}")

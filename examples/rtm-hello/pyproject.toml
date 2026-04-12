@@ -11,3 +11,6 @@ markers = ["req: link test to REQ-CALC-XXX requirement"]
 
 [tool.ruff]
 line-length = 99
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
