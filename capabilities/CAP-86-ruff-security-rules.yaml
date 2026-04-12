@@ -9,7 +9,7 @@ modules:
   - pyproject.toml
   - docs/confessions.md
 requirements:
-  - id: REQ-YG-220
+  - id: REQ-YG-222
     description: >
       Ruff S ruleset enabled in [tool.ruff.lint] select. All 7 existing
       violations suppressed with # noqa and documented in docs/confessions.md

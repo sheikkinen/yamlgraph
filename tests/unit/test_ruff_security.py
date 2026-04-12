@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 class TestRuffSecurityConfig:
     """Verify ruff S ruleset is enabled in pyproject.toml."""
 
-    @pytest.mark.req("REQ-YG-220")
+    @pytest.mark.req("REQ-YG-222")
     def test_ruff_config_includes_s_ruleset(self):
         """pyproject.toml [tool.ruff.lint] select must include 'S'."""
         pyproject = REPO_ROOT / "pyproject.toml"
@@ -33,7 +33,7 @@ class TestRuffSecurityConfig:
 class TestRuffSecurityExecution:
     """Verify ruff S rules pass clean on the codebase."""
 
-    @pytest.mark.req("REQ-YG-220")
+    @pytest.mark.req("REQ-YG-222")
     def test_ruff_security_rules_pass(self):
         """ruff check --select S must exit 0 on yamlgraph/."""
         ruff = Path(sys.executable).parent / "ruff"
@@ -48,7 +48,7 @@ class TestRuffSecurityExecution:
             f"Unsuppressed security violations:\n{result.stdout}"
         )
 
-    @pytest.mark.req("REQ-YG-220")
+    @pytest.mark.req("REQ-YG-222")
     def test_ruff_full_check_still_passes(self):
         """Full ruff check (all enabled rules) must still pass."""
         ruff = Path(sys.executable).parent / "ruff"
