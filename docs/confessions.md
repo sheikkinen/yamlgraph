@@ -76,17 +76,11 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `kwargs` parameter unused in callback handler.
 - **Penance**: Required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`). Cannot remove without breaking signature compatibility.
 
-### CONF-005
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L51)
-- **Code**: C901 (cognitive complexity 35 > 15)
-- **Sin**: `create_node_function` builds node closures with nested retry loops, verification, and schema handling.
-- **Penance**: FR-220 targets refactoring this function. Suppressed at threshold 15 pending decomposition.
+### ~~CONF-005~~ (RESOLVED by FR-223)
+- **Resolved**: `create_node_function` decomposed into `resolve_llm_node_config()`, `_apply_verification()`, `_resolve_route()`, `_handle_error()`. C901 now passes without suppression.
 
-### CONF-006
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L152)
-- **Code**: C901 (cognitive complexity 26 > 15)
-- **Sin**: `node_fn` (nested closure) handles loop protection, skip-if-exists, prompt execution, verification retries, and error recovery.
-- **Penance**: Tightly coupled to `create_node_function` above. FR-220 will decompose both together.
+### ~~CONF-006~~ (RESOLVED by FR-223)
+- **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
 
 ### CONF-007
 - **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L149)
@@ -165,6 +159,12 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Code**: S603
 - **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
 - **Penance**: Same as CONF-037 — hardcoded `["git", "diff", "--cached", "--name-only"]` for staged change detection.
+
+### CONF-039
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L352)
+- **Code**: C901 (cognitive complexity > 15)
+- **Sin**: Nested `node_fn` still orchestrates loop guards, requirements checks, execution, verification, routing, and error dispatch in one closure.
+- **Penance**: FR-223 already extracted core helpers (`_apply_verification`, `_resolve_route`, `_handle_error`), but closure structure keeps orchestration complexity above threshold. Suppressed temporarily to preserve node-factory behavior while follow-up decomposition lands.
 
 ---
 

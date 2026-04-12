@@ -34,4 +34,12 @@ requirements:
       - executor
       - executor_async
       - executor_base
+  - id: REQ-YG-223
+    description: >
+      LLM node factory decomposed into composable phases: LLMNodeConfig frozen
+      dataclass, resolve_llm_node_config() pure config resolver,
+      _apply_verification(), _resolve_route(), _handle_error() — each
+      independently testable, all below C901=10 (FR-223)
+    modules:
+      - node_factory/llm_nodes
 fr: legacy

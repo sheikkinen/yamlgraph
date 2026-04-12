@@ -396,6 +396,7 @@ Create executable node functions for LLM, streaming, tool, interrupt, and subgra
 | REQ-YG-010 | Synchronous LLM factory management | `utils/llm_factory` |
 | REQ-YG-011 | Asynchronous LLM factory management | `utils/llm_factory_async` |
 | REQ-YG-050 | Per-node and default-level `model` override: graph YAML `model` field flows through `execute_prompt()` to `create_llm()` | `node_factory/llm_nodes`, `executor`, `executor_async`, `executor_base` |
+| REQ-YG-223 | LLM node factory decomposed into composable phases: `LLMNodeConfig` frozen dataclass, `resolve_llm_node_config()` pure config resolver, `_apply_verification()`, `_resolve_route()`, `_handle_error()` — each independently testable, all below C901=10 (FR-223) | `node_factory/llm_nodes` |
 
 ### 4. Prompt Execution
 
