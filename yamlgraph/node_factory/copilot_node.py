@@ -257,7 +257,7 @@ def _execute_cli(
     logger.debug(f"[{node_name}] Command: {' '.join(cmd[:5])}...")
 
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603
             cmd,
             capture_output=True,
             text=True,

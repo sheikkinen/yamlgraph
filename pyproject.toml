@@ -135,6 +135,7 @@ select = [
     "UP",     # pyupgrade
     "SIM",    # flake8-simplify
     "C901",   # mccabe cognitive complexity (FR-221)
+    "S",      # flake8-bandit (security)
 ]
 ignore = [
     "E501",   # Line too long (handled by formatter)
@@ -150,6 +151,12 @@ max-complexity = 15
 "examples/**/*.py" = ["C901"]
 "projects/**/*.py" = ["C901"]
 "scripts/**/*.py" = ["C901"]
+# Tests use assert statements and subprocess calls by design
+"tests/**" = ["S101", "S602", "S603", "S607", "S108"]
+# Examples demonstrate patterns; subprocess/binding/assert-in-tests are intentional
+"examples/**" = ["S101", "S603", "S607", "S104", "S105", "S108", "S112"]
+# Scripts use partial executable paths (git, etc.) by design
+"scripts/**" = ["S603", "S607"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

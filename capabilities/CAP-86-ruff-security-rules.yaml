@@ -1,0 +1,22 @@
+id: CAP-86
+name: Ruff Security Rules
+description: >
+  Ruff S ruleset (flake8-bandit) enabled in pyproject.toml for automated
+  security linting. All 7 existing violations (S104, S602, S603, S607, S701)
+  suppressed with documented noqa confessions. New security-sensitive code
+  patterns are automatically flagged at lint time.
+modules:
+  - pyproject.toml
+  - docs/confessions.md
+requirements:
+  - id: REQ-YG-222
+    description: >
+      Ruff S ruleset enabled in [tool.ruff.lint] select. All 7 existing
+      violations suppressed with # noqa and documented in docs/confessions.md
+      (CONF-005 through CONF-009, CONF-035, CONF-036). ruff check --select S
+      yamlgraph/ exits 0. New security-sensitive code is automatically flagged.
+    modules:
+      - pyproject.toml
+      - docs/confessions.md
+      - tests/unit/test_ruff_security.py
+fr: FR-222

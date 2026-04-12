@@ -1,4 +1,4 @@
-id: CAP-86
+id: CAP-87
 name: Ruff C901 Cognitive Complexity Gate
 description: >
   Enables ruff C901 (mccabe cognitive complexity) in the lint pipeline at

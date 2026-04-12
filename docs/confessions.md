@@ -112,6 +112,60 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: Re-imports from `a2a_message` appear unused in `a2a_server.py`.
 - **Penance**: These are public re-exports for backward compatibility — tests and external consumers import from `yamlgraph.a2a_server`. The actual logic lives in `yamlgraph.a2a_message` after the module split to stay under 450 lines.
 
+### CONF-005
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L207)
+- **Code**: S104
+- **Sin**: A2A server CLI default host is `0.0.0.0` (binds to all interfaces).
+- **Penance**: Intentional for server CLI commands. Users override via `--host`. Binding to all interfaces is the standard default for development servers.
+
+### CONF-006
+- **File**: [yamlgraph/cli/a2a_commands.py](../yamlgraph/cli/a2a_commands.py#L58)
+- **Code**: S104
+- **Sin**: Fallback host `0.0.0.0` when `--host` arg is not present.
+- **Penance**: Same as CONF-005 — intentional default for A2A server command.
+
+### CONF-007
+- **File**: [yamlgraph/tools/shell.py](../yamlgraph/tools/shell.py#L129)
+- **Code**: S602
+- **Sin**: `subprocess.run(..., shell=True)` for shell command execution.
+- **Penance**: `shell=True` is required for command templates with pipes/redirects. All user variables are sanitized via `shlex.quote()` in `sanitize_variables()` before substitution. The command template itself comes from trusted YAML configuration, not user input.
+
+### CONF-008
+- **File**: [yamlgraph/node_factory/copilot_node.py](../yamlgraph/node_factory/copilot_node.py#L260)
+- **Code**: S603
+- **Sin**: `subprocess.run(cmd, ...)` flagged as untrusted input.
+- **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags. No user input reaches the command arguments.
+
+### CONF-009
+- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L47)
+- **Code**: S701
+- **Sin**: Jinja2 `Environment()` without `autoescape=True`.
+- **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
+
+### CONF-035
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L94)
+- **Code**: S607
+- **Sin**: `["git", "diff", "--name-only"]` uses partial executable path.
+- **Penance**: `git` is expected on PATH in all development environments. Using absolute path would break portability across OS/distro.
+
+### CONF-036
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L105)
+- **Code**: S607
+- **Sin**: `["git", "diff", "--cached", "--name-only"]` uses partial executable path.
+- **Penance**: Same as CONF-035.
+
+### CONF-037
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L93)
+- **Code**: S603
+- **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
+- **Penance**: Command list is hardcoded `["git", "diff", "--name-only"]` — no user input reaches arguments. Used to detect unstaged changes before worktree operations.
+
+### CONF-038
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L104)
+- **Code**: S603
+- **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
+- **Penance**: Same as CONF-037 — hardcoded `["git", "diff", "--cached", "--name-only"]` for staged change detection.
+
 ---
 
 ## Test Code
