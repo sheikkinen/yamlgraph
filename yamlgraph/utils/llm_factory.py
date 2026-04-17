@@ -370,15 +370,24 @@ def _create_vertex_llm(
 ) -> BaseChatModel:
     """Create Google Vertex AI LLM.
 
-    Uses ChatGoogleGenerativeAI with vertexai=True for GCP ADC authentication.
-    Requires GOOGLE_CLOUD_PROJECT (or VERTEXAI_PROJECT) and optionally
-    GOOGLE_CLOUD_LOCATION.
+    Express mode (VERTEX_API_KEY set): passes google_api_key only — no project/location.
+    ADC mode (VERTEX_API_KEY absent): passes project + location via GCP ADC credentials.
+    The two branches are mutually exclusive to satisfy the google-genai SDK constraint.
     """
     from langchain_google_genai import ChatGoogleGenerativeAI
 
+    api_key = os.getenv("VERTEX_API_KEY")
+    if api_key:
+        return ChatGoogleGenerativeAI(
+            model=model,
+            temperature=temperature,
+            vertexai=True,
+            google_api_key=api_key,
+            **kwargs,
+        )
+
     project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("VERTEXAI_PROJECT")
     location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
-
     return ChatGoogleGenerativeAI(
         model=model,
         temperature=temperature,

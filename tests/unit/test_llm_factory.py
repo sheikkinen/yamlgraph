@@ -215,3 +215,46 @@ class TestCreateLLM:
             create_llm(provider="vertex", model="gemini-2.0-flash")
             kwargs = mock_cls.call_args[1]
             assert kwargs["project"] == "fallback-project"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_api_key(self, monkeypatch):
+        """VERTEX_API_KEY triggers Express mode: google_api_key set, no project/location."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-abc")
+        monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
+        monkeypatch.delenv("VERTEXAI_PROJECT", raising=False)
+
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as mock_cls:
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+            kwargs = mock_cls.call_args[1]
+            assert kwargs["google_api_key"] == "express-key-abc"
+            assert "project" not in kwargs
+            assert "location" not in kwargs
+            assert kwargs["vertexai"] is True
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_takes_priority_over_project(self, monkeypatch):
+        """When VERTEX_API_KEY set, project/location are omitted even if present."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-xyz")
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "should-be-ignored")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-east1")
+
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as mock_cls:
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+            kwargs = mock_cls.call_args[1]
+            assert kwargs["google_api_key"] == "express-key-xyz"
+            assert "project" not in kwargs
+            assert "location" not in kwargs
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_adc_no_api_key(self, monkeypatch):
+        """When VERTEX_API_KEY absent, ADC branch uses project+location, no google_api_key."""
+        monkeypatch.delenv("VERTEX_API_KEY", raising=False)
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "my-project")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as mock_cls:
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+            kwargs = mock_cls.call_args[1]
+            assert kwargs["project"] == "my-project"
+            assert kwargs["location"] == "us-central1"
+            assert "google_api_key" not in kwargs
