@@ -395,7 +395,10 @@ def _create_vertex_llm(
         with (
             _VERTEX_CONSTRUCT_LOCK,
             _masked_env(
-                "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION", "VERTEXAI_PROJECT"
+                "GOOGLE_CLOUD_PROJECT",
+                "GOOGLE_CLOUD_LOCATION",
+                "VERTEXAI_PROJECT",
+                "GOOGLE_API_KEY",
             ),
         ):
             return ChatGoogleGenerativeAI(
