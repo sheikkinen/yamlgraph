@@ -258,3 +258,189 @@ class TestCreateLLM:
             assert kwargs["project"] == "my-project"
             assert kwargs["location"] == "us-central1"
             assert "google_api_key" not in kwargs
+
+    # --- FR-227 condemning tests ---
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_masks_gcp_env_vars_during_construction(self, monkeypatch):
+        """FR-227: During Express construction, GOOGLE_CLOUD_PROJECT/LOCATION/VERTEXAI_PROJECT
+        must be absent from os.environ so the SDK cannot fall back to ADC auth."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-fr227")
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "my-gcp-project")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-east1")
+        monkeypatch.setenv("VERTEXAI_PROJECT", "my-vertexai-project")
+
+        env_snapshot: dict[str, str | None] = {}
+
+        def capture_env(**kwargs):  # noqa: ARG001
+            env_snapshot["GOOGLE_CLOUD_PROJECT"] = os.environ.get(
+                "GOOGLE_CLOUD_PROJECT"
+            )
+            env_snapshot["GOOGLE_CLOUD_LOCATION"] = os.environ.get(
+                "GOOGLE_CLOUD_LOCATION"
+            )
+            env_snapshot["VERTEXAI_PROJECT"] = os.environ.get("VERTEXAI_PROJECT")
+            from unittest.mock import MagicMock
+
+            return MagicMock()
+
+        with patch(
+            "langchain_google_genai.ChatGoogleGenerativeAI", side_effect=capture_env
+        ):
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+
+        assert (
+            env_snapshot["GOOGLE_CLOUD_PROJECT"] is None
+        ), "GOOGLE_CLOUD_PROJECT must be absent from os.environ during Express construction"
+        assert (
+            env_snapshot["GOOGLE_CLOUD_LOCATION"] is None
+        ), "GOOGLE_CLOUD_LOCATION must be absent from os.environ during Express construction"
+        assert (
+            env_snapshot["VERTEXAI_PROJECT"] is None
+        ), "VERTEXAI_PROJECT must be absent from os.environ during Express construction"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_restores_env_vars_after_construction(self, monkeypatch):
+        """FR-227: After Express construction, all masked env vars are restored."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-fr227")
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "restore-project")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-east1")
+        monkeypatch.setenv("VERTEXAI_PROJECT", "restore-vertexai")
+
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI"):
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+
+        assert os.environ.get("GOOGLE_CLOUD_PROJECT") == "restore-project"
+        assert os.environ.get("GOOGLE_CLOUD_LOCATION") == "us-east1"
+        assert os.environ.get("VERTEXAI_PROJECT") == "restore-vertexai"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_restores_env_vars_on_exception(self, monkeypatch):
+        """FR-227: If ChatGoogleGenerativeAI raises, masked env vars are still restored."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-fr227")
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "exc-project")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+        monkeypatch.setenv("VERTEXAI_PROJECT", "exc-vertexai")
+
+        with (
+            patch(
+                "langchain_google_genai.ChatGoogleGenerativeAI",
+                side_effect=RuntimeError("SDK boom"),
+            ),
+            pytest.raises(RuntimeError, match="SDK boom"),
+        ):
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+
+        assert os.environ.get("GOOGLE_CLOUD_PROJECT") == "exc-project"
+        assert os.environ.get("GOOGLE_CLOUD_LOCATION") == "us-central1"
+        assert os.environ.get("VERTEXAI_PROJECT") == "exc-vertexai"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_vertexai_location_not_masked(self, monkeypatch):
+        """FR-227: VERTEXAI_LOCATION must NOT be removed during Express construction."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-fr227")
+        monkeypatch.setenv("VERTEXAI_LOCATION", "europe-west4")
+
+        env_snapshot: dict[str, str | None] = {}
+
+        def capture_env(**kwargs):  # noqa: ARG001
+            env_snapshot["VERTEXAI_LOCATION"] = os.environ.get("VERTEXAI_LOCATION")
+            from unittest.mock import MagicMock
+
+            return MagicMock()
+
+        with patch(
+            "langchain_google_genai.ChatGoogleGenerativeAI", side_effect=capture_env
+        ):
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+
+        assert (
+            env_snapshot["VERTEXAI_LOCATION"] == "europe-west4"
+        ), "VERTEXAI_LOCATION must NOT be masked during Express construction"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_construct_lock_exists(self):
+        """FR-227: _VERTEX_CONSTRUCT_LOCK must be a module-level threading.Lock."""
+        import threading
+
+        import yamlgraph.utils.llm_factory as llm_mod
+
+        assert hasattr(
+            llm_mod, "_VERTEX_CONSTRUCT_LOCK"
+        ), "_VERTEX_CONSTRUCT_LOCK must exist as a module-level attribute"
+        assert isinstance(llm_mod._VERTEX_CONSTRUCT_LOCK, type(threading.Lock())), (  # noqa: SLF001
+            "_VERTEX_CONSTRUCT_LOCK must be a threading.Lock instance"
+        )
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_masked_env_context_manager_removes_and_restores(self):
+        """FR-227: _masked_env context manager removes keys and restores them on exit."""
+        import yamlgraph.utils.llm_factory as llm_mod
+
+        assert hasattr(
+            llm_mod, "_masked_env"
+        ), "_masked_env context manager must exist in llm_factory"
+
+        import os as _os
+
+        key = "_FR227_TEST_KEY"
+        _os.environ[key] = "original-value"
+        try:
+            with llm_mod._masked_env(key):  # noqa: SLF001
+                assert key not in _os.environ, "Key must be absent inside _masked_env"
+            assert (
+                _os.environ.get(key) == "original-value"
+            ), "Key must be restored after _masked_env exits"
+        finally:
+            _os.environ.pop(key, None)
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_masked_env_restores_on_exception(self):
+        """FR-227: _masked_env restores env vars even when body raises."""
+        import os as _os
+
+        import yamlgraph.utils.llm_factory as llm_mod
+
+        key = "_FR227_EXC_KEY"
+        _os.environ[key] = "must-be-restored"
+        try:
+            with (
+                pytest.raises(ValueError, match="inner error"),
+                llm_mod._masked_env(key),  # noqa: SLF001
+            ):
+                raise ValueError("inner error")
+            assert _os.environ.get(key) == "must-be-restored"
+        finally:
+            _os.environ.pop(key, None)
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_adc_mode_does_not_mask_env_vars(self, monkeypatch):
+        """FR-227: In ADC mode (no VERTEX_API_KEY), env vars are never removed."""
+        monkeypatch.delenv("VERTEX_API_KEY", raising=False)
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "adc-project")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+
+        env_snapshot: dict[str, str | None] = {}
+
+        def capture_env(**kwargs):  # noqa: ARG001
+            env_snapshot["GOOGLE_CLOUD_PROJECT"] = os.environ.get(
+                "GOOGLE_CLOUD_PROJECT"
+            )
+            env_snapshot["GOOGLE_CLOUD_LOCATION"] = os.environ.get(
+                "GOOGLE_CLOUD_LOCATION"
+            )
+            from unittest.mock import MagicMock
+
+            return MagicMock()
+
+        with patch(
+            "langchain_google_genai.ChatGoogleGenerativeAI", side_effect=capture_env
+        ):
+            create_llm(provider="vertex", model="gemini-2.0-flash")
+
+        assert (
+            env_snapshot["GOOGLE_CLOUD_PROJECT"] == "adc-project"
+        ), "ADC mode must not remove GOOGLE_CLOUD_PROJECT"
+        assert (
+            env_snapshot["GOOGLE_CLOUD_LOCATION"] == "us-central1"
+        ), "ADC mode must not remove GOOGLE_CLOUD_LOCATION"

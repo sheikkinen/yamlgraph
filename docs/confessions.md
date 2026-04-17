@@ -491,6 +491,42 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Import `worktree_helpers` functions without using them in Python.
 - **Penance**: Vulture's standard false-positive suppression mechanism. These functions are invoked via `python3 -c` in `scripts/enforce_worktree.sh`, invisible to static analysis. The import makes them visible to Vulture.
 
+### CONF-127
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L275)
+- **Code**: ARG001 (unused function argument)
+- **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
+- **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
+
+### CONF-128
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L346)
+- **Code**: ARG001
+- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
+- **Penance**: Same as CONF-127.
+
+### CONF-129
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L371)
+- **Code**: SLF001 (private member accessed)
+- **Sin**: Test accesses `llm_mod._VERTEX_CONSTRUCT_LOCK` to verify it exists and is a `threading.Lock`.
+- **Penance**: The lock is a module-level private attribute deliberately tested as part of FR-227 acceptance criteria. Test access to private implementation details is an accepted pattern here.
+
+### CONF-130
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L389)
+- **Code**: SLF001
+- **Sin**: Test invokes `llm_mod._masked_env(key)` to verify the context manager's remove-and-restore behavior.
+- **Penance**: `_masked_env` is a private implementation helper mandated by FR-227; direct testing of its contract is required.
+
+### CONF-131
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L409)
+- **Code**: SLF001
+- **Sin**: Same as CONF-130 — invokes `llm_mod._masked_env` inside `pytest.raises` to verify restore-on-exception.
+- **Penance**: Same as CONF-130.
+
+### CONF-132
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L425)
+- **Code**: ARG001
+- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
+- **Penance**: Same as CONF-127.
+
 ### CONF-208
 - **File**: [scripts/validate_id_registry.py](../scripts/validate_id_registry.py#L28)
 - **Code**: E402
