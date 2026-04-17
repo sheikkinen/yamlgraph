@@ -52,20 +52,24 @@ class TestThinkingBudgetValidation:
         )
         assert config.defaults["thinking_budget"] == 8000
 
-    def test_thinking_budget_below_1024_raises(self):
-        """thinking_budget in range 1-1023 raises ValueError."""
-        with pytest.raises(ValidationError, match="thinking_budget"):
-            GraphConfigSchema(
-                defaults={"thinking_budget": 1023},
-                nodes={"test": NodeConfig(prompt="test", state_key="test")},
-                edges=[],
-            )
+    def test_thinking_budget_below_1024_allowed_in_schema(self):
+        """thinking_budget in range 1-1023 is allowed by schema (FR-230).
+
+        Provider-specific minimum (Anthropic: 1024) is enforced at runtime in
+        create_llm, not at schema level. Google has no minimum.
+        """
+        config = GraphConfigSchema(
+            defaults={"thinking_budget": 1023},
+            nodes={"test": NodeConfig(prompt="test", state_key="test")},
+            edges=[],
+        )
+        assert config.defaults["thinking_budget"] == 1023
 
     def test_thinking_budget_negative_raises(self):
-        """Negative thinking_budget raises ValueError."""
+        """thinking_budget < -1 raises ValueError (-2 and below are invalid)."""
         with pytest.raises(ValidationError, match="thinking_budget"):
             GraphConfigSchema(
-                defaults={"thinking_budget": -1},
+                defaults={"thinking_budget": -2},
                 nodes={"test": NodeConfig(prompt="test", state_key="test")},
                 edges=[],
             )

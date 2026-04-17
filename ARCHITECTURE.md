@@ -360,6 +360,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 84 | Import-Linter Boundaries (FR-218) | `.importlinter`, `.pre-commit-config.yaml`, `.github/workflows/workflow.yml` | REQ-YG-218 |
 | 85 | Dependency Rationale Audit (FR-219) | `scripts/dependency_rationale.py`, `docs/dependency-rationale.yaml` | REQ-YG-219 |
 | 86 | Ruff Security Rules (FR-222) | `pyproject.toml`, `docs/confessions.md` | REQ-YG-222 |
+| 88 | Google/Vertex Thinking Budget (FR-230) | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` | REQ-YG-230 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -397,6 +398,7 @@ Create executable node functions for LLM, streaming, tool, interrupt, and subgra
 | REQ-YG-011 | Asynchronous LLM factory management | `utils/llm_factory_async` |
 | REQ-YG-050 | Per-node and default-level `model` override: graph YAML `model` field flows through `execute_prompt()` to `create_llm()` | `node_factory/llm_nodes`, `executor`, `executor_async`, `executor_base` |
 | REQ-YG-223 | LLM node factory decomposed into composable phases: `LLMNodeConfig` frozen dataclass, `resolve_llm_node_config()` pure config resolver, `_apply_verification()`, `_resolve_route()`, `_handle_error()` — each independently testable, all below C901=10 (FR-223) | `node_factory/llm_nodes` |
+| REQ-YG-230 | `thinking_budget` extended to `google` and `vertex` providers (FR-230): `create_llm` accepts thinking_budget for anthropic/google/vertex; raises for others; `_create_google_llm` and `_create_vertex_llm` forward `thinking_budget` kwarg; temperature not overridden for google/vertex; schema accepts `-1` (Google auto mode), rejects `< -1`; linter W071-1/2/4 scoped to anthropic only; linter W071-3 includes gemini-2.5+/gemini-3+ as thinking-capable | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` |
 
 ### 4. Prompt Execution
 
