@@ -173,6 +173,7 @@ class TestCreateLLM:
     @pytest.mark.req("REQ-YG-010")
     def test_create_llm_vertex(self, monkeypatch):
         """Vertex provider creates ChatGoogleGenerativeAI with vertexai=True."""
+        monkeypatch.delenv("VERTEX_API_KEY", raising=False)
         monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
         monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "europe-west4")
 
@@ -188,6 +189,7 @@ class TestCreateLLM:
     @pytest.mark.req("REQ-YG-010")
     def test_vertex_default_location(self, monkeypatch):
         """Vertex provider defaults location to us-central1 when env var not set."""
+        monkeypatch.delenv("VERTEX_API_KEY", raising=False)
         monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
         monkeypatch.delenv("GOOGLE_CLOUD_LOCATION", raising=False)
 
@@ -207,6 +209,7 @@ class TestCreateLLM:
     @pytest.mark.req("REQ-YG-010")
     def test_vertex_vertexai_project_fallback(self, monkeypatch):
         """Vertex provider falls back to VERTEXAI_PROJECT env var."""
+        monkeypatch.delenv("VERTEX_API_KEY", raising=False)
         monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
         monkeypatch.setenv("VERTEXAI_PROJECT", "fallback-project")
         monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")

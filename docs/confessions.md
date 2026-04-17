@@ -527,6 +527,42 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
 - **Penance**: Same as CONF-127.
 
+### CONF-133
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L278)
+- **Code**: ARG001
+- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
+- **Penance**: Same as CONF-127.
+
+### CONF-134
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L349)
+- **Code**: ARG001
+- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
+- **Penance**: Same as CONF-127.
+
+### CONF-135
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L374)
+- **Code**: SLF001
+- **Sin**: Accesses `llm_mod._VERTEX_CONSTRUCT_LOCK` directly in test.
+- **Penance**: Test validates the module-level lock exists and is the correct type. No public API to verify this.
+
+### CONF-136
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L392)
+- **Code**: SLF001
+- **Sin**: Calls `llm_mod._masked_env()` directly in test.
+- **Penance**: Tests the private context manager in isolation. No public API wrapping it.
+
+### CONF-137
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L412)
+- **Code**: SLF001
+- **Sin**: Same as CONF-136 — calls `llm_mod._masked_env()` inside `pytest.raises`.
+- **Penance**: Same as CONF-136.
+
+### CONF-138
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L428)
+- **Code**: ARG001
+- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
+- **Penance**: Same as CONF-127.
+
 ### CONF-208
 - **File**: [scripts/validate_id_registry.py](../scripts/validate_id_registry.py#L28)
 - **Code**: E402
