@@ -563,6 +563,18 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
 - **Penance**: Same as CONF-127.
 
+### CONF-139
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L460)
+- **Code**: ARG001
+- **Sin**: `capture_env(**kwargs)` ignores kwargs to capture env snapshot for FR-229 test.
+- **Penance**: Same as CONF-127 — `ChatGoogleGenerativeAI` is constructed with kwargs; the test only needs to inspect `os.environ`, not the constructor arguments.
+
+### CONF-140
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L514)
+- **Code**: ARG001
+- **Sin**: Same as CONF-139 — `capture_env(**kwargs)` in ADC mode test ignores kwargs.
+- **Penance**: Same as CONF-139.
+
 ### CONF-208
 - **File**: [scripts/validate_id_registry.py](../scripts/validate_id_registry.py#L28)
 - **Code**: E402
