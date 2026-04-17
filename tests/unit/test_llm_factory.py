@@ -447,3 +447,81 @@ class TestCreateLLM:
         assert (
             env_snapshot["GOOGLE_CLOUD_LOCATION"] == "us-central1"
         ), "ADC mode must not remove GOOGLE_CLOUD_LOCATION"
+
+    # --- FR-229 condemning tests ---
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_masks_google_api_key_during_construction(self, monkeypatch):
+        """FR-229: GOOGLE_API_KEY must be absent from os.environ during Express construction."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-fr229")
+        monkeypatch.setenv("GOOGLE_API_KEY", "gemini-dev-key")
+        captured: dict[str, bool] = {}
+
+        def capture_env(**kwargs):  # noqa: ARG001
+            captured["GOOGLE_API_KEY_present"] = "GOOGLE_API_KEY" in os.environ
+            from unittest.mock import MagicMock
+
+            return MagicMock()
+
+        with patch(
+            "langchain_google_genai.ChatGoogleGenerativeAI", side_effect=capture_env
+        ):
+            create_llm(provider="vertex")
+
+        assert not captured[
+            "GOOGLE_API_KEY_present"
+        ], "GOOGLE_API_KEY must be absent from os.environ during Express construction"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_restores_google_api_key_after_construction(
+        self, monkeypatch
+    ):
+        """FR-229: GOOGLE_API_KEY must be restored after Express construction."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-fr229")
+        monkeypatch.setenv("GOOGLE_API_KEY", "gemini-dev-key")
+
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI"):
+            create_llm(provider="vertex")
+
+        assert os.environ.get("GOOGLE_API_KEY") == "gemini-dev-key"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_express_restores_google_api_key_on_exception(self, monkeypatch):
+        """FR-229: GOOGLE_API_KEY must be restored even when construction raises."""
+        monkeypatch.setenv("VERTEX_API_KEY", "express-key-fr229")
+        monkeypatch.setenv("GOOGLE_API_KEY", "gemini-dev-key")
+
+        with (
+            patch(
+                "langchain_google_genai.ChatGoogleGenerativeAI",
+                side_effect=RuntimeError("construction failed"),
+            ),
+            pytest.raises(RuntimeError, match="construction failed"),
+        ):
+            create_llm(provider="vertex")
+
+        assert os.environ.get("GOOGLE_API_KEY") == "gemini-dev-key"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_vertex_adc_does_not_mask_google_api_key(self, monkeypatch):
+        """FR-229: ADC mode (no VERTEX_API_KEY) must not remove GOOGLE_API_KEY."""
+        monkeypatch.delenv("VERTEX_API_KEY", raising=False)
+        monkeypatch.setenv("GOOGLE_API_KEY", "gemini-dev-key")
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "my-project")
+        monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+        captured: dict[str, bool] = {}
+
+        def capture_env(**kwargs):  # noqa: ARG001
+            captured["GOOGLE_API_KEY_present"] = "GOOGLE_API_KEY" in os.environ
+            from unittest.mock import MagicMock
+
+            return MagicMock()
+
+        with patch(
+            "langchain_google_genai.ChatGoogleGenerativeAI", side_effect=capture_env
+        ):
+            create_llm(provider="vertex")
+
+        assert captured[
+            "GOOGLE_API_KEY_present"
+        ], "GOOGLE_API_KEY must NOT be masked in ADC mode"

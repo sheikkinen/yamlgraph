@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved — implement unit tests
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-17
 
@@ -134,15 +134,15 @@ def test_vertex_adc_does_not_mask_google_api_key(self, monkeypatch):
 
 - [x] `"GOOGLE_API_KEY"` is included in `_masked_env(...)` in the Express branch of
   `_create_vertex_llm` *(already done — commit 557b108)*
-- [ ] Unit test: `GOOGLE_API_KEY` absent from `os.environ` at construction time when both
+- [x] Unit test: `GOOGLE_API_KEY` absent from `os.environ` at construction time when both
   `VERTEX_API_KEY` and `GOOGLE_API_KEY` are set
-- [ ] Unit test: `GOOGLE_API_KEY` restored to original value after successful Express
+- [x] Unit test: `GOOGLE_API_KEY` restored to original value after successful Express
   construction
-- [ ] Unit test: `GOOGLE_API_KEY` restored after Express construction raises an exception
-- [ ] Unit test: ADC mode (no `VERTEX_API_KEY`) does not remove `GOOGLE_API_KEY` from
+- [x] Unit test: `GOOGLE_API_KEY` restored after Express construction raises an exception
+- [x] Unit test: ADC mode (no `VERTEX_API_KEY`) does not remove `GOOGLE_API_KEY` from
   `os.environ` during construction
-- [ ] All FR-227 tests remain green
-- [ ] `pytest tests/unit/test_llm_factory.py -q --no-cov` passes
+- [x] All FR-227 tests remain green
+- [x] `pytest tests/unit/test_llm_factory.py -q --no-cov` passes
 
 ## Alternatives Considered
 
