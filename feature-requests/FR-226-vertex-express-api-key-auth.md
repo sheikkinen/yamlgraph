@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-17
 
@@ -54,11 +54,11 @@ The two branches are mutually exclusive and never mix `api_key` with `project`/`
 
 ## Acceptance Criteria
 
-- [ ] When `VERTEX_API_KEY` is set, `_create_vertex_llm` passes `google_api_key=<value>` and does **not** pass `project` or `location`
-- [ ] When `VERTEX_API_KEY` is absent, `_create_vertex_llm` passes `project` + `location` and does **not** pass `google_api_key` (existing ADC behaviour unchanged)
-- [ ] Both branches tested with mocked `ChatGoogleGenerativeAI` constructor; assertions on kwargs passed
-- [ ] `VERTEX_API_KEY` documented in the env-var table in `CLAUDE.md`
-- [ ] No change to public `create_llm` signature
+- [x] When `VERTEX_API_KEY` is set, `_create_vertex_llm` passes `google_api_key=<value>` and does **not** pass `project` or `location`
+- [x] When `VERTEX_API_KEY` is absent, `_create_vertex_llm` passes `project` + `location` and does **not** pass `google_api_key` (existing ADC behaviour unchanged)
+- [x] Both branches tested with mocked `ChatGoogleGenerativeAI` constructor; assertions on kwargs passed
+- [x] `VERTEX_API_KEY` documented in the env-var table in `CLAUDE.md`
+- [x] No change to public `create_llm` signature
 
 ## Alternatives Considered
 

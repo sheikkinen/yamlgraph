@@ -410,6 +410,7 @@ The codebase uses **sync-first with async wrappers**:
 | `GOOGLE_CLOUD_PROJECT` | GCP project for Vertex AI (`provider: vertex`) |
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI region (default: `us-central1`) |
 | `VERTEX_MODEL` | Default model for Vertex AI provider (default: `gemini-2.0-flash`) |
+| `VERTEX_API_KEY` | Vertex AI Express mode API key; when set, skips project/location (ADC) and authenticates via key only |
 | `INCEPTION_API_KEY` | Inception Labs Mercury authentication |
 | `MISTRAL_API_KEY` | Mistral authentication |
 | `OPENAI_API_KEY` | OpenAI authentication |
