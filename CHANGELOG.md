@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.68]
+
+### Added
+- **FR-230 Google/Vertex Thinking Budget**: Extended `thinking_budget` support to `google` and `vertex` providers. `ChatGoogleGenerativeAI` receives `thinking_budget` as a constructor kwarg when set. Temperature is not overridden for non-Anthropic providers. Schema validator now accepts `-1` (Google automatic mode) and any positive integer; rejects only values `< -1`. Linter checks W071-1, W071-2, W071-4 scoped to Anthropic only; W071-3 extended with `gemini-2.5` and `gemini-3` as thinking-capable model substrings. (REQ-YG-230)
+
+### Fixed
+- **Fix __version__ sync**: `release.sh` now bumps `yamlgraph/__init__.py` alongside `pyproject.toml`.
+
 ## [0.4.67]
 
 ### Added
