@@ -7,6 +7,7 @@ across different providers (Anthropic, Mistral, OpenAI, Replicate).
 import logging
 import os
 import threading
+from contextlib import contextmanager
 from typing import Literal
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -32,6 +33,19 @@ ProviderType = Literal[
 # Thread-safe cache for LLM instances
 _llm_cache: dict[tuple, BaseChatModel] = {}
 _cache_lock = threading.Lock()
+
+# Serialises Vertex Express construction so env-var masking is race-free
+_VERTEX_CONSTRUCT_LOCK = threading.Lock()
+
+
+@contextmanager
+def _masked_env(*keys: str):  # type: ignore[return]
+    """Temporarily remove *keys* from os.environ, restoring them on exit."""
+    saved = {k: os.environ.pop(k) for k in keys if k in os.environ}
+    try:
+        yield
+    finally:
+        os.environ.update(saved)
 
 
 # --- Provider-specific helper functions ---
@@ -378,13 +392,19 @@ def _create_vertex_llm(
 
     api_key = os.getenv("VERTEX_API_KEY")
     if api_key:
-        return ChatGoogleGenerativeAI(
-            model=model,
-            temperature=temperature,
-            vertexai=True,
-            google_api_key=api_key,
-            **kwargs,
-        )
+        with (
+            _VERTEX_CONSTRUCT_LOCK,
+            _masked_env(
+                "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION", "VERTEXAI_PROJECT"
+            ),
+        ):
+            return ChatGoogleGenerativeAI(
+                model=model,
+                temperature=temperature,
+                vertexai=True,
+                google_api_key=api_key,
+                **kwargs,
+            )
 
     project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("VERTEXAI_PROJECT")
     location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
