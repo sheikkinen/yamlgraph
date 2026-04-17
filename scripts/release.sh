@@ -17,7 +17,8 @@ echo "✓ Froze fragments → changelog/${VERSION}/"
 
 # Step 3: Bump version
 sed -i '' "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
-echo "✓ Bumped pyproject.toml → ${VERSION}"
+sed -i '' "s/^__version__ = .*/__version__ = \"${VERSION}\"/" yamlgraph/__init__.py
+echo "✓ Bumped pyproject.toml + yamlgraph/__init__.py → ${VERSION}"
 
 # Step 4: Regenerate CHANGELOG.md
 python scripts/aggregate_changelog.py > CHANGELOG.md
@@ -26,7 +27,7 @@ echo "✓ Regenerated CHANGELOG.md"
 # Step 5: Commit (write msg to file to avoid dquote trap)
 mkdir -p tmp
 echo "chore(release): v${VERSION} changelog freeze" > tmp/msg.txt
-git add changelog/ pyproject.toml CHANGELOG.md
+git add changelog/ pyproject.toml yamlgraph/__init__.py CHANGELOG.md
 git commit -F tmp/msg.txt
 
 # Step 6: Tag
