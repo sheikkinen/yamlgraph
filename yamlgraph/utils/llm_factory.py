@@ -30,7 +30,10 @@ ProviderType = Literal[
     "xai",
 ]
 
-# Thread-safe cache for LLM instances
+# Providers that support thinking_budget natively
+THINKING_PROVIDERS = {"anthropic", "google", "vertex"}
+
+
 _llm_cache: dict[tuple, BaseChatModel] = {}
 _cache_lock = threading.Lock()
 
@@ -67,16 +70,19 @@ def _create_deepseek_llm(
 
 
 def _create_google_llm(
-    model: str, temperature: float, **kwargs: object
+    model: str, temperature: float, thinking_budget: int | None = None, **kwargs: object
 ) -> BaseChatModel:
     """Create Google Generative AI LLM."""
     from langchain_google_genai import ChatGoogleGenerativeAI
 
+    google_kwargs = dict(kwargs)
+    if thinking_budget is not None:
+        google_kwargs["thinking_budget"] = thinking_budget
     return ChatGoogleGenerativeAI(
         model=model,
         temperature=temperature,
         google_api_key=os.getenv("GOOGLE_API_KEY"),
-        **kwargs,
+        **google_kwargs,
     )
 
 
@@ -169,7 +175,7 @@ def _dispatch_provider(
     if provider == "deepseek":
         return _create_deepseek_llm(model, temperature, **kwargs)
     if provider == "google":
-        return _create_google_llm(model, temperature, **kwargs)
+        return _create_google_llm(model, temperature, thinking_budget, **kwargs)
     if provider == "inception":
         return _create_inception_llm(model, temperature, **kwargs)
     if provider == "mistral":
@@ -179,7 +185,7 @@ def _dispatch_provider(
     if provider == "replicate":
         return _create_replicate_llm(model, temperature, **kwargs)
     if provider == "vertex":
-        return _create_vertex_llm(model, temperature, **kwargs)
+        return _create_vertex_llm(model, temperature, thinking_budget, **kwargs)
     if provider == "xai":
         return _create_xai_llm(model, temperature, **kwargs)
     if provider == "lmstudio":
@@ -210,8 +216,10 @@ def create_llm(
         model: Model name. Defaults to {PROVIDER}_MODEL env var or provider default.
         temperature: Temperature for generation (0.0-1.0).
         max_tokens: Maximum output tokens. None means provider default.
-        thinking_budget: Anthropic extended thinking budget_tokens (0 or ≥1024, FR-071).
-                        Only valid for provider="anthropic". Forces temperature=1.
+        thinking_budget: Extended thinking budget tokens. Supported by anthropic, google, and
+                        vertex providers (FR-071, FR-230). For Anthropic: 0 or ≥1024, forces
+                        temperature=1. For Google/Vertex: any non-negative integer or -1 for
+                        automatic mode; temperature is not overridden.
 
     Returns:
         Configured LLM instance.
@@ -245,14 +253,14 @@ def create_llm(
             f"Must be one of: {', '.join(DEFAULT_MODELS.keys())}"
         )
 
-    # Validate thinking_budget is only used with Anthropic
+    # Validate thinking_budget is only used with supported providers
     if (
         thinking_budget is not None
         and thinking_budget >= 1024
-        and selected_provider != "anthropic"
+        and selected_provider not in THINKING_PROVIDERS
     ):
         raise ValueError(
-            f"thinking_budget is only supported for provider='anthropic', "
+            f"thinking_budget is only supported for providers: {', '.join(sorted(THINKING_PROVIDERS))}, "
             f"got provider='{selected_provider}'"
         )
 
@@ -380,7 +388,7 @@ def _create_replicate_llm(
 
 
 def _create_vertex_llm(
-    model: str, temperature: float, **kwargs: object
+    model: str, temperature: float, thinking_budget: int | None = None, **kwargs: object
 ) -> BaseChatModel:
     """Create Google Vertex AI LLM.
 
@@ -389,6 +397,10 @@ def _create_vertex_llm(
     The two branches are mutually exclusive to satisfy the google-genai SDK constraint.
     """
     from langchain_google_genai import ChatGoogleGenerativeAI
+
+    vertex_kwargs = dict(kwargs)
+    if thinking_budget is not None:
+        vertex_kwargs["thinking_budget"] = thinking_budget
 
     api_key = os.getenv("VERTEX_API_KEY")
     if api_key:
@@ -406,7 +418,7 @@ def _create_vertex_llm(
                 temperature=temperature,
                 vertexai=True,
                 google_api_key=api_key,
-                **kwargs,
+                **vertex_kwargs,
             )
 
     project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("VERTEXAI_PROJECT")
@@ -417,7 +429,7 @@ def _create_vertex_llm(
         vertexai=True,
         project=project,
         location=location,
-        **kwargs,
+        **vertex_kwargs,
     )
 
 

@@ -1,0 +1,30 @@
+id: CAP-88
+name: Google/Vertex Thinking Budget Support
+description: >
+  Extends thinking_budget support to google and vertex providers.
+  ChatGoogleGenerativeAI (langchain-google-genai 4.2.0+) accepts
+  thinking_budget as a first-class constructor parameter. Schema validator
+  relaxed to accept -1 (Google automatic mode) and any positive integer.
+  Linter checks W071-1/2/4 scoped to Anthropic only; W071-3 extended with
+  Gemini 2.5+ and Gemini 3 model substrings.
+modules:
+  - yamlgraph/utils/llm_factory.py
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/linter/checks_providers.py
+requirements:
+  - id: REQ-YG-230
+    description: >
+      thinking_budget accepted by create_llm for anthropic, google, and vertex;
+      raises ValueError for other providers; _create_google_llm and
+      _create_vertex_llm forward thinking_budget kwarg to ChatGoogleGenerativeAI
+      when non-None; temperature not overridden for google/vertex; schema
+      NodeConfig.thinking_budget accepts -1 (Google auto), rejects < -1;
+      GraphConfigSchema defaults validator aligned; linter W071-1/2/4 scoped
+      to anthropic; linter W071-3 THINKING_CAPABLE_MODELS includes gemini-2.5
+      and gemini-3 substrings
+    modules:
+      - yamlgraph/utils/llm_factory.py
+      - yamlgraph/models/graph_schema.py
+      - yamlgraph/linter/checks_providers.py
+      - tests/unit/test_fr230_google_vertex_thinking.py
+fr: FR-230

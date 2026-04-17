@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-17
 
@@ -142,33 +142,33 @@ auto-mode, and that temperature is not forced for non-Anthropic providers.
 
 ## Acceptance Criteria
 
-- [ ] `create_llm(provider="google", thinking_budget=8000)` does **not** raise.
-- [ ] `create_llm(provider="vertex", thinking_budget=8000)` does **not** raise.
-- [ ] `create_llm(provider="mistral", thinking_budget=8000)` still raises `ValueError`.
-- [ ] `ChatGoogleGenerativeAI` is instantiated with `thinking_budget=8000` when
+- [x] `create_llm(provider="google", thinking_budget=8000)` does **not** raise.
+- [x] `create_llm(provider="vertex", thinking_budget=8000)` does **not** raise.
+- [x] `create_llm(provider="mistral", thinking_budget=8000)` still raises `ValueError`.
+- [x] `ChatGoogleGenerativeAI` is instantiated with `thinking_budget=8000` when
   `provider='google'` and `thinking_budget=8000`.
-- [ ] Temperature is **not** overridden for google/vertex providers even when
+- [x] Temperature is **not** overridden for google/vertex providers even when
   `thinking_budget ≥ 1024`.
-- [ ] `thinking_budget=-1` is accepted by `NodeConfig` schema validator (Google
+- [x] `thinking_budget=-1` is accepted by `NodeConfig` schema validator (Google
   automatic mode).
-- [ ] `thinking_budget=-2` is rejected by schema validator with `ValueError`.
-- [ ] Linter W071-2 does **not** fire for `provider='google'` or `provider='vertex'`.
-- [ ] Linter W071-1 does **not** fire for `provider='google'` or `provider='vertex'`.
-- [ ] Linter W071-4 does **not** fire for `provider='google'` or `provider='vertex'`.
-- [ ] Linter W071-3 does **not** fire for `gemini-2.5-flash` model with
+- [x] `thinking_budget=-2` is rejected by schema validator with `ValueError`.
+- [x] Linter W071-2 does **not** fire for `provider='google'` or `provider='vertex'`.
+- [x] Linter W071-1 does **not** fire for `provider='google'` or `provider='vertex'`.
+- [x] Linter W071-4 does **not** fire for `provider='google'` or `provider='vertex'`.
+- [x] Linter W071-3 does **not** fire for `gemini-2.5-flash` model with
   `thinking_budget > 0`.
-- [ ] Unit tests (mocked) cover: google thinking enabled, vertex thinking enabled,
+- [x] Unit tests (mocked) cover: google thinking enabled, vertex thinking enabled,
   google/vertex with thinking skips temp override, unsupported provider raises,
   -1 schema acceptance, -2 schema rejection.
 - [ ] Integration test (guarded by `VERTEX_API_KEY`) calls graph with
   `thinking_budget: 1024` and `provider: vertex` on `gemini-2.5-flash` and
   asserts node completes successfully.
-- [ ] Tests tagged `@pytest.mark.req("REQ-YG-230")`.
-- [ ] `REQ-YG-230` added to `ARCHITECTURE.md` capability and requirement tables.
-- [ ] `ALL_REQS` range in `scripts/req_coverage.py` extended to include 230.
-- [ ] `reference/graph-yaml.md` updated: note google/vertex as valid providers
+- [x] Tests tagged `@pytest.mark.req("REQ-YG-230")`.
+- [x] `REQ-YG-230` added to `ARCHITECTURE.md` capability and requirement tables.
+- [x] `ALL_REQS` range in `scripts/req_coverage.py` extended to include 230.
+- [x] `reference/graph-yaml.md` updated: note google/vertex as valid providers
   for `thinking_budget`; document `-1` auto-mode.
-- [ ] Changelog fragment added to `changelog/unreleased/`.
+- [x] Changelog fragment added to `changelog/unreleased/`.
 
 ## Alternatives Considered
 

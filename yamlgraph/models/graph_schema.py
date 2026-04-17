@@ -153,11 +153,11 @@ class NodeConfig(BaseModel):
     @field_validator("thinking_budget")
     @classmethod
     def validate_thinking_budget(cls, v: int | None) -> int | None:
-        """Validate thinking_budget is None, 0, or >= 1024."""
-        if v is not None and v != 0 and v < 1024:
-            raise ValueError(f"thinking_budget must be None, 0, or >= 1024, got {v}")
-        if v is not None and v < 0:
-            raise ValueError(f"thinking_budget must be non-negative, got {v}")
+        """Validate thinking_budget is None, -1 (Google auto), 0, or a positive integer."""
+        if v is not None and v < -1:
+            raise ValueError(
+                f"thinking_budget must be None, -1 (Google auto), 0, or a positive integer, got {v}"
+            )
         return v
 
     @model_validator(mode="after")
@@ -228,12 +228,10 @@ class GraphConfigSchema(BaseModel):
         """Validate thinking_budget in defaults dict."""
         if "thinking_budget" in self.defaults:
             v = self.defaults["thinking_budget"]
-            if v is not None and v != 0 and v < 1024:
+            if v is not None and v < -1:
                 raise ValueError(
-                    f"thinking_budget must be None, 0, or >= 1024, got {v}"
+                    f"thinking_budget must be None, -1 (Google auto), 0, or a positive integer, got {v}"
                 )
-            if v is not None and v < 0:
-                raise ValueError(f"thinking_budget must be non-negative, got {v}")
         return self
 
     @model_validator(mode="after")
