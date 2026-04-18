@@ -365,6 +365,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
 | 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
 | 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
+| 93 | Chatterbox Voice Clone Demo (FR-236) | `examples/demos/chatterbox_clone` | REQ-YG-235 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -561,6 +562,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-232 | `yamlgraph graph bench` command runs a graph across `--models provider/model` list; displays comparison table with duration, tokens, status; `--export` saves JSON; `--runs N` repeats each model; per-model errors captured gracefully; `BenchResult` Pydantic model | `cli/bench_commands`, `cli/graph_commands`, `cli/__init__` |
 | REQ-YG-233 | `type: race` node fires prompt to all candidates concurrently via `ThreadPoolExecutor`; returns first successful result; remaining cancelled; all-fail triggers `on_error`; `_race_winner` metadata in state; candidates validated ≥2 with provider/model; lint E301–E304; structured output support | `node_factory/race_node`, `constants`, `node_compiler`, `models/graph_schema`, `models/state_builder`, `linter/patterns/race` |
 | REQ-YG-234 | Chatterbox TTS demo: map node fans out over 5 languages, collects translations, synthesizes to WAV via `synthesize_audio` python tool with Chatterbox Multilingual TTS. Auto-detects CUDA/CPU. Optional dependency `chatterbox-tts` (FR-233) | `examples/demos/chatterbox` |
+| REQ-YG-235 | Chatterbox voice cloning demo: single-path graph accepts text and voice_prompt_path, synthesizes to WAV via `synthesize_cloned_audio` python tool using `ChatterboxTTS` (not `ChatterboxMultilingualTTS`). Device selection follows `cuda > mps > cpu`. Optional dependency `chatterbox-tts` (FR-236) | `examples/demos/chatterbox_clone` |
 
 ### 18. Testing & Quality
 
