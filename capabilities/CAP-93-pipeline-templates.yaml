@@ -1,0 +1,36 @@
+id: CAP-93
+name: Compile-Time Pipeline Templates
+description: >
+  A type: pipeline meta-node that defines a sequence of stages once, iterates
+  over a list of items, and expands to concrete nodes + edges before graph
+  compilation. Eliminates repetitive boilerplate in multi-chapter, multi-phase
+  graphs by 80%+. Includes {item.field} interpolation for stage configs,
+  sequential intra-item and inter-item chaining, external edge rewriting,
+  and linter validation (E401–E404).
+modules:
+  - yamlgraph/pipeline_template.py
+  - yamlgraph/constants.py
+  - yamlgraph/graph_loader.py
+  - yamlgraph/linter/checks.py
+  - yamlgraph/linter/patterns/pipeline.py
+  - yamlgraph/linter/graph_linter.py
+requirements:
+  - id: REQ-YG-235
+    description: >
+      type: pipeline meta-node expands at compile time into concrete nodes
+      and sequential edges; {item.field} interpolation in prompt, variables,
+      state_key; non-string fields copied verbatim; external edges rewritten
+      to first/last expanded node; lint E401 (empty items), E402 (empty stages),
+      E403 (unresolved item refs), E404 (missing name); NodeType.PIPELINE in
+      constants; VALID_NODE_TYPES includes pipeline; expansion called in
+      graph_loader after expand_interactive_tools
+    modules:
+      - yamlgraph/pipeline_template.py
+      - yamlgraph/constants.py
+      - yamlgraph/graph_loader.py
+      - yamlgraph/linter/checks.py
+      - yamlgraph/linter/patterns/pipeline.py
+      - yamlgraph/linter/graph_linter.py
+      - tests/unit/test_pipeline_template.py
+      - tests/unit/test_linter_patterns_pipeline.py
+fr: FR-235
