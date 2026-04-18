@@ -137,25 +137,25 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
 ### CONF-035
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L94)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L95)
 - **Code**: S607
 - **Sin**: `["git", "diff", "--name-only"]` uses partial executable path.
 - **Penance**: `git` is expected on PATH in all development environments. Using absolute path would break portability across OS/distro.
 
 ### CONF-036
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L105)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L106)
 - **Code**: S607
 - **Sin**: `["git", "diff", "--cached", "--name-only"]` uses partial executable path.
 - **Penance**: Same as CONF-035.
 
 ### CONF-037
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L93)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L94)
 - **Code**: S603
 - **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
 - **Penance**: Command list is hardcoded `["git", "diff", "--name-only"]` — no user input reaches arguments. Used to detect unstaged changes before worktree operations.
 
 ### CONF-038
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L104)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L105)
 - **Code**: S603
 - **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
 - **Penance**: Same as CONF-037 — hardcoded `["git", "diff", "--cached", "--name-only"]` for staged change detection.
