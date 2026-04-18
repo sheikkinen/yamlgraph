@@ -1,25 +1,57 @@
 """Edge compilation for StateGraph construction.
 
 Handles START edges, map node edges, conditional/router edges,
-and expression-based routing. Extracted from graph_loader.py (FR-067).
+parallel fan-out edges, and expression-based routing.
+Extracted from graph_loader.py (FR-067).
 """
 
+import logging
 from typing import Any
 
 from langgraph.graph import END, StateGraph
 
 from yamlgraph.routing import make_expr_router_fn, make_router_fn
 
+logger = logging.getLogger(__name__)
+
 
 def _handle_start_edge(
-    graph: StateGraph, to_node: str, map_nodes: dict[str, tuple]
+    graph: StateGraph,
+    to_node: str | list[str],
+    map_nodes: dict[str, tuple],
 ) -> None:
-    """Handle START -> node edge."""
+    """Handle START -> node edge (single or fan-out)."""
+    if isinstance(to_node, list):
+        # FR-234: START -> [a, b, c] parallel fan-out
+        _handle_start_fanout(graph, to_node, map_nodes)
+        return
     if to_node in map_nodes:
         map_edge_fn, sub_node_name = map_nodes[to_node]
         graph.set_conditional_entry_point(map_edge_fn, [sub_node_name])
     else:
         graph.set_entry_point(to_node)
+
+
+def _handle_start_fanout(
+    graph: StateGraph, targets: list[str], map_nodes: dict[str, tuple]
+) -> None:
+    """Handle START -> [a, b, c] parallel fan-out.
+
+    LangGraph requires exactly one entry point, so we use a conditional
+    entry point that returns all targets via a routing function.
+    """
+    resolved: list[str] = []
+    for target in targets:
+        if target in map_nodes:
+            _, sub_node_name = map_nodes[target]
+            resolved.append(sub_node_name)
+        else:
+            resolved.append(target)
+
+    def _fanout_entry(state: dict) -> list[str]:
+        return resolved
+
+    graph.set_conditional_entry_point(_fanout_entry, resolved)
 
 
 def _handle_map_to_map_edge(
@@ -80,6 +112,21 @@ def _process_edge(
     condition = edge.get("condition")
     edge_type = edge.get("type")
 
+    # FR-234: Parallel fan-out — to: [a, b, c] without type: conditional
+    if isinstance(to_node, list) and edge_type != "conditional":
+        if from_node == "START":
+            # Redirect interrupt targets before passing to start handler
+            resolved = [
+                f"{t}_prepare" if interrupt_nodes and t in interrupt_nodes else t
+                for t in to_node
+            ]
+            _handle_start_edge(graph, resolved, map_nodes)
+        else:
+            _add_parallel_fanout_edges(
+                graph, from_node, to_node, map_nodes, interrupt_nodes
+            )
+        return
+
     # FR-060: Redirect incoming edges to interrupt prepare node
     if interrupt_nodes and isinstance(to_node, str) and to_node in interrupt_nodes:
         to_node = f"{to_node}_prepare"
@@ -110,6 +157,33 @@ def _process_edge(
 
     # Simple edge
     graph.add_edge(from_node, END if to_node == "END" else to_node)
+
+
+def _add_parallel_fanout_edges(
+    graph: StateGraph,
+    from_node: str,
+    targets: list[str],
+    map_nodes: dict[str, tuple],
+    interrupt_nodes: set[str] | None = None,
+) -> None:
+    """Add parallel fan-out edges from one source to multiple targets (FR-234).
+
+    Each target gets its own edge. LangGraph executes them concurrently.
+    Handles interrupt node redirects and map node targets.
+    """
+    for target in targets:
+        # FR-060: Redirect interrupt targets to prepare node
+        if interrupt_nodes and target in interrupt_nodes:
+            target = f"{target}_prepare"
+
+        # Map node targets use conditional edge with map function
+        if target in map_nodes:
+            map_edge_fn, sub_node_name = map_nodes[target]
+            graph.add_conditional_edges(from_node, map_edge_fn, [sub_node_name])
+            continue
+
+        resolved = END if target == "END" else target
+        graph.add_edge(from_node, resolved)
 
 
 def _add_conditional_edges(
