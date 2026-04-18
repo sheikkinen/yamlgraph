@@ -1,0 +1,50 @@
+# Chatterbox TTS — Multilingual Text-to-Speech Demo (FR-233)
+# Demonstrates: map node with structured over: list, python tool for TTS
+
+version: "1.0"
+name: chatterbox-tts
+description: Multilingual TTS demo using Chatterbox
+
+prompts_relative: true
+prompts_dir: prompts
+
+tools:
+  synthesize_audio:
+    type: python
+    module: examples.demos.chatterbox.tools
+    function: synthesize_audio
+
+state:
+  topic: str
+
+nodes:
+  generate:
+    type: map
+    over:
+      - {lang: en, lang_name: English}
+      - {lang: es, lang_name: Spanish}
+      - {lang: fi, lang_name: Finnish}
+      - {lang: sv, lang_name: Swedish}
+      - {lang: de, lang_name: German}
+    as: target
+    node:
+      prompt: translate
+      state_key: translation
+      variables:
+        lang: "{state.target.lang}"
+        lang_name: "{state.target.lang_name}"
+        topic: "{state.topic}"
+    collect: translations
+
+  synthesize:
+    type: python
+    tool: synthesize_audio
+    state_key: audio_paths
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: synthesize
+  - from: synthesize
+    to: END

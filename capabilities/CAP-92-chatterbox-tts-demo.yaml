@@ -1,0 +1,18 @@
+id: CAP-92
+name: Chatterbox TTS Demo
+description: >
+  Multilingual text-to-speech demo using map node fan-out over 5 languages,
+  Chatterbox Multilingual TTS for audio synthesis, and structured YAML prompts.
+  Produces WAV files for en, es, fi, sv, de.
+modules:
+  - examples/demos/chatterbox
+requirements:
+  - id: REQ-YG-234
+    description: >
+      Chatterbox TTS demo: map node fans out over 5 languages (en, es, fi, sv, de),
+      collects translations via structured output, synthesizes to WAV files via
+      synthesize_audio python tool with Chatterbox Multilingual TTS.
+      Auto-detects CUDA/CPU. Optional dependency chatterbox-tts.
+    modules:
+      - examples/demos/chatterbox
+fr: FR-233

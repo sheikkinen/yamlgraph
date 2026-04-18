@@ -106,6 +106,12 @@ demo_horoscope() {
         --var date="$(date +%Y-%m-%d)"
 }
 
+demo_chatterbox() {
+    echo -e "${YELLOW}Note: Chatterbox demo requires chatterbox-tts (pip install -e '.[chatterbox]')${NC}"
+    run_demo "Chatterbox TTS" "$SCRIPT_DIR/chatterbox/graph.yaml" \
+        --var topic="the beauty of nature"
+}
+
 demo_costrouter() {
     echo -e "${YELLOW}Cost Router - Routes queries to cost-appropriate models${NC}"
     echo -e "${YELLOW}Using: Replicate/Granite (simple), Mistral (medium), Anthropic (complex)${NC}"
@@ -145,6 +151,7 @@ print_usage() {
     echo "  costrouter  - Cost-based routing (Replicate/Mistral/Anthropic)"
     echo "  systemstatus - System diagnostics using type: tool nodes"
     echo "  horoscope   - Daily horoscope for all 12 zodiac signs (map fan-out)"
+    echo "  chatterbox  - Multilingual TTS with Chatterbox (heavy, excluded from all)"
     echo "  all         - Run all demos (default)"
     echo ""
 }
@@ -212,6 +219,9 @@ case "${1:-all}" in
     horoscope)
         demo_horoscope
         ;;
+    chatterbox)
+        demo_chatterbox
+        ;;
     all)
         echo -e "${YELLOW}🚀 Running all YamlGraph demos...${NC}"
         demo_hello
@@ -228,9 +238,9 @@ case "${1:-all}" in
         demo_costrouter
         demo_systemstatus
         demo_horoscope
-        # Skip interview (requires interaction) and codegen (slow)
+        # Skip interview (requires interaction), codegen (slow), and chatterbox (heavy dep)
         echo ""
-        echo -e "${YELLOW}Note: Skipped 'interview' (interactive) and 'codegen' (slow)${NC}"
+        echo -e "${YELLOW}Note: Skipped 'interview' (interactive), 'codegen' (slow), 'chatterbox' (heavy dep)${NC}"
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo -e "${GREEN}✓ All demos completed successfully!${NC}"
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
