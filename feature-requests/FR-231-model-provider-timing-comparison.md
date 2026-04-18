@@ -137,7 +137,7 @@ With `--full`, append full output per model. With `--export bench.json`, save st
 - [x] Unit tests for CLI argument parsing and result formatting
 - [x] Integration test (1 model, mock LLM) verifies end-to-end bench flow
 - [x] Tests tagged with `@pytest.mark.req("REQ-YG-232")`
-- [ ] Documentation updated in `reference/getting-started.md`
+- [x] Documentation updated in `reference/getting-started.md`
 
 ## Scope Boundaries
 
