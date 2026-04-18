@@ -1,4 +1,4 @@
-id: CAP-93
+id: CAP-95
 name: Parallel Fan-Out Edges
 description: >
   Parallel fan-out edges allow a single node to fan out to multiple target
@@ -10,7 +10,7 @@ description: >
 modules:
   - yamlgraph/edge_compiler.py
 requirements:
-  - id: REQ-YG-235
+  - id: REQ-YG-237
     description: >
       Parallel fan-out edges: to: [a, b, c] without type: conditional compiles
       as parallel fan-out via multiple add_edge() calls; handles interrupt node

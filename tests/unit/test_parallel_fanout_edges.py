@@ -4,7 +4,7 @@ TDD RED phase: These tests define the expected behavior for parallel fan-out
 edges where `to: [a, b, c]` without `type: conditional` means "run all targets
 concurrently" — as opposed to conditional routing which picks one target.
 
-REQ-YG-235: Parallel fan-out edges compile to multiple add_edge() calls,
+REQ-YG-237: Parallel fan-out edges compile to multiple add_edge() calls,
 handle interrupt/map node targets, work from START, and pass linter checks.
 """
 
@@ -82,7 +82,7 @@ edges:
 class TestParallelFanOutEdgeCompilation:
     """Tests for parallel fan-out edge compilation (FR-234)."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_compiles_graph(self, tmp_path):
         """Graph with to: [a, b, c] (no type: conditional) should compile."""
         yaml_file = _make_fanout_yaml(tmp_path)
@@ -95,7 +95,7 @@ class TestParallelFanOutEdgeCompilation:
         assert "summarize" in graph.nodes
         assert "translate" in graph.nodes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_adds_multiple_edges(self):
         """Fan-out edge should add one edge per target, not a single list edge."""
         mock_graph = MagicMock()
@@ -110,7 +110,7 @@ class TestParallelFanOutEdgeCompilation:
         assert call("generate", "translate") in add_edge_calls
         assert len(add_edge_calls) == 3
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_not_confused_with_conditional(self):
         """Fan-out edge without type: conditional must NOT create router edges."""
         mock_graph = MagicMock()
@@ -124,7 +124,7 @@ class TestParallelFanOutEdgeCompilation:
         # Should add direct edges
         assert mock_graph.add_edge.call_count == 2
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_conditional_edge_still_routes_to_one(self):
         """type: conditional with list targets must still be router (not fan-out)."""
         mock_graph = MagicMock()
@@ -141,7 +141,7 @@ class TestParallelFanOutEdgeCompilation:
         assert "classify" in router_edges
         assert mock_graph.add_edge.call_count == 0
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_with_end_target(self):
         """Fan-out with END as one target should use END constant."""
         mock_graph = MagicMock()
@@ -155,7 +155,7 @@ class TestParallelFanOutEdgeCompilation:
         assert call("generate", "analyze") in add_edge_calls
         assert call("generate", END) in add_edge_calls
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_with_interrupt_redirect(self):
         """Fan-out targets in interrupt_nodes should be redirected to _prepare."""
         mock_graph = MagicMock()
@@ -168,7 +168,7 @@ class TestParallelFanOutEdgeCompilation:
         assert call("generate", "analyze_prepare") in add_edge_calls
         assert call("generate", "summarize") in add_edge_calls
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_with_map_target(self):
         """Fan-out with a map node target uses map edge function."""
         mock_graph = MagicMock()
@@ -185,7 +185,7 @@ class TestParallelFanOutEdgeCompilation:
             "generate", mock_map_fn, ["expand_sub"]
         )
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_single_target_list(self):
         """to: [single] should work the same as to: single."""
         mock_graph = MagicMock()
@@ -204,7 +204,7 @@ class TestParallelFanOutEdgeCompilation:
 class TestParallelFanOutFromStart:
     """Tests for parallel fan-out from START node (FR-234)."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_start_fanout_compiles(self, tmp_path):
         """START -> [a, b] should compile into a working graph."""
         yaml_content = """
@@ -255,7 +255,7 @@ edges:
 class TestParallelFanOutLinter:
     """Tests that linter works correctly with parallel fan-out edges."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_fanout_nodes_reachable(self, tmp_path):
         """All fan-out targets should be reachable from START (no W002)."""
         from yamlgraph.linter.checks import check_edge_coverage
@@ -267,7 +267,7 @@ class TestParallelFanOutLinter:
         w002_issues = [i for i in issues if i.code == "W002"]
         assert w002_issues == [], f"Unexpected W002 issues: {w002_issues}"
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-237")
     def test_fanout_nodes_reach_end(self, tmp_path):
         """All fan-out targets should have paths to END (no W003)."""
         from yamlgraph.linter.checks import check_edge_coverage

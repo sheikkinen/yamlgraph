@@ -1,0 +1,28 @@
+# Chatterbox Voice Clone Demo (FR-236)
+# Demonstrates: reference-audio-conditioned synthesis via ChatterboxTTS
+
+version: "1.0"
+name: chatterbox-voice-clone
+description: Voice cloning demo using Chatterbox reference audio (FR-236)
+
+tools:
+  synthesize_cloned_audio:
+    type: python
+    module: examples.demos.chatterbox_clone.tools
+    function: synthesize_cloned_audio
+
+state:
+  text: str
+  voice_prompt_path: str
+
+nodes:
+  synthesize:
+    type: python
+    tool: synthesize_cloned_audio
+    state_key: audio_path
+
+edges:
+  - from: START
+    to: synthesize
+  - from: synthesize
+    to: END

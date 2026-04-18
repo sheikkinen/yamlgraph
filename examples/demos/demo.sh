@@ -112,6 +112,15 @@ demo_chatterbox() {
         --var topic="the beauty of nature"
 }
 
+demo_chatterbox_clone() {
+    echo -e "${YELLOW}Note: Chatterbox clone demo requires chatterbox-tts and a local reference WAV file${NC}"
+    echo -e "${YELLOW}Usage: ./demo.sh chatterbox_clone /absolute/path/to/reference.wav${NC}"
+    local ref="${2:-/path/to/reference.wav}"
+    run_demo "Chatterbox Voice Clone" "$SCRIPT_DIR/chatterbox_clone/graph.yaml" \
+        --var text="Hello from YAMLGraph voice cloning" \
+        --var voice_prompt_path="$ref"
+}
+
 demo_costrouter() {
     echo -e "${YELLOW}Cost Router - Routes queries to cost-appropriate models${NC}"
     echo -e "${YELLOW}Using: Replicate/Granite (simple), Mistral (medium), Anthropic (complex)${NC}"
@@ -152,6 +161,7 @@ print_usage() {
     echo "  systemstatus - System diagnostics using type: tool nodes"
     echo "  horoscope   - Daily horoscope for all 12 zodiac signs (map fan-out)"
     echo "  chatterbox  - Multilingual TTS with Chatterbox (heavy, excluded from all)"
+    echo "  chatterbox_clone - Voice cloning with Chatterbox reference audio (excluded from all, requires ref wav)"
     echo "  all         - Run all demos (default)"
     echo ""
 }
@@ -222,6 +232,9 @@ case "${1:-all}" in
     chatterbox)
         demo_chatterbox
         ;;
+    chatterbox_clone)
+        demo_chatterbox_clone "$@"
+        ;;
     all)
         echo -e "${YELLOW}🚀 Running all YamlGraph demos...${NC}"
         demo_hello
@@ -238,9 +251,9 @@ case "${1:-all}" in
         demo_costrouter
         demo_systemstatus
         demo_horoscope
-        # Skip interview (requires interaction), codegen (slow), and chatterbox (heavy dep)
+        # Skip interview (requires interaction), codegen (slow), chatterbox and chatterbox_clone (heavy dep + require real audio)
         echo ""
-        echo -e "${YELLOW}Note: Skipped 'interview' (interactive), 'codegen' (slow), 'chatterbox' (heavy dep)${NC}"
+        echo -e "${YELLOW}Note: Skipped 'interview' (interactive), 'codegen' (slow), 'chatterbox' (heavy dep), 'chatterbox_clone' (heavy dep + requires real audio file)${NC}"
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo -e "${GREEN}✓ All demos completed successfully!${NC}"
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

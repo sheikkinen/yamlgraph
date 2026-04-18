@@ -1,0 +1,16 @@
+# FR-236 Chatterbox Voice Clone Demo — execution log
+# Demo requires a real reference audio file not bundled in the repository.
+# Execution verified by unit tests (tests/unit/test_chatterbox_clone_demo.py).
+# See FR-236 scope rule 1: no third-party speaker reference clip in the repo.
+#
+# To run the demo with a real reference clip:
+#
+#   yamlgraph graph run examples/demos/chatterbox_clone/graph.yaml \
+#     --var text="Hello from YAMLGraph voice cloning" \
+#     --var voice_prompt_path="/absolute/path/to/reference.wav" \
+#     --full
+#
+# Expected output: outputs/chatterbox-clone/output.wav
+#
+# Graph lint output:
+#   ✓ examples/demos/chatterbox_clone/graph.yaml — OK
