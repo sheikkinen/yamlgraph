@@ -10,6 +10,10 @@
 
 Add an optional `timeout: float | None` field (seconds) to `NodeConfig` so that individual map branches — and any node — can be bounded. A stalled map branch currently blocks aggregation indefinitely; the global `config.timeout` is too coarse to handle per-item slowness gracefully.
 
+## Value Statement
+
+Graph authors gain per-branch deadline control so one slow LLM call cannot stall the entire map aggregation, enabling graceful degradation via the existing `on_error` policy.
+
 ## Problem
 
 Map nodes fan out via LangGraph's `Send()` API. Every branch runs concurrently, but there is no per-branch deadline:
@@ -38,7 +42,7 @@ If one agent branch hangs for 5 minutes the graph waits regardless of `on_error:
 
 ## Proposed Solution
 
-Add an optional `timeout: float | None` field (seconds) to `NodeConfig`. When present:
+Generalize the existing `NodeConfig.timeout` field (currently scoped to copilot nodes only, `int | None`) to `float | None` and apply it to all node types. When present:
 
 1. The node's execution is wrapped via `concurrent.futures.Future.result(timeout=node.timeout)`, using a one-shot `ThreadPoolExecutor`. This primitive is chosen because all node functions produced by `node_factory/` are synchronous (`node_fn(state: dict) -> dict`) and run the same way on both the sync (`invoke`) and async (`ainvoke`) paths — there is no coroutine to wrap.
 2. On `concurrent.futures.TimeoutError`, a dedicated `except concurrent.futures.TimeoutError` clause (placed **before** `except Exception`) catches it and raises `PipelineError` constructed via `PipelineError.from_exception(e, node="map_subnode", error_type=ErrorType.TIMEOUT_ERROR)`. Passing `error_type` explicitly bypasses the `from_exception` inference chain, which would otherwise classify this as `LLM_ERROR` because `"timeout"` appears in `TimeoutError.__name__.lower()`.
@@ -74,7 +78,7 @@ nodes:
 
 #### Step 1 — `models/graph_schema.py`
 
-Add `timeout: float | None = None` to `NodeConfig` with a `@field_validator` asserting `timeout > 0`.
+Widen the existing `timeout` field from `int | None` (copilot-only) to `float | None` with a `@field_validator` asserting `timeout > 0`. Update the description to reflect general-purpose use. The copilot node path (`node_factory/copilot_node.py`) already reads `config.get("timeout")` and will continue to work unchanged.
 
 #### Step 2 — `models/schemas.py`
 
@@ -82,7 +86,7 @@ Add `TIMEOUT_ERROR = "timeout_error"` to `ErrorType`. Do **not** modify `from_ex
 
 #### Step 3 — `map_compiler.py` — `wrap_for_reducer` + call site
 
-Accept optional `timeout: float | None = None` parameter. When set, execute `node_fn(state)` via a one-shot `ThreadPoolExecutor`. The `except concurrent.futures.TimeoutError` clause must appear **before** `except Exception` to prevent the general handler from silently reclassifying it as `LLM_ERROR`:
+Accept optional `timeout: float | None = None` parameter in `wrap_for_reducer`. When set, execute `node_fn(state)` via a one-shot `ThreadPoolExecutor`. The `except concurrent.futures.TimeoutError` clause must appear **before** `except Exception` to prevent the general handler from silently reclassifying it as `LLM_ERROR`:
 
 ```python
 def wrap_for_reducer(
@@ -104,7 +108,10 @@ def wrap_for_reducer(
             }
             return {
                 collect_key: [error_result],
-                "errors": [PipelineError.from_exception(e, node="map_subnode", error_type=ErrorType.TIMEOUT_ERROR)],
+                "errors": [PipelineError.from_exception(
+                    e, node="map_subnode",
+                    error_type=ErrorType.TIMEOUT_ERROR,
+                )],
             }
         except Exception as e:
             # existing handler unchanged
@@ -113,22 +120,25 @@ def wrap_for_reducer(
     return wrapped
 ```
 
-Also update the call site at `map_compiler.py` line 256:
+Update the call site in `compile_map_node` (currently line ~267):
 
 ```python
 # Before
 wrapped_node = wrap_for_reducer(sub_node, collect_key, state_key, flatten_output)
 # After
-wrapped_node = wrap_for_reducer(sub_node, collect_key, state_key, flatten_output, timeout=config.get("timeout"))
+wrapped_node = wrap_for_reducer(
+    sub_node, collect_key, state_key, flatten_output,
+    timeout=config.get("timeout"),
+)
 ```
 
 #### Step 4 — `node_factory/` base execution path (`create_node_function`)
 
-Apply the same `ThreadPoolExecutor` wrap when `config.get("timeout")` is set, bounding non-map nodes (llm, tool_call, python, agent). Same clause ordering: `except concurrent.futures.TimeoutError` before `except Exception`.
+Apply the same `ThreadPoolExecutor` wrap in `llm_nodes.py` `create_node_function` when `cfg.timeout` is set, bounding non-map nodes (llm, tool_call, python, agent). Same clause ordering: `except concurrent.futures.TimeoutError` before `except Exception`.
 
 #### Step 5 — Lint rule
 
-`yamlgraph graph lint` emits a warning when a map node contains a `type: agent` sub-node but no `timeout` is set. Add the check as a new function `check_map_patterns` in `yamlgraph/linter/patterns/map.py` (create the file), export it from `yamlgraph/linter/patterns/__init__.py`, and call it from `lint_graph` in `yamlgraph/linter/graph_linter.py` alongside `check_agent_patterns`.
+Add a W203 warning in `yamlgraph/linter/patterns/map.py` inside `check_map_node_types` (or a new helper called from `check_map_patterns`): emit a warning when a map node contains a `type: agent` sub-node but no `timeout` is set. The `check_map_patterns` function and `map.py` file already exist — no new file creation needed, just extend the existing checks.
 
 Thread pool is created per-call (one-shot); no global pool is held.
 
@@ -138,7 +148,7 @@ When `Future.result(timeout=N)` raises `TimeoutError`, the submitted thread is *
 
 ## Acceptance Criteria
 
-- [ ] `NodeConfig` has optional `timeout: float | None` field, validated as a positive float
+- [ ] `NodeConfig.timeout` widened from `int | None` (copilot-only) to `float | None` (general-purpose), validated as a positive float via `@field_validator`
 - [ ] Map branch honours `timeout`; a branch exceeding it raises `PipelineError` via `PipelineError.from_exception(e, node="map_subnode", error_type=ErrorType.TIMEOUT_ERROR)`
 - [ ] `on_error: skip` on a map node successfully skips timed-out branches and collects the rest
 - [ ] Non-map nodes (llm, tool_call, python, agent) also respect `timeout` when set
@@ -146,12 +156,13 @@ When `Future.result(timeout=N)` raises `TimeoutError`, the submitted thread is *
 - [ ] `from_exception` classification logic is **not** modified; callers pass `error_type=ErrorType.TIMEOUT_ERROR` explicitly
 - [ ] `except concurrent.futures.TimeoutError` appears **before** `except Exception` in both `wrap_for_reducer` and the non-map node execution path, preventing silent reclassification as `LLM_ERROR`
 - [ ] `compile_map_node` call site updated to pass `timeout=config.get("timeout")` to `wrap_for_reducer`
-- [ ] Lint warning emitted when a map node contains an agent sub-node without `timeout`
+- [ ] Lint warning W203 emitted when a map node contains an agent sub-node without `timeout`
 - [ ] Unit tests added with a mock that simulates a hung call using `time.sleep` inside the node fn
 - [ ] Integration test (marked `slow`) demonstrating skip behaviour via a `sleep`-based tool node without network I/O
-- [ ] All new tests carry `@pytest.mark.req("REQ-YG-078")` referencing a new requirement added to `ARCHITECTURE.md`
-- [ ] `ALL_REQS` range extended to 78 and new capability entry added to `CAPABILITIES` dict in `scripts/req_coverage.py`
+- [ ] All new tests carry `@pytest.mark.req("REQ-YG-238")` referencing a new requirement added to `ARCHITECTURE.md`
+- [ ] `capabilities/` registry extended with a new `CAP-96-per-node-timeout.yaml` entry mapping to `REQ-YG-238`
 - [ ] Known thread-leakage limitation documented in `reference/graph-yaml.md` alongside the `timeout` field docs
+- [ ] Existing copilot node timeout behaviour is unchanged (regression-free)
 
 ## Alternatives Considered
 
@@ -173,7 +184,10 @@ When `Future.result(timeout=N)` raises `TimeoutError`, the submitted thread is *
 
 - FR-027: `max_items` cap on map fan-out (`feature-requests/027-execution-safety-guards.md`)
 - FR-030: Map concurrency control (Won't Fix — wrong layer)
+- FR-081: Copilot node (existing per-node timeout for copilot only)
 - `yamlgraph/map_compiler.py` — `compile_map_node()`, `wrap_for_reducer()`
-- `yamlgraph/models/graph_schema.py` — `NodeConfig`
-- `yamlgraph/models/schemas.py` — `ErrorType`, `LLM_ERROR` classification
+- `yamlgraph/models/graph_schema.py` — `NodeConfig` (existing `timeout: int | None` field)
+- `yamlgraph/models/schemas.py` — `ErrorType`, `PipelineError.from_exception()`
+- `yamlgraph/linter/patterns/map.py` — existing `check_map_patterns()`, lint codes W201–W202
+- `yamlgraph/node_factory/copilot_node.py` — reference timeout implementation
 - `cli/graph_commands.py` — `_setup_timeout()` (signal-based, CLI only)
