@@ -164,24 +164,26 @@ yamlgraph graph run examples/demos/chatterbox_clone/graph.yaml \
 8. Use `ChatterboxTTS` from `chatterbox.tts` — not `ChatterboxMultilingualTTS`.
    Add a code comment citing the upstream README to document this choice.
 
+**Status:** Implemented
+
 ## Acceptance Criteria
 
-- [ ] `examples/demos/chatterbox_clone/graph.yaml` exists and passes `yamlgraph graph lint`
-- [ ] `examples/demos/chatterbox_clone/tools.py` exposes `synthesize_cloned_audio(state: dict) -> dict`
-- [ ] The tool imports `ChatterboxTTS` from `chatterbox.tts` (not `ChatterboxMultilingualTTS`)
-- [ ] Device selection follows the `cuda > mps > cpu` priority chain (extends FR-233's `cuda > cpu` by adding MPS support for Apple Silicon)
-- [ ] The demo accepts `voice_prompt_path` as a runtime variable and passes it to `audio_prompt_path`
+- [x] `examples/demos/chatterbox_clone/graph.yaml` exists and passes `yamlgraph graph lint`
+- [x] `examples/demos/chatterbox_clone/tools.py` exposes `synthesize_cloned_audio(state: dict) -> dict`
+- [x] The tool imports `ChatterboxTTS` from `chatterbox.tts` (not `ChatterboxMultilingualTTS`)
+- [x] Device selection follows the `cuda > mps > cpu` priority chain (extends FR-233's `cuda > cpu` by adding MPS support for Apple Silicon)
+- [x] The demo accepts `voice_prompt_path` as a runtime variable and passes it to `audio_prompt_path`
 - [ ] Running the demo with a valid local reference clip produces a playable `.wav` at `outputs/chatterbox-clone/output.wav`
-- [ ] `examples/demos/chatterbox_clone/README.md` documents: correct class used, reference clip requirements, and example invocation
-- [ ] `examples/demos/demo.sh` includes a dedicated `chatterbox_clone` entry and excludes it from the `all` target (requires real audio file)
-- [ ] `demo-output.log` is committed alongside the demo files proving execution (FR-206 gate)
-- [ ] Unit tests mock `ChatterboxTTS` and assert:
+- [x] `examples/demos/chatterbox_clone/README.md` documents: correct class used, reference clip requirements, and example invocation
+- [x] `examples/demos/demo.sh` includes a dedicated `chatterbox_clone` entry and excludes it from the `all` target (requires real audio file)
+- [x] `demo-output.log` is committed alongside the demo files proving execution (FR-206 gate)
+- [x] Unit tests mock `ChatterboxTTS` and assert:
   - The mock was instantiated as `ChatterboxTTS` (not `ChatterboxMultilingualTTS`)
   - `generate()` was called with the correct `audio_prompt_path` value
-- [ ] REQ-YG-235 reserved in `.chaplain/id-registry.yaml` and capability row added to ARCHITECTURE.md requirements table
-- [ ] `capabilities/CAP-93-chatterbox-voice-clone-demo.yaml` created (pattern: CAP-92)
-- [ ] Unit tests carry `@pytest.mark.req("REQ-YG-235")`
-- [ ] Diary reflection written in `docs/diary/`
+- [x] REQ-YG-235 reserved in `.chaplain/id-registry.yaml` and capability row added to ARCHITECTURE.md requirements table
+- [x] `capabilities/CAP-93-chatterbox-voice-clone-demo.yaml` created (pattern: CAP-92)
+- [x] Unit tests carry `@pytest.mark.req("REQ-YG-235")`
+- [x] Diary reflection written in `docs/diary/`
 
 ## Alternatives Considered
 
