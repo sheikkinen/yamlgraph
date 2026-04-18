@@ -23,6 +23,7 @@ VALID_NODE_TYPES = {
     "map",
     "passthrough",
     "python",
+    "race",
     "router",
     "subgraph",
     "tool",

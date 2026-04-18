@@ -1,0 +1,36 @@
+# Race Node Demo — FR-232
+# Fires the same prompt to multiple LLM providers concurrently,
+# returns whichever responds first successfully.
+
+version: "1.0"
+name: race-demo
+description: Race multiple LLM providers for the fastest response
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  topic: str
+
+nodes:
+  fastest_answer:
+    type: race
+    prompt: answer
+    state_key: answer
+    timeout: 15
+    candidates:
+      - provider: mistral
+        model: mistral-small-latest
+      - provider: openai
+        model: gpt-4o-mini
+      - provider: google
+        model: gemini-2.0-flash
+
+edges:
+  - from: START
+    to: fastest_answer
+  - from: fastest_answer
+    to: END
