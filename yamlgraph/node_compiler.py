@@ -19,6 +19,7 @@ from yamlgraph.node_factory import (
     create_interrupt_node,
     create_node_function,
     create_passthrough_node,
+    create_race_node,
     create_subgraph_node,
     create_tool_call_node,
 )
@@ -167,6 +168,17 @@ def _compile_llm_node(ctx: NodeCompileContext) -> None:
     return None
 
 
+def _compile_race_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_race_node(
+        ctx.node_name,
+        ctx.node_config,
+        ctx.effective_defaults,
+        graph_path=ctx.config.source_path,
+    )
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Registry: NodeType → handler (FR-220)
 # ---------------------------------------------------------------------------
@@ -183,6 +195,7 @@ NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
     NodeType.SUBGRAPH: _compile_subgraph_node,
     NodeType.LLM: _compile_llm_node,
     NodeType.ROUTER: _compile_llm_node,
+    NodeType.RACE: _compile_race_node,
 }
 
 

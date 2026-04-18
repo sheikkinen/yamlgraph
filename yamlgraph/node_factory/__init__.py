@@ -14,6 +14,7 @@ from yamlgraph.node_factory.control_nodes import (
 )
 from yamlgraph.node_factory.copilot_node import create_copilot_node
 from yamlgraph.node_factory.llm_nodes import create_node_function
+from yamlgraph.node_factory.race_node import AllCandidatesFailedError, create_race_node
 from yamlgraph.node_factory.streaming import create_streaming_node
 from yamlgraph.node_factory.subgraph_nodes import (
     _build_child_config,
@@ -31,6 +32,9 @@ __all__ = [
     # LLM nodes
     "create_node_function",
     "create_streaming_node",
+    # Race nodes
+    "create_race_node",
+    "AllCandidatesFailedError",
     # Tool nodes
     "create_tool_call_node",
     # Control nodes

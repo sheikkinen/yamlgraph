@@ -22,6 +22,7 @@ class NodeType(StrEnum):
     PASSTHROUGH = "passthrough"
     INTERACTIVE_TOOL = "interactive_tool"
     COPILOT = "copilot"
+    RACE = "race"
 
     @classmethod
     def requires_prompt(cls, node_type: str) -> bool:
@@ -33,7 +34,7 @@ class NodeType(StrEnum):
         Returns:
             True if the node type requires a prompt
         """
-        return node_type in (cls.LLM, cls.ROUTER, cls.COPILOT)
+        return node_type in (cls.LLM, cls.ROUTER, cls.COPILOT, cls.RACE)
 
 
 class ErrorHandler(StrEnum):

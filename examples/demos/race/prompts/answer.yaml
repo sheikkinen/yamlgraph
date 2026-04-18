@@ -1,0 +1,6 @@
+system: |
+  You are a concise expert assistant.
+  Provide a clear, helpful answer in 2-3 sentences.
+
+user: |
+  Briefly explain: {topic}

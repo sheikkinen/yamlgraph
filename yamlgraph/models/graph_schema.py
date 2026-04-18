@@ -125,6 +125,12 @@ class NodeConfig(BaseModel):
         default=None, description="Timeout in seconds for copilot node (default 300)"
     )
 
+    # Race node fields (FR-232)
+    candidates: list[dict[str, Any]] | None = Field(
+        default=None,
+        description="Race candidates: list of {provider, model} dicts",
+    )
+
     # Verification gate (FR-164)
     verification: VerificationConfig | None = Field(
         default=None,
@@ -184,6 +190,20 @@ class NodeConfig(BaseModel):
                 raise ValueError("Map node requires 'node' field")
             if not self.collect:
                 raise ValueError("Map node requires 'collect' field")
+
+        if self.type == NodeType.RACE:
+            if not self.candidates:
+                raise ValueError("Race node requires 'candidates' field")
+            if len(self.candidates) < 2:
+                raise ValueError(
+                    "Race node requires at least 2 candidates "
+                    "(single candidate = use regular llm node)"
+                )
+            for i, candidate in enumerate(self.candidates):
+                if not candidate.get("provider") and not candidate.get("model"):
+                    raise ValueError(
+                        f"Race candidate {i} must specify at least provider or model"
+                    )
 
         return self
 
