@@ -217,3 +217,10 @@ from yamlgraph.discovery import (  # noqa: F401 (CONF-126)
 )
 
 cmd_a2a_dispatch
+
+# --- timing_tracker: LangChain callback methods invoked by framework ---
+from yamlgraph.utils.timing_tracker import (  # noqa: F401 (CONF-126)
+    ExecutionTimingCallbackHandler,
+)
+
+ExecutionTimingCallbackHandler.on_llm_start

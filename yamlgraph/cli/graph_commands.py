@@ -167,11 +167,11 @@ def _print_trace_url(tracer: object | None, share: bool = False) -> None:
 def _build_run_config(args: Namespace, graph_config, initial_state: dict) -> tuple:
     """Build LangGraph run configuration from CLI args and graph config.
 
-    Assembles thread_id, recursion_limit, timeout, tracing, and token
-    tracking into a single config dict.
+    Assembles thread_id, recursion_limit, timeout, tracing, token
+    tracking, and timing tracking into a single config dict.
 
     Returns:
-        Tuple of (initial_state, config, tracker, timeout, tracer, share_flag)
+        Tuple of (initial_state, config, tracker, timeout, tracer, share_flag, timing_tracker)
     """
     from yamlgraph.utils.tracing import create_tracer, inject_tracer_config
 
@@ -209,7 +209,15 @@ def _build_run_config(args: Namespace, graph_config, initial_state: dict) -> tup
         tracker = create_token_tracker()
         config.setdefault("callbacks", []).append(tracker)
 
-    return initial_state, config, tracker, timeout, tracer, share_flag
+    # FR-231: Set up execution timing tracking
+    timing_tracker = None
+    if getattr(args, "timing", False):
+        from yamlgraph.utils.timing_tracker import create_timing_tracker
+
+        timing_tracker = create_timing_tracker()
+        config.setdefault("callbacks", []).append(timing_tracker)
+
+    return initial_state, config, tracker, timeout, tracer, share_flag, timing_tracker
 
 
 def _invoke_graph(app, input_data, config: dict, use_async: bool):
@@ -270,9 +278,9 @@ def cmd_graph_run(args: Namespace) -> None:
         checkpointer = get_checkpointer_for_graph(graph_config)
         app = graph.compile(checkpointer=checkpointer)
 
-        # Build run configuration (data merge, thread, limits, tracing, tokens)
-        initial_state, config, tracker, timeout, tracer, share_flag = _build_run_config(
-            args, graph_config, initial_state
+        # Build run configuration (data merge, thread, limits, tracing, tokens, timing)
+        initial_state, config, tracker, timeout, tracer, share_flag, timing_tracker = (
+            _build_run_config(args, graph_config, initial_state)
         )
         use_async = getattr(args, "use_async", False)
 
@@ -317,6 +325,15 @@ def cmd_graph_run(args: Namespace) -> None:
                 f"{s['total_input_tokens']} in / "
                 f"{s['total_output_tokens']} out "
                 f"({s['total_calls']} call{'s' if s['total_calls'] != 1 else ''})"
+            )
+
+        # FR-231: Print timing summary
+        if timing_tracker is not None and timing_tracker.total_calls > 0:
+            ts = timing_tracker.summary()
+            print(
+                f"\n⏱ Timing: {ts['total_duration_s']}s total "
+                f"({ts['call_count']} call{'s' if ts['call_count'] != 1 else ''}, "
+                f"{ts['mean_duration_s']}s mean)"
             )
 
         if args.export:
@@ -421,6 +438,10 @@ def cmd_graph_dispatch(args: Namespace) -> None:
         cmd_graph_lint(args)
     elif args.graph_command == "codegen":
         cmd_graph_codegen(args)
+    elif args.graph_command == "bench":
+        from yamlgraph.cli.bench_commands import cmd_graph_bench
+
+        cmd_graph_bench(args)
     else:
         print(f"Unknown graph command: {args.graph_command}")
         sys.exit(1)

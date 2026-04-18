@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 3–4 days (phased)
 **Requested:** 2026-04-18
 **Approved:** 2026-04-18
@@ -121,22 +121,22 @@ With `--full`, append full output per model. With `--export bench.json`, save st
 ## Acceptance Criteria
 
 ### Phase 1 — Timing Callback
-- [ ] `yamlgraph/utils/timing_tracker.py` tracks per-call and total wall-clock LLM duration
-- [ ] `--timing` flag on `yamlgraph graph run` displays timing summary after execution
-- [ ] Timing callback follows `TokenUsageCallbackHandler` pattern (callback injection, no node modification)
-- [ ] Unit tests with mock LLM verify timing accumulation
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-231")`
+- [x] `yamlgraph/utils/timing_tracker.py` tracks per-call and total wall-clock LLM duration
+- [x] `--timing` flag on `yamlgraph graph run` displays timing summary after execution
+- [x] Timing callback follows `TokenUsageCallbackHandler` pattern (callback injection, no node modification)
+- [x] Unit tests with mock LLM verify timing accumulation
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-231")`
 
 ### Phase 2 — Bench Command
-- [ ] `yamlgraph graph bench` runs a graph across `--models provider/model ...` list
-- [ ] Results displayed in a formatted comparison table
-- [ ] `--export <path>` saves structured JSON results
-- [ ] `--full` includes complete output per model in display
-- [ ] `--runs N` repeats each model N times and reports mean/min/max duration
-- [ ] Per-model errors reported gracefully without aborting other models
-- [ ] Unit tests for CLI argument parsing and result formatting
-- [ ] Integration test (1 model, mock LLM) verifies end-to-end bench flow
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-232")`
+- [x] `yamlgraph graph bench` runs a graph across `--models provider/model ...` list
+- [x] Results displayed in a formatted comparison table
+- [x] `--export <path>` saves structured JSON results
+- [x] `--full` includes complete output per model in display
+- [x] `--runs N` repeats each model N times and reports mean/min/max duration
+- [x] Per-model errors reported gracefully without aborting other models
+- [x] Unit tests for CLI argument parsing and result formatting
+- [x] Integration test (1 model, mock LLM) verifies end-to-end bench flow
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-232")`
 - [ ] Documentation updated in `reference/getting-started.md`
 
 ## Scope Boundaries

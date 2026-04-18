@@ -102,6 +102,12 @@ def create_parser() -> argparse.ArgumentParser:
         dest="token_usage",
         help="Track and display token usage summary after execution",
     )
+    graph_run_parser.add_argument(
+        "--timing",
+        action="store_true",
+        dest="timing",
+        help="Track and display LLM call timing summary after execution",
+    )
 
     # graph info
     graph_info_parser = graph_subparsers.add_parser(
@@ -135,6 +141,51 @@ def create_parser() -> argparse.ArgumentParser:
         "--include-base",
         action="store_true",
         help="Include infrastructure fields (thread_id, errors, etc.)",
+    )
+
+    # graph bench (FR-231)
+    graph_bench_parser = graph_subparsers.add_parser(
+        "bench", help="Benchmark graph across multiple provider/model combinations"
+    )
+    graph_bench_parser.add_argument("graph_path", help="Path to graph YAML file")
+    graph_bench_parser.add_argument(
+        "--models",
+        nargs="+",
+        required=True,
+        help="Provider/model specs (e.g. anthropic/claude-sonnet-4-20250514 openai/gpt-4o)",
+    )
+    graph_bench_parser.add_argument(
+        "--var",
+        "-v",
+        action="append",
+        default=[],
+        help="Set state variable (key=value), can repeat",
+    )
+    graph_bench_parser.add_argument(
+        "--var-file",
+        type=str,
+        default=None,
+        dest="var_file",
+        help="Load variables from YAML/JSON file (--var overrides)",
+    )
+    graph_bench_parser.add_argument(
+        "--runs",
+        type=int,
+        default=1,
+        help="Number of times to run each model (default: 1)",
+    )
+    graph_bench_parser.add_argument(
+        "--export",
+        type=str,
+        default=None,
+        dest="bench_export",
+        help="Export results to JSON file",
+    )
+    graph_bench_parser.add_argument(
+        "--full",
+        "-f",
+        action="store_true",
+        help="Show full output per model in display",
     )
 
     graph_parser.set_defaults(func=cmd_graph_dispatch)

@@ -361,6 +361,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 85 | Dependency Rationale Audit (FR-219) | `scripts/dependency_rationale.py`, `docs/dependency-rationale.yaml` | REQ-YG-219 |
 | 86 | Ruff Security Rules (FR-222) | `pyproject.toml`, `docs/confessions.md` | REQ-YG-222 |
 | 88 | Google/Vertex Thinking Budget (FR-230) | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` | REQ-YG-230 |
+| 89 | Execution Timing Callback (FR-231) | `yamlgraph/utils/timing_tracker.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-231 |
+| 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -553,6 +555,8 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-062 | Linter W013: warn when map node `over:` is a dynamic expression without `max_items` or `config.max_map_items` | `linter/checks_semantic`, `linter/patterns/map` |
 | REQ-YG-064 | Token usage tracking via `TokenUsageCallbackHandler` callback injected at graph-level; accumulates `input_tokens`, `output_tokens`, `total_calls` across all LLM invocations; CLI `--token-usage` flag prints summary | `utils/token_tracker`, `cli/graph_commands`, `cli/__init__` |
 | REQ-YG-113 | Linter W015: warn when cycle node has explicit `skip_if_exists: true` | `linter/checks_semantic`, `linter/graph_linter` |
+| REQ-YG-231 | Execution timing callback tracks per-call and total wall-clock LLM duration via `ExecutionTimingCallbackHandler`; `on_llm_start`/`on_llm_end` using `time.monotonic`; CLI `--timing` flag injects callback and prints timing summary | `utils/timing_tracker`, `cli/graph_commands`, `cli/__init__` |
+| REQ-YG-232 | `yamlgraph graph bench` command runs a graph across `--models provider/model` list; displays comparison table with duration, tokens, status; `--export` saves JSON; `--runs N` repeats each model; per-model errors captured gracefully; `BenchResult` Pydantic model | `cli/bench_commands`, `cli/graph_commands`, `cli/__init__` |
 
 ### 18. Testing & Quality
 

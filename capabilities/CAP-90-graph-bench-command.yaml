@@ -1,0 +1,25 @@
+id: CAP-90
+name: Graph Bench Command
+description: >
+  CLI command that runs a graph across multiple provider/model combinations
+  and displays a side-by-side comparison table of execution time, token usage,
+  and output. Supports --runs N for repetition, --export for JSON output,
+  and --full for detailed output per model.
+modules:
+  - yamlgraph/cli/bench_commands.py
+  - yamlgraph/cli/graph_commands.py
+  - yamlgraph/cli/__init__.py
+requirements:
+  - id: REQ-YG-232
+    description: >
+      yamlgraph graph bench command accepts --models provider/model specs,
+      --runs N, --export path, --full; runs graph against each model;
+      captures timing and token usage per model; displays comparison table;
+      per-model errors reported gracefully without aborting other models;
+      BenchResult Pydantic model for structured results
+    modules:
+      - yamlgraph/cli/bench_commands.py
+      - yamlgraph/cli/graph_commands.py
+      - yamlgraph/cli/__init__.py
+      - tests/unit/test_bench_command.py
+fr: FR-231
