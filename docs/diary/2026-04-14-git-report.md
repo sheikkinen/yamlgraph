@@ -10,7 +10,7 @@ Based on the recent commits (April 10-13, 2026), here's the **feature-level summ
 
 #### 1. **FR-223: LLM Node Factory Refactoring** (Most Recent)
 - **Scope**: Decomposed monolithic `create_node_function` (C901=35) into 6 single-responsibility phases
-- **Phases Extracted**: 
+- **Phases Extracted**:
   - `resolve_config` - Configuration resolution
   - `check_requirements` - Requirement validation
   - `check_loop_limit` - Loop limit enforcement

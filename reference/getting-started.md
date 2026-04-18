@@ -101,10 +101,42 @@ result = execute_prompt(
 ## CLI Usage
 
 ```bash
+# Run a graph with variables
 yamlgraph graph run examples/demos/yamlgraph/graph.yaml --var topic=AI --var style=casual
+
+# Show token usage summary after execution
+yamlgraph graph run graph.yaml --var name=World --token-usage
+
+# Show wall-clock LLM call timing summary after execution
+yamlgraph graph run graph.yaml --var name=World --timing
+
+# Inspect, validate, lint graphs
 yamlgraph graph info examples/demos/router/graph.yaml
 yamlgraph graph lint examples/demos/*/graph.yaml
 ```
+
+### Bench Command
+
+Compare multiple provider/model combinations on the same graph:
+
+```bash
+# Run against two models and display comparison table
+yamlgraph graph bench graph.yaml \
+    --models anthropic/claude-haiku-4-5 openai/gpt-4o-mini \
+    --var name=World
+
+# Repeat each model 3 times and report mean/min/max duration
+yamlgraph graph bench graph.yaml \
+    --models anthropic/claude-haiku-4-5 openai/gpt-4o-mini \
+    --runs 3
+
+# Include full per-model output and export results to JSON
+yamlgraph graph bench graph.yaml \
+    --models anthropic/claude-haiku-4-5 openai/gpt-4o-mini \
+    --full --export results.json
+```
+
+Model specs use `provider/model` format (e.g. `anthropic/claude-haiku-4-5`, `openai/gpt-4o-mini`). Per-model errors are captured gracefully without aborting the remaining models.
 
 ## Directory Structure
 
