@@ -190,6 +190,12 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `kwargs` parameter unused in `on_llm_end` callback.
 - **Penance**: Same as CONF-002 — required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`).
 
+### CONF-044
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L107)
+- **Code**: C901 (too complex)
+- **Sin**: `check_state_declarations` function exceeds cyclomatic complexity threshold.
+- **Penance**: The function must cross-reference prompt variables, tool inputs, and state declarations across the graph. Splitting would scatter related validation logic across multiple functions with no clarity gain. The complexity is inherent to the validation domain.
+
 ---
 
 ## Test Code

@@ -26,8 +26,7 @@ class AllCandidatesFailedError(Exception):
     def __init__(self, errors: list[tuple[dict, Exception]]):
         self.errors = errors
         messages = [
-            f"{c.get('provider', '?')}/{c.get('model', '?')}: {e}"
-            for c, e in errors
+            f"{c.get('provider', '?')}/{c.get('model', '?')}: {e}" for c, e in errors
         ]
         super().__init__(
             f"All {len(errors)} race candidates failed:\n"
@@ -137,9 +136,7 @@ def create_race_node(
 
         with ThreadPoolExecutor(max_workers=len(llms)) as pool:
             futures = {
-                pool.submit(
-                    _invoke_candidate, llm, messages, output_model
-                ): candidate
+                pool.submit(_invoke_candidate, llm, messages, output_model): candidate
                 for llm, candidate in zip(llms, candidates, strict=True)
             }
 

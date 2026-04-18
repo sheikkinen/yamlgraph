@@ -18,4 +18,3 @@ RESULT
   current_step: fastest_answer
   topic: quantum computing
   answer: Quantum computing uses quantum mechanics principles like superposition and entanglement to solve complex problems that are intractable for classical computers. By using qubits, which can exist in multiple states simultaneously, quantum computers can explore many possibilities at once. This enables them to potentially revolutionize fields like medicine, materials science, and artificial intelligence.
-

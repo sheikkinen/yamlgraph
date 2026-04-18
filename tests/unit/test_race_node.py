@@ -5,19 +5,16 @@ and return the first successful result.
 """
 
 import time
-from concurrent.futures import Future
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yamlgraph.constants import NodeType
-
-
 # =============================================================================
 # Pydantic model for structured output test
 # =============================================================================
-
 from pydantic import BaseModel, Field
+
+from yamlgraph.constants import NodeType
 
 
 class RaceTestOutput(BaseModel):
@@ -210,8 +207,8 @@ class TestRaceNodeFactory:
 
         mock_prepare.return_value = (
             [MagicMock()],  # messages
-            "anthropic",    # resolved_provider
-            None,           # resolved_model
+            "anthropic",  # resolved_provider
+            None,  # resolved_model
         )
 
         # Fast responder

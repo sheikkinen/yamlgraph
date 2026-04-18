@@ -6,16 +6,11 @@ from pathlib import Path
 import pytest
 import yaml
 
-from yamlgraph.linter.checks import LintIssue
-
 
 def _write_graph(graph: dict) -> Path:
     """Write graph dict to temp YAML file."""
-    tmpfile = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".yaml", delete=False
-    )
-    yaml.dump(graph, tmpfile)
-    tmpfile.close()
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as tmpfile:
+        yaml.dump(graph, tmpfile)
     return Path(tmpfile.name)
 
 
@@ -39,17 +34,19 @@ class TestRaceLintPatterns:
         """Properly configured race node produces no errors."""
         from yamlgraph.linter.patterns.race import check_race_patterns
 
-        graph = _make_graph({
-            "fast_response": {
-                "type": "race",
-                "prompt": "generate_response",
-                "state_key": "response",
-                "candidates": [
-                    {"provider": "anthropic", "model": "claude-3-5-haiku-20241022"},
-                    {"provider": "openai", "model": "gpt-4o-mini"},
-                ],
+        graph = _make_graph(
+            {
+                "fast_response": {
+                    "type": "race",
+                    "prompt": "generate_response",
+                    "state_key": "response",
+                    "candidates": [
+                        {"provider": "anthropic", "model": "claude-3-5-haiku-20241022"},
+                        {"provider": "openai", "model": "gpt-4o-mini"},
+                    ],
+                }
             }
-        })
+        )
         path = _write_graph(graph)
         issues = check_race_patterns(path)
         errors = [i for i in issues if i.severity == "error"]
@@ -60,11 +57,14 @@ class TestRaceLintPatterns:
         """Race node without candidates field raises lint error."""
         from yamlgraph.linter.patterns.race import check_race_node_structure
 
-        issues = check_race_node_structure("fast", {
-            "type": "race",
-            "prompt": "test",
-            "state_key": "result",
-        })
+        issues = check_race_node_structure(
+            "fast",
+            {
+                "type": "race",
+                "prompt": "test",
+                "state_key": "result",
+            },
+        )
         codes = [i.code for i in issues]
         assert "E301" in codes
 
@@ -73,12 +73,15 @@ class TestRaceLintPatterns:
         """Race node with < 2 candidates raises lint error."""
         from yamlgraph.linter.patterns.race import check_race_node_structure
 
-        issues = check_race_node_structure("fast", {
-            "type": "race",
-            "prompt": "test",
-            "state_key": "result",
-            "candidates": [{"provider": "anthropic"}],
-        })
+        issues = check_race_node_structure(
+            "fast",
+            {
+                "type": "race",
+                "prompt": "test",
+                "state_key": "result",
+                "candidates": [{"provider": "anthropic"}],
+            },
+        )
         codes = [i.code for i in issues]
         assert "E302" in codes
 
@@ -87,15 +90,18 @@ class TestRaceLintPatterns:
         """Candidate without provider or model raises lint error."""
         from yamlgraph.linter.patterns.race import check_race_node_structure
 
-        issues = check_race_node_structure("fast", {
-            "type": "race",
-            "prompt": "test",
-            "state_key": "result",
-            "candidates": [
-                {"provider": "anthropic"},
-                {},
-            ],
-        })
+        issues = check_race_node_structure(
+            "fast",
+            {
+                "type": "race",
+                "prompt": "test",
+                "state_key": "result",
+                "candidates": [
+                    {"provider": "anthropic"},
+                    {},
+                ],
+            },
+        )
         codes = [i.code for i in issues]
         assert "E303" in codes
 
@@ -104,14 +110,17 @@ class TestRaceLintPatterns:
         """Race node without prompt raises lint error."""
         from yamlgraph.linter.patterns.race import check_race_node_structure
 
-        issues = check_race_node_structure("fast", {
-            "type": "race",
-            "state_key": "result",
-            "candidates": [
-                {"provider": "anthropic"},
-                {"provider": "openai"},
-            ],
-        })
+        issues = check_race_node_structure(
+            "fast",
+            {
+                "type": "race",
+                "state_key": "result",
+                "candidates": [
+                    {"provider": "anthropic"},
+                    {"provider": "openai"},
+                ],
+            },
+        )
         codes = [i.code for i in issues]
         assert "E304" in codes
 
