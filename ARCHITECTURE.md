@@ -365,6 +365,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
 | 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
 | 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
+| 93 | Node-Level Caching (FR-032) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py` | REQ-YG-235 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -390,6 +391,7 @@ Transform validated configs into executable StateGraphs with node compilation, e
 | REQ-YG-007 | Compile individual nodes | `node_compiler.compile_node`, `node_factory` |
 | REQ-YG-008 | Compile full graph configuration | `graph_loader.compile_graph`, `node_compiler.compile_nodes` |
 | REQ-YG-220 | Node type registry dispatches compile_node via `NODE_TYPE_HANDLERS` dict instead of if/elif; unknown types raise `ValueError` (FR-220) | `node_compiler` |
+| REQ-YG-235 | Per-node `cache` field in YAML config (`cache: true` or `cache: {ttl: N}`) parsed as `CacheConfig` Pydantic model; `resolve_cache_policy()` converts to LangGraph `CachePolicy`; all node type handlers pass `cache_policy` to `graph.add_node()` (FR-032) | `models/graph_schema`, `node_compiler` |
 
 ### 3. Node Execution
 

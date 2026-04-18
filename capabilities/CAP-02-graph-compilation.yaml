@@ -37,4 +37,9 @@ requirements:
     description: "Node type registry dispatches compile_node via NODE_TYPE_HANDLERS dict; unknown types raise ValueError (FR-220)"
     modules:
       - node_compiler
-fr: FR-220
+  - id: REQ-YG-235
+    description: "Per-node cache field parsed as CacheConfig; resolve_cache_policy converts to LangGraph CachePolicy; passed to graph.add_node() (FR-032)"
+    modules:
+      - models/graph_schema
+      - node_compiler
+fr: FR-032
