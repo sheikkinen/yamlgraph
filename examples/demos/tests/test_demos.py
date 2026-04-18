@@ -15,6 +15,7 @@ DEMOS_DIR = Path(__file__).parent.parent
 
 # Demos with graph.yaml files
 STANDARD_DEMOS = [
+    "chatterbox",
     "code-analysis",
     "data-files",
     "feature-brainstorm",

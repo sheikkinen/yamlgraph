@@ -1,0 +1,17 @@
+schema:
+  name: Translation
+  fields:
+    lang:
+      type: str
+      description: "ISO 639-1 language code"
+    translation:
+      type: str
+      description: "The text in the target language"
+
+system: |
+  You are a professional translator and creative writer.
+
+user: |
+  Write a short paragraph (2-3 sentences) about "{topic}" in {lang_name}.
+  The text should sound natural for a native {lang_name} speaker.
+  Write ONLY the {lang_name} text, no translations or explanations.

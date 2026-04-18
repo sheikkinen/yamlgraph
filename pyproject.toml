@@ -101,6 +101,9 @@ mcp = [
 a2a = [
     "a2a-sdk[http-server]>=0.3,<1.0",
 ]
+chatterbox = [
+    "chatterbox-tts>=0.1.0",
+]
 telco = [
     "twilio>=9.0.0",
     "elevenlabs>=1.0.0",

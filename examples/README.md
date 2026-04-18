@@ -71,6 +71,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [research-agent](demos/research-agent/) | `agent`, `llm` | 5-step agentic research (extract → plan → execute → validate → respond) |
 | [git-report](demos/git-report/) | `agent` | Git analysis with tools |
 | [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
+| [chatterbox](demos/chatterbox/) | `map`, `python` | Multilingual TTS with Chatterbox (5 languages → WAV) |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |
 | [subgraph](demos/subgraph/) | `subgraph` | Graph composition |
 | [a2a_server](demos/a2a_server/) | `a2a` | A2A protocol server exposing graphs as agents (FR-208) |

@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-04-18
 
@@ -140,16 +140,16 @@ Add `demo_chatterbox` to `examples/demos/demo.sh` (not in `all` — requires GPU
 
 ## Acceptance Criteria
 
-- [ ] `examples/demos/chatterbox/graph.yaml` passes `yamlgraph graph lint`
-- [ ] `examples/demos/chatterbox/tools.py` contains `synthesize_audio` function
-- [ ] `examples/demos/chatterbox/prompts/translate.yaml` exists with schema
-- [ ] `examples/demos/chatterbox/README.md` documents usage and requirements
+- [x] `examples/demos/chatterbox/graph.yaml` passes `yamlgraph graph lint`
+- [x] `examples/demos/chatterbox/tools.py` contains `synthesize_audio` function
+- [x] `examples/demos/chatterbox/prompts/translate.yaml` exists with schema
+- [x] `examples/demos/chatterbox/README.md` documents usage and requirements
 - [ ] Running the demo produces `.wav` files for all 5 languages (en, es, fi, sv, de)
 - [ ] Audio files are playable and contain speech in the correct language
-- [ ] `demo.sh` includes `chatterbox` entry (excluded from `all` — heavy dependency)
+- [x] `demo.sh` includes `chatterbox` entry (excluded from `all` — heavy dependency)
 - [ ] `demo-output.log` included proving the demo was executed (FR-206 gate)
-- [ ] `chatterbox-tts` added as optional dependency in `pyproject.toml`
-- [ ] Tests added (unit test with mocked TTS model for `tools.py`)
+- [x] `chatterbox-tts` added as optional dependency in `pyproject.toml`
+- [x] Tests added (unit test with mocked TTS model for `tools.py`)
 - [ ] Diary reflection written
 
 ## Alternatives Considered

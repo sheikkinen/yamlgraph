@@ -249,3 +249,10 @@ dependencies:
     rationale: "ElevenLabs text-to-speech for voice generation in telephony"
     modules: ["projects/outcaller/"]
     added: "0.4.0"
+
+  # ─── Optional: Chatterbox TTS ────────────────────────────────────────
+
+  chatterbox-tts:
+    rationale: "Chatterbox TTS for local speech synthesis in the chatterbox demo (FR-233)"
+    modules: ["examples/demos/chatterbox/"]
+    added: "0.4.68"
