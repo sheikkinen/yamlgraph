@@ -1,0 +1,37 @@
+id: CAP-91
+name: Race Node Type
+description: >
+  A type: race node that fires the same prompt to N provider/model candidates
+  concurrently via ThreadPoolExecutor and returns the first successful result.
+  Enables sub-second LLM responses for latency-sensitive graphs by hedging
+  across providers. Includes schema validation (≥2 candidates, each with
+  provider or model), _race_winner metadata in state, graph lint checks
+  (E301–E304), and on_error policy support for all-candidates-fail.
+modules:
+  - yamlgraph/node_factory/race_node.py
+  - yamlgraph/constants.py
+  - yamlgraph/node_compiler.py
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/models/state_builder.py
+  - yamlgraph/linter/patterns/race.py
+  - yamlgraph/linter/checks.py
+requirements:
+  - id: REQ-YG-233
+    description: >
+      type: race node fires prompt to all candidates concurrently using
+      ThreadPoolExecutor; returns first successful result (not just first
+      to complete); remaining candidates cancelled; all-fail triggers
+      on_error policy; _race_winner metadata in state; candidates validated
+      ≥2 entries each with provider or model; graph lint E301-E304; structured
+      output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered
+    modules:
+      - yamlgraph/node_factory/race_node.py
+      - yamlgraph/constants.py
+      - yamlgraph/node_compiler.py
+      - yamlgraph/models/graph_schema.py
+      - yamlgraph/models/state_builder.py
+      - yamlgraph/linter/patterns/race.py
+      - yamlgraph/linter/checks.py
+      - tests/unit/test_race_node.py
+      - tests/unit/test_linter_patterns_race.py
+fr: FR-232

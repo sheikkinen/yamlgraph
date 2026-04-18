@@ -222,6 +222,9 @@ def extract_node_fields(nodes: dict) -> dict[str, type]:
             if collect_key := node_config.get("collect"):
                 fields[collect_key] = Annotated[list, sorted_add]
 
+        elif node_type == "race":
+            fields["_race_winner"] = Any
+
     return fields
 
 
@@ -357,6 +360,8 @@ def generate_typeddict_code(
         elif node_type == "map":
             if collect_key := node_config.get("collect"):
                 fields[collect_key] = "list"
+        elif node_type == "race":
+            fields["_race_winner"] = "dict"
 
     # Generate code
     lines = []

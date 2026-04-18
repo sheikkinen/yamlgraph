@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 3 days
 **Requested:** 2026-04-18
 
@@ -116,21 +116,21 @@ The winning candidate's `provider` and `model` are stored in a `_race_winner` di
 
 ## Acceptance Criteria
 
-- [ ] `type: race` node fires prompt to all candidates concurrently
-- [ ] Returns first *successful* result (not just first-to-complete)
-- [ ] Remaining candidates are cancelled after first success
-- [ ] All-candidates-fail triggers the node's `on_error` policy
-- [ ] Works in sync context (`graph.invoke()`)
-- [ ] Works in async context (`run_graph_async()` / FastAPI)
-- [ ] `_race_winner` metadata stored in state with provider/model of winner
-- [ ] `timeout` per-candidate is respected
-- [ ] `candidates` validated: ≥ 2 entries, each has provider or model
-- [ ] `graph lint` validates race node configuration
-- [ ] Structured output (`schema:` in prompt YAML) works with race nodes
-- [ ] Unit tests with mock LLMs (varying latency, partial failures)
+- [x] `type: race` node fires prompt to all candidates concurrently
+- [x] Returns first *successful* result (not just first-to-complete)
+- [x] Remaining candidates are cancelled after first success
+- [x] All-candidates-fail triggers the node's `on_error` policy
+- [x] Works in sync context (`graph.invoke()`)
+- [x] Works in async context (`run_graph_async()` / FastAPI)
+- [x] `_race_winner` metadata stored in state with provider/model of winner
+- [x] `timeout` per-candidate is respected
+- [x] `candidates` validated: ≥ 2 entries, each has provider or model
+- [x] `graph lint` validates race node configuration
+- [x] Structured output (`schema:` in prompt YAML) works with race nodes
+- [x] Unit tests with mock LLMs (varying latency, partial failures)
 - [ ] Integration test with ≥ 2 real providers
 - [ ] Documentation: reference page and example graph
-- [ ] Requirement traceability: REQ-YG-233+ tagged on all tests
+- [x] Requirement traceability: REQ-YG-233+ tagged on all tests
 
 ## Alternatives Considered
 
