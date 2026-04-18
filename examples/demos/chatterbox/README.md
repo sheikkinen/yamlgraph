@@ -8,10 +8,24 @@ Multilingual text-to-speech demo using Chatterbox (FR-233).
 2. **Synthesize** — converts each translation to speech using Chatterbox Multilingual TTS
 3. **Output** — saves `.wav` files to `outputs/chatterbox/`
 
-## Requirements
+## Platform Requirements
+
+> ⚠️ **Apple Silicon (arm64) or Linux/Windows only.**
+>
+> `chatterbox-tts` requires `torch==2.6.0`, which has **no macOS Intel (x86_64) wheel**.
+> PyTorch dropped Intel Mac support after 2.2.x. Running on an Intel Mac will fail at install time.
+
+| Platform | Status |
+|----------|--------|
+| Apple Silicon Mac (M1/M2/M3/M4) | ✅ Supported |
+| Linux x86_64 / aarch64 | ✅ Supported |
+| Windows x86_64 | ✅ Supported |
+| Intel Mac (x86_64) | ❌ Not supported — `torch==2.6.0` unavailable |
+
+## Dependencies
 
 - **Chatterbox TTS**: `pip install chatterbox-tts`
-- **PyTorch**: Required by Chatterbox (CPU or CUDA)
+- **PyTorch 2.6.0**: Required by Chatterbox (CPU or CUDA)
 - **~2GB disk**: Model downloaded on first run
 - **GPU recommended**: CPU inference is slow (~30s per utterance)
 
