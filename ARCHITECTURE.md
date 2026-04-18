@@ -366,6 +366,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
 | 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
 | 93 | Chatterbox Voice Clone Demo (FR-236) | `examples/demos/chatterbox_clone` | REQ-YG-235 |
+| 94 | Compile-Time Pipeline Templates (FR-235) | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/patterns/pipeline.py` | REQ-YG-236 |
+>>>>>>>origin/main
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -563,6 +565,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-233 | `type: race` node fires prompt to all candidates concurrently via `ThreadPoolExecutor`; returns first successful result; remaining cancelled; all-fail triggers `on_error`; `_race_winner` metadata in state; candidates validated ≥2 with provider/model; lint E301–E304; structured output support | `node_factory/race_node`, `constants`, `node_compiler`, `models/graph_schema`, `models/state_builder`, `linter/patterns/race` |
 | REQ-YG-234 | Chatterbox TTS demo: map node fans out over 5 languages, collects translations, synthesizes to WAV via `synthesize_audio` python tool with Chatterbox Multilingual TTS. Auto-detects CUDA/CPU. Optional dependency `chatterbox-tts` (FR-233) | `examples/demos/chatterbox` |
 | REQ-YG-235 | Chatterbox voice cloning demo: single-path graph accepts text and voice_prompt_path, synthesizes to WAV via `synthesize_cloned_audio` python tool using `ChatterboxTTS` (not `ChatterboxMultilingualTTS`). Device selection follows `cuda > mps > cpu`. Optional dependency `chatterbox-tts` (FR-236) | `examples/demos/chatterbox_clone` |
+| REQ-YG-236 | `type: pipeline` meta-node expands at compile time into concrete nodes and sequential edges; `{item.field}` interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); `NodeType.PIPELINE` in constants; expansion in `graph_loader` after `expand_interactive_tools` | `pipeline_template`, `constants`, `graph_loader`, `linter/patterns/pipeline`, `linter/checks`, `linter/graph_linter` |
 
 ### 18. Testing & Quality
 

@@ -22,6 +22,7 @@ VALID_NODE_TYPES = {
     "llm",
     "map",
     "passthrough",
+    "pipeline",
     "python",
     "race",
     "router",
