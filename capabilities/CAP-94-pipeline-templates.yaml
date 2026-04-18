@@ -1,4 +1,4 @@
-id: CAP-93
+id: CAP-94
 name: Compile-Time Pipeline Templates
 description: >
   A type: pipeline meta-node that defines a sequence of stages once, iterates
@@ -15,7 +15,7 @@ modules:
   - yamlgraph/linter/patterns/pipeline.py
   - yamlgraph/linter/graph_linter.py
 requirements:
-  - id: REQ-YG-235
+  - id: REQ-YG-236
     description: >
       type: pipeline meta-node expands at compile time into concrete nodes
       and sequential edges; {item.field} interpolation in prompt, variables,

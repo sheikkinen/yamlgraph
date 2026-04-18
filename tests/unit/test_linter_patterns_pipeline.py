@@ -23,7 +23,7 @@ def _write_graph(graph: dict) -> Path:
 class TestPipelineLintChecks:
     """Linter validates pipeline node structure."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_missing_items_reports_error(self):
         """Pipeline node without 'items' field → E401."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -50,7 +50,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E401" in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_empty_items_reports_error(self):
         """Pipeline node with empty items list → E401."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -78,7 +78,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E401" in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_missing_stages_reports_error(self):
         """Pipeline node without 'stages' field → E402."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -98,7 +98,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E402" in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_empty_stages_reports_error(self):
         """Pipeline node with empty stages list → E402."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -119,7 +119,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E402" in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_unresolved_item_reference_reports_error(self):
         """Stage referencing {item.nonexistent} → E403."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -147,7 +147,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E403" in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_resolved_item_reference_no_error(self):
         """Stage referencing valid {item.prompt_prefix} → no E403."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -175,7 +175,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E403" not in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_item_missing_name_reports_error(self):
         """Item without 'name' field → E404."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -203,7 +203,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E404" in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_stage_missing_name_reports_error(self):
         """Stage without 'name' field → E404."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -230,7 +230,7 @@ class TestPipelineLintChecks:
         codes = [i.code for i in issues]
         assert "E404" in codes
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_valid_pipeline_no_errors(self):
         """Well-formed pipeline node → no errors."""
         from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
@@ -271,7 +271,7 @@ class TestPipelineLintChecks:
 class TestPipelineInValidNodeTypes:
     """Pipeline should be in VALID_NODE_TYPES so check_node_types doesn't flag it."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-236")
     def test_pipeline_in_valid_node_types(self):
         """'pipeline' is in VALID_NODE_TYPES."""
         from yamlgraph.linter.checks import VALID_NODE_TYPES
