@@ -1,0 +1,23 @@
+id: CAP-89
+name: Execution Timing Callback
+description: >
+  LangChain callback handler tracking wall-clock duration of each LLM call
+  in a graph run. Follows the same injection pattern as TokenUsageCallbackHandler.
+  CLI --timing flag displays timing summary after execution.
+modules:
+  - yamlgraph/utils/timing_tracker.py
+  - yamlgraph/cli/graph_commands.py
+  - yamlgraph/cli/__init__.py
+requirements:
+  - id: REQ-YG-231
+    description: >
+      ExecutionTimingCallbackHandler tracks per-call and total wall-clock LLM
+      duration via on_llm_start/on_llm_end callbacks using time.monotonic;
+      summary() returns total_duration_s, call_count, mean_duration_s;
+      CLI --timing flag injects callback and prints timing summary
+    modules:
+      - yamlgraph/utils/timing_tracker.py
+      - yamlgraph/cli/graph_commands.py
+      - yamlgraph/cli/__init__.py
+      - tests/unit/test_timing_tracker.py
+fr: FR-231

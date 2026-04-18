@@ -1,20 +1,24 @@
-"""Token usage tracking callback (FR-027 P2-8, REQ-YG-064).
+"""Token and timing tracking callbacks (FR-027 P2-8, FR-231, REQ-YG-064, REQ-YG-231).
 
-Provides a LangChain callback handler that accumulates token usage
-across all LLM invocations in a graph run.  Injected into the graph
-config alongside the LangSmith tracer — same ``config["callbacks"]``
-pattern established by :mod:`yamlgraph.utils.tracing`.
+Provides LangChain callback handlers that accumulate token usage and
+wall-clock timing across all LLM invocations in a graph run.  Injected
+into the graph config alongside the LangSmith tracer — same
+``config["callbacks"]`` pattern established by :mod:`yamlgraph.utils.tracing`.
 
 Usage::
 
     from yamlgraph.utils.token_tracker import create_token_tracker
+    from yamlgraph.utils.timing_tracker import create_timing_tracker
 
     tracker = create_token_tracker()
-    config.setdefault("callbacks", []).append(tracker)
+    timer = create_timing_tracker()
+    config.setdefault("callbacks", []).extend([tracker, timer])
     result = app.invoke(state, config=config)
 
     if tracker.total_calls > 0:
         print(tracker.summary())
+    if timer.total_calls > 0:
+        print(timer.summary())
 """
 
 from __future__ import annotations

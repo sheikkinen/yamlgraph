@@ -34,12 +34,12 @@ Based on the commit history from **April 11-13, 2026**, here's the feature-level
 - **FR-221 (April 11):** Enable Ruff C901 cognitive complexity gate
   - Enforces complexity limits across codebase
   - Created test_ruff_c901_gate.py
-  
+
 - **FR-222 (April 11):** Enable Ruff flake8-bandit security rules
   - Added security compliance checks
   - Created test_ruff_security.py
 
-#### 4. **CLI Graph Commands Testing (FR-224)** 
+#### 4. **CLI Graph Commands Testing (FR-224)**
 - **Date:** April 11, 2026
 - **Scope:** Graph command validation and CLI test coverage
 - **Deliverables:**

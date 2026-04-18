@@ -1255,6 +1255,7 @@ class TestCmdGraphRunExtended:
             None,  # timeout
             None,  # tracer
             False,  # share
+            None,  # timing_tracker
         )
 
         (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
@@ -1296,6 +1297,7 @@ class TestCmdGraphRunExtended:
             5,  # timeout
             None,
             False,
+            None,  # timing_tracker
         )
 
         (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
@@ -1352,6 +1354,7 @@ class TestCmdGraphRunExtended:
             None,
             None,
             False,
+            None,  # timing_tracker
         )
 
         (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
@@ -1396,7 +1399,7 @@ class TestCmdGraphRunExtended:
         mock_app.invoke.return_value = {"output": "done"}
         mock_graph.compile.return_value = mock_app
 
-        mock_build.return_value = ({}, {}, None, None, None, False)
+        mock_build.return_value = ({}, {}, None, None, None, False, None)
 
         (tmp_path / "graph.yaml").write_text("name: test\nnodes: {}\nedges: []")
         args = argparse.Namespace(

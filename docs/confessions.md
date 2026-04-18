@@ -71,7 +71,7 @@ Each confession must include:
 Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 
 ### CONF-002
-- **File**: [yamlgraph/utils/token_tracker.py](../yamlgraph/utils/token_tracker.py#L51)
+- **File**: [yamlgraph/utils/token_tracker.py](../yamlgraph/utils/token_tracker.py#L55)
 - **Code**: ARG002 (unused method argument)
 - **Sin**: `kwargs` parameter unused in callback handler.
 - **Penance**: Required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`). Cannot remove without breaking signature compatibility.
@@ -107,7 +107,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: These are public re-exports for backward compatibility — tests and external consumers import from `yamlgraph.a2a_server`. The actual logic lives in `yamlgraph.a2a_message` after the module split to stay under 450 lines.
 
 ### CONF-005
-- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L207)
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L258)
 - **Code**: S104
 - **Sin**: A2A server CLI default host is `0.0.0.0` (binds to all interfaces).
 - **Penance**: Intentional for server CLI commands. Users override via `--host`. Binding to all interfaces is the standard default for development servers.
@@ -165,6 +165,30 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Code**: C901 (cognitive complexity > 15)
 - **Sin**: Nested `node_fn` still orchestrates loop guards, requirements checks, execution, verification, routing, and error dispatch in one closure.
 - **Penance**: FR-223 already extracted core helpers (`_apply_verification`, `_resolve_route`, `_handle_error`), but closure structure keeps orchestration complexity above threshold. Suppressed temporarily to preserve node-factory behavior while follow-up decomposition lands.
+
+### CONF-040
+- **File**: [yamlgraph/utils/timing_tracker.py](../yamlgraph/utils/timing_tracker.py#L50)
+- **Code**: ARG002 (unused method argument)
+- **Sin**: `serialized` parameter unused in `on_llm_start` callback.
+- **Penance**: Required by LangChain callback interface (`BaseCallbackHandler.on_llm_start`). Cannot remove without breaking signature compatibility.
+
+### CONF-041
+- **File**: [yamlgraph/utils/timing_tracker.py](../yamlgraph/utils/timing_tracker.py#L51)
+- **Code**: ARG002 (unused method argument)
+- **Sin**: `prompts` parameter unused in `on_llm_start` callback.
+- **Penance**: Same as CONF-040 — required by LangChain callback interface.
+
+### CONF-042
+- **File**: [yamlgraph/utils/timing_tracker.py](../yamlgraph/utils/timing_tracker.py#L52)
+- **Code**: ARG002 (unused method argument)
+- **Sin**: `kwargs` parameter unused in `on_llm_start` callback.
+- **Penance**: Same as CONF-040 — required by LangChain callback interface.
+
+### CONF-043
+- **File**: [yamlgraph/utils/timing_tracker.py](../yamlgraph/utils/timing_tracker.py#L57)
+- **Code**: ARG002 (unused method argument)
+- **Sin**: `kwargs` parameter unused in `on_llm_end` callback.
+- **Penance**: Same as CONF-002 — required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`).
 
 ---
 
