@@ -47,6 +47,7 @@ from yamlgraph.linter.patterns import (
     check_copilot_patterns,
     check_interrupt_patterns,
     check_map_patterns,
+    check_pipeline_patterns,
     check_race_patterns,
     check_router_patterns,
     check_subgraph_patterns,
@@ -108,6 +109,9 @@ def lint_graph(
 
     # FR-232: Race pattern checks
     all_issues.extend(check_race_patterns(graph_path))
+
+    # FR-235: Pipeline template checks
+    all_issues.extend(check_pipeline_patterns(graph_path))
 
     # FR-061: Contract violation checks
     all_issues.extend(check_python_node_variables(graph_path))

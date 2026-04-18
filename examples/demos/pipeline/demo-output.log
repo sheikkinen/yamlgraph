@@ -1,0 +1,23 @@
+2026-04-18 10:03:13,826 [INFO] yamlgraph.pipeline_template: Expanded pipeline 'topics': 3 items × 2 stages = 6 nodes
+2026-04-18 10:03:13,830 [INFO] yamlgraph.node_compiler: Added node: topics__sun__draft (type=llm)
+2026-04-18 10:03:13,831 [INFO] yamlgraph.node_compiler: Added node: topics__sun__polish (type=llm)
+2026-04-18 10:03:13,832 [INFO] yamlgraph.node_compiler: Added node: topics__moon__draft (type=llm)
+2026-04-18 10:03:13,832 [INFO] yamlgraph.node_compiler: Added node: topics__moon__polish (type=llm)
+2026-04-18 10:03:13,833 [INFO] yamlgraph.node_compiler: Added node: topics__stars__draft (type=llm)
+2026-04-18 10:03:13,834 [INFO] yamlgraph.node_compiler: Added node: topics__stars__polish (type=llm)
+2026-04-18 10:03:13,858 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-18 10:03:14,691 [ERROR] yamlgraph.error_handlers: Node topics__sun__draft failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-18 10:03:14,695 [ERROR] yamlgraph.error_handlers: Node topics__sun__polish failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-18 10:03:14,697 [ERROR] yamlgraph.error_handlers: Node topics__moon__draft failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-18 10:03:14,698 [ERROR] yamlgraph.error_handlers: Node topics__moon__polish failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-18 10:03:14,700 [ERROR] yamlgraph.error_handlers: Node topics__stars__draft failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-18 10:03:14,701 [ERROR] yamlgraph.error_handlers: Node topics__stars__polish failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+🚀 Running graph: graph.yaml
+   Variables: {'audience': '5-year-olds'}
+
+============================================================
+RESULT
+============================================================
+  current_step: topics__stars__polish
+  audience: 5-year-olds

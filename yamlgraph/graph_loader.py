@@ -210,6 +210,11 @@ def load_graph_config(path: str | Path) -> GraphConfig:
 
     config = expand_interactive_tools(config)
 
+    # FR-235: Expand pipeline template nodes before compilation
+    from yamlgraph.pipeline_template import expand_pipeline_templates
+
+    config = expand_pipeline_templates(config)
+
     return GraphConfig(config, source_path=path.resolve())
 
 
