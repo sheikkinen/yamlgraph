@@ -9,6 +9,7 @@ Provides utility functions for git worktree orchestration:
 - clean_stale_pth_entries: Remove dangling .pth/.egg-link files (FR-174)
 """
 
+import json
 import logging
 import os
 import subprocess
@@ -168,11 +169,12 @@ def validate_venv_symlink(symlink_path: Path, target_path: Path) -> None:
 
 
 def clean_stale_pth_entries(venv_path: Path, worktree_dir: str) -> list[Path]:
-    """Remove .pth and .egg-link files that reference a worktree directory.
+    """Remove .pth, .egg-link, and direct_url.json files referencing a worktree.
 
     After a worktree is removed, editable installs (pip install -e .) leave
     dangling .pth/.egg-link files in site-packages pointing to the deleted
-    worktree. This corrupts the main repo's import resolution.
+    worktree. Modern pip (21.3+) also writes direct_url.json inside
+    *.dist-info/ with the worktree path. Both corrupt import resolution.
 
     Args:
         venv_path: Path to the .venv directory.
@@ -206,5 +208,25 @@ def clean_stale_pth_entries(venv_path: Path, worktree_dir: str) -> list[Path]:
                     )
                     pth_file.unlink()
                     removed.append(pth_file)
+
+        # Modern pip (21.3+) editable installs also write direct_url.json
+        # inside *.dist-info/ with a file:// URL pointing at the source tree.
+        for dist_info in site_packages.glob("*.dist-info"):
+            direct_url = dist_info / "direct_url.json"
+            if not direct_url.is_file():
+                continue
+            try:
+                data = json.loads(direct_url.read_text())
+            except (OSError, json.JSONDecodeError):
+                continue
+            url = data.get("url", "")
+            if worktree_dir in url:
+                logger.warning(
+                    "Removing stale %s referencing worktree %s",
+                    direct_url,
+                    worktree_dir,
+                )
+                direct_url.unlink()
+                removed.append(direct_url)
 
     return removed
