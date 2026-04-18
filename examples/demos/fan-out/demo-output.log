@@ -1,0 +1,20 @@
+2026-04-18 12:46:14,884 [INFO] yamlgraph.node_compiler: Added node: generate (type=llm)
+2026-04-18 12:46:14,884 [INFO] yamlgraph.node_compiler: Added node: analyze (type=llm)
+2026-04-18 12:46:14,885 [INFO] yamlgraph.node_compiler: Added node: summarize (type=llm)
+2026-04-18 12:46:14,886 [INFO] yamlgraph.node_compiler: Added node: translate (type=llm)
+2026-04-18 12:46:14,886 [INFO] yamlgraph.node_compiler: Added node: combine (type=llm)
+2026-04-18 12:46:14,903 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-18 12:46:15,644 [ERROR] yamlgraph.error_handlers: Node generate failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-18 12:46:15,649 [ERROR] yamlgraph.error_handlers: Node analyze failed: Missing required variable(s) for prompt 'analyze': content
+2026-04-18 12:46:15,650 [ERROR] yamlgraph.error_handlers: Node summarize failed: Missing required variable(s) for prompt 'summarize': content
+2026-04-18 12:46:15,650 [ERROR] yamlgraph.error_handlers: Node translate failed: Missing required variable(s) for prompt 'translate': content
+2026-04-18 12:46:15,652 [ERROR] yamlgraph.error_handlers: Node combine failed: Missing required variable(s) for prompt 'combine': analysis, summary, translation
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'quantum computing'}
+
+============================================================
+RESULT
+============================================================
+  current_step: combine
+  topic: quantum computing

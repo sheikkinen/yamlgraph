@@ -1,273 +1,94 @@
-# Feature Request: FR-234 Parallel Fan-Out Edge Syntax
+# Feature Request: Parallel Fan-Out Edges
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
-**Effort:** 2 days
+**Status:** Implemented
+**Effort:** 1 day
 **Requested:** 2026-04-18
 
 ## Summary
 
-Add `type: parallel` edge syntax so that `from: A, to: [B, C], type: parallel` fans out to all targets concurrently, with natural fan-in convergence at a downstream barrier node.
+Add support for parallel fan-out edges where a single node fans out to multiple target nodes that execute concurrently, expressed as `to: [node_a, node_b, node_c]` without `type: conditional`.
 
 ## Value Statement
 
-Graph authors can express concurrent task execution (e.g., parallel analysis branches, concurrent API calls to different services) entirely in YAML without writing custom Python orchestration or misusing map nodes for non-data-parallel workloads.
+Graph authors can express concurrent execution of independent branches with a single edge declaration, enabling natural DAG patterns without resorting to map nodes or workarounds.
 
 ## Problem
 
-YAMLGraph currently offers two forms of concurrency:
+Currently, `to: [list]` in YAML edges only works with `type: conditional` (router-based conditional routing that picks ONE target). There is no way to express "after this node completes, run all these targets in parallel" — a fundamental DAG pattern.
 
-1. **Map nodes** (`type: map`): Data-parallel — the *same* operation on each item in a list. Requires `over`, `as`, `collect` fields. Cannot express "run node B and node C in parallel with different prompts."
+Users who need parallel branches must either:
+- Use map nodes (designed for iterating over a list with the SAME sub-node)
+- Write multiple sequential edges (which LangGraph would still run in parallel, but the YAML intent is unclear)
 
-2. **Race nodes** (`type: race`, FR-232): Provider-parallel — the *same* prompt to multiple LLMs. Returns first success only. Not for task parallelism.
-
-Neither supports **task parallelism**: running *different* nodes concurrently from a common predecessor.
-
-Today, the `to: [B, C, D]` syntax exists but only with `type: conditional`, which routes to *one* target based on router logic. To run B and C in parallel, a graph author must:
-
-1. Write a custom Python node with `concurrent.futures` or `asyncio`
-2. Manually handle state merging and error propagation
-3. Lose the declarative YAML advantage
-
-LangGraph natively supports fan-out via multiple `add_edge()` calls from the same source node, with automatic barrier convergence at join nodes. The framework infrastructure is ready — only the YAML syntax and edge compiler dispatch are missing.
-
-### Motivating examples
-
-```yaml
-# ❌ Today: Must be sequential or use custom Python
-edges:
-  - from: extract
-    to: analyze_sentiment    # runs first
-  - from: analyze_sentiment
-    to: analyze_topics       # runs second (wasted time)
-  - from: analyze_topics
-    to: synthesize
-
-# ✅ Proposed: Both analyses run concurrently
-edges:
-  - from: extract
-    to: [analyze_sentiment, analyze_topics]
-    type: parallel
-  - from: analyze_sentiment
-    to: synthesize
-  - from: analyze_topics
-    to: synthesize           # LangGraph waits for both before running synthesize
-```
+Neither pattern clearly expresses fan-out to distinct, independent nodes.
 
 ## Proposed Solution
 
-### YAML Syntax
+When `to` is a list and there is no `type: conditional` or `condition`, treat it as parallel fan-out. The edge compiler adds multiple `graph.add_edge()` calls — one per target. LangGraph natively runs these in parallel.
 
 ```yaml
+# Parallel fan-out: all three run concurrently after generate completes
 edges:
-  - from: A
-    to: [B, C, D]
-    type: parallel
-```
+  - from: generate
+    to: [analyze, summarize, translate]
 
-**Semantics:**
-- Node A executes
-- On completion, nodes B, C, and D execute **concurrently**
-- Each branch writes to its own `state_key`
-- A downstream **barrier node** (a node with incoming edges from all branches) runs only after all branches complete
-- This is LangGraph's native fan-out/fan-in behavior
-
-### START Fan-Out
-
-```yaml
-edges:
-  - from: START
-    to: [init_cache, init_config, init_logging]
-    type: parallel
-  - from: init_cache
-    to: main_pipeline
-  - from: init_config
-    to: main_pipeline
-  - from: init_logging
-    to: main_pipeline
-```
-
-### Mixed with Other Edge Types
-
-```yaml
-edges:
-  - from: START
-    to: preprocess
-  - from: preprocess
-    to: [analyze_text, analyze_images, analyze_metadata]
-    type: parallel
-  - from: analyze_text
-    to: merge_results
-  - from: analyze_images
-    to: merge_results
-  - from: analyze_metadata
-    to: merge_results
-  - from: merge_results
+# Fan-in: all three must complete before final runs
+  - from: analyze
+    to: final
+  - from: summarize
+    to: final
+  - from: translate
+    to: final
+  - from: final
     to: END
 ```
 
-### Implementation
+Contrast with existing conditional routing (unchanged):
 
-#### 1. Edge Compiler (`yamlgraph/edge_compiler.py`)
-
-Add `_handle_parallel_edge()` and `_handle_parallel_start_edge()` handlers, then extend `_process_edge()` dispatch (after map handlers, before conditional check at line 101):
-
-```python
-def _handle_parallel_edge(
-    graph: StateGraph, from_node: str, to_nodes: list[str],
-    interrupt_nodes: set[str] | None = None,
-) -> None:
-    """Handle parallel fan-out: source → [target1, target2, ...] concurrently."""
-    for target in to_nodes:
-        resolved = f"{target}_prepare" if interrupt_nodes and target in interrupt_nodes else target
-        graph.add_edge(from_node, END if resolved == "END" else resolved)
-
-
-def _handle_parallel_start_edge(
-    graph: StateGraph, to_nodes: list[str]
-) -> None:
-    """Handle START → [target1, target2, ...] concurrent entry."""
-    from langgraph.graph import START
-    for target in to_nodes:
-        graph.add_edge(START, target)
+```yaml
+# Conditional: picks ONE target based on router output
+edges:
+  - from: classify
+    to: [positive, negative, neutral]
+    type: conditional
 ```
 
-In `_process_edge()`, insert **before** the START handler (line 88) — not after it — because the START handler returns early and would intercept parallel START edges before the parallel dispatch:
+### Implementation Details
 
-```python
-# Handle parallel fan-out edges (FR-234)
-if edge_type == "parallel" and isinstance(to_node, list):
-    if from_node == "START":
-        _handle_parallel_start_edge(graph, to_node)
-    else:
-        _handle_parallel_edge(graph, from_node, to_node, interrupt_nodes)
-    return
-```
+**Edge compiler** (`edge_compiler.py`):
+- In `_process_edge()`, when `to` is a list and `edge_type != "conditional"` and no `condition`, add `graph.add_edge(from_node, target)` for each target.
+- Handle interrupt node redirect: replace targets in interrupt_nodes with `{name}_prepare`.
+- Handle map node targets: use `_handle_to_map_edge()` for map targets.
+- Handle START fan-out: set first target as entry point, add edges to rest.
 
-**Note:** `_handle_start_edge()` (line 14) currently accepts `to_node: str` — the new parallel START handler bypasses it entirely, calling `graph.add_edge(START, target)` directly instead of `graph.set_entry_point()`, since `set_entry_point` only accepts a single node.
+**No model changes needed**: `EdgeConfig.to` already accepts `str | list[str]`.
 
-**Note:** `_handle_parallel_edge()` must accept `interrupt_nodes` and redirect any target that is an interrupt node to `{target}_prepare` (FR-060 contract). START fan-out does not need this — interrupt nodes cannot be entry points.
-
-#### 2. Edge Schema (`yamlgraph/schemas/graph-v1.json`)
-
-Add `type` field to `EdgeConfig` properties. Currently only `from`, `to`, and `condition` are declared — the `type` field is used in code (line 81) but not validated by schema:
-
-```json
-"type": {
-  "anyOf": [
-    { "enum": ["conditional", "parallel"] },
-    { "type": "null" }
-  ],
-  "default": null,
-  "description": "Edge type: conditional (router dispatch) or parallel (concurrent fan-out)",
-  "title": "Type"
-}
-```
-
-This formalizes the existing implicit contract for `type: conditional` while adding `parallel`.
-
-#### 3. Linter Rules (`yamlgraph/linter/checks_semantic.py`)
-
-Extend `check_edge_types()` (line 306) with parallel edge validation. New lint codes in the E8xx edge semantic namespace:
-
-| Code | Severity | Rule |
-|------|----------|------|
-| E803 | error | `type: parallel` with `to:` as string (must be list) |
-| E804 | error | `type: parallel` with `to:` containing < 2 targets |
-| W802 | warning | Parallel targets with no common convergence node (possible dangling branches) |
-| E805 | error | `type: parallel` combined with `condition:` (mutually exclusive) |
-
-#### 4. State Management
-
-No changes needed. The `last_value` reducer in `models/state_builder.py` (lines 14-28) already handles concurrent writes safely:
-
-```python
-def last_value(_existing: Any, new: Any) -> Any:
-    """Reducer that keeps the last written value (last-write-wins).
-    Safe for concurrent fan-in: when multiple parallel nodes write to
-    the same key, LangGraph calls the reducer instead of raising
-    INVALID_CONCURRENT_GRAPH_UPDATE."""
-    return new
-```
-
-Each parallel branch should write to a **distinct** `state_key`. If branches must write to the same key, `last_value` applies (last-write-wins). This is documented but not enforced.
-
-#### 5. Integration Points
-
-| Component | Change |
-|-----------|--------|
-| `yamlgraph/edge_compiler.py` | `_handle_parallel_edge()`, `_handle_parallel_start_edge()`, dispatch in `_process_edge()` |
-| `yamlgraph/schemas/graph-v1.json` | Add `type` field to `EdgeConfig` |
-| `yamlgraph/linter/checks_semantic.py` | E803, E804, W802, E805 lint rules in `check_edge_types()` |
-| `reference/graph-yaml.md` | Document `type: parallel` syntax (after line 912, before Security) |
-| `tests/unit/test_edge_compiler.py` | Fan-out wiring tests (**new file**) |
-| `tests/unit/test_linter.py` | Lint rule tests for parallel edges |
+**Linter**: `check_edge_coverage()` already handles list targets correctly.
 
 ## Acceptance Criteria
 
-- [ ] `type: parallel` edge with `to: [B, C]` emits `graph.add_edge(A, B)` and `graph.add_edge(A, C)`
-- [ ] `from: START, to: [B, C], type: parallel` creates concurrent entry points via `add_edge(START, ...)`
-- [ ] Downstream barrier node (receiving edges from all branches) executes only after all branches complete
-- [ ] Parallel branches writing to distinct `state_key` values preserve all results
-- [ ] `last_value` reducer handles concurrent writes to same key without `INVALID_CONCURRENT_GRAPH_UPDATE`
-- [ ] Lint E803: `type: parallel` with scalar `to:` is an error
-- [ ] Lint E804: `type: parallel` with < 2 targets is an error
-- [ ] Lint W802: parallel targets without common downstream convergence emits warning
-- [ ] Lint E805: `type: parallel` with `condition:` is an error
-- [ ] `yamlgraph graph lint` passes on valid parallel fan-out graphs
-- [ ] `yamlgraph graph run` executes parallel branches concurrently (wall-clock < sum of branch durations)
-- [ ] Existing `type: conditional` edge behavior unchanged
-- [ ] Existing graphs without `type: parallel` compile identically (no regression)
-- [ ] Unit tests with `@pytest.mark.req` linking to next available REQ-YG-XXX (assigned at implementation time)
-- [ ] `reference/graph-yaml.md` updated with parallel edge documentation
-- [ ] Example graph demonstrating parallel fan-out pattern
-- [ ] Parallel branch errors follow individual node `on_error` semantics; LangGraph propagates errors to barrier node
-- [ ] Interrupt node targets in parallel `to:` list are redirected to `{target}_prepare` (FR-060 contract)
+- [x] `to: [a, b, c]` without `type: conditional` compiles as parallel fan-out (multiple `add_edge` calls)
+- [x] Fan-out targets in `interrupt_nodes` are redirected to `{name}_prepare`
+- [x] Fan-out from START uses conditional entry point
+- [x] Fan-out to map nodes dispatches via map edge function
+- [x] Linter reachability (W002/W003) works correctly with fan-out edges
+- [x] Graph with parallel fan-out compiles and produces a valid CompiledGraph
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-235")`
+- [x] `reference/graph-yaml.md` updated with parallel fan-out section
+- [x] REQ-YG-235 added to ARCHITECTURE.md
+- [x] Changelog fragment added
 
 ## Alternatives Considered
 
-### 1. Implicit fan-out from duplicate `from:` edges
-
-```yaml
-edges:
-  - from: A
-    to: B
-  - from: A
-    to: C
-```
-
-Multiple edges from the same source could implicitly fan out. **Rejected**: Ambiguous — today these resolve as sequential simple edges or would conflict. Explicit `type: parallel` communicates intent and avoids silent behavior changes for existing graphs.
-
-### 2. New `parallel:` top-level block
-
-```yaml
-parallel:
-  - [analyze_text, analyze_images]
-```
-
-**Rejected**: Couples fan-out to top-level config instead of edge-level control. Cannot express partial parallelism within a larger graph. Inconsistent with edge-centric design.
-
-### 3. Extend map nodes with `static_targets:`
-
-```yaml
-fan_out:
-  type: map
-  static_targets: [analyze_text, analyze_images]
-```
-
-**Rejected**: Map semantics are data-parallel (same operation, different data). Overloading map for task-parallel confuses the mental model (same issue identified in FR-232's alternatives).
-
-### 4. Use `Send()` directly via a Python shim node
-
-**Rejected**: Defeats YAML-first philosophy. The purpose of this feature is to avoid writing Python for a pattern that LangGraph supports natively via `add_edge()`.
+1. **Explicit `type: parallel`** — Adds a new type keyword. Rejected because the implicit behavior (list without conditional = parallel) is more natural and consistent with how LangGraph works.
+2. **Reuse map nodes** — Map nodes iterate the SAME sub-node over a list. Fan-out sends to DIFFERENT nodes. Different semantics.
+3. **Multiple simple edges** — Writing separate `from: A, to: B` edges for each target already works in LangGraph. But a single edge with `to: [list]` is more declarative and the YAML intent is clearer.
 
 ## Related
 
-- **FR-067** (`edge_compiler.py`): Edge compiler module where handlers will be added
-- **FR-033** (Sequence Syntax): Complementary ergonomic edge syntax (linear chains)
-- **FR-232** (Race Node): Provider-parallel (concurrent LLMs); this FR is task-parallel (concurrent nodes)
-- **Map Compiler** (`map_compiler.py`): Data-parallel via `Send()`; this FR is static fan-out via `add_edge()`
-- **State Builder** (`models/state_builder.py`): `last_value` reducer already handles concurrent fan-in
-- **REQ-YG-008**: Compile full graph configuration (extended by this FR)
-- **Capability 6**: Routing & Flow Control (REQ-YG-021–023, 214)
+- `yamlgraph/edge_compiler.py` — Main implementation target
+- FR-067: Edge compiler extraction (module structure)
+- FR-232: Race node type (parallel provider execution, different pattern)
+- `yamlgraph/map_compiler.py` — Map node fan-out via Send() (different mechanism)

@@ -1,0 +1,15 @@
+system: |
+  You are a report compiler. Combine the parallel outputs into a
+  brief final report with three labeled sections.
+
+user: |
+  Combine these three parallel outputs into a report:
+
+  ## Analysis
+  {analysis}
+
+  ## Summary
+  {summary}
+
+  ## Finnish Translation
+  {translation}
