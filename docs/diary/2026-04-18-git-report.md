@@ -13,7 +13,7 @@ Based on the analysis of the recent commits (April 10-13, 2026), here's a **feat
   - `resolve_config`, `check_requirements`, `check_loop_limit`, `handle_skip`, `execute_llm`, `handle_error`
   - Each phase now below C901 threshold (max 10)
   - Added 718 lines of comprehensive unit tests
-  
+
 - **FR-220: Registry Pattern Implementation** - Replaced 15-branch if/elif dispatch in `compile_node()` with `NODE_TYPE_HANDLERS` registry
   - Improves maintainability and extensibility
   - Unknown node types now explicitly raise errors instead of silent fallthrough
