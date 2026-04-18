@@ -109,6 +109,7 @@ CheckpointConfig.backend
 DefaultsConfig.model_config
 
 # --- Pydantic validators: called automatically by framework ---
+NodeConfig.validate_timeout
 NodeConfig.validate_thinking_budget
 NodeConfig.validate_node_requirements
 NodeConfig.parse_verification

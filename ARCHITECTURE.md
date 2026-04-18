@@ -365,6 +365,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
 | 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
 | 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
+| 93 | Per-Node Timeout (FR-069) | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py` | REQ-YG-078 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -562,7 +563,13 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-233 | `type: race` node fires prompt to all candidates concurrently via `ThreadPoolExecutor`; returns first successful result; remaining cancelled; all-fail triggers `on_error`; `_race_winner` metadata in state; candidates validated ≥2 with provider/model; lint E301–E304; structured output support | `node_factory/race_node`, `constants`, `node_compiler`, `models/graph_schema`, `models/state_builder`, `linter/patterns/race` |
 | REQ-YG-234 | Chatterbox TTS demo: map node fans out over 5 languages, collects translations, synthesizes to WAV via `synthesize_audio` python tool with Chatterbox Multilingual TTS. Auto-detects CUDA/CPU. Optional dependency `chatterbox-tts` (FR-233) | `examples/demos/chatterbox` |
 
-### 18. Testing & Quality
+### 93. Per-Node Timeout
+
+Per-node timeout bounding for map branches and all node types via ThreadPoolExecutor.
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-078 | Per-node timeout: optional `float` timeout field on `NodeConfig` validated as positive; map branch timeout via `wrap_for_reducer` with `ThreadPoolExecutor`; non-map node timeout via `_maybe_wrap_timeout` in `node_compiler` handlers; `TIMEOUT_ERROR` error type in `ErrorType` enum; `from_exception` classification unchanged (callers pass `error_type` explicitly); lint warning W203 for map+agent without timeout; `except concurrent.futures.TimeoutError` before `except Exception` in both paths | `map_compiler`, `node_compiler`, `models/graph_schema`, `models/schemas`, `linter/patterns/map` |
 
 Requirement traceability enforcement and testing infrastructure.
 

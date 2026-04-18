@@ -23,6 +23,7 @@ class ErrorType(StrEnum):
     PROMPT_ERROR = "prompt_error"  # Missing prompt, template errors
     STATE_ERROR = "state_error"  # Missing required state data
     VERIFICATION_ERROR = "verification_error"  # Verification gate violations (FR-164)
+    TIMEOUT_ERROR = "timeout_error"  # Per-node execution timeout (FR-069)
     UNKNOWN_ERROR = "unknown_error"  # Catch-all
 
 
