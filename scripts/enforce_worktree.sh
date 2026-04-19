@@ -101,6 +101,11 @@ from yamlgraph.utils.worktree_helpers import clean_stale_pth_entries
 clean_stale_pth_entries(Path('$MAIN_DIR/.venv'), '$abs_worktree')
 " 2>/dev/null || true
     fi
+    # FR-241: Validate editable install after .pth cleaning; self-heal if broken
+    if ! python3 -c "import yamlgraph" 2>/dev/null; then
+        log_warn "Editable install broken after cleanup — reinstalling"
+        pip install -e "$MAIN_DIR" --quiet 2>/dev/null || true
+    fi
     exit $exit_code
 }
 trap cleanup EXIT

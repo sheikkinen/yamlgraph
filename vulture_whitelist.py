@@ -12,6 +12,7 @@ from yamlgraph.utils.worktree_helpers import (  # noqa: F401 (CONF-126)
     construct_worktree_path,
     derive_branch_name,
     validate_clean_working_tree,
+    validate_editable_install,
     validate_venv_health,
     validate_venv_symlink,
 )
@@ -22,6 +23,7 @@ validate_clean_working_tree
 validate_venv_health
 validate_venv_symlink
 clean_stale_pth_entries
+validate_editable_install
 
 # --- cli/deprecation: tested in test_deprecation.py ---
 from yamlgraph.cli.deprecation import (  # noqa: F401 (CONF-126)
