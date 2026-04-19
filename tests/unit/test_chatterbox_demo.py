@@ -600,12 +600,21 @@ class TestSpeakCLIMultilingual:
         with patch("builtins.print"):
             module.main()
 
-        mock_model.generate.assert_called_once_with("Hei maailma", language_id="fi")
+        mock_model.generate.assert_called_once_with(
+            "Hei maailma", language_id="fi", audio_prompt_path=None
+        )
 
-    def test_lang_fi_ref_raises_system_exit(self, tmp_path, monkeypatch):
-        """--lang fi --ref <wav> must raise SystemExit with non-zero code."""
+    def test_lang_fi_ref_passes_audio_prompt(self, tmp_path, monkeypatch):
+        """--lang fi --ref <wav> must pass audio_prompt_path to multilingual model."""
         ref_wav = tmp_path / "ref.wav"
         ref_wav.write_bytes(b"RIFF")
+
+        mock_model = MagicMock()
+        mock_model.sr = 24000
+        mock_model.generate.return_value = MagicMock()
+        _mock_chatterbox_mtl.ChatterboxMultilingualTTS.from_pretrained.return_value = (
+            mock_model
+        )
 
         import sys as _sys
 
@@ -617,10 +626,12 @@ class TestSpeakCLIMultilingual:
         monkeypatch.chdir(tmp_path)
 
         module = self._load_speak_module()
-        with pytest.raises(SystemExit) as exc_info:
+        with patch("builtins.print"):
             module.main()
 
-        assert exc_info.value.code != 0
+        mock_model.generate.assert_called_once_with(
+            "Hei", language_id="fi", audio_prompt_path=str(ref_wav)
+        )
 
     def test_lang_en_explicit_uses_chatterbox_tts(self, tmp_path, monkeypatch):
         """Explicit --lang en must use ChatterboxTTS (voice cloning path)."""

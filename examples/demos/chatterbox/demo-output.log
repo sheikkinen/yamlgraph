@@ -1,55 +1,13 @@
-# Demo run: Intel Mac x86_64 (verification — 2026-04-18)
-# Platform: macOS x86_64 (Intel) — torch 2.2.2 installed
-# chatterbox-tts requires torch==2.6.0, which has no macOS Intel wheel.
-# Translation stage succeeds; synthesis stage blocked by platform constraint.
-
-Disabling PyTorch because PyTorch >= 2.4 is required but found 2.2.2
-PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
-2026-04-18 10:04:00,000 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: synthesize_audio
-2026-04-18 10:04:00,001 [INFO] yamlgraph.node_compiler: Added node: generate (type=map)
-2026-04-18 10:04:00,001 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=python)
-2026-04-18 10:04:00,094 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0.7)
-2026-04-18 10:04:02,974 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (en)
-2026-04-18 10:04:03,530 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (es)
-2026-04-18 10:04:03,566 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (fi)
-2026-04-18 10:04:04,025 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (sv)
-2026-04-18 10:04:04,031 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (de)
-2026-04-18 10:04:04,032 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: synthesize -> synthesize_audio
-
-⚠️  Platform constraint: torch==2.6.0 required by chatterbox-tts has no macOS x86_64 wheel.
-    PyTorch dropped Intel Mac support after 2.2.x.
-    Run this demo on Apple Silicon, Linux, or Windows.
-
-# FR-237 consolidated: graph.yaml (multilingual TTS) + clone.yaml (voice cloning) + speak.py (CLI)
-# graph.yaml CI smoke output (no torch / no provider credentials in CI):
-2026-04-19 07:45:00,000 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: synthesize_audio, synthesize_cloned_audio
-2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: generate (type=map)
-2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=python)
-2026-04-19 07:45:00,005 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
-2026-04-19 07:45:00,650 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-19 07:45:00,651 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: synthesize -> synthesize_audio
-2026-04-19 07:45:00,651 [ERROR] yamlgraph.tools.python_tool: Python node synthesize failed: No module named 'torch'
-
-🚀 Running graph: graph.yaml
-   Variables: {'topic': 'the beauty of nature'}
-
-❌ Error: No module named 'torch'
-
-# clone.yaml smoke test (graph loads without import error):
-✓ Graph config loaded: chatterbox-voice-clone
-
-# speak.py --ref validation (no real audio required):
-$ python examples/demos/chatterbox/speak.py --ref /nonexistent.wav "Hello"
-Error: reference file not found: /nonexistent.wav
-[exit code 1]
-
-# FR-239: speak.py --lang flag validation (mocked, no chatterbox install required):
-$ python examples/demos/chatterbox/speak.py --lang fi "Hei maailmasta YAMLGraphista"
-# → routes to ChatterboxMultilingualTTS, language_id='fi'
-# outputs/chatterbox/speak.wav
-
-$ python examples/demos/chatterbox/speak.py --lang fi --ref source.wav "Hei"
-# speak.py: error: --ref is only supported with --lang en (voice-cloning path)
-[exit code 2]
-
-# speak.py fix (2026-04-19): --ref validation moved before torch import for CI compatibility
+/Users/sami.j.p.heikkinen/src/yamlgraph/.venv/lib/python3.13/site-packages/perth/perth_net/__init__.py:1: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_filename
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 8522.12it/s]
+/Users/sami.j.p.heikkinen/src/yamlgraph/.venv/lib/python3.13/site-packages/diffusers/models/lora.py:393: FutureWarning: `LoRACompatibleLinear` is deprecated and will be removed in version 1.0.0. Use of `LoRACompatibleLinear` is deprecated. Please switch to PEFT backend by installing PEFT: `pip install peft`.
+  deprecate("LoRACompatibleLinear", "1.0.0", deprecation_message)
+/opt/homebrew/Cellar/python@3.13/3.13.11/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py:109: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+  self.gen = func(*args, **kwds)
+The following generation flags are not valid and may be ignored: ['output_attentions']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+loaded PerthNet (Implicit) at step 250,000
+Sampling:   0%|          | 0/1000 [00:00<?, ?it/s]Sampling:   0%|          | 1/1000 [00:00<04:42,  3.54it/s]Sampling:   0%|          | 2/1000 [00:00<03:04,  5.41it/s]Sampling:   0%|          | 3/1000 [00:00<02:31,  6.57it/s]Sampling:   0%|          | 4/1000 [00:00<02:14,  7.39it/s]Sampling:   0%|          | 5/1000 [00:00<02:07,  7.80it/s]Sampling:   1%|          | 6/1000 [00:00<02:02,  8.14it/s]Sampling:   1%|          | 7/1000 [00:00<01:58,  8.39it/s]Sampling:   1%|          | 8/1000 [00:01<01:57,  8.46it/s]Sampling:   1%|          | 9/1000 [00:01<01:57,  8.43it/s]Sampling:   1%|          | 10/1000 [00:01<01:55,  8.54it/s]Sampling:   1%|          | 11/1000 [00:01<01:59,  8.26it/s]Sampling:   1%|          | 12/1000 [00:01<01:59,  8.29it/s]Sampling:   1%|▏         | 13/1000 [00:01<02:00,  8.21it/s]Sampling:   1%|▏         | 14/1000 [00:01<02:00,  8.17it/s]Sampling:   2%|▏         | 15/1000 [00:01<01:59,  8.25it/s]Sampling:   2%|▏         | 16/1000 [00:02<02:01,  8.13it/s]Sampling:   2%|▏         | 17/1000 [00:02<02:13,  7.34it/s]Sampling:   2%|▏         | 18/1000 [00:02<02:15,  7.24it/s]Sampling:   2%|▏         | 19/1000 [00:02<02:09,  7.59it/s]Sampling:   2%|▏         | 20/1000 [00:02<02:04,  7.86it/s]Sampling:   2%|▏         | 21/1000 [00:02<02:05,  7.77it/s]Sampling:   2%|▏         | 22/1000 [00:02<02:07,  7.70it/s]Sampling:   2%|▏         | 23/1000 [00:02<02:03,  7.91it/s]Sampling:   2%|▏         | 24/1000 [00:03<02:02,  7.98it/s]Sampling:   2%|▎         | 25/1000 [00:03<02:03,  7.92it/s]Sampling:   3%|▎         | 26/1000 [00:03<02:00,  8.10it/s]Sampling:   3%|▎         | 27/1000 [00:03<02:00,  8.08it/s]Sampling:   3%|▎         | 28/1000 [00:03<02:01,  8.01it/s]Sampling:   3%|▎         | 29/1000 [00:03<02:01,  7.97it/s]Sampling:   3%|▎         | 30/1000 [00:03<02:00,  8.03it/s]Sampling:   3%|▎         | 31/1000 [00:03<02:01,  7.97it/s]Sampling:   3%|▎         | 32/1000 [00:04<02:00,  8.02it/s]Sampling:   3%|▎         | 33/1000 [00:04<01:59,  8.06it/s]Sampling:   3%|▎         | 34/1000 [00:04<01:59,  8.08it/s]Sampling:   4%|▎         | 35/1000 [00:04<01:58,  8.15it/s]Sampling:   4%|▎         | 36/1000 [00:04<01:57,  8.21it/s]Sampling:   4%|▎         | 37/1000 [00:04<01:58,  8.13it/s]Sampling:   4%|▍         | 38/1000 [00:04<01:57,  8.18it/s]Sampling:   4%|▍         | 39/1000 [00:04<01:56,  8.23it/s]Sampling:   4%|▍         | 40/1000 [00:05<01:57,  8.18it/s]Sampling:   4%|▍         | 41/1000 [00:05<01:56,  8.20it/s]Sampling:   4%|▍         | 42/1000 [00:05<01:58,  8.07it/s]Sampling:   4%|▍         | 43/1000 [00:05<01:58,  8.07it/s]Sampling:   4%|▍         | 44/1000 [00:05<01:55,  8.25it/s]Sampling:   4%|▍         | 45/1000 [00:05<01:56,  8.19it/s]Sampling:   5%|▍         | 46/1000 [00:05<01:56,  8.17it/s]Sampling:   5%|▍         | 47/1000 [00:05<01:54,  8.35it/s]Sampling:   5%|▍         | 48/1000 [00:06<01:56,  8.20it/s]Sampling:   5%|▍         | 49/1000 [00:06<01:55,  8.21it/s]Sampling:   5%|▌         | 50/1000 [00:06<01:54,  8.32it/s]Sampling:   5%|▌         | 51/1000 [00:06<01:54,  8.30it/s]Sampling:   5%|▌         | 52/1000 [00:06<01:54,  8.29it/s]WARNING:chatterbox.models.t3.inference.alignment_stream_analyzer:🚨 Detected 2x repetition of token 4218
+WARNING:chatterbox.models.t3.inference.alignment_stream_analyzer:forcing EOS token, long_tail=tensor(False), alignment_repetition=tensor(False), token_repetition=True
+Sampling:   5%|▌         | 52/1000 [00:06<01:59,  7.91it/s]
+outputs/chatterbox/speak.wav
