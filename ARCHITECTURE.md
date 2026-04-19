@@ -368,7 +368,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 95 | Parallel Fan-Out Edges (FR-234) | `yamlgraph/edge_compiler.py` | REQ-YG-237 |
 | 93 | Chatterbox Voice Clone Demo (FR-236) | `examples/demos/chatterbox_clone` | REQ-YG-235 |
 | 94 | Compile-Time Pipeline Templates (FR-235) | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/patterns/pipeline.py` | REQ-YG-236 |
->>>>>>>origin/main
+| 96 | Pipeline Accumulated State (FR-238) | `yamlgraph/models/state_builder.py` | REQ-YG-238 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -568,6 +568,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-237 | Parallel fan-out edges: `to: [a, b, c]` without `type: conditional` compiles as parallel fan-out via multiple `add_edge()` calls; handles interrupt node redirect to `_prepare`; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with `type: conditional` unchanged (FR-234) | `edge_compiler` |
 | REQ-YG-235 | Chatterbox voice cloning demo: single-path graph accepts text and voice_prompt_path, synthesizes to WAV via `synthesize_cloned_audio` python tool using `ChatterboxTTS` (not `ChatterboxMultilingualTTS`). Device selection follows `cuda > mps > cpu`. Optional dependency `chatterbox-tts` (FR-236) | `examples/demos/chatterbox_clone` |
 | REQ-YG-236 | `type: pipeline` meta-node expands at compile time into concrete nodes and sequential edges; `{item.field}` interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); `NodeType.PIPELINE` in constants; expansion in `graph_loader` after `expand_interactive_tools` | `pipeline_template`, `constants`, `graph_loader`, `linter/patterns/pipeline`, `linter/checks`, `linter/graph_linter` |
+| REQ-YG-238 | `parse_state_config()` handles dict-syntax state definitions `{type: str, reducer: str}`; `REDUCER_MAP` maps `"add"`, `"last_value"`, `"sorted_add"` to their functions; unknown reducer names log a warning; dict syntax without `reducer` key works as type-only; `generate_typeddict_code()` extracts type string from dict-syntax entries via `CODEGEN_TYPE_MAP`; `reference/graph-yaml.md` documents accumulated state pattern with glossary example, sequential execution constraint, and W021 `skip_if_exists: false` requirement (FR-238) | `models/state_builder`, `reference/graph-yaml.md`, `tests/unit/test_state_builder_reducers` |
 
 ### 18. Testing & Quality
 
