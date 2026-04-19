@@ -157,6 +157,16 @@ class NodeConfig(BaseModel):
         description="Jinja2 template for the A2A message text",
     )
 
+    # A2A call node fields — Phase 2 (FR-248)
+    skill: str | None = Field(
+        default=None,
+        description="Target skill ID on the remote A2A agent",
+    )
+    streaming: bool | None = Field(
+        default=None,
+        description="Use SSE streaming transport for A2A calls (transport-only, not FR-030)",
+    )
+
     # Verification gate (FR-164)
     verification: VerificationConfig | None = Field(
         default=None,

@@ -1,0 +1,57 @@
+id: CAP-104
+name: A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming
+description: >
+  Extends the a2a_call node (FR-240) with Agent Card discovery via sync
+  httpx.get() to /.well-known/agent.json, ContextVar-scoped caching per graph
+  invocation, skill selection validated against Agent Card skills at runtime,
+  and SSE streaming via A2AClient.send_message_streaming() in a dedicated
+  thread. Linter W901 warns when skill field is present (runtime-only
+  validation). Linter E904 errors when streaming: true is used on non-a2a_call
+  nodes.
+modules:
+  - yamlgraph/node_factory/a2a_nodes.py
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/linter/patterns/a2a.py
+requirements:
+  - id: REQ-YG-246
+    description: >
+      a2a_call node fetches Agent Card via sync httpx.get() to
+      {agent_url}/.well-known/agent.json; parsed into SDK AgentCard model;
+      cached per agent_url within graph invocation using ContextVar; cache
+      isolated across invocations in long-running processes (MCP server,
+      FastAPI); timeout configurable
+    modules:
+      - yamlgraph/node_factory/a2a_nodes.py
+      - tests/unit/test_a2a_call_node.py
+  - id: REQ-YG-247
+    description: >
+      skill field on a2a_call node selects a specific agent skill; validated
+      against Agent Card skills at runtime; ValueError raised on skill ID miss
+      with available skills listed in error message; skill field added to
+      NodeConfig in graph_schema.py; no card fetch when skill not specified
+    modules:
+      - yamlgraph/node_factory/a2a_nodes.py
+      - yamlgraph/models/graph_schema.py
+      - tests/unit/test_a2a_call_node.py
+  - id: REQ-YG-248
+    description: >
+      streaming: true on a2a_call node uses A2AClient.send_message_streaming()
+      via dedicated thread with own event loop; requires
+      card.capabilities.streaming == True; result written as complete string to
+      state_key; streaming events logged at DEBUG level; streaming field added
+      to NodeConfig; transport-only (not FR-030 graph-level streaming)
+    modules:
+      - yamlgraph/node_factory/a2a_nodes.py
+      - yamlgraph/models/graph_schema.py
+      - tests/unit/test_a2a_call_node.py
+  - id: REQ-YG-249
+    description: >
+      Linter check W901 warns when skill field is present on a2a_call node
+      (informational — runtime-only validation); linter check E904 errors when
+      streaming: true is used on a non-a2a_call node type;
+      check_streaming_on_wrong_type() function; integrated into
+      check_a2a_call_patterns() graph scan
+    modules:
+      - yamlgraph/linter/patterns/a2a.py
+      - tests/unit/test_a2a_call_node.py
+fr: FR-248

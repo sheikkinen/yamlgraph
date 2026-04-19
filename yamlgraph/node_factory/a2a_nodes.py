@@ -1,11 +1,15 @@
-"""A2A call node factory — FR-240.
+"""A2A call node factory — FR-240, FR-248.
 
 Creates LangGraph nodes that invoke external A2A agents via HTTP JSON-RPC.
+FR-248 adds Agent Card discovery, skill selection, and SSE streaming.
 """
 
+import asyncio
 import logging
 import uuid
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from contextvars import ContextVar
 from typing import Any
 
 import httpx
@@ -16,6 +20,10 @@ from yamlgraph.node_factory.base import GraphState
 from yamlgraph.utils.expressions import resolve_node_variables
 
 logger = logging.getLogger(__name__)
+
+# Per-invocation Agent Card cache (FR-248).
+# Each ContextVar context starts with an empty dict; no explicit clear needed.
+_agent_card_cache: ContextVar[dict[str, Any]] = ContextVar("agent_card_cache")
 
 
 def _render_message(template: str, variables: dict[str, Any]) -> str:
@@ -125,6 +133,143 @@ def _send_a2a_message(
     return _extract_text_from_result(result)
 
 
+def _fetch_agent_card(agent_url: str, timeout: float = 30) -> Any:
+    """Fetch Agent Card from the well-known endpoint.
+
+    Args:
+        agent_url: Base URL of the A2A agent.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        Parsed AgentCard object.
+
+    Raises:
+        httpx.HTTPStatusError: On non-2xx responses.
+    """
+    from a2a.types import AgentCard
+    from google.protobuf.json_format import ParseDict
+
+    card_url = f"{agent_url.rstrip('/')}/.well-known/agent.json"
+    response = httpx.get(card_url, timeout=timeout)
+    response.raise_for_status()
+    return ParseDict(response.json(), AgentCard())
+
+
+def _get_agent_card(agent_url: str, timeout: float = 30) -> Any:
+    """Get Agent Card, using ContextVar-scoped cache.
+
+    Cache is scoped per graph invocation context via ContextVar.
+    Each context starts fresh; no TTL needed for short-lived invocations.
+
+    Args:
+        agent_url: Base URL of the A2A agent.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        Cached or freshly fetched AgentCard object.
+    """
+    # .get({}) creates a new dict only on first access per context
+    cache = _agent_card_cache.get({})
+    if agent_url in cache:
+        return cache[agent_url]
+    card = _fetch_agent_card(agent_url, timeout)
+    cache[agent_url] = card
+    _agent_card_cache.set(cache)
+    return card
+
+
+def _validate_skill(skill_id: str, card: Any) -> None:
+    """Validate a skill ID exists in the Agent Card.
+
+    Args:
+        skill_id: Requested skill identifier.
+        card: AgentCard with skills list.
+
+    Raises:
+        ValueError: If skill not found, listing available skills.
+    """
+    if not card.skills:
+        raise ValueError(f"Skill '{skill_id}' requested but agent has no skills")
+    available_ids = [s.id for s in card.skills]
+    if skill_id not in available_ids:
+        raise ValueError(
+            f"Skill '{skill_id}' not found on agent. "
+            f"Available skills: {available_ids}"
+        )
+
+
+def _extract_text_from_streaming_events(events: list[Any]) -> str:
+    """Extract text from collected A2A streaming events.
+
+    Collects text from TaskArtifactUpdateEvent artifacts.
+
+    Args:
+        events: List of streaming events from A2AClient.
+
+    Returns:
+        Concatenated text from artifact parts.
+    """
+    from a2a.types import TaskArtifactUpdateEvent
+
+    texts: list[str] = []
+    for event in events:
+        if isinstance(event, TaskArtifactUpdateEvent) and event.artifact:
+            for part in event.artifact.parts or []:
+                if part.WhichOneof("content") == "text" and part.text:
+                    texts.append(part.text)
+    return "\n".join(texts) if texts else ""
+
+
+def _send_streaming(
+    *,
+    agent_url: str,
+    message: str,
+    timeout: int = 120,
+) -> str:
+    """Send streaming A2A message via A2AClient in a dedicated thread.
+
+    Runs asyncio.run() in a separate thread to avoid event loop conflicts
+    under graph.ainvoke(). See FR-248 Design Decisions.
+
+    Args:
+        agent_url: Base URL of the A2A agent.
+        message: Rendered message text.
+        timeout: Request timeout in seconds.
+
+    Returns:
+        Extracted text from streaming events.
+    """
+    from a2a.client import Client
+    from a2a.types import (
+        Message,
+        Part,
+        SendMessageRequest,
+    )
+
+    def _run() -> str:
+        async def _stream() -> str:
+            async with httpx.AsyncClient(timeout=timeout) as http_client:
+                client = Client(httpx_client=http_client, url=agent_url)
+                request = SendMessageRequest(
+                    message=Message(
+                        role="user",
+                        message_id=str(uuid.uuid4()),
+                        parts=[Part(text=message)],
+                    ),
+                )
+                collected: list[Any] = []
+                async for event in client.send_message(request):
+                    logger.debug("A2A streaming event: %s", type(event).__name__)
+                    collected.append(event)
+                return _extract_text_from_streaming_events(collected)
+
+        return asyncio.run(_stream())
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(_run)
+        return future.result()
+
+
 def create_a2a_call_node(
     node_name: str,
     node_config: dict[str, Any],
@@ -147,6 +292,8 @@ def create_a2a_call_node(
     timeout = node_config.get("timeout", 120)
     on_error = node_config.get("on_error", "fail")
     variable_templates = node_config.get("variables", {})
+    skill = node_config.get("skill")
+    streaming = node_config.get("streaming", False)
 
     def node_fn(state: dict) -> dict:
         """A2A call node: send message to external agent."""
@@ -164,11 +311,30 @@ def create_a2a_call_node(
         rendered_message = _render_message(message_template, render_vars)
 
         try:
-            result_text = _send_a2a_message(
-                agent_url=agent_url,
-                message=rendered_message,
-                timeout=timeout,
-            )
+            # Skill validation requires Agent Card (FR-248)
+            if skill:
+                card = _get_agent_card(agent_url)
+                _validate_skill(skill, card)
+
+            if streaming:
+                # Streaming requires Agent Card capability check (FR-248)
+                card = _get_agent_card(agent_url)
+                if not (card.capabilities and card.capabilities.streaming):
+                    raise ValueError(
+                        f"Agent at {agent_url} does not support streaming. "
+                        f"Remove 'streaming: true' or use a streaming-capable agent."
+                    )
+                result_text = _send_streaming(
+                    agent_url=agent_url,
+                    message=rendered_message,
+                    timeout=timeout,
+                )
+            else:
+                result_text = _send_a2a_message(
+                    agent_url=agent_url,
+                    message=rendered_message,
+                    timeout=timeout,
+                )
 
             return {
                 state_key: result_text,

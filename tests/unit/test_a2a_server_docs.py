@@ -17,25 +17,25 @@ ARCHITECTURE = REPO_ROOT / "ARCHITECTURE.md"
 
 
 # ---------------------------------------------------------------------------
-# AC-1: REQ-YG-245 in ARCHITECTURE.md
+# AC-1: REQ-YG-250 in ARCHITECTURE.md
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestArchitectureRequirement:
-    """Verify REQ-YG-245 is registered in ARCHITECTURE.md."""
+    """Verify REQ-YG-250 is registered in ARCHITECTURE.md."""
 
     def test_req_in_capabilities_table(self):
         content = ARCHITECTURE.read_text()
         assert (
-            "REQ-YG-245" in content
-        ), "ARCHITECTURE.md must include REQ-YG-245 in capabilities table"
+            "REQ-YG-250" in content
+        ), "ARCHITECTURE.md must include REQ-YG-250 in capabilities table"
 
     def test_req_description_exists(self):
         content = ARCHITECTURE.read_text()
         assert (
-            "REQ-YG-245" in content and "a2a-server.md" in content
-        ), "ARCHITECTURE.md must have REQ-YG-245 description referencing a2a-server.md"
+            "REQ-YG-250" in content and "a2a-server.md" in content
+        ), "ARCHITECTURE.md must have REQ-YG-250 description referencing a2a-server.md"
 
 
 # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ class TestArchitectureRequirement:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefExists:
     """Verify reference/a2a-server.md exists."""
 
@@ -51,7 +51,7 @@ class TestA2AServerRefExists:
         assert A2A_SERVER_REF.exists(), "reference/a2a-server.md must exist"
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefQuickstart:
     """Section 1: Quickstart."""
 
@@ -75,7 +75,7 @@ class TestA2AServerRefQuickstart:
         assert "message/send" in self.content
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefCLI:
     """Section 2: CLI Commands."""
 
@@ -99,7 +99,7 @@ class TestA2AServerRefCLI:
         assert "--host" in self.content
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefAgentCard:
     """Section 3: Agent Card Generation."""
 
@@ -119,7 +119,7 @@ class TestA2AServerRefAgentCard:
         assert "skills" in self.content.lower()
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefMessageParsing:
     """Section 4: Message-to-State Mapping."""
 
@@ -149,7 +149,7 @@ class TestA2AServerRefMessageParsing:
         assert "parse_a2a_message" in self.content
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefTaskLifecycle:
     """Section 5: Task Lifecycle."""
 
@@ -171,7 +171,7 @@ class TestA2AServerRefTaskLifecycle:
             assert state in self.content, f"Task state '{state}' must be documented"
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefErrorMapping:
     """Section 6: Error Mapping."""
 
@@ -193,7 +193,7 @@ class TestA2AServerRefErrorMapping:
         assert "VALIDATION_ERROR" in self.content
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefInterrupt:
     """Section 7: Interrupt / Human-in-Loop."""
 
@@ -211,7 +211,7 @@ class TestA2AServerRefInterrupt:
         assert "input_required" in self.content or "input-required" in self.content
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefAuthentication:
     """Section 8: Authentication."""
 
@@ -228,7 +228,7 @@ class TestA2AServerRefAuthentication:
         )
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefDeployment:
     """Section 9: Deployment Patterns."""
 
@@ -249,7 +249,7 @@ class TestA2AServerRefDeployment:
         assert "container" in self.content.lower() or "docker" in self.content.lower()
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestA2AServerRefMCPRelationship:
     """Section 10: Relationship to MCP Server."""
 
@@ -272,7 +272,7 @@ class TestA2AServerRefMCPRelationship:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestQuickstartMatchesImplementation:
     """Verify quickstart examples match the actual hello graph."""
 
@@ -291,7 +291,7 @@ class TestQuickstartMatchesImplementation:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestCliRefUpdated:
     """Verify reference/cli.md includes a2a subcommands."""
 
@@ -314,7 +314,7 @@ class TestCliRefUpdated:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-245")
+@pytest.mark.req("REQ-YG-250")
 class TestRefReadmeUpdated:
     """Verify reference/README.md links to a2a-server.md."""
 

@@ -1,9 +1,13 @@
-"""Tests for a2a_call node type — FR-240.
+"""Tests for a2a_call node type — FR-240, FR-248.
 
 a2a_call nodes send messages to external A2A agents and store the response
 in graph state. This is the client/consumer side of A2A integration.
+
+FR-248 extends with Agent Card discovery, skill selection, and streaming.
 """
 
+from contextvars import copy_context
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -614,3 +618,617 @@ class TestA2AV1PartFormat:
             "status": {"state": "completed"},
         }
         assert _extract_text_from_result(result) == "Only text"
+
+
+# =============================================================================
+# FR-248: Agent Card Discovery
+# =============================================================================
+
+
+def _make_agent_card_dict(
+    *,
+    skills: list[dict] | None = None,
+    streaming: bool = False,
+) -> dict:
+    """Build a minimal Agent Card dict for testing."""
+    # AgentSkill requires: id, name, description, tags
+    full_skills = []
+    for s in skills or []:
+        full_skills.append(
+            {
+                "id": s["id"],
+                "name": s.get("name", s["id"]),
+                "description": s.get("description", f"Skill {s['id']}"),
+                "tags": s.get("tags", []),
+            }
+        )
+    return {
+        "name": "Test Agent",
+        "description": "A test agent",
+        "version": "1.0.0",
+        "capabilities": {"streaming": streaming},
+        "skills": full_skills,
+        "defaultInputModes": ["text"],
+        "defaultOutputModes": ["text"],
+    }
+
+
+def _parse_agent_card(data: dict) -> Any:
+    """Parse a dict into an AgentCard protobuf object."""
+    from a2a.types import AgentCard
+    from google.protobuf.json_format import ParseDict
+
+    return ParseDict(data, AgentCard())
+
+
+class TestAgentCardFetching:
+    """REQ-YG-246: Agent Card fetching via sync httpx.get()."""
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes.httpx")
+    def test_fetch_agent_card_calls_well_known_url(self, mock_httpx):
+        """Should GET {agent_url}/.well-known/agent.json."""
+        from yamlgraph.node_factory.a2a_nodes import _fetch_agent_card
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = _make_agent_card_dict()
+        mock_httpx.get.return_value = mock_response
+
+        _fetch_agent_card("http://localhost:8080")
+
+        mock_httpx.get.assert_called_once()
+        url = mock_httpx.get.call_args[0][0]
+        assert url == "http://localhost:8080/.well-known/agent.json"
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes.httpx")
+    def test_fetch_agent_card_strips_trailing_slash(self, mock_httpx):
+        """Trailing slash on agent_url should be stripped."""
+        from yamlgraph.node_factory.a2a_nodes import _fetch_agent_card
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = _make_agent_card_dict()
+        mock_httpx.get.return_value = mock_response
+
+        _fetch_agent_card("http://localhost:8080/")
+
+        url = mock_httpx.get.call_args[0][0]
+        assert "//." not in url
+        assert url == "http://localhost:8080/.well-known/agent.json"
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes.httpx")
+    def test_fetch_agent_card_returns_agent_card(self, mock_httpx):
+        """Should return a parsed AgentCard object."""
+        from a2a.types import AgentCard
+
+        from yamlgraph.node_factory.a2a_nodes import _fetch_agent_card
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = _make_agent_card_dict(
+            skills=[{"id": "search", "name": "Search"}]
+        )
+        mock_httpx.get.return_value = mock_response
+
+        card = _fetch_agent_card("http://localhost:8080")
+        assert isinstance(card, AgentCard)
+        assert card.name == "Test Agent"
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes.httpx")
+    def test_fetch_agent_card_raises_on_http_error(self, mock_httpx):
+        """Should raise on HTTP errors (e.g. 404)."""
+        from yamlgraph.node_factory.a2a_nodes import _fetch_agent_card
+
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = Exception("404 Not Found")
+        mock_httpx.get.return_value = mock_response
+
+        with pytest.raises(Exception, match="404"):
+            _fetch_agent_card("http://localhost:8080")
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes.httpx")
+    def test_fetch_agent_card_passes_timeout(self, mock_httpx):
+        """Should pass timeout to httpx.get()."""
+        from yamlgraph.node_factory.a2a_nodes import _fetch_agent_card
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = _make_agent_card_dict()
+        mock_httpx.get.return_value = mock_response
+
+        _fetch_agent_card("http://localhost:8080", timeout=5)
+
+        call_kwargs = mock_httpx.get.call_args[1]
+        assert call_kwargs["timeout"] == 5
+
+
+class TestAgentCardCaching:
+    """REQ-YG-246: Agent Card caching with ContextVar isolation."""
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes._fetch_agent_card")
+    def test_get_agent_card_caches_by_url(self, mock_fetch):
+        """Second call with same URL should use cache, not fetch again."""
+        from yamlgraph.node_factory.a2a_nodes import _get_agent_card
+
+        card = _parse_agent_card(_make_agent_card_dict())
+        mock_fetch.return_value = card
+
+        # Call twice — should only fetch once
+        result1 = _get_agent_card("http://agent:8080")
+        result2 = _get_agent_card("http://agent:8080")
+
+        assert result1 is result2
+        mock_fetch.assert_called_once()
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes._fetch_agent_card")
+    def test_get_agent_card_different_urls_fetch_separately(self, mock_fetch):
+        """Different URLs should be cached independently."""
+        from yamlgraph.node_factory.a2a_nodes import _get_agent_card
+
+        card = _parse_agent_card(_make_agent_card_dict())
+        mock_fetch.return_value = card
+
+        _get_agent_card("http://agent-a:8080")
+        _get_agent_card("http://agent-b:8080")
+
+        assert mock_fetch.call_count == 2
+
+    @pytest.mark.req("REQ-YG-246")
+    @patch("yamlgraph.node_factory.a2a_nodes._fetch_agent_card")
+    def test_context_var_isolation_across_invocations(self, mock_fetch):
+        """Separate ContextVar contexts should have independent caches."""
+        from yamlgraph.node_factory.a2a_nodes import (
+            _agent_card_cache,
+            _get_agent_card,
+        )
+
+        card = _parse_agent_card(_make_agent_card_dict())
+        mock_fetch.return_value = card
+
+        # Create clean contexts without prior cache state
+        def _run_in_fresh_context() -> None:
+            _get_agent_card("http://agent:8080")
+
+        ctx1 = copy_context()
+        ctx2 = copy_context()
+
+        # Clear cache in each context before running
+        ctx1.run(_agent_card_cache.set, {})
+        ctx2.run(_agent_card_cache.set, {})
+
+        ctx1.run(_run_in_fresh_context)
+        ctx2.run(_run_in_fresh_context)
+
+        # Each context should fetch independently
+        assert mock_fetch.call_count == 2
+
+
+# =============================================================================
+# FR-248: Skill Selection
+# =============================================================================
+
+
+class TestSkillValidation:
+    """REQ-YG-247: Skill selection and validation."""
+
+    @pytest.mark.req("REQ-YG-247")
+    def test_validate_skill_found(self):
+        """Skill ID matching a card skill should return without error."""
+        from yamlgraph.node_factory.a2a_nodes import _validate_skill
+
+        card = _parse_agent_card(
+            _make_agent_card_dict(
+                skills=[
+                    {"id": "search", "name": "Search"},
+                    {"id": "summarize", "name": "Summarize"},
+                ]
+            )
+        )
+        # Should not raise
+        _validate_skill("search", card)
+
+    @pytest.mark.req("REQ-YG-247")
+    def test_validate_skill_not_found_raises_value_error(self):
+        """Missing skill should raise ValueError listing available skills."""
+        from yamlgraph.node_factory.a2a_nodes import _validate_skill
+
+        card = _parse_agent_card(
+            _make_agent_card_dict(
+                skills=[
+                    {"id": "search", "name": "Search"},
+                    {"id": "summarize", "name": "Summarize"},
+                ]
+            )
+        )
+        with pytest.raises(ValueError, match="translate") as exc_info:
+            _validate_skill("translate", card)
+
+        # Error message should list available skills
+        msg = str(exc_info.value)
+        assert "search" in msg
+        assert "summarize" in msg
+
+    @pytest.mark.req("REQ-YG-247")
+    def test_validate_skill_empty_skills_raises(self):
+        """Agent with no skills should raise ValueError."""
+        from yamlgraph.node_factory.a2a_nodes import _validate_skill
+
+        card = _parse_agent_card(_make_agent_card_dict(skills=[]))
+        with pytest.raises(ValueError, match="no skills"):
+            _validate_skill("anything", card)
+
+    @pytest.mark.req("REQ-YG-247")
+    @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
+    @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
+    def test_node_with_skill_validates_against_card(self, mock_send, mock_get_card):
+        """Node with skill field should fetch card and validate skill."""
+        from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
+
+        card = _parse_agent_card(
+            _make_agent_card_dict(skills=[{"id": "research", "name": "Research"}])
+        )
+        mock_get_card.return_value = card
+        mock_send.return_value = "result text"
+
+        config = {
+            "type": "a2a_call",
+            "agent_url": "http://agent:8080",
+            "message": "Do research",
+            "state_key": "result",
+            "skill": "research",
+        }
+        state = {"current_step": "init", "_loop_counts": {}}
+
+        node_fn = create_a2a_call_node("test_node", config)
+        result = node_fn(state)
+
+        mock_get_card.assert_called_once_with("http://agent:8080")
+        assert result["result"] == "result text"
+
+    @pytest.mark.req("REQ-YG-247")
+    @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
+    def test_node_with_invalid_skill_raises(self, mock_get_card):
+        """Node with skill not on card should raise ValueError."""
+        from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
+
+        card = _parse_agent_card(
+            _make_agent_card_dict(skills=[{"id": "search", "name": "Search"}])
+        )
+        mock_get_card.return_value = card
+
+        config = {
+            "type": "a2a_call",
+            "agent_url": "http://agent:8080",
+            "message": "Do translate",
+            "state_key": "result",
+            "skill": "translate",
+        }
+        state = {"current_step": "init", "_loop_counts": {}}
+
+        node_fn = create_a2a_call_node("test_node", config)
+        with pytest.raises(ValueError, match="translate"):
+            node_fn(state)
+
+    @pytest.mark.req("REQ-YG-247")
+    @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
+    def test_node_without_skill_skips_card_fetch(self, mock_send):
+        """Node without skill field should NOT fetch Agent Card."""
+        from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
+
+        mock_send.return_value = "result text"
+
+        config = {
+            "type": "a2a_call",
+            "agent_url": "http://agent:8080",
+            "message": "Hello",
+            "state_key": "result",
+        }
+        state = {"current_step": "init", "_loop_counts": {}}
+
+        node_fn = create_a2a_call_node("test_node", config)
+        result = node_fn(state)
+
+        assert result["result"] == "result text"
+
+
+# =============================================================================
+# FR-248: Streaming Support
+# =============================================================================
+
+
+class TestStreamingSupport:
+    """REQ-YG-248: Streaming via A2AClient in dedicated thread."""
+
+    @pytest.mark.req("REQ-YG-248")
+    @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
+    @patch("yamlgraph.node_factory.a2a_nodes._send_streaming")
+    def test_streaming_node_uses_streaming_transport(self, mock_stream, mock_get_card):
+        """streaming: true should use _send_streaming instead of _send_a2a_message."""
+        from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
+
+        card = _parse_agent_card(_make_agent_card_dict(streaming=True))
+        mock_get_card.return_value = card
+        mock_stream.return_value = "streamed result"
+
+        config = {
+            "type": "a2a_call",
+            "agent_url": "http://agent:8080",
+            "message": "Generate report",
+            "state_key": "report",
+            "streaming": True,
+        }
+        state = {"current_step": "init", "_loop_counts": {}}
+
+        node_fn = create_a2a_call_node("streamer", config)
+        result = node_fn(state)
+
+        mock_stream.assert_called_once()
+        assert result["report"] == "streamed result"
+
+    @pytest.mark.req("REQ-YG-248")
+    @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
+    def test_streaming_fails_when_agent_doesnt_support(self, mock_get_card):
+        """streaming: true should fail if card.capabilities.streaming is False."""
+        from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
+
+        card = _parse_agent_card(_make_agent_card_dict(streaming=False))
+        mock_get_card.return_value = card
+
+        config = {
+            "type": "a2a_call",
+            "agent_url": "http://agent:8080",
+            "message": "Stream this",
+            "state_key": "result",
+            "streaming": True,
+        }
+        state = {"current_step": "init", "_loop_counts": {}}
+
+        node_fn = create_a2a_call_node("streamer", config)
+        with pytest.raises(ValueError, match="streaming"):
+            node_fn(state)
+
+    @pytest.mark.req("REQ-YG-248")
+    def test_extract_text_from_streaming_events(self):
+        """Should extract text from collected streaming events."""
+        from a2a.types import (
+            Artifact,
+            Part,
+            TaskArtifactUpdateEvent,
+        )
+
+        from yamlgraph.node_factory.a2a_nodes import (
+            _extract_text_from_streaming_events,
+        )
+
+        events = [
+            TaskArtifactUpdateEvent(
+                task_id="t1",
+                context_id="c1",
+                artifact=Artifact(
+                    artifact_id="a1",
+                    parts=[Part(text="Hello ")],
+                ),
+            ),
+            TaskArtifactUpdateEvent(
+                task_id="t1",
+                context_id="c1",
+                artifact=Artifact(
+                    artifact_id="a2",
+                    parts=[Part(text="World")],
+                ),
+            ),
+        ]
+
+        result = _extract_text_from_streaming_events(events)
+        assert "Hello" in result
+        assert "World" in result
+
+    @pytest.mark.req("REQ-YG-248")
+    def test_extract_text_from_empty_events(self):
+        """Empty event list should return empty string."""
+        from yamlgraph.node_factory.a2a_nodes import (
+            _extract_text_from_streaming_events,
+        )
+
+        assert _extract_text_from_streaming_events([]) == ""
+
+    @pytest.mark.req("REQ-YG-248")
+    @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
+    def test_non_streaming_node_uses_sync_transport(self, mock_send):
+        """streaming: false (default) should use sync _send_a2a_message."""
+        from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
+
+        mock_send.return_value = "sync result"
+
+        config = {
+            "type": "a2a_call",
+            "agent_url": "http://agent:8080",
+            "message": "Quick task",
+            "state_key": "result",
+            "streaming": False,
+        }
+        state = {"current_step": "init", "_loop_counts": {}}
+
+        node_fn = create_a2a_call_node("sync_node", config)
+        result = node_fn(state)
+
+        mock_send.assert_called_once()
+        assert result["result"] == "sync result"
+
+
+# =============================================================================
+# FR-248: Schema — skill and streaming fields on NodeConfig
+# =============================================================================
+
+
+class TestNodeConfigSchemaFR248:
+    """NodeConfig should accept skill and streaming fields."""
+
+    @pytest.mark.req("REQ-YG-247")
+    def test_node_config_accepts_skill_field(self):
+        """NodeConfig should accept optional skill field."""
+        from yamlgraph.models.graph_schema import NodeConfig
+
+        config = NodeConfig(
+            type="a2a_call",
+            agent_url="http://agent:8080",
+            message="Hello",
+            state_key="result",
+            skill="research",
+        )
+        assert config.skill == "research"
+
+    @pytest.mark.req("REQ-YG-247")
+    def test_node_config_skill_defaults_none(self):
+        """skill field should default to None."""
+        from yamlgraph.models.graph_schema import NodeConfig
+
+        config = NodeConfig(
+            type="a2a_call",
+            agent_url="http://agent:8080",
+            message="Hello",
+            state_key="result",
+        )
+        assert config.skill is None
+
+    @pytest.mark.req("REQ-YG-248")
+    def test_node_config_accepts_streaming_field(self):
+        """NodeConfig should accept optional streaming field."""
+        from yamlgraph.models.graph_schema import NodeConfig
+
+        config = NodeConfig(
+            type="a2a_call",
+            agent_url="http://agent:8080",
+            message="Hello",
+            state_key="result",
+            streaming=True,
+        )
+        assert config.streaming is True
+
+    @pytest.mark.req("REQ-YG-248")
+    def test_node_config_streaming_defaults_none(self):
+        """streaming field should default to None."""
+        from yamlgraph.models.graph_schema import NodeConfig
+
+        config = NodeConfig(
+            type="a2a_call",
+            agent_url="http://agent:8080",
+            message="Hello",
+            state_key="result",
+        )
+        assert config.streaming is None
+
+
+# =============================================================================
+# FR-248: Linter — W901, E904
+# =============================================================================
+
+
+class TestA2ACallLinterFR248:
+    """REQ-YG-249: Linter checks W901 and E904."""
+
+    @pytest.mark.req("REQ-YG-249")
+    def test_w901_skill_advisory_warning(self):
+        """W901: skill field on a2a_call should produce advisory warning."""
+        from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
+
+        issues = check_a2a_call_node_structure(
+            "my_node",
+            {
+                "type": "a2a_call",
+                "agent_url": "http://agent:8080",
+                "message": "Hello",
+                "state_key": "result",
+                "skill": "research",
+            },
+        )
+        codes = [i.code for i in issues]
+        assert "W901" in codes
+        # Should be a warning, not error
+        w901 = [i for i in issues if i.code == "W901"][0]
+        assert w901.severity == "warning"
+
+    @pytest.mark.req("REQ-YG-249")
+    def test_no_w901_without_skill(self):
+        """No W901 when skill field is absent."""
+        from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
+
+        issues = check_a2a_call_node_structure(
+            "my_node",
+            {
+                "type": "a2a_call",
+                "agent_url": "http://agent:8080",
+                "message": "Hello",
+                "state_key": "result",
+            },
+        )
+        codes = [i.code for i in issues]
+        assert "W901" not in codes
+
+    @pytest.mark.req("REQ-YG-249")
+    def test_e904_streaming_on_non_a2a_call(self):
+        """E904: streaming: true on non-a2a_call node should error."""
+        from yamlgraph.linter.patterns.a2a import check_streaming_on_wrong_type
+
+        issues = check_streaming_on_wrong_type(
+            "my_node",
+            {"type": "llm", "streaming": True, "prompt": "test", "state_key": "out"},
+        )
+        codes = [i.code for i in issues]
+        assert "E904" in codes
+
+    @pytest.mark.req("REQ-YG-249")
+    def test_no_e904_on_a2a_call(self):
+        """No E904 when streaming: true on a2a_call node."""
+        from yamlgraph.linter.patterns.a2a import check_streaming_on_wrong_type
+
+        issues = check_streaming_on_wrong_type(
+            "my_node",
+            {
+                "type": "a2a_call",
+                "streaming": True,
+                "agent_url": "http://agent:8080",
+                "message": "Hello",
+                "state_key": "result",
+            },
+        )
+        codes = [i.code for i in issues]
+        assert "E904" not in codes
+
+    @pytest.mark.req("REQ-YG-249")
+    def test_no_e904_without_streaming(self):
+        """No E904 when streaming is not set."""
+        from yamlgraph.linter.patterns.a2a import check_streaming_on_wrong_type
+
+        issues = check_streaming_on_wrong_type(
+            "my_node",
+            {"type": "llm", "prompt": "test", "state_key": "out"},
+        )
+        codes = [i.code for i in issues]
+        assert "E904" not in codes
+
+    @pytest.mark.req("REQ-YG-249")
+    def test_e904_integrated_in_graph_check(self, tmp_path):
+        """check_a2a_call_patterns should include E904 for all nodes."""
+        from yamlgraph.linter.patterns.a2a import check_a2a_call_patterns
+
+        graph_file = tmp_path / "graph.yaml"
+        graph_file.write_text(
+            "name: test\n"
+            "nodes:\n"
+            "  bad_stream:\n"
+            "    type: llm\n"
+            "    prompt: test\n"
+            "    state_key: out\n"
+            "    streaming: true\n"
+            "edges:\n"
+            "  - from: START\n"
+            "    to: bad_stream\n"
+        )
+
+        issues = check_a2a_call_patterns(graph_file)
+        codes = [i.code for i in issues]
+        assert "E904" in codes
