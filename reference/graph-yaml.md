@@ -764,6 +764,34 @@ the next edge when `loop_until` fires.
 
 See [examples/demos/interactive_tool/](../examples/demos/interactive_tool/) for a working trivia quiz demo.
 
+### `type: pipeline` - Sequential Item Processing
+
+Process a list of items through a series of stages sequentially. Expands at compile time into concrete nodes and edges — no Python needed.
+
+```yaml
+nodes:
+  chapters:
+    type: pipeline
+    items:
+      - name: ch1
+        title: "The Beginning"
+      - name: ch2
+        title: "The Journey"
+    stages:
+      - name: draft
+        type: llm
+        prompt: draft_chapter
+        variables:
+          title: "{item.title}"
+        state_key: draft_{item.name}
+      - name: polish
+        type: llm
+        prompt: polish_chapter
+        variables:
+          draft: "{state.draft_{item.name}}"
+        state_key: polished_{item.name}
+```
+
 ### `type: race` - Race Multiple Providers
 
 Fire the same prompt to multiple LLM provider/model candidates concurrently
@@ -842,6 +870,76 @@ nodes:
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
+| `items` | `list` | Yes | List of items to process (each must have `name`) |
+| `stages` | `list` | Yes | Stage definitions executed per item in order |
+
+**How it works:**
+1. Each item is processed through all stages sequentially
+2. `{item.field}` in stage configs is interpolated per item
+3. Items execute sequentially: ch1 stages → ch2 stages → …
+4. External edges are rewritten to the first/last expanded nodes
+
+See [examples/demos/pipeline/](../examples/demos/pipeline/) for a working demo.
+
+#### Accumulated State
+
+When later items need context from earlier items, use a shared `state_key` with a reducer. The `add` reducer on a list field accumulates results across items instead of overwriting.
+
+**State config with reducer:**
+
+```yaml
+state:
+  glossary:
+    type: list
+    reducer: add
+
+nodes:
+  chapters:
+    type: pipeline
+    items:
+      - name: ch1
+        title: "The Beginning"
+      - name: ch2
+        title: "The Journey"
+      - name: ch3
+        title: "The Return"
+    stages:
+      - name: translate
+        type: llm
+        prompt: translate_chapter
+        variables:
+          title: "{item.title}"
+          glossary: "{state.glossary}"
+        state_key: translated_{item.name}
+      - name: extract_terms
+        type: llm
+        prompt: extract_terms
+        variables:
+          translation: "{state.translated_{item.name}}"
+        state_key: glossary
+        skip_if_exists: false
+```
+
+**How accumulated state works:**
+
+1. ch1's `extract_terms` writes `["term_a"]` to `glossary` — reducer appends to empty list
+2. ch2's `translate` reads `glossary: ["term_a"]` — previous terms available as context
+3. ch2's `extract_terms` writes `["term_b"]` — reducer appends, glossary is now `["term_a", "term_b"]`
+4. ch3's `translate` reads the full accumulated glossary
+
+**Why `{prev_item}` syntax is unnecessary:** The `add` reducer on a shared state key solves cross-item reads without new interpolation syntax. Each stage reads `{state.glossary}` — the reducer handles accumulation.
+
+**Sequential execution constraint:** Accumulated state works because pipeline items execute sequentially (ch1 → ch2 → ch3). If pipelines ever support parallel item execution, cross-item dependencies become impossible. Sequential chaining is what makes accumulation work. This is a feature, not a limitation.
+
+**`skip_if_exists: false` requirement (W021):** List-typed state keys with the `add` reducer are truthy after the first append. The default `skip_if_exists: true` on LLM nodes causes stages 2+ to skip. Accumulated state keys require explicit `skip_if_exists: false`. The linter warns about this (W021).
+
+**Available reducers:**
+
+| Reducer | Behavior | Use Case |
+|---------|----------|----------|
+| `add` | Append new items to list | Accumulating results across stages |
+| `last_value` | Keep last written value | Safe concurrent fan-in |
+| `sorted_add` | Append and sort by `_map_index` | Map node result ordering |
 | `items` | `list[dict]` | Yes | List of item dicts; each must have a `name` field plus arbitrary fields |
 | `stages` | `list[dict]` | Yes | List of node configs supporting `{item.field}` and `{state.field}` interpolation |
 
@@ -860,7 +958,6 @@ nodes:
 `{item.xxx}` references), E404 (item missing `name` field).
 
 See [examples/demos/pipeline/](../examples/demos/pipeline/) for a working demo.
-
 ### Error Handling Properties
 
 All node types support error handling:

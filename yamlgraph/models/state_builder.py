@@ -101,20 +101,29 @@ TYPE_MAP: dict[str, type] = {
     "any": Any,
 }
 
+# Reducer mapping for YAML state config (FR-238)
+REDUCER_MAP: dict[str, Any] = {
+    "add": add,
+    "last_value": last_value,
+    "sorted_add": sorted_add,
+}
+
 
 def parse_state_config(state_config: dict) -> dict[str, type]:
     """Parse YAML state section into field types.
 
-    Supports simple type strings:
+    Supports simple type strings and dict-syntax with reducers:
         state:
           concept: str
-          count: int
+          glossary:
+            type: list
+            reducer: add
 
     Args:
         state_config: Dict from YAML 'state' section
 
     Returns:
-        Dict of field_name -> Python type
+        Dict of field_name -> Python type (may include Annotated types)
     """
     fields: dict[str, type] = {}
 
@@ -130,11 +139,29 @@ def parse_state_config(state_config: dict) -> dict[str, type]:
                 )
             python_type = TYPE_MAP.get(normalized, Any)
             fields[field_name] = python_type
+        elif isinstance(type_spec, dict):
+            # Dict-syntax: {type: str, reducer: add}
+            type_str = type_spec.get("type", "any")
+            reducer_name = type_spec.get("reducer")
+            python_type = TYPE_MAP.get(type_str.lower(), Any)
+
+            if reducer_name:
+                reducer_fn = REDUCER_MAP.get(reducer_name)
+                if reducer_fn is None:
+                    logger.warning(
+                        f"Unknown reducer '{reducer_name}' for state field "
+                        f"'{field_name}'. Supported: {', '.join(REDUCER_MAP)}."
+                    )
+                else:
+                    python_type = Annotated[python_type, reducer_fn]
+
+            fields[field_name] = python_type
         else:
             # Unknown format, use Any
             logger.warning(
                 f"Invalid type specification for state field '{field_name}': "
-                f"expected string, got {type(type_spec).__name__}. Defaulting to Any."
+                f"expected string or dict, got {type(type_spec).__name__}. "
+                f"Defaulting to Any."
             )
             fields[field_name] = Any
 
@@ -297,6 +324,21 @@ def _normalize_class_name(name: str) -> str:
     return "".join(word.capitalize() for word in normalized.split())
 
 
+def _codegen_state_fields(state_config: dict) -> dict[str, str]:
+    """Extract code generation type strings from state config.
+
+    Handles both simple string syntax and dict-syntax state definitions.
+    """
+    fields: dict[str, str] = {}
+    for field_name, type_spec in state_config.items():
+        if isinstance(type_spec, str):
+            fields[field_name] = CODEGEN_TYPE_MAP.get(type_spec.lower(), "Any")
+        elif isinstance(type_spec, dict):
+            type_str = type_spec.get("type", "any")
+            fields[field_name] = CODEGEN_TYPE_MAP.get(type_str.lower(), "Any")
+    return fields
+
+
 def generate_typeddict_code(
     config: dict,
     source_path: str | None = None,
@@ -335,10 +377,7 @@ def generate_typeddict_code(
 
     # Parse custom state fields
     state_config = config.get("state", {})
-    for field_name, type_spec in state_config.items():
-        if isinstance(type_spec, str):
-            python_type = CODEGEN_TYPE_MAP.get(type_spec.lower(), "Any")
-            fields[field_name] = python_type
+    fields.update(_codegen_state_fields(state_config))
 
     # Extract fields from nodes
     nodes = config.get("nodes", {})
