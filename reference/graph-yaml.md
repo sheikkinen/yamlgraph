@@ -759,6 +759,103 @@ the next edge when `loop_until` fires.
 
 See [examples/demos/interactive_tool/](../examples/demos/interactive_tool/) for a working trivia quiz demo.
 
+### `type: race` - Race Multiple Providers
+
+Fire the same prompt to multiple LLM provider/model candidates concurrently
+and return the fastest successful response (FR-232). Useful for
+latency-sensitive graphs where hedging across providers reduces tail latency.
+
+```yaml
+nodes:
+  fastest_answer:
+    type: race
+    prompt: answer
+    state_key: answer
+    timeout: 15
+    candidates:
+      - provider: mistral
+        model: mistral-small-latest
+      - provider: openai
+        model: gpt-4o-mini
+      - provider: google
+        model: gemini-2.0-flash
+```
+
+**Race node properties:**
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `candidates` | `list[{provider, model}]` | Yes | Provider/model pairs to race (minimum 2) |
+| `timeout` | `int` | No | Per-candidate timeout in seconds (default: 30) |
+| `prompt` | `string` | Yes | Prompt template name |
+| `state_key` | `string` | Yes | State key for the winning response |
+| `temperature` | `float` | No | LLM temperature for all candidates |
+
+**How it works:**
+1. All candidates are dispatched concurrently via `ThreadPoolExecutor`
+2. The first candidate to return a successful response wins
+3. Remaining in-flight candidates are cancelled
+4. `state_key` receives the winning response text
+5. `_race_winner` is set to a string identifying which candidate won (e.g. `"mistral/mistral-small-latest"`)
+
+**Error handling:** When all candidates fail (timeout or exception), the node's
+`on_error` policy applies (`skip`, `retry`, `fail`, or `fallback`).
+
+See [examples/demos/race/](../examples/demos/race/) for a working demo.
+
+### `type: pipeline` - Compile-Time Pipeline Templates
+
+Define a sequence of stages once, iterate over a list of items, and expand
+to concrete nodes and edges at compile time (FR-235). This is a meta-node —
+it does not exist at runtime, only its expanded concrete nodes do.
+
+```yaml
+nodes:
+  topics:
+    type: pipeline
+    items:
+      - name: sun
+        subject: "the Sun"
+      - name: moon
+        subject: "the Moon"
+    stages:
+      - name: draft
+        type: llm
+        prompt: draft
+        variables:
+          subject: "{item.subject}"
+        state_key: draft_{item.name}
+      - name: polish
+        type: llm
+        prompt: polish
+        variables:
+          draft: "{state.draft_{item.name}}"
+        state_key: polished_{item.name}
+```
+
+**Pipeline node properties:**
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `items` | `list[dict]` | Yes | List of item dicts; each must have a `name` field plus arbitrary fields |
+| `stages` | `list[dict]` | Yes | List of node configs supporting `{item.field}` and `{state.field}` interpolation |
+
+**Expansion semantics:**
+- `N items × M stages = N×M` concrete nodes, chained sequentially per item
+- External edges (e.g. `START → pipeline_node`, `pipeline_node → END`) are
+  rewritten to point to the first and last expanded nodes respectively
+- Expanded node names follow the pattern `<pipeline>_<item>_<stage>`
+
+**Interpolation:**
+- `{item.field}` — replaced with the item's field value in `prompt`, `variables`, `state_key`
+- `{state.field}` — replaced at runtime with state values (use in `variables`)
+- Non-string fields are copied verbatim (no interpolation)
+
+**Lint checks:** E401 (empty items), E402 (empty stages), E403 (unresolved
+`{item.xxx}` references), E404 (item missing `name` field).
+
+See [examples/demos/pipeline/](../examples/demos/pipeline/) for a working demo.
+
 ### Error Handling Properties
 
 All node types support error handling:
