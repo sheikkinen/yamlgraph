@@ -1,23 +1,38 @@
-2026-04-18 10:03:13,826 [INFO] yamlgraph.pipeline_template: Expanded pipeline 'topics': 3 items × 2 stages = 6 nodes
-2026-04-18 10:03:13,830 [INFO] yamlgraph.node_compiler: Added node: topics__sun__draft (type=llm)
-2026-04-18 10:03:13,831 [INFO] yamlgraph.node_compiler: Added node: topics__sun__polish (type=llm)
-2026-04-18 10:03:13,832 [INFO] yamlgraph.node_compiler: Added node: topics__moon__draft (type=llm)
-2026-04-18 10:03:13,832 [INFO] yamlgraph.node_compiler: Added node: topics__moon__polish (type=llm)
-2026-04-18 10:03:13,833 [INFO] yamlgraph.node_compiler: Added node: topics__stars__draft (type=llm)
-2026-04-18 10:03:13,834 [INFO] yamlgraph.node_compiler: Added node: topics__stars__polish (type=llm)
-2026-04-18 10:03:13,858 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
-2026-04-18 10:03:14,691 [ERROR] yamlgraph.error_handlers: Node topics__sun__draft failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 10:03:14,695 [ERROR] yamlgraph.error_handlers: Node topics__sun__polish failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 10:03:14,697 [ERROR] yamlgraph.error_handlers: Node topics__moon__draft failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 10:03:14,698 [ERROR] yamlgraph.error_handlers: Node topics__moon__polish failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 10:03:14,700 [ERROR] yamlgraph.error_handlers: Node topics__stars__draft failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 10:03:14,701 [ERROR] yamlgraph.error_handlers: Node topics__stars__polish failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Disabling PyTorch because PyTorch >= 2.4 is required but found 2.2.2
+PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+2026-04-19 06:54:55,719 [INFO] yamlgraph.pipeline_template: Expanded pipeline 'topics': 3 items × 2 stages = 6 nodes
+2026-04-19 06:54:55,722 [INFO] yamlgraph.node_compiler: Added node: topics__sun__draft (type=llm)
+2026-04-19 06:54:55,723 [INFO] yamlgraph.node_compiler: Added node: topics__sun__polish (type=llm)
+2026-04-19 06:54:55,724 [INFO] yamlgraph.node_compiler: Added node: topics__moon__draft (type=llm)
+2026-04-19 06:54:55,725 [INFO] yamlgraph.node_compiler: Added node: topics__moon__polish (type=llm)
+2026-04-19 06:54:55,726 [INFO] yamlgraph.node_compiler: Added node: topics__stars__draft (type=llm)
+2026-04-19 06:54:55,726 [INFO] yamlgraph.node_compiler: Added node: topics__stars__polish (type=llm)
+2026-04-19 06:54:55,825 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0.7)
+2026-04-19 06:54:58,688 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:54:58,697 [INFO] yamlgraph.node_factory.llm_nodes: Node topics__sun__draft completed successfully
+2026-04-19 06:54:59,229 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:54:59,230 [INFO] yamlgraph.node_factory.llm_nodes: Node topics__sun__polish completed successfully
+2026-04-19 06:55:00,263 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:55:00,264 [INFO] yamlgraph.node_factory.llm_nodes: Node topics__moon__draft completed successfully
+2026-04-19 06:55:01,311 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:55:01,312 [INFO] yamlgraph.node_factory.llm_nodes: Node topics__moon__polish completed successfully
+2026-04-19 06:55:03,506 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:55:03,508 [INFO] yamlgraph.node_factory.llm_nodes: Node topics__stars__draft completed successfully
+2026-04-19 06:55:04,981 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:55:04,982 [INFO] yamlgraph.node_factory.llm_nodes: Node topics__stars__polish completed successfully
 
 🚀 Running graph: graph.yaml
-   Variables: {'audience': '5-year-olds'}
+   Variables: {'audience': 'software engineers'}
 
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019da3e0-8d80-7971-a42a-c1df21cb891f?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: topics__stars__polish
-  audience: 5-year-olds
+  audience: software engineers
+  draft_sun: The Sun is a gigantic nuclear‑fusion engine that runs at about 15 million °C, like a super‑fast CPU that never overheats and powers the whole solar system. If you could code its energy output, you’d need an infinite loop—because the Sun will keep shining for roughly 10 billion years, giving you the ultimate uptime!
+  polished_sun: The Sun is a colossal nuclear‑fusion engine, burning at roughly 15 million °C, like a super‑fast CPU that never overheats while powering the entire solar system. If you could program its energy output, you’d need an infinite loop—because the Sun will keep shining for about 10 billion years, delivering ultimate uptime.
+  draft_moon: The Moon is Earth’s trusty side‑kick, looping around us every 27 days like a background process that never sleeps. Its surface is a giant, dusty codebase full of craters—each one a “bug report” from ancient meteors that left a permanent mark.
+  polished_moon: The Moon, Earth’s faithful side‑kick, circles us every 27 days like an ever‑running background process. Its surface is a sprawling, dusty codebase of craters—each a lingering “bug report” from ancient meteors.
+  draft_stars: Stars are like giant, glowing servers in the sky, crunching nuclear‑fusion code at light‑speed and sending out photon packets that zip across space for years before they land on Earth, just like a cosmic data transfer. Their cores act as super‑fast CPUs that run a 10‑million‑year‑long program turning hydrogen into helium, generating enough power to light up a whole city for billions of years—no bugs, just pure stellar brilliance!
+  polished_stars: Stars are colossal, glowing servers in the sky, crunching nuclear‑fusion code at light‑speed and launching photon packets that race across space for years before reaching Earth—essentially a cosmic data transfer. Their cores function as ultra‑fast CPUs running a ten‑million‑year program that fuses hydrogen into helium, producing enough energy to power an entire city for billions of years, flawless and brilliant.
