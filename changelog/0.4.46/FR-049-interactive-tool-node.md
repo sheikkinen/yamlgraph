@@ -1,7 +1,6 @@
 ---
 type: feat
 scope: interactive
-req: REQ-YG-075
 ---
 - **FR-049 Interactive Tool Node** (CAP-24, REQ-YG-075): New `type: interactive_tool` node that expands a single YAML node into a full multi-turn conversation loop (`__start` → `__ask` → `__step` ↺ → `__end`) at compile time
   - Config-level expansion via `expand_interactive_tools()` — no new factory needed

@@ -1,7 +1,7 @@
 ---
 type: feat
 scope: telco
-req: REQ-YG-078
+req: REQ-YG-083
 ---
 - **FR-071 Telco Voice Call Demo** (REQ-YG-078–082): Outbound Twilio voice call with ElevenLabs TTS/STT
   - `projects/outcaller/`: YAMLGraph orchestrates call flow via Python tool nodes
