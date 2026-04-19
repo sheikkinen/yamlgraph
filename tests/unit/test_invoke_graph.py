@@ -11,11 +11,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # ---------------------------------------------------------------------------
-# REQ-YG-257: Shared invoke_graph function
+# REQ-YG-258: Shared invoke_graph function
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-257")
+@pytest.mark.req("REQ-YG-258")
 def test_invoke_graph_exists_in_graph_loader():
     """invoke_graph is importable from graph_loader."""
     from yamlgraph.graph_loader import invoke_graph
@@ -23,7 +23,7 @@ def test_invoke_graph_exists_in_graph_loader():
     assert callable(invoke_graph)
 
 
-@pytest.mark.req("REQ-YG-257")
+@pytest.mark.req("REQ-YG-258")
 def test_invoke_graph_calls_pipeline():
     """invoke_graph calls load_graph_config → compile_graph → compile → invoke."""
     mock_compiled = MagicMock()
@@ -53,7 +53,7 @@ def test_invoke_graph_calls_pipeline():
     assert result == {"greeting": "Hello!"}
 
 
-@pytest.mark.req("REQ-YG-257")
+@pytest.mark.req("REQ-YG-258")
 def test_invoke_graph_passes_config():
     """invoke_graph forwards optional config to compiled.invoke."""
     mock_compiled = MagicMock()
@@ -74,7 +74,7 @@ def test_invoke_graph_passes_config():
     mock_compiled.invoke.assert_called_once_with({"x": "1"}, config=run_config)
 
 
-@pytest.mark.req("REQ-YG-257")
+@pytest.mark.req("REQ-YG-258")
 def test_invoke_graph_accepts_path_object():
     """invoke_graph accepts pathlib.Path as well as str."""
     from pathlib import Path
@@ -101,7 +101,7 @@ def test_invoke_graph_accepts_path_object():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-257")
+@pytest.mark.req("REQ-YG-258")
 def test_mcp_server_delegates_to_shared_invoke_graph():
     """mcp_server._invoke_graph delegates to graph_loader.invoke_graph."""
     pytest.importorskip("mcp")
@@ -117,7 +117,7 @@ def test_mcp_server_delegates_to_shared_invoke_graph():
     assert result == {"greeting": "Hi"}
 
 
-@pytest.mark.req("REQ-YG-257")
+@pytest.mark.req("REQ-YG-258")
 def test_a2a_server_delegates_to_shared_invoke_graph():
     """a2a_server._invoke_graph delegates to graph_loader.invoke_graph."""
     pytest.importorskip("a2a")

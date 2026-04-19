@@ -1,4 +1,4 @@
-id: CAP-110
+id: CAP-111
 name: Shared Graph Invocation
 description: >
   Shared invoke_graph() function in graph_loader eliminates duplicated
@@ -6,7 +6,7 @@ description: >
 modules:
   - graph_loader
 requirements:
-  - id: REQ-YG-257
+  - id: REQ-YG-258
     description: >
       invoke_graph(path, variables, config) in graph_loader.py: loads config,
       compiles graph, invokes synchronously with optional LangGraph run config.

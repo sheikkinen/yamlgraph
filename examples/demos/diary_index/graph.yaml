@@ -1,0 +1,81 @@
+version: "1.0"
+name: diary-index
+description: >
+  Read diary entries, extract traps/heuristics/seeds/FR references,
+  produce a structured cross-reference index. (FR-254)
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+  temperature: 0.2
+
+state:
+  diary_files: list
+  extractions:
+    type: list
+    reducer: sorted_add
+  index: dict
+  output_path: str
+
+tools:
+  list_diary_files:
+    type: python
+    module: examples.demos.diary_index.tools
+    function: list_diary_files
+    description: "List all diary .md files with their content"
+  aggregate_index:
+    type: python
+    module: examples.demos.diary_index.tools
+    function: aggregate_index
+    description: "Deterministically aggregate extractions into a cross-reference index"
+  write_index:
+    type: python
+    module: examples.demos.diary_index.tools
+    function: write_index
+    description: "Write the final index to docs/diary-index.yaml"
+
+nodes:
+  list_files:
+    type: python
+    tool: list_diary_files
+    state_key: diary_files
+
+  extract_all:
+    type: map
+    over: "{state.diary_files}"
+    as: entry
+    max_items: 500
+    node:
+      type: llm
+      prompt: extract_entry
+      state_key: extraction
+      on_error: skip
+      variables:
+        filename: "{state.entry.filename}"
+        content: "{state.entry.content}"
+    collect: extractions
+
+  aggregate:
+    type: python
+    tool: aggregate_index
+    state_key: index
+
+  write_index:
+    type: python
+    tool: write_index
+    state_key: output_path
+
+edges:
+  - from: START
+    to: list_files
+  - from: list_files
+    to: extract_all
+  - from: extract_all
+    to: aggregate
+  - from: aggregate
+    to: write_index
+  - from: write_index
+    to: END
