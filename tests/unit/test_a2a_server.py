@@ -1,7 +1,9 @@
-"""Tests for A2A server — FR-208/FR-225: A2A Protocol Server.
+"""Tests for A2A server — FR-208/FR-225/FR-250: A2A Protocol Server.
 
 Covers: _invoke_graph, YAMLGraphAgentExecutor (execute, cancel),
-        _resolve_graph, _format_result, create_a2a_app.
+        _resolve_graph, _format_result, create_a2a_app,
+        streaming execution (FR-250), interrupt payload forwarding,
+        and resume flow.
 
 Message-layer tests moved to test_a2a_message.py (FR-225).
 """
@@ -217,6 +219,7 @@ async def test_executor_execute_invokes_graph(sample_graph_info):
     context.get_user_input.return_value = "name=World style=casual"
     context.task_id = "task-1"
     context.context_id = "ctx-1"
+    context.current_task = None
 
     # Use a collecting mock queue
     collected_events: list[Any] = []
@@ -225,8 +228,13 @@ async def test_executor_execute_invokes_graph(sample_graph_info):
     queue.enqueue_event = AsyncMock(side_effect=lambda e: collected_events.append(e))
     queue.close = AsyncMock()
 
-    mock_result = {"greeting": "Hello World!"}
-    with patch("yamlgraph.a2a_server._invoke_graph", return_value=mock_result):
+    async def mock_streaming(*args, **kwargs):
+        yield "Hello World!"
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming,
+    ):
         await executor.execute(context, queue)
 
     # Should have working + artifact + completed events
@@ -254,15 +262,20 @@ async def test_executor_execute_error_path(sample_graph_info):
     context.get_user_input.return_value = "name=World style=casual"
     context.task_id = "task-err-1"
     context.context_id = "ctx-1"
+    context.current_task = None
 
     collected_events: list[Any] = []
     queue = AsyncMock()
     queue.enqueue_event = AsyncMock(side_effect=lambda e: collected_events.append(e))
     queue.close = AsyncMock()
 
+    async def mock_streaming_error(*args, **kwargs):
+        raise RuntimeError("Graph exploded")
+        yield  # pragma: no cover — makes this an async generator
+
     with patch(
-        "yamlgraph.a2a_server._invoke_graph",
-        side_effect=RuntimeError("Graph exploded"),
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming_error,
     ):
         await executor.execute(context, queue)
 
@@ -294,15 +307,20 @@ async def test_executor_execute_pipeline_error_mapping_unreachable(sample_graph_
     context.get_user_input.return_value = "name=World style=casual"
     context.task_id = "task-perr-1"
     context.context_id = "ctx-1"
+    context.current_task = None
 
     collected_events: list[Any] = []
     queue = AsyncMock()
     queue.enqueue_event = AsyncMock(side_effect=lambda e: collected_events.append(e))
     queue.close = AsyncMock()
 
+    async def mock_streaming_valerr(*args, **kwargs):
+        raise ValueError("Bad input format")
+        yield  # pragma: no cover — makes this an async generator
+
     with patch(
-        "yamlgraph.a2a_server._invoke_graph",
-        side_effect=ValueError("Bad input format"),
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming_valerr,
     ):
         await executor.execute(context, queue)
 
@@ -467,13 +485,20 @@ async def test_execute_produces_streaming_events(sample_graph_info):
     context.get_user_input.return_value = "name=World style=casual"
     context.task_id = "task-stream-1"
     context.context_id = "ctx-1"
+    context.current_task = None
 
     collected: list[Any] = []
     queue = AsyncMock()
     queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
     queue.close = AsyncMock()
 
-    with patch("yamlgraph.a2a_server._invoke_graph", return_value={"out": "hi"}):
+    async def mock_streaming(*args, **kwargs):
+        yield "hi"
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming,
+    ):
         await executor.execute(context, queue)
 
     # Verify SSE event stream order: working → artifact → completed
@@ -491,7 +516,7 @@ async def test_execute_produces_streaming_events(sample_graph_info):
 @pytest.mark.req("REQ-YG-211")
 @pytest.mark.asyncio(loop_scope="function")
 async def test_streaming_events_include_message_on_complete(sample_graph_info):
-    """Completed SSE event includes agent message with result text."""
+    """Completed SSE event includes agent message."""
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
@@ -505,14 +530,19 @@ async def test_streaming_events_include_message_on_complete(sample_graph_info):
     context.get_user_input.return_value = "name=World style=casual"
     context.task_id = "task-stream-2"
     context.context_id = "ctx-1"
+    context.current_task = None
 
     collected: list[Any] = []
     queue = AsyncMock()
     queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
     queue.close = AsyncMock()
 
+    async def mock_streaming(*args, **kwargs):
+        yield "Hello!"
+
     with patch(
-        "yamlgraph.a2a_server._invoke_graph", return_value={"greeting": "Hello!"}
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming,
     ):
         await executor.execute(context, queue)
 
@@ -524,17 +554,17 @@ async def test_streaming_events_include_message_on_complete(sample_graph_info):
     ]
     assert len(completed) == 1
     assert completed[0].status.message is not None
-    assert "Hello!" in completed[0].status.message.parts[0].text
 
 
 @pytest.mark.req("REQ-YG-213")
 @pytest.mark.asyncio(loop_scope="function")
 async def test_execute_emits_input_required_on_interrupt(sample_graph_info):
-    """When graph result contains __interrupt__, input-required state is emitted."""
+    """When streaming yields an interrupt StreamEvent, input-required state is emitted."""
     from a2a.server.agent_execution import RequestContext
     from a2a.types import TaskState, TaskStatusUpdateEvent
 
     from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.models.streaming import StreamEvent
 
     executor = YAMLGraphAgentExecutor(
         graph_lookup={"hello-world": sample_graph_info},
@@ -544,17 +574,21 @@ async def test_execute_emits_input_required_on_interrupt(sample_graph_info):
     context.get_user_input.return_value = "name=World style=casual"
     context.task_id = "task-interrupt-1"
     context.context_id = "ctx-1"
+    context.current_task = None
 
     collected: list[Any] = []
     queue = AsyncMock()
     queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
     queue.close = AsyncMock()
 
-    interrupt_result = {
-        "greeting": "partial",
-        "__interrupt__": [{"value": "need clarification"}],
-    }
-    with patch("yamlgraph.a2a_server._invoke_graph", return_value=interrupt_result):
+    async def mock_streaming_interrupt(*args, **kwargs):
+        yield "partial"
+        yield StreamEvent(type="interrupt", payload="need clarification")
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming_interrupt,
+    ):
         await executor.execute(context, queue)
 
     status_events = [e for e in collected if isinstance(e, TaskStatusUpdateEvent)]
@@ -614,12 +648,336 @@ async def test_execute_does_not_call_queue_close(sample_graph_info):
     context.get_user_input.return_value = "name=World style=casual"
     context.task_id = "task-drain-1"
     context.context_id = "ctx-1"
+    context.current_task = None
 
     queue = AsyncMock()
     queue.enqueue_event = AsyncMock()
 
-    with patch("yamlgraph.a2a_server._invoke_graph", return_value={"out": "hi"}):
+    async def mock_streaming(*args, **kwargs):
+        yield "hi"
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming,
+    ):
         await executor.execute(context, queue)
 
     # enqueue_event should have been called (working + artifact + completed)
     assert queue.enqueue_event.call_count == 3
+
+
+# ---------------------------------------------------------------------------
+# FR-250 Gap 3a (REQ-YG-213): Interrupt payload forwarded to client
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-213")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_interrupt_payload_forwarded_in_input_required_message(sample_graph_info):
+    """INPUT_REQUIRED message includes the interrupt payload (the question)."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import TaskState, TaskStatusUpdateEvent
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.models.streaming import StreamEvent
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-int-payload-1"
+    context.context_id = "ctx-1"
+    context.current_task = None
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+
+    interrupt_value = "What is your preferred language?"
+
+    async def mock_streaming_interrupt(*args, **kwargs):
+        yield "partial"
+        yield StreamEvent(type="interrupt", payload=interrupt_value)
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming_interrupt,
+    ):
+        await executor.execute(context, queue)
+
+    input_required = [
+        e
+        for e in collected
+        if isinstance(e, TaskStatusUpdateEvent)
+        and e.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
+    ]
+    assert len(input_required) == 1
+    # The interrupt payload must be forwarded as the message text
+    msg_text = input_required[0].status.message.parts[0].text
+    assert interrupt_value in msg_text
+
+
+# ---------------------------------------------------------------------------
+# FR-250 Gap 2 (REQ-YG-211): Streaming execution with incremental artifacts
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-211")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_streaming_execute_yields_incremental_artifacts(sample_graph_info):
+    """Streaming execution yields TaskArtifactUpdateEvent per token chunk."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import (
+        TaskArtifactUpdateEvent,
+        TaskState,
+        TaskStatusUpdateEvent,
+    )
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-stream-incr-1"
+    context.context_id = "ctx-1"
+    context.current_task = None
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+
+    # Simulate streaming: run_graph_streaming_native yields token chunks
+    async def mock_streaming(*args, **kwargs):
+        yield "Hello"
+        yield ", "
+        yield "World!"
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming,
+    ):
+        await executor.execute(context, queue)
+
+    # Should have: working + 3 artifact events + completed
+    assert isinstance(collected[0], TaskStatusUpdateEvent)
+    assert collected[0].status.state == TaskState.TASK_STATE_WORKING
+
+    artifact_events = [e for e in collected if isinstance(e, TaskArtifactUpdateEvent)]
+    assert len(artifact_events) == 3
+    texts = [e.artifact.parts[0].text for e in artifact_events]
+    assert texts == ["Hello", ", ", "World!"]
+
+    final = collected[-1]
+    assert isinstance(final, TaskStatusUpdateEvent)
+    assert final.status.state == TaskState.TASK_STATE_COMPLETED
+
+
+@pytest.mark.req("REQ-YG-211")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_streaming_error_yields_failed_status(sample_graph_info):
+    """StreamEvent(type='error') during streaming yields FAILED status."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import TaskState, TaskStatusUpdateEvent
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.models.streaming import StreamEvent
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-stream-err-1"
+    context.context_id = "ctx-1"
+    context.current_task = None
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+
+    async def mock_streaming_error(*args, **kwargs):
+        yield "partial"
+        yield StreamEvent(type="error", error="LLM timeout", error_type="TimeoutError")
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming_error,
+    ):
+        await executor.execute(context, queue)
+
+    status_events = [e for e in collected if isinstance(e, TaskStatusUpdateEvent)]
+    failed = [e for e in status_events if e.status.state == TaskState.TASK_STATE_FAILED]
+    assert len(failed) == 1
+    assert "LLM timeout" in failed[0].status.message.parts[0].text
+
+
+@pytest.mark.req("REQ-YG-211")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_streaming_interrupt_yields_input_required(sample_graph_info):
+    """StreamEvent(type='interrupt') during streaming yields INPUT_REQUIRED."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import TaskState, TaskStatusUpdateEvent
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+    from yamlgraph.models.streaming import StreamEvent
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-stream-int-1"
+    context.context_id = "ctx-1"
+    context.current_task = None
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+
+    async def mock_streaming_interrupt(*args, **kwargs):
+        yield "partial answer"
+        yield StreamEvent(type="interrupt", payload="Please confirm your choice")
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming_interrupt,
+    ):
+        await executor.execute(context, queue)
+
+    status_events = [e for e in collected if isinstance(e, TaskStatusUpdateEvent)]
+    input_required = [
+        e
+        for e in status_events
+        if e.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
+    ]
+    assert len(input_required) == 1
+    assert (
+        "Please confirm your choice" in input_required[0].status.message.parts[0].text
+    )
+
+
+# ---------------------------------------------------------------------------
+# FR-250 Gap 3b (REQ-YG-213): Resume flow via Command(resume=...)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-213")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_resume_from_input_required_state(sample_graph_info):
+    """When current_task is INPUT_REQUIRED, execute resumes via Command(resume=...)."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import (
+        Task,
+        TaskArtifactUpdateEvent,
+        TaskState,
+        TaskStatus,
+        TaskStatusUpdateEvent,
+    )
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    # Simulate existing task in INPUT_REQUIRED state
+    existing_task = Task(
+        id="task-resume-1",
+        context_id="ctx-1",
+        status=TaskStatus(state=TaskState.TASK_STATE_INPUT_REQUIRED),
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "English"
+    context.task_id = "task-resume-1"
+    context.context_id = "ctx-1"
+    context.current_task = existing_task
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+
+    # Streaming should be called with Command(resume="English")
+    async def mock_resume_streaming(graph_path, initial_state, **kwargs):
+        from langgraph.types import Command
+
+        assert isinstance(initial_state, Command)
+        assert initial_state.resume == "English"
+        yield "Resumed output"
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_resume_streaming,
+    ):
+        await executor.execute(context, queue)
+
+    artifact_events = [e for e in collected if isinstance(e, TaskArtifactUpdateEvent)]
+    assert len(artifact_events) == 1
+    assert artifact_events[0].artifact.parts[0].text == "Resumed output"
+
+    completed = [
+        e
+        for e in collected
+        if isinstance(e, TaskStatusUpdateEvent)
+        and e.status.state == TaskState.TASK_STATE_COMPLETED
+    ]
+    assert len(completed) == 1
+
+
+# ---------------------------------------------------------------------------
+# FR-250: Batch execute still works (non-streaming fallback)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-211")
+@pytest.mark.asyncio(loop_scope="function")
+async def test_batch_execute_still_works_via_streaming(sample_graph_info):
+    """Batch execute uses streaming path and produces correct event sequence."""
+    from a2a.server.agent_execution import RequestContext
+    from a2a.types import (
+        TaskArtifactUpdateEvent,
+        TaskState,
+        TaskStatusUpdateEvent,
+    )
+
+    from yamlgraph.a2a_server import YAMLGraphAgentExecutor
+
+    executor = YAMLGraphAgentExecutor(
+        graph_lookup={"hello-world": sample_graph_info},
+    )
+
+    context = MagicMock(spec=RequestContext)
+    context.get_user_input.return_value = "name=World style=casual"
+    context.task_id = "task-batch-1"
+    context.context_id = "ctx-1"
+    context.current_task = None
+
+    collected: list[Any] = []
+    queue = AsyncMock()
+    queue.enqueue_event = AsyncMock(side_effect=lambda e: collected.append(e))
+
+    async def mock_streaming(*args, **kwargs):
+        yield "Complete response"
+
+    with patch(
+        "yamlgraph.a2a_server.run_graph_streaming_native",
+        side_effect=mock_streaming,
+    ):
+        await executor.execute(context, queue)
+
+    # working → artifact → completed
+    assert isinstance(collected[0], TaskStatusUpdateEvent)
+    assert collected[0].status.state == TaskState.TASK_STATE_WORKING
+
+    artifacts = [e for e in collected if isinstance(e, TaskArtifactUpdateEvent)]
+    assert len(artifacts) == 1
+
+    assert isinstance(collected[-1], TaskStatusUpdateEvent)
+    assert collected[-1].status.state == TaskState.TASK_STATE_COMPLETED

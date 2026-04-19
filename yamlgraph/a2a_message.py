@@ -236,3 +236,27 @@ def _detect_interrupt(result: dict[str, Any]) -> bool:
         True if the result contains an interrupt marker.
     """
     return "__interrupt__" in result
+
+
+def _extract_interrupt_payload(result: dict[str, Any]) -> str | None:
+    """Extract the interrupt payload from a graph result.
+
+    FR-250 / REQ-YG-213: Forward the interrupt value (the question/prompt)
+    to the A2A client so it knows *what* to answer.
+
+    Args:
+        result: Graph invocation result dict containing ``__interrupt__``.
+
+    Returns:
+        String representation of the interrupt payload, or None if
+        no interrupt or no payload.
+    """
+    interrupts = result.get("__interrupt__")
+    if not interrupts:
+        return None
+    first = interrupts[0]
+    # LangGraph Interrupt objects have a .value attribute
+    value = getattr(first, "value", None)
+    if value is None and isinstance(first, dict):
+        value = first.get("value")
+    return str(value) if value is not None else None

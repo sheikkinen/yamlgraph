@@ -514,3 +514,48 @@ def test_detect_interrupt_returns_false():
 
     result = {"greeting": "Hello"}
     assert _detect_interrupt(result) is False
+
+
+# ---------------------------------------------------------------------------
+# FR-250 / REQ-YG-213: _extract_interrupt_payload
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-213")
+def test_extract_interrupt_payload_with_object():
+    """_extract_interrupt_payload extracts .value from interrupt objects."""
+    from unittest.mock import MagicMock
+
+    from yamlgraph.a2a_message import _extract_interrupt_payload
+
+    interrupt = MagicMock()
+    interrupt.value = "What language do you prefer?"
+    result = {"__interrupt__": [interrupt]}
+    assert _extract_interrupt_payload(result) == "What language do you prefer?"
+
+
+@pytest.mark.req("REQ-YG-213")
+def test_extract_interrupt_payload_with_dict():
+    """_extract_interrupt_payload extracts value from dict interrupts."""
+    from yamlgraph.a2a_message import _extract_interrupt_payload
+
+    result = {"__interrupt__": [{"value": "Please confirm"}]}
+    assert _extract_interrupt_payload(result) == "Please confirm"
+
+
+@pytest.mark.req("REQ-YG-213")
+def test_extract_interrupt_payload_no_interrupt():
+    """_extract_interrupt_payload returns None when no __interrupt__ key."""
+    from yamlgraph.a2a_message import _extract_interrupt_payload
+
+    result = {"greeting": "Hello"}
+    assert _extract_interrupt_payload(result) is None
+
+
+@pytest.mark.req("REQ-YG-213")
+def test_extract_interrupt_payload_empty_list():
+    """_extract_interrupt_payload returns None for empty interrupt list."""
+    from yamlgraph.a2a_message import _extract_interrupt_payload
+
+    result = {"__interrupt__": []}
+    assert _extract_interrupt_payload(result) is None
