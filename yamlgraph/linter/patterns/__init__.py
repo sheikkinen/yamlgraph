@@ -8,6 +8,7 @@ from yamlgraph.linter.patterns.agent import check_agent_patterns
 from yamlgraph.linter.patterns.copilot import check_copilot_patterns
 from yamlgraph.linter.patterns.interrupt import check_interrupt_patterns
 from yamlgraph.linter.patterns.map import check_map_patterns
+from yamlgraph.linter.patterns.pipeline import check_pipeline_patterns
 from yamlgraph.linter.patterns.race import check_race_patterns
 from yamlgraph.linter.patterns.router import check_router_patterns
 from yamlgraph.linter.patterns.subgraph import check_subgraph_patterns
@@ -19,5 +20,6 @@ __all__ = [
     "check_agent_patterns",
     "check_subgraph_patterns",
     "check_copilot_patterns",
+    "check_pipeline_patterns",
     "check_race_patterns",
 ]

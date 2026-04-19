@@ -409,7 +409,7 @@ class TestSynthesizeClonedAudio:
         )
 
 
-@pytest.mark.req("REQ-YG-236")
+@pytest.mark.req("REQ-YG-238")
 class TestSpeakCLI:
     """Test speak.py CLI tool (FR-237)."""
 

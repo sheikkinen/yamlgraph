@@ -18,7 +18,7 @@ requirements:
       clone.yaml graph and speak.py CLI both use this tool. Optional dependency chatterbox-tts.
     modules:
       - examples/demos/chatterbox
-  - id: REQ-YG-236
+  - id: REQ-YG-238
     description: >
       Chatterbox speak CLI: speak.py accepts --ref (reference WAV, required) and positional text;
       validates ref exists (exit 1 on missing); calls ChatterboxTTS.generate() without language_id;

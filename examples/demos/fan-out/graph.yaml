@@ -1,0 +1,59 @@
+# Parallel Fan-Out Demo — FR-234
+# One node fans out to three concurrent branches, which fan back in.
+#
+#   START → generate → [analyze, summarize, translate] → combine → END
+
+version: "1.0"
+name: fan-out-demo
+description: Parallel fan-out edges running three branches concurrently
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  topic: str
+
+nodes:
+  generate:
+    type: llm
+    prompt: generate
+    variables:
+      topic: "{state.topic}"
+    state_key: content
+
+  analyze:
+    type: llm
+    prompt: analyze
+    state_key: analysis
+
+  summarize:
+    type: llm
+    prompt: summarize
+    state_key: summary
+
+  translate:
+    type: llm
+    prompt: translate
+    state_key: translation
+
+  combine:
+    type: llm
+    prompt: combine
+    state_key: result
+
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: [analyze, summarize, translate]
+  - from: analyze
+    to: combine
+  - from: summarize
+    to: combine
+  - from: translate
+    to: combine
+  - from: combine
+    to: END

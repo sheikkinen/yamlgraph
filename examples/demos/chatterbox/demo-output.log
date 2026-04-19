@@ -1,3 +1,27 @@
+# Demo run: Intel Mac x86_64 (verification — 2026-04-18)
+# Platform: macOS x86_64 (Intel) — torch 2.2.2 installed
+# chatterbox-tts requires torch==2.6.0, which has no macOS Intel wheel.
+# Translation stage succeeds; synthesis stage blocked by platform constraint.
+
+Disabling PyTorch because PyTorch >= 2.4 is required but found 2.2.2
+PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+2026-04-18 10:04:00,000 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: synthesize_audio
+2026-04-18 10:04:00,001 [INFO] yamlgraph.node_compiler: Added node: generate (type=map)
+2026-04-18 10:04:00,001 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=python)
+2026-04-18 10:04:00,094 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0.7)
+2026-04-18 10:04:02,974 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (en)
+2026-04-18 10:04:03,530 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (es)
+2026-04-18 10:04:03,566 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (fi)
+2026-04-18 10:04:04,025 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (sv)
+2026-04-18 10:04:04,031 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_generate_sub completed successfully (de)
+2026-04-18 10:04:04,032 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: synthesize -> synthesize_audio
+
+⚠️  Platform constraint: torch==2.6.0 required by chatterbox-tts has no macOS x86_64 wheel.
+    PyTorch dropped Intel Mac support after 2.2.x.
+    Run this demo on Apple Silicon, Linux, or Windows.
+
+# FR-237 consolidated: graph.yaml (multilingual TTS) + clone.yaml (voice cloning) + speak.py (CLI)
+# graph.yaml CI smoke output (no torch / no provider credentials in CI):
 2026-04-19 07:45:00,000 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: synthesize_audio, synthesize_cloned_audio
 2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: generate (type=map)
 2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=python)
@@ -6,8 +30,6 @@
 2026-04-19 07:45:00,651 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: synthesize -> synthesize_audio
 2026-04-19 07:45:00,651 [ERROR] yamlgraph.tools.python_tool: Python node synthesize failed: No module named 'torch'
 
-# FR-237 consolidated: graph.yaml (multilingual TTS) + clone.yaml (voice cloning) + speak.py (CLI)
-# graph.yaml demo output (chatterbox-tts not installed in CI):
 🚀 Running graph: graph.yaml
    Variables: {'topic': 'the beauty of nature'}
 

@@ -32,10 +32,24 @@ Output saved to: `outputs/chatterbox/speak.wav`
 > influencing synthesis would mislead users. For true multilingual synthesis use `graph.yaml`
 > with `ChatterboxMultilingualTTS`.
 
+## Platform Requirements
+
+> ⚠️ **Apple Silicon (arm64) or Linux/Windows only.**
+>
+> `chatterbox-tts` requires `torch==2.6.0`, which has **no macOS Intel (x86_64) wheel**.
+> PyTorch dropped Intel Mac support after 2.2.x. Running on an Intel Mac will fail at install time.
+
+| Platform | Status |
+|----------|--------|
+| Apple Silicon Mac (M1/M2/M3/M4) | ✅ Supported |
+| Linux x86_64 / aarch64 | ✅ Supported |
+| Windows x86_64 | ✅ Supported |
+| Intel Mac (x86_64) | ❌ Not supported — `torch==2.6.0` unavailable |
+
 ## Requirements
 
 - **Chatterbox TTS**: `pip install chatterbox-tts`
-- **PyTorch**: Required by Chatterbox (CPU or CUDA)
+- **PyTorch 2.6.0**: Required by Chatterbox (CPU or CUDA)
 - **~2GB disk**: Model downloaded on first run
 - **GPU recommended**: CPU inference is slow (~30s per utterance)
 

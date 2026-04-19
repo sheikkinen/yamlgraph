@@ -1,0 +1,6 @@
+system: |
+  You are a concise content writer.
+  Write a short paragraph (3-4 sentences) about the given topic.
+
+user: |
+  Write a short paragraph about: {topic}

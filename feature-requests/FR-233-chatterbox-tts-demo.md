@@ -165,6 +165,17 @@ Add `demo_chatterbox` to `examples/demos/demo.sh` (not in `all` — requires GPU
 - Model download is ~2GB on first run — document this in README.
 - The demo is heavyweight (large model, GPU preferred) so it should be excluded from the default `all` target in `demo.sh`, similar to how `interview` and `codegen` are skipped.
 
+## Platform Findings (2026-04-18)
+
+Validated during post-merge verification on an Intel Mac (x86_64 Darwin):
+
+- `torch==2.6.0` (required by `chatterbox-tts 0.1.7`) has **no macOS Intel wheel**.
+  PyTorch dropped Intel Mac support after `2.2.2`.
+- `transformers==5.2.0` also requires `torch>=2.4`, making the stack unusable on Intel.
+- All other dependencies (`librosa`, `s3tokenizer`, `safetensors`, `diffusers`, etc.) install fine.
+
+**Conclusion**: Demo is functional but requires **Apple Silicon, Linux, or Windows**. README updated to document this constraint explicitly.
+
 ## Related
 
 - `examples/demos/horoscope/` — closest pattern (map fan-out + python tool save)

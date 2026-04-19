@@ -23,6 +23,7 @@ class NodeType(StrEnum):
     INTERACTIVE_TOOL = "interactive_tool"
     COPILOT = "copilot"
     RACE = "race"
+    PIPELINE = "pipeline"
 
     @classmethod
     def requires_prompt(cls, node_type: str) -> bool:
