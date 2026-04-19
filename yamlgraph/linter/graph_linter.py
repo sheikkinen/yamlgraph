@@ -42,7 +42,6 @@ from yamlgraph.linter.checks_semantic import (
     check_unguarded_cycles,
 )
 from yamlgraph.linter.patterns import (
-    check_a2a_call_patterns,
     check_agent_patterns,
     check_copilot_patterns,
     check_interrupt_patterns,
@@ -112,9 +111,6 @@ def lint_graph(
 
     # FR-235: Pipeline template checks
     all_issues.extend(check_pipeline_patterns(graph_path))
-
-    # FR-240: A2A call pattern checks
-    all_issues.extend(check_a2a_call_patterns(graph_path))
 
     # FR-061: Contract violation checks
     all_issues.extend(check_identifier_keys(graph_path))

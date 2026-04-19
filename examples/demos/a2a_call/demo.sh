@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# FR-240 A2A Call Node Demo
-# Starts a local A2A server (hello-world), then runs a graph that calls it.
+# FR-253 A2A Call Demo (contrib client)
+# Starts a local A2A server (hello-world), then runs a graph that calls it
+# via type: python + yamlgraph.contrib.a2a_client.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,7 +10,7 @@ HELLO_GRAPH="$REPO_ROOT/examples/demos/hello/"
 PORT=9240
 
 echo "═══════════════════════════════════════════════════"
-echo "  FR-240: A2A Call Node Demo"
+echo "  FR-253: A2A Call Demo (contrib client)"
 echo "═══════════════════════════════════════════════════"
 echo ""
 

@@ -1,36 +1,26 @@
 id: CAP-101
-name: A2A Call Node Type
+name: A2A Consumer Contrib Client
 description: >
-  A type: a2a_call node that sends a Jinja2-templated message to an external
-  A2A agent via HTTP JSON-RPC (tasks/send), extracts text artifacts from the
-  response, and stores them in graph state. Supports timeout, on_error
-  strategies (skip/fail/retry/fallback), variables resolution, and loop
-  counting. Linter validates required fields (agent_url, message, state_key)
-  via E901–E903. Does not require a prompt field. Uses httpx for HTTP
-  transport.
+  A2A consumer functionality via yamlgraph.contrib.a2a_client.send_a2a_message(),
+  invoked as a type: python node. Sends Jinja2-templated message to external A2A
+  agent via HTTP JSON-RPC (message/send), extracts text artifacts from the
+  response, and returns {"response": text}. Supports timeout, Agent Card fetch,
+  skill validation, and SSE streaming. Configuration via variables: on the
+  python node. Replaces dedicated type: a2a_call (FR-253).
 modules:
-  - yamlgraph/node_factory/a2a_nodes.py
-  - yamlgraph/constants.py
-  - yamlgraph/node_compiler.py
-  - yamlgraph/models/graph_schema.py
-  - yamlgraph/linter/patterns/a2a.py
-  - yamlgraph/linter/checks.py
+  - yamlgraph/contrib/a2a_client.py
+  - yamlgraph/tools/python_tool.py
 requirements:
   - id: REQ-YG-243
     description: >
-      type: a2a_call node sends Jinja2-templated message to external A2A agent
-      URL via HTTP JSON-RPC tasks/send; extracts text artifacts from response;
-      stores in state_key; supports timeout, on_error (skip/fail/retry/fallback),
-      max_retries, variables; NodeType.A2A_CALL in constants; registered in
-      NODE_TYPE_HANDLERS; linter validates required fields (agent_url, message,
-      state_key) via E901-E903; check_a2a_call_patterns() in graph linter;
-      does not require prompt field; uses httpx for HTTP transport
+      yamlgraph.contrib.a2a_client.send_a2a_message() sends Jinja2-templated
+      message to external A2A agent URL via HTTP JSON-RPC message/send; extracts
+      text artifacts from response; returns {"response": text}; invoked via
+      type: python node with variables: for agent_url, message/message_template,
+      skill, streaming, timeout; supports Agent Card fetch, skill validation,
+      SSE streaming; uses httpx for sync and A2AClient for streaming transport
     modules:
-      - yamlgraph/node_factory/a2a_nodes.py
-      - yamlgraph/constants.py
-      - yamlgraph/node_compiler.py
-      - yamlgraph/models/graph_schema.py
-      - yamlgraph/linter/patterns/a2a.py
-      - yamlgraph/linter/checks.py
-      - tests/unit/test_a2a_call_node.py
+      - yamlgraph/contrib/a2a_client.py
+      - yamlgraph/tools/python_tool.py
+      - tests/unit/test_a2a_contrib_client.py
 fr: FR-240

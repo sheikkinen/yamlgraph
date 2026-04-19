@@ -11,7 +11,7 @@ description: >
 modules:
   - yamlgraph/a2a_server.py
   - yamlgraph/a2a_message.py
-  - yamlgraph/node_factory/a2a_nodes.py
+  - yamlgraph/contrib/a2a_client.py
   - yamlgraph/cli/a2a_commands.py
 requirements:
   - id: REQ-YG-245
@@ -24,15 +24,15 @@ requirements:
       AgentCard.url field removed; InMemoryTaskStore.save/get require
       ServerCallContext; DefaultRequestHandler requires agent_card parameter;
       kind discriminator removed from JSON-RPC part payloads (member-name
-      discriminator); a2a_nodes.py extraction uses key-presence check;
+      discriminator); contrib/a2a_client.py extraction uses key-presence check;
       a2a_commands.py uses MessageToDict for card JSON serialization
     modules:
       - yamlgraph/a2a_server.py
       - yamlgraph/a2a_message.py
-      - yamlgraph/node_factory/a2a_nodes.py
+      - yamlgraph/contrib/a2a_client.py
       - yamlgraph/cli/a2a_commands.py
       - tests/unit/test_a2a_server.py
       - tests/unit/test_a2a_message.py
       - tests/unit/test_a2a_commands.py
-      - tests/unit/test_a2a_call_node.py
+      - tests/unit/test_a2a_contrib_client.py
 fr: FR-244
