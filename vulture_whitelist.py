@@ -84,6 +84,11 @@ from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
 
 GraphConfig.max_map_items
 
+# --- graph_loader: public API used by MCP/A2A servers (FR-255) ---
+from yamlgraph.graph_loader import invoke_graph  # noqa: F401 (CONF-126)
+
+invoke_graph
+
 # --- linter: Pydantic model field ---
 from yamlgraph.linter.graph_linter import LintResult  # noqa: F401 (CONF-126)
 

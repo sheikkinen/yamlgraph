@@ -64,6 +64,8 @@ logger = logging.getLogger(__name__)
 def _invoke_graph(graph_path: str, variables: dict[str, Any]) -> dict[str, Any]:
     """Load, compile, and invoke a graph synchronously.
 
+    Delegates to graph_loader.invoke_graph (FR-255).
+
     Args:
         graph_path: Absolute path to graph.yaml.
         variables: Input variables for the graph.
@@ -71,13 +73,9 @@ def _invoke_graph(graph_path: str, variables: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Result dict from graph invocation.
     """
-    from yamlgraph.graph_loader import compile_graph, load_graph_config
+    from yamlgraph.graph_loader import invoke_graph
 
-    config = load_graph_config(graph_path)
-    sg = compile_graph(config)
-    compiled = sg.compile()
-    result = compiled.invoke(variables)
-    return result
+    return invoke_graph(graph_path, variables)
 
 
 # ---------------------------------------------------------------------------
