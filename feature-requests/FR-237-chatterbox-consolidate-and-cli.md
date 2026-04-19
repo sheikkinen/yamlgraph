@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Implemented
+**Status:** ✅ Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-19
 
