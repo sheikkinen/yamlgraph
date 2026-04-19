@@ -18,7 +18,7 @@ GRAPH_YAML_REF = REPO_ROOT / "reference" / "graph-yaml.md"
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-238")
+@pytest.mark.req("REQ-YG-240")
 class TestGettingStartedNodeTable:
     """Verify reference/getting-started.md lists race and pipeline."""
 
@@ -40,7 +40,7 @@ class TestGettingStartedNodeTable:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-238")
+@pytest.mark.req("REQ-YG-240")
 class TestGraphYamlRaceSection:
     """Verify reference/graph-yaml.md has a dedicated type: race section."""
 
@@ -84,7 +84,7 @@ class TestGraphYamlRaceSection:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-238")
+@pytest.mark.req("REQ-YG-240")
 class TestGraphYamlPipelineSection:
     """Verify reference/graph-yaml.md has a dedicated type: pipeline section."""
 
@@ -132,7 +132,7 @@ class TestGraphYamlPipelineSection:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-238")
+@pytest.mark.req("REQ-YG-240")
 class TestExamplesMatchDemos:
     """Verify doc examples match the actual demo graph YAMLs."""
 
