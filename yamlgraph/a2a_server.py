@@ -1,6 +1,7 @@
 """YAMLGraph A2A Server — expose graphs as A2A agents.
 
 FR-208 / CAP-81: A2A Protocol Server
+FR-250: Complete protocol gaps (task/get, streaming, resume)
 (REQ-YG-206, REQ-YG-207, REQ-YG-208, REQ-YG-209, REQ-YG-210,
  REQ-YG-211, REQ-YG-212, REQ-YG-213)
 
@@ -15,7 +16,6 @@ import asyncio
 import json
 import logging
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 try:
@@ -42,18 +42,18 @@ except ImportError as exc:
 
 from yamlgraph.a2a_message import (  # noqa: F401 (CONF-004) — re-exports
     _detect_interrupt,
+    _extract_interrupt_payload,
     build_agent_card,
     extract_text_from_parts,
     map_pipeline_error,
     parse_a2a_message,
 )
 from yamlgraph.discovery import discover_graphs  # REQ-YG-206: shared discovery
+from yamlgraph.executor_async import run_graph_streaming_native
 from yamlgraph.models import PipelineError
+from yamlgraph.models.streaming import StreamEvent
 
 logger = logging.getLogger(__name__)
-
-# Thread pool for blocking graph invocations
-_executor = ThreadPoolExecutor(max_workers=4)
 
 
 # ---------------------------------------------------------------------------
@@ -107,8 +107,9 @@ class YAMLGraphAgentExecutor(AgentExecutor):
     ) -> None:
         """Execute a graph for an A2A task.
 
-        Parses the user message, invokes the graph, and enqueues
-        status + artifact events.
+        FR-250: Uses streaming execution via run_graph_streaming_native()
+        for both task/send and task/sendSubscribe. Supports resume from
+        INPUT_REQUIRED state via Command(resume=...).
         """
         task_id = context.task_id or str(uuid.uuid4())
         context_id = context.context_id or str(uuid.uuid4())
@@ -126,52 +127,88 @@ class YAMLGraphAgentExecutor(AgentExecutor):
             # Extract text from message
             text = context.get_user_input()
 
-            # Find the target graph (use first graph if only one, or match by skill)
+            # Find the target graph
             graph_info = self._resolve_graph(text)
             required_vars = graph_info.get("required_vars", [])
 
-            # Parse message into variables
-            variables = parse_a2a_message(text, required_vars)
-
-            # Invoke graph in thread pool
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                _executor, _invoke_graph, graph_info["path"], variables
+            # REQ-YG-213: Detect resume from INPUT_REQUIRED state
+            is_resume = (
+                context.current_task is not None
+                and context.current_task.status.state
+                == TaskState.TASK_STATE_INPUT_REQUIRED
             )
 
-            # REQ-YG-213: Detect interrupt → input-required state
-            if _detect_interrupt(result):
-                await event_queue.enqueue_event(
-                    TaskStatusUpdateEvent(
-                        task_id=task_id,
-                        context_id=context_id,
-                        status=TaskStatus(
-                            state=TaskState.TASK_STATE_INPUT_REQUIRED,
-                            message=Message(
-                                role=Role.ROLE_AGENT,
-                                parts=[Part(text="Graph requires additional input")],
-                                message_id=str(uuid.uuid4()),
+            if is_resume:
+                from langgraph.types import Command
+
+                initial_state = Command(resume=text)
+            else:
+                variables = parse_a2a_message(text, required_vars)
+                initial_state = variables
+
+            # REQ-YG-211: Stream execution via run_graph_streaming_native()
+            config = {"configurable": {"thread_id": task_id}}
+
+            async for chunk in run_graph_streaming_native(
+                graph_info["path"],
+                initial_state,
+                config=config,
+            ):
+                if isinstance(chunk, StreamEvent):
+                    if chunk.type == "error":
+                        # Stream error → FAILED
+                        await event_queue.enqueue_event(
+                            TaskStatusUpdateEvent(
+                                task_id=task_id,
+                                context_id=context_id,
+                                status=TaskStatus(
+                                    state=TaskState.TASK_STATE_FAILED,
+                                    message=Message(
+                                        role=Role.ROLE_AGENT,
+                                        parts=[
+                                            Part(text=chunk.error or "Unknown error")
+                                        ],
+                                        message_id=str(uuid.uuid4()),
+                                    ),
+                                ),
+                            )
+                        )
+                        return
+                    elif chunk.type == "interrupt":
+                        # Stream interrupt → INPUT_REQUIRED with payload
+                        payload_text = (
+                            str(chunk.payload)
+                            if chunk.payload
+                            else "Graph requires additional input"
+                        )
+                        await event_queue.enqueue_event(
+                            TaskStatusUpdateEvent(
+                                task_id=task_id,
+                                context_id=context_id,
+                                status=TaskStatus(
+                                    state=TaskState.TASK_STATE_INPUT_REQUIRED,
+                                    message=Message(
+                                        role=Role.ROLE_AGENT,
+                                        parts=[Part(text=payload_text)],
+                                        message_id=str(uuid.uuid4()),
+                                    ),
+                                ),
+                            )
+                        )
+                        return
+                elif isinstance(chunk, str):
+                    # Token chunk → incremental artifact event
+                    await event_queue.enqueue_event(
+                        TaskArtifactUpdateEvent(
+                            task_id=task_id,
+                            context_id=context_id,
+                            artifact=Artifact(
+                                artifact_id=str(uuid.uuid4()),
+                                parts=[Part(text=chunk)],
+                                name="graph_output",
                             ),
-                        ),
+                        )
                     )
-                )
-                return
-
-            # Extract output text from result
-            output_text = self._format_result(result)
-
-            # Emit artifact with result
-            await event_queue.enqueue_event(
-                TaskArtifactUpdateEvent(
-                    task_id=task_id,
-                    context_id=context_id,
-                    artifact=Artifact(
-                        artifact_id=str(uuid.uuid4()),
-                        parts=[Part(text=output_text)],
-                        name="graph_output",
-                    ),
-                )
-            )
 
             # Emit completed status
             await event_queue.enqueue_event(
@@ -182,7 +219,7 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                         state=TaskState.TASK_STATE_COMPLETED,
                         message=Message(
                             role=Role.ROLE_AGENT,
-                            parts=[Part(text=output_text)],
+                            parts=[Part(text="Graph execution completed")],
                             message_id=str(uuid.uuid4()),
                         ),
                     ),

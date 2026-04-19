@@ -196,8 +196,9 @@ The A2A server maps graph execution to the A2A task lifecycle:
 
 | A2A Method | YAMLGraph Behaviour |
 |------------|---------------------|
-| `message/send` | Compile and invoke graph synchronously, return result as artifact |
-| `message/stream` | SSE event stream: `working` → `artifact` → `completed` |
+| `message/send` | Stream-execute graph, return final task with artifacts |
+| `message/stream` | SSE event stream: `working` → incremental artifact chunks → `completed` |
+| `tasks/get` | Retrieve task status and artifacts from in-memory store |
 | `task/cancel` | Cancel running asyncio task |
 
 ### State Transitions
@@ -205,7 +206,7 @@ The A2A server maps graph execution to the A2A task lifecycle:
 ```
 submitted → working → completed
                     → failed
-                    → input-required (interrupt)
+                    → input-required (interrupt) → working (resume) → completed
                     → canceled
 ```
 
@@ -213,17 +214,31 @@ submitted → working → completed
 
 1. Server emits `TaskStatusUpdateEvent` with state `working`
 2. Message text is parsed into variables via `parse_a2a_message()`
-3. Graph is compiled and invoked in a thread pool (`ThreadPoolExecutor`)
-4. Result is formatted and emitted as `TaskArtifactUpdateEvent`
+3. Graph is executed via `run_graph_streaming_native()` with `thread_id` = `task_id`
+4. Each token chunk is emitted as `TaskArtifactUpdateEvent`
 5. Final `TaskStatusUpdateEvent` with state `completed` is emitted
 
 ### message/stream (SSE)
 
-Same as `message/send`, but events are delivered as Server-Sent Events in real-time. The SSE stream emits:
+Same execution path as `message/send`, but events are delivered as Server-Sent Events in real-time. Each token chunk produces an individual `TaskArtifactUpdateEvent`, enabling true incremental streaming:
 
 1. `TaskStatusUpdateEvent` — state: `working`
-2. `TaskArtifactUpdateEvent` — graph output
-3. `TaskStatusUpdateEvent` — state: `completed` (final=true)
+2. `TaskArtifactUpdateEvent` — per-token chunks (one event per streaming chunk)
+3. `TaskStatusUpdateEvent` — state: `completed`
+
+### tasks/get
+
+Retrieves task status and artifacts for previously submitted tasks. The SDK's `InMemoryTaskStore` automatically persists task state from events emitted by the executor.
+
+```bash
+curl -X POST http://localhost:9090/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", "id": 2,
+    "method": "tasks/get",
+    "params": {"id": "<task-id>"}
+  }'
+```
 
 ### task/cancel
 
@@ -260,16 +275,76 @@ Non-`PipelineError` exceptions result in a `failed` task state with the exceptio
 
 ## Interrupt / Human-in-Loop
 
-When a graph hits an `interrupt_before` or `interrupt_after` node, the server detects the `__interrupt__` marker in the result and emits `TaskState.input_required`.
+When a graph hits an `interrupt_before` or `interrupt_after` node, the streaming executor detects the interrupt via `StreamEvent(type="interrupt")` and emits `TaskState.input_required` with the interrupt payload forwarded to the client.
 
-**Detection:** `_detect_interrupt(result)` checks for the `__interrupt__` key in the graph result dict. LangGraph sets this key when a node with interrupt configuration triggers.
+### Detection
 
-**Server response:** When an interrupt is detected:
-1. `TaskStatusUpdateEvent` with state `input_required` is emitted
-2. The message reads "Graph requires additional input"
-3. The event is **not** marked final — the task stays open for continuation
+During streaming execution, `run_graph_streaming_native()` detects the `__interrupt__` marker in graph state and yields `StreamEvent(type="interrupt", payload=...)` when a graph pauses at an interrupt node. The executor maps this to an A2A `TaskStatusUpdateEvent` with state `input_required`.
 
-**Client action:** The client should send a follow-up `message/send` with the required input to resume the graph.
+### Interrupt Payload
+
+The interrupt payload (the question or prompt from the graph) is forwarded to the client as the message text in the `input_required` event. This tells the client *what* to answer:
+
+```json
+{
+  "status": {
+    "state": "input-required",
+    "message": {
+      "role": "agent",
+      "parts": [{"text": "What is your preferred language?"}]
+    }
+  }
+}
+```
+
+### Resume Flow
+
+When the client sends a follow-up `message/send` with the same `task_id`, the executor detects the task is in `input_required` state (via `context.current_task`) and resumes the graph using `Command(resume=user_input)` instead of fresh invocation:
+
+1. Client sends `message/send` with `task_id` of an interrupted task
+2. Executor detects `current_task.status.state == input_required`
+3. User input is passed as `Command(resume=text)` to `run_graph_streaming_native()`
+4. Graph resumes from the interrupt point with the user's answer
+5. Streaming continues → `completed`
+
+**Requirements:**
+- The graph must have a checkpointer configured for resume to work (thread_id = task_id)
+- The `run_graph_streaming_native()` infrastructure handles checkpointer-based resume
+
+```bash
+# Step 1: Initial task hits interrupt
+curl -X POST http://localhost:9090/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", "id": 1,
+    "method": "message/send",
+    "params": {
+      "message": {
+        "role": "user",
+        "messageId": "msg-1",
+        "parts": [{"kind": "text", "text": "name=World style=casual"}]
+      }
+    }
+  }'
+# Response: task with state "input-required", message: "What language?"
+
+# Step 2: Resume with user input
+curl -X POST http://localhost:9090/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0", "id": 2,
+    "method": "message/send",
+    "params": {
+      "message": {
+        "role": "user",
+        "messageId": "msg-2",
+        "taskId": "<task-id-from-step-1>",
+        "parts": [{"kind": "text", "text": "English"}]
+      }
+    }
+  }'
+# Response: task with state "completed"
+```
 
 ---
 

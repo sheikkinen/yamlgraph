@@ -204,8 +204,9 @@ validate_registry
 format_cap_id
 format_req_id
 
-# --- a2a_server: public API tested in test_a2a_server.py (FR-208) ---
+# --- a2a_server: public API tested in test_a2a_server.py (FR-208, FR-250) ---
 from yamlgraph.a2a_server import (  # noqa: F401 (CONF-126)
+    YAMLGraphAgentExecutor,
     build_agent_card,
     create_a2a_app,
     extract_text_from_parts,
@@ -218,6 +219,16 @@ create_a2a_app
 extract_text_from_parts
 map_pipeline_error
 parse_a2a_message
+YAMLGraphAgentExecutor._format_result
+
+# --- a2a_message: helpers re-exported via a2a_server, tested (FR-250) ---
+from yamlgraph.a2a_message import (  # noqa: F401 (CONF-126)
+    _detect_interrupt,
+    _extract_interrupt_payload,
+)
+
+_detect_interrupt
+_extract_interrupt_payload
 
 # --- discovery: shared module used by mcp_server and a2a_server ---
 # (discover_graphs is re-imported by mcp_server and a2a_server)
