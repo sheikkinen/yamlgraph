@@ -1,0 +1,28 @@
+id: CAP-93
+name: Chatterbox Voice Clone Demo
+description: >
+  Voice cloning demo consolidated into examples/demos/chatterbox/ (FR-237).
+  synthesize_cloned_audio in tools.py uses ChatterboxTTS (chatterbox.tts) with a
+  caller-supplied reference audio clip (audio_prompt_path). Single-path synthesis:
+  text + voice_prompt_path → output.wav. Device auto-detection follows cuda > mps > cpu.
+  clone.yaml provides graph-based invocation; speak.py provides a standalone CLI.
+  Supersedes chatterbox_clone/ (FR-236).
+modules:
+  - examples/demos/chatterbox
+requirements:
+  - id: REQ-YG-235
+    description: >
+      Chatterbox voice cloning demo: synthesize_cloned_audio in examples/demos/chatterbox/tools.py
+      accepts text and voice_prompt_path, synthesizes to WAV via ChatterboxTTS
+      (not ChatterboxMultilingualTTS). Device selection follows cuda > mps > cpu priority chain.
+      clone.yaml graph and speak.py CLI both use this tool. Optional dependency chatterbox-tts.
+    modules:
+      - examples/demos/chatterbox
+  - id: REQ-YG-238
+    description: >
+      Chatterbox speak CLI: speak.py accepts --ref (reference WAV, required) and positional text;
+      validates ref exists (exit 1 on missing); calls ChatterboxTTS.generate() without language_id;
+      writes to outputs/chatterbox/speak.wav; prints output path to stdout.
+    modules:
+      - examples/demos/chatterbox
+fr: FR-237

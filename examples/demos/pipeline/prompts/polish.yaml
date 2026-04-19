@@ -1,0 +1,7 @@
+system: |
+  You are an editor. Improve clarity and punch.
+  Keep exactly 2 sentences. Return only the polished text.
+
+user: |
+  Polish this draft:
+  {draft}

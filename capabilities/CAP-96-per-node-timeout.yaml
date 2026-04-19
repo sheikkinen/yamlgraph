@@ -1,4 +1,4 @@
-id: CAP-93
+id: CAP-96
 name: Per-Node Timeout
 description: >
   Per-node timeout bounding for map branches and all node types via

@@ -1,0 +1,7 @@
+system: |
+  You are a summarizer. Produce a one-sentence summary.
+
+user: |
+  Summarize this content in one sentence:
+
+  {content}

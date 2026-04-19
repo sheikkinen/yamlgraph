@@ -56,10 +56,15 @@ VALID_STYLES
 DANGEROUS_PATTERNS
 
 # --- constants: enum members tested in test_constants.py ---
-from yamlgraph.constants import EdgeType, SpecialNodes  # noqa: F401 (CONF-126)
+from yamlgraph.constants import (  # noqa: F401 (CONF-126)
+    EdgeType,
+    NodeType,
+    SpecialNodes,
+)
 
 EdgeType.SIMPLE
 EdgeType.CONDITIONAL
+NodeType.PIPELINE
 SpecialNodes.START
 
 # --- contrib/progress: methods used in examples and tests ---

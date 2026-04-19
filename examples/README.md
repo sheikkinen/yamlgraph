@@ -72,6 +72,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [git-report](demos/git-report/) | `agent` | Git analysis with tools |
 | [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
 | [chatterbox](demos/chatterbox/) | `map`, `python` | Multilingual TTS with Chatterbox (5 languages → WAV) |
+| [chatterbox_clone](demos/chatterbox_clone/) | `python` | Voice cloning with Chatterbox reference audio → WAV (FR-236) |
 | [interview](demos/interview/) | `interrupt` | Human-in-the-loop |
 | [subgraph](demos/subgraph/) | `subgraph` | Graph composition |
 | [a2a_server](demos/a2a_server/) | `a2a` | A2A protocol server exposing graphs as agents (FR-208) |

@@ -897,6 +897,39 @@ edges:
     type: conditional
 ```
 
+### Parallel Fan-Out Edge
+
+Run multiple target nodes concurrently after a single source completes (FR-234).
+Use `to: [list]` **without** `type: conditional`:
+
+```yaml
+edges:
+  # Fan-out: all three run concurrently after generate completes
+  - from: generate
+    to: [analyze, summarize, translate]
+
+  # Fan-in: all three must complete before final runs
+  - from: analyze
+    to: final
+  - from: summarize
+    to: final
+  - from: translate
+    to: final
+  - from: final
+    to: END
+```
+
+Fan-out also works from START:
+
+```yaml
+edges:
+  - from: START
+    to: [branch_a, branch_b]
+```
+
+> **Note:** `to: [list]` with `type: conditional` is *conditional routing* (picks ONE target).
+> `to: [list]` without `type: conditional` is *parallel fan-out* (runs ALL targets).
+
 ### Expression-Based Conditions
 
 Route based on state values:
