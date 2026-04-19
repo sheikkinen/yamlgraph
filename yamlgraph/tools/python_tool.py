@@ -186,6 +186,14 @@ def create_python_node(
         effective_state = {**state, **resolved} if resolved else state
 
         try:
+            from yamlgraph.utils.expressions import resolve_node_variables
+
+            if variable_templates:
+                resolved = resolve_node_variables(variable_templates, state)
+                effective_state = {**state, **resolved}
+            else:
+                effective_state = state
+
             result = func(effective_state)
 
             # If function returns a dict, merge with node metadata

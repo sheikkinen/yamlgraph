@@ -1,9 +1,11 @@
 """Tests for FR-061 contract violation lint rules.
 
 E012: Hyphen in identifier position (state key, node name, tool name, state_key value)
-W020: variables: on type: python (silent no-op)
 W021: skip_if_exists on list field with add reducer
 W017: on_error: skip silently drops failures (FR-165)
+
+Note: W020 (variables: on type: python) removed by FR-252 — python nodes
+now resolve variables: expressions.
 """
 
 import tempfile

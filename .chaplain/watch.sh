@@ -6,21 +6,43 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INBOX=".chaplain/inbox"
 DRAFTS=".chaplain/drafts"
 POLL=5
+
+# FR-251: Author allowlist and body size cap
+ALLOWED_AUTHORS="$SCRIPT_DIR/allowed-authors.txt"
+BODY_SIZE_CAP=10000
 
 echo "👀 Watching $INBOX/"
 
 while true; do
     # FR-243: Sync GitHub Issues labeled 'chaplain' into local inbox
+    # FR-251: Author allowlist, body size cap, audit header
     if command -v gh &>/dev/null && gh auth status &>/dev/null 2>&1; then
         gh issue list --state open --label chaplain --json number --jq '.[].number' 2>/dev/null \
         | while read -r num; do
             [[ -f "$INBOX/gh-$num.md" ]] && continue
+
+            # FR-251: Author allowlist check
+            author=$(gh issue view "$num" --json author --jq '.author.login' 2>/dev/null) || continue
+            if [[ -f "$ALLOWED_AUTHORS" ]] && ! grep -qxF "$author" "$ALLOWED_AUTHORS"; then
+                echo "⚠️ Skipped issue #$num from untrusted author @$author"
+                continue
+            fi
+
             title=$(gh issue view "$num" --json title --jq '.title' 2>/dev/null) || continue
             body=$(gh issue view "$num" --json body --jq '.body' 2>/dev/null) || continue
-            printf "# %s\n\n%s\n" "$title" "$body" > "$INBOX/gh-$num.md"
+
+            # FR-251: Body size cap — truncate oversized bodies
+            if [[ ${#body} -gt $BODY_SIZE_CAP ]]; then
+                echo "⚠️ Issue #$num body truncated from ${#body} to $BODY_SIZE_CAP chars"
+                body="${body:0:$BODY_SIZE_CAP}"
+            fi
+
+            # FR-251: Author audit header
+            printf "<!-- author: @%s -->\n# %s\n\n%s\n" "$author" "$title" "$body" > "$INBOX/gh-$num.md"
             gh issue edit "$num" --remove-label chaplain 2>/dev/null || true
             echo "📥 Imported GitHub Issue #$num: $title"
         done

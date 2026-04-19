@@ -623,6 +623,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Same as CONF-139 — `capture_env(**kwargs)` in ADC mode test ignores kwargs.
 - **Penance**: Same as CONF-139.
 
+### CONF-209
+- **File**: [vulture_whitelist.py](../vulture_whitelist.py)
+- **Code**: F401
+- **Sin**: `check_python_node_variables` is imported and referenced in `vulture_whitelist.py` to suppress dead-code detection.
+- **Penance**: The function is an API stub retained for stability after FR-252 made W020 obsolete. It is called from tests and exported from `checks_contracts`. Removing it would break any callers that imported the function directly.
+
 ### CONF-208
 - **File**: [scripts/validate_id_registry.py](../scripts/validate_id_registry.py#L28)
 - **Code**: E402

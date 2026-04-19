@@ -4,9 +4,11 @@ These checks detect misconfigurations that parse successfully but fail or
 behave incorrectly at runtime — the gap between "valid YAML" and "correct graph".
 
 E012: Hyphen in identifier position (state key, node name, tool name, state_key)
-W020: variables: on type: python (silent no-op)
 W021: skip_if_exists on list field with add reducer
 W017: on_error: skip silently drops failures (FR-165)
+
+Note: W020 (variables: on type: python) was removed by FR-252 — python nodes
+now resolve variables: expressions, consistent with all other node types.
 """
 
 from __future__ import annotations
@@ -238,7 +240,6 @@ def check_silent_fallback(graph_path: Path) -> list[LintIssue]:
 
 
 __all__ = [
-    "check_python_node_variables",
     "check_identifier_keys",
     "check_skip_if_exists_add_reducer",
     "check_top_level_provider_model",
