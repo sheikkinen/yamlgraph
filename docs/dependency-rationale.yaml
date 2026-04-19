@@ -116,7 +116,7 @@ dependencies:
 
   ddgs:
     rationale: "DuckDuckGo search integration for web search tool nodes"
-    modules: ["yamlgraph/tools/web_search.py"]
+    modules: ["examples/shared/websearch.py", "examples/demos/fi_domain_crawl/nodes/seed_discovery.py"]
     added: "0.2.0"
 
   # ─── Optional: Tavily ────────────────────────────────────────────────
@@ -242,12 +242,12 @@ dependencies:
 
   twilio:
     rationale: "Twilio API for telephony integration (voice calls, SMS)"
-    modules: ["projects/incaller/", "projects/outcaller/"]
+    modules: ["projects/incaller/"]
     added: "0.4.0"
 
   elevenlabs:
     rationale: "ElevenLabs text-to-speech for voice generation in telephony"
-    modules: ["projects/outcaller/"]
+    modules: ["projects/incaller/"]
     added: "0.4.0"
 
   # ─── Optional: Chatterbox TTS ────────────────────────────────────────
