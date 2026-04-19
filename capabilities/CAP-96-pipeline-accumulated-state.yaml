@@ -13,7 +13,7 @@ modules:
   - reference/graph-yaml.md
   - tests/unit/test_state_builder_reducers.py
 requirements:
-  - id: REQ-YG-238
+  - id: REQ-YG-241
     description: >
       parse_state_config() handles dict-syntax state definitions
       {type: str, reducer: str}; REDUCER_MAP maps "add", "last_value",

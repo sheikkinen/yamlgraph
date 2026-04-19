@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Proposed
+**Status:** Implemented (Superseded by FR-237 — consolidated into `examples/demos/chatterbox/`)
 **Effort:** 1 day
 **Requested:** 2026-04-18
 

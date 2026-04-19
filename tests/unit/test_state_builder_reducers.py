@@ -22,7 +22,7 @@ from yamlgraph.models.state_builder import (
 class TestParseStateConfigDictSyntax:
     """Test dict-syntax state definitions with reducer configuration."""
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_with_add_reducer(self) -> None:
         """Dict-syntax with reducer: add produces Annotated[list, add]."""
         config = {"glossary": {"type": "list", "reducer": "add"}}
@@ -35,7 +35,7 @@ class TestParseStateConfigDictSyntax:
         assert args[0] is list
         assert args[1] is add
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_with_last_value_reducer(self) -> None:
         """Dict-syntax with reducer: last_value produces Annotated[str, last_value]."""
         config = {"current": {"type": "str", "reducer": "last_value"}}
@@ -47,7 +47,7 @@ class TestParseStateConfigDictSyntax:
         assert args[0] is str
         assert args[1] is last_value
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_with_sorted_add_reducer(self) -> None:
         """Dict-syntax with reducer: sorted_add produces Annotated[list, sorted_add]."""
         config = {"results": {"type": "list", "reducer": "sorted_add"}}
@@ -59,7 +59,7 @@ class TestParseStateConfigDictSyntax:
         assert args[0] is list
         assert args[1] is sorted_add
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_without_reducer(self) -> None:
         """Dict-syntax without reducer key works as type-only."""
         config = {"concept": {"type": "str"}}
@@ -67,7 +67,7 @@ class TestParseStateConfigDictSyntax:
 
         assert fields["concept"] is str
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_defaults_type_to_any(self) -> None:
         """Dict-syntax without type key defaults to Any."""
         config = {"flexible": {"reducer": "add"}}
@@ -79,7 +79,7 @@ class TestParseStateConfigDictSyntax:
         assert args[0] is Any
         assert args[1] is add
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_unknown_reducer_logs_warning(
         self, caplog: pytest.LogCaptureFixture
     ) -> None:
@@ -101,7 +101,7 @@ class TestParseStateConfigDictSyntax:
         finally:
             parent_logger.propagate = original_propagate
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_simple_string_syntax_unchanged(self) -> None:
         """Simple string syntax continues to work (no regression)."""
         config = {"name": "str", "count": "int", "items": "list"}
@@ -111,7 +111,7 @@ class TestParseStateConfigDictSyntax:
         assert fields["count"] is int
         assert fields["items"] is list
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_mixed_string_and_dict_syntax(self) -> None:
         """Mixed simple strings and dict-syntax in same state config."""
         config = {
@@ -133,7 +133,7 @@ class TestParseStateConfigDictSyntax:
 class TestReducerMapCompleteness:
     """Verify REDUCER_MAP contains all three built-in reducers."""
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_reducer_map_has_add(self) -> None:
         """REDUCER_MAP contains 'add' mapping to operator.add."""
         from yamlgraph.models.state_builder import REDUCER_MAP
@@ -141,7 +141,7 @@ class TestReducerMapCompleteness:
         assert "add" in REDUCER_MAP
         assert REDUCER_MAP["add"] is add
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_reducer_map_has_last_value(self) -> None:
         """REDUCER_MAP contains 'last_value' mapping to last_value function."""
         from yamlgraph.models.state_builder import REDUCER_MAP
@@ -149,7 +149,7 @@ class TestReducerMapCompleteness:
         assert "last_value" in REDUCER_MAP
         assert REDUCER_MAP["last_value"] is last_value
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_reducer_map_has_sorted_add(self) -> None:
         """REDUCER_MAP contains 'sorted_add' mapping to sorted_add function."""
         from yamlgraph.models.state_builder import REDUCER_MAP
@@ -161,7 +161,7 @@ class TestReducerMapCompleteness:
 class TestGenerateTypedDictCodeDictSyntax:
     """Test generate_typeddict_code handles dict-syntax state entries."""
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_extracts_type_string(self) -> None:
         """Dict-syntax state entries appear in generated code with correct type."""
         config = {
@@ -175,7 +175,7 @@ class TestGenerateTypedDictCodeDictSyntax:
 
         assert "glossary: list" in code
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_type_only(self) -> None:
         """Dict-syntax without reducer still generates type string."""
         config = {
@@ -189,7 +189,7 @@ class TestGenerateTypedDictCodeDictSyntax:
 
         assert "concept: str" in code
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_defaults_to_any(self) -> None:
         """Dict-syntax without type key generates Any."""
         config = {
@@ -203,7 +203,7 @@ class TestGenerateTypedDictCodeDictSyntax:
 
         assert "flexible: Any" in code
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_mixed_string_and_dict_in_codegen(self) -> None:
         """Both string and dict-syntax appear in generated code."""
         config = {
@@ -223,7 +223,7 @@ class TestGenerateTypedDictCodeDictSyntax:
 class TestBuildStateClassDictSyntax:
     """Test build_state_class integrates dict-syntax state definitions."""
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_with_reducer_in_built_state(self) -> None:
         """Dict-syntax reducer config flows through build_state_class."""
         config = {
@@ -241,7 +241,7 @@ class TestBuildStateClassDictSyntax:
         assert args[0] is list
         assert args[1] is add
 
-    @pytest.mark.req("REQ-YG-238")
+    @pytest.mark.req("REQ-YG-241")
     def test_dict_syntax_reducer_works_with_langgraph(self) -> None:
         """State with user-configured reducer accumulates in LangGraph."""
         from langgraph.graph import StateGraph

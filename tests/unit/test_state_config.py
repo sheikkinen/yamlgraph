@@ -118,7 +118,7 @@ class TestParseStateConfig:
         )
         assert result == {"number": Any}
 
-    @pytest.mark.req("REQ-YG-024", "REQ-YG-238")
+    @pytest.mark.req("REQ-YG-024", "REQ-YG-241")
     def test_dict_value_parsed_as_type(self):
         """Dict values are parsed as dict-syntax state definitions (FR-238)."""
         result = parse_state_config(
