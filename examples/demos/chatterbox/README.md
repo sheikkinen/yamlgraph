@@ -36,10 +36,11 @@ Two synthesis paths:
 | Path | Flag | Model | `--ref` |
 |------|------|-------|---------|
 | English / Voice Cloning | `--lang en` (default) | `ChatterboxTTS` | **Required** |
-| Multilingual | `--lang fi/sv/de/es/…` | `ChatterboxMultilingualTTS` | **Incompatible** |
+| Multilingual | `--lang fi/sv/de/es/…` | `ChatterboxMultilingualTTS` | Optional (voice cloning) |
 
-> **Voice cloning is English-only.** `--ref` is incompatible with `--lang <non-en>` and
-> raises a clear error. For multilingual synthesis, omit `--ref` and supply a language code.
+> **Voice cloning works in all languages.** For English, `--ref` is required (uses `ChatterboxTTS`).
+> For other languages, `--ref` is optional — when provided, `ChatterboxMultilingualTTS`
+> performs zero-shot voice cloning in the target language.
 
 ## Platform Requirements
 

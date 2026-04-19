@@ -1,32 +1,31 @@
-"""CLI tool: synthesise text with an optional voice clone or multilingual model.
+"""CLI tool: synthesise text with an optional voice clone.
 
 Two synthesis paths are available:
 
-**English / Voice Cloning (default, ``--lang en``):**
+**English (default, ``--lang en``):**
     Uses ``ChatterboxTTS`` with a reference WAV clip (``--ref``).
-    Voice timbre transfers from the reference clip.
     ``--ref`` is required for this path.
 
 **Multilingual (``--lang <code>``):**
-    Uses ``ChatterboxMultilingualTTS``.  No reference audio is accepted.
-    Known-good language codes: ``fi``, ``sv``, ``de``, ``es``.
-    ``--ref`` is incompatible with this path.
+    Uses ``ChatterboxMultilingualTTS``.
+    Supports 23 languages including ``fi``, ``sv``, ``de``, ``es``.
+    Optional ``--ref`` enables zero-shot voice cloning in the target language.
 
 Output is always written to ``outputs/chatterbox/speak.wav``.
 
 Usage::
 
-    # English voice cloning (unchanged)
+    # English voice cloning (requires --ref)
     python examples/demos/chatterbox/speak.py \\
         --ref examples/demos/chatterbox/source.wav "Hello world"
 
-    # Finnish via multilingual model
+    # Finnish with default voice
     python examples/demos/chatterbox/speak.py \\
         --lang fi "Hei maailma"
 
-    # Explicit English (same as omitting --lang)
+    # Finnish with voice cloning
     python examples/demos/chatterbox/speak.py \\
-        --lang en --ref source.wav "Hello world"
+        --lang fi --ref source.wav "Hei maailma"
 """
 
 import argparse
@@ -39,7 +38,8 @@ def main() -> None:
         description=(
             "Chatterbox TTS CLI (FR-239). "
             "English path (--lang en, default): ChatterboxTTS + --ref for voice cloning. "
-            "Multilingual path (--lang fi/sv/de/es/…): ChatterboxMultilingualTTS, no --ref."
+            "Multilingual path (--lang fi/sv/de/es/…): ChatterboxMultilingualTTS, "
+            "optional --ref for zero-shot voice cloning."
         )
     )
     parser.add_argument("text", help="Text to synthesise")
@@ -48,7 +48,7 @@ def main() -> None:
         "-r",
         type=Path,
         default=None,
-        help="Path to reference WAV for voice cloning (English path only)",
+        help="Path to reference WAV for voice cloning (all languages)",
     )
     parser.add_argument(
         "--lang",
@@ -56,19 +56,17 @@ def main() -> None:
         default="en",
         help=(
             "Language code (default: en). "
-            "en → ChatterboxTTS (voice cloning, requires --ref). "
-            "Other codes (fi, sv, de, es, …) → ChatterboxMultilingualTTS (no --ref)."
+            "en → ChatterboxTTS (requires --ref). "
+            "Other codes (fi, sv, de, es, …) → ChatterboxMultilingualTTS "
+            "(optional --ref for voice cloning)."
         ),
     )
     args = parser.parse_args()
 
-    if args.lang != "en" and args.ref is not None:
-        parser.error("--ref is only supported with --lang en (voice-cloning path)")
-
     if args.lang == "en" and args.ref is None:
         parser.error("--ref is required for the English voice-cloning path (--lang en)")
 
-    if args.lang == "en" and not args.ref.exists():
+    if args.ref is not None and not args.ref.exists():
         print(f"Error: reference file not found: {args.ref}", file=sys.stderr)
         sys.exit(1)
 
@@ -96,7 +94,8 @@ def main() -> None:
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
         model = ChatterboxMultilingualTTS.from_pretrained(device=device)
-        wav = model.generate(args.text, language_id=args.lang)
+        ref = str(args.ref) if args.ref else None
+        wav = model.generate(args.text, language_id=args.lang, audio_prompt_path=ref)
 
     ta.save(str(output_path), wav, model.sr)
     print(output_path)
