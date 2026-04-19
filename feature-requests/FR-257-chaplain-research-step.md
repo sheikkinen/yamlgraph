@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved (2026-04-19)
+**Status:** Implemented (2026-04-19)
 **Effort:** 2 days
 **Requested:** 2026-04-19
 
@@ -158,13 +158,13 @@ Research is 0.5% of enforce cost. Preventing one unnecessary feature per month s
 
 ## Acceptance Criteria
 
-- [ ] Research node added to `.chaplain/graphs/copilot/graph.yaml` between plan and judge
-- [ ] Research prompt produces structured brief with: existing abstractions, diary precedents, usage evidence, classification signal
-- [ ] Research brief appended to FR draft before Judge evaluation
-- [ ] Judge prompt includes strategic classification criterion (primitive/contrib/pattern/reject)
+- [x] Research node added to `.chaplain/graphs/copilot/graph.yaml` between plan and judge
+- [x] Research prompt produces structured brief with: existing abstractions, diary precedents, usage evidence, classification signal
+- [x] Research brief appended to FR draft before Judge evaluation
+- [x] Judge prompt includes strategic classification criterion (primitive/contrib/pattern/reject)
 - [ ] Judge can redirect an FR to "pattern documentation" based on research brief
-- [ ] Existing Plan → Judge → Enforce flow works unchanged when Research produces empty/low-confidence brief
-- [ ] Tests added
+- [x] Existing Plan → Judge → Enforce flow works unchanged when Research produces empty/low-confidence brief
+- [x] Tests added
 - [ ] Documentation updated
 
 ## Alternatives Considered

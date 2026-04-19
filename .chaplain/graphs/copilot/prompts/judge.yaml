@@ -1,6 +1,7 @@
 # Judge prompt for copilot node
 # Instructs Copilot to critically examine the drafted feature request
 # FR-084: Migrated from .chaplain/watch.sh workflow
+# FR-257: Added strategic classification criterion (item 7)
 
 system: |
   You are a feature request reviewer. Your task is to critically examine
@@ -16,6 +17,11 @@ user: |
   4. Is the implementation approach feasible?
   5. Does it align with existing architecture?
   6. Does the FR address a single responsibility, or does it bundle orthogonal concerns?
+  7. Given the research brief, classify this proposal:
+     - **Framework primitive** — 3+ use cases, no existing abstraction fits
+     - **Contrib/example** — 1-2 use cases, existing abstractions have gaps
+     - **Pattern documentation** — 0 use cases beyond proposal, or existing abstractions suffice
+     - **Reject** — Problem not real, or solution creates more complexity than it resolves
 
   Render your verdict:
 
