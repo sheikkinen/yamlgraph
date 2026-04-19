@@ -3,7 +3,7 @@
 **Priority:** LOW
 **Type:** Enhancement
 **FR:** FR-245
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-19
 
@@ -67,14 +67,14 @@ No new flags needed. Orphan and stale-module checks run unconditionally. `--stri
 
 ## Acceptance Criteria
 
-- [ ] `find_orphaned()` detects entries in registry not in any pyproject.toml group
-- [ ] `find_stale_modules()` detects `modules` paths that don't exist on disk
-- [ ] Non-filesystem module references (containing `[`) are skipped
-- [ ] `--strict` exits 1 when orphaned entries or stale modules exist
-- [ ] Report output shows orphans and stale modules in separate sections
-- [ ] Fix the existing stale entry: `ddgs.modules` → `["examples/shared/websearch.py", "examples/demos/fi_domain_crawl/nodes/seed_discovery.py"]`
-- [ ] Unit tests cover `find_orphaned()` and `find_stale_modules()`
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-218")` (extends existing dependency-rationale requirement)
+- [x] `find_orphaned()` detects entries in registry not in any pyproject.toml group
+- [x] `find_stale_modules()` detects `modules` paths that don't exist on disk
+- [x] Non-filesystem module references (containing `[`) are skipped
+- [x] `--strict` exits 1 when orphaned entries or stale modules exist
+- [x] Report output shows orphans and stale modules in separate sections
+- [x] Fix the existing stale entry: `ddgs.modules` → `["examples/shared/websearch.py", "examples/demos/fi_domain_crawl/nodes/seed_discovery.py"]`
+- [x] Unit tests cover `find_orphaned()` and `find_stale_modules()`
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-218")` (extends existing dependency-rationale requirement)
 
 ## Alternatives Considered
 

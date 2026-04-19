@@ -166,6 +166,46 @@ def find_undocumented(
     return undocumented
 
 
+def find_orphaned(
+    deps: dict[str, list[str]],
+    registry: dict[str, dict],
+) -> list[str]:
+    """Find registry entries not present in any pyproject.toml group.
+
+    Returns sorted list of orphaned package names.
+    """
+    all_dep_names: set[str] = set()
+    for pkgs in deps.values():
+        all_dep_names.update(pkgs)
+    return sorted(set(registry.keys()) - all_dep_names)
+
+
+def find_stale_modules(
+    registry: dict[str, dict],
+    root: Path,
+) -> list[tuple[str, str]]:
+    """Find registry entries with modules paths that don't exist on disk.
+
+    Skips non-filesystem references (e.g., 'pyproject.toml [tool.ruff]').
+    Returns list of (package_name, invalid_path) tuples.
+    """
+    stale: list[tuple[str, str]] = []
+    for pkg_name, entry in registry.items():
+        if not isinstance(entry, dict):
+            continue
+        modules = entry.get("modules", [])
+        if not modules:
+            continue
+        for mod_path in modules:
+            if "[" in mod_path:
+                continue
+            resolved = root / mod_path
+            # Accept symlinks (even broken) — they indicate intentional reference
+            if not resolved.exists() and not resolved.is_symlink():
+                stale.append((pkg_name, mod_path))
+    return stale
+
+
 def main() -> int:
     """Main entry point."""
     root = Path(__file__).parent.parent
@@ -181,6 +221,10 @@ def main() -> int:
 
     # Find gaps
     undocumented = find_undocumented(deps, registry)
+
+    # Find orphans and stale modules (FR-245)
+    orphaned = find_orphaned(deps, registry)
+    stale_modules = find_stale_modules(registry, root)
 
     # Count totals
     total_deps = sum(len(pkgs) for pkgs in deps.values())
@@ -244,11 +288,34 @@ def main() -> int:
             print(f"  {pkg_name}: {reason}")
         print()
 
-    if strict and undocumented:
-        print("FAIL -- undocumented dependencies detected")
+    if orphaned:
+        print("-" * 60)
+        print("⚠ Orphaned rationale entries (dep removed from pyproject.toml):")
+        print("-" * 60)
+        for pkg_name in orphaned:
+            print(f"  - {pkg_name}")
+        print()
+
+    if stale_modules:
+        print("-" * 60)
+        print("⚠ Stale module paths (file/dir not found):")
+        print("-" * 60)
+        for pkg_name, mod_path in stale_modules:
+            print(f"  {pkg_name}: {mod_path}")
+        print()
+
+    has_problems = undocumented or orphaned or stale_modules
+
+    if strict and has_problems:
+        if undocumented:
+            print("FAIL -- undocumented dependencies detected")
+        if orphaned:
+            print("FAIL -- orphaned rationale entries detected")
+        if stale_modules:
+            print("FAIL -- stale module paths detected")
         return 1
 
-    if not undocumented:
+    if not has_problems:
         print("✓ All dependencies have documented rationale")
 
     return 0
