@@ -1,0 +1,24 @@
+id: CAP-96
+name: Race and Pipeline Node Type Documentation
+description: >
+  Reference documentation for type: race (FR-232) and type: pipeline (FR-235)
+  node types in reference/graph-yaml.md and reference/getting-started.md.
+  Ensures graph authors can discover and configure these node types through
+  the canonical reference docs.
+modules:
+  - reference/graph-yaml.md
+  - reference/getting-started.md
+requirements:
+  - id: REQ-YG-240
+    description: >
+      reference/getting-started.md node type table includes race and pipeline
+      rows; reference/graph-yaml.md has dedicated sections for type: race
+      (purpose, candidates, timeout, state_key, _race_winner, on_error,
+      example) and type: pipeline (purpose, items, stages, expansion
+      semantics, {item.field} interpolation, example); doc examples match
+      demo YAMLs
+    modules:
+      - reference/graph-yaml.md
+      - reference/getting-started.md
+      - tests/unit/test_race_pipeline_docs.py
+fr: FR-237
