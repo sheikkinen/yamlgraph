@@ -1,16 +1,22 @@
-2026-04-18 09:35:00,971 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: synthesize_audio
-2026-04-18 09:35:00,975 [INFO] yamlgraph.node_compiler: Added node: generate (type=map)
-2026-04-18 09:35:00,975 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=python)
-2026-04-18 09:35:00,988 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
-2026-04-18 09:35:01,856 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 09:35:01,857 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 09:35:01,858 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 09:35:01,858 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 09:35:01,859 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
-2026-04-18 09:35:01,860 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: synthesize -> synthesize_audio
-2026-04-18 09:35:01,860 [ERROR] yamlgraph.tools.python_tool: Python node synthesize failed: No module named 'torch'
+2026-04-19 07:45:00,000 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: synthesize_audio, synthesize_cloned_audio
+2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: generate (type=map)
+2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=python)
+2026-04-19 07:45:00,005 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-19 07:45:00,650 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-19 07:45:00,651 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: synthesize -> synthesize_audio
+2026-04-19 07:45:00,651 [ERROR] yamlgraph.tools.python_tool: Python node synthesize failed: No module named 'torch'
 
+# FR-237 consolidated: graph.yaml (multilingual TTS) + clone.yaml (voice cloning) + speak.py (CLI)
+# graph.yaml demo output (chatterbox-tts not installed in CI):
 🚀 Running graph: graph.yaml
    Variables: {'topic': 'the beauty of nature'}
 
 ❌ Error: No module named 'torch'
+
+# clone.yaml smoke test (graph loads without import error):
+✓ Graph config loaded: chatterbox-voice-clone
+
+# speak.py --ref validation (no real audio required):
+$ python examples/demos/chatterbox/speak.py --ref /nonexistent.wav "Hello"
+Error: reference file not found: /nonexistent.wav
+[exit code 1]

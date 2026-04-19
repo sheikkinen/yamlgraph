@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-19
 
@@ -192,63 +192,63 @@ After migrating `synthesize_cloned_audio` into the shared `tools.py`, migrating
 ## Acceptance Criteria
 
 ### Consolidation
-- [ ] `examples/demos/chatterbox_clone/` is deleted
-- [ ] `examples/demos/chatterbox/tools.py` contains both `synthesize_audio`
+- [x] `examples/demos/chatterbox_clone/` is deleted
+- [x] `examples/demos/chatterbox/tools.py` contains both `synthesize_audio`
       (FR-233) and `synthesize_cloned_audio` (FR-236) functions
-- [ ] `synthesize_cloned_audio` default `output_dir` is `outputs/chatterbox`
-- [ ] `examples/demos/chatterbox/clone.yaml` exists with `module` pointing to
+- [x] `synthesize_cloned_audio` default `output_dir` is `outputs/chatterbox`
+- [x] `examples/demos/chatterbox/clone.yaml` exists with `module` pointing to
       `examples.demos.chatterbox.tools`
-- [ ] `yamlgraph graph run examples/demos/chatterbox/clone.yaml` resolves
+- [x] `yamlgraph graph run examples/demos/chatterbox/clone.yaml` resolves
       without import errors (smoke test, mocked)
 
 ### CLI tool
-- [ ] `examples/demos/chatterbox/speak.py` exists and is executable
-- [ ] `speak.py` has no `--lang` argument; output filename is fixed to `speak.wav`
-- [ ] `speak.py --ref examples/demos/chatterbox/source.wav "text"` produces
+- [x] `examples/demos/chatterbox/speak.py` exists and is executable
+- [x] `speak.py` has no `--lang` argument; output filename is fixed to `speak.wav`
+- [x] `speak.py --ref examples/demos/chatterbox/source.wav "text"` produces
       `outputs/chatterbox/speak.wav` (integration test skipped without
       GPU/chatterbox installed)
-- [ ] `speak.py` exits with code 1 and a stderr message when `--ref` path does
+- [x] `speak.py` exits with code 1 and a stderr message when `--ref` path does
       not exist
-- [ ] `model.generate()` is called **without** any `language_id` kwarg
+- [x] `model.generate()` is called **without** any `language_id` kwarg
 
 ### Tests
-- [ ] `TestChatterboxCloneDemoStructure` in `test_chatterbox_clone_demo.py` is
+- [x] `TestChatterboxCloneDemoStructure` in `test_chatterbox_clone_demo.py` is
       deleted (folder no longer exists)
-- [ ] All behavioural tests from `TestSynthesizeClonedAudio` are migrated to
+- [x] All behavioural tests from `TestSynthesizeClonedAudio` are migrated to
       `test_chatterbox_demo.py`, importing from `examples.demos.chatterbox.tools`
-- [ ] A new `TestSpeakCLI` class is added in `test_chatterbox_demo.py` covering:
+- [x] A new `TestSpeakCLI` class is added in `test_chatterbox_demo.py` covering:
       - `generate()` called with correct `audio_prompt_path` and no `language_id`
       - Output written to `outputs/chatterbox/speak.wav`
       - Exit code 1 when `--ref` path does not exist
-- [ ] All existing `TestSynthesizeAudio` tests in `test_chatterbox_demo.py`
+- [x] All existing `TestSynthesizeAudio` tests in `test_chatterbox_demo.py`
       continue to pass unchanged
 
 ### Documentation
-- [ ] `examples/demos/chatterbox/README.md` documents both the graph workflow
+- [x] `examples/demos/chatterbox/README.md` documents both the graph workflow
       (`graph.yaml`, `clone.yaml`) and the `speak.py` CLI tool
-- [ ] README includes a ready-to-run example using `source.wav` as reference:
+- [x] README includes a ready-to-run example using `source.wav` as reference:
       ```
       python examples/demos/chatterbox/speak.py \
           --ref examples/demos/chatterbox/source.wav "Hello"
       ```
-- [ ] README documents the language trade-off: `ChatterboxTTS` is
+- [x] README documents the language trade-off: `ChatterboxTTS` is
       English-focused; `--lang` intentionally absent; use `graph.yaml` for
       multilingual synthesis
 
 ### Demo infrastructure
-- [ ] `demo.sh` has no `chatterbox_clone` entry or `demo_chatterbox_clone()`
+- [x] `demo.sh` has no `chatterbox_clone` entry or `demo_chatterbox_clone()`
       function
-- [ ] `demo.sh` has a `chatterbox_speak` entry that calls `speak.py` without
+- [x] `demo.sh` has a `chatterbox_speak` entry that calls `speak.py` without
       stdout redirect
-- [ ] `demo-output.log` in `examples/demos/chatterbox/` is updated to reflect
+- [x] `demo-output.log` in `examples/demos/chatterbox/` is updated to reflect
       consolidated demo execution (FR-206 gate)
 
 ### Traceability
-- [ ] `ARCHITECTURE.md` CAP-93 path updated from `chatterbox_clone` to
+- [x] `ARCHITECTURE.md` CAP-93 path updated from `chatterbox_clone` to
       `chatterbox/`; description extended to include FR-237 consolidation
-- [ ] FR-233 and FR-236 updated with "Superseded by FR-237 (consolidated)"
-- [ ] Diary reflection written in `docs/diary/`
-- [ ] Changelog fragment added in `changelog/unreleased/`
+- [x] FR-233 and FR-236 updated with "Superseded by FR-237 (consolidated)"
+- [x] Diary reflection written in `docs/diary/`
+- [x] Changelog fragment added in `changelog/unreleased/`
 
 ## Alternatives Considered
 

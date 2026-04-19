@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Implemented
+**Status:** Implemented (Superseded by FR-237 — tools merged into `chatterbox/tools.py`)
 **Effort:** 2 days
 **Requested:** 2026-04-18
 
