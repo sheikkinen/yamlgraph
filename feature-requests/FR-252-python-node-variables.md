@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-19
 
@@ -65,15 +65,15 @@ The function receives `state` with `url` and `message` already resolved from exp
 
 ## Acceptance Criteria
 
-- [ ] `type: python` nodes resolve `variables:` expressions before calling the function
-- [ ] Resolved variables override same-named state keys (consistent with llm/race/streaming nodes)
-- [ ] Empty `variables: {}` preserves current behavior (no regression)
-- [ ] `variables:` omitted entirely preserves current behavior (no regression)
-- [ ] Unit test: python node with `variables:` config resolves `{state.field}` expressions
-- [ ] Unit test: resolved variables are accessible in the function's state dict argument
-- [ ] Unit test: resolved variables override existing state keys
-- [ ] Existing python node tests pass unchanged
-- [ ] Linter validates `variables:` references on python nodes (existing E007 coverage via `{state.X}`)
+- [x] `type: python` nodes resolve `variables:` expressions before calling the function
+- [x] Resolved variables override same-named state keys (consistent with llm/race/streaming nodes)
+- [x] Empty `variables: {}` preserves current behavior (no regression)
+- [x] `variables:` omitted entirely preserves current behavior (no regression)
+- [x] Unit test: python node with `variables:` config resolves `{state.field}` expressions
+- [x] Unit test: resolved variables are accessible in the function's state dict argument
+- [x] Unit test: resolved variables override existing state keys
+- [x] Existing python node tests pass unchanged
+- [x] Linter validates `variables:` references on python nodes (existing E007 coverage via `{state.X}`)
 
 ## Alternatives Considered
 

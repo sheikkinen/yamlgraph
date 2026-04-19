@@ -159,6 +159,7 @@ def create_python_node(
     state_key = node_config.get("state_key", node_name)
     on_error = node_config.get("on_error", "fail")
     loop_limit = node_config.get("loop_limit")
+    variable_templates = node_config.get("variables", {})
 
     # Load the function at node creation time
     func = load_python_function(tool_config)
@@ -179,7 +180,15 @@ def create_python_node(
         logger.info(f"🐍 Executing Python node: {node_name} -> {tool_name}")
 
         try:
-            result = func(state)
+            from yamlgraph.utils.expressions import resolve_node_variables
+
+            if variable_templates:
+                resolved = resolve_node_variables(variable_templates, state)
+                effective_state = {**state, **resolved}
+            else:
+                effective_state = state
+
+            result = func(effective_state)
 
             # If function returns a dict, merge with node metadata
             if isinstance(result, dict):
