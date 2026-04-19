@@ -377,6 +377,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 101 | A2A Call Node Type (FR-240) | `yamlgraph/node_factory/a2a_nodes.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/linter/patterns/a2a.py` | REQ-YG-243 |
 | 100 | Chatterbox Multilingual CLI (FR-239) | `examples/demos/chatterbox/speak.py` | REQ-YG-242 |
 | 104 | A2A Server Reference Documentation (FR-246) | `reference/a2a-server.md`, `reference/cli.md` | REQ-YG-246 |
+| 105 | GitHub Issues Remote Inbox (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` | REQ-YG-247 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -553,6 +554,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-243 | `type: a2a_call` node sends Jinja2-templated message to external A2A agent URL via HTTP JSON-RPC `tasks/send`; extracts text artifacts from response; stores in `state_key`; supports `timeout`, `on_error` (skip/fail/retry/fallback), `variables`; `NodeType.A2A_CALL` in constants; registered in `NODE_TYPE_HANDLERS`; linter validates required fields (`agent_url`, `message`, `state_key`) via E901–E903; `check_a2a_call_patterns()` in graph linter; does not require prompt field; uses httpx for HTTP transport (FR-240) | `yamlgraph/node_factory/a2a_nodes.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/linter/patterns/a2a.py` |
 | REQ-YG-242 | Chatterbox multilingual CLI: `speak.py --lang <code>` routes to `ChatterboxMultilingualTTS` for non-English codes (fi, sv, de, es, …); `--ref` incompatible with non-English lang (parser.error); `--lang en` (default) preserves voice-cloning path requiring `--ref`; output always `outputs/chatterbox/speak.wav` (FR-239) | `examples/demos/chatterbox` |
 | REQ-YG-246 | `reference/a2a-server.md` created with 10 sections: Quickstart, CLI Commands, Agent Card Generation, Message-to-State Mapping, Task Lifecycle, Error Mapping, Interrupt/Human-in-Loop, Authentication, Deployment Patterns, Relationship to MCP Server; `reference/cli.md` updated with `a2a serve` and `a2a card` subcommands; `reference/README.md` links to `a2a-server.md`; all examples verified against `a2a_server.py`, `a2a_message.py`, `cli/a2a_commands.py` (FR-246) | `reference/a2a-server.md`, `reference/cli.md` |
+| REQ-YG-247 | GitHub Issues remote inbox: `watch.sh` polls open issues labeled `chaplain` via two-pass `gh` CLI (list numbers, view each body), writes `.chaplain/inbox/gh-{number}.md`, removes label after import; `EXIT_CODE=1` sentinel before enforcement branches; closes originating issue with commit hash on `EXIT_CODE=0` and `gh-*.md` filename; sync silently skipped when `gh` is not installed or not authenticated; `CLAUDE.md` and `copilot-instructions.md` document remote submission (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` |
 
 ### 93. Per-Node Timeout
 
