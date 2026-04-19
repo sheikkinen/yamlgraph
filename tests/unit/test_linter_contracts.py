@@ -1,9 +1,11 @@
 """Tests for FR-061 contract violation lint rules.
 
 E012: Hyphen in identifier position (state key, node name, tool name, state_key value)
-W020: variables: on type: python (silent no-op)
 W021: skip_if_exists on list field with add reducer
 W017: on_error: skip silently drops failures (FR-165)
+
+Note: W020 (variables: on type: python) removed by FR-252 — python nodes
+now resolve variables: expressions.
 """
 
 import tempfile
@@ -14,7 +16,6 @@ import yaml
 
 from yamlgraph.linter.checks_contracts import (
     check_identifier_keys,
-    check_python_node_variables,
     check_silent_fallback,
     check_skip_if_exists_add_reducer,
     check_top_level_provider_model,
@@ -26,46 +27,6 @@ def _create_temp_graph(graph_dict: dict) -> Path:
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         yaml.dump(graph_dict, f)
         return Path(f.name)
-
-
-class TestW020PythonNodeVariables:
-    """W020: variables on type: python is silently ignored."""
-
-    @pytest.mark.req("REQ-YG-061")
-    def test_python_node_with_variables_warns(self):
-        """Python node with variables: should warn."""
-        graph = _create_temp_graph(
-            {
-                "nodes": {
-                    "my_python_node": {
-                        "type": "python",
-                        "function": "some_module.func",
-                        "variables": {"topic": "state.topic"},
-                    }
-                }
-            }
-        )
-        issues = check_python_node_variables(graph)
-        assert len(issues) == 1
-        assert issues[0].code == "W020"
-        assert "my_python_node" in issues[0].message
-
-    @pytest.mark.req("REQ-YG-061")
-    def test_llm_node_with_variables_no_warn(self):
-        """LLM node with variables: is valid, no warning."""
-        graph = _create_temp_graph(
-            {
-                "nodes": {
-                    "generate": {
-                        "type": "llm",
-                        "prompt": "generate.yaml",
-                        "variables": {"topic": "state.topic"},
-                    }
-                }
-            }
-        )
-        issues = check_python_node_variables(graph)
-        assert len(issues) == 0
 
 
 class TestE012HyphenInIdentifier:

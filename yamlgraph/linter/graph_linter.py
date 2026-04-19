@@ -25,7 +25,6 @@ from yamlgraph.linter.checks import (
 )
 from yamlgraph.linter.checks_contracts import (
     check_identifier_keys,
-    check_python_node_variables,
     check_silent_fallback,
     check_skip_if_exists_add_reducer,
     check_skip_without_verification,
@@ -118,7 +117,6 @@ def lint_graph(
     all_issues.extend(check_a2a_call_patterns(graph_path))
 
     # FR-061: Contract violation checks
-    all_issues.extend(check_python_node_variables(graph_path))
     all_issues.extend(check_identifier_keys(graph_path))
     all_issues.extend(check_skip_if_exists_add_reducer(graph_path))
 

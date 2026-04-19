@@ -4,9 +4,11 @@ These checks detect misconfigurations that parse successfully but fail or
 behave incorrectly at runtime — the gap between "valid YAML" and "correct graph".
 
 E012: Hyphen in identifier position (state key, node name, tool name, state_key)
-W020: variables: on type: python (silent no-op)
 W021: skip_if_exists on list field with add reducer
 W017: on_error: skip silently drops failures (FR-165)
+
+Note: W020 (variables: on type: python) was removed by FR-252 — python nodes
+now resolve variables: expressions, consistent with all other node types.
 """
 
 from __future__ import annotations
@@ -14,29 +16,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from yamlgraph.linter.checks import LintIssue, load_graph
-
-
-def check_python_node_variables(graph_path: Path) -> list[LintIssue]:
-    """W020: variables: on type: python is a silent no-op.
-
-    Python nodes receive state dict directly — variables substitution
-    doesn't apply. This is a common mistake when converting from LLM nodes.
-    """
-    issues = []
-    graph = load_graph(graph_path)
-
-    for node_name, node_config in graph.get("nodes", {}).items():
-        if node_config.get("type") == "python" and "variables" in node_config:
-            issues.append(
-                LintIssue(
-                    severity="warning",
-                    code="W020",
-                    message=f"Node '{node_name}': 'variables' is ignored on type: python. "
-                    "Python tools receive state dict directly via state parameter.",
-                    fix="Remove 'variables' key or use type: llm if variable substitution needed",
-                )
-            )
-    return issues
 
 
 def check_identifier_keys(graph_path: Path) -> list[LintIssue]:
@@ -251,7 +230,6 @@ def check_silent_fallback(graph_path: Path) -> list[LintIssue]:
 
 
 __all__ = [
-    "check_python_node_variables",
     "check_identifier_keys",
     "check_skip_if_exists_add_reducer",
     "check_top_level_provider_model",
