@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** In Progress
 **Effort:** 5 days
 **Requested:** 2026-04-19
 **Judged:** 2026-04-19
@@ -159,16 +159,16 @@ Add to `yamlgraph/linter/patterns/a2a.py`:
 
 ## Acceptance Criteria
 
-- [ ] **REQ-YG-246**: `a2a_call` node fetches Agent Card via sync `httpx.get()` to `{agent_url}/.well-known/agent.json`; Agent Cards cached per `agent_url` within a graph invocation using `ContextVar`; cache is isolated across invocations in long-running processes
-- [ ] **REQ-YG-247**: `skill` field on `a2a_call` node selects a specific agent skill; validated against Agent Card skills at runtime; `ValueError` raised on skill ID miss with available skills listed in error message
-- [ ] **REQ-YG-248**: `streaming: true` on `a2a_call` node uses `A2AClient.send_message_streaming()` via dedicated thread; requires `card.capabilities.streaming == True`; result still written as complete string to `state_key`; streaming events logged at DEBUG level
-- [ ] **REQ-YG-249**: Linter check W901 warns when `skill` field is present on `a2a_call` (informational); linter check E904 errors when `streaming: true` is used on a non-`a2a_call` node type
-- [ ] Unit tests for Agent Card fetching, caching isolation, skill validation, streaming event collection (all in `tests/unit/test_a2a_call_node.py`)
-- [ ] Existing FR-240 unit tests continue to pass (no regression)
+- [x] **REQ-YG-246**: `a2a_call` node fetches Agent Card via sync `httpx.get()` to `{agent_url}/.well-known/agent.json`; Agent Cards cached per `agent_url` within a graph invocation using `ContextVar`; cache is isolated across invocations in long-running processes
+- [x] **REQ-YG-247**: `skill` field on `a2a_call` node selects a specific agent skill; validated against Agent Card skills at runtime; `ValueError` raised on skill ID miss with available skills listed in error message
+- [x] **REQ-YG-248**: `streaming: true` on `a2a_call` node uses `A2AClient.send_message_streaming()` via dedicated thread; requires `card.capabilities.streaming == True`; result still written as complete string to `state_key`; streaming events logged at DEBUG level
+- [x] **REQ-YG-249**: Linter check W901 warns when `skill` field is present on `a2a_call` (informational); linter check E904 errors when `streaming: true` is used on a non-`a2a_call` node type
+- [x] Unit tests for Agent Card fetching, caching isolation, skill validation, streaming event collection (all in `tests/unit/test_a2a_call_node.py`)
+- [x] Existing FR-240 unit tests continue to pass (no regression)
 - [ ] Demo in `examples/demos/a2a_call/` updated to demonstrate `skill` and `streaming` options
-- [ ] `skill` and `streaming` fields added to `NodeConfig` in `graph_schema.py`
-- [ ] Capability file `capabilities/CAP-104-a2a-consumer-phase2.yaml` created
-- [ ] REQ-YG-246, REQ-YG-247, REQ-YG-248, REQ-YG-249 added to `ARCHITECTURE.md`
+- [x] `skill` and `streaming` fields added to `NodeConfig` in `graph_schema.py`
+- [x] Capability file `capabilities/CAP-104-a2a-consumer-phase2.yaml` created
+- [x] REQ-YG-246, REQ-YG-247, REQ-YG-248, REQ-YG-249 added to `ARCHITECTURE.md`
 
 ## Implementation Approach
 
