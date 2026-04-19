@@ -3,7 +3,7 @@
 **FR:** FR-239
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-19
 
@@ -88,22 +88,22 @@ No new module or tool function is needed; the logic lives in `speak.py` directly
 
 ## Acceptance Criteria
 
-- [ ] `speak.py --lang fi "Hei maailma"` produces `outputs/chatterbox/speak.wav`
+- [x] `speak.py --lang fi "Hei maailma"` produces `outputs/chatterbox/speak.wav`
       without error on a machine with `chatterbox` installed.
-- [ ] `speak.py "Hello world" --ref source.wav` (no `--lang`) continues to work
+- [x] `speak.py "Hello world" --ref source.wav` (no `--lang`) continues to work
       identically to the current behaviour.
-- [ ] `speak.py --lang fi --ref source.wav "..."` exits with a clear error
+- [x] `speak.py --lang fi --ref source.wav "..."` exits with a clear error
       message referencing the incompatibility, not a Python traceback.
-- [ ] `speak.py --help` lists `--lang`, its default (`en`), and documents which
+- [x] `speak.py --help` lists `--lang`, its default (`en`), and documents which
       model each path uses.
-- [ ] Docstring at top of `speak.py` updated to describe both synthesis paths.
-- [ ] A unit test in `tests/unit/` (mock `ChatterboxMultilingualTTS`) verifies
+- [x] Docstring at top of `speak.py` updated to describe both synthesis paths.
+- [x] A unit test in `tests/unit/` (mock `ChatterboxMultilingualTTS`) verifies
       that `--lang fi` invokes the multilingual model and that `--lang fi --ref`
       raises `SystemExit` with a non-zero code.
-- [ ] `demo-output.log` updated with a Finnish synthesis run.
-- [ ] README in `examples/demos/chatterbox/` updated with the `--lang` flag and
+- [x] `demo-output.log` updated with a Finnish synthesis run.
+- [x] README in `examples/demos/chatterbox/` updated with the `--lang` flag and
       a note that voice cloning requires `--lang en` (or omission).
-- [ ] Changelog fragment created in `changelog/unreleased/`.
+- [x] Changelog fragment created in `changelog/unreleased/`.
 
 ## Alternatives Considered
 
