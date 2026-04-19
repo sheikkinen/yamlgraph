@@ -38,9 +38,9 @@ class TestGuardrailsPatternExists:
         pos_10 = self.content.index("## Pattern 10:")
         pos_11 = self.content.index("## Pattern 11:")
         pos_12 = self.content.index("## Pattern 12:")
-        assert pos_10 < pos_11 < pos_12, (
-            "Pattern 11 must be between Pattern 10 and Pattern 12"
-        )
+        assert (
+            pos_10 < pos_11 < pos_12
+        ), "Pattern 11 must be between Pattern 10 and Pattern 12"
 
 
 # ---------------------------------------------------------------------------
@@ -64,9 +64,7 @@ class TestGuardrailsPatternSections:
         assert "### Problem" in self.section, "Pattern 11 must have a Problem section"
 
     def test_has_solution_section(self):
-        assert (
-            "### Solution" in self.section
-        ), "Pattern 11 must have a Solution section"
+        assert "### Solution" in self.section, "Pattern 11 must have a Solution section"
 
     def test_has_graph_structure(self):
         assert (
