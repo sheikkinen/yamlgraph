@@ -778,12 +778,20 @@ nodes:
       - name: ch2
         title: "The Journey"
     stages:
-      - name: translate
+      - name: draft
         type: llm
-        prompt: translate_chapter
+        prompt: draft_chapter
         variables:
           title: "{item.title}"
-        state_key: translated_{item.name}
+        state_key: draft_{item.name}
+      - name: polish
+        type: llm
+        prompt: polish_chapter
+        variables:
+          draft: "{state.draft_{item.name}}"
+        state_key: polished_{item.name}
+```
+
 ### `type: race` - Race Multiple Providers
 
 Fire the same prompt to multiple LLM provider/model candidates concurrently
