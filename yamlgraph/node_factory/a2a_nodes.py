@@ -50,7 +50,7 @@ def _extract_text_from_result(result: dict[str, Any]) -> str:
     # Extract from artifacts
     for artifact in result.get("artifacts") or []:
         for part in artifact.get("parts", []):
-            if part.get("kind") == "text" and part.get("text"):
+            if "text" in part and part["text"]:
                 texts.append(part["text"])
 
     if texts:
@@ -60,7 +60,7 @@ def _extract_text_from_result(result: dict[str, Any]) -> str:
     status = result.get("status", {})
     message = status.get("message", {})
     for part in message.get("parts", []):
-        if part.get("kind") == "text" and part.get("text"):
+        if "text" in part and part["text"]:
             texts.append(part["text"])
 
     return "\n".join(texts) if texts else ""
@@ -96,7 +96,7 @@ def _send_a2a_message(
             "message": {
                 "role": "user",
                 "messageId": str(uuid.uuid4()),
-                "parts": [{"kind": "text", "text": message}],
+                "parts": [{"text": message}],
             },
         },
     }

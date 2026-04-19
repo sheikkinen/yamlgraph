@@ -282,7 +282,7 @@ class TestA2AMessageSender:
                 "status": {"state": "completed"},
                 "artifacts": [
                     {
-                        "parts": [{"kind": "text", "text": "Agent says hello"}],
+                        "parts": [{"text": "Agent says hello"}],
                     }
                 ],
             },
@@ -321,12 +321,12 @@ class TestA2AMessageSender:
                 "artifacts": [
                     {
                         "parts": [
-                            {"kind": "text", "text": "Part 1"},
-                            {"kind": "text", "text": "Part 2"},
+                            {"text": "Part 1"},
+                            {"text": "Part 2"},
                         ],
                     },
                     {
-                        "parts": [{"kind": "text", "text": "Part 3"}],
+                        "parts": [{"text": "Part 3"}],
                     },
                 ],
             },
@@ -358,7 +358,7 @@ class TestA2AMessageSender:
                     "state": "failed",
                     "message": {
                         "role": "agent",
-                        "parts": [{"kind": "text", "text": "Internal error"}],
+                        "parts": [{"text": "Internal error"}],
                     },
                 },
             },
@@ -407,7 +407,7 @@ class TestA2AMessageSender:
                     "state": "completed",
                     "message": {
                         "role": "agent",
-                        "parts": [{"kind": "text", "text": "Done successfully"}],
+                        "parts": [{"text": "Done successfully"}],
                     },
                 },
             },
@@ -533,3 +533,84 @@ class TestA2ACallExport:
         from yamlgraph.node_factory import create_a2a_call_node
 
         assert callable(create_a2a_call_node)
+
+
+# =============================================================================
+# FR-244: A2A SDK v1.0 compatibility — member-name discriminator
+# =============================================================================
+
+
+class TestA2AV1PartFormat:
+    """A2A v1.0 uses member-name discriminator (no 'kind' field)."""
+
+    @pytest.mark.req("REQ-YG-245")
+    @patch("yamlgraph.node_factory.a2a_nodes.httpx")
+    def test_payload_uses_v1_part_format_no_kind(self, mock_httpx):
+        """Payload parts must NOT contain 'kind' discriminator (v1.0 format)."""
+        from yamlgraph.node_factory.a2a_nodes import _send_a2a_message
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "jsonrpc": "2.0",
+            "id": "1",
+            "result": {
+                "id": "task-1",
+                "status": {"state": "completed"},
+                "artifacts": [{"parts": [{"text": "ok"}]}],
+            },
+        }
+        mock_httpx.post.return_value = mock_response
+
+        _send_a2a_message(
+            agent_url="http://localhost:8080",
+            message="Hello",
+            timeout=60,
+        )
+
+        body = mock_httpx.post.call_args[1]["json"]
+        parts = body["params"]["message"]["parts"]
+        for part in parts:
+            assert "kind" not in part, f"v1.0 parts must not contain 'kind': {part}"
+
+    @pytest.mark.req("REQ-YG-245")
+    def test_extract_text_from_v1_artifact_parts(self):
+        """Extraction works with v1.0 parts (key-presence, no 'kind')."""
+        from yamlgraph.node_factory.a2a_nodes import _extract_text_from_result
+
+        result = {
+            "artifacts": [{"parts": [{"text": "Hello from v1"}]}],
+            "status": {"state": "completed"},
+        }
+        assert _extract_text_from_result(result) == "Hello from v1"
+
+    @pytest.mark.req("REQ-YG-245")
+    def test_extract_text_from_v1_status_message(self):
+        """Extraction from status message works with v1.0 parts."""
+        from yamlgraph.node_factory.a2a_nodes import _extract_text_from_result
+
+        result = {
+            "status": {
+                "state": "completed",
+                "message": {"parts": [{"text": "Done via status"}]},
+            },
+        }
+        assert _extract_text_from_result(result) == "Done via status"
+
+    @pytest.mark.req("REQ-YG-245")
+    def test_extract_text_skips_non_text_parts(self):
+        """Parts without 'text' key are skipped."""
+        from yamlgraph.node_factory.a2a_nodes import _extract_text_from_result
+
+        result = {
+            "artifacts": [
+                {
+                    "parts": [
+                        {"data": {"key": "val"}},
+                        {"text": "Only text"},
+                    ],
+                }
+            ],
+            "status": {"state": "completed"},
+        }
+        assert _extract_text_from_result(result) == "Only text"

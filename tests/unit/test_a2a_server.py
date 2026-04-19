@@ -233,8 +233,8 @@ async def test_executor_execute_invokes_graph(sample_graph_info):
     status_events = [
         e for e in collected_events if isinstance(e, TaskStatusUpdateEvent)
     ]
-    assert any(e.status.state == TaskState.working for e in status_events)
-    assert any(e.status.state == TaskState.completed for e in status_events)
+    assert any(e.status.state == TaskState.TASK_STATE_WORKING for e in status_events)
+    assert any(e.status.state == TaskState.TASK_STATE_COMPLETED for e in status_events)
 
 
 @pytest.mark.req("REQ-YG-207")
@@ -269,10 +269,9 @@ async def test_executor_execute_error_path(sample_graph_info):
     status_events = [
         e for e in collected_events if isinstance(e, TaskStatusUpdateEvent)
     ]
-    failed = [e for e in status_events if e.status.state == TaskState.failed]
+    failed = [e for e in status_events if e.status.state == TaskState.TASK_STATE_FAILED]
     assert len(failed) == 1
-    assert failed[0].final is True
-    assert "Graph exploded" in failed[0].status.message.parts[0].root.text
+    assert "Graph exploded" in failed[0].status.message.parts[0].text
 
 
 @pytest.mark.req("REQ-YG-209")
@@ -310,9 +309,9 @@ async def test_executor_execute_pipeline_error_mapping_unreachable(sample_graph_
     status_events = [
         e for e in collected_events if isinstance(e, TaskStatusUpdateEvent)
     ]
-    failed = [e for e in status_events if e.status.state == TaskState.failed]
+    failed = [e for e in status_events if e.status.state == TaskState.TASK_STATE_FAILED]
     assert len(failed) == 1
-    assert "Bad input format" in failed[0].status.message.parts[0].root.text
+    assert "Bad input format" in failed[0].status.message.parts[0].text
 
 
 @pytest.mark.req("REQ-YG-212")
@@ -343,7 +342,7 @@ async def test_executor_cancel(sample_graph_info):
     status_events = [
         e for e in collected_events if isinstance(e, TaskStatusUpdateEvent)
     ]
-    assert any(e.status.state == TaskState.canceled for e in status_events)
+    assert any(e.status.state == TaskState.TASK_STATE_CANCELED for e in status_events)
 
 
 # ---------------------------------------------------------------------------
@@ -385,31 +384,35 @@ def test_create_a2a_app(tmp_path: Path):
 @pytest.mark.asyncio(loop_scope="function")
 async def test_task_store_save_and_get():
     """InMemoryTaskStore persists task for task/get retrieval."""
+    from a2a.server.context import ServerCallContext
     from a2a.server.tasks import InMemoryTaskStore
     from a2a.types import Task, TaskState, TaskStatus
 
     store = InMemoryTaskStore()
+    ctx = ServerCallContext()
     task = Task(
         id="task-get-1",
         context_id="ctx-1",
-        status=TaskStatus(state=TaskState.working),
+        status=TaskStatus(state=TaskState.TASK_STATE_WORKING),
     )
-    await store.save(task)
+    await store.save(task, ctx)
 
-    retrieved = await store.get("task-get-1")
+    retrieved = await store.get("task-get-1", ctx)
     assert retrieved is not None
     assert retrieved.id == "task-get-1"
-    assert retrieved.status.state == TaskState.working
+    assert retrieved.status.state == TaskState.TASK_STATE_WORKING
 
 
 @pytest.mark.req("REQ-YG-210")
 @pytest.mark.asyncio(loop_scope="function")
 async def test_task_store_returns_none_for_unknown_id():
     """InMemoryTaskStore returns None for unknown task IDs."""
+    from a2a.server.context import ServerCallContext
     from a2a.server.tasks import InMemoryTaskStore
 
     store = InMemoryTaskStore()
-    result = await store.get("nonexistent")
+    ctx = ServerCallContext()
+    result = await store.get("nonexistent", ctx)
     assert result is None
 
 
@@ -475,16 +478,14 @@ async def test_execute_produces_streaming_events(sample_graph_info):
 
     # Verify SSE event stream order: working → artifact → completed
     assert isinstance(collected[0], TaskStatusUpdateEvent)
-    assert collected[0].status.state == TaskState.working
-    assert collected[0].final is False
+    assert collected[0].status.state == TaskState.TASK_STATE_WORKING
 
     artifact_events = [e for e in collected if isinstance(e, TaskArtifactUpdateEvent)]
     assert len(artifact_events) == 1
 
     final_event = collected[-1]
     assert isinstance(final_event, TaskStatusUpdateEvent)
-    assert final_event.status.state == TaskState.completed
-    assert final_event.final is True
+    assert final_event.status.state == TaskState.TASK_STATE_COMPLETED
 
 
 @pytest.mark.req("REQ-YG-211")
@@ -519,11 +520,11 @@ async def test_streaming_events_include_message_on_complete(sample_graph_info):
         e
         for e in collected
         if isinstance(e, TaskStatusUpdateEvent)
-        and e.status.state == TaskState.completed
+        and e.status.state == TaskState.TASK_STATE_COMPLETED
     ]
     assert len(completed) == 1
     assert completed[0].status.message is not None
-    assert "Hello!" in completed[0].status.message.parts[0].root.text
+    assert "Hello!" in completed[0].status.message.parts[0].text
 
 
 @pytest.mark.req("REQ-YG-213")
@@ -558,10 +559,11 @@ async def test_execute_emits_input_required_on_interrupt(sample_graph_info):
 
     status_events = [e for e in collected if isinstance(e, TaskStatusUpdateEvent)]
     input_required = [
-        e for e in status_events if e.status.state == TaskState.input_required
+        e
+        for e in status_events
+        if e.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
     ]
     assert len(input_required) == 1
-    assert input_required[0].final is False
 
 
 # ---------------------------------------------------------------------------
@@ -598,8 +600,8 @@ def test_demo_script_streaming_accepts_sse():
 
 @pytest.mark.req("REQ-YG-211")
 @pytest.mark.asyncio(loop_scope="function")
-async def test_execute_closes_queue_gracefully(sample_graph_info):
-    """EventQueue.close must use immediate=False so SSE consumer can drain all events."""
+async def test_execute_does_not_call_queue_close(sample_graph_info):
+    """v1.0 SDK: EventQueue no longer has close(); executor must not call it."""
     from a2a.server.agent_execution import RequestContext
 
     from yamlgraph.a2a_server import YAMLGraphAgentExecutor
@@ -615,10 +617,9 @@ async def test_execute_closes_queue_gracefully(sample_graph_info):
 
     queue = AsyncMock()
     queue.enqueue_event = AsyncMock()
-    queue.close = AsyncMock()
 
     with patch("yamlgraph.a2a_server._invoke_graph", return_value={"out": "hi"}):
         await executor.execute(context, queue)
 
-    # close() must be called with immediate=False to allow consumer drain
-    queue.close.assert_called_once_with(immediate=False)
+    # enqueue_event should have been called (working + artifact + completed)
+    assert queue.enqueue_event.call_count == 3

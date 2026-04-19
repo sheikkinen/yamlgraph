@@ -67,7 +67,7 @@ def _cmd_a2a_serve(args: argparse.Namespace) -> None:
         port=port,
     )
 
-    uvicorn.run(app.build(), host=host, port=port)
+    uvicorn.run(app, host=host, port=port)
 
 
 def _cmd_a2a_card(args: argparse.Namespace) -> None:
@@ -86,4 +86,7 @@ def _cmd_a2a_card(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     card = build_agent_card(graphs=graphs, host=host, port=port)
-    print(json.dumps(card.model_dump(by_alias=True, exclude_none=True), indent=2))
+
+    from google.protobuf.json_format import MessageToDict
+
+    print(json.dumps(MessageToDict(card, preserving_proto_field_name=True), indent=2))
