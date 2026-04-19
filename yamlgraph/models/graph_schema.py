@@ -12,6 +12,19 @@ from yamlgraph.constants import ErrorHandler, NodeType
 VALID_ON_FAIL = {"warn", "halt", "retry"}
 
 
+class CacheConfig(BaseModel):
+    """Configuration for per-node result caching (FR-032).
+
+    Maps to LangGraph CachePolicy on graph.add_node().
+    """
+
+    ttl: int | None = Field(
+        default=None,
+        ge=1,
+        description="Time-to-live in seconds (None = cache forever)",
+    )
+
+
 class VerificationConfig(BaseModel):
     """Configuration for a node's verification gate (FR-164)."""
 
@@ -140,7 +153,25 @@ class NodeConfig(BaseModel):
         description="Verification gate — falsifiable prediction checked after execution",
     )
 
+    # Node-level caching (FR-032)
+    cache: CacheConfig | None = Field(
+        default=None,
+        description="Cache policy — true for default, {ttl: N} for time-limited",
+    )
+
     model_config = {"extra": "allow", "populate_by_name": True}
+
+    @field_validator("cache", mode="before")
+    @classmethod
+    def parse_cache(cls, v: Any) -> Any:
+        """Parse cache shorthand: true → CacheConfig(), false → None, dict → CacheConfig."""
+        if v is True:
+            return CacheConfig()
+        if v is False or v is None:
+            return None
+        if isinstance(v, dict):
+            return CacheConfig(**v)
+        return v
 
     @field_validator("verification", mode="before")
     @classmethod

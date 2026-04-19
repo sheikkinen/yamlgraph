@@ -101,6 +101,7 @@ SubgraphNodeConfig.model_config
 GraphConfig.model_config
 
 from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
+    CacheConfig,
     CheckpointConfig,
     DefaultsConfig,
     NodeConfig,
@@ -108,8 +109,10 @@ from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
 )
 
 NodeConfig.model_config
+NodeConfig.cache
 NodeConfig.fallback
 NodeConfig.verification
+CacheConfig.ttl
 CheckpointConfig.backend
 DefaultsConfig.model_config
 
@@ -117,6 +120,7 @@ DefaultsConfig.model_config
 NodeConfig.validate_timeout
 NodeConfig.validate_thinking_budget
 NodeConfig.validate_node_requirements
+NodeConfig.parse_cache
 NodeConfig.parse_verification
 VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget

@@ -1,0 +1,5 @@
+system: |
+  You are a concise summarizer. Write exactly one sentence.
+
+user: |
+  Summarize the topic "{topic}" in a single sentence.

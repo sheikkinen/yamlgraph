@@ -1,0 +1,42 @@
+# Cache Demo - Per-Node Result Caching (FR-032)
+# Demonstrates cache: true and cache: {ttl: N} on nodes.
+# Re-running with the same inputs skips cached LLM calls.
+
+version: "1.0"
+name: cache-demo
+description: Per-node caching with LangGraph CachePolicy
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  topic: str
+
+nodes:
+  summarize:
+    type: llm
+    prompt: summarize
+    variables:
+      topic: "{state.topic}"
+    state_key: summary
+    cache: true
+
+  expand:
+    type: llm
+    prompt: expand
+    variables:
+      summary: "{state.summary}"
+    state_key: expansion
+    cache:
+      ttl: 60
+
+edges:
+  - from: START
+    to: summarize
+  - from: summarize
+    to: expand
+  - from: expand
+    to: END

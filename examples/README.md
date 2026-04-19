@@ -98,6 +98,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [verified-search](demos/verified-search/) | `agent`, `llm` | Evaluation-first search with verification |
 | [web-research](demos/web-research/) | `agent` | Web search agent |
 | [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |
+| [cache](demos/cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 
 ### Utility Demos
 

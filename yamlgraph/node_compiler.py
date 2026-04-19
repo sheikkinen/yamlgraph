@@ -8,14 +8,16 @@ import concurrent.futures
 import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from langgraph.graph import StateGraph
+from langgraph.types import CachePolicy
 
 from yamlgraph.constants import NodeType
 from yamlgraph.map_compiler import compile_map_node
+from yamlgraph.models.graph_schema import CacheConfig
 from yamlgraph.node_factory import (
     create_copilot_node,
     create_interrupt_node,
@@ -54,6 +56,42 @@ class NodeCompileContext:
     effective_defaults: dict[str, Any]
     prompts_dir: Path | None
     prompts_relative: bool
+    cache_policy: CachePolicy | None = field(default=None)
+
+
+# ---------------------------------------------------------------------------
+# Cache policy resolution (FR-032)
+# ---------------------------------------------------------------------------
+
+
+def resolve_cache_policy(cache_config: CacheConfig | None) -> CachePolicy | None:
+    """Convert CacheConfig → LangGraph CachePolicy.
+
+    Args:
+        cache_config: Parsed cache configuration from YAML, or None.
+
+    Returns:
+        CachePolicy instance, or None if caching not configured.
+    """
+    if cache_config is None:
+        return None
+    return CachePolicy(ttl=cache_config.ttl)
+
+
+def _parse_cache_field(raw: Any) -> CacheConfig | None:
+    """Parse raw cache field value from YAML node config.
+
+    Handles: True → CacheConfig(), False/None → None, dict → CacheConfig(**dict).
+    """
+    if raw is True:
+        return CacheConfig()
+    if raw is False or raw is None:
+        return None
+    if isinstance(raw, dict):
+        return CacheConfig(**raw)
+    if isinstance(raw, CacheConfig):
+        return raw
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -120,14 +158,14 @@ NodeTypeHandler = Callable[[NodeCompileContext], tuple[str, Any] | None]
 def _compile_tool_node(ctx: NodeCompileContext) -> None:
     node_fn = create_tool_node(ctx.node_name, ctx.node_config, ctx.tools)
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
 def _compile_python_node(ctx: NodeCompileContext) -> None:
     node_fn = create_python_node(ctx.node_name, ctx.node_config, ctx.python_tools)
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -141,7 +179,7 @@ def _compile_agent_node(ctx: NodeCompileContext) -> None:
         graph_path=ctx.config.source_path,
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -164,7 +202,7 @@ def _compile_tool_call_node(ctx: NodeCompileContext) -> None:
         ctx.node_name, ctx.node_config, ctx.callable_registry
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -178,7 +216,7 @@ def _compile_interrupt_node(ctx: NodeCompileContext) -> tuple[str, Any]:
         prompts_relative=ctx.prompts_relative,
     )
     prepare_name = f"{ctx.node_name}_prepare"
-    ctx.graph.add_node(prepare_name, prepare_fn)
+    ctx.graph.add_node(prepare_name, prepare_fn, cache_policy=ctx.cache_policy)
     ctx.graph.add_node(ctx.node_name, interrupt_fn)
     ctx.graph.add_edge(prepare_name, ctx.node_name)
     return (ctx.node_name, "interrupt_prepare")
@@ -186,7 +224,7 @@ def _compile_interrupt_node(ctx: NodeCompileContext) -> tuple[str, Any]:
 
 def _compile_passthrough_node(ctx: NodeCompileContext) -> None:
     node_fn = create_passthrough_node(ctx.node_name, ctx.node_config)
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -198,7 +236,7 @@ def _compile_copilot_node(ctx: NodeCompileContext) -> None:
         prompts_dir=ctx.prompts_dir,
         prompts_relative=ctx.prompts_relative,
     )
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -213,7 +251,7 @@ def _compile_subgraph_node(ctx: NodeCompileContext) -> None:
         ctx.node_config,
         parent_graph_path=ctx.config.source_path,
     )
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -225,7 +263,7 @@ def _compile_llm_node(ctx: NodeCompileContext) -> None:
         graph_path=ctx.config.source_path,
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -237,7 +275,7 @@ def _compile_race_node(ctx: NodeCompileContext) -> None:
         graph_path=ctx.config.source_path,
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
-    ctx.graph.add_node(ctx.node_name, node_fn)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
@@ -309,6 +347,11 @@ def compile_node(
     if prompts_dir:
         effective_defaults["prompts_dir"] = str(prompts_dir)
 
+    # Resolve cache policy (FR-032)
+    raw_cache = node_config.get("cache")
+    cache_config = _parse_cache_field(raw_cache)
+    node_cache_policy = resolve_cache_policy(cache_config)
+
     # Dispatch via registry (FR-220)
     node_type = node_config.get("type", NodeType.LLM)
     handler = NODE_TYPE_HANDLERS.get(node_type)
@@ -329,6 +372,7 @@ def compile_node(
         effective_defaults=effective_defaults,
         prompts_dir=prompts_dir,
         prompts_relative=prompts_relative,
+        cache_policy=node_cache_policy,
     )
     result = handler(ctx)
 
@@ -386,4 +430,7 @@ __all__ = [
     "_maybe_wrap_timeout",
     "compile_node",
     "compile_nodes",
+    "compile_node",
+    "compile_nodes",
+    "resolve_cache_policy",
 ]
