@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-19
 
@@ -107,19 +107,19 @@ GitHub Issues open the Chaplain pipeline to anyone with issue-writing permission
 
 ## Acceptance Criteria
 
-- [ ] `watch.sh` syncs open GitHub Issues labeled `chaplain` into `.chaplain/inbox/gh-{number}.md` at the top of each poll cycle
-- [ ] Sync uses two-pass approach: `gh issue list` for numbers, then `gh issue view` per issue, avoiding multi-line body corruption
-- [ ] The `chaplain` label is removed from the issue immediately after successful import, preventing infinite re-import loops
-- [ ] Sync is skipped silently when `gh` CLI is not installed (`command -v gh` fails)
-- [ ] Sync is skipped silently when `gh` is not authenticated (`gh auth status` fails)
-- [ ] Local inbox (`*.md` files placed directly in `.chaplain/inbox/`) continues to work unchanged
-- [ ] `EXIT_CODE` is initialized to `1` (failure sentinel) before the if-elif-else enforcement block
-- [ ] On successful enforcement (`EXIT_CODE -eq 0`), if the inbox file matches `gh-*.md`, the originating GitHub Issue is closed with a comment containing the commit hash
-- [ ] Issue is NOT closed when enforcement fails (`EXIT_CODE -ne 0`)
-- [ ] Issue is NOT closed when FR is rejected (sentinel `EXIT_CODE=1` is never overridden)
-- [ ] Issue is NOT closed for local inbox files (non `gh-*.md` filename)
-- [ ] `gh issue close` failure does not abort the pipeline (`|| true`)
-- [ ] CLAUDE.md "Submitting Proposals" section updated to document remote submission via GitHub Issues
+- [x] `watch.sh` syncs open GitHub Issues labeled `chaplain` into `.chaplain/inbox/gh-{number}.md` at the top of each poll cycle
+- [x] Sync uses two-pass approach: `gh issue list` for numbers, then `gh issue view` per issue, avoiding multi-line body corruption
+- [x] The `chaplain` label is removed from the issue immediately after successful import, preventing infinite re-import loops
+- [x] Sync is skipped silently when `gh` CLI is not installed (`command -v gh` fails)
+- [x] Sync is skipped silently when `gh` is not authenticated (`gh auth status` fails)
+- [x] Local inbox (`*.md` files placed directly in `.chaplain/inbox/`) continues to work unchanged
+- [x] `EXIT_CODE` is initialized to `1` (failure sentinel) before the if-elif-else enforcement block
+- [x] On successful enforcement (`EXIT_CODE -eq 0`), if the inbox file matches `gh-*.md`, the originating GitHub Issue is closed with a comment containing the commit hash
+- [x] Issue is NOT closed when enforcement fails (`EXIT_CODE -ne 0`)
+- [x] Issue is NOT closed when FR is rejected (sentinel `EXIT_CODE=1` is never overridden)
+- [x] Issue is NOT closed for local inbox files (non `gh-*.md` filename)
+- [x] `gh issue close` failure does not abort the pipeline (`|| true`)
+- [x] CLAUDE.md "Submitting Proposals" section updated to document remote submission via GitHub Issues
 - [ ] Manual verification: end-to-end test with a real GitHub Issue documented in PR description
 
 ## Alternatives Considered
