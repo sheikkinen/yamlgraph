@@ -3,7 +3,6 @@
 Creates LangGraph node functions from YAML configuration.
 """
 
-from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
 from yamlgraph.node_factory.base import (
     GraphState,
     get_output_model_for_node,
@@ -48,6 +47,4 @@ __all__ = [
     "_map_input_state",
     "_map_output_state",
     "_build_child_config",
-    # A2A call nodes
-    "create_a2a_call_node",
 ]

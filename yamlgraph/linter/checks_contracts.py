@@ -17,26 +17,13 @@ from yamlgraph.linter.checks import LintIssue, load_graph
 
 
 def check_python_node_variables(graph_path: Path) -> list[LintIssue]:
-    """W020: variables: on type: python is a silent no-op.
+    """W020: removed — variables: on type: python is now resolved (FR-252).
 
-    Python nodes receive state dict directly — variables substitution
-    doesn't apply. This is a common mistake when converting from LLM nodes.
+    Previously this warned that variables was a silent no-op. Now that
+    ``create_python_node`` resolves ``variables:`` expressions, the warning
+    is no longer applicable. Returns an empty list for API stability.
     """
-    issues = []
-    graph = load_graph(graph_path)
-
-    for node_name, node_config in graph.get("nodes", {}).items():
-        if node_config.get("type") == "python" and "variables" in node_config:
-            issues.append(
-                LintIssue(
-                    severity="warning",
-                    code="W020",
-                    message=f"Node '{node_name}': 'variables' is ignored on type: python. "
-                    "Python tools receive state dict directly via state parameter.",
-                    fix="Remove 'variables' key or use type: llm if variable substitution needed",
-                )
-            )
-    return issues
+    return []
 
 
 def check_identifier_keys(graph_path: Path) -> list[LintIssue]:

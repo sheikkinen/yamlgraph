@@ -29,11 +29,11 @@ def _create_temp_graph(graph_dict: dict) -> Path:
 
 
 class TestW020PythonNodeVariables:
-    """W020: variables on type: python is silently ignored."""
+    """W020: variables on type: python — now resolved at runtime (FR-252)."""
 
     @pytest.mark.req("REQ-YG-061")
-    def test_python_node_with_variables_warns(self):
-        """Python node with variables: should warn."""
+    def test_python_node_with_variables_no_warn(self):
+        """Python node with variables: is valid after FR-252, no warning."""
         graph = _create_temp_graph(
             {
                 "nodes": {
@@ -46,9 +46,7 @@ class TestW020PythonNodeVariables:
             }
         )
         issues = check_python_node_variables(graph)
-        assert len(issues) == 1
-        assert issues[0].code == "W020"
-        assert "my_python_node" in issues[0].message
+        assert len(issues) == 0
 
     @pytest.mark.req("REQ-YG-061")
     def test_llm_node_with_variables_no_warn(self):

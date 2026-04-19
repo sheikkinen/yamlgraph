@@ -24,7 +24,6 @@ class NodeType(StrEnum):
     COPILOT = "copilot"
     RACE = "race"
     PIPELINE = "pipeline"
-    A2A_CALL = "a2a_call"
 
     @classmethod
     def requires_prompt(cls, node_type: str) -> bool:

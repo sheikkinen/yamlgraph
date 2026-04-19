@@ -33,7 +33,6 @@ class TestNodeType:
             "copilot",
             "race",
             "pipeline",
-            "a2a_call",
         }
         actual = {nt.value for nt in NodeType}
         assert actual == expected
