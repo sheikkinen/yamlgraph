@@ -378,7 +378,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 100 | Chatterbox Multilingual CLI (FR-239) | `examples/demos/chatterbox/speak.py` | REQ-YG-242 |
 | 105 | A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming (FR-248) | `yamlgraph/node_factory/a2a_nodes.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/a2a.py` | REQ-YG-250, REQ-YG-251, REQ-YG-252, REQ-YG-253 |
 | 104 | A2A Server Reference Documentation (FR-246) | `reference/a2a-server.md`, `reference/cli.md` | REQ-YG-246 |
-| 105 | GitHub Issues Remote Inbox (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` | REQ-YG-247 |
+| 106 | GitHub Issues Remote Inbox (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` | REQ-YG-247 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 

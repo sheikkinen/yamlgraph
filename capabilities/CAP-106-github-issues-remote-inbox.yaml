@@ -1,4 +1,4 @@
-id: CAP-105
+id: CAP-106
 name: GitHub Issues Remote Inbox
 description: >
   watch.sh syncs open GitHub Issues labeled 'chaplain' into the local inbox,
