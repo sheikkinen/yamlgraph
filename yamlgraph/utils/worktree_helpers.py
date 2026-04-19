@@ -7,12 +7,14 @@ Provides utility functions for git worktree orchestration:
 - validate_venv_health: Assert .venv exists with working python (FR-174)
 - validate_venv_symlink: Assert .venv symlink resolves correctly (FR-174)
 - clean_stale_pth_entries: Remove dangling .pth/.egg-link files (FR-174)
+- validate_editable_install: Probe import health after cleanup (FR-241)
 """
 
 import json
 import logging
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -230,3 +232,23 @@ def clean_stale_pth_entries(venv_path: Path, worktree_dir: str) -> list[Path]:
                 removed.append(direct_url)
 
     return removed
+
+
+def validate_editable_install(package: str = "yamlgraph") -> bool:
+    """Validate that a package can be imported by the current Python interpreter.
+
+    Uses sys.executable to ensure venv isolation is respected. Returns a bool
+    instead of raising so callers can decide on self-heal strategy.
+
+    Args:
+        package: Package name to try importing (default: "yamlgraph").
+
+    Returns:
+        True if the package imports successfully, False otherwise.
+    """
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, "-c", f"import {package}"],  # noqa: S607
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0

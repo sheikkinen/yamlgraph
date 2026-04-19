@@ -1,0 +1,28 @@
+id: CAP-102
+name: Complete Worktree Teardown Self-Heal
+description: >
+  Complete worktree teardown self-heal: validate_editable_install() probes
+  import health via sys.executable; enforce_worktree.sh cleanup validates
+  import yamlgraph after .pth cleaning and self-heals with pip install -e;
+  bugfix_worktree.sh reaches FR-174 parity with venv health, symlink
+  validation, .pth cleaning, import validation, and self-heal in cleanup.
+modules:
+  - yamlgraph/utils/worktree_helpers
+  - scripts/enforce_worktree.sh
+  - scripts/bugfix_worktree.sh
+  - tests/unit/test_worktree_teardown_self_heal
+requirements:
+  - id: REQ-YG-244
+    description: >
+      validate_editable_install() in worktree_helpers.py probes import health
+      via sys.executable; enforce_worktree.sh cleanup validates import yamlgraph
+      after .pth cleaning and self-heals with pip install -e;
+      bugfix_worktree.sh has FR-174 parity: validate_venv_health before symlink,
+      validate_venv_symlink after symlink, clean_stale_pth_entries in cleanup,
+      import validation, and pip install -e self-heal
+    modules:
+      - yamlgraph/utils/worktree_helpers
+      - scripts/enforce_worktree.sh
+      - scripts/bugfix_worktree.sh
+      - tests/unit/test_worktree_teardown_self_heal
+fr: FR-241

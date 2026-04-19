@@ -91,6 +91,21 @@ cleanup() {
         log_warn "Detected bare=true corruption in .git/config — restoring to bare=false"
         git config core.bare false
     fi
+    # FR-174: Clean stale .pth/.egg-link entries referencing the removed worktree
+    local abs_worktree
+    abs_worktree=$(cd "$MAIN_DIR" && python3 -c "from pathlib import Path; print(Path('$WORKTREE_DIR').resolve())" 2>/dev/null || echo "")
+    if [[ -n "$abs_worktree" && -d "$MAIN_DIR/.venv" ]]; then
+        python3 -c "
+from pathlib import Path
+from yamlgraph.utils.worktree_helpers import clean_stale_pth_entries
+clean_stale_pth_entries(Path('$MAIN_DIR/.venv'), '$abs_worktree')
+" 2>/dev/null || true
+    fi
+    # FR-241: Validate editable install after .pth cleaning; self-heal if broken
+    if ! python3 -c "import yamlgraph" 2>/dev/null; then
+        log_warn "Editable install broken after cleanup — reinstalling"
+        pip install -e "$MAIN_DIR" --quiet 2>/dev/null || true
+    fi
     exit $exit_code
 }
 trap cleanup EXIT
@@ -101,14 +116,16 @@ mkdir -p "$(dirname "$WORKTREE_DIR")"
 git worktree add "$WORKTREE_DIR" -b "$BRANCH" "$BASE_BRANCH"
 
 # Symlink shared .venv to avoid redundant installs
+# FR-174: Validate .venv health before symlinking (fail loudly, not silently skip)
 MAIN_VENV="$MAIN_DIR/.venv"
-if [[ -d "$MAIN_VENV" ]]; then
-    log_info "Symlinking shared .venv..."
-    ln -sf "$MAIN_VENV" "$WORKTREE_DIR/.venv"
-    # Ensure .venv is gitignored in worktree (prevents symlink from being committed)
-    if ! grep -q "^\.venv$" "$WORKTREE_DIR/.gitignore" 2>/dev/null; then
-        echo ".venv" >> "$WORKTREE_DIR/.gitignore"
-    fi
+python3 -c "from pathlib import Path; from yamlgraph.utils.worktree_helpers import validate_venv_health; validate_venv_health(Path('$MAIN_VENV'))"
+log_info "Symlinking shared .venv..."
+ln -sf "$MAIN_VENV" "$WORKTREE_DIR/.venv"
+# FR-174: Validate symlink resolves correctly
+python3 -c "from pathlib import Path; from yamlgraph.utils.worktree_helpers import validate_venv_symlink; validate_venv_symlink(Path('$WORKTREE_DIR/.venv'), Path('$MAIN_VENV'))"
+# Ensure .venv is gitignored in worktree (prevents symlink from being committed)
+if ! grep -q "^\.venv$" "$WORKTREE_DIR/.gitignore" 2>/dev/null; then
+    echo ".venv" >> "$WORKTREE_DIR/.gitignore"
 fi
 
 cd "$WORKTREE_DIR"
