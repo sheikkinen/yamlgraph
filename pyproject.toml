@@ -100,6 +100,7 @@ mcp = [
 ]
 a2a = [
     "a2a-sdk[http-server]>=1.0.0a0,<2.0",
+    "grpcio>=1.60.0",
 ]
 chatterbox = [
     "chatterbox-tts>=0.1.0",
