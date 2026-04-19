@@ -51,3 +51,5 @@ $ python examples/demos/chatterbox/speak.py --lang fi "Hei maailmasta YAMLGraphi
 $ python examples/demos/chatterbox/speak.py --lang fi --ref source.wav "Hei"
 # speak.py: error: --ref is only supported with --lang en (voice-cloning path)
 [exit code 2]
+
+# speak.py fix (2026-04-19): --ref validation moved before torch import for CI compatibility

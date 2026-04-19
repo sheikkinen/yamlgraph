@@ -68,6 +68,10 @@ def main() -> None:
     if args.lang == "en" and args.ref is None:
         parser.error("--ref is required for the English voice-cloning path (--lang en)")
 
+    if args.lang == "en" and not args.ref.exists():
+        print(f"Error: reference file not found: {args.ref}", file=sys.stderr)
+        sys.exit(1)
+
     output_dir = Path("outputs/chatterbox")
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / "speak.wav"
@@ -84,10 +88,6 @@ def main() -> None:
     )
 
     if args.lang == "en":
-        if not args.ref.exists():
-            print(f"Error: reference file not found: {args.ref}", file=sys.stderr)
-            sys.exit(1)
-
         from chatterbox.tts import ChatterboxTTS
 
         model = ChatterboxTTS.from_pretrained(device=device)
