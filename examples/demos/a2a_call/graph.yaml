@@ -1,0 +1,40 @@
+# A2A Call Demo — FR-240
+# Calls an external A2A agent to generate a greeting,
+# then summarises the response with a local LLM node.
+
+version: "1.0"
+name: a2a-call-demo
+description: Invoke an external A2A agent from a YAML graph
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  name: str
+  style: str
+
+nodes:
+  ask_agent:
+    type: a2a_call
+    agent_url: "http://localhost:9240/"
+    message: "name={{ name }} style={{ style }}"
+    state_key: agent_response
+    timeout: 60
+
+  summarise:
+    type: llm
+    prompt: summarise
+    variables:
+      agent_response: "{state.agent_response}"
+    state_key: summary
+
+edges:
+  - from: START
+    to: ask_agent
+  - from: ask_agent
+    to: summarise
+  - from: summarise
+    to: END

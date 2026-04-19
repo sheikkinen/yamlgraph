@@ -19,6 +19,7 @@ from yamlgraph.constants import NodeType
 from yamlgraph.map_compiler import compile_map_node
 from yamlgraph.models.graph_schema import CacheConfig
 from yamlgraph.node_factory import (
+    create_a2a_call_node,
     create_copilot_node,
     create_interrupt_node,
     create_node_function,
@@ -279,6 +280,12 @@ def _compile_race_node(ctx: NodeCompileContext) -> None:
     return None
 
 
+def _compile_a2a_call_node(ctx: NodeCompileContext) -> None:
+    node_fn = create_a2a_call_node(ctx.node_name, ctx.node_config)
+    ctx.graph.add_node(ctx.node_name, node_fn)
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Registry: NodeType → handler (FR-220)
 # ---------------------------------------------------------------------------
@@ -296,6 +303,7 @@ NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
     NodeType.LLM: _compile_llm_node,
     NodeType.ROUTER: _compile_llm_node,
     NodeType.RACE: _compile_race_node,
+    NodeType.A2A_CALL: _compile_a2a_call_node,
 }
 
 

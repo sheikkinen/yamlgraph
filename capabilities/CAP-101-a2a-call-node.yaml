@@ -1,0 +1,36 @@
+id: CAP-101
+name: A2A Call Node Type
+description: >
+  A type: a2a_call node that sends a Jinja2-templated message to an external
+  A2A agent via HTTP JSON-RPC (tasks/send), extracts text artifacts from the
+  response, and stores them in graph state. Supports timeout, on_error
+  strategies (skip/fail/retry/fallback), variables resolution, and loop
+  counting. Linter validates required fields (agent_url, message, state_key)
+  via E901–E903. Does not require a prompt field. Uses httpx for HTTP
+  transport.
+modules:
+  - yamlgraph/node_factory/a2a_nodes.py
+  - yamlgraph/constants.py
+  - yamlgraph/node_compiler.py
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/linter/patterns/a2a.py
+  - yamlgraph/linter/checks.py
+requirements:
+  - id: REQ-YG-243
+    description: >
+      type: a2a_call node sends Jinja2-templated message to external A2A agent
+      URL via HTTP JSON-RPC tasks/send; extracts text artifacts from response;
+      stores in state_key; supports timeout, on_error (skip/fail/retry/fallback),
+      max_retries, variables; NodeType.A2A_CALL in constants; registered in
+      NODE_TYPE_HANDLERS; linter validates required fields (agent_url, message,
+      state_key) via E901-E903; check_a2a_call_patterns() in graph linter;
+      does not require prompt field; uses httpx for HTTP transport
+    modules:
+      - yamlgraph/node_factory/a2a_nodes.py
+      - yamlgraph/constants.py
+      - yamlgraph/node_compiler.py
+      - yamlgraph/models/graph_schema.py
+      - yamlgraph/linter/patterns/a2a.py
+      - yamlgraph/linter/checks.py
+      - tests/unit/test_a2a_call_node.py
+fr: FR-240
