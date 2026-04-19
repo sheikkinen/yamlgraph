@@ -20,7 +20,6 @@ try:
         InternalError,
         InvalidParamsError,
         Part,
-        TextPart,
     )
 except ImportError as exc:
     raise ImportError(
@@ -51,9 +50,8 @@ def extract_text_from_parts(parts: list[Part]) -> str:
     """
     texts: list[str] = []
     for part in parts:
-        root = part.root
-        if isinstance(root, TextPart):
-            texts.append(root.text)
+        if part.WhichOneof("content") == "text":
+            texts.append(part.text)
 
     if not texts:
         raise ValueError("unsupported_content_type: message contains no text parts")
@@ -212,7 +210,6 @@ def build_agent_card(
     return AgentCard(
         name="YAMLGraph A2A Server",
         description="YAMLGraph graphs exposed as A2A agents",
-        url=f"http://{host}:{port}/",
         version=version,
         skills=skills,
         default_input_modes=["text"],

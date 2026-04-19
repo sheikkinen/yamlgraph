@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-19
 
@@ -79,14 +79,14 @@ Install `a2a-sdk>=1.0,<2.0` and run the full test suite. Fix any import path cha
 
 ## Acceptance Criteria
 
-- [ ] `pyproject.toml` pins `a2a-sdk>=1.0,<2.0`
-- [ ] `pip install -e ".[a2a]"` installs a2a-sdk v1.0+
-- [ ] No `kind` discriminator field in any source file (grep-verified)
-- [ ] `pytest tests/unit/test_a2a_server.py tests/unit/test_a2a_message.py tests/unit/test_a2a_commands.py tests/unit/test_a2a_call_node.py -v` — all 92 tests pass
-- [ ] `ruff check yamlgraph/a2a_server.py yamlgraph/a2a_message.py yamlgraph/node_factory/a2a_nodes.py` — clean
-- [ ] Part construction in `a2a_nodes.py` uses v1.0 member-name discriminator format
-- [ ] Part extraction in `a2a_nodes.py` uses key-presence check instead of `kind` field
-- [ ] Tests updated to use v1.0 response shapes
+- [x] `pyproject.toml` pins `a2a-sdk>=1.0,<2.0`
+- [x] `pip install -e ".[a2a]"` installs a2a-sdk v1.0+
+- [x] No `kind` discriminator field in any source file (grep-verified)
+- [x] `pytest tests/unit/test_a2a_server.py tests/unit/test_a2a_message.py tests/unit/test_a2a_commands.py tests/unit/test_a2a_call_node.py -v` — all 96 tests pass
+- [x] `ruff check yamlgraph/a2a_server.py yamlgraph/a2a_message.py yamlgraph/node_factory/a2a_nodes.py` — clean
+- [x] Part construction in `a2a_nodes.py` uses v1.0 member-name discriminator format
+- [x] Part extraction in `a2a_nodes.py` uses key-presence check instead of `kind` field
+- [x] Tests updated to use v1.0 response shapes
 
 ## Alternatives Considered
 

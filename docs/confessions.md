@@ -107,7 +107,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: The type is `langgraph.pregel.types.StateSnapshot` which is a private API. Importing it would couple us to LangGraph internals. The function only accesses `.tasks` and `.interrupts` attributes, which are stable across versions.
 
 ### CONF-004
-- **File**: [yamlgraph/a2a_server.py](../yamlgraph/a2a_server.py#L44)
+- **File**: [yamlgraph/a2a_server.py](../yamlgraph/a2a_server.py#L43)
 - **Code**: F401
 - **Sin**: Re-imports from `a2a_message` appear unused in `a2a_server.py`.
 - **Penance**: These are public re-exports for backward compatibility — tests and external consumers import from `yamlgraph.a2a_server`. The actual logic lives in `yamlgraph.a2a_message` after the module split to stay under 450 lines.
@@ -377,7 +377,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Test data simulating CLI arguments for the A2A serve command. Not a real network binding — the server is fully mocked. Required to verify the argument-passing path.
 
 ### CONF-036
-- **File**: [tests/unit/test_a2a_message.py](../tests/unit/test_a2a_message.py#L488)
+- **File**: [tests/unit/test_a2a_message.py](../tests/unit/test_a2a_message.py#L489)
 - **Code**: S104
 - **Sin**: Hardcoded bind-all address `0.0.0.0` in `build_agent_card` test call.
 - **Penance**: Test data verifying Agent Card URL construction. No actual network socket is opened — the function only builds a data structure. Required to test the host-to-URL mapping.
