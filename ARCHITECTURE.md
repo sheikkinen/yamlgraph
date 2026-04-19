@@ -365,6 +365,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
 | 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
 | 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
+| 96 | Per-Node Timeout (FR-069) | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py` | REQ-YG-078 |
 | 97 | Node-Level Caching (FR-032) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py` | REQ-YG-239 |
 | 93 | Chatterbox Voice Clone Demo (FR-236, consolidated FR-237) | `examples/demos/chatterbox/` | REQ-YG-235 |
 | 94 | Compile-Time Pipeline Templates (FR-235) | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/patterns/pipeline.py` | REQ-YG-236 |
@@ -539,7 +540,11 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-237 | Parallel fan-out edges: `to: [a, b, c]` without `type: conditional` compiles as parallel fan-out via multiple `add_edge()` calls; handles interrupt node redirect to `_prepare`; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with `type: conditional` unchanged (FR-234) | `edge_compiler` |
 | REQ-YG-238 | Chatterbox speak CLI: `speak.py` accepts `--ref` (reference WAV path, required) and positional text; validates ref exists (exit 1 on missing); calls `ChatterboxTTS.generate()` without `language_id`; writes to `outputs/chatterbox/speak.wav`; prints output path to stdout (FR-237) | `examples/demos/chatterbox` |
 
-### 18. Testing & Quality
+### 93. Per-Node Timeout
+
+Per-node timeout bounding for map branches and all node types via ThreadPoolExecutor.
+
+| REQ-YG-078 | Per-node timeout: optional `float` timeout field on `NodeConfig` validated as positive; map branch timeout via `wrap_for_reducer` with `ThreadPoolExecutor`; non-map node timeout via `_maybe_wrap_timeout` in `node_compiler` handlers; `TIMEOUT_ERROR` error type in `ErrorType` enum; `from_exception` classification unchanged (callers pass `error_type` explicitly); lint warning W203 for map+agent without timeout; `except concurrent.futures.TimeoutError` before `except Exception` in both paths | `map_compiler`, `node_compiler`, `models/graph_schema`, `models/schemas`, `linter/patterns/map` |
 
 Requirement traceability enforcement and testing infrastructure.
 
