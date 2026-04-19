@@ -17,20 +17,29 @@ Unified Chatterbox demo: multilingual TTS and voice cloning (FR-233, FR-236, con
 
 ### CLI Tool (`speak.py`)
 
-Standalone one-command voice cloning without the graph runner:
+Standalone synthesis CLI supporting both voice cloning and multilingual TTS:
 
 ```bash
+# English voice cloning (requires --ref)
 python examples/demos/chatterbox/speak.py \
     --ref examples/demos/chatterbox/source.wav "Hello from YAMLGraph"
+
+# Finnish via multilingual model (no --ref)
+python examples/demos/chatterbox/speak.py \
+    --lang fi "Hei maailmasta YAMLGraphista"
 ```
 
 Output saved to: `outputs/chatterbox/speak.wav`
 
-> **Language note:** `speak.py` uses `ChatterboxTTS` which is English-focused. Voice timbre
-> transfers from the reference clip but pronunciation quality for non-English text may vary.
-> `--lang` is intentionally absent — an argument that only changes the filename without
-> influencing synthesis would mislead users. For true multilingual synthesis use `graph.yaml`
-> with `ChatterboxMultilingualTTS`.
+Two synthesis paths:
+
+| Path | Flag | Model | `--ref` |
+|------|------|-------|---------|
+| English / Voice Cloning | `--lang en` (default) | `ChatterboxTTS` | **Required** |
+| Multilingual | `--lang fi/sv/de/es/…` | `ChatterboxMultilingualTTS` | **Incompatible** |
+
+> **Voice cloning is English-only.** `--ref` is incompatible with `--lang <non-en>` and
+> raises a clear error. For multilingual synthesis, omit `--ref` and supply a language code.
 
 ## Platform Requirements
 
@@ -84,6 +93,18 @@ Output saved to: `outputs/chatterbox/output.wav`
 ```bash
 python examples/demos/chatterbox/speak.py \
     --ref examples/demos/chatterbox/source.wav "Hello"
+```
+
+### Multilingual TTS (CLI)
+
+```bash
+python examples/demos/chatterbox/speak.py \
+    --lang fi "Hei maailmasta YAMLGraphista"
+
+# Other supported language codes: sv, de, es
+python examples/demos/chatterbox/speak.py --lang sv "Hej världen"
+python examples/demos/chatterbox/speak.py --lang de "Hallo Welt"
+python examples/demos/chatterbox/speak.py --lang es "Hola mundo"
 ```
 
 Output saved to: `outputs/chatterbox/speak.wav`

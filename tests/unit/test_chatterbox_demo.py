@@ -243,9 +243,9 @@ class TestChatterboxDemoStructure:
     def test_speak_py_exists(self):
         assert (self.DEMO_DIR / "speak.py").exists()
 
-    def test_speak_py_has_no_lang_argument(self):
+    def test_speak_py_has_lang_argument(self):
         source = (self.DEMO_DIR / "speak.py").read_text()
-        assert "--lang" not in source
+        assert "--lang" in source
 
     def test_chatterbox_clone_folder_does_not_exist(self):
         clone_dir = self.DEMO_DIR.parent / "chatterbox_clone"
@@ -539,3 +539,157 @@ class TestSpeakCLI:
 
         save_path = _mock_ta.save.call_args[0][0]
         assert save_path.endswith("outputs/chatterbox/speak.wav")
+
+
+@pytest.mark.req("REQ-YG-242")
+class TestSpeakCLIMultilingual:
+    """Test speak.py --lang flag (FR-239): multilingual path via ChatterboxMultilingualTTS."""
+
+    SPEAK_PY = (
+        Path(__file__).parent.parent.parent
+        / "examples"
+        / "demos"
+        / "chatterbox"
+        / "speak.py"
+    )
+
+    def _load_speak_module(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("speak_fr239", self.SPEAK_PY)
+        module = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+        return module
+
+    def test_lang_fi_invokes_multilingual_tts(self, tmp_path, monkeypatch):
+        """--lang fi must call ChatterboxMultilingualTTS, not ChatterboxTTS."""
+        mock_model = MagicMock()
+        mock_model.sr = 24000
+        mock_model.generate.return_value = MagicMock()
+        _mock_chatterbox_mtl.ChatterboxMultilingualTTS.from_pretrained.reset_mock()
+        _mock_chatterbox_mtl.ChatterboxMultilingualTTS.from_pretrained.return_value = (
+            mock_model
+        )
+
+        import sys as _sys
+
+        monkeypatch.setattr(_sys, "argv", ["speak.py", "--lang", "fi", "Hei maailma"])
+        monkeypatch.chdir(tmp_path)
+
+        module = self._load_speak_module()
+        with patch("builtins.print"):
+            module.main()
+
+        _mock_chatterbox_mtl.ChatterboxMultilingualTTS.from_pretrained.assert_called_once()
+
+    def test_lang_fi_passes_language_id(self, tmp_path, monkeypatch):
+        """--lang fi must call model.generate(text, language_id='fi')."""
+        mock_model = MagicMock()
+        mock_model.sr = 24000
+        mock_model.generate.return_value = MagicMock()
+        _mock_chatterbox_mtl.ChatterboxMultilingualTTS.from_pretrained.return_value = (
+            mock_model
+        )
+
+        import sys as _sys
+
+        monkeypatch.setattr(_sys, "argv", ["speak.py", "--lang", "fi", "Hei maailma"])
+        monkeypatch.chdir(tmp_path)
+
+        module = self._load_speak_module()
+        with patch("builtins.print"):
+            module.main()
+
+        mock_model.generate.assert_called_once_with("Hei maailma", language_id="fi")
+
+    def test_lang_fi_ref_raises_system_exit(self, tmp_path, monkeypatch):
+        """--lang fi --ref <wav> must raise SystemExit with non-zero code."""
+        ref_wav = tmp_path / "ref.wav"
+        ref_wav.write_bytes(b"RIFF")
+
+        import sys as _sys
+
+        monkeypatch.setattr(
+            _sys,
+            "argv",
+            ["speak.py", "--lang", "fi", "--ref", str(ref_wav), "Hei"],
+        )
+        monkeypatch.chdir(tmp_path)
+
+        module = self._load_speak_module()
+        with pytest.raises(SystemExit) as exc_info:
+            module.main()
+
+        assert exc_info.value.code != 0
+
+    def test_lang_en_explicit_uses_chatterbox_tts(self, tmp_path, monkeypatch):
+        """Explicit --lang en must use ChatterboxTTS (voice cloning path)."""
+        ref_wav = tmp_path / "ref.wav"
+        ref_wav.write_bytes(b"RIFF")
+
+        mock_model = MagicMock()
+        mock_model.sr = 24000
+        mock_model.generate.return_value = MagicMock()
+        _mock_chatterbox_tts.ChatterboxTTS.from_pretrained.reset_mock()
+        _mock_chatterbox_tts.ChatterboxTTS.from_pretrained.return_value = mock_model
+
+        import sys as _sys
+
+        monkeypatch.setattr(
+            _sys,
+            "argv",
+            ["speak.py", "--lang", "en", "--ref", str(ref_wav), "Hello world"],
+        )
+        monkeypatch.chdir(tmp_path)
+
+        module = self._load_speak_module()
+        with patch("builtins.print"):
+            module.main()
+
+        _mock_chatterbox_tts.ChatterboxTTS.from_pretrained.assert_called_once()
+
+    def test_multilingual_output_saved_to_speak_wav(self, tmp_path, monkeypatch):
+        """Multilingual path must write to outputs/chatterbox/speak.wav."""
+        mock_model = MagicMock()
+        mock_model.sr = 24000
+        mock_model.generate.return_value = MagicMock()
+        _mock_chatterbox_mtl.ChatterboxMultilingualTTS.from_pretrained.return_value = (
+            mock_model
+        )
+        _mock_ta.save.reset_mock()
+
+        import sys as _sys
+
+        monkeypatch.setattr(_sys, "argv", ["speak.py", "--lang", "fi", "Hei maailma"])
+        monkeypatch.chdir(tmp_path)
+
+        module = self._load_speak_module()
+        with patch("builtins.print"):
+            module.main()
+
+        save_path = _mock_ta.save.call_args[0][0]
+        assert save_path.endswith("outputs/chatterbox/speak.wav")
+
+    def test_no_lang_defaults_to_english_path(self, tmp_path, monkeypatch):
+        """Omitting --lang must default to the ChatterboxTTS voice-cloning path."""
+        ref_wav = tmp_path / "ref.wav"
+        ref_wav.write_bytes(b"RIFF")
+
+        mock_model = MagicMock()
+        mock_model.sr = 24000
+        mock_model.generate.return_value = MagicMock()
+        _mock_chatterbox_tts.ChatterboxTTS.from_pretrained.reset_mock()
+        _mock_chatterbox_tts.ChatterboxTTS.from_pretrained.return_value = mock_model
+
+        import sys as _sys
+
+        monkeypatch.setattr(
+            _sys, "argv", ["speak.py", "--ref", str(ref_wav), "Hello world"]
+        )
+        monkeypatch.chdir(tmp_path)
+
+        module = self._load_speak_module()
+        with patch("builtins.print"):
+            module.main()
+
+        _mock_chatterbox_tts.ChatterboxTTS.from_pretrained.assert_called_once()
