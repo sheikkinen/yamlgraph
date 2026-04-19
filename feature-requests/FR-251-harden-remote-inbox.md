@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-19
 
@@ -100,18 +100,18 @@ done
 
 ## Acceptance Criteria
 
-- [ ] `.chaplain/allowed-authors.txt` exists with repo owner as default entry
-- [ ] Issues from authors not in the allowlist are skipped with a logged warning
-- [ ] The `chaplain` label is **not** removed from skipped issues
-- [ ] Issue body is truncated at 10,000 characters when it exceeds the cap
-- [ ] A warning is logged when truncation occurs, showing original and truncated sizes
-- [ ] Every imported file starts with `<!-- author: @username -->` header
-- [ ] When `allowed-authors.txt` does not exist, all authors are accepted (graceful degradation)
-- [ ] Existing local inbox files (non-GitHub) are unaffected
-- [ ] The `gh issue view` call fetches author login alongside title and body
-- [ ] Tests added for allowlist filtering logic
-- [ ] Tests added for size cap truncation
-- [ ] Tests added for audit header presence in output
+- [x] `.chaplain/allowed-authors.txt` exists with repo owner as default entry
+- [x] Issues from authors not in the allowlist are skipped with a logged warning
+- [x] The `chaplain` label is **not** removed from skipped issues
+- [x] Issue body is truncated at 10,000 characters when it exceeds the cap
+- [x] A warning is logged when truncation occurs, showing original and truncated sizes
+- [x] Every imported file starts with `<!-- author: @username -->` header
+- [x] When `allowed-authors.txt` does not exist, all authors are accepted (graceful degradation)
+- [x] Existing local inbox files (non-GitHub) are unaffected
+- [x] The `gh issue view` call fetches author login alongside title and body
+- [x] Tests added for allowlist filtering logic
+- [x] Tests added for size cap truncation
+- [x] Tests added for audit header presence in output
 
 ## Alternatives Considered
 
