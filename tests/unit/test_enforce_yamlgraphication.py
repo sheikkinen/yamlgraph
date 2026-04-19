@@ -154,12 +154,12 @@ class TestEnforceScriptSize:
     """Verify the script has been thinned appropriately."""
 
     def test_script_under_175_lines(self):
-        """Thinned script should be under 175 lines (was ~160, +FR-174 venv guards)."""
+        """Thinned script should be under 215 lines (was ~175, +FR-256 timing metrics)."""
         content = _read_enforce_script()
         line_count = len(content.strip().splitlines())
         assert (
-            line_count <= 175
-        ), f"Script has {line_count} lines, expected ≤ 175 after FR-174 venv guards"
+            line_count <= 215
+        ), f"Script has {line_count} lines, expected ≤ 215 after FR-256 timing metrics"
 
 
 @pytest.mark.req("REQ-YG-128")

@@ -281,11 +281,11 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | # | Capability | Primary Modules | Requirements |
 |---|-----------|----------------|--------------|
 | 1 | Config Loading & Validation | `cli/helpers`, `cli/helpers.GraphLoadError`, `data_loader`, `data_loader.DataFileError`, … | REQ-YG-001 – 004 |
-| 2 | Graph Compilation | `graph_loader`, `graph_loader.apply_loop_node_defaults`, `graph_loader.compile_graph`, `graph_loader.detect_loop_nodes`, … | REQ-YG-005 – 008 |
-| 3 | Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050 |
-| 4 | Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016 |
+| 2 | Graph Compilation | `graph_loader`, `graph_loader.apply_loop_node_defaults`, `graph_loader.compile_graph`, `graph_loader.detect_loop_nodes`, … | REQ-YG-005 – 008, 220, 239 |
+| 3 | Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223 |
+| 4 | Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216 |
 | 5 | Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/nodes`, `tools/python_tool`, … | REQ-YG-017 – 020 |
-| 6 | Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions`, `edge_compiler` | REQ-YG-021 – 023, 214 |
+| 6 | Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023, 214 |
 | 7 | State Persistence | `models/state_builder`, `storage/checkpointer`, `storage/checkpointer_factory`, `storage/simple_redis` | REQ-YG-024 – 026 |
 | 8 | Error Handling | `error_handlers`, `error_handlers.NodeResult`, `error_handlers.build_skip_error_state`, `error_handlers.check_loop_limit`, … | REQ-YG-027 – 031 |
 | 9 | CLI Interface | `cli/__init__`, `cli/__main__`, `cli/deprecation`, `cli/graph_commands`, … | REQ-YG-032 – 035 |
@@ -301,7 +301,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – 068 |
 | 20 | Contrib Utilities | `contrib/progress`, `contrib/utils` | REQ-YG-070 – 071 |
 | 21 | Diary Digest Tools | `scripts/diary_digest_tools` | REQ-YG-072 |
-| 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073, 221 |
+| 22 | Code Quality Lints | `scripts/lint_inline_llm` | REQ-YG-073 |
 | 23 | Skip-If-Exists Truthiness | `node_factory/llm_nodes._should_skip_if_exists` | REQ-YG-074 |
 | 24 | Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes`, `utils/conditions` | REQ-YG-075 |
 | 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
@@ -349,42 +349,44 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 72 | Knowledge Graph Mass Graduation (FR-193) | `.github/copilot-instructions.md` | REQ-YG-192 |
 | 73 | Philosopher Challenge Node (FR-195) | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/distill.yaml`, … | REQ-YG-193 |
 | 74 | FSM Scripture CLAUDE.md (FR-199) | `fsm/CLAUDE.md`, `tests/unit/test_fsm_claude_md_doctrine.py` | REQ-YG-195 |
-| 75 | Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/`, `.chaplain/lib/diary.py` | REQ-YG-196 |
-| 76 | Horoscope Demo (FR-201) | `examples/demos/horoscope` | REQ-YG-197 |
-| 77 | Image Generation Pipeline (FR-202) | `examples/image_pipeline` | REQ-YG-198 |
-| 78 | .fi Domain Crawl Demo (FR-205) | `examples/demos/fi-domain-crawl` | REQ-YG-199 |
-| 79 | Demo Proof Gate (FR-206) | `scripts/check_demo_proof.sh`, `.github/workflows/commitlint.yml` | REQ-YG-200 |
-| 80 | Standalone Scripture Template (FR-207) | `projects/scripture-dev/` | REQ-YG-201 – 205 |
-| 81 | A2A Protocol Server (FR-208) | `yamlgraph/a2a_server.py`, `yamlgraph/discovery.py`, `yamlgraph/cli/a2a_commands.py` | REQ-YG-206 – 213 |
-| 83 | Research Agent Demo (FR-215) | `examples/demos/research-agent` | REQ-YG-217 |
-| 84 | Import-Linter Boundaries (FR-218) | `.importlinter`, `.pre-commit-config.yaml`, `.github/workflows/workflow.yml` | REQ-YG-218 |
-| 85 | Dependency Rationale Audit (FR-219) | `scripts/dependency_rationale.py`, `docs/dependency-rationale.yaml` | REQ-YG-219 |
-| 86 | Ruff Security Rules (FR-222) | `pyproject.toml`, `docs/confessions.md` | REQ-YG-222 |
-| 88 | Google/Vertex Thinking Budget (FR-230) | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` | REQ-YG-230 |
-| 89 | Execution Timing Callback (FR-231) | `yamlgraph/utils/timing_tracker.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-231 |
-| 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
-| 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
-| 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
-| 97 | Per-Node Timeout (FR-069) | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py` | REQ-YG-078 |
-| 100 | Node-Level Caching (FR-032) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py` | REQ-YG-239 |
-| 93 | Chatterbox Voice Clone Demo (FR-236, consolidated FR-237) | `examples/demos/chatterbox/` | REQ-YG-235 |
-| 94 | Compile-Time Pipeline Templates (FR-235) | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/patterns/pipeline.py` | REQ-YG-236 |
-| 98 | Pipeline Accumulated State (FR-238) | `yamlgraph/models/state_builder.py` | REQ-YG-241 |
-| 99 | Race and Pipeline Node Type Documentation (FR-237) | `reference/graph-yaml.md`, `reference/getting-started.md` | REQ-YG-240 |
-| 95 | Parallel Fan-Out Edges (FR-234) | `yamlgraph/edge_compiler.py` | REQ-YG-237 |
-| 102 | Complete Worktree Teardown Self-Heal (FR-241) | `yamlgraph/utils/worktree_helpers.py`, `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh` | REQ-YG-244 |
-| 103 | A2A SDK v1.0 Compatibility (FR-244) | `yamlgraph/a2a_server.py`, `yamlgraph/a2a_message.py`, `yamlgraph/contrib/a2a_client.py`, `yamlgraph/cli/a2a_commands.py` | REQ-YG-245 |
-| 101 | A2A Consumer Contrib Client (FR-240, FR-253) | `yamlgraph/contrib/a2a_client.py`, `yamlgraph/tools/python_tool.py` | REQ-YG-243 |
-| 100 | Chatterbox Multilingual CLI (FR-239) | `examples/demos/chatterbox/speak.py` | REQ-YG-242 |
-| 105 | A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming (FR-248, FR-253) | `yamlgraph/contrib/a2a_client.py` | REQ-YG-250, REQ-YG-251, REQ-YG-252, REQ-YG-253 |
-| 104 | A2A Server Reference Documentation (FR-246) | `reference/a2a-server.md`, `reference/cli.md` | REQ-YG-246 |
-| 106 | GitHub Issues Remote Inbox (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` | REQ-YG-247 |
-| 107 | Guardrails Pattern Documentation (FR-249) | `reference/patterns.md`, `examples/README.md` | REQ-YG-254 |
-| 108 | Changelog REQ Cross-Validation Gate (FR-247) | `scripts/check_changelog_req.py`, `graphs/enforcement/changelog-req-check.yaml`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` | REQ-YG-255 |
-| 109 | Harden GitHub Issues Remote Inbox (FR-251) | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` | REQ-YG-256 |
-| 110 | Diary Index Graph (FR-254) | `examples/demos/diary_index` | REQ-YG-257 |
-| 111 | Shared Graph Invocation (FR-255) | `yamlgraph/graph_loader.py`, `yamlgraph/mcp_server.py`, `yamlgraph/a2a_server.py` | REQ-YG-258 |
+| 75 | Portable Chaplain (FR-196) | `yamlgraph/tools/python_tool.py`, `.chaplain/graphs/philosopher/tools.py`, `.chaplain/lib/diary.py`, `tests/unit/test_python_nodes.py` | REQ-YG-196 |
+| 76 | Horoscope Demo | `examples/demos/horoscope` | REQ-YG-197 |
+| 77 | Image Generation Pipeline | `examples/image_pipeline` | REQ-YG-198 |
+| 78 | .fi Domain Crawl Demo | `examples/demos/fi-domain-crawl` | REQ-YG-199 |
+| 79 | Demo Proof Gate | `scripts/check_demo_proof.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml` | REQ-YG-200 |
+| 81 | A2A Protocol Server | `a2a_server`, `discovery`, `cli/a2a_commands` | REQ-YG-206 – 213 |
+| 82 | Block AI Co-Author Trailers | `scripts/block_ai_coauthor.py`, `.pre-commit-config.yaml` | REQ-YG-215 |
+| 83 | Research Agent Demo | `examples/demos/research-agent` | REQ-YG-217 |
+| 84 | Import-Linter Architectural Boundary Enforcement | `.importlinter`, `.pre-commit-config.yaml`, `.github/workflows/workflow.yml` | REQ-YG-218 |
+| 85 | Dependency Rationale Audit | `scripts/dependency_rationale.py`, `docs/dependency-rationale.yaml`, `.pre-commit-config.yaml` | REQ-YG-219 |
+| 86 | Ruff Security Rules | `pyproject.toml`, `docs/confessions.md` | REQ-YG-222 |
+| 87 | Ruff C901 Cognitive Complexity Gate | `pyproject.toml`, `docs/confessions.md` | REQ-YG-221 |
+| 88 | Google/Vertex Thinking Budget Support | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` | REQ-YG-230 |
+| 89 | Execution Timing Callback | `yamlgraph/utils/timing_tracker.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-231 |
+| 90 | Graph Bench Command | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
+| 91 | Race Node Type | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, … | REQ-YG-233 |
+| 92 | Chatterbox TTS Demo | `examples/demos/chatterbox` | REQ-YG-234 |
+| 93 | Chatterbox Voice Clone Demo | `examples/demos/chatterbox` | REQ-YG-235, 238 |
+| 94 | Compile-Time Pipeline Templates | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/checks.py`, … | REQ-YG-236 |
+| 95 | Parallel Fan-Out Edges | `yamlgraph/edge_compiler.py` | REQ-YG-237 |
+| 96 | Per-Node Timeout | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, … | REQ-YG-078 |
+| 98 | Pipeline Accumulated State | `yamlgraph/models/state_builder.py`, `reference/graph-yaml.md`, `tests/unit/test_state_builder_reducers.py` | REQ-YG-241 |
+| 99 | Race and Pipeline Node Type Documentation | `reference/graph-yaml.md`, `reference/getting-started.md` | REQ-YG-240 |
+| 100 | Chatterbox Multilingual CLI | `examples/demos/chatterbox` | REQ-YG-242 |
+| 101 | A2A Consumer Contrib Client | `yamlgraph/contrib/a2a_client.py`, `yamlgraph/tools/python_tool.py` | REQ-YG-243 |
+| 102 | Complete Worktree Teardown Self-Heal | `yamlgraph/utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `tests/unit/test_worktree_teardown_self_heal` | REQ-YG-244 |
+| 103 | A2A SDK v1.0 Compatibility | `yamlgraph/a2a_server.py`, `yamlgraph/a2a_message.py`, `yamlgraph/contrib/a2a_client.py`, `yamlgraph/cli/a2a_commands.py` | REQ-YG-245 |
+| 104 | A2A Server Reference Documentation | `reference/a2a-server.md`, `reference/cli.md` | REQ-YG-246 |
+| 105 | A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming | `yamlgraph/contrib/a2a_client.py` | REQ-YG-250 – 253 |
+| 106 | GitHub Issues Remote Inbox | `.chaplain/watch.sh`, `tests/unit/test_github_issues_remote_inbox` | REQ-YG-247 |
+| 107 | Guardrails Pattern Documentation | `reference/patterns.md`, `examples/README.md` | REQ-YG-254 |
+| 108 | Changelog REQ Cross-Validation Gate | `scripts/check_changelog_req.py`, `graphs/enforcement/changelog-req-check.yaml`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` | REQ-YG-255 |
+| 109 | Harden GitHub Issues Remote Inbox | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` | REQ-YG-256 |
+| 110 | Diary Index Graph | `examples/demos/diary_index` | REQ-YG-257 |
+| 111 | Shared Graph Invocation | `graph_loader` | REQ-YG-258 |
+| 112 | Pipeline Timing Metrics | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py` | REQ-YG-259 |
 | 113 | Chaplain Research Step (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` | REQ-YG-260 |
+
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -403,30 +405,38 @@ Load YAML graph configs, validate schemas, build state models, and ensure graph 
 
 Transform validated configs into executable StateGraphs with node compilation, edge wiring, and loop detection.
 
+**Feature Request:** FR-032
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-005 | Load YAML graph definitions into StateGraphs | `graph_loader`, `graph_loader.load_and_compile` |
 | REQ-YG-006 | Validate graph structures (cycle detection, loop defaults) | `graph_loader.detect_loop_nodes`, `graph_loader.apply_loop_node_defaults` |
 | REQ-YG-007 | Compile individual nodes | `node_compiler.compile_node`, `node_factory` |
 | REQ-YG-008 | Compile full graph configuration | `graph_loader.compile_graph`, `node_compiler.compile_nodes` |
-| REQ-YG-220 | Node type registry dispatches compile_node via `NODE_TYPE_HANDLERS` dict instead of if/elif; unknown types raise `ValueError` (FR-220) | `node_compiler` |
-| REQ-YG-239 | Per-node cache field parsed as CacheConfig; resolve_cache_policy converts to LangGraph CachePolicy; passed to graph.add_node() (FR-032)) | `models/graph_schema`, `node_compiler` |
+| REQ-YG-220 | Node type registry dispatches compile_node via NODE_TYPE_HANDLERS dict; unknown types raise ValueError (FR-220) | `node_compiler` |
+| REQ-YG-239 | Per-node cache field parsed as CacheConfig; resolve_cache_policy converts to LangGraph CachePolicy; passed to graph.add_node() (FR-032) | `models/graph_schema`, `node_compiler` |
 
 ### 3. Node Execution
 
 Create executable node functions for LLM, streaming, tool, interrupt, and subgraph behavior.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-009 | Node creation and streaming | `node_factory/llm_nodes`, `node_factory/streaming` |
 | REQ-YG-010 | Synchronous LLM factory management | `utils/llm_factory` |
 | REQ-YG-011 | Asynchronous LLM factory management | `utils/llm_factory_async` |
 | REQ-YG-050 | Per-node and default-level `model` override: graph YAML `model` field flows through `execute_prompt()` to `create_llm()` | `node_factory/llm_nodes`, `executor`, `executor_async`, `executor_base` |
-| REQ-YG-223 | LLM node factory decomposed into composable phases: `LLMNodeConfig` frozen dataclass, `resolve_llm_node_config()` pure config resolver, `_apply_verification()`, `_resolve_route()`, `_handle_error()` — each independently testable, all below C901=10 (FR-223) | `node_factory/llm_nodes` |
-| REQ-YG-230 | `thinking_budget` extended to `google` and `vertex` providers (FR-230): `create_llm` accepts thinking_budget for anthropic/google/vertex; raises for others; `_create_google_llm` and `_create_vertex_llm` forward `thinking_budget` kwarg; temperature not overridden for google/vertex; schema accepts `-1` (Google auto mode), rejects `< -1`; linter W071-1/2/4 scoped to anthropic only; linter W071-3 includes gemini-2.5+/gemini-3+ as thinking-capable | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` |
+| REQ-YG-223 | LLM node factory decomposed into composable phases: LLMNodeConfig frozen dataclass, resolve_llm_node_config() pure config resolver, _apply_verification(), _resolve_route(), _handle_error() — each independently testable, all below C901=10 (FR-223) | `node_factory/llm_nodes` |
 
 ### 4. Prompt Execution
 
 Load prompt YAML, validate variables, format messages, and run LLM calls sync and async.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-012 | Prompt loading and resolution | `utils/prompts` |
 | REQ-YG-013 | Variable resolution and template management | `executor_base.format_prompt`, `utils/expressions`, `utils/template` |
+| REQ-YG-216 | extract_variables() subtracts set-statement targets in nested blocks (FR-214) | `utils/template` |
 | REQ-YG-014 | Synchronous prompt execution | `executor.PromptExecutor`, `executor.execute_prompt` |
 | REQ-YG-015 | Asynchronous prompt execution | `executor_async` |
 | REQ-YG-016 | JSON extraction from LLM outputs | `utils/json_extract` |
@@ -435,6 +445,8 @@ Load prompt YAML, validate variables, format messages, and run LLM calls sync an
 
 Integrate shell and Python tools into graphs, enable agent loops for tool-calling.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-017 | Dynamic tool node creation | `node_factory/tool_nodes` |
 | REQ-YG-018 | Agent-driven tool selection and execution | `tools/agent` |
 | REQ-YG-019 | Shell tool integration and execution | `tools/shell`, `tools/nodes` |
@@ -444,23 +456,31 @@ Integrate shell and Python tools into graphs, enable agent loops for tool-callin
 
 Route across nodes using explicit routes, expression evaluation, and control nodes.
 
+**Feature Request:** FR-211
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-021 | Control node creation (interrupt, passthrough) | `node_factory/control_nodes` |
 | REQ-YG-022 | Conditional routing functions | `routing` |
 | REQ-YG-023 | Condition expression evaluation | `utils/conditions` |
+| REQ-YG-214 | Router route mapping redirects interrupt targets to *_prepare and subgraph interrupt targets to *__run in conditional edge route mappings (FR-211) | `edge_compiler`, `graph_loader` |
 
 ### 7. State Persistence
 
 Checkpointers and Redis storage for resuming pipelines and state history.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-024 | Dynamic state class generation | `models/state_builder` |
 | REQ-YG-025 | Checkpointer provisioning | `storage/checkpointer_factory` |
 | REQ-YG-026 | State persistence operations (Redis) | `storage/simple_redis`, `storage/checkpointer` |
-| REQ-YG-196 | Checkpointer string shorthand config | `storage/checkpointer_factory` |
 
 ### 8. Error Handling
 
 Error strategies (retry, fallback, skip), sanitization, resilience features.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-027 | Error handling strategies (skip, fail, retry, fallback) | `error_handlers` |
 | REQ-YG-028 | Pre-execution validation (requirements, loop limits) | `error_handlers.check_requirements`, `error_handlers.check_loop_limit` |
 | REQ-YG-029 | Error state management (NodeResult, skip updates) | `error_handlers.NodeResult`, `error_handlers.build_skip_error_state` |
@@ -471,6 +491,8 @@ Error strategies (retry, fallback, skip), sanitization, resilience features.
 
 Command-line commands for graph validation, execution, info display, schema export.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-032 | CLI entry point and parser setup | `cli/__init__`, `cli/__main__` |
 | REQ-YG-033 | Graph command execution and information | `cli/graph_commands` |
 | REQ-YG-034 | Deprecation handling for CLI commands | `cli/deprecation` |
@@ -480,6 +502,8 @@ Command-line commands for graph validation, execution, info display, schema expo
 
 Export results/states in JSON/Markdown, handle serialization for persistence.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-036 | CLI schema export and access | `cli/schema_commands` |
 | REQ-YG-037 | Graph code generation for IDE support | `cli/graph_commands.cmd_graph_codegen` |
 | REQ-YG-038 | Export and management of pipeline results/states | `storage/export` |
@@ -489,6 +513,8 @@ Export results/states in JSON/Markdown, handle serialization for persistence.
 
 Parallel fan-out and nested subgraph execution.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-040 | Map node compilation | `map_compiler` |
 | REQ-YG-041 | Output wrapping for reduction | `map_compiler.wrap_for_reducer` |
 | REQ-YG-042 | Subgraph node creation | `node_factory/subgraph_nodes` |
@@ -497,6 +523,8 @@ Parallel fan-out and nested subgraph execution.
 
 Logging, templating, JSON extraction, environment handling, and shared utilities.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-043 | Configuration and constants management | `config`, `constants` |
 | REQ-YG-044 | Schema loading and model building | `schema_loader` |
 | REQ-YG-045 | Node factory and resolution | `node_factory/base` |
@@ -506,12 +534,16 @@ Logging, templating, JSON extraction, environment handling, and shared utilities
 
 Observability via LangSmith: trace URL retrieval, public sharing, and tracer injection.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-047 | LangSmith trace URL retrieval and sharing | `utils/tracing`, `cli/graph_commands` |
 
 ### 14. Graph-Level Streaming
 
 Stream LLM tokens through the compiled graph pipeline using LangGraph astream(stream_mode="messages"), enabling real-time SSE output.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-048 | Graph-level streaming: run graph with `astream(stream_mode="messages")` yielding LLM tokens | `executor_async` |
 | REQ-YG-049 | Streaming with multi-turn: `run_graph_streaming_native()` accepts `Command(resume=...)`, config with thread_id for checkpoint-based resume | `executor_async` |
 | REQ-YG-065 | Native LangGraph streaming: `run_graph_streaming_native()` uses `astream(stream_mode="messages")` to stream from ALL LLM nodes, with optional `node_filter` | `executor_async` |
@@ -520,6 +552,8 @@ Stream LLM tokens through the compiled graph pipeline using LangGraph astream(st
 
 Value expressions, condition expressions, literal parsing, and resolve_node_variables batch resolution.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-051 | Expression language: value expressions (`{state.path}`, arithmetic, list/dict ops), condition expressions (comparisons, compound AND/OR), literal parsing, `resolve_node_variables` batch resolution | `utils/expressions`, `utils/conditions`, `utils/parsing` |
 | REQ-YG-052 | Expression language hardening: quote-aware compound split, right-side state reference resolution, chained arithmetic detection | `utils/conditions`, `utils/expressions` |
 
@@ -527,6 +561,8 @@ Value expressions, condition expressions, literal parsing, and resolve_node_vari
 
 Linter cross-reference and semantic checks for edge endpoints, loop limits, state references, and contract warnings.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-053 | Linter cross-reference & semantic checks: edge endpoint validation (E006), loop_limits references (E008), passthrough output (E601), tool_call fields (E701/E702), condition syntax (W801), variable prefix (W007), fallback config (E010), conditional edge type (E802) | `linter/checks`, `linter/graph_linter` |
 | REQ-YG-054 | Chaplain audit fixes: `wrap_for_reducer` non-dict return handling, LLM SKIP error recording, linter E011 retry/fallback on tool/python nodes, `prompts_relative` warning | `map_compiler`, `node_factory/llm_nodes`, `linter/checks`, `utils/prompts` |
 | REQ-YG-069 | Linter E007: error when `{state.X}` in node `variables`/`output`/`over`/`args`/`input_mapping` references a field not in known state (declared `state:` + node `state_key` + `BUILTIN_STATE_FIELDS` + `COMMON_INPUT_FIELDS` + `data_files` + map `collect`). Promoted from W014 warning to E007 error (FR-110) | `linter/checks_semantic` |
@@ -536,6 +572,8 @@ Linter cross-reference and semantic checks for edge endpoints, loop limits, stat
 
 Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaway execution.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-055 | Map fan-out cap: `max_items` per node and `max_map_items` graph-level default, truncate + warn | `map_compiler` |
 | REQ-YG-056 | `recursion_limit` exposure via YAML `config:` and CLI `--recursion-limit`, passed to `graph.invoke()` | `graph_loader`, `cli/graph_commands`, `cli/__init__` |
 | REQ-YG-057 | `check_loop_limit()` enforced in tool, python, and passthrough nodes (not just LLM) | `tools/nodes`, `tools/python_tool`, `node_factory/control_nodes` |
@@ -573,20 +611,20 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-258 | `invoke_graph(path, variables, config=None)` in `graph_loader.py`: loads graph config, compiles to StateGraph, compiles to CompiledGraph, invokes synchronously with optional LangGraph run config; `mcp_server._invoke_graph` and `a2a_server._invoke_graph` delegate to this shared function (FR-255) | `graph_loader`, `mcp_server`, `a2a_server` |
 | REQ-YG-260 | Research copilot node inserted between plan and judge in `.chaplain/graphs/copilot/graph.yaml`; resumes plan session via `cli_flags.resume`; writes to `state_key: research_brief`; prompt instructs codebase search for existing abstractions, diary precedent check, usage evidence count, and classification signal (primitive/integration/pattern); research brief appended to FR draft before Judge evaluation; judge prompt updated with criterion 7 for strategic classification (framework primitive / contrib / pattern documentation / reject) (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` |
 
-### 93. Per-Node Timeout
-
-Per-node timeout bounding for map branches and all node types via ThreadPoolExecutor.
-
-| REQ-YG-078 | Per-node timeout: optional `float` timeout field on `NodeConfig` validated as positive; map branch timeout via `wrap_for_reducer` with `ThreadPoolExecutor`; non-map node timeout via `_maybe_wrap_timeout` in `node_compiler` handlers; `TIMEOUT_ERROR` error type in `ErrorType` enum; `from_exception` classification unchanged (callers pass `error_type` explicitly); lint warning W203 for map+agent without timeout; `except concurrent.futures.TimeoutError` before `except Exception` in both paths | `map_compiler`, `node_compiler`, `models/graph_schema`, `models/schemas`, `linter/patterns/map` |
+### 18. Testing & Quality
 
 Requirement traceability enforcement and testing infrastructure.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-063 | Requirement traceability enforcement: `pytest_collection_modifyitems` hook structurally enforces ADR-001 — all tests must have `@pytest.mark.req` | `tests/conftest`, `tests/unit/test_requirement_enforcement` |
 
 ### 19. MCP Server Interface
 
 Expose YAMLGraph graphs as MCP (Model Context Protocol) tools for Copilot and other AI assistants.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-066 | MCP server with stdio transport: expose `yamlgraph_list_graphs` and `yamlgraph_run_graph` tools via MCP protocol | `mcp_server` |
 | REQ-YG-067 | Graph discovery: scan configured directories for `graph.yaml`, parse headers for name/description/required vars | `mcp_server` |
 | REQ-YG-068 | Graph invocation via MCP: compile and invoke any discovered graph with vars, return structured result JSON | `mcp_server` |
@@ -595,6 +633,8 @@ Expose YAMLGraph graphs as MCP (Model Context Protocol) tools for Copilot and ot
 
 Shared utilities extracted from pipeline patterns. Eliminates copy-paste duplication across projects.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-070 | Contrib utils: `get_map_result()` unwraps single-key `_map_*_sub` dicts; `to_serializable()` converts Pydantic models to dicts recursively | `contrib/utils` |
 | REQ-YG-071 | Contrib progress: `SkipReport` reads `state["errors"]` and provides human-readable skip summaries with counts and node names | `contrib/progress` |
 
@@ -602,37 +642,48 @@ Shared utilities extracted from pipeline patterns. Eliminates copy-paste duplica
 
 Scheduled pipeline tools for fetching external developments and appending context-aware diary entries.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-072 | Diary digest: fetch HN/RSS sources, filter by relevance, format diary entries, append to diary.md, no-op when nothing relevant | `scripts/diary_digest_tools` |
 
 ### 22. Code Quality Lints
 
 Custom lint checks enforcing architectural patterns beyond standard linters.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-073 | Inline LLM lint: detect scripts with `def main()` that import LLM execution functions without graph loading — flags orchestration code smell | `scripts/lint_inline_llm` |
-| REQ-YG-221 | Ruff C901 cognitive complexity gate: `C901` in ruff select with `max-complexity = 15` in `[tool.ruff.lint.mccabe]`; functions above threshold suppressed with `# noqa: C901` and documented in `docs/confessions.md`; CI inherits via existing `ruff check yamlgraph/` (FR-221) | `pyproject.toml`, `docs/confessions.md` |
 
 ### 23. Skip-If-Exists Truthiness
 
 skip_if_exists checks truthiness, not existence. Empty collections, empty strings, None, 0, and False do NOT trigger skip.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-074 | skip_if_exists uses truthiness check: `[]`, `""`, `None`, `0`, `False` do not skip; only truthy values skip | `node_factory/llm_nodes._should_skip_if_exists` |
 
 ### 24. Interactive Tool Node
 
 Declarative multi-turn stateful tool integration via config-level expansion.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-075 | Interactive tool node: expand `type: interactive_tool` into start/ask/step/end inline nodes with loop condition, max iterations, and interrupt-based user input | `interactive_tool`, `node_factory/control_nodes`, `utils/conditions` |
 
 ### 25. Tavily Domain RAG Demo
 
 Domain-scoped RAG using Tavily search API with type:python tool nodes and map fan-out.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-076 | Tavily domain RAG: python tool retrieves context via Tavily API with optional `TAVILY_TARGET_DOMAIN` scoping; simple graph (retrieve→answer) and deep graph (plan→map(retrieve)→synthesize) | `examples/demos/tavily_rag` |
 
 ### 26. Streaming Error Resilience
 
 Error propagation, timeout support, and interrupt detection for run_graph_streaming_native(). Yields StreamEvent Pydantic objects for errors and interrupts instead of crashing silently.
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-077 | Streaming error resilience: wrap `astream()` with try/except to yield `StreamEvent(type="error")` on exceptions; `asyncio.timeout()` for stall detection; interrupt payload detection via `aget_state()` after stream completes; `yield_events=False` flag for opt-out (raises instead) | `executor_async`, `models/streaming` |
 
 ### 28. Graph-Level Thinking Budget
@@ -641,6 +692,8 @@ Graph-level and per-node thinking_budget YAML field for Anthropic extended think
 
 **Feature Request:** FR-071
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-083 | `thinking_budget` YAML field on graph `defaults` and per-node; validated as `0` or `≥ 1024`; passed as `thinking={"type":"enabled","budget_tokens":N}` to `ChatAnthropic` with forced `temperature=1` (override before cache key); raises on non-Anthropic provider; included in LLM cache key | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` |
 
 ### 30. Copilot Node
@@ -649,6 +702,8 @@ New copilot node type that delegates graph processing to Copilot CLI, replacing 
 
 **Feature Request:** FR-082
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-087 | Copilot node executes via CLI backend with configurable flags and timeout; `--silent` always forced; list-based `subprocess.run()` for injection safety; graceful `FileNotFoundError` when copilot binary missing | `node_factory/copilot_node`, `node_compiler`, `constants.NodeType.COPILOT` |
 | REQ-YG-089 | Copilot node composes with router, map, and FSM-router patterns; standard node guarantees apply (requires, on_error, skip_if_exists, loop protection) | `node_factory/copilot_node`, `node_compiler` |
 | REQ-YG-105 | Copilot node session continuations via `--resume` and `--continue` flags; session ID captured from stderr into `CopilotResult.session_id`; state expression resolution for `cli_flags.resume` | `node_factory/copilot_node`, `models/schemas` |
@@ -659,6 +714,8 @@ Extends the Plan-Judge workflow with automatic diary entry creation after each r
 
 **Feature Request:** FR-090
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-090 | `format_diary_entry()` accepts configurable `prefix` parameter (default "World Digest"); `examples/copilot/graph.yaml` includes `summarize` (LLM) and `write_diary` (Python) nodes; `watch.sh` passes `date` and `diary_prefix` vars | `examples/shared/diary`, `examples/copilot/graph.yaml`, `examples/copilot/prompts/summarize.yaml` |
 
 ### 32. eBook Authoring Pipeline
@@ -667,6 +724,8 @@ A YAMLGraph pipeline that writes the development pipeline documentation as an eB
 
 **Feature Request:** FR-100
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-091 | `write_chapters_tool` writes formatted chapter content to disk; accepts `output_dir` and chapter state variables; creates directory if missing; returns dict with `written` list of paths | `examples/ebook/nodes/writing.py` |
 | REQ-YG-092 | Chapter validation detects fabricated doctrine content; `verify_commandments_verbatim()` checks all 10 Commandments appear exactly as in source; returns `{passed, found, missing, fabricated}` dict | `tests/unit/test_ebook_doctrine_validation.py` |
 
@@ -676,6 +735,8 @@ Parallel development pipeline via git worktrees, enabling multiple features to b
 
 **Feature Request:** FR-106
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-106 | Worktree helpers derive branch names from FR paths, construct worktree paths under `tmp/worktrees/`, and validate clean working tree before creation; shell script orchestrates worktree lifecycle with trap-based cleanup; 4-phase graph (implement → test/demo → precommit → PR) chains via session continuations | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml` |
 
 ### 34. Compiled Graph Cache
@@ -684,6 +745,8 @@ Process-global compiled graph cache so load_and_compile_async() results survive 
 
 **Feature Request:** FR-111
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-107 | Process-global `GRAPH_CACHE` dict in installed package; `load_and_compile_async()` uses cache by default with `cache=None` opt-out; `clear_cache()` for test teardown; cache-hit logs at DEBUG, compile logs at INFO | `graph_cache`, `executor_async` |
 
 ### 35. Watch→Enforce Integration
@@ -692,6 +755,8 @@ Post-graph hook in watch.sh that detects new feature request files via ephemeral
 
 **Feature Request:** FR-116
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-116 | `watch.sh` snapshots `feature-requests/` before graph execution, diffs after with `comm -13` to detect new FRs, skips rejected FRs (matching `Status.*Rejected`), and spawns `enforce_worktree.sh` via `nohup ... &` with output redirected to `tmp/enforce-<slug>.log`; no state files or Python helpers | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` |
 
 ### 36. Inquisitor Auto-Propose
@@ -700,6 +765,8 @@ Post-graph hook in watch.sh that detects new feature request files via ephemeral
 
 **Feature Request:** FR-118
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-118 | `inquisitor.sh --propose` parses flag, gates a second copilot call that reads up to 5 diary audit entries, detects persistent ✗ violations (≥2 consecutive), classifies as micro-fix or structural gap, writes proposal markdown to `.chaplain/inbox/inquisitor-<slug>.md` with filename-based dedup; without `--propose` the audit-only flow is unchanged | `.chaplain/inquisitor.sh` |
 
 ### 37. Architecture Provider Count Guard
@@ -708,6 +775,8 @@ Cross-check test ensuring the provider count in ARCHITECTURE.md module table mat
 
 **Feature Request:** FR-121
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-121 | Test asserts ARCHITECTURE.md module table provider count for `llm_factory.py` equals `len(get_args(ProviderType))`; prevents documentation drift when providers are added or removed | `tests/unit/test_architecture_provider_count` |
 
 ### 38. Post-Merge Finalization
@@ -716,6 +785,8 @@ Automates three post-merge obligations after a PR from the enforce pipeline is m
 
 **Feature Request:** FR-125
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-125 | `scripts/finalize_merge.sh` inserts CHANGELOG entry under `[Unreleased] / ### Added`, updates FR status to `✅ Implemented`, and appends diary reflection stub with Trap/Heuristic/Seed placeholders | `scripts/finalize_merge.sh`, `tests/unit/test_finalize_merge` |
 
 ### 39. Inquisitor Commit-Delta Gate
@@ -724,6 +795,8 @@ inquisitor.sh commit-delta gate extracts last audit SHA from docs/diary/, counts
 
 **Feature Request:** FR-131
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-131 | `inquisitor.sh` commit-delta gate extracts last audit SHA from `docs/diary/`, counts `feat:`/`fix:` commits since that SHA via `git log`, and aborts with clear message when none found; `--force` bypasses gate; gate degrades gracefully on missing diary, unparseable SHA, or first-ever audit; `--propose` respects gate; gate logic is pure shell | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_gate` |
 
 ### 40. Enforce Pipeline Graph Delegation
@@ -732,6 +805,8 @@ enforce_worktree.sh delegates all LLM orchestration to examples/enforce/graph.ya
 
 **Feature Request:** FR-128
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-128 | `scripts/enforce_worktree.sh` calls `yamlgraph graph run examples/enforce/graph.yaml` with `--var fr_path` and `--var branch`; no inline prompts (`IMPLEMENT_PROMPT`, `TEST_PROMPT`, `FIX_PROMPT`), no `copilot -p` calls, no pre-commit retry loop, no inline git/PR commands remain | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml`, `tests/unit/test_enforce_yamlgraphication` |
 
 ### 41. Clean GIT Env Test Fixture
@@ -740,6 +815,8 @@ Session-scoped autouse pytest fixture strips GIT_* environment variables injecte
 
 **Feature Request:** FR-140
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-140 | `_clean_git_env` session-scoped autouse fixture strips all `GIT_*` env vars at session start, restores on teardown; no-op when vars absent; prevents pre-commit `GIT_DIR`/`GIT_WORK_TREE` from leaking into subprocess git calls in `tmp_path`-based test repos | `tests/conftest.py`, `tests/unit/test_clean_git_env` |
 
 ### 42. Inquisitor Worktree Gate
@@ -748,6 +825,8 @@ inquisitor.sh worktree gate detects git worktree context and exits early, suppre
 
 **Feature Request:** FR-142
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-142 | `inquisitor.sh` worktree gate checks `-f "$REPO_ROOT/.git"` (file = worktree, directory = main), exits 0 with message when in worktree; `--force` bypasses gate; degrades gracefully when `git rev-parse` fails; gate placed before commit-delta gate (FR-131); pure shell, no Python | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_worktree_gate` |
 
 ### 43. Copilot Session GC
@@ -756,6 +835,8 @@ Shell script that prunes stale Copilot CLI sessions from ~/.copilot/session-stat
 
 **Feature Request:** FR-138
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-141 | `copilot_session_gc.sh` removes session directories older than `--max-age` days (default 7); `--dry-run` lists candidates without deleting; active session (`$COPILOT_SESSION_ID`) is never removed; exits cleanly when directory is missing; idempotent; logs UUID and age for each removed session | `scripts/copilot_session_gc.sh`, `tests/unit/test_copilot_session_gc` |
 
 ### 44. Judge SPLIT Verdict
@@ -764,6 +845,8 @@ Add a fourth judge verdict (SPLIT) for multi-concern feature requests, enabling 
 
 **Feature Request:** FR-136
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-143 | Judge prompts must include `SPLIT` verdict and Scope Count rubric for multi-concern FR decomposition; unit tests verify both prompt sources and conflict fixture behavior | `examples/copilot/prompts/judge.yaml`, `scripts/chaplain-prompts/judge.md`, `tests/unit/test_judge_split_verdict` |
 
 ### 45. Diary Reflection Enforcement
@@ -772,6 +855,8 @@ Pre-commit hook diary-reflection-check rejects commits when tracked docs/diary/ 
 
 **Feature Request:** FR-144
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-144 | `diary-reflection-check` pre-commit hook scans tracked reflection files for unfilled placeholder text and blocks commit; `finalize_merge.sh` creates stubs as untracked files (no `git add` of `docs/diary/`); hook passes when no placeholders remain | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh`, `tests/unit/test_precommit_hooks` |
 
 ### 46. Diary Import CLI
@@ -780,6 +865,8 @@ CLI command to import pending diary entries and git report data into docs/diary/
 
 **Feature Request:** FR-124
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-122 | `yamlgraph diary import` CLI command imports pending diary entries and git reports into `docs/diary/` with `--dry-run` and `--source` flags; shared importer returns structured `ImportResult` list; dry-run does not mutate source files; malformed files reported and exit non-zero; explicit missing `--source` emits warning | `yamlgraph/diary/importer.py`, `yamlgraph/cli/diary_commands.py`, `tests/unit/test_diary_importer`, `tests/unit/test_diary_commands` |
 
 ### 47. Phantom Requirement Detection
@@ -788,6 +875,8 @@ Detect and reject test markers that reference non-existent requirement IDs.
 
 **Feature Request:** FR-145
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-145 | Phantom requirement detection: `req_coverage.py --strict` rejects `@pytest.mark.req` markers referencing requirement IDs absent from `ALL_REQS` or `ARCHITECTURE.md` | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` |
 
 ### 48. CHANGELOG Removal Completeness
@@ -796,6 +885,8 @@ CHANGELOG.md [Unreleased] documents significant file removals per Commandment 8.
 
 **Feature Request:** FR-153
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-146 | CHANGELOG.md `[Unreleased]` contains a `### Removed` section documenting stale demo file deletions (commit a0e6f00): `examples/cost-router/poc_granite.py`, `scripts/loopback-poc/` (419 lines); section ordering follows Keep a Changelog convention (Added → Removed → Fixed) | `CHANGELOG.md`, `tests/unit/test_demo_cleanup_changelog` |
 
 ### 49. Examples Documentation Audit
@@ -804,6 +895,8 @@ Every on-disk example and demo is accurately indexed in examples/README.md with 
 
 **Feature Request:** FR-135
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-147 | `examples/README.md` lists every demo directory and top-level example on disk; demos are split into Learning / Utility / FR Validation sections; inclusion criteria are documented; each listed entry has a `README.md` and at least one runnable artifact (YAML graph, `demo.sh`, or Python script) | `examples/README.md`, `tests/unit/test_examples_readme_audit` |
 
 ### 50. CI CHANGELOG Gate
@@ -812,6 +905,8 @@ GitHub Actions job in commitlint.yml that blocks merge of feat and fix PRs unles
 
 **Feature Request:** FR-149
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-148 | `changelog-gate` job in `commitlint.yml` runs `git diff --name-only` against base/head SHAs and fails when `CHANGELOG.md` is absent from diff; job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_changelog_gate` |
 
 ### 51. Branch Protection Documentation
@@ -820,6 +915,8 @@ GitHub branch protection rules on main enforcing squash-merge only, required sta
 
 **Feature Request:** FR-150
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-149 | `reference/break-glass.md` documents emergency bypass procedure with audit trail requirements; `CLAUDE.md` contains Branch Protection section listing enforced rules, required status checks, and link to break-glass procedure | `reference/break-glass.md`, `CLAUDE.md`, `tests/unit/test_branch_protection_docs` |
 
 ### 53. CI Conflict Marker Gate
@@ -828,6 +925,8 @@ CI job that fails when unresolved merge conflict markers are found in tracked fi
 
 **Feature Request:** FR-157
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-151 | CI conflict marker gate: The `conflict-check` job in `commitlint.yml` greps tracked files (excluding `.github/`) for conflict marker patterns and fails with non-zero exit when found | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_conflict_check` |
 
 ### 54. CI Diary Existence Gate
@@ -836,6 +935,8 @@ CI gate ensuring feat/fix PRs with FR references include a diary reflection file
 
 **Feature Request:** FR-158
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-152 | `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs `git diff --name-only` against base/head SHAs, and fails when no `docs/diary/*reflection*fr-{number}*` file is in diff; skips (passes) when PR title has no FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_diary_gate` |
 
 ### 55. Chaplain Inbox Documentation
@@ -844,6 +945,8 @@ Document the .chaplain/inbox/ workflow in CLAUDE.md so Claude Code sessions can 
 
 **Feature Request:** FR-163
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-153 | `CLAUDE.md` contains a "Submitting Proposals" subsection documenting the `.chaplain/inbox/` workflow, matching the canonical source in `.github/copilot-instructions.md` verbatim, placed between the "Development Process" and "Development Commands" sections | `CLAUDE.md`, `tests/unit/test_claude_md_chaplain_inbox` |
 
 ### 56. Verification Gate Pattern
@@ -852,6 +955,8 @@ Per-node runtime verification with deterministic pattern matching. Checks stated
 
 **Feature Request:** FR-164
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-154 | NodeConfig accepts optional verification field (VerificationConfig) with question, on_fail, and count_range for runtime output validation | `yamlgraph/verification`, `node_factory/llm_nodes`, `linter/checks_contracts` |
 
 ### 57. Verification Count Range Pydantic
@@ -860,6 +965,8 @@ Count range verification claim parsed into CountRangeClaim Pydantic model with m
 
 **Feature Request:** FR-166
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-155 | Count range verification claim parsed into `CountRangeClaim` Pydantic model with `min_count` (int, ge=0), `max_count` (int, ge=0) and `model_validator` enforcing min ≤ max. Inverted ranges raise `ValueError` at parse time. Violation `details` exposes `expected_min`, `expected_max`, `actual_count` for programmatic inspection | `yamlgraph/verification`, `yamlgraph/models/__init__`, `tests/unit/test_verification` |
 
 ### 59. Configurable Loop Exit Target
@@ -868,6 +975,8 @@ loop_exits graph-level config maps node names to custom exit targets when loop l
 
 **Feature Request:** FR-172
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-093 | `loop_exits` graph-level config maps node names to custom exit targets when loop limit is reached. `GraphConfigSchema` validates as `dict[str, str]` with default `{}`. `make_expr_router_fn` accepts optional `loop_exit_target`; when `_loop_limit_reached` is True, returns configured target instead of `END`. Lint rule E009 validates keys exist in `loop_limits` and targets are valid nodes | `yamlgraph/routing`, `yamlgraph/edge_compiler`, `yamlgraph/graph_loader`, `yamlgraph/models/graph_schema`, `yamlgraph/linter/checks_semantic`, `tests/unit/test_loops` |
 
 ### 60. Worktree Venv Corruption Guard
@@ -876,6 +985,8 @@ Worktree venv corruption guard: validate_venv_health() raises on missing or brok
 
 **Feature Request:** FR-174
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-156 | Worktree venv corruption guard: `validate_venv_health()` raises `FileNotFoundError` when `.venv` directory is missing, `bin/python` is absent, or not executable (no silent skip). `validate_venv_symlink()` raises `OSError` when worktree `.venv` symlink doesn't resolve. `clean_stale_pth_entries()` removes `.pth`/`.egg-link` files referencing a deleted worktree directory to prevent import corruption from dangling editable installs | `yamlgraph/utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `tests/unit/test_worktree_venv_guard` |
 
 ### 61. Bugfix Pipeline with Condemning Test
@@ -884,6 +995,8 @@ Worktree venv corruption guard: validate_venv_health() raises on missing or brok
 
 **Feature Request:** FR-173
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-157 | Bugfix pipeline with condemning test: 4-phase pipeline (`condemn` → `fix` → `verify` → `submit_pr`) in `examples/bugfix/graph.yaml`. Condemn phase writes failing test against unchanged code (SKIP=pytest). `scripts/bugfix_worktree.sh` orchestrates in isolated worktree. `watch.sh` routes `Type.*Bug` FRs to bugfix pipeline. Each phase has dedicated prompt in `examples/bugfix/prompts/`. README documents Commandment 7 compliance | `examples/bugfix`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `tests/unit/test_bugfix_pipeline` |
 
 ### 62. Sequential Enforcement Mode
@@ -892,6 +1005,8 @@ watch.sh runs enforce and bugfix pipelines in the foreground, eliminating merge 
 
 **Feature Request:** FR-175
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-158 | Sequential enforcement mode: `watch.sh` runs `enforce_worktree.sh` and `bugfix_worktree.sh` in the foreground (no `nohup &`), capturing exit codes. Non-zero exits log a warning and continue the watch loop. Each pipeline completes before the next inbox item is processed, eliminating merge conflicts on shared files (ARCHITECTURE.md, CHANGELOG.md, req_coverage.py) | `.chaplain/watch.sh`, `tests/unit/test_watch_sequential_enforcement` |
 
 ### 64. Concurrency Safety Map
@@ -900,6 +1015,8 @@ docs/concurrency-safety.md documents every concurrency pattern in YAMLGraph with
 
 **Feature Request:** FR-176
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-160 | Concurrency safety map: `docs/concurrency-safety.md` documents every concurrency pattern in YAMLGraph with verdict (Safe/Conditional/Unsafe), concurrency model, shared mutable state, safety invariant, and file:line evidence. Covers 6 areas: map node fan-out, checkpoint writes, graph cache, inquisitor diary writes, MCP server, async executor. Each entry classifies shared state and serialization mechanism | `docs/concurrency-safety.md`, `tests/unit/test_concurrency_safety_doc` |
 
 ### 65. Append-Only Capability Registry
@@ -908,6 +1025,8 @@ Replace the monolithic CAPABILITIES dict in req_coverage.py with individual YAML
 
 **Feature Request:** FR-178
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-161 | Append-only capability registry: individual YAML files in capabilities/ validated by scripts/validate_capabilities.py pre-commit hook, loaded by scripts/req_coverage.py. New capabilities are added as files, not edits to shared code. Pre-commit hook enforces schema on every commit. | `capabilities/`, `scripts/validate_capabilities.py`, `scripts/req_coverage.py`, `tests/unit/test_capability_registry.py` |
 
 ### 66. Append-Only Changelog
@@ -916,6 +1035,8 @@ Replace monolithic CHANGELOG.md with fragment files under changelog/. Each chang
 
 **Feature Request:** FR-179
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-162 | Append-only changelog fragments: individual markdown files in changelog/unreleased/ with YAML front matter (type, scope, req). scripts/aggregate_changelog.py assembles all fragments into CHANGELOG.md grouped by version and type. Pre-commit and CI gates enforce fragment existence for feat/fix PRs. CHANGELOG.md is gitignored and generated on demand. | `changelog/`, `scripts/aggregate_changelog.py`, `scripts/migrate_changelog.py`, `tests/unit/test_changelog_fragments.py` |
 
 ### 67. Philosopher Daemon
@@ -924,6 +1045,8 @@ Automates the Philosopher role by scanning diary entries for recurring patterns 
 
 **Feature Request:** FR-184
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-184 | Automated diary pattern scanning and graduation proposals | `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `.chaplain/philosopher.sh` |
 | REQ-YG-185 | Copilot node migration with Pydantic-validated JSON extraction | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/shared/diary.py` |
 | REQ-YG-194 | World context loading for philosopher reflection enrichment | `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/reflect.yaml`, `docs/world-context.md` |
@@ -934,6 +1057,8 @@ CI workflow that runs pip-audit to scan Python dependencies for known vulnerabil
 
 **Feature Request:** FR-187
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-186 | CI workflow runs pip-audit --strict --desc on every PR and version tag push. Produces a 'security' required status check for branch protection. | `.github/workflows/security.yml` |
 
 ### 69. Knowledge Graph Graduation (FR-190)
@@ -942,6 +1067,8 @@ Graduates the infrastructure_self_exempt trap to the Scripture Knowledge Graph i
 
 **Feature Request:** FR-190
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-187 | infrastructure_self_exempt trap present in Scripture traps section with exact text, no existing traps/cures/process entries changed | `.github/copilot-instructions.md`, `tests/unit/test_knowledge_graph_fr190.py` |
 
 ### 70. Knowledge Graph Graduation (FR-191)
@@ -950,6 +1077,8 @@ Graduates the plausible_wrong_answer trap in the Scripture Knowledge Graph in .g
 
 **Feature Request:** FR-191
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-188 | plausible_wrong_answer trap present in Scripture traps section with exact text, old description removed, no existing traps/cures/process entries changed | `.github/copilot-instructions.md`, `tests/unit/test_knowledge_graph_fr191.py` |
 
 ### 71. Release Changelog Sync Gate
@@ -958,6 +1087,8 @@ Three-layer enforcement preventing changelog release drift: pre-commit hook bloc
 
 **Feature Request:** FR-192
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-189 | Pre-commit hook `changelog-release-sync` runs `check_changelog_release_sync.py` which blocks commit when pyproject.toml version field is changed in staged diff AND changelog/unreleased/ contains *.md files (excluding .gitkeep); allows commit when version unchanged or unreleased/ is empty; lists orphaned fragment names in error output. | `scripts/check_changelog_release_sync.py`, `.pre-commit-config.yaml`, `tests/unit/test_changelog_release_sync.py` |
 | REQ-YG-190 | Atomic release script `scripts/release.sh` validates unreleased/ has fragments, freezes them to changelog/{VERSION}/, bumps pyproject.toml version, regenerates CHANGELOG.md via aggregate_changelog.py, commits with -F (file-based message to avoid dquote trap), and creates git tag; reference/release-checklist.md documents release.sh as canonical command. | `scripts/release.sh`, `reference/release-checklist.md`, `tests/unit/test_changelog_release_sync.py` |
 | REQ-YG-191 | CI `release-hygiene` job in commitlint.yml triggers on tag push (v*), verifies changelog/{VERSION}/ directory exists for the tagged version, and checks for orphaned fragments in changelog/unreleased/; job has if-condition restricting execution to tag push events only. | `.github/workflows/commitlint.yml`, `tests/unit/test_changelog_release_sync.py` |
@@ -968,6 +1099,8 @@ Graduates 8 recurring patterns from diary analysis into the Scripture Knowledge 
 
 **Feature Request:** FR-193
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-192 | 5 process heuristics added to process: section, new seeds: section added with 3 seed patterns, changelog_ci_gate in process (not seeds), all descriptions are one-liners following key: "trigger → redirect" convention, no existing Knowledge Graph entries changed | `.github/copilot-instructions.md`, `tests/unit/test_knowledge_graph_fr193.py` |
 
 ### 73. Philosopher Challenge Node (FR-195)
@@ -976,6 +1109,8 @@ Adds distill + challenge copilot nodes with unwrap gates to the philosopher grap
 
 **Feature Request:** FR-195
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-193 | ChallengeVerdict model with verdict/confidence/objections/surviving_arguments, unwrap_distill parses CopilotResult into Proposal or None, unwrap_challenge parses CopilotResult into ChallengeVerdict, write_proposals reads top_candidate, graph topology with conditional edges, distill/challenge prompts, reflect enriched with challenge context | `examples/philosopher/models.py`, `examples/philosopher/tools.py`, `examples/philosopher/graph.yaml`, `examples/philosopher/prompts/`, `tests/unit/test_philosopher.py` |
 
 ### 74. FSM Scripture CLAUDE.md (FR-199)
@@ -984,7 +1119,380 @@ Upgrades fsm/CLAUDE.md (statemachine-engine/CLAUDE.md) from a four-line YAGNI/TD
 
 **Feature Request:** FR-199
 
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-195 | fsm/CLAUDE.md contains all 10 Commandments verbatim, Sermon of the Chaplain, Rite of Correction, Agents' prayer, Knowledge Graph of the Diary (including the_one_law, traps, cures, process, seeds sections), FSM path/package adaptation table mapping yamlgraph constructs to FSM equivalents, Anti-patterns table with FSM-specific wrong/correct pairs, all existing FSM sections preserved, four-line YAGNI/TDD/DRY/KISS block replaced (not duplicated) | `fsm/CLAUDE.md`, `tests/unit/test_fsm_claude_md_doctrine.py` |
+
+### 75. Portable Chaplain (FR-196)
+
+PythonToolConfig supports a `path` field for file-path-based tool loading via importlib.util.spec_from_file_location(). Path resolves relative to CWD. Enables .chaplain/ directory portability by bypassing dotted-package import restrictions. Chaplain graphs, prompts, and Python tools relocated from examples/ to .chaplain/graphs/ for self-contained portability.
+
+**Feature Request:** FR-196
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; path resolves relative to CWD; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
+
+### 76. Horoscope Demo
+
+Parallel daily horoscope generator using map node with static over: list, producing a single Markdown document via exports. Pure YAML, zero Python.
+
+**Feature Request:** FR-201
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-197 | Horoscope demo: map node fans out over 12 zodiac signs in parallel, collects readings, assembles into Markdown document with exports section. Pure YAML graph with co-located prompts, date as runtime variable. | `examples/demos/horoscope` |
+
+### 77. Image Generation Pipeline
+
+End-to-end style-driven image generation pipeline: concept generation via LLM, prompt generation via batch_image_prompts subgraph, save to file, and image generation via Replicate z-image with sidecar files and best-effort EXIF.
+
+**Feature Request:** FR-202
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-198 | Image pipeline graph chains generate_concepts (LLM) → batch_image_prompts (subgraph) → save_prompts (Python tool writing prompts.txt) → generate_images (Python tool calling Replicate z-image with sidecar .txt files and best-effort EXIF embedding). | `examples/image_pipeline`, `tests/unit/test_image_pipeline.py` |
+
+### 78. .fi Domain Crawl Demo
+
+Multi-stage pipeline crawling .fi country-level domains: LLM query planning, DuckDuckGo seed discovery, parallel page crawling via map node, and LLM sitemap summarisation. Demonstrates HTTP tool nodes with map fan-out.
+
+**Feature Request:** FR-205
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-199 | .fi domain crawl demo: plan node produces search queries (parse_json), discover node filters results to .fi TLD, map node crawls pages in parallel (max_items: 10), summarise node produces sitemap overview. crawl_page handles errors gracefully, returns structured dict with title/links/snippet. No new dependencies — uses digest + websearch extras. | `examples/demos/fi-domain-crawl`, `tests/unit/test_fi_domain_crawl.py` |
+
+### 79. Demo Proof Gate
+
+CI gate and pre-commit hook requiring demo-output.log artifact when demos are created or modified, proving the demo was actually executed before merge. Enforces Commandment 2 ("demonstrate with example") at the merge boundary.
+
+**Feature Request:** FR-206
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-200 | demo-gate CI job in commitlint.yml extracts changed demo directories from git diff (excluding demo-output.log itself), verifies each has a demo-output.log in the diff, exits 1 on missing logs and 0 when no demos changed; job-level if condition restricts to feat/fix PR titles; uses actions/checkout@v4 with fetch-depth: 0; pre-commit hook demo-proof-check calls scripts/check_demo_proof.sh which checks staged files with identical logic; .gitignore negates *.log for examples/demos/*/demo-output.log; CLAUDE.md documents demo-gate in branch protection section; enforcer Phase 2 prompt instructs capturing demo-output.log | `scripts/check_demo_proof.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`, `.gitignore`, `CLAUDE.md`, `.chaplain/graphs/enforce/prompts/enforce-test-demo.yaml`, `tests/unit/test_ci_demo_proof_gate.py` |
+
+### 81. A2A Protocol Server
+
+Expose YAMLGraph graphs as A2A (Agent-to-Agent) protocol agents. Supports task lifecycle (send, get, cancel, stream) and auto-generates Agent Cards from graph YAML metadata.
+
+**Feature Request:** FR-208
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-206 | Shared graph discovery: extract discover_graphs() from mcp_server.py into discovery.py; both MCP and A2A servers import from it | `discovery`, `mcp_server` |
+| REQ-YG-207 | A2A server discovers graphs using shared discover_graphs() and creates YAMLGraphAgentExecutor wired to A2AStarletteApplication | `a2a_server` |
+| REQ-YG-208 | Agent Card auto-generated from graph YAML metadata (name, description, skills) with streaming=True and no authentication | `a2a_server` |
+| REQ-YG-209 | Message parsing strategy: JSON → key_value → single_input → fallback; missing required vars rejected; PipelineError maps to A2A error types | `a2a_server` |
+| REQ-YG-210 | task/get retrieves task status via InMemoryTaskStore | `a2a_server` |
+| REQ-YG-211 | task/sendSubscribe streams graph execution via SSE | `a2a_server` |
+| REQ-YG-212 | task/cancel cancels running graph execution | `a2a_server` |
+| REQ-YG-213 | input-required state emitted when graph hits __interrupt__ node | `a2a_server` |
+
+### 82. Block AI Co-Author Trailers
+
+Commit-msg hook that detects and blocks AI agent Co-authored-by trailers (Copilot, Claude, ChatGPT, Gemini, GPT-*) before they enter the repository. Prints the offending line(s) and penance liturgy, then exits 1 to block the commit. Human co-authors and clean messages pass silently.
+
+**Feature Request:** FR-212
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-215 | block_ai_coauthor.py commit-msg hook: regex-detects AI agent trailers, exits 1 with offending line + penance liturgy; exits 0 for clean and human-only messages; registered as block-ai-coauthor in pre-commit-config at commit-msg stage before absolution | `scripts/block_ai_coauthor.py`, `.pre-commit-config.yaml`, `tests/unit/test_precommit_hooks.py` |
+
+### 83. Research Agent Demo
+
+5-step agentic research demo: extract intent (llm) → plan research (agent) → execute research (agent) → validate findings (llm) → synthesize report (llm). Demonstrates bounded agent pipelines with least-privilege tool assignment, explicit validation nodes, and structured Pydantic schemas.
+
+**Feature Request:** FR-215
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-217 | Research agent demo: 5-node graph with extract_intent (llm, Pydantic schema), plan_research (agent, discovery tools only), execute_research (agent, all tools), validate_findings (llm, Pydantic schema with gaps/confidence), synthesize_report (llm). Linear flow START→END. prompts_relative: true with local prompts/ directory. Shell tools use placeholder variables. Graph passes yamlgraph lint. | `examples/demos/research-agent`, `tests/unit/test_research_agent_demo.py` |
+
+### 84. Import-Linter Architectural Boundary Enforcement
+
+Mechanical enforcement of the three-layer architecture (Presentation → Logic → Side Effects) via import-linter contracts. Prevents silent degradation of module boundaries by blocking imports that violate declared layer dependencies at pre-commit and CI.
+
+**Feature Request:** FR-218
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-218 | .importlinter config at repo root declares a layers contract with three layers: Presentation (cli), Logic (graph_loader, node_factory, executor, linter, edge_compiler, node_compiler, map_compiler, routing, graph_cache, schema_loader, data_loader, discovery, executor_async, interactive_tool), Side Effects (tools, models, utils, config, constants, storage, contrib, executor_base, error_handlers, verification). lint-imports exits 0 on the current codebase. Pre-commit hook and CI step enforce the contract at every commit and PR. | `.importlinter`, `.pre-commit-config.yaml`, `.github/workflows/workflow.yml`, `tests/unit/test_import_linter.py` |
+
+### 85. Dependency Rationale Audit
+
+Audit script that verifies every pyproject.toml dependency (core and optional) has a documented rationale in docs/dependency-rationale.yaml. Follows the noqa_coverage.py registry-audit pattern. Reports undocumented packages and exits 1 in --strict mode. Registered as pre-commit hook.
+
+**Feature Request:** FR-219
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-219 | dependency_rationale.py parses pyproject.toml core and optional dependencies (stripping version specifiers and extras), loads rationale entries from docs/dependency-rationale.yaml, reports undocumented packages in summary mode, exits 1 in --strict when gaps exist, --detail prints all entries; registered as dependency-rationale pre-commit hook | `scripts/dependency_rationale.py`, `docs/dependency-rationale.yaml`, `.pre-commit-config.yaml`, `tests/unit/test_dependency_rationale.py` |
+
+### 86. Ruff Security Rules
+
+Ruff S ruleset (flake8-bandit) enabled in pyproject.toml for automated security linting. All 7 existing violations (S104, S602, S603, S607, S701) suppressed with documented noqa confessions. New security-sensitive code patterns are automatically flagged at lint time.
+
+**Feature Request:** FR-222
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-222 | Ruff S ruleset enabled in [tool.ruff.lint] select. All 7 existing violations suppressed with # noqa and documented in docs/confessions.md (CONF-005 through CONF-009, CONF-035, CONF-036). ruff check --select S yamlgraph/ exits 0. New security-sensitive code is automatically flagged. | `pyproject.toml`, `docs/confessions.md`, `tests/unit/test_ruff_security.py` |
+
+### 87. Ruff C901 Cognitive Complexity Gate
+
+Enables ruff C901 (mccabe cognitive complexity) in the lint pipeline at threshold 15, closing the gap where radon CC (grade D ≥ 21) misses deeply nested functions. Functions above threshold are suppressed with noqa and documented in docs/confessions.md. CI inherits the rule via existing ruff check yamlgraph/.
+
+**Feature Request:** FR-221
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-221 | C901 in ruff select with max-complexity = 15 in [tool.ruff.lint.mccabe]; functions above threshold suppressed with # noqa: C901 and documented in docs/confessions.md; CI inherits via existing ruff check yamlgraph/ | `pyproject.toml`, `docs/confessions.md`, `tests/unit/test_ruff_c901_gate.py` |
+
+### 88. Google/Vertex Thinking Budget Support
+
+Extends thinking_budget support to google and vertex providers. ChatGoogleGenerativeAI (langchain-google-genai 4.2.0+) accepts thinking_budget as a first-class constructor parameter. Schema validator relaxed to accept -1 (Google automatic mode) and any positive integer. Linter checks W071-1/2/4 scoped to Anthropic only; W071-3 extended with Gemini 2.5+ and Gemini 3 model substrings.
+
+**Feature Request:** FR-230
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-230 | thinking_budget accepted by create_llm for anthropic, google, and vertex; raises ValueError for other providers; _create_google_llm and _create_vertex_llm forward thinking_budget kwarg to ChatGoogleGenerativeAI when non-None; temperature not overridden for google/vertex; schema NodeConfig.thinking_budget accepts -1 (Google auto), rejects < -1; GraphConfigSchema defaults validator aligned; linter W071-1/2/4 scoped to anthropic; linter W071-3 THINKING_CAPABLE_MODELS includes gemini-2.5 and gemini-3 substrings | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py`, `tests/unit/test_fr230_google_vertex_thinking.py` |
+
+### 89. Execution Timing Callback
+
+LangChain callback handler tracking wall-clock duration of each LLM call in a graph run. Follows the same injection pattern as TokenUsageCallbackHandler. CLI --timing flag displays timing summary after execution.
+
+**Feature Request:** FR-231
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-231 | ExecutionTimingCallbackHandler tracks per-call and total wall-clock LLM duration via on_llm_start/on_llm_end callbacks using time.monotonic; summary() returns total_duration_s, call_count, mean_duration_s; CLI --timing flag injects callback and prints timing summary | `yamlgraph/utils/timing_tracker.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py`, `tests/unit/test_timing_tracker.py` |
+
+### 90. Graph Bench Command
+
+CLI command that runs a graph across multiple provider/model combinations and displays a side-by-side comparison table of execution time, token usage, and output. Supports --runs N for repetition, --export for JSON output, and --full for detailed output per model.
+
+**Feature Request:** FR-231
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-232 | yamlgraph graph bench command accepts --models provider/model specs, --runs N, --export path, --full; runs graph against each model; captures timing and token usage per model; displays comparison table; per-model errors reported gracefully without aborting other models; BenchResult Pydantic model for structured results | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py`, `tests/unit/test_bench_command.py` |
+
+### 91. Race Node Type
+
+A type: race node that fires the same prompt to N provider/model candidates concurrently via ThreadPoolExecutor and returns the first successful result. Enables sub-second LLM responses for latency-sensitive graphs by hedging across providers. Includes schema validation (≥2 candidates, each with provider or model), _race_winner metadata in state, graph lint checks (E301–E304), and on_error policy support for all-candidates-fail.
+
+**Feature Request:** FR-232
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-233 | type: race node fires prompt to all candidates concurrently using ThreadPoolExecutor; returns first successful result (not just first to complete); remaining candidates cancelled; all-fail triggers on_error policy; _race_winner metadata in state; candidates validated ≥2 entries each with provider or model; graph lint E301-E304; structured output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/linter/patterns/race.py`, `yamlgraph/linter/checks.py`, `tests/unit/test_race_node.py`, `tests/unit/test_linter_patterns_race.py` |
+
+### 92. Chatterbox TTS Demo
+
+Multilingual text-to-speech demo using map node fan-out over 5 languages, Chatterbox Multilingual TTS for audio synthesis, and structured YAML prompts. Produces WAV files for en, es, fi, sv, de.
+
+**Feature Request:** FR-233
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-234 | Chatterbox TTS demo: map node fans out over 5 languages (en, es, fi, sv, de), collects translations via structured output, synthesizes to WAV files via synthesize_audio python tool with Chatterbox Multilingual TTS. Auto-detects CUDA/CPU. Optional dependency chatterbox-tts. | `examples/demos/chatterbox` |
+
+### 93. Chatterbox Voice Clone Demo
+
+Voice cloning demo consolidated into examples/demos/chatterbox/ (FR-237). synthesize_cloned_audio in tools.py uses ChatterboxTTS (chatterbox.tts) with a caller-supplied reference audio clip (audio_prompt_path). Single-path synthesis: text + voice_prompt_path → output.wav. Device auto-detection follows cuda > mps > cpu. clone.yaml provides graph-based invocation; speak.py provides a standalone CLI. Supersedes chatterbox_clone/ (FR-236).
+
+**Feature Request:** FR-237
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-235 | Chatterbox voice cloning demo: synthesize_cloned_audio in examples/demos/chatterbox/tools.py accepts text and voice_prompt_path, synthesizes to WAV via ChatterboxTTS (not ChatterboxMultilingualTTS). Device selection follows cuda > mps > cpu priority chain. clone.yaml graph and speak.py CLI both use this tool. Optional dependency chatterbox-tts. | `examples/demos/chatterbox` |
+| REQ-YG-238 | Chatterbox speak CLI: speak.py accepts --ref (reference WAV, required) and positional text; validates ref exists (exit 1 on missing); calls ChatterboxTTS.generate() without language_id; writes to outputs/chatterbox/speak.wav; prints output path to stdout. | `examples/demos/chatterbox` |
+
+### 94. Compile-Time Pipeline Templates
+
+A type: pipeline meta-node that defines a sequence of stages once, iterates over a list of items, and expands to concrete nodes + edges before graph compilation. Eliminates repetitive boilerplate in multi-chapter, multi-phase graphs by 80%+. Includes {item.field} interpolation for stage configs, sequential intra-item and inter-item chaining, external edge rewriting, and linter validation (E401–E404).
+
+**Feature Request:** FR-235
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-236 | type: pipeline meta-node expands at compile time into concrete nodes and sequential edges; {item.field} interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); NodeType.PIPELINE in constants; VALID_NODE_TYPES includes pipeline; expansion called in graph_loader after expand_interactive_tools | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/checks.py`, `yamlgraph/linter/patterns/pipeline.py`, `yamlgraph/linter/graph_linter.py`, `tests/unit/test_pipeline_template.py`, `tests/unit/test_linter_patterns_pipeline.py` |
+
+### 95. Parallel Fan-Out Edges
+
+Parallel fan-out edges allow a single node to fan out to multiple target nodes that execute concurrently, expressed as to: [a, b, c] without type: conditional. The edge compiler adds one add_edge() call per target. Handles interrupt node redirect (_prepare), map node targets (conditional edge with map function), START fan-out (conditional entry point), and END targets. Conditional routing (type: conditional) remains unchanged.
+
+**Feature Request:** FR-234
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-237 | Parallel fan-out edges: to: [a, b, c] without type: conditional compiles as parallel fan-out via multiple add_edge() calls; handles interrupt node redirect to _prepare; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with type: conditional unchanged | `yamlgraph/edge_compiler.py`, `tests/unit/test_parallel_fanout_edges.py` |
+
+### 96. Per-Node Timeout
+
+Per-node timeout bounding for map branches and all node types via ThreadPoolExecutor. Optional float timeout field on NodeConfig wraps node execution in a one-shot ThreadPoolExecutor; on concurrent.futures.TimeoutError a PipelineError with error_type=TIMEOUT_ERROR is returned. Map branches honour timeout in wrap_for_reducer; non-map nodes (llm, router, tool_call, python, agent, race) honour timeout via _maybe_wrap_timeout in node_compiler. Lint warning W203 emitted when a map node contains an agent sub-node without timeout.
+
+**Feature Request:** FR-069
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-078 | Per-node timeout: optional float timeout field on NodeConfig validated as positive; map branch timeout via wrap_for_reducer with ThreadPoolExecutor; non-map node timeout via _maybe_wrap_timeout in node_compiler handlers; TIMEOUT_ERROR error type in ErrorType enum; from_exception classification unchanged (callers pass error_type explicitly); lint warning W203 for map+agent without timeout; except concurrent.futures.TimeoutError before except Exception in both paths | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py`, `tests/unit/test_map_node_timeout.py` |
+
+### 98. Pipeline Accumulated State
+
+User-configurable reducers in the YAML state: section and documented accumulated state pattern for pipelines. REDUCER_MAP maps "add", "last_value", "sorted_add" to their functions. parse_state_config() handles dict-syntax {type: str, reducer: str}. generate_typeddict_code() extracts type strings from dict-syntax entries. reference/graph-yaml.md documents the glossary accumulation pattern, sequential execution constraint, and W021 skip_if_exists: false requirement.
+
+**Feature Request:** FR-238
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-241 | parse_state_config() handles dict-syntax state definitions {type: str, reducer: str}; REDUCER_MAP maps "add", "last_value", "sorted_add" to their functions; unknown reducer names log a warning; dict syntax without reducer key works as type-only; generate_typeddict_code() extracts type string from dict-syntax entries via CODEGEN_TYPE_MAP; reference/graph-yaml.md documents accumulated state pattern with glossary example, sequential execution constraint, and W021 skip_if_exists: false requirement | `yamlgraph/models/state_builder.py`, `reference/graph-yaml.md`, `tests/unit/test_state_builder_reducers.py` |
+
+### 99. Race and Pipeline Node Type Documentation
+
+Reference documentation for type: race (FR-232) and type: pipeline (FR-235) node types in reference/graph-yaml.md and reference/getting-started.md. Ensures graph authors can discover and configure these node types through the canonical reference docs.
+
+**Feature Request:** FR-237
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-240 | reference/getting-started.md node type table includes race and pipeline rows; reference/graph-yaml.md has dedicated sections for type: race (purpose, candidates, timeout, state_key, _race_winner, on_error, example) and type: pipeline (purpose, items, stages, expansion semantics, {item.field} interpolation, example); doc examples match demo YAMLs | `reference/graph-yaml.md`, `reference/getting-started.md`, `tests/unit/test_race_pipeline_docs.py` |
+
+### 100. Chatterbox Multilingual CLI
+
+speak.py --lang flag routes to ChatterboxMultilingualTTS for non-English language codes (fi, sv, de, es, …). English path (--lang en, default) preserves the voice-cloning behaviour using ChatterboxTTS + --ref. --ref is incompatible with non-English lang and raises a clear error. Output is always outputs/chatterbox/speak.wav regardless of path. (FR-239)
+
+**Feature Request:** FR-239
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-242 | Chatterbox multilingual CLI: speak.py --lang <code> routes to ChatterboxMultilingualTTS for non-English codes; --ref incompatible with non-English lang (parser.error); --lang en (default) preserves voice-cloning path requiring --ref; output always outputs/chatterbox/speak.wav. | `examples/demos/chatterbox` |
+
+### 101. A2A Consumer Contrib Client
+
+A2A consumer functionality via yamlgraph.contrib.a2a_client.send_a2a_message(), invoked as a type: python node. Sends Jinja2-templated message to external A2A agent via HTTP JSON-RPC (message/send), extracts text artifacts from the response, and returns {"response": text}. Supports timeout, Agent Card fetch, skill validation, and SSE streaming. Configuration via variables: on the python node. Replaces dedicated type: a2a_call (FR-253).
+
+**Feature Request:** FR-240
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-243 | yamlgraph.contrib.a2a_client.send_a2a_message() sends Jinja2-templated message to external A2A agent URL via HTTP JSON-RPC message/send; extracts text artifacts from response; returns {"response": text}; invoked via type: python node with variables: for agent_url, message/message_template, skill, streaming, timeout; supports Agent Card fetch, skill validation, SSE streaming; uses httpx for sync and A2AClient for streaming transport | `yamlgraph/contrib/a2a_client.py`, `yamlgraph/tools/python_tool.py`, `tests/unit/test_a2a_contrib_client.py` |
+
+### 102. Complete Worktree Teardown Self-Heal
+
+Complete worktree teardown self-heal: validate_editable_install() probes import health via sys.executable; enforce_worktree.sh cleanup validates import yamlgraph after .pth cleaning and self-heals with pip install -e; bugfix_worktree.sh reaches FR-174 parity with venv health, symlink validation, .pth cleaning, import validation, and self-heal in cleanup.
+
+**Feature Request:** FR-241
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-244 | validate_editable_install() in worktree_helpers.py probes import health via sys.executable; enforce_worktree.sh cleanup validates import yamlgraph after .pth cleaning and self-heals with pip install -e; bugfix_worktree.sh has FR-174 parity: validate_venv_health before symlink, validate_venv_symlink after symlink, clean_stale_pth_entries in cleanup, import validation, and pip install -e self-heal | `yamlgraph/utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `tests/unit/test_worktree_teardown_self_heal` |
+
+### 103. A2A SDK v1.0 Compatibility
+
+Upgrade a2a-sdk dependency from v0.3 to v1.0 and fix all breaking changes. Protobuf-based types replace Pydantic models; Part construction uses member-name discriminator (no 'kind' field); TextPart class removed; Role/TaskState enums use SCREAMING_SNAKE_CASE; A2AStarletteApplication replaced by Starlette + route factories; EventQueue.close() removed; AgentCard.url field removed; InMemoryTaskStore API requires ServerCallContext; card JSON serialization uses MessageToDict.
+
+**Feature Request:** FR-244
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-245 | A2A SDK v1.0 compatibility: protobuf-based types replace Pydantic models; Part(text=...) replaces Part(root=TextPart(text=...)); TextPart removed; Role.ROLE_USER/ROLE_AGENT replaces Role.user/agent; TaskState.TASK_STATE_* replaces TaskState.*; A2AStarletteApplication replaced by Starlette + create_jsonrpc_routes/create_agent_card_routes; EventQueue.close() removed; AgentCard.url field removed; InMemoryTaskStore.save/get require ServerCallContext; DefaultRequestHandler requires agent_card parameter; kind discriminator removed from JSON-RPC part payloads (member-name discriminator); contrib/a2a_client.py extraction uses key-presence check; a2a_commands.py uses MessageToDict for card JSON serialization | `yamlgraph/a2a_server.py`, `yamlgraph/a2a_message.py`, `yamlgraph/contrib/a2a_client.py`, `yamlgraph/cli/a2a_commands.py`, `tests/unit/test_a2a_server.py`, `tests/unit/test_a2a_message.py`, `tests/unit/test_a2a_commands.py`, `tests/unit/test_a2a_contrib_client.py` |
+
+### 104. A2A Server Reference Documentation
+
+User-facing reference documentation for the A2A protocol server (FR-208/209/225, CAP-81). Covers quickstart, CLI commands, Agent Card generation, message parsing, task lifecycle, error mapping, interrupts, authentication, deployment patterns, and MCP relationship. Also updates reference/cli.md with a2a subcommands and reference/README.md index.
+
+**Feature Request:** FR-246
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-246 | reference/a2a-server.md created with 10 sections: Quickstart, CLI Commands, Agent Card Generation, Message-to-State Mapping, Task Lifecycle, Error Mapping, Interrupt/Human-in-Loop, Authentication, Deployment Patterns, Relationship to MCP Server; reference/cli.md updated with a2a serve and a2a card subcommands; reference/README.md links to a2a-server.md; all examples verified against a2a_server.py, a2a_message.py, cli/a2a_commands.py | `reference/a2a-server.md`, `reference/cli.md`, `tests/unit/test_a2a_server_docs.py` |
+
+### 105. A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming
+
+A2A consumer features in yamlgraph.contrib.a2a_client: Agent Card discovery via sync httpx.get() to /.well-known/agent.json, ContextVar-scoped caching per graph invocation, skill selection validated against Agent Card skills at runtime, and SSE streaming via A2AClient.send_message_streaming() in a dedicated thread. Replaces dedicated a2a_call node type linter checks (W901/E904) with runtime validation in contrib function (FR-253).
+
+**Feature Request:** FR-248
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-250 | send_a2a_message() fetches Agent Card via sync httpx.get() to {agent_url}/.well-known/agent.json; parsed into SDK AgentCard model via ParseDict; cached per agent_url within graph invocation using ContextVar; cache isolated across invocations; timeout configurable | `yamlgraph/contrib/a2a_client.py`, `tests/unit/test_a2a_contrib_client.py` |
+| REQ-YG-251 | skill parameter in state selects a specific agent skill; validated against Agent Card skills at runtime; ValueError raised on skill ID miss with available skills listed in error message; no card fetch when skill not specified | `yamlgraph/contrib/a2a_client.py`, `tests/unit/test_a2a_contrib_client.py` |
+| REQ-YG-252 | streaming: true in state uses A2AClient.send_message_streaming() via dedicated thread with own event loop; requires card.capabilities.streaming == True; result returned as complete string; streaming events logged at DEBUG level; transport-only (not FR-030 graph-level streaming) | `yamlgraph/contrib/a2a_client.py`, `tests/unit/test_a2a_contrib_client.py` |
+| REQ-YG-253 | Dedicated type: a2a_call node type replaced by type: python + yamlgraph.contrib.a2a_client contrib function; NodeType.A2A_CALL removed from constants; a2a_nodes.py and linter/patterns/a2a.py deleted; W901/E904 linter checks removed (skill/streaming validated at runtime in contrib); FR-252 enables variables: resolution on type: python nodes | `yamlgraph/contrib/a2a_client.py`, `yamlgraph/tools/python_tool.py`, `tests/unit/test_a2a_contrib_client.py` |
+
+### 106. GitHub Issues Remote Inbox
+
+watch.sh syncs open GitHub Issues labeled 'chaplain' into the local inbox, removes the label after import, and closes the issue with a commit reference on successful enforcement. Gracefully degrades when gh CLI is unavailable.
+
+**Feature Request:** FR-243
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-247 | GitHub Issues remote inbox: watch.sh polls for open issues labeled 'chaplain' via two-pass gh CLI (list numbers, then view each), writes .chaplain/inbox/gh-{number}.md, removes the label after import, initializes EXIT_CODE=1 as sentinel before enforcement branches, and closes the originating issue with commit hash on EXIT_CODE=0. Sync is silently skipped when gh is not installed or not authenticated. CLAUDE.md and copilot-instructions.md document remote submission. | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md`, `tests/unit/test_github_issues_remote_inbox` |
+
+### 107. Guardrails Pattern Documentation
+
+Document the input guardrails pattern (echo → validate → respond) as Pattern 11 in reference/patterns.md. References the existing examples/openai_proxy/ implementation as a production example. Updates examples/README.md with a Guardrails category.
+
+**Feature Request:** FR-249
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-254 | Pattern 11 "Input Guardrails" in reference/patterns.md documents the echo → validate → respond pipeline with Problem/Solution sections, valid YAML graph example, Python tool implementations, prompt template, Key Points table, and Related links referencing examples/openai_proxy/; examples/README.md includes a Guardrails category in "By Feature" section | `reference/patterns.md`, `examples/README.md`, `tests/unit/test_guardrails_pattern_docs.py` |
+
+### 108. Changelog REQ Cross-Validation Gate
+
+Validates that changelog fragment req: front-matter values reference correct requirement IDs from the capabilities registry. Mechanical pre-filter for single-REQ capabilities; LLM classifier (Haiku) for multi-REQ capabilities where mechanical disambiguation is impossible.
+
+**Feature Request:** FR-247
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-255 | Changelog REQ cross-validation gate: scripts/check_changelog_req.py parses YAML front-matter req: from changelog/unreleased/*.md, validates each REQ-YG-XXX exists in capabilities/CAP-*.yaml via direct id: lookup (rejects phantoms), skips fragments without req: field; single-REQ CAPs pass mechanically; multi-REQ CAPs deferred to LLM graph graphs/enforcement/changelog-req-check.yaml (Haiku, temperature 0); --strict exits non-zero on failure; --skip-llm runs mechanical-only; pre-commit hook and CI job wired | `scripts/check_changelog_req.py`, `graphs/enforcement/changelog-req-check.yaml`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` |
+
+### 109. Harden GitHub Issues Remote Inbox
+
+Author allowlisting, body size cap (10,000 chars), and forensic author audit header for the GitHub Issues remote inbox (FR-243 hardening). Prevents prompt injection via untrusted issue bodies.
+
+**Feature Request:** FR-251
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-256 | watch.sh gates GitHub Issue import on .chaplain/allowed-authors.txt (one login per line); issues from unlisted authors are skipped with warning, label retained; when file absent all authors accepted; body truncated at BODY_SIZE_CAP (10000) with warning; every imported file starts with <!-- author: @login --> audit header; author login fetched before title/body for early rejection (FR-251) | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt`, `tests/unit/test_harden_remote_inbox.py` |
+
+### 110. Diary Index Graph
+
+Demo graph that reads diary entries from docs/diary/*.md, extracts structured data (traps, heuristics, seeds, FR references) via map+llm, and produces a cross-reference index at docs/diary-index.yaml. Deterministic Python aggregation, no LLM for counting.
+
+**Feature Request:** FR-254
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-257 | Diary index graph: map node fans out over diary files, LLM extracts traps/heuristics/seeds/FR refs per entry, deterministic Python aggregate_index() builds cross-reference index (traps_index sorted by frequency, seeds_index with dedup, fr_index reverse mapping, heuristics_candidates with 2+ threshold, statistics by category). write_index() persists to docs/diary-index.yaml. Graph lints clean. Inline schema on extraction prompt. model: claude-haiku-4-5 for cost. | `examples/demos/diary_index` |
+
+### 111. Shared Graph Invocation
+
+Shared invoke_graph() function in graph_loader eliminates duplicated graph invocation logic across MCP and A2A servers (FR-255).
+
+**Feature Request:** FR-255
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-258 | invoke_graph(path, variables, config) in graph_loader.py: loads config, compiles graph, invokes synchronously with optional LangGraph run config. MCP and A2A servers delegate to this shared function. | `graph_loader`, `mcp_server`, `a2a_server` |
+
+### 112. Pipeline Timing Metrics
+
+Lightweight timing and outcome instrumentation for the three core pipeline scripts (enforce_worktree.sh, bugfix_worktree.sh, watch.sh). Writes JSON metrics files to tmp/pipeline-metrics/ on every exit. Includes a read-only Python aggregation script for daily summaries. Pure bash + Python stdlib.
+
+**Feature Request:** FR-256
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-259 | Pipeline scripts emit per-run JSON metrics to tmp/pipeline-metrics/ on every exit (success or failure). enforce_worktree.sh and bugfix_worktree.sh use EXIT trap cleanup to write phase timing. watch.sh uses inline cycle timing. pipeline_summary.py aggregates daily metrics using Python stdlib only. Metric writes are best-effort (guarded with \|\| true). No new dependencies. | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py`, `tests/unit/test_pipeline_timing.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
