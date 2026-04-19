@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-19
 **Origin:** GitHub Issue #132
@@ -120,15 +120,15 @@ Pipeline Summary (2026-04-19):
 
 ## Acceptance Criteria
 
-- [ ] `enforce_worktree.sh` writes timing JSON to `tmp/pipeline-metrics/` on every exit (success and failure) via extended `cleanup()` function
-- [ ] `bugfix_worktree.sh` writes timing JSON with same schema (discriminated by `"pipeline": "bugfix"`) via its `cleanup()` function
-- [ ] `watch.sh` writes cycle metrics JSON for every inbox item processed, using inline timing around enforce/bugfix calls (not trap-based)
-- [ ] JSON write is best-effort: metric write failure must not affect pipeline outcome (guard with `|| true`)
-- [ ] `tmp/pipeline-metrics/` directory is created on demand (`mkdir -p`)
-- [ ] `tmp/` is already gitignored — verify only, no `.gitignore` changes
-- [ ] `scripts/pipeline_summary.py` aggregates daily metrics from JSON files (stdlib only)
-- [ ] Unit test for `pipeline_summary.py` with fixture JSON files
-- [ ] No new dependencies introduced (bash `date +%s`, printf for JSON; Python stdlib for summary)
+- [x] `enforce_worktree.sh` writes timing JSON to `tmp/pipeline-metrics/` on every exit (success and failure) via extended `cleanup()` function
+- [x] `bugfix_worktree.sh` writes timing JSON with same schema (discriminated by `"pipeline": "bugfix"`) via its `cleanup()` function
+- [x] `watch.sh` writes cycle metrics JSON for every inbox item processed, using inline timing around enforce/bugfix calls (not trap-based)
+- [x] JSON write is best-effort: metric write failure must not affect pipeline outcome (guard with `|| true`)
+- [x] `tmp/pipeline-metrics/` directory is created on demand (`mkdir -p`)
+- [x] `tmp/` is already gitignored — verify only, no `.gitignore` changes
+- [x] `scripts/pipeline_summary.py` aggregates daily metrics from JSON files (stdlib only)
+- [x] Unit test for `pipeline_summary.py` with fixture JSON files
+- [x] No new dependencies introduced (bash `date +%s`, printf for JSON; Python stdlib for summary)
 
 ## Constraints
 

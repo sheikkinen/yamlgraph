@@ -15,6 +15,10 @@ POLL=5
 ALLOWED_AUTHORS="$SCRIPT_DIR/allowed-authors.txt"
 BODY_SIZE_CAP=10000
 
+# FR-256: Pipeline timing metrics
+METRIC_DIR="tmp/pipeline-metrics"
+mkdir -p "$METRIC_DIR"
+
 echo "👀 Watching $INBOX/"
 
 while true; do
@@ -70,6 +74,7 @@ while true; do
     # FR-175: Sequential enforcement — wait for each pipeline before next
     # FR-243: Initialize EXIT_CODE as failure sentinel (rejected FRs never override)
     EXIT_CODE=1
+    t_cycle_start=$(date +%s)
     if [[ -n "$new_fr" ]]; then
         if grep -q 'Status.*Rejected' "$new_fr" 2>/dev/null; then
             echo "⏭️  Skipping rejected FR: $new_fr"
@@ -107,6 +112,32 @@ while true; do
                 echo "🔒 Closed GitHub Issue #$gh_num"
             fi
         fi
+    fi
+
+    # FR-256: Write cycle metrics JSON (best-effort, inline — not trap-based)
+    t_cycle_end=$(date +%s)
+    if [[ -n "$new_fr" ]]; then
+        local_cycle_seconds=$((t_cycle_end - t_cycle_start))
+        cycle_fr=$(basename "$new_fr" .md | grep -oE 'FR-[0-9]+' || echo "unknown")
+        cycle_verdict="unknown"
+        if grep -q 'Status.*Rejected' "$new_fr" 2>/dev/null; then
+            cycle_verdict="rejected"
+        elif grep -q 'Status.*Approved' "$new_fr" 2>/dev/null; then
+            cycle_verdict="approved"
+        fi
+        cycle_outcome="failure"
+        if [[ $EXIT_CODE -eq 0 ]]; then cycle_outcome="success"; fi
+        inbox_base=$(basename "$topic_file")
+        cycle_gh_num=""
+        if [[ "$inbox_base" == gh-*.md ]]; then
+            cycle_gh_num="${inbox_base#gh-}"
+            cycle_gh_num="${cycle_gh_num%.md}"
+        fi
+        ts_safe=$(date -u +%Y%m%dT%H%M%S)
+        printf '{\n  "pipeline": "chaplain-cycle",\n  "inbox_item": "%s",\n  "fr_generated": "%s",\n  "verdict": "%s",\n  "enforce_outcome": "%s",\n  "total_seconds": %d\n}\n' \
+            "$inbox_base" "$cycle_fr" "$cycle_verdict" "$cycle_outcome" \
+            "$local_cycle_seconds" \
+            > "$METRIC_DIR/chaplain-cycle-${ts_safe}.json" 2>/dev/null || true
     fi
 
     echo ""
