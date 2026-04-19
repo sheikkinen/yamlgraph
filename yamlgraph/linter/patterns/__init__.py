@@ -4,6 +4,7 @@ Extends the base linter with semantic validation for YAMLGraph patterns.
 Each pattern gets its own submodule for focused validation logic.
 """
 
+from yamlgraph.linter.patterns.a2a import check_a2a_call_patterns
 from yamlgraph.linter.patterns.agent import check_agent_patterns
 from yamlgraph.linter.patterns.copilot import check_copilot_patterns
 from yamlgraph.linter.patterns.interrupt import check_interrupt_patterns
@@ -14,6 +15,7 @@ from yamlgraph.linter.patterns.router import check_router_patterns
 from yamlgraph.linter.patterns.subgraph import check_subgraph_patterns
 
 __all__ = [
+    "check_a2a_call_patterns",
     "check_router_patterns",
     "check_map_patterns",
     "check_interrupt_patterns",

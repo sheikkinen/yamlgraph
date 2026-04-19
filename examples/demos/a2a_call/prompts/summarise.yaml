@@ -1,0 +1,7 @@
+system: You are a concise summariser.
+user: |
+  An external A2A agent returned the following response:
+
+  {agent_response}
+
+  Summarise it in one sentence.

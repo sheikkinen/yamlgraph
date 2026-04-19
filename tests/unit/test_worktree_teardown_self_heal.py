@@ -17,7 +17,7 @@ import pytest
 # ---------------------------------------------------------------------------
 # Gap 1: validate_editable_install() does not exist
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-242")
+@pytest.mark.req("REQ-YG-244")
 class TestValidateEditableInstall:
     """validate_editable_install() must exist and correctly probe import health."""
 
@@ -57,7 +57,7 @@ class TestValidateEditableInstall:
 # ---------------------------------------------------------------------------
 # Gap 2: enforce_worktree.sh cleanup lacks import validation
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-242")
+@pytest.mark.req("REQ-YG-244")
 class TestEnforceWorktreeImportGuard:
     """enforce_worktree.sh cleanup() must validate 'import yamlgraph' after
     worktree removal and .pth cleaning."""
@@ -90,7 +90,7 @@ class TestEnforceWorktreeImportGuard:
 # ---------------------------------------------------------------------------
 # Gap 3: bugfix_worktree.sh lacks FR-174 guards
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-242")
+@pytest.mark.req("REQ-YG-244")
 class TestBugfixWorktreeFR174Parity:
     """bugfix_worktree.sh must have FR-174 guards at parity with
     enforce_worktree.sh: venv health, symlink validation, .pth cleaning,

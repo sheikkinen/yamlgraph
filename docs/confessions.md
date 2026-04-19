@@ -70,6 +70,12 @@ Each confession must include:
 
 Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 
+### CONF-001
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L109)
+- **Code**: C901 (function too complex)
+- **Sin**: `check_state_declarations` has high cyclomatic complexity due to multiple validation passes over graph nodes, prompts, and tools.
+- **Penance**: Decomposing would scatter cohesive validation logic across helper functions without meaningful abstraction gain. The function is linear and readable despite branching.
+
 ### CONF-002
 - **File**: [yamlgraph/utils/token_tracker.py](../yamlgraph/utils/token_tracker.py#L55)
 - **Code**: ARG002 (unused method argument)
