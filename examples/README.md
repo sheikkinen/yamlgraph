@@ -79,6 +79,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [a2a_call](demos/a2a_call/) | `a2a_call`, `llm` | Call an external A2A agent from a graph (FR-240) |
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
 | [data-files](demos/data-files/) | `llm` | External data loading |
+| [diary-index](demos/diary_index/) | `map`, `python`, `llm` | Diary corpus cross-reference index (FR-254) |
 | [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
 | [fi_domain_crawl](demos/fi_domain_crawl/) | `map`, `python`, `llm` | .fi domain crawl + sitemap overview |
 | [five-whys](demos/five-whys/) | `llm` | Fixed-count loop with iterative deepening |

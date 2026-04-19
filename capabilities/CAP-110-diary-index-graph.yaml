@@ -1,0 +1,22 @@
+id: CAP-110
+name: Diary Index Graph
+description: >
+  Demo graph that reads diary entries from docs/diary/*.md, extracts
+  structured data (traps, heuristics, seeds, FR references) via map+llm,
+  and produces a cross-reference index at docs/diary-index.yaml.
+  Deterministic Python aggregation, no LLM for counting.
+modules:
+  - examples/demos/diary_index
+requirements:
+  - id: REQ-YG-257
+    description: >
+      Diary index graph: map node fans out over diary files, LLM extracts
+      traps/heuristics/seeds/FR refs per entry, deterministic Python
+      aggregate_index() builds cross-reference index (traps_index sorted
+      by frequency, seeds_index with dedup, fr_index reverse mapping,
+      heuristics_candidates with 2+ threshold, statistics by category).
+      write_index() persists to docs/diary-index.yaml. Graph lints clean.
+      Inline schema on extraction prompt. model: claude-haiku-4-5 for cost.
+    modules:
+      - examples/demos/diary_index
+fr: FR-254

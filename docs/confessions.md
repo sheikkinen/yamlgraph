@@ -623,6 +623,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Same as CONF-139 — `capture_env(**kwargs)` in ADC mode test ignores kwargs.
 - **Penance**: Same as CONF-139.
 
+### CONF-141
+- **File**: [examples/demos/diary_index/tools.py](../examples/demos/diary_index/tools.py#L19)
+- **Code**: ARG001
+- **Sin**: `list_diary_files(state)` ignores the `state` parameter — the function needs no input state.
+- **Penance**: YAMLGraph python-node signature requires a `state: dict` parameter. The function scans the filesystem directly, so `state` is unused but mandatory for the node contract.
+
 ### CONF-209
 - **File**: [vulture_whitelist.py](../vulture_whitelist.py)
 - **Code**: F401
