@@ -1,9 +1,11 @@
-"""A2A call pattern linter validations — FR-240.
+"""A2A call pattern linter validations — FR-240, FR-248.
 
 Validates a2a_call nodes follow structural requirements:
 - Required field: agent_url (E901)
 - Required field: message (E902)
 - Required field: state_key (E903)
+- Advisory: skill field present (W901) — runtime-only validation
+- Error: streaming on non-a2a_call node (E904)
 """
 
 from pathlib import Path
@@ -59,6 +61,51 @@ def check_a2a_call_node_structure(
             )
         )
 
+    # W901: skill field present — runtime-only validation (FR-248)
+    if node_config.get("skill"):
+        issues.append(
+            LintIssue(
+                severity="warning",
+                code="W901",
+                message=(
+                    f"a2a_call node '{node_name}' has 'skill' field — "
+                    f"skill ID will be validated against Agent Card at runtime"
+                ),
+                fix="Ensure the remote agent exposes this skill in its Agent Card",
+            )
+        )
+
+    return issues
+
+
+def check_streaming_on_wrong_type(
+    node_name: str, node_config: dict[str, Any]
+) -> list[LintIssue]:
+    """Check that streaming: true is only used on a2a_call nodes.
+
+    Args:
+        node_name: Name of the node
+        node_config: Node configuration dict
+
+    Returns:
+        List of validation issues
+    """
+    issues = []
+
+    # E904: streaming on non-a2a_call node (FR-248)
+    if node_config.get("streaming") and node_config.get("type") != "a2a_call":
+        issues.append(
+            LintIssue(
+                severity="error",
+                code="E904",
+                message=(
+                    f"Node '{node_name}' has 'streaming: true' but is type "
+                    f"'{node_config.get('type')}' — streaming is only valid on a2a_call nodes"
+                ),
+                fix="Remove 'streaming' field or change node type to 'a2a_call'",
+            )
+        )
+
     return issues
 
 
@@ -80,6 +127,8 @@ def check_a2a_call_patterns(
     for node_name, node_config in graph.get("nodes", {}).items():
         if node_config.get("type") == "a2a_call":
             issues.extend(check_a2a_call_node_structure(node_name, node_config))
+        # E904 applies to ALL nodes, not just a2a_call
+        issues.extend(check_streaming_on_wrong_type(node_name, node_config))
 
     return issues
 
@@ -87,4 +136,5 @@ def check_a2a_call_patterns(
 __all__ = [
     "check_a2a_call_patterns",
     "check_a2a_call_node_structure",
+    "check_streaming_on_wrong_type",
 ]
