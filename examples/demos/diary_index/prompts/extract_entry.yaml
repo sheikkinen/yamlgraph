@@ -1,0 +1,42 @@
+system: >
+  You are a structured data extractor. Given a diary entry, extract
+  the requested fields precisely. For traps and heuristics, use the
+  canonical names from the Scripture when possible (e.g. downstream_fix,
+  quick_confidence, symptom_patch). For seeds, quote the forward-looking
+  question or idea verbatim.
+
+user: |
+  Extract structured data from this diary entry.
+
+  Filename: {{ filename }}
+
+  Content:
+  {{ content }}
+
+schema:
+  name: DiaryExtraction
+  fields:
+    filename:
+      type: str
+      description: "Diary entry filename"
+    date:
+      type: str
+      description: "ISO date from entry header or filename"
+    title:
+      type: str
+      description: "Entry title"
+    traps:
+      type: list[str]
+      description: "Cognitive trap names encountered (e.g. downstream_fix, quick_confidence)"
+    heuristics:
+      type: list[str]
+      description: "General principles or rules stated"
+    seeds:
+      type: list[str]
+      description: "Forward-looking questions or ideas for future exploration"
+    fr_references:
+      type: list[str]
+      description: "Feature request identifiers mentioned (FR-XXX format)"
+    category:
+      type: str
+      description: "Entry category: reflection | audit | git-report | world-digest | chaplain | philosopher | other"

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-04-19
 
@@ -217,23 +217,23 @@ examples/demos/diary-index/
 
 ## Acceptance Criteria
 
-- [ ] Graph runs via `yamlgraph graph run examples/demos/diary-index/graph.yaml --full`
-- [ ] Graph lints clean via `yamlgraph graph lint examples/demos/diary-index/graph.yaml`
-- [ ] Produces a valid YAML file at `docs/diary-index.yaml` (parseable by PyYAML)
-- [ ] `aggregate` node is `type: python` — deterministic counting, no LLM
-- [ ] `write_index` node persists the index to disk (follows horoscope `save` pattern)
-- [ ] Index includes top-N most recurring traps with entry count and filenames
-- [ ] Index includes top-N most recurring seeds with entry count and filenames
-- [ ] Index includes FR → diary entry reverse mapping
-- [ ] Index includes heuristics appearing 2+ times (Scripture graduation candidates)
-- [ ] Unit test: `aggregate_index()` tested against a 5-entry ground-truth fixture with known traps/seeds/FRs, asserting expected output deterministically
-- [ ] Unit test: graph YAML loads and lints clean
-- [ ] Extraction prompt uses inline `schema:` for structured output (no Python Pydantic models)
-- [ ] `tools.py` contains no hardcoded prompts (Commandment 1)
-- [ ] `defaults.model` set to `claude-haiku` to control cost
-- [ ] `demo-output.log` included proving the demo was executed (FR-206 demo-gate)
-- [ ] README.md documents usage, expected output format, cost estimate, and FR reference
-- [ ] `examples/README.md` entry added for diary-index demo
+- [x] Graph runs via `yamlgraph graph run examples/demos/diary-index/graph.yaml --full`
+- [x] Graph lints clean via `yamlgraph graph lint examples/demos/diary-index/graph.yaml`
+- [x] Produces a valid YAML file at `docs/diary-index.yaml` (parseable by PyYAML)
+- [x] `aggregate` node is `type: python` — deterministic counting, no LLM
+- [x] `write_index` node persists the index to disk (follows horoscope `save` pattern)
+- [x] Index includes top-N most recurring traps with entry count and filenames
+- [x] Index includes top-N most recurring seeds with entry count and filenames
+- [x] Index includes FR → diary entry reverse mapping
+- [x] Index includes heuristics appearing 2+ times (Scripture graduation candidates)
+- [x] Unit test: `aggregate_index()` tested against a 5-entry ground-truth fixture with known traps/seeds/FRs, asserting expected output deterministically
+- [x] Unit test: graph YAML loads and lints clean
+- [x] Extraction prompt uses inline `schema:` for structured output (no Python Pydantic models)
+- [x] `tools.py` contains no hardcoded prompts (Commandment 1)
+- [x] `defaults.model` set to `claude-haiku` to control cost
+- [x] `demo-output.log` included proving the demo was executed (FR-206 demo-gate)
+- [x] README.md documents usage, expected output format, cost estimate, and FR reference
+- [x] `examples/README.md` entry added for diary-index demo
 
 ## Judgement Notes (2026-04-19)
 
