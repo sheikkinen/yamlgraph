@@ -152,6 +152,9 @@ yamlgraph graph run examples/npc/npc-creation.yaml \
 - **codegen/** - 24 code analysis tools (AST, grep, jedi)
 - **yamlgraph_gen/** - Meta-generation with validation tools
 
+### Guardrails (Input Validation)
+- **openai_proxy/** - Echo → validate → respond pipeline as OpenAI-compatible proxy
+
 ### Interrupt Nodes (Human-in-the-Loop)
 - **questionnaire/** - Interactive data collection with probe/recap loops
 - **fastapi_interview.py** - Web-based multi-turn conversations
