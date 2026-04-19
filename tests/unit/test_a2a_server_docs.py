@@ -63,7 +63,7 @@ class TestA2AServerRefQuickstart:
         assert "## Quickstart" in self.content or "## Setup" in self.content
 
     def test_quickstart_pip_install(self):
-        assert 'pip install' in self.content and 'a2a' in self.content
+        assert "pip install" in self.content and "a2a" in self.content
 
     def test_quickstart_serve_command(self):
         assert "yamlgraph a2a serve" in self.content
@@ -108,7 +108,9 @@ class TestA2AServerRefAgentCard:
         self.content = A2A_SERVER_REF.read_text()
 
     def test_agent_card_heading(self):
-        assert "## Agent Card" in self.content or "Agent Card Generation" in self.content
+        assert (
+            "## Agent Card" in self.content or "Agent Card Generation" in self.content
+        )
 
     def test_build_agent_card_referenced(self):
         assert "build_agent_card" in self.content
@@ -135,7 +137,10 @@ class TestA2AServerRefMessageParsing:
         assert "key_value" in self.content or "key=value" in self.content
 
     def test_single_input_mode_documented(self):
-        assert "single_input" in self.content or "single required var" in self.content.lower()
+        assert (
+            "single_input" in self.content
+            or "single required var" in self.content.lower()
+        )
 
     def test_fallback_mode_documented(self):
         assert "fallback" in self.content.lower()
@@ -218,7 +223,9 @@ class TestA2AServerRefAuthentication:
         assert "Authentication" in self.content
 
     def test_reverse_proxy_mentioned(self):
-        assert "reverse proxy" in self.content.lower() or "nginx" in self.content.lower()
+        assert (
+            "reverse proxy" in self.content.lower() or "nginx" in self.content.lower()
+        )
 
 
 @pytest.mark.req("REQ-YG-245")
@@ -233,7 +240,10 @@ class TestA2AServerRefDeployment:
         assert "Deployment" in self.content
 
     def test_standalone_pattern(self):
-        assert "standalone" in self.content.lower() or "development" in self.content.lower()
+        assert (
+            "standalone" in self.content.lower()
+            or "development" in self.content.lower()
+        )
 
     def test_container_pattern(self):
         assert "container" in self.content.lower() or "docker" in self.content.lower()
