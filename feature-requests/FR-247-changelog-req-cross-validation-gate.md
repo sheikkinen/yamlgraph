@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-04-19
 
@@ -171,24 +171,24 @@ schema:
 
 ## Acceptance Criteria
 
-- [ ] `scripts/check_changelog_req.py` exists and passes `ruff check`
-- [ ] Mechanical pre-filter catches: phantom REQs, unparseable front-matter, single-REQ CAP mismatches
-- [ ] Fragments with no `req:` field are skipped without error
-- [ ] REQ lookup uses direct `id:` grep in CAP files, not the lossy `fr:` reverse mapping
+- [x] `scripts/check_changelog_req.py` exists and passes `ruff check`
+- [x] Mechanical pre-filter catches: phantom REQs, unparseable front-matter, single-REQ CAP mismatches
+- [x] Fragments with no `req:` field are skipped without error
+- [x] REQ lookup uses direct `id:` grep in CAP files, not the lossy `fr:` reverse mapping
 - [ ] LLM gate correctly classifies cross-wired fragments (tested with known-bad fixtures)
-- [ ] `--skip-llm` flag runs mechanical-only checks without requiring API key
-- [ ] `--strict` flag exits non-zero on any failure
-- [ ] Graph at `graphs/enforcement/changelog-req-check.yaml` is runnable via `yamlgraph graph run` independently
-- [ ] Prompt at `graphs/enforcement/prompts/cross_check.yaml` passes `yamlgraph graph lint`
-- [ ] Pre-commit hook wired in `.pre-commit-config.yaml`
-- [ ] CI job wired in `.github/workflows/commitlint.yml`
-- [ ] All current `changelog/unreleased/*.md` fragments pass the gate
-- [ ] `req_coverage.py --strict` continues to pass
-- [ ] Cost per commit documented and validated < $0.01
-- [ ] Unit tests for mechanical pre-filter with `@pytest.mark.req` markers
+- [x] `--skip-llm` flag runs mechanical-only checks without requiring API key
+- [x] `--strict` flag exits non-zero on any failure
+- [x] Graph at `graphs/enforcement/changelog-req-check.yaml` is runnable via `yamlgraph graph run` independently
+- [x] Prompt at `graphs/enforcement/prompts/cross_check.yaml` passes `yamlgraph graph lint`
+- [x] Pre-commit hook wired in `.pre-commit-config.yaml`
+- [x] CI job wired in `.github/workflows/commitlint.yml`
+- [x] All current `changelog/unreleased/*.md` fragments pass the gate
+- [x] `req_coverage.py --strict` continues to pass
+- [x] Cost per commit documented and validated < $0.01
+- [x] Unit tests for mechanical pre-filter with `@pytest.mark.req` markers
 - [ ] Integration test for LLM gate with fixture fragments (requires API key guard)
-- [ ] Tests added
-- [ ] Documentation updated (CLAUDE.md pre-commit section)
+- [x] Tests added
+- [x] Documentation updated (CLAUDE.md pre-commit section)
 
 ## Design Decisions
 

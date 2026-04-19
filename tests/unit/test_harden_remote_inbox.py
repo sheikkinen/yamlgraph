@@ -27,7 +27,7 @@ def _read_watch_sh() -> str:
 # ---------------------------------------------------------------------------
 # 1. watch.sh content assertions — Author allowlist
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestWatchShAuthorAllowlist:
     """watch.sh must gate imports on allowed-authors.txt."""
 
@@ -57,7 +57,7 @@ class TestWatchShAuthorAllowlist:
 # ---------------------------------------------------------------------------
 # 2. watch.sh content assertions — Body size cap
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestWatchShBodySizeCap:
     """watch.sh must truncate oversized issue bodies."""
 
@@ -81,7 +81,7 @@ class TestWatchShBodySizeCap:
 # ---------------------------------------------------------------------------
 # 3. watch.sh content assertions — Audit header
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestWatchShAuditHeader:
     """watch.sh must prepend author audit header to imported files."""
 
@@ -94,7 +94,7 @@ class TestWatchShAuditHeader:
 # ---------------------------------------------------------------------------
 # 4. Functional tests — Author allowlist
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestAuthorAllowlistLogic:
     """Functional tests for author allowlist filtering."""
 
@@ -293,7 +293,7 @@ class TestAuthorAllowlistLogic:
 # ---------------------------------------------------------------------------
 # 5. Functional tests — Body size cap
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestBodySizeCapLogic:
     """Functional tests for body size truncation."""
 
@@ -460,7 +460,7 @@ class TestBodySizeCapLogic:
 # ---------------------------------------------------------------------------
 # 6. Functional tests — Audit header
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestAuditHeaderLogic:
     """Functional tests for author audit header in imported files."""
 
@@ -545,7 +545,7 @@ class TestAuditHeaderLogic:
 # ---------------------------------------------------------------------------
 # 7. watch.sh integration — all three mitigations present
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestWatchShIntegration:
     """Integration assertions on watch.sh containing FR-251 changes."""
 
@@ -574,7 +574,7 @@ class TestWatchShIntegration:
 # ---------------------------------------------------------------------------
 # 8. Allowed-authors.txt file exists
 # ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-255")
+@pytest.mark.req("REQ-YG-256")
 class TestAllowedAuthorsFileExists:
     """The .chaplain/allowed-authors.txt file must exist with default entry."""
 

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 3 days
 **Requested:** 2026-04-19
 
@@ -102,13 +102,13 @@ if task_in_input_required_state(task_id):
 
 ## Acceptance Criteria
 
-- [ ] **REQ-YG-210**: `task/get` returns task status and artifacts for previously submitted tasks
-- [ ] **REQ-YG-211**: `task/sendSubscribe` streams graph execution via `run_graph_streaming_native()`, yielding `TaskArtifactUpdateEvent` per token chunk and proper status transitions
-- [ ] **REQ-YG-213**: Interrupt payload forwarded to client in `INPUT_REQUIRED` message; subsequent `task/send` with same `task_id` resumes graph via `Command(resume=...)`
+- [x] **REQ-YG-210**: `task/get` returns task status and artifacts for previously submitted tasks
+- [x] **REQ-YG-211**: `task/sendSubscribe` streams graph execution via `run_graph_streaming_native()`, yielding `TaskArtifactUpdateEvent` per token chunk and proper status transitions
+- [x] **REQ-YG-213**: Interrupt payload forwarded to client in `INPUT_REQUIRED` message; subsequent `task/send` with same `task_id` resumes graph via `Command(resume=...)`
 - [ ] Integration test: A2A client → hello graph → streamed response received with correct event sequence (working → artifact chunks → completed)
-- [ ] Unit tests for `task/get` retrieval, streaming event mapping, and resume flow
-- [ ] `reference/a2a-server.md` updated with `task/get`, streaming, and interrupt/resume documentation
-- [ ] Existing tests pass (no regressions)
+- [x] Unit tests for `task/get` retrieval, streaming event mapping, and resume flow
+- [x] `reference/a2a-server.md` updated with `task/get`, streaming, and interrupt/resume documentation
+- [x] Existing tests pass (no regressions)
 
 ## Implementation Approach
 

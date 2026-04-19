@@ -185,6 +185,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: changelog-req-cross-check
+        name: changelog req cross-check
+        entry: .venv/bin/python scripts/check_changelog_req.py --strict --skip-llm
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: changelog-release-sync
         name: changelog release sync
         entry: .venv/bin/python scripts/check_changelog_release_sync.py
