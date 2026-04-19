@@ -1,4 +1,4 @@
-id: CAP-104
+id: CAP-105
 name: A2A Consumer Phase 2 — Agent Card, Skill Selection & Streaming
 description: >
   Extends the a2a_call node (FR-240) with Agent Card discovery via sync
@@ -13,7 +13,7 @@ modules:
   - yamlgraph/models/graph_schema.py
   - yamlgraph/linter/patterns/a2a.py
 requirements:
-  - id: REQ-YG-246
+  - id: REQ-YG-250
     description: >
       a2a_call node fetches Agent Card via sync httpx.get() to
       {agent_url}/.well-known/agent.json; parsed into SDK AgentCard model;
@@ -23,7 +23,7 @@ requirements:
     modules:
       - yamlgraph/node_factory/a2a_nodes.py
       - tests/unit/test_a2a_call_node.py
-  - id: REQ-YG-247
+  - id: REQ-YG-251
     description: >
       skill field on a2a_call node selects a specific agent skill; validated
       against Agent Card skills at runtime; ValueError raised on skill ID miss
@@ -33,7 +33,7 @@ requirements:
       - yamlgraph/node_factory/a2a_nodes.py
       - yamlgraph/models/graph_schema.py
       - tests/unit/test_a2a_call_node.py
-  - id: REQ-YG-248
+  - id: REQ-YG-252
     description: >
       streaming: true on a2a_call node uses A2AClient.send_message_streaming()
       via dedicated thread with own event loop; requires
@@ -44,7 +44,7 @@ requirements:
       - yamlgraph/node_factory/a2a_nodes.py
       - yamlgraph/models/graph_schema.py
       - tests/unit/test_a2a_call_node.py
-  - id: REQ-YG-249
+  - id: REQ-YG-253
     description: >
       Linter check W901 warns when skill field is present on a2a_call node
       (informational — runtime-only validation); linter check E904 errors when

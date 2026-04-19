@@ -662,9 +662,9 @@ def _parse_agent_card(data: dict) -> Any:
 
 
 class TestAgentCardFetching:
-    """REQ-YG-246: Agent Card fetching via sync httpx.get()."""
+    """REQ-YG-250: Agent Card fetching via sync httpx.get()."""
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_fetch_agent_card_calls_well_known_url(self, mock_httpx):
         """Should GET {agent_url}/.well-known/agent.json."""
@@ -680,7 +680,7 @@ class TestAgentCardFetching:
         url = mock_httpx.get.call_args[0][0]
         assert url == "http://localhost:8080/.well-known/agent.json"
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_fetch_agent_card_strips_trailing_slash(self, mock_httpx):
         """Trailing slash on agent_url should be stripped."""
@@ -696,7 +696,7 @@ class TestAgentCardFetching:
         assert "//." not in url
         assert url == "http://localhost:8080/.well-known/agent.json"
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_fetch_agent_card_returns_agent_card(self, mock_httpx):
         """Should return a parsed AgentCard object."""
@@ -714,7 +714,7 @@ class TestAgentCardFetching:
         assert isinstance(card, AgentCard)
         assert card.name == "Test Agent"
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_fetch_agent_card_raises_on_http_error(self, mock_httpx):
         """Should raise on HTTP errors (e.g. 404)."""
@@ -727,7 +727,7 @@ class TestAgentCardFetching:
         with pytest.raises(Exception, match="404"):
             _fetch_agent_card("http://localhost:8080")
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_fetch_agent_card_passes_timeout(self, mock_httpx):
         """Should pass timeout to httpx.get()."""
@@ -744,9 +744,9 @@ class TestAgentCardFetching:
 
 
 class TestAgentCardCaching:
-    """REQ-YG-246: Agent Card caching with ContextVar isolation."""
+    """REQ-YG-250: Agent Card caching with ContextVar isolation."""
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes._fetch_agent_card")
     def test_get_agent_card_caches_by_url(self, mock_fetch):
         """Second call with same URL should use cache, not fetch again."""
@@ -762,7 +762,7 @@ class TestAgentCardCaching:
         assert result1 is result2
         mock_fetch.assert_called_once()
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes._fetch_agent_card")
     def test_get_agent_card_different_urls_fetch_separately(self, mock_fetch):
         """Different URLs should be cached independently."""
@@ -776,7 +776,7 @@ class TestAgentCardCaching:
 
         assert mock_fetch.call_count == 2
 
-    @pytest.mark.req("REQ-YG-246")
+    @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.node_factory.a2a_nodes._fetch_agent_card")
     def test_context_var_isolation_across_invocations(self, mock_fetch):
         """Separate ContextVar contexts should have independent caches."""
@@ -812,9 +812,9 @@ class TestAgentCardCaching:
 
 
 class TestSkillValidation:
-    """REQ-YG-247: Skill selection and validation."""
+    """REQ-YG-251: Skill selection and validation."""
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     def test_validate_skill_found(self):
         """Skill ID matching a card skill should return without error."""
         from yamlgraph.node_factory.a2a_nodes import _validate_skill
@@ -830,7 +830,7 @@ class TestSkillValidation:
         # Should not raise
         _validate_skill("search", card)
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     def test_validate_skill_not_found_raises_value_error(self):
         """Missing skill should raise ValueError listing available skills."""
         from yamlgraph.node_factory.a2a_nodes import _validate_skill
@@ -851,7 +851,7 @@ class TestSkillValidation:
         assert "search" in msg
         assert "summarize" in msg
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     def test_validate_skill_empty_skills_raises(self):
         """Agent with no skills should raise ValueError."""
         from yamlgraph.node_factory.a2a_nodes import _validate_skill
@@ -860,7 +860,7 @@ class TestSkillValidation:
         with pytest.raises(ValueError, match="no skills"):
             _validate_skill("anything", card)
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_with_skill_validates_against_card(self, mock_send, mock_get_card):
@@ -888,7 +888,7 @@ class TestSkillValidation:
         mock_get_card.assert_called_once_with("http://agent:8080")
         assert result["result"] == "result text"
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
     def test_node_with_invalid_skill_raises(self, mock_get_card):
         """Node with skill not on card should raise ValueError."""
@@ -912,7 +912,7 @@ class TestSkillValidation:
         with pytest.raises(ValueError, match="translate"):
             node_fn(state)
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_without_skill_skips_card_fetch(self, mock_send):
         """Node without skill field should NOT fetch Agent Card."""
@@ -940,9 +940,9 @@ class TestSkillValidation:
 
 
 class TestStreamingSupport:
-    """REQ-YG-248: Streaming via A2AClient in dedicated thread."""
+    """REQ-YG-252: Streaming via A2AClient in dedicated thread."""
 
-    @pytest.mark.req("REQ-YG-248")
+    @pytest.mark.req("REQ-YG-252")
     @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
     @patch("yamlgraph.node_factory.a2a_nodes._send_streaming")
     def test_streaming_node_uses_streaming_transport(self, mock_stream, mock_get_card):
@@ -968,7 +968,7 @@ class TestStreamingSupport:
         mock_stream.assert_called_once()
         assert result["report"] == "streamed result"
 
-    @pytest.mark.req("REQ-YG-248")
+    @pytest.mark.req("REQ-YG-252")
     @patch("yamlgraph.node_factory.a2a_nodes._get_agent_card")
     def test_streaming_fails_when_agent_doesnt_support(self, mock_get_card):
         """streaming: true should fail if card.capabilities.streaming is False."""
@@ -990,7 +990,7 @@ class TestStreamingSupport:
         with pytest.raises(ValueError, match="streaming"):
             node_fn(state)
 
-    @pytest.mark.req("REQ-YG-248")
+    @pytest.mark.req("REQ-YG-252")
     def test_extract_text_from_streaming_events(self):
         """Should extract text from collected streaming events."""
         from a2a.types import (
@@ -1026,7 +1026,7 @@ class TestStreamingSupport:
         assert "Hello" in result
         assert "World" in result
 
-    @pytest.mark.req("REQ-YG-248")
+    @pytest.mark.req("REQ-YG-252")
     def test_extract_text_from_empty_events(self):
         """Empty event list should return empty string."""
         from yamlgraph.node_factory.a2a_nodes import (
@@ -1035,7 +1035,7 @@ class TestStreamingSupport:
 
         assert _extract_text_from_streaming_events([]) == ""
 
-    @pytest.mark.req("REQ-YG-248")
+    @pytest.mark.req("REQ-YG-252")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_non_streaming_node_uses_sync_transport(self, mock_send):
         """streaming: false (default) should use sync _send_a2a_message."""
@@ -1067,7 +1067,7 @@ class TestStreamingSupport:
 class TestNodeConfigSchemaFR248:
     """NodeConfig should accept skill and streaming fields."""
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     def test_node_config_accepts_skill_field(self):
         """NodeConfig should accept optional skill field."""
         from yamlgraph.models.graph_schema import NodeConfig
@@ -1081,7 +1081,7 @@ class TestNodeConfigSchemaFR248:
         )
         assert config.skill == "research"
 
-    @pytest.mark.req("REQ-YG-247")
+    @pytest.mark.req("REQ-YG-251")
     def test_node_config_skill_defaults_none(self):
         """skill field should default to None."""
         from yamlgraph.models.graph_schema import NodeConfig
@@ -1094,7 +1094,7 @@ class TestNodeConfigSchemaFR248:
         )
         assert config.skill is None
 
-    @pytest.mark.req("REQ-YG-248")
+    @pytest.mark.req("REQ-YG-252")
     def test_node_config_accepts_streaming_field(self):
         """NodeConfig should accept optional streaming field."""
         from yamlgraph.models.graph_schema import NodeConfig
@@ -1108,7 +1108,7 @@ class TestNodeConfigSchemaFR248:
         )
         assert config.streaming is True
 
-    @pytest.mark.req("REQ-YG-248")
+    @pytest.mark.req("REQ-YG-252")
     def test_node_config_streaming_defaults_none(self):
         """streaming field should default to None."""
         from yamlgraph.models.graph_schema import NodeConfig
@@ -1128,9 +1128,9 @@ class TestNodeConfigSchemaFR248:
 
 
 class TestA2ACallLinterFR248:
-    """REQ-YG-249: Linter checks W901 and E904."""
+    """REQ-YG-253: Linter checks W901 and E904."""
 
-    @pytest.mark.req("REQ-YG-249")
+    @pytest.mark.req("REQ-YG-253")
     def test_w901_skill_advisory_warning(self):
         """W901: skill field on a2a_call should produce advisory warning."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
@@ -1151,7 +1151,7 @@ class TestA2ACallLinterFR248:
         w901 = [i for i in issues if i.code == "W901"][0]
         assert w901.severity == "warning"
 
-    @pytest.mark.req("REQ-YG-249")
+    @pytest.mark.req("REQ-YG-253")
     def test_no_w901_without_skill(self):
         """No W901 when skill field is absent."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
@@ -1168,7 +1168,7 @@ class TestA2ACallLinterFR248:
         codes = [i.code for i in issues]
         assert "W901" not in codes
 
-    @pytest.mark.req("REQ-YG-249")
+    @pytest.mark.req("REQ-YG-253")
     def test_e904_streaming_on_non_a2a_call(self):
         """E904: streaming: true on non-a2a_call node should error."""
         from yamlgraph.linter.patterns.a2a import check_streaming_on_wrong_type
@@ -1180,7 +1180,7 @@ class TestA2ACallLinterFR248:
         codes = [i.code for i in issues]
         assert "E904" in codes
 
-    @pytest.mark.req("REQ-YG-249")
+    @pytest.mark.req("REQ-YG-253")
     def test_no_e904_on_a2a_call(self):
         """No E904 when streaming: true on a2a_call node."""
         from yamlgraph.linter.patterns.a2a import check_streaming_on_wrong_type
@@ -1198,7 +1198,7 @@ class TestA2ACallLinterFR248:
         codes = [i.code for i in issues]
         assert "E904" not in codes
 
-    @pytest.mark.req("REQ-YG-249")
+    @pytest.mark.req("REQ-YG-253")
     def test_no_e904_without_streaming(self):
         """No E904 when streaming is not set."""
         from yamlgraph.linter.patterns.a2a import check_streaming_on_wrong_type
@@ -1210,7 +1210,7 @@ class TestA2ACallLinterFR248:
         codes = [i.code for i in issues]
         assert "E904" not in codes
 
-    @pytest.mark.req("REQ-YG-249")
+    @pytest.mark.req("REQ-YG-253")
     def test_e904_integrated_in_graph_check(self, tmp_path):
         """check_a2a_call_patterns should include E904 for all nodes."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_patterns
