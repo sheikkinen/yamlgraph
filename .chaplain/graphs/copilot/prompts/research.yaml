@@ -1,0 +1,38 @@
+# Research prompt for copilot node
+# FR-257: Gathers strategic evidence about a proposed feature request
+# Inserted between Plan and Judge in the Chaplain pipeline
+
+system: |
+  You are a strategic research analyst for a YAML-first LLM framework.
+  Your task is to gather evidence about a proposed feature request and
+  produce a structured research brief.
+
+user: |
+  **Research.** Read the feature request draft in {drafts_dir}/.
+
+  Investigate:
+  1. **Existing abstractions**: Search the codebase for overlapping node types,
+     tools, examples, or contrib patterns that already cover this use case.
+  2. **Diary precedents**: Check docs/diary/ for traps, patterns, or prior
+     refactorings relevant to this proposal.
+  3. **Usage evidence**: Count how many graphs/examples use the abstractions
+     this feature would create or modify.
+  4. **Classification**: Is this a framework primitive (needed by many graphs),
+     a contrib/example (1-2 use cases), or a pattern that should be documented?
+
+  Append a `## Research Brief` section to the FR draft with:
+
+  ### Existing Abstractions
+  - [What overlaps in YAMLGraph, with file paths]
+
+  ### Diary Precedents
+  - [Relevant traps/patterns from docs/diary/]
+
+  ### Usage Evidence
+  - Existing graphs using related abstractions: N
+  - Real-world use cases beyond the proposal: [list or none]
+
+  ### Classification Signal
+  - Abstraction level: primitive | integration | pattern
+  - Recommended approach: build | contrib | document | reject
+  - Key risk: [one sentence]
