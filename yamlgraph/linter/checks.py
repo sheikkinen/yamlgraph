@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 # Valid node types
 VALID_NODE_TYPES = {
+    "a2a_call",
     "agent",
     "copilot",
     "interactive_tool",
