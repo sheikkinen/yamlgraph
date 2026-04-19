@@ -12,7 +12,7 @@ Based on the commit history from **April 16-19, 2026**, here's the feature-level
 - **Status**: Completed & Merged
 - **What**: Added support for parallel branching in graph workflows using `to: [node_a, node_b]` syntax
 - **Impact**: Enables fan-out patterns where one node can spawn multiple parallel branches
-- **Deliverables**: 
+- **Deliverables**:
   - Edge compiler implementation
   - Demo with generate→analyze→combine workflow
   - 14 unit tests
