@@ -137,25 +137,25 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
 ### CONF-035
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L94)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L95)
 - **Code**: S607
 - **Sin**: `["git", "diff", "--name-only"]` uses partial executable path.
 - **Penance**: `git` is expected on PATH in all development environments. Using absolute path would break portability across OS/distro.
 
 ### CONF-036
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L105)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L106)
 - **Code**: S607
 - **Sin**: `["git", "diff", "--cached", "--name-only"]` uses partial executable path.
 - **Penance**: Same as CONF-035.
 
 ### CONF-037
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L93)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L94)
 - **Code**: S603
 - **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
 - **Penance**: Command list is hardcoded `["git", "diff", "--name-only"]` — no user input reaches arguments. Used to detect unstaged changes before worktree operations.
 
 ### CONF-038
-- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L104)
+- **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L105)
 - **Code**: S603
 - **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
 - **Penance**: Same as CONF-037 — hardcoded `["git", "diff", "--cached", "--name-only"]` for staged change detection.
@@ -191,7 +191,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Same as CONF-002 — required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`).
 
 ### CONF-044
-- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L107)
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L108)
 - **Code**: C901 (too complex)
 - **Sin**: `check_state_declarations` function exceeds cyclomatic complexity threshold.
 - **Penance**: The function must cross-reference prompt variables, tool inputs, and state declarations across the graph. Splitting would scatter related validation logic across multiple functions with no clarity gain. The complexity is inherent to the validation domain.

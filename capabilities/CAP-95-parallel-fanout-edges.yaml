@@ -1,0 +1,23 @@
+id: CAP-95
+name: Parallel Fan-Out Edges
+description: >
+  Parallel fan-out edges allow a single node to fan out to multiple target
+  nodes that execute concurrently, expressed as to: [a, b, c] without
+  type: conditional. The edge compiler adds one add_edge() call per target.
+  Handles interrupt node redirect (_prepare), map node targets (conditional
+  edge with map function), START fan-out (conditional entry point), and
+  END targets. Conditional routing (type: conditional) remains unchanged.
+modules:
+  - yamlgraph/edge_compiler.py
+requirements:
+  - id: REQ-YG-237
+    description: >
+      Parallel fan-out edges: to: [a, b, c] without type: conditional compiles
+      as parallel fan-out via multiple add_edge() calls; handles interrupt node
+      redirect to _prepare; handles map node targets via conditional edges;
+      START fan-out uses conditional entry point; existing conditional routing
+      with type: conditional unchanged
+    modules:
+      - yamlgraph/edge_compiler.py
+      - tests/unit/test_parallel_fanout_edges.py
+fr: FR-234

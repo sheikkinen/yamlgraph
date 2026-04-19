@@ -1,0 +1,44 @@
+Disabling PyTorch because PyTorch >= 2.4 is required but found 2.2.2
+PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+2026-04-19 06:54:46,017 [INFO] yamlgraph.node_compiler: Added node: generate (type=llm)
+2026-04-19 06:54:46,018 [INFO] yamlgraph.node_compiler: Added node: analyze (type=llm)
+2026-04-19 06:54:46,019 [INFO] yamlgraph.node_compiler: Added node: summarize (type=llm)
+2026-04-19 06:54:46,020 [INFO] yamlgraph.node_compiler: Added node: translate (type=llm)
+2026-04-19 06:54:46,020 [INFO] yamlgraph.node_compiler: Added node: combine (type=llm)
+2026-04-19 06:54:46,121 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0.7)
+2026-04-19 06:54:49,250 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:54:49,263 [INFO] yamlgraph.node_factory.llm_nodes: Node generate completed successfully
+2026-04-19 06:54:50,300 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:54:50,302 [INFO] yamlgraph.node_factory.llm_nodes: Node analyze completed successfully
+2026-04-19 06:54:50,322 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:54:50,323 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+2026-04-19 06:54:50,393 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:54:50,394 [INFO] yamlgraph.node_factory.llm_nodes: Node translate completed successfully
+2026-04-19 06:54:51,348 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-19 06:54:51,350 [INFO] yamlgraph.node_factory.llm_nodes: Node combine completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'artificial intelligence'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019da3e0-6792-7a50-9638-c7f00a5466df?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: combine
+  topic: artificial intelligence
+  content: Artificial intelligence (AI) refers to computer systems that can perform tasks that normally require human intelligence, such as learning, reasoning, and perception. By leveraging large datasets and sophisticated algorithms, AI can recognize patterns, make predictions, and automate complex processes across fields ranging from healthcare to finance. Recent advances in machine learning, especially deep learning and diffusion models, have dramatically expanded AI’s capabilities, enabling more accurate language understanding, image generation, and real‑time decision making. As AI continues to evolve, it promises to reshape industries while raising important ethical and societal considerations.
+  analysis: The passage foregrounds AI as data‑driven, algorithmic systems that emulate human cognition—learning, reasoning, and perception—and highlights how large datasets and advanced models (especially deep learning and diffusion techniques) now enable high‑precision language understanding, image generation, and real‑time decision making. It underscores AI’s transformative potential across sectors such as healthcare and finance, while simultaneously flagging the attendant ethical and societal challenges that accompany its rapid deployment.
+  summary: AI, computer systems that emulate human intelligence through learning, reasoning, and perception, now leverage large data and advanced algorithms—especially deep learning and diffusion models—to recognize patterns, automate complex tasks across sectors, and while reshaping industries, also raise significant ethical and societal concerns.
+  translation: Tekoäly (AI) viittaa tietokonejärjestelmiin, jotka pystyvät suorittamaan tehtäviä, jotka normaalisti vaativat ihmisen älykkyyttä, kuten oppimista, päättelyä ja havaitsemista. Hyödyntämällä suuria tietoaineistoja ja kehittyneitä algoritmeja, tekoäly voi tunnistaa malleja, tehdä ennusteita ja automatisoida monimutkaisia prosesseja eri aloilla terveydenhuollosta rahoitukseen. Koneoppimisen viimeaikaiset edistysaskeleet, erityisesti syväoppiminen ja diffuusiomallit, ovat merkittävästi laajentaneet tekoälyn kykyjä, mahdollistamalla tarkemman kielen ymmärtämisen, kuvageneroinnin ja reaaliaikaisen päätöksenteon. Kun tekoäly kehittyy edelleen, se lupaa muokata toimialoja samalla kun se herättää tärkeitä eettisiä ja yhteiskunnallisia kysymyksiä.
+  result: **Report on AI Overview**
+
+---
+
+### 1. Analysis
+The passage frames AI as data‑driven, algorithmic systems that mimic human cognition—learning, reasoning, and perception. Large datasets and sophisticated models, particularly deep learning and diffusion techniques, now enable high‑precision language understanding, image generation, and real‑time decision making. This technological surge is reshaping sectors such as healthcare and finance, but it also brings ethical and societal challenges that must be addressed as AI is deployed at scale.
+
+### 2. Summary
+AI comprises computer systems that emulate human intelligence through learning, reasoning, and perception. Leveraging massive data and advanced algorithms—especially deep learning and diffusion models—AI can recognize patterns, automate complex tasks, and transform industries. However, its rapid expansion raises significant ethical and societal concerns.
+
+### 3. Finnish Translation
+Tekoäly (AI) viittaa tietokonejärjestelmiin, jotka pystyvät suorittamaan tehtäviä, jotka normaalisti vaativat ihmisen älykkyyttä, kuten oppimista, päättelyä ja havaitsemista. Hyödyntämällä suuria tietoaineistoja ja kehittyneitä algoritmeja, tekoäly voi tunnistaa malleja, tehdä ennusteita ja automatisoida monimutkaisia prosesseja eri aloilla terveydenhuollosta rahoitukseen. Koneoppimisen viimeaikaiset edistysaskeleet, erityisesti syväoppiminen ja diffuusiomallit, ovat merkittävästi laajentaneet tekoälyn kykyjä, mahdollistamalla tarkemman kielen ymmärtämisen, kuvageneroinnin ja reaaliaikaisen päätöksenteon. Kun tekoäly kehittyy edelleen, se lupaa muokata toimialoja samalla kun se herättää tärkeitä eettisiä ja yhteiskunnallisia kysymyksiä.

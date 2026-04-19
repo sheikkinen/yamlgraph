@@ -1,6 +1,6 @@
 """Tests for node-level caching via LangGraph CachePolicy (FR-032).
 
-REQ-YG-235: Per-node `cache` field in YAML config → CachePolicy on add_node().
+REQ-YG-239: Per-node `cache` field in YAML config → CachePolicy on add_node().
 """
 
 from typing import TypedDict
@@ -47,25 +47,25 @@ def _make_config(nodes=None, source_path=None):
 class TestCacheConfigSchema:
     """CacheConfig Pydantic model validates cache settings."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_config_default_ttl_none(self):
         """CacheConfig() has ttl=None by default."""
         cfg = CacheConfig()
         assert cfg.ttl is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_config_with_ttl(self):
         """CacheConfig(ttl=3600) stores TTL."""
         cfg = CacheConfig(ttl=3600)
         assert cfg.ttl == 3600
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_config_rejects_negative_ttl(self):
         """Negative TTL is invalid."""
         with pytest.raises(ValueError, match="greater than or equal to 1"):
             CacheConfig(ttl=-1)
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_config_rejects_zero_ttl(self):
         """Zero TTL is invalid (use cache: false instead)."""
         with pytest.raises(ValueError, match="greater than or equal to 1"):
@@ -75,33 +75,33 @@ class TestCacheConfigSchema:
 class TestNodeConfigCacheField:
     """NodeConfig.cache field parses YAML cache shorthand."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_default_none(self):
         """No cache field → None."""
         node = NodeConfig(prompt="p", state_key="k")
         assert node.cache is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_true_becomes_cache_config(self):
         """cache: true → CacheConfig()."""
         node = NodeConfig(prompt="p", state_key="k", cache=True)
         assert isinstance(node.cache, CacheConfig)
         assert node.cache.ttl is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_false_becomes_none(self):
         """cache: false → None."""
         node = NodeConfig(prompt="p", state_key="k", cache=False)
         assert node.cache is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_dict_with_ttl(self):
         """cache: {ttl: 3600} → CacheConfig(ttl=3600)."""
         node = NodeConfig(prompt="p", state_key="k", cache={"ttl": 3600})
         assert isinstance(node.cache, CacheConfig)
         assert node.cache.ttl == 3600
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_dict_empty(self):
         """cache: {} → CacheConfig() (no TTL)."""
         node = NodeConfig(prompt="p", state_key="k", cache={})
@@ -117,7 +117,7 @@ class TestNodeConfigCacheField:
 class TestNodeCompilerCachePolicy:
     """compile_node passes CachePolicy to graph.add_node()."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     @patch("yamlgraph.node_compiler.create_node_function", return_value=lambda s: {})
     def test_llm_node_with_cache_true(self, mock_factory):
         """cache: true → add_node called with cache_policy=CachePolicy()."""
@@ -144,7 +144,7 @@ class TestNodeCompilerCachePolicy:
             assert isinstance(policy, CachePolicy)
             assert policy.ttl is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     @patch("yamlgraph.node_compiler.create_node_function", return_value=lambda s: {})
     def test_llm_node_with_cache_ttl(self, mock_factory):
         """cache: {ttl: 3600} → add_node called with CachePolicy(ttl=3600)."""
@@ -174,7 +174,7 @@ class TestNodeCompilerCachePolicy:
             assert isinstance(policy, CachePolicy)
             assert policy.ttl == 3600
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     @patch("yamlgraph.node_compiler.create_node_function", return_value=lambda s: {})
     def test_llm_node_without_cache(self, mock_factory):
         """No cache field → add_node called without cache_policy."""
@@ -199,7 +199,7 @@ class TestNodeCompilerCachePolicy:
             policy = spy.call_args.kwargs.get("cache_policy")
             assert policy is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     @patch("yamlgraph.node_compiler.create_tool_node", return_value=lambda s: {})
     def test_tool_node_with_cache(self, mock_factory):
         """Tool nodes also support cache policy."""
@@ -238,13 +238,13 @@ class TestNodeCompilerCachePolicy:
 class TestResolveCachePolicy:
     """resolve_cache_policy converts CacheConfig → CachePolicy."""
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_none_returns_none(self):
         from yamlgraph.node_compiler import resolve_cache_policy
 
         assert resolve_cache_policy(None) is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_config_no_ttl(self):
         from yamlgraph.node_compiler import resolve_cache_policy
 
@@ -252,7 +252,7 @@ class TestResolveCachePolicy:
         assert isinstance(policy, CachePolicy)
         assert policy.ttl is None
 
-    @pytest.mark.req("REQ-YG-235")
+    @pytest.mark.req("REQ-YG-239")
     def test_cache_config_with_ttl(self):
         from yamlgraph.node_compiler import resolve_cache_policy
 

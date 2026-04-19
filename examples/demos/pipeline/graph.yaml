@@ -1,0 +1,47 @@
+# Pipeline Template Demo — FR-235
+# Expands a pipeline of items × stages into concrete nodes at compile time.
+# 3 topics × 2 stages (draft → polish) = 6 expanded nodes, chained sequentially.
+
+version: "1.0"
+name: pipeline-demo
+description: Compile-time pipeline template expansion demo
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  audience: str
+
+nodes:
+  topics:
+    type: pipeline
+    items:
+      - name: sun
+        subject: "the Sun"
+      - name: moon
+        subject: "the Moon"
+      - name: stars
+        subject: "the Stars"
+    stages:
+      - name: draft
+        type: llm
+        prompt: draft
+        variables:
+          subject: "{item.subject}"
+          audience: "{state.audience}"
+        state_key: draft_{item.name}
+      - name: polish
+        type: llm
+        prompt: polish
+        variables:
+          draft: "{state.draft_{item.name}}"
+        state_key: polished_{item.name}
+
+edges:
+  - from: START
+    to: topics
+  - from: topics
+    to: END
