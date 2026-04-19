@@ -38,6 +38,7 @@ Before implementing any feature or fix:
 - The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce automatically
 - For new features, a one-paragraph problem statement suffices — the Chaplain generates the FR and PR
 - Proposals are consumed on pickup (moved out of inbox); rejected FRs are skipped by the enforce pipeline
+- **Remote submission:** Open a GitHub Issue with the `chaplain` label. The watch daemon syncs labeled issues into the local inbox automatically, removes the label after import, and closes the issue with a commit reference on successful enforcement.
 
 ## Development Commands
 
@@ -342,7 +343,7 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 |------|---------|---------|
 | Require pull request | Enabled (0 approvals) | No direct pushes to `main` |
 | Squash merge only | Merge commits and rebase disabled | PR title = commit message; enforces Conventional Commits |
-| Required status checks | `commitlint`, `test`, `conflict-check`, `changelog-gate`, `demo-gate`, `diary-gate`, `security` | PR cannot merge with failing CI |
+| Required status checks | `commitlint`, `test`, `conflict-check`, `changelog-gate`, `changelog-req-gate`, `demo-gate`, `diary-gate`, `security` | PR cannot merge with failing CI |
 | Require up to date | Enabled | PRs must be rebased on latest `main` before merge |
 
 ### Required status checks
@@ -351,6 +352,7 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 - **`test`** (`.github/workflows/workflow.yml`): Runs `pytest` with 80% coverage threshold and `ruff` linting.
 - **`conflict-check`** (`.github/workflows/commitlint.yml`): Fails when unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) are found in tracked files (excluding `.github/`). Complements the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges.
 - **`changelog-gate`** (`.github/workflows/commitlint.yml`): Blocks `feat`/`fix` PRs unless a changelog fragment exists in `changelog/unreleased/` (FR-179).
+- **`changelog-req-gate`** (`.github/workflows/commitlint.yml`): Validates changelog fragment `req:` front-matter references valid REQ-YG-XXX IDs in the capabilities registry. Mechanical pre-filter for single-REQ CAPs; multi-REQ CAPs deferred (FR-247).
 - **`diary-gate`** (`.github/workflows/commitlint.yml`): Blocks `feat`/`fix` PRs with `FR-XXX` reference unless a diary reflection file exists in the diff.
 - **`demo-gate`** (`.github/workflows/commitlint.yml`): Blocks `feat`/`fix` PRs that modify files under `examples/demos/<name>/` unless a `demo-output.log` is included in the diff, proving the demo was executed (FR-206).
 - **`security`** (`.github/workflows/security.yml`): Validates installed dependencies have no known vulnerabilities (CVEs) via `pip-audit`.

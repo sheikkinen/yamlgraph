@@ -13,6 +13,19 @@ POLL=5
 echo "👀 Watching $INBOX/"
 
 while true; do
+    # FR-243: Sync GitHub Issues labeled 'chaplain' into local inbox
+    if command -v gh &>/dev/null && gh auth status &>/dev/null 2>&1; then
+        gh issue list --state open --label chaplain --json number --jq '.[].number' 2>/dev/null \
+        | while read -r num; do
+            [[ -f "$INBOX/gh-$num.md" ]] && continue
+            title=$(gh issue view "$num" --json title --jq '.title' 2>/dev/null) || continue
+            body=$(gh issue view "$num" --json body --jq '.body' 2>/dev/null) || continue
+            printf "# %s\n\n%s\n" "$title" "$body" > "$INBOX/gh-$num.md"
+            gh issue edit "$num" --remove-label chaplain 2>/dev/null || true
+            echo "📥 Imported GitHub Issue #$num: $title"
+        done
+    fi
+
     topic_file=$(find "$INBOX" -name "*.md" -type f 2>/dev/null | head -1)
     [[ -z "$topic_file" ]] && { sleep "$POLL"; continue; }
 
@@ -33,6 +46,8 @@ while true; do
     new_fr=$(comm -13 <(echo "$before") <(echo "$after") | head -1)
 
     # FR-175: Sequential enforcement — wait for each pipeline before next
+    # FR-243: Initialize EXIT_CODE as failure sentinel (rejected FRs never override)
+    EXIT_CODE=1
     if [[ -n "$new_fr" ]]; then
         if grep -q 'Status.*Rejected' "$new_fr" 2>/dev/null; then
             echo "⏭️  Skipping rejected FR: $new_fr"
@@ -56,6 +71,18 @@ while true; do
             echo "   Completed: exit $EXIT_CODE  Log: $LOG"
             if [[ $EXIT_CODE -ne 0 ]]; then
                 echo "⚠️  Enforcement failed (exit $EXIT_CODE) for: $new_fr — see $LOG"
+            fi
+        fi
+
+        # FR-243: Close originating GitHub Issue on successful enforcement
+        if [[ $EXIT_CODE -eq 0 ]]; then
+            inbox_basename=$(basename "$topic_file")
+            if [[ "$inbox_basename" == gh-*.md ]]; then
+                gh_num="${inbox_basename#gh-}"
+                gh_num="${gh_num%.md}"
+                gh issue close "$gh_num" \
+                    --comment "✅ Implemented via $(git log -1 --format='%h %s')" 2>/dev/null || true
+                echo "🔒 Closed GitHub Issue #$gh_num"
             fi
         fi
     fi
