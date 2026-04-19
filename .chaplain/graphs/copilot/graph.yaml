@@ -22,6 +22,7 @@ state:
   drafts_dir: str        # Output directory for drafts
   date: str              # Date for diary entry (YYYY-MM-DD)
   diary_prefix: str      # Diary entry prefix (default: Chaplain)
+  research_brief: dict   # Output from research node (FR-257)
   diary_entry: dict      # Output from summarize node (theme, body, seed)
   written: bool          # True after diary append
 
@@ -46,7 +47,23 @@ nodes:
     state_key: plan_result
     timeout: 500
 
-  # Stage 2: Judge - Copilot examines the draft and renders verdict
+  # Stage 2: Research - Copilot gathers strategic evidence about the draft
+  # FR-257: Research step between Plan and Judge
+  # FR-105: Resumes the plan node's Copilot session for context continuity
+  research:
+    type: copilot
+    prompt: research
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.plan_result.session_id}"
+    variables:
+      drafts_dir: "{state.drafts_dir}"
+    state_key: research_brief
+    timeout: 500
+
+  # Stage 3: Judge - Copilot examines the draft and renders verdict
   # FR-105: Resumes the plan node's Copilot session for context continuity
   judge:
     type: copilot
@@ -61,7 +78,7 @@ nodes:
     state_key: judge_result
     timeout: 500
 
-  # Stage 3: Summarize - LLM distills Plan→Judge into diary entry
+  # Stage 4: Summarize - LLM distills Plan→Research→Judge into diary entry
   summarize:
     type: llm
     prompt: summarize
@@ -70,7 +87,7 @@ nodes:
       judge_output: "{state.judge_result}"
     state_key: diary_entry
 
-  # Stage 4: Write - Append formatted entry to docs/diary/
+  # Stage 5: Write - Append formatted entry to docs/diary/
   write_diary:
     type: python
     tool: write_diary_tool
@@ -80,6 +97,8 @@ edges:
   - from: START
     to: plan
   - from: plan
+    to: research
+  - from: research
     to: judge
   - from: judge
     to: summarize

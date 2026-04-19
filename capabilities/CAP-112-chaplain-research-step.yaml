@@ -1,0 +1,26 @@
+id: CAP-112
+name: Chaplain Research Step
+description: >
+  Research step between Plan and Judge in the Chaplain pipeline.
+  The research node gathers strategic evidence (existing abstractions,
+  diary precedents, usage evidence, classification signal) so the Judge
+  can distinguish technically feasible from strategically warranted (FR-257).
+modules:
+  - .chaplain/graphs/copilot
+requirements:
+  - id: REQ-YG-259
+    description: >
+      Research copilot node inserted between plan and judge in
+      .chaplain/graphs/copilot/graph.yaml; resumes plan session via
+      cli_flags.resume; writes to state_key research_brief; prompt
+      instructs codebase search for existing abstractions, diary
+      precedent check, usage evidence count, and classification signal
+      (primitive/integration/pattern); research brief appended to FR
+      draft before Judge evaluation; judge prompt updated with criterion 7
+      for strategic classification (framework primitive / contrib /
+      pattern documentation / reject) (FR-257).
+    modules:
+      - .chaplain/graphs/copilot/graph.yaml
+      - .chaplain/graphs/copilot/prompts/research.yaml
+      - .chaplain/graphs/copilot/prompts/judge.yaml
+fr: FR-257
