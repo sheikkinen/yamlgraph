@@ -25,7 +25,7 @@ def _load_graph() -> dict:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-259")
+@pytest.mark.req("REQ-YG-260")
 class TestResearchNodeExists:
     """Research node must exist in the chaplain copilot graph."""
 
@@ -83,7 +83,7 @@ class TestResearchNodeExists:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-259")
+@pytest.mark.req("REQ-YG-260")
 class TestResearchEdges:
     """Research node must be wired between plan and judge."""
 
@@ -121,7 +121,7 @@ class TestResearchEdges:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-259")
+@pytest.mark.req("REQ-YG-260")
 class TestResearchState:
     """Graph state must include research_brief."""
 
@@ -139,7 +139,7 @@ class TestResearchState:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-259")
+@pytest.mark.req("REQ-YG-260")
 class TestResearchPrompt:
     """Research prompt must exist with required instructions."""
 
@@ -194,7 +194,7 @@ class TestResearchPrompt:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-259")
+@pytest.mark.req("REQ-YG-260")
 class TestJudgePromptUpdated:
     """Judge prompt must include strategic classification based on research brief."""
 
@@ -228,7 +228,7 @@ class TestJudgePromptUpdated:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-259")
+@pytest.mark.req("REQ-YG-260")
 class TestGraphLintsClean:
     """The modified chaplain graph must lint without errors."""
 

@@ -1,4 +1,4 @@
-id: CAP-112
+id: CAP-113
 name: Chaplain Research Step
 description: >
   Research step between Plan and Judge in the Chaplain pipeline.
@@ -8,7 +8,7 @@ description: >
 modules:
   - .chaplain/graphs/copilot
 requirements:
-  - id: REQ-YG-259
+  - id: REQ-YG-260
     description: >
       Research copilot node inserted between plan and judge in
       .chaplain/graphs/copilot/graph.yaml; resumes plan session via
