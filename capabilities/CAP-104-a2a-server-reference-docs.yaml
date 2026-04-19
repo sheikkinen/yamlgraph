@@ -1,4 +1,4 @@
-id: CAP-103
+id: CAP-104
 name: A2A Server Reference Documentation
 description: >
   User-facing reference documentation for the A2A protocol server (FR-208/209/225, CAP-81).
@@ -9,7 +9,7 @@ modules:
   - reference/a2a-server.md
   - reference/cli.md
 requirements:
-  - id: REQ-YG-245
+  - id: REQ-YG-246
     description: >
       reference/a2a-server.md created with 10 sections: Quickstart, CLI Commands,
       Agent Card Generation, Message-to-State Mapping, Task Lifecycle, Error Mapping,
