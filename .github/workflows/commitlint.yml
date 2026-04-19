@@ -106,6 +106,26 @@ jobs:
           fi
           echo "✅ Release hygiene passed for v${VERSION}"
 
+  changelog-req-gate:
+    name: Changelog req cross-validation
+    runs-on: ubuntu-latest
+    if: >-
+      startsWith(github.event.pull_request.title, 'feat') ||
+      startsWith(github.event.pull_request.title, 'fix')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Validate changelog req values
+        run: python scripts/check_changelog_req.py --strict --skip-llm
+
   demo-gate:
     name: Demo proof required for changed demos
     runs-on: ubuntu-latest

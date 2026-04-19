@@ -1,0 +1,30 @@
+version: "1.0"
+name: changelog-req-cross-check
+defaults:
+  provider: anthropic
+  model: claude-haiku-4-5
+  temperature: 0
+prompts_relative: true
+prompts_dir: prompts
+state:
+  changelog_body: str
+  claimed_req_id: str
+  claimed_req_description: str
+  candidate_reqs: str
+  cap_id: str
+nodes:
+  check:
+    type: llm
+    prompt: cross_check
+    variables:
+      changelog_body: "{state.changelog_body}"
+      claimed_req_id: "{state.claimed_req_id}"
+      claimed_req_description: "{state.claimed_req_description}"
+      candidate_reqs: "{state.candidate_reqs}"
+      cap_id: "{state.cap_id}"
+    state_key: verdict
+edges:
+  - from: START
+    to: check
+  - from: check
+    to: END
