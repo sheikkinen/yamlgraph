@@ -1,0 +1,38 @@
+id: CAP-96
+name: Per-Node Timeout
+description: >
+  Per-node timeout bounding for map branches and all node types via
+  ThreadPoolExecutor. Optional float timeout field on NodeConfig wraps
+  node execution in a one-shot ThreadPoolExecutor; on
+  concurrent.futures.TimeoutError a PipelineError with
+  error_type=TIMEOUT_ERROR is returned. Map branches honour timeout in
+  wrap_for_reducer; non-map nodes (llm, router, tool_call, python,
+  agent, race) honour timeout via _maybe_wrap_timeout in node_compiler.
+  Lint warning W203 emitted when a map node contains an agent sub-node
+  without timeout.
+modules:
+  - yamlgraph/map_compiler.py
+  - yamlgraph/node_compiler.py
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/models/schemas.py
+  - yamlgraph/linter/patterns/map.py
+requirements:
+  - id: REQ-YG-078
+    description: >
+      Per-node timeout: optional float timeout field on NodeConfig
+      validated as positive; map branch timeout via wrap_for_reducer
+      with ThreadPoolExecutor; non-map node timeout via
+      _maybe_wrap_timeout in node_compiler handlers; TIMEOUT_ERROR
+      error type in ErrorType enum; from_exception classification
+      unchanged (callers pass error_type explicitly); lint warning
+      W203 for map+agent without timeout; except
+      concurrent.futures.TimeoutError before except Exception in
+      both paths
+    modules:
+      - yamlgraph/map_compiler.py
+      - yamlgraph/node_compiler.py
+      - yamlgraph/models/graph_schema.py
+      - yamlgraph/models/schemas.py
+      - yamlgraph/linter/patterns/map.py
+      - tests/unit/test_map_node_timeout.py
+fr: FR-069

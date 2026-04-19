@@ -4,8 +4,10 @@ Extracted from graph_loader.py to keep modules under 400 lines.
 Uses a registry pattern (FR-220) to dispatch node types to handlers.
 """
 
+import concurrent.futures
 import logging
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -93,6 +95,60 @@ def _parse_cache_field(raw: Any) -> CacheConfig | None:
 
 
 # ---------------------------------------------------------------------------
+# Timeout wrapper (FR-069)
+# ---------------------------------------------------------------------------
+
+
+def _maybe_wrap_timeout(
+    node_fn: Callable,
+    node_config: dict[str, Any],
+    node_name: str,
+) -> Callable:
+    """Wrap node function with ThreadPoolExecutor timeout if configured.
+
+    FR-069: Per-node timeout bounding. When timeout is set, the node
+    function is executed in a one-shot ThreadPoolExecutor. On
+    concurrent.futures.TimeoutError, a PipelineError with
+    error_type=TIMEOUT_ERROR is returned.
+
+    Args:
+        node_fn: The original node function
+        node_config: Node configuration dict (checked for 'timeout')
+        node_name: Name of the node (for error messages)
+
+    Returns:
+        Wrapped function if timeout is set, original function otherwise
+    """
+    timeout = node_config.get("timeout")
+    if timeout is None:
+        return node_fn
+
+    state_key = node_config.get("state_key", node_name)
+
+    def timed_fn(state: dict) -> dict:
+        pool = ThreadPoolExecutor(max_workers=1)
+        try:
+            return pool.submit(node_fn, state).result(timeout=timeout)
+        except concurrent.futures.TimeoutError as e:
+            from yamlgraph.models import PipelineError
+            from yamlgraph.models.schemas import ErrorType
+
+            pe = PipelineError.from_exception(
+                e, node=node_name, error_type=ErrorType.TIMEOUT_ERROR
+            )
+            return {
+                state_key: None,
+                "current_step": node_name,
+                "errors": [pe],
+            }
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
+
+    timed_fn.__name__ = getattr(node_fn, "__name__", f"{node_name}_node")
+    return timed_fn
+
+
+# ---------------------------------------------------------------------------
 # Node type handlers — one per node type
 # ---------------------------------------------------------------------------
 
@@ -101,12 +157,14 @@ NodeTypeHandler = Callable[[NodeCompileContext], tuple[str, Any] | None]
 
 def _compile_tool_node(ctx: NodeCompileContext) -> None:
     node_fn = create_tool_node(ctx.node_name, ctx.node_config, ctx.tools)
+    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
 
 def _compile_python_node(ctx: NodeCompileContext) -> None:
     node_fn = create_python_node(ctx.node_name, ctx.node_config, ctx.python_tools)
+    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
@@ -120,6 +178,7 @@ def _compile_agent_node(ctx: NodeCompileContext) -> None:
         defaults=ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
+    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
@@ -142,6 +201,7 @@ def _compile_tool_call_node(ctx: NodeCompileContext) -> None:
     node_fn = create_tool_call_node(
         ctx.node_name, ctx.node_config, ctx.callable_registry
     )
+    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
@@ -202,6 +262,7 @@ def _compile_llm_node(ctx: NodeCompileContext) -> None:
         ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
+    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
@@ -213,6 +274,7 @@ def _compile_race_node(ctx: NodeCompileContext) -> None:
         ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
+    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 
@@ -365,6 +427,9 @@ def compile_nodes(
 __all__ = [
     "NodeCompileContext",
     "NODE_TYPE_HANDLERS",
+    "_maybe_wrap_timeout",
+    "compile_node",
+    "compile_nodes",
     "compile_node",
     "compile_nodes",
     "resolve_cache_policy",

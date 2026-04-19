@@ -365,10 +365,12 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
 | 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
 | 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
-| 97 | Node-Level Caching (FR-032) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py` | REQ-YG-239 |
+| 97 | Per-Node Timeout (FR-069) | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py` | REQ-YG-078 |
+| 100 | Node-Level Caching (FR-032) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py` | REQ-YG-239 |
 | 93 | Chatterbox Voice Clone Demo (FR-236, consolidated FR-237) | `examples/demos/chatterbox/` | REQ-YG-235 |
 | 94 | Compile-Time Pipeline Templates (FR-235) | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/patterns/pipeline.py` | REQ-YG-236 |
-| 96 | Pipeline Accumulated State (FR-238) | `yamlgraph/models/state_builder.py` | REQ-YG-241 |
+| 98 | Pipeline Accumulated State (FR-238) | `yamlgraph/models/state_builder.py` | REQ-YG-241 |
+| 99 | Race and Pipeline Node Type Documentation (FR-237) | `reference/graph-yaml.md`, `reference/getting-started.md` | REQ-YG-240 |
 | 95 | Parallel Fan-Out Edges (FR-234) | `yamlgraph/edge_compiler.py` | REQ-YG-237 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -538,10 +540,15 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-235 | Chatterbox voice cloning demo: `synthesize_cloned_audio` in `examples/demos/chatterbox/tools.py` accepts text and voice_prompt_path, synthesizes to WAV via `ChatterboxTTS` (not `ChatterboxMultilingualTTS`). Device selection follows `cuda > mps > cpu`. `clone.yaml` graph and `speak.py` CLI both use this tool. Optional dependency `chatterbox-tts` (FR-236, consolidated FR-237) | `examples/demos/chatterbox` |
 | REQ-YG-236 | `type: pipeline` meta-node expands at compile time into concrete nodes and sequential edges; `{item.field}` interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); `NodeType.PIPELINE` in constants; expansion in `graph_loader` after `expand_interactive_tools` | `pipeline_template`, `constants`, `graph_loader`, `linter/patterns/pipeline`, `linter/checks`, `linter/graph_linter` |
 | REQ-YG-241 | `parse_state_config()` handles dict-syntax state definitions `{type: str, reducer: str}`; `REDUCER_MAP` maps `"add"`, `"last_value"`, `"sorted_add"` to their functions; unknown reducer names log a warning; dict syntax without `reducer` key works as type-only; `generate_typeddict_code()` extracts type string from dict-syntax entries via `CODEGEN_TYPE_MAP`; `reference/graph-yaml.md` documents accumulated state pattern with glossary example, sequential execution constraint, and W021 `skip_if_exists: false` requirement (FR-238) | `models/state_builder`, `reference/graph-yaml.md`, `tests/unit/test_state_builder_reducers` |
+| REQ-YG-240 | Reference docs for `type: race` and `type: pipeline` in `graph-yaml.md` (purpose, config keys, state output, error handling, examples) and node type table rows in `getting-started.md` (FR-237) | `reference/graph-yaml.md`, `reference/getting-started.md` |
 | REQ-YG-237 | Parallel fan-out edges: `to: [a, b, c]` without `type: conditional` compiles as parallel fan-out via multiple `add_edge()` calls; handles interrupt node redirect to `_prepare`; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with `type: conditional` unchanged (FR-234) | `edge_compiler` |
 | REQ-YG-238 | Chatterbox speak CLI: `speak.py` accepts `--ref` (reference WAV path, required) and positional text; validates ref exists (exit 1 on missing); calls `ChatterboxTTS.generate()` without `language_id`; writes to `outputs/chatterbox/speak.wav`; prints output path to stdout (FR-237) | `examples/demos/chatterbox` |
 
-### 18. Testing & Quality
+### 93. Per-Node Timeout
+
+Per-node timeout bounding for map branches and all node types via ThreadPoolExecutor.
+
+| REQ-YG-078 | Per-node timeout: optional `float` timeout field on `NodeConfig` validated as positive; map branch timeout via `wrap_for_reducer` with `ThreadPoolExecutor`; non-map node timeout via `_maybe_wrap_timeout` in `node_compiler` handlers; `TIMEOUT_ERROR` error type in `ErrorType` enum; `from_exception` classification unchanged (callers pass `error_type` explicitly); lint warning W203 for map+agent without timeout; `except concurrent.futures.TimeoutError` before `except Exception` in both paths | `map_compiler`, `node_compiler`, `models/graph_schema`, `models/schemas`, `linter/patterns/map` |
 
 Requirement traceability enforcement and testing infrastructure.
 

@@ -1,4 +1,4 @@
-id: CAP-96
+id: CAP-98
 name: Pipeline Accumulated State
 description: >
   User-configurable reducers in the YAML state: section and documented

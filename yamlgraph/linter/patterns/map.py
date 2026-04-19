@@ -135,6 +135,44 @@ def check_map_node_types(
     return issues
 
 
+def check_map_agent_timeout(
+    node_name: str, node_config: dict[str, Any]
+) -> list[LintIssue]:
+    """Check map nodes with agent sub-nodes have a timeout set.
+
+    FR-069: Agent sub-nodes may hang on tool calls. A timeout prevents
+    indefinite blocking of the entire map aggregation.
+
+    Args:
+        node_name: Name of the map node
+        node_config: Node configuration dict
+
+    Returns:
+        List of validation issues (warnings)
+    """
+    issues = []
+
+    nested_node = node_config.get("node")
+    if not isinstance(nested_node, dict):
+        return issues
+
+    sub_type = nested_node.get("type", "llm")
+    if sub_type == "agent" and not node_config.get("timeout"):
+        issues.append(
+            LintIssue(
+                severity="warning",
+                code="W203",
+                message=(
+                    f"Map node '{node_name}' has agent sub-node without timeout. "
+                    f"Agent branches may hang indefinitely."
+                ),
+                fix="Add 'timeout: 30.0' (or appropriate value) to the map node",
+            )
+        )
+
+    return issues
+
+
 def check_map_patterns(
     graph_path: Path, project_root: Path | None = None
 ) -> list[LintIssue]:
@@ -166,6 +204,9 @@ def check_map_patterns(
                 )
             )
 
+            # FR-069 W203: agent sub-node without timeout
+            issues.extend(check_map_agent_timeout(node_name, node_config))
+
     return issues
 
 
@@ -173,4 +214,5 @@ __all__ = [
     "check_map_patterns",
     "check_map_node_structure",
     "check_map_node_types",
+    "check_map_agent_timeout",
 ]
