@@ -1,0 +1,38 @@
+id: CAP-103
+name: A2A SDK v1.0 Compatibility
+description: >
+  Upgrade a2a-sdk dependency from v0.3 to v1.0 and fix all breaking changes.
+  Protobuf-based types replace Pydantic models; Part construction uses
+  member-name discriminator (no 'kind' field); TextPart class removed;
+  Role/TaskState enums use SCREAMING_SNAKE_CASE; A2AStarletteApplication
+  replaced by Starlette + route factories; EventQueue.close() removed;
+  AgentCard.url field removed; InMemoryTaskStore API requires ServerCallContext;
+  card JSON serialization uses MessageToDict.
+modules:
+  - yamlgraph/a2a_server.py
+  - yamlgraph/a2a_message.py
+  - yamlgraph/node_factory/a2a_nodes.py
+  - yamlgraph/cli/a2a_commands.py
+requirements:
+  - id: REQ-YG-245
+    description: >
+      A2A SDK v1.0 compatibility: protobuf-based types replace Pydantic models;
+      Part(text=...) replaces Part(root=TextPart(text=...)); TextPart removed;
+      Role.ROLE_USER/ROLE_AGENT replaces Role.user/agent; TaskState.TASK_STATE_*
+      replaces TaskState.*; A2AStarletteApplication replaced by Starlette +
+      create_jsonrpc_routes/create_agent_card_routes; EventQueue.close() removed;
+      AgentCard.url field removed; InMemoryTaskStore.save/get require
+      ServerCallContext; DefaultRequestHandler requires agent_card parameter;
+      kind discriminator removed from JSON-RPC part payloads (member-name
+      discriminator); a2a_nodes.py extraction uses key-presence check;
+      a2a_commands.py uses MessageToDict for card JSON serialization
+    modules:
+      - yamlgraph/a2a_server.py
+      - yamlgraph/a2a_message.py
+      - yamlgraph/node_factory/a2a_nodes.py
+      - yamlgraph/cli/a2a_commands.py
+      - tests/unit/test_a2a_server.py
+      - tests/unit/test_a2a_message.py
+      - tests/unit/test_a2a_commands.py
+      - tests/unit/test_a2a_call_node.py
+fr: FR-244

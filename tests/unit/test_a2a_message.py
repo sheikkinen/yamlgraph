@@ -51,13 +51,13 @@ def single_var_graph_info() -> dict[str, Any]:
 @pytest.mark.req("REQ-YG-209")
 def test_extract_text_from_parts_multiple():
     """Multiple TextParts are concatenated with newlines."""
-    from a2a.types import Part, TextPart
+    from a2a.types import Part
 
     from yamlgraph.a2a_message import extract_text_from_parts
 
     parts = [
-        Part(root=TextPart(text="name=World")),
-        Part(root=TextPart(text="style=casual")),
+        Part(text="name=World"),
+        Part(text="style=casual"),
     ]
     text = extract_text_from_parts(parts)
     assert text == "name=World\nstyle=casual"
@@ -66,11 +66,11 @@ def test_extract_text_from_parts_multiple():
 @pytest.mark.req("REQ-YG-209")
 def test_extract_text_from_parts_single():
     """Single TextPart returns its text without trailing newline."""
-    from a2a.types import Part, TextPart
+    from a2a.types import Part
 
     from yamlgraph.a2a_message import extract_text_from_parts
 
-    parts = [Part(root=TextPart(text="hello world"))]
+    parts = [Part(text="hello world")]
     text = extract_text_from_parts(parts)
     assert text == "hello world"
 
@@ -87,11 +87,14 @@ def test_extract_text_from_parts_empty_list():
 @pytest.mark.req("REQ-YG-209")
 def test_extract_text_skips_non_text_parts():
     """Non-text parts are skipped; if only non-text, raises ValueError."""
-    from a2a.types import DataPart, Part
+    from a2a.types import Part
+    from google.protobuf.struct_pb2 import Struct, Value
 
     from yamlgraph.a2a_message import extract_text_from_parts
 
-    parts = [Part(root=DataPart(data={"key": "val"}))]
+    s = Struct()
+    s.update({"key": "val"})
+    parts = [Part(data=Value(struct_value=s))]
     with pytest.raises(ValueError, match="unsupported_content_type"):
         extract_text_from_parts(parts)
 
@@ -414,7 +417,6 @@ def test_build_agent_card_from_graph(sample_graph_info):
     )
 
     assert card.name == "YAMLGraph A2A Server"
-    assert card.url == "http://localhost:8080/"
     assert len(card.skills) == 1
     assert card.skills[0].id == "hello-world"
     assert card.skills[0].name == "hello-world"
@@ -434,7 +436,6 @@ def test_agent_card_capabilities(sample_graph_info):
     )
 
     assert card.capabilities.streaming is True
-    assert card.capabilities.push_notifications is None
 
 
 @pytest.mark.req("REQ-YG-208")
@@ -448,7 +449,7 @@ def test_agent_card_no_authentication(sample_graph_info):
         port=8080,
     )
 
-    assert card.security_schemes is None
+    assert len(card.security_schemes) == 0
 
 
 @pytest.mark.req("REQ-YG-208")
@@ -488,7 +489,8 @@ def test_agent_card_custom_host_port():
         host="0.0.0.0",  # noqa: S104
         port=9999,
     )
-    assert card.url == "http://0.0.0.0:9999/"
+    # v1.0: AgentCard no longer has url field; host/port are server-level config
+    assert card.name == "YAMLGraph A2A Server"
 
 
 # ---------------------------------------------------------------------------

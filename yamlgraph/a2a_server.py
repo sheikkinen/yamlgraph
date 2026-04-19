@@ -20,10 +20,10 @@ from typing import Any
 
 try:
     from a2a.server.agent_execution import AgentExecutor, RequestContext
-    from a2a.server.apps import A2AStarletteApplication
     from a2a.server.events import InMemoryQueueManager
     from a2a.server.events.event_queue import EventQueue
     from a2a.server.request_handlers import DefaultRequestHandler
+    from a2a.server.routes import create_agent_card_routes, create_jsonrpc_routes
     from a2a.server.tasks import InMemoryTaskStore
     from a2a.types import (
         Artifact,
@@ -34,7 +34,6 @@ try:
         TaskState,
         TaskStatus,
         TaskStatusUpdateEvent,
-        TextPart,
     )
 except ImportError as exc:
     raise ImportError(
@@ -120,8 +119,7 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                 TaskStatusUpdateEvent(
                     task_id=task_id,
                     context_id=context_id,
-                    status=TaskStatus(state=TaskState.working),
-                    final=False,
+                    status=TaskStatus(state=TaskState.TASK_STATE_WORKING),
                 )
             )
 
@@ -148,20 +146,13 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                         task_id=task_id,
                         context_id=context_id,
                         status=TaskStatus(
-                            state=TaskState.input_required,
+                            state=TaskState.TASK_STATE_INPUT_REQUIRED,
                             message=Message(
-                                role=Role.agent,
-                                parts=[
-                                    Part(
-                                        root=TextPart(
-                                            text="Graph requires additional input"
-                                        )
-                                    )
-                                ],
+                                role=Role.ROLE_AGENT,
+                                parts=[Part(text="Graph requires additional input")],
                                 message_id=str(uuid.uuid4()),
                             ),
                         ),
-                        final=False,
                     )
                 )
                 return
@@ -176,7 +167,7 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                     context_id=context_id,
                     artifact=Artifact(
                         artifact_id=str(uuid.uuid4()),
-                        parts=[Part(root=TextPart(text=output_text))],
+                        parts=[Part(text=output_text)],
                         name="graph_output",
                     ),
                 )
@@ -188,14 +179,13 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                     task_id=task_id,
                     context_id=context_id,
                     status=TaskStatus(
-                        state=TaskState.completed,
+                        state=TaskState.TASK_STATE_COMPLETED,
                         message=Message(
-                            role=Role.agent,
-                            parts=[Part(root=TextPart(text=output_text))],
+                            role=Role.ROLE_AGENT,
+                            parts=[Part(text=output_text)],
                             message_id=str(uuid.uuid4()),
                         ),
                     ),
-                    final=True,
                 )
             )
 
@@ -214,21 +204,15 @@ class YAMLGraphAgentExecutor(AgentExecutor):
                     task_id=task_id,
                     context_id=context_id,
                     status=TaskStatus(
-                        state=TaskState.failed,
+                        state=TaskState.TASK_STATE_FAILED,
                         message=Message(
-                            role=Role.agent,
-                            parts=[Part(root=TextPart(text=error_msg))],
+                            role=Role.ROLE_AGENT,
+                            parts=[Part(text=error_msg)],
                             message_id=str(uuid.uuid4()),
                         ),
                     ),
-                    final=True,
                 )
             )
-        finally:
-            # Graceful close: let SSE consumer drain all enqueued events
-            # before closing. immediate=True would clear pending events,
-            # preventing artifact/completed events from reaching the client.
-            await event_queue.close(immediate=False)
 
     async def cancel(
         self,
@@ -248,11 +232,9 @@ class YAMLGraphAgentExecutor(AgentExecutor):
             TaskStatusUpdateEvent(
                 task_id=task_id,
                 context_id=context_id,
-                status=TaskStatus(state=TaskState.canceled),
-                final=True,
+                status=TaskStatus(state=TaskState.TASK_STATE_CANCELED),
             )
         )
-        await event_queue.close(immediate=True)
 
     def _resolve_graph(self, text: str) -> dict[str, Any]:
         """Resolve which graph to invoke.
@@ -293,7 +275,7 @@ def create_a2a_app(
     graph_patterns: list[str] | None = None,
     host: str = "localhost",
     port: int = 8080,
-) -> A2AStarletteApplication:
+) -> Any:
     """Create an A2A Starlette application from discovered graphs.
 
     Args:
@@ -302,8 +284,10 @@ def create_a2a_app(
         port: Server port.
 
     Returns:
-        A2AStarletteApplication ready to be served.
+        Starlette application ready to be served.
     """
+    from starlette.applications import Starlette
+
     from yamlgraph.discovery import DEFAULT_GRAPH_PATTERNS
 
     if graph_patterns is None:
@@ -321,10 +305,12 @@ def create_a2a_app(
     request_handler = DefaultRequestHandler(
         agent_executor=agent_executor,
         task_store=task_store,
+        agent_card=agent_card,
         queue_manager=queue_manager,
     )
 
-    return A2AStarletteApplication(
-        agent_card=agent_card,
-        http_handler=request_handler,
-    )
+    routes = create_jsonrpc_routes(
+        request_handler, rpc_url="/"
+    ) + create_agent_card_routes(agent_card)
+
+    return Starlette(routes=routes)

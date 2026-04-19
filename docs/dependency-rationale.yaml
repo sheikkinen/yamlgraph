@@ -238,6 +238,11 @@ dependencies:
     modules: ["yamlgraph/a2a_server.py"]
     added: "0.4.60"
 
+  grpcio:
+    rationale: "gRPC runtime required by a2a-sdk>=1.0 compat layer (a2a/compat/v0_3/context_builders.py imports grpc at module level); without it the a2a extras fail to import (FR-244)"
+    modules: ["yamlgraph/a2a_server.py"]
+    added: "0.4.68"
+
   # ─── Optional: Telco ─────────────────────────────────────────────────
 
   twilio:
