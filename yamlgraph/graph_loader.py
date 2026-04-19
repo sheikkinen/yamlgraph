@@ -305,6 +305,31 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     return graph
 
 
+def invoke_graph(
+    path: str | Path,
+    variables: dict[str, Any],
+    *,
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Load, compile, and invoke a graph synchronously.
+
+    Convenience function combining load_graph_config, compile_graph,
+    and compiled graph invocation. Used by MCP and A2A servers.
+
+    Args:
+        path: Path to graph YAML file.
+        variables: Input variables / initial state.
+        config: Optional LangGraph run config (thread_id, etc.).
+
+    Returns:
+        Result dict from graph invocation.
+    """
+    graph_config = load_graph_config(path)
+    sg = compile_graph(graph_config)
+    compiled = sg.compile()
+    return compiled.invoke(variables, config=config or {})
+
+
 def load_and_compile(path: str | Path) -> StateGraph:
     """Load YAML and compile to StateGraph.
 

@@ -100,7 +100,7 @@ def test_invoke_graph_calls_load_compile_invoke():
 
     mock_load.assert_called_once_with("/tmp/graph.yaml")
     mock_compile.assert_called_once_with(mock_config)
-    mock_compiled.invoke.assert_called_once_with({"name": "test"})
+    mock_compiled.invoke.assert_called_once_with({"name": "test"}, config={})
     assert result == {"out": "result"}
 
 

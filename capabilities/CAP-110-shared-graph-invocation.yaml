@@ -1,0 +1,18 @@
+id: CAP-110
+name: Shared Graph Invocation
+description: >
+  Shared invoke_graph() function in graph_loader eliminates duplicated
+  graph invocation logic across MCP and A2A servers (FR-255).
+modules:
+  - graph_loader
+requirements:
+  - id: REQ-YG-257
+    description: >
+      invoke_graph(path, variables, config) in graph_loader.py: loads config,
+      compiles graph, invokes synchronously with optional LangGraph run config.
+      MCP and A2A servers delegate to this shared function.
+    modules:
+      - graph_loader
+      - mcp_server
+      - a2a_server
+fr: FR-255
