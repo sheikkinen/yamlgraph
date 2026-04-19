@@ -1,0 +1,25 @@
+id: CAP-106
+name: GitHub Issues Remote Inbox
+description: >
+  watch.sh syncs open GitHub Issues labeled 'chaplain' into the local inbox,
+  removes the label after import, and closes the issue with a commit reference
+  on successful enforcement. Gracefully degrades when gh CLI is unavailable.
+modules:
+  - .chaplain/watch.sh
+  - tests/unit/test_github_issues_remote_inbox
+requirements:
+  - id: REQ-YG-247
+    description: >
+      GitHub Issues remote inbox: watch.sh polls for open issues labeled
+      'chaplain' via two-pass gh CLI (list numbers, then view each), writes
+      .chaplain/inbox/gh-{number}.md, removes the label after import,
+      initializes EXIT_CODE=1 as sentinel before enforcement branches, and
+      closes the originating issue with commit hash on EXIT_CODE=0. Sync is
+      silently skipped when gh is not installed or not authenticated. CLAUDE.md
+      and copilot-instructions.md document remote submission.
+    modules:
+      - .chaplain/watch.sh
+      - CLAUDE.md
+      - .github/copilot-instructions.md
+      - tests/unit/test_github_issues_remote_inbox
+fr: FR-243

@@ -127,6 +127,7 @@ See these canonical sources for patterns:
 - The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce automatically
 - For new features, a one-paragraph problem statement suffices — the Chaplain generates the FR and PR
 - Proposals are consumed on pickup (moved out of inbox); rejected FRs are skipped by the enforce pipeline
+- **Remote submission:** Open a GitHub Issue with the `chaplain` label. The watch daemon syncs labeled issues into the local inbox automatically, removes the label after import, and closes the issue with a commit reference on successful enforcement.
 
 # The Scripture
 
