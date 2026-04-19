@@ -1,0 +1,24 @@
+id: CAP-103
+name: A2A Server Reference Documentation
+description: >
+  User-facing reference documentation for the A2A protocol server (FR-208/209/225, CAP-81).
+  Covers quickstart, CLI commands, Agent Card generation, message parsing, task lifecycle,
+  error mapping, interrupts, authentication, deployment patterns, and MCP relationship.
+  Also updates reference/cli.md with a2a subcommands and reference/README.md index.
+modules:
+  - reference/a2a-server.md
+  - reference/cli.md
+requirements:
+  - id: REQ-YG-245
+    description: >
+      reference/a2a-server.md created with 10 sections: Quickstart, CLI Commands,
+      Agent Card Generation, Message-to-State Mapping, Task Lifecycle, Error Mapping,
+      Interrupt/Human-in-Loop, Authentication, Deployment Patterns, Relationship to
+      MCP Server; reference/cli.md updated with a2a serve and a2a card subcommands;
+      reference/README.md links to a2a-server.md; all examples verified against
+      a2a_server.py, a2a_message.py, cli/a2a_commands.py
+    modules:
+      - reference/a2a-server.md
+      - reference/cli.md
+      - tests/unit/test_a2a_server_docs.py
+fr: FR-246

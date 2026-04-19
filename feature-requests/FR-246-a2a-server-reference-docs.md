@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-19
 **Judged:** 2026-04-19
@@ -124,13 +124,13 @@ Add the `a2a` subcommands to the commands overview table and add a `yamlgraph a2
 
 ## Acceptance Criteria
 
-- [ ] REQ-YG-245 added to `ARCHITECTURE.md` capabilities table and requirement descriptions (reference doc for A2A server)
-- [ ] `reference/a2a-server.md` created with all 10 sections above (REQ-YG-245)
-- [ ] Quickstart example is copy-pasteable and works with the hello graph
-- [ ] `reference/cli.md` updated to include `a2a serve` and `a2a card` commands
-- [ ] `reference/README.md` updated to link to `a2a-server.md` (if it maintains a doc index)
-- [ ] No new Python code — documentation only
-- [ ] All code examples verified against current implementation in `a2a_server.py`, `a2a_message.py`, `cli/a2a_commands.py`
+- [x] REQ-YG-245 added to `ARCHITECTURE.md` capabilities table and requirement descriptions (reference doc for A2A server)
+- [x] `reference/a2a-server.md` created with all 10 sections above (REQ-YG-245)
+- [x] Quickstart example is copy-pasteable and works with the hello graph
+- [x] `reference/cli.md` updated to include `a2a serve` and `a2a card` commands
+- [x] `reference/README.md` updated to link to `a2a-server.md` (if it maintains a doc index)
+- [x] No new Python code — documentation only
+- [x] All code examples verified against current implementation in `a2a_server.py`, `a2a_message.py`, `cli/a2a_commands.py`
 
 ## Alternatives Considered
 

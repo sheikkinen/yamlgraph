@@ -5,12 +5,13 @@ Complete command reference for the `yamlgraph` CLI.
 ## Commands Overview
 
 ```
-yamlgraph [-h] {list-runs,resume,trace,export,graph} ...
+yamlgraph [-h] {list-runs,resume,trace,export,graph,a2a} ...
 ```
 
 | Command | Description |
 |---------|-------------|
 | `graph` | Run graphs, list, validate, lint, generate diagrams |
+| `a2a` | A2A protocol server: serve graphs as agents, print Agent Cards |
 | `list-runs` | List recent pipeline runs |
 | `resume` | Resume a paused pipeline |
 | `trace` | Show execution trace (requires LangSmith) |
@@ -110,6 +111,63 @@ yamlgraph graph lint <graph_paths...>
 **Example:**
 ```bash
 yamlgraph graph lint examples/demos/yamlgraph/graph.yaml examples/demos/router/graph.yaml
+```
+
+---
+
+## yamlgraph a2a
+
+A2A protocol server commands. See [A2A Server Reference](a2a-server.md) for full documentation.
+
+```
+yamlgraph a2a {serve,card} ...
+```
+
+### a2a serve
+
+Start an A2A HTTP server exposing discovered graphs as agent skills.
+
+```bash
+yamlgraph a2a serve <graph_path> [options]
+```
+
+**Arguments:**
+- `graph_path` — Path to a graph YAML file or directory (optional; defaults to auto-discovery)
+
+**Options:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--host` | `0.0.0.0` | Server bind address |
+| `--port` | `8080` | Server port |
+
+**Examples:**
+```bash
+# Serve the hello graph
+yamlgraph a2a serve examples/demos/hello/ --port 9090
+
+# Serve all discovered graphs
+yamlgraph a2a serve
+```
+
+### a2a card
+
+Print the Agent Card JSON for discovered graphs without starting the server.
+
+```bash
+yamlgraph a2a card <graph_path> [options]
+```
+
+**Options:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--host` | `localhost` | Hostname for Agent Card URL |
+| `--port` | `8080` | Port for Agent Card URL |
+
+**Example:**
+```bash
+yamlgraph a2a card examples/demos/hello/
 ```
 
 ---
