@@ -1,0 +1,32 @@
+# Python Node Variables Demo (FR-252)
+# Demonstrates variables: expression resolution on type: python nodes
+
+version: "1.0"
+name: python-variables-demo
+description: Python node with declarative variable mapping from state
+
+state:
+  user_name: str
+  greeting_style: str
+
+tools:
+  format_greeting:
+    type: python
+    module: examples.demos.python-variables.tools
+    function: format_greeting
+    description: Format a greeting using resolved variables
+
+nodes:
+  greet:
+    type: python
+    tool: format_greeting
+    state_key: result
+    variables:
+      name: "{state.user_name}"
+      style: "{state.greeting_style}"
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END
