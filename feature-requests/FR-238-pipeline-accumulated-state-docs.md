@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1.5 days
 **Requested:** 2026-04-19
 
@@ -141,20 +141,20 @@ nodes:
 
 ## Acceptance Criteria
 
-- [ ] `parse_state_config()` handles dict-syntax state definitions: `{type: str, reducer: str}`
-- [ ] `REDUCER_MAP` maps `"add"`, `"last_value"`, and `"sorted_add"` to their functions
-- [ ] Unknown reducer names log a warning (same pattern as unknown types)
-- [ ] Simple string syntax remains unchanged (no regression)
-- [ ] Dict syntax without `reducer` key works as type-only (equivalent to simple string)
-- [ ] `generate_typeddict_code()` handles dict-syntax entries (extracts type string, maps via `CODEGEN_TYPE_MAP`)
-- [ ] `reference/graph-yaml.md` pipeline section includes an "Accumulated State" subsection
-- [ ] Subsection contains the glossary accumulation YAML example
-- [ ] Subsection explains why `{prev_item}` syntax is unnecessary
-- [ ] Subsection documents the sequential execution constraint
-- [ ] Subsection references W021 and the `skip_if_exists: false` requirement
-- [ ] Unit tests for `parse_state_config()` dict-syntax with each supported reducer
-- [ ] Unit test verifying unknown reducer logs a warning
-- [ ] Unit test for `generate_typeddict_code()` with dict-syntax state entries
+- [x] `parse_state_config()` handles dict-syntax state definitions: `{type: str, reducer: str}`
+- [x] `REDUCER_MAP` maps `"add"`, `"last_value"`, and `"sorted_add"` to their functions
+- [x] Unknown reducer names log a warning (same pattern as unknown types)
+- [x] Simple string syntax remains unchanged (no regression)
+- [x] Dict syntax without `reducer` key works as type-only (equivalent to simple string)
+- [x] `generate_typeddict_code()` handles dict-syntax entries (extracts type string, maps via `CODEGEN_TYPE_MAP`)
+- [x] `reference/graph-yaml.md` pipeline section includes an "Accumulated State" subsection
+- [x] Subsection contains the glossary accumulation YAML example
+- [x] Subsection explains why `{prev_item}` syntax is unnecessary
+- [x] Subsection documents the sequential execution constraint
+- [x] Subsection references W021 and the `skip_if_exists: false` requirement
+- [x] Unit tests for `parse_state_config()` dict-syntax with each supported reducer
+- [x] Unit test verifying unknown reducer logs a warning
+- [x] Unit test for `generate_typeddict_code()` with dict-syntax state entries
 - [ ] The YAML example in the docs passes `yamlgraph graph lint` (prompt files may be stubs)
 - [ ] Diary reflection added
 
