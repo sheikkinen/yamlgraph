@@ -44,7 +44,7 @@ def _write_fragment(frag_dir: Path, name: str, content: str) -> Path:
     return filepath
 
 
-@pytest.mark.req("REQ-YG-254")
+@pytest.mark.req("REQ-YG-255")
 class TestParseFragmentReq:
     """Test YAML front-matter parsing from changelog fragments."""
 
@@ -125,7 +125,7 @@ class TestParseFragmentReq:
         assert result is None
 
 
-@pytest.mark.req("REQ-YG-254")
+@pytest.mark.req("REQ-YG-255")
 class TestLoadReqToCapIndex:
     """Test building the REQ-ID → CAP mapping from capability files."""
 
@@ -153,7 +153,7 @@ class TestLoadReqToCapIndex:
         assert index == {}
 
 
-@pytest.mark.req("REQ-YG-254")
+@pytest.mark.req("REQ-YG-255")
 class TestFindOwningCap:
     """Test looking up the owning CAP for a requirement ID."""
 
@@ -198,7 +198,7 @@ class TestFindOwningCap:
         assert result is None
 
 
-@pytest.mark.req("REQ-YG-254")
+@pytest.mark.req("REQ-YG-255")
 class TestValidateFragment:
     """Test the full validation logic for a single fragment."""
 

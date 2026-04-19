@@ -1,4 +1,4 @@
-id: CAP-107
+id: CAP-108
 name: Changelog REQ Cross-Validation Gate
 description: >
   Validates that changelog fragment req: front-matter values reference
@@ -11,7 +11,7 @@ modules:
   - .pre-commit-config.yaml
   - .github/workflows/commitlint.yml
 requirements:
-  - id: REQ-YG-254
+  - id: REQ-YG-255
     description: >
       Changelog REQ cross-validation gate: scripts/check_changelog_req.py
       parses YAML front-matter req: from changelog/unreleased/*.md, validates
