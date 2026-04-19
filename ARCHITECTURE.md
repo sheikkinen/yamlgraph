@@ -383,6 +383,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 108 | Changelog REQ Cross-Validation Gate (FR-247) | `scripts/check_changelog_req.py`, `graphs/enforcement/changelog-req-check.yaml`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` | REQ-YG-255 |
 | 109 | Harden GitHub Issues Remote Inbox (FR-251) | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` | REQ-YG-256 |
 | 110 | Diary Index Graph (FR-254) | `examples/demos/diary_index` | REQ-YG-257 |
+| 111 | Shared Graph Invocation (FR-255) | `yamlgraph/graph_loader.py`, `yamlgraph/mcp_server.py`, `yamlgraph/a2a_server.py` | REQ-YG-258 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -568,6 +569,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-255 | Changelog REQ cross-validation gate: `scripts/check_changelog_req.py` parses YAML front-matter `req:` from `changelog/unreleased/*.md`, validates each REQ-YG-XXX exists in `capabilities/CAP-*.yaml` via direct `id:` lookup (rejects phantoms), skips fragments without `req:` field; single-REQ CAPs pass mechanically; multi-REQ CAPs deferred to LLM graph `graphs/enforcement/changelog-req-check.yaml` (Haiku, temperature 0); `--strict` exits non-zero on failure; `--skip-llm` runs mechanical-only; pre-commit hook and CI job wired (FR-247) | `scripts/check_changelog_req.py`, `graphs/enforcement/changelog-req-check.yaml`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` |
 | REQ-YG-256 | `watch.sh` gates GitHub Issue import on `.chaplain/allowed-authors.txt` (one login per line); issues from unlisted authors skipped with warning, `chaplain` label retained; when file absent all authors accepted; body truncated at `BODY_SIZE_CAP` (10000) with warning; every imported file starts with `<!-- author: @login -->` audit header; author login fetched before title/body for early rejection (FR-251) | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` |
 | REQ-YG-257 | Diary index graph: map node fans out over diary files, LLM extracts traps/heuristics/seeds/FR refs per entry via inline schema prompt, deterministic Python `aggregate_index()` builds cross-reference index (traps_index sorted by frequency, seeds_index with dedup, fr_index reverse mapping, heuristics_candidates with 2+ threshold, statistics by category). `write_index()` persists to `docs/diary-index.yaml`. Graph lints clean. `model: claude-haiku-4-5` for cost control (FR-254) | `examples/demos/diary_index` |
+| REQ-YG-258 | `invoke_graph(path, variables, config=None)` in `graph_loader.py`: loads graph config, compiles to StateGraph, compiles to CompiledGraph, invokes synchronously with optional LangGraph run config; `mcp_server._invoke_graph` and `a2a_server._invoke_graph` delegate to this shared function (FR-255) | `graph_loader`, `mcp_server`, `a2a_server` |
 
 ### 93. Per-Node Timeout
 
