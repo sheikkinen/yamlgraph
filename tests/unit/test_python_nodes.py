@@ -356,6 +356,126 @@ class TestParsePythonToolsPath:
         assert result["module_tool"].path is None
 
 
+class TestPythonNodeVariables:
+    """Tests for variables: expression resolution on python nodes (FR-252)."""
+
+    @pytest.mark.req("REQ-YG-020")
+    def test_resolves_state_field_expressions(self):
+        """Variables with {state.field} expressions are resolved before calling func."""
+        python_tools = {
+            "var_tool": PythonToolConfig(
+                module="tests.unit.test_python_nodes",
+                function="variable_echo_function",
+            ),
+        }
+        node_config = {
+            "tool": "var_tool",
+            "state_key": "result",
+            "variables": {
+                "url": "{state.agent_url}",
+                "message": "{state.user_query}",
+            },
+        }
+
+        node_fn = create_python_node("test_node", node_config, python_tools)
+        result = node_fn(
+            {
+                "agent_url": "https://example.com",
+                "user_query": "hello world",
+            }
+        )
+
+        assert result["url"] == "https://example.com"
+        assert result["message"] == "hello world"
+
+    @pytest.mark.req("REQ-YG-020")
+    def test_resolved_variables_accessible_in_state(self):
+        """Resolved variables appear as keys in the state dict passed to func."""
+        python_tools = {
+            "state_tool": PythonToolConfig(
+                module="tests.unit.test_python_nodes",
+                function="state_keys_function",
+            ),
+        }
+        node_config = {
+            "tool": "state_tool",
+            "state_key": "result",
+            "variables": {
+                "injected_var": "{state.source_field}",
+            },
+        }
+
+        node_fn = create_python_node("test_node", node_config, python_tools)
+        result = node_fn({"source_field": "resolved_value"})
+
+        assert "injected_var" in result["seen_keys"]
+        assert result["injected_value"] == "resolved_value"
+
+    @pytest.mark.req("REQ-YG-020")
+    def test_resolved_variables_override_state_keys(self):
+        """Resolved variables override same-named keys already in state."""
+        python_tools = {
+            "override_tool": PythonToolConfig(
+                module="tests.unit.test_python_nodes",
+                function="variable_echo_function",
+            ),
+        }
+        node_config = {
+            "tool": "override_tool",
+            "state_key": "result",
+            "variables": {
+                "url": "{state.new_url}",
+            },
+        }
+
+        node_fn = create_python_node("test_node", node_config, python_tools)
+        result = node_fn(
+            {
+                "url": "old-value",
+                "new_url": "new-value",
+            }
+        )
+
+        assert result["url"] == "new-value"
+
+    @pytest.mark.req("REQ-YG-020")
+    def test_empty_variables_preserves_behavior(self):
+        """Empty variables: {} does not change the state passed to func."""
+        python_tools = {
+            "dict_tool": PythonToolConfig(
+                module="tests.unit.test_python_nodes",
+                function="sample_node_function",
+            ),
+        }
+        node_config = {
+            "tool": "dict_tool",
+            "variables": {},
+        }
+
+        node_fn = create_python_node("test_node", node_config, python_tools)
+        result = node_fn({"input": "hello"})
+
+        assert result["output"] == "processed: hello"
+        assert result["current_step"] == "test_node"
+
+    @pytest.mark.req("REQ-YG-020")
+    def test_omitted_variables_preserves_behavior(self):
+        """No variables key at all does not change behavior."""
+        python_tools = {
+            "dict_tool": PythonToolConfig(
+                module="tests.unit.test_python_nodes",
+                function="sample_node_function",
+            ),
+        }
+        node_config = {"tool": "dict_tool"}
+
+        node_fn = create_python_node("test_node", node_config, python_tools)
+        result = node_fn({"input": "hello"})
+
+        assert result["output"] == "processed: hello"
+        assert result["current_step"] == "test_node"
+
+
 # Sample functions for testing
 def sample_node_function(state: dict) -> dict:
     """Sample node function that returns a dict."""
@@ -365,3 +485,16 @@ def sample_node_function(state: dict) -> dict:
 def scalar_return_function(state: dict) -> int:
     """Sample function that returns a scalar."""
     return 42
+
+
+def variable_echo_function(state: dict) -> dict:
+    """Returns url and message from state for variable resolution testing."""
+    return {"url": state.get("url"), "message": state.get("message")}
+
+
+def state_keys_function(state: dict) -> dict:
+    """Returns state key info for verifying variable injection."""
+    return {
+        "seen_keys": list(state.keys()),
+        "injected_value": state.get("injected_var"),
+    }

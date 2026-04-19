@@ -1,0 +1,14 @@
+2026-04-19 14:01:54,357 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: format_greeting
+2026-04-19 14:01:54,358 [INFO] yamlgraph.node_compiler: Added node: greet (type=python)
+2026-04-19 14:01:54,364 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: greet -> format_greeting
+
+🚀 Running graph: graph.yaml
+   Variables: {'user_name': 'Captain Hook', 'greeting_style': 'pirate'}
+
+============================================================
+RESULT
+============================================================
+  current_step: greet
+  user_name: Captain Hook
+  greeting_style: pirate
+  result: Ahoy, Captain Hook! Avast ye scurvy dog! (style=pirate)
