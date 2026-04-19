@@ -1,7 +1,6 @@
 ---
 type: feat
 scope: copilot
-req: REQ-YG-105
 ---
 - **FR-105 Copilot Session Continuations** (CAP-30, REQ-YG-105): Enable multi-task workflows where sequential copilot nodes share a session
   - `cli_flags.resume`: Resume a specific session by ID (`--resume <id>`)

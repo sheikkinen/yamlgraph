@@ -1,7 +1,6 @@
 ---
 type: feat
 scope: copilot
-req: REQ-YG-087
 ---
 - **FR-081 Copilot Node Type** (CAP-30, REQ-YG-087, REQ-YG-089): New `copilot` node for delegating to GitHub Copilot CLI
   - `type: copilot` — invokes Copilot CLI with `--silent` flag and configurable `cli_flags`
