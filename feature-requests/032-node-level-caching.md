@@ -1,6 +1,6 @@
 # FR-032: Node-Level Caching
 
-**Status**: Proposed
+**Status**: Implemented
 **Priority**: P0
 **Effort**: 3-5 days
 **Created**: 2026-02-13
