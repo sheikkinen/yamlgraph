@@ -131,6 +131,16 @@ class NodeConfig(BaseModel):
         description="Race candidates: list of {provider, model} dicts",
     )
 
+    # A2A call node fields (FR-240)
+    agent_url: str | None = Field(
+        default=None,
+        description="Base URL of the external A2A agent server",
+    )
+    message: str | None = Field(
+        default=None,
+        description="Jinja2 template for the A2A message text",
+    )
+
     # Verification gate (FR-164)
     verification: VerificationConfig | None = Field(
         default=None,

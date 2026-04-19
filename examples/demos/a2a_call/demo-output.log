@@ -1,0 +1,50 @@
+═══════════════════════════════════════════════════
+  FR-240: A2A Call Node Demo
+═══════════════════════════════════════════════════
+
+🔍 Part 1: Lint the a2a_call graph
+  Command: yamlgraph graph lint examples/demos/a2a_call/graph.yaml
+---
+✅ graph.yaml - No issues found
+
+✅ All graphs passed linting
+
+🚀 Part 2: Start hello-world A2A server on port 9240
+  Command: yamlgraph a2a serve examples/demos/hello/ --port 9240
+---
+🚀 Starting A2A server on 0.0.0.0:9240
+📋 Agent Card: http://0.0.0.0:9240/.well-known/agent-card.json
+INFO:     127.0.0.1:56926 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+  ✓ Server ready (PID 2527)
+
+📨 Part 3: Run graph that calls the A2A server
+  Command: yamlgraph graph run examples/demos/a2a_call/graph.yaml --var name=World --var style=casual --full
+---
+2026-04-19 08:42:23,678 [INFO] yamlgraph.node_compiler: Added node: ask_agent (type=a2a_call)
+2026-04-19 08:42:23,679 [INFO] yamlgraph.node_compiler: Added node: summarise (type=llm)
+INFO:     127.0.0.1:56933 - "POST / HTTP/1.1" 200 OK
+2026-04-19 08:42:24,379 [INFO] httpx: HTTP Request: POST http://localhost:9240/ "HTTP/1.1 200 OK"
+2026-04-19 08:42:24,381 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-19 08:42:24,875 [ERROR] yamlgraph.error_handlers: Node summarise failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+🚀 Running graph: graph.yaml
+   Variables: {'name': 'World', 'style': 'casual'}
+
+============================================================
+RESULT
+============================================================
+  current_step: summarise
+  style: casual
+  name: World
+  agent_response: greet
+
+[]
+
+casual
+
+World
+
+
+═══════════════════════════════════════════════════
+  ✓ Demo complete
+═══════════════════════════════════════════════════
