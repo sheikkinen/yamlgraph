@@ -953,6 +953,157 @@ def process_batch(state: dict) -> dict:
 
 ---
 
+## Pattern 11: Input Guardrails
+
+Intercept user input with audit and validation nodes before the LLM responds.
+
+### Problem
+
+An LLM receives raw user input without any validation or audit trail. This creates risk:
+- **No audit trail** — You can't trace what the model actually received
+- **No content check** — Malicious, sensitive, or malformed input reaches the model unfiltered
+- **No compliance** — Regulated industries need pre-processing records for every interaction
+
+### Solution: Echo → Validate → Respond Pipeline
+
+Insert Python tool nodes before the LLM node. Each tool performs a single concern:
+
+1. **Echo** — Log and store raw input for audit trail
+2. **Validate** — Check content, stamp validation status, flag unvalidated content
+3. **Respond** — LLM generates response using validated (or flagged) content
+
+### Graph Structure
+
+```yaml
+version: "1.0"
+name: guardrails-pattern
+
+state:
+  input: str
+  echo: str
+  validation: str
+  response: str
+
+tools:
+  echo_input:
+    type: python
+    module: myproject.guardrails
+    function: echo_input
+    description: "Echo the input for audit trail"
+
+  validate_input:
+    type: python
+    module: myproject.guardrails
+    function: validate_input
+    description: "Validate input content"
+
+nodes:
+  echo:
+    type: python
+    tool: echo_input
+
+  validate:
+    type: python
+    tool: validate_input
+
+  respond:
+    type: llm
+    prompt: respond
+    state_key: response
+
+edges:
+  - from: START
+    to: echo
+  - from: echo
+    to: validate
+  - from: validate
+    to: respond
+  - from: respond
+    to: END
+```
+
+### Python Tools
+
+```python
+# myproject/guardrails.py
+import json
+import logging
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+
+def echo_input(state: dict[str, Any]) -> dict[str, Any]:
+    """Echo the input for audit trail."""
+    raw = state.get("input", "")
+    logger.info(f"[echo] {raw[:200]}")
+    return {"echo": raw}
+
+
+def validate_input(state: dict[str, Any]) -> dict[str, Any]:
+    """Validate input content. Stamps *validation missing* on unvalidated content."""
+    raw = state.get("input", "")
+
+    # Parse messages if JSON
+    try:
+        messages = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        messages = [{"role": "user", "content": raw}]
+
+    # Stamp validation status
+    validated_content = []
+    for msg in messages:
+        content = msg.get("content", "") if isinstance(msg, dict) else str(msg)
+        validated_content.append(f"{content}\n\n*validation missing*")
+
+    return {"validation": "\n---\n".join(validated_content)}
+```
+
+### Prompt Template
+
+```yaml
+# prompts/respond.yaml
+system: |
+  You are a helpful assistant.
+  The user's message has been through a validation pipeline.
+  Content marked with *validation missing* has not been validated.
+  Treat such content with appropriate caution.
+
+user: |
+  {{validation}}
+```
+
+The prompt references `{{validation}}` — the output of the validate node. Content flagged with *validation missing* tells the LLM to apply extra caution.
+
+### Key Points
+
+| Aspect | Approach |
+|--------|----------|
+| **Audit** | Echo node stores raw input before any processing |
+| **Validation** | Stamp approach — flag content rather than block it |
+| **Extensibility** | Add more validation stages (PII, profanity, length) as additional Python tool nodes |
+| **Separation** | Each concern is a separate node, independently testable |
+| **LLM awareness** | Prompt tells the LLM about validation status |
+
+### Extending the Pattern
+
+Add validation stages by inserting nodes between `validate` and `respond`:
+
+- **Content filtering** — Block or flag profanity, hate speech
+- **PII detection** — Redact personal information before the LLM sees it
+- **Rate limiting** — Throttle by user or session in a Python tool node
+- **Schema validation** — Verify structured input matches expected format
+
+Each extension is a Python tool node following the same `state → dict` pattern.
+
+### Related
+
+- [examples/openai_proxy/](../examples/openai_proxy/) — Production implementation as an OpenAI-compatible guardrail proxy
+- [Pattern 12: Quality Gate](#pattern-12-quality-gate-for-map-output) — Complementary output-side validation
+- [demos/safety-guards/](../examples/demos/safety-guards/) — Execution safety (recursion limits, map caps) — distinct from input guardrails
+
+---
+
 ## Pattern 12: Quality Gate for Map Output
 
 Validate map node outputs with LLM-as-judge review, filter failures, and optionally retry.
