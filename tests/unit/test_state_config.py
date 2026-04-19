@@ -110,14 +110,23 @@ class TestParseStateConfig:
 
     @pytest.mark.req("REQ-YG-024")
     def test_non_string_value_defaults_to_any(self):
-        """Non-string values default to Any."""
+        """Non-string, non-dict values default to Any."""
         result = parse_state_config(
             {
-                "nested": {"type": "str"},  # Dict value, not string
-                "number": 123,  # Int value, not string
+                "number": 123,  # Int value, not string or dict
             }
         )
-        assert result == {"nested": Any, "number": Any}
+        assert result == {"number": Any}
+
+    @pytest.mark.req("REQ-YG-024", "REQ-YG-241")
+    def test_dict_value_parsed_as_type(self):
+        """Dict values are parsed as dict-syntax state definitions (FR-238)."""
+        result = parse_state_config(
+            {
+                "nested": {"type": "str"},  # Dict-syntax, resolves to str
+            }
+        )
+        assert result == {"nested": str}
 
 
 class TestTypeMap:

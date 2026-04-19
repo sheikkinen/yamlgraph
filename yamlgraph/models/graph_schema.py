@@ -12,6 +12,19 @@ from yamlgraph.constants import ErrorHandler, NodeType
 VALID_ON_FAIL = {"warn", "halt", "retry"}
 
 
+class CacheConfig(BaseModel):
+    """Configuration for per-node result caching (FR-032).
+
+    Maps to LangGraph CachePolicy on graph.add_node().
+    """
+
+    ttl: int | None = Field(
+        default=None,
+        ge=1,
+        description="Time-to-live in seconds (None = cache forever)",
+    )
+
+
 class VerificationConfig(BaseModel):
     """Configuration for a node's verification gate (FR-164)."""
 
@@ -114,15 +127,18 @@ class NodeConfig(BaseModel):
     tools: list[str] = Field(default_factory=list)
     max_iterations: int = Field(default=10, ge=1)
 
+    # Per-node timeout (FR-069)
+    timeout: float | None = Field(
+        default=None,
+        description="Timeout in seconds for node execution (any node type)",
+    )
+
     # Copilot node fields (REQ-YG-087)
     backend: str | None = Field(
         default=None, description="Copilot backend: 'cli' or 'sampling'"
     )
     cli_flags: dict[str, Any] | None = Field(
         default=None, description="CLI flags for copilot node (allow_all_paths, etc.)"
-    )
-    timeout: int | None = Field(
-        default=None, description="Timeout in seconds for copilot node (default 300)"
     )
 
     # Race node fields (FR-232)
@@ -137,7 +153,25 @@ class NodeConfig(BaseModel):
         description="Verification gate — falsifiable prediction checked after execution",
     )
 
+    # Node-level caching (FR-032)
+    cache: CacheConfig | None = Field(
+        default=None,
+        description="Cache policy — true for default, {ttl: N} for time-limited",
+    )
+
     model_config = {"extra": "allow", "populate_by_name": True}
+
+    @field_validator("cache", mode="before")
+    @classmethod
+    def parse_cache(cls, v: Any) -> Any:
+        """Parse cache shorthand: true → CacheConfig(), false → None, dict → CacheConfig."""
+        if v is True:
+            return CacheConfig()
+        if v is False or v is None:
+            return None
+        if isinstance(v, dict):
+            return CacheConfig(**v)
+        return v
 
     @field_validator("verification", mode="before")
     @classmethod
@@ -145,6 +179,14 @@ class NodeConfig(BaseModel):
         """Parse verification from dict (YAML input) to VerificationConfig."""
         if isinstance(v, dict):
             return VerificationConfig(**v)
+        return v
+
+    @field_validator("timeout")
+    @classmethod
+    def validate_timeout(cls, v: float | None) -> float | None:
+        """Validate timeout is a positive number."""
+        if v is not None and v <= 0:
+            raise ValueError(f"timeout must be positive, got {v}")
         return v
 
     @field_validator("on_error")

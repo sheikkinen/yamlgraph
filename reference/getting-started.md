@@ -96,6 +96,8 @@ result = execute_prompt(
 | `passthrough` | State transformation without LLM |
 | `subgraph` | Nested graph execution |
 | `interactive_tool` | Multi-turn conversation loop (start→ask→step↺→end) |
+| `race` | Race multiple providers, return fastest |
+| `pipeline` | Compile-time items × stages expansion |
 | `copilot` | Delegate task to Copilot CLI |
 
 ## CLI Usage

@@ -1,0 +1,8 @@
+# Tasks with varying durations to demonstrate timeout behavior
+tasks:
+  - name: "fast-task"
+    delay_seconds: 0.1
+  - name: "medium-task"
+    delay_seconds: 0.3
+  - name: "slow-task"
+    delay_seconds: 5.0

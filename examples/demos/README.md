@@ -40,10 +40,12 @@ Start here and progress in order:
 | [soul/](soul/) | `llm`, `data_files` | Agent personality pattern |
 | [innovation_matrix/](innovation_matrix/) | `map`, `python`, `llm` | 5×5 creativity matrix with parallel expansion |
 | [python-map/](python-map/) | `map`, `python` | Python sub-nodes in map |
+| [map-timeout/](map-timeout/) | `map`, `python` | Per-branch timeout (FR-069) |
 | [safety-guards/](safety-guards/) | `router`, `llm` | Input/output guardrails |
 | [multi-turn/](multi-turn/) | `interrupt` | Multi-turn conversation with memory |
 | [thinking/](thinking/) | `llm` | Extended thinking budget (FR-071) |
 | [horoscope/](horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs (FR-201) |
+| [cache/](cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 
 ## Running Demos
 

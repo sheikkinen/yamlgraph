@@ -1,0 +1,11 @@
+2026-04-18 23:45:55,863 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: slow_task
+2026-04-18 23:45:55,863 [INFO] yamlgraph.node_compiler: Added node: process (type=map)
+
+🚀 Running graph: graph.yaml
+
+============================================================
+RESULT
+============================================================
+  current_step:
+  workload: {'tasks': [{'name': 'fast-task', 'delay_seconds': 0.1}, {'name': 'medium-task', 'delay_seconds': 0.3}, {'name': 'slow-task', 'delay_seconds': 5.0}]}
+  results: [{'_map_index': 0, 'name': 'fast-task', 'status': 'completed', 'duration': 0.1}, {'_map_index': 1, 'name': 'medium-task', 'status': 'completed', 'duration': 0.3}, {'_map_index': 2, '_error': 'Branch timed out after 1.0s', '_error_type': 'TimeoutError'}]

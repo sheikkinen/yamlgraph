@@ -256,6 +256,7 @@ Each node in the `nodes` section defines a processing step.
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
 | `route_field` | `string` | — | **Required for routers.** Schema field to extract route key from (FR-107) |
 | `verification` | `object` | `null` | Verification gate: falsifiable prediction checked after execution (FR-164) |
+| `timeout` | `float` | `null` | Per-node execution timeout in seconds (FR-069). Wraps execution in a one-shot `ThreadPoolExecutor`. On timeout, a `PipelineError` with `error_type=TIMEOUT_ERROR` is returned. Works on all node types. |
 
 ### `type: llm` - Standard LLM Node
 
@@ -593,6 +594,8 @@ nodes:
 | `node` | `object` | Yes | Sub-node definition (llm, router, or python) |
 | `collect` | `string` | Yes | State key where results are collected |
 | `max_items` | `int` | No | Maximum fan-out items (overrides `config.max_map_items`) |
+| `timeout` | `float` | No | Per-branch timeout in seconds (FR-069). Each branch must complete within this limit. |
+| `on_error` | `string` | No | Error handling: `skip` skips timed-out branches, `fail` (default) raises |
 
 **How it works:**
 1. Fan-out: Each item is dispatched via `Send()` for parallel processing
@@ -611,6 +614,8 @@ node:
 ```
 
 See [Map Nodes Reference](map-nodes.md) for detailed examples and patterns.
+
+**Known limitation — thread leakage (FR-069):** When `Future.result(timeout=N)` raises `TimeoutError`, the submitted thread continues running until the callable returns naturally or the process exits. In a long-lived process, a high rate of timeouts may accumulate background threads. Cancellable futures are out of scope; a follow-on FR may address this using structured concurrency.
 
 ### `type: interrupt` - Human-in-the-Loop
 
@@ -759,6 +764,200 @@ the next edge when `loop_until` fires.
 
 See [examples/demos/interactive_tool/](../examples/demos/interactive_tool/) for a working trivia quiz demo.
 
+### `type: pipeline` - Sequential Item Processing
+
+Process a list of items through a series of stages sequentially. Expands at compile time into concrete nodes and edges — no Python needed.
+
+```yaml
+nodes:
+  chapters:
+    type: pipeline
+    items:
+      - name: ch1
+        title: "The Beginning"
+      - name: ch2
+        title: "The Journey"
+    stages:
+      - name: draft
+        type: llm
+        prompt: draft_chapter
+        variables:
+          title: "{item.title}"
+        state_key: draft_{item.name}
+      - name: polish
+        type: llm
+        prompt: polish_chapter
+        variables:
+          draft: "{state.draft_{item.name}}"
+        state_key: polished_{item.name}
+```
+
+### `type: race` - Race Multiple Providers
+
+Fire the same prompt to multiple LLM provider/model candidates concurrently
+and return the fastest successful response (FR-232). Useful for
+latency-sensitive graphs where hedging across providers reduces tail latency.
+
+```yaml
+nodes:
+  fastest_answer:
+    type: race
+    prompt: answer
+    state_key: answer
+    timeout: 15
+    candidates:
+      - provider: mistral
+        model: mistral-small-latest
+      - provider: openai
+        model: gpt-4o-mini
+      - provider: google
+        model: gemini-2.0-flash
+```
+
+**Race node properties:**
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `candidates` | `list[{provider, model}]` | Yes | Provider/model pairs to race (minimum 2) |
+| `timeout` | `int` | No | Per-candidate timeout in seconds (default: 30) |
+| `prompt` | `string` | Yes | Prompt template name |
+| `state_key` | `string` | Yes | State key for the winning response |
+| `temperature` | `float` | No | LLM temperature for all candidates |
+
+**How it works:**
+1. All candidates are dispatched concurrently via `ThreadPoolExecutor`
+2. The first candidate to return a successful response wins
+3. Remaining in-flight candidates are cancelled
+4. `state_key` receives the winning response text
+5. `_race_winner` is set to a string identifying which candidate won (e.g. `"mistral/mistral-small-latest"`)
+
+**Error handling:** When all candidates fail (timeout or exception), the node's
+`on_error` policy applies (`skip`, `retry`, `fail`, or `fallback`).
+
+See [examples/demos/race/](../examples/demos/race/) for a working demo.
+
+### `type: pipeline` - Compile-Time Pipeline Templates
+
+Define a sequence of stages once, iterate over a list of items, and expand
+to concrete nodes and edges at compile time (FR-235). This is a meta-node —
+it does not exist at runtime, only its expanded concrete nodes do.
+
+```yaml
+nodes:
+  topics:
+    type: pipeline
+    items:
+      - name: sun
+        subject: "the Sun"
+      - name: moon
+        subject: "the Moon"
+    stages:
+      - name: draft
+        type: llm
+        prompt: draft
+        variables:
+          subject: "{item.subject}"
+        state_key: draft_{item.name}
+      - name: polish
+        type: llm
+        prompt: polish
+        variables:
+          draft: "{state.draft_{item.name}}"
+        state_key: polished_{item.name}
+```
+
+**Pipeline node properties:**
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `items` | `list` | Yes | List of items to process (each must have `name`) |
+| `stages` | `list` | Yes | Stage definitions executed per item in order |
+
+**How it works:**
+1. Each item is processed through all stages sequentially
+2. `{item.field}` in stage configs is interpolated per item
+3. Items execute sequentially: ch1 stages → ch2 stages → …
+4. External edges are rewritten to the first/last expanded nodes
+
+See [examples/demos/pipeline/](../examples/demos/pipeline/) for a working demo.
+
+#### Accumulated State
+
+When later items need context from earlier items, use a shared `state_key` with a reducer. The `add` reducer on a list field accumulates results across items instead of overwriting.
+
+**State config with reducer:**
+
+```yaml
+state:
+  glossary:
+    type: list
+    reducer: add
+
+nodes:
+  chapters:
+    type: pipeline
+    items:
+      - name: ch1
+        title: "The Beginning"
+      - name: ch2
+        title: "The Journey"
+      - name: ch3
+        title: "The Return"
+    stages:
+      - name: translate
+        type: llm
+        prompt: translate_chapter
+        variables:
+          title: "{item.title}"
+          glossary: "{state.glossary}"
+        state_key: translated_{item.name}
+      - name: extract_terms
+        type: llm
+        prompt: extract_terms
+        variables:
+          translation: "{state.translated_{item.name}}"
+        state_key: glossary
+        skip_if_exists: false
+```
+
+**How accumulated state works:**
+
+1. ch1's `extract_terms` writes `["term_a"]` to `glossary` — reducer appends to empty list
+2. ch2's `translate` reads `glossary: ["term_a"]` — previous terms available as context
+3. ch2's `extract_terms` writes `["term_b"]` — reducer appends, glossary is now `["term_a", "term_b"]`
+4. ch3's `translate` reads the full accumulated glossary
+
+**Why `{prev_item}` syntax is unnecessary:** The `add` reducer on a shared state key solves cross-item reads without new interpolation syntax. Each stage reads `{state.glossary}` — the reducer handles accumulation.
+
+**Sequential execution constraint:** Accumulated state works because pipeline items execute sequentially (ch1 → ch2 → ch3). If pipelines ever support parallel item execution, cross-item dependencies become impossible. Sequential chaining is what makes accumulation work. This is a feature, not a limitation.
+
+**`skip_if_exists: false` requirement (W021):** List-typed state keys with the `add` reducer are truthy after the first append. The default `skip_if_exists: true` on LLM nodes causes stages 2+ to skip. Accumulated state keys require explicit `skip_if_exists: false`. The linter warns about this (W021).
+
+**Available reducers:**
+
+| Reducer | Behavior | Use Case |
+|---------|----------|----------|
+| `add` | Append new items to list | Accumulating results across stages |
+| `last_value` | Keep last written value | Safe concurrent fan-in |
+| `sorted_add` | Append and sort by `_map_index` | Map node result ordering |
+| `items` | `list[dict]` | Yes | List of item dicts; each must have a `name` field plus arbitrary fields |
+| `stages` | `list[dict]` | Yes | List of node configs supporting `{item.field}` and `{state.field}` interpolation |
+
+**Expansion semantics:**
+- `N items × M stages = N×M` concrete nodes, chained sequentially per item
+- External edges (e.g. `START → pipeline_node`, `pipeline_node → END`) are
+  rewritten to point to the first and last expanded nodes respectively
+- Expanded node names follow the pattern `<pipeline>_<item>_<stage>`
+
+**Interpolation:**
+- `{item.field}` — replaced with the item's field value in `prompt`, `variables`, `state_key`
+- `{state.field}` — replaced at runtime with state values (use in `variables`)
+- Non-string fields are copied verbatim (no interpolation)
+
+**Lint checks:** E401 (empty items), E402 (empty stages), E403 (unresolved
+`{item.xxx}` references), E404 (item missing `name` field).
+
+See [examples/demos/pipeline/](../examples/demos/pipeline/) for a working demo.
 ### Error Handling Properties
 
 All node types support error handling:

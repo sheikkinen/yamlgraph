@@ -87,6 +87,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [multi-turn](demos/multi-turn/) | `interrupt`, `llm` | Multi-turn streaming with checkpoints (FR-028) |
 | [novel_generator](demos/novel_generator/) | `llm`, `map` | Three-phase story generation with quality gates |
 | [python-map](demos/python-map/) | `map`, `python` | Parallel Python tools |
+| [map-timeout](demos/map-timeout/) | `map`, `python` | Per-branch timeout for map nodes (FR-069) |
 | [safety-guards](demos/safety-guards/) | `llm`, `map` | Execution safety with recursion limits (FR-027) |
 | [session-continuation](demos/session-continuation/) | `copilot` | Session persistence across runs |
 | [soul](demos/soul/) | `llm`, `data_files` | Agent personality pattern |
@@ -97,6 +98,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [verified-search](demos/verified-search/) | `agent`, `llm` | Evaluation-first search with verification |
 | [web-research](demos/web-research/) | `agent` | Web search agent |
 | [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |
+| [cache](demos/cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 
 ### Utility Demos
 
