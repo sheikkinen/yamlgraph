@@ -20,10 +20,25 @@ PyTorch was not found. Models won't be available and only tokenizers, configurat
     PyTorch dropped Intel Mac support after 2.2.x.
     Run this demo on Apple Silicon, Linux, or Windows.
 
+# FR-237 consolidated: graph.yaml (multilingual TTS) + clone.yaml (voice cloning) + speak.py (CLI)
+# graph.yaml CI smoke output (no torch / no provider credentials in CI):
+2026-04-19 07:45:00,000 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: synthesize_audio, synthesize_cloned_audio
+2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: generate (type=map)
+2026-04-19 07:45:00,001 [INFO] yamlgraph.node_compiler: Added node: synthesize (type=python)
+2026-04-19 07:45:00,005 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-19 07:45:00,650 [ERROR] yamlgraph.error_handlers: Node _map_generate_sub failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-19 07:45:00,651 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: synthesize -> synthesize_audio
+2026-04-19 07:45:00,651 [ERROR] yamlgraph.tools.python_tool: Python node synthesize failed: No module named 'torch'
+
 🚀 Running graph: graph.yaml
    Variables: {'topic': 'the beauty of nature'}
 
-LLM stage (translate): ✅ All 5 languages generated successfully
-TTS stage (synthesize): ❌ Blocked — torch==2.6.0 unavailable on Intel Mac
+❌ Error: No module named 'torch'
 
-To run end-to-end, use an Apple Silicon Mac, Linux, or Windows host.
+# clone.yaml smoke test (graph loads without import error):
+✓ Graph config loaded: chatterbox-voice-clone
+
+# speak.py --ref validation (no real audio required):
+$ python examples/demos/chatterbox/speak.py --ref /nonexistent.wav "Hello"
+Error: reference file not found: /nonexistent.wav
+[exit code 1]
