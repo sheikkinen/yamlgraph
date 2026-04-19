@@ -1,4 +1,4 @@
-id: CAP-96
+id: CAP-100
 name: Chatterbox Multilingual CLI
 description: >
   speak.py --lang flag routes to ChatterboxMultilingualTTS for non-English language
@@ -9,7 +9,7 @@ description: >
 modules:
   - examples/demos/chatterbox
 requirements:
-  - id: REQ-YG-239
+  - id: REQ-YG-242
     description: >
       Chatterbox multilingual CLI: speak.py --lang <code> routes to
       ChatterboxMultilingualTTS for non-English codes; --ref incompatible with

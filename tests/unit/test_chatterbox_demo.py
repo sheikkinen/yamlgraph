@@ -541,7 +541,7 @@ class TestSpeakCLI:
         assert save_path.endswith("outputs/chatterbox/speak.wav")
 
 
-@pytest.mark.req("REQ-YG-239")
+@pytest.mark.req("REQ-YG-242")
 class TestSpeakCLIMultilingual:
     """Test speak.py --lang flag (FR-239): multilingual path via ChatterboxMultilingualTTS."""
 
