@@ -2,6 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
+**Status:** Approved
 **Status:** Implemented
 **Judged:** 2026-04-18
 **Effort:** 3 days
@@ -168,6 +169,21 @@ Follow the `expand_interactive_tools()` pattern from FR-049 (`yamlgraph/interact
 
 ## Acceptance Criteria
 
+- [ ] `type: pipeline` node with `items` and `stages` expands to concrete nodes at load time
+- [ ] Expanded nodes are functionally identical to hand-written equivalents
+- [ ] Sequential chaining: stages chain within each item, items chain between each other
+- [ ] Edge rewriting: external edges to/from pipeline node redirect to first/last expanded node
+- [ ] `{item.field}` interpolation substitutes item values into stage `prompt`, `variables`, and `state_key`
+- [ ] Non-string stage fields (`timeout`, `temperature`, `type`) are copied verbatim, not interpolated
+- [ ] Lint validates: `items` has ≥ 1 entry, `stages` has ≥ 1 entry, all `{item.*}` references resolve
+- [ ] Lint reports error for unresolved `{item.*}` references
+- [ ] Pipeline expansion composes with other expansions (`expand_interactive_tools`, `apply_loop_node_defaults`)
+- [ ] Expanded graph is visible via `yamlgraph graph info` (shows concrete nodes, not the template)
+- [ ] Unit tests: expansion logic with mock configs (varying items/stages counts)
+- [ ] Unit tests: edge rewriting (START→pipeline, pipeline→END, pipeline→other_node)
+- [ ] Unit tests: `{item.field}` interpolation including nested variables
+- [ ] Integration test: ebook graph rewritten with `type: pipeline`, produces identical execution
+- [ ] Requirement traceability: `REQ-YG-235+` tagged on all tests
 - [x] `type: pipeline` node with `items` and `stages` expands to concrete nodes at load time
 - [x] Expanded nodes are functionally identical to hand-written equivalents
 - [x] Sequential chaining: stages chain within each item, items chain between each other

@@ -127,15 +127,18 @@ class NodeConfig(BaseModel):
     tools: list[str] = Field(default_factory=list)
     max_iterations: int = Field(default=10, ge=1)
 
+    # Per-node timeout (FR-069)
+    timeout: float | None = Field(
+        default=None,
+        description="Timeout in seconds for node execution (any node type)",
+    )
+
     # Copilot node fields (REQ-YG-087)
     backend: str | None = Field(
         default=None, description="Copilot backend: 'cli' or 'sampling'"
     )
     cli_flags: dict[str, Any] | None = Field(
         default=None, description="CLI flags for copilot node (allow_all_paths, etc.)"
-    )
-    timeout: int | None = Field(
-        default=None, description="Timeout in seconds for copilot node (default 300)"
     )
 
     # Race node fields (FR-232)
@@ -176,6 +179,14 @@ class NodeConfig(BaseModel):
         """Parse verification from dict (YAML input) to VerificationConfig."""
         if isinstance(v, dict):
             return VerificationConfig(**v)
+        return v
+
+    @field_validator("timeout")
+    @classmethod
+    def validate_timeout(cls, v: float | None) -> float | None:
+        """Validate timeout is a positive number."""
+        if v is not None and v <= 0:
+            raise ValueError(f"timeout must be positive, got {v}")
         return v
 
     @field_validator("on_error")

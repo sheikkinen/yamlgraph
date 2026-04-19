@@ -256,6 +256,7 @@ Each node in the `nodes` section defines a processing step.
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
 | `route_field` | `string` | — | **Required for routers.** Schema field to extract route key from (FR-107) |
 | `verification` | `object` | `null` | Verification gate: falsifiable prediction checked after execution (FR-164) |
+| `timeout` | `float` | `null` | Per-node execution timeout in seconds (FR-069). Wraps execution in a one-shot `ThreadPoolExecutor`. On timeout, a `PipelineError` with `error_type=TIMEOUT_ERROR` is returned. Works on all node types. |
 
 ### `type: llm` - Standard LLM Node
 
@@ -593,6 +594,8 @@ nodes:
 | `node` | `object` | Yes | Sub-node definition (llm, router, or python) |
 | `collect` | `string` | Yes | State key where results are collected |
 | `max_items` | `int` | No | Maximum fan-out items (overrides `config.max_map_items`) |
+| `timeout` | `float` | No | Per-branch timeout in seconds (FR-069). Each branch must complete within this limit. |
+| `on_error` | `string` | No | Error handling: `skip` skips timed-out branches, `fail` (default) raises |
 
 **How it works:**
 1. Fan-out: Each item is dispatched via `Send()` for parallel processing
@@ -611,6 +614,8 @@ node:
 ```
 
 See [Map Nodes Reference](map-nodes.md) for detailed examples and patterns.
+
+**Known limitation — thread leakage (FR-069):** When `Future.result(timeout=N)` raises `TimeoutError`, the submitted thread continues running until the callable returns naturally or the process exits. In a long-lived process, a high rate of timeouts may accumulate background threads. Cancellable futures are out of scope; a follow-on FR may address this using structured concurrency.
 
 ### `type: interrupt` - Human-in-the-Loop
 

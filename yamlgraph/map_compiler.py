@@ -4,8 +4,10 @@ This module provides functionality to compile map nodes that fan out
 to sub-nodes for parallel processing using LangGraph's Send mechanism.
 """
 
+import concurrent.futures
 import logging
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from langgraph.graph import StateGraph
@@ -88,11 +90,35 @@ def flatten_map_results(items: list[dict]) -> list[dict]:
     return result
 
 
+def _execute_node_fn(
+    node_fn: Callable[[dict], dict],
+    state: dict,
+    timeout: float | None,
+) -> dict:
+    """Execute a node function with optional timeout.
+
+    FR-069: When timeout is set, runs in a one-shot ThreadPoolExecutor.
+    Raises concurrent.futures.TimeoutError on timeout.
+
+    Note: Uses cancel_futures=True on shutdown so the timed-out thread
+    does not block the caller (ThreadPoolExecutor.__exit__ calls
+    shutdown(wait=True) which would wait for the thread to finish).
+    """
+    if timeout is not None:
+        pool = ThreadPoolExecutor(max_workers=1)
+        try:
+            return pool.submit(node_fn, state).result(timeout=timeout)
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
+    return node_fn(state)
+
+
 def wrap_for_reducer(
     node_fn: Callable[[dict], dict],
     collect_key: str,
     state_key: str,
     flatten_output: bool = False,
+    timeout: float | None = None,
 ) -> Callable[[dict], dict]:
     """Wrap sub-node output for Annotated reducer aggregation.
 
@@ -104,6 +130,7 @@ def wrap_for_reducer(
         collect_key: State key where results are collected
         state_key: Key to extract from node result
         flatten_output: If True, merge _map_xxx_sub contents into items (FR-052)
+        timeout: Optional per-branch timeout in seconds (FR-069)
 
     Returns:
         Wrapped function that outputs in reducer-compatible format
@@ -111,7 +138,26 @@ def wrap_for_reducer(
 
     def wrapped(state: dict) -> dict:
         try:
-            result = node_fn(state)
+            result = _execute_node_fn(node_fn, state, timeout)
+        except concurrent.futures.TimeoutError as e:
+            from yamlgraph.models import PipelineError
+            from yamlgraph.models.schemas import ErrorType
+
+            error_result = {
+                "_map_index": state.get("_map_index", 0),
+                "_error": f"Branch timed out after {timeout}s",
+                "_error_type": "TimeoutError",
+            }
+            return {
+                collect_key: [error_result],
+                "errors": [
+                    PipelineError.from_exception(
+                        e,
+                        node="map_subnode",
+                        error_type=ErrorType.TIMEOUT_ERROR,
+                    )
+                ],
+            }
         except Exception as e:
             # Propagate error with map index
             from yamlgraph.models import PipelineError
@@ -264,7 +310,9 @@ def compile_map_node(
             sub_node_name, sub_node_config, defaults, graph_path=graph_path
         )
 
-    wrapped_node = wrap_for_reducer(sub_node, collect_key, state_key, flatten_output)
+    wrapped_node = wrap_for_reducer(
+        sub_node, collect_key, state_key, flatten_output, timeout=config.get("timeout")
+    )
     builder.add_node(sub_node_name, wrapped_node)
 
     # Create fan-out edge function using Send
