@@ -1,7 +1,6 @@
 ---
 type: feat
 scope: architecture
-req: REQ-YG-105
 ---
 - **FR-107 Architecture Cross-Check** (ADR-001): `req_coverage.py --strict` now verifies all requirements exist in `ARCHITECTURE.md`
   - Detects phantom requirements: IDs in `ALL_REQS` missing from architecture table
