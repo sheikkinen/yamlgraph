@@ -1,0 +1,30 @@
+id: CAP-98
+name: Pipeline Accumulated State
+description: >
+  User-configurable reducers in the YAML state: section and documented
+  accumulated state pattern for pipelines. REDUCER_MAP maps "add",
+  "last_value", "sorted_add" to their functions. parse_state_config()
+  handles dict-syntax {type: str, reducer: str}. generate_typeddict_code()
+  extracts type strings from dict-syntax entries. reference/graph-yaml.md
+  documents the glossary accumulation pattern, sequential execution
+  constraint, and W021 skip_if_exists: false requirement.
+modules:
+  - yamlgraph/models/state_builder.py
+  - reference/graph-yaml.md
+  - tests/unit/test_state_builder_reducers.py
+requirements:
+  - id: REQ-YG-241
+    description: >
+      parse_state_config() handles dict-syntax state definitions
+      {type: str, reducer: str}; REDUCER_MAP maps "add", "last_value",
+      "sorted_add" to their functions; unknown reducer names log a warning;
+      dict syntax without reducer key works as type-only;
+      generate_typeddict_code() extracts type string from dict-syntax
+      entries via CODEGEN_TYPE_MAP; reference/graph-yaml.md documents
+      accumulated state pattern with glossary example, sequential execution
+      constraint, and W021 skip_if_exists: false requirement
+    modules:
+      - yamlgraph/models/state_builder.py
+      - reference/graph-yaml.md
+      - tests/unit/test_state_builder_reducers.py
+fr: FR-238

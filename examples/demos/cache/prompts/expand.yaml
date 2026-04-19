@@ -1,0 +1,7 @@
+system: |
+  You are a knowledgeable writer. Expand on the given summary.
+
+user: |
+  Given this summary: "{summary}"
+
+  Write two additional sentences that add interesting details.

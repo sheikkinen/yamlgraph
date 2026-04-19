@@ -1,0 +1,31 @@
+version: "1.0"
+name: map-timeout-demo
+description: Demonstrates per-node timeout for map branches (FR-069)
+
+data_files:
+  workload: tasks.yaml
+
+tools:
+  slow_task:
+    type: python
+    module: examples.demos.map-timeout.tools
+    function: slow_task
+    description: Simulate a task with variable duration
+
+nodes:
+  process:
+    type: map
+    over: "{state.workload.tasks}"
+    as: task
+    collect: results
+    timeout: 1.0
+    node:
+      type: python
+      tool: slow_task
+      state_key: result
+
+edges:
+  - from: START
+    to: process
+  - from: process
+    to: END

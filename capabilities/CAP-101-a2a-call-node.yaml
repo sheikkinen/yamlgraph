@@ -1,4 +1,4 @@
-id: CAP-96
+id: CAP-101
 name: A2A Call Node Type
 description: >
   A type: a2a_call node that sends a Jinja2-templated message to an external
@@ -16,7 +16,7 @@ modules:
   - yamlgraph/linter/patterns/a2a.py
   - yamlgraph/linter/checks.py
 requirements:
-  - id: REQ-YG-239
+  - id: REQ-YG-243
     description: >
       type: a2a_call node sends Jinja2-templated message to external A2A agent
       URL via HTTP JSON-RPC tasks/send; extracts text artifacts from response;

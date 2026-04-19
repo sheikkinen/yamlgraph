@@ -18,12 +18,12 @@ from yamlgraph.constants import NodeType
 class TestA2ACallNodeType:
     """A2A_CALL should be a valid NodeType constant."""
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_a2a_call_in_node_type_enum(self):
         """A2A_CALL should be a valid NodeType."""
         assert NodeType.A2A_CALL == "a2a_call"
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_a2a_call_does_not_require_prompt(self):
         """a2a_call nodes use inline message, not prompt files."""
         assert NodeType.requires_prompt("a2a_call") is False
@@ -37,7 +37,7 @@ class TestA2ACallNodeType:
 class TestA2ACallNodeCompilerRegistration:
     """a2a_call must be registered in NODE_TYPE_HANDLERS."""
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_a2a_call_in_node_type_handlers(self):
         """a2a_call should be in the node type registry."""
         from yamlgraph.node_compiler import NODE_TYPE_HANDLERS
@@ -53,7 +53,7 @@ class TestA2ACallNodeCompilerRegistration:
 class TestA2ACallLinterNodeType:
     """a2a_call must be a valid node type in the linter."""
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_a2a_call_in_valid_node_types(self):
         """a2a_call should be in linter VALID_NODE_TYPES set."""
         from yamlgraph.linter.checks import VALID_NODE_TYPES
@@ -92,7 +92,7 @@ class TestCreateA2ACallNode:
             "state_key": "research_result",
         }
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_create_a2a_call_node_returns_callable(self, basic_node_config):
         """Factory should return a callable node function."""
         from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
@@ -100,7 +100,7 @@ class TestCreateA2ACallNode:
         node_fn = create_a2a_call_node("research", basic_node_config)
         assert callable(node_fn)
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_node_function_name(self, basic_node_config):
         """Node function should have a descriptive __name__."""
         from yamlgraph.node_factory.a2a_nodes import create_a2a_call_node
@@ -108,7 +108,7 @@ class TestCreateA2ACallNode:
         node_fn = create_a2a_call_node("research", basic_node_config)
         assert "research" in node_fn.__name__
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_invocation_sends_message(
         self, mock_send, basic_node_config, sample_state
@@ -127,7 +127,7 @@ class TestCreateA2ACallNode:
         assert call_args[1]["agent_url"] == "http://localhost:8080"
         assert "quantum computing" in call_args[1]["message"]
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_stores_result_in_state_key(
         self, mock_send, basic_node_config, sample_state
@@ -143,7 +143,7 @@ class TestCreateA2ACallNode:
         assert result["research_result"] == "Agent response text"
         assert result["current_step"] == "research"
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_updates_loop_counts(self, mock_send, basic_node_config, sample_state):
         """Node should track loop counts like other node types."""
@@ -156,7 +156,7 @@ class TestCreateA2ACallNode:
 
         assert result["_loop_counts"]["research"] == 1
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_renders_jinja2_template(self, mock_send, sample_state):
         """Message template should be rendered with Jinja2."""
@@ -176,7 +176,7 @@ class TestCreateA2ACallNode:
         call_args = mock_send.call_args
         assert call_args[1]["message"] == "Analyze quantum computing in depth"
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_with_variables(self, mock_send, sample_state):
         """Variables templates should be resolved from state and available."""
@@ -197,7 +197,7 @@ class TestCreateA2ACallNode:
         call_args = mock_send.call_args
         assert call_args[1]["message"] == "Research quantum computing"
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_timeout_passed(self, mock_send, sample_state):
         """Timeout from config should be passed to send function."""
@@ -218,7 +218,7 @@ class TestCreateA2ACallNode:
         call_args = mock_send.call_args
         assert call_args[1]["timeout"] == 30
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_on_error_skip(self, mock_send, sample_state):
         """on_error: skip should catch errors and return None in state_key."""
@@ -239,7 +239,7 @@ class TestCreateA2ACallNode:
         assert result["result"] is None
         assert len(result["errors"]) == 1
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes._send_a2a_message")
     def test_node_on_error_fail_raises(self, mock_send, sample_state):
         """on_error: fail (default) should raise the exception."""
@@ -266,7 +266,7 @@ class TestCreateA2ACallNode:
 class TestA2AMessageSender:
     """Test the _send_a2a_message helper function."""
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_send_message_builds_jsonrpc_request(self, mock_httpx):
         """Should send a valid A2A JSON-RPC message/send request."""
@@ -304,7 +304,7 @@ class TestA2AMessageSender:
         assert body["method"] == "message/send"
         assert body["params"]["message"]["role"] == "user"
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_send_message_extracts_text_from_artifacts(self, mock_httpx):
         """Should extract and concatenate text from all artifact parts."""
@@ -341,7 +341,7 @@ class TestA2AMessageSender:
 
         assert result == "Part 1\nPart 2\nPart 3"
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_send_message_failed_task_raises(self, mock_httpx):
         """Should raise when the A2A task fails."""
@@ -372,7 +372,7 @@ class TestA2AMessageSender:
                 timeout=60,
             )
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_send_message_http_error_raises(self, mock_httpx):
         """Should raise on HTTP errors."""
@@ -390,7 +390,7 @@ class TestA2AMessageSender:
                 timeout=60,
             )
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     @patch("yamlgraph.node_factory.a2a_nodes.httpx")
     def test_send_message_no_artifacts_returns_status(self, mock_httpx):
         """When task completes with no artifacts, return status message text."""
@@ -431,7 +431,7 @@ class TestA2AMessageSender:
 class TestA2ACallLinterPatterns:
     """Linter should validate a2a_call node structure."""
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_e901_missing_agent_url(self):
         """E901: a2a_call node missing agent_url."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
@@ -447,7 +447,7 @@ class TestA2ACallLinterPatterns:
         codes = [i.code for i in issues]
         assert "E901" in codes
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_e902_missing_message(self):
         """E902: a2a_call node missing message."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
@@ -463,7 +463,7 @@ class TestA2ACallLinterPatterns:
         codes = [i.code for i in issues]
         assert "E902" in codes
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_e903_missing_state_key(self):
         """E903: a2a_call node missing state_key."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
@@ -479,7 +479,7 @@ class TestA2ACallLinterPatterns:
         codes = [i.code for i in issues]
         assert "E903" in codes
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_valid_a2a_call_node_no_issues(self):
         """Valid a2a_call node should produce no issues."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_node_structure
@@ -495,7 +495,7 @@ class TestA2ACallLinterPatterns:
         )
         assert issues == []
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_check_a2a_call_patterns_scans_graph(self, tmp_path):
         """check_a2a_call_patterns should scan all nodes in a graph file."""
         from yamlgraph.linter.patterns.a2a import check_a2a_call_patterns
@@ -527,7 +527,7 @@ class TestA2ACallLinterPatterns:
 class TestA2ACallExport:
     """a2a_call factory should be importable from node_factory."""
 
-    @pytest.mark.req("REQ-YG-239")
+    @pytest.mark.req("REQ-YG-243")
     def test_create_a2a_call_node_importable(self):
         """create_a2a_call_node should be importable from node_factory."""
         from yamlgraph.node_factory import create_a2a_call_node

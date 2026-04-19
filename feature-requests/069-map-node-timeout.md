@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-02-21
 
@@ -138,20 +138,20 @@ When `Future.result(timeout=N)` raises `TimeoutError`, the submitted thread is *
 
 ## Acceptance Criteria
 
-- [ ] `NodeConfig` has optional `timeout: float | None` field, validated as a positive float
-- [ ] Map branch honours `timeout`; a branch exceeding it raises `PipelineError` via `PipelineError.from_exception(e, node="map_subnode", error_type=ErrorType.TIMEOUT_ERROR)`
-- [ ] `on_error: skip` on a map node successfully skips timed-out branches and collects the rest
-- [ ] Non-map nodes (llm, tool_call, python, agent) also respect `timeout` when set
-- [ ] `TIMEOUT_ERROR = "timeout_error"` is a distinct `ErrorType` value in `models/schemas.py`
-- [ ] `from_exception` classification logic is **not** modified; callers pass `error_type=ErrorType.TIMEOUT_ERROR` explicitly
-- [ ] `except concurrent.futures.TimeoutError` appears **before** `except Exception` in both `wrap_for_reducer` and the non-map node execution path, preventing silent reclassification as `LLM_ERROR`
-- [ ] `compile_map_node` call site updated to pass `timeout=config.get("timeout")` to `wrap_for_reducer`
-- [ ] Lint warning emitted when a map node contains an agent sub-node without `timeout`
-- [ ] Unit tests added with a mock that simulates a hung call using `time.sleep` inside the node fn
-- [ ] Integration test (marked `slow`) demonstrating skip behaviour via a `sleep`-based tool node without network I/O
-- [ ] All new tests carry `@pytest.mark.req("REQ-YG-078")` referencing a new requirement added to `ARCHITECTURE.md`
-- [ ] `ALL_REQS` range extended to 78 and new capability entry added to `CAPABILITIES` dict in `scripts/req_coverage.py`
-- [ ] Known thread-leakage limitation documented in `reference/graph-yaml.md` alongside the `timeout` field docs
+- [x] `NodeConfig` has optional `timeout: float | None` field, validated as a positive float
+- [x] Map branch honours `timeout`; a branch exceeding it raises `PipelineError` via `PipelineError.from_exception(e, node="map_subnode", error_type=ErrorType.TIMEOUT_ERROR)`
+- [x] `on_error: skip` on a map node successfully skips timed-out branches and collects the rest
+- [x] Non-map nodes (llm, tool_call, python, agent) also respect `timeout` when set
+- [x] `TIMEOUT_ERROR = "timeout_error"` is a distinct `ErrorType` value in `models/schemas.py`
+- [x] `from_exception` classification logic is **not** modified; callers pass `error_type=ErrorType.TIMEOUT_ERROR` explicitly
+- [x] `except concurrent.futures.TimeoutError` appears **before** `except Exception` in both `wrap_for_reducer` and the non-map node execution path, preventing silent reclassification as `LLM_ERROR`
+- [x] `compile_map_node` call site updated to pass `timeout=config.get("timeout")` to `wrap_for_reducer`
+- [x] Lint warning emitted when a map node contains an agent sub-node without `timeout`
+- [x] Unit tests added with a mock that simulates a hung call using `time.sleep` inside the node fn
+- [x] Integration test (marked `slow`) demonstrating skip behaviour via a `sleep`-based tool node without network I/O
+- [x] All new tests carry `@pytest.mark.req("REQ-YG-078")` referencing a new requirement added to `ARCHITECTURE.md`
+- [x] `ALL_REQS` range extended to 78 and new capability entry added to `CAPABILITIES` dict in `scripts/req_coverage.py`
+- [x] Known thread-leakage limitation documented in `reference/graph-yaml.md` alongside the `timeout` field docs
 
 ## Alternatives Considered
 
