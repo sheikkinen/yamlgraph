@@ -1,5 +1,5 @@
-# A2A Call Demo — FR-240
-# Calls an external A2A agent to generate a greeting,
+# A2A Call Demo — FR-253
+# Calls an external A2A agent via type: python + contrib client,
 # then summarises the response with a local LLM node.
 
 version: "1.0"
@@ -16,13 +16,22 @@ state:
   name: str
   style: str
 
+tools:
+  a2a_send:
+    type: python
+    module: yamlgraph.contrib.a2a_client
+    function: send_a2a_message
+    description: "Send message to A2A agent"
+
 nodes:
   ask_agent:
-    type: a2a_call
-    agent_url: "http://localhost:9240/"
-    message: "name={{ name }} style={{ style }}"
+    type: python
+    tool: a2a_send
     state_key: agent_response
-    timeout: 60
+    variables:
+      agent_url: "http://localhost:9240/"
+      message: "name={state.name} style={state.style}"
+      timeout: "60"
 
   summarise:
     type: llm

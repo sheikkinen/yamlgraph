@@ -1,5 +1,5 @@
 ═══════════════════════════════════════════════════
-  FR-240: A2A Call Node Demo
+  FR-253: A2A Call Demo (contrib client)
 ═══════════════════════════════════════════════════
 
 🔍 Part 1: Lint the a2a_call graph
@@ -14,36 +14,24 @@
 ---
 🚀 Starting A2A server on 0.0.0.0:9240
 📋 Agent Card: http://0.0.0.0:9240/.well-known/agent-card.json
-INFO:     127.0.0.1:56926 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
-  ✓ Server ready (PID 2527)
+INFO:     127.0.0.1:63075 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+  ✓ Server ready (PID 93845)
 
 📨 Part 3: Run graph that calls the A2A server
   Command: yamlgraph graph run examples/demos/a2a_call/graph.yaml --var name=World --var style=casual --full
 ---
-2026-04-19 08:42:23,678 [INFO] yamlgraph.node_compiler: Added node: ask_agent (type=a2a_call)
-2026-04-19 08:42:23,679 [INFO] yamlgraph.node_compiler: Added node: summarise (type=llm)
-INFO:     127.0.0.1:56933 - "POST / HTTP/1.1" 200 OK
-2026-04-19 08:42:24,379 [INFO] httpx: HTTP Request: POST http://localhost:9240/ "HTTP/1.1 200 OK"
-2026-04-19 08:42:24,381 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
-2026-04-19 08:42:24,875 [ERROR] yamlgraph.error_handlers: Node summarise failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-19 17:43:48,302 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: a2a_send
+2026-04-19 17:43:48,302 [INFO] yamlgraph.node_compiler: Added node: ask_agent (type=python)
+2026-04-19 17:43:48,303 [INFO] yamlgraph.node_compiler: Added node: summarise (type=llm)
+2026-04-19 17:43:48,310 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: ask_agent -> a2a_send
+INFO:     127.0.0.1:63078 - "POST / HTTP/1.1" 200 OK
+2026-04-19 17:43:48,386 [INFO] httpx: HTTP Request: POST http://localhost:9240/ "HTTP/1.1 200 OK"
+2026-04-19 17:43:48,387 [ERROR] yamlgraph.tools.python_tool: Python node ask_agent failed: A2A JSON-RPC error: Agent should enqueue Task before TaskStatusUpdateEvent event
 
 🚀 Running graph: graph.yaml
    Variables: {'name': 'World', 'style': 'casual'}
 
-============================================================
-RESULT
-============================================================
-  current_step: summarise
-  style: casual
-  name: World
-  agent_response: greet
-
-[]
-
-casual
-
-World
-
+❌ Error: A2A JSON-RPC error: Agent should enqueue Task before TaskStatusUpdateEvent event
 
 ═══════════════════════════════════════════════════
   ✓ Demo complete

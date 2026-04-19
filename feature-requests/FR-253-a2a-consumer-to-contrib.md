@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-04-19
 
@@ -97,17 +97,17 @@ Re-run demo and capture new `demo-output.log`.
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph/contrib/a2a_client.py` exists with `send_a2a_message(state) → dict`
-- [ ] `yamlgraph/node_factory/a2a_nodes.py` deleted
-- [ ] `yamlgraph/linter/patterns/a2a.py` deleted
-- [ ] `A2A_CALL` removed from `NodeType` enum
-- [ ] `node_compiler.py` has no A2A handler
-- [ ] Demo graph uses `type: python` + contrib
+- [x] `yamlgraph/contrib/a2a_client.py` exists with `send_a2a_message(state) → dict`
+- [x] `yamlgraph/node_factory/a2a_nodes.py` deleted
+- [x] `yamlgraph/linter/patterns/a2a.py` deleted
+- [x] `A2A_CALL` removed from `NodeType` enum
+- [x] `node_compiler.py` has no A2A handler
+- [x] Demo graph uses `type: python` + contrib
 - [ ] Demo runs end-to-end (`demo-output.log` regenerated)
-- [ ] Unit tests cover contrib client: send, streaming, skill validation, error handling
-- [ ] Reference docs updated
-- [ ] All existing tests pass (no regressions)
-- [ ] Net line count reduction ≥ 400 lines
+- [x] Unit tests cover contrib client: send, streaming, skill validation, error handling
+- [x] Reference docs updated
+- [x] All existing tests pass (no regressions)
+- [x] Net line count reduction ≥ 400 lines
 
 ## Alternatives Considered
 

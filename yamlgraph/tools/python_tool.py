@@ -179,6 +179,12 @@ def create_python_node(
 
         logger.info(f"🐍 Executing Python node: {node_name} -> {tool_name}")
 
+        # FR-252: Resolve variables expressions before calling function
+        from yamlgraph.utils.expressions import resolve_node_variables
+
+        resolved = resolve_node_variables(variable_templates, state)
+        effective_state = {**state, **resolved} if resolved else state
+
         try:
             from yamlgraph.utils.expressions import resolve_node_variables
 

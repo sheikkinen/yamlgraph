@@ -18,6 +18,16 @@ from pathlib import Path
 from yamlgraph.linter.checks import LintIssue, load_graph
 
 
+def check_python_node_variables(graph_path: Path) -> list[LintIssue]:
+    """W020: removed — variables: on type: python is now resolved (FR-252).
+
+    Previously this warned that variables was a silent no-op. Now that
+    ``create_python_node`` resolves ``variables:`` expressions, the warning
+    is no longer applicable. Returns an empty list for API stability.
+    """
+    return []
+
+
 def check_identifier_keys(graph_path: Path) -> list[LintIssue]:
     """E012: Keys used as Python identifiers must not contain hyphens.
 

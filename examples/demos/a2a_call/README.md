@@ -1,7 +1,8 @@
-# A2A Call Node Demo
+# A2A Call Demo (Contrib Client)
 
-Demonstrates the `type: a2a_call` node (FR-240), which sends a message to an
-external A2A agent via HTTP JSON-RPC and stores the response in graph state.
+Demonstrates calling an external A2A agent via `type: python` +
+`yamlgraph.contrib.a2a_client` (FR-253). Replaces the former `type: a2a_call`
+dedicated node with a contrib function invoked through the standard python node.
 
 ## Usage
 
@@ -17,28 +18,28 @@ bash examples/demos/a2a_call/demo.sh
 
 1. Starts the hello-world graph as a local A2A server on port 9240
 2. Runs the `a2a-call-demo` graph which:
-   - Sends `name=World style=casual` to the A2A server via `ask_agent` node
+   - Sends `name=World style=casual` to the A2A server via `ask_agent` python node
    - Passes the response to a local `summarise` LLM node
 3. Stops the server
 
 ## Pipeline
 
 ```
-START → ask_agent (a2a_call) → summarise (llm) → END
+START → ask_agent (python: a2a_client) → summarise (llm) → END
 ```
 
 ## Key Concepts
 
-- **`type: a2a_call`** — Calls an external A2A agent over HTTP JSON-RPC
-- **`agent_url`** — URL of the target A2A server
-- **`message`** — Jinja2 template rendered with state variables
-- **`timeout`** — Request timeout in seconds
+- **`type: python`** — Invokes `yamlgraph.contrib.a2a_client.send_a2a_message`
+- **`variables:`** — Injects `agent_url`, `message`, `timeout` into state (FR-252)
+- **`yamlgraph.contrib.a2a_client`** — Contrib function for A2A consumer calls
+- **Agent Card** — Auto-fetched from `/.well-known/agent.json` when `skill:` specified
 
 ## Files
 
 ```
 a2a_call/
-├── graph.yaml          # Graph with a2a_call + llm nodes
+├── graph.yaml          # Graph with python (a2a_client) + llm nodes
 ├── prompts/
 │   └── summarise.yaml  # Prompt for the local LLM summariser
 ├── demo.sh             # Orchestrates server + graph run

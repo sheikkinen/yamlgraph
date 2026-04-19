@@ -247,3 +247,9 @@ from yamlgraph.utils.timing_tracker import (  # noqa: F401 (CONF-126)
 )
 
 ExecutionTimingCallbackHandler.on_llm_start
+
+from yamlgraph.linter.checks_contracts import (
+    check_python_node_variables,  # noqa: F401 (API stub for FR-252 compat)
+)
+
+check_python_node_variables
