@@ -1,0 +1,23 @@
+id: CAP-106
+name: Guardrails Pattern Documentation
+description: >
+  Document the input guardrails pattern (echo → validate → respond) as
+  Pattern 11 in reference/patterns.md. References the existing
+  examples/openai_proxy/ implementation as a production example.
+  Updates examples/README.md with a Guardrails category.
+modules:
+  - reference/patterns.md
+  - examples/README.md
+requirements:
+  - id: REQ-YG-254
+    description: >
+      Pattern 11 "Input Guardrails" in reference/patterns.md documents
+      the echo → validate → respond pipeline with Problem/Solution sections,
+      valid YAML graph example, Python tool implementations, prompt template,
+      Key Points table, and Related links referencing examples/openai_proxy/;
+      examples/README.md includes a Guardrails category in "By Feature" section
+    modules:
+      - reference/patterns.md
+      - examples/README.md
+      - tests/unit/test_guardrails_pattern_docs.py
+fr: FR-249
