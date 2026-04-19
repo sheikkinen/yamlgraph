@@ -1,0 +1,28 @@
+id: CAP-112
+name: Pipeline Timing Metrics
+description: >
+  Lightweight timing and outcome instrumentation for the three core pipeline
+  scripts (enforce_worktree.sh, bugfix_worktree.sh, watch.sh). Writes JSON
+  metrics files to tmp/pipeline-metrics/ on every exit. Includes a read-only
+  Python aggregation script for daily summaries. Pure bash + Python stdlib.
+modules:
+  - scripts/enforce_worktree.sh
+  - scripts/bugfix_worktree.sh
+  - .chaplain/watch.sh
+  - scripts/pipeline_summary.py
+requirements:
+  - id: REQ-YG-259
+    description: >
+      Pipeline scripts emit per-run JSON metrics to tmp/pipeline-metrics/
+      on every exit (success or failure). enforce_worktree.sh and
+      bugfix_worktree.sh use EXIT trap cleanup to write phase timing.
+      watch.sh uses inline cycle timing. pipeline_summary.py aggregates
+      daily metrics using Python stdlib only. Metric writes are best-effort
+      (guarded with || true). No new dependencies.
+    modules:
+      - scripts/enforce_worktree.sh
+      - scripts/bugfix_worktree.sh
+      - .chaplain/watch.sh
+      - scripts/pipeline_summary.py
+      - tests/unit/test_pipeline_timing.py
+fr: FR-256

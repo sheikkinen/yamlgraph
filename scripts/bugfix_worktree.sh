@@ -20,6 +20,17 @@
 
 set -euo pipefail
 
+# FR-256: Pipeline timing metrics
+METRIC_DIR="tmp/pipeline-metrics"
+mkdir -p "$METRIC_DIR"
+T_START=$(date +%s)
+STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+PHASE_WORKTREE_SETUP=0
+PHASE_LLM_ENFORCE=0
+PHASE_POST_ASSERTIONS=0
+PHASE_SUCCESS_OUTPUT=0
+PIPELINE_OUTCOME="failure"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -77,6 +88,22 @@ MAIN_DIR="$(pwd)"
 # Trap-based cleanup: remove worktree on exit (success or failure)
 cleanup() {
     local exit_code=$?
+    # FR-256: Write timing metrics JSON (best-effort)
+    local t_end
+    t_end=$(date +%s)
+    local duration=$((t_end - T_START))
+    local finished_at
+    finished_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    local ts_safe
+    ts_safe=$(echo "$STARTED_AT" | tr -d ':' | tr -d '-' | sed 's/Z//')
+    local fr_id
+    fr_id=$(basename "$FR_PATH" .md | grep -oE 'FR-[0-9]+' || echo "unknown")
+    if [[ $exit_code -eq 0 ]]; then PIPELINE_OUTCOME="success"; fi
+    printf '{\n  "pipeline": "bugfix",\n  "fr": "%s",\n  "branch": "%s",\n  "outcome": "%s",\n  "started_at": "%s",\n  "finished_at": "%s",\n  "duration_seconds": %d,\n  "phases": {\n    "worktree_setup": %d,\n    "llm_enforce": %d,\n    "post_assertions": %d,\n    "success_output": %d\n  },\n  "retries": 0\n}\n' \
+        "$fr_id" "$BRANCH" "$PIPELINE_OUTCOME" "$STARTED_AT" "$finished_at" \
+        "$duration" "$PHASE_WORKTREE_SETUP" "$PHASE_LLM_ENFORCE" \
+        "$PHASE_POST_ASSERTIONS" "$PHASE_SUCCESS_OUTPUT" \
+        > "$METRIC_DIR/bugfix-${fr_id}-${ts_safe}.json" 2>/dev/null || true
     cd "$MAIN_DIR" 2>/dev/null || true
     log_info "Cleaning up worktree: $WORKTREE_DIR"
     git worktree remove "$WORKTREE_DIR" --force 2>/dev/null || true
@@ -111,6 +138,7 @@ clean_stale_pth_entries(Path('$MAIN_DIR/.venv'), '$abs_worktree')
 trap cleanup EXIT
 
 # Create worktree with new branch
+t_phase_start=$(date +%s)
 log_info "Creating git worktree..."
 mkdir -p "$(dirname "$WORKTREE_DIR")"
 git worktree add "$WORKTREE_DIR" -b "$BRANCH" "$BASE_BRANCH"
@@ -132,22 +160,28 @@ cd "$WORKTREE_DIR"
 # FR-139: Sanitize git env vars to prevent bare=true corruption
 unset GIT_DIR GIT_WORK_TREE 2>/dev/null || true
 log_info "Working in: $(pwd)"
+PHASE_WORKTREE_SETUP=$(($(date +%s) - t_phase_start))
 
 # Delegate all LLM phases to the bugfix pipeline graph (FR-173)
 # The graph handles: condemn → fix → verify → submit PR
+t_phase_start=$(date +%s)
 log_info "Running bugfix pipeline graph..."
 yamlgraph graph run examples/bugfix/graph.yaml \
     --var fr_path="$FR_PATH" \
     --var branch="$BRANCH" \
     --full
+PHASE_LLM_ENFORCE=$(($(date +%s) - t_phase_start))
 
 # FR-139: Post-run assertion — catch mid-run corruption
+t_phase_start=$(date +%s)
 cd "$MAIN_DIR"
 if [[ "$(git config --get core.bare 2>/dev/null)" == "true" ]]; then
     log_error "bare=true detected after pipeline run — restoring"
     git config core.bare false
 fi
+PHASE_POST_ASSERTIONS=$(($(date +%s) - t_phase_start))
 
+t_phase_start=$(date +%s)
 log_info "Bugfix pipeline completed successfully!"
 
 # Print next steps
@@ -173,3 +207,4 @@ echo -e "  ${YELLOW}After merging, finalize:${NC}"
 echo "    git checkout main && git pull"
 echo "    scripts/finalize_merge.sh $FR_PATH"
 echo ""
+PHASE_SUCCESS_OUTPUT=$(($(date +%s) - t_phase_start))
