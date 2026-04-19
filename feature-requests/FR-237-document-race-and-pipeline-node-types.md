@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-19
 
@@ -96,12 +96,12 @@ nodes:
 
 ## Acceptance Criteria
 
-- [ ] `reference/getting-started.md` node type table includes `race` and `pipeline` rows
-- [ ] `reference/graph-yaml.md` has a dedicated `type: race` section with purpose, config keys, state output, error handling, and example
-- [ ] `reference/graph-yaml.md` has a dedicated `type: pipeline` section with purpose, config keys, expansion semantics, interpolation, and example
-- [ ] Examples in the docs match the actual demo graph YAMLs (`examples/demos/race/graph.yaml`, `examples/demos/pipeline/graph.yaml`)
-- [ ] No code changes — documentation only
-- [ ] `yamlgraph graph lint` passes on any example YAML referenced in the new docs
+- [x] `reference/getting-started.md` node type table includes `race` and `pipeline` rows
+- [x] `reference/graph-yaml.md` has a dedicated `type: race` section with purpose, config keys, state output, error handling, and example
+- [x] `reference/graph-yaml.md` has a dedicated `type: pipeline` section with purpose, config keys, expansion semantics, interpolation, and example
+- [x] Examples in the docs match the actual demo graph YAMLs (`examples/demos/race/graph.yaml`, `examples/demos/pipeline/graph.yaml`)
+- [x] No code changes — documentation only
+- [x] `yamlgraph graph lint` passes on any example YAML referenced in the new docs
 
 ## Alternatives Considered
 
