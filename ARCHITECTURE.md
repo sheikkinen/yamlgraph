@@ -380,6 +380,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 104 | A2A Server Reference Documentation (FR-246) | `reference/a2a-server.md`, `reference/cli.md` | REQ-YG-246 |
 | 106 | GitHub Issues Remote Inbox (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` | REQ-YG-247 |
 | 107 | Guardrails Pattern Documentation (FR-249) | `reference/patterns.md`, `examples/README.md` | REQ-YG-254 |
+| 108 | Harden GitHub Issues Remote Inbox (FR-251) | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` | REQ-YG-255 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -562,6 +563,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-254 | Pattern 11 "Input Guardrails" in `reference/patterns.md` documents the echo → validate → respond pipeline with Problem/Solution sections, valid YAML graph example, Python tool implementations, prompt template, Key Points table, and Related links referencing `examples/openai_proxy/`; `examples/README.md` includes a Guardrails category in "By Feature" section (FR-249) | `reference/patterns.md`, `examples/README.md` |
 | REQ-YG-246 | `reference/a2a-server.md` created with 10 sections: Quickstart, CLI Commands, Agent Card Generation, Message-to-State Mapping, Task Lifecycle, Error Mapping, Interrupt/Human-in-Loop, Authentication, Deployment Patterns, Relationship to MCP Server; `reference/cli.md` updated with `a2a serve` and `a2a card` subcommands; `reference/README.md` links to `a2a-server.md`; all examples verified against `a2a_server.py`, `a2a_message.py`, `cli/a2a_commands.py` (FR-246) | `reference/a2a-server.md`, `reference/cli.md` |
 | REQ-YG-247 | GitHub Issues remote inbox: `watch.sh` polls open issues labeled `chaplain` via two-pass `gh` CLI (list numbers, view each body), writes `.chaplain/inbox/gh-{number}.md`, removes label after import; `EXIT_CODE=1` sentinel before enforcement branches; closes originating issue with commit hash on `EXIT_CODE=0` and `gh-*.md` filename; sync silently skipped when `gh` is not installed or not authenticated; `CLAUDE.md` and `copilot-instructions.md` document remote submission (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` |
+| REQ-YG-255 | `watch.sh` gates GitHub Issue import on `.chaplain/allowed-authors.txt` (one login per line); issues from unlisted authors skipped with warning, `chaplain` label retained; when file absent all authors accepted; body truncated at `BODY_SIZE_CAP` (10000) with warning; every imported file starts with `<!-- author: @login -->` audit header; author login fetched before title/body for early rejection (FR-251) | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` |
 
 ### 93. Per-Node Timeout
 
