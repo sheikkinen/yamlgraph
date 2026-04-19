@@ -1,0 +1,29 @@
+id: CAP-108
+name: Changelog REQ Cross-Validation Gate
+description: >
+  Validates that changelog fragment req: front-matter values reference
+  correct requirement IDs from the capabilities registry. Mechanical
+  pre-filter for single-REQ capabilities; LLM classifier (Haiku) for
+  multi-REQ capabilities where mechanical disambiguation is impossible.
+modules:
+  - scripts/check_changelog_req.py
+  - graphs/enforcement/changelog-req-check.yaml
+  - .pre-commit-config.yaml
+  - .github/workflows/commitlint.yml
+requirements:
+  - id: REQ-YG-255
+    description: >
+      Changelog REQ cross-validation gate: scripts/check_changelog_req.py
+      parses YAML front-matter req: from changelog/unreleased/*.md, validates
+      each REQ-YG-XXX exists in capabilities/CAP-*.yaml via direct id: lookup
+      (rejects phantoms), skips fragments without req: field; single-REQ CAPs
+      pass mechanically; multi-REQ CAPs deferred to LLM graph
+      graphs/enforcement/changelog-req-check.yaml (Haiku, temperature 0);
+      --strict exits non-zero on failure; --skip-llm runs mechanical-only;
+      pre-commit hook and CI job wired
+    modules:
+      - scripts/check_changelog_req.py
+      - graphs/enforcement/changelog-req-check.yaml
+      - .pre-commit-config.yaml
+      - .github/workflows/commitlint.yml
+fr: FR-247
