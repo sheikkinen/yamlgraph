@@ -1,0 +1,14 @@
+2026-04-19 00:18:44,187 [INFO] yamlgraph.node_compiler: Added node: summarize (type=llm)
+2026-04-19 00:18:44,188 [INFO] yamlgraph.node_compiler: Added node: expand (type=llm)
+2026-04-19 00:18:44,197 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-19 00:18:44,903 [ERROR] yamlgraph.error_handlers: Node summarize failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-19 00:18:44,907 [ERROR] yamlgraph.error_handlers: Node expand failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'quantum computing'}
+
+============================================================
+RESULT
+============================================================
+  current_step: expand
+  topic: quantum computing

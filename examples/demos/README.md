@@ -44,6 +44,7 @@ Start here and progress in order:
 | [multi-turn/](multi-turn/) | `interrupt` | Multi-turn conversation with memory |
 | [thinking/](thinking/) | `llm` | Extended thinking budget (FR-071) |
 | [horoscope/](horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs (FR-201) |
+| [cache/](cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 
 ## Running Demos
 

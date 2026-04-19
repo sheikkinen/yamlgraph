@@ -365,6 +365,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 90 | Graph Bench Command (FR-231) | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
 | 91 | Race Node Type (FR-232) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/patterns/race.py` | REQ-YG-233 |
 | 92 | Chatterbox TTS Demo (FR-233) | `examples/demos/chatterbox` | REQ-YG-234 |
+| 97 | Node-Level Caching (FR-032) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py` | REQ-YG-239 |
 | 93 | Chatterbox Voice Clone Demo (FR-236, consolidated FR-237) | `examples/demos/chatterbox/` | REQ-YG-235 |
 | 94 | Compile-Time Pipeline Templates (FR-235) | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/patterns/pipeline.py` | REQ-YG-236 |
 | 96 | Pipeline Accumulated State (FR-238) | `yamlgraph/models/state_builder.py` | REQ-YG-241 |
@@ -392,6 +393,7 @@ Transform validated configs into executable StateGraphs with node compilation, e
 | REQ-YG-007 | Compile individual nodes | `node_compiler.compile_node`, `node_factory` |
 | REQ-YG-008 | Compile full graph configuration | `graph_loader.compile_graph`, `node_compiler.compile_nodes` |
 | REQ-YG-220 | Node type registry dispatches compile_node via `NODE_TYPE_HANDLERS` dict instead of if/elif; unknown types raise `ValueError` (FR-220) | `node_compiler` |
+| REQ-YG-239 | Per-node cache field parsed as CacheConfig; resolve_cache_policy converts to LangGraph CachePolicy; passed to graph.add_node() (FR-032)) | `models/graph_schema`, `node_compiler` |
 
 ### 3. Node Execution
 
