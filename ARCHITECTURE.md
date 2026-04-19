@@ -368,6 +368,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 93 | Chatterbox Voice Clone Demo (FR-236, consolidated FR-237) | `examples/demos/chatterbox/` | REQ-YG-235 |
 | 94 | Compile-Time Pipeline Templates (FR-235) | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/patterns/pipeline.py` | REQ-YG-236 |
 | 95 | Parallel Fan-Out Edges (FR-234) | `yamlgraph/edge_compiler.py` | REQ-YG-237 |
+| 96 | Chatterbox Multilingual CLI (FR-239) | `examples/demos/chatterbox/speak.py` | REQ-YG-239 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -568,6 +569,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-236 | `type: pipeline` meta-node expands at compile time into concrete nodes and sequential edges; `{item.field}` interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); `NodeType.PIPELINE` in constants; expansion in `graph_loader` after `expand_interactive_tools` | `pipeline_template`, `constants`, `graph_loader`, `linter/patterns/pipeline`, `linter/checks`, `linter/graph_linter` |
 | REQ-YG-237 | Parallel fan-out edges: `to: [a, b, c]` without `type: conditional` compiles as parallel fan-out via multiple `add_edge()` calls; handles interrupt node redirect to `_prepare`; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with `type: conditional` unchanged (FR-234) | `edge_compiler` |
 | REQ-YG-238 | Chatterbox speak CLI: `speak.py` accepts `--ref` (reference WAV path, required) and positional text; validates ref exists (exit 1 on missing); calls `ChatterboxTTS.generate()` without `language_id`; writes to `outputs/chatterbox/speak.wav`; prints output path to stdout (FR-237) | `examples/demos/chatterbox` |
+| REQ-YG-239 | Chatterbox multilingual CLI: `speak.py --lang <code>` routes to `ChatterboxMultilingualTTS` for non-English codes (fi, sv, de, es, …); `--ref` incompatible with non-English lang (parser.error); `--lang en` (default) preserves voice-cloning path requiring `--ref`; output always `outputs/chatterbox/speak.wav` (FR-239) | `examples/demos/chatterbox` |
 
 ### 18. Testing & Quality
 

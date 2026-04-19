@@ -42,3 +42,12 @@ PyTorch was not found. Models won't be available and only tokenizers, configurat
 $ python examples/demos/chatterbox/speak.py --ref /nonexistent.wav "Hello"
 Error: reference file not found: /nonexistent.wav
 [exit code 1]
+
+# FR-239: speak.py --lang flag validation (mocked, no chatterbox install required):
+$ python examples/demos/chatterbox/speak.py --lang fi "Hei maailmasta YAMLGraphista"
+# → routes to ChatterboxMultilingualTTS, language_id='fi'
+# outputs/chatterbox/speak.wav
+
+$ python examples/demos/chatterbox/speak.py --lang fi --ref source.wav "Hei"
+# speak.py: error: --ref is only supported with --lang en (voice-cloning path)
+[exit code 2]

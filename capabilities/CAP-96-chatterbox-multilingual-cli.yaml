@@ -1,0 +1,20 @@
+id: CAP-96
+name: Chatterbox Multilingual CLI
+description: >
+  speak.py --lang flag routes to ChatterboxMultilingualTTS for non-English language
+  codes (fi, sv, de, es, …). English path (--lang en, default) preserves the
+  voice-cloning behaviour using ChatterboxTTS + --ref. --ref is incompatible with
+  non-English lang and raises a clear error. Output is always
+  outputs/chatterbox/speak.wav regardless of path. (FR-239)
+modules:
+  - examples/demos/chatterbox
+requirements:
+  - id: REQ-YG-239
+    description: >
+      Chatterbox multilingual CLI: speak.py --lang <code> routes to
+      ChatterboxMultilingualTTS for non-English codes; --ref incompatible with
+      non-English lang (parser.error); --lang en (default) preserves voice-cloning
+      path requiring --ref; output always outputs/chatterbox/speak.wav.
+    modules:
+      - examples/demos/chatterbox
+fr: FR-239
