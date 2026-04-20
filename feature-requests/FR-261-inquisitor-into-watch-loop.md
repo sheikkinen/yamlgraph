@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-20
 
@@ -56,16 +56,16 @@ Remove any reference to `inquisitor-background` as a pre-commit hook. Document t
 
 ## Acceptance Criteria
 
-- [ ] `inquisitor-background` hook removed from `.pre-commit-config.yaml`
-- [ ] `watch.sh` runs `.chaplain/inquisitor.sh --propose` after each successful enforce cycle
-- [ ] Inquisitor log output captured to a timestamped file (not lost to `/dev/null`)
-- [ ] Inquisitor failure does not block the watch loop (`|| true`)
-- [ ] Worktree gate (FR-142) and commit-delta gate (FR-131) continue to function
-- [ ] `--force` manual invocation still works: `.chaplain/inquisitor.sh --force`
-- [ ] No Inquisitor runs triggered by pre-commit/post-commit hooks
-- [ ] watch.sh invocation includes `--propose` flag (prevents audit_as_ritual relocation)
-- [ ] Test verifies `inquisitor-background` hook absent from `.pre-commit-config.yaml`
-- [ ] Documentation updated (CLAUDE.md hook count, watch.sh flow description)
+- [x] `inquisitor-background` hook removed from `.pre-commit-config.yaml`
+- [x] `watch.sh` runs `.chaplain/inquisitor.sh --propose` after each successful enforce cycle
+- [x] Inquisitor log output captured to a timestamped file (not lost to `/dev/null`)
+- [x] Inquisitor failure does not block the watch loop (`|| true`)
+- [x] Worktree gate (FR-142) and commit-delta gate (FR-131) continue to function
+- [x] `--force` manual invocation still works: `.chaplain/inquisitor.sh --force`
+- [x] No Inquisitor runs triggered by pre-commit/post-commit hooks
+- [x] watch.sh invocation includes `--propose` flag (prevents audit_as_ritual relocation)
+- [x] Test verifies `inquisitor-background` hook absent from `.pre-commit-config.yaml`
+- [x] Documentation updated (CLAUDE.md hook count, watch.sh flow description)
 
 ## Alternatives Considered
 
