@@ -1,0 +1,1 @@
+- fix(a2a): skip a2a SDK tests when package not installed
