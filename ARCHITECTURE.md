@@ -386,6 +386,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 111 | Shared Graph Invocation | `graph_loader` | REQ-YG-258 |
 | 112 | Pipeline Timing Metrics | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py` | REQ-YG-259 |
 | 113 | Chaplain Research Step (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` | REQ-YG-260 |
+| 114 | Automated Post-Merge Finalization (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh` | REQ-YG-261 |
 
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -610,6 +611,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-257 | Diary index graph: map node fans out over diary files, LLM extracts traps/heuristics/seeds/FR refs per entry via inline schema prompt, deterministic Python `aggregate_index()` builds cross-reference index (traps_index sorted by frequency, seeds_index with dedup, fr_index reverse mapping, heuristics_candidates with 2+ threshold, statistics by category). `write_index()` persists to `docs/diary-index.yaml`. Graph lints clean. `model: claude-haiku-4-5` for cost control (FR-254) | `examples/demos/diary_index` |
 | REQ-YG-258 | `invoke_graph(path, variables, config=None)` in `graph_loader.py`: loads graph config, compiles to StateGraph, compiles to CompiledGraph, invokes synchronously with optional LangGraph run config; `mcp_server._invoke_graph` and `a2a_server._invoke_graph` delegate to this shared function (FR-255) | `graph_loader`, `mcp_server`, `a2a_server` |
 | REQ-YG-260 | Research copilot node inserted between plan and judge in `.chaplain/graphs/copilot/graph.yaml`; resumes plan session via `cli_flags.resume`; writes to `state_key: research_brief`; prompt instructs codebase search for existing abstractions, diary precedent check, usage evidence count, and classification signal (primitive/integration/pattern); research brief appended to FR draft before Judge evaluation; judge prompt updated with criterion 7 for strategic classification (framework primitive / contrib / pattern documentation / reject) (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` |
+| REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
 
 ### 18. Testing & Quality
 
@@ -1493,6 +1495,16 @@ Lightweight timing and outcome instrumentation for the three core pipeline scrip
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-259 | Pipeline scripts emit per-run JSON metrics to tmp/pipeline-metrics/ on every exit (success or failure). enforce_worktree.sh and bugfix_worktree.sh use EXIT trap cleanup to write phase timing. watch.sh uses inline cycle timing. pipeline_summary.py aggregates daily metrics using Python stdlib only. Metric writes are best-effort (guarded with \|\| true). No new dependencies. | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py`, `tests/unit/test_pipeline_timing.py` |
+
+### CAP-114: Automated Post-Merge Finalization
+
+Shared finalization library and watch.sh integration that automatically creates finalization PRs for recently merged feature PRs, eliminating the manual finalize_merge.sh step from the Chaplain pipeline. Extracts duplicated finalization logic into `.chaplain/lib/finalize_lib.sh` and adds a post-merge detection phase to `watch.sh` with timestamp-based filtering and three-layer idempotency guards.
+
+**Feature Request:** FR-258
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
 
 <!-- END GENERATED CAPABILITIES -->
 
