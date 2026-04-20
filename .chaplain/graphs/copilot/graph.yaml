@@ -23,6 +23,9 @@ state:
   date: str              # Date for diary entry (YYYY-MM-DD)
   diary_prefix: str      # Diary entry prefix (default: Chaplain)
   research_brief: dict   # Output from research node (FR-257)
+  worktree_dir: str      # Path to feature worktree (FR-260, output of create_worktree)
+  branch: str            # Git branch name for worktree (FR-260, output of create_worktree)
+  acceptance_tests_result: dict  # Output from write_acceptance_tests node (FR-260)
   diary_entry: dict      # Output from summarize node (theme, body, seed)
   written: bool          # True after diary append
 
@@ -31,6 +34,10 @@ tools:
     type: python
     path: .chaplain/lib/diary.py
     function: write_diary
+  create_worktree_tool:
+    type: python
+    path: .chaplain/lib/worktree.py
+    function: create_worktree
 
 nodes:
   # Stage 1: Plan - Copilot reads topic and drafts feature request
@@ -62,6 +69,30 @@ nodes:
       drafts_dir: "{state.drafts_dir}"
     state_key: research_brief
     timeout: 500
+
+  # Stage 2b: Create Worktree - Commit FR draft and create isolated worktree
+  # FR-260: Worktree needed before acceptance tests can be written
+  create_worktree:
+    type: python
+    tool: create_worktree_tool
+    state_key: worktree_result
+
+  # Stage 2c: Write Acceptance Tests - Generate failing tests from FR criteria
+  # FR-260: Tests committed as RED before Judge evaluates
+  write_acceptance_tests:
+    type: copilot
+    prompt: write-acceptance-tests
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.plan_result.session_id}"
+    variables:
+      drafts_dir: "{state.drafts_dir}"
+      worktree_dir: "{state.worktree_result.worktree_dir}"
+      branch: "{state.worktree_result.branch}"
+    state_key: acceptance_tests_result
+    timeout: 600
 
   # Stage 3: Judge - Copilot examines the draft and renders verdict
   # FR-105: Resumes the plan node's Copilot session for context continuity
@@ -99,6 +130,10 @@ edges:
   - from: plan
     to: research
   - from: research
+    to: create_worktree          # FR-260
+  - from: create_worktree
+    to: write_acceptance_tests   # FR-260
+  - from: write_acceptance_tests
     to: judge
   - from: judge
     to: summarize

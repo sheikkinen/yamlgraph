@@ -366,12 +366,21 @@ class TestCreateWorktreeToolUnit:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        # Mock os.symlink and path operations
+        # Mock os.symlink to avoid actual symlink creation
         monkeypatch.setattr("os.symlink", lambda src, dst: None)
+
+        # Mock venv validators to avoid filesystem checks
+        import yamlgraph.utils.worktree_helpers as wh
+
+        monkeypatch.setattr(wh, "validate_venv_health", lambda path: None)
+        monkeypatch.setattr(wh, "validate_venv_symlink", lambda s, t: None)
 
         # Import and call the tool
         sys.path.insert(0, str(REPO_ROOT / ".chaplain" / "lib"))
         try:
+            # Remove cached module if present (re-import picks up monkeypatch)
+            if "worktree" in sys.modules:
+                del sys.modules["worktree"]
             from worktree import create_worktree
 
             state = {
