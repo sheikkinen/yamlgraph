@@ -57,6 +57,9 @@ htmlcov/
 # Chaplain logs
 .chaplain/inquisitor.log
 
+# Chaplain daemon state (FR-258: timestamp tracking)
+.chaplain/state/
+
 # Custom graphs
 projects/*
 !projects/scripture-dev/

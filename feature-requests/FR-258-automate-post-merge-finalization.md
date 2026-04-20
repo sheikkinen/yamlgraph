@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** ✅ Approved
+**Status:** ✅ Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-20
 
@@ -245,24 +245,24 @@ fi
 
 ## Acceptance Criteria
 
-- [ ] Shared library `.chaplain/lib/finalize_lib.sh` extracted with functions: `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, `create_diary_stub`
-- [ ] `scripts/finalize_merge.sh` refactored to source the shared library (behavior unchanged)
-- [ ] `watch.sh` detects recently merged PRs with unfinalized FRs on each poll cycle
-- [ ] A finalization PR is created for each unfinalized FR (branch: `chore/finalize-fr-NNN`)
-- [ ] Auto-merge is enabled on finalization PRs via `gh pr merge --auto --squash`
-- [ ] Changelog fragment, FR status update, and diary stub are included in the PR
-- [ ] Already-finalized FRs (status "✅ Implemented") are skipped
-- [ ] No duplicate finalization PRs on repeated polling cycles (idempotent)
-- [ ] Timestamp-based filtering via `.chaplain/state/last-finalized-at` prevents silent omissions
-- [ ] On first run (no timestamp file), defaults to 24-hour lookback window
-- [ ] Non-FR branches (e.g., `chore/...`, `docs/...`) are safely ignored
-- [ ] Failed finalizations log a warning without blocking the main loop
-- [ ] `watch.sh` returns to `main` branch after finalization phase completes
-- [ ] No `--no-verify` flag used anywhere in the implementation
-- [ ] `.chaplain/state/` added to `.gitignore` (local daemon state, not committed)
-- [ ] Existing manual `finalize_merge.sh` still works unchanged
-- [ ] Tests added for shared library functions (FR-path derivation, slug generation)
-- [ ] Documentation updated
+- [x] Shared library `.chaplain/lib/finalize_lib.sh` extracted with functions: `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, `create_diary_stub`
+- [x] `scripts/finalize_merge.sh` refactored to source the shared library (behavior unchanged)
+- [x] `watch.sh` detects recently merged PRs with unfinalized FRs on each poll cycle
+- [x] A finalization PR is created for each unfinalized FR (branch: `chore/finalize-fr-NNN`)
+- [x] Auto-merge is enabled on finalization PRs via `gh pr merge --auto --squash`
+- [x] Changelog fragment, FR status update, and diary stub are included in the PR
+- [x] Already-finalized FRs (status "✅ Implemented") are skipped
+- [x] No duplicate finalization PRs on repeated polling cycles (idempotent)
+- [x] Timestamp-based filtering via `.chaplain/state/last-finalized-at` prevents silent omissions
+- [x] On first run (no timestamp file), defaults to 24-hour lookback window
+- [x] Non-FR branches (e.g., `chore/...`, `docs/...`) are safely ignored
+- [x] Failed finalizations log a warning without blocking the main loop
+- [x] `watch.sh` returns to `main` branch after finalization phase completes
+- [x] No `--no-verify` flag used anywhere in the implementation
+- [x] `.chaplain/state/` added to `.gitignore` (local daemon state, not committed)
+- [x] Existing manual `finalize_merge.sh` still works unchanged
+- [x] Tests added for shared library functions (FR-path derivation, slug generation)
+- [x] Documentation updated
 
 ## Alternatives Considered
 
