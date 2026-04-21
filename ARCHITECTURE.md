@@ -390,6 +390,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 115 | Inquisitor Watch Loop Integration (FR-261) | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` | REQ-YG-262 |
 | 117 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py` | REQ-YG-264 |
 | 118 | Copilot Node Model Selection (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
+| 119 | Race Node Timeout Fix (FR-267) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py` | REQ-YG-266 |
 
 | 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
 
@@ -591,7 +592,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-113 | Linter W015: warn when cycle node has explicit `skip_if_exists: true` | `linter/checks_semantic`, `linter/graph_linter` |
 | REQ-YG-231 | Execution timing callback tracks per-call and total wall-clock LLM duration via `ExecutionTimingCallbackHandler`; `on_llm_start`/`on_llm_end` using `time.monotonic`; CLI `--timing` flag injects callback and prints timing summary | `utils/timing_tracker`, `cli/graph_commands`, `cli/__init__` |
 | REQ-YG-232 | `yamlgraph graph bench` command runs a graph across `--models provider/model` list; displays comparison table with duration, tokens, status; `--export` saves JSON; `--runs N` repeats each model; per-model errors captured gracefully; `BenchResult` Pydantic model | `cli/bench_commands`, `cli/graph_commands`, `cli/__init__` |
-| REQ-YG-233 | `type: race` node fires prompt to all candidates concurrently via `ThreadPoolExecutor`; returns first successful result; remaining cancelled; all-fail triggers `on_error`; `_race_winner` metadata in state; candidates validated ≥2 with provider/model; lint E301–E304; structured output support | `node_factory/race_node`, `constants`, `node_compiler`, `models/graph_schema`, `models/state_builder`, `linter/patterns/race` |
+| REQ-YG-233 | `type: race` node fires prompt to all candidates concurrently via `ThreadPoolExecutor`; returns first successful result; remaining cancelled; all-fail triggers `on_error`; `_race_winner` metadata in state; candidates validated ≥2 with provider/model; lint E301–E304; structured output support; race `timeout` is total race deadline (not per-candidate); `_maybe_wrap_timeout` must not be applied (FR-267) | `node_factory/race_node`, `constants`, `node_compiler`, `models/graph_schema`, `models/state_builder`, `linter/patterns/race` |
 | REQ-YG-234 | Chatterbox TTS demo: map node fans out over 5 languages, collects translations, synthesizes to WAV via `synthesize_audio` python tool with Chatterbox Multilingual TTS. Auto-detects CUDA/CPU. Optional dependency `chatterbox-tts` (FR-233) | `examples/demos/chatterbox` |
 | REQ-YG-235 | Chatterbox voice cloning demo: `synthesize_cloned_audio` in `examples/demos/chatterbox/tools.py` accepts text and voice_prompt_path, synthesizes to WAV via `ChatterboxTTS` (not `ChatterboxMultilingualTTS`). Device selection follows `cuda > mps > cpu`. `clone.yaml` graph and `speak.py` CLI both use this tool. Optional dependency `chatterbox-tts` (FR-236, consolidated FR-237) | `examples/demos/chatterbox` |
 | REQ-YG-236 | `type: pipeline` meta-node expands at compile time into concrete nodes and sequential edges; `{item.field}` interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); `NodeType.PIPELINE` in constants; expansion in `graph_loader` after `expand_interactive_tools` | `pipeline_template`, `constants`, `graph_loader`, `linter/patterns/pipeline`, `linter/checks`, `linter/graph_linter` |
@@ -1295,7 +1296,7 @@ A type: race node that fires the same prompt to N provider/model candidates conc
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-233 | type: race node fires prompt to all candidates concurrently using ThreadPoolExecutor; returns first successful result (not just first to complete); remaining candidates cancelled; all-fail triggers on_error policy; _race_winner metadata in state; candidates validated ≥2 entries each with provider or model; graph lint E301-E304; structured output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/linter/patterns/race.py`, `yamlgraph/linter/checks.py`, `tests/unit/test_race_node.py`, `tests/unit/test_linter_patterns_race.py` |
+| REQ-YG-233 | type: race node fires prompt to all candidates concurrently using ThreadPoolExecutor; returns first successful result (not just first to complete); remaining candidates cancelled; all-fail triggers on_error policy; _race_winner metadata in state; candidates validated ≥2 entries each with provider or model; graph lint E301-E304; structured output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered; race `timeout` is total race deadline (not per-candidate); timeout enforcement internal to race node; `_maybe_wrap_timeout` must not be applied (FR-267) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/linter/patterns/race.py`, `yamlgraph/linter/checks.py`, `tests/unit/test_race_node.py`, `tests/unit/test_linter_patterns_race.py` |
 
 ### 92. Chatterbox TTS Demo
 
@@ -1346,7 +1347,7 @@ Per-node timeout bounding for map branches and all node types via ThreadPoolExec
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-078 | Per-node timeout: optional float timeout field on NodeConfig validated as positive; map branch timeout via wrap_for_reducer with ThreadPoolExecutor; non-map node timeout via _maybe_wrap_timeout in node_compiler handlers; TIMEOUT_ERROR error type in ErrorType enum; from_exception classification unchanged (callers pass error_type explicitly); lint warning W203 for map+agent without timeout; except concurrent.futures.TimeoutError before except Exception in both paths | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py`, `tests/unit/test_map_node_timeout.py` |
+| REQ-YG-078 | Per-node timeout: optional float timeout field on NodeConfig validated as positive; map branch timeout via wrap_for_reducer with ThreadPoolExecutor; non-map node timeout via _maybe_wrap_timeout in node_compiler handlers **except race** (which owns timeout natively — FR-267); TIMEOUT_ERROR error type in ErrorType enum; from_exception classification unchanged (callers pass error_type explicitly); lint warning W203 for map+agent without timeout; except concurrent.futures.TimeoutError before except Exception in both paths | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py`, `tests/unit/test_map_node_timeout.py` |
 
 ### 98. Pipeline Accumulated State
 
@@ -1550,6 +1551,16 @@ Copilot nodes support `model` as a top-level node config key, consistent with LL
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-265 | `NodeConfig` has `model: str \| None` field; `create_copilot_node()` accepts `defaults` parameter; `_compile_copilot_node()` passes `effective_defaults` to factory; model resolution follows `cli_flags.model` > node-level `model` > `defaults.model` > omit; `CopilotResult.model` reflects the resolved model regardless of source (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py`, `tests/unit/test_copilot_node_model_selection.py` |
+
+### 119. Race Node Timeout Fix (FR-267)
+
+Race node applies exactly one timeout mechanism — its native `as_completed(timeout=...)`. The node compiler does not apply `_maybe_wrap_timeout` to race nodes (nested pools drop return value). On timeout expiry, the race node produces a structured `PipelineError(TIMEOUT_ERROR)` and respects `on_error` configuration.
+
+**Feature Request:** FR-267
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-266 | Race node applies exactly one timeout mechanism — its native `as_completed(timeout=...)`; `_compile_race_node` must NOT call `_maybe_wrap_timeout`; on timeout expiry (no candidate succeeds within deadline), race node produces `PipelineError(TIMEOUT_ERROR)` and respects `on_error` config; without `on_error`, raises `AllCandidatesFailedError`; race `timeout` is total race deadline, not per-candidate | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_race_node.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

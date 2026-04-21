@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-21
 
@@ -87,17 +87,17 @@ The race node `timeout` is a **total race deadline** — it bounds the maximum w
 
 ## Acceptance Criteria
 
-- [ ] `_compile_race_node` does not call `_maybe_wrap_timeout`
-- [ ] `race_node.py` catches `TimeoutError` from `as_completed` and returns structured error via `on_error` path
-- [ ] Condemning test via **compile path**: race node with `timeout: N` where a candidate succeeds returns full state dict (`state_key`, `_race_winner`, `current_step`, `_loop_counts` all non-None)
-- [ ] Condemning test: race node with `timeout: N` and `parse_json: true` returns parsed dict in state
-- [ ] Test: race node with `timeout` where all candidates exceed deadline returns `PipelineError(TIMEOUT_ERROR)` when `on_error: skip`, raises when no `on_error`
-- [ ] Regression test: race node **without** `timeout:` continues to work unchanged
-- [ ] Existing race node tests pass (`tests/unit/test_race_node.py`)
-- [ ] Linter tests pass (`tests/unit/test_linter_patterns_race.py`)
-- [ ] `@pytest.mark.req("REQ-YG-266")` on new tests; REQ-YG-266 added to ARCHITECTURE.md, REQ-YG-233 amended
-- [ ] CAP-119 capability YAML created in `capabilities/`
-- [ ] `req_coverage.py` passes with `--strict`
+- [x] `_compile_race_node` does not call `_maybe_wrap_timeout`
+- [x] `race_node.py` catches `TimeoutError` from `as_completed` and returns structured error via `on_error` path
+- [x] Condemning test via **compile path**: race node with `timeout: N` where a candidate succeeds returns full state dict (`state_key`, `_race_winner`, `current_step`, `_loop_counts` all non-None)
+- [x] Condemning test: race node with `timeout: N` and `parse_json: true` returns parsed dict in state
+- [x] Test: race node with `timeout` where all candidates exceed deadline returns `PipelineError(TIMEOUT_ERROR)` when `on_error: skip`, raises when no `on_error`
+- [x] Regression test: race node **without** `timeout:` continues to work unchanged
+- [x] Existing race node tests pass (`tests/unit/test_race_node.py`)
+- [x] Linter tests pass (`tests/unit/test_linter_patterns_race.py`)
+- [x] `@pytest.mark.req("REQ-YG-266")` on new tests; REQ-YG-266 added to ARCHITECTURE.md, REQ-YG-233 amended
+- [x] CAP-119 capability YAML created in `capabilities/`
+- [x] `req_coverage.py` passes with `--strict`
 
 ## Requirement
 
