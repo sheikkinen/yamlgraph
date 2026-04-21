@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-21
 **FR:** FR-266
@@ -161,18 +161,18 @@ The `CopilotResult.model` field (line 273) automatically picks up the resolved v
 
 ## Acceptance Criteria
 
-- [ ] `NodeConfig` has a `model: str | None` field in `graph_schema.py`
-- [ ] `create_copilot_node()` accepts a `defaults` parameter
-- [ ] `_compile_copilot_node()` passes `ctx.effective_defaults` to the factory
-- [ ] Model resolution follows: `cli_flags.model` > node-level `model` > `defaults.model` > omit
-- [ ] `CopilotResult.model` reflects the resolved model, regardless of source
-- [ ] Existing `cli_flags.model` behavior unchanged (no regression)
-- [ ] Test: node-level `model` passed as `--model` flag to CLI
-- [ ] Test: `defaults.model` used when no node-level or cli_flags model
-- [ ] Test: `cli_flags.model` overrides node-level `model`
-- [ ] Test: no `--model` flag when no model specified anywhere
-- [ ] Tests tagged with `@pytest.mark.req("REQ-YG-265")`
-- [ ] REQ-YG-265 added to `ARCHITECTURE.md` and `scripts/req_coverage.py`
+- [x] `NodeConfig` has a `model: str | None` field in `graph_schema.py`
+- [x] `create_copilot_node()` accepts a `defaults` parameter
+- [x] `_compile_copilot_node()` passes `ctx.effective_defaults` to the factory
+- [x] Model resolution follows: `cli_flags.model` > node-level `model` > `defaults.model` > omit
+- [x] `CopilotResult.model` reflects the resolved model, regardless of source
+- [x] Existing `cli_flags.model` behavior unchanged (no regression)
+- [x] Test: node-level `model` passed as `--model` flag to CLI
+- [x] Test: `defaults.model` used when no node-level or cli_flags model
+- [x] Test: `cli_flags.model` overrides node-level `model`
+- [x] Test: no `--model` flag when no model specified anywhere
+- [x] Tests tagged with `@pytest.mark.req("REQ-YG-265")`
+- [x] REQ-YG-265 added to `ARCHITECTURE.md` and `scripts/req_coverage.py`
 
 ## Alternatives Considered
 

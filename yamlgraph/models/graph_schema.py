@@ -99,6 +99,7 @@ class NodeConfig(BaseModel):
     state_key: str | None = Field(default=None, description="State key for output")
     temperature: float = Field(default=0.7, ge=0, le=2)
     provider: str | None = Field(default=None)
+    model: str | None = Field(default=None, description="Model name override")
     thinking_budget: int | None = Field(
         default=None,
         description="Anthropic extended thinking budget_tokens (0 or ≥1024)",
