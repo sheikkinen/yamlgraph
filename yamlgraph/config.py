@@ -50,6 +50,7 @@ DEFAULT_MODELS = {
     "replicate": os.getenv("REPLICATE_MODEL", "ibm-granite/granite-4.0-h-small"),
     "vertex": os.getenv("VERTEX_MODEL", "gemini-2.0-flash"),
     "xai": os.getenv("XAI_MODEL", "grok-4-1-fast-reasoning"),
+    "azure": os.getenv("AZURE_MODEL", "gpt-4o"),
 }
 
 # Retry Configuration

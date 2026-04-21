@@ -420,7 +420,10 @@ The codebase uses **sync-first with async wrappers**:
 | `DEEPSEEK_API_KEY` | DeepSeek authentication |
 | `XAI_API_KEY` | xAI Grok authentication |
 | `LMSTUDIO_BASE_URL` | LM Studio local server URL |
-| `PROVIDER` | Default LLM provider (anthropic/deepseek/google/inception/mistral/openai/replicate/xai/lmstudio) |
+| `AZURE_AI_ENDPOINT` | Azure AI Foundry endpoint URL |
+| `AZURE_AI_API_KEY` | Azure AI API key |
+| `AZURE_MODEL` | Default Azure model/deployment name (default: `gpt-4o`) |
+| `PROVIDER` | Default LLM provider (anthropic/azure/deepseek/google/inception/mistral/openai/replicate/xai/lmstudio) |
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |
 | `LANGCHAIN_PROJECT` | LangSmith project name |
