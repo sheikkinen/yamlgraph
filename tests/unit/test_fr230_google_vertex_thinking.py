@@ -67,7 +67,7 @@ class TestCreateLLMThinkingFR230:
         """create_llm(provider='google', thinking_budget=8000) does not raise."""
         mock_llm = MagicMock()
         with patch(
-            "yamlgraph.utils.llm_factory._create_google_llm", return_value=mock_llm
+            "yamlgraph.utils.llm_providers._create_google_llm", return_value=mock_llm
         ) as mock_create:
             result = create_llm(provider="google", thinking_budget=8000)
             assert result is mock_llm
@@ -81,7 +81,7 @@ class TestCreateLLMThinkingFR230:
         """create_llm(provider='vertex', thinking_budget=8000) does not raise."""
         mock_llm = MagicMock()
         with patch(
-            "yamlgraph.utils.llm_factory._create_vertex_llm", return_value=mock_llm
+            "yamlgraph.utils.llm_providers._create_vertex_llm", return_value=mock_llm
         ) as mock_create:
             result = create_llm(provider="vertex", thinking_budget=8000)
             assert result is mock_llm
@@ -101,7 +101,7 @@ class TestCreateLLMThinkingFR230:
         """Temperature is NOT forced to 1 for google even with thinking_budget >= 1024."""
         mock_llm = MagicMock()
         with patch(
-            "yamlgraph.utils.llm_factory._create_google_llm", return_value=mock_llm
+            "yamlgraph.utils.llm_providers._create_google_llm", return_value=mock_llm
         ) as mock_create:
             create_llm(provider="google", thinking_budget=8000, temperature=0.7)
             args = mock_create.call_args[0]
@@ -115,7 +115,7 @@ class TestCreateLLMThinkingFR230:
         """Temperature is NOT forced to 1 for vertex even with thinking_budget >= 1024."""
         mock_llm = MagicMock()
         with patch(
-            "yamlgraph.utils.llm_factory._create_vertex_llm", return_value=mock_llm
+            "yamlgraph.utils.llm_providers._create_vertex_llm", return_value=mock_llm
         ) as mock_create:
             create_llm(provider="vertex", thinking_budget=8000, temperature=0.5)
             args = mock_create.call_args[0]
@@ -134,7 +134,7 @@ class TestGoogleLLMReceivesThinkingBudget:
 
     def test_google_llm_receives_thinking_budget_kwarg(self):
         """_create_google_llm passes thinking_budget to ChatGoogleGenerativeAI."""
-        from yamlgraph.utils.llm_factory import _create_google_llm
+        from yamlgraph.utils.llm_providers import _create_google_llm
 
         mock_instance = MagicMock()
         with patch(
@@ -147,7 +147,7 @@ class TestGoogleLLMReceivesThinkingBudget:
 
     def test_google_llm_no_thinking_budget_kwarg_when_none(self):
         """_create_google_llm does NOT pass thinking_budget when None."""
-        from yamlgraph.utils.llm_factory import _create_google_llm
+        from yamlgraph.utils.llm_providers import _create_google_llm
 
         mock_instance = MagicMock()
         with patch(
@@ -160,7 +160,7 @@ class TestGoogleLLMReceivesThinkingBudget:
 
     def test_vertex_llm_receives_thinking_budget_kwarg(self):
         """_create_vertex_llm passes thinking_budget to ChatGoogleGenerativeAI."""
-        from yamlgraph.utils.llm_factory import _create_vertex_llm
+        from yamlgraph.utils.llm_providers import _create_vertex_llm
 
         mock_instance = MagicMock()
         with (

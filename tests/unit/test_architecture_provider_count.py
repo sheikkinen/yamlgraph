@@ -46,6 +46,7 @@ class TestArchitectureProviderCount:
         providers = set(get_args(ProviderType))
         expected = {
             "anthropic",
+            "azure",
             "deepseek",
             "google",
             "inception",

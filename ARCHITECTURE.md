@@ -216,7 +216,7 @@ See [examples/npc/architecture.md](examples/npc/architecture.md) for full docume
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │ llm_factory.py  │  │ schema_loader.py│  │ utils/prompts.py│
 │ • Multi-provider│  │ • YAML → Pydantic│ │ • load_prompt() │
-│ • 10 providers: │  │ • JSON Schema   │  │ • resolve_path()│
+│ • 11 providers: │  │ • JSON Schema   │  │ • resolve_path()│
 │   Anthropic,    │  └─────────────────┘  └─────────────────┘
 │   DeepSeek,     │
 │   Google/Gemini,│
@@ -2066,7 +2066,7 @@ _loading_stack: ContextVar[list[Path]] = ContextVar("loading_stack")
 | `tools/shell.py` | Shell tool execution | 5 |
 | `tools/python_tool.py` | Python tool integration | 5 |
 | `tools/nodes.py` | Tool node creation | 5 |
-| `utils/llm_factory.py` | Multi-provider LLM factory (10 providers) | 3 |
+| `utils/llm_factory.py` | Multi-provider LLM factory (11 providers) | 3 |
 | `utils/llm_factory_async.py` | Async LLM factory | 3 |
 | `utils/expressions.py` | Template and state path resolution | 4 |
 | `utils/conditions.py` | Condition expression evaluation | 6 |

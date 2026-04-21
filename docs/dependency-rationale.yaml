@@ -140,6 +140,13 @@ dependencies:
     modules: ["yamlgraph/utils/llm_factory.py"]
     added: "0.3.0"
 
+  # ─── Optional: Azure AI ──────────────────────────────────────────────
+
+  langchain-azure-ai:
+    rationale: "Azure AI Foundry + Azure OpenAI unified provider integration"
+    modules: ["yamlgraph/utils/llm_factory.py"]
+    added: "0.4.75"
+
   # ─── Optional: Redis ─────────────────────────────────────────────────
 
   langgraph-checkpoint-redis:
