@@ -212,8 +212,8 @@ Every major LLM framework treats Azure as a first-class provider — not a "use 
 
 ### Usage Evidence
 
-- **Existing graphs using `provider:` metadata**: 48 references across `graphs/` (1) and `examples/` (47)
-- **Provider distribution in examples**: anthropic (16), mistral (16), openai (4), replicate (2), inception (1), xai (1), google (1) — no azure, deepseek, lmstudio, or vertex usage in examples
+- **Existing graphs using `provider:` metadata**: 69 references across `graphs/` and `examples/`
+- **Provider distribution**: anthropic (24), mistral (33), openai (4), replicate (2), inception (1), xai (1), google (1) — no azure, deepseek, lmstudio, or vertex usage
 - **Real-world use cases beyond the proposal**: Enterprise teams on Azure are the primary audience. Azure AI Foundry's model catalog (GPT-4o, Llama, Mistral, Cohere on Azure infra) is a differentiator vs. the existing OpenAI provider. No current users can be surveyed, but the FR's value statement (compliance, data residency, procurement) is a standard enterprise driver.
 - **Current provider count**: 10 → would become 11
 
