@@ -35,7 +35,7 @@ Before implementing any feature or fix:
 ### Submitting Proposals
 - Write a markdown file to `.chaplain/inbox/` with a descriptive kebab-case filename (e.g., `refactor-state-builder.md`)
 - Content: plain text description of the problem or task — freeform, but actionable
-- The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce automatically
+- The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce → Inquisitor audit automatically
 - For new features, a one-paragraph problem statement suffices — the Chaplain generates the FR and PR
 - Proposals are consumed on pickup (moved out of inbox); rejected FRs are skipped by the enforce pipeline
 - **Remote submission:** Open a GitHub Issue with the `chaplain` label. The watch daemon syncs labeled issues into the local inbox automatically, removes the label after import, and closes the issue with a commit reference on successful enforcement.

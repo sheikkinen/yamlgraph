@@ -387,6 +387,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 112 | Pipeline Timing Metrics | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py` | REQ-YG-259 |
 | 113 | Chaplain Research Step (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` | REQ-YG-260 |
 | 114 | Automated Post-Merge Finalization (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh` | REQ-YG-261 |
+| 115 | Inquisitor Watch Loop Integration (FR-261) | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` | REQ-YG-262 |
 
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -1505,6 +1506,16 @@ Shared finalization library and watch.sh integration that automatically creates 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
+
+### CAP-115: Inquisitor Watch Loop Integration
+
+Moves the Inquisitor from a fire-and-forget `inquisitor-background` post-commit hook into the `watch.sh` polling loop, making watch.sh the single orchestrator for all audit and enforcement activity. The Inquisitor runs with `--propose` after each successful enforce cycle, feeding findings back into the inbox.
+
+**Feature Request:** FR-261
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-262 | `inquisitor-background` post-commit hook removed from `.pre-commit-config.yaml`; `.chaplain/watch.sh` runs `.chaplain/inquisitor.sh --propose` after each successful enforce cycle with `|| true` failure tolerance; log output captured to timestamped file in `tmp/`; inquisitor step placed after enforce and before post-merge finalization; existing gates (worktree FR-142, commit-delta FR-131) unchanged; `--force` manual invocation still works | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` |
 
 <!-- END GENERATED CAPABILITIES -->
 
