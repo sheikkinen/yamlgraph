@@ -114,6 +114,16 @@ while true; do
         fi
     fi
 
+    # --- Inquisitor audit (FR-261) ---
+    # Run after enforce cycle completes; --propose feeds findings back into inbox
+    if [[ -n "$new_fr" ]] && [[ $EXIT_CODE -eq 0 ]]; then
+        LOG_DIR="tmp"
+        mkdir -p "$LOG_DIR"
+        echo "🔍 Running Inquisitor audit..."
+        .chaplain/inquisitor.sh --propose >> "$LOG_DIR/inquisitor-$(date +%Y%m%d-%H%M%S).log" 2>&1 || true
+        echo "✅ Inquisitor audit complete."
+    fi
+
     # FR-256: Write cycle metrics JSON (best-effort, inline — not trap-based)
     t_cycle_end=$(date +%s)
     if [[ -n "$new_fr" ]]; then
