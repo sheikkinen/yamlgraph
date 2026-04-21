@@ -5,11 +5,15 @@ The contrib client replaces the dedicated `type: a2a_call` node with a
 This reduces framework surface while preserving all A2A consumer functionality.
 """
 
+import importlib.util
 from contextvars import copy_context
 from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+_a2a_available = importlib.util.find_spec("a2a") is not None
+_skip_no_a2a = pytest.mark.skipif(not _a2a_available, reason="a2a SDK not installed")
 
 # =============================================================================
 # send_a2a_message — core contract
@@ -298,7 +302,9 @@ def _parse_agent_card(data: dict) -> Any:
 
 
 class TestAgentCardFetching:
-    """REQ-YG-250: Agent Card fetch via sync httpx.get()."""
+    """REQ-YG-250: Agent Card fetch via sync httpx.get(). Skipped without a2a SDK."""
+
+    pytestmark = _skip_no_a2a
 
     @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.contrib.a2a_client.httpx")
@@ -349,7 +355,9 @@ class TestAgentCardFetching:
 
 
 class TestAgentCardCaching:
-    """REQ-YG-250: ContextVar-scoped Agent Card cache."""
+    """REQ-YG-250: ContextVar-scoped Agent Card cache. Skipped without a2a SDK."""
+
+    pytestmark = _skip_no_a2a
 
     @pytest.mark.req("REQ-YG-250")
     @patch("yamlgraph.contrib.a2a_client._fetch_agent_card")
@@ -408,7 +416,9 @@ class TestAgentCardCaching:
 
 
 class TestSkillValidation:
-    """REQ-YG-251: Skill selection and validation."""
+    """REQ-YG-251: Skill selection and validation. Skipped without a2a SDK."""
+
+    pytestmark = _skip_no_a2a
 
     @pytest.mark.req("REQ-YG-251")
     def test_validate_skill_found(self):
@@ -500,7 +510,9 @@ class TestSkillValidation:
 
 
 class TestStreamingSupport:
-    """REQ-YG-252: Streaming via A2AClient in dedicated thread."""
+    """REQ-YG-252: Streaming via A2AClient in dedicated thread. Skipped without a2a SDK."""
+
+    pytestmark = _skip_no_a2a
 
     @pytest.mark.req("REQ-YG-252")
     @patch("yamlgraph.contrib.a2a_client._get_agent_card")
