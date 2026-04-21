@@ -57,7 +57,7 @@ class TestNodeConfigModelField:
         """model field must default to None (optional)."""
         from yamlgraph.models.graph_schema import NodeConfig
 
-        node = NodeConfig(type="copilot", state_key="result")
+        node = NodeConfig(type="copilot", state_key="result", prompt="test")
         assert node.model is None
 
 
