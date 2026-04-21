@@ -1,0 +1,25 @@
+id: CAP-117
+name: Race Node parse_json & Content Normalization
+description: >
+  Race node _invoke_candidate normalizes response.content to string via
+  shared normalize_content() in yamlgraph/utils/content.py (handles
+  Anthropic list-of-blocks, OpenAI string, None). Race node supports
+  parse_json: true config — skips output_model resolution at factory time
+  and applies extract_json() after content normalization. agent.py imports
+  from shared utility instead of inlining.
+modules:
+  - yamlgraph/node_factory/race_node.py
+  - yamlgraph/utils/content.py
+  - yamlgraph/tools/agent.py
+requirements:
+  - id: REQ-YG-264
+    description: >
+      Race node _invoke_candidate normalizes response.content to string via
+      shared normalize_content(); supports parse_json: true skipping
+      output_model and applying extract_json(); agent.py uses shared utility
+    modules:
+      - yamlgraph/node_factory/race_node.py
+      - yamlgraph/utils/content.py
+      - yamlgraph/tools/agent.py
+      - tests/unit/test_race_node.py
+fr: FR-264
