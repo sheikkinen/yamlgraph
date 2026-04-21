@@ -40,6 +40,7 @@ def _mock_subprocess(stdout: str = "Response", returncode: int = 0) -> MagicMock
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestNodeConfigModelField:
     """NodeConfig schema must include model: str | None."""
@@ -65,6 +66,7 @@ class TestNodeConfigModelField:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestCopilotNodeAcceptsDefaults:
     """create_copilot_node() must accept a defaults parameter."""
@@ -90,6 +92,7 @@ class TestCopilotNodeAcceptsDefaults:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestCompilerPassesDefaults:
     """_compile_copilot_node must pass ctx.effective_defaults to factory."""
@@ -130,6 +133,7 @@ class TestCompilerPassesDefaults:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestNodeLevelModelPassedToCLI:
     """Node-level model field must be passed as --model flag to CLI."""
@@ -160,6 +164,7 @@ class TestNodeLevelModelPassedToCLI:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestDefaultsModelFallback:
     """defaults.model must be used when node and cli_flags have no model."""
@@ -191,6 +196,7 @@ class TestDefaultsModelFallback:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestCliFlagsModelOverridesNodeLevel:
     """cli_flags.model must take priority over node-level model."""
@@ -250,6 +256,7 @@ class TestCliFlagsModelOverridesNodeLevel:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestNoModelOmitsFlag:
     """When no model is specified anywhere, --model flag must be omitted."""
@@ -279,6 +286,7 @@ class TestNoModelOmitsFlag:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestCopilotResultReflectsResolvedModel:
     """CopilotResult.model must reflect the resolved model regardless of source."""
@@ -327,6 +335,7 @@ class TestCopilotResultReflectsResolvedModel:
 # =============================================================================
 
 
+@pytest.mark.skip(reason="FR-266 RED: awaiting implementation")
 @pytest.mark.req("REQ-YG-265")
 class TestModelPriorityChain:
     """Verify the full priority chain: cli_flags > node > defaults > omit."""

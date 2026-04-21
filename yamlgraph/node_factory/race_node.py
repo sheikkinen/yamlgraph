@@ -1,4 +1,4 @@
-"""Race node factory — FR-232.
+"""Race node factory — FR-232, FR-267.
 
 Creates LangGraph nodes that fire the same prompt to N provider/model
 candidates concurrently and return the first successful result.
@@ -13,6 +13,7 @@ from typing import Any
 from yamlgraph.constants import ErrorHandler
 from yamlgraph.executor_base import prepare_messages
 from yamlgraph.models import PipelineError
+from yamlgraph.models.schemas import ErrorType
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
 from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.expressions import resolve_node_variables
@@ -153,38 +154,61 @@ def create_race_node(
                 for llm, candidate in zip(llms, candidates, strict=True)
             }
 
-            for future in as_completed(futures, timeout=timeout):
-                candidate = futures[future]
-                try:
-                    result = future.result()
-                    # Cancel remaining futures
-                    for f in futures:
-                        f.cancel()
+            try:
+                for future in as_completed(futures, timeout=timeout):
+                    candidate = futures[future]
+                    try:
+                        result = future.result()
+                        # Cancel remaining futures
+                        for f in futures:
+                            f.cancel()
 
-                    logger.info(
-                        "Race node %s: winner %s/%s",
-                        node_name,
-                        candidate.get("provider", "?"),
-                        candidate.get("model", "?"),
-                    )
+                        logger.info(
+                            "Race node %s: winner %s/%s",
+                            node_name,
+                            candidate.get("provider", "?"),
+                            candidate.get("model", "?"),
+                        )
 
+                        return {
+                            state_key: result,
+                            "_race_winner": {
+                                "provider": candidate.get("provider"),
+                                "model": candidate.get("model"),
+                            },
+                            "current_step": node_name,
+                            "_loop_counts": loop_counts,
+                        }
+                    except Exception as e:
+                        logger.warning(
+                            "Race candidate %s/%s failed: %s",
+                            candidate.get("provider", "?"),
+                            candidate.get("model", "?"),
+                            e,
+                        )
+                        errors.append((candidate, e))
+            except TimeoutError:
+                for f in futures:
+                    f.cancel()
+                timeout_exc = TimeoutError(
+                    f"Race {node_name} timed out after {timeout}s"
+                )
+                if on_error == ErrorHandler.SKIP:
                     return {
-                        state_key: result,
-                        "_race_winner": {
-                            "provider": candidate.get("provider"),
-                            "model": candidate.get("model"),
-                        },
+                        state_key: None,
                         "current_step": node_name,
                         "_loop_counts": loop_counts,
+                        "errors": [
+                            PipelineError.from_exception(
+                                timeout_exc,
+                                node=node_name,
+                                error_type=ErrorType.TIMEOUT_ERROR,
+                            )
+                        ],
                     }
-                except Exception as e:
-                    logger.warning(
-                        "Race candidate %s/%s failed: %s",
-                        candidate.get("provider", "?"),
-                        candidate.get("model", "?"),
-                        e,
-                    )
-                    errors.append((candidate, e))
+                raise AllCandidatesFailedError(
+                    errors + [({}, timeout_exc)]
+                ) from timeout_exc
 
         # All candidates failed
         all_failed_error = AllCandidatesFailedError(errors)
