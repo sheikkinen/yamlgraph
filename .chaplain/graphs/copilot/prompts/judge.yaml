@@ -22,6 +22,9 @@ user: |
      - **Contrib/example** — 1-2 use cases, existing abstractions have gaps
      - **Pattern documentation** — 0 use cases beyond proposal, or existing abstractions suffice
      - **Reject** — Problem not real, or solution creates more complexity than it resolves
+  8. Do the acceptance tests in the worktree compile and fail for the right reasons?
+     If tests cannot be written from the acceptance criteria, the FR is underspecified.
+     If tests fail for import errors or missing fixtures (not missing implementation), AMEND.
 
   Render your verdict:
 
