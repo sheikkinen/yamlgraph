@@ -456,3 +456,286 @@ class TestRaceNodeCompiler:
         from yamlgraph.node_compiler import NODE_TYPE_HANDLERS
 
         assert "race" in NODE_TYPE_HANDLERS
+
+
+# =============================================================================
+# Content normalization and parse_json — FR-264
+# =============================================================================
+
+
+class TestRaceContentNormalization:
+    """Race node normalizes provider-specific content formats (FR-264)."""
+
+    @pytest.mark.req("REQ-YG-262")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_list_content_normalized_to_string(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Anthropic-style list content blocks are normalized to string."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+
+        # Simulate Anthropic response: content is a list of blocks
+        mock_llm = MagicMock()
+        response = MagicMock()
+        response.content = [{"type": "text", "text": "hello from claude"}]
+        mock_llm.invoke = MagicMock(return_value=response)
+
+        mock_llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [mock_llm, mock_llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "candidates": [
+                {"provider": "anthropic"},
+                {"provider": "openai"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        assert result["response"] == "hello from claude"
+        assert isinstance(result["response"], str)
+
+    @pytest.mark.req("REQ-YG-262")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_string_content_unchanged(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """String content passes through normalization unchanged."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "openai", None)
+
+        llm1 = _make_mock_llm("plain string answer")
+        llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "candidates": [
+                {"provider": "openai"},
+                {"provider": "anthropic"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        assert result["response"] == "plain string answer"
+        assert isinstance(result["response"], str)
+
+
+class TestRaceParseJson:
+    """Race node supports parse_json: true for JSON extraction (FR-264)."""
+
+    @pytest.mark.req("REQ-YG-262")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_parse_json_extracts_json_object(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """parse_json: true extracts JSON from LLM response."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "openai", None)
+
+        llm1 = _make_mock_llm('{"key": "value", "count": 42}')
+        llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "parse_json": True,
+            "candidates": [
+                {"provider": "openai"},
+                {"provider": "anthropic"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        assert isinstance(result["response"], dict)
+        assert result["response"]["key"] == "value"
+        assert result["response"]["count"] == 42
+
+    @pytest.mark.req("REQ-YG-262")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_parse_json_with_markdown_code_block(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """parse_json extracts JSON from markdown code blocks."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "openai", None)
+
+        llm1 = _make_mock_llm('```json\n{"result": "extracted"}\n```')
+        llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "parse_json": True,
+            "candidates": [
+                {"provider": "openai"},
+                {"provider": "anthropic"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        assert isinstance(result["response"], dict)
+        assert result["response"]["result"] == "extracted"
+
+    @pytest.mark.req("REQ-YG-262")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_parse_json_with_anthropic_list_content(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """parse_json works with Anthropic list content containing JSON."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+
+        # Anthropic returns JSON wrapped in content blocks
+        mock_llm = MagicMock()
+        response = MagicMock()
+        response.content = [{"type": "text", "text": '{"answer": "from claude"}'}]
+        mock_llm.invoke = MagicMock(return_value=response)
+
+        llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [mock_llm, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "parse_json": True,
+            "candidates": [
+                {"provider": "anthropic"},
+                {"provider": "openai"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        assert isinstance(result["response"], dict)
+        assert result["response"]["answer"] == "from claude"
+
+    @pytest.mark.req("REQ-YG-262")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_parse_json_disabled_by_default(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Without parse_json, JSON string comes back as-is."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "openai", None)
+
+        llm1 = _make_mock_llm('{"key": "value"}')
+        llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "candidates": [
+                {"provider": "openai"},
+                {"provider": "anthropic"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        # Without parse_json, result should be a string
+        assert isinstance(result["response"], str)
+        assert result["response"] == '{"key": "value"}'
+
+    @pytest.mark.req("REQ-YG-262")
+    @patch("yamlgraph.node_factory.race_node.get_output_model_for_node")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_parse_json_skips_output_model_resolution(
+        self, mock_prepare, mock_create_llm, mock_get_output, sample_state
+    ):
+        """parse_json: true skips output_model resolution at factory time."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "openai", None)
+        llm1 = _make_mock_llm('{"key": "value"}')
+        llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "parse_json": True,
+            "candidates": [
+                {"provider": "openai"},
+                {"provider": "anthropic"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        # get_output_model_for_node should NOT have been called
+        mock_get_output.assert_not_called()
+        assert isinstance(result["response"], dict)
+
+
+class TestNormalizeContentShared:
+    """Shared normalize_content utility lives in yamlgraph.utils.content."""
+
+    @pytest.mark.req("REQ-YG-262")
+    def test_normalize_string_passthrough(self):
+        """String content passes through unchanged."""
+        from yamlgraph.utils.content import normalize_content
+
+        assert normalize_content("hello") == "hello"
+
+    @pytest.mark.req("REQ-YG-262")
+    def test_normalize_list_of_text_blocks(self):
+        """Anthropic-style list of text blocks normalized to string."""
+        from yamlgraph.utils.content import normalize_content
+
+        content = [
+            {"type": "text", "text": "hello "},
+            {"type": "text", "text": "world"},
+        ]
+        assert normalize_content(content) == "hello world"
+
+    @pytest.mark.req("REQ-YG-262")
+    def test_normalize_none_returns_empty_string(self):
+        """None content returns empty string."""
+        from yamlgraph.utils.content import normalize_content
+
+        assert normalize_content(None) == ""
+
+    @pytest.mark.req("REQ-YG-262")
+    def test_normalize_other_type_stringified(self):
+        """Non-str, non-list content is stringified."""
+        from yamlgraph.utils.content import normalize_content
+
+        assert normalize_content(42) == "42"

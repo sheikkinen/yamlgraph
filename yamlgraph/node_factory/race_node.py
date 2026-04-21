@@ -14,7 +14,9 @@ from yamlgraph.constants import ErrorHandler
 from yamlgraph.executor_base import prepare_messages
 from yamlgraph.models import PipelineError
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
+from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.expressions import resolve_node_variables
+from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,7 @@ def _invoke_candidate(
     llm: Any,
     messages: list,
     output_model: type | None,
+    parse_json: bool = False,
 ) -> Any:
     """Invoke a single LLM candidate.
 
@@ -45,16 +48,20 @@ def _invoke_candidate(
         llm: LLM instance
         messages: Prepared messages
         output_model: Optional Pydantic model for structured output
+        parse_json: If True, extract JSON from response (FR-264)
 
     Returns:
-        LLM response (parsed model or string)
+        LLM response (parsed model, extracted JSON, or normalized string)
     """
     if output_model:
         structured_llm = llm.with_structured_output(output_model)
         return structured_llm.invoke(messages)
     else:
         response = llm.invoke(messages)
-        return response.content
+        content = normalize_content(response.content)
+        if parse_json:
+            return extract_json(content)
+        return content
 
 
 def create_race_node(
@@ -86,6 +93,7 @@ def create_race_node(
         temperature = defaults.get("temperature", 0.7)
     on_error = node_config.get("on_error")
     variable_templates = node_config.get("variables", {})
+    parse_json = node_config.get("parse_json", False)
 
     # Resolve prompt path config
     prompts_relative = defaults.get("prompts_relative", False)
@@ -93,13 +101,16 @@ def create_race_node(
     if prompts_dir:
         prompts_dir = Path(prompts_dir)
 
-    # Resolve output model
-    output_model = get_output_model_for_node(
-        node_config,
-        prompts_dir=prompts_dir,
-        graph_path=graph_path,
-        prompts_relative=prompts_relative,
-    )
+    # Resolve output model (skipped when parse_json is enabled)
+    if parse_json:
+        output_model = None
+    else:
+        output_model = get_output_model_for_node(
+            node_config,
+            prompts_dir=prompts_dir,
+            graph_path=graph_path,
+            prompts_relative=prompts_relative,
+        )
 
     def node_fn(state: dict) -> dict:
         """Race node: fire prompt to all candidates, return first success."""
@@ -136,7 +147,9 @@ def create_race_node(
 
         with ThreadPoolExecutor(max_workers=len(llms)) as pool:
             futures = {
-                pool.submit(_invoke_candidate, llm, messages, output_model): candidate
+                pool.submit(
+                    _invoke_candidate, llm, messages, output_model, parse_json
+                ): candidate
                 for llm, candidate in zip(llms, candidates, strict=True)
             }
 

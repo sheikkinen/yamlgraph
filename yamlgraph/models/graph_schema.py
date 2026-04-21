@@ -147,6 +147,12 @@ class NodeConfig(BaseModel):
         description="Race candidates: list of {provider, model} dicts",
     )
 
+    # JSON extraction mode (FR-264)
+    parse_json: bool = Field(
+        default=False,
+        description="Extract JSON from LLM response instead of using structured output",
+    )
+
     # Verification gate (FR-164)
     verification: VerificationConfig | None = Field(
         default=None,
