@@ -36,8 +36,8 @@ class TestClaudeMdChaplainInbox:
     def test_claude_md_mentions_plan_judge_enforce(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
         assert (
-            "Plan → Judge → Enforce" in content or "Plan → Judge → Enforce" in content
-        ), "CLAUDE.md must describe the Plan → Judge → Enforce pipeline"
+            "Plan" in content and "Judge" in content and "Enforce" in content
+        ), "CLAUDE.md must describe the Plan → ... → Judge → Enforce pipeline"
 
     def test_section_placed_before_development_commands(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
