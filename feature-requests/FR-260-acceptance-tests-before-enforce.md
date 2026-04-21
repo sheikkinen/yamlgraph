@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 3 days
 **Requested:** 2026-04-20
 
@@ -214,23 +214,23 @@ edges:
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** `worktree_dir: str` and `branch: str` are defined in the copilot graph state block
-- [ ] **AC-02:** A `create_worktree` python node exists in `.chaplain/graphs/copilot/graph.yaml` between `research` and `write_acceptance_tests`
-- [ ] **AC-03:** `create_worktree` python tool (`.chaplain/lib/worktree.py`) commits FR draft to main and creates worktree with `.venv` symlink
-- [ ] **AC-04:** A `write_acceptance_tests` copilot node exists between `create_worktree` and `judge`
-- [ ] **AC-05:** The `write-acceptance-tests.yaml` prompt reads FR acceptance criteria and generates pytest tests with `@pytest.mark.req` tags
-- [ ] **AC-06:** Tests are committed as RED in the worktree before judge runs
-- [ ] **AC-07:** Judge prompt includes criterion 8 evaluating test evidence
-- [ ] **AC-08:** If acceptance tests cannot be written (criteria too vague), judge AMENDs the FR
-- [ ] **AC-09:** Enforce implement prompt references existing RED tests instead of writing its own
-- [ ] **AC-10:** `enforce_worktree.sh` accepts an optional pre-existing worktree path and skips creation when provided
-- [ ] **AC-11:** Existing bugfix pipeline (`scripts/bugfix_worktree.sh`) is not affected
+- [x] **AC-01:** `worktree_dir: str` and `branch: str` are defined in the copilot graph state block
+- [x] **AC-02:** A `create_worktree` python node exists in `.chaplain/graphs/copilot/graph.yaml` between `research` and `write_acceptance_tests`
+- [x] **AC-03:** `create_worktree` python tool (`.chaplain/lib/worktree.py`) commits FR draft to main and creates worktree with `.venv` symlink
+- [x] **AC-04:** A `write_acceptance_tests` copilot node exists between `create_worktree` and `judge`
+- [x] **AC-05:** The `write-acceptance-tests.yaml` prompt reads FR acceptance criteria and generates pytest tests with `@pytest.mark.req` tags
+- [x] **AC-06:** Tests are committed as RED in the worktree before judge runs
+- [x] **AC-07:** Judge prompt includes criterion 8 evaluating test evidence
+- [x] **AC-08:** If acceptance tests cannot be written (criteria too vague), judge AMENDs the FR
+- [x] **AC-09:** Enforce implement prompt references existing RED tests instead of writing its own
+- [x] **AC-10:** `enforce_worktree.sh` accepts an optional pre-existing worktree path and skips creation when provided
+- [x] **AC-11:** Existing bugfix pipeline (`scripts/bugfix_worktree.sh`) is not affected
 - [ ] **AC-12:** Pipeline timing metrics (FR-256) capture worktree setup duration in the new location
-- [ ] **AC-13:** Unit test: `create_worktree` tool returns valid `worktree_dir` and `branch` from FR path
-- [ ] **AC-14:** Unit test: `write-acceptance-tests.yaml` prompt template renders with valid variable substitution
-- [ ] **AC-15:** Integration test: copilot graph edges enforce ordering plan → research → create_worktree → write_acceptance_tests → judge
-- [ ] **AC-16:** Integration test: judge prompt contains criterion 8 text (test evidence evaluation)
-- [ ] **AC-17:** Documentation updated (CLAUDE.md pipeline flow description)
+- [x] **AC-13:** Unit test: `create_worktree` tool returns valid `worktree_dir` and `branch` from FR path
+- [x] **AC-14:** Unit test: `write-acceptance-tests.yaml` prompt template renders with valid variable substitution
+- [x] **AC-15:** Integration test: copilot graph edges enforce ordering plan → research → create_worktree → write_acceptance_tests → judge
+- [x] **AC-16:** Integration test: judge prompt contains criterion 8 text (test evidence evaluation)
+- [x] **AC-17:** Documentation updated (CLAUDE.md pipeline flow description)
 
 ## Alternatives Considered
 

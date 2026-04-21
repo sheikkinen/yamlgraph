@@ -15,6 +15,11 @@ system: |
 user: |
   Read and implement the feature request at: {{ fr_path }}
 
+  Acceptance tests already exist in the worktree (committed as RED).
+  Your job: make them pass with the minimal implementation, then refactor.
+  Do NOT modify the acceptance test assertions — they are the contract.
+  You may add additional tests for edge cases discovered during implementation.
+
   Follow the TDD discipline:
 
   1. **READ** - Study the FR completely. Understand acceptance criteria.

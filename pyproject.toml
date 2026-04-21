@@ -61,6 +61,9 @@ storyboard = [
 replicate = [
     "langchain-litellm>=0.3.0",  # includes litellm as dependency
 ]
+azure = [
+    "langchain-azure-ai>=1.2.0",  # Azure AI Foundry + Azure OpenAI unified client
+]
 redis = [
     "langgraph-checkpoint-redis>=0.3.0",
 ]
