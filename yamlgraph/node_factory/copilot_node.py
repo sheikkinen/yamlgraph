@@ -138,6 +138,7 @@ def _load_and_render_prompt(
 def create_copilot_node(
     node_name: str,
     config: dict[str, Any],
+    defaults: dict[str, Any] | None = None,
     graph_path: Path | None = None,
     prompts_dir: Path | None = None,
     prompts_relative: bool = False,
@@ -149,11 +150,13 @@ def create_copilot_node(
         config: Node configuration with keys:
             - prompt: Prompt template path
             - state_key: Where to store CopilotResult (required)
+            - model: Model name override (falls back to defaults.model)
             - cli_flags: Dict with allow_all_paths, allow_all_tools, model
             - timeout: Timeout in seconds (default 300)
             - variables: Variable mappings like {state.key}
             - requires: List of required state keys
             - on_error: Error handling strategy
+        defaults: Graph-level defaults (e.g. defaults.model)
         graph_path: Path to graph file for relative prompt resolution
         prompts_dir: Explicit prompts directory override
         prompts_relative: If True, resolve prompts relative to graph_path
@@ -165,6 +168,14 @@ def create_copilot_node(
     state_key = config.get("state_key")
     cli_flags = config.get("cli_flags", {})
     timeout = config.get("timeout", DEFAULT_TIMEOUT)
+    defaults = defaults or {}
+
+    # Resolve model: cli_flags.model > node-level model > defaults.model
+    resolved_model = (
+        cli_flags.get("model") or config.get("model") or defaults.get("model")
+    )
+    if resolved_model:
+        cli_flags = {**cli_flags, "model": resolved_model}
     variables_config = config.get("variables", {})
 
     if not state_key:
