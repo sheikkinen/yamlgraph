@@ -367,7 +367,9 @@ class TestCreateWorktreeToolUnit:
         monkeypatch.setattr(subprocess, "run", mock_run)
 
         # Mock os.symlink to avoid actual symlink creation
-        monkeypatch.setattr("os.symlink", lambda src, dst: None)
+        monkeypatch.setattr(
+            "os.symlink", lambda src, dst, target_is_directory=False: None
+        )
 
         # Mock venv validators to avoid filesystem checks
         import yamlgraph.utils.worktree_helpers as wh

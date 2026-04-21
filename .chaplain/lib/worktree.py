@@ -1,21 +1,18 @@
-"""Worktree creation tool for the Chaplain copilot pipeline (FR-260).
+"""Worktree creation tool for Chaplain copilot pipeline (FR-260, FR-265).
 
-Commits FR draft to main and creates a git worktree for acceptance tests.
-Follows the diary.py pattern: def tool_fn(state: dict) -> dict.
+Graph tool function ``create_worktree(state)`` commits a draft FR from
+``.chaplain/drafts/`` to main and creates an isolated git worktree for
+the enforce pipeline.
+
+FR-265 fixes:
+- Uses ``git add -f`` to stage drafts under gitignored paths.
+- Raises ``ValueError`` when multiple drafts exist (deterministic selection).
+- Handles ``nothing to commit`` idempotently; raises on other commit errors.
 """
 
-import glob as glob_mod
 import logging
-import os
-import subprocess
+import subprocess  # noqa: S404
 from pathlib import Path
-
-from yamlgraph.utils.worktree_helpers import (
-    construct_worktree_path,
-    derive_branch_name,
-    validate_venv_health,
-    validate_venv_symlink,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -23,64 +20,84 @@ logger = logging.getLogger(__name__)
 def create_worktree(state: dict) -> dict:
     """Commit FR draft to main and create worktree for acceptance tests.
 
-    Reads the FR draft from drafts_dir, commits it to main, then creates
-    a git worktree with .venv symlink. Returns worktree_dir and branch
-    as state update.
+    Uses existing helpers from ``yamlgraph.utils.worktree_helpers``.
+    Returns ``worktree_dir`` and ``branch`` as state update.
 
     Args:
-        state: Graph state containing drafts_dir (path to FR drafts directory).
+        state: Graph state dict with ``drafts_dir`` key.
 
     Returns:
-        Dict with worktree_dir and branch keys.
+        Dict with ``worktree_dir`` and ``branch`` keys.
+
+    Raises:
+        FileNotFoundError: No draft files found in ``drafts_dir``.
+        ValueError: Multiple draft files found (nondeterministic).
+        RuntimeError: ``git commit`` failed for reasons other than
+            "nothing to commit".
     """
-    drafts_dir = state.get("drafts_dir", "")
-
-    # Find FR draft file in drafts_dir
-    fr_files = glob_mod.glob(os.path.join(drafts_dir, "*.md"))
-    if not fr_files:
-        raise FileNotFoundError(f"No FR draft found in {drafts_dir}")
-    fr_path = fr_files[0]
-
-    # Derive branch and worktree path
-    branch = derive_branch_name(fr_path)
-    worktree_dir = construct_worktree_path(branch)
-
-    # Commit FR draft to main (--no-verify to avoid pre-commit circular dependency)
-    subprocess.run(  # noqa: S603
-        ["git", "add", fr_path],  # noqa: S607
-        check=True,
-        capture_output=True,
+    from yamlgraph.utils.worktree_helpers import (
+        construct_worktree_path,
+        derive_branch_name,
+        validate_venv_health,
+        validate_venv_symlink,
     )
+
+    drafts_dir = Path(state["drafts_dir"])
+
+    # --- Deterministic draft selection (FR-265 AC-03) ---
+    fr_files = sorted(drafts_dir.glob("*.md"))
+    if not fr_files:
+        raise FileNotFoundError(f"No draft files found in {drafts_dir}")
+    if len(fr_files) > 1:
+        candidates = [str(f) for f in fr_files]
+        raise ValueError(f"Multiple draft files found in {drafts_dir}: {candidates}")
+
+    draft_path = fr_files[0]
+    logger.info("Staging draft: %s", draft_path)
+
+    # --- Force-add to handle .gitignore (FR-265 AC-01) ---
     subprocess.run(  # noqa: S603
+        ["git", "add", "-f", str(draft_path)],  # noqa: S607
+        check=True,
+    )
+
+    # --- Idempotent commit (FR-265 AC-05/AC-06) ---
+    result = subprocess.run(  # noqa: S603
         [  # noqa: S607
             "git",
             "commit",
             "--no-verify",
             "-m",
-            f"docs(FR): add {Path(fr_path).stem} for enforce pipeline",
+            f"docs(FR): stage draft {draft_path.name}",
         ],
-        check=False,
         capture_output=True,
+        text=True,
     )
+    if result.returncode != 0:
+        combined = result.stdout + result.stderr
+        if "nothing to commit" in combined:
+            logger.info("Draft already committed (nothing to commit)")
+        else:
+            raise RuntimeError(f"git commit failed: {result.stderr}")
 
-    # Create worktree directory structure
-    os.makedirs(os.path.dirname(worktree_dir), exist_ok=True)
+    # --- Derive branch and worktree path ---
+    branch = derive_branch_name(str(draft_path))
+    worktree_dir = construct_worktree_path(branch)
 
-    # Create git worktree
+    # --- Create worktree with parent dirs ---
+    Path(worktree_dir).parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(  # noqa: S603
         ["git", "worktree", "add", worktree_dir, "-b", branch, "main"],  # noqa: S607
         check=True,
-        capture_output=True,
     )
 
-    # Symlink .venv from main repo
-    main_venv = Path(".venv").resolve()
-    worktree_venv = Path(worktree_dir) / ".venv"
-
+    # --- Symlink .venv (FR-174: validate BEFORE symlinking) ---
+    main_venv = Path(".venv")
     validate_venv_health(main_venv)
-    os.symlink(str(main_venv), str(worktree_venv))
-    validate_venv_symlink(worktree_venv, main_venv)
 
-    logger.info("✓ Worktree created at %s on branch %s", worktree_dir, branch)
+    wt_venv = Path(worktree_dir) / ".venv"
+    wt_venv.symlink_to(main_venv.resolve())
+    validate_venv_symlink(wt_venv, main_venv)
 
+    logger.info("Worktree ready: %s (branch: %s)", worktree_dir, branch)
     return {"worktree_dir": worktree_dir, "branch": branch}
