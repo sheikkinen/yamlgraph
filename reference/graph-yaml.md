@@ -823,6 +823,7 @@ nodes:
 | `prompt` | `string` | Yes | Prompt template name |
 | `state_key` | `string` | Yes | State key for the winning response |
 | `temperature` | `float` | No | LLM temperature for all candidates |
+| `parse_json` | `bool` | No | Extract JSON from LLM response (default: false) |
 
 **How it works:**
 1. All candidates are dispatched concurrently via `ThreadPoolExecutor`
