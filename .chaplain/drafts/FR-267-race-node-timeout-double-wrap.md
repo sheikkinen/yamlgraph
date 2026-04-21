@@ -105,7 +105,7 @@ The race node `timeout` is a **total race deadline** — it bounds the maximum w
 
 **Amends REQ-YG-233:** Add: "Race node `timeout` is a total race deadline (not per-candidate). Timeout enforcement is internal to the race node; `_maybe_wrap_timeout` must not be applied."
 
-**Amends REQ-YG-078 (CAP-96):** Narrow scope: "_maybe_wrap_timeout applies to non-map node types **except race**, which owns timeout natively."
+**Amends REQ-YG-078 (CAP-96):** Narrow scope: "`_maybe_wrap_timeout` applies to non-map node types **except race**, which owns timeout natively."
 
 ## Alternatives Considered
 
@@ -130,48 +130,64 @@ The race node `timeout` is a **total race deadline** — it bounds the maximum w
 
 ### Competitive Landscape
 
-- **LangGraph** (upstream): Uses `concurrent.futures.wait(FIRST_COMPLETED)` with a single `step_timeout` deadline per superstep. Timeout is total, not per-candidate — matching FR-267's intended semantics. Crucially, LangGraph uses **one** timeout mechanism, never nests thread pools. No known silent-state-loss bugs. ([source: `langgraph/pregel/_runner.py`](https://github.com/langchain-ai/langgraph))
-- **CrewAI**: Sequential task execution model. No race/first-wins pattern. No explicit timeout mechanism found.
-- **Microsoft AutoGen**: Multi-agent conversation model (message-based). No `FIRST_COMPLETED` race pattern. Agent-level timeouts exist but are not globally coordinated.
-- **Google ADK**: Limited public code. No evidence of parallel-candidate racing with timeout.
-- **OpenAI Agents SDK**: No race pattern. Early-stage SDK focused on agent chains.
+No competing framework suffers from this bug because none layer a generic timeout wrapper on top of a node that already owns its timeout:
 
-**Verdict:** Only LangGraph supports first-success-wins racing. Its design validates FR-267's approach — a single native timeout mechanism without outer wrapping. Documenting an existing solution is not applicable here; this is a bug in YAMLGraph's own compile pipeline.
+| Framework | Race Primitive | Timeout Method | Double-Wrap Risk |
+|-----------|---------------|----------------|-----------------|
+| **LangGraph** (upstream) | Implicit via `concurrent.futures.wait(FIRST_COMPLETED)` | Single shared `BackgroundExecutor` with deadline recalculation per loop iteration ([_runner.py:227-232](https://github.com/langchain-ai/langgraph/blob/main/libs/langgraph/langgraph/pregel/_runner.py)) | ✅ None — one executor per graph, no per-node wrapping |
+| **OpenAI Agents SDK** | Multi-phase settlement with `asyncio.wait(FIRST_COMPLETED)` + grace periods | Pure async — deadline tracking on event loop, no thread pools at all ([tool_execution.py](https://github.com/openai/openai-agents-python/blob/main/src/agents/run_internal/tool_execution.py)) | ✅ None — no thread pools |
+| **CrewAI** | ❌ No race primitive | Sequential task execution; relies on provider timeouts | N/A |
+| **AutoGen** | ❌ No race primitive | Agent message-passing loop; no parallel execution | N/A |
+| **Google ADK** | Not publicly documented for this pattern | — | — |
+
+**Key insight:** LangGraph upstream avoids the problem by managing a single executor at the graph runner level. YAMLGraph's `_maybe_wrap_timeout` creates a _new_ `ThreadPoolExecutor(max_workers=1)` per node — correct for nodes without native timeout, but redundant and destructive for race nodes which already own a pool. The fix (removing the outer wrap) aligns with upstream's single-executor philosophy.
+
+**Could documenting solve this?** No — this is a runtime bug causing silent data loss. Documentation cannot prevent the double-wrap; only a code fix can.
 
 ### Existing Abstractions
 
-| Abstraction | File | Relevance |
-|-------------|------|-----------|
-| `_maybe_wrap_timeout` | `yamlgraph/node_compiler.py:102–148` | Root cause. Creates outer `ThreadPoolExecutor(max_workers=1)`. Applied to 6 node types; already skipped by map, interrupt, passthrough, copilot, subgraph. |
-| `create_race_node` | `yamlgraph/node_factory/race_node.py:67–206` | Native `as_completed(timeout=...)` at line 156. Returns full state dict (lines 171–179). `TimeoutError` not caught (gap at line 156). |
-| `_compile_race_node` | `yamlgraph/node_compiler.py:270–279` | Bug site: line 277 applies `_maybe_wrap_timeout` to race node, creating nested pools. |
-| `ErrorType.TIMEOUT_ERROR` | `yamlgraph/models/schemas.py:~20` | Used by `_maybe_wrap_timeout` but NOT by race node for its internal timeout. FR-267 would add this. |
-| `ErrorHandler` | `yamlgraph/constants.py:41–47` | Race node already respects `on_error` at lines 192–202. TimeoutError path needs to feed into this. |
+| Abstraction | File | Overlap |
+|-------------|------|---------|
+| Race node (native `as_completed(timeout=...)`) | `yamlgraph/node_factory/race_node.py:148-156` | **Direct conflict** — owns timeout internally but gets wrapped again |
+| Generic timeout wrapper | `yamlgraph/node_compiler.py:102-148` (`_maybe_wrap_timeout`) | Applied to race at line 277 — **root cause of bug** |
+| Map node timeout | `yamlgraph/map_compiler.py:93-197` (`wrap_for_reducer`) | Correct pattern — catches `TimeoutError` before `Exception`, returns structured `PipelineError` |
+| Content normalization | `yamlgraph/utils/content.py` (`normalize_content`) | Independent (FR-264), already integrated into race node |
+| PipelineError model | `yamlgraph/models/schemas.py` (`ErrorType.TIMEOUT_ERROR`) | Reusable — race node should use this for timeout expiry |
 
-**No duplication risk.** The fix removes a wrapper call and adds missing error handling — no new abstractions created.
+**Node compiler timeout application matrix:**
+
+| Node Type | `_maybe_wrap_timeout` applied? | Own timeout? | Correct? |
+|-----------|-------------------------------|--------------|----------|
+| llm, router, tool, python, agent, tool_call | ✅ Yes | ❌ No | ✅ Correct |
+| map | ❌ No (uses `wrap_for_reducer`) | ✅ Yes | ✅ Correct |
+| race | ✅ Yes (line 277) | ✅ Yes | ❌ **BUG** |
+| interrupt, passthrough, copilot, subgraph | ❌ No | ❌ No | ✅ Correct |
 
 ### Diary Precedents
 
-| Diary Entry | Pattern/Trap | Relevance |
-|-------------|-------------|-----------|
-| `2026-04-18-reflection-fr-232-race-node-type.md` | **Trap Avoided: False Completion** — `FIRST_COMPLETED ≠ first successful`. ThreadPoolExecutor chosen over asyncio. | Directly relevant: race node's ThreadPoolExecutor is the correct inner mechanism; outer wrap is redundant. |
-| `2026-04-19-reflection-fr-069-map-node-timeout.md` | **Trap Avoided: Partial Remediation** — `_maybe_wrap_timeout` applied uniformly to avoid leaving node types unguarded. **Seed:** "Should timeouts feed into race node's winner-selection?" | FR-069's uniform application was correct for nodes without native timeout. Race is the exception — it already owns timeout. The seed foreshadows this FR. |
-| `2026-04-21-reflection-fr-264-race-node-content-normalization.md` | **Trap: `downstream_fix`** — normalize at boundary, not downstream. | Same pattern: timeout enforcement belongs at the race boundary (inside `race_node.py`), not at the compiler boundary (`_maybe_wrap_timeout`). |
-| `2026-03-12-nc150-fly-monitoring-debug.md` | **Trap: Silent Data Drop** — "Never silently drop data." | Exact symptom: race node logs winner but state updates silently lost. |
-| `2026-04-19-inquisitor-audit-182.md` | **Drift: CAP-96 numbering collision** between FR-069 and FR-237. | Administrative precedent: verify CAP-119 number is unoccupied before creating. |
+Three diary entries directly inform this fix:
 
-**Recurring pattern:** The One Law — "Normalize at the boundary where external data enters." Timeout is an internal race concern; enforcing it externally via `_maybe_wrap_timeout` violates boundary ownership.
+1. **`2026-04-18-reflection-fr-232-race-node-type.md`** — Race node deliberately chose `ThreadPoolExecutor` over asyncio to avoid event loop conflicts in LangGraph's sync-first model. Heuristic: "First completed ≠ first successful." The race node _must_ own its pool to implement this correctly.
+
+2. **`2026-04-19-reflection-fr-069-map-node-timeout.md`** — FR-069 (timeout) required intercepting at TWO boundaries: map fan-out and regular nodes. Trap: `partial_remediation` — only adding timeout to map would leave other nodes unguarded. **The fix correctly added `_maybe_wrap_timeout` to regular nodes, but over-applied it to race nodes which already had native timeout.**
+
+3. **`2026-04-21-reflection-fr-264-race-node-content-normalization.md`** — Trap: `downstream_fix` — symptom manifested in race consumers, root cause was at provider boundary. **The One Law: normalize at the boundary where external data enters.** Directly applicable: timeout ownership belongs inside `race_node.py`, not at the compiler layer.
+
+**Recurring traps activated:**
+- `downstream_fix` → timeout applied at compiler (downstream) instead of race node (boundary)
+- `partial_remediation` → FR-069 fixed map+regular nodes correctly but didn't exclude race
+- `infrastructure_self_exempt` → `_maybe_wrap_timeout` guards all nodes uniformly but doesn't account for nodes that already self-guard
 
 ### Usage Evidence
 
-- **Existing graphs using race nodes:** 1 (`examples/demos/race/graph.yaml`)
-- **Race nodes with `timeout:` configured:** 1/1 (100%) — `timeout: 15` with 3 candidates (mistral, openai, google)
-- **Real-world use cases beyond the proposal:**
-  - NV-240 in `sheikkinen/ninchat-voice` (downstream project, cited in FR)
-  - Race node is designed for production hedging (multi-provider latency arbitrage) — low graph count reflects recent addition (FR-232, 2026-04-18), not low demand
+- **Existing graphs using race nodes:** 1 (`examples/demos/race/graph.yaml` — uses `timeout: 15`)
+- **Existing graphs using timeout:** 16 total (across examples/ebook, examples/demos/map-timeout, etc.)
+- **Test files:** `tests/unit/test_race_node.py` (741 lines), `tests/unit/test_linter_patterns_race.py` (133 lines), `tests/unit/test_map_node_timeout.py` (313 lines)
+- **Downstream project:** NV-240 in `sheikkinen/ninchat-voice` (race node for multi-provider LLM racing)
+- **Real-world use cases beyond the proposal:** Any graph using `type: race` with `timeout:` is affected. The race demo (`examples/demos/race/graph.yaml`) is broken when timeout triggers the outer wrapper.
 
 ### Classification Signal
 
-- **Abstraction level:** primitive — the bug is in the compile pipeline (`node_compiler.py`), affecting all race nodes with `timeout:` config
-- **Recommended approach:** build — this is a bug fix, not a new feature. Two surgical changes (remove wrapper call, add TimeoutError handling). Cannot be documented away; silent state loss is a correctness defect.
-- **Key risk:** Removing the outer wrapper exposes the uncaught `TimeoutError` gap in `race_node.py`. Both changes must ship together (as FR correctly notes) to avoid regressing from "silent loss" to "raw exception."
+- **Abstraction level:** primitive — race node is a core node type (CAP-91) and timeout is a core feature (CAP-96); this bug affects any graph combining both
+- **Recommended approach:** build — this is a runtime bug causing silent data loss; a 1-line removal + 5-line TimeoutError handler is the minimum viable fix
+- **Key risk:** Removing `_maybe_wrap_timeout` from race nodes exposes the uncaught `TimeoutError` from `as_completed`; both changes must ship together (as FR-267 proposes) or timeout-expired races will raise raw exceptions instead of structured `PipelineError`
