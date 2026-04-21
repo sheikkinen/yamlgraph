@@ -52,6 +52,7 @@ nodes:
     type: copilot
     prompt: enforce-test-demo
     cli_flags:
+      model: gpt-5.3-codex
       allow_all_paths: true
       allow_all_tools: true
       resume: "{state.implement_result.session_id}"
@@ -79,6 +80,7 @@ nodes:
     type: copilot
     prompt: enforce-finalize
     cli_flags:
+      model: gpt-5.3-codex
       allow_all_paths: true
       allow_all_tools: true
       resume: "{state.implement_result.session_id}"

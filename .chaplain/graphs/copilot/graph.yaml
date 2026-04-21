@@ -46,6 +46,7 @@ nodes:
     prompt: plan
     backend: cli
     cli_flags:
+      model: claude-sonnet-4.6
       allow_all_paths: true
       allow_all_tools: true
     variables:
@@ -85,6 +86,7 @@ nodes:
     prompt: write-acceptance-tests
     backend: cli
     cli_flags:
+      model: gpt-5.3-codex
       allow_all_paths: true
       allow_all_tools: true
       resume: "{state.plan_result.session_id}"
@@ -115,6 +117,7 @@ nodes:
     type: llm
     prompt: summarize
     variables:
+      model: gpt-5.3-codex
       plan_output: "{state.plan_result}"
       judge_output: "{state.judge_result}"
     state_key: diary_entry
