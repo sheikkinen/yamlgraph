@@ -35,7 +35,7 @@ Before implementing any feature or fix:
 ### Submitting Proposals
 - Write a markdown file to `.chaplain/inbox/` with a descriptive kebab-case filename (e.g., `refactor-state-builder.md`)
 - Content: plain text description of the problem or task — freeform, but actionable
-- The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce automatically
+- The `.chaplain/watch.sh` daemon picks it up and runs Plan → Judge → Enforce → Inquisitor audit automatically
 - For new features, a one-paragraph problem statement suffices — the Chaplain generates the FR and PR
 - Proposals are consumed on pickup (moved out of inbox); rejected FRs are skipped by the enforce pipeline
 - **Remote submission:** Open a GitHub Issue with the `chaplain` label. The watch daemon syncs labeled issues into the local inbox automatically, removes the label after import, and closes the issue with a commit reference on successful enforcement.
@@ -420,7 +420,10 @@ The codebase uses **sync-first with async wrappers**:
 | `DEEPSEEK_API_KEY` | DeepSeek authentication |
 | `XAI_API_KEY` | xAI Grok authentication |
 | `LMSTUDIO_BASE_URL` | LM Studio local server URL |
-| `PROVIDER` | Default LLM provider (anthropic/deepseek/google/inception/mistral/openai/replicate/xai/lmstudio) |
+| `AZURE_AI_ENDPOINT` | Azure AI Foundry endpoint URL |
+| `AZURE_AI_API_KEY` | Azure AI API key |
+| `AZURE_MODEL` | Default Azure model/deployment name (default: `gpt-4o`) |
+| `PROVIDER` | Default LLM provider (anthropic/azure/deepseek/google/inception/mistral/openai/replicate/xai/lmstudio) |
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |
 | `LANGCHAIN_PROJECT` | LangSmith project name |

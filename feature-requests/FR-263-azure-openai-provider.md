@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-21
 
@@ -103,22 +103,22 @@ def _create_azure_llm(
 
 ## Acceptance Criteria
 
-- [ ] `"azure"` is a valid value in `ProviderType` literal
-- [ ] `_create_azure_llm()` factory function creates an Azure LLM instance via `langchain-azure-ai`
-- [ ] `_dispatch_provider()` routes `"azure"` to the factory function
-- [ ] `DEFAULT_MODELS["azure"]` reads `AZURE_MODEL` env var with default `gpt-4o`
-- [ ] `langchain-azure-ai>=1.2.0` is an optional dependency under `[azure]` extra in `pyproject.toml`
+- [x] `"azure"` is a valid value in `ProviderType` literal
+- [x] `_create_azure_llm()` factory function creates an Azure LLM instance via `langchain-azure-ai`
+- [x] `_dispatch_provider()` routes `"azure"` to the factory function
+- [x] `DEFAULT_MODELS["azure"]` reads `AZURE_MODEL` env var with default `gpt-4o`
+- [x] `langchain-azure-ai>=1.2.0` is an optional dependency under `[azure]` extra in `pyproject.toml`
 - [ ] `pip install -e ".[azure]"` resolves cleanly alongside existing LangChain stack
-- [ ] Import is lazy (inside factory function) so missing package doesn't break other providers
-- [ ] `create_llm(provider="azure")` raises `ValueError` with actionable message when `AZURE_AI_ENDPOINT` is missing
-- [ ] `create_llm(provider="azure")` raises `ValueError` with actionable message when `AZURE_AI_API_KEY` is missing
-- [ ] Unit tests cover: provider registration, factory creation, env var reading, temperature passthrough, model override, missing env var errors
-- [ ] Integration test skips gracefully when `AZURE_AI_API_KEY` or `AZURE_AI_ENDPOINT` is not set
-- [ ] Architecture provider count guard test (`REQ-YG-121`) passes after updating `ARCHITECTURE.md` and provider-set expectations
-- [ ] `CLAUDE.md` environment variables table includes Azure variables
-- [ ] All tests tagged with `@pytest.mark.req("REQ-YG-010")`
-- [ ] Tests added
-- [ ] Documentation updated
+- [x] Import is lazy (inside factory function) so missing package doesn't break other providers
+- [x] `create_llm(provider="azure")` raises `ValueError` with actionable message when `AZURE_AI_ENDPOINT` is missing
+- [x] `create_llm(provider="azure")` raises `ValueError` with actionable message when `AZURE_AI_API_KEY` is missing
+- [x] Unit tests cover: provider registration, factory creation, env var reading, temperature passthrough, model override, missing env var errors
+- [x] Integration test skips gracefully when `AZURE_AI_API_KEY` or `AZURE_AI_ENDPOINT` is not set
+- [x] Architecture provider count guard test (`REQ-YG-121`) passes after updating `ARCHITECTURE.md` and provider-set expectations
+- [x] `CLAUDE.md` environment variables table includes Azure variables
+- [x] All tests tagged with `@pytest.mark.req("REQ-YG-010")`
+- [x] Tests added
+- [x] Documentation updated
 
 ## Alternatives Considered
 

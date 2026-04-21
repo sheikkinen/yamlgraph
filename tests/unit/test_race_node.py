@@ -466,7 +466,7 @@ class TestRaceNodeCompiler:
 class TestRaceContentNormalization:
     """Race node normalizes provider-specific content formats (FR-264)."""
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_list_content_normalized_to_string(
@@ -502,7 +502,7 @@ class TestRaceContentNormalization:
         assert result["response"] == "hello from claude"
         assert isinstance(result["response"], str)
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_string_content_unchanged(
@@ -537,7 +537,7 @@ class TestRaceContentNormalization:
 class TestRaceParseJson:
     """Race node supports parse_json: true for JSON extraction (FR-264)."""
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_parse_json_extracts_json_object(
@@ -570,7 +570,7 @@ class TestRaceParseJson:
         assert result["response"]["key"] == "value"
         assert result["response"]["count"] == 42
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_parse_json_with_markdown_code_block(
@@ -602,7 +602,7 @@ class TestRaceParseJson:
         assert isinstance(result["response"], dict)
         assert result["response"]["result"] == "extracted"
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_parse_json_with_anthropic_list_content(
@@ -639,7 +639,7 @@ class TestRaceParseJson:
         assert isinstance(result["response"], dict)
         assert result["response"]["answer"] == "from claude"
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_parse_json_disabled_by_default(
@@ -671,7 +671,7 @@ class TestRaceParseJson:
         assert isinstance(result["response"], str)
         assert result["response"] == '{"key": "value"}'
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     @patch("yamlgraph.node_factory.race_node.get_output_model_for_node")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
@@ -708,14 +708,14 @@ class TestRaceParseJson:
 class TestNormalizeContentShared:
     """Shared normalize_content utility lives in yamlgraph.utils.content."""
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     def test_normalize_string_passthrough(self):
         """String content passes through unchanged."""
         from yamlgraph.utils.content import normalize_content
 
         assert normalize_content("hello") == "hello"
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     def test_normalize_list_of_text_blocks(self):
         """Anthropic-style list of text blocks normalized to string."""
         from yamlgraph.utils.content import normalize_content
@@ -726,14 +726,14 @@ class TestNormalizeContentShared:
         ]
         assert normalize_content(content) == "hello world"
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     def test_normalize_none_returns_empty_string(self):
         """None content returns empty string."""
         from yamlgraph.utils.content import normalize_content
 
         assert normalize_content(None) == ""
 
-    @pytest.mark.req("REQ-YG-262")
+    @pytest.mark.req("REQ-YG-264")
     def test_normalize_other_type_stringified(self):
         """Non-str, non-list content is stringified."""
         from yamlgraph.utils.content import normalize_content

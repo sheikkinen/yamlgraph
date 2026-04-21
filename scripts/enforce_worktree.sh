@@ -5,15 +5,17 @@
 # enforce pipeline graph, and cleans up on exit.
 #
 # Usage:
-#   scripts/enforce_worktree.sh <feature-request-path> [base-branch]
+#   scripts/enforce_worktree.sh <feature-request-path> [base-branch] [existing-worktree-dir]
 #
 # Example:
 #   scripts/enforce_worktree.sh feature-requests/FR-106-parallel-worktree-pipeline.md
 #   scripts/enforce_worktree.sh feature-requests/FR-107-test.md develop
+#   scripts/enforce_worktree.sh feature-requests/FR-260-test.md main tmp/worktrees/feat/fr-260-test
 #
 # The script (Presentation layer):
 # 1. Validates clean working tree (no uncommitted changes)
 # 2. Creates a git worktree with a branch derived from FR filename
+#    (or uses pre-existing worktree from FR-260 copilot pipeline)
 # 3. Symlinks the shared .venv to avoid redundant installs
 # 4. Delegates to: yamlgraph graph run .chaplain/graphs/enforce/graph.yaml (FR-196)
 # 5. Cleans up the worktree on exit (success or failure)
@@ -49,6 +51,7 @@ fi
 
 FR_PATH="$1"
 BASE_BRANCH="${2:-main}"
+EXISTING_WORKTREE="${3:-}"
 
 # Validate FR file exists
 if [[ ! -f "$FR_PATH" ]]; then
@@ -74,12 +77,17 @@ fi
 
 # Commit FR to main before creating worktree (ensures FR exists in worktree)
 # Uses --no-verify to avoid pre-commit circular dependency
-if ! git diff --quiet -- "$FR_PATH" 2>/dev/null || ! git ls-files --error-unmatch "$FR_PATH" >/dev/null 2>&1; then
-    log_info "Committing FR to main before worktree creation..."
-    git add "$FR_PATH"
-    git commit --no-verify -m "docs(FR): add $(basename "$FR_PATH" .md) for enforce pipeline"
-    git push
-    log_info "FR committed and pushed to main"
+# FR-260: Skip if using pre-existing worktree (already committed by copilot graph)
+if [[ -z "$EXISTING_WORKTREE" ]]; then
+    if ! git diff --quiet -- "$FR_PATH" 2>/dev/null || ! git ls-files --error-unmatch "$FR_PATH" >/dev/null 2>&1; then
+        log_info "Committing FR to main before worktree creation..."
+        git add "$FR_PATH"
+        git commit --no-verify -m "docs(FR): add $(basename "$FR_PATH" .md) for enforce pipeline"
+        git push
+        log_info "FR committed and pushed to main"
+    fi
+else
+    log_info "Using pre-existing worktree, skipping FR commit to main"
 fi
 
 # Save main directory for later use
@@ -137,23 +145,29 @@ clean_stale_pth_entries(Path('$MAIN_DIR/.venv'), '$abs_worktree')
 }
 trap cleanup EXIT
 
-# Create worktree with new branch
+# Create worktree with new branch (or use pre-existing one from FR-260 pipeline)
 t_phase_start=$(date +%s)
-log_info "Creating git worktree..."
-mkdir -p "$(dirname "$WORKTREE_DIR")"
-git worktree add "$WORKTREE_DIR" -b "$BRANCH" "$BASE_BRANCH"
+if [[ -n "$EXISTING_WORKTREE" && -d "$EXISTING_WORKTREE" ]]; then
+    # FR-260: Pre-existing worktree from copilot pipeline — skip creation
+    log_info "Using pre-existing worktree at: $EXISTING_WORKTREE"
+    WORKTREE_DIR="$EXISTING_WORKTREE"
+else
+    log_info "Creating git worktree..."
+    mkdir -p "$(dirname "$WORKTREE_DIR")"
+    git worktree add "$WORKTREE_DIR" -b "$BRANCH" "$BASE_BRANCH"
 
-# Symlink shared .venv to avoid redundant installs
-# FR-174: Validate .venv health before symlinking (fail loudly, not silently skip)
-MAIN_VENV="$MAIN_DIR/.venv"
-python3 -c "from pathlib import Path; from yamlgraph.utils.worktree_helpers import validate_venv_health; validate_venv_health(Path('$MAIN_VENV'))"
-log_info "Symlinking shared .venv..."
-ln -sf "$MAIN_VENV" "$WORKTREE_DIR/.venv"
-# FR-174: Validate symlink resolves correctly
-python3 -c "from pathlib import Path; from yamlgraph.utils.worktree_helpers import validate_venv_symlink; validate_venv_symlink(Path('$WORKTREE_DIR/.venv'), Path('$MAIN_VENV'))"
-# Ensure .venv is gitignored in worktree (prevents symlink from being committed)
-if ! grep -q "^\.venv$" "$WORKTREE_DIR/.gitignore" 2>/dev/null; then
-    echo ".venv" >> "$WORKTREE_DIR/.gitignore"
+    # Symlink shared .venv to avoid redundant installs
+    # FR-174: Validate .venv health before symlinking (fail loudly, not silently skip)
+    MAIN_VENV="$MAIN_DIR/.venv"
+    python3 -c "from pathlib import Path; from yamlgraph.utils.worktree_helpers import validate_venv_health; validate_venv_health(Path('$MAIN_VENV'))"
+    log_info "Symlinking shared .venv..."
+    ln -sf "$MAIN_VENV" "$WORKTREE_DIR/.venv"
+    # FR-174: Validate symlink resolves correctly
+    python3 -c "from pathlib import Path; from yamlgraph.utils.worktree_helpers import validate_venv_symlink; validate_venv_symlink(Path('$WORKTREE_DIR/.venv'), Path('$MAIN_VENV'))"
+    # Ensure .venv is gitignored in worktree (prevents symlink from being committed)
+    if ! grep -q "^\.venv$" "$WORKTREE_DIR/.gitignore" 2>/dev/null; then
+        echo ".venv" >> "$WORKTREE_DIR/.gitignore"
+    fi
 fi
 
 cd "$WORKTREE_DIR"

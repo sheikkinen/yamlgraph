@@ -1,4 +1,4 @@
-id: CAP-115
+id: CAP-117
 name: Race Node parse_json & Content Normalization
 description: >
   Race node _invoke_candidate normalizes response.content to string via
@@ -12,7 +12,7 @@ modules:
   - yamlgraph/utils/content.py
   - yamlgraph/tools/agent.py
 requirements:
-  - id: REQ-YG-262
+  - id: REQ-YG-264
     description: >
       Race node _invoke_candidate normalizes response.content to string via
       shared normalize_content(); supports parse_json: true skipping

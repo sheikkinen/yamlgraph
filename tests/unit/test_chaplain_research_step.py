@@ -101,12 +101,24 @@ class TestResearchEdges:
         ) in pairs, f"Missing plan → research edge. Edges: {pairs}"
 
     def test_research_to_judge_edge(self):
-        """Edge from research → judge must exist."""
+        """Research must connect to judge (directly or via intermediate nodes)."""
         pairs = self._edge_pairs()
-        assert (
-            "research",
-            "judge",
-        ) in pairs, f"Missing research → judge edge. Edges: {pairs}"
+        # FR-260 inserts create_worktree → write_acceptance_tests between
+        # research and judge; the invariant is that research eventually leads
+        # to judge through the edge chain
+        research_targets = [to for (frm, to) in pairs if frm == "research"]
+        assert research_targets, f"research has no outgoing edges. Edges: {pairs}"
+        # Trace the chain from research to judge
+        visited = set()
+        frontier = set(research_targets)
+        while frontier:
+            node = frontier.pop()
+            if node == "judge":
+                break
+            visited.add(node)
+            frontier |= {to for (frm, to) in pairs if frm == node and to not in visited}
+        else:
+            raise AssertionError(f"No path from research → judge. Edges: {pairs}")
 
     def test_no_direct_plan_to_judge_edge(self):
         """Old plan → judge edge must be removed."""

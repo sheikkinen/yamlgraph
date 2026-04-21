@@ -201,3 +201,19 @@ class TestJinja2WithProviders:
         )
         assert isinstance(result, str)
         assert len(result) > 0
+
+    @pytest.mark.req("REQ-YG-010")
+    @pytest.mark.skipif(
+        not os.getenv("AZURE_AI_API_KEY") or not os.getenv("AZURE_AI_ENDPOINT"),
+        reason="AZURE_AI_API_KEY or AZURE_AI_ENDPOINT not set",
+    )
+    def test_execute_prompt_with_azure_provider(self):
+        """Should execute prompt with Azure AI provider."""
+        pytest.importorskip("langchain_azure_ai")
+        result = execute_prompt(
+            prompt_name="greet",
+            variables={"name": "Azure", "style": "corporate"},
+            provider="azure",
+        )
+        assert isinstance(result, str)
+        assert len(result) > 0

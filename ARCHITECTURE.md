@@ -216,7 +216,7 @@ See [examples/npc/architecture.md](examples/npc/architecture.md) for full docume
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │ llm_factory.py  │  │ schema_loader.py│  │ utils/prompts.py│
 │ • Multi-provider│  │ • YAML → Pydantic│ │ • load_prompt() │
-│ • 10 providers: │  │ • JSON Schema   │  │ • resolve_path()│
+│ • 11 providers: │  │ • JSON Schema   │  │ • resolve_path()│
 │   Anthropic,    │  └─────────────────┘  └─────────────────┘
 │   DeepSeek,     │
 │   Google/Gemini,│
@@ -387,8 +387,10 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 112 | Pipeline Timing Metrics | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py` | REQ-YG-259 |
 | 113 | Chaplain Research Step (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` | REQ-YG-260 |
 | 114 | Automated Post-Merge Finalization (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh` | REQ-YG-261 |
-| 115 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py` | REQ-YG-262 |
+| 115 | Inquisitor Watch Loop Integration (FR-261) | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` | REQ-YG-262 |
+| 117 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py` | REQ-YG-264 |
 
+| 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -613,7 +615,9 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-258 | `invoke_graph(path, variables, config=None)` in `graph_loader.py`: loads graph config, compiles to StateGraph, compiles to CompiledGraph, invokes synchronously with optional LangGraph run config; `mcp_server._invoke_graph` and `a2a_server._invoke_graph` delegate to this shared function (FR-255) | `graph_loader`, `mcp_server`, `a2a_server` |
 | REQ-YG-260 | Research copilot node inserted between plan and judge in `.chaplain/graphs/copilot/graph.yaml`; resumes plan session via `cli_flags.resume`; writes to `state_key: research_brief`; prompt instructs codebase search for existing abstractions, diary precedent check, usage evidence count, and classification signal (primitive/integration/pattern); research brief appended to FR draft before Judge evaluation; judge prompt updated with criterion 7 for strategic classification (framework primitive / contrib / pattern documentation / reject) (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` |
 | REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
-| REQ-YG-262 | Race node `_invoke_candidate` normalizes `response.content` to string via shared `normalize_content()` in `yamlgraph/utils/content.py` (handles Anthropic list-of-blocks, OpenAI string, None); race node supports `parse_json: true` config — skips `output_model` resolution at factory time and applies `extract_json()` after content normalization; `agent.py` imports from shared utility instead of inlining (FR-264) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_race_node.py` |
+| REQ-YG-264 | Race node `_invoke_candidate` normalizes `response.content` to string via shared `normalize_content()` in `yamlgraph/utils/content.py` (handles Anthropic list-of-blocks, OpenAI string, None); race node supports `parse_json: true` config — skips `output_model` resolution at factory time and applies `extract_json()` after content normalization; `agent.py` imports from shared utility instead of inlining (FR-264) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_race_node.py` |
+
+### 18. Testing & Quality
 
 Requirement traceability enforcement and testing infrastructure.
 
@@ -1496,9 +1500,19 @@ Lightweight timing and outcome instrumentation for the three core pipeline scrip
 |------------|-------------|-------------|
 | REQ-YG-259 | Pipeline scripts emit per-run JSON metrics to tmp/pipeline-metrics/ on every exit (success or failure). enforce_worktree.sh and bugfix_worktree.sh use EXIT trap cleanup to write phase timing. watch.sh uses inline cycle timing. pipeline_summary.py aggregates daily metrics using Python stdlib only. Metric writes are best-effort (guarded with \|\| true). No new dependencies. | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py`, `tests/unit/test_pipeline_timing.py` |
 
-### CAP-114: Automated Post-Merge Finalization
+### 113. Chaplain Research Step
 
-Shared finalization library and watch.sh integration that automatically creates finalization PRs for recently merged feature PRs, eliminating the manual finalize_merge.sh step from the Chaplain pipeline. Extracts duplicated finalization logic into `.chaplain/lib/finalize_lib.sh` and adds a post-merge detection phase to `watch.sh` with timestamp-based filtering and three-layer idempotency guards.
+Research step between Plan and Judge in the Chaplain pipeline. The research node gathers strategic evidence (existing abstractions, diary precedents, usage evidence, classification signal) so the Judge can distinguish technically feasible from strategically warranted (FR-257).
+
+**Feature Request:** FR-257
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-260 | Research copilot node inserted between plan and judge in .chaplain/graphs/copilot/graph.yaml; resumes plan session via cli_flags.resume; writes to state_key research_brief; prompt instructs codebase search for existing abstractions, diary precedent check, usage evidence count, and classification signal (primitive/integration/pattern); research brief appended to FR draft before Judge evaluation; judge prompt updated with criterion 7 for strategic classification (framework primitive / contrib / pattern documentation / reject) (FR-257). | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` |
+
+### 114. Automated Post-Merge Finalization
+
+Shared finalization library and watch.sh integration that automatically creates finalization PRs for recently merged feature PRs, eliminating the manual finalize_merge.sh step from the Chaplain pipeline.
 
 **Feature Request:** FR-258
 
@@ -1506,6 +1520,25 @@ Shared finalization library and watch.sh integration that automatically creates 
 |------------|-------------|-------------|
 | REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
 | REQ-YG-262 | Race node `_invoke_candidate` normalizes `response.content` to string via shared `normalize_content()` in `yamlgraph/utils/content.py`; race node supports `parse_json: true` config — skips `output_model` resolution at factory time and applies `extract_json()` after content normalization; `agent.py` imports from shared utility (FR-264) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_race_node.py` |
+
+### 115. Inquisitor Watch Loop Integration
+
+Moves the Inquisitor from a fire-and-forget `inquisitor-background` post-commit hook into the `watch.sh` polling loop, making watch.sh the single orchestrator for all audit and enforcement activity. The Inquisitor runs with `--propose` after each successful enforce cycle, feeding findings back into the inbox.
+
+**Feature Request:** FR-261
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-262 | `inquisitor-background` post-commit hook removed from `.pre-commit-config.yaml`; `.chaplain/watch.sh` runs `.chaplain/inquisitor.sh --propose` after each successful enforce cycle with `|| true` failure tolerance; log output captured to timestamped file in `tmp/`; inquisitor step placed after enforce and before post-merge finalization; existing gates (worktree FR-142, commit-delta FR-131) unchanged; `--force` manual invocation still works | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` |
+### 116. Acceptance Tests Before Enforce
+
+Move worktree creation from the enforce phase into the plan-judge loop, and add a dedicated acceptance test generation step between research and judge. Judge evaluates the FR, the research brief, AND concrete failing tests — three inputs instead of two. Enforce receives a worktree with pre-committed RED tests and a clear contract: make these tests pass.
+
+**Feature Request:** FR-260
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-263 | create_worktree python node and write_acceptance_tests copilot node inserted between research and judge in .chaplain/graphs/copilot/graph.yaml; create_worktree tool at .chaplain/lib/worktree.py commits FR draft to main and creates worktree with .venv symlink; write-acceptance-tests prompt reads FR acceptance criteria and generates pytest tests with @pytest.mark.req tags; tests committed as RED in worktree; judge prompt includes criterion 8 for test evidence evaluation; enforce implement prompt references existing RED tests; enforce_worktree.sh accepts optional pre-existing worktree path (FR-260). | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, `.chaplain/lib/worktree.py`, `scripts/enforce_worktree.sh` |
 
 <!-- END GENERATED CAPABILITIES -->
 
@@ -2067,7 +2100,7 @@ _loading_stack: ContextVar[list[Path]] = ContextVar("loading_stack")
 | `tools/shell.py` | Shell tool execution | 5 |
 | `tools/python_tool.py` | Python tool integration | 5 |
 | `tools/nodes.py` | Tool node creation | 5 |
-| `utils/llm_factory.py` | Multi-provider LLM factory (10 providers) | 3 |
+| `utils/llm_factory.py` | Multi-provider LLM factory (11 providers) | 3 |
 | `utils/llm_factory_async.py` | Async LLM factory | 3 |
 | `utils/expressions.py` | Template and state path resolution | 4 |
 | `utils/conditions.py` | Condition expression evaluation | 6 |
