@@ -389,6 +389,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 114 | Automated Post-Merge Finalization (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh` | REQ-YG-261 |
 | 115 | Inquisitor Watch Loop Integration (FR-261) | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` | REQ-YG-262 |
 | 117 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py` | REQ-YG-264 |
+| 118 | Copilot Node Model Selection (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
 
 | 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
 
@@ -1539,6 +1540,16 @@ Move worktree creation from the enforce phase into the plan-judge loop, and add 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-263 | create_worktree python node and write_acceptance_tests copilot node inserted between research and judge in .chaplain/graphs/copilot/graph.yaml; create_worktree tool at .chaplain/lib/worktree.py commits FR draft to main and creates worktree with .venv symlink; write-acceptance-tests prompt reads FR acceptance criteria and generates pytest tests with @pytest.mark.req tags; tests committed as RED in worktree; judge prompt includes criterion 8 for test evidence evaluation; enforce implement prompt references existing RED tests; enforce_worktree.sh accepts optional pre-existing worktree path (FR-260). | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, `.chaplain/lib/worktree.py`, `scripts/enforce_worktree.sh` |
+
+### 118. Copilot Node Model Selection
+
+Copilot nodes support `model` as a top-level node config key, consistent with LLM nodes. Falls back to `defaults.model` from graph metadata when not specified. `cli_flags.model` continues to work as the highest-priority override.
+
+**Feature Request:** FR-266
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-265 | `NodeConfig` has `model: str \| None` field; `create_copilot_node()` accepts `defaults` parameter; `_compile_copilot_node()` passes `effective_defaults` to factory; model resolution follows `cli_flags.model` > node-level `model` > `defaults.model` > omit; `CopilotResult.model` reflects the resolved model regardless of source (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py`, `tests/unit/test_copilot_node_model_selection.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

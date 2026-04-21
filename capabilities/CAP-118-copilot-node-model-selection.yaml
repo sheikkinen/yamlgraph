@@ -1,0 +1,24 @@
+id: CAP-118
+name: Copilot Node Model Selection
+description: >
+  Copilot nodes support model as a top-level node config key, consistent with
+  LLM nodes. Falls back to defaults.model from graph metadata when not specified.
+  cli_flags.model continues to work as the highest-priority override. Priority
+  chain: cli_flags.model > node-level model > defaults.model > omit.
+modules:
+  - yamlgraph/models/graph_schema.py
+  - yamlgraph/node_compiler.py
+  - yamlgraph/node_factory/copilot_node.py
+requirements:
+  - id: REQ-YG-265
+    description: >
+      NodeConfig has model: str | None field; create_copilot_node accepts defaults
+      parameter; _compile_copilot_node passes effective_defaults to factory; model
+      resolution follows cli_flags.model > node-level model > defaults.model > omit;
+      CopilotResult.model reflects the resolved model regardless of source
+    modules:
+      - yamlgraph/models/graph_schema.py
+      - yamlgraph/node_compiler.py
+      - yamlgraph/node_factory/copilot_node.py
+      - tests/unit/test_copilot_node_model_selection.py
+fr: FR-266
