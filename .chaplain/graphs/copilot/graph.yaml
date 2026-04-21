@@ -76,6 +76,7 @@ nodes:
     type: python
     tool: create_worktree_tool
     state_key: worktree_result
+    # Returns dict with worktree_dir + branch as top-level state keys
 
   # Stage 2c: Write Acceptance Tests - Generate failing tests from FR criteria
   # FR-260: Tests committed as RED before Judge evaluates
@@ -89,8 +90,8 @@ nodes:
       resume: "{state.plan_result.session_id}"
     variables:
       drafts_dir: "{state.drafts_dir}"
-      worktree_dir: "{state.worktree_result.worktree_dir}"
-      branch: "{state.worktree_result.branch}"
+      worktree_dir: "{state.worktree_dir}"
+      branch: "{state.branch}"
     state_key: acceptance_tests_result
     timeout: 600
 
