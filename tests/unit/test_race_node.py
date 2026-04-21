@@ -1,4 +1,4 @@
-"""Tests for race node type — FR-232.
+"""Tests for race node type — FR-232, FR-267.
 
 Race nodes fire the same prompt to N provider/model candidates concurrently
 and return the first successful result.
@@ -15,6 +15,8 @@ import pytest
 from pydantic import BaseModel, Field
 
 from yamlgraph.constants import NodeType
+from yamlgraph.models import PipelineError
+from yamlgraph.models.schemas import ErrorType
 
 
 class RaceTestOutput(BaseModel):
@@ -739,3 +741,237 @@ class TestNormalizeContentShared:
         from yamlgraph.utils.content import normalize_content
 
         assert normalize_content(42) == "42"
+
+
+# =============================================================================
+# FR-267: Race node timeout — no double ThreadPoolExecutor wrap
+# =============================================================================
+
+
+class TestRaceTimeoutNoDoubleWrap:
+    """FR-267: _compile_race_node must NOT apply _maybe_wrap_timeout.
+
+    Race nodes own timeout natively via as_completed(timeout=...).
+    Wrapping with _maybe_wrap_timeout creates nested ThreadPoolExecutors
+    that silently drop the return value.
+    """
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_compiler._maybe_wrap_timeout")
+    @patch("yamlgraph.node_compiler.create_race_node")
+    def test_compile_race_node_does_not_wrap_timeout(
+        self, mock_create_race, mock_wrap_timeout
+    ):
+        """_compile_race_node must NOT call _maybe_wrap_timeout."""
+        from yamlgraph.node_compiler import _compile_race_node
+
+        mock_node_fn = MagicMock()
+        mock_create_race.return_value = mock_node_fn
+
+        ctx = MagicMock()
+        ctx.node_name = "race_test"
+        ctx.node_config = {
+            "type": "race",
+            "prompt": "test",
+            "timeout": 10,
+            "candidates": [
+                {"provider": "anthropic"},
+                {"provider": "openai"},
+            ],
+        }
+        ctx.effective_defaults = {}
+        ctx.config.source_path = None
+        ctx.cache_policy = None
+
+        _compile_race_node(ctx)
+
+        mock_wrap_timeout.assert_not_called()
+        ctx.graph.add_node.assert_called_once_with(
+            "race_test", mock_node_fn, cache_policy=None
+        )
+
+
+class TestRaceTimeoutCorrectness:
+    """FR-267: Race node with timeout returns correct state."""
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_race_with_timeout_returns_full_state(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Race with timeout: candidate succeeds → full state dict returned.
+
+        All of state_key, _race_winner, current_step, _loop_counts must
+        be present and non-None. This is the condemning test for the
+        double-wrap bug: with _maybe_wrap_timeout, the return value is lost.
+        """
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+
+        fast_llm = _make_mock_llm("fast answer", delay=0.0)
+        slow_llm = _make_mock_llm("slow answer", delay=0.3)
+        mock_create_llm.side_effect = [fast_llm, slow_llm]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "timeout": 5,
+            "candidates": [
+                {"provider": "anthropic", "model": "claude-3-5-haiku-20241022"},
+                {"provider": "openai", "model": "gpt-4o-mini"},
+            ],
+        }
+
+        node_fn = create_race_node("fast_response", node_config, {})
+        result = node_fn(sample_state)
+
+        assert result["response"] == "fast answer"
+        assert result["_race_winner"] is not None
+        assert result["_race_winner"]["provider"] == "anthropic"
+        assert result["current_step"] == "fast_response"
+        assert result["_loop_counts"] is not None
+        assert result["_loop_counts"]["fast_response"] == 1
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_race_with_timeout_parse_json(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Race with timeout + parse_json: true returns parsed dict in state."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "openai", None)
+
+        llm1 = _make_mock_llm('{"key": "value", "count": 42}')
+        llm2 = _make_mock_llm("fallback", delay=1.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "timeout": 5,
+            "parse_json": True,
+            "candidates": [
+                {"provider": "openai"},
+                {"provider": "anthropic"},
+            ],
+        }
+
+        node_fn = create_race_node("race_json", node_config, {})
+        result = node_fn(sample_state)
+
+        assert isinstance(result["response"], dict)
+        assert result["response"]["key"] == "value"
+        assert result["_race_winner"] is not None
+        assert result["current_step"] == "race_json"
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_race_timeout_expiry_on_error_skip(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """All candidates exceed deadline + on_error:skip → PipelineError(TIMEOUT_ERROR)."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+
+        # Both candidates take longer than the timeout
+        llm1 = _make_mock_llm("slow1", delay=5.0)
+        llm2 = _make_mock_llm("slow2", delay=5.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "timeout": 0.1,
+            "on_error": "skip",
+            "candidates": [
+                {"provider": "anthropic"},
+                {"provider": "openai"},
+            ],
+        }
+
+        node_fn = create_race_node("race_timeout", node_config, {})
+        result = node_fn(sample_state)
+
+        assert result["response"] is None
+        assert result["current_step"] == "race_timeout"
+        assert result["_loop_counts"]["race_timeout"] == 1
+        errors = result["errors"]
+        assert len(errors) == 1
+        assert isinstance(errors[0], PipelineError)
+        assert errors[0].type == ErrorType.TIMEOUT_ERROR
+        assert "timed out" in errors[0].message.lower()
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_race_timeout_expiry_raises_without_on_error(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """All candidates exceed deadline + no on_error → raises exception."""
+        from yamlgraph.node_factory.race_node import (
+            AllCandidatesFailedError,
+            create_race_node,
+        )
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+
+        llm1 = _make_mock_llm("slow1", delay=5.0)
+        llm2 = _make_mock_llm("slow2", delay=5.0)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "timeout": 0.1,
+            "candidates": [
+                {"provider": "anthropic"},
+                {"provider": "openai"},
+            ],
+        }
+
+        node_fn = create_race_node("race_timeout", node_config, {})
+        with pytest.raises(AllCandidatesFailedError, match="timed out"):
+            node_fn(sample_state)
+
+    @pytest.mark.req("REQ-YG-266")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_race_without_timeout_still_works(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Regression: race node without explicit timeout continues to work."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "anthropic", None)
+
+        llm1 = _make_mock_llm("answer from anthropic")
+        llm2 = _make_mock_llm("answer from openai", delay=0.1)
+        mock_create_llm.side_effect = [llm1, llm2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            # No timeout field
+            "candidates": [
+                {"provider": "anthropic"},
+                {"provider": "openai"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        assert result["response"] == "answer from anthropic"
+        assert result["_race_winner"]["provider"] == "anthropic"
+        assert result["current_step"] == "race_node"
