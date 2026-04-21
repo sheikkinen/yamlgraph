@@ -9,7 +9,7 @@
 # predate this registry and are not tracked here.
 
 next_cap: 94
-next_req: 236
+next_req: 246
 reserved:
   - fr: FR-236
     cap:
@@ -17,3 +17,7 @@ reserved:
     req:
       - 235
     date: "2026-04-18"
+  - fr: FR-243
+    req:
+      - 245
+    date: "2026-04-19"

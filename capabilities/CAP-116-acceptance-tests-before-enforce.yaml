@@ -1,4 +1,4 @@
-id: CAP-115
+id: CAP-116
 name: Acceptance Tests Before Enforce
 description: >
   Move worktree creation from the enforce phase into the plan-judge loop,
@@ -14,7 +14,7 @@ modules:
   - .chaplain/lib/worktree.py
   - scripts/enforce_worktree.sh
 requirements:
-  - id: REQ-YG-262
+  - id: REQ-YG-263
     description: >
       create_worktree python node and write_acceptance_tests copilot node
       inserted between research and judge in .chaplain/graphs/copilot/graph.yaml;

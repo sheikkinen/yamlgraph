@@ -68,7 +68,7 @@ nodes:
     variables:
       drafts_dir: "{state.drafts_dir}"
     state_key: research_brief
-    timeout: 500
+    timeout: 1000
 
   # Stage 2b: Create Worktree - Commit FR draft and create isolated worktree
   # FR-260: Worktree needed before acceptance tests can be written
@@ -107,7 +107,7 @@ nodes:
     variables:
       drafts_dir: "{state.drafts_dir}"
     state_key: judge_result
-    timeout: 500
+    timeout: 1000
 
   # Stage 4: Summarize - LLM distills Plan→Research→Judge into diary entry
   summarize:

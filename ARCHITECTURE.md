@@ -385,9 +385,11 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 110 | Diary Index Graph | `examples/demos/diary_index` | REQ-YG-257 |
 | 111 | Shared Graph Invocation | `graph_loader` | REQ-YG-258 |
 | 112 | Pipeline Timing Metrics | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py` | REQ-YG-259 |
-| 113 | Chaplain Research Step | `.chaplain/graphs/copilot` | REQ-YG-260 |
-| 114 | Automated Post-Merge Finalization | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
-| 115 | Acceptance Tests Before Enforce | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, … | REQ-YG-262 |
+| 113 | Chaplain Research Step (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` | REQ-YG-260 |
+| 114 | Automated Post-Merge Finalization (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh` | REQ-YG-261 |
+| 115 | Inquisitor Watch Loop Integration (FR-261) | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` | REQ-YG-262 |
+
+| 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1489,7 +1491,16 @@ Shared finalization library and watch.sh integration that automatically creates 
 |------------|-------------|-------------|
 | REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
 
-### 115. Acceptance Tests Before Enforce
+### 115. Inquisitor Watch Loop Integration
+
+Moves the Inquisitor from a fire-and-forget `inquisitor-background` post-commit hook into the `watch.sh` polling loop, making watch.sh the single orchestrator for all audit and enforcement activity. The Inquisitor runs with `--propose` after each successful enforce cycle, feeding findings back into the inbox.
+
+**Feature Request:** FR-261
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-262 | `inquisitor-background` post-commit hook removed from `.pre-commit-config.yaml`; `.chaplain/watch.sh` runs `.chaplain/inquisitor.sh --propose` after each successful enforce cycle with `|| true` failure tolerance; log output captured to timestamped file in `tmp/`; inquisitor step placed after enforce and before post-merge finalization; existing gates (worktree FR-142, commit-delta FR-131) unchanged; `--force` manual invocation still works | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` |
+### 116. Acceptance Tests Before Enforce
 
 Move worktree creation from the enforce phase into the plan-judge loop, and add a dedicated acceptance test generation step between research and judge. Judge evaluates the FR, the research brief, AND concrete failing tests — three inputs instead of two. Enforce receives a worktree with pre-committed RED tests and a clear contract: make these tests pass.
 
@@ -1497,7 +1508,7 @@ Move worktree creation from the enforce phase into the plan-judge loop, and add 
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-262 | create_worktree python node and write_acceptance_tests copilot node inserted between research and judge in .chaplain/graphs/copilot/graph.yaml; create_worktree tool at .chaplain/lib/worktree.py commits FR draft to main and creates worktree with .venv symlink; write-acceptance-tests prompt reads FR acceptance criteria and generates pytest tests with @pytest.mark.req tags; tests committed as RED in worktree; judge prompt includes criterion 8 for test evidence evaluation; enforce implement prompt references existing RED tests; enforce_worktree.sh accepts optional pre-existing worktree path (FR-260). | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, `.chaplain/lib/worktree.py`, `scripts/enforce_worktree.sh` |
+| REQ-YG-263 | create_worktree python node and write_acceptance_tests copilot node inserted between research and judge in .chaplain/graphs/copilot/graph.yaml; create_worktree tool at .chaplain/lib/worktree.py commits FR draft to main and creates worktree with .venv symlink; write-acceptance-tests prompt reads FR acceptance criteria and generates pytest tests with @pytest.mark.req tags; tests committed as RED in worktree; judge prompt includes criterion 8 for test evidence evaluation; enforce implement prompt references existing RED tests; enforce_worktree.sh accepts optional pre-existing worktree path (FR-260). | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, `.chaplain/lib/worktree.py`, `scripts/enforce_worktree.sh` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -34,7 +34,7 @@ def _edge_pairs() -> list[tuple[str, str]]:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestStateFields:
     """Graph state must include worktree_dir and branch."""
 
@@ -58,7 +58,7 @@ class TestStateFields:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestCreateWorktreeNode:
     """create_worktree python node must exist in the copilot graph."""
 
@@ -101,7 +101,7 @@ class TestCreateWorktreeNode:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestCreateWorktreeTool:
     """create_worktree tool must exist at .chaplain/lib/worktree.py."""
 
@@ -138,7 +138,7 @@ class TestCreateWorktreeTool:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestWriteAcceptanceTestsNode:
     """write_acceptance_tests copilot node must exist in the graph."""
 
@@ -180,7 +180,7 @@ class TestWriteAcceptanceTestsNode:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestWriteAcceptanceTestsPrompt:
     """write-acceptance-tests prompt must exist with required content."""
 
@@ -247,7 +247,7 @@ class TestWriteAcceptanceTestsPrompt:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestJudgeCriterion8:
     """Judge prompt must include criterion 8 for test evidence evaluation."""
 
@@ -280,7 +280,7 @@ class TestJudgeCriterion8:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestEnforceImplementPrompt:
     """Enforce implement prompt must reference existing RED tests."""
 
@@ -310,7 +310,7 @@ class TestEnforceImplementPrompt:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestEnforceWorktreeScript:
     """enforce_worktree.sh must accept optional pre-existing worktree path."""
 
@@ -342,7 +342,7 @@ class TestEnforceWorktreeScript:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestCreateWorktreeToolUnit:
     """Unit test: create_worktree returns valid worktree_dir and branch."""
 
@@ -406,7 +406,7 @@ class TestCreateWorktreeToolUnit:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestPromptTemplateVariables:
     """write-acceptance-tests prompt template must render with valid variables."""
 
@@ -431,7 +431,7 @@ class TestPromptTemplateVariables:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestEdgeOrderingInvariant:
     """Copilot graph edges must enforce:
     plan → research → create_worktree → write_acceptance_tests → judge
@@ -490,7 +490,7 @@ class TestEdgeOrderingInvariant:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestJudgeCriterion8Text:
     """Judge prompt must contain specific criterion 8 text about test evidence."""
 
@@ -517,7 +517,7 @@ class TestJudgeCriterion8Text:
 # ===========================================================================
 
 
-@pytest.mark.req("REQ-YG-262")
+@pytest.mark.req("REQ-YG-263")
 class TestGraphValidity:
     """The modified chaplain graph must be structurally valid."""
 
