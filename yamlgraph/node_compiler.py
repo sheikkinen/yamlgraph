@@ -232,6 +232,7 @@ def _compile_copilot_node(ctx: NodeCompileContext) -> None:
     node_fn = create_copilot_node(
         ctx.node_name,
         ctx.node_config,
+        defaults=ctx.effective_defaults,
         graph_path=ctx.config.source_path,
         prompts_dir=ctx.prompts_dir,
         prompts_relative=ctx.prompts_relative,

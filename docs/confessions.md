@@ -131,10 +131,10 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: `shell=True` is required for command templates with pipes/redirects. All user variables are sanitized via `shlex.quote()` in `sanitize_variables()` before substitution. The command template itself comes from trusted YAML configuration, not user input.
 
 ### CONF-008
-- **File**: [yamlgraph/node_factory/copilot_node.py](../yamlgraph/node_factory/copilot_node.py#L260)
+- **File**: [yamlgraph/node_factory/copilot_node.py](../yamlgraph/node_factory/copilot_node.py#L271)
 - **Code**: S603
 - **Sin**: `subprocess.run(cmd, ...)` flagged as untrusted input.
-- **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags. No user input reaches the command arguments.
+- **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags and validated graph metadata (model name, timeout). No user input reaches the command arguments.
 
 ### CONF-009
 - **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L47)
