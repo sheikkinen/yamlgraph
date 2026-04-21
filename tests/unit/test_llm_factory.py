@@ -366,7 +366,7 @@ class TestCreateLLM:
         """FR-227: _VERTEX_CONSTRUCT_LOCK must be a module-level threading.Lock."""
         import threading
 
-        import yamlgraph.utils.llm_factory as llm_mod
+        import yamlgraph.utils.llm_providers as llm_mod
 
         assert hasattr(
             llm_mod, "_VERTEX_CONSTRUCT_LOCK"
@@ -378,7 +378,7 @@ class TestCreateLLM:
     @pytest.mark.req("REQ-YG-010")
     def test_masked_env_context_manager_removes_and_restores(self):
         """FR-227: _masked_env context manager removes keys and restores them on exit."""
-        import yamlgraph.utils.llm_factory as llm_mod
+        import yamlgraph.utils.llm_providers as llm_mod
 
         assert hasattr(
             llm_mod, "_masked_env"
@@ -402,7 +402,7 @@ class TestCreateLLM:
         """FR-227: _masked_env restores env vars even when body raises."""
         import os as _os
 
-        import yamlgraph.utils.llm_factory as llm_mod
+        import yamlgraph.utils.llm_providers as llm_mod
 
         key = "_FR227_EXC_KEY"
         _os.environ[key] = "must-be-restored"
