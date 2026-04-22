@@ -614,8 +614,8 @@ class TestCopilotSessionContinuation:
             resume_idx = cmd.index("--resume")
             assert cmd[resume_idx + 1] == "session-uuid-456"
 
-    def test_session_id_extracted_from_stderr(self, tmp_path: Path) -> None:
-        """CopilotResult.session_id should be populated from CLI stderr."""
+    def test_session_id_extracted_from_share_file(self, tmp_path: Path) -> None:
+        """FR-274: CopilotResult.session_id extracted from --share file, not stderr."""
         from yamlgraph.node_factory.copilot_node import create_copilot_node
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
@@ -630,20 +630,103 @@ class TestCopilotSessionContinuation:
 
         mock_result = MagicMock()
         mock_result.stdout = "Response"
-        # Simulated stderr with session ID (format TBD - empirical verification needed)
-        mock_result.stderr = "Session: abc-123-session-id-xyz"
+        mock_result.stderr = ""  # Realistic: --silent produces empty stderr
         mock_result.returncode = 0
 
+        share_content = (
+            "# 🤖 Copilot CLI Session\n\n"
+            "> [!NOTE]\n"
+            "> - **Session ID:** `d0137402-936d-4e5c-a3fe-27e924ef5dd2`\n"
+        )
+
+        def mock_subprocess_run(cmd, **kwargs):
+            # Write share file when --share flag is present
+            if "--share" in cmd:
+                share_idx = cmd.index("--share") + 1
+                share_path = Path(cmd[share_idx])
+                share_path.parent.mkdir(parents=True, exist_ok=True)
+                share_path.write_text(share_content)
+            return mock_result
+
+        with patch("subprocess.run", side_effect=mock_subprocess_run) as mock_run:
+            node_fn = create_copilot_node("test_copilot", config)
+            result = node_fn({})
+
+            # --share flag should be in the command
+            cmd = mock_run.call_args[0][0]
+            assert "--share" in cmd
+
+            # Session ID extracted from share file
+            copilot_result = result["result"]
+            assert copilot_result.session_id == "d0137402-936d-4e5c-a3fe-27e924ef5dd2"
+
+    def test_share_file_cleaned_up_after_extraction(self, tmp_path: Path) -> None:
+        """FR-274 AC-3: Share file tempdir is cleaned up after extraction."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.stderr = ""
+        mock_result.returncode = 0
+
+        created_share_dirs: list[Path] = []
+
+        def mock_subprocess_run(cmd, **kwargs):
+            if "--share" in cmd:
+                share_idx = cmd.index("--share") + 1
+                share_path = Path(cmd[share_idx])
+                share_path.parent.mkdir(parents=True, exist_ok=True)
+                created_share_dirs.append(share_path.parent)
+                share_path.write_text("# Session\n> - **Session ID:** `abc-123`\n")
+            return mock_result
+
+        with patch("subprocess.run", side_effect=mock_subprocess_run):
+            node_fn = create_copilot_node("test_copilot", config)
+            node_fn({})
+
+        # Tempdir should have been cleaned up
+        assert len(created_share_dirs) == 1
+        assert not created_share_dirs[0].exists()
+
+    def test_share_file_missing_fallback_none(self, tmp_path: Path) -> None:
+        """FR-274 AC-4: Missing share file → session_id=None, not crash."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello")
+
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+        }
+
+        mock_result = MagicMock()
+        mock_result.stdout = "Response"
+        mock_result.stderr = ""
+        mock_result.returncode = 0
+
+        # Don't write the share file — simulates copilot not creating it
         with patch("subprocess.run", return_value=mock_result):
             node_fn = create_copilot_node("test_copilot", config)
             result = node_fn({})
 
             copilot_result = result["result"]
-            assert copilot_result.session_id is not None
-            assert "abc-123-session-id-xyz" in copilot_result.session_id
+            assert copilot_result.session_id is None
 
-    def test_session_id_none_when_not_found(self, tmp_path: Path) -> None:
-        """CopilotResult.session_id should be None when not extractable."""
+    def test_share_file_unparseable_fallback_none(self, tmp_path: Path) -> None:
+        """FR-274 AC-4: Unparseable share file → session_id=None."""
         from yamlgraph.node_factory.copilot_node import create_copilot_node
 
         prompt_file = tmp_path / "prompts" / "test.yaml"
@@ -658,10 +741,18 @@ class TestCopilotSessionContinuation:
 
         mock_result = MagicMock()
         mock_result.stdout = "Response"
-        mock_result.stderr = ""  # No session ID in stderr
+        mock_result.stderr = ""
         mock_result.returncode = 0
 
-        with patch("subprocess.run", return_value=mock_result):
+        def mock_subprocess_run(cmd, **kwargs):
+            if "--share" in cmd:
+                share_idx = cmd.index("--share") + 1
+                share_path = Path(cmd[share_idx])
+                share_path.parent.mkdir(parents=True, exist_ok=True)
+                share_path.write_text("Random content without session ID")
+            return mock_result
+
+        with patch("subprocess.run", side_effect=mock_subprocess_run):
             node_fn = create_copilot_node("test_copilot", config)
             result = node_fn({})
 
