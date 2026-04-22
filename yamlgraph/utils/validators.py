@@ -66,6 +66,21 @@ def validate_router_node(
                 f"nonexistent node '{target_node}'"
             )
 
+    # FR-272: candidates + provider is mutually exclusive
+    if node_config.get("candidates") and node_config.get("provider"):
+        raise ValueError(
+            f"Router node '{node_name}' cannot have both 'provider' and 'candidates' — "
+            "use 'candidates' for race-based routing (FR-272)"
+        )
+
+    # FR-272: on_error: skip is invalid for router nodes with candidates
+    if node_config.get("candidates") and node_config.get("on_error") == "skip":
+        raise ValueError(
+            f"Router node '{node_name}' with 'candidates' cannot use "
+            "on_error: skip — a router must always produce a route; "
+            "use on_error: fallback to route via default_route instead"
+        )
+
 
 def validate_edges(edges: list[dict[str, Any]]) -> None:
     """Validate each edge has required from/to fields.

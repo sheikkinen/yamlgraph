@@ -1,0 +1,76 @@
+# Router Race Candidates Demo - FR-272
+# Router node races multiple candidate providers and routes by winner output.
+
+version: "1.0"
+name: router-race-candidates-demo
+description: Router node with candidates race support
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.3
+
+state:
+  user_query: str
+
+tools:
+  billing_reply:
+    command: "echo Billing path selected"
+    description: Deterministic billing response
+
+  technical_reply:
+    command: "echo Technical path selected"
+    description: Deterministic technical response
+
+  general_reply:
+    command: "echo General path selected"
+    description: Deterministic general response
+
+nodes:
+  route_intent:
+    type: router
+    prompt: classify_intent
+    route_field: intent
+    default_route: handle_general
+    timeout: 20
+    state_key: classification
+    variables:
+      user_query: "{state.user_query}"
+    candidates:
+      - provider: openai
+        model: gpt-4o-mini
+      - provider: google
+        model: gemini-2.0-flash
+    routes:
+      billing: handle_billing
+      technical: handle_technical
+      general: handle_general
+
+  handle_billing:
+    type: tool
+    tool: billing_reply
+    state_key: response
+
+  handle_technical:
+    type: tool
+    tool: technical_reply
+    state_key: response
+
+  handle_general:
+    type: tool
+    tool: general_reply
+    state_key: response
+
+edges:
+  - from: START
+    to: route_intent
+  - from: route_intent
+    to: [handle_billing, handle_technical, handle_general]
+    type: conditional
+  - from: handle_billing
+    to: END
+  - from: handle_technical
+    to: END
+  - from: handle_general
+    to: END

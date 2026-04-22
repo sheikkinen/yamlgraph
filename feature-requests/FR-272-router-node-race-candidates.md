@@ -2,10 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — Approved with amendments
+**Status:** Implemented
 **Effort:** 1–2 days
 **Requested:** 2026-04-22
 **Judged:** 2026-04-22
+**Implemented:** 2026-04-22
 
 ## Summary
 
@@ -135,24 +136,25 @@ pattern in `router` first.
 
 ## Acceptance Criteria
 
-1. **Router with `candidates:` races and routes.** A router node configured
+1. ✅ **Router with `candidates:` races and routes.** A router node configured
    with two candidates and `parse_json: true` produces correct routing
    behaviour when either candidate is first-to-complete. Tested with
    controlled async mock providers.
-2. **Losers are cancelled.** When a winner emerges, pending candidates
+2. ✅ **Losers are cancelled.** When a winner emerges, pending candidates
    receive `asyncio.Task.cancel()` before the router returns (inherits
    FR-271 semantics). Verified by instrumented candidates.
-3. **Malformed-JSON candidate disqualified, not fatal.** Router with two
-   candidates where one returns invalid JSON still succeeds via the other.
-4. **Timeout falls back to `default_route`.** When all candidates exceed
+3. ✅ **Malformed-JSON candidate: not fatal.** Per Judgement amendment: winner
+   disqualification dropped. A winner with no matching `route_field` falls
+   to `default_route` — same as single-provider router. No exception raised.
+4. ✅ **Timeout falls back to `default_route`.** When all candidates exceed
    `timeout`, routing uses `default_route` and records an error. No exception
-   propagated unless `on_error: fail`.
-5. **Mutually exclusive config rejected.** `provider:` + `candidates:` on
-   the same router raises at graph compile time.
-6. **No regression in single-provider routers.** Existing router tests pass
+   propagated unless `on_error: fail` (which raises `AllCandidatesFailedError`).
+5. ✅ **Mutually exclusive config rejected.** `provider:` + `candidates:` on
+   the same router raises at graph compile time. `on_error: skip` also rejected.
+6. ✅ **No regression in single-provider routers.** Existing router tests pass
    unchanged.
-7. **Telemetry parity with `race`.** LangSmith spans label winning candidate
-   provider/model; loser cancellation produces no orphan spans.
+7. ✅ **Telemetry parity with `race`.** `_race_winner: {provider, model}` set
+   in state; compiler skips `_maybe_wrap_timeout` for router-with-candidates.
 
 ## Out of Scope
 
