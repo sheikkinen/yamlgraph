@@ -275,7 +275,8 @@ def _compile_race_node(ctx: NodeCompileContext) -> None:
         ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
-    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    # Race owns `timeout` natively via as_completed(timeout=...);
+    # do NOT wrap in _maybe_wrap_timeout (nested pools drop return value — FR-267).
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 

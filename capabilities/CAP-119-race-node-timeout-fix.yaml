@@ -1,0 +1,28 @@
+id: CAP-119
+name: Race Node Timeout Fix
+description: >
+  Race node applies exactly one timeout mechanism — its native
+  as_completed(timeout=...). The node compiler does not apply
+  _maybe_wrap_timeout to race nodes (nested ThreadPoolExecutors
+  silently drop the return value). On timeout expiry (no candidate
+  succeeds within deadline), the race node produces a structured
+  PipelineError(TIMEOUT_ERROR) and respects on_error configuration.
+  Without on_error, raises AllCandidatesFailedError.
+modules:
+  - yamlgraph/node_factory/race_node.py
+  - yamlgraph/node_compiler.py
+requirements:
+  - id: REQ-YG-266
+    description: >
+      Race node applies exactly one timeout mechanism — its native
+      as_completed(timeout=...); _compile_race_node must NOT call
+      _maybe_wrap_timeout; on timeout expiry (no candidate succeeds
+      within deadline), race node produces PipelineError(TIMEOUT_ERROR)
+      and respects on_error config; without on_error, raises
+      AllCandidatesFailedError; race timeout is total race deadline,
+      not per-candidate
+    modules:
+      - yamlgraph/node_factory/race_node.py
+      - yamlgraph/node_compiler.py
+      - tests/unit/test_race_node.py
+fr: FR-267

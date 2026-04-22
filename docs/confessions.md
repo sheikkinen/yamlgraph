@@ -134,7 +134,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **File**: [yamlgraph/node_factory/copilot_node.py](../yamlgraph/node_factory/copilot_node.py#L272)
 - **Code**: S603
 - **Sin**: `subprocess.run(cmd, ...)` flagged as untrusted input.
-- **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags. No user input reaches the command arguments.
+- **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags and validated graph metadata (model name, timeout). No user input reaches the command arguments.
 
 ### CONF-009
 - **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L47)
@@ -628,6 +628,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: ARG001
 - **Sin**: `list_diary_files(state)` ignores the `state` parameter — the function needs no input state.
 - **Penance**: YAMLGraph python-node signature requires a `state: dict` parameter. The function scans the filesystem directly, so `state` is unused but mandatory for the node contract.
+
+### CONF-210
+- **File**: [yamlgraph/node_factory/copilot_node.py](../yamlgraph/node_factory/copilot_node.py#L281)
+- **Code**: S603
+- **Sin**: `subprocess.run()` called without `check=True`, suppressing the `S603` subprocess call warning.
+- **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags and validated graph metadata (model name, timeout). No user input reaches the command arguments. Return code is checked manually to distinguish timeout, CLI unavailability, and success.
 
 ### CONF-209
 - **File**: [vulture_whitelist.py](../vulture_whitelist.py)
