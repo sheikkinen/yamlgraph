@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # watcher2.sh — Watcher2 pipeline orchestrator (FR-273)
 #
-# Phase 1: Git skeleton — worktree lifecycle with no LLM.
-# Polls inbox, creates worktree, simulates work, creates PR, waits for CI,
-# merges, tears down.
+# Phase 2: Copilot diary — yamlgraph copilot node reads inbox topic,
+# writes diary reflection, commits and merges via PR.
 #
 # Usage:
 #   .chaplain/watcher2.sh
@@ -98,29 +97,50 @@ while true; do
     unset GIT_DIR GIT_WORK_TREE 2>/dev/null || true
     log_info "Working in: $(pwd)"
 
-    # ── Phase 1: Simulate work (placeholder) ────────────────────────────
-    # TODO: Phase 2+ will replace this with yamlgraph copilot invocations
-    log_info "Simulating work (phase 1 placeholder)..."
+    # ── Phase 2: Copilot diary reflection ──────────────────────────────
+    # FR-273 Phase 2: yamlgraph copilot node reads topic, writes diary
+    log_info "Running copilot diary reflection..."
 
-    # Copy topic file into the branch as a changelog fragment
-    mkdir -p changelog/unreleased
-    cp "$MAIN_DIR/$TOPIC_FILE" "changelog/unreleased/watcher2-${TOPIC_BASENAME}"
+    PIPELINE_DATE=$(date +%Y-%m-%d)
+    PIPELINE_STATE="tmp/pipeline-state.json"
+    DIARY_GRAPH=".chaplain/graphs/watcher-diary/graph.yaml"
 
-    # Run pre-commit on the staged file
-    git add changelog/unreleased/
-    log_info "Running pre-commit..."
-    if ! pre-commit run --files changelog/unreleased/"watcher2-${TOPIC_BASENAME}" 2>&1; then
-        # Re-add after auto-fixes
-        git add changelog/unreleased/
+    # Invoke yamlgraph copilot graph
+    if ! yamlgraph graph run "$DIARY_GRAPH" \
+        --var topic_file="$MAIN_DIR/$TOPIC_FILE" \
+        --var date="$PIPELINE_DATE" \
+        --export-state "$PIPELINE_STATE" \
+        --full 2>&1 | tee tmp/watcher2-copilot.log; then
+        log_error "Copilot diary graph failed"
+        cd "$MAIN_DIR"
+        worktree_teardown
+        write_cycle_metrics
+        rm -f "$TOPIC_FILE"
+        continue
     fi
 
-    # Commit and push
-    PR_TITLE="chore: watcher2 test — ${TOPIC_BASENAME%.md}"
+    # Verify diary file was created
+    DIARY_FILE=$(find docs/diary/ -name "${PIPELINE_DATE}-watcher2-*" -type f 2>/dev/null | head -1)
+    if [[ -z "$DIARY_FILE" ]]; then
+        log_warn "Copilot did not create diary file — falling back to topic copy"
+        mkdir -p docs/diary
+        cp "$MAIN_DIR/$TOPIC_FILE" "docs/diary/${PIPELINE_DATE}-watcher2-reflection.md"
+        DIARY_FILE="docs/diary/${PIPELINE_DATE}-watcher2-reflection.md"
+    fi
+
+    # Stage, run pre-commit, commit
+    git add docs/diary/
+    log_info "Running pre-commit..."
+    if ! pre-commit run --files "$DIARY_FILE" 2>&1; then
+        git add docs/diary/
+    fi
+
+    PR_TITLE="docs: watcher2 diary — ${TOPIC_BASENAME%.md}"
     mkdir -p ./tmp
     cat > ./tmp/msg.txt << CMSG
-chore: watcher2 phase-1 test
+docs: watcher2 diary reflection
 
-Automated by watcher2 pipeline (FR-273).
+Automated by watcher2 pipeline (FR-273 Phase 2).
 Topic: ${TOPIC_BASENAME}
 CMSG
     git commit -F ./tmp/msg.txt --no-verify || {
