@@ -393,6 +393,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 119 | Race Node Timeout Fix (FR-267) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py` | REQ-YG-266 |
 | 120 | CLI Inter-Run State Chaining (FR-269) | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/storage/export.py` | REQ-YG-267, REQ-YG-268 |
 | 121 | Race Node Pool Shutdown Non-Blocking (FR-270) | `yamlgraph/node_factory/race_node.py` | REQ-YG-269 |
+| 122 | Async Race Node with Cancellable Candidates (FR-271) | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` | REQ-YG-270 |
 
 | 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
 
@@ -1575,6 +1576,7 @@ Race node applies exactly one timeout mechanism — its native `as_completed(tim
 | REQ-YG-267 | `--import-state <path>` loads exported JSON as initial graph state; merge order is `graph_config.data < imported < --var-file < --var`; missing file prints clear error and exits 1; malformed JSON prints clear error and exits 1 | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
 | REQ-YG-268 | `--export-state <path>` writes full post-run state to explicit JSON path using `_serialize_state()`; creates parent directories; write failures print clear error and exit 1; `CopilotResult.session_id` survives round-trip and resolves via `resolve_state_expression()` | `yamlgraph/cli/graph_commands.py`, `yamlgraph/storage/export.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
 | REQ-YG-269 | Race node must not block on losing candidates after a winner is found; `ThreadPoolExecutor` shut down with `wait=False, cancel_futures=True` in a `finally` block; no `with ThreadPoolExecutor(...) as pool:` pattern; loser threads terminate naturally; their results are discarded; node returns within `fast_candidate_time + ε` regardless of slow losers | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` |
+| REQ-YG-270 | Race node rewired to asyncio: `ThreadPoolExecutor` removed; `_invoke_candidate_async` uses `await llm.ainvoke(messages)`; `_race_async` uses `asyncio.wait(FIRST_COMPLETED)` to cancel losers after winner; `_run_coro_sync_safe` bridges sync node_fn to async core without event-loop conflicts; loser `asyncio.Task` objects cancelled and gathered before node_fn returns; deadline computed once and decremented across wait iterations; `on_error: skip` preserved; `AllCandidatesFailedError` raised when all candidates fail without skip | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
