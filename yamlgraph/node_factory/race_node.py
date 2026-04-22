@@ -1,12 +1,18 @@
-"""Race node factory — FR-232, FR-267.
+"""Race node factory — FR-232, FR-267, FR-271.
 
 Creates LangGraph nodes that fire the same prompt to N provider/model
 candidates concurrently and return the first successful result.
+
+FR-271: Rewritten to asyncio so losing candidates are cooperatively
+cancelled at await points after a winner is found, eliminating orphan
+HTTP connections and interpreter-exit delays.
 """
 
+import asyncio
+import concurrent.futures
 import logging
+import threading
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -37,32 +43,129 @@ class AllCandidatesFailedError(Exception):
         )
 
 
-def _invoke_candidate(
-    llm: Any,
+async def _invoke_candidate_async(
+    candidate: dict,
     messages: list,
     output_model: type | None,
-    parse_json: bool = False,
-) -> Any:
-    """Invoke a single LLM candidate.
+    parse_json: bool,
+    temperature: float,
+) -> tuple[dict, Any]:
+    """Invoke a single LLM candidate asynchronously (FR-271).
 
-    Args:
-        llm: LLM instance
-        messages: Prepared messages
-        output_model: Optional Pydantic model for structured output
-        parse_json: If True, extract JSON from response (FR-264)
-
-    Returns:
-        LLM response (parsed model, extracted JSON, or normalized string)
+    Uses llm.ainvoke() for native cooperative cancellation at await points.
+    create_llm() is called synchronously — it is pure object construction.
     """
+    llm = create_llm(
+        temperature=temperature,
+        provider=candidate.get("provider"),
+        model=candidate.get("model"),
+    )
     if output_model:
         structured_llm = llm.with_structured_output(output_model)
-        return structured_llm.invoke(messages)
+        result = await structured_llm.ainvoke(messages)
+        return candidate, result
     else:
-        response = llm.invoke(messages)
+        response = await llm.ainvoke(messages)
         content = normalize_content(response.content)
-        if parse_json:
-            return extract_json(content)
-        return content
+        parsed = extract_json(content) if parse_json else content
+        return candidate, parsed
+
+
+async def _race_async(
+    candidates: list[dict],
+    messages: list,
+    output_model: type | None,
+    parse_json: bool,
+    timeout: float | None,
+    temperature: float,
+) -> tuple[dict, Any]:
+    """Return first successful candidate result; cancel remaining tasks (FR-271).
+
+    Deadline is computed once before the loop and decremented on each
+    asyncio.wait() call so it applies to the full race window, not per attempt.
+    """
+    loop = asyncio.get_running_loop()
+    tasks: dict[asyncio.Task, dict] = {
+        asyncio.create_task(
+            _invoke_candidate_async(c, messages, output_model, parse_json, temperature),
+            name=f"race-{c.get('provider', '?')}-{c.get('model', '?')}",
+        ): c
+        for c in candidates
+    }
+    errors: list[tuple[dict, Exception]] = []
+    deadline = None if timeout is None else (loop.time() + timeout)
+
+    try:
+        while tasks:
+            remaining = None if deadline is None else max(0.0, deadline - loop.time())
+            done, _pending = await asyncio.wait(
+                tasks.keys(),
+                timeout=remaining,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if not done:
+                raise TimeoutError(f"race timed out after {timeout}s")
+
+            for task in done:
+                candidate = tasks.pop(task)
+                try:
+                    winner_candidate, winner_result = task.result()
+                except Exception as exc:
+                    logger.warning(
+                        "Race candidate %s/%s failed: %s",
+                        candidate.get("provider", "?"),
+                        candidate.get("model", "?"),
+                        exc,
+                    )
+                    errors.append((candidate, exc))
+                    continue
+
+                # Winner found — cancel all remaining losers.
+                for loser in tasks:
+                    loser.cancel()
+                await asyncio.gather(*tasks.keys(), return_exceptions=True)
+                logger.info(
+                    "Race winner: %s/%s",
+                    winner_candidate.get("provider", "?"),
+                    winner_candidate.get("model", "?"),
+                )
+                return winner_candidate, winner_result
+
+        raise AllCandidatesFailedError(errors)
+    finally:
+        # Defensive cleanup for timeout/error exits — cancel any remaining tasks.
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks.keys(), return_exceptions=True)
+
+
+def _run_coro_sync_safe(coro: Any) -> Any:
+    """Run coroutine from sync node without event-loop conflicts (FR-271).
+
+    When no loop is running (typical graph.invoke() path): use asyncio.run().
+    When a loop is already running (graph.ainvoke() path): delegate to a
+    dedicated thread with its own loop to avoid nesting.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+
+    # Already inside an event loop — run in a dedicated background thread.
+    # concurrent.futures.Future propagates exceptions across threads cleanly.
+    _future: concurrent.futures.Future[Any] = concurrent.futures.Future()
+
+    def _run() -> None:
+        try:
+            _future.set_result(asyncio.run(coro))
+        except BaseException as exc:
+            _future.set_exception(exc)
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    t.join()
+    return _future.result()
 
 
 def create_race_node(
@@ -74,7 +177,8 @@ def create_race_node(
     """Create a race node function from YAML config.
 
     A race node fires the same prompt to N provider/model combinations
-    concurrently and returns the first successful result.
+    concurrently and returns the first successful result. Losers are
+    cooperatively cancelled via asyncio after the winner is found (FR-271).
 
     Args:
         node_name: Name of the node
@@ -133,97 +237,51 @@ def create_race_node(
             state=state,
         )
 
-        # Create LLM instances for each candidate
-        llms = []
-        for candidate in candidates:
-            llm = create_llm(
-                temperature=temperature,
-                provider=candidate.get("provider"),
-                model=candidate.get("model"),
-            )
-            llms.append(llm)
-
-        # Race all candidates concurrently.
-        # Explicit pool lifecycle: shutdown(wait=False) in finally so the winner
-        # is returned immediately; loser threads finish naturally and are discarded.
-        errors: list[tuple[dict, Exception]] = []
-
-        pool = ThreadPoolExecutor(max_workers=len(llms))
         try:
-            futures = {
-                pool.submit(
-                    _invoke_candidate, llm, messages, output_model, parse_json
-                ): candidate
-                for llm, candidate in zip(llms, candidates, strict=True)
-            }
-
-            try:
-                for future in as_completed(futures, timeout=timeout):
-                    candidate = futures[future]
-                    try:
-                        result = future.result()
-                        logger.info(
-                            "Race node %s: winner %s/%s",
-                            node_name,
-                            candidate.get("provider", "?"),
-                            candidate.get("model", "?"),
-                        )
-                        return {
-                            state_key: result,
-                            "_race_winner": {
-                                "provider": candidate.get("provider"),
-                                "model": candidate.get("model"),
-                            },
-                            "current_step": node_name,
-                            "_loop_counts": loop_counts,
-                        }
-                    except Exception as e:
-                        logger.warning(
-                            "Race candidate %s/%s failed: %s",
-                            candidate.get("provider", "?"),
-                            candidate.get("model", "?"),
-                            e,
-                        )
-                        errors.append((candidate, e))
-            except TimeoutError:
-                timeout_exc = TimeoutError(
-                    f"Race {node_name} timed out after {timeout}s"
+            winner_candidate, result = _run_coro_sync_safe(
+                _race_async(
+                    candidates,
+                    messages,
+                    output_model,
+                    parse_json,
+                    timeout,
+                    temperature,
                 )
-                if on_error == ErrorHandler.SKIP:
-                    return {
-                        state_key: None,
-                        "current_step": node_name,
-                        "_loop_counts": loop_counts,
-                        "errors": [
-                            PipelineError.from_exception(
-                                timeout_exc,
-                                node=node_name,
-                                error_type=ErrorType.TIMEOUT_ERROR,
-                            )
-                        ],
-                    }
-                raise AllCandidatesFailedError(
-                    errors + [({}, timeout_exc)]
-                ) from timeout_exc
-        finally:
-            # Race-to-first: abandon still-running losers without waiting.
-            # Loser threads die naturally when their HTTP calls return; results discarded.
-            pool.shutdown(wait=False, cancel_futures=True)
+            )
+        except TimeoutError as exc:
+            if on_error == ErrorHandler.SKIP:
+                return {
+                    state_key: None,
+                    "current_step": node_name,
+                    "_loop_counts": loop_counts,
+                    "errors": [
+                        PipelineError.from_exception(
+                            exc,
+                            node=node_name,
+                            error_type=ErrorType.TIMEOUT_ERROR,
+                        )
+                    ],
+                }
+            raise AllCandidatesFailedError([({}, exc)]) from exc
+        except AllCandidatesFailedError as exc:
+            if on_error == ErrorHandler.SKIP:
+                return {
+                    state_key: None,
+                    "current_step": node_name,
+                    "_loop_counts": loop_counts,
+                    "errors": [PipelineError.from_exception(exc, node=node_name)],
+                }
+            raise
 
-        # All candidates failed
-        all_failed_error = AllCandidatesFailedError(errors)
-
-        if on_error == ErrorHandler.SKIP:
-            return {
-                state_key: None,
-                "current_step": node_name,
-                "_loop_counts": loop_counts,
-                "errors": [
-                    PipelineError.from_exception(all_failed_error, node=node_name)
-                ],
-            }
-
-        raise all_failed_error
+        return {
+            state_key: result,
+            "_race_winner": {
+                "provider": winner_candidate.get("provider"),
+                "model": winner_candidate.get("model"),
+            },
+            "current_step": node_name,
+            "_loop_counts": loop_counts,
+        }
 
     node_fn.__name__ = f"{node_name}_race_node"
     return node_fn
