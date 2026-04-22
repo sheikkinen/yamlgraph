@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Fix
-**Status:** Proposed
+**Status:** Judged — Approved with amendments
 **Effort:** 0.5 days
 **Requested:** 2026-04-22
 **Related:** FR-105 (session continuations), FR-273 (watcher2 pipeline)
@@ -59,6 +59,16 @@ Add `--share=<tmpfile>` to copilot CLI invocations and extract session ID from t
 ### Acceptance Criteria
 
 - AC-1: After a copilot node runs, `CopilotResult.session_id` is a valid UUID (not `None`)
-- AC-2: A second copilot node with `resume: "{state.prev.session_id}"` passes `--resume=<uuid>` to CLI
-- AC-3: Share file is cleaned up after session ID extraction
+- AC-2: A second copilot node with `resume: "{state.prev.session_id}"` passes `--resume=<uuid>` to CLI (already proven by integration test)
+- AC-3: Share file tempdir is cleaned up in a `finally` block, even on subprocess failure
 - AC-4: Graceful fallback to `None` if share file is missing or unparseable
+- AC-5: Existing unit test `test_session_id_extracted_from_stderr` updated to use share file; "format TBD" comment removed
+- AC-6: Duplicate model resolution block (L173-180 / L183-190) removed
+
+## Judgement Amendments (2026-04-22)
+
+- Integration tests already merged (PR #177) proving plumbing works
+- `tempfile.mkdtemp()` per-invocation to avoid collisions
+- Regex: `r"\*\*Session ID:\*\*\s*` `` ` `` `([a-f0-9-]+)` `` ` `` `"`
+- `--share` confirmed working with `--silent` (empirical table)
+- Duplicate model resolution in `create_copilot_node()` included in scope (pre-existing defect, trivial fix)

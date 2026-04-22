@@ -150,12 +150,15 @@ class TestCopilotSessionPropagation:
             result = MagicMock()
             result.stdout = f"phase {call_count} output"
             result.returncode = 0
-            if call_count == 1:
-                # Phase1: simulate stderr with session ID
-                # This matches the current regex: "Session: <uuid>"
-                result.stderr = f"Session: {session_uuid}"
-            else:
-                result.stderr = ""
+            result.stderr = ""
+            if call_count == 1 and "--share" in cmd:
+                # FR-274: Write share file with session ID
+                share_idx = cmd.index("--share") + 1
+                share_path = Path(cmd[share_idx])
+                share_path.parent.mkdir(parents=True, exist_ok=True)
+                share_path.write_text(
+                    f"# Session\n> - **Session ID:** `{session_uuid}`\n"
+                )
             return result
 
         with patch(SUBPROCESS_RUN, side_effect=mock_subprocess_run) as mock_run:
@@ -333,15 +336,25 @@ class TestCopilotOutputUnwrap:
         graph = compile_graph(config)
         compiled = graph.compile()
 
-        session_uuid = "abc-123-session"
+        session_uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
         copilot_json_output = '{"key": "value"}'
 
-        mock_result = MagicMock()
-        mock_result.stdout = copilot_json_output
-        mock_result.stderr = f"Session: {session_uuid}"
-        mock_result.returncode = 0
+        def mock_subprocess_run(cmd, **kwargs):
+            result = MagicMock()
+            result.stdout = copilot_json_output
+            result.stderr = ""
+            result.returncode = 0
+            # FR-274: Write share file with session ID
+            if "--share" in cmd:
+                share_idx = cmd.index("--share") + 1
+                share_path = Path(cmd[share_idx])
+                share_path.parent.mkdir(parents=True, exist_ok=True)
+                share_path.write_text(
+                    f"# Session\n> - **Session ID:** `{session_uuid}`\n"
+                )
+            return result
 
-        with patch(SUBPROCESS_RUN, return_value=mock_result):
+        with patch(SUBPROCESS_RUN, side_effect=mock_subprocess_run):
             result = compiled.invoke({"topic": "test"})
 
         # Both session_id and output are preserved
