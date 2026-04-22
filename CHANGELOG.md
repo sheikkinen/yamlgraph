@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.71]
+
+### Fixed
+- **FR-270 Race Node Pool Shutdown**: Replace `with ThreadPoolExecutor` context manager with explicit `pool.shutdown(wait=False, cancel_futures=True)` in `finally`; race node now returns winner state in `fast_candidate_time + ε` regardless of slow losers. (REQ-YG-269)
+
 ## [0.4.70]
 
 ### Added

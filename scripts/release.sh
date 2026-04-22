@@ -21,7 +21,7 @@ sed -i '' "s/^__version__ = .*/__version__ = \"${VERSION}\"/" yamlgraph/__init__
 echo "✓ Bumped pyproject.toml + yamlgraph/__init__.py → ${VERSION}"
 
 # Step 4: Regenerate CHANGELOG.md
-python scripts/aggregate_changelog.py > CHANGELOG.md
+python3 scripts/aggregate_changelog.py > CHANGELOG.md
 echo "✓ Regenerated CHANGELOG.md"
 
 # Step 5: Commit (write msg to file to avoid dquote trap)
