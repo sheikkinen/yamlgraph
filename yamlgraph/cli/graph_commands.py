@@ -18,7 +18,9 @@ import yaml
 from yamlgraph.cli.graph_validate import cmd_graph_lint, cmd_graph_validate
 from yamlgraph.cli.helpers import (
     GraphLoadError,
+    handle_state_export,
     load_graph_config,
+    load_imported_state,
     load_var_file,
     parse_vars,
     require_graph_config,
@@ -76,12 +78,7 @@ def _teardown_timeout(ctx: dict | None) -> None:
 
 
 def _display_result(result: dict, truncate: bool = True) -> None:
-    """Display result summary to console.
-
-    Args:
-        result: Graph execution result dict
-        truncate: Whether to truncate long values (default: True)
-    """
+    """Display result summary to console."""
     print("=" * 60)
     print("RESULT")
     print("=" * 60)
@@ -98,14 +95,7 @@ def _display_result(result: dict, truncate: bool = True) -> None:
 
 
 def _get_interrupt_message(result: dict) -> str:
-    """Extract human-readable message from interrupt.
-
-    Args:
-        result: Graph execution result containing __interrupt__
-
-    Returns:
-        Message to display to user
-    """
+    """Extract human-readable message from interrupt."""
     interrupt = result.get("__interrupt__", ())
     if interrupt and len(interrupt) > 0:
         # Interrupt is tuple of Interrupt objects
@@ -261,10 +251,15 @@ def cmd_graph_run(args: Namespace) -> None:
     try:
         file_vars = load_var_file(getattr(args, "var_file", None))
         cli_vars = parse_vars(args.var)
-        initial_state = {**file_vars, **cli_vars}  # CLI wins on conflict
     except (ValueError, FileNotFoundError) as e:
         print(f"❌ {e}")
         sys.exit(1)
+
+    # FR-269: Import state from prior run as base layer
+    imported_state = load_imported_state(getattr(args, "import_state", None))
+
+    # Merge: imported < var-file < CLI vars
+    initial_state = {**imported_state, **file_vars, **cli_vars}
 
     print(f"\n🚀 Running graph: {graph_path.name}")
     if initial_state:
@@ -338,6 +333,10 @@ def cmd_graph_run(args: Namespace) -> None:
 
         if args.export:
             _handle_export(graph_path, result)
+
+        # FR-269: Export full state for inter-run chaining
+        if getattr(args, "export_state", None):
+            handle_state_export(result, args.export_state)
 
         print()
 

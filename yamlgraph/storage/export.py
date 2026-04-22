@@ -94,6 +94,25 @@ def _serialize_object(obj: Any) -> Any:
         return obj
 
 
+def export_state_to_path(state: dict, path: str | Path) -> Path:
+    """Export full pipeline state to an explicit file path.
+
+    Used by --export-state CLI flag for inter-run state chaining.
+
+    Args:
+        state: State dictionary to export
+        path: Explicit output file path
+
+    Returns:
+        Path to the created file
+    """
+    filepath = Path(path)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    with open(filepath, "w") as f:
+        json.dump(_serialize_state(state), f, indent=2, default=str)
+    return filepath
+
+
 def load_export(filepath: str | Path) -> dict:
     """Load an exported JSON file.
 
