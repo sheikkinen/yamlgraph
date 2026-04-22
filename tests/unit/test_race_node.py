@@ -7,7 +7,7 @@ and return the first successful result.
 import asyncio
 import inspect
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -397,6 +397,7 @@ class TestRaceNodeFactory:
         llm1 = MagicMock()
         structured_llm = MagicMock()
         structured_llm.invoke = MagicMock(return_value=mock_result)
+        structured_llm.ainvoke = AsyncMock(return_value=mock_result)
         llm1.with_structured_output = MagicMock(return_value=structured_llm)
 
         llm2 = _make_mock_llm("fallback", delay=0.5)
@@ -496,6 +497,7 @@ class TestRaceContentNormalization:
         response = MagicMock()
         response.content = [{"type": "text", "text": "hello from claude"}]
         mock_llm.invoke = MagicMock(return_value=response)
+        mock_llm.ainvoke = AsyncMock(return_value=response)
 
         mock_llm2 = _make_mock_llm("fallback", delay=1.0)
         mock_create_llm.side_effect = [mock_llm, mock_llm2]
@@ -632,6 +634,7 @@ class TestRaceParseJson:
         response = MagicMock()
         response.content = [{"type": "text", "text": '{"answer": "from claude"}'}]
         mock_llm.invoke = MagicMock(return_value=response)
+        mock_llm.ainvoke = AsyncMock(return_value=response)
 
         llm2 = _make_mock_llm("fallback", delay=1.0)
         mock_create_llm.side_effect = [mock_llm, llm2]
