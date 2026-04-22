@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.70]
+
+### Added
+- **FR-269 CLI Inter-Run State Chaining**: `--import-state` and `--export-state` flags for `yamlgraph graph run` enable external orchestrators to chain graph invocations across shell boundaries while preserving state, including `CopilotResult.session_id` for copilot session resume. (REQ-YG-267, REQ-YG-268)
+- **FR-266 Copilot Node Model Selection**: Support `model` as a top-level node config key for copilot nodes, with fallback to `defaults.model` from graph metadata. Model resolution follows `cli_flags.model` > node-level `model` > `defaults.model` > omit. (REQ-YG-265)
+- **FR-266 Copilot Node Model Selection**: Copilot nodes now support `model` at the node level and `defaults.model` fallback, consistent with LLM nodes. Priority chain: `cli_flags.model` > node-level `model` > `defaults.model` > omit. (REQ-YG-265)
+
+### Fixed
+- **FR-267 Race Node Timeout Fix**: Remove `_maybe_wrap_timeout` from `_compile_race_node` — race nodes own timeout natively via `as_completed(timeout=...)`. The double ThreadPoolExecutor wrap silently discarded return values. Handle `TimeoutError` in race node to produce `PipelineError(TIMEOUT_ERROR)` respecting `on_error` config. (REQ-YG-266)
+- **Fix worktree state references in copilot graph**: Python nodes returning dicts merge keys directly into state — `state_key` is decorative for dict returns. Fixed `{state.worktree_result.worktree_dir}` → `{state.worktree_dir}`.
+
 ## [0.4.69]
 
 ### Added
