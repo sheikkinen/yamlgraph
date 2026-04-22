@@ -391,6 +391,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 117 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py` | REQ-YG-264 |
 | 118 | Copilot Node Model Selection (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
 | 119 | Race Node Timeout Fix (FR-267) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py` | REQ-YG-266 |
+| 120 | CLI Inter-Run State Chaining (FR-269) | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/storage/export.py` | REQ-YG-267, REQ-YG-268 |
 
 | 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml`, `.chaplain/graphs/enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
 
@@ -1561,6 +1562,17 @@ Race node applies exactly one timeout mechanism — its native `as_completed(tim
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-266 | Race node applies exactly one timeout mechanism — its native `as_completed(timeout=...)`; `_compile_race_node` must NOT call `_maybe_wrap_timeout`; on timeout expiry (no candidate succeeds within deadline), race node produces `PipelineError(TIMEOUT_ERROR)` and respects `on_error` config; without `on_error`, raises `AllCandidatesFailedError`; race `timeout` is total race deadline, not per-candidate | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_race_node.py` |
+
+### 120. CLI Inter-Run State Chaining (FR-269)
+
+`--import-state` and `--export-state` flags for `yamlgraph graph run` enabling external orchestrators to chain graph invocations across shell boundaries while preserving state.
+
+**Feature Request:** FR-269
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-267 | `--import-state <path>` loads exported JSON as initial graph state; merge order is `graph_config.data < imported < --var-file < --var`; missing file prints clear error and exits 1; malformed JSON prints clear error and exits 1 | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
+| REQ-YG-268 | `--export-state <path>` writes full post-run state to explicit JSON path using `_serialize_state()`; creates parent directories; write failures print clear error and exit 1; `CopilotResult.session_id` survives round-trip and resolves via `resolve_state_expression()` | `yamlgraph/cli/graph_commands.py`, `yamlgraph/storage/export.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,36 @@
+id: CAP-120
+name: CLI Inter-Run State Chaining
+description: >
+  --import-state and --export-state flags for yamlgraph graph run
+  enabling external orchestrators to chain graph invocations across
+  shell boundaries while preserving state, including
+  CopilotResult.session_id for copilot session resume.
+modules:
+  - yamlgraph/cli/__init__.py
+  - yamlgraph/cli/graph_commands.py
+  - yamlgraph/cli/helpers.py
+  - yamlgraph/storage/export.py
+requirements:
+  - id: REQ-YG-267
+    description: >
+      --import-state loads exported JSON as initial graph state;
+      merge order is graph_config.data < imported < --var-file < --var;
+      missing file prints clear error and exits 1; malformed JSON
+      prints clear error and exits 1
+    modules:
+      - yamlgraph/cli/__init__.py
+      - yamlgraph/cli/graph_commands.py
+      - yamlgraph/cli/helpers.py
+      - tests/unit/test_cli_inter_run_state_chaining.py
+  - id: REQ-YG-268
+    description: >
+      --export-state writes full post-run state to explicit JSON path
+      using _serialize_state(); creates parent directories; write
+      failures print clear error and exit 1; CopilotResult.session_id
+      survives round-trip and resolves via resolve_state_expression()
+    modules:
+      - yamlgraph/cli/graph_commands.py
+      - yamlgraph/cli/helpers.py
+      - yamlgraph/storage/export.py
+      - tests/unit/test_cli_inter_run_state_chaining.py
+fr: FR-269

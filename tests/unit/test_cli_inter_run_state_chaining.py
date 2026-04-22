@@ -47,7 +47,7 @@ def _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp):
 class TestFR269ParserAndHelp:
     """CLI parser contracts for --import-state and --export-state."""
 
-    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036", "REQ-YG-267", "REQ-YG-268")
     def test_graph_run_accepts_import_and_export_state_independently(self):
         """AC-07: both new flags are usable alone and together."""
         from yamlgraph.cli import create_parser
@@ -80,7 +80,7 @@ class TestFR269ParserAndHelp:
         assert args_both.import_state == "in.json"
         assert args_both.export_state == "out.json"
 
-    @pytest.mark.req("REQ-YG-032", "REQ-YG-036")
+    @pytest.mark.req("REQ-YG-032", "REQ-YG-036", "REQ-YG-267", "REQ-YG-268")
     def test_graph_run_help_lists_import_and_export_state(self, capsys):
         """AC-11: graph run --help documents both flags."""
         from yamlgraph.cli import create_parser
@@ -99,7 +99,7 @@ class TestFR269ParserAndHelp:
 class TestFR269StorageExportContracts:
     """State export/import helpers for inter-run chaining."""
 
-    @pytest.mark.req("REQ-YG-038")
+    @pytest.mark.req("REQ-YG-038", "REQ-YG-268")
     def test_export_state_to_path_writes_full_state_json(self, tmp_path: Path):
         """AC-01: --export-state writes full post-run state to explicit JSON path."""
         from yamlgraph.models.schemas import CopilotResult
@@ -124,7 +124,7 @@ class TestFR269StorageExportContracts:
         assert data["steps"] == ["plan", "enforce"]
         assert data["prev_result"]["session_id"] == "session-123"
 
-    @pytest.mark.req("REQ-YG-038")
+    @pytest.mark.req("REQ-YG-038", "REQ-YG-268")
     def test_export_state_to_path_creates_parent_directories(self, tmp_path: Path):
         """AC-02: --export-state creates missing parent directories."""
         from yamlgraph.storage.export import export_state_to_path
@@ -135,7 +135,7 @@ class TestFR269StorageExportContracts:
         assert output_path.exists()
         assert json.loads(output_path.read_text()) == {"k": "v"}
 
-    @pytest.mark.req("REQ-YG-038")
+    @pytest.mark.req("REQ-YG-038", "REQ-YG-267", "REQ-YG-268")
     def test_export_import_round_trip_preserves_copilot_session_id(
         self, tmp_path: Path
     ):
@@ -165,7 +165,7 @@ class TestFR269StorageExportContracts:
 class TestFR269CmdGraphRunStateMerging:
     """cmd_graph_run contracts for import/export state flags."""
 
-    @pytest.mark.req("REQ-YG-033")
+    @pytest.mark.req("REQ-YG-033", "REQ-YG-267")
     @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
@@ -211,7 +211,7 @@ class TestFR269CmdGraphRunStateMerging:
         invoked_state = mock_app.invoke.call_args[0][0]
         assert invoked_state["imported"] == "state"
 
-    @pytest.mark.req("REQ-YG-033")
+    @pytest.mark.req("REQ-YG-033", "REQ-YG-267")
     @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
@@ -271,7 +271,7 @@ class TestFR269CmdGraphRunStateMerging:
         mock_load_export.assert_called_once()
         assert captured_initial_state == {"shared": "cli", "i": 1, "f": 2, "c": 3}
 
-    @pytest.mark.req("REQ-YG-033")
+    @pytest.mark.req("REQ-YG-033", "REQ-YG-267")
     @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
@@ -325,7 +325,7 @@ class TestFR269CmdGraphRunStateMerging:
         assert captured_initial_state["topic"] == "from-cli"
         assert captured_initial_state["session_id"] == "abc"
 
-    @pytest.mark.req("REQ-YG-033")
+    @pytest.mark.req("REQ-YG-033", "REQ-YG-267")
     @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")
@@ -362,7 +362,7 @@ class TestFR269CmdGraphRunStateMerging:
         assert "not found" in out.lower()
         assert str(missing_state) in out
 
-    @pytest.mark.req("REQ-YG-038")
+    @pytest.mark.req("REQ-YG-038", "REQ-YG-268")
     @patch("yamlgraph.cli.graph_commands._setup_timeout", return_value=None)
     @patch("yamlgraph.cli.graph_commands._teardown_timeout")
     @patch("yamlgraph.cli.graph_commands._build_run_config")

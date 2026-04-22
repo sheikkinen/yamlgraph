@@ -113,7 +113,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: These are public re-exports for backward compatibility — tests and external consumers import from `yamlgraph.a2a_server`. The actual logic lives in `yamlgraph.a2a_message` after the module split to stay under 450 lines.
 
 ### CONF-005
-- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L258)
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L272)
 - **Code**: S104
 - **Sin**: A2A server CLI default host is `0.0.0.0` (binds to all interfaces).
 - **Penance**: Intentional for server CLI commands. Users override via `--host`. Binding to all interfaces is the standard default for development servers.
