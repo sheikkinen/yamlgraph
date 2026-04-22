@@ -975,3 +975,47 @@ class TestRaceTimeoutCorrectness:
         assert result["response"] == "answer from anthropic"
         assert result["_race_winner"]["provider"] == "anthropic"
         assert result["current_step"] == "race_node"
+
+
+# =============================================================================
+# FR-270: Race node must not block on slow losers (REQ-YG-269)
+# =============================================================================
+
+
+@pytest.mark.req("REQ-YG-269")
+def test_race_returns_on_first_success_not_after_slowest(monkeypatch):
+    """Race must not block on slow losers; returns within fast_candidate_time + ε."""
+    from yamlgraph.node_factory.race_node import create_race_node
+
+    fast_llm = _make_mock_llm('{"ok": true}', delay=0.05)
+    slow_llm = _make_mock_llm('{"ok": false}', delay=2.0)
+
+    node_config = {
+        "type": "race",
+        "state_key": "result",
+        "parse_json": True,
+        "candidates": [
+            {"provider": "fake-fast", "model": "x"},
+            {"provider": "fake-slow", "model": "y"},
+        ],
+    }
+
+    def fake_create_llm(*args, **kwargs):
+        return fast_llm if kwargs.get("provider") == "fake-fast" else slow_llm
+
+    with (
+        patch(
+            "yamlgraph.node_factory.race_node.create_llm", side_effect=fake_create_llm
+        ),
+        patch("yamlgraph.node_factory.race_node.prepare_messages") as mock_prepare,
+    ):
+        mock_prepare.return_value = ([MagicMock()], "fake-fast", "x")
+        node_fn = create_race_node("test_race", node_config, {}, graph_path=None)
+
+        t0 = time.monotonic()
+        result = node_fn({"_loop_counts": {}})
+        elapsed = time.monotonic() - t0
+
+    assert elapsed < 1.0, f"race waited for slow loser: {elapsed:.1f}s"
+    assert result["result"] == {"ok": True}
+    assert result["_race_winner"]["provider"] == "fake-fast"

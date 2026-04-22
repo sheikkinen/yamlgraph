@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-22
 **FR:** FR-270
@@ -132,15 +132,15 @@ pool doesn't block on losers.
 
 ## Acceptance Criteria
 
-- [ ] Race node returns within `fast_candidate_time + ε` (< 1s) even when slow candidates take ≫ 1s
-- [ ] Condemning test `test_race_returns_on_first_success_not_after_slowest` passes (see below)
-- [ ] Winner's `state_key`, `_race_winner`, `current_step`, `_loop_counts` are all present in the returned dict
-- [ ] Slow candidates' threads continue (and finish) in the background but do not block the return
-- [ ] `race_node.py` no longer uses `with ThreadPoolExecutor(...) as pool:` pattern; `pool.shutdown(wait=False, cancel_futures=True)` is called in `finally`
-- [ ] `race_node.py` catches `TimeoutError` from `as_completed(...)` and routes timeout through existing `on_error` behavior (aligned with FR-267 Change 2)
-- [ ] Existing race node unit tests pass (`tests/unit/test_race_node.py`)
-- [ ] `@pytest.mark.req("REQ-YG-269")` on new condemning test; REQ-YG-269 added to `ARCHITECTURE.md` and `capabilities/CAP-91-race-node-type.yaml`
-- [ ] `req_coverage.py --strict` passes
+- [x] Race node returns within `fast_candidate_time + ε` (< 1s) even when slow candidates take ≫ 1s
+- [x] Condemning test `test_race_returns_on_first_success_not_after_slowest` passes (see below)
+- [x] Winner's `state_key`, `_race_winner`, `current_step`, `_loop_counts` are all present in the returned dict
+- [x] Slow candidates' threads continue (and finish) in the background but do not block the return
+- [x] `race_node.py` no longer uses `with ThreadPoolExecutor(...) as pool:` pattern; `pool.shutdown(wait=False, cancel_futures=True)` is called in `finally`
+- [x] `race_node.py` catches `TimeoutError` from `as_completed(...)` and routes timeout through existing `on_error` behavior (aligned with FR-267 Change 2)
+- [x] Existing race node unit tests pass (`tests/unit/test_race_node.py`)
+- [x] `@pytest.mark.req("REQ-YG-269")` on new condemning test; REQ-YG-269 added to `ARCHITECTURE.md` and `capabilities/CAP-91-race-node-type.yaml`
+- [x] `req_coverage.py --strict` passes
 
 ## Condemning Test
 
