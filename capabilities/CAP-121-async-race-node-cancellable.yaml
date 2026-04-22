@@ -1,0 +1,28 @@
+id: CAP-121
+name: Async Race Node with Cancellable Candidates
+description: >
+  Rewrites the race node from ThreadPoolExecutor to asyncio so losing
+  candidates are cooperatively cancelled at await points after a winner
+  is found. Eliminates orphan HTTP connections, loser billing, and
+  interpreter-exit delays from post-win background threads.
+  _run_coro_sync_safe bridges sync node_fn to the async core without
+  event-loop conflicts under both invoke and ainvoke execution paths.
+modules:
+  - yamlgraph/node_factory/race_node.py
+  - tests/unit/test_race_node.py
+requirements:
+  - id: REQ-YG-270
+    description: >
+      Race node rewired to asyncio: ThreadPoolExecutor removed;
+      _invoke_candidate_async uses await llm.ainvoke(messages);
+      _race_async uses asyncio.wait(FIRST_COMPLETED) to cancel losers
+      after winner; _run_coro_sync_safe bridges sync node_fn to async
+      core without event-loop conflicts; loser asyncio.Task objects
+      cancelled and gathered before node_fn returns; deadline computed
+      once and decremented across wait iterations; on_error: skip
+      preserved; AllCandidatesFailedError raised when all candidates
+      fail without skip
+    modules:
+      - yamlgraph/node_factory/race_node.py
+      - tests/unit/test_race_node.py
+fr: FR-271

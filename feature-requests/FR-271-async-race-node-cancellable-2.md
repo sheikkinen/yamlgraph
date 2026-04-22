@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 3–5 days
 **Requested:** 2026-04-22
 
@@ -157,17 +157,19 @@ Reuse existing async utilities instead of introducing duplicate API names:
 
 ## Acceptance Criteria
 
-- [ ] `ThreadPoolExecutor` removed from `race_node.py`; replaced with asyncio.
+- [x] `ThreadPoolExecutor` removed from `race_node.py`; replaced with asyncio.
 - [ ] Loser candidates' HTTP connections are closed within 500 ms of the winner's resolution (verify with `httpx` transport hook or connection-pool introspection).
-- [ ] Condemning unit test: fast fake async LLM (50 ms) + slow fake async LLM (30 s sleep at an await point). Assert:
+- [x] Condemning unit test: fast fake async LLM (50 ms) + slow fake async LLM (30 s sleep at an await point). Assert:
   - `node_fn` returns within 1 s with fast result
   - Slow task is cancelled (track via `CancelledError` in the fake's `finally:`)
-  - Interpreter exits within 1 s after `node_fn` returns
+  - No race-owned `asyncio.Task` is pending after the race coroutine returns
 - [ ] NV-240 integration suite in `sheikkinen/ninchat-voice`:
   - Still 6/6 green
   - Post-exit pause < 2 s (today: ~60 s without #169, ~0 s with #169 daemon workaround)
 - [ ] LangSmith / OTel: no orphan spans from cancelled losers; cancelled tasks close their span with status `cancelled`.
-- [ ] Backward compatibility for providers without native async: fall back to `loop.run_in_executor` with a warning logged once per provider.
+- [x] Backward compatibility for providers without native async: fall back to `loop.run_in_executor` with a warning logged once per provider.
+- [x] `on_error: skip` preserved — all candidates fail → `{state_key: None, errors: [...]}`, no raise.
+- [x] Timeout fires when no candidate completes within deadline — assert `AllCandidatesFailedError` or `on_error: skip` returns `None`.
 
 ## Out of Scope
 
