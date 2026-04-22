@@ -34,4 +34,13 @@ requirements:
       - yamlgraph/linter/checks.py
       - tests/unit/test_race_node.py
       - tests/unit/test_linter_patterns_race.py
+  - id: REQ-YG-269
+    description: >
+      Race node must not block on losing candidates after a winner is found.
+      ThreadPoolExecutor shut down with wait=False, cancel_futures=True after
+      returning winner. No with ThreadPoolExecutor context manager pattern.
+      Loser threads terminate naturally; their results are discarded.
+    modules:
+      - yamlgraph/node_factory/race_node.py
+      - tests/unit/test_race_node.py
 fr: FR-232
