@@ -108,6 +108,20 @@ def create_parser() -> argparse.ArgumentParser:
         dest="timing",
         help="Track and display LLM call timing summary after execution",
     )
+    graph_run_parser.add_argument(
+        "--import-state",
+        type=str,
+        default=None,
+        dest="import_state",
+        help="Load initial state from JSON file exported by --export-state",
+    )
+    graph_run_parser.add_argument(
+        "--export-state",
+        type=str,
+        default=None,
+        dest="export_state",
+        help="Write full state JSON to this path after run (for inter-run chaining)",
+    )
 
     # graph info
     graph_info_parser = graph_subparsers.add_parser(
