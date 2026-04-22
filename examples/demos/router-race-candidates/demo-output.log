@@ -1,0 +1,19 @@
+2026-04-22 13:50:43,113 [INFO] yamlgraph.graph_loader: Parsed 3 shell tools: billing_reply, technical_reply, general_reply
+2026-04-22 13:50:43,115 [INFO] yamlgraph.node_compiler: Added node: route_intent (type=router)
+2026-04-22 13:50:43,115 [INFO] yamlgraph.node_compiler: Added node: handle_billing (type=tool)
+2026-04-22 13:50:43,115 [INFO] yamlgraph.node_compiler: Added node: handle_technical (type=tool)
+2026-04-22 13:50:43,115 [INFO] yamlgraph.node_compiler: Added node: handle_general (type=tool)
+2026-04-22 13:50:43,121 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.3)
+2026-04-22 13:50:43,268 [ERROR] yamlgraph.error_handlers: Node route_intent failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-04-22 13:50:43,269 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: billing_reply
+2026-04-22 13:50:43,279 [INFO] yamlgraph.tools.nodes: ✓ Tool billing_reply completed
+
+🚀 Running graph: graph.yaml
+   Variables: {'user_query': 'My invoice was charged twice this month.'}
+
+============================================================
+RESULT
+============================================================
+  current_step: handle_billing
+  user_query: My invoice was charged twice this month.
+  response: Billing path selected
