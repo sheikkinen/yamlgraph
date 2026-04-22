@@ -13,30 +13,33 @@ wait_ci() {
     local elapsed=0
     while [[ $elapsed -lt $CI_TIMEOUT ]]; do
         local status
-        status=$(gh pr checks "$PR_NUMBER" --json "name,state" --jq '[.[].state] | unique | join(",")' 2>/dev/null) || {
-            log_warn "Failed to query CI status — retrying"
+        status=$(gh pr checks "$PR_NUMBER" --json "name,state" --jq '[.[].state] | unique | join(",")' 2>&1) || {
+            log_warn "Failed to query CI status: $status — retrying in ${CI_POLL_INTERVAL}s"
             sleep "$CI_POLL_INTERVAL"
             elapsed=$((elapsed + CI_POLL_INTERVAL))
             continue
         }
 
-        # All checks passed
-        if [[ "$status" == "SUCCESS" ]]; then
-            CI_RESULT="success"
-            log_info "CI passed for PR #$PR_NUMBER"
-            return 0
-        fi
+        log_info "CI status ($((elapsed))s): $status"
 
         # Any check failed
-        if echo "$status" | grep -q "FAILURE\|ERROR"; then
+        if echo "$status" | grep -qiE "FAILURE|ERROR"; then
             CI_RESULT="failure"
             log_error "CI failed for PR #$PR_NUMBER: $status"
             return 1
         fi
 
         # Still pending
-        sleep "$CI_POLL_INTERVAL"
-        elapsed=$((elapsed + CI_POLL_INTERVAL))
+        if echo "$status" | grep -qiE "PENDING|IN_PROGRESS|QUEUED|REQUESTED|WAITING"; then
+            sleep "$CI_POLL_INTERVAL"
+            elapsed=$((elapsed + CI_POLL_INTERVAL))
+            continue
+        fi
+
+        # All done (SUCCESS, SKIPPED, or mix of both)
+        CI_RESULT="success"
+        log_info "CI passed for PR #$PR_NUMBER"
+        return 0
     done
 
     CI_RESULT="timeout"

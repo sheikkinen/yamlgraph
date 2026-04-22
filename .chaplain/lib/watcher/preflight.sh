@@ -9,8 +9,8 @@ preflight() {
     local current_branch
     current_branch=$(git branch --show-current)
     if [[ "$current_branch" != "main" ]]; then
-        log_warn "Not on main (on $current_branch) — switching"
-        git checkout main --quiet || { log_error "Failed to switch to main"; return 1; }
+        log_error "watcher2 must run from main branch (currently on $current_branch)"
+        return 1
     fi
 
     # Pull latest
