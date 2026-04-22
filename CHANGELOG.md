@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.73]
+
+### Added
+- **FR-272 Router Node Race Candidates**: `router` nodes now accept an optional `candidates:` list (same schema as `race`). When present, the prompt is fired to all candidates concurrently; the first valid result drives routing resolution. Losers are cooperatively cancelled via asyncio. `provider:` + `candidates:` is a compile-time error. Timeout falls back to `default_route` (or raises if `on_error: fail`). `_race_winner` metadata recorded in state. Single-provider routers unchanged. (REQ-YG-271)
+
 ## [0.4.72]
 
 ### Added
