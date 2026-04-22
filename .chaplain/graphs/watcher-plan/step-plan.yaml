@@ -1,0 +1,36 @@
+# Watcher2 Phase 3 — Plan step
+# Single copilot node: reads inbox topic, drafts feature request
+# Reuses prompt from .chaplain/graphs/copilot/prompts/plan.yaml
+
+version: "1.0"
+name: watcher-plan
+description: Watcher2 Phase 3 — plan step (copilot reads topic, drafts FR)
+
+prompts_relative: true
+prompts_dir: ../copilot/prompts
+
+state:
+  topic_file: str
+  drafts_dir: str
+  plan_result: dict
+
+nodes:
+  plan:
+    type: copilot
+    prompt: plan
+    backend: cli
+    cli_flags:
+      model: claude-sonnet-4
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+      drafts_dir: "{state.drafts_dir}"
+    state_key: plan_result
+    timeout: 500
+
+edges:
+  - from: START
+    to: plan
+  - from: plan
+    to: END
