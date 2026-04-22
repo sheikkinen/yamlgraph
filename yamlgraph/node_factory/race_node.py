@@ -143,10 +143,13 @@ def create_race_node(
             )
             llms.append(llm)
 
-        # Race all candidates concurrently
+        # Race all candidates concurrently.
+        # Explicit pool lifecycle: shutdown(wait=False) in finally so the winner
+        # is returned immediately; loser threads finish naturally and are discarded.
         errors: list[tuple[dict, Exception]] = []
 
-        with ThreadPoolExecutor(max_workers=len(llms)) as pool:
+        pool = ThreadPoolExecutor(max_workers=len(llms))
+        try:
             futures = {
                 pool.submit(
                     _invoke_candidate, llm, messages, output_model, parse_json
@@ -159,17 +162,12 @@ def create_race_node(
                     candidate = futures[future]
                     try:
                         result = future.result()
-                        # Cancel remaining futures
-                        for f in futures:
-                            f.cancel()
-
                         logger.info(
                             "Race node %s: winner %s/%s",
                             node_name,
                             candidate.get("provider", "?"),
                             candidate.get("model", "?"),
                         )
-
                         return {
                             state_key: result,
                             "_race_winner": {
@@ -188,8 +186,6 @@ def create_race_node(
                         )
                         errors.append((candidate, e))
             except TimeoutError:
-                for f in futures:
-                    f.cancel()
                 timeout_exc = TimeoutError(
                     f"Race {node_name} timed out after {timeout}s"
                 )
@@ -209,6 +205,10 @@ def create_race_node(
                 raise AllCandidatesFailedError(
                     errors + [({}, timeout_exc)]
                 ) from timeout_exc
+        finally:
+            # Race-to-first: abandon still-running losers without waiting.
+            # Loser threads die naturally when their HTTP calls return; results discarded.
+            pool.shutdown(wait=False, cancel_futures=True)
 
         # All candidates failed
         all_failed_error = AllCandidatesFailedError(errors)
