@@ -156,7 +156,8 @@ def create_copilot_node(
             - variables: Variable mappings like {state.key}
             - requires: List of required state keys
             - on_error: Error handling strategy
-        defaults: Graph-level defaults (e.g. defaults.model)
+            - model: Node-level model override (FR-266)
+        defaults: Graph-level defaults dict (model, provider, etc.)
         graph_path: Path to graph file for relative prompt resolution
         prompts_dir: Explicit prompts directory override
         prompts_relative: If True, resolve prompts relative to graph_path
@@ -167,6 +168,15 @@ def create_copilot_node(
     prompt_path = config.get("prompt")
     state_key = config.get("state_key")
     cli_flags = config.get("cli_flags", {})
+    defaults = defaults or {}
+
+    # FR-266: Resolve model with priority chain:
+    # cli_flags.model > node-level model > defaults.model > omit
+    resolved_model = (
+        cli_flags.get("model") or config.get("model") or defaults.get("model")
+    )
+    if resolved_model:
+        cli_flags = {**cli_flags, "model": resolved_model}
     timeout = config.get("timeout", DEFAULT_TIMEOUT)
     defaults = defaults or {}
 

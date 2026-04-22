@@ -2,20 +2,24 @@
 
 **Date:** 2026-04-21
 **FR:** FR-266
-**Branch:** feat/fr-266-copilot-node-model-selection
+**Duration:** ~15 minutes
 
-## What Was Done
+## What Happened
 
-Extended copilot nodes to support the same `model` and `defaults.model` convention used by LLM nodes. The `NodeConfig` schema gained a `model` field, `_compile_copilot_node()` now passes `effective_defaults` to the factory, and `create_copilot_node()` resolves model with a clear priority chain: `cli_flags.model` > node-level `model` > `defaults.model` > omit (let Copilot CLI choose). Nine tests cover every priority combination.
+Activated 12 pre-committed RED acceptance tests for FR-266 (copilot node model selection). The implementation was a 3-file surgical change (~15 lines net) that applied the existing LLM node model resolution pattern to copilot nodes.
 
-## Cognitive Trap: False Duplicate
+## Cognitive Trap: Feature Parity as Boundary Contract
 
-The initial temptation was to treat this as "just another parameter pass-through" — syntactically similar to how `cli_flags.model` already works. But the semantics differ: `cli_flags.model` is a Copilot CLI implementation detail (a flag), while `model` is a graph-level concept (a node config key). Conflating them would have missed the defaults resolution chain entirely. The `false_duplicate` trap: syntactic similarity ≠ semantic equivalence.
+The trap was already named in FR-252's diary entry: "Feature parity is a boundary contract." When `model:` works for LLM nodes but not copilot nodes, the inconsistency is a latent defect at the compile-time boundary. The fix was mechanical because the reference implementation already existed in `llm_nodes.py` — the pattern just needed to be applied at `node_compiler.py` where copilot nodes are compiled.
+
+## Insight: Test Setup vs Test Contract
+
+One acceptance test had a setup bug (missing `prompt` field for copilot NodeConfig validation) while the assertion was correct. The distinction between "test setup" and "test assertion contract" matters for RED-phase tests — a failing setup masks whether the assertion itself would fail, which is the whole point of RED.
 
 ## Heuristic
 
-**Match the abstraction layer, not the implementation**: When a higher-level concept (graph config) wraps a lower-level mechanism (CLI flag), expose the concept at its natural layer. Don't force users to learn the implementation detail (`cli_flags.model`) when the abstraction (`model`) already exists for peer node types.
+**Acceptance tests must fail on the assertion, not on setup.** A RED test that fails during construction proves nothing about the feature contract. Validate that RED tests fail on the _right line_ before considering them ready for the GREEN phase.
 
 ## Seed
 
-Could the model resolution chain be unified across all node types (LLM, copilot, agent) into a single `resolve_model()` utility? Each node type currently implements its own priority logic — a shared resolver would eliminate drift and make the precedence rules testable in one place.
+Could the pre-commit `pytest` hook skip known-RED tests (marked with a `@pytest.mark.red` marker) to avoid blocking unrelated commits while preserving the RED phase contract in CI?

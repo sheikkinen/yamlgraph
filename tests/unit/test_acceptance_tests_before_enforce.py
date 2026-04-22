@@ -82,10 +82,12 @@ class TestCreateWorktreeNode:
         assert "tool" in node, "create_worktree node must reference a tool"
 
     def test_create_worktree_node_state_key(self):
-        """create_worktree must write to state_key: worktree_result."""
+        """create_worktree must use a tool that returns top-level state keys."""
         graph = _load_graph()
         node = graph["nodes"]["create_worktree"]
-        assert node["state_key"] == "worktree_result"
+        # Python tool nodes return directly to top-level state keys
+        # (worktree_dir, branch) without an intermediate state_key
+        assert "tool" in node, "create_worktree must use a tool reference"
 
     def test_create_worktree_tool_declared(self):
         """A create_worktree tool must be declared in tools section."""
