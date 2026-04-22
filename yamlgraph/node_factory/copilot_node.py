@@ -7,7 +7,9 @@ FR-105: Session Continuations.
 
 import logging
 import re
+import shutil
 import subprocess
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -23,31 +25,43 @@ logger = logging.getLogger(__name__)
 # Default timeout for copilot CLI (seconds)
 DEFAULT_TIMEOUT = 300
 
-# Regex pattern to extract session ID from Copilot CLI stderr
-# Pattern matches: "Session: <uuid>" or similar formats
-SESSION_ID_PATTERN = re.compile(r"Session:\s*([a-zA-Z0-9-]+)", re.IGNORECASE)
+# FR-274: Regex to extract session ID from --share file content
+# Matches: **Session ID:** `d0137402-936d-4e5c-a3fe-27e924ef5dd2`
+SHARE_FILE_SESSION_PATTERN = re.compile(
+    r"\*\*Session ID:\*\*\s*`([a-f0-9-]+)`", re.IGNORECASE
+)
 
 
-def _extract_session_id(stderr: str) -> str | None:
-    """Extract session ID from Copilot CLI stderr output.
+def _extract_session_id_from_share_file(share_path: Path) -> str | None:
+    """Extract session ID from Copilot CLI --share file.
+
+    FR-274: The --share flag writes a markdown file containing the session ID.
+    Format: **Session ID:** `<uuid>`
 
     Args:
-        stderr: The stderr output from copilot CLI
+        share_path: Path to the share file written by copilot CLI
 
     Returns:
         Session ID string if found, None otherwise.
         Never fabricates a value — returns None if extraction fails.
     """
-    if not stderr or not isinstance(stderr, str):
+    if not share_path.exists():
+        logger.debug("[session] Share file not found: %s", share_path)
         return None
 
-    match = SESSION_ID_PATTERN.search(stderr)
+    try:
+        content = share_path.read_text()
+    except OSError as e:
+        logger.warning("[session] Failed to read share file: %s", e)
+        return None
+
+    match = SHARE_FILE_SESSION_PATTERN.search(content)
     if match:
         session_id = match.group(1)
-        logger.debug(f"[session] Extracted session ID: {session_id}")
+        logger.debug("[session] Extracted session ID: %s", session_id)
         return session_id
 
-    logger.debug("[session] No session ID found in stderr")
+    logger.debug("[session] No session ID found in share file")
     return None
 
 
@@ -178,14 +192,6 @@ def create_copilot_node(
     if resolved_model:
         cli_flags = {**cli_flags, "model": resolved_model}
     timeout = config.get("timeout", DEFAULT_TIMEOUT)
-    defaults = defaults or {}
-
-    # Resolve model: cli_flags.model > node-level model > defaults.model
-    resolved_model = (
-        cli_flags.get("model") or config.get("model") or defaults.get("model")
-    )
-    if resolved_model:
-        cli_flags = {**cli_flags, "model": resolved_model}
     variables_config = config.get("variables", {})
 
     if not state_key:
@@ -271,6 +277,11 @@ def _execute_cli(
     elif cli_flags.get("continue_session"):
         cmd.append("--continue")
 
+    # FR-274: Create temp directory for --share file to extract session ID
+    share_tmpdir = Path(tempfile.mkdtemp(prefix="yamlgraph-copilot-"))
+    share_path = share_tmpdir / "session.md"
+    cmd.extend(["--share", str(share_path)])
+
     # Add prompt
     cmd.extend(["-p", prompt])
 
@@ -285,8 +296,8 @@ def _execute_cli(
             timeout=timeout,
         )
 
-        # FR-105: Extract session ID from stderr
-        session_id = _extract_session_id(result.stderr)
+        # FR-274: Extract session ID from share file
+        session_id = _extract_session_id_from_share_file(share_path)
 
         copilot_result = CopilotResult(
             output=result.stdout,
@@ -315,6 +326,9 @@ def _execute_cli(
             f"Copilot CLI timed out after {timeout}s in node '{node_name}'. "
             f"Consider increasing 'timeout' or simplifying the prompt."
         ) from e
+    finally:
+        # FR-274 AC-3: Always clean up share file tempdir
+        shutil.rmtree(share_tmpdir, ignore_errors=True)
 
 
 __all__ = ["create_copilot_node"]
