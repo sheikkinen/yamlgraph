@@ -1,0 +1,110 @@
+{
+  "inputs": {
+    "input": {
+      "goto": [],
+      "graph": null,
+      "resume": "Päänsärky jatkunut 3 viikkoa jo pahentunut koko ajan.",
+      "update": null
+    }
+  },
+  "outputs": {
+    "_agent_iterations": 0,
+    "_agent_limit_reached": false,
+    "_loop_counts": {
+      "append_opening_message": 1,
+      "append_opening_response": 1,
+      "append_recap_response": 1,
+      "detect_gaps": 1,
+      "extract_and_probe": 1,
+      "generate_opening": 1,
+      "generate_recap": 1,
+      "init": 1,
+      "load_schema": 1,
+      "set_recap_phase": 1,
+      "store_recap_summary": 1
+    },
+    "_loop_limit_reached": false,
+    "complete": false,
+    "current_step": "ask_recap",
+    "errors": [],
+    "extracted": {
+      "chief_complaint": "Päänsärky",
+      "duration": "3 viikkoa",
+      "probe": "",
+      "recent_changes": "pahentunut koko ajan"
+    },
+    "gaps": [],
+    "has_gaps": false,
+    "messages": [
+      {
+        "content": "Selvittäisin muutaman asian takaisinsoittoa varten. Kertoisitteko aluksi, mikä vaiva tai oire on kyseessä?",
+        "role": "assistant"
+      },
+      {
+        "content": "Päänsärky jatkunut 3 viikkoa jo pahentunut koko ajan.",
+        "role": "user"
+      },
+      {
+        "content": "Eli teillä on päänsärkyä, joka on jatkunut nyt kolmisen viikkoa ja pahentunut tasaisesti. Onko tämä oikein?",
+        "role": "assistant"
+      }
+    ],
+    "phase": "recap",
+    "recap_summary": "Eli teillä on päänsärkyä, joka on jatkunut nyt kolmisen viikkoa ja pahentunut tasaisesti. Onko tämä oikein?",
+    "response": "Eli teillä on päänsärkyä, joka on jatkunut nyt kolmisen viikkoa ja pahentunut tasaisesti. Onko tämä oikein?",
+    "schema": {
+      "description": "Soittopyyntöön liittyvä esitietojen keräys — päävaiva, kesto ja viimeaikaiset muutokset.\n",
+      "fields": [
+        {
+          "description": "Mikä oire tai vaiva on syynä yhteydenottoon",
+          "id": "chief_complaint",
+          "label": "Pääasiallinen vaiva",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Kuinka kauan vaiva on kestänyt",
+          "id": "duration",
+          "label": "Vaivan kesto",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "description": "Onko vaivassa tapahtunut muutoksia viime aikoina",
+          "id": "recent_changes",
+          "label": "Viimeaikaiset muutokset",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "language": "fi",
+      "name": "Terveysneuvonnan esitietojen keräys",
+      "version": "1.0"
+    },
+    "sms_to": "+358405950430",
+    "user_message": "Päänsärky jatkunut 3 viikkoa jo pahentunut koko ajan."
+  },
+  "metadata": {
+    "LANGSMITH_ENDPOINT": "https://eu.api.smith.langchain.com",
+    "LANGSMITH_PROJECT": "pr-csap-staging",
+    "LANGSMITH_TRACING": "true",
+    "ls_integration": "langgraph",
+    "ls_run_depth": 0,
+    "revision_id": "49b5948",
+    "thread_id": "CA100742150a6ace657775f19ad52c2ed4"
+  },
+  "langsmith": {
+    "organization": {
+      "name": "Personal",
+      "id": "7217561f-7b16-47de-aac2-5d15bd4ee371"
+    },
+    "workspace": {
+      "name": "Workspace 1",
+      "id": "1c1b3d09-e172-4c82-bddb-5d1fe06a132a"
+    },
+    "tracing_project": {
+      "id": "3bc28982-8499-4527-b8b0-e5a9bc9491eb",
+      "name": "pr-csap-staging"
+    }
+  }
+}
