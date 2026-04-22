@@ -6,7 +6,7 @@ Each execution phase is an independently testable function.
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -64,6 +64,8 @@ class LLMNodeConfig:
     prompts_dir: Path | None
     prompts_relative: bool
     node_type: str
+    candidates: list[dict[str, Any]] | None = field(default=None)
+    timeout: float | None = field(default=None)
 
 
 def resolve_llm_node_config(
@@ -161,6 +163,8 @@ def resolve_llm_node_config(
         prompts_dir=prompts_dir,
         prompts_relative=prompts_relative,
         node_type=node_type,
+        candidates=node_config.get("candidates"),
+        timeout=node_config.get("timeout"),
     )
 
 
@@ -372,6 +376,14 @@ def create_node_function(
             }
 
         variables = resolve_node_variables(cfg.variable_templates, state)
+
+        # FR-272: Router with candidates uses race execution path
+        if cfg.candidates and cfg.node_type == NodeType.ROUTER:
+            from yamlgraph.node_factory.router_race_node import _execute_router_race
+
+            return _execute_router_race(
+                cfg, node_name, variables, state, loop_counts, graph_path
+            )
 
         def attempt_execute(use_provider: str | None) -> tuple[Any, Exception | None]:
             try:

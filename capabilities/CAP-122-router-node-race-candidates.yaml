@@ -1,0 +1,35 @@
+id: CAP-122
+name: Router Node with Candidates Race Support
+description: >
+  Extends the router node type to accept an optional `candidates:` list
+  (identical schema to `race`), racing them for the routing decision and
+  cancelling losers via asyncio cooperative cancellation. Routing semantics
+  (route_field, routes, default_route) are unchanged. Eliminates the need
+  for a manual race+python+conditional-edges workaround for low-latency
+  classification on the critical path. Single-provider routers are unaffected.
+modules:
+  - yamlgraph/node_factory/llm_nodes.py
+  - yamlgraph/utils/validators.py
+  - yamlgraph/models/state_builder.py
+  - yamlgraph/node_compiler.py
+  - tests/unit/test_router_race.py
+requirements:
+  - id: REQ-YG-271
+    description: >
+      Router node accepts optional candidates: list (≥2 {provider, model} dicts)
+      for race-based routing: fires prompt concurrently, first-valid result used
+      for routing resolution via _resolve_route; losers cancelled via
+      asyncio.Task.cancel(); timeout: managed by _race_async (no outer
+      _maybe_wrap_timeout); provider: + candidates: mutually exclusive (compile
+      error); on_error: skip rejected at compile time; timeout/all-fail with
+      on_error: fail raises AllCandidatesFailedError, with on_error:
+      fallback/unset routes via default_route + records error; _race_winner
+      metadata set in state; missing route_field in winner falls to
+      default_route (no disqualification); single-provider routers unchanged
+    modules:
+      - yamlgraph/node_factory/llm_nodes.py
+      - yamlgraph/utils/validators.py
+      - yamlgraph/models/state_builder.py
+      - yamlgraph/node_compiler.py
+      - tests/unit/test_router_race.py
+fr: FR-272

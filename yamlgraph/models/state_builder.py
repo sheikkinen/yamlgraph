@@ -243,6 +243,9 @@ def extract_node_fields(nodes: dict) -> dict[str, type]:
 
         elif node_type == "router":
             fields["_route"] = str
+            # FR-272: router with candidates also emits _race_winner
+            if node_config.get("candidates"):
+                fields["_race_winner"] = Any
 
         elif node_type == "map":
             # Map node collect field needs sorted reducer for ordered fan-in
@@ -396,6 +399,9 @@ def generate_typeddict_code(
             fields["_tool_results"] = "list"
         elif node_type == "router":
             fields["_route"] = "str"
+            # FR-272: router with candidates also emits _race_winner
+            if node_config.get("candidates"):
+                fields["_race_winner"] = "dict"
         elif node_type == "map":
             if collect_key := node_config.get("collect"):
                 fields[collect_key] = "list"

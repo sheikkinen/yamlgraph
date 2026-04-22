@@ -263,7 +263,15 @@ def _compile_llm_node(ctx: NodeCompileContext) -> None:
         ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
-    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    # FR-272: Router with candidates manages its own deadline via _race_async;
+    # do NOT wrap in _maybe_wrap_timeout (same reason as race nodes — FR-267).
+    has_candidates = bool(
+        ctx.node_config.get("candidates")
+        if isinstance(ctx.node_config, dict)
+        else getattr(ctx.node_config, "candidates", None)
+    )
+    if not has_candidates:
+        node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None
 

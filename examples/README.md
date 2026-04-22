@@ -66,6 +66,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 |------|------------|-------------|
 | [hello](demos/hello/) | `llm` | Minimal example — start here |
 | [router](demos/router/) | `router` | Tone-based conditional routing |
+| [router-race-candidates](demos/router-race-candidates/) | `router`, `tool` | Router `candidates` race with default-route fallback (FR-272) |
 | [map](demos/map/) | `map`, `llm` | Parallel fan-out processing |
 | [reflexion](demos/reflexion/) | `llm` | Self-correction with loop limits |
 | [research-agent](demos/research-agent/) | `agent`, `llm` | 5-step agentic research (extract → plan → execute → validate → respond) |
