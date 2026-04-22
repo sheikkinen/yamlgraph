@@ -1,9 +1,11 @@
-"""Tests for race node type — FR-232, FR-267.
+"""Tests for race node type — FR-232, FR-267, FR-271.
 
 Race nodes fire the same prompt to N provider/model candidates concurrently
 and return the first successful result.
 """
 
+import asyncio
+import inspect
 import time
 from unittest.mock import MagicMock, patch
 
@@ -58,7 +60,17 @@ def _make_mock_llm(response_text: str, delay: float = 0.0, fail: bool = False):
         result.content = response_text
         return result
 
+    async def ainvoke(messages):
+        if delay:
+            await asyncio.sleep(delay)
+        if fail:
+            raise RuntimeError(f"LLM failed: {response_text}")
+        result = MagicMock()
+        result.content = response_text
+        return result
+
     mock.invoke = invoke
+    mock.ainvoke = ainvoke
     mock.with_structured_output = MagicMock(return_value=mock)
     return mock
 
@@ -1019,3 +1031,216 @@ def test_race_returns_on_first_success_not_after_slowest(monkeypatch):
     assert elapsed < 1.0, f"race waited for slow loser: {elapsed:.1f}s"
     assert result["result"] == {"ok": True}
     assert result["_race_winner"]["provider"] == "fake-fast"
+
+
+# =============================================================================
+# FR-271: Async race node with cancellable candidates (REQ-YG-270)
+# =============================================================================
+
+
+class TestAsyncRaceCancellable:
+    """FR-271: Race node uses asyncio.wait with cancellable async candidates."""
+
+    @pytest.mark.req("REQ-YG-270")
+    def test_no_thread_pool_executor_in_race_node(self):
+        """ThreadPoolExecutor must not be present in race_node.py after FR-271."""
+        import yamlgraph.node_factory.race_node as module
+
+        source = inspect.getsource(module)
+        assert (
+            "ThreadPoolExecutor" not in source
+        ), "ThreadPoolExecutor must be removed from race_node.py (FR-271)"
+
+    @pytest.mark.req("REQ-YG-270")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_loser_task_cancelled_after_winner(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Condemning test: fast async (50 ms) + slow async (30 s); slow must be cancelled."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "fast-provider", "fast-model")
+
+        cancelled_flag = {"value": False}
+
+        async def slow_ainvoke(messages):
+            try:
+                await asyncio.sleep(30.0)
+                result = MagicMock()
+                result.content = "slow answer"
+                return result
+            except asyncio.CancelledError:
+                cancelled_flag["value"] = True
+                raise
+
+        fast_llm = _make_mock_llm("fast answer", delay=0.05)
+
+        slow_llm = MagicMock()
+        slow_llm.ainvoke = slow_ainvoke
+        slow_llm.with_structured_output = MagicMock(return_value=slow_llm)
+
+        mock_create_llm.side_effect = [fast_llm, slow_llm]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "candidates": [
+                {"provider": "fast-provider", "model": "fast-model"},
+                {"provider": "slow-provider", "model": "slow-model"},
+            ],
+        }
+
+        t0 = time.monotonic()
+        result = create_race_node("race_async", node_config, {})(sample_state)
+        elapsed = time.monotonic() - t0
+
+        assert (
+            result["response"] == "fast answer"
+        ), f"Expected 'fast answer', got {result['response']!r}"
+        assert elapsed < 1.0, f"node_fn took {elapsed:.2f}s — should be < 1s"
+        assert (
+            cancelled_flag["value"] is True
+        ), "Slow task must be cancelled (CancelledError propagated in finally)"
+
+    @pytest.mark.req("REQ-YG-270")
+    def test_run_coro_sync_safe_exists(self):
+        """_run_coro_sync_safe bridge function must exist in race_node module."""
+        import yamlgraph.node_factory.race_node as rn_module
+
+        assert hasattr(
+            rn_module, "_run_coro_sync_safe"
+        ), "_run_coro_sync_safe not found — asyncio bridge not implemented (FR-271)"
+        assert callable(rn_module._run_coro_sync_safe)
+
+    @pytest.mark.req("REQ-YG-270")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_all_candidates_fail_async_on_error_skip(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """All async candidates fail + on_error:skip → {state_key: None, errors: [...]}."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "p1", None)
+
+        fail1 = _make_mock_llm("err1", fail=True)
+        fail2 = _make_mock_llm("err2", fail=True)
+        mock_create_llm.side_effect = [fail1, fail2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "on_error": "skip",
+            "candidates": [
+                {"provider": "p1"},
+                {"provider": "p2"},
+            ],
+        }
+
+        result = create_race_node("race_async_fail", node_config, {})(sample_state)
+
+        assert result["response"] is None
+        assert result.get("errors"), "errors list must be populated"
+
+    @pytest.mark.req("REQ-YG-270")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_all_candidates_fail_async_raises(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """All async candidates fail without on_error → raises AllCandidatesFailedError."""
+        from yamlgraph.node_factory.race_node import (
+            AllCandidatesFailedError,
+            create_race_node,
+        )
+
+        mock_prepare.return_value = ([MagicMock()], "p1", None)
+
+        fail1 = _make_mock_llm("err1", fail=True)
+        fail2 = _make_mock_llm("err2", fail=True)
+        mock_create_llm.side_effect = [fail1, fail2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "candidates": [
+                {"provider": "p1"},
+                {"provider": "p2"},
+            ],
+        }
+
+        with pytest.raises(AllCandidatesFailedError):
+            create_race_node("race_async_fail", node_config, {})(sample_state)
+
+    @pytest.mark.req("REQ-YG-270")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_timeout_async_on_error_skip(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Timeout fires when no async candidate completes; on_error:skip → TIMEOUT_ERROR."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "p1", None)
+
+        slow1 = _make_mock_llm("slow1", delay=10.0)
+        slow2 = _make_mock_llm("slow2", delay=10.0)
+        mock_create_llm.side_effect = [slow1, slow2]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "timeout": 0.1,
+            "on_error": "skip",
+            "candidates": [
+                {"provider": "p1"},
+                {"provider": "p2"},
+            ],
+        }
+
+        result = create_race_node("race_timeout_async", node_config, {})(sample_state)
+
+        assert result["response"] is None
+        assert result["current_step"] == "race_timeout_async"
+        errors = result["errors"]
+        assert len(errors) == 1
+        assert isinstance(errors[0], PipelineError)
+        assert errors[0].type == ErrorType.TIMEOUT_ERROR
+        assert "timed out" in errors[0].message.lower()
+
+    @pytest.mark.req("REQ-YG-270")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_async_race_winner_metadata(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """_race_winner metadata preserved in async path."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "p1", None)
+
+        fast = _make_mock_llm("fast answer", delay=0.0)
+        slow = _make_mock_llm("slow answer", delay=0.5)
+        mock_create_llm.side_effect = [fast, slow]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "candidates": [
+                {"provider": "fast-p", "model": "fast-m"},
+                {"provider": "slow-p", "model": "slow-m"},
+            ],
+        }
+
+        result = create_race_node("race_async_meta", node_config, {})(sample_state)
+
+        assert result["response"] == "fast answer"
+        assert result["_race_winner"]["provider"] == "fast-p"
+        assert result["_race_winner"]["model"] == "fast-m"
+        assert result["current_step"] == "race_async_meta"
