@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # watcher2.sh — Watcher2 pipeline orchestrator (FR-273)
 #
-# Phase 3: Planning + judging pipeline with copilot session chaining.
+# Phase 4: Planning + judging + enforcement pipeline with copilot session chaining.
 # Plan → Research → Write acceptance tests → pytest RED → Judge → verdict check.
+# Implement → Test/Demo → Critique/Distill → Finalize.
 # Shell steps between copilot invocations, state chained via --import/--export-state.
 #
 # Usage:
@@ -230,12 +231,110 @@ print('UNKNOWN')
         continue
     fi
 
-    # APPROVE or UNKNOWN — commit and proceed to PR
+    # APPROVE or UNKNOWN — commit and proceed to enforcement
     git add "$DRAFTS_DIR/" feature-requests/ 2>/dev/null || true
     git diff --cached --quiet || git commit -m "chore: watcher2 — FR approved by judge" --no-verify
 
-    # Derive PR title from topic
-    PR_TITLE="chore: watcher2 plan — ${TOPIC_BASENAME%.md}"
+    # ── Phase 4: Enforcement pipeline ───────────────────────────────────
+    # FR-273 Phase 4: implement → test/demo → critique/distill → finalize
+    ENFORCE_DIR=".chaplain/graphs/watcher-enforce"
+    ENFORCE_STATE="tmp/enforce-state.json"
+
+    # Find the FR path (plan step should have written it to drafts or feature-requests)
+    FR_PATH=$(find feature-requests/ "$DRAFTS_DIR/" -name "FR-*.md" -type f 2>/dev/null | head -1)
+    if [[ -z "$FR_PATH" ]]; then
+        log_error "No FR file found for enforcement"
+        cd "$MAIN_DIR"
+        worktree_teardown
+        write_cycle_metrics
+        rm -f "$TOPIC_FILE"
+        continue
+    fi
+    log_info "Enforcing: $FR_PATH"
+
+    # ── Enforce Step 1: Implement ───────────────────────────────────────
+    log_info "Enforce 1/4: Implement — TDD red→green..."
+    if ! yamlgraph graph run "$ENFORCE_DIR/step-implement.yaml" \
+        --var fr_path="$FR_PATH" \
+        --var branch="$WT_BRANCH" \
+        --export-state "$ENFORCE_STATE" \
+        --full 2>&1 | tee tmp/watcher2-implement.log; then
+        log_error "Implement step failed"
+        cd "$MAIN_DIR"
+        worktree_teardown
+        write_cycle_metrics
+        rm -f "$TOPIC_FILE"
+        continue
+    fi
+
+    # Commit implementation
+    git add -A 2>/dev/null || true
+    git diff --cached --quiet || git commit -m "feat: watcher2 — implementation" --no-verify
+
+    # ── Enforce Step 2: Test and demo ───────────────────────────────────
+    log_info "Enforce 2/4: Test and demo..."
+    if ! yamlgraph graph run "$ENFORCE_DIR/step-test-demo.yaml" \
+        --import-state "$ENFORCE_STATE" \
+        --export-state "$ENFORCE_STATE" \
+        --full 2>&1 | tee tmp/watcher2-test-demo.log; then
+        log_warn "Test/demo step failed — continuing to critique"
+    fi
+
+    # Commit test/demo additions
+    git add -A 2>/dev/null || true
+    git diff --cached --quiet || git commit -m "test: watcher2 — tests and demos" --no-verify
+
+    # ── Enforce Step 3: Critique and distill ────────────────────────────
+    log_info "Enforce 3/4: Critique and distill..."
+    if ! yamlgraph graph run "$ENFORCE_DIR/step-critique.yaml" \
+        --var fr_path="$FR_PATH" \
+        --import-state "$ENFORCE_STATE" \
+        --export-state "$ENFORCE_STATE" \
+        --full 2>&1 | tee tmp/watcher2-critique.log; then
+        log_warn "Critique step failed — continuing to finalize"
+    fi
+
+    # Commit diary/critique output
+    git add -A 2>/dev/null || true
+    git diff --cached --quiet || git commit -m "docs: watcher2 — critique and diary" --no-verify
+
+    # ── Enforce Step 4: Finalize (shell) ────────────────────────────────
+    log_info "Enforce 4/4: Finalize — pre-commit + push..."
+
+    # Run pre-commit (may take multiple passes)
+    PRECOMMIT_PASS=false
+    for attempt in 1 2 3; do
+        log_info "Pre-commit attempt $attempt/3..."
+        git add -A 2>/dev/null || true
+        if pre-commit run --all-files 2>&1 | tee tmp/watcher2-precommit.log; then
+            PRECOMMIT_PASS=true
+            break
+        fi
+        # Re-add after auto-fixes
+        git add -A 2>/dev/null || true
+    done
+
+    if [[ "$PRECOMMIT_PASS" != "true" ]]; then
+        log_warn "Pre-commit still failing after 3 attempts — invoking copilot fix..."
+        if yamlgraph graph run "$ENFORCE_DIR/step-finalize.yaml" \
+            --var fr_path="$FR_PATH" \
+            --var branch="$WT_BRANCH" \
+            --import-state "$ENFORCE_STATE" \
+            --export-state "$ENFORCE_STATE" \
+            --full 2>&1 | tee tmp/watcher2-finalize.log; then
+            git add -A 2>/dev/null || true
+        else
+            log_error "Copilot finalize also failed"
+        fi
+    fi
+
+    # Final commit + push
+    git add -A 2>/dev/null || true
+    git diff --cached --quiet || git commit -m "chore: watcher2 — finalize" --no-verify
+
+    # Derive PR title from FR
+    FR_NUM=$(echo "$FR_PATH" | grep -oE 'FR-[0-9]+' | head -1)
+    PR_TITLE="feat: watcher2 enforce — ${FR_NUM:-${TOPIC_BASENAME%.md}}"
 
     git push origin "$WT_BRANCH" || {
         log_error "Push failed"
