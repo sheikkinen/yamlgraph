@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2-3 days
 **Requested:** 2026-04-23
 
@@ -92,15 +92,15 @@ git worktree prune
 
 ## Acceptance Criteria
 
-- [ ] All three old scripts deleted
-- [ ] Any references to them updated (README, docs, CLAUDE.md)
-- [ ] `watcher2.sh` documented as the single entry point
-- [ ] Failure paths preserve worktree + topic for forensic inspection
-- [ ] Success paths clean up normally (teardown worktree, delete topic)
-- [ ] Orphaned worktree metadata pruned before branch creation
-- [ ] No functional regression (watcher2.sh covers all old capabilities)
-- [ ] Tests added validating forensic preservation behavior
-- [ ] Documentation updated to reflect single orchestrator pattern
+- [x] All three old scripts deleted
+- [x] Any references to them updated (README, docs, CLAUDE.md)
+- [x] `watcher2.sh` documented as the single entry point
+- [x] Failure paths preserve worktree + topic for forensic inspection
+- [x] Success paths clean up normally (teardown worktree, delete topic)
+- [x] Orphaned worktree metadata pruned before branch creation
+- [x] No functional regression (watcher2.sh covers all old capabilities)
+- [x] Tests added validating forensic preservation behavior
+- [x] Documentation updated to reflect single orchestrator pattern
 
 ## Implementation Plan
 

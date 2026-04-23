@@ -13,6 +13,9 @@ worktree_setup() {
     WT_DIR="tmp/worktrees/${WT_BRANCH}"
     MAIN_DIR="$(pwd)"
 
+    # Prune orphaned worktree metadata before branch creation
+    git worktree prune
+
     # Remove stale local branch if it exists
     if git show-ref --verify --quiet "refs/heads/$WT_BRANCH" 2>/dev/null; then
         log_warn "Stale branch $WT_BRANCH exists — deleting"
