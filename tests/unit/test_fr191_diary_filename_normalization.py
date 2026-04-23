@@ -34,7 +34,7 @@ CRITIQUE_PROMPT = (
 PRECOMMIT_CONFIG = REPO_ROOT / ".pre-commit-config.yaml"
 
 
-@pytest.mark.req("REQ-YG-191")
+@pytest.mark.req("REQ-YG-188")
 class TestFRNumberExtraction:
     """Test FR number extraction in watcher2 shell script."""
 
@@ -75,7 +75,7 @@ class TestFRNumberExtraction:
         ), "Critique step must receive --var fr_num parameter"
 
 
-@pytest.mark.req("REQ-YG-191")
+@pytest.mark.req("REQ-YG-188")
 class TestCritiquePromptFilenameInstruction:
     """Test critique prompt explicitly instructs diary filename pattern."""
 
@@ -109,7 +109,7 @@ class TestCritiquePromptFilenameInstruction:
         ), "Filename pattern must include 'reflection-fr-' to match CI regex"
 
 
-@pytest.mark.req("REQ-YG-191")
+@pytest.mark.req("REQ-YG-188")
 class TestPreCommitHookValidation:
     """Test local pre-commit hook validates diary filename pattern."""
 
@@ -170,7 +170,7 @@ class TestPreCommitHookValidation:
         ), "Hook must use same regex pattern as CI diary gate"
 
 
-@pytest.mark.req("REQ-YG-191")
+@pytest.mark.req("REQ-YG-188")
 class TestCritiqueFailureBlocking:
     """Test critique step failure terminates pipeline instead of logging warning."""
 
@@ -214,7 +214,7 @@ class TestCritiqueFailureBlocking:
         return "\n".join(critique_lines)
 
 
-@pytest.mark.req("REQ-YG-191")
+@pytest.mark.req("REQ-YG-188")
 class TestExistingFilesNormalization:
     """Test that existing diary files follow consistent naming convention."""
 
@@ -241,7 +241,7 @@ class TestExistingFilesNormalization:
             ), f"Diary file {filename} does not follow expected naming pattern"
 
 
-@pytest.mark.req("REQ-YG-191")
+@pytest.mark.req("REQ-YG-188")
 class TestIntegration:
     """Integration tests for complete diary filename normalization flow."""
 

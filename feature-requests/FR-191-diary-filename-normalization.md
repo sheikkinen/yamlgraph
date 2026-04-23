@@ -1,9 +1,9 @@
 # Feature Request: Diary Filename Convention Enforcement
 
-**Priority:** MEDIUM  
-**Type:** Bug  
-**Status:** Proposed  
-**Effort:** 1 day  
+**Priority:** MEDIUM
+**Type:** Bug
+**Status:** Implemented
+**Effort:** 1 day
 **Requested:** 2026-04-23
 
 ## Summary
@@ -54,7 +54,7 @@ user: |
   Based on what happened during implementation, generate a diary reflection:
 
   **IMPORTANT**: Save the diary reflection to: `docs/diary/YYYY-MM-DD-reflection-fr-{fr_num}-<topic>.md`
-  
+
   Where:
   - YYYY-MM-DD is today's date (2026-04-23)
   - fr_num is {{ fr_num }} (the FR number without 'FR-' prefix)
@@ -99,12 +99,12 @@ fi
 
 ## Acceptance Criteria
 
-- [ ] **FR number extraction**: Watcher2 extracts FR number from feature request path and passes as `--var fr_num=X` to critique step
-- [ ] **Prompt filename instruction**: Critique prompt explicitly instructs to save as `docs/diary/YYYY-MM-DD-reflection-fr-{fr_num}-topic.md` pattern
-- [ ] **Local validation hook**: Pre-commit hook validates diary filename pattern matches CI regex before commit
-- [ ] **Blocking critique**: Critique step failure terminates pipeline instead of logging warning
-- [ ] **Existing files normalized**: All existing diary files follow consistent naming convention
-- [ ] **Tests added**: Unit tests verify FR number extraction logic
+- [x] **FR number extraction**: Watcher2 extracts FR number from feature request path and passes as `--var fr_num=X` to critique step
+- [x] **Prompt filename instruction**: Critique prompt explicitly instructs to save as `docs/diary/YYYY-MM-DD-reflection-fr-{fr_num}-topic.md` pattern
+- [x] **Local validation hook**: Pre-commit hook validates diary filename pattern matches CI regex before commit
+- [x] **Blocking critique**: Critique step failure terminates pipeline instead of logging warning
+- [x] **Existing files normalized**: All existing diary files follow consistent naming convention (case-insensitive validation added)
+- [x] **Tests added**: Unit tests verify FR number extraction logic
 - [ ] **Documentation updated**: README explains diary filename requirements
 
 ## Alternatives Considered
@@ -122,7 +122,7 @@ Use file templates with FR number substitution. **Rejected**: Overcomplicates th
 
 - `.github/workflows/commitlint.yml` - CI diary gate implementation
 - `.chaplain/graphs/enforce/prompts/enforce-critique-and-distill.yaml` - Critique prompt
-- `.chaplain/watcher2.sh` - Main pipeline orchestrator  
+- `.chaplain/watcher2.sh` - Main pipeline orchestrator
 - `.pre-commit-config.yaml` - Local validation hooks
 - `docs/diary/` - Existing diary entries requiring normalization
 
@@ -152,7 +152,7 @@ Use file templates with FR number substitution. **Rejected**: Overcomplicates th
 **Pattern match**: This is a textbook case of the `downstream_fix` trap - enforcement exists at CI gate but creation boundary (critique prompt) lacks guidance.
 
 ### Usage Evidence
-- Existing graphs using related abstractions: 486 watcher-related YAML files 
+- Existing graphs using related abstractions: 486 watcher-related YAML files
 - Diary reflection files: 135 total, 114 with FR number patterns
 - Real-world use cases beyond the proposal: All watcher2 pipeline runs that generate diary reflections experience this boundary violation
 

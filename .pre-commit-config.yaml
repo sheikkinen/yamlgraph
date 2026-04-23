@@ -208,8 +208,8 @@ repos:
       - id: diary-filename-check
         name: diary filename pattern validation
         entry: >-
-          bash -c 'BAD_FILES=$(git ls-files "docs/diary/*reflection*.md" |
-          grep -vE "docs/diary/.*reflection.*fr-[0-9]+[^0-9]");
+          bash -c 'BAD_FILES=$(git ls-files "docs/diary/*reflection*fr*.md" |
+          grep -vEi "docs/diary/.*reflection.*fr-[0-9]+[^0-9]");
           if [ -n "$BAD_FILES" ]; then
           echo "❌ Diary files with invalid filename pattern:";
           echo "$BAD_FILES";
