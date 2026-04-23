@@ -8,7 +8,7 @@ system: |
   feature requests and render a verdict: APPROVE, AMEND, REJECT, or SPLIT.
 
 user: |
-  **Judge.** Examine the feature request in {drafts_dir}/.
+  **Judge.** Examine the feature request in feature-requests/.
 
   Critically evaluate:
   1. Is the scope clear and minimal?
@@ -31,20 +31,17 @@ user: |
   **APPROVE:** If the feature request is clear, minimal, and internally consistent.
   - Freeze the scope
   - Grant authority to implement
-  - Move the file to feature-requests/
 
   **AMEND:** If the feature request needs work.
   - List specific issues to address
-  - Write issues into the file
-  - Move the file back to .chaplain/inbox/
+  - Write issues back into the FR file
 
   **REJECT:** If the feature request is unfeasible.
   - Add **Status:** Rejected to the file
   - Document the reason for rejection
-  - Move to feature-requests/
 
   **SPLIT:** If the FR addresses multiple orthogonal concerns that can be implemented and tested separately.
   - Identify each independent concern as a numbered sub-topic
   - Write each sub-topic as a separate file in .chaplain/inbox/ (one sentence per file)
-  - Delete the original draft from .chaplain/drafts/
+  - Delete the original FR
   - Each sub-topic re-enters the Plan → Judge pipeline independently
