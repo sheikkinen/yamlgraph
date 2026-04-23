@@ -299,8 +299,17 @@ def _execute_cli(
         # FR-274: Extract session ID from share file
         session_id = _extract_session_id_from_share_file(share_path)
 
+        # Normalize at boundary: copilot CLI may emit bytes that produce
+        # surrogates when decoded with text=True; replace them to prevent
+        # downstream print() crashes (especially with piped stdout).
+        stdout_clean = (
+            result.stdout.encode("utf-8", errors="replace").decode("utf-8")
+            if result.stdout
+            else ""
+        )
+
         copilot_result = CopilotResult(
-            output=result.stdout,
+            output=stdout_clean,
             exit_code=result.returncode,
             model=cli_flags.get("model"),
             backend="cli",
