@@ -7,7 +7,7 @@ system: |
   into a well-structured feature request document.
 
 user: |
-  **Plan.** Read {topic_file}. Write the feature request in {drafts_dir}/.
+  **Plan.** Read {topic_file}. Write the feature request in feature-requests/.
 
   Follow this process:
   1. Read and understand the topic/idea in the file
@@ -17,7 +17,6 @@ user: |
   5. Propose an implementation approach
 
   Follow the template in feature-requests/TEMPLATE.md.
-  Delete {topic_file} when complete.
 
   Ensure the feature request is:
   - Clear and unambiguous

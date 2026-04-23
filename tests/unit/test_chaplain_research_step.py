@@ -195,10 +195,10 @@ class TestResearchPrompt:
         user = prompt["user"].lower()
         assert "usage" in user
 
-    def test_research_prompt_references_drafts_dir(self):
-        """User prompt must reference {drafts_dir} variable."""
+    def test_research_prompt_references_feature_requests(self):
+        """User prompt must reference feature-requests/ directory."""
         prompt = yaml.safe_load((PROMPTS_DIR / "research.yaml").read_text())
-        assert "{drafts_dir}" in prompt["user"]
+        assert "feature-requests/" in prompt["user"]
 
 
 # ===========================================================================
