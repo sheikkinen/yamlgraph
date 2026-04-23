@@ -1,0 +1,28 @@
+id: CAP-125
+name: Pipeline Script Retirement (FR-276)
+fr: FR-276
+description: >
+  Retire obsolete pipeline scripts (watch.sh, enforce_worktree.sh, bugfix_worktree.sh)
+  in favor of watcher2.sh as sole orchestrator. Implement forensic failure preservation
+  by keeping failed worktrees and topics for investigation rather than destroying evidence.
+modules:
+  - .chaplain/watcher2.sh
+  - .chaplain/lib/watcher/worktree_setup.sh
+  - .chaplain/lib/watcher/worktree_teardown.sh
+  - tests/unit/test_retire_old_pipeline_scripts.py
+requirements:
+  - id: REQ-YG-276
+    description: >
+      All three obsolete scripts (.chaplain/watch.sh, scripts/enforce_worktree.sh,
+      scripts/bugfix_worktree.sh) are deleted from the filesystem; any documentation
+      references to them are updated to point to watcher2.sh; watcher2.sh is documented
+      as the single entry point; failure paths preserve worktree and topic file in
+      .chaplain/failed/ for forensic inspection; success paths clean up normally
+      (teardown worktree, delete topic); worktree_setup.sh calls git worktree prune
+      to clean orphaned metadata before branch creation; no functional regression
+      (watcher2.sh covers all capabilities of old scripts)
+    modules:
+      - .chaplain/watcher2.sh
+      - .chaplain/lib/watcher/worktree_setup.sh
+      - CLAUDE.md
+      - README.md
