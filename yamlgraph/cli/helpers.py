@@ -170,7 +170,7 @@ def handle_state_export(result: dict, export_state_path: str) -> None:
 
     try:
         p = export_state_to_path(result, export_state_path)
-        print(f"\n\ud83d\udcbe State exported: {p}")
+        print(f"\n\U0001f4be State exported: {p}")
     except (OSError, IsADirectoryError) as e:
         print(f"\n\u274c --export-state error writing {export_state_path}\n  {e}")
         sys.exit(1)
