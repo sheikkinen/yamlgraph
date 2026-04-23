@@ -11,7 +11,6 @@ prompts_relative: true
 prompts_dir: ../copilot/prompts
 
 state:
-  drafts_dir: str
   worktree_dir: str
   branch: str
   plan_result: dict
@@ -28,7 +27,6 @@ nodes:
       allow_all_tools: true
       resume: "{state.plan_result.session_id}"
     variables:
-      drafts_dir: "{state.drafts_dir}"
       worktree_dir: "{state.worktree_dir}"
       branch: "{state.branch}"
     state_key: acceptance_tests_result

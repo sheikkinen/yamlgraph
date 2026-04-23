@@ -8,7 +8,7 @@ system: |
   produce a structured research brief.
 
 user: |
-  **Research.** Read the feature request draft in {drafts_dir}/.
+  **Research.** Read the feature request draft in feature-requests/.
 
   Investigate:
   1. **Competing solutions**: Search the web for how other frameworks and products
