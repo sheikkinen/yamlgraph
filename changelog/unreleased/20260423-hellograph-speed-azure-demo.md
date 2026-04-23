@@ -1,0 +1,3 @@
+- Added Azure variant for hellograph-speed demo
+- Added provider-specific env ignore entries
+- Added examples/README demos index entry for hellograph-speed
