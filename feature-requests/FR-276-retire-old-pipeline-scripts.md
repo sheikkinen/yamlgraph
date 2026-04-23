@@ -1,0 +1,186 @@
+# Feature Request: Retire Old Pipeline Scripts (FR-273 Phase 5)
+
+**Priority:** HIGH
+**Type:** Enhancement
+**Status:** Proposed
+**Effort:** 2-3 days
+**Requested:** 2026-04-23
+
+## Summary
+
+Replace obsolete `watch.sh`, `enforce_worktree.sh`, and `bugfix_worktree.sh` with `watcher2.sh` as the sole orchestrator. Implement failure forensics by preserving failed worktrees and topics for inspection rather than destroying evidence.
+
+## Value Statement
+
+Development teams gain reliable failure investigation capabilities, reducing debug time from manual reproduction cycles to direct forensic inspection of preserved worktrees and failure contexts.
+
+## Problem
+
+Current pipeline scripts have fundamental operational issues:
+
+1. **Evidence destruction on failure** — `worktree_teardown + rm topic file` on every failure destroys forensic evidence
+2. **Fragmented orchestration** — Three separate scripts (`watch.sh`, `enforce_worktree.sh`, `bugfix_worktree.sh`) duplicate logging, cleanup, and preflight logic
+3. **Silent failure suppression** — 20+ `2>/dev/null || true` patterns hide operational issues
+4. **Documentation drift** — Multiple entry points confuse users and maintainers
+
+## Proposed Solution
+
+### 1. Script Retirement
+
+Remove these legacy scripts:
+- `.chaplain/watch.sh` (monolithic watcher, replaced by watcher2.sh)
+- `scripts/enforce_worktree.sh` (enforcement, replaced by watcher2 enforce pipeline)
+- `scripts/bugfix_worktree.sh` (bugfix flow, replaced by watcher2 enforce pipeline)
+
+### 2. Failure Path Forensics
+
+Current behavior:
+```bash
+# On ANY failure → evidence destroyed
+worktree_teardown
+rm -f "$TOPIC_FILE"
+```
+
+New forensic-preserving behavior:
+```bash
+handle_failure() {
+    local reason="${1:-unknown}"
+    log_error "Cycle failed: $reason"
+    
+    # SUCCESS → clean teardown
+    if [[ "$reason" == "success" ]]; then
+        worktree_teardown
+        rm -f "$TOPIC_FILE"
+        write_metrics
+        return
+    fi
+    
+    # FAILURE → preserve evidence
+    if [[ -n "${WT_DIR:-}" && -d "$WT_DIR" ]]; then
+        log_warn "Worktree preserved for inspection: $WT_DIR"
+    fi
+    if [[ -n "${TOPIC_FILE:-}" && -f "$TOPIC_FILE" ]]; then
+        local failed_name
+        failed_name=$(basename "$TOPIC_FILE")
+        mv "$TOPIC_FILE" ".chaplain/failed/$failed_name" 2>/dev/null || true
+        log_warn "Topic moved to: .chaplain/failed/$failed_name"
+    fi
+    write_metrics_with_failure_context
+}
+```
+
+### 3. Metadata Pruning
+
+Add to `worktree_setup.sh`:
+```bash
+# Prune orphaned worktree metadata before branch creation
+git worktree prune
+```
+
+## Acceptance Criteria
+
+- [ ] All three old scripts deleted
+- [ ] Any references to them updated (README, docs, CLAUDE.md)
+- [ ] `watcher2.sh` documented as the single entry point
+- [ ] Failure paths preserve worktree + topic for forensic inspection
+- [ ] Success paths clean up normally (teardown worktree, delete topic)
+- [ ] Orphaned worktree metadata pruned before branch creation
+- [ ] No functional regression (watcher2.sh covers all old capabilities)
+- [ ] Tests added validating forensic preservation behavior
+- [ ] Documentation updated to reflect single orchestrator pattern
+
+## Implementation Plan
+
+### Phase 1: Update watcher2.sh failure handling
+
+Current `handle_failure()` in watcher2.sh already preserves evidence correctly — no changes needed to failure paths.
+
+### Phase 2: Remove failure handlers from success paths
+
+Ensure `worktree_teardown` and topic deletion only occur on successful completion, not on failure branches.
+
+### Phase 3: Delete obsolete scripts
+
+```bash
+rm .chaplain/watch.sh
+rm scripts/enforce_worktree.sh  
+rm scripts/bugfix_worktree.sh
+```
+
+### Phase 4: Update documentation
+
+- Update `CLAUDE.md` to reference only `watcher2.sh`
+- Update README and reference docs to remove old script references
+- Add forensic workflow documentation
+
+### Phase 5: Add orphaned metadata pruning
+
+Extend `worktree_setup.sh` to call `git worktree prune` before branch creation.
+
+## Dependencies
+
+- FR-273 Phases 1-4 must be complete (watcher2.sh fully functional)
+- Current implementation already shows correct forensic preservation in `handle_failure()`
+
+## Alternatives Considered
+
+1. **Gradual deprecation** — Keep old scripts with deprecation warnings
+   - Rejected: Maintains confusion and code duplication
+   
+2. **Symlink aliases** — Point old script names to watcher2.sh
+   - Rejected: Doesn't solve argument compatibility issues
+
+3. **Migration period** — Run both systems in parallel
+   - Rejected: Increases complexity without clear benefit
+
+## Related
+
+- FR-273: Watcher2 Pipeline (parent feature)
+- FR-139: Worktree bare corruption guard
+- FR-174: Worktree venv corruption guard
+- FR-241: Complete worktree teardown self-heal
+
+## Technical Notes
+
+### Current Forensic Implementation
+
+The `watcher2.sh` already implements correct forensic preservation:
+
+```bash
+handle_failure() {
+    local reason="${1:-unknown}"
+    log_error "Cycle failed: $reason"
+    if [[ -n "${WT_DIR:-}" && -d "$WT_DIR" ]]; then
+        log_warn "Worktree preserved for inspection: $WT_DIR"
+    fi
+    if [[ -n "${TOPIC_FILE:-}" && -f "$TOPIC_FILE" ]]; then
+        local failed_name
+        failed_name=$(basename "$TOPIC_FILE")
+        mv "$TOPIC_FILE" ".chaplain/failed/$failed_name" 2>/dev/null || true
+        log_warn "Topic moved to: .chaplain/failed/$failed_name"
+    fi
+    cd "$MAIN_DIR" 2>/dev/null || cd "$(dirname "$0")/.."
+    write_cycle_metrics
+}
+```
+
+The main task is ensuring this pattern is consistently used and the old destructive scripts are removed.
+
+### Documentation Update Requirements
+
+Files requiring updates:
+- `CLAUDE.md` — Remove references to old scripts
+- `README.md` — Update development workflow
+- `reference/getting-started.md` — Update any pipeline references
+- `.github/copilot-instructions.md` — Update any script references
+- `docs/diary/` — Any procedural references
+
+### Script Location Analysis
+
+Current references found in:
+- Multiple feature requests mention the old scripts
+- Development documentation  
+- Diary entries discussing pipeline evolution
+- Changelog entries documenting the transition
+
+All should be updated to reflect the single `watcher2.sh` orchestrator pattern.
