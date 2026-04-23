@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Blocked - Test Design Issue
 **Effort:** 1 day
 **Requested:** 2026-04-23
 
@@ -70,6 +70,34 @@ create_pr() {
     fi
 }
 ```
+
+## Implementation Status
+
+### Issue Discovered: Test Design Flaw
+
+The acceptance tests in `test_watcher_create_pr.py` have a fundamental design flaw that makes them impossible to satisfy with any bash script implementation:
+
+**Problem**: Tests use `patch("subprocess.run")` to mock `gh`/`jq` commands, but this intercepts the outer bash execution call, preventing the bash script from running at all.
+
+**Evidence**: 
+```python
+# Expected captures: ["gh", "pr", "list", ...]
+# Actual captures: [["bash", "-c", "wrapper_script"]]
+```
+
+**Root Cause**: Python's `unittest.mock` can only mock Python function calls, not system calls made by subprocess shells.
+
+**Current State**: 
+- Bash implementation completed with all required functionality
+- Implementation manually tested and works correctly
+- Acceptance tests fundamentally impossible to pass due to mocking architecture
+
+**Solutions Required**:
+1. **Change test architecture**: Use PATH-based command stubbing instead of subprocess mocking
+2. **OR change implementation**: Rewrite as Python script (deviates from bash requirement)
+3. **OR acknowledge limitation**: Tests cannot verify bash implementation behavior
+
+The behavioral requirements are fully implemented but cannot be verified by the current test design.
 
 ## Acceptance Criteria
 
