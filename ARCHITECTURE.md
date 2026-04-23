@@ -312,12 +312,10 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 32 | eBook Authoring Pipeline | `examples/ebook/nodes/writing.py`, `tests/unit/test_ebook_doctrine_validation.py` | REQ-YG-091 – 092 |
 | 33 | Worktree Pipeline | `examples/enforce/graph.yaml`, `scripts/enforce_worktree.sh`, `utils/worktree_helpers` | REQ-YG-106 |
 | 34 | Compiled Graph Cache | `executor_async`, `graph_cache` | REQ-YG-107 |
-| 35 | Watch→Enforce Integration | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` | REQ-YG-116 |
 | 36 | Inquisitor Auto-Propose | `.chaplain/inquisitor.sh` | REQ-YG-118 |
 | 37 | Architecture Provider Count Guard | `tests/unit/test_architecture_provider_count` | REQ-YG-121 |
 | 38 | Post-Merge Finalization | `scripts/finalize_merge.sh`, `tests/unit/test_finalize_merge` | REQ-YG-125 |
 | 39 | Inquisitor Commit-Delta Gate | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_gate` | REQ-YG-131 |
-| 40 | Enforce Pipeline Graph Delegation | `examples/enforce/graph.yaml`, `scripts/enforce_worktree.sh`, `tests/unit/test_enforce_yamlgraphication` | REQ-YG-128 |
 | 41 | Clean GIT Env Test Fixture | `tests/conftest.py`, `tests/unit/test_clean_git_env` | REQ-YG-140 |
 | 42 | Inquisitor Worktree Gate | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_worktree_gate` | REQ-YG-142 |
 | 43 | Copilot Session GC | `scripts/copilot_session_gc.sh`, `tests/unit/test_copilot_session_gc` | REQ-YG-141 |
@@ -336,8 +334,6 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 57 | Verification Count Range Pydantic | `tests/unit/test_verification`, `yamlgraph/models/__init__`, `yamlgraph/verification` | REQ-YG-155 |
 | 59 | Configurable Loop Exit Target | `tests/unit/test_loops`, `yamlgraph/edge_compiler`, `yamlgraph/graph_loader`, `yamlgraph/linter/checks_semantic`, … | REQ-YG-093 |
 | 60 | Worktree Venv Corruption Guard | `scripts/enforce_worktree.sh`, `tests/unit/test_worktree_venv_guard`, `yamlgraph/utils/worktree_helpers` | REQ-YG-156 |
-| 61 | Bugfix Pipeline with Condemning Test | `.chaplain/watch.sh`, `examples/bugfix`, `scripts/bugfix_worktree.sh`, `tests/unit/test_bugfix_pipeline` | REQ-YG-157 |
-| 62 | Sequential Enforcement Mode | `.chaplain/watch.sh`, `tests/unit/test_watch_sequential_enforcement` | REQ-YG-158 |
 | 64 | Concurrency Safety Map | `docs/concurrency-safety.md`, `tests/unit/test_concurrency_safety_doc` | REQ-YG-160 |
 | 65 | Append-Only Capability Registry | `capabilities/`, `scripts/validate_capabilities.py`, `scripts/req_coverage.py` | REQ-YG-161 |
 | 66 | Append-Only Changelog | `changelog/`, `scripts/aggregate_changelog.py`, `scripts/migrate_changelog.py` | REQ-YG-162 |
@@ -384,10 +380,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 109 | Harden GitHub Issues Remote Inbox | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` | REQ-YG-256 |
 | 110 | Diary Index Graph | `examples/demos/diary_index` | REQ-YG-257 |
 | 111 | Shared Graph Invocation | `graph_loader` | REQ-YG-258 |
-| 112 | Pipeline Timing Metrics | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py` | REQ-YG-259 |
 | 113 | Chaplain Research Step (FR-257) | `.chaplain/graphs/copilot/graph.yaml`, `.chaplain/graphs/copilot/prompts/research.yaml`, `.chaplain/graphs/copilot/prompts/judge.yaml` | REQ-YG-260 |
 | 114 | Automated Post-Merge Finalization (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh` | REQ-YG-261 |
-| 115 | Inquisitor Watch Loop Integration (FR-261) | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` | REQ-YG-262 |
 | 117 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py` | REQ-YG-264 |
 | 118 | Copilot Node Model Selection (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
 | 119 | Race Node Timeout Fix (FR-267) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py` | REQ-YG-266 |
@@ -771,7 +765,6 @@ Post-graph hook in watch.sh that detects new feature request files via ephemeral
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-116 | `watch.sh` snapshots `feature-requests/` before graph execution, diffs after with `comm -13` to detect new FRs, skips rejected FRs (matching `Status.*Rejected`), and spawns `enforce_worktree.sh` via `nohup ... &` with output redirected to `tmp/enforce-<slug>.log`; no state files or Python helpers | `.chaplain/watch.sh`, `scripts/enforce_worktree.sh` |
 
 ### 36. Inquisitor Auto-Propose
 
@@ -821,7 +814,6 @@ enforce_worktree.sh delegates all LLM orchestration to examples/enforce/graph.ya
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-128 | `scripts/enforce_worktree.sh` calls `yamlgraph graph run examples/enforce/graph.yaml` with `--var fr_path` and `--var branch`; no inline prompts (`IMPLEMENT_PROMPT`, `TEST_PROMPT`, `FIX_PROMPT`), no `copilot -p` calls, no pre-commit retry loop, no inline git/PR commands remain | `scripts/enforce_worktree.sh`, `examples/enforce/graph.yaml`, `tests/unit/test_enforce_yamlgraphication` |
 
 ### 41. Clean GIT Env Test Fixture
 
@@ -1011,7 +1003,6 @@ Worktree venv corruption guard: validate_venv_health() raises on missing or brok
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-157 | Bugfix pipeline with condemning test: 4-phase pipeline (`condemn` → `fix` → `verify` → `submit_pr`) in `examples/bugfix/graph.yaml`. Condemn phase writes failing test against unchanged code (SKIP=pytest). `scripts/bugfix_worktree.sh` orchestrates in isolated worktree. `watch.sh` routes `Type.*Bug` FRs to bugfix pipeline. Each phase has dedicated prompt in `examples/bugfix/prompts/`. README documents Commandment 7 compliance | `examples/bugfix`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `tests/unit/test_bugfix_pipeline` |
 
 ### 62. Sequential Enforcement Mode
 
@@ -1021,7 +1012,6 @@ watch.sh runs enforce and bugfix pipelines in the foreground, eliminating merge 
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-158 | Sequential enforcement mode: `watch.sh` runs `enforce_worktree.sh` and `bugfix_worktree.sh` in the foreground (no `nohup &`), capturing exit codes. Non-zero exits log a warning and continue the watch loop. Each pipeline completes before the next inbox item is processed, eliminating merge conflicts on shared files (ARCHITECTURE.md, CHANGELOG.md, req_coverage.py) | `.chaplain/watch.sh`, `tests/unit/test_watch_sequential_enforcement` |
 
 ### 64. Concurrency Safety Map
 
@@ -1506,7 +1496,6 @@ Lightweight timing and outcome instrumentation for the three core pipeline scrip
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-259 | Pipeline scripts emit per-run JSON metrics to tmp/pipeline-metrics/ on every exit (success or failure). enforce_worktree.sh and bugfix_worktree.sh use EXIT trap cleanup to write phase timing. watch.sh uses inline cycle timing. pipeline_summary.py aggregates daily metrics using Python stdlib only. Metric writes are best-effort (guarded with \|\| true). No new dependencies. | `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`, `.chaplain/watch.sh`, `scripts/pipeline_summary.py`, `tests/unit/test_pipeline_timing.py` |
 
 ### 113. Chaplain Research Step
 
@@ -1537,7 +1526,6 @@ Moves the Inquisitor from a fire-and-forget `inquisitor-background` post-commit 
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-262 | `inquisitor-background` post-commit hook removed from `.pre-commit-config.yaml`; `.chaplain/watch.sh` runs `.chaplain/inquisitor.sh --propose` after each successful enforce cycle with `|| true` failure tolerance; log output captured to timestamped file in `tmp/`; inquisitor step placed after enforce and before post-merge finalization; existing gates (worktree FR-142, commit-delta FR-131) unchanged; `--force` manual invocation still works | `.chaplain/watch.sh`, `.pre-commit-config.yaml`, `tests/unit/test_inquisitor_watch_integration` |
 ### 116. Acceptance Tests Before Enforce
 
 Move worktree creation from the enforce phase into the plan-judge loop, and add a dedicated acceptance test generation step between research and judge. Judge evaluates the FR, the research brief, AND concrete failing tests — three inputs instead of two. Enforce receives a worktree with pre-committed RED tests and a clear contract: make these tests pass.

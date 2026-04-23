@@ -6,7 +6,7 @@ This demonstration shows that the obsolete pipeline scripts have been successful
 
 ### ❌ Removed Scripts
 - `.chaplain/watch.sh` (old monolithic watcher)
-- `scripts/enforce_worktree.sh` (old enforcement script)  
+- `scripts/enforce_worktree.sh` (old enforcement script)
 - `scripts/bugfix_worktree.sh` (old bugfix script)
 
 ### ✅ Single Orchestrator
@@ -28,7 +28,7 @@ This demonstration shows that the obsolete pipeline scripts have been successful
 ```bash
 # Verify old scripts are gone
 ls .chaplain/watch.sh 2>/dev/null || echo "✅ watch.sh removed"
-ls scripts/enforce_worktree.sh 2>/dev/null || echo "✅ enforce_worktree.sh removed"  
+ls scripts/enforce_worktree.sh 2>/dev/null || echo "✅ enforce_worktree.sh removed"
 ls scripts/bugfix_worktree.sh 2>/dev/null || echo "✅ bugfix_worktree.sh removed"
 
 # Verify watcher2.sh is the sole orchestrator

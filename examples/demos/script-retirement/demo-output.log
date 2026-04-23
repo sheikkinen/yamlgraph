@@ -1,24 +1,6 @@
-=== Script Retirement Demo (FR-276) ===
-
-=== Verifying old scripts are removed ===
+=== Script Retirement Verification ===
 ✅ watch.sh removed
 ✅ enforce_worktree.sh removed
 ✅ bugfix_worktree.sh removed
-
-=== Verifying watcher2.sh is the sole orchestrator ===
--rwxr-xr-x  1 sheikki  staff  16243 23 huhtikuuta  20:49 ../../../.chaplain/watcher2.sh
 ✅ watcher2.sh exists and ready
-
-=== Verifying forensic behavior ===
-✅ Forensic preservation implemented
-✅ Failed topics moved, not deleted
-
-=== Verifying metadata pruning ===
-✅ Metadata pruning implemented
-
-=== Running acceptance tests ===
-....................                                                     [100%]
-20 passed in 0.13s
-
-=== Demo Complete ===
-All old scripts retired, watcher2.sh is the sole orchestrator!
+=== All checks passed ===

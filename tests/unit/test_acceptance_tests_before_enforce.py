@@ -308,38 +308,6 @@ class TestEnforceImplementPrompt:
 
 
 # ===========================================================================
-# AC-10: enforce_worktree.sh accepts optional pre-existing worktree
-# ===========================================================================
-
-
-@pytest.mark.req("REQ-YG-263")
-class TestEnforceWorktreeScript:
-    """enforce_worktree.sh must accept optional pre-existing worktree path."""
-
-    def test_script_accepts_third_argument(self):
-        """Script usage must support a third argument for worktree path."""
-        content = ENFORCE_SCRIPT.read_text()
-        # Should reference $3 or a third positional arg for worktree path
-        assert (
-            "${3" in content
-            or "$3" in content
-            or "EXISTING_WORKTREE" in content
-            or "PRE_EXISTING" in content
-        ), "enforce_worktree.sh must accept optional third argument for pre-existing worktree"
-
-    def test_script_skips_creation_when_worktree_exists(self):
-        """Script must conditionally skip worktree creation."""
-        content = ENFORCE_SCRIPT.read_text()
-        # Must have conditional logic around worktree add
-        assert (
-            "skip" in content.lower()
-            or "already" in content.lower()
-            or "pre-existing" in content.lower()
-            or "existing" in content.lower()
-        ), "Script must conditionally skip worktree creation"
-
-
-# ===========================================================================
 # AC-13: Unit test for create_worktree tool (valid output from FR path)
 # ===========================================================================
 

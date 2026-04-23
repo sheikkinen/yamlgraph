@@ -14,7 +14,7 @@ The FR addresses a single, cohesive concern: consolidating pipeline orchestratio
 
 **Scope frozen as specified:**
 1. Delete 3 obsolete scripts
-2. Update documentation references  
+2. Update documentation references
 3. Ensure forensic failure preservation
 4. Add orphaned worktree metadata pruning
 5. Validate no functional regression
@@ -59,7 +59,7 @@ New forensic-preserving behavior:
 handle_failure() {
     local reason="${1:-unknown}"
     log_error "Cycle failed: $reason"
-    
+
     # SUCCESS → clean teardown
     if [[ "$reason" == "success" ]]; then
         worktree_teardown
@@ -67,7 +67,7 @@ handle_failure() {
         write_metrics
         return
     fi
-    
+
     # FAILURE → preserve evidence
     if [[ -n "${WT_DIR:-}" && -d "$WT_DIR" ]]; then
         log_warn "Worktree preserved for inspection: $WT_DIR"
@@ -116,7 +116,7 @@ Ensure `worktree_teardown` and topic deletion only occur on successful completio
 
 ```bash
 rm .chaplain/watch.sh
-rm scripts/enforce_worktree.sh  
+rm scripts/enforce_worktree.sh
 rm scripts/bugfix_worktree.sh
 ```
 
@@ -139,7 +139,7 @@ Extend `worktree_setup.sh` to call `git worktree prune` before branch creation.
 
 1. **Gradual deprecation** — Keep old scripts with deprecation warnings
    - Rejected: Maintains confusion and code duplication
-   
+
 2. **Symlink aliases** — Point old script names to watcher2.sh
    - Rejected: Doesn't solve argument compatibility issues
 
@@ -192,7 +192,7 @@ Files requiring updates:
 
 Current references found in:
 - Multiple feature requests mention the old scripts
-- Development documentation  
+- Development documentation
 - Diary entries discussing pipeline evolution
 - Changelog entries documenting the transition
 

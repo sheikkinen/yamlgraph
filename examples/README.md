@@ -113,6 +113,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [pipeline_audit](demos/pipeline_audit/) | Cross-pipeline structural analysis |
 | [req-cross-check](demos/req-cross-check/) | Architecture requirement traceability audit |
 | [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
+| [script-retirement](demos/script-retirement/) | Pipeline script retirement verification (FR-276) |
 
 ### FR Validation Demos
 
