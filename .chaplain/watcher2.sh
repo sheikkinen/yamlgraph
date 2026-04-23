@@ -361,7 +361,7 @@ print('UNKNOWN')
     worktree_teardown
     post_merge
     write_cycle_metrics
-    rm -f "$TOPIC_FILE"
+    rm "$TOPIC_FILE"
 
     log_info "✅ Cycle complete for: $TOPIC_BASENAME"
     sleep "$POLL"

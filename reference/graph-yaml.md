@@ -540,7 +540,7 @@ variables:
 **Example - Plan-Judge Workflow with Session Continuation:**
 
 ```yaml
-# Based on .chaplain/watch.sh pattern
+# Based on .chaplain/watcher2.sh pattern
 # FR-105: Judge resumes plan's session for context continuity
 nodes:
   plan:
