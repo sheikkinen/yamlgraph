@@ -282,12 +282,18 @@ print('UNKNOWN')
 
     # ── Enforce Step 3: Critique and distill ────────────────────────────
     log_info "Enforce 3/4: Critique and distill..."
+
+    # Extract FR number from feature request path
+    FR_NUM=$(basename "$FR_PATH" | grep -oE 'FR-[0-9]+' | sed 's/FR-//')
+
     if ! yamlgraph graph run "$ENFORCE_DIR/step-critique.yaml" \
         --var fr_path="$FR_PATH" \
+        --var fr_num="$FR_NUM" \
         --import-state "$ENFORCE_STATE" \
         --export-state "$ENFORCE_STATE" \
         --full 2>&1 | tee tmp/watcher2-critique.log; then
-        log_warn "Critique step failed — continuing to finalize"
+        handle_failure "critique step failed"
+        continue
     fi
 
     # Commit diary/critique output
