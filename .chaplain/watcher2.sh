@@ -129,13 +129,21 @@ while true; do
         continue
     fi
 
-    # Shell: commit FR draft
+    # Shell: commit FR draft and capture created FR path
     git add feature-requests/ 2>/dev/null || true
     if git diff --cached --quiet; then
         handle_failure "plan produced no files"
         continue
     fi
     git commit -m "chore: watcher2 — FR draft from plan step" --no-verify
+    # Capture the FR file created in this commit (not a stale one)
+    CREATED_FR_PATH=$(git diff-tree --no-commit-id --name-only -r HEAD -- feature-requests/ \
+        | grep -E 'FR-[0-9]+.*\.md$' | head -1)
+    if [[ -n "$CREATED_FR_PATH" ]]; then
+        log_info "Plan created: $CREATED_FR_PATH"
+    else
+        log_warn "Could not detect FR path from plan commit"
+    fi
 
     # ── Step 2: Research ────────────────────────────────────────────────
     log_info "Step 2/4: Research — gathering evidence..."
@@ -230,8 +238,14 @@ print('UNKNOWN')
     ENFORCE_DIR=".chaplain/graphs/watcher-enforce"
     ENFORCE_STATE="tmp/enforce-state.json"
 
-    # Find the FR path
-    FR_PATH=$(find feature-requests/ -name "FR-*.md" -type f 2>/dev/null | head -1)
+    # Find the FR path — prefer the one created by the plan step
+    if [[ -n "${CREATED_FR_PATH:-}" && -f "$CREATED_FR_PATH" ]]; then
+        FR_PATH="$CREATED_FR_PATH"
+    else
+        # Fallback: newest FR file by git commit time
+        FR_PATH=$(git log --diff-filter=A --name-only --pretty=format: -- 'feature-requests/FR-*.md' \
+            | grep -E 'FR-[0-9]+.*\.md$' | head -1)
+    fi
     if [[ -z "$FR_PATH" ]]; then
         handle_failure "no FR file for enforcement"
         continue
