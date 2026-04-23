@@ -662,3 +662,9 @@ The ID ranges are:
 - **CONF-010 to CONF-099**: Test code
 - **CONF-100 to CONF-199**: Example code
 - **CONF-200 to CONF-299**: Scripts
+
+### CONF-211
+- **File**: [tests/unit/test_fr268_skip_activation.py](../tests/unit/test_fr268_skip_activation.py#L227)
+- **Code**: F401
+- **Sin**: `test_copilot_node_model_selection` imported but only used for syntax validation in try block.
+- **Penance**: Import is intentional for testing module syntax validity in acceptance test. The import side effects are the test, not the module usage. Alternative would be compile() with ast.parse but import is more comprehensive for dependencies.
