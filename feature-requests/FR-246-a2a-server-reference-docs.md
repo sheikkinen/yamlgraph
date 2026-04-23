@@ -124,8 +124,8 @@ Add the `a2a` subcommands to the commands overview table and add a `yamlgraph a2
 
 ## Acceptance Criteria
 
-- [x] REQ-YG-245 added to `ARCHITECTURE.md` capabilities table and requirement descriptions (reference doc for A2A server)
-- [x] `reference/a2a-server.md` created with all 10 sections above (REQ-YG-245)
+- [x] REQ-YG-246 added to `ARCHITECTURE.md` capabilities table and requirement descriptions (reference doc for A2A server)
+- [x] `reference/a2a-server.md` created with all 10 sections above (REQ-YG-246)
 - [x] Quickstart example is copy-pasteable and works with the hello graph
 - [x] `reference/cli.md` updated to include `a2a serve` and `a2a card` commands
 - [x] `reference/README.md` updated to link to `a2a-server.md` (if it maintains a doc index)
