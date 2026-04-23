@@ -46,6 +46,13 @@ user: |
 
   Based on what happened during implementation, generate a diary reflection:
 
+  **IMPORTANT**: Save the diary reflection to: `docs/diary/YYYY-MM-DD-reflection-fr-{{ fr_num }}-<topic>.md`
+
+  Where:
+  - YYYY-MM-DD is today's date (2026-04-23)
+  - fr_num is {{ fr_num }} (the FR number without 'FR-' prefix)
+  - topic is a short kebab-case description of the feature
+
   ### Template:
 
   **Context:** [What task was being performed]
