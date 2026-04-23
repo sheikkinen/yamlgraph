@@ -5,6 +5,9 @@ __pycache__/
 
 # Environment
 .env
+.env.azure
+.env.google
+.env.vertex
 .venv/
 venv/
 ENV/
@@ -87,6 +90,7 @@ docs/ebook/v*/
 # Planning files
 .chaplain/inbox/
 .chaplain/drafts/
+watcher.pid
 
 # Generated files (FR-179: append-only changelog fragments)
 CHANGELOG.md
