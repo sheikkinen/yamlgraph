@@ -1,0 +1,24 @@
+id: CAP-123
+name: watcher2 PR reuse enhancement
+description: >
+  Enhances watcher2 create_pr() function to check for existing PRs before
+  creating new ones. Uses gh pr list to detect existing PRs by branch,
+  reuses them when found, and sets variables correctly. Eliminates pipeline
+  failures when PRs already exist from recovery scenarios or manual intervention.
+  Optionally updates existing PR title/body to match current configuration.
+modules:
+  - .chaplain/lib/watcher/create_pr.sh
+  - tests/unit/test_watcher_create_pr.py
+requirements:
+  - id: REQ-YG-276
+    description: >
+      watcher2 create_pr() function checks for existing PRs via gh pr list
+      --head {branch} before creating; if found, reuses existing PR and sets
+      PR_NUMBER, PR_URL variables; if none found, creates new PR as before;
+      function does not exit with error when PR already exists; existing PR
+      title/body optionally updated via gh pr edit; watcher2 pipeline continues
+      normally after reusing existing PR
+    modules:
+      - .chaplain/lib/watcher/create_pr.sh
+      - tests/unit/test_watcher_create_pr.py
+fr: FR-276

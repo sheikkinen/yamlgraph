@@ -382,6 +382,18 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Hardcoded bind-all address `0.0.0.0` in `build_agent_card` test call.
 - **Penance**: Test data verifying Agent Card URL construction. No actual network socket is opened — the function only builds a data structure. Required to test the host-to-URL mapping.
 
+### CONF-037
+- **File**: [tests/unit/test_watcher_create_pr.py](../tests/unit/test_watcher_create_pr.py#L84)
+- **Code**: F841
+- **Sin**: `result` variable assigned from subprocess.run() but not used in first test.
+- **Penance**: The test only cares about subprocess call pattern verification, not the actual result. Using `subprocess.run()` directly without assignment would be less clear than the noqa comment.
+
+### CONF-038
+- **File**: [tests/unit/test_watcher_create_pr.py](../tests/unit/test_watcher_create_pr.py#L306)
+- **Code**: F841
+- **Sin**: `result` variable assigned from subprocess.run() but not used in last test.
+- **Penance**: The test only cares about subprocess call pattern verification, not the actual result. Using `subprocess.run()` directly without assignment would be less clear than the noqa comment.
+
 ---
 
 ## Example Code
