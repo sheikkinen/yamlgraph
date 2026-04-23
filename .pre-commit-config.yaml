@@ -205,6 +205,24 @@ repos:
 
   - repo: local
     hooks:
+      - id: diary-filename-check
+        name: diary filename pattern validation
+        entry: >-
+          bash -c 'BAD_FILES=$(git ls-files "docs/diary/*reflection*fr*.md" |
+          grep -vEi "docs/diary/.*reflection.*fr-[0-9]+[^0-9]");
+          if [ -n "$BAD_FILES" ]; then
+          echo "❌ Diary files with invalid filename pattern:";
+          echo "$BAD_FILES";
+          echo "Required: docs/diary/YYYY-MM-DD-reflection-fr-NNN-topic.md";
+          exit 1;
+          fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest (unit only, ~20s)
         entry: bash -c '.venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov && echo "" && echo "✓ Unit tests passed. Run integration tests separately:" && echo "  pytest tests/integration/ -v"'
