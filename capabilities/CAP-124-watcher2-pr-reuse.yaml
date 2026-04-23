@@ -1,0 +1,22 @@
+id: CAP-124
+name: Watcher2 PR Reuse (FR-275)
+description: >
+  Enhanced create_pr.sh checks for existing PRs before creating new ones,
+  reuses existing PRs to prevent automation failures and manual intervention.
+modules:
+  - .chaplain/lib/watcher/create_pr.sh
+  - tests/unit/test_watcher2_create_pr_reuse.py
+requirements:
+  - id: REQ-YG-272
+    description: >
+      create_pr.sh checks for existing open PRs on $WT_BRANCH using
+      gh pr list --state open --head "$WT_BRANCH" --json number,url,title --jq ".[0] | select(.number != null)";
+      if existing PR found, reuses PR number and URL instead of creating new;
+      if no existing PR found, creates new PR as before; sets PR_NUMBER and PR_URL variables
+      correctly in both cases; logs clearly whether reusing or creating; handles network
+      failures gracefully by falling back to creation; updates PR title when different
+      from requested title
+    modules:
+      - .chaplain/lib/watcher/create_pr.sh
+      - tests/unit/test_watcher2_create_pr_reuse.py
+fr: FR-275
