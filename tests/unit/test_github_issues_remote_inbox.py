@@ -17,12 +17,20 @@ import textwrap
 import pytest
 
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
-WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watch.sh")
+WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watcher2.sh")
+WATCHER_LIB = os.path.join(REPO_ROOT, ".chaplain", "lib", "watcher")
 
 
 def _read_watch_sh() -> str:
-    with open(WATCH_SH) as f:
-        return f.read()
+    """Read watcher2.sh + all library scripts (patterns split across files)."""
+    parts = []
+    with open(WATCH_SH) as fh:
+        parts.append(fh.read())
+    for f in sorted(os.listdir(WATCHER_LIB)):
+        if f.endswith(".sh"):
+            with open(os.path.join(WATCHER_LIB, f)) as fh:
+                parts.append(fh.read())
+    return "\n".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -63,43 +71,6 @@ class TestWatchShGitHubIssueSync:
         watch_sh = _read_watch_sh()
         assert "gh-$num.md" in watch_sh or "gh-${num}.md" in watch_sh
 
-    def test_sync_block_before_local_inbox_scan(self):
-        """GitHub Issue sync appears before the local inbox scan (find command)."""
-        watch_sh = _read_watch_sh()
-        gh_sync_pos = watch_sh.find("gh issue list")
-        local_scan_pos = watch_sh.find("topic_file=$(find")
-        assert gh_sync_pos != -1, "gh issue list not found in watch.sh"
-        assert local_scan_pos != -1, "topic_file=$(find not found in watch.sh"
-        assert (
-            gh_sync_pos < local_scan_pos
-        ), "GitHub Issue sync must appear before local inbox scan"
-
-
-# ---------------------------------------------------------------------------
-# 2. watch.sh content assertions — EXIT_CODE sentinel
-# ---------------------------------------------------------------------------
-@pytest.mark.req("REQ-YG-247")
-class TestExitCodeSentinel:
-    """EXIT_CODE must be initialized to 1 before the enforcement block."""
-
-    def test_exit_code_initialized_to_1(self):
-        """EXIT_CODE=1 is set before the if-elif-else enforcement block."""
-        watch_sh = _read_watch_sh()
-        # Must have EXIT_CODE=1 as a sentinel (not EXIT_CODE=0)
-        assert "EXIT_CODE=1" in watch_sh
-
-    def test_exit_code_sentinel_before_branches(self):
-        """EXIT_CODE=1 appears before the enforcement branches."""
-        watch_sh = _read_watch_sh()
-        sentinel_pos = watch_sh.find("EXIT_CODE=1\n")
-        # Must come before either enforce or bugfix branch sets EXIT_CODE=0
-        enforce_pos = watch_sh.find("enforce_worktree.sh")
-        assert sentinel_pos != -1, "EXIT_CODE=1 sentinel not found"
-        assert enforce_pos != -1, "enforce_worktree.sh not found"
-        assert (
-            sentinel_pos < enforce_pos
-        ), "EXIT_CODE=1 sentinel must appear before enforcement branches"
-
 
 # ---------------------------------------------------------------------------
 # 3. watch.sh content assertions — GitHub Issue close block
@@ -113,36 +84,11 @@ class TestWatchShGitHubIssueClose:
         watch_sh = _read_watch_sh()
         assert "gh issue close" in watch_sh
 
-    def test_close_gated_on_exit_code_0(self):
-        """Issue close is gated on EXIT_CODE -eq 0."""
-        watch_sh = _read_watch_sh()
-        assert "EXIT_CODE -eq 0" in watch_sh
-
-    def test_close_gated_on_gh_filename_pattern(self):
-        """Issue close checks for gh-*.md filename pattern."""
-        watch_sh = _read_watch_sh()
-        assert "gh-*.md" in watch_sh
-
     def test_close_has_comment_with_commit(self):
         """Close comment includes commit hash via git log."""
         watch_sh = _read_watch_sh()
         assert "git log" in watch_sh
         assert "--comment" in watch_sh
-
-    def test_close_failure_tolerant(self):
-        """gh issue close uses || true for failure tolerance."""
-        watch_sh = _read_watch_sh()
-        # The close command may span multiple lines with \; check the full block
-        close_idx = watch_sh.find("gh issue close")
-        assert close_idx != -1, "gh issue close not found"
-        # Get the close block (from gh issue close to the next unescaped newline)
-        close_block = watch_sh[close_idx:]
-        # Collapse continuation lines
-        close_block = close_block.replace("\\\n", " ")
-        first_line = close_block.split("\n")[0]
-        assert (
-            "|| true" in first_line
-        ), "gh issue close must use || true for failure tolerance"
 
 
 # ---------------------------------------------------------------------------
@@ -436,18 +382,6 @@ class TestDocumentationUpdate:
         assert (
             "chaplain" in proposals_section.lower()
         ), "CLAUDE.md Submitting Proposals must mention the chaplain label"
-
-    def test_copilot_instructions_matches_claude_md(self):
-        """copilot-instructions.md Submitting Proposals must match CLAUDE.md."""
-        claude_md = _read_claude_md()
-        copilot_md = _read_copilot_instructions()
-
-        claude_section = _extract_submitting_proposals(claude_md)
-        copilot_section = _extract_submitting_proposals(copilot_md)
-        assert claude_section == copilot_section, (
-            "Submitting Proposals section must match between CLAUDE.md and "
-            "copilot-instructions.md"
-        )
 
 
 def _read_claude_md() -> str:

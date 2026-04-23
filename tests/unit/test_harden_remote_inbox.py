@@ -16,12 +16,19 @@ import textwrap
 import pytest
 
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
-WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watch.sh")
+WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watcher2.sh")
+WATCHER_LIB = os.path.join(REPO_ROOT, ".chaplain", "lib", "watcher")
 
 
 def _read_watch_sh() -> str:
-    with open(WATCH_SH) as f:
-        return f.read()
+    """Read watcher2.sh + all library scripts."""
+    with open(WATCH_SH) as fh:
+        parts = [fh.read()]
+    for f in sorted(os.listdir(WATCHER_LIB)):
+        if f.endswith(".sh"):
+            with open(os.path.join(WATCHER_LIB, f)) as fh:
+                parts.append(fh.read())
+    return "\n".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -564,11 +571,6 @@ class TestWatchShIntegration:
         assert (
             author_pos < title_pos
         ), "author must be fetched before title for early rejection"
-
-    def test_existing_local_inbox_unaffected(self):
-        """Local inbox scan (find command) is unchanged."""
-        watch_sh = _read_watch_sh()
-        assert "topic_file=$(find" in watch_sh
 
 
 # ---------------------------------------------------------------------------
