@@ -2,9 +2,22 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 2-3 days
 **Requested:** 2026-04-23
+
+## Verdict
+
+**APPROVED** - Scope frozen, authority granted to implement.
+
+The FR addresses a single, cohesive concern: consolidating pipeline orchestration to watcher2.sh as the sole entry point. This is a mature cleanup task with clear acceptance criteria, proven abstractions, and measurable outcomes. Research confirms no competing solutions needed.
+
+**Scope frozen as specified:**
+1. Delete 3 obsolete scripts
+2. Update documentation references  
+3. Ensure forensic failure preservation
+4. Add orphaned worktree metadata pruning
+5. Validate no functional regression
 
 ## Summary
 
