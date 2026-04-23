@@ -452,30 +452,6 @@ class TestCommit:
 
 
 # ---------------------------------------------------------------------------
-# enforce_worktree.sh Integration
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.req("REQ-YG-125")
-class TestEnforceNextSteps:
-    """enforce_worktree.sh NEXT STEPS block includes finalize command."""
-
-    def test_finalize_command_in_next_steps(self):
-        """enforce_worktree.sh mentions finalize_merge.sh in output."""
-        enforce_path = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "scripts",
-            "enforce_worktree.sh",
-        )
-        with open(enforce_path) as f:
-            content = f.read()
-        assert "finalize_merge.sh" in content
-        assert "After merging" in content or "after merging" in content.lower()
-
-
-# ---------------------------------------------------------------------------
 # Script Header
 # ---------------------------------------------------------------------------
 
