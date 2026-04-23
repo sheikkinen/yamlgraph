@@ -117,3 +117,52 @@ create_pr() {
 - FR-273: Watcher2 pipeline architecture
 - FR-258: Automated post-merge finalization (similar PR management patterns)
 - `.chaplain/lib/watcher/create_pr.sh`: Current implementation to be updated
+
+## Research Brief
+
+### Competitive Landscape
+
+**GitHub Actions**: Native workflows handle PR automation with `if` conditionals and `github.event.pull_request` context, but require custom scripts for existing PR detection. No framework-level abstractions for graceful PR reuse.
+
+**LangGraph**: Provides deterministic workflow orchestration but no built-in GitHub integration. Users must implement PR management in custom tool functions.
+
+**CrewAI**: Focuses on multi-agent collaboration with pre-built integrations for email/Slack/Salesforce, but no GitHub PR automation primitives.
+
+**AutoGen**: Event-driven multi-agent framework with extensions for external services, but PR automation would require custom implementations.
+
+**Industry pattern**: Most CI/CD frameworks (Jenkins, GitLab CI, CircleCI) handle existing PR detection through conditional logic in pipeline scripts, not framework abstractions. The `gh pr list --state open --head <branch>` pattern is widely used across GitHub CLI automation.
+
+### Existing Abstractions
+
+**YAMLGraph automation infrastructure**:
+- `.chaplain/lib/watcher/` (9 shell libraries): Modular automation primitives for worktree lifecycle, PR management, CI polling
+- `.chaplain/watch.sh`: Already implements PR existence checking pattern (lines 183-186) for finalization PRs
+- `.chaplain/lib/finalize_lib.sh`: Shared library pattern for avoiding duplication across automation scripts
+- 14 automation shell scripts total in `.chaplain/` directory
+- 11 references to `gh pr` commands across automation infrastructure
+- FR-258/FR-273: Established patterns for PR creation, polling, and merge automation
+
+**No overlapping node types** in YAMLGraph YAML graphs — this is shell infrastructure, not graph abstractions.
+
+### Diary Precedents
+
+**2026-03-09 reflection**: PR management failures from terminal context loss, stale worktree cleanup, and parallel enforcement conflicts. **Trap**: `downstream_fix` — symptoms addressed where they manifest, not at the boundary.
+
+**2026-04-20 FR-258 reflection**: Shared library pattern prevents duplication between finalize_merge.sh and watch.sh. **Heuristic**: Extract sourceable libraries immediately when scripts need same logic.
+
+**2026-04-22 FR-273 reflection**: CI status shape mismatch from assuming exact `SUCCESS` match when `gh pr checks` returns compound states like `SKIPPED,SUCCESS`. **Trap**: Infrastructure tested in isolation, not deployment context.
+
+**Recurring pattern**: Automation failure modes cluster around GitHub CLI assumptions (response formats, branch states, network timeouts) and worktree lifecycle edge cases.
+
+### Usage Evidence
+
+- **Existing graphs using PR automation**: 0 (this is shell infrastructure, not graph-level abstraction)
+- **Real-world use cases**: watcher2.sh (FR-273), watch.sh post-merge finalization (FR-258), bugfix_worktree.sh, enforce_worktree.sh
+- **Automation footprint**: 14 shell scripts, 9 modular libraries, 11 `gh pr` integration points
+- **Failure evidence**: Issue #180 redundant PR creation, multiple diary entries documenting GitHub CLI edge cases
+
+### Classification Signal
+
+- **Abstraction level**: integration (shell infrastructure for GitHub CLI, not graph primitive)
+- **Recommended approach**: build (fix existing `.chaplain/lib/watcher/create_pr.sh` using proven patterns)
+- **Key risk**: GitHub CLI response format changes breaking automation (documented in multiple diary entries)
