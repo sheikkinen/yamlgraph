@@ -46,7 +46,24 @@ source "$LIB_DIR/post_merge.sh"
 source "$LIB_DIR/metrics.sh"
 
 # ── Ensure dirs ─────────────────────────────────────────────────────────
-mkdir -p "$INBOX" "$PROCESSING" "$METRIC_DIR"
+mkdir -p "$INBOX" "$PROCESSING" "$METRIC_DIR" ".chaplain/failed"
+
+# ── Failure handler (preserves forensic evidence) ───────────────────
+handle_failure() {
+    local reason="${1:-unknown}"
+    log_error "Cycle failed: $reason"
+    if [[ -n "${WT_DIR:-}" && -d "$WT_DIR" ]]; then
+        log_warn "Worktree preserved for inspection: $WT_DIR"
+    fi
+    if [[ -n "${TOPIC_FILE:-}" && -f "$TOPIC_FILE" ]]; then
+        local failed_name
+        failed_name=$(basename "$TOPIC_FILE")
+        mv "$TOPIC_FILE" ".chaplain/failed/$failed_name" 2>/dev/null || true
+        log_warn "Topic moved to: .chaplain/failed/$failed_name"
+    fi
+    cd "$MAIN_DIR" 2>/dev/null || cd "$(dirname "$0")/.."
+    write_cycle_metrics
+}
 
 echo "👀 watcher2: Watching $INBOX/ (poll=${POLL}s)"
 
@@ -80,17 +97,13 @@ while true; do
 
     # ── Preflight ───────────────────────────────────────────────────────
     if ! preflight; then
-        log_error "Preflight failed — skipping cycle"
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "preflight"
         continue
     fi
 
     # ── Worktree setup ──────────────────────────────────────────────────
     if ! worktree_setup; then
-        log_error "Worktree setup failed — skipping cycle"
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "worktree setup"
         continue
     fi
 
@@ -109,24 +122,17 @@ while true; do
     log_info "Step 1/4: Plan — reading topic, drafting FR..."
     if ! yamlgraph graph run "$GRAPH_DIR/step-plan.yaml" \
         --var topic_file="$MAIN_DIR/$TOPIC_FILE" \
+        --var worktree_dir="$(pwd)" \
         --export-state "$PIPELINE_STATE" \
         --full 2>&1 | tee tmp/watcher2-plan.log; then
-        log_error "Plan step failed"
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "plan step"
         continue
     fi
 
     # Shell: commit FR draft
     git add feature-requests/ 2>/dev/null || true
     if git diff --cached --quiet; then
-        log_error "Plan produced no files"
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "plan produced no files"
         continue
     fi
     git commit -m "chore: watcher2 — FR draft from plan step" --no-verify
@@ -181,11 +187,7 @@ while true; do
         --import-state "$PIPELINE_STATE" \
         --export-state "$PIPELINE_STATE" \
         --full 2>&1 | tee tmp/watcher2-judge.log; then
-        log_error "Judge step failed"
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "judge step"
         continue
     fi
 
@@ -205,13 +207,9 @@ print('UNKNOWN')
 
     if [[ "$VERDICT" == "REJECT" ]]; then
         log_warn "FR rejected by judge — aborting cycle"
-        # Commit judge result for traceability
         git add feature-requests/ 2>/dev/null || true
         git diff --cached --quiet || git commit -m "chore: watcher2 — FR rejected by judge" --no-verify
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "judge rejected"
         continue
     fi
 
@@ -219,10 +217,7 @@ print('UNKNOWN')
         log_warn "FR needs amendment ($VERDICT) — aborting cycle"
         git add feature-requests/ .chaplain/inbox/ 2>/dev/null || true
         git diff --cached --quiet || git commit -m "chore: watcher2 — FR $VERDICT by judge" --no-verify
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "judge $VERDICT"
         continue
     fi
 
@@ -238,11 +233,7 @@ print('UNKNOWN')
     # Find the FR path
     FR_PATH=$(find feature-requests/ -name "FR-*.md" -type f 2>/dev/null | head -1)
     if [[ -z "$FR_PATH" ]]; then
-        log_error "No FR file found for enforcement"
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "no FR file for enforcement"
         continue
     fi
     log_info "Enforcing: $FR_PATH"
@@ -254,11 +245,7 @@ print('UNKNOWN')
         --var branch="$WT_BRANCH" \
         --export-state "$ENFORCE_STATE" \
         --full 2>&1 | tee tmp/watcher2-implement.log; then
-        log_error "Implement step failed"
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "implement step"
         continue
     fi
 
@@ -332,36 +319,26 @@ print('UNKNOWN')
     PR_TITLE="feat: watcher2 enforce — ${FR_NUM:-${TOPIC_BASENAME%.md}}"
 
     git push origin "$WT_BRANCH" || {
-        log_error "Push failed"
-        cd "$MAIN_DIR"
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "push"
         continue
     }
 
     # ── Create PR ───────────────────────────────────────────────────────
     cd "$MAIN_DIR"
     if ! create_pr; then
-        worktree_teardown
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "create PR"
         continue
     fi
 
     # ── Wait for CI ─────────────────────────────────────────────────────
     if ! wait_ci; then
-        log_warn "CI did not pass — keeping worktree for inspection"
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "CI"
         continue
     fi
 
     # ── Merge ───────────────────────────────────────────────────────────
     if ! merge_pr; then
-        log_warn "Merge failed — keeping worktree for inspection"
-        write_cycle_metrics
-        rm -f "$TOPIC_FILE"
+        handle_failure "merge"
         continue
     fi
 
