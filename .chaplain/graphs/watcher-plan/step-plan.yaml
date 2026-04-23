@@ -11,6 +11,7 @@ prompts_dir: ../copilot/prompts
 
 state:
   topic_file: str
+  worktree_dir: str
   plan_result: dict
 
 nodes:
@@ -24,6 +25,7 @@ nodes:
       allow_all_tools: true
     variables:
       topic_file: "{state.topic_file}"
+      worktree_dir: "{state.worktree_dir}"
     state_key: plan_result
     timeout: 500
 
