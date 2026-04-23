@@ -102,15 +102,13 @@ while true; do
     # ── Phase 3: Planning + Judging pipeline ────────────────────────────
     # FR-273 Phase 3: copilot session chain with shell steps between nodes
     PIPELINE_STATE="tmp/pipeline-state.json"
-    DRAFTS_DIR=".chaplain/drafts"
     GRAPH_DIR=".chaplain/graphs/watcher-plan"
-    mkdir -p "$DRAFTS_DIR" tmp
+    mkdir -p tmp
 
     # ── Step 1: Plan ────────────────────────────────────────────────────
     log_info "Step 1/4: Plan — reading topic, drafting FR..."
     if ! yamlgraph graph run "$GRAPH_DIR/step-plan.yaml" \
         --var topic_file="$MAIN_DIR/$TOPIC_FILE" \
-        --var drafts_dir="$DRAFTS_DIR" \
         --export-state "$PIPELINE_STATE" \
         --full 2>&1 | tee tmp/watcher2-plan.log; then
         log_error "Plan step failed"
@@ -122,7 +120,7 @@ while true; do
     fi
 
     # Shell: commit FR draft
-    git add "$DRAFTS_DIR/" feature-requests/ 2>/dev/null || true
+    git add feature-requests/ 2>/dev/null || true
     if git diff --cached --quiet; then
         log_error "Plan produced no files"
         cd "$MAIN_DIR"
@@ -136,7 +134,6 @@ while true; do
     # ── Step 2: Research ────────────────────────────────────────────────
     log_info "Step 2/4: Research — gathering evidence..."
     if ! yamlgraph graph run "$GRAPH_DIR/step-research.yaml" \
-        --var drafts_dir="$DRAFTS_DIR" \
         --import-state "$PIPELINE_STATE" \
         --export-state "$PIPELINE_STATE" \
         --full 2>&1 | tee tmp/watcher2-research.log; then
@@ -144,7 +141,7 @@ while true; do
     fi
 
     # Shell: commit research additions to FR
-    git add "$DRAFTS_DIR/" feature-requests/ 2>/dev/null || true
+    git add feature-requests/ 2>/dev/null || true
     if ! git diff --cached --quiet; then
         git commit -m "chore: watcher2 — research brief appended" --no-verify
     fi
@@ -152,7 +149,6 @@ while true; do
     # ── Step 3: Write acceptance tests ──────────────────────────────────
     log_info "Step 3/4: Write acceptance tests (RED)..."
     if ! yamlgraph graph run "$GRAPH_DIR/step-acceptance.yaml" \
-        --var drafts_dir="$DRAFTS_DIR" \
         --var worktree_dir="$(pwd)" \
         --var branch="$WT_BRANCH" \
         --import-state "$PIPELINE_STATE" \
@@ -182,7 +178,6 @@ while true; do
     # ── Step 4: Judge ───────────────────────────────────────────────────
     log_info "Step 4/4: Judge — evaluating FR draft..."
     if ! yamlgraph graph run "$GRAPH_DIR/step-judge.yaml" \
-        --var drafts_dir="$DRAFTS_DIR" \
         --import-state "$PIPELINE_STATE" \
         --export-state "$PIPELINE_STATE" \
         --full 2>&1 | tee tmp/watcher2-judge.log; then
@@ -211,7 +206,7 @@ print('UNKNOWN')
     if [[ "$VERDICT" == "REJECT" ]]; then
         log_warn "FR rejected by judge — aborting cycle"
         # Commit judge result for traceability
-        git add "$DRAFTS_DIR/" feature-requests/ 2>/dev/null || true
+        git add feature-requests/ 2>/dev/null || true
         git diff --cached --quiet || git commit -m "chore: watcher2 — FR rejected by judge" --no-verify
         cd "$MAIN_DIR"
         worktree_teardown
@@ -222,7 +217,7 @@ print('UNKNOWN')
 
     if [[ "$VERDICT" == "AMEND" || "$VERDICT" == "SPLIT" ]]; then
         log_warn "FR needs amendment ($VERDICT) — aborting cycle"
-        git add "$DRAFTS_DIR/" feature-requests/ .chaplain/inbox/ 2>/dev/null || true
+        git add feature-requests/ .chaplain/inbox/ 2>/dev/null || true
         git diff --cached --quiet || git commit -m "chore: watcher2 — FR $VERDICT by judge" --no-verify
         cd "$MAIN_DIR"
         worktree_teardown
@@ -232,7 +227,7 @@ print('UNKNOWN')
     fi
 
     # APPROVE or UNKNOWN — commit and proceed to enforcement
-    git add "$DRAFTS_DIR/" feature-requests/ 2>/dev/null || true
+    git add feature-requests/ 2>/dev/null || true
     git diff --cached --quiet || git commit -m "chore: watcher2 — FR approved by judge" --no-verify
 
     # ── Phase 4: Enforcement pipeline ───────────────────────────────────
@@ -240,8 +235,8 @@ print('UNKNOWN')
     ENFORCE_DIR=".chaplain/graphs/watcher-enforce"
     ENFORCE_STATE="tmp/enforce-state.json"
 
-    # Find the FR path (plan step should have written it to drafts or feature-requests)
-    FR_PATH=$(find feature-requests/ "$DRAFTS_DIR/" -name "FR-*.md" -type f 2>/dev/null | head -1)
+    # Find the FR path
+    FR_PATH=$(find feature-requests/ -name "FR-*.md" -type f 2>/dev/null | head -1)
     if [[ -z "$FR_PATH" ]]; then
         log_error "No FR file found for enforcement"
         cd "$MAIN_DIR"

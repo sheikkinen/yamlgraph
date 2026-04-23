@@ -16,7 +16,7 @@ system: |
   codebase. These tests define the contract that the enforce phase must satisfy.
 
 user: |
-  Read the feature request draft in {drafts_dir}/ and write acceptance tests
+  Read the feature request draft in feature-requests/ and write acceptance tests
   in the worktree at {worktree_dir}.
 
   Follow the acceptance test protocol:

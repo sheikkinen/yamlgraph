@@ -414,10 +414,10 @@ class TestCreateWorktreeToolUnit:
 class TestPromptTemplateVariables:
     """write-acceptance-tests prompt template must render with valid variables."""
 
-    def test_prompt_template_has_drafts_dir_var(self):
-        """Prompt must use {drafts_dir} variable."""
+    def test_prompt_template_references_feature_requests(self):
+        """Prompt must reference feature-requests/ directory."""
         content = (PROMPTS_DIR / "write-acceptance-tests.yaml").read_text()
-        assert "{drafts_dir}" in content
+        assert "feature-requests/" in content
 
     def test_prompt_template_has_worktree_dir_var(self):
         """Prompt must use {worktree_dir} variable."""
