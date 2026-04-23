@@ -125,3 +125,38 @@ Use file templates with FR number substitution. **Rejected**: Overcomplicates th
 - `.chaplain/watcher2.sh` - Main pipeline orchestrator  
 - `.pre-commit-config.yaml` - Local validation hooks
 - `docs/diary/` - Existing diary entries requiring normalization
+
+## Research Brief
+
+### Competitive Landscape
+- **LangGraph**: Focuses on agent orchestration and state graphs; no diary/reflection file conventions found in documentation. Their pipeline management is primarily runtime-focused.
+- **AutoGen** (Microsoft, now in maintenance mode): Agent-centric framework with no diary convention patterns. Has moved to Microsoft Agent Framework which emphasizes enterprise orchestration.
+- **CrewAI**: Lightweight multi-agent framework with no documentation conventions similar to diary reflections. Focuses on agent coordination rather than development process patterns.
+- **Semantic Release / Conventional Commits**: Establishes naming conventions for commits and automated changelog generation, but operates at commit-level rather than file-level artifacts. Similar concept (enforce conventions at creation boundary) but different domain.
+
+**Finding**: No competing frameworks implement diary/reflection file conventions or similar documentation-driven development patterns. This appears to be a unique YAMLGraph innovation tied to the Scripture methodology.
+
+### Existing Abstractions
+- **CAP-45 Diary Reflection Enforcement**: Pre-commit hook `diary-reflection-check` validates content (prevents unfilled placeholders) but does not validate filenames
+- **CI diary gate** (`.github/workflows/commitlint.yml`): Enforces filename pattern `docs/diary/.*reflection.*fr-${FR_NUM}[^0-9]` downstream at PR level
+- **Critique prompt** (`.chaplain/graphs/enforce/prompts/enforce-critique-and-distill.yaml`): Generates diary content but lacks filename instruction
+- **Watcher2 pipeline** (`.chaplain/watcher2.sh`): Orchestrates critique step with `--var fr_path` but does not extract FR number for filename generation
+
+**Gap**: Filename validation exists downstream (CI) but no creation-time guidance exists upstream (critique prompt).
+
+### Diary Precedents
+- **FR-150 downstream_fix trap**: "All enforcement existed downstream of the actual merge boundary... The instinct was to keep adding more PR-level checks, when the real fix was moving the enforcement boundary upstream" - directly applicable pattern
+- **Boundary violation pattern** (docs/diary/2026-04-19-inquisitor-audit-212.md): "CI gates parse YAML keys, not markdown body. When a gate checks structured data, ensure the structured field exists"
+- **Scripture Knowledge Graph**: `the_one_law: "Normalize at the boundary where external data enters, not downstream where it manifests"` - foundational principle
+
+**Pattern match**: This is a textbook case of the `downstream_fix` trap - enforcement exists at CI gate but creation boundary (critique prompt) lacks guidance.
+
+### Usage Evidence
+- Existing graphs using related abstractions: 486 watcher-related YAML files 
+- Diary reflection files: 135 total, 114 with FR number patterns
+- Real-world use cases beyond the proposal: All watcher2 pipeline runs that generate diary reflections experience this boundary violation
+
+### Classification Signal
+- **Abstraction level**: Integration (fixes existing watcher2/critique pipeline integration)
+- **Recommended approach**: Build (fixes boundary violation, aligns with Scripture patterns)
+- **Key risk**: Changes to established critique prompt might affect existing diary generation workflows
