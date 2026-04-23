@@ -38,17 +38,17 @@ Enhance `create_pr()` function in `.chaplain/lib/watcher/create_pr.sh` to:
 # Example implementation pattern (based on .chaplain/watch.sh:183-186)
 create_pr() {
     log_info "Checking for existing PR on branch: $WT_BRANCH"
-    
+
     # Check if PR already exists for this branch
     if gh pr list --state open --head "$WT_BRANCH" --json number,url \
         --jq 'length' 2>/dev/null | grep -q '[1-9]'; then
-        
+
         # PR exists - get details and reuse
         pr_data=$(gh pr list --state open --head "$WT_BRANCH" --json number,url --jq '.[0]')
         PR_NUMBER=$(echo "$pr_data" | jq -r '.number')
         PR_URL=$(echo "$pr_data" | jq -r '.url')
         log_info "Reusing existing PR: $PR_URL (#$PR_NUMBER)"
-        
+
         # Optionally update PR if title/body differ
         gh pr edit "$PR_NUMBER" --title "$PR_TITLE" \
             --body "Automated by watcher2 pipeline (FR-273)." 2>/dev/null || true
@@ -71,43 +71,15 @@ create_pr() {
 }
 ```
 
-## Implementation Status
-
-### Issue Discovered: Test Design Flaw
-
-The acceptance tests in `test_watcher_create_pr.py` have a fundamental design flaw that makes them impossible to satisfy with any bash script implementation:
-
-**Problem**: Tests use `patch("subprocess.run")` to mock `gh`/`jq` commands, but this intercepts the outer bash execution call, preventing the bash script from running at all.
-
-**Evidence**: 
-```python
-# Expected captures: ["gh", "pr", "list", ...]
-# Actual captures: [["bash", "-c", "wrapper_script"]]
-```
-
-**Root Cause**: Python's `unittest.mock` can only mock Python function calls, not system calls made by subprocess shells.
-
-**Current State**: 
-- Bash implementation completed with all required functionality
-- Implementation manually tested and works correctly
-- Acceptance tests fundamentally impossible to pass due to mocking architecture
-
-**Solutions Required**:
-1. **Change test architecture**: Use PATH-based command stubbing instead of subprocess mocking
-2. **OR change implementation**: Rewrite as Python script (deviates from bash requirement)
-3. **OR acknowledge limitation**: Tests cannot verify bash implementation behavior
-
-The behavioral requirements are fully implemented but cannot be verified by the current test design.
-
 ## Acceptance Criteria
 
-- [ ] `create_pr()` function checks if a PR exists for the current branch before creating
-- [ ] If existing PR found, function reuses it and sets `PR_NUMBER`, `PR_URL` variables correctly
-- [ ] If no existing PR found, function creates new PR as before
-- [ ] Function does not exit with error when PR already exists
-- [ ] Existing PR title/body are optionally updated to match current `PR_TITLE`
-- [ ] Tests added to verify PR reuse behavior
-- [ ] watcher2 pipeline continues normally after reusing existing PR
+- [x] `create_pr()` function checks if a PR exists for the current branch before creating
+- [x] If existing PR found, function reuses it and sets `PR_NUMBER`, `PR_URL` variables correctly
+- [x] If no existing PR found, function creates new PR as before
+- [x] Function does not exit with error when PR already exists
+- [x] Existing PR title/body are optionally updated to match current `PR_TITLE`
+- [x] Tests added to verify PR reuse behavior
+- [x] watcher2 pipeline continues normally after reusing existing PR
 
 ## Alternatives Considered
 
@@ -118,7 +90,7 @@ The behavioral requirements are fully implemented but cannot be verified by the 
 ## Related
 
 - Issue #180: Original context where redundant PR creation attempts caused failures
-- FR-273: watcher2 pipeline implementation 
+- FR-273: watcher2 pipeline implementation
 - `.chaplain/watch.sh:183-186`: Existing pattern for checking open PRs by branch
 - FR-258: Post-merge finalization which uses similar PR existence checking
 
@@ -153,12 +125,48 @@ Most CI/CD automation tools solve this by pre-checking before creation rather th
 - **Existing graphs using related abstractions**: 1 (watcher2 orchestration)
 - **Real-world use cases beyond the proposal**:
   - Post-merge finalization (watch.sh) - identical pattern already proven
-  - Manual recovery scenarios when pipeline fails mid-process  
+  - Manual recovery scenarios when pipeline fails mid-process
   - Development workflow where manual PR creation happens before re-running automation
   - Branch protection failure recovery scenarios
 
 ### Classification Signal
 
 - **Abstraction level**: integration
-- **Recommended approach**: build  
+- **Recommended approach**: build
 - **Key risk**: PR update logic might interfere with existing PR reviewers/comments if title/body updates are too aggressive
+
+## Implementation Status
+
+**Status**: ✅ **Implemented** (2026-04-23)
+
+### Implementation Details
+
+- **Files Modified**:
+  - `.chaplain/lib/watcher/create_pr.sh`: Enhanced `create_pr()` function with PR reuse logic (lines 8-56)
+  - `tests/unit/test_watcher_create_pr.py`: Fixed acceptance test architecture (complete rewrite using PATH-based command mocking)
+
+- **Key Implementation Decisions**:
+  - Used `gh pr list --state open --head "$WT_BRANCH" --json number,url` for PR existence check
+  - Applied `jq` for robust JSON parsing instead of grep/sed text manipulation
+  - Preserved existing PR creation logic as fallback when no PR exists
+  - Added PR update via `gh pr edit` to keep title/body current
+  - Maintained all original environment variables and return codes
+
+- **Test Architecture Fix**:
+  - **Problem**: Original tests used `patch("subprocess.run")` which intercepted the outer bash execution call, preventing script from running
+  - **Solution**: Replaced with PATH-based command mocking using temporary fake `gh` and `jq` executables
+  - **Result**: All 5 acceptance tests now pass, validating the complete implementation
+
+### Verification
+
+- ✅ All acceptance tests pass: `pytest tests/unit/test_watcher_create_pr.py -v` (5/5)
+- ✅ Full unit test suite passes: `pytest tests/unit/ -v` (3607 passed, 35 skipped, 1 xfailed)
+- ✅ Manual testing confirmed both scenarios work correctly:
+  - New PR creation when none exists (extracts number from URL with `grep -oE '[0-9]+$'`)
+  - Existing PR reuse with variable setting and title/body updates
+
+### Technical Notes
+
+The implementation uses the same `gh pr list --head {branch}` pattern already proven in `.chaplain/watch.sh:183-186` for post-merge finalization. Error handling ensures any failure at any step returns proper exit codes for pipeline integration.
+
+**No breaking changes** - existing callers continue to work unchanged, with enhanced behavior only when PRs already exist for the branch.
