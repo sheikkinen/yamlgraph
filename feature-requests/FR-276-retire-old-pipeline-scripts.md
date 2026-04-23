@@ -184,3 +184,51 @@ Current references found in:
 - Changelog entries documenting the transition
 
 All should be updated to reflect the single `watcher2.sh` orchestrator pattern.
+
+## Research Brief
+
+### Competitive Landscape
+
+**DevOps/CI Pipeline Management:**
+- **GitHub Actions** — Uses workflow_dispatch events for manual triggers, but no forensic preservation of failed runs (logs expire after 90 days)
+- **LangGraph** — Low-level orchestration framework with [durable execution](https://docs.langchain.com/oss/python/langgraph/durable-execution) that automatically resumes from failures, but focused on agent workflows not DevOps pipelines
+- **CrewAI** — Multi-agent automation framework independent of LangChain, but oriented toward AI agent orchestration rather than development pipeline management
+- **AutoGen/Microsoft Agent Framework** — Now in maintenance mode, successor MAF focuses on multi-agent orchestration but not DevOps automation
+
+**Key insight:** No competing LLM frameworks provide specialized DevOps pipeline forensics. Most CI/CD systems destroy failure context rather than preserving it for investigation. This is an internal tooling concern specific to YAMLGraph's development methodology.
+
+### Existing Abstractions
+
+**YAMLGraph Pipeline Components:**
+- `/.chaplain/watcher2.sh` — Current orchestrator with forensic failure handling already implemented
+- `/.chaplain/lib/watcher/` — 9 shell libraries handling worktree lifecycle, PR management, CI polling
+- `/tests/unit/test_*worktree*.py` — 7 test files covering worktree integration patterns
+- `/capabilities/CAP-33-worktree-pipeline.yaml` — Existing capability definition for worktree-based enforcement
+
+**Overlap Assessment:** watcher2.sh already implements the desired forensic behavior — the task is removing legacy scripts, not building new abstractions.
+
+### Diary Precedents
+
+**Evidence Destruction Patterns:**
+- **2026-04-21 audit-232**: `mixed_commits_erode_auditability: "One concern per commit → clear blame, clear revert"` — Evidence preservation principle already established
+- **2026-03-09 audit-73**: `audit_as_ritual` trap — "3+ audits without fix → ritual, not process" — Detection without enforcement decays
+
+**Pipeline Consolidation Wins:**
+- **2026-04-22 FR-273 Phase 1**: "Test infrastructure from its deployment context" — watcher2 successfully replaced fragmented pipeline logic
+- **2025-04-23 FR-273 Phase 4**: Pre-commit failure handling split between mechanical (shell) and semantic (LLM) boundaries — proper separation of concerns
+
+**Working System Inertia Risk:**
+- **2025-04-23 reflection**: "Working system inertia — The old `enforce_worktree.sh` was a monolithic 400+ line bash script that 'worked.' Breaking it into composable steps felt like unnecessary complexity until I mapped the retry semantics"
+
+### Usage Evidence
+
+- **Existing graphs using related abstractions:** 0 — This is pure infrastructure/DevOps tooling
+- **Real-world use cases:** Internal development pipeline only (Chaplain watch daemon, enforce workflows)
+- **Script references in codebase:** Only 1 direct reference found in CLAUDE.md/README.md
+- **Test coverage:** 17 test files cover worktree/pipeline patterns, proving abstractions are well-established
+
+### Classification Signal
+
+- **Abstraction level:** pattern (consolidation/cleanup task, not framework primitive)
+- **Recommended approach:** build (complete the FR-273 Phase 5 cleanup)
+- **Key risk:** Working system inertia causing hesitation to remove "functional" legacy scripts despite superior replacement being proven in production
