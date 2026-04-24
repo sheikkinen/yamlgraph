@@ -304,10 +304,16 @@ print('UNKNOWN')
     # ── Enforce Step 4: Finalize (shell) ────────────────────────────────
     log_info "Enforce 4/4: Finalize — pre-commit + push..."
 
+    # Pre-format to reduce auto-fix cascades
+    git add -A 2>/dev/null || true
+    ruff check --fix yamlgraph/ tests/ 2>/dev/null || true
+    ruff format yamlgraph/ tests/ 2>/dev/null || true
+    git add -A 2>/dev/null || true
+
     # Run pre-commit (may take multiple passes)
     PRECOMMIT_PASS=false
-    for attempt in 1 2 3; do
-        log_info "Pre-commit attempt $attempt/3..."
+    for attempt in 1 2 3 4 5; do
+        log_info "Pre-commit attempt $attempt/5..."
         git add -A 2>/dev/null || true
         if pre-commit run --all-files 2>&1 | tee tmp/watcher2-precommit.log; then
             PRECOMMIT_PASS=true
@@ -318,7 +324,7 @@ print('UNKNOWN')
     done
 
     if [[ "$PRECOMMIT_PASS" != "true" ]]; then
-        log_warn "Pre-commit still failing after 3 attempts — invoking copilot fix..."
+        log_warn "Pre-commit still failing after 5 attempts — invoking copilot fix..."
         if yamlgraph graph run "$ENFORCE_DIR/step-finalize.yaml" \
             --var fr_path="$FR_PATH" \
             --var branch="$WT_BRANCH" \
