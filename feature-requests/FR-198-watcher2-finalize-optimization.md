@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM  
 **Type:** Enhancement  
-**Status:** Proposed  
+**Status:** Approved  
 **Effort:** 0.5 days  
 **Requested:** 2026-04-24  
 
