@@ -118,3 +118,45 @@ pytest tests/unit/ -q --no-cov
 - `tests/unit/test_race_node.py`: Uses `asyncio.sleep(30.0)`
 - `pyproject.toml`: Current pytest configuration with existing markers
 - `CLAUDE.md`: Development command documentation
+
+## Research Brief
+
+### Competitive Landscape
+
+**Pytest ecosystem standard:** The official pytest documentation demonstrates exactly this pattern - using `@pytest.mark.slow` and `-m "not slow"` for fast test iterations. This is a well-established practice across Python projects.
+
+**AI Framework patterns:** Limited public evidence of systematic slow test optimization in LangGraph, CrewAI, or AutoGen repositories. Most focus on mocking LLM calls rather than test execution speed optimization. This suggests documenting good practices around pytest markers would be valuable to the ecosystem.
+
+**Industry standard:** The `slow` marker pattern is widely adopted (Django, Flask, Pandas, NumPy all use variations). Command patterns like `pytest -m "not slow"` are developer workflow standards.
+
+### Existing Abstractions  
+
+**Current YAMLGraph test infrastructure:**
+- `pyproject.toml`: Already defines `req(id)` and `integration` markers - adding `slow` is consistent
+- **3,141 total pytest markers** in codebase (mostly `@pytest.mark.req` for traceability)
+- **Integration marker exists** but not consistently used for slow tests
+- `tests/chaos_tools.py`: Configurable `CHAOS_DELAY` pattern already exists 
+- Asyncio markers already in use (`@pytest.mark.asyncio`)
+
+**No overlapping abstractions** - this is pure testing infrastructure, not framework logic.
+
+### Diary Precedents
+
+**2026-04-19 Inquisitor Audit (FR-205):** Demonstrates the principle that "auditability applies uniformly" - slow/fast markers maintain test traceability while improving developer experience.
+
+**Process patterns:** Multiple diary entries show the "boring = judgment was good" principle - if test optimization becomes routine developer workflow, it validates the abstraction is at the right level.
+
+**No negative precedents found** for test infrastructure improvements in diary entries.
+
+### Usage Evidence
+
+- **Existing graphs using related abstractions:** 300+ YAML graph files
+- **Current test markers:** 3,141 markers (mostly REQ traceability)  
+- **Integration tests:** 22 explicit integration test references
+- **Real-world use cases beyond the proposal:** Every YAMLGraph developer doing rapid iteration
+
+### Classification Signal
+
+- **Abstraction level:** pattern (testing infrastructure, not framework primitive)
+- **Recommended approach:** build (implement pytest markers, optimize timing)
+- **Key risk:** Over-optimization could mask real performance issues in production code
