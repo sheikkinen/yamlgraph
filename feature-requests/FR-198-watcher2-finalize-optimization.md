@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM  
 **Type:** Enhancement  
-**Status:** Approved  
+**Status:** Implemented  
 **Effort:** 0.5 days  
 **Requested:** 2026-04-24  
 
@@ -79,13 +79,13 @@ log_warn "Pre-commit still failing after 5 attempts — invoking copilot fix..."
 
 ## Acceptance Criteria
 
-- [ ] `ruff check --fix` runs before pre-commit loop
-- [ ] `ruff format` runs before pre-commit loop  
-- [ ] Pre-commit loop allows 5 attempts (was 3)
-- [ ] Failure message updated to reflect "5 attempts"
-- [ ] No copilot fallback triggered for auto-fixable cascading issues
-- [ ] Tests added for the optimization logic
-- [ ] Documentation updated if needed
+- [x] `ruff check --fix` runs before pre-commit loop
+- [x] `ruff format` runs before pre-commit loop  
+- [x] Pre-commit loop allows 5 attempts (was 3)
+- [x] Failure message updated to reflect "5 attempts"
+- [x] No copilot fallback triggered for auto-fixable cascading issues
+- [x] Tests added for the optimization logic
+- [x] Documentation updated if needed
 
 ## Implementation Details
 
