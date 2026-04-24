@@ -159,3 +159,49 @@ if [[ "$PRECOMMIT_PASS" != "true" ]]; then
 - Related pre-commit config: `.pre-commit-config.yaml` (lines 5-12, ruff hooks)
 - Watcher2 implementation: `.chaplain/watcher2.sh` (finalize section)
 - FR-275: Test speed optimization (related context from logs)
+
+## Research Brief
+
+### Competitive Landscape
+
+**Pre-commit optimization approaches across frameworks:**
+- **GitHub Actions Cache**: Use `actions/cache@v5` for dependency caching to reduce setup time, but doesn't address auto-fixer cascading
+- **Pre-commit.com**: Recommends `fail_fast: true` (already enabled in YAMLGraph) but no built-in cascade handling; community solutions suggest running formatters manually before hooks
+- **Black formatter**: Has documented instability issues requiring multiple passes due to magic trailing comma behavior ([psf/black#1629](https://github.com/psf/black/issues/1629)) - solved by running formatters twice with `--fast` flag
+- **Ruff ecosystem**: No standard practice found for pre-cascade optimization; most projects accept the 2-3 pass requirement
+
+**Key insight**: Manual pre-formatting before hook execution is a recognized pattern for reducing auto-fixer cascades, particularly in Python ecosystems using Black/Ruff.
+
+### Existing Abstractions
+
+**Infrastructure optimization patterns in YAMLGraph:**
+- **Parallel execution**: `examples/ebook/run-chapters.sh` uses worker pools for concurrent chapter generation (FR-104 pattern)
+- **Selective test execution**: FR-275 implemented pytest markers to skip slow tests (pytest `-m "not slow"`)
+- **Shell-first with LLM fallback**: Current watcher2 finalize already implements this pattern - run deterministic shell commands first, escalate to copilot only on failure
+- **Retry loops**: Only 1 retry pattern found in `.chaplain/` (the watcher2 pre-commit loop being optimized)
+
+### Diary Precedents
+
+**Relevant optimization patterns from docs/diary/:**
+
+1. **"normalize at the boundary" principle** (from 2025-04-23 FR-273 reflection): Handle mechanical issues at shell boundary, escalate semantic issues to LLM boundary. Current proposal aligns with this established pattern.
+
+2. **quick_confidence trap** (from 2026-04-24 FR-275 reflection): "Fell into the trap of accepting the FR's performance analysis without empirical validation." However, FR-198 provides specific evidence from watcher2-run-3.log showing the 3-attempt cascade failure.
+
+3. **downstream_fix trap** (multiple diary entries): Fix at the source where problems enter the system, not downstream where symptoms manifest. Pre-formatting before the loop aligns with this pattern.
+
+4. **Working system inertia** (from 2025-04-23 reflection): The old monolithic scripts "worked" but lacked legibility. The current 3-attempt loop works but wastes 25 minutes when it hits the cascade edge case.
+
+### Usage Evidence
+
+- **Existing infrastructure using watcher2**: 1 instance (`.chaplain/watcher2.sh`)
+- **Pre-commit configurations**: 22 YAML files reference pre-commit (mostly documentation)
+- **Shell infrastructure scripts**: 13 scripts in `.chaplain/` directory
+- **Retry loop patterns**: 1 instance (the target loop being optimized)
+- **Real-world use cases**: Watcher2 pipeline runs on every FR enforcement cycle; FR-275 logs show actual 25-minute copilot fallback waste
+
+### Classification Signal
+
+- **Abstraction level**: infrastructure
+- **Recommended approach**: build
+- **Key risk**: Race condition between ruff pre-formatting and git staging could cause rare conflicts, but failure mode degrades gracefully to existing copilot fallback
