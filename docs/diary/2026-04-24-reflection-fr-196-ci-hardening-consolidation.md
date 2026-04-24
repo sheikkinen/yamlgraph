@@ -1,6 +1,6 @@
 # Reflection: FR-196 CI Hardening Consolidation
 
-**Date:** 2026-04-24  
+**Date:** 2026-04-24
 **Context:** Implementing comprehensive CI workflow hardening across GitHub Actions files to improve performance, reliability, and resource management through concurrency control, caching, retry mechanisms, and version validation.
 
 **Trap:** **downstream_fix** — Initially encountered a test failure in `test_ci_security_scan.py::test_pip_audit_step` which expected a direct `pip-audit` run command, but the implementation had moved to using a retry action with `with.command`. The temptation was to revert the retry implementation to make the test pass, fixing the symptom downstream rather than updating the test to handle the new pattern.
