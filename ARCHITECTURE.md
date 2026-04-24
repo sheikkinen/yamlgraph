@@ -1654,6 +1654,7 @@ Comprehensive documentation for the watcher2 pipeline orchestrator and shell lib
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-278 | `.chaplain/README.md` exists with comprehensive documentation covering: watcher2 pipeline architecture (4-phase: Plan → Research → Acceptance → Judge → Enforce), shell library reference for all tools in `.chaplain/lib/watcher/*.sh` (worktree_setup.sh, worktree_teardown.sh, preflight.sh, create_pr.sh, merge_pr.sh, wait_ci.sh, post_merge.sh, inbox_sync.sh, metrics.sh), usage examples for daemon and individual tools, environment variables and configuration, troubleshooting section, architecture details, and cross-references to related files (FR-273, etc.) | `.chaplain/README.md`, `tests/unit/test_chaplain_readme_documentation` |
+| REQ-YG-279 | Watcher2 baseline checkpointing system precomputes stable doctrine/context inputs and reuses them across runs via deterministic hash-based invalidation. Manifest schema validates glob patterns and exclusions. BASELINE_ID deterministically hashes content + manifest version. Rebuild logic skips when artifact exists. Summary cache uses SHA256 keys for content + prompt + model. baseline_* namespace prevents collision. Retention policy keeps latest 5 artifacts. Watcher2 imports via --import-state latest.json. | `yamlgraph.models.baseline`, `yamlgraph.chaplain.baseline`, `.chaplain/graphs/baseline/graph.yaml`, `tests/unit/test_fr277_watcher2_baseline_checkpointing` |
 
 ---
 
