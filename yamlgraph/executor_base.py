@@ -81,6 +81,50 @@ def format_prompt(
     return template.format(**safe_vars)
 
 
+def _extract_system_template_for_validation(
+    prompt_config: dict, has_system_segments: bool, has_system: bool
+) -> str:
+    """Extract system template content for variable validation."""
+    system_template = ""
+    if has_system_segments:
+        # Extract content from all segments for validation
+        segments = prompt_config["system_segments"]
+        for segment in segments:
+            system_template += segment.get("content", "")
+    elif has_system:
+        system_field = prompt_config["system"]
+        # Handle both scalar string and list format for system field
+        if isinstance(system_field, list):
+            # List format: [{"content": "text", "cache": bool}, ...]
+            for item in system_field:
+                if isinstance(item, dict):
+                    system_template += item.get("content", "")
+                else:
+                    system_template += str(item)
+        else:
+            system_template = system_field
+    return system_template
+
+
+def _resolve_provider_and_model(
+    prompt_config: dict, provider: str | None, model: str | None
+) -> tuple[str | None, str | None]:
+    """Resolve provider and model from parameters or YAML."""
+    resolved_provider = provider
+    if resolved_provider is None:
+        resolved_provider = prompt_config.get("provider")
+        if resolved_provider:
+            logger.debug(f"Using provider from YAML: {resolved_provider}")
+
+    resolved_model = model
+    if resolved_model is None:
+        resolved_model = prompt_config.get("model")
+        if resolved_model:
+            logger.debug(f"Using model from YAML: {resolved_model}")
+
+    return resolved_provider, resolved_model
+
+
 def prepare_messages(  # noqa: C901
     prompt_name: str,
     variables: dict | None = None,
@@ -130,40 +174,16 @@ def prepare_messages(  # noqa: C901
         )
 
     # Build full template for variable validation
-    system_template = ""
-    if has_system_segments:
-        # Extract content from all segments for validation
-        segments = prompt_config["system_segments"]
-        for segment in segments:
-            system_template += segment.get("content", "")
-    elif has_system:
-        system_field = prompt_config["system"]
-        # Handle both scalar string and list format for system field
-        if isinstance(system_field, list):
-            # List format: [{"content": "text", "cache": bool}, ...]
-            for item in system_field:
-                if isinstance(item, dict):
-                    system_template += item.get("content", "")
-                else:
-                    system_template += str(item)
-        else:
-            system_template = system_field
-
+    system_template = _extract_system_template_for_validation(
+        prompt_config, has_system_segments, has_system
+    )
     full_template = system_template + prompt_config.get("user", "")
     validate_variables(full_template, variables, prompt_name)
 
     # Extract provider and model from YAML if not provided via parameter
-    resolved_provider = provider
-    if resolved_provider is None:
-        resolved_provider = prompt_config.get("provider")
-        if resolved_provider:
-            logger.debug(f"Using provider from YAML: {resolved_provider}")
-
-    resolved_model = model
-    if resolved_model is None:
-        resolved_model = prompt_config.get("model")
-        if resolved_model:
-            logger.debug(f"Using model from YAML: {resolved_model}")
+    resolved_provider, resolved_model = _resolve_provider_and_model(
+        prompt_config, provider, model
+    )
 
     # Build system message
     user_text = format_prompt(prompt_config["user"], variables, state=state)
@@ -255,10 +275,7 @@ def _build_system_message_from_segments(
     if provider == "anthropic":
         content_blocks = []
         for segment in processed_segments:
-            block = {
-                "type": "text",
-                "text": segment["content"]
-            }
+            block = {"type": "text", "text": segment["content"]}
             if segment["cache"]:
                 block["cache_control"] = {"type": "ephemeral"}
             content_blocks.append(block)
@@ -266,9 +283,32 @@ def _build_system_message_from_segments(
         # Create SystemMessage with content blocks in additional_kwargs
         return SystemMessage(
             content="",  # Empty content, actual content in additional_kwargs
-            additional_kwargs={"content": content_blocks}
+            additional_kwargs={"content": content_blocks},
         )
 
     # For non-Anthropic providers, flatten to single string
     combined_content = "\n".join(segment["content"] for segment in processed_segments)
     return SystemMessage(content=combined_content)
+
+
+def prepare_messages_async(
+    prompt_name: str,
+    variables: dict | None = None,
+    provider: str | None = None,
+    model: str | None = None,
+    graph_path: Path | None = None,
+    prompts_dir: Path | None = None,
+    prompts_relative: bool = False,
+    state: dict | None = None,
+) -> tuple[list, str | None, str | None]:
+    """Async version of prepare_messages (currently delegates to sync version)."""
+    return prepare_messages(
+        prompt_name,
+        variables,
+        provider,
+        model,
+        graph_path,
+        prompts_dir,
+        prompts_relative,
+        state,
+    )
