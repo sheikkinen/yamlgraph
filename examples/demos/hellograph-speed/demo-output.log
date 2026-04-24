@@ -1,0 +1,16 @@
+2026-04-23 14:50:20,862 [INFO] yamlgraph.node_compiler: Added node: greet (type=llm)
+2026-04-23 14:50:20,982 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.2)
+2026-04-23 14:50:22,890 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-23 14:50:22,896 [INFO] yamlgraph.node_factory.llm_nodes: Node greet completed successfully
+
+🚀 Running graph: graph.azure.yaml
+   Variables: {'name': 'World', 'style': 'concise'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f0827681-a26f-48d8-88ca-3b3b51df6ed2/r/019dba2d-3fc4-7e42-a538-2d288951e08a?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: greet
+  style: concise
+  name: World
+  greeting: Hello, World! Warm wishes to you.

@@ -65,6 +65,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | Demo | Node Types | Description |
 |------|------------|-------------|
 | [hello](demos/hello/) | `llm` | Minimal example — start here |
+| [hellograph-speed](demos/hellograph-speed/) | `llm` | Provider latency comparison across Google, Vertex, and Azure |
 | [router](demos/router/) | `router` | Tone-based conditional routing |
 | [router-race-candidates](demos/router-race-candidates/) | `router`, `tool` | Router `candidates` race with default-route fallback (FR-272) |
 | [map](demos/map/) | `map`, `llm` | Parallel fan-out processing |
