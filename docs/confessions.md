@@ -142,6 +142,12 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: Jinja2 `Environment()` without `autoescape=True`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
+### CONF-010
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L128)
+- **Code**: C901 (function too complex)
+- **Sin**: `prepare_messages` has high cyclomatic complexity (14 > 15 after refactoring, but still flagged) due to branching logic for different system field types (scalar vs. list vs. system_segments) and provider-specific message formatting.
+- **Penance**: Working functionality for FR-276 prompt caching. Complexity reduced from D (24) to C (14) through helper function extraction. The function orchestrates message preparation across multiple input formats and providers, making some complexity unavoidable.
+
 ### CONF-035
 - **File**: [yamlgraph/utils/worktree_helpers.py](../yamlgraph/utils/worktree_helpers.py#L97)
 - **Code**: S607

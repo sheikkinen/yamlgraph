@@ -1,0 +1,39 @@
+id: CAP-131
+name: Anthropic Prompt Caching Support
+description: >
+  YAML system_segments field with per-segment cache control for token cost optimization.
+  Enables Anthropic prompt caching to reduce costs by 3x for stable context prefixes.
+modules:
+  - yamlgraph/executor_base.py
+  - yamlgraph/utils/prompts.py
+  - tests/unit/test_prompt_caching_fr276.py
+requirements:
+  - id: REQ-YG-287
+    description: "System segments schema validation and parsing"
+    modules:
+      - yamlgraph/utils/prompts.py
+  - id: REQ-YG-288
+    description: "Backward compatibility with scalar system prompts"
+    modules:
+      - yamlgraph/executor_base.py
+  - id: REQ-YG-289
+    description: "Anthropic cache_control injection for cached segments"
+    modules:
+      - yamlgraph/executor_base.py
+  - id: REQ-YG-290
+    description: "Non-Anthropic segment flattening gracefully ignores cache flags"
+    modules:
+      - yamlgraph/executor_base.py
+  - id: REQ-YG-291
+    description: "Async/streaming executor consistency with segments"
+    modules:
+      - yamlgraph/executor_async.py
+  - id: REQ-YG-292
+    description: "Error handling for conflicting system and system_segments fields"
+    modules:
+      - yamlgraph/utils/prompts.py
+  - id: REQ-YG-293
+    description: "Variable substitution and Jinja2 support in segments"
+    modules:
+      - yamlgraph/utils/prompts.py
+fr: FR-276
