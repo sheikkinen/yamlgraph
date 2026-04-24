@@ -11,8 +11,9 @@ worktree_teardown() {
     # Remove worktree
     git worktree remove "$WT_DIR" --force 2>/dev/null || log_warn "Failed to remove worktree $WT_DIR"
 
-    # Delete local branch (remote was deleted by squash merge)
+    # Delete local and remote branch
     git branch -D "$WT_BRANCH" 2>/dev/null || true
+    git push origin --delete "$WT_BRANCH" 2>/dev/null || true
 
     # Guard against bare=true corruption (FR-139)
     local bare_val
