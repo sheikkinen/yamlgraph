@@ -1,12 +1,16 @@
 # .github/workflows/commitlint.yml
 name: Conventional Commit Check
 
-on:
+"on":
   pull_request:
     types: [opened, edited, synchronize, reopened]
   push:
     tags:
       - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   pull-requests: read
@@ -119,6 +123,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Install dependencies
         run: pip install pyyaml

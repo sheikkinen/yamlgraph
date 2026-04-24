@@ -133,7 +133,9 @@ class TestSecurityJobStructure:
         """The job must run pip-audit with --strict and --desc flags."""
         wf = _load_workflow()
         steps = wf["jobs"]["security"]["steps"]
-        audit_steps = [
+
+        # Look for direct run steps with pip-audit command
+        direct_audit_steps = [
             s
             for s in steps
             if "run" in s
@@ -141,7 +143,23 @@ class TestSecurityJobStructure:
             and "--strict" in s["run"]
             and "--desc" in s["run"]
         ]
-        assert audit_steps, "Must have a step that runs 'pip-audit --strict --desc'"
+
+        # Look for retry action steps with pip-audit command
+        retry_audit_steps = [
+            s
+            for s in steps
+            if "uses" in s
+            and "retry" in s["uses"]
+            and "with" in s
+            and "command" in s["with"]
+            and "pip-audit" in s["with"]["command"]
+            and "--strict" in s["with"]["command"]
+            and "--desc" in s["with"]["command"]
+        ]
+
+        assert (
+            direct_audit_steps or retry_audit_steps
+        ), "Must have a step that runs 'pip-audit --strict --desc'"
 
 
 # ── Documentation Tests ───────────────────────────────────────────────────
