@@ -1,0 +1,24 @@
+id: CAP-127
+name: CI Hardening Consolidation
+description: >
+  Consolidate and harden CI/CD workflows with performance optimizations,
+  security improvements, and resource management across all GitHub Actions workflows.
+fr: FR-196
+modules:
+  - .github/workflows/workflow.yml
+  - .github/workflows/security.yml
+  - .github/workflows/commitlint.yml
+  - tests/unit/test_ci_hardening_consolidation.py
+requirements:
+  - id: REQ-YG-277
+    description: >
+      CI hardening consolidation: all workflows have concurrency groups with cancel-in-progress;
+      all setup-python steps include cache: pip; main workflow renamed to "CI"; tag pushes
+      validate version against pyproject.toml; pip-audit has retry mechanism (3 attempts, 30s
+      intervals); test matrix includes Python 3.11 and 3.12; existing job dependencies and
+      triggers preserved; security scan still blocks on vulnerabilities; release process unchanged.
+    modules:
+      - .github/workflows/workflow.yml
+      - .github/workflows/security.yml
+      - .github/workflows/commitlint.yml
+      - tests/unit/test_ci_hardening_consolidation.py
