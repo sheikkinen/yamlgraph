@@ -173,14 +173,14 @@ class TestConfigurableTiming:
         # Check that the file contains both TEST_DELAY_SCALE and time.sleep patterns
         has_test_delay_scale = "TEST_DELAY_SCALE" in content
         has_configurable_sleep = False
-        
+
         lines = content.split("\n")
         for line in lines:
             # Look for time.sleep that uses a variable, not hardcoded value
-            if "time.sleep(" in line and not "time.sleep(2)" in line:
+            if "time.sleep(" in line and "time.sleep(2)" not in line:
                 has_configurable_sleep = True
                 break
-        
+
         configurable_delay_found = has_test_delay_scale and has_configurable_sleep
 
         assert configurable_delay_found, "test_map_node_timeout.py should use configurable delays via environment variables"

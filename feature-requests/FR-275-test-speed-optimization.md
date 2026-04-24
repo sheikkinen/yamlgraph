@@ -129,13 +129,13 @@ pytest tests/unit/ -q --no-cov
 
 **Industry standard:** The `slow` marker pattern is widely adopted (Django, Flask, Pandas, NumPy all use variations). Command patterns like `pytest -m "not slow"` are developer workflow standards.
 
-### Existing Abstractions  
+### Existing Abstractions
 
 **Current YAMLGraph test infrastructure:**
 - `pyproject.toml`: Already defines `req(id)` and `integration` markers - adding `slow` is consistent
 - **3,141 total pytest markers** in codebase (mostly `@pytest.mark.req` for traceability)
 - **Integration marker exists** but not consistently used for slow tests
-- `tests/chaos_tools.py`: Configurable `CHAOS_DELAY` pattern already exists 
+- `tests/chaos_tools.py`: Configurable `CHAOS_DELAY` pattern already exists
 - Asyncio markers already in use (`@pytest.mark.asyncio`)
 
 **No overlapping abstractions** - this is pure testing infrastructure, not framework logic.
@@ -151,7 +151,7 @@ pytest tests/unit/ -q --no-cov
 ### Usage Evidence
 
 - **Existing graphs using related abstractions:** 300+ YAML graph files
-- **Current test markers:** 3,141 markers (mostly REQ traceability)  
+- **Current test markers:** 3,141 markers (mostly REQ traceability)
 - **Integration tests:** 22 explicit integration test references
 - **Real-world use cases beyond the proposal:** Every YAMLGraph developer doing rapid iteration
 
