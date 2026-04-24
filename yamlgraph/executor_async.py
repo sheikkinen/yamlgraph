@@ -45,20 +45,20 @@ def prepare_messages_async(
     state: dict | None = None,
 ) -> tuple[list, str | None, str | None]:
     """Async version of prepare_messages.
-    
+
     Currently just delegates to the sync version since message preparation
     is not I/O bound. Provided for async context consistency.
-    
+
     Args:
         prompt_name: Name of the prompt file (without .yaml)
-        variables: Variables to substitute in the template  
+        variables: Variables to substitute in the template
         provider: LLM provider override (None to use YAML/env default)
         model: LLM model override (None to use YAML/env default)
         graph_path: Path to graph file for relative prompt resolution
         prompts_dir: Explicit prompts directory override
         prompts_relative: If True, resolve prompts relative to graph_path
         state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
-        
+
     Returns:
         Tuple of (messages list, resolved provider, resolved model)
     """
