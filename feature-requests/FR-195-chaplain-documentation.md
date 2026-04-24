@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-24
 
@@ -74,14 +74,14 @@ Document each tool in `.chaplain/lib/watcher/*.sh`:
 
 ## Acceptance Criteria
 
-- [ ] `.chaplain/README.md` created with comprehensive documentation
-- [ ] Watcher2 pipeline architecture clearly explained
-- [ ] All shell tools in `.chaplain/lib/watcher/*.sh` documented
-- [ ] Usage examples for both pipeline and individual tools
-- [ ] Environment variables and configuration documented
-- [ ] Troubleshooting section included
-- [ ] Documentation follows project markdown style
-- [ ] Cross-references to related files (FR-273, etc.)
+- [x] `.chaplain/README.md` created with comprehensive documentation
+- [x] Watcher2 pipeline architecture clearly explained
+- [x] All shell tools in `.chaplain/lib/watcher/*.sh` documented
+- [x] Usage examples for both pipeline and individual tools
+- [x] Environment variables and configuration documented
+- [x] Troubleshooting section included
+- [x] Documentation follows project markdown style
+- [x] Cross-references to related files (FR-273, etc.)
 
 ## Alternatives Considered
 
