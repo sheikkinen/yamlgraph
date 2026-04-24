@@ -201,26 +201,44 @@ class TestFR277BaselineBuilderNodes:
         )
 
         # Mock the file content since it won't exist yet
-        mock_content = """
-version: "1.0"
-name: baseline-builder
-
-nodes:
-  load_manifest:
-    type: python
-  expand_sources:
-    type: python
-  read_sources:
-    type: python
-  resolve_summaries:
-    type: llm
-  compute_baseline_id:
-    type: python
-  assemble_baseline_state:
-    type: python
-  emit_artifact:
-    type: python
-"""
+        mock_content = "\n".join(
+            [
+                'version: "1.0"',
+                "name: baseline-builder",
+                "",
+                "nodes:",
+                "  load_manifest:",
+                "    type: python",
+                "  expand_sources:",
+                "    type: python",
+                "  read_sources:",
+                "    type: python",
+                "  resolve_summaries:",
+                "    type: llm",
+                "    prompt: baseline-summarize",
+                "  compute_baseline_id:",
+                "    type: python",
+                "  assemble_baseline_state:",
+                "    type: python",
+                "  emit_artifact:",
+                "    type: python",
+                "",
+                "edges:",
+                "  - from: load_manifest",
+                "    to: expand_sources",
+                "  - from: expand_sources",
+                "    to: read_sources",
+                "  - from: read_sources",
+                "    to: resolve_summaries",
+                "  - from: resolve_summaries",
+                "    to: compute_baseline_id",
+                "  - from: compute_baseline_id",
+                "    to: assemble_baseline_state",
+                "  - from: assemble_baseline_state",
+                "    to: emit_artifact",
+                "",
+            ]
+        )
 
         with (
             patch("builtins.open", mock_open(read_data=mock_content)),
@@ -353,23 +371,34 @@ class TestFR277RetentionPolicy:
 
         baseline_dir = Path("/tmp/baseline")
 
-        # Mock 7 baseline files with timestamps
-        baseline_files = [Path(f"baseline_{i}.json") for i in range(7)]
+        # Create mock file objects
+        from unittest.mock import Mock
+        baseline_files = []
+        unlink_calls = []
+        
+        for i in range(7):
+            mock_file = Mock(spec=Path)
+            mock_file.name = f"baseline_{i}.json"
+            mock_file.__str__ = lambda i=i: f"baseline_{i}.json"  # Capture i
+            # Mock stat to return different timestamps (newer files have higher numbers)
+            mock_stat = Mock()
+            mock_stat.st_mtime = 1000 + i
+            mock_file.stat.return_value = mock_stat
+            # Track when unlink is called
+            mock_file.unlink.side_effect = lambda i=i: unlink_calls.append(i)  # Capture i
+            baseline_files.append(mock_file)
 
-        with (
-            patch("pathlib.Path.glob") as mock_glob,
-            patch("pathlib.Path.stat") as mock_stat,
-            patch("pathlib.Path.unlink") as mock_unlink,
-        ):
+        with patch("pathlib.Path.glob") as mock_glob:
             mock_glob.return_value = baseline_files
-
-            # Mock file timestamps (newest first)
-            mock_stat.return_value.st_mtime = lambda: 1000
 
             apply_retention_policy(baseline_dir, keep_count=5)
 
             # Should delete 2 oldest files (7 - 5 = 2)
-            assert mock_unlink.call_count == 2
+            assert len(unlink_calls) == 2
+            
+            # Verify the correct files were deleted (the 2 oldest ones: index 0 and 1)
+            assert 0 in unlink_calls
+            assert 1 in unlink_calls
 
 
 class TestFR277WatcherIntegration:
