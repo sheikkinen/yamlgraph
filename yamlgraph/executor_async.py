@@ -34,6 +34,46 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 
+def prepare_messages_async(
+    prompt_name: str,
+    variables: dict | None = None,
+    provider: str | None = None,
+    model: str | None = None,
+    graph_path: Path | None = None,
+    prompts_dir: Path | None = None,
+    prompts_relative: bool = False,
+    state: dict | None = None,
+) -> tuple[list, str | None, str | None]:
+    """Async version of prepare_messages.
+    
+    Currently just delegates to the sync version since message preparation
+    is not I/O bound. Provided for async context consistency.
+    
+    Args:
+        prompt_name: Name of the prompt file (without .yaml)
+        variables: Variables to substitute in the template  
+        provider: LLM provider override (None to use YAML/env default)
+        model: LLM model override (None to use YAML/env default)
+        graph_path: Path to graph file for relative prompt resolution
+        prompts_dir: Explicit prompts directory override
+        prompts_relative: If True, resolve prompts relative to graph_path
+        state: Optional state dict for Jinja2 templates (accessible as {{ state.field }})
+        
+    Returns:
+        Tuple of (messages list, resolved provider, resolved model)
+    """
+    return prepare_messages(
+        prompt_name,
+        variables=variables,
+        provider=provider,
+        model=model,
+        graph_path=graph_path,
+        prompts_dir=prompts_dir,
+        prompts_relative=prompts_relative,
+        state=state,
+    )
+
+
 async def execute_prompt_async(
     prompt_name: str,
     variables: dict | None = None,
@@ -427,6 +467,7 @@ __all__ = [
     "execute_prompt_async",
     "execute_prompt_streaming",
     "execute_prompts_concurrent",
+    "prepare_messages_async",
     "run_graph_async",
     "run_graph_streaming_native",
     "compile_graph_async",

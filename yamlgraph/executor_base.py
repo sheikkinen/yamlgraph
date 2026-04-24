@@ -120,8 +120,36 @@ def prepare_messages(
         prompts_relative=prompts_relative,
     )
 
-    # Validate all required variables are provided (fail fast)
-    full_template = prompt_config.get("system", "") + prompt_config.get("user", "")
+    # Handle system field conflicts - both system and system_segments not allowed
+    has_system = "system" in prompt_config and prompt_config["system"]
+    has_system_segments = "system_segments" in prompt_config
+    
+    if has_system and has_system_segments:
+        raise ValueError(
+            f"Cannot specify both 'system' and 'system_segments' fields in prompt '{prompt_name}'"
+        )
+
+    # Build full template for variable validation
+    system_template = ""
+    if has_system_segments:
+        # Extract content from all segments for validation
+        segments = prompt_config["system_segments"]
+        for segment in segments:
+            system_template += segment.get("content", "")
+    elif has_system:
+        system_field = prompt_config["system"]
+        # Handle both scalar string and list format for system field
+        if isinstance(system_field, list):
+            # List format: [{"content": "text", "cache": bool}, ...]
+            for item in system_field:
+                if isinstance(item, dict):
+                    system_template += item.get("content", "")
+                else:
+                    system_template += str(item)
+        else:
+            system_template = system_field
+    
+    full_template = system_template + prompt_config.get("user", "")
     validate_variables(full_template, variables, prompt_name)
 
     # Extract provider and model from YAML if not provided via parameter
@@ -137,12 +165,110 @@ def prepare_messages(
         if resolved_model:
             logger.debug(f"Using model from YAML: {resolved_model}")
 
-    system_text = format_prompt(prompt_config.get("system", ""), variables, state=state)
+    # Build system message
     user_text = format_prompt(prompt_config["user"], variables, state=state)
 
     messages = []
-    if system_text:
-        messages.append(SystemMessage(content=system_text))
+    
+    # Handle system_segments (takes precedence over system)
+    if has_system_segments:
+        segments = prompt_config["system_segments"]
+        
+        # Check for empty segments  
+        if not segments:
+            # Create empty SystemMessage for consistency
+            messages.append(SystemMessage(content=""))
+        else:
+            system_msg = _build_system_message_from_segments(
+                segments, variables, state, resolved_provider
+            )
+            if system_msg:
+                messages.append(system_msg)
+    
+    # Handle scalar or list system field
+    elif has_system:
+        system_field = prompt_config["system"]
+        
+        if isinstance(system_field, list):
+            # Treat list format as segments
+            segments = []
+            for item in system_field:
+                if isinstance(item, dict):
+                    segments.append(item)
+                else:
+                    # Convert bare string to segment
+                    segments.append({"content": str(item), "cache": False})
+            
+            system_msg = _build_system_message_from_segments(
+                segments, variables, state, resolved_provider
+            )
+            if system_msg:
+                messages.append(system_msg)
+        else:
+            # Traditional scalar system prompt
+            system_text = format_prompt(system_field, variables, state=state)
+            if system_text:
+                messages.append(SystemMessage(content=system_text))
+    
     messages.append(HumanMessage(content=user_text))
 
     return messages, resolved_provider, resolved_model
+
+
+def _build_system_message_from_segments(
+    segments: list[dict],
+    variables: dict,
+    state: dict | None,
+    provider: str | None,
+) -> SystemMessage | None:
+    """Build SystemMessage from system_segments.
+    
+    For Anthropic provider: create message with cache_control blocks
+    For other providers: flatten to single content string
+    
+    Args:
+        segments: List of segment dicts with 'content' and optional 'cache'
+        variables: Template variables 
+        state: Optional state for Jinja2 templates
+        provider: LLM provider name
+        
+    Returns:
+        SystemMessage or None if all segments are empty
+    """
+    if not segments:
+        return None
+        
+    # Process all segment content with variable substitution
+    processed_segments = []
+    for segment in segments:
+        content = segment.get("content", "")
+        cache = segment.get("cache", False)  # Default cache to False
+        
+        if content:
+            formatted_content = format_prompt(content, variables, state=state)
+            processed_segments.append({"content": formatted_content, "cache": cache})
+    
+    if not processed_segments:
+        return None
+    
+    # For Anthropic provider, use content blocks with cache_control
+    if provider == "anthropic":
+        content_blocks = []
+        for segment in processed_segments:
+            block = {
+                "type": "text",
+                "text": segment["content"]
+            }
+            if segment["cache"]:
+                block["cache_control"] = {"type": "ephemeral"}
+            content_blocks.append(block)
+        
+        # Create SystemMessage with content blocks in additional_kwargs
+        return SystemMessage(
+            content="",  # Empty content, actual content in additional_kwargs
+            additional_kwargs={"content": content_blocks}
+        )
+    
+    # For non-Anthropic providers, flatten to single string
+    combined_content = "\n".join(segment["content"] for segment in processed_segments)
+    return SystemMessage(content=combined_content)
