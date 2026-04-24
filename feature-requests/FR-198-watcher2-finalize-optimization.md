@@ -1,10 +1,10 @@
 # Feature Request: Watcher2 Finalize Pre-commit Optimization
 
-**Priority:** MEDIUM  
-**Type:** Enhancement  
-**Status:** Implemented  
-**Effort:** 0.5 days  
-**Requested:** 2026-04-24  
+**Priority:** MEDIUM
+**Type:** Enhancement
+**Status:** Implemented
+**Effort:** 0.5 days
+**Requested:** 2026-04-24
 
 ## Summary
 
@@ -20,7 +20,7 @@ Watcher2 finalize wastes 25 minutes spawning a copilot session because the pre-c
 
 **Evidence from watcher2-run-3.log (FR-275 cycle):**
 - Attempt 1: ruff auto-fixes 3 errors
-- Attempt 2: trailing-whitespace fixes diary + FR files  
+- Attempt 2: trailing-whitespace fixes diary + FR files
 - Attempt 3: end-of-file-fixer fixes same files
 - Result: falls through to 1500s copilot finalize session
 
@@ -68,7 +68,7 @@ And update the failure message on line 320:
 # Current
 log_warn "Pre-commit still failing after 3 attempts — invoking copilot fix..."
 
-# Proposed  
+# Proposed
 log_warn "Pre-commit still failing after 5 attempts — invoking copilot fix..."
 ```
 
@@ -80,7 +80,7 @@ log_warn "Pre-commit still failing after 5 attempts — invoking copilot fix..."
 ## Acceptance Criteria
 
 - [x] `ruff check --fix` runs before pre-commit loop
-- [x] `ruff format` runs before pre-commit loop  
+- [x] `ruff format` runs before pre-commit loop
 - [x] Pre-commit loop allows 5 attempts (was 3)
 - [x] Failure message updated to reflect "5 attempts"
 - [x] No copilot fallback triggered for auto-fixable cascading issues
