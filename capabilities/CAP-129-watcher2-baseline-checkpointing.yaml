@@ -1,0 +1,17 @@
+id: CAP-129
+name: "Watcher2 Baseline Checkpointing"
+description: >
+  Deterministic caching system for stable doctrine/context inputs to reduce
+  token costs across watcher2 runs via hash-based invalidation and reuse.
+modules:
+  - models/baseline
+  - chaplain/baseline
+  - .chaplain/graphs/baseline/
+requirements:
+  - id: REQ-YG-279
+    description: Watcher2 baseline checkpointing system
+    modules:
+      - models/baseline
+      - chaplain/baseline
+      - .chaplain/graphs/baseline/
+fr: FR-277
