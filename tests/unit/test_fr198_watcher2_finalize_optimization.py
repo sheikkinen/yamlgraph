@@ -30,7 +30,7 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
 
 
-@pytest.mark.req("REQ-YG-277")
+@pytest.mark.req("REQ-YG-286")
 class TestWatcher2FinalizeOptimization:
     """Tests for watcher2.sh finalize step optimization."""
 
@@ -190,7 +190,7 @@ class TestWatcher2FinalizeOptimization:
         ), "git add -A should run after ruff format to stage the fixes"
 
 
-@pytest.mark.req("REQ-YG-277")
+@pytest.mark.req("REQ-YG-286")
 def test_current_watcher2_has_five_attempts():
     """Optimized watcher2.sh should have 5 attempts for pre-commit resilience."""
     watcher_content = WATCHER2_SH.read_text()
@@ -211,7 +211,7 @@ def test_current_watcher2_has_five_attempts():
     ], f"Attempts should be [1..5], found: {loop_attempts}"
 
 
-@pytest.mark.req("REQ-YG-277")
+@pytest.mark.req("REQ-YG-286")
 def test_current_watcher2_has_pre_formatting():
     """Optimized watcher2.sh should have pre-formatting before the pre-commit loop."""
     watcher_content = WATCHER2_SH.read_text()

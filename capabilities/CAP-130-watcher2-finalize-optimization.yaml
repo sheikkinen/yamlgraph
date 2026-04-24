@@ -1,4 +1,4 @@
-id: CAP-127
+id: CAP-130
 name: Watcher2 Finalize Pre-commit Optimization
 description: >
   Optimize watcher2 finalize step to reduce copilot session invocations by pre-formatting
@@ -7,7 +7,7 @@ modules:
   - .chaplain/watcher2.sh
   - tests/unit/test_fr198_watcher2_finalize_optimization.py
 requirements:
-  - id: REQ-YG-277
+  - id: REQ-YG-286
     description: >
       Watcher2 finalize section runs ruff check --fix and ruff format on yamlgraph/
       and tests/ directories before entering the pre-commit loop; loop allows 5 attempts
