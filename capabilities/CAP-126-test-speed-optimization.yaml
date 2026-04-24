@@ -1,0 +1,33 @@
+id: CAP-126
+name: Test Speed Optimization
+description: >
+  Pytest markers and configurable timing to enable faster development cycles.
+  Adds 'slow' marker for tests >1s, configurable TEST_DELAY_SCALE for accelerated timing,
+  and developer commands for selective test execution during rapid iteration.
+modules:
+  - pyproject.toml
+  - tests/chaos_tools.py
+  - tests/unit/test_map_node_timeout.py
+  - tests/unit/test_race_node.py
+  - tests/unit/test_fr275_test_speed_optimization.py
+  - CLAUDE.md
+requirements:
+  - id: REQ-YG-275
+    description: >
+      pytest slow marker infrastructure enables selective test execution.
+      'slow' marker defined in pyproject.toml for tests taking >1 second;
+      tests using sleep >1s marked with @pytest.mark.slow;
+      pytest -m "not slow" excludes slow tests for fast iteration;
+      pytest -m "slow" runs only slow tests for full validation;
+      CHAOS_DELAY and test timing configurable via TEST_DELAY_SCALE environment variable;
+      development commands documented in CLAUDE.md for ultra-fast, fast, and slow-only execution;
+      test behavior unchanged when no marker filters applied;
+      comprehensive acceptance tests validate marker functionality
+    modules:
+      - pyproject.toml
+      - tests/chaos_tools.py
+      - tests/unit/test_map_node_timeout.py
+      - tests/unit/test_race_node.py
+      - tests/unit/test_fr275_test_speed_optimization.py
+      - CLAUDE.md
+fr: FR-275

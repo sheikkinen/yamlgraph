@@ -57,8 +57,14 @@ pre-commit install --hook-type commit-msg
 
 ### Testing
 ```bash
+# Ultra-fast tests (skip slow tests)
+pytest tests/unit/ -q --no-cov -m "not slow"
+
 # Fast unit tests (no coverage report)
 pytest tests/unit/ -q --no-cov
+
+# Run only slow tests
+pytest tests/unit/ -q --no-cov -m "slow"
 
 # All tests with coverage
 pytest tests/ -q
