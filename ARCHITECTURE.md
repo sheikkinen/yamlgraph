@@ -1645,6 +1645,16 @@ Ruff `S` ruleset (flake8-bandit) enabled for automated security linting.
 
 | REQ-YG-222 | Ruff `S` ruleset enabled in `[tool.ruff.lint] select`. All 7 existing violations (S104 ×2, S602, S603, S607 ×2, S701) suppressed with `# noqa` and documented in `docs/confessions.md`. `ruff check --select S yamlgraph/` exits 0. (FR-222) | `pyproject.toml`, `docs/confessions.md`, `tests/unit/test_ruff_security.py` |
 
+### 128. Chaplain Documentation
+
+Comprehensive documentation for the watcher2 pipeline orchestrator and shell library in `.chaplain/README.md` covering architecture, usage, and troubleshooting.
+
+**Feature Request:** FR-195
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-278 | `.chaplain/README.md` exists with comprehensive documentation covering: watcher2 pipeline architecture (4-phase: Plan → Research → Acceptance → Judge → Enforce), shell library reference for all tools in `.chaplain/lib/watcher/*.sh` (worktree_setup.sh, worktree_teardown.sh, preflight.sh, create_pr.sh, merge_pr.sh, wait_ci.sh, post_merge.sh, inbox_sync.sh, metrics.sh), usage examples for daemon and individual tools, environment variables and configuration, troubleshooting section, architecture details, and cross-references to related files (FR-273, etc.) | `.chaplain/README.md`, `tests/unit/test_chaplain_readme_documentation` |
+
 ---
 
 ## Key Data Flows
