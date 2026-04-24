@@ -5,7 +5,8 @@ All tests must FAIL on the current unmodified codebase (RED phase).
 """
 
 from pathlib import Path
-from unittest.mock import patch
+from io import StringIO
+from unittest.mock import mock_open, patch
 
 import pytest
 from langchain_core.messages import SystemMessage
@@ -135,28 +136,27 @@ class TestBackwardCompatibility:
         """System field should accept list format for migration."""
         from yamlgraph.executor_base import prepare_messages
 
-        # This should work in the new implementation
-        with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
-            mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system": [
-                        {"content": "You are helpful.", "cache": False},
-                        {"content": "Task context: important", "cache": True},
-                    ],
-                    "user": "Help with {topic}",
-                }
+        # Write a real YAML file so load_prompt can open it
+        prompt_file = tmp_path / "test_list.yaml"
+        prompt_file.write_text(
+            "system:\n"
+            "  - content: \"You are helpful.\"\n"
+            "    cache: false\n"
+            "  - content: \"Task context: important\"\n"
+            "    cache: true\n"
+            "user: \"Help with {topic}\"\n"
+        )
 
-                messages, provider, model = prepare_messages(
-                    "test_list", variables={"topic": "test"}
-                )
+        messages, provider, model = prepare_messages(
+            "test_list", variables={"topic": "test"}, prompts_dir=tmp_path
+        )
 
-                # Should flatten list format into single SystemMessage for non-Anthropic
-                assert len(messages) == 2
-                assert isinstance(messages[0], SystemMessage)
-                # Content should be concatenated
-                assert "You are helpful" in messages[0].content
-                assert "Task context" in messages[0].content
+        # Should flatten list format into single SystemMessage for non-Anthropic
+        assert len(messages) == 2
+        assert isinstance(messages[0], SystemMessage)
+        # Content should be concatenated
+        assert "You are helpful" in messages[0].content
+        assert "Task context" in messages[0].content
 
 
 class TestAnthropicCacheControl:
@@ -245,7 +245,8 @@ class TestNonAnthropicFlattening:
 
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system_segments": [
                         {"content": "First segment", "cache": True},
@@ -280,7 +281,8 @@ class TestNonAnthropicFlattening:
 
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system_segments": [
                         {"content": "Cached segment", "cache": True},
@@ -314,7 +316,8 @@ class TestExecutorPathConsistency:
         # This will fail until async path is implemented
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system_segments": [
                         {"content": "Context", "cache": True},
@@ -347,7 +350,8 @@ class TestExecutorPathConsistency:
         # Test that streaming mode (if different) handles segments same way
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system_segments": [{"content": "Stable", "cache": True}],
                     "user": "Stream this: {input}",
@@ -372,7 +376,8 @@ class TestErrorHandling:
 
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system": "Traditional system prompt",
                     "system_segments": [{"content": "Segmented prompt", "cache": True}],
@@ -386,29 +391,24 @@ class TestErrorHandling:
 
     @pytest.mark.req("REQ-YG-284")
     def test_system_segments_precedence_over_system(self) -> None:
-        """When both exist, system_segments should take precedence (per spec)."""
+        """When both exist, should raise ValueError (AC-10 conflict detection)."""
         from yamlgraph.executor_base import prepare_messages
 
-        # Based on the FR spec: "If system_segments is present, it takes precedence over system field"
-        # But the error test above suggests this should error instead
-        # This test documents the expected behavior from the FR
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system": "Should be ignored",
                     "system_segments": [{"content": "Should be used", "cache": False}],
                     "user": "Test",
                 }
 
-                # Should either error (per AC-10) or use system_segments (per proposed solution)
-                # Let's test the precedence behavior documented in the FR
-                messages, _, _ = prepare_messages("test_precedence")
-
-                system_msg = messages[0]
-                # Should use system_segments content, not scalar system
-                assert "Should be used" in system_msg.content
-                assert "Should be ignored" not in system_msg.content
+                # Implementation chose error-on-conflict (consistent with test_conflicting above)
+                with pytest.raises(
+                    ValueError, match="Cannot specify both.*system.*system_segments"
+                ):
+                    prepare_messages("test_precedence")
 
     @pytest.mark.req("REQ-YG-284")
     def test_empty_system_segments_validation(self) -> None:
@@ -417,7 +417,8 @@ class TestErrorHandling:
 
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system_segments": [],  # Empty list
                     "user": "Test",
@@ -444,7 +445,8 @@ class TestSegmentContentProcessing:
 
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system_segments": [
                         {"content": "Hello {name}, you are {role}", "cache": True},
@@ -471,7 +473,8 @@ class TestSegmentContentProcessing:
 
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
-            with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+            with patch("builtins.open", mock_open(read_data="")):
+              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
                 mock_load.return_value = {
                     "system_segments": [
                         {
