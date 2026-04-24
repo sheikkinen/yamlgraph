@@ -191,29 +191,29 @@ class TestWatcher2FinalizeOptimization:
 
 
 @pytest.mark.req("REQ-YG-277")
-def test_current_watcher2_has_three_attempts():
-    """Baseline test: Current watcher2.sh should have 3 attempts (will pass initially)."""
+def test_current_watcher2_has_five_attempts():
+    """Optimized watcher2.sh should have 5 attempts for pre-commit resilience."""
     watcher_content = WATCHER2_SH.read_text()
 
-    # This test documents current behavior - it should pass now and fail after changes
     loop_match = re.search(r"for attempt in ([0-9\s]+);", watcher_content)
     assert loop_match, "Could not find pre-commit loop"
 
     loop_attempts = loop_match.group(1).split()
-    # This assertion will pass on current code (3 attempts) and fail after optimization (5 attempts)
     assert (
-        len(loop_attempts) == 3
-    ), f"Current code should have 3 attempts, found: {len(loop_attempts)}"
+        len(loop_attempts) == 5
+    ), f"Optimized code should have 5 attempts, found: {len(loop_attempts)}"
     assert loop_attempts == [
         "1",
         "2",
         "3",
-    ], f"Current attempts should be [1, 2, 3], found: {loop_attempts}"
+        "4",
+        "5",
+    ], f"Attempts should be [1..5], found: {loop_attempts}"
 
 
 @pytest.mark.req("REQ-YG-277")
-def test_current_watcher2_no_pre_formatting():
-    """Baseline test: Current watcher2.sh should not have pre-formatting (will pass initially)."""
+def test_current_watcher2_has_pre_formatting():
+    """Optimized watcher2.sh should have pre-formatting before the pre-commit loop."""
     watcher_content = WATCHER2_SH.read_text()
 
     # Find the finalize section (between step 4 comment and the pre-commit loop)
@@ -224,10 +224,10 @@ def test_current_watcher2_no_pre_formatting():
     assert finalize_section, "Could not find finalize section"
     finalize_text = finalize_section.group(0)
 
-    # This should pass now (no ruff commands) and fail after optimization
+    # Pre-formatting should exist to reduce auto-fix cascades
     assert (
-        "ruff check --fix" not in finalize_text
-    ), "Current code should not have ruff check --fix before loop"
+        "ruff check --fix" in finalize_text
+    ), "Optimized code should have ruff check --fix before loop"
     assert (
-        "ruff format" not in finalize_text
-    ), "Current code should not have ruff format before loop"
+        "ruff format" in finalize_text
+    ), "Optimized code should have ruff format before loop"
