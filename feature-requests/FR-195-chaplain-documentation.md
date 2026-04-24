@@ -109,3 +109,52 @@ The documentation should capture the current state of the watcher2 system as imp
 - Integration with GitHub CLI and git worktrees
 
 This documentation will serve as both user guide and maintenance reference for the automation infrastructure.
+
+## Research Brief
+
+### Competitive Landscape
+
+Most CI/CD and automation frameworks provide comprehensive documentation for their architecture and primitives:
+
+- **GitHub Actions** features detailed documentation covering workflow syntax, runner configuration, and marketplace actions with clear usage examples
+- **Tekton** provides structured docs for pipelines, tasks, and CLI components with conceptual overviews and installation guides  
+- **LangGraph** offers well-organized documentation covering core benefits, execution patterns, and ecosystem integration
+- **CrewAI** maintains clear documentation for agents, flows, and enterprise features with quickstart guides and examples
+
+However, these frameworks differ from YAMLGraph's chaplain system in that they are primarily end-user tools, while the chaplain is internal automation infrastructure. The competitive analysis reveals that **documenting internal automation tools follows the same patterns as documenting public APIs** - architecture overviews, component references, usage examples, and troubleshooting guides are universal best practices.
+
+### Existing Abstractions
+
+The YAMLGraph codebase shows strong patterns around documentation:
+
+- **README-driven development**: Every example and demo includes comprehensive README.md files (80+ found)
+- **Reference documentation**: `reference/` directory contains structured guides for core concepts
+- **Inline documentation**: Shell scripts contain header comments explaining purpose and environment variables
+- **Architecture documentation**: `ARCHITECTURE.md` provides high-level design philosophy and patterns
+- **Process documentation**: `CLAUDE.md` contains development workflows and commands
+
+The chaplain system follows these established patterns but lacks the central README that ties everything together.
+
+### Diary Precedents
+
+Key diary insights relevant to this proposal:
+
+- **Documentation drift trap** (2026-03-08): Asymmetric coverage across instruction files led to silent capability discovery failures - documentation should be co-located and comprehensive
+- **Infrastructure self-exempt trap** (2026-04-09): Meta-tooling often lacks the same documentation rigor applied to user-facing features
+- **README as minimum viable documentation** (2026-04-19): The reference documentation, not just example READMEs, establishes the baseline for pattern understanding
+- **Audit as ritual trap** (2026-03-09): Multiple audits without fixes indicates process failure - documentation prevents this by making systems inspectable
+
+The pattern: **undocumented infrastructure becomes unmaintainable infrastructure**.
+
+### Usage Evidence
+
+- Existing graphs using related abstractions: 17 (automation/watcher/chaplain references across examples and ebook pipeline)
+- Shell script references in examples: 7 files
+- README.md files in project: 80+ (indicating established documentation patterns)
+- Real-world use cases beyond the proposal: The watcher2 system is actively used for automated feature request processing, with the chaplain daemon running continuously
+
+### Classification Signal
+
+- **Abstraction level**: pattern (infrastructure documentation)
+- **Recommended approach**: document  
+- **Key risk**: Without documentation, the sophisticated watcher2 system remains a "black box" limiting contributor onboarding and debugging capability
