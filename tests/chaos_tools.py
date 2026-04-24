@@ -30,7 +30,9 @@ def chaos_respond(state: dict) -> dict:
     elif mode == "rate_limit":
         raise SimulatedRateLimitError("429 Too Many Requests")
     elif mode == "slow":
-        time.sleep(float(os.environ.get("CHAOS_DELAY", "5")))
+        delay_scale = float(os.environ.get("TEST_DELAY_SCALE", "1.0"))
+        base_delay = float(os.environ.get("CHAOS_DELAY", "5"))
+        time.sleep(base_delay * delay_scale)
         return {"response": "delayed response"}
     else:
         return {"response": "normal response"}

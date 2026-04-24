@@ -1,6 +1,7 @@
 """Tests for FR-069: Per-Node Timeout for Map Branches."""
 
 import concurrent.futures
+import os
 import time
 from unittest.mock import MagicMock
 
@@ -90,11 +91,13 @@ class TestWrapForReducerTimeout:
     """Tests for timeout support in wrap_for_reducer."""
 
     @pytest.mark.req("REQ-YG-078")
+    @pytest.mark.slow
     def test_slow_node_times_out(self):
         """A slow node exceeding timeout produces error result."""
 
         def slow_node(state):
-            time.sleep(2)
+            delay_scale = float(os.environ.get("TEST_DELAY_SCALE", "1.0"))
+            time.sleep(2 * delay_scale)
             return {"result": "done"}
 
         wrapped = wrap_for_reducer(slow_node, "results", "result", timeout=0.05)
@@ -136,11 +139,13 @@ class TestWrapForReducerTimeout:
         assert result == {"results": ["ok"]}
 
     @pytest.mark.req("REQ-YG-078")
+    @pytest.mark.slow
     def test_timeout_error_classified_as_timeout_not_llm(self):
         """TimeoutError caught before general Exception — classified as TIMEOUT_ERROR."""
 
         def slow_node(state):
-            time.sleep(2)
+            delay_scale = float(os.environ.get("TEST_DELAY_SCALE", "1.0"))
+            time.sleep(2 * delay_scale)
             return {"result": "done"}
 
         wrapped = wrap_for_reducer(slow_node, "results", "result", timeout=0.05)
@@ -154,6 +159,7 @@ class TestCompileMapNodeTimeout:
     """Tests for timeout propagation in compile_map_node."""
 
     @pytest.mark.req("REQ-YG-078")
+    @pytest.mark.slow
     def test_timeout_passed_to_wrapped_node(self):
         """compile_map_node propagates timeout to the wrapped sub-node.
 
@@ -163,7 +169,8 @@ class TestCompileMapNodeTimeout:
         from unittest.mock import patch
 
         def slow_sub_node(state):
-            time.sleep(2)
+            delay_scale = float(os.environ.get("TEST_DELAY_SCALE", "1.0"))
+            time.sleep(2 * delay_scale)
             return {"result": "done"}
 
         config = {
@@ -197,12 +204,14 @@ class TestNonMapNodeTimeout:
     """Tests for timeout wrapping on non-map nodes."""
 
     @pytest.mark.req("REQ-YG-078")
+    @pytest.mark.slow
     def test_maybe_wrap_timeout_wraps_slow_node(self):
         """_maybe_wrap_timeout wraps a node function with timeout."""
         from yamlgraph.node_compiler import _maybe_wrap_timeout
 
         def slow_node(state):
-            time.sleep(2)
+            delay_scale = float(os.environ.get("TEST_DELAY_SCALE", "1.0"))
+            time.sleep(2 * delay_scale)
             return {"result": "done", "current_step": "test"}
 
         wrapped = _maybe_wrap_timeout(

@@ -172,6 +172,7 @@ addopts = "--cov=yamlgraph --cov-report=term-missing --cov-fail-under=70"
 markers = [
     "req(id): links test to requirement(s) e.g. @pytest.mark.req('REQ-YG-014')",
     "integration: marks tests requiring external services",
+    "slow: marks tests that take >1 second to complete",
 ]
 
 [tool.coverage.run]
