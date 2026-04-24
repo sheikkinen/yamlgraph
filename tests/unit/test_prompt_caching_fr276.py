@@ -15,7 +15,7 @@ from langchain_core.messages import SystemMessage
 class TestPromptSegmentSchema:
     """Test system_segments YAML schema support (AC-2)."""
 
-    @pytest.mark.req("REQ-YG-279")
+    @pytest.mark.req("REQ-YG-287")
     def test_system_segments_schema_validation(self, tmp_path: Path) -> None:
         """Prompt schema should support system_segments with per-segment cache boolean."""
         from yamlgraph.utils.prompts import load_prompt
@@ -71,7 +71,7 @@ class TestPromptSegmentSchema:
             assert "expert assistant" in system_msg.content
             assert "Current task" in system_msg.content
 
-    @pytest.mark.req("REQ-YG-279")
+    @pytest.mark.req("REQ-YG-287")
     def test_system_segments_without_cache_defaults_false(self, tmp_path: Path) -> None:
         """Segments without explicit cache should default to False."""
         from yamlgraph.utils.prompts import load_prompt
@@ -97,7 +97,7 @@ class TestPromptSegmentSchema:
 class TestBackwardCompatibility:
     """Test existing scalar system: prompts remain valid (AC-1, AC-3)."""
 
-    @pytest.mark.req("REQ-YG-280")
+    @pytest.mark.req("REQ-YG-288")
     def test_scalar_system_prompt_unchanged(self, tmp_path: Path) -> None:
         """Existing prompts with scalar system should work unchanged."""
         from yamlgraph.executor_base import prepare_messages
@@ -131,7 +131,7 @@ class TestBackwardCompatibility:
                 assert "helpful assistant" in messages[0].content
                 assert "Always be polite" in messages[0].content
 
-    @pytest.mark.req("REQ-YG-280")
+    @pytest.mark.req("REQ-YG-288")
     def test_system_list_format_support(self, tmp_path: Path) -> None:
         """System field should accept list format for migration."""
         from yamlgraph.executor_base import prepare_messages
@@ -162,7 +162,7 @@ class TestBackwardCompatibility:
 class TestAnthropicCacheControl:
     """Test Anthropic-specific cache_control injection (AC-4)."""
 
-    @pytest.mark.req("REQ-YG-281")
+    @pytest.mark.req("REQ-YG-289")
     def test_anthropic_cache_control_injection(self, tmp_path: Path) -> None:
         """Anthropic provider should inject cache_control on cached segments."""
         from yamlgraph.executor_base import prepare_messages
@@ -201,7 +201,7 @@ class TestAnthropicCacheControl:
         assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
         assert "cache_control" not in cache_blocks[1]
 
-    @pytest.mark.req("REQ-YG-281")
+    @pytest.mark.req("REQ-YG-289")
     def test_anthropic_only_caches_true_segments(self, tmp_path: Path) -> None:
         """Only segments with cache: true should get cache_control."""
         from yamlgraph.executor_base import prepare_messages
@@ -238,7 +238,7 @@ class TestAnthropicCacheControl:
 class TestNonAnthropicFlattening:
     """Test non-Anthropic providers flatten segments (AC-5)."""
 
-    @pytest.mark.req("REQ-YG-282")
+    @pytest.mark.req("REQ-YG-290")
     def test_non_anthropic_flattens_segments(self) -> None:
         """Non-Anthropic providers should flatten system_segments to single string."""
         from yamlgraph.executor_base import prepare_messages
@@ -274,7 +274,7 @@ class TestNonAnthropicFlattening:
                     # Should not have cache-related additional_kwargs
                     assert not system_msg.additional_kwargs.get("content")
 
-    @pytest.mark.req("REQ-YG-282")
+    @pytest.mark.req("REQ-YG-290")
     def test_non_anthropic_ignores_cache_flags_gracefully(self) -> None:
         """Non-Anthropic providers should ignore cache flags without error."""
         from yamlgraph.executor_base import prepare_messages
@@ -308,7 +308,7 @@ class TestNonAnthropicFlattening:
 class TestExecutorPathConsistency:
     """Test sync/async/streaming paths have same behavior (AC-6)."""
 
-    @pytest.mark.req("REQ-YG-283")
+    @pytest.mark.req("REQ-YG-291")
     def test_async_executor_system_segments(self) -> None:
         """Async executor should handle system_segments same as sync."""
         from yamlgraph.executor_async import prepare_messages_async
@@ -340,7 +340,7 @@ class TestExecutorPathConsistency:
                 assert len(cache_blocks) == 2
                 assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
 
-    @pytest.mark.req("REQ-YG-283")
+    @pytest.mark.req("REQ-YG-291")
     def test_streaming_executor_system_segments(self) -> None:
         """Streaming execution should handle system_segments consistently."""
         # This will need to test whatever streaming message preparation exists
@@ -369,7 +369,7 @@ class TestExecutorPathConsistency:
 class TestErrorHandling:
     """Test validation and error cases (AC-10)."""
 
-    @pytest.mark.req("REQ-YG-284")
+    @pytest.mark.req("REQ-YG-292")
     def test_conflicting_system_and_system_segments_error(self) -> None:
         """Should error when both system and system_segments are provided."""
         from yamlgraph.executor_base import prepare_messages
@@ -389,7 +389,7 @@ class TestErrorHandling:
                 ):
                     prepare_messages("test_conflict")
 
-    @pytest.mark.req("REQ-YG-284")
+    @pytest.mark.req("REQ-YG-292")
     def test_system_segments_precedence_over_system(self) -> None:
         """When both exist, should raise ValueError (AC-10 conflict detection)."""
         from yamlgraph.executor_base import prepare_messages
@@ -410,7 +410,7 @@ class TestErrorHandling:
                 ):
                     prepare_messages("test_precedence")
 
-    @pytest.mark.req("REQ-YG-284")
+    @pytest.mark.req("REQ-YG-292")
     def test_empty_system_segments_validation(self) -> None:
         """Empty system_segments should be validated appropriately."""
         from yamlgraph.executor_base import prepare_messages
@@ -438,7 +438,7 @@ class TestErrorHandling:
 class TestSegmentContentProcessing:
     """Test segment content handling and variable substitution."""
 
-    @pytest.mark.req("REQ-YG-285")
+    @pytest.mark.req("REQ-YG-293")
     def test_system_segments_variable_substitution(self) -> None:
         """System segments should support variable substitution like scalar system."""
         from yamlgraph.executor_base import prepare_messages
@@ -466,7 +466,7 @@ class TestSegmentContentProcessing:
                 assert "you are assistant" in system_msg.content
                 assert "Current task: coding" in system_msg.content
 
-    @pytest.mark.req("REQ-YG-285")
+    @pytest.mark.req("REQ-YG-293")
     def test_system_segments_jinja2_support(self) -> None:
         """System segments should support Jinja2 templates like scalar system."""
         from yamlgraph.executor_base import prepare_messages
