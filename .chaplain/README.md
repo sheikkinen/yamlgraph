@@ -13,7 +13,7 @@ Inbox → Plan → Research → Acceptance → Judge → Enforce → PR → Merg
 ```
 
 1. **Plan** → Research the problem and draft a feature request
-2. **Research** → Gather evidence and alternatives 
+2. **Research** → Gather evidence and alternatives
 3. **Acceptance** → Write failing acceptance tests
 4. **Judge** → Critically examine the FR for approval/rejection/amendment
 5. **Enforce** → Implement (red→green TDD)

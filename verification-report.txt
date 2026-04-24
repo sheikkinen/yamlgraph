@@ -13,7 +13,7 @@
 
 **Feature Type**: Documentation for internal automation infrastructure
 - ❌ Does NOT add a new node type
-- ❌ Does NOT change CLI behavior  
+- ❌ Does NOT change CLI behavior
 - ✅ IS purely internal infrastructure documentation
 
 **Demo Gate Requirements**: NOT APPLICABLE

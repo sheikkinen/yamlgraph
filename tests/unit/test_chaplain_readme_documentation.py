@@ -5,8 +5,9 @@ Validates that .chaplain/README.md exists and contains comprehensive
 documentation covering watcher2 pipeline architecture and shell library.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.mark.req("REQ-YG-278")
@@ -51,13 +52,13 @@ class TestChaplainREADMEContent:
         assert "worktree_setup.sh" in readme_content
         assert "worktree_teardown.sh" in readme_content
         assert "preflight.sh" in readme_content
-        
+
         # Git/GitHub integration
         assert "create_pr.sh" in readme_content
         assert "merge_pr.sh" in readme_content
         assert "wait_ci.sh" in readme_content
         assert "post_merge.sh" in readme_content
-        
+
         # Pipeline support
         assert "inbox_sync.sh" in readme_content
         assert "metrics.sh" in readme_content
@@ -70,17 +71,27 @@ class TestChaplainREADMEContent:
 
     def test_environment_configuration(self, readme_content):
         """README should document environment variables and configuration."""
-        assert "environment" in readme_content.lower() or "config" in readme_content.lower()
+        assert (
+            "environment" in readme_content.lower()
+            or "config" in readme_content.lower()
+        )
         # Should mention some common environment patterns
         assert "variable" in readme_content.lower() or "env" in readme_content.lower()
 
     def test_troubleshooting_section(self, readme_content):
         """README should include troubleshooting guidance."""
-        assert "troubleshoot" in readme_content.lower() or "debug" in readme_content.lower() or "issue" in readme_content.lower()
+        assert (
+            "troubleshoot" in readme_content.lower()
+            or "debug" in readme_content.lower()
+            or "issue" in readme_content.lower()
+        )
 
     def test_architecture_details(self, readme_content):
         """README should explain architecture details."""
-        assert "architecture" in readme_content.lower() or "directory" in readme_content.lower()
+        assert (
+            "architecture" in readme_content.lower()
+            or "directory" in readme_content.lower()
+        )
         # Should mention state management
         assert "state" in readme_content.lower()
 
@@ -92,7 +103,7 @@ class TestChaplainREADMEContent:
         assert ".chaplain" in readme_content or "chaplain" in readme_content
 
 
-@pytest.mark.req("REQ-YG-278") 
+@pytest.mark.req("REQ-YG-278")
 class TestChaplainREADMEStyle:
     """Tests for documentation style and formatting."""
 

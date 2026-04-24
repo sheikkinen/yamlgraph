@@ -117,7 +117,7 @@ This documentation will serve as both user guide and maintenance reference for t
 Most CI/CD and automation frameworks provide comprehensive documentation for their architecture and primitives:
 
 - **GitHub Actions** features detailed documentation covering workflow syntax, runner configuration, and marketplace actions with clear usage examples
-- **Tekton** provides structured docs for pipelines, tasks, and CLI components with conceptual overviews and installation guides  
+- **Tekton** provides structured docs for pipelines, tasks, and CLI components with conceptual overviews and installation guides
 - **LangGraph** offers well-organized documentation covering core benefits, execution patterns, and ecosystem integration
 - **CrewAI** maintains clear documentation for agents, flows, and enterprise features with quickstart guides and examples
 
@@ -156,5 +156,5 @@ The pattern: **undocumented infrastructure becomes unmaintainable infrastructure
 ### Classification Signal
 
 - **Abstraction level**: pattern (infrastructure documentation)
-- **Recommended approach**: document  
+- **Recommended approach**: document
 - **Key risk**: Without documentation, the sophisticated watcher2 system remains a "black box" limiting contributor onboarding and debugging capability
