@@ -19,7 +19,7 @@ from langchain_core.messages import AIMessageChunk
 from pydantic import BaseModel
 
 from yamlgraph.config import DEFAULT_TEMPERATURE
-from yamlgraph.executor_base import prepare_messages
+from yamlgraph.executor_base import prepare_messages, prepare_messages_async
 from yamlgraph.graph_cache import GRAPH_CACHE as _DEFAULT_CACHE
 from yamlgraph.models.streaming import StreamEvent
 from yamlgraph.utils.llm_factory import create_llm
@@ -427,6 +427,7 @@ __all__ = [
     "execute_prompt_async",
     "execute_prompt_streaming",
     "execute_prompts_concurrent",
+    "prepare_messages_async",
     "run_graph_async",
     "run_graph_streaming_native",
     "compile_graph_async",
