@@ -1,0 +1,34 @@
+# HelloGraph Speed Demo - Google Consumer API
+# Same hello graph as demo/hello, configured for provider=google
+
+version: "1.0"
+name: hellograph-speed-google
+description: Hello graph configured for Google consumer API speed checks
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: google
+  model: gemini-2.5-flash
+  temperature: 0.2
+  thinking_budget: 0
+
+state:
+  name: str
+  style: str
+
+nodes:
+  greet:
+    type: llm
+    prompt: greet
+    variables:
+      name: "{state.name}"
+      style: "{state.style}"
+    state_key: greeting
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END
