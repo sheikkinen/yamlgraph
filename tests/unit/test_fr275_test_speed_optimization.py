@@ -7,6 +7,7 @@ All tests should FAIL on the unmodified codebase (RED phase).
 """
 
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -34,7 +35,7 @@ class TestSlowMarkerInfrastructure:
         """Pytest should recognize the slow marker without warnings."""
         # This will fail until the marker is properly configured
         result = subprocess.run(
-            ["python", "-m", "pytest", "--markers"],
+            [sys.executable, "-m", "pytest", "--markers"],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent,
@@ -108,7 +109,7 @@ class TestSlowTestFiltering:
         # This test will fail until slow markers are implemented
         result = subprocess.run(
             [
-                "python",
+                sys.executable,
                 "-m",
                 "pytest",
                 "tests/unit/",
@@ -131,7 +132,15 @@ class TestSlowTestFiltering:
     def test_slow_test_run_includes_only_slow_tests(self):
         """Running pytest -m 'slow' should include only slow-marked tests."""
         result = subprocess.run(
-            ["python", "-m", "pytest", "tests/unit/", "-m", "slow", "--collect-only"],
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/unit/",
+                "-m",
+                "slow",
+                "--collect-only",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent,
@@ -231,7 +240,7 @@ class TestMarkerFunctionality:
         """Verify that pytest marker selection syntax works correctly."""
         # Test that -m "slow" and -m "not slow" syntax is valid
         result = subprocess.run(
-            ["python", "-m", "pytest", "--help"],
+            [sys.executable, "-m", "pytest", "--help"],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent,
@@ -251,7 +260,7 @@ class TestNoTestBehaviorChanges:
         # This verifies that adding slow markers doesn't exclude tests by default
         result = subprocess.run(
             [
-                "python",
+                sys.executable,
                 "-m",
                 "pytest",
                 "tests/unit/test_map_node_timeout.py",
