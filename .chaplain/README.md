@@ -408,6 +408,63 @@ The finalize step includes sophisticated pre-commit handling:
 3. **Copilot fallback:** If pre-commit still fails, invoke YAMLGraph finalize step
 4. **Manual override:** Final commit uses `--no-verify` only for watcher2 automation
 
+## Baseline Checkpointing
+
+The baseline checkpointing system precomputes stable doctrine and context inputs for reuse across watcher2 runs, reducing token costs and improving consistency.
+
+### Manifest Format
+
+Baseline sources are defined in `.chaplain/baseline/manifest.yaml`:
+
+```yaml
+manifest_version: 1
+sources:
+  - pattern: .github/copilot-instructions.md
+    mode: verbatim
+  - pattern: ARCHITECTURE.md  
+    mode: verbatim
+  - pattern: feature-requests/*.md
+    mode: summarized
+exclude:
+  - feature-requests/TEMPLATE.md
+  - feature-requests/REJECTED-*.md
+```
+
+- **pattern**: Glob pattern for source files
+- **mode**: `verbatim` preserves content exactly, `summarized` generates compressed summaries  
+- **exclude**: List of exclusion patterns to skip
+
+### Rebuild Rules
+
+- **Deterministic hashing:** `BASELINE_ID = sha256(sorted_paths + content_hashes + manifest_version)`
+- **Rebuild when:** BASELINE_ID changes due to source content or manifest updates
+- **Skip rebuild when:** Matching baseline artifact already exists
+
+### Summary Cache Behavior  
+
+- **Cache key:** `sha256(content + prompt_version + model)` 
+- **Reuse:** Cached summaries when cache key matches
+- **Metadata:** Summary model, prompt version, and cache key stored for audit
+
+### Cleanup Policy
+
+- **Retention:** Keep latest 5 baseline artifacts automatically
+- **Symlink:** `latest.json` points to current active baseline
+- **Garbage collection:** Older artifacts deleted after successful rebuild
+
+### Integration with Watcher2
+
+```bash
+# Baseline build (automated)
+yamlgraph graph run .chaplain/graphs/baseline/graph.yaml \
+  --export-state .chaplain/baseline/${BASELINE_ID}.json
+
+# Watcher2 import (before plan/research)  
+yamlgraph graph run step-plan.yaml \
+  --import-state .chaplain/baseline/latest.json \
+  --var proposal="@$INBOX_FILE"
+```
+
 ## Cross-References to Related Files
 
 - **FR-273:** Watcher2 pipeline implementation
