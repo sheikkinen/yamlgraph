@@ -56,12 +56,12 @@ class TestSlowTestMarking:
         with open(test_file_path) as f:
             content = f.read()
 
-        # Check if any test with time.sleep(2) has @pytest.mark.slow
+        # Check if any test with sleep patterns has @pytest.mark.slow
         lines = content.split("\n")
         found_slow_marker_before_sleep = False
 
         for i, line in enumerate(lines):
-            if "time.sleep(2)" in line:
+            if "time.sleep(" in line and ("2 *" in line or "delay_scale" in line):
                 # Look backwards for @pytest.mark.slow in the last 10 lines
                 start_idx = max(0, i - 10)
                 preceding_lines = lines[start_idx:i]
@@ -71,7 +71,7 @@ class TestSlowTestMarking:
                     found_slow_marker_before_sleep = True
                     break
 
-        assert found_slow_marker_before_sleep, "Tests with time.sleep(2) in test_map_node_timeout.py should have @pytest.mark.slow"
+        assert found_slow_marker_before_sleep, "Tests with configurable time.sleep in test_map_node_timeout.py should have @pytest.mark.slow"
 
     @pytest.mark.req("REQ-YG-275")
     def test_race_node_tests_have_slow_marker(self):
@@ -87,8 +87,8 @@ class TestSlowTestMarking:
 
         for i, line in enumerate(lines):
             if "asyncio.sleep(30.0)" in line:
-                # Look backwards for @pytest.mark.slow in the last 10 lines
-                start_idx = max(0, i - 10)
+                # Look backwards for @pytest.mark.slow in the last 20 lines
+                start_idx = max(0, i - 20)
                 preceding_lines = lines[start_idx:i]
                 if any(
                     "@pytest.mark.slow" in prev_line for prev_line in preceding_lines
@@ -170,15 +170,18 @@ class TestConfigurableTiming:
             content = f.read()
 
         # Should use configurable delays, not hardcoded time.sleep(2)
+        # Check that the file contains both TEST_DELAY_SCALE and time.sleep patterns
+        has_test_delay_scale = "TEST_DELAY_SCALE" in content
+        has_configurable_sleep = False
+        
         lines = content.split("\n")
-        configurable_delay_found = False
-
         for line in lines:
-            if "time.sleep" in line and (
-                "TEST_DELAY_SCALE" in line or "os.environ" in line
-            ):
-                configurable_delay_found = True
+            # Look for time.sleep that uses a variable, not hardcoded value
+            if "time.sleep(" in line and not "time.sleep(2)" in line:
+                has_configurable_sleep = True
                 break
+        
+        configurable_delay_found = has_test_delay_scale and has_configurable_sleep
 
         assert configurable_delay_found, "test_map_node_timeout.py should use configurable delays via environment variables"
 

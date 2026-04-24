@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2024-04-24
 
@@ -85,15 +85,15 @@ pytest tests/unit/ -q --no-cov
 
 ## Acceptance Criteria
 
-- [ ] `slow` pytest marker added to `pyproject.toml`
-- [ ] Tests using sleep >1s are marked with `@pytest.mark.slow`
-- [ ] Fast test run (`-m "not slow"`) completes in <30 seconds
-- [ ] Slow tests can be run separately with `-m "slow"`
-- [ ] `CHAOS_DELAY` and similar timing made configurable
-- [ ] Development commands updated in `CLAUDE.md`
-- [ ] No test behavior changes (same pass/fail results)
-- [ ] Tests added for marker functionality
-- [ ] Documentation updated
+- [x] `slow` pytest marker added to `pyproject.toml`
+- [x] Tests using sleep >1s are marked with `@pytest.mark.slow`
+- [x] Fast test run (`-m "not slow"`) completes in <30 seconds
+- [x] Slow tests can be run separately with `-m "slow"`
+- [x] `CHAOS_DELAY` and similar timing made configurable
+- [x] Development commands updated in `CLAUDE.md`
+- [x] No test behavior changes (same pass/fail results)
+- [x] Tests added for marker functionality
+- [x] Documentation updated
 
 ## Alternatives Considered
 

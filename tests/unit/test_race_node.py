@@ -1055,6 +1055,7 @@ class TestAsyncRaceCancellable:
         ), "ThreadPoolExecutor must be removed from race_node.py (FR-271)"
 
     @pytest.mark.req("REQ-YG-270")
+    @pytest.mark.slow
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_loser_task_cancelled_after_winner(
