@@ -27,6 +27,7 @@ nodes:
     variables:
       ci_log_path: "{state.ci_log_path}"
       pr_number: "{state.pr_number}"
+      fr_path: "{state.fr_path}"
     state_key: remediate_result
     timeout: 900
 

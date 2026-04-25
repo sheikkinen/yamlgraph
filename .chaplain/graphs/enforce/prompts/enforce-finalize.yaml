@@ -16,6 +16,14 @@ system: |
   - test(scope): description
 
 user: |
+  ## Part 0: Verify Changelog Fragment
+
+  Before proceeding with pre-commit fixes, verify the changelog fragment exists:
+  - File: `changelog/unreleased/fr-{{ fr_num }}-*.md`
+  - Must contain correct FR number: `FR-{{ fr_num }}`
+
+  If missing, create it now with appropriate type/scope/req fields.
+
   ## Part 1: Pre-commit Checks
 
   Run pre-commit and fix all failures:
