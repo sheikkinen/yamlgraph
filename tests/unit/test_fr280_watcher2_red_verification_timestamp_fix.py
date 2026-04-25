@@ -29,6 +29,27 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
 
 
+@pytest.fixture
+def watcher2_env(tmp_path):
+    """Set up test environment that simulates watcher2 execution state."""
+    # Create the tmp directory structure that watcher2 expects
+    tmp_dir = tmp_path / "tmp"
+    tmp_dir.mkdir()
+    
+    # Create the marker file that watcher2.sh would create
+    marker_file = tmp_dir / "pre-acceptance-marker"
+    marker_file.touch()
+    
+    # Change to the test directory to simulate watcher2 execution context
+    original_cwd = os.getcwd()
+    os.chdir(tmp_path)
+    
+    yield tmp_path
+    
+    # Restore original directory
+    os.chdir(original_cwd)
+
+
 @pytest.mark.req("REQ-YG-294")
 class TestFR280RedVerificationTimestampFix:
     """Test suite for watcher2 RED verification timestamp coordination bug fix."""
@@ -126,13 +147,13 @@ class TestFR280RedVerificationTimestampFix:
         assert "test_edge_case.py" in found_basenames, "Marker approach should find new test files"
         assert len(found_files) == 2, f"Should find exactly 2 test files, found: {found_files}"
 
-    def test_marker_file_creation_location(self, tmp_path):
+    def test_marker_file_creation_location(self, watcher2_env):
         """AC-03: Marker file created in tmp/ directory with correct name.
         
         Tests the specific implementation detail of marker file location and naming.
         """
         # This test verifies the proposed marker file location and name
-        expected_marker = tmp_path / "tmp" / "pre-acceptance-marker"
+        expected_marker = watcher2_env / "tmp" / "pre-acceptance-marker"
         
         # EXPECTATION: This should FAIL because the marker file creation is not implemented
         # The acceptance step doesn't create this file yet

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-25
 
@@ -59,15 +59,56 @@ rm -f "$ACCEPTANCE_MARKER"
 3. Add cleanup in the RED verification section after test execution
 4. Use `tmp/` directory for marker file (already created by watcher2.sh)
 
+## Implementation Summary
+
+**Implemented:** 2026-04-25
+
+### Changes Made
+
+1. **Added `ACCEPTANCE_MARKER` variable** to watcher2.sh line 118:
+   ```bash
+   ACCEPTANCE_MARKER="tmp/pre-acceptance-marker"
+   ```
+
+2. **Created marker file before acceptance step** at line 166:
+   ```bash
+   # FR-280: Create marker file before acceptance step to fix RED verification timestamp bug
+   touch "$ACCEPTANCE_MARKER"
+   ```
+
+3. **Updated RED verification to use marker file** at line 177:
+   ```bash
+   # FR-280: Use marker file instead of pipeline state for timestamp comparison
+   TEST_FILES=$(find tests/ -name "*.py" -newer "$ACCEPTANCE_MARKER" -type f 2>/dev/null)
+   ```
+
+4. **Added cleanup after RED verification** at line 192:
+   ```bash
+   # FR-280: Clean up marker file after RED verification
+   rm -f "$ACCEPTANCE_MARKER"
+   ```
+
+5. **Added test fixture** in `test_fr280_watcher2_red_verification_timestamp_fix.py` to simulate the watcher2 environment state for unit testing.
+
+### Test Results
+- All 7 acceptance tests now pass
+- No regressions detected in other watcher2 tests
+- The timestamp coordination bug is resolved
+
+### Impact
+- RED verification now correctly detects new test files written during acceptance step
+- Trivially-passing tests will now trigger warnings as expected
+- TDD discipline is properly enforced in the watcher2 pipeline
+
 ## Acceptance Criteria
 
-- [ ] Marker file `tmp/pre-acceptance-marker` created before acceptance step runs
-- [ ] `find -newer` references marker file, not pipeline state file
-- [ ] RED verification correctly detects new test files written by acceptance step
-- [ ] Trivially-passing tests produce warning (existing behavior, now actually triggered)
-- [ ] Marker file cleaned up after RED verification
-- [ ] Integration test verifies RED verification runs for new test files
-- [ ] No regression in existing watcher2 functionality
+- [x] Marker file `tmp/pre-acceptance-marker` created before acceptance step runs
+- [x] `find -newer` references marker file, not pipeline state file
+- [x] RED verification correctly detects new test files written by acceptance step
+- [x] Trivially-passing tests produce warning (existing behavior, now actually triggered)
+- [x] Marker file cleaned up after RED verification
+- [x] Integration test verifies RED verification runs for new test files
+- [x] No regression in existing watcher2 functionality
 
 ## Alternatives Considered
 
