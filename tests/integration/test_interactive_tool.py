@@ -298,9 +298,9 @@ class TestStreamUpdates:
                 node_names.update(chunk.keys())
 
         # chat__start should appear
-        assert any("chat__start" in name for name in node_names), (
-            f"Expected chat__start in node names, got: {node_names}"
-        )
+        assert any(
+            "chat__start" in name for name in node_names
+        ), f"Expected chat__start in node names, got: {node_names}"
 
 
 # ── T8: Stream Mode — messages ───────────────────────────────────

@@ -52,9 +52,9 @@ class TestMapNodeKeyErrorContext:
         # Bug: Error just says "panels", not the full path or what exists
         has_path_context = "story.panels" in error_message or "story" in error_message
 
-        assert has_path_context, (
-            f"KeyError for nested path should show full path. Got: {error_message}"
-        )
+        assert (
+            has_path_context
+        ), f"KeyError for nested path should show full path. Got: {error_message}"
 
     @pytest.mark.req("REQ-YG-028", "REQ-YG-040")
     def test_map_over_missing_key_error_context(self) -> None:
@@ -124,6 +124,6 @@ class TestMapNodeErrorMessages:
             "items" in error_message or "available" in error_message.lower()
         )
 
-        assert suggests_alternatives, (
-            f"Error should suggest available keys. Got: {error_message}"
-        )
+        assert (
+            suggests_alternatives
+        ), f"Error should suggest available keys. Got: {error_message}"

@@ -41,9 +41,9 @@ class TestAsyncPromptResolutionArgs:
         sig = inspect.signature(execute_prompt_async)
         param_names = list(sig.parameters.keys())
 
-        assert "prompts_dir" in param_names, (
-            "execute_prompt_async should accept prompts_dir parameter"
-        )
+        assert (
+            "prompts_dir" in param_names
+        ), "execute_prompt_async should accept prompts_dir parameter"
 
     @pytest.mark.req("REQ-YG-015")
     def test_execute_prompt_async_accepts_prompts_relative(self) -> None:
@@ -53,9 +53,9 @@ class TestAsyncPromptResolutionArgs:
         sig = inspect.signature(execute_prompt_async)
         param_names = list(sig.parameters.keys())
 
-        assert "prompts_relative" in param_names, (
-            "execute_prompt_async should accept prompts_relative parameter"
-        )
+        assert (
+            "prompts_relative" in param_names
+        ), "execute_prompt_async should accept prompts_relative parameter"
 
     @pytest.mark.req("REQ-YG-015")
     def test_execute_prompt_async_passes_graph_path_to_prepare_messages(
@@ -113,9 +113,9 @@ class TestStreamingPromptResolutionArgs:
         sig = inspect.signature(execute_prompt_streaming)
         param_names = list(sig.parameters.keys())
 
-        assert "prompts_dir" in param_names, (
-            "execute_prompt_streaming should accept prompts_dir parameter"
-        )
+        assert (
+            "prompts_dir" in param_names
+        ), "execute_prompt_streaming should accept prompts_dir parameter"
 
     @pytest.mark.req("REQ-YG-015")
     def test_execute_prompt_streaming_accepts_prompts_relative(self) -> None:
@@ -125,9 +125,9 @@ class TestStreamingPromptResolutionArgs:
         sig = inspect.signature(execute_prompt_streaming)
         param_names = list(sig.parameters.keys())
 
-        assert "prompts_relative" in param_names, (
-            "execute_prompt_streaming should accept prompts_relative parameter"
-        )
+        assert (
+            "prompts_relative" in param_names
+        ), "execute_prompt_streaming should accept prompts_relative parameter"
 
 
 class TestSyncVsAsyncParity:

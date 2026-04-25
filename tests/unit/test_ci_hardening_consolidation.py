@@ -57,12 +57,12 @@ class TestConcurrencyGroups:
         concurrency = workflow["concurrency"]
 
         assert "group" in concurrency, "concurrency section missing group"
-        assert "cancel-in-progress" in concurrency, (
-            "concurrency section missing cancel-in-progress"
-        )
-        assert concurrency["cancel-in-progress"] is True, (
-            "cancel-in-progress should be true"
-        )
+        assert (
+            "cancel-in-progress" in concurrency
+        ), "concurrency section missing cancel-in-progress"
+        assert (
+            concurrency["cancel-in-progress"] is True
+        ), "cancel-in-progress should be true"
 
     def test_security_yml_has_concurrency_control(self) -> None:
         """Security workflow should have concurrency group with cancel-in-progress."""
@@ -72,12 +72,12 @@ class TestConcurrencyGroups:
         concurrency = workflow["concurrency"]
 
         assert "group" in concurrency, "concurrency section missing group"
-        assert "cancel-in-progress" in concurrency, (
-            "concurrency section missing cancel-in-progress"
-        )
-        assert concurrency["cancel-in-progress"] is True, (
-            "cancel-in-progress should be true"
-        )
+        assert (
+            "cancel-in-progress" in concurrency
+        ), "concurrency section missing cancel-in-progress"
+        assert (
+            concurrency["cancel-in-progress"] is True
+        ), "cancel-in-progress should be true"
 
     def test_commitlint_yml_has_concurrency_control(self) -> None:
         """Commitlint workflow should have concurrency group with cancel-in-progress."""
@@ -87,12 +87,12 @@ class TestConcurrencyGroups:
         concurrency = workflow["concurrency"]
 
         assert "group" in concurrency, "concurrency section missing group"
-        assert "cancel-in-progress" in concurrency, (
-            "concurrency section missing cancel-in-progress"
-        )
-        assert concurrency["cancel-in-progress"] is True, (
-            "cancel-in-progress should be true"
-        )
+        assert (
+            "cancel-in-progress" in concurrency
+        ), "concurrency section missing cancel-in-progress"
+        assert (
+            concurrency["cancel-in-progress"] is True
+        ), "cancel-in-progress should be true"
 
 
 # ── AC-02: Pip Caching ────────────────────────────────────────────────────
@@ -107,32 +107,32 @@ class TestPipCaching:
         workflow = _load_workflow("workflow.yml")
         setup_python_steps = _get_all_setup_python_steps(workflow)
 
-        assert len(setup_python_steps) > 0, (
-            "workflow.yml should have at least one setup-python step"
-        )
+        assert (
+            len(setup_python_steps) > 0
+        ), "workflow.yml should have at least one setup-python step"
 
         for step in setup_python_steps:
             with_section = step.get("with", {})
             assert "cache" in with_section, f"setup-python step missing cache: {step}"
-            assert with_section["cache"] == "pip", (
-                f"cache should be 'pip', got: {with_section.get('cache')}"
-            )
+            assert (
+                with_section["cache"] == "pip"
+            ), f"cache should be 'pip', got: {with_section.get('cache')}"
 
     def test_security_yml_setup_python_has_cache(self) -> None:
         """All setup-python steps in security.yml should have cache: pip."""
         workflow = _load_workflow("security.yml")
         setup_python_steps = _get_all_setup_python_steps(workflow)
 
-        assert len(setup_python_steps) > 0, (
-            "security.yml should have at least one setup-python step"
-        )
+        assert (
+            len(setup_python_steps) > 0
+        ), "security.yml should have at least one setup-python step"
 
         for step in setup_python_steps:
             with_section = step.get("with", {})
             assert "cache" in with_section, f"setup-python step missing cache: {step}"
-            assert with_section["cache"] == "pip", (
-                f"cache should be 'pip', got: {with_section.get('cache')}"
-            )
+            assert (
+                with_section["cache"] == "pip"
+            ), f"cache should be 'pip', got: {with_section.get('cache')}"
 
     def test_commitlint_yml_setup_python_has_cache(self) -> None:
         """All setup-python steps in commitlint.yml should have cache: pip."""
@@ -143,9 +143,9 @@ class TestPipCaching:
         for step in setup_python_steps:
             with_section = step.get("with", {})
             assert "cache" in with_section, f"setup-python step missing cache: {step}"
-            assert with_section["cache"] == "pip", (
-                f"cache should be 'pip', got: {with_section.get('cache')}"
-            )
+            assert (
+                with_section["cache"] == "pip"
+            ), f"cache should be 'pip', got: {with_section.get('cache')}"
 
 
 # ── AC-03: Workflow Naming ────────────────────────────────────────────────
@@ -160,12 +160,12 @@ class TestWorkflowNaming:
         workflow = _load_workflow("workflow.yml")
 
         workflow_name = workflow.get("name", "")
-        assert workflow_name == "CI", (
-            f"Workflow name should be 'CI', got: '{workflow_name}'"
-        )
-        assert workflow_name != "Release to PyPI", (
-            "Workflow should no longer be named 'Release to PyPI'"
-        )
+        assert (
+            workflow_name == "CI"
+        ), f"Workflow name should be 'CI', got: '{workflow_name}'"
+        assert (
+            workflow_name != "Release to PyPI"
+        ), "Workflow should no longer be named 'Release to PyPI'"
 
 
 # ── AC-04: Version Validation ─────────────────────────────────────────────
@@ -191,9 +191,9 @@ class TestVersionValidation:
             ):
                 tag_triggered_jobs.append(job_name)
 
-        assert len(tag_triggered_jobs) > 0, (
-            "workflow.yml should have jobs that run on tag pushes"
-        )
+        assert (
+            len(tag_triggered_jobs) > 0
+        ), "workflow.yml should have jobs that run on tag pushes"
 
         # Look for version validation steps in tag-triggered jobs
         has_version_validation = False
@@ -212,9 +212,9 @@ class TestVersionValidation:
             if has_version_validation:
                 break
 
-        assert has_version_validation, (
-            "Tag pushes should include version validation against pyproject.toml"
-        )
+        assert (
+            has_version_validation
+        ), "Tag pushes should include version validation against pyproject.toml"
 
 
 # ── AC-05: Security Scan Retry ────────────────────────────────────────────
@@ -243,12 +243,12 @@ class TestSecurityScanRetry:
                     max_attempts = with_section.get("max_attempts", 0)
                     retry_wait = with_section.get("retry_wait_seconds", 0)
 
-                    assert max_attempts == 3, (
-                        f"pip-audit retry should have 3 max_attempts, got: {max_attempts}"
-                    )
-                    assert retry_wait == 30, (
-                        f"pip-audit retry should have 30s wait, got: {retry_wait}"
-                    )
+                    assert (
+                        max_attempts == 3
+                    ), f"pip-audit retry should have 3 max_attempts, got: {max_attempts}"
+                    assert (
+                        retry_wait == 30
+                    ), f"pip-audit retry should have 30s wait, got: {retry_wait}"
                     has_retry_pip_audit = True
                     break
 
@@ -260,9 +260,9 @@ class TestSecurityScanRetry:
             if has_retry_pip_audit:
                 break
 
-        assert has_retry_pip_audit, (
-            "security.yml should use retry mechanism for pip-audit"
-        )
+        assert (
+            has_retry_pip_audit
+        ), "security.yml should use retry mechanism for pip-audit"
 
 
 # ── AC-06: Python Version Matrix ──────────────────────────────────────────
@@ -289,9 +289,9 @@ class TestPythonVersionMatrix:
                 has_python_matrix = True
                 break
 
-        assert has_python_matrix, (
-            "workflow.yml should have a matrix strategy with python-version"
-        )
+        assert (
+            has_python_matrix
+        ), "workflow.yml should have a matrix strategy with python-version"
         assert "3.11" in python_versions, "Matrix should include Python 3.11"
         assert "3.12" in python_versions, "Matrix should include Python 3.12"
 
@@ -337,9 +337,9 @@ class TestJobDependenciesPreserved:
         push_triggers = on_triggers.get("push", {})
         if "tags" in push_triggers:
             tags = push_triggers["tags"]
-            assert any("v*" in tag for tag in tags), (
-                "Should still trigger on version tags"
-            )
+            assert any(
+                "v*" in tag for tag in tags
+            ), "Should still trigger on version tags"
 
 
 # ── AC-08: Security Scan Blocking ─────────────────────────────────────────
@@ -391,9 +391,9 @@ class TestReleaseProcessUnchanged:
         expected_release_jobs = ["test", "build", "publish", "create-release"]
         existing_release_jobs = [job for job in expected_release_jobs if job in jobs]
 
-        assert len(existing_release_jobs) >= 3, (
-            f"Most release jobs should exist, found: {existing_release_jobs}"
-        )
+        assert (
+            len(existing_release_jobs) >= 3
+        ), f"Most release jobs should exist, found: {existing_release_jobs}"
 
         # Verify job sequencing if jobs exist
         if "build" in jobs and "test" in jobs:
@@ -406,9 +406,9 @@ class TestReleaseProcessUnchanged:
             publish_needs = jobs["publish"].get("needs")
             if isinstance(publish_needs, str):
                 publish_needs = [publish_needs]
-            assert publish_needs and "build" in publish_needs, (
-                "publish should depend on build"
-            )
+            assert (
+                publish_needs and "build" in publish_needs
+            ), "publish should depend on build"
 
     def test_tag_triggered_release_conditions(self) -> None:
         """Release jobs should still trigger only on version tags."""
@@ -423,6 +423,6 @@ class TestReleaseProcessUnchanged:
                 if_condition = job.get("if", "")
 
                 # Should have tag-related conditions
-                assert "tag" in if_condition.lower() or "refs/tags/" in if_condition, (
-                    f"{job_name} should only run on tags"
-                )
+                assert (
+                    "tag" in if_condition.lower() or "refs/tags/" in if_condition
+                ), f"{job_name} should only run on tags"

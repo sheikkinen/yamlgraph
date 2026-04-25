@@ -29,18 +29,18 @@ class TestGuardrailsPatternExists:
         self.content = PATTERNS_MD.read_text()
 
     def test_pattern_11_heading(self):
-        assert "## Pattern 11: Input Guardrails" in self.content, (
-            "patterns.md must have '## Pattern 11: Input Guardrails' heading"
-        )
+        assert (
+            "## Pattern 11: Input Guardrails" in self.content
+        ), "patterns.md must have '## Pattern 11: Input Guardrails' heading"
 
     def test_pattern_11_between_10_and_12(self):
         """Pattern 11 must appear between Pattern 10 and Pattern 12."""
         pos_10 = self.content.index("## Pattern 10:")
         pos_11 = self.content.index("## Pattern 11:")
         pos_12 = self.content.index("## Pattern 12:")
-        assert pos_10 < pos_11 < pos_12, (
-            "Pattern 11 must be between Pattern 10 and Pattern 12"
-        )
+        assert (
+            pos_10 < pos_11 < pos_12
+        ), "Pattern 11 must be between Pattern 10 and Pattern 12"
 
 
 # ---------------------------------------------------------------------------
@@ -67,19 +67,19 @@ class TestGuardrailsPatternSections:
         assert "### Solution" in self.section, "Pattern 11 must have a Solution section"
 
     def test_has_graph_structure(self):
-        assert "### Graph Structure" in self.section, (
-            "Pattern 11 must have a Graph Structure section"
-        )
+        assert (
+            "### Graph Structure" in self.section
+        ), "Pattern 11 must have a Graph Structure section"
 
     def test_has_python_tools(self):
-        assert "### Python Tools" in self.section, (
-            "Pattern 11 must have a Python Tools section"
-        )
+        assert (
+            "### Python Tools" in self.section
+        ), "Pattern 11 must have a Python Tools section"
 
     def test_has_key_points(self):
-        assert "### Key Points" in self.section, (
-            "Pattern 11 must have a Key Points section"
-        )
+        assert (
+            "### Key Points" in self.section
+        ), "Pattern 11 must have a Key Points section"
 
 
 # ---------------------------------------------------------------------------
@@ -155,14 +155,14 @@ class TestGuardrailsReferences:
         self.section = content[start:end]
 
     def test_references_openai_proxy(self):
-        assert "openai_proxy" in self.section, (
-            "Pattern 11 must reference examples/openai_proxy/"
-        )
+        assert (
+            "openai_proxy" in self.section
+        ), "Pattern 11 must reference examples/openai_proxy/"
 
     def test_references_validation_missing_stamp(self):
-        assert "validation missing" in self.section, (
-            "Pattern 11 must mention the *validation missing* stamp"
-        )
+        assert (
+            "validation missing" in self.section
+        ), "Pattern 11 must mention the *validation missing* stamp"
 
 
 # ---------------------------------------------------------------------------
@@ -179,11 +179,11 @@ class TestExamplesReadmeGuardrails:
         self.content = EXAMPLES_README.read_text()
 
     def test_guardrails_category_exists(self):
-        assert "Guardrail" in self.content, (
-            "examples/README.md must have a Guardrails category in By Feature"
-        )
+        assert (
+            "Guardrail" in self.content
+        ), "examples/README.md must have a Guardrails category in By Feature"
 
     def test_openai_proxy_in_guardrails(self):
-        assert "openai_proxy" in self.content, (
-            "examples/README.md must list openai_proxy under guardrails"
-        )
+        assert (
+            "openai_proxy" in self.content
+        ), "examples/README.md must list openai_proxy under guardrails"

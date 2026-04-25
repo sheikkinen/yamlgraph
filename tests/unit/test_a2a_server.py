@@ -627,9 +627,9 @@ def test_demo_script_streaming_uses_timeout():
 def test_demo_script_streaming_accepts_sse():
     """Streaming curl in demo.sh requests text/event-stream content type."""
     content = DEMO_SCRIPT.read_text()
-    assert "text/event-stream" in content, (
-        "Streaming request must Accept text/event-stream"
-    )
+    assert (
+        "text/event-stream" in content
+    ), "Streaming request must Accept text/event-stream"
 
 
 @pytest.mark.req("REQ-YG-211")

@@ -25,9 +25,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CAPABILITIES_DIR = REPO_ROOT / "capabilities"
 
 
-def load_capabilities_from_registry() -> tuple[
-    list[str], dict[str, tuple[str, list[str]]]
-]:
+def load_capabilities_from_registry() -> (
+    tuple[list[str], dict[str, tuple[str, list[str]]]]
+):
     """Load capabilities from YAML registry files.
 
     Returns:

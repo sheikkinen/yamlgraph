@@ -24,7 +24,7 @@ TEST_FILES=$(find tests/ -name "*.py" -newer "$PIPELINE_STATE" -type f 2>/dev/nu
 
 The acceptance step (step 3) sequence is:
 1. Run `step-acceptance.yaml` which writes test files to `tests/`
-2. Export state to `$PIPELINE_STATE` via `--export-state` 
+2. Export state to `$PIPELINE_STATE` via `--export-state`
 3. RED verification runs `find -newer "$PIPELINE_STATE"`
 
 Since the state file is updated **after** test files are written, its mtime is always newer than the test files. The `find -newer` command finds nothing, causing the log message "No new test files found" and skipping RED verification entirely.
@@ -191,5 +191,5 @@ Key diary patterns relevant to this bug:
 ### Classification Signal
 
 - **Abstraction level**: primitive (affects core infrastructure)
-- **Recommended approach**: build (surgical fix to existing pattern)  
+- **Recommended approach**: build (surgical fix to existing pattern)
 - **Key risk**: The fix is straightforward but validates a previously unnoticed infrastructure assumption that could affect other timestamp-dependent operations in the codebase.

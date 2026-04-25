@@ -25,9 +25,9 @@ class TestInfrastructureSelfExemptGraduation:
     """Validate the new infrastructure_self_exempt trap in the Knowledge Graph."""
 
     def test_copilot_instructions_exists(self):
-        assert COPILOT_INSTRUCTIONS.is_file(), (
-            f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
-        )
+        assert (
+            COPILOT_INSTRUCTIONS.is_file()
+        ), f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
 
     def test_infrastructure_self_exempt_trap_present(self):
         content = COPILOT_INSTRUCTIONS.read_text()

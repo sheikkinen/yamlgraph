@@ -71,9 +71,9 @@ def test_demos_index_has_three_sections():
     readme = _read_readme()
     assert "### Learning Demos" in readme, "Missing '### Learning Demos' section"
     assert "### Utility Demos" in readme, "Missing '### Utility Demos' section"
-    assert "### FR Validation Demos" in readme, (
-        "Missing '### FR Validation Demos' section"
-    )
+    assert (
+        "### FR Validation Demos" in readme
+    ), "Missing '### FR Validation Demos' section"
 
 
 @pytest.mark.req("REQ-YG-147")
@@ -81,9 +81,9 @@ def test_inclusion_criteria_documented():
     """Inclusion criteria must be documented in README.md."""
     readme = _read_readme()
     assert "## Inclusion Criteria" in readme, "Missing '## Inclusion Criteria' section"
-    assert "README.md" in readme.split("## Inclusion Criteria")[1].split("##")[0], (
-        "Inclusion criteria must mention README.md requirement"
-    )
+    assert (
+        "README.md" in readme.split("## Inclusion Criteria")[1].split("##")[0]
+    ), "Inclusion criteria must mention README.md requirement"
 
 
 @pytest.mark.req("REQ-YG-147")

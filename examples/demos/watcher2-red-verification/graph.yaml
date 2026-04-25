@@ -2,7 +2,7 @@ name: TimestampBugDemo
 description: Demonstrates the timestamp coordination bug and its fix
 
 state_keys:
-  - buggy_result  
+  - buggy_result
   - fixed_result
   - verification
 
@@ -12,14 +12,14 @@ tools:
     command: |
       mkdir -p tmp/demo-buggy tests/demo-buggy
       echo "# Test files created first" > tests/demo-buggy/test_example.py
-      echo "def test_example(): pass" >> tests/demo-buggy/test_example.py  
+      echo "def test_example(): pass" >> tests/demo-buggy/test_example.py
       sleep 0.1  # Ensure timestamp difference
       echo "exported_state" > tmp/demo-buggy/pipeline-state.json
       echo "Files found with buggy approach:"
       find tests/demo-buggy -name "*.py" -newer tmp/demo-buggy/pipeline-state.json -type f || echo "NO FILES FOUND (BUG!)"
     description: "Simulate the timestamp bug in watcher2 RED verification"
     parse: text
-    
+
   simulate_fix:
     type: shell
     command: |
@@ -28,13 +28,13 @@ tools:
       touch tmp/demo-fixed/pre-acceptance-marker
       sleep 0.1  # Ensure timestamp difference
       echo "def test_example(): pass" > tests/demo-fixed/test_example.py
-      sleep 0.1  # Ensure more timestamp difference  
+      sleep 0.1  # Ensure more timestamp difference
       echo "exported_state" > tmp/demo-fixed/pipeline-state.json
       echo "Files found with marker approach:"
       find tests/demo-fixed -name "*.py" -newer tmp/demo-fixed/pre-acceptance-marker -type f
     description: "Demonstrate the marker file fix approach"
     parse: text
-    
+
   cleanup_demo:
     type: shell
     command: |
@@ -51,13 +51,13 @@ nodes:
     type: tool
     tool: simulate_bug
     state_key: buggy_result
-      
-  # Simulate the fixed marker file approach  
+
+  # Simulate the fixed marker file approach
   demonstrate_fix:
     type: tool
     tool: simulate_fix
     state_key: fixed_result
-      
+
   # Verify the fix works as expected
   verify_fix:
     type: tool
@@ -69,7 +69,7 @@ edges:
     to: demonstrate_bug
   - from: demonstrate_bug
     to: demonstrate_fix
-  - from: demonstrate_fix  
+  - from: demonstrate_fix
     to: verify_fix
   - from: verify_fix
     to: END

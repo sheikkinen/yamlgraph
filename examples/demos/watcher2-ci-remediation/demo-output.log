@@ -5,7 +5,7 @@
 DEMO OVERVIEW
 ============================================================
 This demonstrates the new watcher2 CI remediation capabilities:
-✅ Bug Fix 1: wait_ci.sh check ordering (IN_PROGRESS before FAILURE)  
+✅ Bug Fix 1: wait_ci.sh check ordering (IN_PROGRESS before FAILURE)
 ✅ Bug Fix 2: CI remediation loop with copilot diagnosis
 ✅ Auto-fixes: syntax errors, missing changelog fragments, diary entries
 ✅ Safety: Only handles mechanical issues, not logic problems
@@ -26,7 +26,7 @@ Error: Process completed with exit code 1.
 
 ##[group]Run pre-commit run --all-files
 vulture......................................Failed
-- hook id: vulture  
+- hook id: vulture
 - exit code: 1
 Dead code found in yamlgraph/utils.py:42 unused function 'old_helper'
 ##[endgroup]
@@ -38,7 +38,7 @@ WATCHER2 CI REMEDIATION PROCESS
 
 🔍 **STEP 1: DIAGNOSIS**
 ✅ Issue Type: IndentationError (mechanical, auto-fixable)
-✅ File: tests/unit/test_new_feature.py:15  
+✅ File: tests/unit/test_new_feature.py:15
 ✅ Root Cause: Missing colon and indentation after function definition
 ✅ Secondary: Dead code in yamlgraph/utils.py
 
@@ -56,7 +56,7 @@ yamlgraph graph run .chaplain/graphs/watcher-enforce/step-ci-remediate.yaml \
 
 # Copilot applies fixes:
 sed -i 's/def test_something()/def test_something():/' tests/unit/test_new_feature.py
-sed -i '15a\    pass' tests/unit/test_new_feature.py  
+sed -i '15a\    pass' tests/unit/test_new_feature.py
 echo "old_helper" >> vulture_whitelist.py
 
 # Finalize and retry:
@@ -67,7 +67,7 @@ git commit -m "fix: watcher2 — CI remediation" --no-verify
 git push origin feat/watcher2-gh-215
 ```
 
-🔄 **STEP 3: VERIFICATION**  
+🔄 **STEP 3: VERIFICATION**
 ```bash
 # Syntax validation
 python -c "import ast; ast.parse(open('tests/unit/test_new_feature.py').read())"
@@ -79,21 +79,21 @@ wait_ci  # Now uses fixed IN_PROGRESS → FAILURE ordering
 ```
 
 ============================================================
-BEFORE/AFTER COMPARISON  
+BEFORE/AFTER COMPARISON
 ============================================================
 
 🚫 **BEFORE (Manual Process)**
 1. PR #214 fails CI with IndentationError
 2. Watcher2 calls `handle_failure "CI"` and stops
-3. Admin manually fixes syntax error  
+3. Admin manually fixes syntax error
 4. Admin pushes fix and waits for CI
 5. Total time: 2-6 hours human intervention
 
-✅ **AFTER (Automated Process)**  
+✅ **AFTER (Automated Process)**
 1. PR fails CI with IndentationError
 2. Watcher2 diagnoses: "mechanical syntax error"
 3. Copilot node applies fix automatically
-4. Push + CI retry happens immediately  
+4. Push + CI retry happens immediately
 5. Total time: <60 seconds, zero human intervention
 
 ============================================================
@@ -102,7 +102,7 @@ TECHNICAL IMPLEMENTATION SUMMARY
 
 📁 **Files Modified/Created**:
 - `.chaplain/lib/watcher/wait_ci.sh` → Fixed check ordering
-- `.chaplain/watcher2.sh` → Added remediation loop  
+- `.chaplain/watcher2.sh` → Added remediation loop
 - `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` → New graph
 - `.chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml` → New prompt
 
@@ -124,12 +124,12 @@ REAL-WORLD IMPACT
 
 🎯 **Problems Solved**:
 - PR #214: IndentationError → Would auto-fix in <60s
-- PR #184, #189: Premature CI failure → Fixed with proper wait logic  
+- PR #184, #189: Premature CI failure → Fixed with proper wait logic
 - Missing changelog fragments → Auto-creates with proper YAML front matter
 - Missing diary entries → Auto-creates with date format
 
 📊 **Metrics Improvement**:
-- Manual CI intervention: ~80% reduction  
+- Manual CI intervention: ~80% reduction
 - Pipeline recovery time: Hours → Minutes
 - Watcher2 reliability: Handles mixed CI status properly
 - Developer productivity: No context switching for mechanical issues
@@ -138,7 +138,7 @@ REAL-WORLD IMPACT
 DEMO VALIDATION
 ============================================================
 ✅ Graph validates: `yamlgraph graph lint` passes
-✅ All acceptance tests pass: 8/8 green  
+✅ All acceptance tests pass: 8/8 green
 ✅ Wait logic fix confirmed with CI status simulation
 ✅ Remediation patterns follow existing enforce pipeline conventions
 ✅ Infrastructure changes are backwards compatible
