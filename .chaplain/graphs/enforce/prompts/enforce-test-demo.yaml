@@ -18,12 +18,12 @@ user: |
      ```
      If any tests fail, fix them.
 
-  2. **DEMO** (if applicable) - Check if this feature needs an example:
+  2. **DEMO** - Check if this feature needs an example:
      - Does it add a new node type? → Add to `examples/demos/`
      - Does it change CLI behavior? → Update relevant examples
-     - Is it purely internal? → No demo needed
+     - Is it purely internal? → A demo still needed. Never explain abstractly.
 
-  3. **EXAMPLE** - If a demo is needed:
+  3. **EXAMPLE**:
      - Create a minimal working example in `examples/demos/<feature>/`
      - Include: graph.yaml, prompts/ folder, README.md
      - Test the example runs: `yamlgraph graph lint <example>/graph.yaml`
