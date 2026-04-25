@@ -13,7 +13,15 @@
 #   POLL (default: 10) — seconds between inbox checks
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.."  
+
+# ── Global logging — capture all output to timestamped log file ─────────
+mkdir -p logs
+LOG_FILE="logs/watcher2-run-$(date +%Y%m%d-%H%M%S).log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+# ── Log rotation — keep last 10 log files ───────────────────────────────
+find logs/ -name 'watcher2-run-*.log' -type f | sort | head -n -10 | xargs rm -f 2>/dev/null || true
 
 # ── Config ──────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -47,6 +55,9 @@ source "$LIB_DIR/metrics.sh"
 
 # ── Ensure dirs ─────────────────────────────────────────────────────────
 mkdir -p "$INBOX" "$PROCESSING" "$METRIC_DIR" ".chaplain/failed"
+
+# ── ERR trap — catch unguarded crashes with line number ─────────────────
+trap 'log_error "Unexpected crash at line $LINENO (exit $?)"; handle_failure "unexpected crash at line $LINENO"' ERR
 
 # ── Failure handler (preserves forensic evidence) ───────────────────
 handle_failure() {
@@ -177,7 +188,7 @@ while true; do
     git commit -m "chore: watcher2 — FR draft from plan step" --no-verify
     # Capture the FR file created in this commit (not a stale one)
     CREATED_FR_PATH=$(git diff-tree --no-commit-id --name-only -r HEAD -- feature-requests/ \
-        | grep -E 'FR-[0-9]+.*\.md$' | head -1)
+        | grep -E 'FR-[0-9]+.*\.md$' | head -1 || true)
     if [[ -n "$CREATED_FR_PATH" ]]; then
         log_info "Plan created: $CREATED_FR_PATH"
     else
@@ -288,7 +299,7 @@ print('UNKNOWN')
     else
         # Fallback: newest FR file by git commit time
         FR_PATH=$(git log --diff-filter=A --name-only --pretty=format: -- 'feature-requests/FR-*.md' \
-            | grep -E 'FR-[0-9]+.*\.md$' | head -1)
+            | grep -E 'FR-[0-9]+.*\.md$' | head -1 || true)
     fi
     if [[ -z "$FR_PATH" ]]; then
         handle_failure "no FR file for enforcement"
@@ -328,7 +339,7 @@ print('UNKNOWN')
     log_info "Enforce 3/4: Critique and distill..."
 
     # Extract FR number from feature request path
-    FR_NUM=$(basename "$FR_PATH" | grep -oE 'FR-[0-9]+' | sed 's/FR-//')
+    FR_NUM=$(basename "$FR_PATH" | grep -oE 'FR-[0-9]+' | sed 's/FR-//' || true)
 
     if ! yamlgraph graph run "$ENFORCE_DIR/step-critique.yaml" \
         --var fr_path="$FR_PATH" \
@@ -346,20 +357,20 @@ print('UNKNOWN')
 
     # ── Auto-Generate Changelog Fragment (FR-283) ─────────────────────────
     # Extract FR number from feature request path
-    FR_NUM=$(basename "$FR_PATH" | grep -oE 'FR-[0-9]+' | sed 's/FR-//')
+    FR_NUM=$(basename "$FR_PATH" | grep -oE 'FR-[0-9]+' | sed 's/FR-//' || true)
     FR_ID="FR-${FR_NUM}"
 
     # Generate changelog fragment filename
     CHANGELOG_FRAG="changelog/unreleased/fr-${FR_NUM}-$(basename "$FR_PATH" .md | sed "s/FR-${FR_NUM}-//" | head -c 40).md"
 
-    if [[ ! -f "$CHANGELOG_FRAG" ]]; then
+    if [[ ! -f "$CHANGELOG_FRAG" ]] && ! ls changelog/unreleased/fr-"${FR_NUM}"-*.md 1>/dev/null 2>&1; then
         # Derive change type and scope from FR path
         CHANGE_TYPE="feat"
         SCOPE=$(basename "$FR_PATH" .md | sed "s/FR-${FR_NUM}-//" | cut -d- -f1)
 
         # Find requirement ID from capability registry
         REQ_ID=$(grep -l "fr: $FR_ID" capabilities/CAP-*.yaml 2>/dev/null | head -1 | \
-            xargs -I{} grep -oE 'REQ-YG-[0-9]+' {} 2>/dev/null | head -1)
+            xargs -I{} grep -oE 'REQ-YG-[0-9]+' {} 2>/dev/null | head -1 || true)
 
         # Validate FR_NUM matches expected FR to prevent cross-wiring
         if [[ "$FR_NUM" != "$(basename "$FR_PATH" | grep -oE '[0-9]+' | head -1)" ]]; then
@@ -422,16 +433,16 @@ print('UNKNOWN')
     git diff --cached --quiet || git commit -m "chore: watcher2 — finalize" --no-verify
 
     # Validate changelog fragment FR number matches branch name
-    if [[ -f changelog/unreleased/*.md ]]; then
-        FRAGMENT_FR=$(grep -oE 'FR-[0-9]+' changelog/unreleased/*.md | head -1)
-        BRANCH_FR=$(echo "$WT_BRANCH" | grep -oE 'FR-[0-9]+' | head -1)
+    if ls changelog/unreleased/*.md 1>/dev/null 2>&1; then
+        FRAGMENT_FR=$(grep -oE 'FR-[0-9]+' changelog/unreleased/*.md | head -1 || true)
+        BRANCH_FR=$(echo "$WT_BRANCH" | grep -oE 'FR-[0-9]+' | head -1 || true)
         if [[ "$FRAGMENT_FR" != "$BRANCH_FR" ]]; then
             log_warn "Fragment FR mismatch: $FRAGMENT_FR vs $BRANCH_FR"
         fi
     fi
 
     # Derive PR title from FR
-    FR_NUM=$(echo "$FR_PATH" | grep -oE 'FR-[0-9]+' | head -1)
+    FR_NUM=$(echo "$FR_PATH" | grep -oE 'FR-[0-9]+' | head -1 || true)
     PR_TITLE="feat: watcher2 enforce — ${FR_NUM:-${TOPIC_BASENAME%.md}}"
 
     git push origin "$WT_BRANCH" || {
