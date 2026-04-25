@@ -115,6 +115,7 @@ while true; do
     # ── Phase 3: Planning + Judging pipeline ────────────────────────────
     # FR-273 Phase 3: copilot session chain with shell steps between nodes
     PIPELINE_STATE="tmp/pipeline-state.json"
+    ACCEPTANCE_MARKER="tmp/pre-acceptance-marker"
     GRAPH_DIR=".chaplain/graphs/watcher-plan"
     mkdir -p tmp
 
@@ -162,6 +163,8 @@ while true; do
 
     # ── Step 3: Write acceptance tests ──────────────────────────────────
     log_info "Step 3/4: Write acceptance tests (RED)..."
+    # FR-280: Create marker file before acceptance step to fix RED verification timestamp bug
+    touch "$ACCEPTANCE_MARKER"
     if ! yamlgraph graph run "$GRAPH_DIR/step-acceptance.yaml" \
         --var worktree_dir="$(pwd)" \
         --var branch="$WT_BRANCH" \
@@ -173,7 +176,8 @@ while true; do
 
     # Shell: verify RED (tests should fail on unmodified code)
     log_info "Verifying RED — tests should fail..."
-    TEST_FILES=$(find tests/ -name "*.py" -newer "$PIPELINE_STATE" -type f 2>/dev/null)
+    # FR-280: Use marker file instead of pipeline state for timestamp comparison
+    TEST_FILES=$(find tests/ -name "*.py" -newer "$ACCEPTANCE_MARKER" -type f 2>/dev/null)
     if [[ -n "$TEST_FILES" ]]; then
         if pytest $TEST_FILES -x --no-cov -q 2>&1 | tee tmp/watcher2-red.log; then
             log_warn "Tests pass on unmodified code — acceptance tests may be trivial"
@@ -188,6 +192,8 @@ while true; do
     else
         log_warn "No new test files found"
     fi
+    # FR-280: Clean up marker file after RED verification
+    [[ -f "$ACCEPTANCE_MARKER" ]] && rm "$ACCEPTANCE_MARKER"
 
     # ── Step 4: Judge ───────────────────────────────────────────────────
     log_info "Step 4/4: Judge — evaluating FR draft..."
