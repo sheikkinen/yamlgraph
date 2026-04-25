@@ -1,0 +1,14 @@
+system: |
+  You extract clean feedback from judge output for use in revision.
+  This simulates the extract_judge_feedback function in watcher2.
+
+user: |
+  **EXTRACT FEEDBACK:** From this judge output, extract the actionable feedback:
+  
+  {judge_output}
+  
+  **INSTRUCTIONS:**
+  Extract only the specific feedback points that can be used to improve the request.
+  Remove any verdict keywords (AMEND, APPROVE, etc.) and focus on actionable improvements.
+  
+  Provide clean, concise feedback that a revision step can use as constraints.

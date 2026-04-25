@@ -1,0 +1,47 @@
+🎯 Watcher2 AMEND Retry Loop Demo
+=================================
+
+📂 Checking implementation artifacts...
+
+✅ step-revise.yaml - CREATED
+   📄       37 lines
+✅ revise.yaml prompt - CREATED
+   📄       33 lines
+
+🔍 Checking function implementations in watcher2.sh...
+✅ extract_judge_feedback() - IMPLEMENTED
+✅ run_revision_step() - IMPLEMENTED
+✅ commit_revision_attempt() - IMPLEMENTED
+✅ handle_amend_verdict() - IMPLEMENTED
+✅ handle_exhausted_amend_retries() - IMPLEMENTED
+
+⚙️ Checking watcher2 logic changes...
+✅ MAX_AMEND_RETRIES=2 - SET
+✅ Separate AMEND condition - IMPLEMENTED
+✅ AMEND retry loop - IMPLEMENTED
+✅ Revision commit pattern - IMPLEMENTED
+
+🧪 Testing graph validation...
+✅ step-revise.yaml - VALID GRAPH
+
+🎉 Demo Complete!
+
+📊 Summary of FR-286 Implementation:
+   ✅ AMEND retry functions: 5/5 implemented
+   ✅ New graph file: step-revise.yaml created
+   ✅ New prompt: revise.yaml created
+   ✅ Retry loop logic: MAX_AMEND_RETRIES=2
+   ✅ AMEND/SPLIT separation: Complete
+   ✅ Commit message pattern: Implemented
+
+🔄 How it works:
+   1. Judge issues AMEND verdict with feedback
+   2. extract_judge_feedback() parses the feedback
+   3. run_revision_step() uses feedback to improve FR
+   4. commit_revision_attempt() saves the revision
+   5. Judge re-evaluates the revised FR
+   6. Loop repeats up to 2 times if still AMEND
+   7. If exhausted, calls handle_failure as before
+
+🚫 Before FR-286: AMEND → immediate handle_failure
+✅ After FR-286:  AMEND → revision cycle → eventual success or failure

@@ -1,0 +1,69 @@
+# Demo graph simulating watcher2 AMEND retry loop
+# Shows: judge → AMEND → extract feedback → revise → re-judge → APPROVE
+
+version: "1.0"
+name: watcher2-amend-retry-demo  
+description: Demonstrates AMEND retry loop behavior in watcher2 pipeline
+
+# Ensure prompts are loaded from the local prompts/ directory
+prompts_relative: true
+
+state:
+  initial_request: str
+  judge_result: dict
+  revision_result: dict
+  final_judge_result: dict
+
+nodes:
+  # Initial judge that issues AMEND verdict with feedback
+  initial_judge:
+    type: llm
+    prompt: initial_judge
+    variables:
+      request: "{state.initial_request}"
+    schema:
+      name: JudgeVerdict
+      fields:
+        verdict: {type: str, description: "AMEND, APPROVE, REJECT, or SPLIT"}
+        feedback: {type: str, description: "Specific feedback for improvement"}
+        reasoning: {type: str, description: "Why this verdict was given"}
+    state_key: judge_result
+
+  # Extract feedback and run revision (combined for simplicity)
+  extract_and_revise:
+    type: llm
+    prompt: extract_and_revise
+    variables:
+      original_request: "{state.initial_request}"
+      judge_output: "{state.judge_result.output}"
+    schema:
+      name: RevisionResult
+      fields:
+        extracted_feedback: {type: str, description: "Clean feedback from judge"}
+        revised_request: {type: str, description: "Improved feature request"}
+        changes_made: {type: "list[str]", description: "List of improvements made"}
+    state_key: revision_result
+
+  # Final judge on revised request (simulates re-judge)
+  final_judge:
+    type: llm
+    prompt: final_judge  
+    variables:
+      revised_request: "{state.revision_result.output.revised_request}"
+      original_feedback: "{state.revision_result.output.extracted_feedback}"
+    schema:
+      name: FinalVerdict
+      fields:
+        verdict: {type: str, description: "Final verdict after revision"}
+        verdict_reason: {type: str, description: "Why this verdict was given"}
+    state_key: final_judge_result
+
+edges:
+  - from: START
+    to: initial_judge
+  - from: initial_judge
+    to: extract_and_revise
+  - from: extract_and_revise
+    to: final_judge
+  - from: final_judge
+    to: END
