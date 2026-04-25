@@ -2,7 +2,7 @@
 # Shows: judge → AMEND → extract feedback → revise → re-judge → APPROVE
 
 version: "1.0"
-name: watcher2-amend-retry-demo  
+name: watcher2-amend-retry-demo
 description: Demonstrates AMEND retry loop behavior in watcher2 pipeline
 
 # Ensure prompts are loaded from the local prompts/ directory
@@ -47,7 +47,7 @@ nodes:
   # Final judge on revised request (simulates re-judge)
   final_judge:
     type: llm
-    prompt: final_judge  
+    prompt: final_judge
     variables:
       revised_request: "{state.revision_result.output.revised_request}"
       original_feedback: "{state.revision_result.output.extracted_feedback}"

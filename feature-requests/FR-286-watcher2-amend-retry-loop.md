@@ -1,7 +1,7 @@
 # Feature Request: Watcher2 AMEND Retry Loop
 
 **Priority:** MEDIUM
-**Type:** Enhancement  
+**Type:** Enhancement
 **Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-04-25
@@ -28,7 +28,7 @@ When judge renders AMEND verdict:
 1. **Capture judge feedback** from the copilot session or judge_result state
 2. **Invoke revision step** using the plan copilot with:
    - Original topic as context
-   - Current FR content 
+   - Current FR content
    - Judge's specific feedback as additional constraints
 3. **Re-run judge step** on the revised FR
 4. **Limit retries** to 2 AMEND cycles to prevent infinite loops
@@ -41,25 +41,25 @@ MAX_AMEND_RETRIES=2
 
 while [[ "$VERDICT" == "AMEND" && $AMEND_RETRIES -lt $MAX_AMEND_RETRIES ]]; do
     log_info "AMEND retry $((AMEND_RETRIES + 1))/$MAX_AMEND_RETRIES"
-    
+
     # Extract judge feedback from state or session
     JUDGE_FEEDBACK=$(extract_judge_feedback)
-    
+
     # Revise FR using plan copilot with judge feedback as constraints
     yamlgraph graph run "$GRAPH_DIR/step-revise.yaml" \
         --var judge_feedback="$JUDGE_FEEDBACK" \
         --import-state "$PIPELINE_STATE" \
         --export-state "$PIPELINE_STATE"
-    
+
     # Commit revision
     git add feature-requests/
     git commit -m "chore: watcher2 — FR revision (AMEND retry $((AMEND_RETRIES + 1)))" --no-verify
-    
+
     # Re-run judge
     yamlgraph graph run "$GRAPH_DIR/step-judge.yaml" \
         --import-state "$PIPELINE_STATE" \
         --export-state "$PIPELINE_STATE"
-    
+
     # Re-extract verdict
     VERDICT=$(extract_verdict)
     AMEND_RETRIES=$((AMEND_RETRIES + 1))
@@ -74,7 +74,7 @@ fi
 ## Acceptance Criteria
 
 - [x] AMEND verdict triggers revision step instead of immediate failure
-- [x] Judge feedback is extracted and passed to revision step  
+- [x] Judge feedback is extracted and passed to revision step
 - [x] Revision step reuses plan copilot with additional judge constraints
 - [x] Revised FR is re-judged automatically
 - [x] Maximum 2 AMEND retries to prevent infinite loops
@@ -88,10 +88,10 @@ fi
 
 1. **Manual intervention**: Keep AMEND as terminal failure, require human review
    - Rejected: Defeats purpose of autonomous chaplain
-   
+
 2. **Unlimited retries**: No retry limit
    - Rejected: Risk of infinite loops with pathological cases
-   
+
 3. **Different retry limits**: 1, 3, or 5 retries instead of 2
    - Rationale for 2: Balance between improvement opportunity and loop prevention
 

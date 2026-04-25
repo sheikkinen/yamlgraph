@@ -4,18 +4,18 @@ system: |
 
 user: |
   **REVISE REQUEST:** Improve this feature request using the judge's feedback.
-  
+
   **Original request:**
   {original_request}
-  
+
   **Judge feedback to address:**
   {judge_feedback}
-  
+
   **INSTRUCTIONS:**
   1. Keep the core intent of the original request
   2. Address ALL points mentioned in the feedback
   3. Add missing sections (acceptance criteria, error handling, etc.)
   4. Make the request clear, specific, and implementable
   5. List the specific changes you made
-  
+
   This simulates how watcher2 uses judge feedback to iteratively improve feature requests.

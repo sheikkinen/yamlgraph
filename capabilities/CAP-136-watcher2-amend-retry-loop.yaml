@@ -1,0 +1,24 @@
+id: CAP-136
+name: Watcher2 AMEND Retry Loop
+description: >
+  Iterative revision cycle for AMEND verdicts instead of terminal failure.
+  When judge issues AMEND verdict, extract feedback and run revision steps
+  with up to 2 retry attempts before falling back to handle_failure.
+  Transforms watcher2 from "AMEND → immediate failure" to "AMEND → iterative improvement cycle".
+modules:
+  - .chaplain/watcher2.sh
+  - .chaplain/graphs/watcher-plan/step-revise.yaml
+  - .chaplain/graphs/copilot/prompts/revise.yaml
+requirements:
+  - id: REQ-YG-310
+    description: >
+      Watcher2 shall implement iterative revision cycles for AMEND verdicts, extracting judge
+      feedback to automatically improve feature requests through step-revise.yaml graph invocation,
+      with maximum 2 retry attempts and descriptive commit messages before terminal handle_failure
+    modules:
+      - .chaplain/watcher2.sh (lines 53-144, 363-373)
+      - .chaplain/graphs/watcher-plan/step-revise.yaml
+      - .chaplain/graphs/copilot/prompts/revise.yaml
+      - tests/unit/test_fr286_implementation.py
+      - tests/unit/test_fr286_watcher2_amend_retry_loop.py
+fr: FR-286

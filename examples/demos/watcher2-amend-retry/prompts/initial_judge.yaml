@@ -4,20 +4,20 @@ system: |
 
 user: |
   **JUDGE REQUEST:** Evaluate this feature request draft:
-  
+
   {request}
-  
+
   **INSTRUCTIONS:**
   For demonstration purposes, you MUST respond with:
-  - verdict: "AMEND"  
+  - verdict: "AMEND"
   - Specific feedback about what needs improvement
   - Clear reasoning for the AMEND verdict
-  
+
   Focus your feedback on common issues like:
   - Missing acceptance criteria
-  - Unclear implementation approach  
+  - Unclear implementation approach
   - No error handling considerations
   - Missing security concerns
   - Insufficient testing strategy
-  
+
   This simulates the judge step in watcher2 that triggers the AMEND retry loop.

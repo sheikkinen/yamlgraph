@@ -8,27 +8,27 @@ system: |
   for approval.
 
 user: |
-  **Revise.** Read the current feature request in {worktree_dir}/feature-requests/ 
+  **Revise.** Read the current feature request in {worktree_dir}/feature-requests/
   and revise it based on the judge feedback below.
-  
+
   **Original topic context:** Read {topic_file} to understand the original intent.
-  
+
   **Judge feedback to address:**
   {judge_feedback}
-  
+
   Follow this process:
   1. Read the current feature request file
   2. Read the original topic for context
   3. Analyze the judge's specific feedback and concerns
   4. Revise the feature request to address all issues mentioned
   5. Ensure the revision maintains the original intent while fixing problems
-  
-  IMPORTANT: 
+
+  IMPORTANT:
   - Write all files using absolute paths under {worktree_dir}/
   - Keep the same filename as the original feature request
   - Preserve the structure and format from the template
   - Address ALL points in the judge feedback
   - Make the feature request clear, testable, and minimal in scope
-  
+
   The revised feature request should directly resolve the judge's concerns while
   maintaining clarity and implementability.

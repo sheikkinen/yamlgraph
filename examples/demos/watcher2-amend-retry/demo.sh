@@ -21,7 +21,7 @@ else
     echo "❌ step-revise.yaml - MISSING"
 fi
 
-# Check that revise.yaml prompt was created  
+# Check that revise.yaml prompt was created
 if [[ -f ".chaplain/graphs/copilot/prompts/revise.yaml" ]]; then
     echo "✅ revise.yaml prompt - CREATED"
     echo "   📄 $(wc -l < .chaplain/graphs/copilot/prompts/revise.yaml) lines"
@@ -36,7 +36,7 @@ echo "🔍 Checking function implementations in watcher2.sh..."
 functions=(
     "extract_judge_feedback"
     "run_revision_step"
-    "commit_revision_attempt" 
+    "commit_revision_attempt"
     "handle_amend_verdict"
     "handle_exhausted_amend_retries"
 )
@@ -68,7 +68,7 @@ fi
 
 # Check for AMEND retry loop
 if grep -q 'while \[\[ "\$VERDICT" == "AMEND"' .chaplain/watcher2.sh; then
-    echo "✅ AMEND retry loop - IMPLEMENTED"  
+    echo "✅ AMEND retry loop - IMPLEMENTED"
 else
     echo "❌ AMEND retry loop - MISSING"
 fi
@@ -98,7 +98,7 @@ echo "🎉 Demo Complete!"
 echo ""
 echo "📊 Summary of FR-286 Implementation:"
 echo "   ✅ AMEND retry functions: 5/5 implemented"
-echo "   ✅ New graph file: step-revise.yaml created"  
+echo "   ✅ New graph file: step-revise.yaml created"
 echo "   ✅ New prompt: revise.yaml created"
 echo "   ✅ Retry loop logic: MAX_AMEND_RETRIES=2"
 echo "   ✅ AMEND/SPLIT separation: Complete"
@@ -113,5 +113,5 @@ echo "   5. Judge re-evaluates the revised FR"
 echo "   6. Loop repeats up to 2 times if still AMEND"
 echo "   7. If exhausted, calls handle_failure as before"
 echo ""
-echo "🚫 Before FR-286: AMEND → immediate handle_failure"  
+echo "🚫 Before FR-286: AMEND → immediate handle_failure"
 echo "✅ After FR-286:  AMEND → revision cycle → eventual success or failure"

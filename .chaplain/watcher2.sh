@@ -66,7 +66,7 @@ except:
 run_revision_step() {
     local judge_feedback="$1"
     log_info "Running revision step with judge feedback..."
-    
+
     yamlgraph graph run "$GRAPH_DIR/step-revise.yaml" \
         --var topic_file="$TOPIC_FILE" \
         --var worktree_dir="$WORKTREE_DIR" \
@@ -87,24 +87,24 @@ commit_revision_attempt() {
 handle_amend_verdict() {
     local AMEND_RETRIES=0
     local MAX_AMEND_RETRIES=2
-    
+
     while [[ "$VERDICT" == "AMEND" && $AMEND_RETRIES -lt $MAX_AMEND_RETRIES ]]; do
         AMEND_RETRIES=$((AMEND_RETRIES + 1))
         log_info "AMEND retry $AMEND_RETRIES/$MAX_AMEND_RETRIES"
-        
+
         # Extract judge feedback from state
         local JUDGE_FEEDBACK
         JUDGE_FEEDBACK=$(extract_judge_feedback)
-        
+
         # Revise FR using copilot with judge feedback as constraints
         if ! run_revision_step "$JUDGE_FEEDBACK"; then
             log_warn "Revision step failed on retry $AMEND_RETRIES"
             break
         fi
-        
+
         # Commit revision
         commit_revision_attempt "$AMEND_RETRIES"
-        
+
         # Re-run judge
         log_info "Re-running judge after revision..."
         if ! yamlgraph graph run "$GRAPH_DIR/step-judge.yaml" \
@@ -114,7 +114,7 @@ handle_amend_verdict() {
             log_warn "Judge step failed on retry $AMEND_RETRIES"
             break
         fi
-        
+
         # Re-extract verdict
         VERDICT=$(python3 -c "
 import json, sys
@@ -126,16 +126,16 @@ for v in ['APPROVE', 'REJECT', 'AMEND', 'SPLIT']:
         sys.exit(0)
 print('UNKNOWN')
 " 2>/dev/null || echo "UNKNOWN")
-        
+
         log_info "Judge verdict after retry $AMEND_RETRIES: $VERDICT"
     done
-    
+
     # If still AMEND after max retries, handle as failure
     if [[ "$VERDICT" == "AMEND" ]]; then
         handle_failure "judge AMEND (exhausted retries)"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -364,14 +364,14 @@ print('UNKNOWN')
         log_warn "FR needs amendment — attempting revision cycle..."
         git add feature-requests/ .chaplain/inbox/ 2>/dev/null || true
         git diff --cached --quiet || git commit -m "chore: watcher2 — FR $VERDICT by judge" --no-verify
-        
+
         # Handle AMEND with retry loop (FR-286)
         if ! handle_amend_verdict; then
             continue  # handle_amend_verdict already called handle_failure
         fi
         # If we get here, AMEND retry succeeded and VERDICT is now non-AMEND
     fi
-    
+
     if [[ "$VERDICT" == "SPLIT" ]]; then
         log_warn "FR needs splitting ($VERDICT) — aborting cycle"
         git add feature-requests/ .chaplain/inbox/ 2>/dev/null || true

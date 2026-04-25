@@ -35,9 +35,9 @@ Successfully implemented the AMEND retry loop for watcher2 pipeline following TD
 
 **Pattern applied**: `test_before_reading` - Wrote comprehensive implementation tests first to define expected behavior, then verified against the code.
 
-**Scripture adherence**: 
+**Scripture adherence**:
 - Commandment 7: Red-Green-Refactor followed strictly
-- Commandment 4: Honored existing patterns (copilot nodes, session chaining)  
+- Commandment 4: Honored existing patterns (copilot nodes, session chaining)
 - Commandment 5: All data through Pydantic (reused existing state structure)
 
 ## Seed

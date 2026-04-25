@@ -5,14 +5,14 @@ system: |
 user: |
   **STEP 1 - Extract Feedback:** From this judge output, extract actionable feedback:
   {judge_output}
-  
+
   **STEP 2 - Revise Request:** Using that feedback, improve this feature request:
   {original_request}
-  
+
   **INSTRUCTIONS:**
   1. First extract clean, specific feedback points from the judge output
   2. Then revise the original request to address ALL feedback points
   3. Keep the core intent but add missing details
   4. List what changes you made
-  
+
   This demonstrates the AMEND retry loop: feedback extraction → revision → re-judge.

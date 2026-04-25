@@ -4,17 +4,17 @@ system: |
 
 user: |
   **FINAL JUDGE:** Evaluate this revised feature request.
-  
+
   **Revised request:**
   {revised_request}
-  
+
   **Original feedback that was addressed:**
   {original_feedback}
-  
+
   **INSTRUCTIONS:**
   1. Check if the revision adequately addressed the original feedback
   2. Determine if this request is now ready for implementation
   3. For demonstration purposes, you should typically APPROVE if improvements were made
   4. Provide clear reasoning for your verdict
-  
+
   This simulates the re-judge step that determines if the AMEND retry loop succeeded.
