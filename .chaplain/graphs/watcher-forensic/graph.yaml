@@ -5,7 +5,7 @@ name: watcher-forensic
 
 vars:
   failure_reason: str
-  topic_content: str  
+  topic_content: str
   log_files: str
   worktree_state: str
 
@@ -27,7 +27,7 @@ nodes:
         failure_reason: {type: str, description: "Original failure reason"}
         evidence: {type: "list[str]", description: "List of evidence sources"}
         recommendations: {type: "list[str]", description: "Recommended preventive actions"}
-        
+
   write_diary:
     type: tool
     tool: write_diary_tool
@@ -37,5 +37,5 @@ nodes:
 edges:
   - from: forensic_analysis
     to: write_diary
-    
+
 checkpointer: memory

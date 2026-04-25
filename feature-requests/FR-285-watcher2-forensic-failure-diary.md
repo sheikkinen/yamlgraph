@@ -47,7 +47,7 @@ evidence:
   - logs: ["tmp/watcher2-implement.log"]
   - worktree_state: "Modified files: yamlgraph/new_feature.py, tests/unit/test_new_feature.py"
   - git_status: "uncommitted changes present"
-recommendations: 
+recommendations:
   - "Add syntax validation before test execution"
   - "Check import statements in TDD red phase"
 seed: "Could watcher2 pre-validate test syntax before running pytest?"
@@ -86,7 +86,7 @@ seed: "Could watcher2 pre-validate test syntax before running pytest?"
 ## Related
 
 - `.chaplain/watcher2.sh` - Current failure handling implementation
-- `docs/diary/` - Existing diary patterns and forensic precedents  
+- `docs/diary/` - Existing diary patterns and forensic precedents
 - `.chaplain/graphs/watcher-diary/` - Diary generation infrastructure
 - `.chaplain/lib/diary.py` - Diary writing utilities
 - FR-273 - Watcher2 pipeline implementation (phases 1-4)
@@ -137,8 +137,8 @@ seed: "Could watcher2 pre-validate test syntax before running pytest?"
 ### Usage Evidence
 
 - Existing graphs using diary infrastructure: 3 (.chaplain/graphs/watcher-diary/, .chaplain/graphs/copilot/, .chaplain/graphs/philosopher/)
-- Real-world use cases beyond the proposal: 
-  - Chaplain workflow diary integration (FR-093) 
+- Real-world use cases beyond the proposal:
+  - Chaplain workflow diary integration (FR-093)
   - Philosopher pattern analysis and Scripture graduation
   - Daily development reflection and trap identification
 - Current watcher2 failure handling: Already preserves worktrees and topics in `.chaplain/failed/` but without analysis

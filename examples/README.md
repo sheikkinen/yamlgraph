@@ -83,6 +83,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [data-files](demos/data-files/) | `llm` | External data loading |
 | [diary-index](demos/diary_index/) | `map`, `python`, `llm` | Diary corpus cross-reference index (FR-254) |
 | [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
+| [forensic-failure-diary](demos/forensic-failure-diary/) | `llm`, `tool` | Automated failure analysis with structured diary generation (FR-285) |
 | [fi_domain_crawl](demos/fi_domain_crawl/) | `map`, `python`, `llm` | .fi domain crawl + sitemap overview |
 | [five-whys](demos/five-whys/) | `llm` | Fixed-count loop with iterative deepening |
 | [innovation_matrix](demos/innovation_matrix/) | `llm` | Capability-constraint innovation matrix |

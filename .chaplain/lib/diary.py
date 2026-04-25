@@ -44,20 +44,28 @@ def format_diary_entry(
 
 def format_forensic_entry(forensic_report: dict) -> str:
     """Format forensic analysis report into diary entry body.
-    
+
     Args:
         forensic_report: Dict with root_cause, evidence, recommendations, etc.
-        
+
     Returns:
         Formatted forensic entry body text
     """
     root_cause = forensic_report.get("root_cause", "Unknown")
     evidence_list = forensic_report.get("evidence", [])
     recommendations = forensic_report.get("recommendations", [])
-    
-    evidence_text = "\n".join(f"  - {item}" for item in evidence_list) if evidence_list else "  - No evidence collected"
-    recommendations_text = "\n".join(f"  - {item}" for item in recommendations) if recommendations else "  - No specific recommendations"
-    
+
+    evidence_text = (
+        "\n".join(f"  - {item}" for item in evidence_list)
+        if evidence_list
+        else "  - No evidence collected"
+    )
+    recommendations_text = (
+        "\n".join(f"  - {item}" for item in recommendations)
+        if recommendations
+        else "  - No specific recommendations"
+    )
+
     return f"""**Root Cause:** {root_cause}
 
 **Evidence:**
@@ -104,7 +112,7 @@ def write_diary(state: dict) -> dict:
         body = format_forensic_entry(forensic_report)
         seed = "Could watcher2 pre-validate this failure mode?"
         prefix = "Forensic"
-        
+
         entry = format_diary_entry(
             date_str=date_str,
             theme=theme,

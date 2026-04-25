@@ -11,19 +11,19 @@ schema:
 
 user: |
   Analyze this failure scenario for forensic diary generation demonstration.
-  
+
   **Failure Context:**
   - Failure reason: {{ failure_reason }}
   - Topic content: {{ topic_content }}
   - Log files found: {{ log_files }}
   - Worktree state: {{ worktree_state }}
-  
+
   **Task:**
   1. Identify the root cause of the failure based on available context
   2. Extract relevant evidence from the provided information
   3. Provide actionable recommendations to prevent similar failures
   4. Structure findings for forensic diary entry
-  
+
   Focus on practical insights that would help a developer understand and prevent this failure type.
   Preserve the original failure reason for audit trail.
 

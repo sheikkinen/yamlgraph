@@ -6,7 +6,7 @@ This demo showcases the **Forensic Failure Analysis** feature (FR-285) that was 
 
 The forensic failure analysis system automatically generates diagnostic diary entries when watcher2 cycles fail, providing:
 - Root cause analysis
-- Evidence collection from logs and worktree state  
+- Evidence collection from logs and worktree state
 - Actionable recommendations for prevention
 - Structured diary entries for institutional learning
 
@@ -41,7 +41,7 @@ The demo will:
 
 In real watcher2 usage, this analysis happens automatically in the `handle_failure()` function:
 - Extracts failure context (reason, topic, logs, git state)
-- Invokes `.chaplain/graphs/watcher-forensic/graph.yaml`  
+- Invokes `.chaplain/graphs/watcher-forensic/graph.yaml`
 - Generates forensic diary entry
 - Preserves enhanced failure record in `.chaplain/failed/`
 

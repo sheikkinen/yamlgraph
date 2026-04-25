@@ -52,31 +52,31 @@ mkdir -p "$INBOX" "$PROCESSING" "$METRIC_DIR" ".chaplain/failed"
 handle_failure() {
     local reason="${1:-unknown}"
     log_error "Cycle failed: $reason"
-    
+
     # ── Forensic analysis phase (FR-285) ────────────────────────────────
     # Gracefully fail if yamlgraph unavailable
     if command -v yamlgraph >/dev/null 2>&1; then
         log_info "🔍 Running forensic analysis..."
-        
-        # Extract failure context 
+
+        # Extract failure context
         FAILURE_REASON="$reason"
         TOPIC_CONTENT=""
         LOG_FILES=""
         WORKTREE_STATE=""
-        
+
         if [[ -n "${TOPIC_FILE:-}" && -f "$TOPIC_FILE" ]]; then
             TOPIC_CONTENT=$(cat "$TOPIC_FILE" 2>/dev/null || echo "Unable to read topic file")
         fi
-        
+
         # Collect relevant log files
         LOG_FILES=$(find tmp/ -name "watcher2-*.log" 2>/dev/null || true)
-        
+
         # Inspect worktree state if available
         if [[ -n "${WT_DIR:-}" && -d "$WT_DIR" ]]; then
             cd "$WT_DIR" 2>/dev/null || true
             WORKTREE_STATE=$(git status --porcelain 2>/dev/null || echo "Git status unavailable")
         fi
-        
+
         # Run forensic analysis to generate diary entry
         yamlgraph graph run .chaplain/graphs/watcher-forensic/graph.yaml \
             --var failure_reason="$FAILURE_REASON" \
@@ -87,7 +87,7 @@ handle_failure() {
     else
         log_warn "Copilot session unavailable, skipping forensic analysis"
     fi
-    
+
     if [[ -n "${WT_DIR:-}" && -d "$WT_DIR" ]]; then
         log_warn "Worktree preserved for inspection: $WT_DIR"
     fi
