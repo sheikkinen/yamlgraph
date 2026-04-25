@@ -99,9 +99,9 @@ class TestConflictCheckJobStructure:
     def test_job_exists(self) -> None:
         """The commitlint workflow must contain a 'conflict-check' job."""
         wf = _load_workflow()
-        assert "conflict-check" in wf["jobs"], (
-            "Missing 'conflict-check' job in commitlint.yml"
-        )
+        assert (
+            "conflict-check" in wf["jobs"]
+        ), "Missing 'conflict-check' job in commitlint.yml"
 
     def test_job_name(self) -> None:
         """The job display name indicates conflict marker checking."""
@@ -125,15 +125,15 @@ class TestConflictCheckJobStructure:
         grep_steps = [s for s in steps if "run" in s and "git grep" in s.get("run", "")]
         assert grep_steps, "Must have a step that runs git grep"
         run_script = grep_steps[0]["run"]
-        assert "<{7}" in run_script or "<<<<<<<" in run_script, (
-            "Must check for <<<<<<< markers"
-        )
-        assert "={7}" in run_script or "=======" in run_script, (
-            "Must check for ======= markers"
-        )
-        assert ">{7}" in run_script or ">>>>>>>" in run_script, (
-            "Must check for >>>>>>> markers"
-        )
+        assert (
+            "<{7}" in run_script or "<<<<<<<" in run_script
+        ), "Must check for <<<<<<< markers"
+        assert (
+            "={7}" in run_script or "=======" in run_script
+        ), "Must check for ======= markers"
+        assert (
+            ">{7}" in run_script or ">>>>>>>" in run_script
+        ), "Must check for >>>>>>> markers"
 
     def test_excludes_github_directory(self) -> None:
         """The git grep must exclude .github/ to avoid false positives on workflow files."""
@@ -238,20 +238,20 @@ class TestConflictCheckDocumentation:
     def test_claude_md_lists_conflict_check(self) -> None:
         """CLAUDE.md branch protection section must list conflict-check."""
         content = Path("CLAUDE.md").read_text()
-        assert "conflict-check" in content, (
-            "CLAUDE.md must list conflict-check as a required status check"
-        )
+        assert (
+            "conflict-check" in content
+        ), "CLAUDE.md must list conflict-check as a required status check"
 
     def test_claude_md_describes_conflict_check(self) -> None:
         """CLAUDE.md must describe what the conflict-check does."""
         content = Path("CLAUDE.md").read_text()
-        assert "conflict marker" in content.lower(), (
-            "CLAUDE.md must describe conflict-check purpose"
-        )
+        assert (
+            "conflict marker" in content.lower()
+        ), "CLAUDE.md must describe conflict-check purpose"
 
     def test_claude_md_notes_up_to_date_requirement(self) -> None:
         """CLAUDE.md must note the 'require up-to-date' branch protection setting."""
         content = Path("CLAUDE.md").read_text()
-        assert "up to date" in content.lower() or "up-to-date" in content.lower(), (
-            "CLAUDE.md must document the 'require branches to be up to date' setting"
-        )
+        assert (
+            "up to date" in content.lower() or "up-to-date" in content.lower()
+        ), "CLAUDE.md must document the 'require branches to be up to date' setting"

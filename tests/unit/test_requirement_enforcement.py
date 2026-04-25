@@ -40,9 +40,9 @@ def test_untagged_test_is_rejected(tmp_path: Path):
 
     # Should fail with UsageError (non-zero exit)
     assert result.returncode != 0, "Pytest should reject tests without @pytest.mark.req"
-    assert "REQUIREMENT TRACEABILITY VIOLATION" in result.stderr, (
-        f"Expected enforcement error message in stderr. Got: {result.stderr}"
-    )
+    assert (
+        "REQUIREMENT TRACEABILITY VIOLATION" in result.stderr
+    ), f"Expected enforcement error message in stderr. Got: {result.stderr}"
 
 
 @pytest.mark.req("REQ-YG-063")
@@ -76,6 +76,6 @@ def test_tagged_test_is_accepted(tmp_path: Path):
     )
 
     # Should succeed (0 exit code)
-    assert result.returncode == 0, (
-        f"Pytest should accept tests with @pytest.mark.req. Output: {result.stdout}"
-    )
+    assert (
+        result.returncode == 0
+    ), f"Pytest should accept tests with @pytest.mark.req. Output: {result.stdout}"

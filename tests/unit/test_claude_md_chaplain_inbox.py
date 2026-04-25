@@ -17,27 +17,27 @@ class TestClaudeMdChaplainInbox:
 
     def test_claude_md_has_submitting_proposals_section(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
-        assert "### Submitting Proposals" in content, (
-            "CLAUDE.md must have a 'Submitting Proposals' subsection (FR-163 AC-1)"
-        )
+        assert (
+            "### Submitting Proposals" in content
+        ), "CLAUDE.md must have a 'Submitting Proposals' subsection (FR-163 AC-1)"
 
     def test_claude_md_mentions_chaplain_inbox(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
-        assert ".chaplain/inbox/" in content, (
-            "CLAUDE.md must mention .chaplain/inbox/ path (FR-163 AC-4)"
-        )
+        assert (
+            ".chaplain/inbox/" in content
+        ), "CLAUDE.md must mention .chaplain/inbox/ path (FR-163 AC-4)"
 
     def test_claude_md_mentions_watch_daemon(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
-        assert ".chaplain/watcher2.sh" in content, (
-            "CLAUDE.md must reference the watcher2.sh daemon"
-        )
+        assert (
+            ".chaplain/watcher2.sh" in content
+        ), "CLAUDE.md must reference the watcher2.sh daemon"
 
     def test_claude_md_mentions_plan_judge_enforce(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
-        assert "Plan" in content and "Judge" in content and "Enforce" in content, (
-            "CLAUDE.md must describe the Plan → ... → Judge → Enforce pipeline"
-        )
+        assert (
+            "Plan" in content and "Judge" in content and "Enforce" in content
+        ), "CLAUDE.md must describe the Plan → ... → Judge → Enforce pipeline"
 
     def test_section_placed_before_development_commands(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
@@ -45,9 +45,9 @@ class TestClaudeMdChaplainInbox:
         dev_commands_pos = content.find("## Development Commands")
         assert proposals_pos != -1, "Submitting Proposals section not found"
         assert dev_commands_pos != -1, "Development Commands section not found"
-        assert proposals_pos < dev_commands_pos, (
-            "Submitting Proposals must appear before Development Commands"
-        )
+        assert (
+            proposals_pos < dev_commands_pos
+        ), "Submitting Proposals must appear before Development Commands"
 
     def test_section_placed_after_development_process(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
@@ -55,9 +55,9 @@ class TestClaudeMdChaplainInbox:
         proposals_pos = content.find("### Submitting Proposals")
         assert reflect_pos != -1, "'Reflect' section not found"
         assert proposals_pos != -1, "Submitting Proposals section not found"
-        assert reflect_pos < proposals_pos, (
-            "Submitting Proposals must appear after the Reflect section"
-        )
+        assert (
+            reflect_pos < proposals_pos
+        ), "Submitting Proposals must appear after the Reflect section"
 
     def test_matches_canonical_source(self):
         """Section text must match .github/copilot-instructions.md verbatim."""
@@ -69,9 +69,9 @@ class TestClaudeMdChaplainInbox:
             (claude_md, "CLAUDE.md"),
             (copilot_md, "copilot-instructions.md"),
         ]:
-            assert "### Submitting Proposals" in source, (
-                f"{name} missing 'Submitting Proposals' section"
-            )
+            assert (
+                "### Submitting Proposals" in source
+            ), f"{name} missing 'Submitting Proposals' section"
 
         def extract_section(text: str) -> str:
             start = text.index("### Submitting Proposals")

@@ -41,6 +41,6 @@ yamlgraph graph run examples/demos/watcher2-ci-remediation/graph.yaml \
 
 Where `failure_type` can be:
 - `syntax` - Python syntax error
-- `changelog` - Missing changelog fragment  
+- `changelog` - Missing changelog fragment
 - `diary` - Missing diary entry
 - `precommit` - Pre-commit hook failure

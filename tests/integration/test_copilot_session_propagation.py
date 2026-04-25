@@ -171,9 +171,9 @@ class TestCopilotSessionPropagation:
 
         # Phase2 received --resume with the correct UUID
         phase2_cmd = copilot_cmds[1][0][0]
-        assert "--resume" in phase2_cmd, (
-            f"Expected --resume in phase2 command, got: {phase2_cmd}"
-        )
+        assert (
+            "--resume" in phase2_cmd
+        ), f"Expected --resume in phase2 command, got: {phase2_cmd}"
         resume_idx = phase2_cmd.index("--resume")
         assert phase2_cmd[resume_idx + 1] == session_uuid
 
