@@ -429,4 +429,15 @@ The finalize step includes sophisticated pre-commit handling:
 - **CI gates:** All changes must pass CI before merge
 - **Shell injection protection:** All user input properly quoted and validated
 
+### Forensic Failure Analysis (FR-285)
+
+When watcher2 cycles fail, the system automatically performs forensic analysis to generate diagnostic diary entries:
+
+1. **Failure analysis phase:** Invokes `.chaplain/graphs/watcher-forensic/graph.yaml` before archival
+2. **Context extraction:** Captures failure reason, topic content, relevant logs, and worktree state
+3. **Forensic diary generation:** Creates structured diary entries in `docs/diary/` with root cause analysis
+4. **Enhanced failure records:** Preserves failure records with diary references in `.chaplain/failed/`
+
+The forensic analysis workflow runs only if Copilot session is available and fails gracefully otherwise.
+
 This documentation serves as both user guide and maintenance reference for the chaplain automation infrastructure.
