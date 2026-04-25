@@ -1,0 +1,11 @@
+---
+manifest_version: 1
+sources:
+  - pattern: "sources/architecture.md"
+    mode: "verbatim"
+  - pattern: "sources/guide.md"
+    mode: "verbatim"
+  - pattern: "sources/notes/*.md"
+    mode: "summarized"
+exclude:
+  - "sources/notes/private.md"

@@ -1,0 +1,37 @@
+# Baseline Checkpointing Demo
+# Demonstrates baseline state import and usage
+
+version: "1.0"
+name: baseline-checkpointing
+description: Demo of baseline checkpointing functionality
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  demo_topic: str
+  # Baseline state fields will be imported via --import-state:
+  # baseline_id: str
+  # baseline_context_verbatim: dict
+  # baseline_context_summaries: dict
+  # baseline_built_at: str
+
+nodes:
+  demo_baseline:
+    type: llm
+    prompt: analyze_baseline
+    variables:
+      baseline_id: "demo_baseline_abc123"
+      baseline_built_at: "2026-04-25T23:15:00Z"
+      baseline_context_verbatim: "Architecture Guide and User Guide content"
+      baseline_context_summaries: "Development notes and meeting minutes summaries"
+    state_key: analysis
+
+edges:
+  - from: START
+    to: demo_baseline
+  - from: demo_baseline
+    to: END

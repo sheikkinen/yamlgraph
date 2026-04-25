@@ -1,6 +1,5 @@
 """Baseline builder graph configuration."""
 
-from typing import Dict, Any
 from pydantic import BaseModel
 
 
@@ -12,21 +11,21 @@ class GraphNode(BaseModel):
 
 class GraphConfig(BaseModel):
     """Represents the baseline builder graph configuration."""
-    nodes: Dict[str, GraphNode]
-    edges: Dict[str, str] = {}
+    nodes: dict[str, GraphNode]
+    edges: dict[str, str] = {}
 
 
 def load_baseline_graph() -> GraphConfig:
     """
     Load the baseline builder graph configuration.
-    
+
     Returns:
         GraphConfig: Configuration for baseline builder graph
     """
     # Define the required nodes as per AC-6
     nodes = {
         "load_manifest": GraphNode(
-            type="yaml_loader", 
+            type="yaml_loader",
             description="Read and validate manifest schema"
         ),
         "expand_sources": GraphNode(
@@ -54,15 +53,15 @@ def load_baseline_graph() -> GraphConfig:
             description="Write export state consumed by watcher2"
         )
     }
-    
+
     # Define the edges for sequential processing
     edges = {
         "load_manifest": "expand_sources",
-        "expand_sources": "read_sources", 
+        "expand_sources": "read_sources",
         "read_sources": "resolve_summaries",
         "resolve_summaries": "compute_baseline_id",
         "compute_baseline_id": "assemble_baseline_state",
         "assemble_baseline_state": "emit_artifact"
     }
-    
+
     return GraphConfig(nodes=nodes, edges=edges)
