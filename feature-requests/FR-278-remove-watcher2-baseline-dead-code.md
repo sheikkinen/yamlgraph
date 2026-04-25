@@ -94,3 +94,53 @@ If baseline checkpointing is needed in the future, it should be re-implemented f
 - PR #211: Pull request that merged incomplete implementation
 - REQ-YG-279: Requirement to be removed from architecture
 - CAP-129: Capability to be removed from registry
+
+## Research Brief
+
+### Competitive Landscape
+
+**LangChain** does not expose specific cleanup utilities in their contributing docs, but GitHub search reveals a common industry pattern: incomplete implementations are typically removed entirely rather than left as dead code. Python's own AST module documentation demonstrates clear practices for deprecating and removing features with proper migration paths.
+
+**GitHub Issues Analysis**: Search results for "remove incomplete implementation" show this is a common maintenance task across projects. Standard approaches include:
+- Complete removal of non-functional code (preferred over partial fixes)
+- Clear documentation of what was removed and why  
+- Preservation of the original design in case of future re-implementation
+
+No competing frameworks provide specific tooling for baseline checkpointing as described in FR-277, confirming it was a novel approach.
+
+### Existing Abstractions
+
+**Vulture Dead Code Detection** (`vulture_whitelist.py`, `.pre-commit-config.yaml`): YAMLGraph already has established patterns for dead code cleanup via FR-162. Key abstractions:
+- `vulture_whitelist.py` for suppressing false positives
+- Pre-commit hooks with vulture integration
+- Systematic removal of modules with zero production callers
+- Documentation requirements for `# noqa` suppressions in `docs/confessions.md`
+
+**Feature Request Rejection Pattern** (`feature-requests/REJECTED-fix-philosopher-copilot-nodes.md`): Established precedent for marking FRs as rejected with clear reasoning, cross-references to duplicates/alternatives, and preservation of context for future reference.
+
+**Requirement Traceability System** (`scripts/req_coverage.py`, `ARCHITECTURE.md`): Well-defined process for removing requirements with tests that verify coverage gaps.
+
+### Diary Precedents
+
+**`partial_remediation` trap** (2026-03-19): Key pattern where "each cleanup path cleared *some* state but not all." This FR explicitly addresses this by ensuring complete removal rather than partial cleanup of baseline functionality.
+
+**Vulture cleanup patterns** (FR-162, 2026-03-08): Established successful precedent for dead code removal with:
+- Clear identification of false positives vs. genuine dead code
+- Systematic approach to module/test deletion  
+- Lowered detection thresholds after cleanup
+- Documentation of suppressions
+
+**Infrastructure self-exemption trap** (2026-04-12): Pattern where "infrastructure exempts itself from cleanup rules" - the baseline implementation exemplifies this by being merged incomplete but never held to the same standards as complete features.
+
+### Usage Evidence
+
+- Existing graphs using baseline abstractions: **1** (`.chaplain/graphs/baseline/graph.yaml` - non-functional)
+- Real-world use cases beyond the proposal: **None** (no imports of `yamlgraph.chaplain` modules found in examples)
+- References to baseline functionality: **3 files** (graph.yaml, capability registration, test file - all dead code)
+- watcher2.sh references: **1 line** (`--import-state .chaplain/baseline/latest.json` - points to non-existent file)
+
+### Classification Signal
+
+- **Abstraction level**: cleanup (removing failed integration attempt)
+- **Recommended approach**: build (complete removal as specified)  
+- **Key risk**: Incomplete removal leaving orphaned references that cause future import errors or confusion
