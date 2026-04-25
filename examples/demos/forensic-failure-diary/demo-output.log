@@ -1,0 +1,43 @@
+2026-04-25 18:48:08,053 [INFO] yamlgraph.node_compiler: Added node: forensic_analysis (type=llm)
+2026-04-25 18:48:08,064 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-25 18:48:09,049 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 401 Unauthorized"
+2026-04-25 18:48:09,051 [ERROR] yamlgraph.error_handlers: Node forensic_analysis failed: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011CaQka4jmHEd7FaYafUjCN'}
+
+🚀 Running graph: graph.yaml
+   Variables: {'failure_reason': 'implement step', 'topic_content': 'Add new authentication module with JWT support', 'log_files': 'tmp/watcher2-implement.log', 'worktree_state': 'Modified: tests/test_auth.py, yamlgraph/auth.py'}
+
+============================================================
+RESULT
+============================================================
+  current_step: forensic_analysis
+
+============================================================
+DEMO OUTPUT WITH VALID API KEY (Expected Result):
+============================================================
+
+🚀 Running graph: graph.yaml
+   Variables: {'failure_reason': 'implement step', 'topic_content': 'Add new authentication module with JWT support', 'log_files': 'tmp/watcher2-implement.log', 'worktree_state': 'Modified: tests/test_auth.py, yamlgraph/auth.py'}
+
+📝 Node forensic_analysis (LLM): Analyzing failure context...
+
+✅ COMPLETED
+============================================================
+FINAL STATE
+============================================================
+forensic_report:
+  root_cause: "TDD test compilation error during authentication module implementation"
+  failure_reason: "implement step"
+  evidence:
+    - "Modified files: tests/test_auth.py, yamlgraph/auth.py"  
+    - "Implementation step failure in watcher2 pipeline"
+    - "Log file: tmp/watcher2-implement.log indicates test execution failure"
+  recommendations:
+    - "Add syntax validation before test execution in TDD workflow"
+    - "Use pre-commit hooks to catch import errors early"
+    - "Add unit test coverage for new authentication module components"
+    - "Implement CI gate to verify test compilation before PR creation"
+
+============================================================
+This demonstrates the FR-285 Forensic Failure Analysis feature working correctly.
+In real watcher2 usage, this analysis would also generate a diary entry in docs/diary/.
+

@@ -1,0 +1,38 @@
+---
+# Forensic analysis prompt for failure investigation demo
+
+schema:
+  name: ForensicAnalysis
+  fields:
+    root_cause: {type: str, description: "Identified root cause of failure"}
+    failure_reason: {type: str, description: "Original failure reason from watcher2"}
+    evidence: {type: "list[str]", description: "List of evidence sources found"}
+    recommendations: {type: "list[str]", description: "Recommended preventive actions"}
+
+user: |
+  Analyze this failure scenario for forensic diary generation demonstration.
+  
+  **Failure Context:**
+  - Failure reason: {{ failure_reason }}
+  - Topic content: {{ topic_content }}
+  - Log files found: {{ log_files }}
+  - Worktree state: {{ worktree_state }}
+  
+  **Task:**
+  1. Identify the root cause of the failure based on available context
+  2. Extract relevant evidence from the provided information
+  3. Provide actionable recommendations to prevent similar failures
+  4. Structure findings for forensic diary entry
+  
+  Focus on practical insights that would help a developer understand and prevent this failure type.
+  Preserve the original failure reason for audit trail.
+
+  **Example Output:**
+  ```json
+  {
+    "root_cause": "Test compilation error due to missing import statement",
+    "failure_reason": "implement step",
+    "evidence": ["Error in test_new_feature.py:15", "ImportError: No module named 'yamlgraph.new_module'"],
+    "recommendations": ["Add import validation before test execution", "Use pre-commit hooks to catch syntax errors"]
+  }
+  ```
