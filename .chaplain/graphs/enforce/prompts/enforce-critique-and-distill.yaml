@@ -65,5 +65,22 @@ user: |
 
   ---
 
+  ## Part 3: Changelog Fragment
+
+  Create a changelog fragment in `changelog/unreleased/fr-{{ fr_num }}-<descriptive-name>.md`:
+
+  ```markdown
+  ---
+  type: feat
+  scope: <primary-scope>
+  req: <REQ-YG-XXX-if-available>
+  ---
+  - **FR-{{ fr_num }}**: Brief description of the change. ({{ req_id }})
+  ```
+
+  Use the FR path to derive scope and filename.
+
+  ---
+
   If the FR reference does not exist, explain what context is needed.
   Output both the critique assessment AND the diary reflection.
