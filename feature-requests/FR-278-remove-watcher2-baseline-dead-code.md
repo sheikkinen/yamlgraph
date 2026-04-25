@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Cleanup
-**Status:** Approved - Implementation Authority Granted
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-25
 **Judged:** 2026-04-25
@@ -63,19 +63,19 @@ If baseline checkpointing is needed in the future, it should be re-implemented f
 
 ## Acceptance Criteria
 
-- [ ] All baseline-related Python modules removed (`yamlgraph/chaplain/baseline.py`, `yamlgraph/models/baseline.py`)
-- [ ] Chaplain package init file removed (`yamlgraph/chaplain/__init__.py`)
-- [ ] Baseline graph YAML file removed (`.chaplain/graphs/baseline/graph.yaml`)
-- [ ] Baseline test file removed (`tests/unit/test_fr277_watcher2_baseline_checkpointing.py`)
-- [ ] Capability registration removed (`capabilities/CAP-129-watcher2-baseline-checkpointing.yaml`)
-- [ ] Import state line removed from watcher2.sh
-- [ ] REQ-YG-279 requirement removed from ARCHITECTURE.md
-- [ ] Baseline documentation removed from `.chaplain/README.md`
-- [ ] FR-277 marked as rejected in feature requests
-- [ ] No import errors when running existing tests
-- [ ] No references to baseline functionality in grep search across codebase
-- [ ] All tests pass after removal
-- [ ] Linting passes (no dead imports or references)
+- [x] All baseline-related Python modules removed (`yamlgraph/chaplain/baseline.py`, `yamlgraph/models/baseline.py`)
+- [x] Chaplain package init file removed (`yamlgraph/chaplain/__init__.py`)
+- [x] Baseline graph YAML file removed (`.chaplain/graphs/baseline/graph.yaml`)
+- [x] Baseline test file removed (`tests/unit/test_fr277_watcher2_baseline_checkpointing.py`)
+- [x] Capability registration removed (`capabilities/CAP-129-watcher2-baseline-checkpointing.yaml`)
+- [x] Import state line removed from watcher2.sh
+- [x] REQ-YG-279 requirement removed from ARCHITECTURE.md
+- [x] Baseline documentation removed from `.chaplain/README.md`
+- [x] FR-277 marked as rejected in feature requests
+- [x] No import errors when running existing tests
+- [x] No references to baseline functionality in grep search across codebase
+- [x] All tests pass after removal
+- [x] Linting passes (no dead imports or references)
 
 ## Alternatives Considered
 
