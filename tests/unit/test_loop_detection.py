@@ -36,9 +36,9 @@ class TestDetectLoopNodes:
         assert "C" in loop_nodes, "C should be detected as loop node"
 
         # A is NOT part of the cycle - it's an ancestor
-        assert "A" not in loop_nodes, (
-            "A should NOT be marked as loop node (it's an ancestor, not in cycle)"
-        )
+        assert (
+            "A" not in loop_nodes
+        ), "A should NOT be marked as loop node (it's an ancestor, not in cycle)"
         assert "START" not in loop_nodes, "START should NOT be marked as loop node"
         assert "END" not in loop_nodes, "END should NOT be marked as loop node"
 
@@ -151,6 +151,6 @@ class TestDetectLoopNodes:
         assert "critique" in loop_nodes, "critique is in the loop"
         assert "refine" in loop_nodes, "refine is in the loop"
         # draft runs ONCE before entering the loop - it's not part of the cycle
-        assert "draft" not in loop_nodes, (
-            "draft should NOT be in the loop (runs once before cycle)"
-        )
+        assert (
+            "draft" not in loop_nodes
+        ), "draft should NOT be in the loop (runs once before cycle)"

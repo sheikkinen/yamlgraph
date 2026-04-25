@@ -24,7 +24,7 @@ nodes:
 
   # Step 2: Show the actual CI remediation process using the real graph
   demonstrate_remediation:
-    type: llm  
+    type: llm
     prompt: demonstrate-remediation
     variables:
       ci_log_content: "{state.mock_ci_log}"

@@ -50,9 +50,9 @@ class TestRouterDictOutputRouting:
             result = node_fn({"input": "I passed my exam!"})
 
             # Pydantic models should route correctly
-            assert result.get("_route") == "celebrate", (
-                f"Router should route to 'celebrate' for tone='positive'. Got: {result}"
-            )
+            assert (
+                result.get("_route") == "celebrate"
+            ), f"Router should route to 'celebrate' for tone='positive'. Got: {result}"
 
     @pytest.mark.req("REQ-YG-022")
     def test_router_routes_dict_output_tone(self) -> None:
@@ -148,9 +148,9 @@ class TestRouterDictOutputRouting:
             result = node_fn({"input": "Random text"})
 
             # Should fall back gracefully, not error out
-            assert result.get("_route") == "neutral_handler", (
-                f"Router should fall back when route_field value missing. Got: {result}"
-            )
+            assert (
+                result.get("_route") == "neutral_handler"
+            ), f"Router should fall back when route_field value missing. Got: {result}"
 
 
 class TestRouterCustomRouteField:
@@ -184,6 +184,6 @@ class TestRouterCustomRouteField:
             result = node_fn({"input": "Emergency!"})
 
             # Should use custom route_field
-            assert result.get("_route") == "escalate", (
-                f"Router should use route_field 'category'. Got: {result}"
-            )
+            assert (
+                result.get("_route") == "escalate"
+            ), f"Router should use route_field 'category'. Got: {result}"

@@ -141,9 +141,9 @@ class TestLLMSkipRecordsError:
 
             result = node_fn({"input": "test"})
 
-            assert "errors" in result, (
-                f"LLM skip should include 'errors' key. Got keys: {list(result.keys())}"
-            )
+            assert (
+                "errors" in result
+            ), f"LLM skip should include 'errors' key. Got keys: {list(result.keys())}"
             assert len(result["errors"]) >= 1
             error = result["errors"][0]
             assert isinstance(error, PipelineError)

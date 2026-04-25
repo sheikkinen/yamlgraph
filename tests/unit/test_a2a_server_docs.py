@@ -27,15 +27,15 @@ class TestArchitectureRequirement:
 
     def test_req_in_capabilities_table(self):
         content = ARCHITECTURE.read_text()
-        assert "REQ-YG-246" in content, (
-            "ARCHITECTURE.md must include REQ-YG-246 in capabilities table"
-        )
+        assert (
+            "REQ-YG-246" in content
+        ), "ARCHITECTURE.md must include REQ-YG-246 in capabilities table"
 
     def test_req_description_exists(self):
         content = ARCHITECTURE.read_text()
-        assert "REQ-YG-246" in content and "a2a-server.md" in content, (
-            "ARCHITECTURE.md must have REQ-YG-246 description referencing a2a-server.md"
-        )
+        assert (
+            "REQ-YG-246" in content and "a2a-server.md" in content
+        ), "ARCHITECTURE.md must have REQ-YG-246 description referencing a2a-server.md"
 
 
 # ---------------------------------------------------------------------------
@@ -320,6 +320,6 @@ class TestRefReadmeUpdated:
 
     def test_a2a_server_link(self):
         content = REF_README.read_text()
-        assert "a2a-server.md" in content, (
-            "reference/README.md must link to a2a-server.md"
-        )
+        assert (
+            "a2a-server.md" in content
+        ), "reference/README.md must link to a2a-server.md"

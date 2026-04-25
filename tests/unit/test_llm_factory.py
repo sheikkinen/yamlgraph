@@ -292,15 +292,15 @@ class TestCreateLLM:
         ):
             create_llm(provider="vertex", model="gemini-2.0-flash")
 
-        assert env_snapshot["GOOGLE_CLOUD_PROJECT"] is None, (
-            "GOOGLE_CLOUD_PROJECT must be absent from os.environ during Express construction"
-        )
-        assert env_snapshot["GOOGLE_CLOUD_LOCATION"] is None, (
-            "GOOGLE_CLOUD_LOCATION must be absent from os.environ during Express construction"
-        )
-        assert env_snapshot["VERTEXAI_PROJECT"] is None, (
-            "VERTEXAI_PROJECT must be absent from os.environ during Express construction"
-        )
+        assert (
+            env_snapshot["GOOGLE_CLOUD_PROJECT"] is None
+        ), "GOOGLE_CLOUD_PROJECT must be absent from os.environ during Express construction"
+        assert (
+            env_snapshot["GOOGLE_CLOUD_LOCATION"] is None
+        ), "GOOGLE_CLOUD_LOCATION must be absent from os.environ during Express construction"
+        assert (
+            env_snapshot["VERTEXAI_PROJECT"] is None
+        ), "VERTEXAI_PROJECT must be absent from os.environ during Express construction"
 
     @pytest.mark.req("REQ-YG-010")
     def test_vertex_express_restores_env_vars_after_construction(self, monkeypatch):
@@ -357,9 +357,9 @@ class TestCreateLLM:
         ):
             create_llm(provider="vertex", model="gemini-2.0-flash")
 
-        assert env_snapshot["VERTEXAI_LOCATION"] == "europe-west4", (
-            "VERTEXAI_LOCATION must NOT be masked during Express construction"
-        )
+        assert (
+            env_snapshot["VERTEXAI_LOCATION"] == "europe-west4"
+        ), "VERTEXAI_LOCATION must NOT be masked during Express construction"
 
     @pytest.mark.req("REQ-YG-010")
     def test_vertex_construct_lock_exists(self):
@@ -368,9 +368,9 @@ class TestCreateLLM:
 
         import yamlgraph.utils.llm_providers as llm_mod
 
-        assert hasattr(llm_mod, "_VERTEX_CONSTRUCT_LOCK"), (
-            "_VERTEX_CONSTRUCT_LOCK must exist as a module-level attribute"
-        )
+        assert hasattr(
+            llm_mod, "_VERTEX_CONSTRUCT_LOCK"
+        ), "_VERTEX_CONSTRUCT_LOCK must exist as a module-level attribute"
         assert isinstance(llm_mod._VERTEX_CONSTRUCT_LOCK, type(threading.Lock())), (  # noqa: SLF001
             "_VERTEX_CONSTRUCT_LOCK must be a threading.Lock instance"
         )
@@ -380,9 +380,9 @@ class TestCreateLLM:
         """FR-227: _masked_env context manager removes keys and restores them on exit."""
         import yamlgraph.utils.llm_providers as llm_mod
 
-        assert hasattr(llm_mod, "_masked_env"), (
-            "_masked_env context manager must exist in llm_factory"
-        )
+        assert hasattr(
+            llm_mod, "_masked_env"
+        ), "_masked_env context manager must exist in llm_factory"
 
         import os as _os
 
@@ -391,9 +391,9 @@ class TestCreateLLM:
         try:
             with llm_mod._masked_env(key):  # noqa: SLF001
                 assert key not in _os.environ, "Key must be absent inside _masked_env"
-            assert _os.environ.get(key) == "original-value", (
-                "Key must be restored after _masked_env exits"
-            )
+            assert (
+                _os.environ.get(key) == "original-value"
+            ), "Key must be restored after _masked_env exits"
         finally:
             _os.environ.pop(key, None)
 
@@ -441,12 +441,12 @@ class TestCreateLLM:
         ):
             create_llm(provider="vertex", model="gemini-2.0-flash")
 
-        assert env_snapshot["GOOGLE_CLOUD_PROJECT"] == "adc-project", (
-            "ADC mode must not remove GOOGLE_CLOUD_PROJECT"
-        )
-        assert env_snapshot["GOOGLE_CLOUD_LOCATION"] == "us-central1", (
-            "ADC mode must not remove GOOGLE_CLOUD_LOCATION"
-        )
+        assert (
+            env_snapshot["GOOGLE_CLOUD_PROJECT"] == "adc-project"
+        ), "ADC mode must not remove GOOGLE_CLOUD_PROJECT"
+        assert (
+            env_snapshot["GOOGLE_CLOUD_LOCATION"] == "us-central1"
+        ), "ADC mode must not remove GOOGLE_CLOUD_LOCATION"
 
     # --- FR-229 condemning tests ---
 
@@ -468,9 +468,9 @@ class TestCreateLLM:
         ):
             create_llm(provider="vertex")
 
-        assert not captured["GOOGLE_API_KEY_present"], (
-            "GOOGLE_API_KEY must be absent from os.environ during Express construction"
-        )
+        assert not captured[
+            "GOOGLE_API_KEY_present"
+        ], "GOOGLE_API_KEY must be absent from os.environ during Express construction"
 
     @pytest.mark.req("REQ-YG-010")
     def test_vertex_express_restores_google_api_key_after_construction(
@@ -522,6 +522,6 @@ class TestCreateLLM:
         ):
             create_llm(provider="vertex")
 
-        assert captured["GOOGLE_API_KEY_present"], (
-            "GOOGLE_API_KEY must NOT be masked in ADC mode"
-        )
+        assert captured[
+            "GOOGLE_API_KEY_present"
+        ], "GOOGLE_API_KEY must NOT be masked in ADC mode"

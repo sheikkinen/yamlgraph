@@ -104,6 +104,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [web-research](demos/web-research/) | `agent` | Web search agent |
 | [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |
 | [cache](demos/cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
+| [prompt-caching](demos/prompt-caching/) | `llm` | Anthropic prompt caching with system_segments (FR-219) |
 
 ### Utility Demos
 

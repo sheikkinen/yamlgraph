@@ -135,6 +135,6 @@ class TestCleanStaleDistInfoDirectUrl:
         # Unrelated package MUST survive
         assert other_url.exists(), "Unrelated dist-info must not be touched"
         # Stale package MUST be cleaned — this MUST FAIL on unmodified code
-        assert not stale_url.exists(), (
-            "Stale direct_url.json referencing worktree survives cleanup"
-        )
+        assert (
+            not stale_url.exists()
+        ), "Stale direct_url.json referencing worktree survives cleanup"

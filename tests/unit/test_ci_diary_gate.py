@@ -97,18 +97,18 @@ class TestDiaryGateJobStructure:
         wf = _load_workflow()
         job = wf["jobs"]["diary-gate"]
         condition = job.get("if", "")
-        assert "startsWith(github.event.pull_request.title, 'feat')" in condition, (
-            "Job must check for feat PR titles"
-        )
+        assert (
+            "startsWith(github.event.pull_request.title, 'feat')" in condition
+        ), "Job must check for feat PR titles"
 
     def test_job_condition_checks_fix(self) -> None:
         """The job-level `if` condition must check for 'fix' PR titles."""
         wf = _load_workflow()
         job = wf["jobs"]["diary-gate"]
         condition = job.get("if", "")
-        assert "startsWith(github.event.pull_request.title, 'fix')" in condition, (
-            "Job must check for fix PR titles"
-        )
+        assert (
+            "startsWith(github.event.pull_request.title, 'fix')" in condition
+        ), "Job must check for fix PR titles"
 
     def test_checkout_with_full_history(self) -> None:
         """The checkout step must use fetch-depth: 0 for full git history."""
@@ -119,9 +119,9 @@ class TestDiaryGateJobStructure:
         ]
         assert checkout_steps, "Must have an actions/checkout step"
         checkout = checkout_steps[0]
-        assert checkout.get("with", {}).get("fetch-depth") == 0, (
-            "Checkout must use fetch-depth: 0"
-        )
+        assert (
+            checkout.get("with", {}).get("fetch-depth") == 0
+        ), "Checkout must use fetch-depth: 0"
 
     def test_verify_step_uses_git_diff(self) -> None:
         """The verification step must use git diff with base/head SHAs."""
@@ -153,9 +153,9 @@ class TestDiaryGateJobStructure:
         run_script = verify_steps[0]["run"]
         assert "reflection" in run_script, "Error must mention reflection"
         assert "Seed" in run_script, "Error must mention Seed question"
-        assert "Cognitive traps" in run_script or "traps" in run_script.lower(), (
-            "Error must mention cognitive traps"
-        )
+        assert (
+            "Cognitive traps" in run_script or "traps" in run_script.lower()
+        ), "Error must mention cognitive traps"
 
 
 # ── Shell Script Logic Tests ───────────────────────────────────────────────

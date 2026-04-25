@@ -22,14 +22,14 @@ user: |
   ### 1. DIAGNOSIS
   Analyze the CI log and identify:
   - What type of failure occurred
-  - Which files are affected  
+  - Which files are affected
   - What specific fix is needed
   - Whether this is a mechanical issue that can be auto-fixed
 
   ### 2. REMEDIATION PLAN
   Describe the specific steps the remediation would take:
   - For **syntax errors**: Fix indentation, missing colons, brackets
-  - For **changelog**: Create fragment in changelog/unreleased/ with proper YAML front matter  
+  - For **changelog**: Create fragment in changelog/unreleased/ with proper YAML front matter
   - For **diary**: Create diary entry in docs/diary/ with date and reflection
   - For **precommit**: Run specific hooks and apply auto-fixes
 

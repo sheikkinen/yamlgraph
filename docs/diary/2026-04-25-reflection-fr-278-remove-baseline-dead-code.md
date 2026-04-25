@@ -8,14 +8,14 @@ The symptom manifested as: "Files removed correctly ✓, import tests failing �
 
 **Heuristic:** **Environment boundary normalization** — When testing module removal in development environments, account for Python's import resolution order. Import-based tests in worktrees should either:
 1. Temporarily manipulate `sys.path` to isolate the worktree environment
-2. Focus on file-based verification rather than import behavior  
+2. Focus on file-based verification rather than import behavior
 3. Document the testing limitation and validate core functionality through alternative means
 
 The fix was to temporarily hide the main repository's modules during testing to verify the tests work correctly, then restore the environment. This proved the implementation was complete while revealing the test environment limitation.
 
 **Implementation Success Pattern:** RED → GREEN → REFACTOR discipline worked perfectly:
 - **RED**: 18 failing acceptance tests properly condemned the dead code
-- **GREEN**: Systematic removal (3 Python modules, 3 config files, 4 doc updates) achieved 16/18 tests passing  
+- **GREEN**: Systematic removal (3 Python modules, 3 config files, 4 doc updates) achieved 16/18 tests passing
 - **REFACTOR**: Status updates and final verification completed the cleanup
 
 **Seed:** How might we design acceptance tests that are robust across different development environments (worktrees, containers, CI) without compromising test fidelity? Should import verification tests be conditional based on environment detection?

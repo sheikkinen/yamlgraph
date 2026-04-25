@@ -58,6 +58,38 @@ system: |
   - Appropriate for a general audience
 ```
 
+### `system_segments`
+**Type:** `list` of objects (each with `content` and optional `cache`)
+**Required:** No (alternative to `system`)
+
+Advanced system message construction with per-segment cache control for Anthropic prompt caching optimization.
+
+```yaml
+system_segments:
+  - content: |
+      You are an expert on the YAMLGraph framework. YAMLGraph is a YAML-first
+      framework for building LLM pipelines using LangGraph.
+
+      [Large stable context that should be cached...]
+    cache: true
+  - content: |
+      Your current task: {task_description}
+    cache: false
+```
+
+**When to use `system_segments`:**
+- Multi-step workflows with shared stable context
+- Cost optimization with Anthropic prompt caching
+- Large system prompts where only part changes between calls
+
+**Segment options:**
+- `content` - The segment text (supports variable substitution)
+- `cache` - Boolean flag for Anthropic cache optimization
+
+**Provider behavior:**
+- **Anthropic**: `cache: true` segments get cache_control metadata for cost reduction
+- **Other providers**: Cache flags are ignored; segments are flattened to single system message
+
 ### `user`
 **Type:** `string` (multiline)
 **Required:** Yes (unless `template` is used)

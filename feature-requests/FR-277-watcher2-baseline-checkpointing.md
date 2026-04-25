@@ -1,7 +1,7 @@
 # Feature Request: FR-277 Watcher2 Baseline Checkpointing
 
 **Priority:** HIGH
-**Type:** Enhancement  
+**Type:** Enhancement
 **Status:** Rejected
 **Effort:** 4 days
 **Requested:** 2026-04-24
@@ -21,7 +21,7 @@ Watcher2 operators get lower token spend and more stable plan quality across run
 
 FR-276 Phase 1 (Anthropic prompt caching) reduces repeated token cost within a single run window, but watcher2 still repeatedly rescans mostly stable sources across runs:
 
-- Scripture and instruction corpus  
+- Scripture and instruction corpus
 - `ARCHITECTURE.md` and `CLAUDE.md`
 - Diary index slices used by watcher2
 - Active FR digest inputs used by watcher2
