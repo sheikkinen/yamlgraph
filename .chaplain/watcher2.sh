@@ -193,7 +193,7 @@ while true; do
         log_warn "No new test files found"
     fi
     # FR-280: Clean up marker file after RED verification
-    rm -f "$ACCEPTANCE_MARKER"
+    [[ -f "$ACCEPTANCE_MARKER" ]] && rm "$ACCEPTANCE_MARKER"
 
     # ── Step 4: Judge ───────────────────────────────────────────────────
     log_info "Step 4/4: Judge — evaluating FR draft..."
