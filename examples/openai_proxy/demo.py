@@ -80,7 +80,7 @@ def demo_non_streaming(*, base_url: str, api_key: str, model: str, prompt: str) 
     banner("📡 OpenAI Proxy Demo — Non-Streaming")
     row(f"Endpoint: {base_url}")
     row(f"Model:    {model}")
-    row(f"Prompt:   {prompt[:W - 12]}")
+    row(f"Prompt:   {prompt[: W - 12]}")
     row()
 
     client = OpenAI(base_url=base_url, api_key=api_key)
@@ -118,7 +118,7 @@ def demo_streaming(*, base_url: str, api_key: str, model: str, prompt: str) -> N
     banner("🌊 OpenAI Proxy Demo — Streaming")
     row(f"Endpoint: {base_url}")
     row(f"Model:    {model}")
-    row(f"Prompt:   {prompt[:W - 12]}")
+    row(f"Prompt:   {prompt[: W - 12]}")
     row()
     print("│ ", end="", flush=True)
 

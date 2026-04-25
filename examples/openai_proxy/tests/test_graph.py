@@ -69,9 +69,9 @@ class TestGraphConfig:
             function = tool_config["function"]
             # Verify the module string is a valid dotted path
             assert "." in module, f"Module {module} should be a dotted path"
-            assert (
-                function == tool_name
-            ), f"Function {function} should match tool name {tool_name}"
+            assert function == tool_name, (
+                f"Function {function} should match tool name {tool_name}"
+            )
 
     def test_prompt_yaml_exists(self):
         """Prompt file referenced by graph should exist."""

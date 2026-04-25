@@ -115,6 +115,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [req-cross-check](demos/req-cross-check/) | Architecture requirement traceability audit |
 | [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
 | [script-retirement](demos/script-retirement/) | Pipeline script retirement verification (FR-276) |
+| [watcher2-ci-remediation](demos/watcher2-ci-remediation/) | CI failure remediation loop demonstration (FR-279) |
 
 ### FR Validation Demos
 

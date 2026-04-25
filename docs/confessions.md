@@ -59,7 +59,7 @@ Each confession must include:
 - **Penance**: Arguments are `Path` objects from the diary folder; command is hardcoded `["git", "add"]`. No shell expansion, no user input.
 
 ### CONF-207
-- **File**: [scripts/migrate_capabilities.py](../scripts/migrate_capabilities.py#L349)
+- **File**: [scripts/migrate_capabilities.py](../scripts/migrate_capabilities.py#L345)
 - **Code**: E402
 - **Sin**: Module-level import `from req_coverage import CAPABILITIES` appears after `sys.path.insert()` manipulation.
 - **Penance**: The import must occur after sys.path is modified to find `req_coverage.py` in the scripts directory. This is standard Python pattern for runtime path manipulation.

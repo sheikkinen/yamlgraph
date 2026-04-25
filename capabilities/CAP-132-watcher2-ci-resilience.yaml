@@ -1,0 +1,45 @@
+id: CAP-132
+name: Watcher2 CI Resilience
+description: >
+  Fix wait_ci.sh check ordering and add automated CI remediation loop with copilot-driven
+  diagnosis and fixes for recoverable failures like syntax errors and missing fragments.
+modules:
+  - .chaplain/lib/watcher/wait_ci.sh
+  - .chaplain/watcher2.sh
+  - .chaplain/graphs/watcher-enforce/step-ci-remediate.yaml
+  - .chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml
+  - tests/unit/test_fr279_watcher2_ci_resilience.py
+requirements:
+  - id: REQ-YG-294
+    description: "Wait logic checks IN_PROGRESS before FAILURE to avoid premature CI failure"
+    modules:
+      - .chaplain/lib/watcher/wait_ci.sh
+  - id: REQ-YG-295
+    description: "CI remediation loop with 2-attempt limit in watcher2.sh"
+    modules:
+      - .chaplain/watcher2.sh
+  - id: REQ-YG-296
+    description: "step-ci-remediate.yaml graph for copilot-driven CI failure diagnosis"
+    modules:
+      - .chaplain/graphs/watcher-enforce/step-ci-remediate.yaml
+  - id: REQ-YG-297
+    description: "enforce-ci-remediate.yaml prompt template for CI failure analysis"
+    modules:
+      - .chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml
+  - id: REQ-YG-298
+    description: "Maximum 2 remediation attempts before escalating to human"
+    modules:
+      - .chaplain/watcher2.sh
+  - id: REQ-YG-299
+    description: "Remediation covers syntax errors, missing changelog/diary fragments"
+    modules:
+      - .chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml
+  - id: REQ-YG-300
+    description: "Existing passing pipelines unaffected (backwards compatibility)"
+    modules:
+      - .chaplain/watcher2.sh
+  - id: REQ-YG-301
+    description: "Test coverage for wait_ci.sh ordering and CI remediation loop"
+    modules:
+      - tests/unit/test_fr279_watcher2_ci_resilience.py
+fr: FR-279
