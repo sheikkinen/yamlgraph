@@ -172,3 +172,53 @@ Import must be additive only:
 - GitHub Issue #208 (This implementation)
 - FR-276: Prompt caching (Phase 1 only)
 - FR-269: CLI state import/export chain
+
+---
+
+## Research Brief
+
+### Competitive Landscape
+
+**LangGraph** (foundational dependency): Provides core checkpointing via `MemorySaver`, `SqliteSaver`, and `RedisSaver`, but these are session-scoped for interrupt/resume workflows. No cross-run baseline caching exists at the framework level.
+
+**CrewAI** (49.2K stars): Unified memory system with scope trees (`/project/alpha`, `/agent/researcher`) and composite scoring (semantic + recency + importance). Memory persists knowledge across crew executions but is focused on contextual recall rather than deterministic baseline checkpointing. Uses LLM inference for memory organization, making it non-deterministic.
+
+**Pydantic AI** (16.5K stars): AgentSpec YAML definitions with capability composition, but single-agent scoped with no cross-run state persistence. Built-in "Compaction" capabilities for OpenAI/Anthropic but these are runtime memory management, not baseline checkpointing.
+
+**DSPy** (33.8K stars): Compiler-driven prompt optimization with automatic tuning, but focused on training-time optimization rather than runtime caching patterns.
+
+No competing framework provides deterministic, hash-based baseline checkpointing for stable corpus reuse across pipeline runs. Most solutions focus on session memory or contextual recall rather than content-addressed precomputation.
+
+### Existing Abstractions
+
+**State Export/Import (FR-269)**: CLI flags `--import-state <path>` and `--export-state <path>` for inter-run state chaining. Foundation for baseline integration via import mechanism. Located in `yamlgraph/storage/export.py` and `yamlgraph/cli/graph_commands.py`.
+
+**Node-Level Caching (FR-032)**: Implemented LangGraph `CachePolicy` integration with YAML `cache:` field for per-node result caching. TTL-based with state hash cache keys. Located in node factory modules and graph compilation pipeline.
+
+**Checkpointers**: Memory, SQLite, and Redis persistence for session-based checkpoint/resume. Session-scoped, not cross-run. Located in `yamlgraph/storage/checkpointer.py` and related modules.
+
+**Content Hashing**: Used in GitHub Issues Remote Inbox (FR-243) for deduplication via `sha256(content_hash + manifest_version)`. Located in `.chaplain/lib/watcher/inbox_sync.sh`.
+
+**Watcher2 Pipeline**: Shell-based orchestration with state chaining between plan/research/enforce steps. Located in `.chaplain/watcher2.sh` and sourced libraries in `.chaplain/lib/watcher/`.
+
+### Diary Precedents
+
+**Node-Level Cache Trap (2026-04-19)**: "When integrating framework-specific types, always translate at the compilation boundary. YAML config should express user intent; the compiler converts to framework objects." Risk of leaking LangGraph abstractions into YAML layer.
+
+**Watcher2 Infrastructure Constraints (2026-04-22)**: "*Test infrastructure from its deployment context.* A worktree orchestrator must be tested from the main repo, not from a worktree — the environment constraints are different." Environment isolation critical for baseline testing.
+
+**Baseline Performance Validation (2026-04-24)**: "**Acceptance criteria should be empirically validated**: If a criterion requires specific performance, measure against current baseline before implementation." Need concrete baseline for measuring token cost reduction.
+
+**CI Status Shape Mismatch (2026-04-22)**: Silent failures in status checking due to assumption about data shape. Relevance: Baseline hash validation must handle edge cases in file content normalization.
+
+### Usage Evidence
+
+- **Existing graphs using related abstractions**: 31 chaplain graphs, 320 example graphs, 29 files using state export/import patterns
+- **Real-world use cases beyond the proposal**: Watcher2 pipeline is the primary consumer (plan → shell → enforce chaining). No other identified use cases in current codebase
+- **State chaining patterns**: Used exclusively in watcher2 orchestration for session continuity across shell boundaries
+
+### Classification Signal
+
+- **Abstraction level**: Integration (specific to watcher2 use case)
+- **Recommended approach**: Build (no cheaper documentation alternative exists)
+- **Key risk**: Over-engineering baseline scope beyond watcher2's actual stable corpus, leading to cache invalidation thrash
