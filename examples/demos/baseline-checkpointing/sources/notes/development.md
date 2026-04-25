@@ -7,5 +7,5 @@
 
 ## Next Steps
 - Document manifest schema
-- Add integration examples  
+- Add integration examples
 - Performance optimization

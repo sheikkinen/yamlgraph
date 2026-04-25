@@ -3,7 +3,9 @@
 from typing import Any
 
 
-def build_baseline_state(baseline_data: dict[str, Any], existing_state: dict[str, Any]) -> dict[str, Any]:
+def build_baseline_state(
+    baseline_data: dict[str, Any], existing_state: dict[str, Any]
+) -> dict[str, Any]:
     """
     Build baseline state while enforcing namespace collision protection.
 

@@ -10,5 +10,5 @@ This document describes the system architecture.
 
 ## Components
 - **Parser**: Handles input processing
-- **Engine**: Core business logic  
+- **Engine**: Core business logic
 - **Storage**: Data persistence layer

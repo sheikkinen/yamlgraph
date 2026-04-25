@@ -158,7 +158,7 @@ repos:
     hooks:
       - id: vulture-dead-code
         name: vulture (dead code)
-        entry: bash -c '.venv/bin/python -m vulture yamlgraph vulture_whitelist.py --min-confidence 60'
+        entry: bash -c '.venv/bin/python -m vulture yamlgraph vulture_whitelist.py --min-confidence 60 --exclude yamlgraph/chaplain/baseline'
         language: system
         pass_filenames: false
         always_run: true

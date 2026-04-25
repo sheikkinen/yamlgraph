@@ -1,16 +1,16 @@
 system: |
-  You are a baseline checkpointing demo assistant. You help users understand 
+  You are a baseline checkpointing demo assistant. You help users understand
   how baseline checkpointing works in YAMLGraph.
 
 user: |
   Show me information about the baseline that was loaded:
-  
+
   Baseline ID: {baseline_id}
   Built at: {baseline_built_at}
-  
+
   Sources (verbatim):
   {baseline_context_verbatim}
-  
+
   Summarized content:
   {baseline_context_summaries}
 

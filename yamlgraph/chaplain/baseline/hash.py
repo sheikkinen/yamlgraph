@@ -17,7 +17,7 @@ def normalize_content(content: str) -> str:
         str: Normalized content with consistent line endings
     """
     # Convert CRLF and CR to LF for consistent hashing
-    return content.replace('\r\n', '\n').replace('\r', '\n')
+    return content.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def hash_file_content(file_path: Path) -> str:
@@ -30,11 +30,11 @@ def hash_file_content(file_path: Path) -> str:
     Returns:
         str: SHA256 hex digest of normalized content
     """
-    with open(file_path, encoding='utf-8') as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     normalized = normalize_content(content)
-    return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 def compute_baseline_id(manifest: dict[str, Any], base_path: Path) -> str:
@@ -81,4 +81,4 @@ def compute_baseline_id(manifest: dict[str, Any], base_path: Path) -> str:
     manifest_version_str = str(manifest["manifest_version"])
 
     final_input = f"{entries_str}|{manifest_version_str}"
-    return hashlib.sha256(final_input.encode('utf-8')).hexdigest()
+    return hashlib.sha256(final_input.encode("utf-8")).hexdigest()

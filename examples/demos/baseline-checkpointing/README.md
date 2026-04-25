@@ -9,7 +9,7 @@ Baseline checkpointing allows watcher2 to cache stable context sources (Scriptur
 ## What This Demo Shows
 
 1. **Manifest Configuration**: How to define sources with glob patterns and modes
-2. **Deterministic Hashing**: Same sources produce same baseline ID  
+2. **Deterministic Hashing**: Same sources produce same baseline ID
 3. **Cache Reuse**: Unchanged sources don't trigger rebuild
 4. **Summary Caching**: Deterministic summary cache keys
 5. **State Import**: Integration with --import-state
@@ -27,7 +27,7 @@ Baseline checkpointing allows watcher2 to cache stable context sources (Scriptur
 # Run the baseline demo
 yamlgraph graph run examples/demos/baseline-checkpointing/graph.yaml --full
 
-# Lint the demo graph  
+# Lint the demo graph
 yamlgraph graph lint examples/demos/baseline-checkpointing/graph.yaml
 ```
 
@@ -42,7 +42,7 @@ The demo will:
 ## Key Features Demonstrated
 
 - ✅ Deterministic baseline ID generation
-- ✅ Manifest-driven source configuration  
+- ✅ Manifest-driven source configuration
 - ✅ Summary caching with cache keys
 - ✅ State import/export compatibility
 - ✅ Namespace enforcement (baseline_* prefix)

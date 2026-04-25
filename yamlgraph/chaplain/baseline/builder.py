@@ -45,10 +45,12 @@ class BaselineBuilder:
 
         # Build new baseline artifact
         self.was_reused = False
-        baseline_state = self._build_baseline_state(manifest, source_base_path, baseline_id)
+        baseline_state = self._build_baseline_state(
+            manifest, source_base_path, baseline_id
+        )
 
         # Write artifact
-        with open(artifact_path, 'w') as f:
+        with open(artifact_path, "w") as f:
             json.dump(baseline_state, f, indent=2)
 
         # Update latest symlink
@@ -73,7 +75,9 @@ class BaselineBuilder:
         # Create new symlink
         os.symlink(artifact_path.name, latest_path)
 
-    def _build_baseline_state(self, manifest: dict[str, Any], source_base_path: Path, baseline_id: str) -> dict[str, Any]:
+    def _build_baseline_state(
+        self, manifest: dict[str, Any], source_base_path: Path, baseline_id: str
+    ) -> dict[str, Any]:
         """
         Build baseline state from manifest and sources.
 
@@ -89,12 +93,12 @@ class BaselineBuilder:
         baseline_state = {
             "baseline_id": baseline_id,
             "baseline_manifest_version": str(manifest["manifest_version"]),
-            "baseline_built_at": datetime.now(UTC).isoformat().replace('+00:00', 'Z'),
+            "baseline_built_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "baseline_sources": [],
             "baseline_context_verbatim": {},
             "baseline_context_summaries": {},
             "baseline_summary_meta": {},
-            "baseline_warnings": []
+            "baseline_warnings": [],
         }
 
         # This would be expanded to actually process sources

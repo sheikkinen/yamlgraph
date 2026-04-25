@@ -55,7 +55,7 @@ Baseline checkpointing functionality demonstrated successfully!
 
 Key benefits:
 - ✅ Deterministic hash-based caching
-- ✅ Cross-run baseline reuse  
+- ✅ Cross-run baseline reuse
 - ✅ Token cost optimization
 - ✅ Stable context consistency
 

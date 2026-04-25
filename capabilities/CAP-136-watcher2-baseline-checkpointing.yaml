@@ -1,0 +1,28 @@
+id: CAP-136
+name: Watcher2 Baseline Checkpointing
+description: >
+  Deterministic hash-based caching for watcher2 daemon to prevent redundant processing
+  of unchanged source files. Provides manifest-driven configuration, summary caching,
+  namespace protection, and retention policy with content-addressed baseline IDs
+  for stable doctrine/context inputs across runs.
+modules:
+  - yamlgraph/chaplain/baseline/
+  - .chaplain/watcher2.sh
+  - .chaplain/lib/baseline.py
+requirements:
+  - id: REQ-YG-310
+    description: >
+      Baseline checkpointing system shall provide deterministic hash-based caching
+      for watcher2 with manifest-driven configuration supporting glob patterns,
+      summary cache keys for determinism, namespace protection for baseline_* keys,
+      symlink management for latest artifacts, retention policy keeping 5 most recent,
+      and content normalization ensuring same sources produce same BASELINE_ID
+    modules:
+      - yamlgraph/chaplain/baseline/manifest.py (lines 1-45)
+      - yamlgraph/chaplain/baseline/hash.py (lines 1-78)
+      - yamlgraph/chaplain/baseline/builder.py (lines 1-156)
+      - yamlgraph/chaplain/baseline/summary.py (lines 1-89)
+      - yamlgraph/chaplain/baseline/retention.py (lines 1-67)
+      - yamlgraph/chaplain/baseline/state.py (lines 1-34)
+      - tests/unit/test_fr277_watcher2_baseline_checkpointing.py
+fr: FR-277

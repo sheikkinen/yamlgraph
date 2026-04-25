@@ -258,3 +258,57 @@ from yamlgraph.linter.checks_contracts import (
 )
 
 check_python_node_variables
+
+# --- chaplain/baseline: FR-277 baseline checkpointing infrastructure ---
+# These appear unused but are for future watcher2 integration
+from yamlgraph.chaplain.baseline.builder import (  # noqa: F401 (CONF-126)
+    BaselineBuilder,
+)
+from yamlgraph.chaplain.baseline.graph import (  # noqa: F401 (CONF-126)
+    load_baseline_graph,
+)
+from yamlgraph.chaplain.baseline.integration import (  # noqa: F401 (CONF-126)
+    prepare_watcher2_import,
+)
+from yamlgraph.chaplain.baseline.manifest import (  # noqa: F401 (CONF-126)
+    validate_manifest_schema,
+)
+from yamlgraph.chaplain.baseline.retention import (  # noqa: F401 (CONF-126)
+    cleanup_old_baselines,
+)
+from yamlgraph.chaplain.baseline.schema import (  # noqa: F401 (CONF-126)
+    BaselineState,
+    BaselineSummaryMeta,
+)
+from yamlgraph.chaplain.baseline.state import (  # noqa: F401 (CONF-126)
+    build_baseline_state,
+)
+from yamlgraph.chaplain.baseline.summary import (  # noqa: F401 (CONF-126)
+    SummaryCache,
+)
+
+BaselineBuilder
+BaselineBuilder.was_reused
+BaselineBuilder.build_if_needed
+load_baseline_graph
+prepare_watcher2_import
+validate_manifest_schema
+cleanup_old_baselines
+BaselineState
+BaselineSummaryMeta
+build_baseline_state
+SummaryCache
+SummaryCache.cache_hit
+SummaryCache.get_or_generate_summary
+
+# Pydantic model fields accessed via serialization/validation
+BaselineState.baseline_manifest_version
+BaselineState.baseline_built_at
+BaselineState.baseline_sources
+BaselineState.baseline_context_verbatim
+BaselineState.baseline_context_summaries
+BaselineState.baseline_summary_meta
+BaselineState.baseline_warnings
+BaselineSummaryMeta.hash
+BaselineSummaryMeta.prompt_version
+BaselineSummaryMeta.summary_key

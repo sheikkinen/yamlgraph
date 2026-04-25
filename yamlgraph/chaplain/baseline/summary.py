@@ -29,10 +29,7 @@ class SummaryCache:
                 self._cache_data = {}
 
     def get_or_generate_summary(
-        self,
-        source_content: str,
-        summary_prompt_version: str,
-        summary_model: str
+        self, source_content: str, summary_prompt_version: str, summary_model: str
     ) -> str:
         """
         Get cached summary or generate new one.
@@ -48,7 +45,9 @@ class SummaryCache:
             str: Summary text
         """
         # Compute cache key
-        cache_key = self._compute_cache_key(source_content, summary_prompt_version, summary_model)
+        cache_key = self._compute_cache_key(
+            source_content, summary_prompt_version, summary_model
+        )
 
         # Check cache
         if cache_key in self._cache_data:
@@ -64,7 +63,7 @@ class SummaryCache:
             "summary": summary,
             "summary_model": summary_model,
             "summary_prompt_version": summary_prompt_version,
-            "source_content_hash": hashlib.sha256(source_content.encode()).hexdigest()
+            "source_content_hash": hashlib.sha256(source_content.encode()).hexdigest(),
         }
 
         # Write cache to disk
@@ -72,7 +71,9 @@ class SummaryCache:
 
         return summary
 
-    def _compute_cache_key(self, source_content: str, summary_prompt_version: str, summary_model: str) -> str:
+    def _compute_cache_key(
+        self, source_content: str, summary_prompt_version: str, summary_model: str
+    ) -> str:
         """
         Compute deterministic cache key for summary.
 
@@ -85,10 +86,10 @@ class SummaryCache:
             str: SHA256 hex digest cache key
         """
         key_input = f"{source_content}|{summary_prompt_version}|{summary_model}"
-        return hashlib.sha256(key_input.encode('utf-8')).hexdigest()
+        return hashlib.sha256(key_input.encode("utf-8")).hexdigest()
 
     def _write_cache(self):
         """Write cache data to disk."""
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.cache_file, 'w') as f:
+        with open(self.cache_file, "w") as f:
             json.dump(self._cache_data, f, indent=2)
