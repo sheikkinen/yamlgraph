@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug + Enhancement
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 1 day
 **Requested:** 2026-04-25
 
