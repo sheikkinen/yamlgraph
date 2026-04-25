@@ -242,7 +242,7 @@ class TestFR280RedVerificationTimestampFix:
 
         # Check that cleanup code exists in the script
         assert (
-            'rm -f "$ACCEPTANCE_MARKER"' in watcher2_content
+            'rm "$ACCEPTANCE_MARKER"' in watcher2_content
         ), "watcher2.sh should clean up marker file after RED verification"
 
     def test_red_verification_actually_runs_with_new_tests(self, tmp_path):
