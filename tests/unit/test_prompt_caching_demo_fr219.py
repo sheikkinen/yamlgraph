@@ -82,10 +82,11 @@ class TestGraphConfiguration:
 
         config = load_graph_config(f"{DEMO_PATH}/graph.yaml")
         
-        llm_nodes = [node for node in config.nodes if node.type == "llm"]
+        # Extract LLM nodes from the dict structure
+        llm_nodes = [(name, cfg) for name, cfg in config.nodes.items() if cfg.get("type") == "llm"]
         assert len(llm_nodes) == 2, "Demo must have exactly 2 LLM nodes"
         
-        node_names = {node.name for node in llm_nodes}
+        node_names = {name for name, cfg in llm_nodes}
         assert node_names == {"analyze", "reflect"}, "LLM nodes must be named 'analyze' and 'reflect'"
 
     @pytest.mark.req("REQ-YG-303")

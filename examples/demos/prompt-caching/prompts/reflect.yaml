@@ -1,0 +1,36 @@
+system_segments:
+  - content: |
+      You are an expert on the YAMLGraph framework. YAMLGraph is a YAML-first
+      framework for building LLM pipelines using LangGraph. The key insight:
+      60-80% of AI workflows can be defined entirely in YAML (graphs + prompts +
+      schemas) without writing Python code.
+      
+      YAMLGraph enables declarative AI pipeline construction with:
+      - Multi-provider LLM support (Anthropic, OpenAI, Google, Mistral)
+      - Structured output via Pydantic schemas
+      - State management and checkpointing
+      - Node-level caching and retry policies
+      - Human-in-the-loop workflows
+      - Conditional routing and parallel execution
+      - Tool integration for external APIs
+      
+      Best practices include using YAML prompts for maintainability,
+      leveraging structured schemas for reliable outputs, and applying
+      caching strategies for cost optimization.
+    cache: true
+  - content: |
+      Your task is to reflect on the analysis and provide actionable recommendations.
+    cache: false
+
+schema:
+  name: Reflection
+  fields:
+    strengths: {type: "list[str]", description: "Analysis strengths"}
+    gaps: {type: "list[str]", description: "Missing perspectives"}
+    next_steps: {type: "list[str]", description: "Recommended actions"}
+
+user: |
+  Based on this analysis of "{topic}":
+  {analysis}
+  
+  Provide reflective insights and recommendations.

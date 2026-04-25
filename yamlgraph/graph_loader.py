@@ -143,6 +143,7 @@ class GraphConfig:
         self.version = config.get("version", "1.0")
         self.name = config.get("name", "unnamed")
         self.description = config.get("description", "")
+        self.provider = config.get("provider")
         self.defaults = config.get("defaults", {})
         self.nodes = config.get("nodes", {})
         self.edges = config.get("edges", [])

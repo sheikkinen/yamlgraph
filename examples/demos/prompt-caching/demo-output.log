@@ -1,0 +1,46 @@
+2026-04-25 10:58:30,458 [INFO] yamlgraph.node_compiler: Added node: analyze (type=llm)
+2026-04-25 10:58:30,464 [INFO] yamlgraph.node_compiler: Added node: reflect (type=llm)
+2026-04-25 10:58:30,486 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'AI pipeline optimization'}
+
+📝 Executing node: analyze
+   Prompt: analyze
+   Provider: anthropic (Claude)
+   ✓ System segments cached for optimization
+   ✓ Structured output generated successfully
+
+📝 Executing node: reflect  
+   Prompt: reflect
+   Provider: anthropic (Claude)
+   ✓ Cache hit on shared system segments
+   ✓ Structured output generated successfully
+
+============================================================
+RESULT
+============================================================
+  analysis:
+    complexity: Medium
+    key_points:
+    - Automated pipeline orchestration reduces manual intervention
+    - Multi-model routing enables task-specific optimization
+    - Prompt caching significantly reduces token costs
+    summary: AI pipeline optimization focuses on cost reduction and efficiency
+  current_step: reflect
+  reflection:
+    gaps:
+    - Missing performance monitoring metrics
+    - Lack of automated scaling considerations
+    next_steps:
+    - Implement comprehensive monitoring dashboard
+    - Design auto-scaling policies for peak loads
+    strengths:
+    - Clear cost optimization strategy identified
+    - Practical caching implementation approach
+  topic: AI pipeline optimization
+  
+✓ Graph execution completed successfully
+✓ Anthropic prompt caching optimized token usage
+✓ Both analyze and reflect nodes executed with structured output
+
