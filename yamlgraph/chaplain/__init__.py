@@ -1,0 +1,1 @@
+"""Chaplain module for watcher2 pipeline tooling."""

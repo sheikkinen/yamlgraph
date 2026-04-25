@@ -1,0 +1,1 @@
+"""Baseline checkpointing for watcher2 pipeline."""

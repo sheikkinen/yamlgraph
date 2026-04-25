@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 4 days
 **Requested:** 2026-04-25
 **Judged:** 2026-04-25
@@ -139,18 +139,18 @@ Import must be additive only:
 
 ## Acceptance Criteria
 
-- [ ] Manifest schema exists with glob support (`pattern`), explicit `mode`, and `exclude` support
-- [ ] Integration scope remains watcher2-only (`.chaplain/` + watcher2 scripts), with no yamlgraph core changes
-- [ ] `BASELINE_ID` is deterministic: same sources and manifest version produce the same hash (tested)
-- [ ] Unchanged sources do not trigger rebuild (tested)
-- [ ] Changed source produces new `BASELINE_ID` and new artifact (tested)
-- [ ] Baseline builder graph defines concrete nodes for read, summary-resolution, hash, assemble, and export
-- [ ] Summary determinism strategy is implemented with summary cache keys and reuse
-- [ ] `latest.json` is maintained as a symlink
-- [ ] Watcher2 imports baseline before plan/research via `--import-state`
-- [ ] `baseline_*` namespace is enforced and collision-tested
-- [ ] Retention policy is enforced (keep latest 5 artifacts)
-- [ ] Tests added covering deterministic hash generation, rebuild logic, state import/export, and retention
+- [x] Manifest schema exists with glob support (`pattern`), explicit `mode`, and `exclude` support
+- [x] Integration scope remains watcher2-only (`.chaplain/` + watcher2 scripts), with no yamlgraph core changes
+- [x] `BASELINE_ID` is deterministic: same sources and manifest version produce the same hash (tested)
+- [x] Unchanged sources do not trigger rebuild (tested)
+- [x] Changed source produces new `BASELINE_ID` and new artifact (tested)
+- [x] Baseline builder graph defines concrete nodes for read, summary-resolution, hash, assemble, and export
+- [x] Summary determinism strategy is implemented with summary cache keys and reuse
+- [x] `latest.json` is maintained as a symlink
+- [x] Watcher2 imports baseline before plan/research via `--import-state`
+- [x] `baseline_*` namespace is enforced and collision-tested
+- [x] Retention policy is enforced (keep latest 5 artifacts)
+- [x] Tests added covering deterministic hash generation, rebuild logic, state import/export, and retention
 - [ ] Documentation updated covering manifest format, rebuild rules, summary cache behavior, and cleanup policy
 - [ ] Requirement traceability updated (`ARCHITECTURE.md`, `scripts/req_coverage.py`, req-marked tests)
 
