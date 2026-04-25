@@ -1,5 +1,6 @@
 id: CAP-133
 name: Watcher2 CI Remediation Crash Fix
+fr: FR-284
 description: >
   Fix three bugs in the watcher2 CI remediation loop that cause immediate script crash:
   missing run ID in gh run view, relative path resolution after cd, and missing error guard.

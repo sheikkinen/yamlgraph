@@ -98,12 +98,12 @@ def test_wait_ci_checks_in_progress_before_failure():
         print(f"RETURN CODE: {result.returncode}")
 
         # With the fix, wait_ci should wait for IN_PROGRESS to complete and then succeed
-        assert (
-            "wait_ci_exit_code:0" in result.stdout
-        ), "FIXED: wait_ci should wait for IN_PROGRESS checks to complete before evaluating FAILURE"
-        assert (
-            "CI_RESULT:success" in result.stdout
-        ), "FIXED: CI_RESULT should be 'success' when IN_PROGRESS completes successfully"
+        assert "wait_ci_exit_code:0" in result.stdout, (
+            "FIXED: wait_ci should wait for IN_PROGRESS checks to complete before evaluating FAILURE"
+        )
+        assert "CI_RESULT:success" in result.stdout, (
+            "FIXED: CI_RESULT should be 'success' when IN_PROGRESS completes successfully"
+        )
 
     finally:
         os.unlink(test_script_path)
@@ -138,13 +138,13 @@ def test_ci_remediation_loop_in_watcher2():
             "CI_REMEDIATED=false",
             "ci_attempt in 1 2",
             "step-ci-remediate.yaml",
-            "gh run view --log-failed",
+            "gh run view",
         ]
 
         for pattern in expected_patterns:
-            assert (
-                pattern in watcher2_content
-            ), f"FIXED: watcher2.sh should contain CI remediation pattern: {pattern}"
+            assert pattern in watcher2_content, (
+                f"FIXED: watcher2.sh should contain CI remediation pattern: {pattern}"
+            )
 
 
 @pytest.mark.req("REQ-YG-296")
@@ -158,18 +158,18 @@ def test_step_ci_remediate_graph_exists():
     ci_remediate_graph = ENFORCE_DIR / "step-ci-remediate.yaml"
 
     # This should fail because the file doesn't exist
-    assert (
-        ci_remediate_graph.exists()
-    ), "FIXED: step-ci-remediate.yaml graph should exist in watcher-enforce directory"
+    assert ci_remediate_graph.exists(), (
+        "FIXED: step-ci-remediate.yaml graph should exist in watcher-enforce directory"
+    )
 
     if ci_remediate_graph.exists():  # pragma: no cover
         content = ci_remediate_graph.read_text()
 
         # Check for required graph structure
         assert "type: copilot" in content, "Graph should contain copilot node"
-        assert (
-            "prompt: enforce-ci-remediate" in content
-        ), "Graph should use enforce-ci-remediate prompt"
+        assert "prompt: enforce-ci-remediate" in content, (
+            "Graph should use enforce-ci-remediate prompt"
+        )
         assert "ci_log_path:" in content, "Graph should accept ci_log_path variable"
         assert "pr_number:" in content, "Graph should accept pr_number variable"
 
@@ -185,7 +185,9 @@ def test_step_ci_remediate_prompt_exists():
     ci_remediate_prompt = ENFORCE_PROMPTS / "enforce-ci-remediate.yaml"
 
     # This should fail because the file doesn't exist
-    assert ci_remediate_prompt.exists(), "FIXED: enforce-ci-remediate.yaml prompt should exist in enforce/prompts directory"
+    assert ci_remediate_prompt.exists(), (
+        "FIXED: enforce-ci-remediate.yaml prompt should exist in enforce/prompts directory"
+    )
 
     if ci_remediate_prompt.exists():  # pragma: no cover
         content = ci_remediate_prompt.read_text()
@@ -193,9 +195,9 @@ def test_step_ci_remediate_prompt_exists():
         # Check for required prompt structure
         assert "ci_log_path" in content, "Prompt should reference ci_log_path variable"
         assert "syntax error" in content.lower(), "Prompt should handle syntax errors"
-        assert (
-            "changelog" in content.lower()
-        ), "Prompt should handle missing changelog fragments"
+        assert "changelog" in content.lower(), (
+            "Prompt should handle missing changelog fragments"
+        )
         assert "diary" in content.lower(), "Prompt should handle missing diary entries"
 
 
@@ -212,14 +214,14 @@ def test_ci_remediation_max_attempts():
 
         # Look for the remediation attempt counter
         # This will fail because the loop doesn't exist
-        assert (
-            "ci_attempt in 1 2" in watcher2_content
-        ), "FIXED: watcher2.sh should limit CI remediation to exactly 2 attempts"
+        assert "ci_attempt in 1 2" in watcher2_content, (
+            "FIXED: watcher2.sh should limit CI remediation to exactly 2 attempts"
+        )
 
         # Look for proper failure handling after max attempts
-        assert (
-            'handle_failure "CI (after remediation)"' in watcher2_content
-        ), "FIXED: watcher2.sh should call handle_failure with specific message after remediation fails"
+        assert 'handle_failure "CI (after remediation)"' in watcher2_content, (
+            "FIXED: watcher2.sh should call handle_failure with specific message after remediation fails"
+        )
 
 
 @pytest.mark.req("REQ-YG-299")
@@ -245,9 +247,9 @@ def test_ci_remediation_covers_required_failure_types():
         ]
 
         for failure_type in failure_types:
-            assert (
-                failure_type in content
-            ), f"FIXED: CI remediation prompt should handle {failure_type}"
+            assert failure_type in content, (
+                f"FIXED: CI remediation prompt should handle {failure_type}"
+            )
     else:
         # This will fail because the prompt doesn't exist
         raise AssertionError("FIXED: enforce-ci-remediate.yaml prompt should exist")
@@ -275,12 +277,12 @@ def test_existing_passing_pipelines_unaffected():
 
     # The remediation should only trigger if wait_ci fails
     # This will fail because the remediation logic doesn't exist
-    assert (
-        "if ! wait_ci; then" in watcher2_content
-    ), "FIXED: CI remediation should only trigger when wait_ci fails"
-    assert (
-        "CI_REMEDIATED=false" in watcher2_content
-    ), "FIXED: watcher2.sh should track remediation state to avoid affecting passing pipelines"
+    assert "if ! wait_ci; then" in watcher2_content, (
+        "FIXED: CI remediation should only trigger when wait_ci fails"
+    )
+    assert "CI_REMEDIATED=false" in watcher2_content, (
+        "FIXED: watcher2.sh should track remediation state to avoid affecting passing pipelines"
+    )
 
 
 @pytest.mark.req("REQ-YG-301")
@@ -315,6 +317,6 @@ def test_wait_ci_check_ordering_structure():
     assert failure_line is not None, "Should find FAILURE check in wait_ci.sh"
 
     # This assertion will fail because currently FAILURE is checked before IN_PROGRESS
-    assert (
-        in_progress_line < failure_line
-    ), "FIXED: IN_PROGRESS check should come before FAILURE check in wait_ci.sh"
+    assert in_progress_line < failure_line, (
+        "FIXED: IN_PROGRESS check should come before FAILURE check in wait_ci.sh"
+    )
