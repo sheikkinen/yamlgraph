@@ -104,3 +104,51 @@ rm -f "$ACCEPTANCE_MARKER"
 ### Regression Test
 - Verify existing watcher2 functionality unchanged
 - Verify state chaining still works correctly
+
+## Research Brief
+
+### Competitive Landscape
+
+This is a system-specific bug fix rather than a competitive feature, but investigation revealed:
+
+- **GitHub Actions**: Uses `actions-cache` to manage timestamp-based file detection, but internal runners have similar timestamp coordination challenges (see [actions/runner#659](https://github.com/actions/runner/issues/659) discussing path prefixes for monorepos with asynchronous build steps)
+- **CI/CD Systems**: Jenkins, CircleCI, and GitLab CI all face similar issues with file modification timestamps vs. state persistence timing — most solve with explicit marker files or git-based change detection
+- **LangChain/LangGraph**: No equivalent RED verification pattern found — they rely on standard test frameworks without custom timestamp-based test file discovery
+- **Testing Frameworks**: Pytest, Jest, and similar tools use explicit file patterns, not filesystem timestamps, avoiding this entire class of issues
+
+**Finding**: The marker file approach is a well-established pattern in CI/CD systems for coordinating between asynchronous steps.
+
+### Existing Abstractions
+
+Search revealed YAMLGraph has extensive state chaining infrastructure that this bug affects:
+
+- **CLI State Chain Pattern** (FR-269): `--export-state` / `--import-state` used in 67+ locations across the codebase
+- **Pipeline State Persistence**: `yamlgraph/storage/export.py` handles state serialization/deserialization
+- **Watcher2 Integration**: 15 occurrences of state chaining in `watcher2.sh` alone
+- **`find -newer` Usage**: Only 2 total usages in codebase - the buggy one in `watcher2.sh:176` and the FR-280 documentation
+
+**No existing timestamp coordination patterns** were found - this is the first case where yamlgraph needs to coordinate filesystem timestamps with state export timing.
+
+### Diary Precedents
+
+Key diary patterns relevant to this bug:
+
+- **`partial_remediation` trap** (audit-180): "renumber touched ARCHITECTURE.md and tests but skipped the changelog boundary entirely" — similar pattern where the state file update didn't account for all affected boundaries
+- **`state_boundary` normalization** (reflection-fr-238): "Adding reducer logic at the TypedDict generation layer (downstream) rather than normalizing at `parse_state_config()` (the boundary)" — demonstrates the Scripture principle of fixing at the boundary where external data enters
+- **TDD Red-Green discipline violations** (reflection-fr-229): Several diary entries about "test-after-fix" being "trap-prone" because "absence of a RED phase makes verification feel trivially performative"
+
+**Pattern Match**: This bug exemplifies the `downstream_fix` trap - the state export happens downstream from where test files are created, causing the verification step to fail silently.
+
+### Usage Evidence
+
+- **Existing graphs using state chaining**: 24 files use `--import/export-state` extensively
+- **Watcher2 pipeline dependents**: The bug affects all current and future watcher2 operations (100% impact on automation pipeline)
+- **Real-world use cases beyond the proposal**: This is core to the watcher2 TDD enforcement pipeline - no alternative use cases, but critical to the entire .chaplain automation system
+
+**Test verification is currently broken** for all watcher2 cycles, making this a systemic infrastructure bug rather than an edge case.
+
+### Classification Signal
+
+- **Abstraction level**: primitive (affects core infrastructure)
+- **Recommended approach**: build (surgical fix to existing pattern)  
+- **Key risk**: The fix is straightforward but validates a previously unnoticed infrastructure assumption that could affect other timestamp-dependent operations in the codebase.
