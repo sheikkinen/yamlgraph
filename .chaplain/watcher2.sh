@@ -379,13 +379,19 @@ print('UNKNOWN')
         for ci_attempt in 1 2; do
             log_warn "CI failed — remediation attempt $ci_attempt/2..."
 
-            # Capture failure logs
-            gh run view --log-failed --repo "sheikkinen/yamlgraph" > tmp/ci-failure.log 2>&1
+            # Capture failure logs — get run ID first (FR-284)
+            CI_LOG="$MAIN_DIR/tmp/ci-failure.log"
+            RUN_ID=$(gh run list --branch "$WT_BRANCH" --status failure --limit 1 --json databaseId -q '.[0].databaseId' --repo "sheikkinen/yamlgraph" 2>/dev/null || true)
+            if [[ -n "$RUN_ID" ]]; then
+                gh run view "$RUN_ID" --log-failed --repo "sheikkinen/yamlgraph" > "$CI_LOG" 2>&1 || true
+            else
+                echo "No failed run found for branch $WT_BRANCH" > "$CI_LOG"
+            fi
 
             # Invoke copilot to diagnose and fix
             cd "$WT_DIR"
             if yamlgraph graph run "$ENFORCE_DIR/step-ci-remediate.yaml" \
-                --var ci_log_path="tmp/ci-failure.log" \
+                --var ci_log_path="$CI_LOG" \
                 --var pr_number="$PR_NUMBER" \
                 --import-state "$ENFORCE_STATE" \
                 --full; then
