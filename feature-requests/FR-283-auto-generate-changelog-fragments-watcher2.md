@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Implemented
+**Status:** ✅ Implemented (PR #228)
 **Effort:** 1 day
 **Requested:** 2026-04-25
 
