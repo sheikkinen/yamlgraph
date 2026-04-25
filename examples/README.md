@@ -116,6 +116,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
 | [script-retirement](demos/script-retirement/) | Pipeline script retirement verification (FR-276) |
 | [watcher2-ci-remediation](demos/watcher2-ci-remediation/) | CI failure remediation loop demonstration (FR-279) |
+| [watcher2-red-verification](demos/watcher2-red-verification/) | RED verification timestamp fix demo (FR-280) |
 
 ### FR Validation Demos
 
