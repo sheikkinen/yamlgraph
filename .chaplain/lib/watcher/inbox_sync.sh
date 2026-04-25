@@ -2,7 +2,7 @@
 # inbox_sync.sh — Import GitHub Issues labeled 'chaplain' into local inbox
 # Extracted from watch.sh (FR-243, FR-251)
 #
-# Expects: INBOX, ALLOWED_AUTHORS, BODY_SIZE_CAP set by orchestrator
+# Expects: INBOX, PROCESSING, ALLOWED_AUTHORS, BODY_SIZE_CAP set by orchestrator
 # Side effects: writes $INBOX/gh-<num>.md files, removes label from issues
 
 inbox_sync() {
@@ -13,7 +13,10 @@ inbox_sync() {
 
     gh issue list --state open --label chaplain --json number --jq '.[].number' 2>/dev/null \
     | while read -r num; do
+        # Skip if already in any pipeline stage (inbox, processing, or failed)
         [[ -f "$INBOX/gh-$num.md" ]] && continue
+        [[ -f "$PROCESSING/gh-$num.md" ]] && continue
+        [[ -f ".chaplain/failed/gh-$num.md" ]] && continue
 
         # FR-251: Author allowlist check
         author=$(gh issue view "$num" --json author --jq '.author.login' 2>/dev/null) || continue

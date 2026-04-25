@@ -1050,9 +1050,9 @@ class TestAsyncRaceCancellable:
         import yamlgraph.node_factory.race_node as module
 
         source = inspect.getsource(module)
-        assert (
-            "ThreadPoolExecutor" not in source
-        ), "ThreadPoolExecutor must be removed from race_node.py (FR-271)"
+        assert "ThreadPoolExecutor" not in source, (
+            "ThreadPoolExecutor must be removed from race_node.py (FR-271)"
+        )
 
     @pytest.mark.req("REQ-YG-270")
     @pytest.mark.slow
@@ -1100,22 +1100,22 @@ class TestAsyncRaceCancellable:
         result = create_race_node("race_async", node_config, {})(sample_state)
         elapsed = time.monotonic() - t0
 
-        assert (
-            result["response"] == "fast answer"
-        ), f"Expected 'fast answer', got {result['response']!r}"
+        assert result["response"] == "fast answer", (
+            f"Expected 'fast answer', got {result['response']!r}"
+        )
         assert elapsed < 1.0, f"node_fn took {elapsed:.2f}s — should be < 1s"
-        assert (
-            cancelled_flag["value"] is True
-        ), "Slow task must be cancelled (CancelledError propagated in finally)"
+        assert cancelled_flag["value"] is True, (
+            "Slow task must be cancelled (CancelledError propagated in finally)"
+        )
 
     @pytest.mark.req("REQ-YG-270")
     def test_run_coro_sync_safe_exists(self):
         """_run_coro_sync_safe bridge function must exist in race_node module."""
         import yamlgraph.node_factory.race_node as rn_module
 
-        assert hasattr(
-            rn_module, "_run_coro_sync_safe"
-        ), "_run_coro_sync_safe not found — asyncio bridge not implemented (FR-271)"
+        assert hasattr(rn_module, "_run_coro_sync_safe"), (
+            "_run_coro_sync_safe not found — asyncio bridge not implemented (FR-271)"
+        )
         assert callable(rn_module._run_coro_sync_safe)
 
     @pytest.mark.req("REQ-YG-270")

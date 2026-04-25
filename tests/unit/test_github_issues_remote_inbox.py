@@ -379,9 +379,9 @@ class TestDocumentationUpdate:
         """CLAUDE.md mentions the 'chaplain' label."""
         content = _read_claude_md()
         proposals_section = _extract_submitting_proposals(content)
-        assert (
-            "chaplain" in proposals_section.lower()
-        ), "CLAUDE.md Submitting Proposals must mention the chaplain label"
+        assert "chaplain" in proposals_section.lower(), (
+            "CLAUDE.md Submitting Proposals must mention the chaplain label"
+        )
 
 
 def _read_claude_md() -> str:

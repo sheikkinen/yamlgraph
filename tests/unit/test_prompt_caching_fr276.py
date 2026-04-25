@@ -5,7 +5,6 @@ All tests must FAIL on the current unmodified codebase (RED phase).
 """
 
 from pathlib import Path
-from io import StringIO
 from unittest.mock import mock_open, patch
 
 import pytest
@@ -140,11 +139,11 @@ class TestBackwardCompatibility:
         prompt_file = tmp_path / "test_list.yaml"
         prompt_file.write_text(
             "system:\n"
-            "  - content: \"You are helpful.\"\n"
+            '  - content: "You are helpful."\n'
             "    cache: false\n"
-            "  - content: \"Task context: important\"\n"
+            '  - content: "Task context: important"\n'
             "    cache: true\n"
-            "user: \"Help with {topic}\"\n"
+            'user: "Help with {topic}"\n'
         )
 
         messages, provider, model = prepare_messages(
@@ -243,36 +242,38 @@ class TestNonAnthropicFlattening:
         """Non-Anthropic providers should flatten system_segments to single string."""
         from yamlgraph.executor_base import prepare_messages
 
-        with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
+        with (
+            patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve,
+            patch("builtins.open", mock_open(read_data="")),
+            patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load,
+        ):
             mock_resolve.return_value = Path("test.yaml")
-            with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system_segments": [
-                        {"content": "First segment", "cache": True},
-                        {"content": "Second segment", "cache": False},
-                    ],
-                    "user": "Query: {topic}",
-                }
+            mock_load.return_value = {
+                "system_segments": [
+                    {"content": "First segment", "cache": True},
+                    {"content": "Second segment", "cache": False},
+                ],
+                "user": "Query: {topic}",
+            }
 
-                for provider in ["openai", "google", "mistral", None]:
-                    messages, _, _ = prepare_messages(
-                        "test_flattening",
-                        variables={"topic": "test"},
-                        provider=provider,
-                    )
+            for provider in ["openai", "google", "mistral", None]:
+                messages, _, _ = prepare_messages(
+                    "test_flattening",
+                    variables={"topic": "test"},
+                    provider=provider,
+                )
 
-                    # Should create single SystemMessage with concatenated content
-                    assert len(messages) == 2
-                    system_msg = messages[0]
-                    assert isinstance(system_msg, SystemMessage)
+                # Should create single SystemMessage with concatenated content
+                assert len(messages) == 2
+                system_msg = messages[0]
+                assert isinstance(system_msg, SystemMessage)
 
-                    # Content should contain both segments, cache flags ignored
-                    assert "First segment" in system_msg.content
-                    assert "Second segment" in system_msg.content
+                # Content should contain both segments, cache flags ignored
+                assert "First segment" in system_msg.content
+                assert "Second segment" in system_msg.content
 
-                    # Should not have cache-related additional_kwargs
-                    assert not system_msg.additional_kwargs.get("content")
+                # Should not have cache-related additional_kwargs
+                assert not system_msg.additional_kwargs.get("content")
 
     @pytest.mark.req("REQ-YG-290")
     def test_non_anthropic_ignores_cache_flags_gracefully(self) -> None:
@@ -282,27 +283,27 @@ class TestNonAnthropicFlattening:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system_segments": [
-                        {"content": "Cached segment", "cache": True},
-                        {"content": "Uncached segment", "cache": False},
-                    ],
-                    "user": "Test input",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system_segments": [
+                            {"content": "Cached segment", "cache": True},
+                            {"content": "Uncached segment", "cache": False},
+                        ],
+                        "user": "Test input",
+                    }
 
-                # Should not raise any errors for any non-Anthropic provider
-                for provider in ["openai", "google", "mistral", "vertex", "azure"]:
-                    try:
-                        messages, _, _ = prepare_messages(
-                            "test_graceful", provider=provider
-                        )
-                        # Should succeed and create valid messages
-                        assert len(messages) == 2
-                    except Exception as e:
-                        pytest.fail(
-                            f"Provider {provider} should handle cache flags gracefully, got: {e}"
-                        )
+                    # Should not raise any errors for any non-Anthropic provider
+                    for provider in ["openai", "google", "mistral", "vertex", "azure"]:
+                        try:
+                            messages, _, _ = prepare_messages(
+                                "test_graceful", provider=provider
+                            )
+                            # Should succeed and create valid messages
+                            assert len(messages) == 2
+                        except Exception as e:
+                            pytest.fail(
+                                f"Provider {provider} should handle cache flags gracefully, got: {e}"
+                            )
 
 
 class TestExecutorPathConsistency:
@@ -317,28 +318,28 @@ class TestExecutorPathConsistency:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system_segments": [
-                        {"content": "Context", "cache": True},
-                        {"content": "Query", "cache": False},
-                    ],
-                    "user": "Input: {text}",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system_segments": [
+                            {"content": "Context", "cache": True},
+                            {"content": "Query", "cache": False},
+                        ],
+                        "user": "Input: {text}",
+                    }
 
-                # prepare_messages_async should exist and behave like sync version
-                messages, provider, model = prepare_messages_async(
-                    "test_async", variables={"text": "test"}, provider="anthropic"
-                )
+                    # prepare_messages_async should exist and behave like sync version
+                    messages, provider, model = prepare_messages_async(
+                        "test_async", variables={"text": "test"}, provider="anthropic"
+                    )
 
-                assert len(messages) == 2
-                system_msg = messages[0]
-                assert isinstance(system_msg, SystemMessage)
+                    assert len(messages) == 2
+                    system_msg = messages[0]
+                    assert isinstance(system_msg, SystemMessage)
 
-                # Should have same Anthropic cache_control behavior
-                cache_blocks = system_msg.additional_kwargs.get("content", [])
-                assert len(cache_blocks) == 2
-                assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
+                    # Should have same Anthropic cache_control behavior
+                    cache_blocks = system_msg.additional_kwargs.get("content", [])
+                    assert len(cache_blocks) == 2
+                    assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
 
     @pytest.mark.req("REQ-YG-291")
     def test_streaming_executor_system_segments(self) -> None:
@@ -351,19 +352,19 @@ class TestExecutorPathConsistency:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system_segments": [{"content": "Stable", "cache": True}],
-                    "user": "Stream this: {input}",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system_segments": [{"content": "Stable", "cache": True}],
+                        "user": "Stream this: {input}",
+                    }
 
-                # Streaming should produce same message structure
-                messages, _, _ = prepare_messages_async(
-                    "test_streaming", variables={"input": "data"}
-                )
+                    # Streaming should produce same message structure
+                    messages, _, _ = prepare_messages_async(
+                        "test_streaming", variables={"input": "data"}
+                    )
 
-                assert len(messages) == 2
-                assert isinstance(messages[0], SystemMessage)
+                    assert len(messages) == 2
+                    assert isinstance(messages[0], SystemMessage)
 
 
 class TestErrorHandling:
@@ -377,17 +378,19 @@ class TestErrorHandling:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system": "Traditional system prompt",
-                    "system_segments": [{"content": "Segmented prompt", "cache": True}],
-                    "user": "Test input",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system": "Traditional system prompt",
+                        "system_segments": [
+                            {"content": "Segmented prompt", "cache": True}
+                        ],
+                        "user": "Test input",
+                    }
 
-                with pytest.raises(
-                    ValueError, match="Cannot specify both.*system.*system_segments"
-                ):
-                    prepare_messages("test_conflict")
+                    with pytest.raises(
+                        ValueError, match="Cannot specify both.*system.*system_segments"
+                    ):
+                        prepare_messages("test_conflict")
 
     @pytest.mark.req("REQ-YG-292")
     def test_system_segments_precedence_over_system(self) -> None:
@@ -397,18 +400,20 @@ class TestErrorHandling:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system": "Should be ignored",
-                    "system_segments": [{"content": "Should be used", "cache": False}],
-                    "user": "Test",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system": "Should be ignored",
+                        "system_segments": [
+                            {"content": "Should be used", "cache": False}
+                        ],
+                        "user": "Test",
+                    }
 
-                # Implementation chose error-on-conflict (consistent with test_conflicting above)
-                with pytest.raises(
-                    ValueError, match="Cannot specify both.*system.*system_segments"
-                ):
-                    prepare_messages("test_precedence")
+                    # Implementation chose error-on-conflict (consistent with test_conflicting above)
+                    with pytest.raises(
+                        ValueError, match="Cannot specify both.*system.*system_segments"
+                    ):
+                        prepare_messages("test_precedence")
 
     @pytest.mark.req("REQ-YG-292")
     def test_empty_system_segments_validation(self) -> None:
@@ -418,21 +423,21 @@ class TestErrorHandling:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system_segments": [],  # Empty list
-                    "user": "Test",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system_segments": [],  # Empty list
+                        "user": "Test",
+                    }
 
-                # Should handle empty segments gracefully
-                messages, _, _ = prepare_messages("test_empty")
+                    # Should handle empty segments gracefully
+                    messages, _, _ = prepare_messages("test_empty")
 
-                # Should create empty SystemMessage or skip it entirely
-                assert len(messages) >= 1  # At least user message
-                if len(messages) == 2:
-                    # If SystemMessage created, should be empty
-                    assert isinstance(messages[0], SystemMessage)
-                    assert messages[0].content == ""
+                    # Should create empty SystemMessage or skip it entirely
+                    assert len(messages) >= 1  # At least user message
+                    if len(messages) == 2:
+                        # If SystemMessage created, should be empty
+                        assert isinstance(messages[0], SystemMessage)
+                        assert messages[0].content == ""
 
 
 class TestSegmentContentProcessing:
@@ -446,25 +451,29 @@ class TestSegmentContentProcessing:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system_segments": [
-                        {"content": "Hello {name}, you are {role}", "cache": True},
-                        {"content": "Current task: {task}", "cache": False},
-                    ],
-                    "user": "Help me",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system_segments": [
+                            {"content": "Hello {name}, you are {role}", "cache": True},
+                            {"content": "Current task: {task}", "cache": False},
+                        ],
+                        "user": "Help me",
+                    }
 
-                messages, _, _ = prepare_messages(
-                    "test_variables",
-                    variables={"name": "Alice", "role": "assistant", "task": "coding"},
-                )
+                    messages, _, _ = prepare_messages(
+                        "test_variables",
+                        variables={
+                            "name": "Alice",
+                            "role": "assistant",
+                            "task": "coding",
+                        },
+                    )
 
-                system_msg = messages[0]
-                # Variables should be substituted in all segments
-                assert "Hello Alice" in system_msg.content
-                assert "you are assistant" in system_msg.content
-                assert "Current task: coding" in system_msg.content
+                    system_msg = messages[0]
+                    # Variables should be substituted in all segments
+                    assert "Hello Alice" in system_msg.content
+                    assert "you are assistant" in system_msg.content
+                    assert "Current task: coding" in system_msg.content
 
     @pytest.mark.req("REQ-YG-293")
     def test_system_segments_jinja2_support(self) -> None:
@@ -474,23 +483,23 @@ class TestSegmentContentProcessing:
         with patch("yamlgraph.utils.prompts.resolve_prompt_path") as mock_resolve:
             mock_resolve.return_value = Path("test.yaml")
             with patch("builtins.open", mock_open(read_data="")):
-              with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
-                mock_load.return_value = {
-                    "system_segments": [
-                        {
-                            "content": "{% for item in items %}{{ item }}\n{% endfor %}",
-                            "cache": True,
-                        }
-                    ],
-                    "user": "Process these",
-                }
+                with patch("yamlgraph.utils.prompts.yaml.safe_load") as mock_load:
+                    mock_load.return_value = {
+                        "system_segments": [
+                            {
+                                "content": "{% for item in items %}{{ item }}\n{% endfor %}",
+                                "cache": True,
+                            }
+                        ],
+                        "user": "Process these",
+                    }
 
-                messages, _, _ = prepare_messages(
-                    "test_jinja", variables={"items": ["first", "second", "third"]}
-                )
+                    messages, _, _ = prepare_messages(
+                        "test_jinja", variables={"items": ["first", "second", "third"]}
+                    )
 
-                system_msg = messages[0]
-                # Jinja2 should be processed
-                assert "first" in system_msg.content
-                assert "second" in system_msg.content
-                assert "third" in system_msg.content
+                    system_msg = messages[0]
+                    # Jinja2 should be processed
+                    assert "first" in system_msg.content
+                    assert "second" in system_msg.content
+                    assert "third" in system_msg.content

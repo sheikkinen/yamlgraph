@@ -24,15 +24,15 @@ class TestGettingStartedNodeTable:
 
     def test_race_row_exists(self):
         content = GETTING_STARTED.read_text()
-        assert (
-            "| `race`" in content
-        ), "getting-started.md node type table must include a race row"
+        assert "| `race`" in content, (
+            "getting-started.md node type table must include a race row"
+        )
 
     def test_pipeline_row_exists(self):
         content = GETTING_STARTED.read_text()
-        assert (
-            "| `pipeline`" in content
-        ), "getting-started.md node type table must include a pipeline row"
+        assert "| `pipeline`" in content, (
+            "getting-started.md node type table must include a pipeline row"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -49,9 +49,9 @@ class TestGraphYamlRaceSection:
         self.content = GRAPH_YAML_REF.read_text()
 
     def test_race_heading_exists(self):
-        assert (
-            "### `type: race`" in self.content
-        ), "graph-yaml.md must have a ### type: race heading"
+        assert "### `type: race`" in self.content, (
+            "graph-yaml.md must have a ### type: race heading"
+        )
 
     def test_race_candidates_documented(self):
         assert (
@@ -59,9 +59,9 @@ class TestGraphYamlRaceSection:
         ), "race section must document candidates config key"
 
     def test_race_timeout_documented(self):
-        assert (
-            "timeout" in self.content.split("### `type: race`")[1].split("###")[0]
-        ), "race section must document timeout config key"
+        assert "timeout" in self.content.split("### `type: race`")[1].split("###")[0], (
+            "race section must document timeout config key"
+        )
 
     def test_race_winner_metadata_documented(self):
         assert (
@@ -70,9 +70,9 @@ class TestGraphYamlRaceSection:
 
     def test_race_error_handling_documented(self):
         race_section = self.content.split("### `type: race`")[1].split("###")[0]
-        assert (
-            "on_error" in race_section or "error" in race_section.lower()
-        ), "race section must document error handling behavior"
+        assert "on_error" in race_section or "error" in race_section.lower(), (
+            "race section must document error handling behavior"
+        )
 
     def test_race_example_yaml(self):
         race_section = self.content.split("### `type: race`")[1].split("###")[0]
@@ -93,9 +93,9 @@ class TestGraphYamlPipelineSection:
         self.content = GRAPH_YAML_REF.read_text()
 
     def test_pipeline_heading_exists(self):
-        assert (
-            "### `type: pipeline`" in self.content
-        ), "graph-yaml.md must have a ### type: pipeline heading"
+        assert "### `type: pipeline`" in self.content, (
+            "graph-yaml.md must have a ### type: pipeline heading"
+        )
 
     def test_pipeline_items_documented(self):
         assert (
@@ -116,15 +116,15 @@ class TestGraphYamlPipelineSection:
 
     def test_pipeline_interpolation_documented(self):
         pipeline_section = self.content.split("### `type: pipeline`")[1].split("###")[0]
-        assert (
-            "{item." in pipeline_section
-        ), "pipeline section must document {item.field} interpolation"
+        assert "{item." in pipeline_section, (
+            "pipeline section must document {item.field} interpolation"
+        )
 
     def test_pipeline_example_yaml(self):
         pipeline_section = self.content.split("### `type: pipeline`")[1].split("###")[0]
-        assert (
-            "type: pipeline" in pipeline_section
-        ), "pipeline section must include a YAML example"
+        assert "type: pipeline" in pipeline_section, (
+            "pipeline section must include a YAML example"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -143,18 +143,18 @@ class TestExamplesMatchDemos:
         race_section = doc.split("### `type: race`")[1].split("###")[0]
         # The demo uses mistral-small-latest, gpt-4o-mini, gemini-2.0-flash
         for model in ["mistral-small-latest", "gpt-4o-mini", "gemini-2.0-flash"]:
-            assert (
-                model in race_section or model in demo
-            ), f"race example should reference demo models (missing {model})"
+            assert model in race_section or model in demo, (
+                f"race example should reference demo models (missing {model})"
+            )
 
     def test_pipeline_items_match_demo(self):
         """Pipeline section must include items from the demo YAML."""
         doc = GRAPH_YAML_REF.read_text()
         pipeline_section = doc.split("### `type: pipeline`")[1].split("###")[0]
         # The demo uses sun, moon items with draft/polish stages
-        assert (
-            "draft" in pipeline_section
-        ), "pipeline example should include draft stage"
-        assert (
-            "polish" in pipeline_section
-        ), "pipeline example should include polish stage"
+        assert "draft" in pipeline_section, (
+            "pipeline example should include draft stage"
+        )
+        assert "polish" in pipeline_section, (
+            "pipeline example should include polish stage"
+        )

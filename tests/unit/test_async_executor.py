@@ -398,9 +398,9 @@ async def test_run_graph_streaming_native_accepts_command_resume():
 
     # Type hint should mention Command (dict | Command or similar)
     annotation_str = str(initial_state_param.annotation)
-    assert (
-        "Command" in annotation_str
-    ), f"initial_state must accept Command, got {annotation_str}"
+    assert "Command" in annotation_str, (
+        f"initial_state must accept Command, got {annotation_str}"
+    )
 
 
 # ==============================================================================
@@ -524,9 +524,9 @@ async def test_run_graph_streaming_native_uses_astream_messages_mode():
     from yamlgraph.executor_async import run_graph_streaming_native
 
     async def mock_astream(initial_state, config, stream_mode=None, subgraphs=False):
-        assert (
-            stream_mode == "messages"
-        ), f"Expected stream_mode='messages', got {stream_mode}"
+        assert stream_mode == "messages", (
+            f"Expected stream_mode='messages', got {stream_mode}"
+        )
         yield (AIMessageChunk(content="OK"), {"langgraph_node": "llm"})
 
     mock_app = AsyncMock()
@@ -639,9 +639,9 @@ async def test_streaming_filters_system_message():
         return_value=mock_app,
     ):
         tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
-        assert tokens == [
-            "The answer is 42"
-        ], f"SystemMessage leaked to client: {tokens}"
+        assert tokens == ["The answer is 42"], (
+            f"SystemMessage leaked to client: {tokens}"
+        )
 
 
 @pytest.mark.asyncio
@@ -699,9 +699,9 @@ async def test_streaming_filters_tool_message():
         return_value=mock_app,
     ):
         tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
-        assert tokens == [
-            "Based on search results..."
-        ], f"ToolMessage leaked to client: {tokens}"
+        assert tokens == ["Based on search results..."], (
+            f"ToolMessage leaked to client: {tokens}"
+        )
 
 
 @pytest.mark.asyncio
@@ -731,9 +731,9 @@ async def test_streaming_filters_ai_message_with_tool_calls():
         return_value=mock_app,
     ):
         tokens = [t async for t in run_graph_streaming_native("test.yaml", {})]
-        assert tokens == [
-            "The answer is 42"
-        ], f"Intermediate tool-calling AI message leaked: {tokens}"
+        assert tokens == ["The answer is 42"], (
+            f"Intermediate tool-calling AI message leaked: {tokens}"
+        )
 
 
 @pytest.mark.asyncio

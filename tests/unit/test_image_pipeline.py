@@ -170,9 +170,9 @@ class TestImagePipelinePrompt:
     def test_prompt_has_schema_for_concepts_list(self):
         """FR-202 extended: Prompt has schema for concepts list."""
         prompt = _load_yaml(PROMPTS_DIR / "generate_concepts.yaml")
-        assert (
-            "schema" in prompt
-        ), "generate_concepts must have a schema for ConceptList"
+        assert "schema" in prompt, (
+            "generate_concepts must have a schema for ConceptList"
+        )
         schema = prompt["schema"]
         assert "concepts" in schema.get("fields", {})
 
@@ -449,6 +449,6 @@ class TestImagePipelineLint:
 
         result = lint_graph(GRAPH_FILE)
         errors = [i for i in result.issues if i.severity == "error"]
-        assert (
-            len(errors) == 0
-        ), f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
+        assert len(errors) == 0, (
+            f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
+        )
