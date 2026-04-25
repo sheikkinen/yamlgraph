@@ -18,7 +18,7 @@ nodes:
       topic: "{state.topic}"
 
   demonstrate_remediation:
-    type: llm  
+    type: llm
     state_key: remediation_result
     prompt: explain_remediation
     variables:

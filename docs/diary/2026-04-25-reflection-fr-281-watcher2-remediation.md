@@ -1,6 +1,6 @@
 # FR-281 Watcher2 Remediation Loop Enhancement
 
-**Date:** 2026-04-25  
+**Date:** 2026-04-25
 **Context:** Implementing progressive ruff fixing to prevent watcher2 pipeline crashes on SIM117 (nested with statements) violations
 
 **Trap:** quick_confidence — Initially felt confident the solution was "just add --unsafe-fixes flag everywhere" without understanding the progressive strategy needed. The Scripture warns: "When I feel certain → Judge instead."
@@ -13,7 +13,7 @@
 ```bash
 # Boundary normalization for AI-generated content
 ruff check --fix         # Safe automatic fixes
-ruff check --fix --unsafe-fixes  # Unsafe but deterministic fixes  
+ruff check --fix --unsafe-fixes  # Unsafe but deterministic fixes
 # Only then escalate to copilot for complex cases
 ```
 

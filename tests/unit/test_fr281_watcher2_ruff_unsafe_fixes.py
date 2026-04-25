@@ -6,7 +6,7 @@ and improve copilot context with specific error codes.
 Acceptance Criteria from FR-281:
 - [ ] AC-01: `ruff check --fix --unsafe-fixes` runs in both finalize and CI remediation steps
 - [ ] AC-02: SIM117 violations are auto-fixed without manual intervention
-- [ ] AC-03: Copilot fix prompt includes specific ruff error codes and rule names  
+- [ ] AC-03: Copilot fix prompt includes specific ruff error codes and rule names
 - [ ] AC-04: Changelog fragment FR numbers are validated against branch names
 - [ ] AC-05: Remediation loop handles partial success (some fixes work, others need copilot)
 - [ ] AC-06: Tests added covering SIM117 remediation scenarios
@@ -24,14 +24,19 @@ All tests target the unmodified code and MUST fail (RED phase).
 
 import re
 from pathlib import Path
-from unittest.mock import mock_open, patch
+from unittest.mock import patch
 
 import pytest
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
 ENFORCE_CI_REMEDIATE_PROMPT = (
-    REPO_ROOT / ".chaplain" / "graphs" / "enforce" / "prompts" / "enforce-ci-remediate.yaml"
+    REPO_ROOT
+    / ".chaplain"
+    / "graphs"
+    / "enforce"
+    / "prompts"
+    / "enforce-ci-remediate.yaml"
 )
 
 
@@ -108,8 +113,8 @@ class TestWatcher2RuffUnsafeFixes:
 
         # Verify unsafe-fixes flag is present (which enables SIM117 auto-fixing)
         unsafe_fixes_count = watcher_content.count("--unsafe-fixes")
-        
-        # Should appear in both finalize step and CI remediation step  
+
+        # Should appear in both finalize step and CI remediation step
         assert (
             unsafe_fixes_count >= 2
         ), f"Expected at least 2 instances of --unsafe-fixes, found {unsafe_fixes_count}"
@@ -165,7 +170,7 @@ class TestWatcher2RuffUnsafeFixes:
 
         # Verify progressive fixing strategy exists
         # Should have: ruff fix -> ruff unsafe-fixes -> still may invoke copilot
-        
+
         # Find the section where copilot is invoked after pre-commit failures
         copilot_fallback_section = re.search(
             r"Pre-commit still failing.*copilot fix",
@@ -176,8 +181,8 @@ class TestWatcher2RuffUnsafeFixes:
         assert copilot_fallback_section, "Copilot fallback mechanism not found"
 
         # Verify that ruff commands run before this fallback
-        section_before_copilot = watcher_content[:copilot_fallback_section.start()]
-        
+        section_before_copilot = watcher_content[: copilot_fallback_section.start()]
+
         assert (
             "ruff check --fix --unsafe-fixes" in section_before_copilot
         ), "Progressive ruff fixing should happen before copilot fallback"
@@ -211,10 +216,12 @@ class TestSIM117RemediationScenarios:
         """AC-06: Tests added covering SIM117 remediation scenarios."""
         # This test should verify that SIM117 integration tests exist
         # Since they don't exist yet, this test must fail
-        
+
         sim117_test_dir = REPO_ROOT / "tests" / "integration" / "sim117_remediation"
-        assert sim117_test_dir.exists(), "SIM117 integration test directory should exist"
-        
+        assert (
+            sim117_test_dir.exists()
+        ), "SIM117 integration test directory should exist"
+
         # Look for SIM117 specific test files
         sim117_test_files = list(sim117_test_dir.glob("test_*.py"))
         assert len(sim117_test_files) >= 1, "Should have SIM117 remediation test files"
@@ -222,29 +229,31 @@ class TestSIM117RemediationScenarios:
     def test_sim117_nested_with_detection(self):
         """Test that nested with statements would be detected as SIM117 violations."""
         # Example of nested with that should trigger SIM117
-        problematic_code = '''
+        problematic_code = """
         with open("file1.txt") as f1:
             with open("file2.txt") as f2:
                 content = f1.read() + f2.read()
-        '''
-        
+        """
+
         # This would normally be fixed by ruff to:
         # with open("file1.txt") as f1, open("file2.txt") as f2:
         #     content = f1.read() + f2.read()
-        
+
         # For now, just verify the test structure recognizes the pattern
         assert "with " in problematic_code
-        assert problematic_code.count("with ") >= 2, "Should have nested with statements"
+        assert (
+            problematic_code.count("with ") >= 2
+        ), "Should have nested with statements"
 
     def test_unsafe_fixes_flag_enables_sim117(self):
         """Test that --unsafe-fixes flag is required for SIM117 auto-fixing."""
         # Conceptual test: SIM117 requires unsafe fixes because combining
         # with statements can change execution order in edge cases
-        
+
         # Mock ruff command to verify flag presence
-        with patch("subprocess.run") as mock_run:
+        with patch("subprocess.run"):
             # Simulate what watcher2.sh should do
             cmd = ["ruff", "check", "--fix", "--unsafe-fixes", "test_file.py"]
-            
+
             # Verify unsafe-fixes is included for SIM117 support
             assert "--unsafe-fixes" in cmd, "unsafe-fixes flag required for SIM117"

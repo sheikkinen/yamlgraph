@@ -109,7 +109,7 @@ fi
 
 **GitHub Actions & CI/CD Platforms**: Standard GitHub Actions python workflows use `ruff check` without `--unsafe-fixes` due to safety concerns. Most platforms recommend manual review for unsafe auto-fixes. However, some automated pipelines like [ai-cicd-pipeline](https://github.com/harikas20/ai-cicd-pipeline) do implement AI-powered fixing but don't specifically handle ruff's unsafe-fixes flag.
 
-**LLM Framework CI**: 
+**LLM Framework CI**:
 - **LangGraph**: Uses standard pre-commit hooks but no automated remediation for CI failures - relies on manual intervention
 - **CrewAI**: Independent of LangChain, but doesn't appear to have automated CI remediation features
 - **AutoGen**: Now in maintenance mode, migrating to Microsoft Agent Framework - no CI self-healing documented
@@ -124,7 +124,7 @@ fi
 - Session continuation and timeout handling in `yamlgraph/node_factory/copilot_node.py`
 
 **Watcher2 Pipeline**: Extensive existing automation in `.chaplain/watcher2.sh` with:
-- 5-attempt pre-commit retry loop (line ~320) 
+- 5-attempt pre-commit retry loop (line ~320)
 - Copilot fallback mechanism (line ~332)
 - CI remediation with 2-attempt cycle (line ~369)
 - Progressive ruff commands already partially implemented

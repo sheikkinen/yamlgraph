@@ -21,7 +21,7 @@ def process_files():
             f2.write(data.upper())
 
 def backup_files():
-    # Another SIM117: More nested with statements  
+    # Another SIM117: More nested with statements
     with open("config.json") as config:
         with open("backup.json", "w") as backup:
             with open("log.txt", "a") as log:
@@ -61,7 +61,7 @@ fi
 echo
 
 # Step 2: Try ruff check --fix --unsafe-fixes (handles SIM117)
-echo "🚀 Step 2: ruff check --fix --unsafe-fixes (handles SIM117)"  
+echo "🚀 Step 2: ruff check --fix --unsafe-fixes (handles SIM117)"
 echo "-----------------------------------------------------------"
 cp /tmp/sim117_demo.py /tmp/sim117_step2.py
 ruff check --fix --unsafe-fixes /tmp/sim117_step2.py 2>/dev/null || true
@@ -82,7 +82,7 @@ echo "✅ Demo Complete!"
 echo "=================="
 echo "The progressive ruff strategy in watcher2.sh (FR-281) ensures:"
 echo "• Safe fixes are tried first"
-echo "• Unsafe fixes handle SIM117 and similar violations"  
+echo "• Unsafe fixes handle SIM117 and similar violations"
 echo "• Pipeline doesn't crash on auto-fixable linting issues"
 echo "• Copilot fallback has better error code context"
 echo

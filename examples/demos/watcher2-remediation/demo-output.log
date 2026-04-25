@@ -31,7 +31,7 @@ def process_files():
             f2.write(data.upper())
 
 def backup_files():
-    # Another SIM117: More nested with statements  
+    # Another SIM117: More nested with statements
     with open("config.json") as config:
         with open("backup.json", "w") as backup:
             with open("log.txt", "a") as log:
@@ -118,7 +118,7 @@ def read_multiple_files():
 >         data = f1.read()
 >         f2.write(data.upper())
 11,17c10,15
-<     # Another SIM117: More nested with statements  
+<     # Another SIM117: More nested with statements
 <     with open("config.json") as config:
 <         with open("backup.json", "w") as backup:
 <             with open("log.txt", "a") as log:
@@ -149,4 +149,3 @@ The progressive ruff strategy in watcher2.sh (FR-281) ensures:
 • Unsafe fixes handle SIM117 and similar violations
 • Pipeline doesn't crash on auto-fixable linting issues
 • Copilot fallback has better error code context
-
