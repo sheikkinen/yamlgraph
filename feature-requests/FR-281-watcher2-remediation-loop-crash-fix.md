@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-25
 
@@ -80,13 +80,13 @@ fi
 
 ## Acceptance Criteria
 
-- [ ] `ruff check --fix --unsafe-fixes` runs in both finalize and CI remediation steps
-- [ ] SIM117 violations are auto-fixed without manual intervention
-- [ ] Copilot fix prompt includes specific ruff error codes and rule names
-- [ ] Changelog fragment FR numbers are validated against branch names
-- [ ] Remediation loop handles partial success (some fixes work, others need copilot)
-- [ ] Tests added covering SIM117 remediation scenarios
-- [ ] Documentation updated in watcher2 comments
+- [x] `ruff check --fix --unsafe-fixes` runs in both finalize and CI remediation steps
+- [x] SIM117 violations are auto-fixed without manual intervention
+- [x] Copilot fix prompt includes specific ruff error codes and rule names
+- [x] Changelog fragment FR numbers are validated against branch names
+- [x] Remediation loop handles partial success (some fixes work, others need copilot)
+- [x] Tests added covering SIM117 remediation scenarios
+- [x] Documentation updated in watcher2 comments
 
 ## Alternatives Considered
 
