@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement  
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 2 days
 **Requested:** 2026-04-25
 
@@ -73,15 +73,15 @@ fi
 
 ## Acceptance Criteria
 
-- [ ] AMEND verdict triggers revision step instead of immediate failure
-- [ ] Judge feedback is extracted and passed to revision step  
-- [ ] Revision step reuses plan copilot with additional judge constraints
-- [ ] Revised FR is re-judged automatically
-- [ ] Maximum 2 AMEND retries to prevent infinite loops
-- [ ] Each revision attempt is committed with descriptive message
-- [ ] SPLIT verdict remains terminal (unchanged behavior)
-- [ ] After max retries, AMEND still results in handle_failure
-- [ ] Tests added for retry loop logic
+- [x] AMEND verdict triggers revision step instead of immediate failure
+- [x] Judge feedback is extracted and passed to revision step  
+- [x] Revision step reuses plan copilot with additional judge constraints
+- [x] Revised FR is re-judged automatically
+- [x] Maximum 2 AMEND retries to prevent infinite loops
+- [x] Each revision attempt is committed with descriptive message
+- [x] SPLIT verdict remains terminal (unchanged behavior)
+- [x] After max retries, AMEND still results in handle_failure
+- [x] Tests added for retry loop logic
 - [ ] Integration test with actual AMEND scenario
 
 ## Alternatives Considered

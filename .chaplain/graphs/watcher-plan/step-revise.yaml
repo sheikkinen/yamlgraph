@@ -1,0 +1,38 @@
+# Watcher2 Phase 3R — Revise step
+# Single copilot node: reads current FR and judge feedback, revises FR
+# Uses specialized revise prompt for iterative improvement
+
+version: "1.0"
+name: watcher-revise
+description: Watcher2 Phase 3R — revise step (copilot revises FR based on judge feedback)
+
+prompts_relative: true
+prompts_dir: ../copilot/prompts
+
+state:
+  topic_file: str
+  worktree_dir: str
+  judge_feedback: str
+  revise_result: dict
+
+nodes:
+  revise:
+    type: copilot
+    prompt: revise
+    backend: cli
+    cli_flags:
+      model: claude-sonnet-4
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+      worktree_dir: "{state.worktree_dir}"
+      judge_feedback: "{state.judge_feedback}"
+    state_key: revise_result
+    timeout: 500
+
+edges:
+  - from: START
+    to: revise
+  - from: revise
+    to: END
