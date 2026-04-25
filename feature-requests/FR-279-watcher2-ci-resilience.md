@@ -148,3 +148,54 @@ A new copilot node graph that:
 - `.chaplain/graphs/watcher-enforce/step-finalize.yaml` — Existing remediation pattern for pre-commit failures
 - PR #214 — Example of manual fix required for watcher2-generated syntax error
 - PRs #184, #189 — Earlier instances of premature CI failure
+
+## Research Brief
+
+### Competitive Landscape
+
+**No direct equivalents found.** Major LLM frameworks (LangGraph, CrewAI, AutoGen) focus on agent orchestration, not CI pipeline resilience:
+
+- **LangGraph**: Provides checkpointing and human-in-the-loop but no CI failure remediation patterns
+- **CrewAI**: Has error handling and retries but no specialized CI integration  
+- **AutoGen** (maintenance mode): Agent coordination patterns only, no CI self-healing
+- **GitHub Actions**: Native re-run capabilities (`gh run rerun`) but no automatic failure diagnosis/fix
+
+**Key insight**: CI self-healing pipelines are not a common abstraction in existing frameworks. Most rely on manual intervention or simple retry logic without content analysis of failure logs.
+
+### Existing Abstractions
+
+YAMLGraph already has the core building blocks:
+
+- **Copilot Node** (`CAP-30`): Proven abstraction for delegating to Copilot CLI with session continuity via `--resume`
+- **Pre-commit Remediation Loop** (`.chaplain/watcher2.sh:313-337`): Existing 5-attempt loop with copilot fallback in `step-finalize.yaml`
+- **CI Polling Logic** (`.chaplain/lib/watcher/wait_ci.sh`): Shell functions for `gh pr checks` status monitoring
+- **Shell Remediation Pattern**: 23 existing copilot node usages across enforce pipeline graphs
+
+**Gap**: No CI-specific remediation graph; existing `step-finalize.yaml` only handles pre-commit failures.
+
+### Diary Precedents
+
+**Relevant patterns from docs/diary/:**
+
+- **"Normalize at the boundary"** (2026-04-22): Copilot CLI outputs can contain invalid UTF-8 — need `errors='replace'` at serialization
+- **"Model name drift"** (2026-04-22): Copilot CLI model namespace differs from LLM factory; validate availability  
+- **"Test infrastructure from deployment context"** (2026-04-22): Infrastructure scripts must be tested in their actual environment
+- **"Pre-commit remediation cascades"** (2026-04-24): Auto-fixes trigger new failures; finalize step needs multiple retry attempts
+- **"Audit-as-ritual"** trap: Repeated findings with no fixes become theater — remediation loops prevent this
+
+**No negative precedents found** — no diary entries warn against automated CI remediation.
+
+### Usage Evidence
+
+- **Existing graphs using copilot nodes:** 23 (across chaplain pipeline, ebook examples, enforce steps)
+- **Real-world use cases beyond watcher2:** 
+  - Ebook authoring pipeline (automatic chapter generation + fixes)
+  - Philosopher daemon (automatic diary reflection)
+  - Bug fixing demos (syntax error correction)
+- **Proven remediation pattern:** `step-finalize.yaml` successfully handles pre-commit failures with 5-attempt loop + copilot fallback
+
+### Classification Signal
+
+- **Abstraction level:** integration (extends existing copilot node + shell patterns)
+- **Recommended approach:** build (fills genuine gap in watcher2 pipeline robustness)
+- **Key risk:** Over-engineering simple CI failures that humans should diagnose manually.
