@@ -2,7 +2,7 @@
 
 **Priority:** HIGH  
 **Type:** Bug  
-**Status:** Proposed  
+**Status:** Amendment Required  
 **Effort:** 0.5 days  
 **Requested:** 2026-04-25  
 
@@ -81,6 +81,23 @@ set -e
 - **Location**: `.chaplain/watcher2.sh` lines 378-405
 - **Dependencies**: `.chaplain/lib/watcher/wait_ci.sh` (provides `$WT_BRANCH` context)
 - **Related**: FR-273 (Watcher2 Pipeline) — broader watcher2 stability work
+
+## Judge Amendment Required
+
+**Issue**: Acceptance tests use phantom requirement ID `REQ-YG-285` which doesn't exist in the capabilities registry.
+
+**Required Fix**: 
+1. Update test file `test_fr284_watcher2_ci_remediation_crash_fix.py` to use `REQ-YG-307` 
+2. Create capability file `capabilities/CAP-XXX-watcher2-ci-remediation-crash-fix.yaml` defining REQ-YG-307
+3. Re-commit RED tests with corrected requirement ID
+
+**Analysis**: 
+- Scope is clear and minimal (single root cause: missing run ID)  
+- Implementation is feasible and aligns with existing patterns
+- Tests fail for correct reasons (missing implementation, not infrastructure)
+- Classification: Framework primitive (critical production infrastructure)
+
+**Next Steps**: Fix requirement ID issue, then proceed to implementation phase.
 
 ## Research Brief
 

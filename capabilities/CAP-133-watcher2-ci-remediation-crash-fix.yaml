@@ -1,0 +1,13 @@
+id: CAP-133
+name: Watcher2 CI Remediation Crash Fix
+description: >
+  Fix three bugs in the watcher2 CI remediation loop that cause immediate script crash:
+  missing run ID in gh run view, relative path resolution after cd, and missing error guard.
+modules:
+  - .chaplain/watcher2.sh
+  - tests/unit/test_fr284_watcher2_ci_remediation_crash_fix.py
+requirements:
+  - id: REQ-YG-307
+    description: "gh run view --log-failed uses proper run ID from gh run list"
+    modules:
+      - .chaplain/watcher2.sh
