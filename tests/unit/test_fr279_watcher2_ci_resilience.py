@@ -39,15 +39,31 @@ def test_wait_ci_checks_in_progress_before_failure():
     
     This test MUST fail because the current wait_ci.sh has the wrong check order.
     """
-    # Create test script that simulates the current wait_ci.sh logic
+    # Create test script that simulates the current wait_ci.sh logic with a progressive status
     test_script = textwrap.dedent("""\
         #!/usr/bin/env bash
         source '{wait_ci_path}'
         
-        # Mock gh pr checks that returns mixed status
+        # Mock functions to avoid log_info errors
+        log_info() {{ echo "INFO: $*"; }}
+        log_error() {{ echo "ERROR: $*"; }}
+        log_warn() {{ echo "WARN: $*"; }}
+        export -f log_info log_error log_warn
+        
+        # Create a status file that changes over time to simulate CI progression
+        status_file="/tmp/ci_status_$$"
+        echo "FAILURE,IN_PROGRESS,SUCCESS" > "$status_file"
+        
+        # Mock gh pr checks that reads from the status file
         gh() {{
             if [[ "$1" == "pr" && "$2" == "checks" ]]; then
-                echo "FAILURE,IN_PROGRESS,SUCCESS"
+                if [[ -f "$status_file" ]]; then
+                    cat "$status_file"
+                    # On second call, simulate completion
+                    echo "SUCCESS,SUCCESS,SUCCESS" > "$status_file"
+                else
+                    echo "SUCCESS,SUCCESS,SUCCESS"
+                fi
             else
                 echo "Mock gh command not supported"
                 return 1
@@ -57,11 +73,15 @@ def test_wait_ci_checks_in_progress_before_failure():
         
         export PR_NUMBER=123
         CI_POLL_INTERVAL=1
-        CI_TIMEOUT=5
+        CI_TIMEOUT=10
         
         wait_ci
-        echo "wait_ci_exit_code:$?"
+        exit_code=$?
+        echo "wait_ci_exit_code:$exit_code"
         echo "CI_RESULT:$CI_RESULT"
+        
+        # Cleanup
+        rm -f "$status_file"
     """).format(wait_ci_path=WAIT_CI_SH)
     
     with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
@@ -73,22 +93,19 @@ def test_wait_ci_checks_in_progress_before_failure():
             ['bash', test_script_path],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=15
         )
         
-        # Current implementation should fail immediately due to FAILURE,IN_PROGRESS status
-        # The fix should wait for IN_PROGRESS to complete before checking FAILURE
-        assert "wait_ci_exit_code:1" in result.stdout, (
-            "wait_ci should fail with current implementation due to wrong check order"
-        )
-        assert "CI_RESULT:failure" in result.stdout, (
-            "CI_RESULT should be 'failure' with current premature failure logic"
-        )
+        print(f"STDOUT: {result.stdout}")
+        print(f"STDERR: {result.stderr}")
+        print(f"RETURN CODE: {result.returncode}")
         
-        # This assertion will fail because we expect the fixed behavior 
-        # where IN_PROGRESS is checked first, meaning wait_ci should NOT fail immediately
+        # With the fix, wait_ci should wait for IN_PROGRESS to complete and then succeed
         assert "wait_ci_exit_code:0" in result.stdout, (
             "FIXED: wait_ci should wait for IN_PROGRESS checks to complete before evaluating FAILURE"
+        )
+        assert "CI_RESULT:success" in result.stdout, (
+            "FIXED: CI_RESULT should be 'success' when IN_PROGRESS completes successfully"
         )
         
     finally:
@@ -116,11 +133,6 @@ def test_ci_remediation_loop_in_watcher2():
         # Check if watcher2.sh contains CI remediation loop
         watcher2_content = WATCHER2_SH.read_text()
         
-        # Current implementation should NOT have CI remediation
-        assert "CI_REMEDIATED" not in watcher2_content, (
-            "Current watcher2.sh should not have CI remediation loop"
-        )
-        
         # Expected fix should have remediation loop with these elements
         expected_patterns = [
             "CI_REMEDIATED=false",
@@ -130,7 +142,6 @@ def test_ci_remediation_loop_in_watcher2():
         ]
         
         for pattern in expected_patterns:
-            # These assertions will fail because the remediation loop doesn't exist yet
             assert pattern in watcher2_content, (
                 f"FIXED: watcher2.sh should contain CI remediation pattern: {pattern}"
             )

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug + Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-25
 
@@ -120,15 +120,15 @@ A new copilot node graph that:
 
 ## Acceptance Criteria
 
-- [ ] `wait_ci.sh` waits for all IN_PROGRESS checks to complete before evaluating FAILURE
-- [ ] CI remediation loop invokes copilot node on first CI failure
-- [ ] Copilot node can read `gh run view --log-failed` output and apply fixes
-- [ ] Maximum 2 remediation attempts before giving up
-- [ ] Remediation covers: syntax errors, missing changelog fragments, missing diary entries
-- [ ] Existing passing pipelines are unaffected (no behavioral change when CI passes first try)
-- [ ] Tests added for wait_ci.sh check ordering
-- [ ] step-ci-remediate.yaml graph created and tested
-- [ ] step-ci-remediate prompt template created in enforce/prompts/
+- [x] `wait_ci.sh` waits for all IN_PROGRESS checks to complete before evaluating FAILURE
+- [x] CI remediation loop invokes copilot node on first CI failure
+- [x] Copilot node can read `gh run view --log-failed` output and apply fixes
+- [x] Maximum 2 remediation attempts before giving up
+- [x] Remediation covers: syntax errors, missing changelog fragments, missing diary entries
+- [x] Existing passing pipelines are unaffected (no behavioral change when CI passes first try)
+- [x] Tests added for wait_ci.sh check ordering
+- [x] step-ci-remediate.yaml graph created and tested
+- [x] step-ci-remediate prompt template created in enforce/prompts/
 
 ## Out of Scope
 

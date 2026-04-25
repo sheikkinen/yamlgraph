@@ -1,0 +1,37 @@
+# Watcher2 CI Remediation step (fix CI failures)
+# Single copilot node: diagnoses CI failures and applies fixes
+# Handles syntax errors, missing changelog fragments, missing diary entries
+# Uses prompt from .chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml
+
+version: "1.0"
+name: watcher-ci-remediate
+description: Watcher2 CI remediation step (diagnose and fix CI failures)
+
+prompts_relative: true
+prompts_dir: ../enforce/prompts
+
+state:
+  ci_log_path: str
+  pr_number: str
+  remediate_result: dict
+
+nodes:
+  remediate:
+    type: copilot
+    prompt: enforce-ci-remediate
+    backend: cli
+    cli_flags:
+      model: claude-sonnet-4
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      ci_log_path: "{state.ci_log_path}"
+      pr_number: "{state.pr_number}"
+    state_key: remediate_result
+    timeout: 900
+
+edges:
+  - from: START
+    to: remediate
+  - from: remediate
+    to: END

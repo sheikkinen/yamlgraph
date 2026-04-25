@@ -358,8 +358,41 @@ print('UNKNOWN')
 
     # ── Wait for CI ─────────────────────────────────────────────────────
     if ! wait_ci; then
-        handle_failure "CI"
-        continue
+        # Attempt CI remediation (max 2 attempts)
+        CI_REMEDIATED=false
+        for ci_attempt in 1 2; do
+            log_warn "CI failed — remediation attempt $ci_attempt/2..."
+            
+            # Capture failure logs
+            gh run view --log-failed --repo "sheikkinen/yamlgraph" > tmp/ci-failure.log 2>&1
+            
+            # Invoke copilot to diagnose and fix
+            cd "$WT_DIR"
+            if yamlgraph graph run "$ENFORCE_DIR/step-ci-remediate.yaml" \
+                --var ci_log_path="tmp/ci-failure.log" \
+                --var pr_number="$PR_NUMBER" \
+                --import-state "$ENFORCE_STATE" \
+                --full; then
+                
+                # Re-run finalize (pre-commit + push)
+                git add -A && ruff check --fix . && ruff format .
+                pre-commit run --all-files || true
+                git add -A
+                git commit -m "fix: watcher2 — CI remediation" --no-verify
+                git push origin "$WT_BRANCH"
+                
+                cd "$MAIN_DIR"
+                if wait_ci; then
+                    CI_REMEDIATED=true
+                    break
+                fi
+            fi
+        done
+        
+        if [[ "$CI_REMEDIATED" != "true" ]]; then
+            handle_failure "CI (after remediation)"
+            continue
+        fi
     fi
 
     # ── Merge ───────────────────────────────────────────────────────────
