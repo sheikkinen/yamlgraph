@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement  
-**Status:** Approved - Implementation Authority Granted
+**Status:** Rejected
 **Effort:** 4 days
 **Requested:** 2026-04-24
 **Judged:** 2026-04-24

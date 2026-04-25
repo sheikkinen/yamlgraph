@@ -49,9 +49,9 @@ class TestNodeConfigModelField:
         """NodeConfig must declare model as a Pydantic field."""
         from yamlgraph.models.graph_schema import NodeConfig
 
-        assert (
-            "model" in NodeConfig.model_fields
-        ), "NodeConfig must have a 'model' field in graph_schema.py"
+        assert "model" in NodeConfig.model_fields, (
+            "NodeConfig must have a 'model' field in graph_schema.py"
+        )
 
     def test_nodeconfig_model_defaults_to_none(self) -> None:
         """model field must default to None (optional)."""
@@ -222,9 +222,9 @@ class TestCliFlagsModelOverridesNodeLevel:
             cmd = mock_run.call_args[0][0]
             assert "--model" in cmd
             model_idx = cmd.index("--model")
-            assert (
-                cmd[model_idx + 1] == "claude-opus-4"
-            ), "cli_flags.model must override node-level model"
+            assert cmd[model_idx + 1] == "claude-opus-4", (
+                "cli_flags.model must override node-level model"
+            )
 
     def test_cli_flags_model_wins_over_defaults_model(self, tmp_path: Path) -> None:
         """cli_flags.model > defaults.model in the priority chain."""
@@ -246,9 +246,9 @@ class TestCliFlagsModelOverridesNodeLevel:
 
             cmd = mock_run.call_args[0][0]
             model_idx = cmd.index("--model")
-            assert (
-                cmd[model_idx + 1] == "claude-opus-4"
-            ), "cli_flags.model must override defaults.model"
+            assert cmd[model_idx + 1] == "claude-opus-4", (
+                "cli_flags.model must override defaults.model"
+            )
 
 
 # =============================================================================
@@ -276,9 +276,9 @@ class TestNoModelOmitsFlag:
             node_fn({})
 
             cmd = mock_run.call_args[0][0]
-            assert (
-                "--model" not in cmd
-            ), "--model flag must be omitted when no model specified"
+            assert "--model" not in cmd, (
+                "--model flag must be omitted when no model specified"
+            )
 
 
 # =============================================================================
@@ -358,6 +358,6 @@ class TestModelPriorityChain:
 
             cmd = mock_run.call_args[0][0]
             model_idx = cmd.index("--model")
-            assert (
-                cmd[model_idx + 1] == "gpt-4o"
-            ), "node-level model must override defaults.model"
+            assert cmd[model_idx + 1] == "gpt-4o", (
+                "node-level model must override defaults.model"
+            )

@@ -63,18 +63,18 @@ class TestCapabilityRegistry:
         for fp in (REPO_ROOT / "capabilities").glob("CAP-*.yaml"):
             cap_id_match = re.match(r"(CAP-\d+)", fp.name)
             if cap_id_match:
-                assert (
-                    cap_id_match.group(1) not in retired
-                ), f"{fp.name} uses retired ID {cap_id_match.group(1)}"
+                assert cap_id_match.group(1) not in retired, (
+                    f"{fp.name} uses retired ID {cap_id_match.group(1)}"
+                )
 
     def test_ids_match_filenames(self) -> None:
         """Each file's id field must match its filename prefix."""
         for fp in sorted((REPO_ROOT / "capabilities").glob("CAP-*.yaml")):
             data = yaml.safe_load(fp.read_text())
             expected = re.match(r"(CAP-\d+)", fp.name).group(1)
-            assert (
-                str(data["id"]) == expected
-            ), f"{fp.name}: id '{data['id']}' != filename '{expected}'"
+            assert str(data["id"]) == expected, (
+                f"{fp.name}: id '{data['id']}' != filename '{expected}'"
+            )
 
     def test_no_duplicate_requirement_ids(self) -> None:
         """No two capabilities may share a requirement ID."""
@@ -83,9 +83,9 @@ class TestCapabilityRegistry:
             data = yaml.safe_load(fp.read_text())
             for req in data.get("requirements", []):
                 req_id = str(req["id"])
-                assert (
-                    req_id not in seen
-                ), f"Duplicate {req_id}: in {data['id']} and {seen[req_id]}"
+                assert req_id not in seen, (
+                    f"Duplicate {req_id}: in {data['id']} and {seen[req_id]}"
+                )
                 seen[req_id] = str(data["id"])
 
 
@@ -254,9 +254,9 @@ class TestArchitectureGenerationMarkers:
 
         # Spot-check core capabilities that must always be present
         for cap_num in [1, 2, 3, 4, 5, 10, 17, 19, 30, 64]:
-            assert (
-                f"| {cap_num} |" in generated
-            ), f"CAP-{cap_num} missing from generated summary table"
+            assert f"| {cap_num} |" in generated, (
+                f"CAP-{cap_num} missing from generated summary table"
+            )
 
     def test_generated_content_has_requirement_ids(self) -> None:
         """Generated content must reference REQ-YG-XXX IDs from registry."""

@@ -1,1 +1,0 @@
-"""Chaplain baseline functionality package."""

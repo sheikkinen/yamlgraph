@@ -62,36 +62,36 @@ class TestChangelogGateJobStructure:
     def test_job_exists(self) -> None:
         """The commitlint workflow must contain a 'changelog-gate' job."""
         wf = _load_workflow()
-        assert (
-            "changelog-gate" in wf["jobs"]
-        ), "Missing 'changelog-gate' job in commitlint.yml"
+        assert "changelog-gate" in wf["jobs"], (
+            "Missing 'changelog-gate' job in commitlint.yml"
+        )
 
     def test_job_name(self) -> None:
         """The job display name indicates changelog fragment is required."""
         wf = _load_workflow()
         job = wf["jobs"]["changelog-gate"]
         assert "hangelog" in job["name"], "Job name must mention changelog"
-        assert (
-            "feat" in job["name"] or "fix" in job["name"]
-        ), "Job name must mention feat or fix"
+        assert "feat" in job["name"] or "fix" in job["name"], (
+            "Job name must mention feat or fix"
+        )
 
     def test_job_condition_checks_feat(self) -> None:
         """The job-level `if` condition must check for 'feat' PR titles."""
         wf = _load_workflow()
         job = wf["jobs"]["changelog-gate"]
         condition = job.get("if", "")
-        assert (
-            "startsWith(github.event.pull_request.title, 'feat')" in condition
-        ), "Job must check for feat PR titles"
+        assert "startsWith(github.event.pull_request.title, 'feat')" in condition, (
+            "Job must check for feat PR titles"
+        )
 
     def test_job_condition_checks_fix(self) -> None:
         """The job-level `if` condition must check for 'fix' PR titles."""
         wf = _load_workflow()
         job = wf["jobs"]["changelog-gate"]
         condition = job.get("if", "")
-        assert (
-            "startsWith(github.event.pull_request.title, 'fix')" in condition
-        ), "Job must check for fix PR titles"
+        assert "startsWith(github.event.pull_request.title, 'fix')" in condition, (
+            "Job must check for fix PR titles"
+        )
 
     def test_checkout_with_full_history(self) -> None:
         """The checkout step must use fetch-depth: 0 for full git history."""
@@ -102,9 +102,9 @@ class TestChangelogGateJobStructure:
         ]
         assert checkout_steps, "Must have an actions/checkout step"
         checkout = checkout_steps[0]
-        assert (
-            checkout.get("with", {}).get("fetch-depth") == 0
-        ), "Checkout must use fetch-depth: 0"
+        assert checkout.get("with", {}).get("fetch-depth") == 0, (
+            "Checkout must use fetch-depth: 0"
+        )
 
     def test_verify_step_uses_git_diff(self) -> None:
         """The verification step must use git diff to check for fragments."""
@@ -164,9 +164,9 @@ class TestChangelogGateShellLogic:
     def test_versioned_changelog_not_accepted(self) -> None:
         """A file in changelog/0.5.0/ should NOT satisfy the gate."""
         result = _run_gate_script("changelog/0.5.0/FR-100-old.md")
-        assert (
-            result.returncode == 1
-        ), "Versioned changelog fragment should not satisfy unreleased check"
+        assert result.returncode == 1, (
+            "Versioned changelog fragment should not satisfy unreleased check"
+        )
 
     def test_old_changelog_md_not_accepted(self) -> None:
         """CHANGELOG.md alone should NOT satisfy the gate."""

@@ -161,9 +161,9 @@ class TestReleaseScript:
         """release.sh must move fragments to versioned directory."""
         script = REPO_ROOT / "scripts" / "release.sh"
         content = script.read_text()
-        assert (
-            "mv " in content and "changelog/" in content
-        ), "release.sh must move fragments"
+        assert "mv " in content and "changelog/" in content, (
+            "release.sh must move fragments"
+        )
 
     def test_release_script_bumps_version(self) -> None:
         """release.sh must update pyproject.toml version."""
@@ -175,9 +175,9 @@ class TestReleaseScript:
         """release.sh must run aggregate_changelog.py."""
         script = REPO_ROOT / "scripts" / "release.sh"
         content = script.read_text()
-        assert (
-            "aggregate_changelog" in content
-        ), "release.sh must run aggregate_changelog.py"
+        assert "aggregate_changelog" in content, (
+            "release.sh must run aggregate_changelog.py"
+        )
 
     def test_release_script_commits_and_tags(self) -> None:
         """release.sh must create commit and tag."""
@@ -190,9 +190,9 @@ class TestReleaseScript:
         """release.sh must use -F for commit message (avoid dquote trap)."""
         script = REPO_ROOT / "scripts" / "release.sh"
         content = script.read_text()
-        assert (
-            "commit -F" in content or "commit --file" in content
-        ), "release.sh must use -F for commit message"
+        assert "commit -F" in content or "commit --file" in content, (
+            "release.sh must use -F for commit message"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -211,9 +211,9 @@ class TestCIReleaseHygiene:
         workflow_path = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
         content = workflow_path.read_text()
         workflow = yaml.safe_load(content)
-        assert "release-hygiene" in workflow.get(
-            "jobs", {}
-        ), "commitlint.yml must have release-hygiene job"
+        assert "release-hygiene" in workflow.get("jobs", {}), (
+            "commitlint.yml must have release-hygiene job"
+        )
 
     def test_workflow_triggers_on_tag_push(self) -> None:
         """commitlint.yml must trigger on tag pushes (v*)."""
@@ -221,9 +221,9 @@ class TestCIReleaseHygiene:
         content = workflow_path.read_text()
         # Must have push trigger with tags
         assert "tags:" in content, "Workflow must trigger on tag pushes"
-        assert (
-            "v*" in content or "'v*'" in content or '"v*"' in content
-        ), "Tag trigger must match v* pattern"
+        assert "v*" in content or "'v*'" in content or '"v*"' in content, (
+            "Tag trigger must match v* pattern"
+        )
 
     def test_release_hygiene_checks_changelog_folder(self) -> None:
         """release-hygiene job must verify changelog/{VERSION}/ exists."""
@@ -235,9 +235,9 @@ class TestCIReleaseHygiene:
         job = workflow["jobs"]["release-hygiene"]
         # Job steps must reference changelog directory check
         steps_text = str(job.get("steps", []))
-        assert (
-            "changelog/" in steps_text
-        ), "release-hygiene must check for changelog version folder"
+        assert "changelog/" in steps_text, (
+            "release-hygiene must check for changelog version folder"
+        )
 
     def test_release_hygiene_checks_orphaned_fragments(self) -> None:
         """release-hygiene job must check for orphaned unreleased fragments."""
@@ -248,9 +248,9 @@ class TestCIReleaseHygiene:
         workflow = yaml.safe_load(content)
         job = workflow["jobs"]["release-hygiene"]
         steps_text = str(job.get("steps", []))
-        assert (
-            "unreleased" in steps_text
-        ), "release-hygiene must check for orphaned fragments"
+        assert "unreleased" in steps_text, (
+            "release-hygiene must check for orphaned fragments"
+        )
 
     def test_release_hygiene_only_runs_on_tags(self) -> None:
         """release-hygiene job must have if condition for tag pushes."""
@@ -276,16 +276,16 @@ class TestPrecommitRegistration:
     def test_hook_registered(self) -> None:
         """changelog-release-sync hook must exist in .pre-commit-config.yaml."""
         config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
-        assert (
-            "changelog-release-sync" in config
-        ), "changelog-release-sync hook must be registered"
+        assert "changelog-release-sync" in config, (
+            "changelog-release-sync hook must be registered"
+        )
 
     def test_hook_runs_script(self) -> None:
         """Hook must run check_changelog_release_sync.py."""
         config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
-        assert (
-            "check_changelog_release_sync" in config
-        ), "Hook must reference check_changelog_release_sync script"
+        assert "check_changelog_release_sync" in config, (
+            "Hook must reference check_changelog_release_sync script"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -300,13 +300,13 @@ class TestDocumentation:
     def test_release_checklist_references_release_sh(self) -> None:
         """release-checklist.md must reference scripts/release.sh."""
         checklist = (REPO_ROOT / "reference" / "release-checklist.md").read_text()
-        assert (
-            "scripts/release.sh" in checklist or "release.sh" in checklist
-        ), "release-checklist.md must reference release.sh"
+        assert "scripts/release.sh" in checklist or "release.sh" in checklist, (
+            "release-checklist.md must reference release.sh"
+        )
 
     def test_release_checklist_shows_release_sh_as_canonical(self) -> None:
         """release-checklist.md must present release.sh as the canonical command."""
         checklist = (REPO_ROOT / "reference" / "release-checklist.md").read_text()
-        assert (
-            "release.sh" in checklist
-        ), "release-checklist.md must show release.sh as canonical"
+        assert "release.sh" in checklist, (
+            "release-checklist.md must show release.sh as canonical"
+        )

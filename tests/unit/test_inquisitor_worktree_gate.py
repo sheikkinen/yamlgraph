@@ -215,6 +215,6 @@ class TestWorktreeGateInFullScript:
         delta_pos = content.find("# --- Commit-delta gate (FR-131")
         assert wt_pos != -1, "FR-142 gate section not found in inquisitor.sh"
         assert delta_pos != -1, "FR-131 gate section not found in inquisitor.sh"
-        assert (
-            wt_pos < delta_pos
-        ), "Worktree gate (FR-142) must appear before commit-delta gate (FR-131)"
+        assert wt_pos < delta_pos, (
+            "Worktree gate (FR-142) must appear before commit-delta gate (FR-131)"
+        )
