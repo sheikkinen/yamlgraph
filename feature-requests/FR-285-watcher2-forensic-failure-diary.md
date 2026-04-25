@@ -91,3 +91,61 @@ seed: "Could watcher2 pre-validate test syntax before running pytest?"
 - `.chaplain/lib/diary.py` - Diary writing utilities
 - FR-273 - Watcher2 pipeline implementation (phases 1-4)
 - FR-284 - CI remediation crash fix (recent failure handling improvement)
+
+## Research Brief
+
+### Competitive Landscape
+
+**LangGraph**: Provides basic error handling via checkpointing and error states but no automated failure analysis or diagnostic generation. Users must manually inspect failure logs and state snapshots.
+
+**CrewAI**: Supports agent-level error handling with retries, delegation, and max execution time limits. However, it lacks systematic failure forensics or institutional learning from errors.
+
+**AutoGen** (now in maintenance mode, succeeded by Microsoft Agent Framework): Has error handling for multi-agent conversations but no structured failure diagnosis pipeline. The newer MAF emphasizes enterprise-grade orchestration but documentation doesn't reveal automated failure analysis capabilities.
+
+**Microsoft Agent Framework**: Enterprise successor to AutoGen with multi-agent orchestration and error recovery, but no evidence of forensic analysis or learning artifact generation from failures.
+
+**GitHub Actions**: Preserves workflow logs for 90 days but provides no automated failure analysis or root cause diagnosis. Failures are investigated manually by reviewing raw logs.
+
+**Key insight**: No competing LLM orchestration frameworks provide automated forensic failure analysis with structured learning artifacts. Most systems preserve logs but require manual diagnosis. This represents a potential differentiation for YAMLGraph's development methodology.
+
+### Existing Abstractions
+
+**Strong overlaps with existing YAMLGraph infrastructure:**
+
+- `.chaplain/lib/diary.py` - Shared diary writing utilities with `write_diary()` function, `format_diary_entry()`, and structured diary patterns already established (FR-097, FR-134)
+- `.chaplain/graphs/watcher-diary/` - Existing watcher2 diary integration proving Copilot session invocation works within watcher workflows
+- `yamlgraph/error_handlers.py` - Comprehensive error handling with PipelineError.from_exception(), supports skip/retry/fail/fallback strategies
+- `yamlgraph/models/schemas.py` - PipelineError model with structured error capture including node, type, message, and stack trace
+- `.chaplain/graphs/copilot/` - Proven pattern for LLM-driven analysis and diary generation in chaplain workflows
+
+**Infrastructure already exists** for the core components needed: error capture, diary writing, and LLM analysis integration.
+
+### Diary Precedents
+
+**Established forensic patterns in docs/diary/:**
+
+- **FR-284 CI remediation crash**: Demonstrates systematic failure analysis pattern with root cause (intersection of three bugs), trap identification (downstream_fix), and insight extraction
+- **FR-276 script retirement**: Shows forensic preservation methodology, with explicit mention that "forensic preservation" and "failure investigation capabilities" are already design goals
+- **Multiple infrastructure failure reflections**: Pattern of extracting heuristics from operational failures and converting them to prevention strategies
+
+**Scripture references to forensic analysis:**
+- `ARCHITECTURE.md` mentions "forensic author audit header" and "forensic inspection" as established patterns
+- Requirements REQ-YG-276 specifically mandates "forensic inspection" capabilities for failure paths
+
+**Key pattern**: Diary entries already follow a structured format with cognitive process, trap identification, insights, and seeds - exactly what forensic analysis would generate.
+
+### Usage Evidence
+
+- Existing graphs using diary infrastructure: 3 (.chaplain/graphs/watcher-diary/, .chaplain/graphs/copilot/, .chaplain/graphs/philosopher/)
+- Real-world use cases beyond the proposal: 
+  - Chaplain workflow diary integration (FR-093) 
+  - Philosopher pattern analysis and Scripture graduation
+  - Daily development reflection and trap identification
+- Current watcher2 failure handling: Already preserves worktrees and topics in `.chaplain/failed/` but without analysis
+- YAMLGraph PipelineError usage: 15+ files across the framework already use structured error capture
+
+### Classification Signal
+
+- **Abstraction level**: integration
+- **Recommended approach**: build
+- **Key risk**: Adding forensic analysis could slow down failure handling and mask the original failure if the analysis itself fails.
