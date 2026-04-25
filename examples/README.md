@@ -116,6 +116,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [req-cross-check](demos/req-cross-check/) | Architecture requirement traceability audit |
 | [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
 | [script-retirement](demos/script-retirement/) | Pipeline script retirement verification (FR-276) |
+| [security-cve-ignore](demos/security-cve-ignore/) | Security workflow CVE ignore implementation verification (FR-282) |
 | [watcher2-ci-remediation](demos/watcher2-ci-remediation/) | CI failure remediation loop demonstration (FR-279) |
 | [watcher2-red-verification](demos/watcher2-red-verification/) | RED verification timestamp fix demo (FR-280) |
 | [watcher2-remediation](demos/watcher2-remediation/) | Progressive ruff fixing for SIM117 remediation (FR-281) |
