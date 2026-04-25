@@ -81,3 +81,43 @@ set -e
 - **Location**: `.chaplain/watcher2.sh` lines 378-405
 - **Dependencies**: `.chaplain/lib/watcher/wait_ci.sh` (provides `$WT_BRANCH` context)
 - **Related**: FR-273 (Watcher2 Pipeline) — broader watcher2 stability work
+
+## Research Brief
+
+### Competitive Landscape
+
+- **GitHub Actions**: Native re-run capabilities (`gh run rerun`) but no automatic failure diagnosis/fix
+- **GitHub CLI**: Built-in support for `gh run list --status failure` to query failed runs by branch and `gh run view --run $ID --log-failed` for specific run logs (confirmed in GitHub CLI docs)
+- **nektos/act**: Local GitHub Actions runner for testing, but no production CI remediation patterns
+- **CI automation tools**: Most handle retry/re-run but not intelligent diagnosis and auto-fix of failures
+
+The proposed approach (query run ID then fetch logs) aligns with GitHub CLI's intended usage patterns and is the canonical way to programmatically access failure logs.
+
+### Existing Abstractions
+
+Error handling patterns in YAMLGraph:
+- **`|| true` guards**: Used extensively in 52+ files for `set -euo pipefail` compatibility
+- **Progressive remediation**: Established pattern in FR-281 with `ruff check --fix` then `--unsafe-fixes` before escalating to copilot
+- **GitHub CLI integration**: Wait_ci.sh already uses `gh pr checks` for polling status
+- **Path resolution**: `$MAIN_DIR` absolute paths used consistently in `.chaplain/lib/watcher/` modules
+
+### Diary Precedents
+
+Relevant traps and patterns from docs/diary/:
+- **quick_confidence trap**: "When I feel certain → Judge instead" - relevant for shell debugging
+- **downstream_fix trap**: Fix at boundary where external data enters, not where symptoms manifest  
+- **boundary normalization**: External systems (GitHub CLI) require proper input validation and error handling
+- **Progressive remediation pattern**: Safe fixes first, then unsafe, then intelligent escalation (established in FR-281)
+
+### Usage Evidence
+
+- Existing graphs using watcher2 remediation: **1 graph** (`examples/demos/watcher2-ci-remediation/`)
+- **81 total references** to watcher2 across codebase indicating heavy operational usage
+- **13 references** to ci remediation specifically
+- Real-world use cases: Production daemon running continuously, handling FR proposals through full lifecycle
+
+### Classification Signal
+
+- **Abstraction level**: primitive (core infrastructure bug affecting daemon reliability)
+- **Recommended approach**: build (critical bug fix for existing production system)  
+- **Key risk**: This bug prevents the watcher2 CI remediation capability from functioning at all, causing immediate script termination and requiring manual intervention for recoverable failures
