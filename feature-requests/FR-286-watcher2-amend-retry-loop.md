@@ -105,3 +105,32 @@ fi
 - `.chaplain/graphs/watcher-plan/step-judge.yaml` (judge step implementation)
 - `.chaplain/graphs/watcher-plan/step-plan.yaml` (plan step to reuse for revision)
 - FR-257: Chaplain research step (related pipeline enhancement)
+
+## Research Brief
+
+### Competitive Landscape
+- **LangChain/LangGraph**: Provide retry mechanisms within agent execution, but focus on model call failures rather than judgment/feedback loops. No equivalent of iterative refinement based on structured feedback.
+- **CrewAI**: Has agent collaboration patterns but no published documentation on iterative feature request refinement workflows.
+- **AutoGen**: Now in maintenance mode, migrated to Microsoft Agent Framework. Had multi-agent negotiation but not automated document refinement.
+- **Microsoft Agent Framework**: Successor to AutoGen with enterprise orchestration, but no specific retry loops for document/plan improvement based on feedback.
+
+### Existing Abstractions
+- **YAMLGraph retry mechanisms**: `on_error: retry` with `max_retries` exists for node-level failures (FR-031, `tests/unit/test_executor_retry.py`). 25+ graphs use `type: copilot` nodes. 10+ graphs use `resume: "{state.plan_result.session_id}"` pattern for session continuation.
+- **Copilot session resumption**: Established pattern in `.chaplain/graphs/` for maintaining context across plan→judge→enforce phases.
+- **Watcher2 pipeline**: Already uses 4-step Plan→Research→Judge→Enforce with state persistence via JSON files.
+- **Error handling patterns**: `on_error: skip|retry|fail|fallback` widely used (found in 25+ example graphs).
+
+### Diary Precedents
+- **AMEND iteration precedent**: `docs/diary/2026-03-13-09-second-judgement.md`, `09-revision-multi-fsm.md`, `09-third-amendment.md` show successful AMEND→revision→re-judge cycles for FSM architecture documents.
+- **"The One Law" pattern**: "Normalize at the boundary where external data enters, not downstream where it manifests" - applies here as judge feedback should feed directly back into revision, not be handled as terminal failure.
+- **Working system inertia trap**: Current approach treats AMEND as failure because "it worked before." Diary shows this trap leads to missed improvement opportunities.
+
+### Usage Evidence
+- Existing graphs using related abstractions: 25+ (copilot nodes)
+- Real-world use cases beyond the proposal: Copilot session resumption used in 10+ chaplain pipeline graphs, retry mechanisms used across examples for resilience
+- Watcher2 currently processes ~286 feature requests, handles judge verdicts, but abandons on AMEND instead of improving
+
+### Classification Signal
+- Abstraction level: **integration** (specialized chaplain pipeline enhancement, not general-purpose primitive)
+- Recommended approach: **build** (extends existing watcher2 pipeline, reuses copilot session patterns, fills documented gap)
+- Key risk: **Infinite loop potential without proper retry limits and feedback quality validation**
