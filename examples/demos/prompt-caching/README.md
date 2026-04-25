@@ -11,7 +11,7 @@ This example shows how to structure prompts with cacheable segments to enable An
 The demo uses two LLM nodes (`analyze` and `reflect`) that share identical cached system segments:
 
 1. **Shared Cached Context**: Both prompts include a large, stable system segment marked with `cache: true`
-2. **Task-Specific Context**: Each prompt has a unique segment with `cache: false` for task-specific instructions  
+2. **Task-Specific Context**: Each prompt has a unique segment with `cache: false` for task-specific instructions
 3. **Cost Optimization**: The second LLM call benefits from Anthropic's prompt cache, reusing the cached prefix
 
 ## system_segments Structure
@@ -51,7 +51,7 @@ yamlgraph graph run graph.yaml --var topic="machine learning pipelines" --full
 
 Prompt caching is most effective for:
 - Multi-step workflows with shared context
-- Workflows with large, stable system prompts  
+- Workflows with large, stable system prompts
 - Repeated executions with consistent prefixes
 - Cost-sensitive applications processing many requests
 

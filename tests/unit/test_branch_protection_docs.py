@@ -22,30 +22,30 @@ class TestBreakGlassDocumentation:
     def test_break_glass_contains_emergency_procedure(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text()
-        assert "emergency" in content.lower(), (
-            "break-glass.md must document the emergency bypass procedure"
-        )
+        assert (
+            "emergency" in content.lower()
+        ), "break-glass.md must document the emergency bypass procedure"
 
     def test_break_glass_contains_audit_trail_requirement(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text()
-        assert "audit" in content.lower(), (
-            "break-glass.md must require an audit trail for overrides"
-        )
+        assert (
+            "audit" in content.lower()
+        ), "break-glass.md must require an audit trail for overrides"
 
     def test_break_glass_contains_diary_entry_requirement(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text()
-        assert "diary" in content.lower(), (
-            "break-glass.md must require a docs/diary/ entry after bypass"
-        )
+        assert (
+            "diary" in content.lower()
+        ), "break-glass.md must require a docs/diary/ entry after bypass"
 
     def test_break_glass_contains_re_enable_steps(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text()
-        assert "re-enable" in content.lower() or "restore" in content.lower(), (
-            "break-glass.md must document how to re-enable protection"
-        )
+        assert (
+            "re-enable" in content.lower() or "restore" in content.lower()
+        ), "break-glass.md must document how to re-enable protection"
 
 
 @pytest.mark.req("REQ-YG-149")
@@ -55,28 +55,28 @@ class TestClaudeMdBranchProtection:
     def test_claude_md_has_branch_protection_section(self):
         path = REPO_ROOT / "CLAUDE.md"
         content = path.read_text()
-        assert "## Branch Protection" in content, (
-            "CLAUDE.md must have a 'Branch Protection' section (FR-150 AC-6)"
-        )
+        assert (
+            "## Branch Protection" in content
+        ), "CLAUDE.md must have a 'Branch Protection' section (FR-150 AC-6)"
 
     def test_claude_md_references_squash_merge(self):
         path = REPO_ROOT / "CLAUDE.md"
         content = path.read_text()
         # Find the branch protection section and verify it mentions squash merge
-        assert "squash" in content.lower(), (
-            "CLAUDE.md branch protection section must mention squash merge"
-        )
+        assert (
+            "squash" in content.lower()
+        ), "CLAUDE.md branch protection section must mention squash merge"
 
     def test_claude_md_references_break_glass(self):
         path = REPO_ROOT / "CLAUDE.md"
         content = path.read_text()
-        assert "break-glass" in content.lower(), (
-            "CLAUDE.md must reference break-glass.md for emergency procedures"
-        )
+        assert (
+            "break-glass" in content.lower()
+        ), "CLAUDE.md must reference break-glass.md for emergency procedures"
 
     def test_claude_md_references_required_checks(self):
         path = REPO_ROOT / "CLAUDE.md"
         content = path.read_text()
-        assert "commitlint" in content.lower(), (
-            "CLAUDE.md branch protection section must list required status checks"
-        )
+        assert (
+            "commitlint" in content.lower()
+        ), "CLAUDE.md branch protection section must list required status checks"

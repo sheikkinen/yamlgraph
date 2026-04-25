@@ -69,7 +69,7 @@ system_segments:
   - content: |
       You are an expert on the YAMLGraph framework. YAMLGraph is a YAML-first
       framework for building LLM pipelines using LangGraph.
-      
+
       [Large stable context that should be cached...]
     cache: true
   - content: |

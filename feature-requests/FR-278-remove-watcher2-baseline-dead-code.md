@@ -29,7 +29,7 @@ FR-277 was implemented partially and merged via PR #211, leaving behind non-func
 The implementation was incomplete:
 - No manifest file exists
 - No baseline directory structure
-- No working node implementations  
+- No working node implementations
 - No actual integration with watcher2 pipeline
 
 This creates confusion for developers and wastes CI resources running tests for non-functional code.
@@ -105,7 +105,7 @@ If baseline checkpointing is needed in the future, it should be re-implemented f
 
 **GitHub Issues Analysis**: Search results for "remove incomplete implementation" show this is a common maintenance task across projects. Standard approaches include:
 - Complete removal of non-functional code (preferred over partial fixes)
-- Clear documentation of what was removed and why  
+- Clear documentation of what was removed and why
 - Preservation of the original design in case of future re-implementation
 
 No competing frameworks provide specific tooling for baseline checkpointing as described in FR-277, confirming it was a novel approach.
@@ -128,7 +128,7 @@ No competing frameworks provide specific tooling for baseline checkpointing as d
 
 **Vulture cleanup patterns** (FR-162, 2026-03-08): Established successful precedent for dead code removal with:
 - Clear identification of false positives vs. genuine dead code
-- Systematic approach to module/test deletion  
+- Systematic approach to module/test deletion
 - Lowered detection thresholds after cleanup
 - Documentation of suppressions
 
@@ -144,7 +144,7 @@ No competing frameworks provide specific tooling for baseline checkpointing as d
 ### Classification Signal
 
 - **Abstraction level**: cleanup (removing failed integration attempt)
-- **Recommended approach**: build (complete removal as specified)  
+- **Recommended approach**: build (complete removal as specified)
 - **Key risk**: Incomplete removal leaving orphaned references that cause future import errors or confusion
 
 ---

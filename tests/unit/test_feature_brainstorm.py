@@ -165,9 +165,9 @@ class TestFeatureBrainstormPrompts:
             with open(prompt_file) as f:
                 prompt = yaml.safe_load(f)
 
-            assert "system" in prompt or "user" in prompt, (
-                f"{prompt_file.name} missing 'system' or 'user'"
-            )
+            assert (
+                "system" in prompt or "user" in prompt
+            ), f"{prompt_file.name} missing 'system' or 'user'"
 
 
 class TestFeatureBrainstormEdges:

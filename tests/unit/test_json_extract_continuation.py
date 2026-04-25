@@ -24,9 +24,9 @@ class TestFindBalancedJsonContinuation:
         result = find_balanced_json(text, "{", "}")
 
         # Bug: returns None instead of finding valid JSON
-        assert result == '{"valid": true}', (
-            f"Should continue after invalid balanced candidate. Got: {result}"
-        )
+        assert (
+            result == '{"valid": true}'
+        ), f"Should continue after invalid balanced candidate. Got: {result}"
 
     @pytest.mark.req("REQ-YG-016")
     def test_multiple_invalid_before_valid(self) -> None:
@@ -35,9 +35,9 @@ class TestFindBalancedJsonContinuation:
 
         result = find_balanced_json(text, "{", "}")
 
-        assert result == '{"finally": "valid"}', (
-            f"Should find valid JSON after multiple invalid. Got: {result}"
-        )
+        assert (
+            result == '{"finally": "valid"}'
+        ), f"Should find valid JSON after multiple invalid. Got: {result}"
 
     @pytest.mark.req("REQ-YG-016")
     def test_nested_invalid_before_valid(self) -> None:
@@ -46,9 +46,9 @@ class TestFindBalancedJsonContinuation:
 
         result = find_balanced_json(text, "{", "}")
 
-        assert result == '{"valid": 123}', (
-            f"Should skip nested invalid structure. Got: {result}"
-        )
+        assert (
+            result == '{"valid": 123}'
+        ), f"Should skip nested invalid structure. Got: {result}"
 
     @pytest.mark.req("REQ-YG-016")
     def test_array_invalid_before_valid(self) -> None:

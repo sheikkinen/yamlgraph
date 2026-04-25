@@ -88,9 +88,9 @@ def test_concurrency_safety_has_summary_table():
 def test_concurrency_safety_safe_patterns_documented():
     """AC: Safe patterns (MCP, async executor) document why they are safe."""
     content = DOC_PATH.read_text()
-    assert "max_workers=1" in content, (
-        "MCP safety invariant (max_workers=1) not documented"
-    )
-    assert "asyncio.gather" in content, (
-        "Async executor concurrency model not documented"
-    )
+    assert (
+        "max_workers=1" in content
+    ), "MCP safety invariant (max_workers=1) not documented"
+    assert (
+        "asyncio.gather" in content
+    ), "Async executor concurrency model not documented"

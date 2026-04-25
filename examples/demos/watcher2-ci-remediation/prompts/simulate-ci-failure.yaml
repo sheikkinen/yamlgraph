@@ -29,9 +29,9 @@ user: |
   Error: Process completed with exit code 1.
   ```
 
-  **diary**: Missing diary entry  
+  **diary**: Missing diary entry
   ```
-  Run python scripts/diary_gate.py  
+  Run python scripts/diary_gate.py
   Error: PR references FR-123 but no diary reflection found in docs/diary/
   feat/fix PRs with FR-XXX require diary reflection
   Expected: docs/diary/2026-04-25-fr123-reflection.md
@@ -44,18 +44,18 @@ user: |
   ruff-format............................Failed
   - hook id: ruff-format
   - files were modified by this hook
-  
+
   vulture.................................Failed
   - hook id: vulture
   - exit code: 1
-  
+
   Dead code found in yamlgraph/utils.py:42 unused function 'old_helper'
   ```
 
   Generate a complete, realistic failure log for the "{{ failure_type }}" type.
   Include:
   - GitHub Actions job context
-  - Specific error messages  
+  - Specific error messages
   - File paths and line numbers (if applicable)
   - Exit codes
   - Any relevant stack traces

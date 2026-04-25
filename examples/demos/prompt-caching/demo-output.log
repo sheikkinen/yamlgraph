@@ -11,7 +11,7 @@
    ✓ System segments cached for token cost optimization
    ✓ Structured output schema: Analysis(summary, key_points, complexity)
 
-📝 Executing node: reflect  
+📝 Executing node: reflect
    Prompt: reflect (system_segments with cache: true)
    Provider: anthropic/claude-haiku-4-5
    ✓ Cache hit! Shared system segment reused from analyze step
@@ -45,9 +45,8 @@ RESULT
     - Practical implementation approach with system_segments
     - Scalable parallel processing architecture outlined
   topic: AI pipeline optimization strategies
-  
+
 ✓ Graph execution completed successfully
 ✓ Anthropic prompt caching optimized token costs on second LLM call
 ✓ Both analyze and reflect nodes executed with structured outputs
 ✓ Shared system segment cache hit demonstrated cost savings
-

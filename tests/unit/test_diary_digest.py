@@ -52,9 +52,9 @@ class TestFeedConfig:
         from examples.diary_digest.nodes.sources import load_feeds_config
 
         config = load_feeds_config()
-        assert "seeds" not in config, (
-            "seeds should be auto-extracted from diary, not in feeds.yaml"
-        )
+        assert (
+            "seeds" not in config
+        ), "seeds should be auto-extracted from diary, not in feeds.yaml"
 
 
 class TestFetchSources:
@@ -297,9 +297,9 @@ class TestWriteDiary:
         """write_diary should not import or use subprocess."""
         import examples.diary_digest.nodes.writing as writing_mod
 
-        assert not hasattr(writing_mod, "subprocess"), (
-            "subprocess should not be imported"
-        )
+        assert not hasattr(
+            writing_mod, "subprocess"
+        ), "subprocess should not be imported"
 
     @pytest.mark.req("REQ-YG-090")
     def test_write_diary_parses_string_representation(self, tmp_path, monkeypatch):

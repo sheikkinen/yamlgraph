@@ -32,9 +32,9 @@ class TestImportLinterConfig:
         config_path = REPO_ROOT / ".importlinter"
         config = configparser.ConfigParser()
         config.read(config_path)
-        assert config.has_section("importlinter"), (
-            "Missing [importlinter] section in .importlinter"
-        )
+        assert config.has_section(
+            "importlinter"
+        ), "Missing [importlinter] section in .importlinter"
         assert config.get("importlinter", "root_package") == "yamlgraph"
 
     @pytest.mark.req("REQ-YG-218")
@@ -44,9 +44,9 @@ class TestImportLinterConfig:
         config = configparser.ConfigParser()
         config.read(config_path)
         section = "importlinter:contract:three-layer"
-        assert config.has_section(section), (
-            f"Missing [{section}] section in .importlinter"
-        )
+        assert config.has_section(
+            section
+        ), f"Missing [{section}] section in .importlinter"
         assert config.get(section, "type") == "layers"
 
     @pytest.mark.req("REQ-YG-218")
@@ -59,9 +59,9 @@ class TestImportLinterConfig:
         layers = [
             line.strip() for line in layers_raw.strip().splitlines() if line.strip()
         ]
-        assert len(layers) == 3, (
-            f"Expected 3 layers (Presentation, Logic, Side Effects), got {len(layers)}: {layers}"
-        )
+        assert (
+            len(layers) == 3
+        ), f"Expected 3 layers (Presentation, Logic, Side Effects), got {len(layers)}: {layers}"
 
     @pytest.mark.req("REQ-YG-218")
     def test_cli_is_top_layer(self):
@@ -73,9 +73,9 @@ class TestImportLinterConfig:
         layers = [
             line.strip() for line in layers_raw.strip().splitlines() if line.strip()
         ]
-        assert layers[0] == "yamlgraph.cli", (
-            f"Layer 1 (Presentation) must be yamlgraph.cli, got: {layers[0]}"
-        )
+        assert (
+            layers[0] == "yamlgraph.cli"
+        ), f"Layer 1 (Presentation) must be yamlgraph.cli, got: {layers[0]}"
 
 
 class TestImportLinterExecution:

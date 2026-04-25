@@ -22,9 +22,9 @@ nodes:
     variables:
       topic: "{state.topic}"
     state_key: analysis
-    
+
   reflect:
-    type: llm 
+    type: llm
     prompt: reflect
     variables:
       topic: "{state.topic}"
@@ -34,7 +34,7 @@ nodes:
 edges:
   - from: START
     to: analyze
-  - from: analyze  
+  - from: analyze
     to: reflect
   - from: reflect
     to: END

@@ -19,9 +19,9 @@ class TestFR278BaselineCodeRemoval:
     def test_chaplain_baseline_module_removed(self):
         """yamlgraph/chaplain/baseline.py must not exist."""
         baseline_path = REPO_ROOT / "yamlgraph" / "chaplain" / "baseline.py"
-        assert not baseline_path.exists(), (
-            f"Dead code module still exists: {baseline_path}"
-        )
+        assert (
+            not baseline_path.exists()
+        ), f"Dead code module still exists: {baseline_path}"
 
     def test_chaplain_baseline_not_importable(self):
         """Importing yamlgraph.chaplain.baseline must raise ModuleNotFoundError."""
@@ -31,9 +31,9 @@ class TestFR278BaselineCodeRemoval:
     def test_models_baseline_module_removed(self):
         """yamlgraph/models/baseline.py must not exist."""
         baseline_path = REPO_ROOT / "yamlgraph" / "models" / "baseline.py"
-        assert not baseline_path.exists(), (
-            f"Dead code module still exists: {baseline_path}"
-        )
+        assert (
+            not baseline_path.exists()
+        ), f"Dead code module still exists: {baseline_path}"
 
     def test_models_baseline_not_importable(self):
         """Importing yamlgraph.models.baseline must raise ModuleNotFoundError."""
@@ -68,9 +68,9 @@ class TestFR278BaselineGraphRemoval:
     def test_baseline_graphs_directory_removed(self):
         """.chaplain/graphs/baseline/ directory must not exist."""
         baseline_dir = REPO_ROOT / ".chaplain" / "graphs" / "baseline"
-        assert not baseline_dir.exists(), (
-            f"Dead code directory still exists: {baseline_dir}"
-        )
+        assert (
+            not baseline_dir.exists()
+        ), f"Dead code directory still exists: {baseline_dir}"
 
 
 @pytest.mark.req("REQ-YG-294")
@@ -110,9 +110,9 @@ class TestFR278Watcher2ConfigCleanup:
 
         if watcher2_path.exists():
             content = watcher2_path.read_text()
-            assert "--import-state .chaplain/baseline/latest.json" not in content, (
-                "watcher2.sh still contains baseline import reference"
-            )
+            assert (
+                "--import-state .chaplain/baseline/latest.json" not in content
+            ), "watcher2.sh still contains baseline import reference"
 
 
 @pytest.mark.req("REQ-YG-294")
@@ -125,9 +125,9 @@ class TestFR278ArchitectureCleanup:
 
         if arch_path.exists():
             content = arch_path.read_text()
-            assert "REQ-YG-279" not in content, (
-                "ARCHITECTURE.md still contains REQ-YG-279 requirement"
-            )
+            assert (
+                "REQ-YG-279" not in content
+            ), "ARCHITECTURE.md still contains REQ-YG-279 requirement"
 
 
 @pytest.mark.req("REQ-YG-294")
@@ -149,9 +149,9 @@ class TestFR278ChaplainReadmeCleanup:
             ]
 
             for term in baseline_terms:
-                assert term not in content, (
-                    f".chaplain/README.md still contains baseline reference: {term}"
-                )
+                assert (
+                    term not in content
+                ), f".chaplain/README.md still contains baseline reference: {term}"
 
 
 @pytest.mark.req("REQ-YG-294")
@@ -173,9 +173,9 @@ class TestFR278FeatureRequestRejection:
             ]
 
             status_found = any(indicator in content for indicator in status_indicators)
-            assert status_found, (
-                "FR-277 must be marked as rejected with Status: Rejected"
-            )
+            assert (
+                status_found
+            ), "FR-277 must be marked as rejected with Status: Rejected"
 
 
 @pytest.mark.req("REQ-YG-294")
@@ -230,9 +230,9 @@ class TestFR278NoCodebaseReferences:
                 try:
                     content = file_path.read_text()
                     for forbidden in forbidden_imports:
-                        assert forbidden not in content, (
-                            f"Found baseline import in {file_path}: {forbidden}"
-                        )
+                        assert (
+                            forbidden not in content
+                        ), f"Found baseline import in {file_path}: {forbidden}"
                 except UnicodeDecodeError:
                     # Skip binary files
                     continue
@@ -248,12 +248,12 @@ class TestFR278NoCodebaseReferences:
         for file_path in yaml_files:
             try:
                 content = file_path.read_text()
-                assert "yamlgraph.chaplain.nodes" not in content, (
-                    f"Found dead chaplain.nodes reference in {file_path}"
-                )
-                assert "function: yamlgraph.chaplain." not in content, (
-                    f"Found dead chaplain function reference in {file_path}"
-                )
+                assert (
+                    "yamlgraph.chaplain.nodes" not in content
+                ), f"Found dead chaplain.nodes reference in {file_path}"
+                assert (
+                    "function: yamlgraph.chaplain." not in content
+                ), f"Found dead chaplain function reference in {file_path}"
             except UnicodeDecodeError:
                 # Skip binary files
                 continue

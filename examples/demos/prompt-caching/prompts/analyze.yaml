@@ -4,7 +4,7 @@ system_segments:
       framework for building LLM pipelines using LangGraph. The key insight:
       60-80% of AI workflows can be defined entirely in YAML (graphs + prompts +
       schemas) without writing Python code.
-      
+
       YAMLGraph enables declarative AI pipeline construction with:
       - Multi-provider LLM support (Anthropic, OpenAI, Google, Mistral)
       - Structured output via Pydantic schemas
@@ -13,7 +13,7 @@ system_segments:
       - Human-in-the-loop workflows
       - Conditional routing and parallel execution
       - Tool integration for external APIs
-      
+
       Best practices include using YAML prompts for maintainability,
       leveraging structured schemas for reliable outputs, and applying
       caching strategies for cost optimization.

@@ -24,5 +24,3 @@ tests/demo-fixed/test_example.py
   verification: === VERIFICATION ===
 ✅ Marker approach correctly detects new test files!
 ✅ RED verification will now work in watcher2 pipeline!
-
-
