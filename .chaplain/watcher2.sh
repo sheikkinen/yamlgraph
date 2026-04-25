@@ -309,9 +309,10 @@ print('UNKNOWN')
     # ── Enforce Step 4: Finalize (shell) ────────────────────────────────
     log_info "Enforce 4/4: Finalize — pre-commit + push..."
 
-    # Pre-format to reduce auto-fix cascades
+    # Progressive ruff fixing: safe first, unsafe for remaining issues
     git add -A 2>/dev/null || true
     ruff check --fix yamlgraph/ tests/ 2>/dev/null || true
+    ruff check --fix --unsafe-fixes yamlgraph/ tests/ 2>/dev/null || true
     ruff format yamlgraph/ tests/ 2>/dev/null || true
     git add -A 2>/dev/null || true
 
@@ -345,6 +346,15 @@ print('UNKNOWN')
     # Final commit + push
     git add -A 2>/dev/null || true
     git diff --cached --quiet || git commit -m "chore: watcher2 — finalize" --no-verify
+
+    # Validate changelog fragment FR number matches branch name
+    if [[ -f changelog/unreleased/*.md ]]; then
+        FRAGMENT_FR=$(grep -oE 'FR-[0-9]+' changelog/unreleased/*.md | head -1)
+        BRANCH_FR=$(echo "$WT_BRANCH" | grep -oE 'FR-[0-9]+' | head -1)
+        if [[ "$FRAGMENT_FR" != "$BRANCH_FR" ]]; then
+            log_warn "Fragment FR mismatch: $FRAGMENT_FR vs $BRANCH_FR"
+        fi
+    fi
 
     # Derive PR title from FR
     FR_NUM=$(echo "$FR_PATH" | grep -oE 'FR-[0-9]+' | head -1)
@@ -381,7 +391,7 @@ print('UNKNOWN')
                 --full; then
 
                 # Re-run finalize (pre-commit + push)
-                git add -A && ruff check --fix . && ruff format .
+                git add -A && ruff check --fix . && ruff check --fix --unsafe-fixes . && ruff format .
                 pre-commit run --all-files || true
                 git add -A
                 git commit -m "fix: watcher2 — CI remediation" --no-verify

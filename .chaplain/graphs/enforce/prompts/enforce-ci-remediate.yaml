@@ -60,6 +60,8 @@ user: |
      **For pre-commit failures:**
      - Run specific failing hooks and apply fixes
      - Use ruff check --fix, ruff format for linting issues
+     - For unsafe ruff error codes like SIM117 (nested with statements), use ruff check --fix --unsafe-fixes
+     - Common auto-fixable rule names: SIM117 (combine nested with), F401 (unused imports), E501 (line too long)
 
   4. **VERIFY** the fix:
      - For Python files: Confirm syntax is valid
