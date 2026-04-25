@@ -1,0 +1,24 @@
+id: CAP-135
+name: Watcher2 Forensic Failure Diary
+description: >
+  Automated forensic analysis for watcher2 failures with structured diary generation.
+  When handle_failure is called, automatically capture failure context (reason, topic content,
+  logs, worktree state), perform LLM-driven root cause analysis, and generate structured
+  diary entries with evidence and recommendations for institutional learning.
+modules:
+  - .chaplain/watcher2.sh
+  - .chaplain/graphs/watcher-forensic/
+  - .chaplain/lib/diary.py
+requirements:
+  - id: REQ-YG-309
+    description: >
+      Forensic failure analysis shall be automatically invoked on watcher2 handle_failure
+      and generate structured diary entries containing root cause analysis, evidence sources,
+      and prevention recommendations using LLM-driven investigation of failure context,
+      logs, and worktree state
+    modules:
+      - .chaplain/watcher2.sh (lines 56-89, 98)
+      - .chaplain/lib/diary.py (lines 44-67, 100-123)
+      - .chaplain/graphs/watcher-forensic/graph.yaml
+      - tests/unit/test_fr285_watcher2_forensic_failure_diary.py
+fr: FR-285
