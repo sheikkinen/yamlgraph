@@ -16,23 +16,23 @@ class TestObsoleteScriptsRemoved:
     def test_watch_sh_deleted(self):
         """The obsolete .chaplain/watch.sh script must not exist."""
         script_path = Path(".chaplain/watch.sh")
-        assert (
-            not script_path.exists()
-        ), f"Obsolete script should be deleted: {script_path}"
+        assert not script_path.exists(), (
+            f"Obsolete script should be deleted: {script_path}"
+        )
 
     def test_enforce_worktree_sh_deleted(self):
         """The obsolete scripts/enforce_worktree.sh script must not exist."""
         script_path = Path("scripts/enforce_worktree.sh")
-        assert (
-            not script_path.exists()
-        ), f"Obsolete script should be deleted: {script_path}"
+        assert not script_path.exists(), (
+            f"Obsolete script should be deleted: {script_path}"
+        )
 
     def test_bugfix_worktree_sh_deleted(self):
         """The obsolete scripts/bugfix_worktree.sh script must not exist."""
         script_path = Path("scripts/bugfix_worktree.sh")
-        assert (
-            not script_path.exists()
-        ), f"Obsolete script should be deleted: {script_path}"
+        assert not script_path.exists(), (
+            f"Obsolete script should be deleted: {script_path}"
+        )
 
 
 @pytest.mark.req("REQ-YG-276")
@@ -46,9 +46,9 @@ class TestDocumentationUpdated:
             content = claude_md.read_text()
             obsolete_scripts = ["watch.sh", "enforce_worktree.sh", "bugfix_worktree.sh"]
             for script in obsolete_scripts:
-                assert (
-                    script not in content
-                ), f"CLAUDE.md must not reference obsolete script: {script}"
+                assert script not in content, (
+                    f"CLAUDE.md must not reference obsolete script: {script}"
+                )
 
     def test_readme_no_old_script_references(self):
         """README.md must not reference the obsolete scripts."""
@@ -57,9 +57,9 @@ class TestDocumentationUpdated:
             content = readme.read_text()
             obsolete_scripts = ["watch.sh", "enforce_worktree.sh", "bugfix_worktree.sh"]
             for script in obsolete_scripts:
-                assert (
-                    script not in content
-                ), f"README.md must not reference obsolete script: {script}"
+                assert script not in content, (
+                    f"README.md must not reference obsolete script: {script}"
+                )
 
     def test_reference_docs_no_old_script_references(self):
         """Reference documentation must not reference obsolete scripts."""
@@ -69,9 +69,9 @@ class TestDocumentationUpdated:
             for md_file in ref_dir.rglob("*.md"):
                 content = md_file.read_text()
                 for script in obsolete_scripts:
-                    assert (
-                        script not in content
-                    ), f"{md_file} must not reference obsolete script: {script}"
+                    assert script not in content, (
+                        f"{md_file} must not reference obsolete script: {script}"
+                    )
 
 
 @pytest.mark.req("REQ-YG-276")
@@ -83,9 +83,9 @@ class TestWatcher2SingleEntryPoint:
         claude_md = Path("CLAUDE.md")
         if claude_md.exists():
             content = claude_md.read_text()
-            assert (
-                "watcher2.sh" in content
-            ), "CLAUDE.md must reference watcher2.sh as the entry point"
+            assert "watcher2.sh" in content, (
+                "CLAUDE.md must reference watcher2.sh as the entry point"
+            )
 
     def test_watcher2_sh_exists(self):
         """The watcher2.sh script must exist as the replacement."""
@@ -104,9 +104,9 @@ class TestForensicFailurePreservation:
         if watcher2_path.exists():
             content = watcher2_path.read_text()
             # Must contain the forensic preservation logic
-            assert (
-                "worktree preserved for inspection" in content.lower()
-            ), "handle_failure() must log worktree preservation"
+            assert "worktree preserved for inspection" in content.lower(), (
+                "handle_failure() must log worktree preservation"
+            )
             # Must NOT contain evidence destruction on failure
             assert not (
                 "rm -f" in content
@@ -119,9 +119,9 @@ class TestForensicFailurePreservation:
         watcher2_path = Path(".chaplain/watcher2.sh")
         if watcher2_path.exists():
             content = watcher2_path.read_text()
-            assert (
-                ".chaplain/failed/" in content
-            ), "Failed topics must be moved to .chaplain/failed/ directory"
+            assert ".chaplain/failed/" in content, (
+                "Failed topics must be moved to .chaplain/failed/ directory"
+            )
 
     def test_failed_directory_exists_or_created(self):
         """The .chaplain/failed directory must exist or be created."""
@@ -129,9 +129,9 @@ class TestForensicFailurePreservation:
         if watcher2_path.exists():
             content = watcher2_path.read_text()
             # Should create the directory if it doesn't exist
-            assert (
-                ".chaplain/failed" in content
-            ), "watcher2.sh must ensure .chaplain/failed directory exists"
+            assert ".chaplain/failed" in content, (
+                "watcher2.sh must ensure .chaplain/failed directory exists"
+            )
 
 
 @pytest.mark.req("REQ-YG-276")
@@ -144,9 +144,9 @@ class TestSuccessPathCleanup:
         if watcher2_path.exists():
             content = watcher2_path.read_text()
             # Should call worktree_teardown on success but not on failure
-            assert (
-                "worktree_teardown" in content
-            ), "Success path must call worktree_teardown"
+            assert "worktree_teardown" in content, (
+                "Success path must call worktree_teardown"
+            )
 
     def test_success_removes_topic_file(self):
         """Success path must remove the topic file."""
@@ -180,9 +180,9 @@ class TestOrphanedWorktreeMetadataPruning:
         worktree_setup_path = Path(".chaplain/lib/watcher/worktree_setup.sh")
         if worktree_setup_path.exists():
             content = worktree_setup_path.read_text()
-            assert (
-                "git worktree prune" in content
-            ), "worktree_setup.sh must call 'git worktree prune' to clean orphaned metadata"
+            assert "git worktree prune" in content, (
+                "worktree_setup.sh must call 'git worktree prune' to clean orphaned metadata"
+            )
 
 
 @pytest.mark.req("REQ-YG-276")
@@ -194,27 +194,27 @@ class TestNoFunctionalRegression:
         watcher2_path = Path(".chaplain/watcher2.sh")
         if watcher2_path.exists():
             content = watcher2_path.read_text()
-            assert (
-                "inbox" in content.lower()
-            ), "watcher2.sh must handle inbox processing"
+            assert "inbox" in content.lower(), (
+                "watcher2.sh must handle inbox processing"
+            )
 
     def test_watcher2_has_pr_management(self):
         """watcher2.sh must handle PR creation and management like old scripts."""
         watcher2_path = Path(".chaplain/watcher2.sh")
         if watcher2_path.exists():
             content = watcher2_path.read_text()
-            assert (
-                "create_pr" in content or "pr create" in content
-            ), "watcher2.sh must handle PR creation"
+            assert "create_pr" in content or "pr create" in content, (
+                "watcher2.sh must handle PR creation"
+            )
 
     def test_watcher2_has_ci_waiting(self):
         """watcher2.sh must wait for CI like old scripts."""
         watcher2_path = Path(".chaplain/watcher2.sh")
         if watcher2_path.exists():
             content = watcher2_path.read_text()
-            assert (
-                "wait_ci" in content or "ci" in content.lower()
-            ), "watcher2.sh must handle CI waiting"
+            assert "wait_ci" in content or "ci" in content.lower(), (
+                "watcher2.sh must handle CI waiting"
+            )
 
 
 @pytest.mark.req("REQ-YG-276")
@@ -242,9 +242,9 @@ class TestSingleOrchestratorPattern:
         if claude_md.exists():
             content = claude_md.read_text()
             # Should mention watcher2 as THE way to run pipeline
-            assert (
-                "watcher2" in content
-            ), "Documentation must reference watcher2.sh as primary orchestrator"
+            assert "watcher2" in content, (
+                "Documentation must reference watcher2.sh as primary orchestrator"
+            )
 
     def test_no_documentation_suggests_multiple_entry_points(self):
         """Documentation must not suggest multiple pipeline entry points exist."""
@@ -260,6 +260,6 @@ class TestSingleOrchestratorPattern:
                     content.count("bugfix_worktree.sh"),
                 ]
                 total_obsolete_refs = sum(script_refs)
-                assert (
-                    total_obsolete_refs == 0
-                ), f"{doc_name} must not reference obsolete pipeline scripts"
+                assert total_obsolete_refs == 0, (
+                    f"{doc_name} must not reference obsolete pipeline scripts"
+                )

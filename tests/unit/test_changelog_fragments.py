@@ -217,9 +217,9 @@ class TestAggregateChangelog:
         output = aggregate.aggregate(changelog_dir)
         pos_200 = output.index("FR-200")
         pos_300 = output.index("FR-300")
-        assert (
-            pos_300 < pos_200
-        ), "FR-300 should appear before FR-200 (descending order)"
+        assert pos_300 < pos_200, (
+            "FR-300 should appear before FR-200 (descending order)"
+        )
 
     def test_empty_unreleased(self, tmp_path: Path) -> None:
         """Empty unreleased directory emits section with no entries."""
@@ -555,18 +555,18 @@ class TestFinalizeMergeFragments:
         """finalize_merge.sh must reference changelog/unreleased/ for fragments."""
         script_path = REPO_ROOT / "scripts" / "finalize_merge.sh"
         content = script_path.read_text()
-        assert (
-            "changelog/unreleased/" in content
-        ), "finalize_merge.sh should create fragments in changelog/unreleased/"
+        assert "changelog/unreleased/" in content, (
+            "finalize_merge.sh should create fragments in changelog/unreleased/"
+        )
 
     def test_script_does_not_edit_changelog(self) -> None:
         """finalize_merge.sh must not directly edit CHANGELOG.md."""
         script_path = REPO_ROOT / "scripts" / "finalize_merge.sh"
         content = script_path.read_text()
         # Should not contain sed operations on CHANGELOG.md
-        assert (
-            "CHANGELOG.md.tmp" not in content
-        ), "finalize_merge.sh should not create CHANGELOG.md.tmp (old edit pattern)"
+        assert "CHANGELOG.md.tmp" not in content, (
+            "finalize_merge.sh should not create CHANGELOG.md.tmp (old edit pattern)"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -582,13 +582,13 @@ class TestGateUpdates:
         """Pre-commit hook checks changelog/unreleased/ not CHANGELOG.md."""
         config = (REPO_ROOT / ".pre-commit-config.yaml").read_text()
         # Find the changelog-required hook
-        assert (
-            "changelog/unreleased/" in config
-        ), "Pre-commit hook should check for changelog/unreleased/ fragments"
+        assert "changelog/unreleased/" in config, (
+            "Pre-commit hook should check for changelog/unreleased/ fragments"
+        )
 
     def test_ci_gate_checks_fragments(self) -> None:
         """CI changelog-gate checks changelog/unreleased/ not CHANGELOG.md."""
         workflow = (REPO_ROOT / ".github" / "workflows" / "commitlint.yml").read_text()
-        assert (
-            "changelog/unreleased/" in workflow
-        ), "CI changelog-gate should check for changelog/unreleased/ fragments"
+        assert "changelog/unreleased/" in workflow, (
+            "CI changelog-gate should check for changelog/unreleased/ fragments"
+        )

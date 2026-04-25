@@ -21,7 +21,7 @@ user: |
   2. **DEMO** - Check if this feature needs an example:
      - Does it add a new node type? → Add to `examples/demos/`
      - Does it change CLI behavior? → Update relevant examples
-     - Is it purely internal? → A demo still needed. Never explain abstractly.
+     - Is it purely internal? → A demo still needed - assume that your fix doesn't work. Never explain abstractly.
 
   3. **EXAMPLE**:
      - Create a minimal working example in `examples/demos/<feature>/`

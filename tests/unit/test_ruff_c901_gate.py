@@ -60,9 +60,9 @@ class TestRuffC901Passes:
             text=True,
             cwd=REPO_ROOT,
         )
-        assert (
-            result.returncode == 0
-        ), f"ruff check failed with C901 enabled:\n{result.stdout}\n{result.stderr}"
+        assert result.returncode == 0, (
+            f"ruff check failed with C901 enabled:\n{result.stdout}\n{result.stderr}"
+        )
 
 
 class TestC901NoqaConfessions:
