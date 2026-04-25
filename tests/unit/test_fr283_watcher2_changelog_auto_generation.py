@@ -23,7 +23,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
-@pytest.mark.req("REQ-YG-307")
+@pytest.mark.req("REQ-YG-308")
 class TestWatcher2ChangelogAutoGeneration:
     """Test auto-generation of changelog fragments in watcher2 pipeline."""
 

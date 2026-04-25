@@ -1,4 +1,4 @@
-id: CAP-133
+id: CAP-134
 name: Watcher2 Changelog Auto-Generation
 description: >
   Auto-generate changelog fragments in watcher2 pipeline to eliminate manual intervention.
@@ -11,7 +11,7 @@ modules:
   - .chaplain/graphs/enforce/prompts/enforce-finalize.yaml
   - .chaplain/graphs/watcher-enforce/step-ci-remediate.yaml
 requirements:
-  - id: REQ-YG-307
+  - id: REQ-YG-308
     description: >
       Auto-generate changelog fragments in watcher2 pipeline between critique
       and finalize steps. Extract FR number from FR_PATH, generate filename
