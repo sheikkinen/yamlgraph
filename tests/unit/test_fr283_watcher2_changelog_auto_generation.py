@@ -73,7 +73,7 @@ class TestWatcher2ChangelogAutoGeneration:
 
         # Verify FR_NUM extraction exists (this should pass - it's already there)
         assert (
-            "FR_NUM=$(basename \"$FR_PATH\" | grep -oE 'FR-[0-9]+' | sed 's/FR-//')"
+            "FR_NUM=$(basename \"$FR_PATH\" | grep -oE 'FR-[0-9]+' | sed 's/FR-//'"
             in content
         )
 
