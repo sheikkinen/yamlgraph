@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-04-25
 
@@ -122,16 +122,16 @@ Pass `fr_path` variable to `step-ci-remediate.yaml` and update `enforce-ci-remed
 
 ## Acceptance Criteria
 
-- [ ] Changelog fragment auto-generated with correct FR number from `FR_PATH` variable
-- [ ] Fragment type/scope/req derived from capability registry when available  
-- [ ] Fragment FR number matches branch FR (no cross-wiring like fr-276 vs fr-219)
-- [ ] Shell step generates fragment between critique and finalize steps
-- [ ] Finalize step verifies changelog exists before pre-commit
-- [ ] CI remediation receives FR context for correct fragment naming
-- [ ] Existing ruff fix flow unchanged (lines 314-316 are already correct)
-- [ ] All CI gates pass without manual changelog intervention
-- [ ] Generated fragments follow existing naming convention: `fr-{num}-{descriptive}.md`
-- [ ] Fragment content includes proper YAML frontmatter and FR reference
+- [x] Changelog fragment auto-generated with correct FR number from `FR_PATH` variable
+- [x] Fragment type/scope/req derived from capability registry when available  
+- [x] Fragment FR number matches branch FR (no cross-wiring like fr-276 vs fr-219)
+- [x] Shell step generates fragment between critique and finalize steps
+- [x] Finalize step verifies changelog exists before pre-commit
+- [x] CI remediation receives FR context for correct fragment naming
+- [x] Existing ruff fix flow unchanged (lines 314-316 are already correct)
+- [x] All CI gates pass without manual changelog intervention
+- [x] Generated fragments follow existing naming convention: `fr-{num}-{descriptive}.md`
+- [x] Fragment content includes proper YAML frontmatter and FR reference
 
 ## Alternatives Considered
 
