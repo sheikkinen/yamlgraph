@@ -1,0 +1,34 @@
+---
+name: forensic-failure-demo
+# Demo: Forensic Failure Analysis (FR-285)
+# Simulates watcher2 failure forensic analysis
+
+vars:
+  failure_reason: str
+  topic_content: str
+  log_files: str
+  worktree_state: str
+
+nodes:
+  forensic_analysis:
+    prompt: analyze_failure
+    provider: anthropic
+    variables:
+      failure_reason: "{state.failure_reason}"
+      topic_content: "{state.topic_content}"
+      log_files: "{state.log_files}"
+      worktree_state: "{state.worktree_state}"
+    state_key: forensic_report
+    schema:
+      name: ForensicAnalysis
+      fields:
+        root_cause: {type: str, description: "Identified root cause of failure"}
+        failure_reason: {type: str, description: "Original failure reason"}
+        evidence: {type: "list[str]", description: "List of evidence sources"}
+        recommendations: {type: "list[str]", description: "Recommended preventive actions"}
+
+edges:
+  - from: START
+    to: forensic_analysis
+  - from: forensic_analysis
+    to: END

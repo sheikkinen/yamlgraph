@@ -1,10 +1,10 @@
 # Feature Request: Watcher2 CI Remediation Crash Fix
 
-**Priority:** HIGH  
-**Type:** Bug  
-**Status:** Amendment Required  
-**Effort:** 0.5 days  
-**Requested:** 2026-04-25  
+**Priority:** HIGH
+**Type:** Bug
+**Status:** Amendment Required
+**Effort:** 0.5 days
+**Requested:** 2026-04-25
 
 ## Summary
 
@@ -52,7 +52,7 @@ And fix the path reference on line 388:
 
 - [ ] `gh run view --log-failed` gets proper run ID from `gh run list --branch "$WT_BRANCH" --status failure --limit 1`
 - [ ] CI log capture uses absolute path `"$MAIN_DIR/tmp/ci-failure.log"` for consistent resolution
-- [ ] Command is guarded with `|| true` to prevent `set -e` crash on transient GH API failures  
+- [ ] Command is guarded with `|| true` to prevent `set -e` crash on transient GH API failures
 - [ ] When no failed run exists, creates informative placeholder log instead of crashing
 - [ ] Script continues to remediation graph execution instead of exiting with code 1
 - [ ] Remediation graph receives actual CI failure logs, not `gh` usage error text
@@ -77,7 +77,7 @@ set -e
 
 ## Related
 
-- **Evidence**: PR #225 (FR-282) watcher2 crash  
+- **Evidence**: PR #225 (FR-282) watcher2 crash
 - **Location**: `.chaplain/watcher2.sh` lines 378-405
 - **Dependencies**: `.chaplain/lib/watcher/wait_ci.sh` (provides `$WT_BRANCH` context)
 - **Related**: FR-273 (Watcher2 Pipeline) — broader watcher2 stability work
@@ -86,13 +86,13 @@ set -e
 
 **Issue**: Acceptance tests use phantom requirement ID `REQ-YG-285` which doesn't exist in the capabilities registry.
 
-**Required Fix**: 
-1. Update test file `test_fr284_watcher2_ci_remediation_crash_fix.py` to use `REQ-YG-307` 
+**Required Fix**:
+1. Update test file `test_fr284_watcher2_ci_remediation_crash_fix.py` to use `REQ-YG-307`
 2. Create capability file `capabilities/CAP-XXX-watcher2-ci-remediation-crash-fix.yaml` defining REQ-YG-307
 3. Re-commit RED tests with corrected requirement ID
 
-**Analysis**: 
-- Scope is clear and minimal (single root cause: missing run ID)  
+**Analysis**:
+- Scope is clear and minimal (single root cause: missing run ID)
 - Implementation is feasible and aligns with existing patterns
 - Tests fail for correct reasons (missing implementation, not infrastructure)
 - Classification: Framework primitive (critical production infrastructure)
@@ -122,7 +122,7 @@ Error handling patterns in YAMLGraph:
 
 Relevant traps and patterns from docs/diary/:
 - **quick_confidence trap**: "When I feel certain → Judge instead" - relevant for shell debugging
-- **downstream_fix trap**: Fix at boundary where external data enters, not where symptoms manifest  
+- **downstream_fix trap**: Fix at boundary where external data enters, not where symptoms manifest
 - **boundary normalization**: External systems (GitHub CLI) require proper input validation and error handling
 - **Progressive remediation pattern**: Safe fixes first, then unsafe, then intelligent escalation (established in FR-281)
 
@@ -136,5 +136,5 @@ Relevant traps and patterns from docs/diary/:
 ### Classification Signal
 
 - **Abstraction level**: primitive (core infrastructure bug affecting daemon reliability)
-- **Recommended approach**: build (critical bug fix for existing production system)  
+- **Recommended approach**: build (critical bug fix for existing production system)
 - **Key risk**: This bug prevents the watcher2 CI remediation capability from functioning at all, causing immediate script termination and requiring manual intervention for recoverable failures
