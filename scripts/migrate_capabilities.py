@@ -89,19 +89,17 @@ SECTION_DESC: dict[str, str] = {
         " and control nodes."
     ),
     "CAP-07": (
-        "Checkpointers and Redis storage for resuming pipelines and" " state history."
+        "Checkpointers and Redis storage for resuming pipelines and state history."
     ),
     "CAP-08": (
-        "Error strategies (retry, fallback, skip), sanitization,"
-        " resilience features."
+        "Error strategies (retry, fallback, skip), sanitization, resilience features."
     ),
     "CAP-09": (
         "Command-line commands for graph validation, execution, info"
         " display, schema export."
     ),
     "CAP-10": (
-        "Export results/states in JSON/Markdown, handle serialization"
-        " for persistence."
+        "Export results/states in JSON/Markdown, handle serialization for persistence."
     ),
     "CAP-11": "Parallel fan-out and nested subgraph execution.",
     "CAP-12": (
@@ -143,8 +141,7 @@ SECTION_DESC: dict[str, str] = {
         " appending context-aware diary entries."
     ),
     "CAP-22": (
-        "Custom lint checks enforcing architectural patterns beyond"
-        " standard linters."
+        "Custom lint checks enforcing architectural patterns beyond standard linters."
     ),
     "CAP-23": (
         "skip_if_exists checks truthiness, not existence. Empty"
@@ -152,8 +149,7 @@ SECTION_DESC: dict[str, str] = {
         " trigger skip."
     ),
     "CAP-24": (
-        "Declarative multi-turn stateful tool integration via"
-        " config-level expansion."
+        "Declarative multi-turn stateful tool integration via config-level expansion."
     ),
     "CAP-25": (
         "Domain-scoped RAG using Tavily search API with type:python"

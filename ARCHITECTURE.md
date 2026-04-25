@@ -1663,6 +1663,14 @@ Comprehensive documentation for the watcher2 pipeline orchestrator and shell lib
 | REQ-YG-291 | Async/streaming executor consistency: Async executor paths (`prepare_messages_async`, streaming) handle system_segments identically to sync paths with same cache behavior | `yamlgraph/executor_async.py` |
 | REQ-YG-292 | Error handling for conflicting system fields: Using both `system` and `system_segments` in same prompt raises clear validation error. Empty system_segments list raises validation error | `yamlgraph/utils/prompts.py` |
 | REQ-YG-293 | Variable substitution and Jinja2 support in segments: Both simple `{var}` and Jinja2 `{{ var }}` template syntax work within segment content strings, same as scalar system prompts | `yamlgraph/utils/prompts.py` |
+| REQ-YG-294 | Wait logic checks IN_PROGRESS before FAILURE to avoid premature CI failure: wait_ci.sh evaluates IN_PROGRESS status before FAILURE to prevent early termination when slow tests are still running | `.chaplain/lib/watcher/wait_ci.sh` |
+| REQ-YG-295 | CI remediation loop with 2-attempt limit in watcher2.sh: On CI failure, attempt automated remediation twice before escalating to human intervention | `.chaplain/watcher2.sh` |
+| REQ-YG-296 | step-ci-remediate.yaml graph for copilot-driven CI failure diagnosis: Copilot node analyzes CI failure logs and generates automated fixes for recoverable failures | `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` |
+| REQ-YG-297 | enforce-ci-remediate.yaml prompt template for CI failure analysis: Comprehensive prompt for diagnosing syntax errors, missing changelog/diary fragments, and pre-commit failures | `.chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml` |
+| REQ-YG-298 | Maximum 2 remediation attempts before escalating to human: CI remediation loop has hard limit to prevent infinite fix attempts and ensure human oversight for complex failures | `.chaplain/watcher2.sh` |
+| REQ-YG-299 | Remediation covers syntax errors, missing changelog/diary fragments: Automated fixes handle IndentationError, missing files, and mechanical pre-commit failures but exclude logic errors and security issues | `.chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml` |
+| REQ-YG-300 | Existing passing pipelines unaffected (backwards compatibility): CI remediation only triggers on actual CI failure; successful pipelines skip remediation entirely with no behavioral changes | `.chaplain/watcher2.sh` |
+| REQ-YG-301 | Test coverage for wait_ci.sh ordering and CI remediation loop: Comprehensive test suite validates check ordering fix and remediation loop functionality with stateful mocks | `tests/unit/test_fr279_watcher2_ci_resilience.py` |
 
 ---
 
