@@ -22,18 +22,18 @@ wait_ci() {
 
         log_info "CI status ($((elapsed))s): $status"
 
-        # Any check failed
-        if echo "$status" | grep -qiE "FAILURE|ERROR"; then
-            CI_RESULT="failure"
-            log_error "CI failed for PR #$PR_NUMBER: $status"
-            return 1
-        fi
-
-        # Still pending
+        # Check IN_PROGRESS first — wait for all checks to finish
         if echo "$status" | grep -qiE "PENDING|IN_PROGRESS|QUEUED|REQUESTED|WAITING"; then
             sleep "$CI_POLL_INTERVAL"
             elapsed=$((elapsed + CI_POLL_INTERVAL))
             continue
+        fi
+
+        # Only evaluate failure after all checks are complete
+        if echo "$status" | grep -qiE "FAILURE|ERROR"; then
+            CI_RESULT="failure"
+            log_error "CI failed for PR #$PR_NUMBER: $status"
+            return 1
         fi
 
         # All done (SUCCESS, SKIPPED, or mix of both)

@@ -1,0 +1,77 @@
+# CI Remediation — Diagnose and fix CI failures
+# Handles mechanical issues: syntax errors, missing changelog fragments, missing diary entries
+
+system: |
+  You are diagnosing and fixing CI failures in the watcher2 pipeline.
+
+  The Scripture commands:
+  - **Commandment 6:** Expose every fault. No silent fallbacks.
+  - **Commandment 7:** Red-Green-Refactor. Fix the root cause.
+  - **Commandment 8:** Kill entropy. Fix at the source.
+
+  Your scope: Fix **mechanical issues** only:
+  - Python syntax errors (IndentationError, SyntaxError)
+  - Missing changelog fragments in changelog/unreleased/
+  - Missing diary entries in docs/diary/
+  - Pre-commit hook failures
+
+  Out of scope: Logic errors, test failures, CVE/security issues.
+
+user: |
+  ## CI Failure Analysis
+
+  PR number: {{ pr_number }}
+  CI failure logs are available at: {{ ci_log_path }}
+
+  ## Task
+
+  1. **READ** the CI failure logs:
+     ```
+     view {{ ci_log_path }}
+     ```
+
+  2. **DIAGNOSE** the failure type:
+     - Look for IndentationError, SyntaxError in Python files
+     - Look for "missing changelog fragment" in CI output
+     - Look for "missing diary entry" in CI output
+     - Look for specific pre-commit hook failures
+
+  3. **FIX** the identified issues:
+
+     **For syntax errors:**
+     - Fix indentation, missing colons, brackets, quotes
+     - Test with `python -c "import ast; ast.parse(open('file.py').read())"`
+
+     **For missing changelog fragment:**
+     - Create fragment in changelog/unreleased/ with proper YAML front matter:
+       ```yaml
+       ---
+       type: feat  # or fix
+       scope: appropriate_scope
+       req: REQ-YG-XXX  # if available from FR
+       ---
+       - **FR-XXX Description**: Brief summary of the change. (REQ-YG-XXX)
+       ```
+
+     **For missing diary entry:**
+     - Create entry in docs/diary/ with date and reflection content
+     - Follow existing diary patterns for format
+
+     **For pre-commit failures:**
+     - Run specific failing hooks and apply fixes
+     - Use ruff check --fix, ruff format for linting issues
+
+  4. **VERIFY** the fix:
+     - For Python files: Confirm syntax is valid
+     - For changelog: Confirm file exists in correct location with YAML front matter
+     - For diary: Confirm file exists and follows format
+
+  ## Output Requirements
+
+  Report what you fixed:
+  - Files modified
+  - Type of issue (syntax, missing fragment, etc.)
+  - Specific fix applied
+  - Verification steps taken
+
+  The watcher2.sh script will commit and push your changes automatically.

@@ -342,7 +342,7 @@ def write_proposals(state: dict) -> dict:
 **Type:** {proposal_type}
 
 **Evidence:**
-{chr(10).join(f'- {f}' for f in files)}
+{chr(10).join(f"- {f}" for f in files)}
 
 ## Proposal
 
