@@ -2,9 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Cleanup
-**Status:** Proposed
+**Status:** Approved - Implementation Authority Granted
 **Effort:** 1 day
 **Requested:** 2026-04-25
+**Judged:** 2026-04-25
+**Verdict:** APPROVED (2026-04-25 08:44)
 
 ## Summary
 
@@ -144,3 +146,47 @@ No competing frameworks provide specific tooling for baseline checkpointing as d
 - **Abstraction level**: cleanup (removing failed integration attempt)
 - **Recommended approach**: build (complete removal as specified)  
 - **Key risk**: Incomplete removal leaving orphaned references that cause future import errors or confusion
+
+---
+
+## Judgement
+
+**Verdict: APPROVED. Scope frozen. Implementation authority granted.**
+
+### Critical Review (2026-04-25 08:44)
+
+All 8 evaluation criteria PASSED:
+
+1. ✅ **Scope**: Clear and minimal - complete removal of non-functional FR-277 baseline checkpointing code
+2. ✅ **Consistency**: No contradictions. Clear list of files to remove vs. edit, with specific line references
+3. ✅ **Measurability**: 12 acceptance criteria are precisely testable with clear pass/fail conditions
+4. ✅ **Feasibility**: Simple file deletions and line removals. Well within stated 1-day effort estimate
+5. ✅ **Architecture**: Follows established dead code cleanup patterns from FR-162. No framework changes required
+6. ✅ **Single Responsibility**: Focused solely on removing incomplete code - no bundled concerns
+7. ✅ **Classification**: Cleanup task with clear business value (remove maintenance debt and confusion)
+8. ✅ **Tests**: 18 acceptance tests compile correctly and fail for the right reasons (files exist that should be removed)
+
+**Research validated**: Competitive analysis confirms this follows industry standard practice for removing incomplete implementations. Existing YAMLGraph patterns (FR-162 vulture cleanup) provide proven precedent.
+
+**Test validation**: Acceptance tests properly fail because target files still exist. Sample test shows clear assertion: "Dead code module still exists: .../baseline.py" - this is the correct failure for a removal task.
+
+### Implementation Scope
+
+**In Scope:**
+- Complete removal of all FR-277 baseline artifacts (Python modules, YAML configs, tests, docs, capability registration)
+- Cleanup of references in watcher2.sh, ARCHITECTURE.md, and README files
+- Marking FR-277 as rejected for historical clarity
+- Verification that removal causes no import errors or test failures
+
+**Out of Scope:**
+- Any new baseline checkpointing implementation
+- Changes to watcher2 pipeline functionality beyond removing broken baseline import
+- Modifications to requirement traceability system beyond removing REQ-YG-279
+
+**Success Criteria:**
+- All 18 acceptance tests pass
+- No grep results for baseline references in codebase
+- All existing tests continue to pass after cleanup
+- Linting passes with no import-related errors
+
+This cleanup directly addresses the `partial_remediation` trap identified in diary precedents by ensuring complete removal rather than leaving orphaned references.
