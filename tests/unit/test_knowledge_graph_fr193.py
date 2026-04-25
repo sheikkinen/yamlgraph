@@ -72,9 +72,9 @@ class TestMassGraduationProcessEntries:
     """Validate 5 new process heuristics in the Knowledge Graph."""
 
     def test_copilot_instructions_exists(self):
-        assert (
-            COPILOT_INSTRUCTIONS.is_file()
-        ), f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
+        assert COPILOT_INSTRUCTIONS.is_file(), (
+            f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
+        )
 
     @pytest.mark.parametrize(
         "entry_name,description",

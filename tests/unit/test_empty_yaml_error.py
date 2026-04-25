@@ -32,9 +32,9 @@ class TestEmptyYamlHandling:
 
             # Should give clear error about empty/invalid config
             error_message = str(exc_info.value).lower()
-            assert (
-                "empty" in error_message or "invalid" in error_message
-            ), f"Error should mention empty/invalid config. Got: {exc_info.value}"
+            assert "empty" in error_message or "invalid" in error_message, (
+                f"Error should mention empty/invalid config. Got: {exc_info.value}"
+            )
         finally:
             tmpfile.unlink()
 

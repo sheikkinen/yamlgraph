@@ -99,9 +99,9 @@ class TestBatchImagePromptsGraphStructure:
     def test_enrich_has_flatten_output(self):
         graph = _load_yaml(GRAPH_FILE)
         enrich = graph["nodes"]["enrich"]
-        assert (
-            enrich.get("flatten_output") is True
-        ), "enrich must have flatten_output: true"
+        assert enrich.get("flatten_output") is True, (
+            "enrich must have flatten_output: true"
+        )
 
     def test_enrich_has_on_error_skip(self):
         graph = _load_yaml(GRAPH_FILE)
@@ -144,9 +144,9 @@ class TestBatchImagePromptsPromptSchemas:
     def test_decompose_prompt_uses_jinja2(self):
         """Decompose prompt uses Jinja2 for count default."""
         content = _read(PROMPTS_DIR / "decompose_concept.yaml")
-        assert (
-            "{{" in content or "{%" in content
-        ), "Decompose prompt should use Jinja2 syntax"
+        assert "{{" in content or "{%" in content, (
+            "Decompose prompt should use Jinja2 syntax"
+        )
 
     def test_enrich_prompt_references_brief_variable(self):
         """Enrich prompt must use the 'brief' variable from map iteration."""
@@ -167,6 +167,6 @@ class TestBatchImagePromptsLint:
 
         result = lint_graph(GRAPH_FILE)
         errors = [i for i in result.issues if i.severity == "error"]
-        assert (
-            len(errors) == 0
-        ), f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
+        assert len(errors) == 0, (
+            f"Graph lint errors: {[f'{e.code}: {e.message}' for e in errors]}"
+        )

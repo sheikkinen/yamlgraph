@@ -42,9 +42,9 @@ class TestFourNodeStructure:
             "finalize",
         }
         actual_nodes = set(graph["nodes"].keys())
-        assert (
-            actual_nodes == expected_nodes
-        ), f"Expected 4 nodes {expected_nodes}, got {actual_nodes}"
+        assert actual_nodes == expected_nodes, (
+            f"Expected 4 nodes {expected_nodes}, got {actual_nodes}"
+        )
 
     def test_no_critique_node(self):
         """Old 'critique' node should be removed."""
@@ -59,23 +59,23 @@ class TestFourNodeStructure:
     def test_no_distill_reflection_node(self):
         """Old 'distill_reflection' node should be removed."""
         graph = _load_graph()
-        assert (
-            "distill_reflection" not in graph["nodes"]
-        ), "Old 'distill_reflection' node should be removed"
+        assert "distill_reflection" not in graph["nodes"], (
+            "Old 'distill_reflection' node should be removed"
+        )
 
     def test_no_precommit_check_node(self):
         """Old 'precommit_check' node should be removed."""
         graph = _load_graph()
-        assert (
-            "precommit_check" not in graph["nodes"]
-        ), "Old 'precommit_check' node should be removed"
+        assert "precommit_check" not in graph["nodes"], (
+            "Old 'precommit_check' node should be removed"
+        )
 
     def test_no_submit_pr_node(self):
         """Old 'submit_pr' node should be removed."""
         graph = _load_graph()
-        assert (
-            "submit_pr" not in graph["nodes"]
-        ), "Old 'submit_pr' node should be removed"
+        assert "submit_pr" not in graph["nodes"], (
+            "Old 'submit_pr' node should be removed"
+        )
 
 
 # =============================================================================
@@ -258,6 +258,6 @@ class TestHeaderComments:
         with open(_GRAPH_PATH) as f:
             content = f.read()
         # Check for four-phase description
-        assert (
-            "four" in content.lower() or "4" in content
-        ), "Graph header should mention 4-phase pipeline"
+        assert "four" in content.lower() or "4" in content, (
+            "Graph header should mention 4-phase pipeline"
+        )

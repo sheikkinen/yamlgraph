@@ -107,9 +107,9 @@ class TestCreateLLMThinkingFR230:
             args = mock_create.call_args[0]
             # second positional arg is temperature
             temperature_arg = args[1]
-            assert (
-                temperature_arg == 0.7
-            ), f"Temperature should not be overridden for google, got {temperature_arg}"
+            assert temperature_arg == 0.7, (
+                f"Temperature should not be overridden for google, got {temperature_arg}"
+            )
 
     def test_vertex_temperature_not_overridden(self):
         """Temperature is NOT forced to 1 for vertex even with thinking_budget >= 1024."""
@@ -120,9 +120,9 @@ class TestCreateLLMThinkingFR230:
             create_llm(provider="vertex", thinking_budget=8000, temperature=0.5)
             args = mock_create.call_args[0]
             temperature_arg = args[1]
-            assert (
-                temperature_arg == 0.5
-            ), f"Temperature should not be overridden for vertex, got {temperature_arg}"
+            assert temperature_arg == 0.5, (
+                f"Temperature should not be overridden for vertex, got {temperature_arg}"
+            )
 
 
 @pytest.mark.req("REQ-YG-230")
@@ -364,9 +364,9 @@ edges:
 
         result = lint_graph(graph_file)
         w071_3 = [i for i in result.issues if i.code == "W071-3"]
-        assert (
-            len(w071_3) == 0
-        ), f"W071-3 should not fire for gemini-2.5-flash: {w071_3}"
+        assert len(w071_3) == 0, (
+            f"W071-3 should not fire for gemini-2.5-flash: {w071_3}"
+        )
 
     def test_w071_3_does_not_fire_for_gemini_3(self, tmp_path):
         """W071-3 does not fire for gemini-3 models (thinking-capable)."""

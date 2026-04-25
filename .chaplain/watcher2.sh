@@ -121,7 +121,6 @@ while true; do
     # ── Step 1: Plan ────────────────────────────────────────────────────
     log_info "Step 1/4: Plan — reading topic, drafting FR..."
     if ! yamlgraph graph run "$GRAPH_DIR/step-plan.yaml" \
-        --import-state .chaplain/baseline/latest.json \
         --var topic_file="$MAIN_DIR/$TOPIC_FILE" \
         --var worktree_dir="$(pwd)" \
         --export-state "$PIPELINE_STATE" \

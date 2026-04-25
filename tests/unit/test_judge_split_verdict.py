@@ -115,6 +115,6 @@ class TestMultiConcernFixture:
         assert len(content.strip()) > 50, "Fixture too short to describe two concerns"
         content_lower = content.lower()
         # Must explicitly label multiple concerns
-        assert (
-            "concern" in content_lower or "orthogonal" in content_lower
-        ), "Fixture must describe orthogonal concerns"
+        assert "concern" in content_lower or "orthogonal" in content_lower, (
+            "Fixture must describe orthogonal concerns"
+        )
