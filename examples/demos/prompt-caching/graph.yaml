@@ -6,9 +6,11 @@ version: "1.0"
 name: prompt-caching-demo
 description: Demonstrates Anthropic prompt caching with system_segments
 
-provider: anthropic
 prompts_relative: true
 prompts_dir: prompts
+
+defaults:
+  provider: anthropic
 
 state:
   topic: str
