@@ -129,9 +129,9 @@ class TestDemoGateJobStructure:
         ]
         assert checkout_steps, "Must have an actions/checkout step"
         checkout = checkout_steps[0]
-        assert checkout.get("with", {}).get("fetch-depth") == 0, (
-            "Must use fetch-depth: 0"
-        )
+        assert (
+            checkout.get("with", {}).get("fetch-depth") == 0
+        ), "Must use fetch-depth: 0"
 
     def test_uses_base_head_sha_env(self) -> None:
         """The verification step must use BASE_SHA and HEAD_SHA env vars."""
@@ -240,9 +240,9 @@ class TestDemoProofShellLogic:
                 "examples/demos/hello/README.md": "# Hello\n",
             }
         )
-        assert result.returncode == 1, (
-            f"README change should require log: {result.stdout}"
-        )
+        assert (
+            result.returncode == 1
+        ), f"README change should require log: {result.stdout}"
 
     def test_nested_demo_file_needs_log(self) -> None:
         """Changing a file in a subdirectory of a demo requires log."""
@@ -251,9 +251,9 @@ class TestDemoProofShellLogic:
                 "examples/demos/hello/prompts/main.yaml": "system: hi\n",
             }
         )
-        assert result.returncode == 1, (
-            f"Nested file change should require log: {result.stdout}"
-        )
+        assert (
+            result.returncode == 1
+        ), f"Nested file change should require log: {result.stdout}"
 
 
 # ── Pre-commit Hook Tests ──────────────────────────────────────────────────
@@ -270,9 +270,9 @@ class TestDemoProofPrecommitHook:
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
                 hook_ids.append(hook["id"])
-        assert "demo-proof-check" in hook_ids, (
-            "Missing 'demo-proof-check' hook in .pre-commit-config.yaml"
-        )
+        assert (
+            "demo-proof-check" in hook_ids
+        ), "Missing 'demo-proof-check' hook in .pre-commit-config.yaml"
 
     def test_hook_uses_script(self) -> None:
         """The hook must point to scripts/check_demo_proof.sh."""
@@ -280,9 +280,9 @@ class TestDemoProofPrecommitHook:
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
                 if hook["id"] == "demo-proof-check":
-                    assert "check_demo_proof" in hook.get("entry", ""), (
-                        "Hook must use check_demo_proof script"
-                    )
+                    assert "check_demo_proof" in hook.get(
+                        "entry", ""
+                    ), "Hook must use check_demo_proof script"
                     return
         pytest.fail("Hook not found")
 
@@ -308,9 +308,9 @@ class TestDemoOutputLogNotIgnored:
     def test_gitignore_negation_exists(self) -> None:
         """The .gitignore must have a negation pattern for demo-output.log."""
         content = Path(".gitignore").read_text()
-        assert "!examples/demos/*/demo-output.log" in content, (
-            ".gitignore must negate *.log for demo-output.log files"
-        )
+        assert (
+            "!examples/demos/*/demo-output.log" in content
+        ), ".gitignore must negate *.log for demo-output.log files"
 
 
 # ── Documentation Tests ────────────────────────────────────────────────────
@@ -323,16 +323,16 @@ class TestDemoGateDocumentation:
     def test_claude_md_lists_demo_gate(self) -> None:
         """CLAUDE.md branch protection section must list demo-gate."""
         content = Path("CLAUDE.md").read_text()
-        assert "demo-gate" in content, (
-            "CLAUDE.md must list demo-gate as a required status check"
-        )
+        assert (
+            "demo-gate" in content
+        ), "CLAUDE.md must list demo-gate as a required status check"
 
     def test_claude_md_describes_demo_gate(self) -> None:
         """CLAUDE.md must describe what the demo-gate does."""
         content = Path("CLAUDE.md").read_text()
-        assert "demo-output.log" in content or "demo proof" in content.lower(), (
-            "CLAUDE.md must describe demo-gate purpose"
-        )
+        assert (
+            "demo-output.log" in content or "demo proof" in content.lower()
+        ), "CLAUDE.md must describe demo-gate purpose"
 
 
 # ── Enforcer Prompt Tests ──────────────────────────────────────────────────
@@ -348,6 +348,6 @@ class TestEnforcerPromptUpdated:
         if not prompt_path.exists():
             pytest.skip("Enforcer prompt not found in this worktree")
         content = prompt_path.read_text()
-        assert "demo-output.log" in content, (
-            "Enforcer Phase 2 prompt must instruct capturing demo-output.log"
-        )
+        assert (
+            "demo-output.log" in content
+        ), "Enforcer Phase 2 prompt must instruct capturing demo-output.log"

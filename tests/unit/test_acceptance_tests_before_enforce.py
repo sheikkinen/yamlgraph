@@ -42,9 +42,9 @@ class TestStateFields:
         """state declaration must include worktree_dir."""
         graph = _load_graph()
         state = graph.get("state", {})
-        assert "worktree_dir" in state, (
-            f"Missing worktree_dir in state. Keys: {list(state.keys())}"
-        )
+        assert (
+            "worktree_dir" in state
+        ), f"Missing worktree_dir in state. Keys: {list(state.keys())}"
 
     def test_state_has_branch(self):
         """state declaration must include branch."""
@@ -65,9 +65,9 @@ class TestCreateWorktreeNode:
     def test_create_worktree_node_exists(self):
         """graph.yaml must have a 'create_worktree' node."""
         graph = _load_graph()
-        assert "create_worktree" in graph["nodes"], (
-            "Missing 'create_worktree' node in copilot graph"
-        )
+        assert (
+            "create_worktree" in graph["nodes"]
+        ), "Missing 'create_worktree' node in copilot graph"
 
     def test_create_worktree_node_type_python(self):
         """create_worktree must be type: python."""
@@ -114,9 +114,9 @@ class TestCreateWorktreeTool:
     def test_tool_has_create_worktree_function(self):
         """worktree.py must define a create_worktree function."""
         content = WORKTREE_TOOL.read_text()
-        assert "def create_worktree(" in content, (
-            "worktree.py must define create_worktree()"
-        )
+        assert (
+            "def create_worktree(" in content
+        ), "worktree.py must define create_worktree()"
 
     def test_tool_uses_derive_branch_name(self):
         """Tool must use derive_branch_name from worktree_helpers."""
@@ -147,9 +147,9 @@ class TestWriteAcceptanceTestsNode:
     def test_node_exists(self):
         """graph.yaml must have a 'write_acceptance_tests' node."""
         graph = _load_graph()
-        assert "write_acceptance_tests" in graph["nodes"], (
-            "Missing 'write_acceptance_tests' node"
-        )
+        assert (
+            "write_acceptance_tests" in graph["nodes"]
+        ), "Missing 'write_acceptance_tests' node"
 
     def test_node_type_copilot(self):
         """write_acceptance_tests must be type: copilot."""
@@ -363,12 +363,12 @@ class TestCreateWorktreeToolUnit:
 
             assert "worktree_dir" in result, "Result must contain worktree_dir"
             assert "branch" in result, "Result must contain branch"
-            assert "feat/" in result["branch"], (
-                f"Branch must start with feat/, got: {result['branch']}"
-            )
-            assert "tmp/worktrees/" in result["worktree_dir"], (
-                f"worktree_dir must be under tmp/worktrees/, got: {result['worktree_dir']}"
-            )
+            assert (
+                "feat/" in result["branch"]
+            ), f"Branch must start with feat/, got: {result['branch']}"
+            assert (
+                "tmp/worktrees/" in result["worktree_dir"]
+            ), f"worktree_dir must be under tmp/worktrees/, got: {result['worktree_dir']}"
         finally:
             sys.path.pop(0)
 
@@ -420,9 +420,9 @@ class TestEdgeOrderingInvariant:
     def test_create_worktree_to_write_acceptance_tests_edge(self):
         """Edge from create_worktree → write_acceptance_tests must exist."""
         pairs = _edge_pairs()
-        assert ("create_worktree", "write_acceptance_tests") in pairs, (
-            f"Missing create_worktree → write_acceptance_tests edge. Edges: {pairs}"
-        )
+        assert (
+            ("create_worktree", "write_acceptance_tests") in pairs
+        ), f"Missing create_worktree → write_acceptance_tests edge. Edges: {pairs}"
 
     def test_write_acceptance_tests_to_judge_edge(self):
         """Edge from write_acceptance_tests → judge must exist."""
@@ -435,9 +435,9 @@ class TestEdgeOrderingInvariant:
     def test_no_direct_research_to_judge_edge(self):
         """Old research → judge edge must be removed."""
         pairs = _edge_pairs()
-        assert ("research", "judge") not in pairs, (
-            "Direct research → judge edge still exists; should go through create_worktree → write_acceptance_tests"
-        )
+        assert (
+            ("research", "judge") not in pairs
+        ), "Direct research → judge edge still exists; should go through create_worktree → write_acceptance_tests"
 
     def test_full_pipeline_order(self):
         """Full pipeline order: START → plan → research → create_worktree →
@@ -469,9 +469,9 @@ class TestJudgeCriterion8Text:
     def test_criterion_8_underspecified(self):
         """Criterion 8 must mention underspecified criteria."""
         content = (PROMPTS_DIR / "judge.yaml").read_text().lower()
-        assert "underspecified" in content, (
-            "Judge criterion 8 must mention underspecified criteria"
-        )
+        assert (
+            "underspecified" in content
+        ), "Judge criterion 8 must mention underspecified criteria"
 
     def test_criterion_8_compile_and_fail(self):
         """Criterion 8 must mention tests compiling and failing."""
@@ -503,12 +503,12 @@ class TestGraphValidity:
         graph = _load_graph()
         node_names = set(graph["nodes"].keys()) | {"START", "END"}
         for edge in graph["edges"]:
-            assert edge["from"] in node_names, (
-                f"Edge 'from' references unknown node: {edge['from']}"
-            )
-            assert edge["to"] in node_names, (
-                f"Edge 'to' references unknown node: {edge['to']}"
-            )
+            assert (
+                edge["from"] in node_names
+            ), f"Edge 'from' references unknown node: {edge['from']}"
+            assert (
+                edge["to"] in node_names
+            ), f"Edge 'to' references unknown node: {edge['to']}"
 
     def test_all_nodes_have_edges(self):
         """Every node must appear in at least one edge."""
@@ -518,6 +518,6 @@ class TestGraphValidity:
             edge_nodes.add(edge["from"])
             edge_nodes.add(edge["to"])
         for node_name in graph["nodes"]:
-            assert node_name in edge_nodes, (
-                f"Node '{node_name}' not referenced in any edge"
-            )
+            assert (
+                node_name in edge_nodes
+            ), f"Node '{node_name}' not referenced in any edge"

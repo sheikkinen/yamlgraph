@@ -1,0 +1,40 @@
+# Prompt Caching Demo - Anthropic system_segments with cache: true
+# Demonstrates cost optimization through cached system segments.
+# Based on FR-219: Anthropic Prompt Caching Demo with System Segments
+
+version: "1.0"
+name: prompt-caching-demo
+description: Demonstrates Anthropic prompt caching with system_segments
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+
+state:
+  topic: str
+
+nodes:
+  analyze:
+    type: llm
+    prompt: analyze
+    variables:
+      topic: "{state.topic}"
+    state_key: analysis
+
+  reflect:
+    type: llm
+    prompt: reflect
+    variables:
+      topic: "{state.topic}"
+      analysis: "{state.analysis}"
+    state_key: reflection
+
+edges:
+  - from: START
+    to: analyze
+  - from: analyze
+    to: reflect
+  - from: reflect
+    to: END

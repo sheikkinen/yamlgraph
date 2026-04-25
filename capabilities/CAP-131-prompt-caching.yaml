@@ -7,6 +7,8 @@ modules:
   - yamlgraph/executor_base.py
   - yamlgraph/utils/prompts.py
   - tests/unit/test_prompt_caching_fr276.py
+  - tests/unit/test_prompt_caching_demo_fr219.py
+  - examples/demos/prompt-caching/
 requirements:
   - id: REQ-YG-287
     description: "System segments schema validation and parsing"
@@ -36,4 +38,25 @@ requirements:
     description: "Variable substitution and Jinja2 support in segments"
     modules:
       - yamlgraph/utils/prompts.py
-fr: FR-276
+  - id: REQ-YG-302
+    description: "Demo structure and files exist in proper format"
+    modules:
+      - examples/demos/prompt-caching/
+  - id: REQ-YG-303
+    description: "Demo graph configuration uses Anthropic provider correctly"
+    modules:
+      - examples/demos/prompt-caching/graph.yaml
+  - id: REQ-YG-304
+    description: "Demo prompts use identical cached system segments"
+    modules:
+      - examples/demos/prompt-caching/prompts/
+  - id: REQ-YG-305
+    description: "Documentation updates explain caching benefits"
+    modules:
+      - reference/prompt-yaml.md
+      - examples/demos/prompt-caching/README.md
+  - id: REQ-YG-306
+    description: "Demo execution proof shows realistic output"
+    modules:
+      - examples/demos/prompt-caching/demo-output.log
+fr: FR-219

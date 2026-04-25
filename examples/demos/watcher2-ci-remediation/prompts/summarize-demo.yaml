@@ -33,19 +33,19 @@ user: |
   - **Faster recovery**: 2-attempt remediation loop with immediate retry
   - **Scoped fixes**: Only handles mechanical issues, not logic problems
 
-  ### 3. Technical Implementation Highlights  
+  ### 3. Technical Implementation Highlights
   - **wait_ci.sh fix**: Proper IN_PROGRESS handling before FAILURE evaluation
-  - **Remediation loop**: Up to 2 attempts with `step-ci-remediate.yaml` 
+  - **Remediation loop**: Up to 2 attempts with `step-ci-remediate.yaml`
   - **Copilot integration**: Leverages existing copilot node patterns
   - **CI log analysis**: Uses `gh run view --log-failed` output
 
   ### 4. Real-World Impact
   Explain how this prevents issues like:
-  - PR #214 manual fix for IndentationError  
+  - PR #214 manual fix for IndentationError
   - Missing changelog fragments blocking CI
   - Premature CI failure declarations (PRs #184, #189, #214)
 
   ## Format
   Present as a **demo conclusion** that someone could use to understand the feature's value and implementation.
-  
+
   Include specific examples from the demonstration to make it concrete and actionable.

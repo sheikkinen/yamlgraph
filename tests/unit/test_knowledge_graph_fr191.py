@@ -27,9 +27,9 @@ class TestPlausibleWrongAnswerGraduation:
     """Validate the graduated plausible_wrong_answer trap in the Knowledge Graph."""
 
     def test_copilot_instructions_exists(self):
-        assert COPILOT_INSTRUCTIONS.is_file(), (
-            f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
-        )
+        assert (
+            COPILOT_INSTRUCTIONS.is_file()
+        ), f"Missing {COPILOT_INSTRUCTIONS.relative_to(REPO_ROOT)}"
 
     def test_plausible_wrong_answer_has_graduated_description(self):
         content = COPILOT_INSTRUCTIONS.read_text()

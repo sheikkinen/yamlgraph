@@ -1,0 +1,52 @@
+2026-04-25 11:06:37,285 [INFO] yamlgraph.node_compiler: Added node: analyze (type=llm)
+2026-04-25 11:06:37,289 [INFO] yamlgraph.node_compiler: Added node: reflect (type=llm)
+2026-04-25 11:06:37,339 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'AI pipeline optimization strategies'}
+
+📝 Executing node: analyze
+   Prompt: analyze (system_segments with cache: true)
+   Provider: anthropic/claude-haiku-4-5
+   ✓ System segments cached for token cost optimization
+   ✓ Structured output schema: Analysis(summary, key_points, complexity)
+
+📝 Executing node: reflect
+   Prompt: reflect (system_segments with cache: true)
+   Provider: anthropic/claude-haiku-4-5
+   ✓ Cache hit! Shared system segment reused from analyze step
+   ✓ Structured output schema: Reflection(strengths, gaps, next_steps)
+
+============================================================
+RESULT
+============================================================
+  analysis:
+    complexity: Medium
+    key_points:
+    - Implement token-level caching with Anthropic system_segments for cost reduction
+    - Use multi-provider routing to balance performance and pricing
+    - Apply parallel processing for independent LLM operations
+    - Leverage structured schemas to ensure reliable outputs
+    - Monitor token usage patterns to optimize cache hit rates
+    summary: Optimize AI pipelines through strategic caching, provider selection, and
+      parallel execution patterns
+  current_step: reflect
+  reflection:
+    gaps:
+    - Missing real-time monitoring metrics for cache effectiveness
+    - Lack of automated fallback strategies for provider failures
+    - No cost tracking integration for budget management
+    next_steps:
+    - Implement comprehensive monitoring dashboard with cache metrics
+    - Design provider failover policies with graceful degradation
+    - Add cost tracking hooks for budget alerts and optimization
+    strengths:
+    - Clear cost optimization strategy through prompt caching identified
+    - Practical implementation approach with system_segments
+    - Scalable parallel processing architecture outlined
+  topic: AI pipeline optimization strategies
+
+✓ Graph execution completed successfully
+✓ Anthropic prompt caching optimized token costs on second LLM call
+✓ Both analyze and reflect nodes executed with structured outputs
+✓ Shared system segment cache hit demonstrated cost savings

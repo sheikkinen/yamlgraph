@@ -76,10 +76,10 @@ if ! wait_ci; then
     CI_REMEDIATED=false
     for ci_attempt in 1 2; do
         log_warn "CI failed — remediation attempt $ci_attempt/2..."
-        
+
         # Capture failure logs
         gh run view --log-failed ... > tmp/ci-failure.log 2>&1
-        
+
         # Invoke copilot to diagnose and fix
         cd "$WT_DIR"
         if yamlgraph graph run "$ENFORCE_DIR/step-ci-remediate.yaml" \
@@ -87,14 +87,14 @@ if ! wait_ci; then
             --var pr_number="$PR_NUMBER" \
             --import-state "$ENFORCE_STATE" \
             --full; then
-            
+
             # Re-run finalize (pre-commit + push)
             git add -A && ruff check --fix ... && ruff format ...
             pre-commit run --all-files || true
             git add -A
             git commit -m "fix: watcher2 — CI remediation" --no-verify
             git push origin "$WT_BRANCH"
-            
+
             cd "$MAIN_DIR"
             if wait_ci; then
                 CI_REMEDIATED=true
@@ -102,7 +102,7 @@ if ! wait_ci; then
             fi
         fi
     done
-    
+
     if [[ "$CI_REMEDIATED" != "true" ]]; then
         handle_failure "CI (after remediation)"
         continue
@@ -156,7 +156,7 @@ A new copilot node graph that:
 **No direct equivalents found.** Major LLM frameworks (LangGraph, CrewAI, AutoGen) focus on agent orchestration, not CI pipeline resilience:
 
 - **LangGraph**: Provides checkpointing and human-in-the-loop but no CI failure remediation patterns
-- **CrewAI**: Has error handling and retries but no specialized CI integration  
+- **CrewAI**: Has error handling and retries but no specialized CI integration
 - **AutoGen** (maintenance mode): Agent coordination patterns only, no CI self-healing
 - **GitHub Actions**: Native re-run capabilities (`gh run rerun`) but no automatic failure diagnosis/fix
 
@@ -178,7 +178,7 @@ YAMLGraph already has the core building blocks:
 **Relevant patterns from docs/diary/:**
 
 - **"Normalize at the boundary"** (2026-04-22): Copilot CLI outputs can contain invalid UTF-8 — need `errors='replace'` at serialization
-- **"Model name drift"** (2026-04-22): Copilot CLI model namespace differs from LLM factory; validate availability  
+- **"Model name drift"** (2026-04-22): Copilot CLI model namespace differs from LLM factory; validate availability
 - **"Test infrastructure from deployment context"** (2026-04-22): Infrastructure scripts must be tested in their actual environment
 - **"Pre-commit remediation cascades"** (2026-04-24): Auto-fixes trigger new failures; finalize step needs multiple retry attempts
 - **"Audit-as-ritual"** trap: Repeated findings with no fixes become theater — remediation loops prevent this
@@ -188,7 +188,7 @@ YAMLGraph already has the core building blocks:
 ### Usage Evidence
 
 - **Existing graphs using copilot nodes:** 23 (across chaplain pipeline, ebook examples, enforce steps)
-- **Real-world use cases beyond watcher2:** 
+- **Real-world use cases beyond watcher2:**
   - Ebook authoring pipeline (automatic chapter generation + fixes)
   - Philosopher daemon (automatic diary reflection)
   - Bug fixing demos (syntax error correction)

@@ -162,6 +162,6 @@ class TestStreamingVsNonStreamingParity:
             if captured_streaming_calls:
                 call = captured_streaming_calls[0]
                 # Bug: These params are not passed in current implementation
-                assert call.get("prompts_relative") is True, (
-                    f"prompts_relative should propagate to streaming. Got: {call}"
-                )
+                assert (
+                    call.get("prompts_relative") is True
+                ), f"prompts_relative should propagate to streaming. Got: {call}"

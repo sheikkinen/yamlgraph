@@ -9,7 +9,7 @@ This demo proves that the timestamp coordination bug in watcher2.sh has been fix
 The watcher2 pipeline had a timing bug where the RED verification step would never detect new test files because:
 
 1. Acceptance step writes test files at time T1
-2. Pipeline state is exported at time T2 (T2 > T1)  
+2. Pipeline state is exported at time T2 (T2 > T1)
 3. `find tests/ -name "*.py" -newer "$PIPELINE_STATE"` finds nothing because state file is newer
 
 This violated **Commandment 7** (TDD Red-Green-Refactor) by allowing trivially-passing tests to slip through undetected.

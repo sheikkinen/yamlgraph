@@ -59,9 +59,9 @@ class TestCodeReviewPrompt:
     def test_prompt_file_exists(self):
         """Prompt file exists."""
         prompt_path = Path("examples/demos/memory/prompts/code_review.yaml")
-        assert prompt_path.exists(), (
-            "examples/demos/memory/prompts/code_review.yaml should exist"
-        )
+        assert (
+            prompt_path.exists()
+        ), "examples/demos/memory/prompts/code_review.yaml should exist"
 
     @pytest.mark.req("REQ-YG-025", "REQ-YG-026")
     def test_prompt_loads(self):
