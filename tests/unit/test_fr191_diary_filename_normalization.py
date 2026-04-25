@@ -47,32 +47,32 @@ class TestFRNumberExtraction:
 
         # Should contain FR number extraction logic
         assert "FR_NUM=" in script_content, "Watcher2 script must extract FR number"
-        assert (
-            "grep -oE 'FR-[0-9]+'" in script_content
-        ), "Must use regex to extract FR number"
-        assert (
-            "sed 's/FR-//'" in script_content
-        ), "Must strip FR- prefix to get number only"
+        assert "grep -oE 'FR-[0-9]+'" in script_content, (
+            "Must use regex to extract FR number"
+        )
+        assert "sed 's/FR-//'" in script_content, (
+            "Must strip FR- prefix to get number only"
+        )
 
         # Should pass FR number to critique step
-        assert (
-            "--var fr_num=" in script_content
-        ), "Must pass FR number as variable to critique step"
+        assert "--var fr_num=" in script_content, (
+            "Must pass FR number as variable to critique step"
+        )
 
     def test_critique_step_receives_fr_num_variable(self):
         """The critique graph execution includes --var fr_num parameter."""
         script_content = WATCHER2_SH.read_text()
 
         # Find the section where critique graph is called
-        assert (
-            "step-critique.yaml" in script_content
-        ), "Must call step-critique.yaml graph"
+        assert "step-critique.yaml" in script_content, (
+            "Must call step-critique.yaml graph"
+        )
 
         # Check if fr_num variable is passed to critique step
         # Look for the pattern in the critique section
-        assert (
-            "--var fr_num=" in script_content
-        ), "Critique step must receive --var fr_num parameter"
+        assert "--var fr_num=" in script_content, (
+            "Critique step must receive --var fr_num parameter"
+        )
 
 
 @pytest.mark.req("REQ-YG-188")
@@ -81,32 +81,32 @@ class TestCritiquePromptFilenameInstruction:
 
     def test_prompt_file_exists(self):
         """Critique prompt file must exist."""
-        assert (
-            CRITIQUE_PROMPT.exists()
-        ), f"Missing {CRITIQUE_PROMPT.relative_to(REPO_ROOT)}"
+        assert CRITIQUE_PROMPT.exists(), (
+            f"Missing {CRITIQUE_PROMPT.relative_to(REPO_ROOT)}"
+        )
 
     def test_prompt_contains_filename_instruction(self):
         """Critique prompt explicitly instructs to save as specific filename pattern."""
         content = CRITIQUE_PROMPT.read_text()
 
         # Should contain explicit filename instruction
-        assert (
-            "docs/diary/YYYY-MM-DD-reflection-fr-{{ fr_num }}" in content
-        ), "Prompt must include explicit filename pattern instruction"
+        assert "docs/diary/YYYY-MM-DD-reflection-fr-{{ fr_num }}" in content, (
+            "Prompt must include explicit filename pattern instruction"
+        )
 
         # Should mention the fr_num variable
-        assert (
-            "{{ fr_num }}" in content
-        ), "Prompt must use Jinja2 template syntax for fr_num variable"
+        assert "{{ fr_num }}" in content, (
+            "Prompt must use Jinja2 template syntax for fr_num variable"
+        )
 
     def test_filename_pattern_matches_ci_regex(self):
         """The instructed filename pattern should match CI diary gate regex."""
         content = CRITIQUE_PROMPT.read_text()
 
         # The pattern should be compatible with CI regex: docs/diary/.*reflection.*fr-${FR_NUM}[^0-9]
-        assert (
-            "reflection-fr-" in content
-        ), "Filename pattern must include 'reflection-fr-' to match CI regex"
+        assert "reflection-fr-" in content, (
+            "Filename pattern must include 'reflection-fr-' to match CI regex"
+        )
 
 
 @pytest.mark.req("REQ-YG-188")
@@ -115,9 +115,9 @@ class TestPreCommitHookValidation:
 
     def test_precommit_config_exists(self):
         """Pre-commit config file must exist."""
-        assert (
-            PRECOMMIT_CONFIG.exists()
-        ), f"Missing {PRECOMMIT_CONFIG.relative_to(REPO_ROOT)}"
+        assert PRECOMMIT_CONFIG.exists(), (
+            f"Missing {PRECOMMIT_CONFIG.relative_to(REPO_ROOT)}"
+        )
 
     def test_diary_filename_hook_exists(self):
         """Pre-commit config must contain diary filename validation hook."""
@@ -140,9 +140,9 @@ class TestPreCommitHookValidation:
                 ):
                     diary_hooks.append(hook)
 
-        assert (
-            diary_hooks
-        ), "Must have diary filename validation hook in pre-commit config"
+        assert diary_hooks, (
+            "Must have diary filename validation hook in pre-commit config"
+        )
 
     def test_diary_hook_uses_correct_regex(self):
         """Diary filename hook must use regex pattern matching CI gate."""
@@ -165,9 +165,9 @@ class TestPreCommitHookValidation:
 
         # Should use same pattern as CI: docs/diary/.*reflection.*fr-[0-9]+[^0-9]
         entry = diary_hook.get("entry", "")
-        assert (
-            "docs/diary/.*reflection.*fr-[0-9]+[^0-9]" in entry
-        ), "Hook must use same regex pattern as CI diary gate"
+        assert "docs/diary/.*reflection.*fr-[0-9]+[^0-9]" in entry, (
+            "Hook must use same regex pattern as CI diary gate"
+        )
 
 
 @pytest.mark.req("REQ-YG-188")
@@ -186,9 +186,9 @@ class TestCritiqueFailureBlocking:
 
         # Should use handle_failure or similar blocking mechanism
         critique_section = self._extract_critique_section(script_content)
-        assert (
-            "handle_failure" in critique_section or "exit" in critique_section
-        ), "Critique failure must use blocking error handling"
+        assert "handle_failure" in critique_section or "exit" in critique_section, (
+            "Critique failure must use blocking error handling"
+        )
 
     def _extract_critique_section(self, script_content: str) -> str:
         """Extract the section of script that handles critique step."""
@@ -236,9 +236,9 @@ class TestExistingFilesNormalization:
 
             pattern = r"\d{4}-\d{2}-\d{2}-reflection-fr-\d+.*\.md"
 
-            assert re.match(
-                pattern, filename
-            ), f"Diary file {filename} does not follow expected naming pattern"
+            assert re.match(pattern, filename), (
+                f"Diary file {filename} does not follow expected naming pattern"
+            )
 
 
 @pytest.mark.req("REQ-YG-188")
@@ -267,9 +267,9 @@ class TestIntegration:
                 ["bash", "-c", script], capture_output=True, text=True
             )
             assert result.returncode == 0, f"FR extraction failed: {result.stderr}"
-            assert (
-                "FR_NUM=123" in result.stdout
-            ), f"Wrong FR number extracted: {result.stdout}"
+            assert "FR_NUM=123" in result.stdout, (
+                f"Wrong FR number extracted: {result.stdout}"
+            )
 
         finally:
             os.unlink(fr_path)

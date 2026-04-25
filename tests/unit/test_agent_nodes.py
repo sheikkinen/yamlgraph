@@ -482,9 +482,9 @@ class TestAgentMessagesDelta:
             if turn == 0:
                 assert len(delta) == 3, f"Turn 0: expected 3, got {len(delta)}"
             else:
-                assert (
-                    len(delta) == 2
-                ), f"Turn {turn}: expected 2 delta msgs, got {len(delta)}"
+                assert len(delta) == 2, (
+                    f"Turn {turn}: expected 2 delta msgs, got {len(delta)}"
+                )
 
             # Simulate add reducer
             accumulated_messages = accumulated_messages + delta
@@ -530,9 +530,9 @@ class TestAgentMessagesDelta:
         msgs2 = result2["messages"]
 
         # Should be delta only, not full conversation
-        assert len(msgs2) < len(msgs1) + len(
-            msgs2
-        ), "Max iterations path returning full conversation instead of delta"
+        assert len(msgs2) < len(msgs1) + len(msgs2), (
+            "Max iterations path returning full conversation instead of delta"
+        )
         # More precisely: delta should NOT contain msgs1
         assert msgs2[0] not in msgs1, "Delta contains messages from previous invocation"
 
@@ -602,9 +602,9 @@ class TestAgentNormalizeContent:
         node_fn = create_agent_node("agent", node_config, tools)
         result = node_fn({"input": "Hammaslääkäri?"})
 
-        assert isinstance(
-            result["result"], str
-        ), f"Expected str, got {type(result['result'])}: {result['result']}"
+        assert isinstance(result["result"], str), (
+            f"Expected str, got {type(result['result'])}: {result['result']}"
+        )
         assert result["result"] == "Terveystalo tarjoaa hammaslääkäripalveluita."
 
     @patch("yamlgraph.tools.agent.create_llm")
@@ -665,6 +665,6 @@ class TestAgentNormalizeContent:
         node_fn = create_agent_node("agent", node_config, tools)
         result = node_fn({"input": "Search"})
 
-        assert isinstance(
-            result["result"], str
-        ), f"Max-iterations path returned {type(result['result'])}"
+        assert isinstance(result["result"], str), (
+            f"Max-iterations path returned {type(result['result'])}"
+        )

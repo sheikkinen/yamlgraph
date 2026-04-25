@@ -400,9 +400,9 @@ class TestDiaryStub:
         diary_dir = repo / "docs" / "diary"
         assert diary_dir.exists(), "docs/diary/ folder should exist"
         reflection_files = list(diary_dir.glob("*-reflection-FR-230.md"))
-        assert (
-            len(reflection_files) == 1
-        ), f"Expected 1 reflection file, found: {list(diary_dir.iterdir())}"
+        assert len(reflection_files) == 1, (
+            f"Expected 1 reflection file, found: {list(diary_dir.iterdir())}"
+        )
         content = reflection_files[0].read_text()
         assert "FR-230" in content
         assert "Implementation Reflection" in content

@@ -97,12 +97,12 @@ class TestAgentPromptFormatting:
             user_message = captured_messages[0][-1]
 
             # Jinja2 should render nested access
-            assert (
-                "machine learning" in user_message
-            ), f"Jinja2 {{{{ context.topic }}}} not replaced. Got: {user_message}"
-            assert (
-                "healthcare" in user_message
-            ), f"Jinja2 {{{{ context.domain }}}} not replaced. Got: {user_message}"
+            assert "machine learning" in user_message, (
+                f"Jinja2 {{{{ context.topic }}}} not replaced. Got: {user_message}"
+            )
+            assert "healthcare" in user_message, (
+                f"Jinja2 {{{{ context.domain }}}} not replaced. Got: {user_message}"
+            )
 
     @pytest.mark.req("REQ-YG-018")
     def test_agent_formats_jinja2_templates(self) -> None:
@@ -141,9 +141,9 @@ class TestAgentPromptFormatting:
             user_message = captured_messages[0][-1]
 
             # Jinja2 templates should be rendered
-            assert (
-                "AI safety" in user_message
-            ), f"Jinja2 {{{{ state.topic }}}} not rendered. Got: {user_message}"
+            assert "AI safety" in user_message, (
+                f"Jinja2 {{{{ state.topic }}}} not rendered. Got: {user_message}"
+            )
             assert "{{ state.topic }}" not in user_message
 
     @pytest.mark.req("REQ-YG-018")
@@ -160,9 +160,9 @@ class TestAgentPromptFormatting:
 
         # Verify format_prompt works correctly with Jinja2
         assert "NLP" in formatted, "format_prompt should render Jinja2 state"
-        assert (
-            "deep learning" in formatted
-        ), "format_prompt should render vars in Jinja2"
+        assert "deep learning" in formatted, (
+            "format_prompt should render vars in Jinja2"
+        )
 
         # Test simple format template
         simple_template = "Analyze {topic} with {method}"
@@ -171,9 +171,9 @@ class TestAgentPromptFormatting:
         simple_formatted = format_prompt(simple_template, variables)
 
         assert "NLP" in simple_formatted, "format_prompt should render simple vars"
-        assert (
-            "deep learning" in simple_formatted
-        ), "format_prompt should render simple vars"
+        assert "deep learning" in simple_formatted, (
+            "format_prompt should render simple vars"
+        )
 
 
 class TestAgentSystemPromptFormatting:
@@ -216,6 +216,6 @@ class TestAgentSystemPromptFormatting:
             system_message = captured_messages[0][0]
 
             # System prompt Jinja2 should be rendered
-            assert (
-                "security" in system_message
-            ), f"System prompt Jinja2 not rendered. Got: {system_message}"
+            assert "security" in system_message, (
+                f"System prompt Jinja2 not rendered. Got: {system_message}"
+            )

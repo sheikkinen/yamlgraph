@@ -568,9 +568,9 @@ class TestWatchShIntegration:
         title_pos = sync_block.find("title")
         assert author_pos != -1, "author fetch not found in sync block"
         assert title_pos != -1, "title fetch not found in sync block"
-        assert (
-            author_pos < title_pos
-        ), "author must be fetched before title for early rejection"
+        assert author_pos < title_pos, (
+            "author must be fetched before title for early rejection"
+        )
 
 
 # ---------------------------------------------------------------------------

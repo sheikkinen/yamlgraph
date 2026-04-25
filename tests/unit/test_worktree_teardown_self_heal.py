@@ -23,9 +23,9 @@ class TestValidateEditableInstall:
         """worktree_helpers must expose validate_editable_install."""
         from yamlgraph.utils import worktree_helpers
 
-        assert hasattr(
-            worktree_helpers, "validate_editable_install"
-        ), "worktree_helpers must expose validate_editable_install"
+        assert hasattr(worktree_helpers, "validate_editable_install"), (
+            "worktree_helpers must expose validate_editable_install"
+        )
 
     def test_returns_false_for_unimportable_package(self) -> None:
         """Returns False when the target package cannot be imported."""

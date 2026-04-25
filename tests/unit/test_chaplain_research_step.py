@@ -32,9 +32,9 @@ class TestResearchNodeExists:
     def test_research_node_in_graph(self):
         """graph.yaml must have a 'research' node."""
         graph = _load_graph()
-        assert (
-            "research" in graph["nodes"]
-        ), "Missing 'research' node in .chaplain/graphs/copilot/graph.yaml"
+        assert "research" in graph["nodes"], (
+            "Missing 'research' node in .chaplain/graphs/copilot/graph.yaml"
+        )
 
     def test_research_node_type_copilot(self):
         """research node must be type: copilot."""
@@ -66,9 +66,9 @@ class TestResearchNodeExists:
         research = graph["nodes"]["research"]
         cli_flags = research.get("cli_flags", {})
         resume_val = cli_flags.get("resume", "")
-        assert (
-            "plan_result" in resume_val and "session_id" in resume_val
-        ), f"research node must resume plan session, got: {resume_val}"
+        assert "plan_result" in resume_val and "session_id" in resume_val, (
+            f"research node must resume plan session, got: {resume_val}"
+        )
 
     def test_research_node_has_drafts_dir_variable(self):
         """research node must pass drafts_dir variable."""
@@ -123,9 +123,9 @@ class TestResearchEdges:
     def test_no_direct_plan_to_judge_edge(self):
         """Old plan → judge edge must be removed."""
         pairs = self._edge_pairs()
-        assert (
-            ("plan", "judge") not in pairs
-        ), "Direct plan → judge edge still exists; should go through research"
+        assert ("plan", "judge") not in pairs, (
+            "Direct plan → judge edge still exists; should go through research"
+        )
 
 
 # ===========================================================================
@@ -141,9 +141,9 @@ class TestResearchState:
         """state declaration must include research_brief."""
         graph = _load_graph()
         state = graph.get("state", {})
-        assert (
-            "research_brief" in state
-        ), f"Missing research_brief in state. Keys: {list(state.keys())}"
+        assert "research_brief" in state, (
+            f"Missing research_brief in state. Keys: {list(state.keys())}"
+        )
 
 
 # ===========================================================================
@@ -157,9 +157,9 @@ class TestResearchPrompt:
 
     def test_research_prompt_file_exists(self):
         """prompts/research.yaml must exist."""
-        assert (
-            PROMPTS_DIR / "research.yaml"
-        ).exists(), "Missing .chaplain/graphs/copilot/prompts/research.yaml"
+        assert (PROMPTS_DIR / "research.yaml").exists(), (
+            "Missing .chaplain/graphs/copilot/prompts/research.yaml"
+        )
 
     def test_research_prompt_has_system(self):
         """research.yaml must have a system prompt."""
@@ -256,12 +256,12 @@ class TestGraphLintsClean:
         graph = _load_graph()
         node_names = set(graph["nodes"].keys()) | {"START", "END"}
         for edge in graph["edges"]:
-            assert (
-                edge["from"] in node_names
-            ), f"Edge 'from' references unknown node: {edge['from']}"
-            assert (
-                edge["to"] in node_names
-            ), f"Edge 'to' references unknown node: {edge['to']}"
+            assert edge["from"] in node_names, (
+                f"Edge 'from' references unknown node: {edge['from']}"
+            )
+            assert edge["to"] in node_names, (
+                f"Edge 'to' references unknown node: {edge['to']}"
+            )
 
     def test_all_nodes_have_edges(self):
         """Every node must appear in at least one edge."""
@@ -271,6 +271,6 @@ class TestGraphLintsClean:
             edge_nodes.add(edge["from"])
             edge_nodes.add(edge["to"])
         for node_name in graph["nodes"]:
-            assert (
-                node_name in edge_nodes
-            ), f"Node '{node_name}' not referenced in any edge"
+            assert node_name in edge_nodes, (
+                f"Node '{node_name}' not referenced in any edge"
+            )

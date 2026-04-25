@@ -93,9 +93,9 @@ class TestBareCorruptionGuard:
             text=True,
             env=_clean_git_env(),
         )
-        assert (
-            "Detected bare=true corruption" in proc.stdout
-        ), f"Guard should log warning. stdout: {proc.stdout}"
+        assert "Detected bare=true corruption" in proc.stdout, (
+            f"Guard should log warning. stdout: {proc.stdout}"
+        )
 
         # Verify restoration
         result = subprocess.run(
@@ -180,6 +180,6 @@ class TestBareCorruptionGuard:
             text=True,
         )
 
-        assert (
-            "SUCCESS" in proc.stdout
-        ), f"Git should work after env sanitization. stderr: {proc.stderr}"
+        assert "SUCCESS" in proc.stdout, (
+            f"Git should work after env sanitization. stderr: {proc.stderr}"
+        )
