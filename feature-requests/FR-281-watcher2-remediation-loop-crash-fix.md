@@ -102,3 +102,52 @@ fi
 - **Files:** `.chaplain/graphs/enforce/prompts/enforce-ci-remediate.yaml`
 - **Requirements:** REQ-YG-286 (watcher2 finalize optimization)
 - **Related FRs:** FR-198 (watcher2 finalize optimization), FR-279 (CI resilience)
+
+## Research Brief
+
+### Competitive Landscape
+
+**GitHub Actions & CI/CD Platforms**: Standard GitHub Actions python workflows use `ruff check` without `--unsafe-fixes` due to safety concerns. Most platforms recommend manual review for unsafe auto-fixes. However, some automated pipelines like [ai-cicd-pipeline](https://github.com/harikas20/ai-cicd-pipeline) do implement AI-powered fixing but don't specifically handle ruff's unsafe-fixes flag.
+
+**LLM Framework CI**: 
+- **LangGraph**: Uses standard pre-commit hooks but no automated remediation for CI failures - relies on manual intervention
+- **CrewAI**: Independent of LangChain, but doesn't appear to have automated CI remediation features
+- **AutoGen**: Now in maintenance mode, migrating to Microsoft Agent Framework - no CI self-healing documented
+
+**Ruff Documentation**: [Astral's ruff docs](https://docs.astral.sh/ruff/configuration/#unsafe-fixes) explicitly documents `--unsafe-fixes` as requiring opt-in due to potential behavior changes. SIM117 (combine nested with statements) is classified as "unsafe" because it can change execution order.
+
+### Existing Abstractions
+
+**Copilot Node Infrastructure**: YAMLGraph has mature copilot node support with 24+ graphs using `type: copilot`, including:
+- `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` - Existing CI remediation node (exact match for this use case)
+- `.chaplain/graphs/watcher-enforce/step-finalize.yaml` - Pre-commit fixing node
+- Session continuation and timeout handling in `yamlgraph/node_factory/copilot_node.py`
+
+**Watcher2 Pipeline**: Extensive existing automation in `.chaplain/watcher2.sh` with:
+- 5-attempt pre-commit retry loop (line ~320) 
+- Copilot fallback mechanism (line ~332)
+- CI remediation with 2-attempt cycle (line ~369)
+- Progressive ruff commands already partially implemented
+
+**CI Resilience**: FR-279 recently added CI remediation infrastructure that this builds upon.
+
+### Diary Precedents
+
+**2026-04-25 FR-279 Reflection**: Documents the exact remediation loop failure pattern - "no remediation loop for mechanical CI failures like syntax errors." Identifies this as a recurring gap requiring automation.
+
+**2026-04-25 FR-280 Reflection**: Notes timestamp verification issues in remediation pipeline, suggesting broader pattern of edge cases in automated fixing.
+
+**Trap Pattern**: "Downstream fix" - Historical diary entries show tendency to patch symptoms rather than normalizing at entry boundary. The proposed progressive `--unsafe-fixes` approach follows the diary's learned pattern of "normalize at the boundary where external data enters."
+
+### Usage Evidence
+
+- **Existing graphs using copilot remediation**: 8+ (watcher-enforce steps, bugfix examples)
+- **Watcher2 references across codebase**: 50+ files (core infrastructure, not edge case)
+- **Real-world use cases**: PR #220 incident demonstrates concrete need; not speculative
+- **SIM117 historical precedent**: `changelog/0.3.4/` shows SIM117 was previously fixed manually across 17 test files
+
+### Classification Signal
+
+- **Abstraction level**: primitive (affects core CI/CD infrastructure used by all FRs)
+- **Recommended approach**: build (extend existing watcher2.sh + copilot nodes, don't reinvent)
+- **Key risk**: Unsafe auto-fixes may introduce subtle behavioral changes that pass tests but affect production semantics.
