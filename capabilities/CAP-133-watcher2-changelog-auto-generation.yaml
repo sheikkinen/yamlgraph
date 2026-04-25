@@ -1,0 +1,24 @@
+id: CAP-133
+name: Watcher2 Changelog Auto-Generation
+description: >
+  Auto-generate changelog fragments in watcher2 pipeline to eliminate manual intervention.
+  Defense-in-depth approach with shell generation, prompt instructions, finalize verification,
+  and CI remediation context. Extracts FR number, derives scope/type, looks up REQ-YG-XXX
+  from capabilities registry, and prevents cross-wiring.
+modules:
+  - .chaplain/watcher2.sh
+  - .chaplain/graphs/enforce/prompts/enforce-critique-and-distill.yaml
+  - .chaplain/graphs/enforce/prompts/enforce-finalize.yaml
+  - .chaplain/graphs/watcher-enforce/step-ci-remediate.yaml
+requirements:
+  - id: REQ-YG-307
+    description: >
+      Auto-generate changelog fragments in watcher2 pipeline between critique
+      and finalize steps. Extract FR number from FR_PATH, generate filename
+      with 40-char descriptive suffix, derive type/scope from path, lookup
+      REQ-YG-XXX from capability registry, validate FR number to prevent
+      cross-wiring, create YAML frontmatter and fragment content automatically.
+    modules:
+      - .chaplain/watcher2.sh (lines 309-341)
+      - tests/unit/test_fr283_watcher2_changelog_auto_generation.py
+fr: FR-283

@@ -1,6 +1,6 @@
 system: |
   You are analyzing the results of the FR-283 changelog fragment auto-generation demo.
-  
+
   Your task is to summarize what was demonstrated and highlight the key benefits of the implemented solution.
 
 user: |

@@ -310,24 +310,24 @@ print('UNKNOWN')
     # Extract FR number from feature request path
     FR_NUM=$(basename "$FR_PATH" | grep -oE 'FR-[0-9]+' | sed 's/FR-//')
     FR_ID="FR-${FR_NUM}"
-    
+
     # Generate changelog fragment filename
     CHANGELOG_FRAG="changelog/unreleased/fr-${FR_NUM}-$(basename "$FR_PATH" .md | sed "s/FR-${FR_NUM}-//" | head -c 40).md"
-    
+
     if [[ ! -f "$CHANGELOG_FRAG" ]]; then
         # Derive change type and scope from FR path
         CHANGE_TYPE="feat"
         SCOPE=$(basename "$FR_PATH" .md | sed "s/FR-${FR_NUM}-//" | cut -d- -f1)
-        
+
         # Find requirement ID from capability registry
         REQ_ID=$(grep -l "fr: $FR_ID" capabilities/CAP-*.yaml 2>/dev/null | head -1 | \
             xargs -I{} grep -oE 'REQ-YG-[0-9]+' {} 2>/dev/null | head -1)
-        
+
         # Validate FR_NUM matches expected FR to prevent cross-wiring
         if [[ "$FR_NUM" != "$(basename "$FR_PATH" | grep -oE '[0-9]+' | head -1)" ]]; then
             log_warn "FR number mismatch detected - potential cross-wiring"
         fi
-        
+
         # Generate fragment content
         mkdir -p "$(dirname "$CHANGELOG_FRAG")"
         {
@@ -338,7 +338,7 @@ print('UNKNOWN')
             echo "---"
             echo "- **$FR_ID**: Generated changelog fragment. ($REQ_ID)"
         } > "$CHANGELOG_FRAG"
-        
+
         log_info "Generated changelog fragment: $CHANGELOG_FRAG"
     fi
 

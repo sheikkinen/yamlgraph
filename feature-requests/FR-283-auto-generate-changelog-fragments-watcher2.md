@@ -22,7 +22,7 @@ Every watcher2 PR requires manual changelog fragment addition. The pipeline has 
 ### Evidence
 
 - PR #214 (FR-278): missing changelog → manual add
-- PR #218 (FR-280): missing changelog → manual add  
+- PR #218 (FR-280): missing changelog → manual add
 - PR #220 (FR-219): wrong FR number in fragment (fr-276 vs fr-219) → manual rename
 - PR #222 (FR-281): missing changelog → manual add
 
@@ -54,11 +54,11 @@ if [[ ! -f "$CHANGELOG_FRAG" ]]; then
     # Derive change type and scope from FR path
     CHANGE_TYPE="feat"
     SCOPE=$(basename "$FR_PATH" .md | sed "s/FR-${FR_NUM}-//" | cut -d- -f1)
-    
+
     # Find requirement ID from capability registry
     REQ_ID=$(grep -l "fr: $FR_ID" capabilities/CAP-*.yaml 2>/dev/null | head -1 | \
         xargs -I{} grep -oE 'REQ-YG-[0-9]+' {} 2>/dev/null | head -1)
-    
+
     # Generate fragment content
     mkdir -p "$(dirname "$CHANGELOG_FRAG")"
     {
@@ -69,7 +69,7 @@ if [[ ! -f "$CHANGELOG_FRAG" ]]; then
         echo "---"
         echo "- **$FR_ID**: Generated changelog fragment. ($REQ_ID)"
     } > "$CHANGELOG_FRAG"
-    
+
     log_info "Generated changelog fragment: $CHANGELOG_FRAG"
 fi
 ```
@@ -81,11 +81,11 @@ Add Part 3 to `enforce-critique-and-distill.yaml` using `{{ fr_num }}` template 
 ```yaml
 template: |
   ...existing critique content...
-  
+
   ## Part 3: Changelog Fragment
-  
+
   Create a changelog fragment in `changelog/unreleased/fr-{{ fr_num }}-<descriptive-name>.md`:
-  
+
   ```markdown
   ---
   type: feat
@@ -94,7 +94,7 @@ template: |
   ---
   - **FR-{{ fr_num }}**: Brief description of the change. ({{ req_id }})
   ```
-  
+
   Use the FR path to derive scope and filename.
 ```
 
@@ -105,13 +105,13 @@ Add Part 0 to `enforce-finalize.yaml` to verify changelog fragment exists before
 ```yaml
 template: |
   ## Part 0: Verify Changelog Fragment
-  
+
   Before proceeding with pre-commit fixes, verify the changelog fragment exists:
   - File: `changelog/unreleased/fr-{{ fr_num }}-*.md`
   - Must contain correct FR number: `FR-{{ fr_num }}`
-  
+
   If missing, create it now with appropriate type/scope/req fields.
-  
+
   ## Part 1: Pre-commit Fixes
   ...existing content...
 ```
@@ -123,7 +123,7 @@ Pass `fr_path` variable to `step-ci-remediate.yaml` and update `enforce-ci-remed
 ## Acceptance Criteria
 
 - [x] Changelog fragment auto-generated with correct FR number from `FR_PATH` variable
-- [x] Fragment type/scope/req derived from capability registry when available  
+- [x] Fragment type/scope/req derived from capability registry when available
 - [x] Fragment FR number matches branch FR (no cross-wiring like fr-276 vs fr-219)
 - [x] Shell step generates fragment between critique and finalize steps
 - [x] Finalize step verifies changelog exists before pre-commit
@@ -164,7 +164,7 @@ The defense-in-depth approach (shell + prompt + finalize + CI) provides multiple
 
 ### Existing Abstractions
 
-**Fragment-based changelog system (FR-179/CAP-66):** 
+**Fragment-based changelog system (FR-179/CAP-66):**
 - `scripts/aggregate_changelog.py`: Assembles fragments into CHANGELOG.md
 - `scripts/finalize_merge.sh`: Post-merge fragment creation (manual fallback)
 - YAML frontmatter schema: `type`, `scope`, `req` fields
