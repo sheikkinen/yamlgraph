@@ -118,6 +118,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
 | [script-retirement](demos/script-retirement/) | Pipeline script retirement verification (FR-276) |
 | [security-cve-ignore](demos/security-cve-ignore/) | Security workflow CVE ignore implementation verification (FR-282) |
+| [watcher2-amend-retry](demos/watcher2-amend-retry/) | AMEND retry loop implementation demonstration (FR-286) |
 | [watcher2-changelog-gen](demos/watcher2-changelog-gen/) | Changelog fragment auto-generation demonstration (FR-283) |
 | [watcher2-ci-remediation](demos/watcher2-ci-remediation/) | CI failure remediation loop demonstration (FR-279) |
 | [watcher2-red-verification](demos/watcher2-red-verification/) | RED verification timestamp fix demo (FR-280) |
