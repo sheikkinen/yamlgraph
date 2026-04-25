@@ -263,17 +263,17 @@ class TestNonAnthropicFlattening:
                     provider=provider,
                 )
 
-                        # Should create single SystemMessage with concatenated content
-                        assert len(messages) == 2
-                        system_msg = messages[0]
-                        assert isinstance(system_msg, SystemMessage)
+                # Should create single SystemMessage with concatenated content
+                assert len(messages) == 2
+                system_msg = messages[0]
+                assert isinstance(system_msg, SystemMessage)
 
-                        # Content should contain both segments, cache flags ignored
-                        assert "First segment" in system_msg.content
-                        assert "Second segment" in system_msg.content
+                # Content should contain both segments, cache flags ignored
+                assert "First segment" in system_msg.content
+                assert "Second segment" in system_msg.content
 
-                        # Should not have cache-related additional_kwargs
-                        assert not system_msg.additional_kwargs.get("content")
+                # Should not have cache-related additional_kwargs
+                assert not system_msg.additional_kwargs.get("content")
 
     @pytest.mark.req("REQ-YG-290")
     def test_non_anthropic_ignores_cache_flags_gracefully(self) -> None:
