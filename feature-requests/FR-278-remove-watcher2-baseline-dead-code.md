@@ -1,0 +1,96 @@
+# Feature Request: FR-278 Remove FR-277 Watcher2 Baseline Dead Code
+
+**Priority:** MEDIUM
+**Type:** Cleanup
+**Status:** Proposed
+**Effort:** 1 day
+**Requested:** 2026-04-25
+
+## Summary
+
+Remove incomplete and non-functional FR-277 watcher2 baseline checkpointing code that was merged via PR #211 but never properly implemented.
+
+## Value Statement
+
+Developers get a cleaner codebase with no broken imports or dead code paths, reducing confusion and maintenance overhead.
+
+## Problem
+
+FR-277 was implemented partially and merged via PR #211, leaving behind non-functional code that creates several issues:
+
+1. **Broken imports**: `.chaplain/graphs/baseline/graph.yaml` references `yamlgraph.chaplain.nodes` which doesn't exist
+2. **Non-existent file references**: `watcher2.sh` contains `--import-state .chaplain/baseline/latest.json` pointing to a file that doesn't exist
+3. **Dead code modules**: Several Python modules with no working functionality or integration
+4. **Phantom test coverage**: Test file exists but tests non-functional code
+5. **Stale documentation**: References to baseline functionality in README that doesn't work
+
+The implementation was incomplete:
+- No manifest file exists
+- No baseline directory structure
+- No working node implementations  
+- No actual integration with watcher2 pipeline
+
+This creates confusion for developers and wastes CI resources running tests for non-functional code.
+
+## Proposed Solution
+
+Perform a complete removal of all FR-277 baseline checkpointing code and references:
+
+### Files to Remove
+- `yamlgraph/chaplain/baseline.py`
+- `yamlgraph/chaplain/__init__.py`
+- `yamlgraph/models/baseline.py`
+- `.chaplain/graphs/baseline/graph.yaml`
+- `tests/unit/test_fr277_watcher2_baseline_checkpointing.py`
+- `capabilities/CAP-129-watcher2-baseline-checkpointing.yaml`
+
+### Files to Edit
+- `.chaplain/watcher2.sh`: Remove `--import-state .chaplain/baseline/latest.json` line
+- `ARCHITECTURE.md`: Remove REQ-YG-279 requirement entry
+- `.chaplain/README.md`: Remove baseline checkpointing documentation sections
+
+### Feature Request Status
+- Mark `feature-requests/FR-277-watcher2-baseline-checkpointing.md` as rejected/removed
+
+### Clean Implementation Path
+If baseline checkpointing is needed in the future, it should be re-implemented from scratch with:
+- Complete design specification
+- Working manifest system
+- Proper integration testing
+- Full documentation
+
+## Acceptance Criteria
+
+- [ ] All baseline-related Python modules removed (`yamlgraph/chaplain/baseline.py`, `yamlgraph/models/baseline.py`)
+- [ ] Chaplain package init file removed (`yamlgraph/chaplain/__init__.py`)
+- [ ] Baseline graph YAML file removed (`.chaplain/graphs/baseline/graph.yaml`)
+- [ ] Baseline test file removed (`tests/unit/test_fr277_watcher2_baseline_checkpointing.py`)
+- [ ] Capability registration removed (`capabilities/CAP-129-watcher2-baseline-checkpointing.yaml`)
+- [ ] Import state line removed from watcher2.sh
+- [ ] REQ-YG-279 requirement removed from ARCHITECTURE.md
+- [ ] Baseline documentation removed from `.chaplain/README.md`
+- [ ] FR-277 marked as rejected in feature requests
+- [ ] No import errors when running existing tests
+- [ ] No references to baseline functionality in grep search across codebase
+- [ ] All tests pass after removal
+- [ ] Linting passes (no dead imports or references)
+
+## Alternatives Considered
+
+1. **Complete the FR-277 implementation**
+   - Rejected: Would require significant effort (4+ days) to properly implement the missing pieces
+   - Original FR-277 was already complex and this removal task is about cleaning up incomplete work
+
+2. **Leave the code and mark as "work in progress"**
+   - Rejected: Dead code with broken imports creates maintenance debt and confusion
+   - Tests for non-functional code waste CI resources
+
+3. **Partial cleanup (remove only obviously broken parts)**
+   - Rejected: Incomplete removal would leave other dead code paths and confusion about what works
+
+## Related
+
+- FR-277: Original watcher2 baseline checkpointing feature (to be marked rejected)
+- PR #211: Pull request that merged incomplete implementation
+- REQ-YG-279: Requirement to be removed from architecture
+- CAP-129: Capability to be removed from registry
