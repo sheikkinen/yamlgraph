@@ -1,0 +1,28 @@
+---
+# Forensic analysis prompt for watcher2 failure investigation
+
+schema:
+  name: ForensicAnalysis
+  fields:
+    root_cause: {type: str, description: "Identified root cause of failure"}
+    failure_reason: {type: str, description: "Original failure reason from watcher2"}
+    evidence: {type: list[str], description: "List of evidence sources found"}
+    recommendations: {type: list[str], description: "Recommended preventive actions"}
+
+user: |
+  Analyze this watcher2 cycle failure for forensic diary generation.
+  
+  **Failure Context:**
+  - Failure reason: {{ failure_reason }}
+  - Topic content: {{ topic_content }}
+  - Log files found: {{ log_files }}
+  - Worktree state: {{ worktree_state }}
+  
+  **Task:**
+  1. Identify the root cause of the failure
+  2. Extract evidence from available context  
+  3. Provide recommendations to prevent similar failures
+  4. Structure findings for forensic diary entry
+  
+  Focus on actionable insights rather than obvious facts.
+  Preserve original failure reason for audit trail.

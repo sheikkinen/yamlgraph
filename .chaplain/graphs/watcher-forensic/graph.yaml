@@ -1,0 +1,41 @@
+---
+name: watcher-forensic
+# Watcher2 Forensic Failure Analysis (FR-285)
+# Generates structured diary entries for failed cycles
+
+vars:
+  failure_reason: str
+  topic_content: str  
+  log_files: str
+  worktree_state: str
+
+tools:
+  write_diary_tool:
+    type: python
+    path: .chaplain/lib/diary.py
+    function: write_diary
+
+nodes:
+  forensic_analysis:
+    prompt: analyze_failure
+    provider: anthropic
+    state_key: forensic_report
+    schema:
+      name: ForensicAnalysis
+      fields:
+        root_cause: {type: str, description: "Identified root cause of failure"}
+        failure_reason: {type: str, description: "Original failure reason"}
+        evidence: {type: "list[str]", description: "List of evidence sources"}
+        recommendations: {type: "list[str]", description: "Recommended preventive actions"}
+        
+  write_diary:
+    type: tool
+    tool: write_diary_tool
+    state_key: written
+    skip_if_exists: true
+
+edges:
+  - from: forensic_analysis
+    to: write_diary
+    
+checkpointer: memory

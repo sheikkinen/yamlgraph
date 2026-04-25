@@ -42,6 +42,31 @@ def format_diary_entry(
     return f"\n---\n\n## {date_str}: {prefix} — {theme}\n\n{body}\n\n**Seed:** {seed}\n"
 
 
+def format_forensic_entry(forensic_report: dict) -> str:
+    """Format forensic analysis report into diary entry body.
+    
+    Args:
+        forensic_report: Dict with root_cause, evidence, recommendations, etc.
+        
+    Returns:
+        Formatted forensic entry body text
+    """
+    root_cause = forensic_report.get("root_cause", "Unknown")
+    evidence_list = forensic_report.get("evidence", [])
+    recommendations = forensic_report.get("recommendations", [])
+    
+    evidence_text = "\n".join(f"  - {item}" for item in evidence_list) if evidence_list else "  - No evidence collected"
+    recommendations_text = "\n".join(f"  - {item}" for item in recommendations) if recommendations else "  - No specific recommendations"
+    
+    return f"""**Root Cause:** {root_cause}
+
+**Evidence:**
+{evidence_text}
+
+**Recommendations:**
+{recommendations_text}"""
+
+
 def should_write_entry(
     articles: list[dict],
     threshold: float = 0.3,
@@ -66,10 +91,36 @@ def write_diary(state: dict) -> dict:
 
     Graph tool — reads diary_entry from state (Pydantic model, CopilotResult,
     dict, or string with theme/body/seed fields), formats it, and writes to docs/diary/.
+    FR-285: Support forensic analysis reports from forensic_report state key.
     """
     entry_data = state.get("diary_entry", {})
     date_str = state.get("date", datetime.now().strftime("%Y-%m-%d"))
     prefix = state.get("diary_prefix", "World Digest")
+
+    # FR-285: Handle forensic analysis reports
+    if "forensic_report" in state and not entry_data:
+        forensic_report = state["forensic_report"]
+        theme = f"Forensic: watcher2-{forensic_report.get('failure_reason', 'unknown')}"
+        body = format_forensic_entry(forensic_report)
+        seed = "Could watcher2 pre-validate this failure mode?"
+        prefix = "Forensic"
+        
+        entry = format_diary_entry(
+            date_str=date_str,
+            theme=theme,
+            body=body,
+            seed=seed,
+            prefix=prefix,
+        )
+
+        entry_type = prefix.lower().replace(" ", "-")
+        filename = f"{date_str}-{entry_type}.md"
+        entry_path = DIARY_DIR / filename
+        DIARY_DIR.mkdir(parents=True, exist_ok=True)
+        entry_path.write_text(entry)
+        logger.info(f"✓ Forensic entry written to {entry_path}")
+
+        return {"written": True}
 
     # FR-185: Handle CopilotResult from copilot nodes
     from yamlgraph.models.schemas import CopilotResult
