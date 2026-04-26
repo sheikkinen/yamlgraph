@@ -107,11 +107,19 @@ class TestForensicFailurePreservation:
             assert (
                 "worktree preserved for inspection" in content.lower()
             ), "handle_failure() must log worktree preservation"
-            # Must NOT contain evidence destruction on failure
-            assert not (
-                "rm -f" in content
-                and "TOPIC_FILE" in content
-                and "handle_failure" in content
+            # Must NOT destroy topic file inside handle_failure()
+            # Extract handle_failure function body to check only that scope
+            import re
+
+            fn_match = re.search(
+                r"^handle_failure\(\)\s*\{(.+?)^}",
+                content,
+                re.MULTILINE | re.DOTALL,
+            )
+            assert fn_match, "handle_failure() function not found"
+            fn_body = fn_match.group(1)
+            assert (
+                "rm -f" not in fn_body or "TOPIC_FILE" not in fn_body
             ), "handle_failure() must not destroy topic file on failure"
 
     def test_failed_topics_moved_to_failed_directory(self):
