@@ -22,7 +22,7 @@ nodes:
     prompt: enforce-finalize
     backend: cli
     cli_flags:
-      model: claude-sonnet-4
+      model: gpt-5.3-codex
       allow_all_paths: true
       allow_all_tools: true
       resume: "{state.implement_result.session_id}"
