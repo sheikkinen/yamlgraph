@@ -107,3 +107,58 @@ Update `.chaplain/README.md` preflight section to describe:
 - `.chaplain/README.md`
 - `.chaplain/lib/watcher/dedup_gate.sh`
 - `.chaplain/lib/watcher/worktree_setup.sh`
+
+## Research Brief
+
+### Competitive Landscape
+
+- **Git + pre-commit are the closest existing product-level solution**, but they are setup-oriented, not runtime-enforced:
+  - Git exposes `core.hooksPath` configuration and path indirection, but does not enforce that local automation verifies hook integrity before running.
+    - <https://git-scm.com/docs/git-config#Documentation/git-config.txt-corehooksPath>
+  - pre-commit documents installing hook scripts (`pre-commit install`) and optional hook types, but does not provide a daemon preflight gate that blocks unrelated automation when hooks are missing/disabled.
+    - <https://pre-commit.com/>
+- **Agent/workflow frameworks (LangGraph, CrewAI, AutoGen, Google ADK, OpenAI Agents SDK)** focus on orchestration/state/reliability of agent execution, not SCM hook enforcement:
+  - LangGraph durable execution + idempotency guidance: <https://docs.langchain.com/oss/python/langgraph/durable-execution>
+  - CrewAI Flows orchestration/state: <https://docs.crewai.com/en/concepts/flows>
+  - AutoGen Core actor/event architecture: <https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/index.html>
+  - Google ADK workflow agents (deterministic flow control): <https://google.github.io/adk-docs/agents/workflow-agents/>
+  - OpenAI Agents SDK sessions/memory: <https://openai.github.io/openai-agents-python/sessions/>
+- **Would documenting be cheaper than building?** Yes for short-term setup guidance (document `pre-commit install` + hook-path reset), but insufficient for this failure mode because `core.hooksPath` drift is silent. A minimal executable preflight gate is the lower-risk fix.
+
+### Existing Abstractions
+
+- **Current preflight boundary exists, but no hook checks yet**:
+  - `.chaplain/lib/watcher/preflight.sh` (`preflight()` currently validates branch/pull/worktree/python only).
+  - `.chaplain/watcher2.sh` has fail-closed orchestration path: `if ! preflight; then handle_failure "preflight"`.
+- **Watcher guard patterns already established and reusable**:
+  - `.chaplain/lib/watcher/dedup_gate.sh` (boundary guard + explicit skip semantics).
+  - `.chaplain/lib/watcher/worktree_setup.sh` (external `gh` checks with guarded failure handling).
+- **Enforcement infrastructure already defined elsewhere** (but not checked by watcher2 preflight):
+  - `.pre-commit-config.yaml` includes `pre-commit` and `commit-msg` stage hooks (`conventional-pre-commit`, `feat-requires-fr`, `changelog-required`).
+  - `tests/unit/test_precommit_hooks.py` verifies commit-msg hook behavior.
+  - `.github/workflows/commitlint.yml` and related CI gates provide server-side enforcement after push.
+
+### Diary Precedents
+
+- `docs/diary/2026-04-25-reflection-fr-285-forensic-failure-diary.md`:
+  - **downstream_fix** lesson: normalize protections at one boundary (`handle_failure`) instead of scattered patches.
+- `docs/diary/2026-04-25-reflection-fr-284-ci-remediation-crash.md`:
+  - Infrastructure scripts under `set -e` are fragile; external command boundaries must be explicitly guarded.
+- `docs/diary/2026-04-25-reflection-fr-282-security-cve-ignore.md`:
+  - **infrastructure self-exempt** trap: infra changes need explicit proof and enforcement, not “config-only trust.”
+- `docs/diary/2026-04-25-reflection-fr-280-watcher2-red-verification-timestamp-fix.md`:
+  - Boundary-first fixes and intent-level assertions prevent fragile infrastructure behavior.
+
+### Usage Evidence
+
+- Existing graphs using related abstractions: **0** direct graph usages of watcher preflight hook-integrity validation (new capability).
+- Real-world use cases beyond the proposal:
+  - `.chaplain/watcher2.sh` daemon preflight path (1 direct callsite).
+  - Watcher-related demo graphs in `examples/demos/`: **7** (`watcher2-*` plus `forensic-failure-diary`).
+  - Internal watcher orchestration graphs under `.chaplain/graphs/`: **2** (`watcher-plan/graph.yaml`, `watcher-enforce/graph.yaml`) that depend on safe cycle admission even though they do not call `preflight()` directly.
+
+### Classification Signal
+
+- Abstraction level: **integration**
+- Recommended approach: **build**
+- Key risk: **False positives in environments intentionally using non-default `core.hooksPath` (shared hooks) could block valid runs unless policy is explicitly defined.**
