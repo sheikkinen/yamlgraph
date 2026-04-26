@@ -44,6 +44,7 @@ log_error() { echo -e "${RED}[watcher2]${NC} $1" >&2; }
 
 # ── Source libs ─────────────────────────────────────────────────────────
 source "$LIB_DIR/inbox_sync.sh"
+source "$LIB_DIR/dedup_gate.sh"
 source "$LIB_DIR/preflight.sh"
 source "$LIB_DIR/worktree_setup.sh"
 source "$LIB_DIR/worktree_teardown.sh"
@@ -143,6 +144,23 @@ while true; do
     WT_DIR=""
     WT_BRANCH=""
     MAIN_DIR="$(pwd)"
+
+    # ── Dedup gate (FR-completion check) ────────────────────────────────
+    if dedup_gate "$TOPIC_FILE"; then
+        dedup_gate_status=0
+    else
+        dedup_gate_status=$?
+        if [[ "$dedup_gate_status" == 2 ]]; then
+            CYCLE_OUTCOME="skipped"
+            log_info "Skipping topic due to already-completed FR ${DEDUP_FR_TOKEN:-unknown} (${DEDUP_MERGED_PR_REF:-merged PR found})"
+            rm "$TOPIC_FILE"
+            write_cycle_metrics
+            sleep "$POLL"
+            continue
+        fi
+        handle_failure "dedup gate"
+        continue
+    fi
 
     # ── Preflight ───────────────────────────────────────────────────────
     if ! preflight; then
