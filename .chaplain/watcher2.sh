@@ -485,8 +485,12 @@ print('UNKNOWN')
                 git add -A && ruff check --fix . && ruff check --fix --unsafe-fixes . && ruff format .
                 pre-commit run --all-files || true
                 git add -A
-                git commit -m "fix: watcher2 — CI remediation" --no-verify
-                git push origin "$WT_BRANCH"
+                if ! git diff --cached --quiet; then
+                    git commit -m "fix: watcher2 — CI remediation" --no-verify
+                    git push origin "$WT_BRANCH"
+                else
+                    log_warn "CI remediation produced no changes — skipping commit"
+                fi
 
                 cd "$MAIN_DIR"
                 if wait_ci; then
