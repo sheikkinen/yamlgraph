@@ -271,3 +271,46 @@ class TestSingleOrchestratorPattern:
                 assert (
                     total_obsolete_refs == 0
                 ), f"{doc_name} must not reference obsolete pipeline scripts"
+
+
+@pytest.mark.req("REQ-YG-309")
+class TestForensicFailureDiary:
+    """Forensic failure analysis invoked on handle_failure, generating diary entries."""
+
+    def test_handle_failure_invokes_forensic_graph(self):
+        """handle_failure must run watcher-forensic graph for LLM-driven analysis."""
+        watcher2_path = Path(".chaplain/watcher2.sh")
+        assert watcher2_path.exists()
+        content = watcher2_path.read_text()
+        import re
+
+        fn_match = re.search(
+            r"^handle_failure\(\)\s*\{(.+?)^}",
+            content,
+            re.MULTILINE | re.DOTALL,
+        )
+        assert fn_match, "handle_failure() function not found"
+        fn_body = fn_match.group(1)
+        assert (
+            "watcher-forensic" in fn_body
+        ), "handle_failure must invoke watcher-forensic graph"
+
+    def test_forensic_graph_exists(self):
+        """The watcher-forensic graph YAML must exist."""
+        graph_path = Path(".chaplain/graphs/watcher-forensic/graph.yaml")
+        assert graph_path.exists(), "watcher-forensic graph.yaml missing"
+
+    def test_forensic_collects_failure_context(self):
+        """handle_failure must pass failure_reason, log_files, worktree_state."""
+        watcher2_path = Path(".chaplain/watcher2.sh")
+        content = watcher2_path.read_text()
+        import re
+
+        fn_match = re.search(
+            r"^handle_failure\(\)\s*\{(.+?)^}",
+            content,
+            re.MULTILINE | re.DOTALL,
+        )
+        fn_body = fn_match.group(1)
+        for var in ["failure_reason", "log_files", "worktree_state"]:
+            assert var in fn_body, f"handle_failure must pass {var} to forensic graph"
