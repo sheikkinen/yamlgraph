@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-26
 
@@ -86,15 +86,15 @@ This preserves existing assumptions in docs, scripts, and FR traceability while 
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** `worktree_setup.sh` checks for merged PR history on the derived `WT_BRANCH` before `git worktree add`.
-- [ ] **AC-02:** If a merged PR exists for `WT_BRANCH`, `worktree_setup.sh` returns a dedicated skip code and logs the merged PR reference.
-- [ ] **AC-03:** `watcher2.sh` handles that skip code as non-failure (no `handle_failure` invocation).
-- [ ] **AC-04:** On skip, the processing topic file is consumed (removed from `.chaplain/processing`) so it is not retried in the next poll.
-- [ ] **AC-05:** Metrics record an explicit skip outcome for this path.
-- [ ] **AC-06:** When no merged PR exists, watcher2 behavior is unchanged (worktree creation proceeds normally).
-- [ ] **AC-07:** If `gh` is unavailable/query fails, guard degrades gracefully and does not crash watcher2.
-- [ ] **AC-08:** Tests added for merged-branch detection, skip control flow, and unchanged happy path.
-- [ ] **AC-09:** `.chaplain/README.md` updated to document the merged-branch collision guard.
+- [x] **AC-01:** `worktree_setup.sh` checks for merged PR history on the derived `WT_BRANCH` before `git worktree add`.
+- [x] **AC-02:** If a merged PR exists for `WT_BRANCH`, `worktree_setup.sh` returns a dedicated skip code and logs the merged PR reference.
+- [x] **AC-03:** `watcher2.sh` handles that skip code as non-failure (no `handle_failure` invocation).
+- [x] **AC-04:** On skip, the processing topic file is consumed (removed from `.chaplain/processing`) so it is not retried in the next poll.
+- [x] **AC-05:** Metrics record an explicit skip outcome for this path.
+- [x] **AC-06:** When no merged PR exists, watcher2 behavior is unchanged (worktree creation proceeds normally).
+- [x] **AC-07:** If `gh` is unavailable/query fails, guard degrades gracefully and does not crash watcher2.
+- [x] **AC-08:** Tests added for merged-branch detection, skip control flow, and unchanged happy path.
+- [x] **AC-09:** `.chaplain/README.md` updated to document the merged-branch collision guard.
 
 ## Alternatives Considered
 
