@@ -67,5 +67,3 @@ PASS: no-token path returns 0 (normal pipeline pass-through).
 PASS: gh query failure logs warning and stays non-fatal.
 PASS: watcher2 wiring executes dedup before preflight and records skipped metrics.
 PASS: .chaplain/README.md documents dedup gate and merged search contract.
-
-

@@ -1,9 +1,9 @@
 # Feature Request: FR-287 watcher2 deduplication gate — skip already-completed FRs
 
-**Priority:** HIGH  
-**Type:** Bug  
-**Status:** Implemented  
-**Effort:** 0.5 days  
+**Priority:** HIGH
+**Type:** Bug
+**Status:** Implemented
+**Effort:** 0.5 days
 **Requested:** 2026-04-26
 
 ## Summary
@@ -118,18 +118,18 @@ Update `.chaplain/README.md` with:
 
 ### Competitive Landscape
 
-- **LangGraph**: durable execution guidance emphasizes idempotent side effects and idempotency keys to avoid duplicate effects on resume, but it does not provide GitHub PR/FR completion dedup out of the box.  
+- **LangGraph**: durable execution guidance emphasizes idempotent side effects and idempotency keys to avoid duplicate effects on resume, but it does not provide GitHub PR/FR completion dedup out of the box.
   <https://docs.langchain.com/oss/python/langgraph/durable-execution>
-- **CrewAI Flows**: provides event-driven flows with persistent state IDs and control flow, but no native "already merged work item" gate tied to GitHub PR history.  
+- **CrewAI Flows**: provides event-driven flows with persistent state IDs and control flow, but no native "already merged work item" gate tied to GitHub PR history.
   <https://docs.crewai.com/en/concepts/flows>
-- **AutoGen Core**: focuses on resilient actor/event-driven multi-agent orchestration; dedup semantics against external SCM history are left to application logic.  
+- **AutoGen Core**: focuses on resilient actor/event-driven multi-agent orchestration; dedup semantics against external SCM history are left to application logic.
   <https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/index.html>
-- **Google ADK**: workflow agents are deterministic orchestrators (sequential/parallel/loop), but PR-history dedup is still an integration concern outside the framework primitive set.  
+- **Google ADK**: workflow agents are deterministic orchestrators (sequential/parallel/loop), but PR-history dedup is still an integration concern outside the framework primitive set.
   <https://google.github.io/adk-docs/agents/workflow-agents/>
-- **OpenAI Agents SDK**: sessions/sandbox support memory and resumable workspaces, but no built-in GitHub merged-PR dedup primitive.  
-  <https://openai.github.io/openai-agents-python/sessions/>  
+- **OpenAI Agents SDK**: sessions/sandbox support memory and resumable workspaces, but no built-in GitHub merged-PR dedup primitive.
+  <https://openai.github.io/openai-agents-python/sessions/>
   <https://openai.github.io/openai-agents-python/sandbox_agents/>
-- **GitHub Actions**: concurrency groups prevent overlapping runs, but do not answer "has this FR already been merged before?" for watcher2 topic re-ingestion.  
+- **GitHub Actions**: concurrency groups prevent overlapping runs, but do not answer "has this FR already been merged before?" for watcher2 topic re-ingestion.
   <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency>
 - **Build vs document**: documenting idempotency guidance alone is cheaper short-term, but it does not close this concrete watcher2 control-flow gap; a small guard in code is the lower-risk fix.
 
@@ -158,14 +158,14 @@ Update `.chaplain/README.md` with:
 - Existing graphs using related abstractions: **0** (no public `graphs/` or `examples/` graph currently implements FR-token merged-history dedup).
 - Real-world use cases beyond the proposal:
   - `.chaplain/watcher2.sh` production daemon path
-  - watcher2 demos (5):  
-    `examples/demos/watcher2-changelog-gen/graph.yaml`  
-    `examples/demos/watcher2-ci-remediation/graph.yaml`  
-    `examples/demos/watcher2-remediation/graph.yaml`  
-    `examples/demos/watcher2-red-verification/graph.yaml`  
+  - watcher2 demos (5):
+    `examples/demos/watcher2-changelog-gen/graph.yaml`
+    `examples/demos/watcher2-ci-remediation/graph.yaml`
+    `examples/demos/watcher2-remediation/graph.yaml`
+    `examples/demos/watcher2-red-verification/graph.yaml`
     `examples/demos/watcher2-merged-branch-collision-guard/graph.yaml`
-  - internal watcher orchestration graphs (2):  
-    `.chaplain/graphs/watcher-diary/graph.yaml`  
+  - internal watcher orchestration graphs (2):
+    `.chaplain/graphs/watcher-diary/graph.yaml`
     `.chaplain/graphs/watcher-forensic/graph.yaml`
 
 ### Classification Signal
