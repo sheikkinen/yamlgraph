@@ -14,9 +14,7 @@ description: |
 prompts_relative: true
 prompts_dir: prompts
 
-defaults:
-  provider: anthropic
-  model: claude-sonnet-4-5
+# NOTE: Do NOT define default provider/model — opus 4.6 is the project default.
 
 state:
   diary_dir: str                # Path to docs/diary/
