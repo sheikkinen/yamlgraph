@@ -56,5 +56,3 @@ PASS: matching inbox files are consumed into .chaplain/done and non-matches rema
 PASS: done directory is auto-created and filename collisions are handled safely.
 PASS: no-token path is explicit no-op and keeps merge success.
 PASS: .chaplain/README.md documents post-merge FR-token cleanup semantics.
-
-

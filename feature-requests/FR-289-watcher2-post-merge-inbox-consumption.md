@@ -1,9 +1,9 @@
 # Feature Request: FR-289 watcher2 post-merge inbox consumption for matching FR items
 
-**Priority:** HIGH  
-**Type:** Bug  
-**Status:** Implemented  
-**Effort:** 0.5 days  
+**Priority:** HIGH
+**Type:** Bug
+**Status:** Implemented
+**Effort:** 0.5 days
 **Requested:** 2026-04-26
 
 ## Summary
