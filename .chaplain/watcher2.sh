@@ -21,7 +21,7 @@ LOG_FILE="logs/watcher2-run-$(date +%Y%m%d-%H%M%S).log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # ── Log rotation — keep last 10 log files ───────────────────────────────
-find logs/ -name 'watcher2-run-*.log' -type f | sort | head -n -10 | xargs rm -f 2>/dev/null || true
+find logs/ -name 'watcher2-run-*.log' -type f | sort -r | tail -n +11 | xargs rm -f 2>/dev/null || true
 
 # ── Config ──────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
