@@ -191,6 +191,23 @@ sync_github_issues
 - Removes label and closes issue after import
 - Author validation against `.chaplain/allowed-authors.txt`
 
+#### `dedup_gate.sh`
+Pre-preflight dedup guard for already-completed FR topics.
+
+**Usage:**
+```bash
+source .chaplain/lib/watcher/dedup_gate.sh
+TOPIC_FILE=".chaplain/processing/gh-232.md"
+dedup_gate "$TOPIC_FILE"
+```
+
+**Functions:**
+- `dedup_gate()` - Extracts the first `FR-[0-9]+` token from topic content
+- Queries merged PR history with:
+  - `gh pr list --state merged --search "FR-XXX" --json number,url,mergedAt,title`
+- Returns skip code `2` when a merged PR is found for the FR token
+- Logs warnings and returns `0` when `gh` is unavailable or the merged query fails
+
 #### `metrics.sh`
 Performance tracking.
 
@@ -375,6 +392,7 @@ export YAMLGRAPH_LOG_LEVEL=DEBUG
 └── lib/                        # Shared utilities
     └── watcher/               # Shell tool library
         ├── inbox_sync.sh      # GitHub issue import
+        ├── dedup_gate.sh      # FR-token merged-history dedup
         ├── preflight.sh       # Environment validation
         ├── worktree_setup.sh  # Worktree creation
         ├── worktree_teardown.sh # Worktree cleanup
