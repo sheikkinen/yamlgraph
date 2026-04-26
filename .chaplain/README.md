@@ -178,9 +178,17 @@ post_merge
 ```
 
 **Functions:**
-- `post_merge()` - Updates local main branch after successful merge
-- Fetches latest changes from origin
-- Prepares for next cycle
+- `post_merge()` - Closes the originating `gh-*.md` issue after merge
+- Resolves merged FR token (`FR-[0-9]+`) in this order:
+  - `gh pr view "$PR_NUMBER" --json title --jq '.title'`
+  - fallback to existing `PR_TITLE`
+  - final fallback to `TOPIC_FILE` content
+- If no FR token resolves, logs explicit no-op and returns success
+- Scans `.chaplain/inbox/*.md` for files containing the resolved FR token
+- Moves matching inbox files to `.chaplain/done/` (consumed-completed queue)
+- Creates `.chaplain/done/` automatically when missing
+- Handles destination collisions by appending a timestamp suffix (no overwrite)
+- Logs token resolution outcome and consumed count
 
 ### Pipeline Support
 
@@ -397,6 +405,7 @@ export YAMLGRAPH_LOG_LEVEL=DEBUG
 ├── watcher2.sh                  # Main orchestrator script
 ├── allowed-authors.txt          # Authorized GitHub usernames
 ├── inbox/                       # Incoming proposal files
+├── done/                        # Consumed-completed inbox items
 ├── processing/                  # Items currently being processed
 ├── failed/                      # Failed cycles with forensics
 ├── graphs/                      # YAMLGraph pipeline definitions

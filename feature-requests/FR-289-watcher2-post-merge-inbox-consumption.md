@@ -2,7 +2,7 @@
 
 **Priority:** HIGH  
 **Type:** Bug  
-**Status:** Proposed  
+**Status:** Implemented  
 **Effort:** 0.5 days  
 **Requested:** 2026-04-26
 
@@ -75,15 +75,22 @@ Update `.chaplain/README.md` to document:
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** `post_merge.sh` resolves an `FR-[0-9]+` token from merged work context (PR metadata and/or existing watcher variables).
-- [ ] **AC-02:** On successful token resolution, post-merge scans `.chaplain/inbox/` for markdown files containing that token.
-- [ ] **AC-03:** Matching inbox files are moved to `.chaplain/done/` (not left in inbox), and non-matching files remain unchanged.
-- [ ] **AC-04:** `.chaplain/done/` is created automatically when absent.
-- [ ] **AC-05:** Destination collision is handled safely (no silent overwrite of existing done files).
-- [ ] **AC-06:** If no FR token is resolved, watcher2 continues normally and no inbox files are moved.
-- [ ] **AC-07:** Cleanup emits explicit logs for token resolution outcome and number of consumed files.
-- [ ] **AC-08:** Tests added in `tests/unit/test_fr289_watcher2_post_merge_inbox_consumption.py` covering token resolution path, inbox match consumption path, no-token no-op path, and done-directory handling.
-- [ ] **AC-09:** `.chaplain/README.md` documents post-merge inbox consumption and `.chaplain/done/` semantics.
+- [x] **AC-01:** `post_merge.sh` resolves an `FR-[0-9]+` token from merged work context (PR metadata and/or existing watcher variables).
+- [x] **AC-02:** On successful token resolution, post-merge scans `.chaplain/inbox/` for markdown files containing that token.
+- [x] **AC-03:** Matching inbox files are moved to `.chaplain/done/` (not left in inbox), and non-matching files remain unchanged.
+- [x] **AC-04:** `.chaplain/done/` is created automatically when absent.
+- [x] **AC-05:** Destination collision is handled safely (no silent overwrite of existing done files).
+- [x] **AC-06:** If no FR token is resolved, watcher2 continues normally and no inbox files are moved.
+- [x] **AC-07:** Cleanup emits explicit logs for token resolution outcome and number of consumed files.
+- [x] **AC-08:** Tests added in `tests/unit/test_fr289_watcher2_post_merge_inbox_consumption.py` covering token resolution path, inbox match consumption path, no-token no-op path, and done-directory handling.
+- [x] **AC-09:** `.chaplain/README.md` documents post-merge inbox consumption and `.chaplain/done/` semantics.
+
+## Implementation Notes
+
+- Added `resolve_post_merge_fr_token()` in `.chaplain/lib/watcher/post_merge.sh` with source order: `PR_NUMBER` (`gh pr view`) → `PR_TITLE` → `TOPIC_FILE`.
+- Added `consume_matching_inbox_items()` to scan `.chaplain/inbox/*.md`, create `.chaplain/done/`, move matching files, and suffix collisions with `-$(date +%Y%m%d%H%M%S)`.
+- Preserved no-token path as explicit logged no-op (`return 0`) so successful merges are never undone by cleanup.
+- Updated `.chaplain/README.md` to document post-merge token resolution, inbox scan/move behavior, and `.chaplain/done/` semantics.
 
 ## Alternatives Considered
 
