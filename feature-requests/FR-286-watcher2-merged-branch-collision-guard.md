@@ -165,3 +165,28 @@ This preserves existing assumptions in docs, scripts, and FR traceability while 
 - Abstraction level: **integration**
 - Recommended approach: **build**
 - Key risk: false-positive skips if a branch name is intentionally reused for a genuinely new task with the same topic basename, so skip criteria must be tightly tied to merged-PR evidence and logged clearly.
+
+## Judge Verdict
+
+**Verdict: APPROVE**
+
+### Evaluation
+
+1. **Scope clear and minimal:** Yes. The FR is focused on one defect class: recycled deterministic branch names producing ghost duplicate PRs.
+2. **Contradictions/ambiguities:** No blocking contradictions. The skip-path contract is coherent across `worktree_setup.sh`, `watcher2.sh`, metrics, and docs.
+3. **Acceptance criteria measurable:** Yes. AC-01..AC-09 are structurally testable against shell scripts and docs.
+4. **Implementation feasibility:** Yes. The approach is incremental and fits current watcher2 control flow.
+5. **Architecture alignment:** Yes. Boundary guard in `worktree_setup` plus orchestrator skip handling follows existing watcher2 shell-lib/orchestrator split.
+6. **Single responsibility:** Yes. This FR does not bundle unrelated feature work; docs and tests are directly coupled to the same bug fix.
+7. **Classification (per judge taxonomy):** **Contrib/example** — this is a targeted infrastructure hardening with a concrete watcher2 use case, not a framework primitive.
+8. **Acceptance tests validity:** `tests/unit/test_fr286_watcher2_merged_branch_collision_guard.py` compiles and fails for missing implementation behavior (not import/fixture failures), so the FR is sufficiently specified for implementation.
+
+### Scope Freeze
+
+Implementation authority is granted for this FR with the following frozen scope:
+
+- Add merged-PR collision detection before worktree creation.
+- Route collision to explicit skip control flow in watcher2 (no failure handler path).
+- Consume skipped processing topic and emit explicit skip metrics.
+- Update `.chaplain/README.md` for the new guard behavior.
+- Satisfy AC-01..AC-09 and no broader watcher2 refactors.
