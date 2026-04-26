@@ -261,140 +261,240 @@ transitions:
     event: stop
 
 actions:
-  # Phase 1 will wire these to actual action implementations.
-  # Stubs document the intended action type per state.
+  # ── PLANNING PHASE ──────────────────────────────────────────────────
 
   preflight:
-    - type: log
-      message: "🔧 Running preflight checks..."
-      level: info
+    - type: bash_context
+      command: "bash .chaplain/lib/watcher/preflight.sh"
+      capture_keys: []
+      success: preflight_done
+      error: error
+      description: "🔧 Running preflight checks"
 
   worktree_setup:
-    - type: log
-      message: "📁 Setting up worktree..."
-      level: info
+    - type: bash_context
+      command: "bash .chaplain/lib/watcher/worktree_setup.sh --topic {topic_file}"
+      capture_keys: [wt_dir, wt_branch, main_dir]
+      success: worktree_ready
+      error: error
+      description: "📁 Setting up worktree"
 
   planning:
-    - type: log
-      message: "📝 Planning..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-plan.yaml
+      vars:
+        topic_file: "{topic_file}"
+      success: plan_done
+      error: error
+      description: "📝 Planning"
 
   committing_plan:
-    - type: log
-      message: "💾 Committing plan..."
-      level: info
+    - type: git_commit
+      message: "feat: FR plan — {topic_file}"
+      add_paths: ["feature-requests/"]
+      capture_fr_path: true
+      success: plan_committed
+      error: error
+      description: "💾 Committing plan"
 
   researching:
-    - type: log
-      message: "🔬 Researching..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-research.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: research_done
+      error: error
+      description: "🔬 Researching"
 
   committing_research:
-    - type: log
-      message: "💾 Committing research..."
-      level: info
+    - type: git_commit
+      message: "docs: research — {topic_file}"
+      add_paths: ["."]
+      success: research_committed
+      error: error
+      description: "💾 Committing research"
 
   writing_tests:
-    - type: log
-      message: "🧪 Writing acceptance tests..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-tests.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: tests_written
+      error: error
+      description: "🧪 Writing acceptance tests"
 
   verifying_red:
-    - type: log
-      message: "🔴 Verifying RED..."
-      level: info
+    - type: bash
+      command: "cd {wt_dir} && python -m pytest tests/ --no-cov -x 2>&1 | tail -5; test ${PIPESTATUS[0]} -ne 0"
+      success: red_verified
+      error: error
+      description: "🔴 Verifying RED"
 
   judging:
-    - type: log
-      message: "⚖️ Judging feature request..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-judge.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      event_map:
+        APPROVE: approve
+        REJECT: reject
+        AMEND: amend
+        SPLIT: split
+      success: approve
+      error: error
+      description: "⚖️ Judging feature request"
 
   splitting:
-    - type: log
-      message: "✂️ Splitting feature request..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-split.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: split_done
+      error: error
+      description: "✂️ Splitting feature request"
+
+  # ── ENFORCEMENT PHASE ──────────────────────────────────────────────
 
   implementing:
-    - type: log
-      message: "🔨 Implementing..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-implement.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: implement_done
+      error: error
+      description: "🔨 Implementing"
 
   committing_implementation:
-    - type: log
-      message: "💾 Committing implementation..."
-      level: info
+    - type: git_commit
+      message: "feat: implementation — {topic_file}"
+      add_paths: ["."]
+      success: implementation_committed
+      error: error
+      description: "💾 Committing implementation"
 
   testing_demo:
-    - type: log
-      message: "🧪 Running tests and demo..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-test-demo.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: test_demo_done
+      error: error
+      description: "🧪 Running tests and demo"
 
   committing_tests:
-    - type: log
-      message: "💾 Committing tests..."
-      level: info
+    - type: git_commit
+      message: "test: acceptance tests — {topic_file}"
+      add_paths: ["."]
+      success: tests_committed
+      error: error
+      description: "💾 Committing tests"
 
   critiquing:
-    - type: log
-      message: "🔍 Critiquing implementation..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-critique.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: critique_done
+      error: error
+      description: "🔍 Critiquing implementation"
 
   changelog_gen:
-    - type: log
-      message: "📋 Generating changelog..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-changelog.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: changelog_done
+      error: error
+      description: "📋 Generating changelog"
 
   finalizing:
-    - type: log
-      message: "✨ Finalizing (pre-commit)..."
-      level: info
+    - type: precommit
+      max_attempts: 5
+      success: finalize_done
+      retry: precommit_retry
+      description: "✨ Finalizing (pre-commit)"
 
   pushing:
-    - type: log
-      message: "📤 Pushing to remote..."
-      level: info
+    - type: bash
+      command: "cd {wt_dir} && git push origin {wt_branch} --force-with-lease"
+      success: pushed
+      error: error
+      description: "📤 Pushing to remote"
 
   creating_pr:
-    - type: log
-      message: "🔗 Creating PR..."
-      level: info
+    - type: bash_context
+      command: "bash .chaplain/lib/watcher/create_pr.sh --branch {wt_branch} --dir {wt_dir}"
+      capture_keys: [pr_number, pr_url]
+      success: pr_created
+      error: error
+      description: "🔗 Creating PR"
 
   waiting_ci:
-    - type: log
-      message: "⏳ Waiting for CI on PR #{pr_number}..."
-      level: info
+    - type: bash_context
+      command: "bash .chaplain/lib/watcher/wait_ci.sh --pr {pr_number}"
+      capture_keys: [ci_result]
+      success: ci_passed
+      error: ci_failed
+      description: "⏳ Waiting for CI"
 
   remediating_ci:
-    - type: log
-      message: "🔧 Remediating CI failure..."
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-remediate.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+        pr_number: "{pr_number}"
+      success: remediated
+      error: error
+      description: "🔧 Remediating CI failure"
 
   merging:
-    - type: log
-      message: "🔀 Merging PR #{pr_number}..."
-      level: info
+    - type: bash
+      command: "gh pr merge {pr_number} --squash --delete-branch"
+      success: merged
+      error: error
+      description: "🔀 Merging PR"
 
   cleaning_up:
-    - type: log
-      message: "🧹 Cleaning up worktree..."
-      level: info
+    - type: bash
+      command: |
+        bash .chaplain/lib/watcher/worktree_teardown.sh --dir {wt_dir}
+        rm -f {topic_file}
+      success: cleaned_up
+      error: error
+      description: "🧹 Cleaning up worktree and topic file"
+
+  # ── TERMINAL STATES ────────────────────────────────────────────────
 
   completed:
-    - type: log
-      message: "✅ Pipeline completed"
-      level: info
+    - type: bash
+      command: "bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true"
+      description: "✅ Pipeline completed"
 
   failed:
-    - type: log
-      message: "❌ Pipeline failed"
-      level: error
+    - type: bash
+      command: |
+        mkdir -p .chaplain/failed
+        if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
+          mv "{topic_file}" .chaplain/failed/
+        fi
+      success: analyze
+      description: "❌ Pipeline failed — moving topic to failed/"
 
   forensics:
-    - type: log
-      message: "🔍 Running forensic analysis..."
-      level: info
-
-  stopped:
-    - type: log
-      message: "🛑 Pipeline stopped"
-      level: info
+    - type: yamlgraph_async
+      graph: graphs/watcher-plan/step-forensics.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      success: forensics_done
+      error: error
+      description: "🔍 Running forensic analysis"
