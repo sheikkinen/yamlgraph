@@ -113,3 +113,63 @@ Update `.chaplain/README.md` with:
 - `.chaplain/lib/watcher/worktree_setup.sh`
 - FR-275 watcher2 PR reuse
 - FR-286 merged-branch collision guard
+
+## Research Brief
+
+### Competitive Landscape
+
+- **LangGraph**: durable execution guidance emphasizes idempotent side effects and idempotency keys to avoid duplicate effects on resume, but it does not provide GitHub PR/FR completion dedup out of the box.  
+  <https://docs.langchain.com/oss/python/langgraph/durable-execution>
+- **CrewAI Flows**: provides event-driven flows with persistent state IDs and control flow, but no native "already merged work item" gate tied to GitHub PR history.  
+  <https://docs.crewai.com/en/concepts/flows>
+- **AutoGen Core**: focuses on resilient actor/event-driven multi-agent orchestration; dedup semantics against external SCM history are left to application logic.  
+  <https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/index.html>
+- **Google ADK**: workflow agents are deterministic orchestrators (sequential/parallel/loop), but PR-history dedup is still an integration concern outside the framework primitive set.  
+  <https://google.github.io/adk-docs/agents/workflow-agents/>
+- **OpenAI Agents SDK**: sessions/sandbox support memory and resumable workspaces, but no built-in GitHub merged-PR dedup primitive.  
+  <https://openai.github.io/openai-agents-python/sessions/>  
+  <https://openai.github.io/openai-agents-python/sandbox_agents/>
+- **GitHub Actions**: concurrency groups prevent overlapping runs, but do not answer "has this FR already been merged before?" for watcher2 topic re-ingestion.  
+  <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency>
+- **Build vs document**: documenting idempotency guidance alone is cheaper short-term, but it does not close this concrete watcher2 control-flow gap; a small guard in code is the lower-risk fix.
+
+### Existing Abstractions
+
+- Stage-level dedup already exists in `.chaplain/lib/watcher/inbox_sync.sh` (`inbox`/`processing`/`failed` presence checks), but it does not inspect FR completion.
+- Open-PR reuse exists in `.chaplain/lib/watcher/create_pr.sh` (`gh pr list --state open --head "$WT_BRANCH"`), but this is branch/open-state scoped.
+- Merged-branch collision guard exists in `.chaplain/lib/watcher/worktree_setup.sh` (`gh pr list --state merged --head "$WT_BRANCH"` with skip `return 2`) as defense-in-depth.
+- Skip control flow and metrics are already wired in `.chaplain/watcher2.sh` (`CYCLE_OUTCOME="skipped"`, `rm "$TOPIC_FILE"`, `write_cycle_metrics`).
+- Documentation and executable proofs already exist:
+  - `.chaplain/README.md` (merged-branch guard contract)
+  - `tests/unit/test_fr286_watcher2_merged_branch_collision_guard.py`
+  - `examples/demos/watcher2-merged-branch-collision-guard/graph.yaml`
+- **Gap confirmed**: no current watcher lib/orchestrator query uses `gh pr list --state merged --search "FR-XXX"` for FR-token completion dedup.
+
+### Diary Precedents
+
+- `docs/diary/2026-04-25-reflection-fr-284-ci-remediation-crash.md`: **downstream_fix** lesson — under `set -e`, unguarded `gh` calls are crash points and must be boundary-guarded.
+- `docs/diary/2026-04-25-reflection-fr-285-forensic-failure-diary.md`: normalize at a single boundary (`handle_failure`) instead of scattering fixes downstream.
+- `docs/diary/2026-04-25-reflection-fr-280-watcher2-red-verification-timestamp-fix.md`: **partial_remediation** risk — assert intent-level behavior, not incidental syntax.
+- `docs/diary/2026-04-23-reflection-fr-286-watcher2-merged-branch-collision-guard.md`: **false_duplicate** warning — boundary semantics can differ despite familiar syntax.
+- `docs/diary/2026-04-20-reflection-fr-258-automate-post-merge-finalization.md`: shared watcher library extraction pattern reduces drift between automation paths.
+
+### Usage Evidence
+
+- Existing graphs using related abstractions: **0** (no public `graphs/` or `examples/` graph currently implements FR-token merged-history dedup).
+- Real-world use cases beyond the proposal:
+  - `.chaplain/watcher2.sh` production daemon path
+  - watcher2 demos (5):  
+    `examples/demos/watcher2-changelog-gen/graph.yaml`  
+    `examples/demos/watcher2-ci-remediation/graph.yaml`  
+    `examples/demos/watcher2-remediation/graph.yaml`  
+    `examples/demos/watcher2-red-verification/graph.yaml`  
+    `examples/demos/watcher2-merged-branch-collision-guard/graph.yaml`
+  - internal watcher orchestration graphs (2):  
+    `.chaplain/graphs/watcher-diary/graph.yaml`  
+    `.chaplain/graphs/watcher-forensic/graph.yaml`
+
+### Classification Signal
+
+- Abstraction level: **integration**
+- Recommended approach: **build**
+- Key risk: naive FR-token extraction can cause false-positive skips when a topic references historical FRs contextually rather than declaring already-completed intent.
