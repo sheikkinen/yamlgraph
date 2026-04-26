@@ -155,3 +155,32 @@ Update `.chaplain/README.md` to document:
 - Abstraction level: **integration**
 - Recommended approach: **build**
 - Key risk: FR-token matching may over-consume unrelated inbox files that merely mention the same FR in background context unless token extraction and matching rules are tightly scoped and logged.
+
+## Judge Verdict
+
+**Verdict: APPROVE**
+
+### Evaluation
+
+1. **Scope clear and minimal:** Yes. The FR targets one bug class: stale inbox items left after successful merge.
+2. **Contradictions or ambiguities:** No blocking contradictions. The only notable risk (over-matching by FR token) is explicitly captured and can be handled within this FR by scoped matching and logs.
+3. **Acceptance criteria measurable:** Yes. AC-01..AC-09 are concrete and testable against shell script structure/behavior and README documentation.
+4. **Implementation approach feasible:** Yes. The change is localized to `post_merge.sh` + docs and reuses existing watcher shell patterns.
+5. **Architecture alignment:** Yes. The fix stays in watcher2 shell orchestration (`.chaplain/lib/watcher/*`) with no YAMLGraph runtime surface change.
+6. **Single responsibility:** Yes. This FR does not bundle unrelated pipeline refactors.
+7. **Classification (judge taxonomy):** **Contrib/example** — this is watcher2 integration hardening with limited use cases, not a framework primitive.
+8. **Acceptance tests validity:** `tests/unit/test_fr289_watcher2_post_merge_inbox_consumption.py` compiles and fails for missing implementation/doc behavior (8 failed, 1 passed), not for import/fixture errors.
+
+### Scope Freeze
+
+Implementation authority is granted for this FR with frozen scope:
+
+- Add FR-token resolution in `post_merge.sh` from merged work context (`PR_NUMBER`/`PR_TITLE` with topic fallback).
+- Scan `.chaplain/inbox/*.md` for token matches after successful merge.
+- Move matching files to `.chaplain/done/`, creating the directory when needed.
+- Preserve non-matching inbox files.
+- Handle destination filename collisions without overwrite.
+- Keep no-token behavior as explicit no-op with logs.
+- Emit explicit logs for token resolution and consumed file counts.
+- Update `.chaplain/README.md` to document post-merge inbox consumption and `.chaplain/done/` semantics.
+- Satisfy AC-01 through AC-09 without expanding into unrelated watcher2 refactors.
