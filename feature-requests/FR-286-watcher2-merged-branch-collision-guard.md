@@ -116,3 +116,52 @@ This preserves existing assumptions in docs, scripts, and FR traceability while 
 - `.chaplain/watcher2.sh`
 - `.chaplain/lib/watcher/create_pr.sh` (FR-275 open-PR reuse behavior)
 - `.chaplain/lib/watcher/inbox_sync.sh` (FR-243 remote inbox retry semantics)
+
+## Research Brief
+
+### Competitive Landscape
+
+- **LangGraph** focuses on durable execution/checkpoint replay and explicitly recommends idempotent side effects and idempotency keys on resume; it does not provide Git branch/PR collision handling primitives.  
+  Source: <https://docs.langchain.com/oss/python/langgraph/durable-execution>
+- **CrewAI Flows** provides flow state IDs plus persistence/resume (`@persist`) for workflow continuity, but no built-in branch naming or merged-PR dedup controls.  
+  Source: <https://docs.crewai.com/en/concepts/flows>
+- **AutoGen Core** is an event-driven agent runtime (resilient/distributed), with orchestration primitives rather than Git workflow guards.  
+  Source: <https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/index.html>
+- **Google ADK** positions itself around context management, failure handling, and task resume, but not repository branch lifecycle deduplication.  
+  Source: <https://google.github.io/adk-docs/>
+- **OpenAI Agents SDK** offers session memory and resumable sandbox sessions, but not branch/PR identity collision protection.  
+  Sources: <https://openai.github.io/openai-agents-python/sessions/>, <https://openai.github.io/openai-agents-python/sandbox_agents/>
+- **GitHub Actions** supports concurrency groups to suppress duplicate runs, but this addresses run overlap, not recycled branch-name collisions against merged PR history.  
+  Source: <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency>
+- **Renovate** is the closest precedent: it exposes explicit branch naming controls and `recreateWhen` (formerly `recreateClosed`) to control whether closed PRs are re-created. This validates adding first-class anti-duplication policy around branch/PR identity.  
+  Source: <https://docs.renovatebot.com/configuration-options/>
+
+**Build vs document:** documentation alone is not sufficient here. The defect is an active watcher2 control-flow gap at worktree creation time; a small guard in code is cheaper and safer than relying on operator discipline.
+
+### Existing Abstractions
+
+- Deterministic branch derivation already exists in `.chaplain/lib/watcher/worktree_setup.sh` (`WT_BRANCH="feat/watcher2-${topic_basename}"`), but there is no merged-history guard before `git worktree add`.
+- PR reuse exists in `.chaplain/lib/watcher/create_pr.sh`, but it only checks `gh pr list --state open --head "$WT_BRANCH"` (open PRs), not merged history.
+- Inbox-level dedup exists in `.chaplain/lib/watcher/inbox_sync.sh` (skip if file already in inbox/processing/failed), but it is file-stage dedup, not branch-history dedup.
+- Outcome telemetry exists in `.chaplain/lib/watcher/metrics.sh` (`outcome` field), so adding an explicit skip outcome fits existing abstraction.
+- Documentation currently codifies deterministic branch naming in `.chaplain/README.md` (worktree setup section), so this FR should update that contract.
+
+### Diary Precedents
+
+- `docs/diary/2026-04-25-reflection-fr-284-ci-remediation-crash.md` — warns against **downstream_fix**; external `gh` calls under `set -e` must be guarded at the boundary.
+- `docs/diary/2026-04-25-reflection-fr-285-forensic-failure-diary.md` — reinforces boundary centralization (“normalize at the entry boundary”) instead of scattered symptom patches.
+- `docs/diary/2026-04-25-reflection-fr-280-watcher2-red-verification-timestamp-fix.md` — highlights **partial_remediation** and fragile infra tests; intent-level checks preferred over incidental syntax coupling.
+- `docs/diary/2026-04-18-genesis.md` — prior dedup omission in automation infrastructure caused repeated duplicate proposals, validating defense-in-depth dedup gates.
+
+### Usage Evidence
+
+- Existing graphs using related abstractions: **0** (no YAML graphs/examples invoke `worktree_setup`/`create_pr` abstractions directly; this is shell orchestration infrastructure).
+- Real-world use cases beyond the proposal:
+  - Production watcher daemon: `.chaplain/watcher2.sh`
+  - Existing watcher2 demos: `examples/demos/watcher2-ci-remediation`, `examples/demos/watcher2-remediation`, `examples/demos/watcher2-red-verification`, `examples/demos/watcher2-changelog-gen`
+
+### Classification Signal
+
+- Abstraction level: **integration**
+- Recommended approach: **build**
+- Key risk: false-positive skips if a branch name is intentionally reused for a genuinely new task with the same topic basename, so skip criteria must be tightly tied to merged-PR evidence and logged clearly.
