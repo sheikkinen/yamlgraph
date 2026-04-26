@@ -48,9 +48,9 @@ class TestFR286PrecommitPytestSlowExclusion:
     def test_ac01_root_pytest_hook_includes_not_slow_marker(self) -> None:
         """AC-01: Root pytest hook includes `-m "not slow"`."""
         entry = _get_pytest_entry()
-        assert '-m "not slow"' in entry, (
-            "Root .pre-commit-config.yaml pytest hook must include " '-m "not slow".'
-        )
+        assert (
+            '-m "not slow"' in entry
+        ), 'Root .pre-commit-config.yaml pytest hook must include -m "not slow".'
 
     def test_ac02_hook_targets_unit_tests_with_slow_filter(self) -> None:
         """AC-02: Hook command targets unit tests and excludes slow tests."""

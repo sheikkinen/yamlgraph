@@ -85,51 +85,51 @@ entry: bash -c '.venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov -m
 
 ### Competitive Landscape
 
-- **LangGraph** runs tests via make targets (`test`, `test_parallel`, `test_watch`) rather than putting pytest in pre-commit; optimization is done through parallel execution and workflow commands, not a commit-hook slow marker split.  
+- **LangGraph** runs tests via make targets (`test`, `test_parallel`, `test_watch`) rather than putting pytest in pre-commit; optimization is done through parallel execution and workflow commands, not a commit-hook slow marker split.
   Link: https://github.com/langchain-ai/langgraph/blob/main/libs/langgraph/Makefile
-- **CrewAI** keeps pre-commit focused on lint/type/security hooks (ruff/mypy/pip-audit) and does not run pytest in pre-commit. Test performance is tuned in pytest addopts (`-n auto`, timeout, dist strategy).  
-  Links:  
-  https://github.com/crewAIInc/crewAI/blob/main/.pre-commit-config.yaml  
+- **CrewAI** keeps pre-commit focused on lint/type/security hooks (ruff/mypy/pip-audit) and does not run pytest in pre-commit. Test performance is tuned in pytest addopts (`-n auto`, timeout, dist strategy).
+  Links:
+  https://github.com/crewAIInc/crewAI/blob/main/.pre-commit-config.yaml
   https://github.com/crewAIInc/crewAI/blob/main/pyproject.toml
-- **Google ADK** similarly uses pre-commit for formatting/static checks and documents unit tests as a separate explicit step (`pytest ./tests/unittests`).  
-  Links:  
-  https://github.com/google/adk-python/blob/main/.pre-commit-config.yaml  
+- **Google ADK** similarly uses pre-commit for formatting/static checks and documents unit tests as a separate explicit step (`pytest ./tests/unittests`).
+  Links:
+  https://github.com/google/adk-python/blob/main/.pre-commit-config.yaml
   https://github.com/google/adk-python/blob/main/CONTRIBUTING.md
-- **OpenAI Agents SDK** separates test execution into make targets (`tests-parallel` with marker `not serial`, plus `tests-serial`) instead of pre-commit pytest gating.  
-  Links:  
-  https://github.com/openai/openai-agents-python/blob/main/Makefile  
+- **OpenAI Agents SDK** separates test execution into make targets (`tests-parallel` with marker `not serial`, plus `tests-serial`) instead of pre-commit pytest gating.
+  Links:
+  https://github.com/openai/openai-agents-python/blob/main/Makefile
   https://github.com/openai/openai-agents-python/blob/main/pyproject.toml
-- **AutoGen** centralizes checks in task runners (`poe test`/`poe check`) and defines targeted markers (e.g., `grpc`), not commit-hook slow-test filtering.  
-  Links:  
-  https://github.com/microsoft/autogen/blob/main/python/README.md  
+- **AutoGen** centralizes checks in task runners (`poe test`/`poe check`) and defines targeted markers (e.g., `grpc`), not commit-hook slow-test filtering.
+  Links:
+  https://github.com/microsoft/autogen/blob/main/python/README.md
   https://github.com/microsoft/autogen/blob/main/python/pyproject.toml
 
 **Cheaper-than-build assessment:** Documentation alone is **not** sufficient here because YAMLGraph already documents `-m "not slow"` while the root hook currently contradicts that behavior. A one-line config fix is cheaper and removes the inconsistency at the enforcement boundary.
 
 ### Existing Abstractions
 
-- Root pre-commit pytest hook exists and currently runs all unit tests without marker filtering:  
+- Root pre-commit pytest hook exists and currently runs all unit tests without marker filtering:
   `.pre-commit-config.yaml:226-229`
-- Slow marker infrastructure already exists (REQ-YG-275):  
-  `pyproject.toml:168-176`  
-  `ARCHITECTURE.md` (REQ-YG-275 table entry)  
+- Slow marker infrastructure already exists (REQ-YG-275):
+  `pyproject.toml:168-176`
+  `ARCHITECTURE.md` (REQ-YG-275 table entry)
   `capabilities/CAP-126-test-speed-optimization.yaml`
-- Fast/slow command pattern is already documented:  
+- Fast/slow command pattern is already documented:
   `CLAUDE.md:61` and `CLAUDE.md:67`
-- Existing tests already validate slow-marker behavior and command patterns:  
+- Existing tests already validate slow-marker behavior and command patterns:
   `tests/unit/test_fr275_test_speed_optimization.py`
-- Another local pre-commit pytest pattern exists in an example project (shows this is tooling-level, not graph-node-level):  
+- Another local pre-commit pytest pattern exists in an example project (shows this is tooling-level, not graph-node-level):
   `examples/rtm-hello/.pre-commit-config.yaml`
 
 ### Diary Precedents
 
-- `docs/diary/2026-04-24-reflection-fr-275-test-speed-optimization.md`  
-  - Trap: **quick_confidence/symptom_patch**  
+- `docs/diary/2026-04-24-reflection-fr-275-test-speed-optimization.md`
+  - Trap: **quick_confidence/symptom_patch**
   - Heuristic: **Measure before optimizing** (`time pytest tests/unit/ -m "not slow"`).
-- `docs/diary/2026-04-21-reflection-fr-261-inquisitor-into-watch-loop.md`  
-  - Trap: **infrastructure_self_exempt**  
+- `docs/diary/2026-04-21-reflection-fr-261-inquisitor-into-watch-loop.md`
+  - Trap: **infrastructure_self_exempt**
   - Heuristic: keep pre-commit gates fast; move expensive audits off commit critical path.
-- `docs/diary/2026-04-24-reflection-fr-263-hellograph-speed-azure.md`  
+- `docs/diary/2026-04-24-reflection-fr-263-hellograph-speed-azure.md`
   - Evidence that full-suite pre-commit behavior can block unrelated commits; seed suggests narrower commit-time test selection.
 
 ### Usage Evidence
