@@ -1,7 +1,11 @@
 ---
 name: watcher-forensic
 # Watcher2 Forensic Failure Analysis (FR-285)
-# Generates structured diary entries for failed cycles
+# Copilot node with full tool access — reads logs, inspects state, writes diary.
+# NOTE: Do NOT define model — opus 4.6 is the default and intended for forensic work.
+
+version: "1.0"
+prompts_relative: true
 
 vars:
   failure_reason: str
@@ -9,33 +13,19 @@ vars:
   log_files: str
   worktree_state: str
 
-tools:
-  write_diary_tool:
-    type: python
-    path: .chaplain/lib/diary.py
-    function: write_diary
-
 nodes:
   forensic_analysis:
+    type: copilot
     prompt: analyze_failure
-    provider: anthropic
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
     state_key: forensic_report
-    schema:
-      name: ForensicAnalysis
-      fields:
-        root_cause: {type: str, description: "Identified root cause of failure"}
-        failure_reason: {type: str, description: "Original failure reason"}
-        evidence: {type: "list[str]", description: "List of evidence sources"}
-        recommendations: {type: "list[str]", description: "Recommended preventive actions"}
-
-  write_diary:
-    type: tool
-    tool: write_diary_tool
-    state_key: written
-    skip_if_exists: true
+    timeout: 600
 
 edges:
+  - from: START
+    to: forensic_analysis
   - from: forensic_analysis
-    to: write_diary
-
-checkpointer: memory
+    to: END
