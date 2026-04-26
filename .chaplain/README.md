@@ -111,6 +111,14 @@ preflight
 - `preflight()` - Validates environment and git state
 - Checks for clean working directory
 - Ensures main branch is current
+- Enforces hook integrity before cycle admission:
+  - `core.hooksPath` must be unset or `.git/hooks` (optional trailing `/`)
+  - Required hooks: `.git/hooks/pre-commit` and `.git/hooks/commit-msg`
+  - Both required hook files must exist and be executable
+- Fails closed with remediation commands when hook enforcement is broken:
+  - `git config --local --unset core.hooksPath`
+  - `pre-commit install`
+  - `pre-commit install --hook-type commit-msg`
 
 ### Git/GitHub Integration
 
@@ -312,11 +320,16 @@ pip install -e .
 ### Pipeline Failures
 
 **Problem:** Cycles fail during preflight check
-**Solution:** Ensure clean working directory and updated main branch
+**Solution:** Ensure clean working directory, updated main branch, and valid hook enforcement
 ```bash
 git status  # Should be clean
 git checkout main
 git pull origin main
+git config --local --unset core.hooksPath
+pre-commit install
+pre-commit install --hook-type commit-msg
+# Verify required hooks exist and are executable:
+ls -l .git/hooks/pre-commit .git/hooks/commit-msg
 ```
 
 **Problem:** Worktree creation fails
