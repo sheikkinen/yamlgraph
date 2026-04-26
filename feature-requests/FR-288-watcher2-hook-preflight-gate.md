@@ -162,3 +162,30 @@ Update `.chaplain/README.md` preflight section to describe:
 - Abstraction level: **integration**
 - Recommended approach: **build**
 - Key risk: **False positives in environments intentionally using non-default `core.hooksPath` (shared hooks) could block valid runs unless policy is explicitly defined.**
+
+## Judge Verdict
+
+**Verdict: APPROVE**
+
+### Evaluation
+
+1. **Scope clear and minimal:** Yes. The FR targets one control boundary (`preflight.sh`) and one failure class (silent hook enforcement disablement).
+2. **Contradictions/ambiguities:** No blocking contradictions. The only policy sensitivity (non-default `core.hooksPath`) is already captured as explicit risk; implementation can enforce strict local policy as proposed.
+3. **Acceptance criteria measurable:** Yes. AC-01..AC-09 are concrete and testable by structural and behavior checks.
+4. **Implementation feasibility:** Yes. Existing watcher2 fail-closed preflight path and shell guard patterns make this low-risk to implement.
+5. **Architecture alignment:** Yes. Change stays in `.chaplain/lib/watcher/preflight.sh` plus `.chaplain/README.md`, matching current watcher shell-layer boundaries.
+6. **Single responsibility:** Yes. The FR does not bundle unrelated CI or pipeline features.
+7. **Classification (judge taxonomy):** **Contrib/example** — this is watcher2-specific infrastructure hardening with limited direct use cases, not a YAMLGraph framework primitive.
+8. **Acceptance tests validity:** `tests/unit/test_fr288_watcher2_hook_preflight_gate.py` compiles and fails for missing implementation/documentation (assertion failures), not import/fixture errors.
+
+### Scope Freeze
+
+Implementation authority is granted with frozen scope:
+
+- Add hook-integrity validation to `.chaplain/lib/watcher/preflight.sh`:
+  - validate `core.hooksPath` policy (unset or default repo hooks path only),
+  - validate `pre-commit` and `commit-msg` hook presence + executable bit,
+  - emit actionable remediation commands on failure.
+- Preserve existing watcher2 control flow in `.chaplain/watcher2.sh`: failed preflight remains fail-closed and blocks plan/enforce cycle execution.
+- Update `.chaplain/README.md` with enforced hook preflight contract.
+- Satisfy AC-01..AC-09 without expanding scope to full hook execution, CI redesign, or broader watcher refactors.
