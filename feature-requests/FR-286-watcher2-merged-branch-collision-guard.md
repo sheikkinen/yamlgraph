@@ -98,13 +98,13 @@ This preserves existing assumptions in docs, scripts, and FR traceability while 
 
 ## Alternatives Considered
 
-1. **Option A: Timestamp/hash suffix branch names (`feat/watcher2-gh-208-<suffix>`)**  
+1. **Option A: Timestamp/hash suffix branch names (`feat/watcher2-gh-208-<suffix>`)**
    Rejected for this FR. It avoids collisions but reduces traceability, complicates cleanup/debugging, and hides the missing dedup boundary instead of guarding it.
 
-2. **Option C only: Rely solely on Issue #232 dedup gate**  
+2. **Option C only: Rely solely on Issue #232 dedup gate**
    Rejected as sole mitigation. It should remain the primary gate, but this branch-level check is needed as defense-in-depth if dedup logic regresses or misses edge cases.
 
-3. **Remote branch-only detection via `git branch -r --list`**  
+3. **Remote branch-only detection via `git branch -r --list`**
    Rejected. Remote branch existence is weaker than merged PR history and can be absent after normal branch deletion.
 
 ## Related
@@ -121,19 +121,19 @@ This preserves existing assumptions in docs, scripts, and FR traceability while 
 
 ### Competitive Landscape
 
-- **LangGraph** focuses on durable execution/checkpoint replay and explicitly recommends idempotent side effects and idempotency keys on resume; it does not provide Git branch/PR collision handling primitives.  
+- **LangGraph** focuses on durable execution/checkpoint replay and explicitly recommends idempotent side effects and idempotency keys on resume; it does not provide Git branch/PR collision handling primitives.
   Source: <https://docs.langchain.com/oss/python/langgraph/durable-execution>
-- **CrewAI Flows** provides flow state IDs plus persistence/resume (`@persist`) for workflow continuity, but no built-in branch naming or merged-PR dedup controls.  
+- **CrewAI Flows** provides flow state IDs plus persistence/resume (`@persist`) for workflow continuity, but no built-in branch naming or merged-PR dedup controls.
   Source: <https://docs.crewai.com/en/concepts/flows>
-- **AutoGen Core** is an event-driven agent runtime (resilient/distributed), with orchestration primitives rather than Git workflow guards.  
+- **AutoGen Core** is an event-driven agent runtime (resilient/distributed), with orchestration primitives rather than Git workflow guards.
   Source: <https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/index.html>
-- **Google ADK** positions itself around context management, failure handling, and task resume, but not repository branch lifecycle deduplication.  
+- **Google ADK** positions itself around context management, failure handling, and task resume, but not repository branch lifecycle deduplication.
   Source: <https://google.github.io/adk-docs/>
-- **OpenAI Agents SDK** offers session memory and resumable sandbox sessions, but not branch/PR identity collision protection.  
+- **OpenAI Agents SDK** offers session memory and resumable sandbox sessions, but not branch/PR identity collision protection.
   Sources: <https://openai.github.io/openai-agents-python/sessions/>, <https://openai.github.io/openai-agents-python/sandbox_agents/>
-- **GitHub Actions** supports concurrency groups to suppress duplicate runs, but this addresses run overlap, not recycled branch-name collisions against merged PR history.  
+- **GitHub Actions** supports concurrency groups to suppress duplicate runs, but this addresses run overlap, not recycled branch-name collisions against merged PR history.
   Source: <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency>
-- **Renovate** is the closest precedent: it exposes explicit branch naming controls and `recreateWhen` (formerly `recreateClosed`) to control whether closed PRs are re-created. This validates adding first-class anti-duplication policy around branch/PR identity.  
+- **Renovate** is the closest precedent: it exposes explicit branch naming controls and `recreateWhen` (formerly `recreateClosed`) to control whether closed PRs are re-created. This validates adding first-class anti-duplication policy around branch/PR identity.
   Source: <https://docs.renovatebot.com/configuration-options/>
 
 **Build vs document:** documentation alone is not sufficient here. The defect is an active watcher2 control-flow gap at worktree creation time; a small guard in code is cheaper and safer than relying on operator discipline.

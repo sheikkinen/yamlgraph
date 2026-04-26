@@ -41,5 +41,3 @@ PASS: worktree merged-branch collision guard is implemented.
 PASS: watcher2 handles skip code 2 as a non-failure skip path.
 PASS: processing topic file is consumed and skip metrics are written.
 PASS: .chaplain/README.md documents merged branch checks.
-
-
