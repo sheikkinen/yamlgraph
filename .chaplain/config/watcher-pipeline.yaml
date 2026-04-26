@@ -1,0 +1,400 @@
+# Watcher2 Pipeline Worker FSM
+# Runs the full plan → judge → enforce → merge cycle for a single topic.
+# Phase 0: Declarative config only — actions will be wired in Phase 1.
+
+metadata:
+  name: "Watcher2 Pipeline Worker"
+  machine_name: watcher2_pipeline
+  version: "0.1.0"
+
+initial_state: preflight
+
+states:
+  # === PLANNING PHASE ===
+  - preflight
+  - worktree_setup
+  - planning
+  - committing_plan
+  - researching
+  - committing_research
+  - writing_tests
+  - verifying_red
+  - judging
+  - splitting
+
+  # === ENFORCEMENT PHASE ===
+  - implementing
+  - committing_implementation
+  - testing_demo
+  - committing_tests
+  - critiquing
+  - changelog_gen
+  - finalizing
+  - pushing
+  - creating_pr
+  - waiting_ci
+  - remediating_ci
+  - merging
+  - cleaning_up
+
+  # === TERMINAL STATES ===
+  - completed
+  - failed
+  - forensics
+  - stopped
+
+events:
+  # Dict format required for context_map support (NC-120)
+  preflight_done: {}
+  worktree_ready:
+    context_map:
+      wt_dir: payload.wt_dir
+      wt_branch: payload.wt_branch
+      main_dir: payload.main_dir
+  plan_done: {}
+  plan_committed: {}
+  research_done: {}
+  research_committed: {}
+  tests_written: {}
+  red_verified: {}
+  approve: {}
+  reject: {}
+  amend: {}
+  split: {}
+  split_done: {}
+  implement_done: {}
+  implementation_committed: {}
+  test_demo_done: {}
+  tests_committed: {}
+  critique_done: {}
+  changelog_done: {}
+  finalize_done: {}
+  precommit_retry: {}
+  pushed: {}
+  pr_created:
+    context_map:
+      pr_number: payload.pr_number
+      pr_url: payload.pr_url
+  ci_passed: {}
+  ci_failed: {}
+  remediated: {}
+  merged: {}
+  cleaned_up: {}
+  analyze: {}
+  forensics_done: {}
+  stop: {}
+  "timeout(600)": {}
+
+transitions:
+  # ── PLANNING PHASE ──────────────────────────────────────────────────
+
+  - from: preflight
+    to: worktree_setup
+    event: preflight_done
+
+  - from: worktree_setup
+    to: planning
+    event: worktree_ready
+
+  - from: planning
+    to: committing_plan
+    event: plan_done
+
+  - from: committing_plan
+    to: researching
+    event: plan_committed
+
+  - from: researching
+    to: committing_research
+    event: research_done
+
+  - from: committing_research
+    to: writing_tests
+    event: research_committed
+
+  - from: writing_tests
+    to: verifying_red
+    event: tests_written
+
+  - from: verifying_red
+    to: judging
+    event: red_verified
+
+  # ── VERDICT ROUTING ─────────────────────────────────────────────────
+
+  - from: judging
+    to: implementing
+    event: approve
+
+  - from: judging
+    to: failed
+    event: reject
+
+  - from: judging
+    to: failed
+    event: amend
+
+  - from: judging
+    to: splitting
+    event: split
+
+  - from: splitting
+    to: failed
+    event: split_done
+
+  # ── ENFORCEMENT PHASE ──────────────────────────────────────────────
+
+  - from: implementing
+    to: committing_implementation
+    event: implement_done
+
+  - from: committing_implementation
+    to: testing_demo
+    event: implementation_committed
+
+  - from: testing_demo
+    to: committing_tests
+    event: test_demo_done
+
+  - from: committing_tests
+    to: critiquing
+    event: tests_committed
+
+  - from: critiquing
+    to: changelog_gen
+    event: critique_done
+
+  - from: changelog_gen
+    to: finalizing
+    event: changelog_done
+
+  # Finalizing retry loop (pre-commit fix cycle, capped at 5)
+  - from: finalizing
+    to: finalizing
+    event: precommit_retry
+
+  - from: finalizing
+    to: pushing
+    event: finalize_done
+
+  - from: pushing
+    to: creating_pr
+    event: pushed
+
+  - from: creating_pr
+    to: waiting_ci
+    event: pr_created
+
+  # CI loop
+  - from: waiting_ci
+    to: merging
+    event: ci_passed
+
+  - from: waiting_ci
+    to: remediating_ci
+    event: ci_failed
+
+  - from: remediating_ci
+    to: waiting_ci
+    event: remediated
+
+  - from: merging
+    to: cleaning_up
+    event: merged
+
+  - from: cleaning_up
+    to: completed
+    event: cleaned_up
+
+  # ── FAILURE PATH ───────────────────────────────────────────────────
+
+  - from: failed
+    to: forensics
+    event: analyze
+
+  - from: forensics
+    to: completed
+    event: forensics_done
+
+  # ── TIMEOUTS (all yamlgraph_async states) ──────────────────────────
+
+  - from: planning
+    to: failed
+    event: "timeout(600)"
+
+  - from: researching
+    to: failed
+    event: "timeout(600)"
+
+  - from: writing_tests
+    to: failed
+    event: "timeout(600)"
+
+  - from: judging
+    to: failed
+    event: "timeout(600)"
+
+  - from: implementing
+    to: failed
+    event: "timeout(600)"
+
+  - from: testing_demo
+    to: failed
+    event: "timeout(600)"
+
+  - from: critiquing
+    to: failed
+    event: "timeout(600)"
+
+  - from: remediating_ci
+    to: failed
+    event: "timeout(600)"
+
+  - from: forensics
+    to: failed
+    event: "timeout(600)"
+
+  # ── GLOBAL SHUTDOWN ────────────────────────────────────────────────
+
+  - from: "*"
+    to: stopped
+    event: stop
+
+actions:
+  # Phase 1 will wire these to actual action implementations.
+  # Stubs document the intended action type per state.
+
+  preflight:
+    - type: log
+      message: "🔧 Running preflight checks..."
+      level: info
+
+  worktree_setup:
+    - type: log
+      message: "📁 Setting up worktree..."
+      level: info
+
+  planning:
+    - type: log
+      message: "📝 Planning..."
+      level: info
+
+  committing_plan:
+    - type: log
+      message: "💾 Committing plan..."
+      level: info
+
+  researching:
+    - type: log
+      message: "🔬 Researching..."
+      level: info
+
+  committing_research:
+    - type: log
+      message: "💾 Committing research..."
+      level: info
+
+  writing_tests:
+    - type: log
+      message: "🧪 Writing acceptance tests..."
+      level: info
+
+  verifying_red:
+    - type: log
+      message: "🔴 Verifying RED..."
+      level: info
+
+  judging:
+    - type: log
+      message: "⚖️ Judging feature request..."
+      level: info
+
+  splitting:
+    - type: log
+      message: "✂️ Splitting feature request..."
+      level: info
+
+  implementing:
+    - type: log
+      message: "🔨 Implementing..."
+      level: info
+
+  committing_implementation:
+    - type: log
+      message: "💾 Committing implementation..."
+      level: info
+
+  testing_demo:
+    - type: log
+      message: "🧪 Running tests and demo..."
+      level: info
+
+  committing_tests:
+    - type: log
+      message: "💾 Committing tests..."
+      level: info
+
+  critiquing:
+    - type: log
+      message: "🔍 Critiquing implementation..."
+      level: info
+
+  changelog_gen:
+    - type: log
+      message: "📋 Generating changelog..."
+      level: info
+
+  finalizing:
+    - type: log
+      message: "✨ Finalizing (pre-commit)..."
+      level: info
+
+  pushing:
+    - type: log
+      message: "📤 Pushing to remote..."
+      level: info
+
+  creating_pr:
+    - type: log
+      message: "🔗 Creating PR..."
+      level: info
+
+  waiting_ci:
+    - type: log
+      message: "⏳ Waiting for CI on PR #{pr_number}..."
+      level: info
+
+  remediating_ci:
+    - type: log
+      message: "🔧 Remediating CI failure..."
+      level: info
+
+  merging:
+    - type: log
+      message: "🔀 Merging PR #{pr_number}..."
+      level: info
+
+  cleaning_up:
+    - type: log
+      message: "🧹 Cleaning up worktree..."
+      level: info
+
+  completed:
+    - type: log
+      message: "✅ Pipeline completed"
+      level: info
+
+  failed:
+    - type: log
+      message: "❌ Pipeline failed"
+      level: error
+
+  forensics:
+    - type: log
+      message: "🔍 Running forensic analysis..."
+      level: info
+
+  stopped:
+    - type: log
+      message: "🛑 Pipeline stopped"
+      level: info
