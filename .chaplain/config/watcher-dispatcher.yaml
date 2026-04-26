@@ -1,0 +1,107 @@
+# Watcher2 Dispatcher FSM
+# Controller that polls inbox and spawns one pipeline worker per topic.
+# Phase 0: Declarative config only — actions will be wired in Phase 1.
+
+metadata:
+  name: "Watcher2 Dispatcher"
+  machine_name: watcher2_dispatcher
+  version: "0.1.0"
+
+initial_state: idle
+
+states:
+  - idle
+  - syncing_inbox
+  - checking_queue
+  - spawning_batch
+  - waiting_for_batch
+  - stopped
+
+events:
+  - "timeout(10)"
+  - sync_done
+  - jobs_found
+  - no_jobs
+  - spawned
+  - batch_empty
+  - "timeout(30)"
+  - batch_complete
+  - stop
+
+transitions:
+  # Polling loop: idle waits 10s then syncs inbox
+  - from: idle
+    to: syncing_inbox
+    event: "timeout(10)"
+
+  # After sync, check the job queue
+  - from: syncing_inbox
+    to: checking_queue
+    event: sync_done
+
+  # No pending jobs — return to idle
+  - from: checking_queue
+    to: idle
+    event: no_jobs
+
+  # Jobs found — start spawning workers
+  - from: checking_queue
+    to: spawning_batch
+    event: jobs_found
+
+  # Spawn workers one at a time (self-loop)
+  - from: spawning_batch
+    to: spawning_batch
+    event: spawned
+
+  # All jobs spawned — wait for workers
+  - from: spawning_batch
+    to: waiting_for_batch
+    event: batch_empty
+
+  # Poll worker status every 30s (self-loop)
+  - from: waiting_for_batch
+    to: waiting_for_batch
+    event: "timeout(30)"
+
+  # All workers done — return to idle
+  - from: waiting_for_batch
+    to: idle
+    event: batch_complete
+
+  # Global shutdown
+  - from: "*"
+    to: stopped
+    event: stop
+
+actions:
+  # Phase 1 will wire these to actual action implementations:
+  # syncing_inbox: bash → inbox_sync_wrapper.sh
+  # checking_queue: get_pending_jobs
+  # spawning_batch: pop_from_list + claim_job + add_to_list + start_fsm
+  # waiting_for_batch: wait_for_jobs
+
+  syncing_inbox:
+    - type: log
+      message: "📥 Syncing inbox..."
+      level: info
+
+  checking_queue:
+    - type: log
+      message: "🔍 Checking job queue..."
+      level: info
+
+  spawning_batch:
+    - type: log
+      message: "🚀 Spawning worker..."
+      level: info
+
+  waiting_for_batch:
+    - type: log
+      message: "⏳ Waiting for workers..."
+      level: info
+
+  stopped:
+    - type: log
+      message: "🛑 Dispatcher stopped"
+      level: info
