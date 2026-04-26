@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 0.25 days
 **Requested:** 2026-04-26
 
@@ -145,3 +145,15 @@ entry: bash -c '.venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov -m
 - Abstraction level: **pattern**
 - Recommended approach: **build**
 - Key risk: Excluding slow tests in pre-commit can hide regressions in slow paths unless CI/manual slow-test runs remain explicit and routinely enforced.
+
+## Judgment
+
+**VERDICT:** APPROVE
+
+**Scope:** FROZEN — this FR remains limited to the root `.pre-commit-config.yaml` `pytest` hook command and matching test assertions/documentation consistency checks. No new test abstraction, node type, or CI workflow change is in scope.
+
+**Classification:** **Pattern documentation** (existing abstractions already exist; this change enforces documented fast-test pattern at the pre-commit boundary).
+
+**Acceptance test assessment:** The RED acceptance tests in `tests/unit/test_fr286_precommit_pytest_exclude_slow.py` compile and fail for the correct reason (missing `-m "not slow"` in root pre-commit pytest entry), not for import/fixture/setup errors.
+
+**Authority:** GRANTED — proceed to implementation.
