@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.25 days
 **Requested:** 2026-04-26
 
@@ -58,12 +58,12 @@ entry: bash -c '.venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov -m
 
 ## Acceptance Criteria
 
-- [ ] Root `.pre-commit-config.yaml` `pytest` hook includes `-m "not slow"` in the command.
-- [ ] `pre-commit run pytest --all-files` executes unit tests without selecting `@pytest.mark.slow` tests.
-- [ ] Hook still fails on non-slow unit test failures.
-- [ ] Slow tests remain runnable via `pytest tests/unit/ -q --no-cov -m "slow"`.
-- [ ] Tests added (or existing test coverage extended) for hook command behavior if repository patterns require configuration assertions.
-- [ ] Documentation updated if any pre-commit command examples are affected.
+- [x] Root `.pre-commit-config.yaml` `pytest` hook includes `-m "not slow"` in the command.
+- [x] `pre-commit run pytest --all-files` executes unit tests without selecting `@pytest.mark.slow` tests.
+- [x] Hook still fails on non-slow unit test failures.
+- [x] Slow tests remain runnable via `pytest tests/unit/ -q --no-cov -m "slow"`.
+- [x] Tests added (or existing test coverage extended) for hook command behavior if repository patterns require configuration assertions.
+- [x] Documentation updated if any pre-commit command examples are affected.
 
 ## Alternatives Considered
 
