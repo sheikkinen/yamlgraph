@@ -66,6 +66,7 @@ nodes:
     type: copilot
     prompt: enforce-critique-and-distill
     cli_flags:
+      model: gpt-5.3-codex
       allow_all_paths: true
       allow_all_tools: true
       resume: "{state.implement_result.session_id}"
