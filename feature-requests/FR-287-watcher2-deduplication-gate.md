@@ -2,7 +2,7 @@
 
 **Priority:** HIGH  
 **Type:** Bug  
-**Status:** Proposed  
+**Status:** Implemented  
 **Effort:** 0.5 days  
 **Requested:** 2026-04-26
 
@@ -87,15 +87,15 @@ Update `.chaplain/README.md` with:
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** Watcher2 checks topic content for an FR token (`FR-[0-9]+`) before preflight/worktree setup.
-- [ ] **AC-02:** When an FR token exists, watcher2 queries merged PR history using `gh pr list --state merged --search "FR-XXX"`.
-- [ ] **AC-03:** If a merged PR is found for the FR token, watcher2 treats the cycle as skip (not failure) and does not run plan/enforce steps.
-- [ ] **AC-04:** Skip path consumes the processing topic file (`rm "$TOPIC_FILE"`), preventing immediate re-pick.
-- [ ] **AC-05:** Skip path writes cycle metrics with `outcome` set to `skipped`.
-- [ ] **AC-06:** If no FR token is present in the topic, watcher2 behavior is unchanged (pipeline proceeds normally).
-- [ ] **AC-07:** If `gh` is unavailable or merged-query fails, watcher2 logs a warning and continues (no crash).
-- [ ] **AC-08:** Tests added in `tests/unit/test_fr287_watcher2_deduplication_gate.py` covering merged-hit skip, no-token pass-through, and graceful failure behavior.
-- [ ] **AC-09:** `.chaplain/README.md` documents the dedup gate and merged-PR search contract.
+- [x] **AC-01:** Watcher2 checks topic content for an FR token (`FR-[0-9]+`) before preflight/worktree setup.
+- [x] **AC-02:** When an FR token exists, watcher2 queries merged PR history using `gh pr list --state merged --search "FR-XXX"`.
+- [x] **AC-03:** If a merged PR is found for the FR token, watcher2 treats the cycle as skip (not failure) and does not run plan/enforce steps.
+- [x] **AC-04:** Skip path consumes the processing topic file (`rm "$TOPIC_FILE"`), preventing immediate re-pick.
+- [x] **AC-05:** Skip path writes cycle metrics with `outcome` set to `skipped`.
+- [x] **AC-06:** If no FR token is present in the topic, watcher2 behavior is unchanged (pipeline proceeds normally).
+- [x] **AC-07:** If `gh` is unavailable or merged-query fails, watcher2 logs a warning and continues (no crash).
+- [x] **AC-08:** Tests added in `tests/unit/test_fr287_watcher2_deduplication_gate.py` covering merged-hit skip, no-token pass-through, and graceful failure behavior.
+- [x] **AC-09:** `.chaplain/README.md` documents the dedup gate and merged-PR search contract.
 
 ## Alternatives Considered
 
