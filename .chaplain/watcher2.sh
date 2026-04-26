@@ -14,6 +14,7 @@
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
+MAIN_DIR="$(pwd)"
 
 # ── Global logging — capture all output to timestamped log file ─────────
 mkdir -p logs
@@ -83,14 +84,14 @@ handle_failure() {
         # Collect relevant log files
         LOG_FILES=$(find tmp/ -name "watcher2-*.log" 2>/dev/null || true)
 
-        # Inspect worktree state if available
+        # Inspect worktree state if available (subshell to avoid cwd change)
         if [[ -n "${WT_DIR:-}" && -d "$WT_DIR" ]]; then
-            cd "$WT_DIR" 2>/dev/null || true
-            WORKTREE_STATE=$(git status --porcelain 2>/dev/null || echo "Git status unavailable")
+            WORKTREE_STATE=$(cd "$WT_DIR" && git status --porcelain 2>/dev/null || echo "Git status unavailable")
         fi
 
         # Run forensic analysis to generate diary entry
-        yamlgraph graph run .chaplain/graphs/watcher-forensic/graph.yaml \
+        # Use absolute path — cwd may have changed or worktree may lack .chaplain/
+        yamlgraph graph run "${MAIN_DIR}/.chaplain/graphs/watcher-forensic/graph.yaml" \
             --var failure_reason="$FAILURE_REASON" \
             --var topic_content="$TOPIC_CONTENT" \
             --var log_files="$LOG_FILES" \
