@@ -13,7 +13,7 @@
 #   POLL (default: 10) — seconds between inbox checks
 
 set -euo pipefail
-cd "$(dirname "$0")/.."  
+cd "$(dirname "$0")/.."
 
 # ── Global logging — capture all output to timestamped log file ─────────
 mkdir -p logs
