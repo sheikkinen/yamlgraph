@@ -173,3 +173,31 @@ Update `.chaplain/README.md` with:
 - Abstraction level: **integration**
 - Recommended approach: **build**
 - Key risk: naive FR-token extraction can cause false-positive skips when a topic references historical FRs contextually rather than declaring already-completed intent.
+
+## Judge Verdict
+
+**Verdict: APPROVE**
+
+### Evaluation
+
+1. **Scope clear and minimal:** Yes. The FR is tightly scoped to one bug class: re-processing already-completed FR topics in watcher2.
+2. **Contradictions/ambiguities:** No blocking contradictions. Main ambiguity (false-positive skips from incidental FR mentions) is identified in the research brief and can be handled within implementation constraints.
+3. **Acceptance criteria measurable:** Yes. AC-01..AC-09 are testable with structural/behavioral checks against watcher2 shell libs and docs.
+4. **Implementation feasibility:** Yes. The proposal fits existing watcher2 shell-lib architecture and mirrors established skip-code patterns (FR-286).
+5. **Architecture alignment:** Yes. Boundary check in watcher layer + orchestrator-owned skip/continue flow is consistent with current `.chaplain/lib/watcher/*` split.
+6. **Single responsibility:** Yes. This FR focuses on completion-state dedup only; it does not bundle unrelated pipeline refactors.
+7. **Classification (judge taxonomy):** **Contrib/example** — this is an infrastructure integration fix with limited watcher2-specific use cases, not a YAMLGraph framework primitive.
+8. **Acceptance tests validity:** `tests/unit/test_fr287_watcher2_deduplication_gate.py` compiles and fails for missing dedup implementation/documentation (not import/fixture failures), so the FR is sufficiently specified for enforcement.
+
+### Scope Freeze
+
+Implementation authority is granted for this FR with frozen scope:
+
+- Add FR-token dedup guard in watcher shell library (pre-preflight boundary check).
+- Query merged PR history with `gh pr list --state merged --search "FR-XXX"` when token exists.
+- Route merged-hit path to explicit skip control flow in `watcher2.sh` (no failure handler path).
+- Consume skipped processing topic and emit skipped cycle metrics.
+- Preserve pass-through behavior when no FR token exists.
+- Degrade gracefully when `gh` is unavailable/query fails.
+- Update `.chaplain/README.md` for dedup-gate contract and merged-search semantics.
+- Satisfy AC-01..AC-09 without expanding to broader watcher2 refactors.
