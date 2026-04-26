@@ -100,3 +100,58 @@ Update `.chaplain/README.md` to document:
 - `.chaplain/lib/watcher/dedup_gate.sh` (FR-287 processing-time dedup)
 - `feature-requests/FR-287-watcher2-deduplication-gate.md`
 - `feature-requests/FR-243-github-issues-remote-inbox.md`
+
+## Research Brief
+
+### Competitive Landscape
+
+- **LangGraph** emphasizes durable execution + idempotent side effects (`tasks`, idempotency keys), which is conceptually related but does not provide GitHub inbox-item cleanup primitives.
+  - <https://docs.langchain.com/oss/python/langgraph/durable-execution>
+- **CrewAI Flows** provides stateful event-driven orchestration, but no built-in “consume completed work item from external inbox” behavior.
+  - <https://docs.crewai.com/en/concepts/flows>
+- **AutoGen Core** provides resilient event-driven multi-agent runtime, but leaves queue dedup/cleanup policies to application code.
+  - <https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/index.html>
+- **Google ADK Workflow Agents** provides deterministic sequential/parallel/loop orchestration, not SCM-aware post-merge queue cleanup.
+  - <https://google.github.io/adk-docs/agents/workflow-agents/>
+- **OpenAI Agents SDK (Sessions)** provides conversation/run memory and resume semantics, not repository inbox lifecycle management.
+  - <https://openai.github.io/openai-agents-python/sessions/>
+- **GitHub Actions concurrency** controls overlapping runs per concurrency group, but does not solve stale local inbox artifacts tied to merged FRs.
+  - <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency>
+- **Build vs document:** documenting generic idempotency guidance would be cheaper short-term, but it does not close the concrete watcher2 gap (`post_merge` not consuming related inbox items). This needs a small integration fix in watcher shell libs.
+
+### Existing Abstractions
+
+- `.chaplain/lib/watcher/post_merge.sh` currently closes only the originating `gh-*.md` issue; no scan of `.chaplain/inbox/` for related FR tokens.
+- `.chaplain/lib/watcher/dedup_gate.sh` already extracts `FR-[0-9]+` and checks merged PR history at **processing time**.
+- `.chaplain/lib/watcher/inbox_sync.sh` already deduplicates by stage presence (`inbox`/`processing`/`failed`) when importing remote issues.
+- `.chaplain/watcher2.sh` already models queue lifecycle across `.chaplain/inbox`, `.chaplain/processing`, and `.chaplain/failed`; there is no completed queue (`.chaplain/done`) today.
+- `.chaplain/lib/watcher/metrics.sh` already emits outcome metrics, so post-merge cleanup changes can remain localized without new telemetry infrastructure.
+
+### Diary Precedents
+
+- `docs/diary/2026-04-20-reflection-fr-258-automate-post-merge-finalization.md`
+  - Trap: `downstream_fix`; cure was boundary normalization via shared shell lib extraction.
+- `docs/diary/2026-04-25-reflection-fr-285-forensic-failure-diary.md`
+  - Reinforces: centralize behavior at a single boundary (`handle_failure` in that FR), not scattered callsites.
+- `docs/diary/2026-04-25-reflection-fr-284-ci-remediation-crash.md`
+  - External `gh` calls under `set -e` are crash-prone; guard and log explicitly.
+- `docs/diary/2026-04-23-reflection-fr-287-watcher2-deduplication-gate.md`
+  - Prior dedup work confirms FR-token checks belong at explicit pipeline boundaries.
+- `docs/diary/2026-04-20-reflection-fr-243-github-issues-remote-inbox.md`
+  - Remote inbox widened intake boundary; this FR is the complementary cleanup boundary on exit.
+
+### Usage Evidence
+
+- Existing graphs using related abstractions: **0**
+  - No YAML graph under `graphs/` or `examples/` references `post_merge`, `.chaplain/done`, or this post-merge inbox-consumption behavior.
+- Real-world use cases beyond the proposal:
+  - `.chaplain/watcher2.sh` (single orchestrator callsite for `post_merge`)
+  - `.chaplain/lib/watcher/inbox_sync.sh` (remote inbox ingestion lifecycle)
+  - `.chaplain/lib/watcher/dedup_gate.sh` (processing-time dedup boundary)
+  - Watcher-focused demos in `examples/demos/watcher2-*/graph.yaml` (**7** demo graphs) and internal watcher graphs in `.chaplain/graphs/watcher-*/graph.yaml` (**2**), indicating active watcher2 operational surface even though none directly implement post-merge inbox consumption.
+
+### Classification Signal
+
+- Abstraction level: **integration**
+- Recommended approach: **build**
+- Key risk: FR-token matching may over-consume unrelated inbox files that merely mention the same FR in background context unless token extraction and matching rules are tightly scoped and logged.
