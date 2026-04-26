@@ -151,7 +151,18 @@ while true; do
     fi
 
     # ── Worktree setup ──────────────────────────────────────────────────
-    if ! worktree_setup; then
+    if worktree_setup; then
+        :
+    else
+        worktree_setup_status=$?
+        if [[ "$worktree_setup_status" == 2 ]]; then
+            CYCLE_OUTCOME="skipped"
+            log_info "Skipping topic due to merged branch collision guard for $WT_BRANCH"
+            rm "$TOPIC_FILE"
+            write_cycle_metrics
+            sleep "$POLL"
+            continue
+        fi
         handle_failure "worktree setup"
         continue
     fi

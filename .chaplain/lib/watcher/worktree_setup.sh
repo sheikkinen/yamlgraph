@@ -6,6 +6,8 @@
 
 worktree_setup() {
     local topic_basename
+    local existing_merged_pr
+    local gh_pr_list_exit=0
     topic_basename=$(basename "$TOPIC_FILE" .md)
 
     # Derive branch name from topic file
@@ -20,6 +22,24 @@ worktree_setup() {
     if git show-ref --verify --quiet "refs/heads/$WT_BRANCH" 2>/dev/null; then
         log_warn "Stale branch $WT_BRANCH exists — deleting"
         git branch -D "$WT_BRANCH" 2>/dev/null || true
+    fi
+
+    # Guard against recycled branch names that already have merged PR history
+    if command -v gh >/dev/null 2>&1; then
+        existing_merged_pr=$(gh pr list \
+            --state merged \
+            --head "$WT_BRANCH" \
+            --json number,url,mergedAt \
+            --jq '.[0] | select(.number != null)' 2>/dev/null) || gh_pr_list_exit=$? || true
+        if [[ "$gh_pr_list_exit" -ne 0 ]]; then
+            log_warn "Merged PR history query failed for $WT_BRANCH — continuing without collision guard"
+        elif [[ -n "$existing_merged_pr" ]]; then
+            WT_MERGED_PR_REF="$existing_merged_pr"
+            log_info "Skipping worktree setup: previously merged PR found for $WT_BRANCH ($existing_merged_pr)"
+            return 2
+        fi
+    else
+        log_warn "gh CLI unavailable — skipping merged PR collision guard for $WT_BRANCH"
     fi
 
     # Create worktree
