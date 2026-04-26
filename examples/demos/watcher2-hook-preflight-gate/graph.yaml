@@ -16,7 +16,7 @@ tools:
       python - <<'PY'
       from pathlib import Path
       import sys
-      
+
       content = Path(".chaplain/lib/watcher/preflight.sh").read_text()
       lower = content.lower()
       checks = [
@@ -29,11 +29,11 @@ tools:
           ("remediation command: pre-commit install", "pre-commit install" in content),
           ("remediation command: pre-commit install --hook-type commit-msg", "pre-commit install --hook-type commit-msg" in content),
       ]
-      
+
       failed = [name for name, ok in checks if not ok]
       for name, ok in checks:
           print(("PASS" if ok else "FAIL") + ": " + name)
-      
+
       if failed:
           sys.exit(1)
       PY
@@ -46,33 +46,33 @@ tools:
       echo "=== AC-02 / AC-03 / AC-04 / AC-07: runtime hook gate matrix ==="
       python - <<'PY'
       from __future__ import annotations
-      
+
       import re
       import stat
       import subprocess
       import sys
       from pathlib import Path
       from tempfile import TemporaryDirectory
-      
+
       repo_root = Path(".").resolve()
       preflight_sh = repo_root / ".chaplain" / "lib" / "watcher" / "preflight.sh"
-      
+
       def run(args: list[str], cwd: Path | None = None) -> None:
           subprocess.run(args, cwd=cwd, check=True, text=True, capture_output=True)
-      
+
       def init_repo(base: Path) -> Path:
           repo = base / "repo"
           repo.mkdir(parents=True, exist_ok=True)
           run(["git", "init", "-q"], cwd=repo)
           run(["git", "checkout", "-b", "main", "-q"], cwd=repo)
           return repo
-      
+
       def create_hook(path: Path, executable: bool = True) -> None:
           path.parent.mkdir(parents=True, exist_ok=True)
           path.write_text("#!/usr/bin/env bash\nexit 0\n")
           if executable:
               path.chmod(path.stat().st_mode | stat.S_IXUSR)
-      
+
       def run_preflight(repo: Path) -> int:
           script = """
       log_info() {{ :; }}
@@ -98,17 +98,17 @@ tools:
                   "Could not parse preflight return code: " + repr(proc.stdout)
               )
           return int(match.group(1))
-      
+
       with TemporaryDirectory() as tmp:
           root = Path(tmp)
-      
+
           # Scenario 1: empty hooksPath must fail.
           repo_empty = init_repo(root / "empty")
           run(["git", "config", "--local", "core.hooksPath", ""], cwd=repo_empty)
           create_hook(repo_empty / ".git" / "hooks" / "pre-commit", executable=True)
           create_hook(repo_empty / ".git" / "hooks" / "commit-msg", executable=True)
           rc_empty = run_preflight(repo_empty)
-      
+
           # Scenario 2: non-default hooksPath must fail.
           repo_non_default = init_repo(root / "non-default")
           run(
@@ -118,24 +118,24 @@ tools:
           create_hook(repo_non_default / ".githooks" / "pre-commit", executable=True)
           create_hook(repo_non_default / ".githooks" / "commit-msg", executable=True)
           rc_non_default = run_preflight(repo_non_default)
-      
+
           # Scenario 3: missing required pre-commit hook must fail.
           repo_missing = init_repo(root / "missing-hook")
           create_hook(repo_missing / ".git" / "hooks" / "commit-msg", executable=True)
           rc_missing = run_preflight(repo_missing)
-      
+
           # Scenario 4: non-executable commit-msg hook must fail.
           repo_non_exec = init_repo(root / "non-executable")
           create_hook(repo_non_exec / ".git" / "hooks" / "pre-commit", executable=True)
           create_hook(repo_non_exec / ".git" / "hooks" / "commit-msg", executable=False)
           rc_non_exec = run_preflight(repo_non_exec)
-      
+
           # Scenario 5: healthy default hooks must pass.
           repo_healthy = init_repo(root / "healthy")
           create_hook(repo_healthy / ".git" / "hooks" / "pre-commit", executable=True)
           create_hook(repo_healthy / ".git" / "hooks" / "commit-msg", executable=True)
           rc_healthy = run_preflight(repo_healthy)
-      
+
       checks = [
           ("empty core.hooksPath fails", rc_empty != 0),
           ("non-default core.hooksPath fails", rc_non_default != 0),
@@ -143,11 +143,11 @@ tools:
           ("non-executable commit-msg hook fails", rc_non_exec != 0),
           ("healthy hooks pass", rc_healthy == 0),
       ]
-      
+
       failed = [name for name, ok in checks if not ok]
       for name, ok in checks:
           print(("PASS" if ok else "FAIL") + ": " + name)
-      
+
       if failed:
           sys.exit(1)
       PY
@@ -161,10 +161,10 @@ tools:
       python - <<'PY'
       from pathlib import Path
       import sys
-      
+
       watcher = Path(".chaplain/watcher2.sh").read_text()
       preflight = Path(".chaplain/lib/watcher/preflight.sh").read_text()
-      
+
       preflight_guard_pos = watcher.find("if ! preflight; then")
       plan_pos = watcher.find("Step 1/4: Plan")
       checks = [
@@ -173,11 +173,11 @@ tools:
           ("preflight guard runs before plan", preflight_guard_pos != -1 and plan_pos != -1 and preflight_guard_pos < plan_pos),
           ("preflight script includes core.hooksPath gate", "core.hooksPath" in preflight or "core.hookspath" in preflight.lower()),
       ]
-      
+
       failed = [name for name, ok in checks if not ok]
       for name, ok in checks:
           print(("PASS" if ok else "FAIL") + ": " + name)
-      
+
       if failed:
           sys.exit(1)
       PY
@@ -191,7 +191,7 @@ tools:
       python - <<'PY'
       from pathlib import Path
       import sys
-      
+
       content = Path(".chaplain/README.md").read_text()
       lower = content.lower()
       checks = [
@@ -200,11 +200,11 @@ tools:
           ("README documents commit-msg executable requirement", "commit-msg" in lower and "executable" in lower),
           ("README includes unset core.hooksPath remediation", "git config --local --unset core.hooksPath" in content),
       ]
-      
+
       failed = [name for name, ok in checks if not ok]
       for name, ok in checks:
           print(("PASS" if ok else "FAIL") + ": " + name)
-      
+
       if failed:
           sys.exit(1)
       PY

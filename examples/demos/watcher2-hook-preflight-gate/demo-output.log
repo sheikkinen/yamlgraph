@@ -57,5 +57,3 @@ PASS: missing or non-executable required hooks fail closed.
 PASS: healthy .git/hooks pre-commit + commit-msg still pass preflight.
 PASS: watcher2 keeps preflight guard before plan and blocks unsafe cycles.
 PASS: .chaplain/README.md documents enforced contract and remediation.
-
-
