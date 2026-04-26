@@ -10,7 +10,7 @@ schema:
     recommendations: {type: "list[str]", description: "Recommended preventive actions"}
 
 user: |
-  Analyze this watcher2 cycle failure for forensic diary generation
+  Analyze this watcher2 cycle failure for forensic diary generation.
 
   **Failure Context:**
   - Failure reason: {{ failure_reason }}
