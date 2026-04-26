@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-04-26
 
@@ -83,15 +83,15 @@ Update `.chaplain/README.md` preflight section to describe:
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** `preflight.sh` validates `core.hooksPath` before reporting "Preflight complete".
-- [ ] **AC-02:** `preflight.sh` fails when `core.hooksPath` is explicitly empty.
-- [ ] **AC-03:** `preflight.sh` fails when `core.hooksPath` is set to a non-default location.
-- [ ] **AC-04:** `preflight.sh` verifies `pre-commit` and `commit-msg` exist and are executable in the resolved hooks directory.
-- [ ] **AC-05:** Hook validation failures emit actionable remediation commands in logs.
-- [ ] **AC-06:** On hook validation failure, watcher2 does not execute plan/research/acceptance/judge/enforce steps for that cycle.
-- [ ] **AC-07:** Existing behavior is unchanged when hooks are correctly configured and executable.
-- [ ] **AC-08:** Unit tests are added in `tests/unit/test_fr288_watcher2_hook_preflight_gate.py` covering misconfigured hooksPath, missing/non-executable hooks, and healthy pass-through.
-- [ ] **AC-09:** `.chaplain/README.md` is updated with the enforced hook preflight contract.
+- [x] **AC-01:** `preflight.sh` validates `core.hooksPath` before reporting "Preflight complete".
+- [x] **AC-02:** `preflight.sh` fails when `core.hooksPath` is explicitly empty.
+- [x] **AC-03:** `preflight.sh` fails when `core.hooksPath` is set to a non-default location.
+- [x] **AC-04:** `preflight.sh` verifies `pre-commit` and `commit-msg` exist and are executable in the resolved hooks directory.
+- [x] **AC-05:** Hook validation failures emit actionable remediation commands in logs.
+- [x] **AC-06:** On hook validation failure, watcher2 does not execute plan/research/acceptance/judge/enforce steps for that cycle.
+- [x] **AC-07:** Existing behavior is unchanged when hooks are correctly configured and executable.
+- [x] **AC-08:** Unit tests are added in `tests/unit/test_fr288_watcher2_hook_preflight_gate.py` covering misconfigured hooksPath, missing/non-executable hooks, and healthy pass-through.
+- [x] **AC-09:** `.chaplain/README.md` is updated with the enforced hook preflight contract.
 
 ## Alternatives Considered
 
