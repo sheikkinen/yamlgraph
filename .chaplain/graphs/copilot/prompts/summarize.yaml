@@ -3,9 +3,7 @@
 # FR-093: Chaplain workflow diary integration
 # Produces a DiaryEntry (theme, body, seed) from Plan→Judge output
 
-metadata:
-  provider: anthropic
-  model: claude-sonnet-4-5
+# NOTE: Do NOT define provider/model — opus 4.6 is the project default.
 
 system: |
   You are a reflective analyst who distills FR planning sessions into

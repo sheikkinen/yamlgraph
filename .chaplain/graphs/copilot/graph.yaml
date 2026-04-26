@@ -13,9 +13,8 @@ description: Feature request workflow using copilot nodes with session continuat
 prompts_relative: true
 prompts_dir: prompts
 
-defaults:
-  provider: anthropic
-  model: claude-haiku-4-5
+# NOTE: Do NOT define default provider/model — opus 4.6 is the project default.
+# Copilot nodes override model via cli_flags where needed.
 
 state:
   topic_file: str        # Path to the topic file (e.g., .chaplain/inbox/topic.md)
@@ -46,7 +45,6 @@ nodes:
     prompt: plan
     backend: cli
     cli_flags:
-      model: claude-sonnet-4.6
       allow_all_paths: true
       allow_all_tools: true
     variables:
