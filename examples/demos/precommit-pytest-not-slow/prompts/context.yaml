@@ -1,0 +1,4 @@
+text: |
+  FR-286 demonstration context:
+  The root pre-commit pytest hook must use marker expression -m "not slow"
+  so commit-time checks stay fast while slow tests remain available explicitly.

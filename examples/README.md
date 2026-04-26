@@ -114,6 +114,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | Demo | Description |
 |------|-------------|
 | [pipeline_audit](demos/pipeline_audit/) | Cross-pipeline structural analysis |
+| [precommit-pytest-not-slow](demos/precommit-pytest-not-slow/) | FR-286 pre-commit pytest hook not-slow contract demonstration |
 | [req-cross-check](demos/req-cross-check/) | Architecture requirement traceability audit |
 | [run-analyzer](demos/run-analyzer/) | Run output analysis utilities |
 | [script-retirement](demos/script-retirement/) | Pipeline script retirement verification (FR-276) |

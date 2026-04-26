@@ -1,0 +1,91 @@
+version: "1.0"
+name: precommit-pytest-not-slow-demo
+description: Demonstrate FR-286 by proving the root pre-commit pytest hook excludes slow tests
+
+tools:
+  verify_pytest_hook_entry:
+    command: |
+      .venv/bin/python - <<'PY'
+      from pathlib import Path
+      import yaml
+
+      expected_entry = (
+          "bash -c '.venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov "
+          '-m "not slow" && echo "" && echo "✓ Unit tests passed. Run integration '
+          'tests separately:" && echo "  pytest tests/integration/ -v"\''
+      )
+
+      config_path = Path(".pre-commit-config.yaml")
+      config = yaml.safe_load(config_path.read_text())
+      found = None
+
+      for repo in config.get("repos", []):
+          if repo.get("repo") != "local":
+              continue
+          for hook in repo.get("hooks", []):
+              if hook.get("id") == "pytest":
+                  found = hook.get("entry", "")
+                  break
+          if found is not None:
+              break
+
+      if found is None:
+          raise SystemExit("ERROR: root local pytest hook not found")
+
+      print("Root pytest hook entry:")
+      print(found)
+      print("")
+
+      if found != expected_entry:
+          raise SystemExit("ERROR: root pytest hook entry does not match FR-286 contract")
+
+      print('PASS: hook entry matches FR-286 and includes -m "not slow"')
+      PY
+    description: Validate root pre-commit pytest hook command contract
+
+  collect_not_slow_tests:
+    command: .venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov -m "not slow" --collect-only
+    description: Prove the pre-commit marker expression selects the non-slow subset
+
+  collect_slow_tests:
+    command: .venv/bin/python -m pytest tests/unit/ -q --no-cov -m "slow" --collect-only
+    description: Prove slow tests remain runnable outside pre-commit
+
+  finalize_demo:
+    command: |
+      echo "PASS: FR-286 demo complete."
+      echo "The pre-commit pytest hook excludes slow tests and slow tests are still runnable explicitly."
+    description: Print final demonstration result
+
+nodes:
+  verify_hook:
+    type: tool
+    tool: verify_pytest_hook_entry
+    state_key: hook_verification
+
+  run_not_slow_collect:
+    type: tool
+    tool: collect_not_slow_tests
+    state_key: not_slow_collect
+
+  run_slow_collect:
+    type: tool
+    tool: collect_slow_tests
+    state_key: slow_collect
+
+  done:
+    type: tool
+    tool: finalize_demo
+    state_key: demo_result
+
+edges:
+  - from: START
+    to: verify_hook
+  - from: verify_hook
+    to: run_not_slow_collect
+  - from: run_not_slow_collect
+    to: run_slow_collect
+  - from: run_slow_collect
+    to: done
+  - from: done
+    to: END
