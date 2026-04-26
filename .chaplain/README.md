@@ -77,6 +77,9 @@ worktree_setup
 
 **Functions:**
 - `worktree_setup()` - Creates `feat/watcher2-{topic}` branch and worktree
+- Merged-branch collision guard checks historical merges before worktree creation:
+  - `gh pr list --state merged --head "$WT_BRANCH" --json number,url,mergedAt`
+  - when a merged PR is found for the derived branch, setup returns skip code `2`
 - Prunes orphaned metadata and removes stale branches
 - Branch naming: `feat/watcher2-{basename-without-extension}`
 - Worktree location: `tmp/worktrees/{branch-name}`
