@@ -2,6 +2,7 @@
 """YAMLGraph MCP Server — expose graphs as Copilot/MCP tools.
 
 CAP-19: MCP Server Interface (REQ-YG-066, REQ-YG-067, REQ-YG-068)
+CAP-136: Per-graph typed MCP tools (REQ-YG-310–314)
 
 Usage (stdio transport):
     python yamlgraph/mcp_server.py
@@ -93,12 +94,26 @@ def create_server(
     graphs = discover_graphs(graph_patterns)
     graph_lookup: dict[str, dict[str, Any]] = {g["name"]: g for g in graphs}
 
+    # REQ-YG-314: Collision detection — tool_name must be unique
+    tool_name_to_graph: dict[str, str] = {}
+    for g in graphs:
+        tool_name = g["tool_name"]
+        if tool_name in tool_name_to_graph:
+            raise ValueError(
+                f"Tool name collision: '{tool_name}' used by both "
+                f"'{tool_name_to_graph[tool_name]}' and '{g['name']}'"
+            )
+        tool_name_to_graph[tool_name] = g["name"]
+
+    # REQ-YG-312: Build per-graph tool lookup (tool_name → graph info)
+    typed_tool_lookup: dict[str, dict[str, Any]] = {g["tool_name"]: g for g in graphs}
+
     server = Server("yamlgraph")
 
     @server.list_tools()
     async def handle_list_tools() -> list[types.Tool]:
-        """List yamlgraph_list_graphs and yamlgraph_run_graph tools."""
-        return [
+        """List generic tools and per-graph typed tools."""
+        tools = [
             types.Tool(
                 name="yamlgraph_list_graphs",
                 description=(
@@ -134,6 +149,18 @@ def create_server(
             ),
         ]
 
+        # REQ-YG-312: Per-graph typed tools
+        for g in graphs:
+            tools.append(
+                types.Tool(
+                    name=g["tool_name"],
+                    description=g["description"],
+                    inputSchema=g["input_schema"],
+                )
+            )
+
+        return tools
+
     @server.call_tool()
     async def handle_call_tool(
         name: str, arguments: dict[str, Any]
@@ -144,6 +171,11 @@ def create_server(
                 return _handle_list_graphs(graphs)
             elif name == "yamlgraph_run_graph":
                 return await _handle_run_graph(arguments, graph_lookup, server)
+            elif name in typed_tool_lookup:
+                # REQ-YG-312: Per-graph typed tool → delegate to run_graph
+                graph_info = typed_tool_lookup[name]
+                run_args = {"graph": graph_info["name"], "vars": arguments}
+                return await _handle_run_graph(run_args, graph_lookup, server)
             else:
                 return [
                     types.TextContent(
@@ -247,9 +279,15 @@ async def _handle_run_graph(
 
 async def main() -> None:
     """Run the MCP server with stdio transport."""
-    # Resolve patterns relative to this file's parent (project root)
-    project_root = Path(__file__).resolve().parent.parent
-    patterns = [str(project_root / p) for p in DEFAULT_GRAPH_PATTERNS]
+    import sys
+
+    # Accept --patterns arg or fall back to defaults
+    if "--patterns" in sys.argv:
+        idx = sys.argv.index("--patterns")
+        patterns = sys.argv[idx + 1 :]
+    else:
+        project_root = Path(__file__).resolve().parent.parent
+        patterns = [str(project_root / p) for p in DEFAULT_GRAPH_PATTERNS]
 
     server = create_server(graph_patterns=patterns)
 

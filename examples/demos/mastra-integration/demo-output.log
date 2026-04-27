@@ -1,0 +1,44 @@
+=== Mastra Integration Demo ===
+Project root: /Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr-291
+
+--- Step 1: Validate graph ---
+✅ graph.yaml - No issues found
+
+✅ All graphs passed linting
+
+--- Step 2: Install TS dependencies ---
+
+up to date in 433ms
+
+--- Step 3: Discover typed MCP tools ---
+=== YAMLGraph × Mastra MCP Integration ===
+
+Connecting to YAMLGraph MCP server...
+
+--- Phase 1: Tool Discovery ---
+[32mINFO[39m [2026-04-27 10:10:34.111 +0300] (LLM - MastraMCPClient): [36mSuccessfully connected to MCP server[39m
+2026-04-27 10:10:34,114 [INFO] mcp.server.lowlevel.server: Processing request of type ListToolsRequest
+Discovered 3 tools:
+  - yamlgraph_yamlgraph_list_graphs
+  - yamlgraph_yamlgraph_run_graph
+  - yamlgraph_hello_mastra
+
+✓ Per-graph typed tool "yamlgraph_hello_mastra" found!
+  Auto-generated from graph.yaml state block (FR-291).
+  Input schema: name(string), style(string)
+✓ Generic tool "yamlgraph_list_graphs" retained
+✓ Generic tool "yamlgraph_run_graph" retained
+
+--- Phase 2: Tool Execution ---
+2026-04-27 10:10:34,117 [INFO] mcp.server.lowlevel.server: Processing request of type CallToolRequest
+2026-04-27 10:10:34,122 [INFO] yamlgraph.node_compiler: Added node: greet (type=llm)
+2026-04-27 10:10:34,127 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-04-27 10:10:34,370 [ERROR] yamlgraph.error_handlers: Node greet failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+⚠ Graph executed but LLM call failed (no API key)
+  MCP round-trip: ✓ (tool called, graph compiled, state returned)
+  Set ANTHROPIC_API_KEY to get a real greeting.
+
+=== Demo complete — typed MCP tools verified ===
+
+--- Demo complete ---
