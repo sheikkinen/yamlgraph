@@ -388,6 +388,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Hardcoded bind-all address `0.0.0.0` in `build_agent_card` test call.
 - **Penance**: Test data verifying Agent Card URL construction. No actual network socket is opened — the function only builds a data structure. Required to test the host-to-URL mapping.
 
+### CONF-037
+- **File**: [tests/unit/test_mcp_typed_tools.py](../tests/unit/test_mcp_typed_tools.py#L21)
+- **Code**: E402
+- **Sin**: Import `mcp.types` after `pytest.importorskip("mcp")` guard.
+- **Penance**: Same pattern as CONF-034. The `mcp` package is an optional dependency; `importorskip` must execute before any `mcp` imports to skip the test file gracefully when the package is not installed.
+
 ---
 
 ## Example Code

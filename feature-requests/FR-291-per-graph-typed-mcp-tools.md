@@ -160,6 +160,7 @@ const result = await agent.generate("Customer says: where is my order #1234?");
 ### Piece 2: Mastra integration example
 - [ ] `examples/demos/mastra-integration/` with graph, prompts, TypeScript client
 - [ ] TypeScript client proves typed tool discovery via MCP (no LLM/API key required)
+- [ ] TypeScript client calls the per-graph typed tool and receives a result (requires API key; skipped gracefully when unavailable)
 - [ ] `demo.sh` runs successfully and produces `demo-output.log`
 - [ ] README documents full Mastra Agent pattern for users with API keys
 

@@ -79,6 +79,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [subgraph](demos/subgraph/) | `subgraph` | Graph composition |
 | [a2a_server](demos/a2a_server/) | `a2a` | A2A protocol server exposing graphs as agents (FR-208) |
 | [a2a_call](demos/a2a_call/) | `a2a_call`, `llm` | Call an external A2A agent from a graph (FR-240) |
+| [mastra-integration](demos/mastra-integration/) | `llm` | Cross-runtime: Mastra (TypeScript) discovers typed MCP tools (FR-291) |
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
 | [data-files](demos/data-files/) | `llm` | External data loading |
 | [diary-index](demos/diary_index/) | `map`, `python`, `llm` | Diary corpus cross-reference index (FR-254) |
