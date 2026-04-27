@@ -57,7 +57,10 @@ pre-commit install --hook-type commit-msg
 
 ### Testing
 ```bash
-# Ultra-fast tests (skip slow tests)
+# Ultra-fast parallel tests (skip slow, ~20s on 12 cores)
+pytest tests/unit/ -q --no-cov -m "not slow" -n auto
+
+# Ultra-fast tests sequential (skip slow, ~42s)
 pytest tests/unit/ -q --no-cov -m "not slow"
 
 # Fast unit tests (no coverage report)
