@@ -94,3 +94,6 @@ watcher.pid
 
 # Generated files (FR-179: append-only changelog fragments)
 CHANGELOG.md
+
+# Audio files
+*.wav
