@@ -54,7 +54,7 @@ def _yaml_type_to_json_schema(type_str: str) -> str:
 
 
 def _extract_input_vars(
-    state: dict[str, str],
+    state: dict[str, str | dict],
     nodes: dict[str, Any],
 ) -> dict[str, str]:
     """Separate input vars from output vars in the state block.
@@ -63,7 +63,7 @@ def _extract_input_vars(
     ``state_key``. Output vars (state_key targets) are excluded.
 
     Args:
-        state: State block from graph YAML (key → type string).
+        state: State block from graph YAML (key → type string or dict).
         nodes: Nodes block from graph YAML.
 
     Returns:
@@ -74,11 +74,19 @@ def _extract_input_vars(
         for node in nodes.values()
         if isinstance(node, dict) and "state_key" in node
     }
-    return {
-        key: _yaml_type_to_json_schema(type_str)
-        for key, type_str in state.items()
-        if key not in state_keys_used_as_output
-    }
+    result: dict[str, str] = {}
+    for key, type_val in state.items():
+        if key in state_keys_used_as_output:
+            continue
+        # State value can be a string ("str") or a dict ({"type": "list", "reducer": ...})
+        if isinstance(type_val, dict):
+            type_str = type_val.get("type", "str")
+        elif isinstance(type_val, str):
+            type_str = type_val
+        else:
+            type_str = "str"
+        result[key] = _yaml_type_to_json_schema(type_str)
+    return result
 
 
 def discover_graphs(patterns: list[str]) -> list[dict[str, Any]]:
@@ -126,8 +134,8 @@ def discover_graphs(patterns: list[str]) -> list[dict[str, Any]]:
                     _extract_input_vars(state, nodes) if isinstance(state, dict) else {}
                 )
 
-                # REQ-YG-313: Normalize tool name
-                tool_name = name.replace("-", "_")
+                # REQ-YG-313: Normalize tool name (hyphens/spaces → underscores)
+                tool_name = name.replace("-", "_").replace(" ", "_")
 
                 # REQ-YG-311: Build JSON Schema for MCP inputSchema
                 input_schema: dict[str, Any] = {

@@ -97,3 +97,4 @@ CHANGELOG.md
 
 # Audio files
 *.wav
+node_modules/

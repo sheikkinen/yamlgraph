@@ -279,9 +279,15 @@ async def _handle_run_graph(
 
 async def main() -> None:
     """Run the MCP server with stdio transport."""
-    # Resolve patterns relative to this file's parent (project root)
-    project_root = Path(__file__).resolve().parent.parent
-    patterns = [str(project_root / p) for p in DEFAULT_GRAPH_PATTERNS]
+    import sys
+
+    # Accept --patterns arg or fall back to defaults
+    if "--patterns" in sys.argv:
+        idx = sys.argv.index("--patterns")
+        patterns = sys.argv[idx + 1 :]
+    else:
+        project_root = Path(__file__).resolve().parent.parent
+        patterns = [str(project_root / p) for p in DEFAULT_GRAPH_PATTERNS]
 
     server = create_server(graph_patterns=patterns)
 

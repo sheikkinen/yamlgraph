@@ -1,0 +1,33 @@
+=== Mastra Integration Demo ===
+Project root: /Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr-291
+
+--- Step 1: Validate graph ---
+✅ graph.yaml - No issues found
+
+✅ All graphs passed linting
+
+--- Step 2: Install TS dependencies ---
+
+up to date in 395ms
+
+--- Step 3: Discover typed MCP tools ---
+=== YAMLGraph × Mastra MCP Integration ===
+
+Connecting to YAMLGraph MCP server...
+[32mINFO[39m [2026-04-27 09:44:59.360 +0300] (LLM - MastraMCPClient): [36mSuccessfully connected to MCP server[39m
+2026-04-27 09:44:59,363 [INFO] mcp.server.lowlevel.server: Processing request of type ListToolsRequest
+
+Discovered 3 tools:
+  - yamlgraph_yamlgraph_list_graphs
+  - yamlgraph_yamlgraph_run_graph
+  - yamlgraph_hello_mastra
+
+✓ Per-graph typed tool "yamlgraph_hello_mastra" found!
+  Auto-generated from graph.yaml state block (FR-291).
+  Input schema: name(string), style(string)
+✓ Generic tool "yamlgraph_list_graphs" retained
+✓ Generic tool "yamlgraph_run_graph" retained
+
+=== Demo complete — typed MCP tools verified ===
+
+--- Demo complete ---
