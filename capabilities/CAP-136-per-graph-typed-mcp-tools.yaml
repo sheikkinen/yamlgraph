@@ -1,0 +1,54 @@
+id: CAP-136
+name: Per-Graph Typed MCP Tools
+description: >
+  Derive per-graph typed MCP tool definitions from graph YAML metadata
+  (name, description, state) so each graph appears as its own named tool
+  with a typed JSON Schema. Shared schema derivation in discovery.py.
+
+modules:
+  - yamlgraph/discovery.py
+  - yamlgraph/mcp_server.py
+
+requirements:
+  - id: REQ-YG-310
+    description: >
+      Input/output var separation: discovery excludes state_key targets
+      from input_vars, exposing only user-supplied inputs.
+    modules:
+      - yamlgraph/discovery.py
+      - tests/unit/test_mcp_typed_tools.py
+
+  - id: REQ-YG-311
+    description: >
+      JSON Schema derivation from state type annotations. Maps str->string,
+      int->integer, float->number, bool->boolean, list->array, dict->object.
+      Parameterized types map to base type. Unknown types fall back to string.
+    modules:
+      - yamlgraph/discovery.py
+      - tests/unit/test_mcp_typed_tools.py
+
+  - id: REQ-YG-312
+    description: >
+      Per-graph MCP tool registration: each discovered graph registers as
+      its own named MCP tool with typed inputSchema derived from input_vars.
+    modules:
+      - yamlgraph/mcp_server.py
+      - tests/unit/test_mcp_typed_tools.py
+
+  - id: REQ-YG-313
+    description: >
+      Tool name normalization: graph name hyphens replaced with underscores
+      to produce valid MCP tool names.
+    modules:
+      - yamlgraph/discovery.py
+      - tests/unit/test_mcp_typed_tools.py
+
+  - id: REQ-YG-314
+    description: >
+      Name collision detection: duplicate tool_name values across discovered
+      graphs raise ValueError at server startup.
+    modules:
+      - yamlgraph/mcp_server.py
+      - tests/unit/test_mcp_typed_tools.py
+
+fr: FR-291
