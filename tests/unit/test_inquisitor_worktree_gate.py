@@ -98,6 +98,7 @@ def _init_repo(path) -> None:
     )
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-142")
 class TestWorktreeGateDetection:
     """Tests that the gate detects worktree vs main context."""
@@ -157,6 +158,7 @@ class TestWorktreeGateDetection:
         assert "WORKTREE_GATE_PASSED" in result.stdout
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-142")
 class TestWorktreeGateForceBypass:
     """Tests that --force bypasses the worktree gate."""

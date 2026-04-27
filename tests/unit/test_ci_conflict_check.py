@@ -157,6 +157,7 @@ class TestConflictCheckJobStructure:
 # ── Shell Script Logic Tests ───────────────────────────────────────────────
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-151")
 class TestConflictCheckShellLogic:
     """Test the actual grep pattern against real conflict marker content."""
