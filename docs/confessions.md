@@ -641,6 +641,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `list_diary_files(state)` ignores the `state` parameter — the function needs no input state.
 - **Penance**: YAMLGraph python-node signature requires a `state: dict` parameter. The function scans the filesystem directly, so `state` is unused but mandatory for the node contract.
 
+### CONF-142
+- **File**: [tests/unit/test_fr293_pytest_xdist.py](../tests/unit/test_fr293_pytest_xdist.py#L15)
+- **Code**: F401
+- **Sin**: `import xdist` appears unused — the module is imported but not referenced.
+- **Penance**: The import IS the test — we're asserting that xdist is importable (installed). F401 cannot understand this pattern.
+
 ### CONF-210
 - **File**: [yamlgraph/node_factory/copilot_node.py](../yamlgraph/node_factory/copilot_node.py#L292)
 - **Code**: S603

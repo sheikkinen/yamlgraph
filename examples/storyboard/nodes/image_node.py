@@ -66,7 +66,7 @@ def generate_images_node(state: GraphState) -> dict:
 
     # Get model selection from state (default: z-image)
     model_name = state.get("model", "z-image")
-    logger.info(f"\ud83d\uddbc\ufe0f  Using model: {model_name}")
+    logger.info(f"🖼️  Using model: {model_name}")
 
     # Generate each panel image
     results: list[ImageResult] = []
@@ -78,7 +78,7 @@ def generate_images_node(state: GraphState) -> dict:
             continue
 
         output_path = output_dir / f"panel_{i}.png"
-        logger.info(f"\ud83d\udcf8 Panel {i}: {prompt[:60]}...")
+        logger.info(f"📸 Panel {i}: {prompt[:60]}...")
 
         result = generate_image(prompt, output_path, model_name=model_name)
         results.append(result)
