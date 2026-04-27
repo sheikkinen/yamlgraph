@@ -190,11 +190,11 @@ class TestPipelineConfig:
             "log" not in action_types
         ), f"Pipeline still has log stubs: {action_types}"
 
-    def test_pipeline_retains_27_states(self):
-        """Pipeline keeps all 27 states from Phase 0."""
+    def test_pipeline_retains_25_states(self):
+        """Pipeline has 25 states after FR-292 simplification."""
         config = load_config(PIPELINE_PATH)
         states = config.get("states", [])
-        assert len(states) == 27, f"Expected 27 states, got {len(states)}: {states}"
+        assert len(states) == 25, f"Expected 25 states, got {len(states)}: {states}"
 
     @requires_fsm_cli
     def test_pipeline_validates_strict(self):
@@ -391,7 +391,7 @@ class TestBashContextAction:
             }
         )
         context = {"machine_name": "test"}
-        event = asyncio.get_event_loop().run_until_complete(action.execute(context))
+        event = asyncio.run(action.execute(context))
         assert event == "worktree_ready"
         assert context.get("wt_dir") == "/tmp/wt"
         assert context.get("wt_branch") == "feat/test"
@@ -408,7 +408,7 @@ class TestBashContextAction:
             }
         )
         context = {"machine_name": "test"}
-        event = asyncio.get_event_loop().run_until_complete(action.execute(context))
+        event = asyncio.run(action.execute(context))
         assert event == "fail"
 
     def test_returns_error_on_invalid_json(self):
@@ -423,7 +423,7 @@ class TestBashContextAction:
             }
         )
         context = {"machine_name": "test"}
-        event = asyncio.get_event_loop().run_until_complete(action.execute(context))
+        event = asyncio.run(action.execute(context))
         assert event == "fail"
 
     def test_template_substitution(self):
@@ -438,7 +438,7 @@ class TestBashContextAction:
             }
         )
         context = {"machine_name": "test", "topic_file": "hello.md"}
-        event = asyncio.get_event_loop().run_until_complete(action.execute(context))
+        event = asyncio.run(action.execute(context))
         assert event == "ok"
         assert context.get("result") == "hello.md"
 
@@ -580,7 +580,7 @@ class TestPrecommitAction:
         context = {"machine_name": "test", "precommit_attempt": 0}
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="failed")
-            event = asyncio.get_event_loop().run_until_complete(action.execute(context))
+            event = asyncio.run(action.execute(context))
         assert context.get("precommit_attempt", 0) >= 1
         assert event == "precommit_retry"
 
@@ -598,7 +598,7 @@ class TestPrecommitAction:
         context = {"machine_name": "test", "precommit_attempt": 2}
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="failed")
-            event = asyncio.get_event_loop().run_until_complete(action.execute(context))
+            event = asyncio.run(action.execute(context))
         assert event == "failed"
 
 

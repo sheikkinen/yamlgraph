@@ -143,11 +143,9 @@ PIPELINE_STATES = {
     "writing_tests",
     "verifying_red",
     "judging",
-    "splitting",
     "implementing",
     "committing_implementation",
     "testing_demo",
-    "committing_tests",
     "critiquing",
     "changelog_gen",
     "finalizing",
@@ -183,10 +181,10 @@ class TestPipelineConfig:
     def test_file_exists(self):
         assert PIPELINE_PATH.exists(), f"Pipeline config missing: {PIPELINE_PATH}"
 
-    def test_has_27_states(self):
+    def test_has_25_states(self):
         config = load_config(PIPELINE_PATH)
         states = get_states(config)
-        assert len(states) == 27, f"Expected 27 states, got {len(states)}: {states}"
+        assert len(states) == 25, f"Expected 25 states, got {len(states)}: {states}"
 
     def test_expected_states(self):
         config = load_config(PIPELINE_PATH)
@@ -227,7 +225,7 @@ class TestPipelineConfig:
     def test_judging_split_path(self):
         config = load_config(PIPELINE_PATH)
         transitions = get_transitions(config)
-        assert transition_exists(transitions, "judging", "splitting", "split")
+        assert transition_exists(transitions, "judging", "failed", "split")
 
     # ── AC-08: timeout(600) on all yamlgraph_async states ──
 
