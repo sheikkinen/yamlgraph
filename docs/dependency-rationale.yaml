@@ -80,6 +80,11 @@ dependencies:
     modules: ["pyproject.toml [tool.pytest.ini_options]"]
     added: "0.1.0"
 
+  pytest-xdist:
+    rationale: "Parallel test execution across 12 cores — FR-293 (42s → 21s)"
+    modules: ["tests/"]
+    added: "0.4.69"
+
   ruff:
     rationale: "Linter and formatter — Commandment 6 (expose every fault)"
     modules: ["pyproject.toml [tool.ruff]"]
