@@ -1,31 +1,26 @@
 # Watcher2 Dispatcher FSM
-# Controller that polls inbox and spawns one pipeline worker per topic.
-# Phase 0: Declarative config only — actions will be wired in Phase 1.
+# Sequential controller: poll inbox → pick one topic → run pipeline → repeat.
+# Phase 1: Real actions wired, sequential single-topic processing.
 
 metadata:
   name: "Watcher2 Dispatcher"
   machine_name: watcher2_dispatcher
-  version: "0.1.0"
+  version: "1.0.0"
 
 initial_state: idle
 
 states:
   - idle
   - syncing_inbox
-  - checking_queue
-  - spawning_batch
-  - waiting_for_batch
+  - processing_topic
   - stopped
 
 events:
   - "timeout(10)"
-  - sync_done
-  - jobs_found
-  - no_jobs
-  - spawned
-  - batch_empty
-  - "timeout(30)"
-  - batch_complete
+  - topic_found
+  - no_topics
+  - topic_done
+  - error
   - stop
 
 transitions:
@@ -34,40 +29,25 @@ transitions:
     to: syncing_inbox
     event: "timeout(10)"
 
-  # After sync, check the job queue
+  # Topic found — move to processing/ and run pipeline
   - from: syncing_inbox
-    to: checking_queue
-    event: sync_done
+    to: processing_topic
+    event: topic_found
 
-  # No pending jobs — return to idle
-  - from: checking_queue
+  # No topics — return to idle
+  - from: syncing_inbox
     to: idle
-    event: no_jobs
+    event: no_topics
 
-  # Jobs found — start spawning workers
-  - from: checking_queue
-    to: spawning_batch
-    event: jobs_found
-
-  # Spawn workers one at a time (self-loop)
-  - from: spawning_batch
-    to: spawning_batch
-    event: spawned
-
-  # All jobs spawned — wait for workers
-  - from: spawning_batch
-    to: waiting_for_batch
-    event: batch_empty
-
-  # Poll worker status every 30s (self-loop)
-  - from: waiting_for_batch
-    to: waiting_for_batch
-    event: "timeout(30)"
-
-  # All workers done — return to idle
-  - from: waiting_for_batch
+  # Pipeline completed — return to idle
+  - from: processing_topic
     to: idle
-    event: batch_complete
+    event: topic_done
+
+  # Pipeline error — return to idle (topic moved to failed/ by pipeline)
+  - from: processing_topic
+    to: idle
+    event: error
 
   # Global shutdown
   - from: "*"
@@ -75,33 +55,33 @@ transitions:
     event: stop
 
 actions:
-  # Phase 1 will wire these to actual action implementations:
-  # syncing_inbox: bash → inbox_sync_wrapper.sh
-  # checking_queue: get_pending_jobs
-  # spawning_batch: pop_from_list + claim_job + add_to_list + start_fsm
-  # waiting_for_batch: wait_for_jobs
-
   syncing_inbox:
-    - type: log
-      message: "📥 Syncing inbox..."
-      level: info
+    # Sync GitHub issues, find first topic, move to processing/
+    - type: bash_context
+      command: |
+        bash .chaplain/lib/watcher/inbox_sync.sh 2>/dev/null || true
+        topic=$(ls -1 .chaplain/inbox/*.md 2>/dev/null | head -1)
+        if [ -z "$topic" ]; then
+          echo '{"found": "false"}'
+          exit 1
+        fi
+        mkdir -p .chaplain/processing
+        basename=$(basename "$topic")
+        mv "$topic" ".chaplain/processing/$basename"
+        echo "{\"topic_file\": \".chaplain/processing/$basename\", \"found\": \"true\"}"
+      capture_keys: ["topic_file"]
+      success: topic_found
+      error: no_topics
+      description: "📥 Sync inbox and find next topic"
 
-  checking_queue:
-    - type: log
-      message: "🔍 Checking job queue..."
-      level: info
-
-  spawning_batch:
-    - type: log
-      message: "🚀 Spawning worker..."
-      level: info
-
-  waiting_for_batch:
-    - type: log
-      message: "⏳ Waiting for workers..."
-      level: info
-
-  stopped:
-    - type: log
-      message: "🛑 Dispatcher stopped"
-      level: info
+  processing_topic:
+    # Run the pipeline FSM for this topic
+    - type: bash
+      command: >-
+        statemachine .chaplain/config/watcher-pipeline.yaml
+        --actions-dir .chaplain/actions
+        --context topic_file={topic_file}
+      success: topic_done
+      error: error
+      timeout: 1800
+      description: "🚀 Run pipeline for topic"

@@ -63,4 +63,7 @@ worktree_setup() {
     fi
 
     log_info "Worktree ready: $WT_DIR"
+
+    # JSON stdout for bash_context_action
+    echo "{\"wt_dir\": \"$WT_DIR\", \"wt_branch\": \"$WT_BRANCH\", \"main_dir\": \"$MAIN_DIR\"}"
 }

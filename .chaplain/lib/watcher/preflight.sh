@@ -87,4 +87,7 @@ preflight() {
     fi
 
     log_info "Preflight complete"
+
+    # JSON stdout for bash_context_action
+    echo '{"status": "ok"}'
 }

@@ -65,10 +65,10 @@ class TestDispatcherConfig:
     def test_file_exists(self):
         assert DISPATCHER_PATH.exists(), f"Dispatcher config missing: {DISPATCHER_PATH}"
 
-    def test_has_6_states(self):
+    def test_has_4_states(self):
         config = load_config(DISPATCHER_PATH)
         states = get_states(config)
-        assert len(states) == 6, f"Expected 6 states, got {len(states)}: {states}"
+        assert len(states) == 4, f"Expected 4 states, got {len(states)}: {states}"
 
     def test_expected_states(self):
         config = load_config(DISPATCHER_PATH)
@@ -76,21 +76,19 @@ class TestDispatcherConfig:
         expected = {
             "idle",
             "syncing_inbox",
-            "checking_queue",
-            "spawning_batch",
-            "waiting_for_batch",
+            "processing_topic",
             "stopped",
         }
         assert (
             states == expected
         ), f"State mismatch: missing={expected - states}, extra={states - expected}"
 
-    def test_has_9_transition_rules(self):
+    def test_has_6_transition_rules(self):
         config = load_config(DISPATCHER_PATH)
         transitions = get_transitions(config)
         assert (
-            len(transitions) == 9
-        ), f"Expected 9 transition rules, got {len(transitions)}"
+            len(transitions) == 6
+        ), f"Expected 6 transition rules, got {len(transitions)}"
 
     def test_initial_state_is_idle(self):
         config = load_config(DISPATCHER_PATH)
@@ -102,54 +100,27 @@ class TestDispatcherConfig:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "idle", "syncing_inbox", "timeout(10)")
 
-    def test_sync_to_checking(self):
+    def test_sync_topic_found(self):
         config = load_config(DISPATCHER_PATH)
         transitions = get_transitions(config)
         assert transition_exists(
-            transitions, "syncing_inbox", "checking_queue", "sync_done"
+            transitions, "syncing_inbox", "processing_topic", "topic_found"
         )
 
-    def test_checking_no_jobs_returns_to_idle(self):
+    def test_sync_no_topics(self):
         config = load_config(DISPATCHER_PATH)
         transitions = get_transitions(config)
-        assert transition_exists(transitions, "checking_queue", "idle", "no_jobs")
+        assert transition_exists(transitions, "syncing_inbox", "idle", "no_topics")
 
-    def test_checking_jobs_found_spawns(self):
+    def test_processing_topic_done(self):
         config = load_config(DISPATCHER_PATH)
         transitions = get_transitions(config)
-        assert transition_exists(
-            transitions, "checking_queue", "spawning_batch", "jobs_found"
-        )
+        assert transition_exists(transitions, "processing_topic", "idle", "topic_done")
 
-    def test_spawning_self_loop(self):
-        """AC-06: spawning_batch self-loop on spawned."""
+    def test_processing_error(self):
         config = load_config(DISPATCHER_PATH)
         transitions = get_transitions(config)
-        assert transition_exists(
-            transitions, "spawning_batch", "spawning_batch", "spawned"
-        )
-
-    def test_spawning_to_waiting(self):
-        config = load_config(DISPATCHER_PATH)
-        transitions = get_transitions(config)
-        assert transition_exists(
-            transitions, "spawning_batch", "waiting_for_batch", "batch_empty"
-        )
-
-    def test_waiting_poll_loop(self):
-        """AC-06: waiting_for_batch self-loop on timeout(30)."""
-        config = load_config(DISPATCHER_PATH)
-        transitions = get_transitions(config)
-        assert transition_exists(
-            transitions, "waiting_for_batch", "waiting_for_batch", "timeout(30)"
-        )
-
-    def test_waiting_batch_complete(self):
-        config = load_config(DISPATCHER_PATH)
-        transitions = get_transitions(config)
-        assert transition_exists(
-            transitions, "waiting_for_batch", "idle", "batch_complete"
-        )
+        assert transition_exists(transitions, "processing_topic", "idle", "error")
 
     def test_global_stop(self):
         config = load_config(DISPATCHER_PATH)

@@ -33,16 +33,19 @@ wait_ci() {
         if echo "$status" | grep -qiE "FAILURE|ERROR"; then
             CI_RESULT="failure"
             log_error "CI failed for PR #$PR_NUMBER: $status"
+            echo "{\"ci_result\": \"failure\"}"
             return 1
         fi
 
         # All done (SUCCESS, SKIPPED, or mix of both)
         CI_RESULT="success"
         log_info "CI passed for PR #$PR_NUMBER"
+        echo "{\"ci_result\": \"success\"}"
         return 0
     done
 
     CI_RESULT="timeout"
     log_error "CI timed out after ${CI_TIMEOUT}s for PR #$PR_NUMBER"
+    echo "{\"ci_result\": \"timeout\"}"
     return 1
 }

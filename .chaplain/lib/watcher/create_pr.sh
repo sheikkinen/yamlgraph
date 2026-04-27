@@ -53,4 +53,7 @@ create_pr() {
         PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
         log_info "PR created: $PR_URL (#$PR_NUMBER)"
     fi
+
+    # JSON stdout for bash_context_action
+    echo "{\"pr_number\": \"$PR_NUMBER\", \"pr_url\": \"$PR_URL\"}"
 }
