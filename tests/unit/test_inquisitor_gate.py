@@ -12,6 +12,8 @@ import textwrap
 
 import pytest
 
+pytestmark = pytest.mark.slow
+
 # Strip git env vars that pre-commit injects (GIT_INDEX_FILE from stashing).
 _GIT_ENV_POISON = {"GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR"}
 

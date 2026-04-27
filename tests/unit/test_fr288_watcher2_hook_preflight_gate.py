@@ -53,6 +53,7 @@ echo "__PREFLIGHT_RC=$rc"
     return int(match.group(1)), proc.stdout, proc.stderr
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-276")
 class TestFR288PreflightHookGate:
     """AC-01..AC-05."""
@@ -133,6 +134,7 @@ class TestFR288PreflightHookGate:
         ), "Expected remediation command for commit-msg hook install"
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-276")
 class TestFR288Watcher2PreflightBoundary:
     """AC-06, AC-07, AC-08."""
@@ -168,6 +170,7 @@ class TestFR288Watcher2PreflightBoundary:
             or "core.hookspath" in PREFLIGHT_SH.read_text().lower()
         ), "Expected additive hook validation logic in preflight"
 
+    @pytest.mark.slow
     def test_ac08_scenario_coverage_matrix_for_hook_gate(self, tmp_path: Path):
         """AC-08: acceptance suite covers misconfigured and healthy hook scenarios."""
         repo_empty = _init_temp_repo(tmp_path / "empty")

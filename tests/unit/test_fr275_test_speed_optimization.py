@@ -30,6 +30,7 @@ class TestSlowMarkerInfrastructure:
             "slow: marks tests that take >1 second to complete" in content
         ), "The 'slow' pytest marker must be defined in [tool.pytest.ini_options] markers"
 
+    @pytest.mark.slow
     @pytest.mark.req("REQ-YG-275")
     def test_slow_marker_recognized_by_pytest(self):
         """Pytest should recognize the slow marker without warnings."""
@@ -103,6 +104,7 @@ class TestSlowTestMarking:
 class TestSlowTestFiltering:
     """AC-03: Fast test run (`-m "not slow"`) completes in <30 seconds."""
 
+    @pytest.mark.slow
     @pytest.mark.req("REQ-YG-275")
     def test_fast_test_run_excludes_slow_tests(self):
         """Running pytest -m 'not slow' should exclude slow-marked tests."""
@@ -128,6 +130,7 @@ class TestSlowTestFiltering:
             "deselected" in result.stdout
         ), "Fast test run should show some tests were deselected due to slow marker"
 
+    @pytest.mark.slow
     @pytest.mark.req("REQ-YG-275")
     def test_slow_test_run_includes_only_slow_tests(self):
         """Running pytest -m 'slow' should include only slow-marked tests."""
@@ -235,6 +238,7 @@ class TestMarkerFunctionality:
         # For now, this test will pass since it doesn't use sleep
         pass
 
+    @pytest.mark.slow
     @pytest.mark.req("REQ-YG-275")
     def test_marker_selection_syntax_works(self):
         """Verify that pytest marker selection syntax works correctly."""
@@ -254,6 +258,7 @@ class TestMarkerFunctionality:
 class TestNoTestBehaviorChanges:
     """AC-07: No test behavior changes (same pass/fail results)."""
 
+    @pytest.mark.slow
     @pytest.mark.req("REQ-YG-275")
     def test_all_tests_still_run_by_default(self):
         """Running pytest without markers should still run all tests."""
