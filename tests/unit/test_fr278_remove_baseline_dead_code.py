@@ -204,6 +204,7 @@ class TestFR278NoImportErrors:
                 raise
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-294")
 class TestFR278NoCodebaseReferences:
     """AC-11: No references to baseline functionality in grep search across codebase."""

@@ -172,6 +172,7 @@ class TestDemoGateJobStructure:
 # ── Shell Script Logic Tests ───────────────────────────────────────────────
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-200")
 class TestDemoProofShellLogic:
     """Test check_demo_proof.sh against real temp git repos."""

@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-063")
 def test_untagged_test_is_rejected(tmp_path: Path):
     """Verify pytest fails when a test lacks @pytest.mark.req."""
@@ -45,6 +46,7 @@ def test_untagged_test_is_rejected(tmp_path: Path):
     ), f"Expected enforcement error message in stderr. Got: {result.stderr}"
 
 
+@pytest.mark.slow
 @pytest.mark.req("REQ-YG-063")
 def test_tagged_test_is_accepted(tmp_path: Path):
     """Verify pytest allows tests with proper @pytest.mark.req."""
