@@ -15,6 +15,7 @@ Tests cover:
 import asyncio
 import importlib
 import inspect
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -28,6 +29,16 @@ CHAPLAIN = WORKTREE / ".chaplain"
 DISPATCHER_PATH = CHAPLAIN / "config" / "watcher-dispatcher.yaml"
 PIPELINE_PATH = CHAPLAIN / "config" / "watcher-pipeline.yaml"
 ACTIONS_DIR = CHAPLAIN / "actions"
+
+# Skip conditions for CI where statemachine-engine is not installed
+HAS_FSM_ENGINE = importlib.util.find_spec("statemachine_engine") is not None
+HAS_FSM_CLI = shutil.which("statemachine-validate") is not None
+requires_fsm_engine = pytest.mark.skipif(
+    not HAS_FSM_ENGINE, reason="statemachine_engine not installed"
+)
+requires_fsm_cli = pytest.mark.skipif(
+    not HAS_FSM_CLI, reason="statemachine CLI tools not installed"
+)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
@@ -132,6 +143,7 @@ class TestDispatcherConfig:
         assert has_transition("processing_topic", "idle", "topic_done")
         assert has_transition("*", "stopped", "stop")
 
+    @requires_fsm_cli
     def test_dispatcher_validates_strict(self):
         """AC-03: Dispatcher passes statemachine-validate --strict."""
         result = subprocess.run(
@@ -143,6 +155,7 @@ class TestDispatcherConfig:
             result.returncode == 0
         ), f"Dispatcher validation failed:\n{result.stdout}\n{result.stderr}"
 
+    @requires_fsm_cli
     def test_dispatcher_lints_clean(self):
         """AC-04: Dispatcher passes statemachine-lint (excluding E008/E012 — custom types)."""
         result = subprocess.run(
@@ -183,6 +196,7 @@ class TestPipelineConfig:
         states = config.get("states", [])
         assert len(states) == 27, f"Expected 27 states, got {len(states)}: {states}"
 
+    @requires_fsm_cli
     def test_pipeline_validates_strict(self):
         """AC-03: Pipeline passes statemachine-validate --strict."""
         result = subprocess.run(
@@ -194,6 +208,7 @@ class TestPipelineConfig:
             result.returncode == 0
         ), f"Pipeline validation failed:\n{result.stdout}\n{result.stderr}"
 
+    @requires_fsm_cli
     def test_pipeline_lints_clean(self):
         """AC-04: Pipeline passes statemachine-lint (excluding E008/E012 — custom types)."""
         result = subprocess.run(
@@ -255,6 +270,7 @@ class TestPipelineConfig:
 
 
 @pytest.mark.req("REQ-YG-162")
+@requires_fsm_engine
 class TestCustomActionModules:
     """AC-05 to AC-08: Custom action modules exist and are valid."""
 
@@ -324,6 +340,7 @@ class TestCustomActionModules:
 
 
 @pytest.mark.req("REQ-YG-162")
+@requires_fsm_engine
 class TestActionRegistration:
     """AC-09: All 4 custom actions are discoverable via ActionLoader."""
 
@@ -350,6 +367,7 @@ class TestActionRegistration:
 
 
 @pytest.mark.req("REQ-YG-162")
+@requires_fsm_engine
 class TestBashContextAction:
     """AC-10: BashContextAction parses JSON stdout and merges into context."""
 
@@ -431,6 +449,7 @@ class TestBashContextAction:
 
 
 @pytest.mark.req("REQ-YG-162")
+@requires_fsm_engine
 class TestYamlgraphAsyncAction:
     """AC-11: YamlgraphAsyncAction invokes yamlgraph and routes via event_map."""
 
@@ -478,6 +497,7 @@ class TestYamlgraphAsyncAction:
 
 
 @pytest.mark.req("REQ-YG-162")
+@requires_fsm_engine
 class TestGitCommitAction:
     """AC-12: GitCommitAction checks diff, commits, captures fr_path."""
 
@@ -521,6 +541,7 @@ class TestGitCommitAction:
 
 
 @pytest.mark.req("REQ-YG-162")
+@requires_fsm_engine
 class TestPrecommitAction:
     """AC-13: PrecommitAction retries up to max_attempts."""
 
