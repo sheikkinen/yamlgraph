@@ -1,6 +1,12 @@
 # Feature Request: FR-293 pytest-xdist parallel test execution
 
-## Status: Judged — Approved with amendments
+## Status: Enforced
+
+### Implementation Decisions
+- AC-07 resolved: CI excluded from xdist scope (coverage + xdist needs separate validation; CI has 2-4 cores where overhead may negate gains)
+- AC-08 deferred: Coverage correctness with xdist not yet validated for CI
+- Surrogate Unicode fix in `image_node.py` was required for xdist worker serialization
+- Pre-existing FR-291 failures (missing `statemachine-lint`) unrelated to xdist
 
 ## Problem
 
