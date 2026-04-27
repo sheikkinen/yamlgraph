@@ -17,6 +17,7 @@ All tests target the unmodified code and MUST fail (RED phase).
 
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -300,7 +301,15 @@ def test_trivial_example():
         # Run pytest on the found files to verify they pass (triggering the warning case)
         if found_files and found_files[0]:  # Only run if files actually found
             pytest_result = subprocess.run(
-                ["python", "-m", "pytest", found_files[0], "-x", "--no-cov", "-q"],
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    found_files[0],
+                    "-x",
+                    "--no-cov",
+                    "-q",
+                ],
                 capture_output=True,
                 text=True,
                 cwd=tmp_path,
