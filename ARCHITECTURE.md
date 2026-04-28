@@ -1684,6 +1684,7 @@ Comprehensive documentation for the watcher2 pipeline orchestrator and shell lib
 | REQ-YG-312 | Per-graph MCP tool registration: each discovered graph registers as its own named MCP tool with typed inputSchema derived from input_vars | `yamlgraph/mcp_server.py` |
 | REQ-YG-313 | Tool name normalization: graph name hyphens replaced with underscores to produce valid MCP tool names | `yamlgraph/discovery.py` |
 | REQ-YG-314 | Name collision detection: duplicate tool_name values across discovered graphs raise ValueError at server startup | `yamlgraph/mcp_server.py` |
+| REQ-YG-315 | Watcher FSM system startup script: single script starts UI (event socket), generates diagrams, and launches dispatcher with correct `--initial-context` in proper sequence; cleanup on SIGINT/SIGTERM kills all child processes by PID with pkill fallback; `--inbox DIR` overrides inbox directory | `.chaplain/scripts/start-system.sh` |
 
 ---
 

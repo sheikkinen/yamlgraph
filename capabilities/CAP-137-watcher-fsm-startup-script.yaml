@@ -1,0 +1,19 @@
+id: CAP-137
+name: Watcher FSM System Startup Script
+description: >
+  Single startup script for the full watcher FSM system. Starts UI (creates
+  event socket), generates diagrams, launches dispatcher with correct
+  --initial-context in proper sequence. Signal-based cleanup kills all child
+  processes. --inbox DIR overrides inbox directory.
+modules:
+  - .chaplain/scripts/start-system.sh
+requirements:
+  - id: REQ-YG-315
+    description: >
+      Watcher FSM system startup script: single script starts UI (event socket),
+      generates diagrams, and launches dispatcher with correct --initial-context
+      in proper sequence; cleanup on SIGINT/SIGTERM kills all child processes by
+      PID with pkill fallback; --inbox DIR overrides inbox directory
+    modules:
+      - .chaplain/scripts/start-system.sh
+fr: FR-296
