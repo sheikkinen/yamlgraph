@@ -89,6 +89,7 @@ docs/ebook/v*/
 
 # Planning files
 .chaplain/inbox/
+.chaplain/inbox-fsm/
 .chaplain/drafts/
 watcher.pid
 
