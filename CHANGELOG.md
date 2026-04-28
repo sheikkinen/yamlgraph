@@ -8,6 +8,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.74]
+
+### Added
+- **FR-296 Watcher FSM Startup Script**: Single `start-system.sh` starts the full watcher FSM system (UI, diagrams, dispatcher) with proper sequencing, health checks, signal-based teardown, and `--inbox DIR` override. (REQ-YG-315)
+- **FR-295 Phase 2 Single-Worker Validation**: Make dispatcher inbox path configurable via `{inbox_dir}` context variable (default: `.chaplain/inbox`). Add `.chaplain/inbox-fsm/` test inbox for isolated FSM validation. Add `validate-fsm-single.sh` script for end-to-end single-topic validation.
+- **FR-292 Pipeline Path Alignment**: Align 9 graph path references in watcher-pipeline.yaml with actual disk paths under `.chaplain/graphs/`. Remove 2 phantom states (splitting, committing_tests). Convert changelog_gen to inline bash. Fix asyncio event loop pollution in FR-291 tests.
+- **FR-291 Phase 1 Action Wiring**: Wire real actions into watcher FSM configs — 4 custom actions (bash_context, yamlgraph_async, git_commit, precommit), sequential dispatcher (4 states), pipeline with no log stubs, JSON stdout for lib scripts.
+- **FR-291 Per-Graph Typed MCP Tools**: Each discovered graph is now exposed as its own named MCP tool with typed JSON Schema derived from the graph's `state:` block. Input/output separation via `state_key` exclusion. Tool names normalized (hyphens/spaces → underscores). Collision detection at startup. Mastra (TypeScript) integration example proves cross-runtime discovery and execution. (REQ-YG-310, REQ-YG-311, REQ-YG-312, REQ-YG-313, REQ-YG-314)
+- **FR-290**: Add declarative FSM configs for watcher2 dispatcher (6 states) and pipeline worker (27 states) with Mermaid diagrams. Phase 0 of watcher2-FSM migration.
+- **FR-289**: Extend watcher2 post-merge cleanup to resolve merged FR token context, consume matching inbox files into `.chaplain/done/` with collision-safe renaming, and keep explicit no-token no-op behavior.
+- **FR-288**: Add watcher2 preflight hook-integrity fail-closed gate that validates `core.hooksPath`, requires executable `pre-commit` and `commit-msg` hooks, emits remediation commands, and documents the enforced contract.
+- **FR-287**: Add watcher2 pre-preflight deduplication gate to skip already-merged FR topics, consume skipped processing items, and emit explicit skipped-cycle metrics.
+- **FR-286**: Add merged-PR collision guarding before worktree creation, route branch-collision to non-failure skip flow, and document the guard in chaplain watcher docs.
+- **FR-285 Watcher2 Forensic Failure Diary**: Added automated forensic analysis to watcher2's handle_failure function that captures failure context (reason, topic content, logs, worktree state), performs LLM-driven root cause analysis, and generates structured diary entries in docs/diary/ with evidence and recommendations for institutional learning. (REQ-YG-309)
+- **FR-283**: Auto-generate changelog fragments in watcher2 pipeline. (REQ-YG-308)
+- **FR-275 Test Speed Optimization**: Added pytest 'slow' marker infrastructure for selective test execution during development. Tests taking >1 second marked with `@pytest.mark.slow`; configurable `TEST_DELAY_SCALE` environment variable enables accelerated timing; ultra-fast, fast, and slow-only test commands documented in CLAUDE.md for improved development workflow. (REQ-YG-275)
+- **FR-275 Watcher2 PR Reuse**: Enhanced create_pr.sh to reuse existing PRs instead of always creating new ones, eliminating automation pipeline failures when PRs already exist for a branch. (REQ-YG-272)
+- **FR-273 Watcher2 Phase 2**: Replace placeholder work step with yamlgraph copilot diary node — reads inbox topic, writes diary reflection to `docs/diary/`, exports pipeline state via `--export-state`.
+- **FR-273 Watcher2 Phase 3**: Planning + judging pipeline with copilot session chaining — Plan, Research, Write acceptance tests, pytest RED verification, Judge with verdict check. Four step graphs reusing existing copilot prompts, state chained via `--import-state`/`--export-state`.
+- **FR-273 Watcher2 Phase 4**: Enforcement pipeline — implement, test/demo, critique/distill, finalize. Four step graphs reusing enforce prompts, 3-attempt pre-commit loop with ruff auto-fix re-staging, copilot fallback for persistent failures, session chaining via `--import-state`/`--export-state`.
+- **FR-273 Watcher2 Phase 1**: Git skeleton orchestrator with 9 sourced shell libs — full worktree lifecycle (inbox → worktree → PR → CI → merge → teardown) without LLM.
+- **FR-219 Prompt Caching**: Add `system_segments` YAML field for per-segment cache control in prompts, with Anthropic `cache_control` injection and non-Anthropic flattening. (REQ-YG-287)
+- **FR-198 Watcher2 Finalize Optimization**: Optimize pre-commit loop in watcher2 finalize phase to reduce redundant formatting passes. (REQ-YG-286)
+- **FR-196 CI Hardening Consolidation**: Added concurrency control with cancel-in-progress, pip caching for faster builds, security scan retry mechanism, Python version matrix (3.11, 3.12), and tag version validation across all GitHub Actions workflows. (REQ-YG-277)
+- **FR-195 Chaplain Documentation**: Created comprehensive `.chaplain/README.md` documenting the watcher2 pipeline orchestrator and shell library. Covers 4-phase pipeline architecture (Plan → Research → Acceptance → Judge → Enforce), all 9 shell tools in `.chaplain/lib/watcher/` with usage examples, environment variables, troubleshooting, and cross-references to related files. (REQ-YG-278)
+- **FR-191 Diary Filename Normalization**: Normalize diary filename conventions at creation boundary in watcher2 critique step to prevent CI diary gate failures. Extracts FR number from feature request path, passes as --var fr_num to critique step, adds explicit filename instruction to critique prompt, includes pre-commit hook validation, and makes critique failure blocking. (REQ-YG-188)
+- **Hellograph Speed Azure Demo**: Added Azure variant for hellograph-speed multi-provider comparison demo.
+
+### Removed
+- **FR-278 Remove Watcher2 Baseline Dead Code**: Removed incomplete FR-277 baseline checkpointing artifacts (models, graphs, tests, capability file) that were never functional.
+
+### Fixed
+- **FR-294 Pre-commit venv PATH isolation**: Prepend `.venv/bin` to PATH in pytest hook so subprocess calls to venv-installed tools succeed. (REQ-YG-012)
+- **FR-284 Watcher2 CI Remediation Crash Fix**: Fix `gh run view` missing run ID, relative path, and missing error guard in CI remediation loop. (REQ-YG-307)
+- **FR-282 Ignore CVE-2026-3219**: Add `--ignore-vuln CVE-2026-3219` to pip-audit in security workflow until pip fix ships.
+- **FR-281 Ruff Remediation**: Progressive ruff fix with `--unsafe-fixes` for SIM117 and similar auto-fixable lint errors in watcher2 remediation loop.
+- **FR-280 RED Verification Timestamp Fix**: Fixed `find -newer` using stale pipeline state; new acceptance marker ensures copilot-generated tests are detected for RED verification.
+- **FR-279 Watcher2 CI Resilience**: Fixed premature CI failure when checks are still in-progress; added copilot-driven CI remediation loop for recoverable failures.
+- **FR-276 Retire Old Pipeline Scripts**: Removed obsolete tests, capabilities, and requirements for deleted scripts (watch.sh, enforce_worktree.sh, bugfix_worktree.sh). Updated documentation references from watch.sh to watcher2.sh. (REQ-YG-276)
+- **FR-274 Copilot Session ID Extraction**: Replace broken stderr-based session ID extraction with `--share` file extraction. Copilot CLI never emitted `Session: <id>` in stderr — the regex was speculative (FR-105). Now uses `--share=<tmpfile>` and parses the share file's `**Session ID:** \`<uuid>\`` format. Also removes duplicate model resolution block in `create_copilot_node()`. (REQ-YG-105)
+- **FR-273 Fix watcher2 FR discovery**: Enforce phase now uses the FR file created by the plan step instead of picking an arbitrary file from the feature-requests directory.
+- **Convert forensic graph to copilot node**: Replace blind LLM call + broken tool node with agentic copilot node that has full tool access to read logs, inspect git state, and write diary entries directly. Removes hardcoded `provider: anthropic`.
+- **Fix watcher2 plan step**: Write FR directly to `feature-requests/` instead of gitignored `.chaplain/drafts/`. Removes `drafts_dir` indirection from prompts, step graphs, and orchestrator.
+- **Fix forensic graph path**: Use absolute path for watcher-forensic graph invocation to prevent "Prompt not found" errors when cwd changes to worktree.
+- **Fix watcher2 post-merge cleanup**: Remove `--delete-branch` from `gh pr merge` to prevent false failure when `main` is already checked out in the main worktree. Add merge state verification fallback. Move remote branch deletion to `worktree_teardown`.
+- **Fix UTF-8 surrogate crash**: Normalize copilot CLI subprocess output at boundary with `errors='replace'`, fix surrogate pair emoji in helpers.py. Prevents `--full` display crash when output is piped.
+- **watcher2**: Replace GNU `head -n -10` with BSD-compatible `sort -r | tail -n +11` for macOS log rotation.
+- **Fix watcher2 failure forensics**: Preserve worktree and move topic to `.chaplain/failed/` on failure instead of destroying evidence. Pass absolute worktree path to copilot plan prompt to prevent writing to main repo.
+
 ## [0.4.73]
 
 ### Added
