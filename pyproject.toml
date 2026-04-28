@@ -65,6 +65,9 @@ replicate = [
 azure = [
     "langchain-azure-ai>=1.2.0",  # Azure AI Foundry + Azure OpenAI unified client
 ]
+vertex = [
+    "langchain-google-vertexai>=3.2.0",
+]
 redis = [
     "langgraph-checkpoint-redis>=0.3.0",
 ]
