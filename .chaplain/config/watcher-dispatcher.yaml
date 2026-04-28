@@ -1,11 +1,15 @@
 # Watcher2 Dispatcher FSM
 # Sequential controller: poll inbox → pick one topic → run pipeline → repeat.
-# Phase 1: Real actions wired, sequential single-topic processing.
+# Phase 2: inbox_dir configurable via --initial-context for test/production isolation.
 
 metadata:
   name: "Watcher2 Dispatcher"
   machine_name: watcher2_dispatcher
-  version: "1.0.0"
+  version: "1.1.0"
+
+# Default context — override with --initial-context '{"inbox_dir":".chaplain/inbox-fsm"}'
+context:
+  inbox_dir: ".chaplain/inbox"
 
 initial_state: idle
 
@@ -57,10 +61,11 @@ transitions:
 actions:
   syncing_inbox:
     # Sync GitHub issues, find first topic, move to processing/
+    # inbox_dir is configurable via --initial-context '{"inbox_dir":".chaplain/inbox-fsm"}'
     - type: bash_context
       command: |
         bash .chaplain/lib/watcher/inbox_sync.sh 2>/dev/null || true
-        topic=$(ls -1 .chaplain/inbox/*.md 2>/dev/null | head -1)
+        topic=$(ls -1 {inbox_dir}/*.md 2>/dev/null | head -1)
         if [ -z "$topic" ]; then
           echo '{"found": "false"}'
           exit 1
