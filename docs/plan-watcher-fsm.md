@@ -280,8 +280,8 @@ Open `http://localhost:3001`:
 - No `changelog_gen_action.py` — changelog generation uses `yamlgraph_async` action instead
 - Deliverable: all actions runnable, individually testable, sequential end-to-end
 
-### Phase 1.5: Pipeline Config Path Alignment ← NEXT
-The pipeline config (`watcher-pipeline.yaml`) references graphs at `graphs/watcher-plan/` but the actual graphs live at `.chaplain/graphs/watcher-plan/` (and `watcher-enforce/`, `watcher-forensic/`). Additionally, some graph names in the config don't match the actual filenames.
+### Phase 1.5: Pipeline Config Path Alignment ✅ COMPLETED (FR-292, PR #247)
+Fixed all 9 graph path references. Removed 2 unreachable states (`splitting`, `committing_tests`). Converted `changelog_gen` to bash. Pipeline version 0.2.0, 25 states.
 
 **Path corrections needed in `watcher-pipeline.yaml`:**
 
@@ -307,8 +307,8 @@ The pipeline config (`watcher-pipeline.yaml`) references graphs at `graphs/watch
 
 - Deliverable: pipeline config references match actual graph files; `statemachine-validate --strict` still passes
 
-### Phase 2: Single-Worker Validation
-- **Prerequisite**: Phase 1.5 path alignment must be complete
+### Phase 2: Single-Worker Validation ← NEXT
+- **Prerequisite**: Phase 1.5 path alignment ✅
 - **Coexistence**: `watcher2.sh` remains functional and is the production fallback throughout Phase 2–3. The FSM dispatcher runs on a separate test inbox (`.chaplain/inbox-fsm/`). Both systems can operate simultaneously without conflict.
 - Run dispatcher + single pipeline worker end-to-end on a test topic
 - Verify: state transitions match watcher2.sh behavior exactly
@@ -410,9 +410,9 @@ Delivered:
 
 ---
 
-### Phase 1.5: Pipeline Config Path Alignment (detailed)
+### Phase 1.5: Pipeline Config Path Alignment ✅ COMPLETED (FR-292, PR #247)
 
-**Goal**: Fix all graph path references in `watcher-pipeline.yaml` to match actual file locations. Handle 2 missing graphs.
+Delivered: All 9 graph path references fixed. 2 states removed (`splitting` — no graph exists, route to `failed`; `committing_tests` — redundant, route `test_demo_done` → `critiquing`). `changelog_gen` converted from `yamlgraph_async` to `bash` (inline script). 14 acceptance tests. Pipeline version 0.2.0 (25 states, down from 27).
 
 #### `.chaplain/config/watcher-pipeline.yaml` **(CHANGED)**
 Fix graph paths in all `yamlgraph_async` action blocks:
@@ -432,11 +432,11 @@ Fix graph paths in all `yamlgraph_async` action blocks:
 
 ---
 
-### Phase 2: Single-Worker Validation
+### Phase 2: Single-Worker Validation ← NEXT
 
 **Goal**: One topic processed through the full FSM pipeline, producing a merged PR. watcher2.sh remains the production fallback.
 
-**Prerequisite**: Phase 1.5 path alignment must be complete.
+**Prerequisite**: Phase 1.5 path alignment ✅.
 
 #### Setup
 - Create `.chaplain/inbox-fsm/` test inbox directory
