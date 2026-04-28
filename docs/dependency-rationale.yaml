@@ -152,6 +152,13 @@ dependencies:
     modules: ["yamlgraph/utils/llm_factory.py"]
     added: "0.4.75"
 
+  # ─── Optional: Vertex AI ───────────────────────────────────────────────
+
+  langchain-google-vertexai:
+    rationale: "Google Vertex AI provider integration for Gemini models via Vertex API (project/location auth)"
+    modules: ["yamlgraph/utils/llm_factory.py"]
+    added: "0.4.73"
+
   # ─── Optional: Redis ─────────────────────────────────────────────────
 
   langgraph-checkpoint-redis:
