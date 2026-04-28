@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 2 days
 **Requested:** 2026-04-28
 
@@ -49,25 +49,31 @@ Phase 2 validates this works end-to-end, not just in unit tests.
 
 ### 4. Test Scenarios
 
-Run manually, one at a time:
+**MVP (required):**
 
 | # | Scenario | Expected path |
-|---|----------|--------------|
+|---|----------|---------------|
 | 1 | Happy path (trivial docs fix) | preflight → ... → merging → cleaning_up → completed |
+
+**Stretch (follow-up patch):**
+
+| # | Scenario | Expected path |
+|---|----------|---------------|
 | 2 | Reject (bad topic) | judging → failed → forensics → completed |
 | 3 | Preflight failure (not on main) | preflight → failed → forensics → completed |
 | 4 | Pre-commit retry | finalizing → precommit_retry → finalizing → ... → completed |
 
 ## Acceptance Criteria
 
-- [ ] `.chaplain/inbox-fsm/` directory exists (gitignored)
-- [ ] Dispatcher reads from configurable inbox dir (via `--context inbox_dir=...`)
-- [ ] Validation script processes one topic end-to-end
-- [ ] Happy path: topic → PR merged → worktree cleaned
-- [ ] Failure path: bad topic → failed → forensics → completed
-- [ ] watcher2.sh still works on production inbox (coexistence verified)
-- [ ] Tests added
+- [ ] Dispatcher `syncing_inbox` uses `{inbox_dir}` context variable (default: `.chaplain/inbox`)
+- [ ] `.chaplain/inbox-fsm/` exists, gitignored
+- [ ] `validate-fsm-single.sh` processes one topic end-to-end (happy path)
+- [ ] PR created and merged by FSM
+- [ ] Worktree cleaned up after completion
+- [ ] watcher2.sh production inbox unaffected
 - [ ] Diary reflection
+- [ ] *(stretch)* Reject path verified
+- [ ] *(stretch)* Preflight failure path verified
 
 ## Alternatives Considered
 
@@ -88,8 +94,16 @@ Run manually, one at a time:
 
 ### What needs to change
 
-1. **Dispatcher config** — make inbox path configurable (currently hardcoded to `.chaplain/inbox/`)
-2. **Validation script** — new `.chaplain/scripts/validate-fsm-single.sh`
+1. **Dispatcher config** — replace hardcoded `.chaplain/inbox/` with `{inbox_dir}` in the `syncing_inbox` bash command. The `bash_context_action.py` already does `{var}` substitution from context. Exact diff:
+   ```yaml
+   # Before:
+   topic=$(ls -1 .chaplain/inbox/*.md 2>/dev/null | head -1)
+   # After:
+   topic=$(ls -1 {inbox_dir}/*.md 2>/dev/null | head -1)
+   ```
+   Production invocation: `--initial-context '{"inbox_dir":".chaplain/inbox"}'`
+   Test invocation: `--initial-context '{"inbox_dir":".chaplain/inbox-fsm"}'`
+2. **Validation script** — new `.chaplain/scripts/validate-fsm-single.sh` (this *is* the test — no unit tests needed for an integration run)
 3. **Test topic** — trivial docs-only change that will pass judge + CI
 4. **`.gitignore`** — add `.chaplain/inbox-fsm/`
 
