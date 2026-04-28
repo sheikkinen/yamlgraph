@@ -647,6 +647,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `import xdist` appears unused — the module is imported but not referenced.
 - **Penance**: The import IS the test — we're asserting that xdist is importable (installed). F401 cannot understand this pattern.
 
+### CONF-143
+- **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
+- **Code**: S603
+- **Sin**: `subprocess.run()` called with list argument flagged as untrusted input.
+- **Penance**: Command list is hardcoded `["bash", "-n", str(SCRIPT_PATH)]` — no user input. `SCRIPT_PATH` is a constant derived from `__file__`. Used to validate shell script syntax in tests.
+
 ### CONF-210
 - **File**: [yamlgraph/node_factory/copilot_node.py](../yamlgraph/node_factory/copilot_node.py#L292)
 - **Code**: S603
