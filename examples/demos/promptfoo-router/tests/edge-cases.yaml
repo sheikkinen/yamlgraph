@@ -1,0 +1,22 @@
+- description: Empty message handled gracefully
+  vars:
+    message: ""
+  assert:
+    - type: llm-rubric
+      value: "The output does not crash or produce an error; it provides some classification"
+
+- description: Non-English input still classifies
+  vars:
+    message: "Tämä tuote on aivan mahtava!"
+  assert:
+    - type: javascript
+      value: "output.toLowerCase().includes('tone: positive') || output.toLowerCase().includes('tone: neutral')"
+
+- description: Mixed tone resolves to dominant sentiment
+  vars:
+    message: "The food was great but the service was terrible and the wait was ridiculous"
+  assert:
+    - type: javascript
+      value: "output.toLowerCase().includes('tone: negative') || output.toLowerCase().includes('tone: neutral')"
+    - type: llm-rubric
+      value: "The response acknowledges the mixed nature of the feedback"
