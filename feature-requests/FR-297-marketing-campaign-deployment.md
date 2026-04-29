@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — Approved
+**Status:** Enforced — Option A (reuse probe_recap tools)
 **Effort:** 1 day
 **Requested:** 2026-04-29
 
