@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-04-29
 **Judged:** 2026-04-29

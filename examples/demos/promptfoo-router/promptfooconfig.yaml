@@ -1,0 +1,17 @@
+description: "YAMLGraph Router - Tone Classification Evaluation"
+
+providers:
+  - id: "file://provider.py"
+    label: "YAMLGraph Router"
+    config:
+      graph: graph.yaml
+      output_key: response
+
+prompts:
+  - "{{message}}"   # Pass-through; actual prompt is in YAML graph
+
+defaultTest:
+  options:
+    provider: "openai:chat:gpt-4o-mini"   # LLM-as-judge grader
+
+tests: tests/*.yaml
