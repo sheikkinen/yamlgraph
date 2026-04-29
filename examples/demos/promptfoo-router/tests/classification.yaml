@@ -1,0 +1,34 @@
+- description: Enthusiastic praise classifies as positive
+  vars:
+    message: "I absolutely love this product! Best purchase ever!"
+  assert:
+    - type: icontains
+      value: "TONE: positive"
+
+- description: Angry complaint classifies as negative
+  vars:
+    message: "This is broken again. Worst service I've ever experienced."
+  assert:
+    - type: icontains
+      value: "TONE: negative"
+
+- description: Factual question classifies as neutral
+  vars:
+    message: "What are your store hours on Saturday?"
+  assert:
+    - type: icontains
+      value: "TONE: neutral"
+
+- description: Sarcastic praise classifies as negative or neutral
+  vars:
+    message: "Oh great, another update that breaks everything. Wonderful."
+  assert:
+    - type: javascript
+      value: "output.toLowerCase().includes('tone: negative') || output.toLowerCase().includes('tone: neutral')"
+
+- description: Gratitude classifies as positive
+  vars:
+    message: "Thank you so much for helping me resolve this quickly!"
+  assert:
+    - type: icontains
+      value: "TONE: positive"

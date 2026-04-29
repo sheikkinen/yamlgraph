@@ -1,0 +1,26 @@
+- description: Positive message gets warm response
+  vars:
+    message: "Your team was incredibly helpful today!"
+  assert:
+    - type: icontains
+      value: "TONE: positive"
+    - type: llm-rubric
+      value: "The RESPONSE section is warm, enthusiastic, and matches the positive energy of the input"
+
+- description: Negative message gets empathetic response
+  vars:
+    message: "I've been waiting 3 hours and nobody has helped me"
+  assert:
+    - type: icontains
+      value: "TONE: negative"
+    - type: llm-rubric
+      value: "The RESPONSE section acknowledges frustration, shows empathy, and offers to help"
+
+- description: Neutral message gets informative response
+  vars:
+    message: "Can you tell me about your return policy?"
+  assert:
+    - type: icontains
+      value: "TONE: neutral"
+    - type: llm-rubric
+      value: "The RESPONSE section is helpful and informative without excessive emotion"
