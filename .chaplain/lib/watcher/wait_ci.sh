@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
 # wait_ci.sh — Poll CI status until pass/fail/timeout
 #
-# Expects: PR_NUMBER set by orchestrator
+# Usage: bash wait_ci.sh --pr <pr_number>
 # Sets: CI_RESULT ("success" | "failure" | "timeout")
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+# Parse args and call function only when executed directly (not sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --pr) PR_NUMBER="$2"; shift 2 ;;
+            *) shift ;;
+        esac
+    done
+
+    if [[ -z "$PR_NUMBER" ]]; then
+        log_error "Usage: wait_ci.sh --pr <pr_number>"
+        exit 1
+    fi
+fi
 
 CI_POLL_INTERVAL=30
 CI_TIMEOUT=600  # 10 minutes
@@ -49,3 +66,8 @@ wait_ci() {
     echo "{\"ci_result\": \"timeout\"}"
     return 1
 }
+
+# Call function only when executed directly (not sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    wait_ci
+fi

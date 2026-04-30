@@ -1,8 +1,23 @@
 #!/usr/bin/env bash
 # worktree_setup.sh — Create worktree + branch from main
 #
-# Expects: TOPIC_FILE set by orchestrator
+# Usage: bash worktree_setup.sh --topic <topic_file>
 # Sets: WT_BRANCH, WT_DIR, MAIN_DIR
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --topic) TOPIC_FILE="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+if [[ -z "$TOPIC_FILE" ]]; then
+    log_error "Usage: worktree_setup.sh --topic <topic_file>"
+    exit 1
+fi
 
 worktree_setup() {
     local topic_basename
@@ -67,3 +82,5 @@ worktree_setup() {
     # JSON stdout for bash_context_action
     echo "{\"wt_dir\": \"$WT_DIR\", \"wt_branch\": \"$WT_BRANCH\", \"main_dir\": \"$MAIN_DIR\"}"
 }
+
+worktree_setup

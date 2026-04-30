@@ -99,3 +99,6 @@ CHANGELOG.md
 # Audio files
 *.wav
 node_modules/
+.chaplain/processing/
+.chaplain/failed/
+logs/*.pid
