@@ -1,12 +1,27 @@
 #!/usr/bin/env bash
 # merge_pr.sh — Squash merge a PR via gh CLI
 #
-# Expects: PR_NUMBER set by orchestrator
+# Usage: bash merge_pr.sh --pr <pr_number>
 #
 # Note: --delete-branch is intentionally omitted because gh tries to
 # switch to the default branch after deleting, which fails when 'main'
 # is already checked out in the main worktree. Branch cleanup is handled
 # by worktree_teardown instead.
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --pr) PR_NUMBER="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+if [[ -z "$PR_NUMBER" ]]; then
+    log_error "Usage: merge_pr.sh --pr <pr_number>"
+    exit 1
+fi
 
 merge_pr() {
     log_info "Merging PR #$PR_NUMBER (squash)..."
@@ -26,3 +41,5 @@ merge_pr() {
 
     log_info "PR #$PR_NUMBER merged"
 }
+
+merge_pr

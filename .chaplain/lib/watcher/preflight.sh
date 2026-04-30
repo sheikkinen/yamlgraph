@@ -4,6 +4,8 @@
 # Expects: called from repo root on main branch
 # Side effects: prunes stale worktrees, switches to main if needed
 
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
 log_hook_remediation() {
     log_error "Remediation:"
     log_error "  git config --local --unset core.hooksPath"
@@ -91,3 +93,5 @@ preflight() {
     # JSON stdout for bash_context_action
     echo '{"status": "ok"}'
 }
+
+preflight

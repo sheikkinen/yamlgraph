@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # post_merge.sh — Post-merge cleanup for watcher2
 #
-# Expects: TOPIC_FILE set by orchestrator
-# Uses: PR_NUMBER / PR_TITLE when available
+# Called as terminal action (bash type, no capture_keys)
+# Uses context vars: TOPIC_FILE, PR_NUMBER, PR_TITLE (if available)
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 resolve_post_merge_fr_token() {
     local fr_token_regex='FR-[0-9]+'
@@ -116,3 +118,5 @@ post_merge() {
     consume_matching_inbox_items "$merged_fr_token"
     return 0
 }
+
+post_merge

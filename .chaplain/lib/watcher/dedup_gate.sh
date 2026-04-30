@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # dedup_gate.sh — Skip watcher cycles for already-completed FR topics
 #
-# Expects: TOPIC_FILE set by orchestrator (or passed as first argument)
+# Usage: bash dedup_gate.sh <topic_file>
 # Sets: DEDUP_FR_TOKEN, DEDUP_MERGED_PR_REF
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+TOPIC_FILE="${1:-$TOPIC_FILE}"
 
 dedup_gate() {
     local topic_file="${1:-$TOPIC_FILE}"
@@ -40,3 +44,5 @@ dedup_gate() {
 
     return 0
 }
+
+dedup_gate

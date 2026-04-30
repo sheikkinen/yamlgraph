@@ -1,0 +1,88 @@
+{
+  "machine_name": "watcher-pipeline",
+  "template": false,
+  "diagrams": {
+    "main": {
+      "file": "main.mermaid",
+      "title": "State Machine Overview",
+      "description": "High-level state machine flow with composite states",
+      "composites": [
+        "PLANNINGPHASE",
+        "ENFORCEMENTPHASE",
+        "TERMINAL"
+      ]
+    },
+    "PLANNINGPHASE": {
+      "file": "PLANNINGPHASE.mermaid",
+      "title": "PLANNING PHASE",
+      "description": "Detailed view of planning phase",
+      "states": [
+        "preflight",
+        "worktree_setup",
+        "planning",
+        "committing_plan",
+        "researching",
+        "committing_research",
+        "writing_tests",
+        "verifying_red",
+        "judging"
+      ],
+      "entry_states": [],
+      "exit_states": [
+        "judging",
+        "planning",
+        "researching",
+        "writing_tests"
+      ],
+      "parent": "main"
+    },
+    "ENFORCEMENTPHASE": {
+      "file": "ENFORCEMENTPHASE.mermaid",
+      "title": "ENFORCEMENT PHASE",
+      "description": "Detailed view of enforcement phase",
+      "states": [
+        "implementing",
+        "committing_implementation",
+        "testing_demo",
+        "critiquing",
+        "changelog_gen",
+        "finalizing",
+        "pushing",
+        "creating_pr",
+        "waiting_ci",
+        "remediating_ci",
+        "merging",
+        "cleaning_up"
+      ],
+      "entry_states": [
+        "implementing"
+      ],
+      "exit_states": [
+        "cleaning_up",
+        "implementing",
+        "testing_demo",
+        "critiquing",
+        "remediating_ci"
+      ],
+      "parent": "main"
+    },
+    "TERMINAL": {
+      "file": "TERMINAL.mermaid",
+      "title": "TERMINAL",
+      "description": "Detailed view of terminal",
+      "states": [
+        "completed",
+        "failed",
+        "forensics",
+        "stopped"
+      ],
+      "entry_states": [
+        "failed",
+        "completed",
+        "stopped"
+      ],
+      "exit_states": [],
+      "parent": "main"
+    }
+  }
+}

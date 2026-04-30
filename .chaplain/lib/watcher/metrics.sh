@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # metrics.sh — Emit pipeline timing JSON
 #
-# Expects: METRIC_DIR, T_CYCLE_START, TOPIC_FILE, CYCLE_OUTCOME set by orchestrator
+# Uses env vars: METRIC_DIR, T_CYCLE_START, TOPIC_FILE, CYCLE_OUTCOME
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+METRIC_DIR="${METRIC_DIR:-.chaplain/metrics}"
+T_CYCLE_START="${T_CYCLE_START:-$(date +%s)}"
+CYCLE_OUTCOME="${CYCLE_OUTCOME:-unknown}"
 
 write_cycle_metrics() {
     local t_end elapsed ts_safe inbox_base
@@ -18,3 +24,5 @@ write_cycle_metrics() {
 
     log_info "Metrics written: ${elapsed}s total, outcome=$CYCLE_OUTCOME"
 }
+
+write_cycle_metrics
