@@ -2,8 +2,16 @@
 # inbox_sync.sh — Import GitHub Issues labeled 'chaplain' into local inbox
 # Extracted from watch.sh (FR-243, FR-251)
 #
-# Expects: INBOX, PROCESSING, ALLOWED_AUTHORS, BODY_SIZE_CAP set by orchestrator
+# Uses env vars: INBOX, PROCESSING, ALLOWED_AUTHORS, BODY_SIZE_CAP
+# Defaults provided for standalone execution.
 # Side effects: writes $INBOX/gh-<num>.md files, removes label from issues
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+INBOX="${INBOX:-.chaplain/inbox}"
+PROCESSING="${PROCESSING:-.chaplain/processing}"
+ALLOWED_AUTHORS="${ALLOWED_AUTHORS:-.chaplain/config/allowed-authors.txt}"
+BODY_SIZE_CAP="${BODY_SIZE_CAP:-10000}"
 
 inbox_sync() {
     if ! command -v gh &>/dev/null || ! gh auth status &>/dev/null 2>&1; then
@@ -40,3 +48,5 @@ inbox_sync() {
         log_info "📥 Imported GitHub Issue #$num: $title"
     done
 }
+
+inbox_sync

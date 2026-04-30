@@ -4,7 +4,7 @@
 
 metadata:
   name: "Watcher2 Dispatcher"
-  machine_name: watcher2_dispatcher
+  machine_name: watcher-dispatcher
   version: "1.1.0"
 
 # Default context — override with --initial-context '{"inbox_dir":".chaplain/inbox-fsm"}'
@@ -14,9 +14,11 @@ context:
 initial_state: idle
 
 states:
+  # === OPERATIONAL ===
   - idle
   - syncing_inbox
   - processing_topic
+  # === TERMINAL ===
   - stopped
 
 events:
@@ -81,11 +83,19 @@ actions:
 
   processing_topic:
     # Run the pipeline FSM for this topic
+    # Note: {topic_file} is substituted by bash action from context.
+    # The remaining {..} in the JSON string triggers a harmless placeholder warning.
     - type: bash
-      command: >-
-        statemachine .chaplain/config/watcher-pipeline.yaml
-        --actions-dir .chaplain/actions
-        --context topic_file={topic_file}
+      command: |
+        TOPIC="{topic_file}"
+        BASENAME=$(basename "$TOPIC" .md)
+        LOG="logs/fsm-pipeline-${BASENAME}-$(date +%Y%m%d-%H%M%S).log"
+        ls -1t logs/fsm-pipeline-*.log 2>/dev/null | tail -n +21 | xargs rm -f 2>/dev/null || true
+        statemachine .chaplain/config/watcher-pipeline.yaml \
+          --actions-dir .chaplain/actions \
+          --initial-context "{\"topic_file\":\"$TOPIC\"}" \
+          --debug \
+          2>&1 | tee "$LOG"
       success: topic_done
       error: error
       timeout: 1800

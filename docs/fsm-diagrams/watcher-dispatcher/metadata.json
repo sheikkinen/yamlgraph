@@ -1,0 +1,41 @@
+{
+  "machine_name": "watcher-dispatcher",
+  "template": false,
+  "diagrams": {
+    "main": {
+      "file": "main.mermaid",
+      "title": "State Machine Overview",
+      "description": "High-level state machine flow with composite states",
+      "composites": [
+        "OPERATIONAL",
+        "TERMINAL"
+      ]
+    },
+    "OPERATIONAL": {
+      "file": "OPERATIONAL.mermaid",
+      "title": "OPERATIONAL",
+      "description": "Detailed view of operational",
+      "states": [
+        "idle",
+        "syncing_inbox",
+        "processing_topic"
+      ],
+      "entry_states": [],
+      "exit_states": [],
+      "parent": "main"
+    },
+    "TERMINAL": {
+      "file": "TERMINAL.mermaid",
+      "title": "TERMINAL",
+      "description": "Detailed view of terminal",
+      "states": [
+        "stopped"
+      ],
+      "entry_states": [
+        "stopped"
+      ],
+      "exit_states": [],
+      "parent": "main"
+    }
+  }
+}

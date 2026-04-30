@@ -1,8 +1,27 @@
 #!/usr/bin/env bash
 # create_pr.sh — Create a pull request via gh CLI, or reuse existing one
 #
-# Expects: WT_BRANCH, PR_TITLE set by orchestrator
+# Usage: bash create_pr.sh --branch <branch> --dir <wt_dir>
 # Sets: PR_NUMBER, PR_URL
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --branch) WT_BRANCH="$2"; shift 2 ;;
+        --dir)    WT_DIR="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+if [[ -z "$WT_BRANCH" ]]; then
+    log_error "Usage: create_pr.sh --branch <branch> --dir <wt_dir>"
+    exit 1
+fi
+
+# Derive PR title from branch name (chaplain/<topic> → feat(chaplain): <topic>)
+PR_TITLE="feat(chaplain): ${WT_BRANCH#chaplain/}"
 
 create_pr() {
     log_info "Checking for existing PR on branch: $WT_BRANCH"
@@ -57,3 +76,5 @@ create_pr() {
     # JSON stdout for bash_context_action
     echo "{\"pr_number\": \"$PR_NUMBER\", \"pr_url\": \"$PR_URL\"}"
 }
+
+create_pr

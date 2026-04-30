@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> OPERATIONAL
+
+    %% OPERATIONAL (3 states)
+    state OPERATIONAL
+
+    %% TERMINAL (1 states)
+    state TERMINAL
+
+    TERMINAL --> [*]

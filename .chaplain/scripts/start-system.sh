@@ -31,19 +31,18 @@ UI_PORT=3001
 EVENT_SOCKET="/tmp/statemachine-events.sock"
 
 # Parse arguments
-for arg in "$@"; do
-    case $arg in
+while [[ $# -gt 0 ]]; do
+    case $1 in
         --inbox)
-            shift
-            INBOX_DIR="$1"
-            shift
+            INBOX_DIR="$2"
+            shift 2
             ;;
         --inbox=*)
-            INBOX_DIR="${arg#*=}"
+            INBOX_DIR="${1#*=}"
             shift
             ;;
         *)
-            echo "Unknown option: $arg"
+            echo "Unknown option: $1"
             echo "Usage: $0 [--inbox DIR]"
             exit 1
             ;;

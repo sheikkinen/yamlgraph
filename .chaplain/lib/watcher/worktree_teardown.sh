@@ -1,7 +1,26 @@
 #!/usr/bin/env bash
 # worktree_teardown.sh — Remove worktree, prune branch, pull main
 #
-# Expects: WT_DIR, WT_BRANCH, MAIN_DIR set by orchestrator
+# Usage: bash worktree_teardown.sh --dir <wt_dir>
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dir) WT_DIR="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+if [[ -z "$WT_DIR" ]]; then
+    log_error "Usage: worktree_teardown.sh --dir <wt_dir>"
+    exit 1
+fi
+
+# Derive branch and main dir from worktree dir
+WT_BRANCH=$(git -C "$WT_DIR" branch --show-current 2>/dev/null || basename "$WT_DIR")
+MAIN_DIR=$(git -C "$WT_DIR" rev-parse --path-format=absolute --git-common-dir 2>/dev/null | sed 's|/\.git$||' || pwd)
 
 worktree_teardown() {
     cd "$MAIN_DIR" 2>/dev/null || true
@@ -44,3 +63,5 @@ clean_stale_pth_entries(Path('$MAIN_DIR/.venv'), str(Path('$WT_DIR').resolve()))
 
     log_info "Teardown complete"
 }
+
+worktree_teardown

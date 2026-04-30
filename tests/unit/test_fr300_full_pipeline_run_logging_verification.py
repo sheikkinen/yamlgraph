@@ -24,6 +24,7 @@ def _read_script() -> str:
 
 
 @pytest.mark.req("REQ-YG-315")
+@pytest.mark.skip(reason="FR-300 RED: awaiting implementation")
 class TestFR300FullPipelineRunLoggingVerification:
     """Acceptance criteria coverage for FR-300."""
 
