@@ -673,6 +673,19 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 
 ---
 
+## Process Exceptions
+
+Process-level suppression of rules that are normally forbidden by Scripture.
+These are not `# noqa` suppressions — they are documented deviations from process rules.
+
+### CONF-300
+- **File**: `.chaplain/config/integration-pipeline.yaml`
+- **Code**: --no-verify (Scripture: "no --no-verify flag")
+- **Sin**: Intermediate stub commits in FR-301 integration test use `git commit --no-verify` to skip pre-commit hooks on docs-only echo statements.
+- **Penance**: These commits exist only inside a worktree branch that will be squash-merged. The `finalizing` state runs `pre-commit run --all-files` on the complete worktree before push. The final squash-merged commit on main passes all CI gates. No unverified code reaches main.
+
+---
+
 ## Adding New Confessions
 
 When you add a `# noqa` to the codebase:

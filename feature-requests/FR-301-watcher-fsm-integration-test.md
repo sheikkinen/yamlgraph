@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-04-30
 
@@ -35,17 +35,53 @@ The current watcher pipeline (`watcher-pipeline.yaml`) depends on 8 `yamlgraph_a
 | `.chaplain/config/integration-dispatcher.yaml` | Dispatcher FSM polling `.chaplain/inbox-integration/` |
 | `.chaplain/config/integration-pipeline.yaml` | Pipeline FSM with bash stubs replacing all LLM steps |
 | `.chaplain/inbox-integration/` | Isolated inbox directory for test topics |
+| `scripts/run-integration-test.sh` | One-command wrapper: seed → run → report (A4) |
 
-### Pipeline States (Simplified)
+### State Mapping (A5)
+
+The integration pipeline maps every production state to one of three categories:
 
 ```
-PLANNING:    preflight → worktree_setup → planning → researching → judging
-ENFORCEMENT: implementing → changelog_gen → finalizing → pushing →
-             creating_pr → waiting_ci → merging → cleaning_up
+# ── STATE MAPPING (production → integration) ──────────────────────
+# REAL (same action type as production):
+#   preflight         bash_context   — real preflight.sh
+#   worktree_setup    bash_context   — real worktree_setup.sh
+#   committing_plan   git_commit     — real git_commit action (A1)
+#   committing_research git_commit   — real git_commit action (A1)
+#   committing_implementation git_commit — real git_commit action (A1)
+#   changelog_gen     bash           — real changelog fragment generation
+#   finalizing        precommit      — real pre-commit run
+#   pushing           bash           — real git push
+#   creating_pr       bash_context   — real create_pr.sh
+#   waiting_ci        bash_context   — real wait_ci.sh
+#   merging           bash           — real gh pr merge
+#   cleaning_up       bash           — real worktree_teardown.sh
+#
+# STUBBED (yamlgraph_async → bash echo):
+#   planning          bash           — echo timestamp to docs/watcher-integration.md
+#   researching       bash           — echo timestamp to docs/watcher-integration.md
+#   judging           bash           — echo timestamp, always emits "approve"
+#   implementing      bash           — echo timestamp to docs/watcher-integration.md
+#
+# REMOVED (not needed without real LLM):
+#   writing_tests     — no test code to write in stub mode
+#   verifying_red     — no tests to verify
+#   testing_demo      — no implementation to demo
+#   critiquing        — no implementation to critique
+#   remediating_ci    — docs-only changes; CI won't fail
+#   forensics         — replaced by simplified failure path (A3)
+```
+
+### Pipeline States
+
+```
+PLANNING:    preflight → worktree_setup → planning → committing_plan →
+             researching → committing_research → judging
+ENFORCEMENT: implementing → committing_implementation → changelog_gen →
+             finalizing → pushing → creating_pr → waiting_ci →
+             merging → cleaning_up
 TERMINAL:    completed, failed, stopped
 ```
-
-Removed from production pipeline: `committing_plan`, `committing_research`, `writing_tests`, `verifying_red`, `committing_implementation`, `testing_demo`, `critiquing`, `remediating_ci`, `forensics`.
 
 ### Stub Pattern (replaces every yamlgraph_async action)
 
@@ -65,20 +101,24 @@ Each LLM step becomes:
       timeout: 30
 ```
 
-`--no-verify` on intermediate stub commits; pre-commit runs once in `finalizing`.
+`--no-verify` on intermediate stub commits (CONF-XXX, see A2 below); `finalizing` runs `pre-commit run --all-files` on the full worktree.
 
-### Real Actions (unchanged)
+### Real Actions
 
-| State | Tool | Notes |
-|-------|------|-------|
-| preflight | `preflight.sh` | Real bash_context |
-| worktree_setup | `worktree_setup.sh --topic {topic_file}` | Real bash_context, captures wt_dir/wt_branch/main_dir |
-| finalizing | `cd {wt_dir} && pre-commit run --all-files` | Docs-only changes pass all hooks |
-| pushing | `git push origin {wt_branch} --force-with-lease` | Real push |
-| creating_pr | `create_pr.sh --branch {wt_branch} --dir {wt_dir}` | Real bash_context, captures pr_number/pr_url |
-| waiting_ci | `wait_ci.sh --pr {pr_number}` | Real bash_context, captures ci_result |
-| merging | `gh pr merge {pr_number} --squash` | Real merge |
-| cleaning_up | `worktree_teardown.sh --dir {wt_dir}` | Real teardown |
+| State | Action Type | Tool | Notes |
+|-------|-------------|------|-------|
+| preflight | `bash_context` | `preflight.sh` | Unchanged from production |
+| worktree_setup | `bash_context` | `worktree_setup.sh --topic {topic_file}` | Captures wt_dir/wt_branch/main_dir |
+| committing_plan | `git_commit` | Built-in FSM action | Same action type as production (A1) |
+| committing_research | `git_commit` | Built-in FSM action | Same action type as production (A1) |
+| committing_implementation | `git_commit` | Built-in FSM action | Same action type as production (A1) |
+| changelog_gen | `bash` | Inline script | Generates `type: docs` fragment |
+| finalizing | `precommit` | Built-in FSM action | `max_attempts: 5`, same as production |
+| pushing | `bash` | `git push origin {wt_branch} --force-with-lease` | Real push |
+| creating_pr | `bash_context` | `create_pr.sh --branch {wt_branch} --dir {wt_dir}` | Captures pr_number/pr_url |
+| waiting_ci | `bash_context` | `wait_ci.sh --pr {pr_number}` | Captures ci_result |
+| merging | `bash` | `gh pr merge {pr_number} --squash --delete-branch` | Real merge |
+| cleaning_up | `bash` | `worktree_teardown.sh --dir {wt_dir}` | Real teardown |
 
 ### Changelog Fragment (stub)
 
@@ -96,6 +136,36 @@ Each LLM step becomes:
       error: error
 ```
 
+### Failure Path (A3)
+
+Simplified failure handling — no forensics, just cleanup:
+
+```yaml
+  failed:
+    - type: bash
+      command: |
+        # Tear down worktree if it exists
+        if [ -n "{wt_dir}" ] && [ -d "{wt_dir}" ]; then
+          bash .chaplain/lib/watcher/worktree_teardown.sh --dir {wt_dir}
+        fi
+        # Delete remote branch if it exists
+        if [ -n "{wt_branch}" ]; then
+          git push origin --delete {wt_branch} 2>/dev/null || true
+        fi
+        # Close PR if it exists
+        if [ -n "{pr_number}" ]; then
+          gh pr close {pr_number} 2>/dev/null || true
+        fi
+        # Move topic to failed/
+        mkdir -p .chaplain/failed
+        if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
+          mv "{topic_file}" .chaplain/failed/
+        fi
+      description: "❌ Integration test failed — cleaning up"
+```
+
+Transitions to `failed` from all non-terminal states via timeout or error.
+
 ### Dispatcher Config
 
 Same structure as `watcher-dispatcher.yaml` but:
@@ -103,26 +173,53 @@ Same structure as `watcher-dispatcher.yaml` but:
 - `context.inbox_dir: .chaplain/inbox-integration`
 - `processing_topic` launches `integration-pipeline.yaml`
 
-### How to Run
+### Confession Entry (A2)
+
+Add to `docs/confessions.md`:
+
+```
+### CONF-XXX (next available ID)
+- **File**: `.chaplain/config/integration-pipeline.yaml`
+- **Code**: --no-verify
+- **Sin**: Intermediate stub commits in integration test use `--no-verify` to skip pre-commit hooks.
+- **Penance**: These commits exist only inside a worktree branch that will be squash-merged.
+  The `finalizing` state runs `pre-commit run --all-files` on the complete worktree before push.
+  The final squash-merged commit on main passes all CI gates. No unverified code reaches main.
+```
+
+### Test Script Wrapper (A4)
+
+`scripts/run-integration-test.sh`:
 
 ```bash
-# Seed the topic
-mkdir -p .chaplain/inbox-integration
-echo "# Integration smoke test" > .chaplain/inbox-integration/smoke-test.md
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Ensure docs/watcher-integration.md exists on main
-test -f docs/watcher-integration.md || {
-  echo "# Watcher Integration Log" > docs/watcher-integration.md
-  git add docs/watcher-integration.md
+INBOX=".chaplain/inbox-integration"
+LOG_FILE="docs/watcher-integration.md"
+
+# Seed
+mkdir -p "$INBOX"
+echo "# Integration smoke test — $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$INBOX/smoke-test.md"
+
+# Ensure log file exists on main
+if [ ! -f "$LOG_FILE" ]; then
+  echo "# Watcher Integration Log" > "$LOG_FILE"
+  git add "$LOG_FILE"
   git commit -m "docs: init integration log"
-}
+fi
 
 # Run
-source .venv/bin/activate
 statemachine .chaplain/config/integration-dispatcher.yaml \
   --actions-dir .chaplain/actions \
-  --initial-context '{"inbox_dir":".chaplain/inbox-integration"}' \
+  --initial-context "{\"inbox_dir\":\"$INBOX\"}" \
   --debug
+
+# Report
+echo ""
+echo "=== Integration Test Complete ==="
+echo "Check $LOG_FILE for timestamped entries."
+echo "Check GitHub for merged PR."
 ```
 
 ## Acceptance Criteria
@@ -136,6 +233,11 @@ statemachine .chaplain/config/integration-dispatcher.yaml \
 - [ ] Topic file removed from processing/
 - [ ] No pre-commit hook failures
 - [ ] Production configs (`watcher-dispatcher.yaml`, `watcher-pipeline.yaml`) unchanged
+- [ ] `committing_plan`, `committing_research`, `committing_implementation` use real `git_commit` action (A1)
+- [ ] `--no-verify` documented as CONF-XXX in `docs/confessions.md` (A2)
+- [ ] Failure path tears down worktree, deletes remote branch, closes PR (A3)
+- [ ] `scripts/run-integration-test.sh` runs full test with single command (A4)
+- [ ] Integration pipeline has state mapping comment block at top (A5)
 
 ## Alternatives Considered
 
@@ -148,6 +250,53 @@ statemachine .chaplain/config/integration-dispatcher.yaml \
 - `feature-requests/FR-300-full-pipeline-run-logging-verification.md`
 - `feature-requests/FR-295-watcher-fsm-phase2-single-worker-validation.md`
 - `feature-requests/FR-FSM-015-watcher2-pipeline-logging.md`
+
+---
+
+## Judgement
+
+**Verdict: APPROVE with amendments**
+
+### Assessment
+
+The FR is well-structured, the problem is real, and the approach is correct. Stubbing LLM steps with bash commands to test the mechanical pipeline is the right pattern — it follows the `demo_vs_test` principle ("tests prove constraints; demos prove abstraction worth having").
+
+### What's good
+
+1. **Separate configs** — production untouched. No env flags, no conditional branches.
+2. **Real tools for mechanical states** — preflight, worktree, PR, CI, merge, teardown all use the real bash scripts. This tests the exact code that broke.
+3. **`docs:` commit type** — sidesteps diary-gate, demo-gate, changelog-req-gate without bypassing safety. The gates don't apply to docs-only changes by design.
+4. **Acceptance criteria are concrete and verifiable** — each one maps to an observable outcome.
+
+### Amendments required
+
+**A1: Drop `committing_plan` and `committing_research` states.**
+The production pipeline has `git_commit` actions for these. The integration pipeline should either use the same `git_commit` action type (if supported by the FSM engine) or collapse them into the preceding stub's bash command. Don't silently skip states that exist in production — either test them or explicitly document why they're excluded.
+
+**A2: The `--no-verify` on stub commits needs a confession.**
+Scripture forbids `--no-verify`. These are intermediate commits inside a worktree that will be squash-merged, and the final `finalizing` state runs `pre-commit run --all-files`. This is acceptable **only if** documented as a CONF-XXX exception in `docs/confessions.md`.
+
+**A3: Add a cleanup-on-failure path.**
+The FR shows the happy path but doesn't address what happens when the integration test fails mid-pipeline. Add a simplified failure path that at minimum tears down the worktree and removes the test branch from remote. Otherwise, repeated test runs accumulate stale worktrees and orphan branches.
+
+**A4: Add a test script wrapper.**
+The "How to Run" section shows manual steps. Create `scripts/run-integration-test.sh` that seeds the inbox, runs the dispatcher, waits for completion, and reports pass/fail. Makes the test repeatable and CI-able.
+
+**A5: State mapping comment block.**
+The integration pipeline config must have a comment block at the top listing exactly which production states are stubbed, which are real, and which are removed — so drift between production and integration configs is immediately visible.
+
+### Scope freeze
+
+After amendments, scope is:
+- 2 new YAML configs (integration-dispatcher, integration-pipeline)
+- 1 new directory (`.chaplain/inbox-integration/`)
+- 1 wrapper script (`scripts/run-integration-test.sh`)
+- 1 confession entry in `docs/confessions.md`
+- 0 changes to production configs
+
+Effort estimate: 0.5 days confirmed.
+
+**Authority granted. Enforce.**
 - `.chaplain/config/watcher-pipeline.yaml` (production reference)
 - `.chaplain/config/watcher-dispatcher.yaml` (production reference)
 - `.chaplain/lib/watcher/*.sh` (shared bash tools)
