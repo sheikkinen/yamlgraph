@@ -9,7 +9,6 @@
 #   committing_plan   git_commit     — real git_commit action (A1)
 #   committing_research git_commit   — real git_commit action (A1)
 #   committing_implementation git_commit — real git_commit action (A1)
-#   changelog_gen     bash           — real changelog fragment generation
 #   finalizing        precommit      — real pre-commit run
 #   pushing           bash           — real git push
 #   creating_pr       bash_context   — real create_pr.sh
@@ -52,7 +51,6 @@ states:
   # === ENFORCEMENT PHASE ===
   - implementing
   - committing_implementation
-  - changelog_gen
   - finalizing
   - pushing
   - creating_pr
@@ -79,7 +77,6 @@ events:
   approve: {}
   implement_done: {}
   implementation_committed: {}
-  changelog_done: {}
   finalize_done: {}
   precommit_retry: {}
   pushed: {}
@@ -93,6 +90,8 @@ events:
   cleaned_up: {}
   stop: {}
   error: {}
+  failed: {}
+  job_done: {}
   "timeout(300)": {}
 
 transitions:
@@ -133,12 +132,8 @@ transitions:
     event: implement_done
 
   - from: committing_implementation
-    to: changelog_gen
-    event: implementation_committed
-
-  - from: changelog_gen
     to: finalizing
-    event: changelog_done
+    event: implementation_committed
 
   # Finalizing retry loop (pre-commit fix cycle, capped at 5)
   - from: finalizing
@@ -148,6 +143,21 @@ transitions:
   - from: finalizing
     to: pushing
     event: finalize_done
+
+  # precommit action emits "failed" (not "error") when max_attempts exceeded
+  - from: finalizing
+    to: failed
+    event: failed
+
+  # failed cleanup completes → stop the machine
+  - from: failed
+    to: stopped
+    event: job_done
+
+  # completed action completes → stop the machine
+  - from: completed
+    to: stopped
+    event: job_done
 
   - from: pushing
     to: creating_pr
@@ -209,10 +219,6 @@ transitions:
     event: error
 
   - from: committing_implementation
-    to: failed
-    event: error
-
-  - from: changelog_gen
     to: failed
     event: error
 
@@ -369,20 +375,6 @@ actions:
       error: error
       description: "💾 Committing implementation"
 
-  changelog_gen:
-    - type: bash
-      command: |
-        cd {wt_dir}
-        FRAG="changelog/unreleased/integration-test.md"
-        mkdir -p changelog/unreleased
-        printf -- '---\ntype: docs\nscope: integration\n---\n- Integration test run\n' > "$FRAG"
-        git add "$FRAG"
-        git commit -m "docs: changelog fragment" --no-verify
-      success: changelog_done
-      error: error
-      timeout: 30
-      description: "📋 Generating changelog fragment"
-
   finalizing:
     - type: precommit
       max_attempts: 5
@@ -399,7 +391,11 @@ actions:
 
   creating_pr:
     - type: bash_context
-      command: "bash .chaplain/lib/watcher/create_pr.sh --branch {wt_branch} --dir {wt_dir}"
+      command: >-
+        bash .chaplain/lib/watcher/create_pr.sh
+        --branch {wt_branch}
+        --dir {wt_dir}
+        --title "docs(integration): smoke test"
       capture_keys: [pr_number, pr_url]
       success: pr_created
       error: error
@@ -409,6 +405,7 @@ actions:
     - type: bash_context
       command: "bash .chaplain/lib/watcher/wait_ci.sh --pr {pr_number}"
       capture_keys: [ci_result]
+      timeout: 660
       success: ci_passed
       error: ci_failed
       description: "⏳ Waiting for CI"

@@ -111,7 +111,6 @@ class TestIntegrationPipelineConfig:
         enforcement = {
             "implementing",
             "committing_implementation",
-            "changelog_gen",
             "finalizing",
             "pushing",
             "creating_pr",
@@ -377,3 +376,112 @@ class TestLintValidation:
         assert (
             "0 errors" in result.stdout
         ), f"statemachine-lint failed:\n{result.stdout}\n{result.stderr}"
+
+
+# ════════════════════════════════════════════════════════════════════════
+# FR-302: Integration Test CI Compliance
+# ════════════════════════════════════════════════════════════════════════
+
+
+CREATE_PR_SCRIPT = CHAPLAIN / "lib" / "watcher" / "create_pr.sh"
+PREFLIGHT_SCRIPT = CHAPLAIN / "lib" / "watcher" / "preflight.sh"
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestFR302TitleOverride:
+    """AC-1/AC-2: create_pr.sh supports --title flag, pipeline uses docs: title."""
+
+    def test_create_pr_accepts_title_flag(self):
+        """AC-1: create_pr.sh parses --title argument."""
+        text = CREATE_PR_SCRIPT.read_text()
+        assert "--title" in text, "create_pr.sh must accept --title flag"
+        assert "TITLE_OVERRIDE" in text, "create_pr.sh must use TITLE_OVERRIDE variable"
+
+    def test_pipeline_passes_docs_title(self):
+        """AC-2: Integration pipeline uses docs(integration) PR title."""
+        config = load_config(INTEGRATION_PIPELINE)
+        creating_pr = config["actions"]["creating_pr"]
+        command = creating_pr[0].get("command", "")
+        assert '--title "docs(integration): smoke test"' in command
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestFR302PreflightRuff:
+    """AC-3: Ruff check added to preflight.sh."""
+
+    def test_preflight_checks_ruff(self):
+        """AC-3: preflight.sh runs ruff check and ruff format."""
+        text = PREFLIGHT_SCRIPT.read_text()
+        assert "ruff check" in text, "preflight.sh must run ruff check"
+        assert "ruff format" in text, "preflight.sh must run ruff format"
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestFR302ChangelogGenRemoved:
+    """AC-6: changelog_gen state fully removed from integration pipeline."""
+
+    def test_changelog_gen_not_in_states(self):
+        """changelog_gen is not in the states list."""
+        config = load_config(INTEGRATION_PIPELINE)
+        states = config.get("states", [])
+        assert "changelog_gen" not in states
+
+    def test_changelog_done_not_in_events(self):
+        """changelog_done event is removed."""
+        config = load_config(INTEGRATION_PIPELINE)
+        events = config.get("events", {})
+        assert "changelog_done" not in events
+
+    def test_no_changelog_gen_action_block(self):
+        """No action block for changelog_gen."""
+        config = load_config(INTEGRATION_PIPELINE)
+        actions = config.get("actions", {})
+        assert "changelog_gen" not in actions
+
+    def test_implementation_committed_routes_to_finalizing(self):
+        """implementation_committed routes directly to finalizing."""
+        config = load_config(INTEGRATION_PIPELINE)
+        transitions = config.get("transitions", [])
+        ic_transitions = [
+            t for t in transitions if t.get("event") == "implementation_committed"
+        ]
+        assert len(ic_transitions) == 1
+        assert ic_transitions[0]["from"] == "committing_implementation"
+        assert ic_transitions[0]["to"] == "finalizing"
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestFR302CompletedTermination:
+    """AC-7: completed state terminates cleanly via job_done → stopped."""
+
+    def test_completed_has_job_done_transition(self):
+        """completed state transitions to stopped on job_done."""
+        config = load_config(INTEGRATION_PIPELINE)
+        transitions = config.get("transitions", [])
+        completed_transitions = [
+            t
+            for t in transitions
+            if t.get("from") == "completed" and t.get("event") == "job_done"
+        ]
+        assert len(completed_transitions) == 1
+        assert completed_transitions[0]["to"] == "stopped"
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestFR302RunScript:
+    """AC-4: run-integration-test.sh kills dispatcher and asserts exit code."""
+
+    def test_script_backgrounds_dispatcher(self):
+        """Script runs dispatcher in background."""
+        text = INTEGRATION_SCRIPT.read_text()
+        assert "DISPATCHER_PID" in text, "Script must capture dispatcher PID"
+
+    def test_script_kills_dispatcher(self):
+        """Script kills dispatcher after pipeline terminates."""
+        text = INTEGRATION_SCRIPT.read_text()
+        assert 'kill "$DISPATCHER_PID"' in text
+
+    def test_script_checks_completed(self):
+        """Script asserts pipeline reached completed state."""
+        text = INTEGRATION_SCRIPT.read_text()
+        assert "completed --job_done--> stopped" in text
