@@ -6,26 +6,27 @@ set -euo pipefail
 
 INBOX=".chaplain/inbox-integration"
 LOG_FILE="docs/watcher-integration.md"
+TOPIC_SLUG="smoke-$(date +%Y%m%d-%H%M%S)"
+BRANCH_NAME="feat/watcher2-${TOPIC_SLUG}"
 
 echo "=== FR-301 Integration Test ==="
+echo "Topic: $TOPIC_SLUG | Branch: $BRANCH_NAME"
 echo ""
 
-# Clean up stale state from previous runs
-if git worktree list | grep -q "feat/watcher2-smoke-test"; then
-  git worktree remove tmp/worktrees/feat/watcher2-smoke-test --force 2>/dev/null || true
-fi
-if git branch --list "feat/watcher2-smoke-test" | grep -q .; then
-  git branch -D feat/watcher2-smoke-test 2>/dev/null || true
-fi
-rm -f .chaplain/failed/smoke-test.md .chaplain/processing/smoke-test.md
+# Clean up stale state from previous runs (any smoke-* artifacts)
+for wt in $(git worktree list --porcelain | grep -oE 'tmp/worktrees/feat/watcher2-smoke-[^ ]+'); do
+  git worktree remove "$wt" --force 2>/dev/null || true
+done
+git branch --list "feat/watcher2-smoke-*" | xargs -r git branch -D 2>/dev/null || true
+rm -f .chaplain/failed/smoke-*.md .chaplain/processing/smoke-*.md
 
 # Clean stale pipeline logs so polling loop doesn't find old results
-rm -f logs/fsm-integration-smoke-test-*.log
+rm -f logs/fsm-integration-smoke-*.log
 
 # Seed the inbox
 mkdir -p "$INBOX"
-echo "# Integration smoke test — $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$INBOX/smoke-test.md"
-echo "✓ Seeded $INBOX/smoke-test.md"
+echo "# Integration smoke test — $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$INBOX/${TOPIC_SLUG}.md"
+echo "✓ Seeded $INBOX/${TOPIC_SLUG}.md"
 
 # Ensure log file exists on main
 if [ ! -f "$LOG_FILE" ]; then
@@ -49,7 +50,7 @@ DISPATCHER_PID=$!
 FINAL_LOG=""
 for i in $(seq 1 120); do
   sleep 5
-  FINAL_LOG=$(ls -1t logs/fsm-integration-smoke-test-*.log 2>/dev/null | head -1)
+  FINAL_LOG=$(ls -1t logs/fsm-integration-${TOPIC_SLUG}-*.log 2>/dev/null | head -1)
   if [ -n "$FINAL_LOG" ] && grep -q "terminal state: stopped" "$FINAL_LOG" 2>/dev/null; then
     break
   fi
