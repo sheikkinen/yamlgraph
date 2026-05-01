@@ -309,7 +309,7 @@ class TestIntegrationScript:
         """Script seeds the integration inbox."""
         text = INTEGRATION_SCRIPT.read_text()
         assert "inbox-integration" in text
-        assert "smoke-test.md" in text
+        assert "TOPIC_SLUG" in text
 
     def test_script_runs_dispatcher(self):
         """Script invokes integration-dispatcher.yaml."""
