@@ -93,6 +93,7 @@ events:
   failed: {}
   job_done: {}
   "timeout(300)": {}
+  "timeout(660)": {}
 
 transitions:
   # ── PLANNING PHASE ──────────────────────────────────────────────────
@@ -262,7 +263,7 @@ transitions:
 
   - from: waiting_ci
     to: failed
-    event: "timeout(300)"
+    event: "timeout(660)"
 
   # ── GLOBAL SHUTDOWN ────────────────────────────────────────────────
 
@@ -412,7 +413,7 @@ actions:
 
   merging:
     - type: bash
-      command: "gh pr merge {pr_number} --squash --delete-branch"
+      command: "gh pr merge {pr_number} --squash"
       success: merged
       error: error
       description: "🔀 Merging PR"
