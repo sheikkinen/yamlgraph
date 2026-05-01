@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Amended
 **Effort:** 0.5 days
 **Requested:** 2026-05-01
 
@@ -136,56 +136,99 @@ The integration pipeline passes `--title "docs(integration): smoke test"`.
       error: error
 ```
 
-### 3. Add preflight ruff check on main
+### 3. Add ruff check to `preflight.sh` (A2)
 
-Before creating the worktree, run `ruff check .` on main. If it fails, the test fails immediately with a clear message instead of discovering lint errors 10 states later during pre-commit in the worktree.
-
-```yaml
-  preflight:
-    - type: bash
-      command: |
-        ruff check . --quiet
-        ruff format --check . --quiet
-      success: preflight_done
-      error: error
-      description: "🔍 Preflight: verify main is lint-clean"
-```
-
-### 4. Exit code in `run-integration-test.sh`
-
-After the dispatcher exits, check what state the pipeline reached:
+Add ruff lint and format checks to the existing `preflight.sh` script — do not replace the existing preflight action. The script already validates CLI tools and git state; ruff checks belong alongside those. If ruff fails, preflight fails with a clear message before worktree creation.
 
 ```bash
-# After dispatcher exits, check pipeline outcome
-FINAL_LOG=$(ls -1t logs/fsm-integration-smoke-test-*.log | head -1)
-if grep -q "terminal state: stopped" "$FINAL_LOG"; then
-  if grep -q "completed --job_done--> stopped" "$FINAL_LOG"; then
-    echo "✅ PASS: Pipeline reached completed"
-    exit 0
-  else
-    echo "❌ FAIL: Pipeline reached stopped via failure path"
+# Added to preflight.sh (after existing checks):
+log_info "Checking ruff lint..."
+if ! ruff check . --quiet 2>/dev/null; then
+    log_error "ruff check failed on main — fix before running integration test"
     exit 1
+fi
+if ! ruff format --check . --quiet 2>/dev/null; then
+    log_error "ruff format failed on main — fix before running integration test"
+    exit 1
+fi
+```
+
+### 4. Exit code and dispatcher termination in `run-integration-test.sh` (A4)
+
+The dispatcher runs indefinitely in its idle polling loop. After the pipeline terminates (success or failure), the script must kill the dispatcher process, then inspect the log to determine pass/fail.
+
+```bash
+# Run the dispatcher in background
+statemachine .chaplain/config/integration-dispatcher.yaml \
+  --actions-dir .chaplain/actions \
+  --initial-context "{\"inbox_dir\":\"$INBOX\"}" \
+  --debug &
+DISPATCHER_PID=$!
+
+# Wait for pipeline to complete (monitor log for terminal state)
+FINAL_LOG=""
+for i in $(seq 1 120); do
+  sleep 5
+  FINAL_LOG=$(ls -1t logs/fsm-integration-smoke-test-*.log 2>/dev/null | head -1)
+  if [ -n "$FINAL_LOG" ] && grep -q "terminal state: stopped" "$FINAL_LOG" 2>/dev/null; then
+    break
   fi
+done
+
+# Kill dispatcher
+kill "$DISPATCHER_PID" 2>/dev/null || true
+wait "$DISPATCHER_PID" 2>/dev/null || true
+
+# Assert pipeline outcome
+if [ -z "$FINAL_LOG" ]; then
+  echo "❌ FAIL: No pipeline log found"
+  exit 1
+fi
+if grep -q "completed --job_done--> stopped" "$FINAL_LOG"; then
+  echo "✅ PASS: Pipeline reached completed"
+  exit 0
 else
-  echo "❌ FAIL: Pipeline did not terminate cleanly"
+  echo "❌ FAIL: Pipeline did not reach completed"
+  tail -20 "$FINAL_LOG"
   exit 1
 fi
 ```
 
-### 5. Drop changelog fragment from integration stubs
+### 5. Drop changelog fragment from integration stubs (A3)
 
-With a `docs:` PR title, `changelog-gate` and `changelog-req-gate` skip entirely. The stub changelog fragment generation is unnecessary complexity. Remove the `changelog_gen` state and transition directly from `committing_implementation` to `finalizing`.
+With a `docs:` PR title, `changelog-gate` and `changelog-req-gate` skip entirely. The stub changelog fragment generation is unnecessary complexity. Full cascade removal:
+
+- Remove `changelog_gen` from `states` list
+- Remove `changelog_done` from `events`
+- Remove transition `committing_implementation → changelog_gen` (event: `implementation_committed`)
+- Remove transition `changelog_gen → finalizing` (event: `changelog_done`)
+- Remove transition `changelog_gen → failed` (event: `error`)
+- Add transition `committing_implementation → finalizing` (event: `implementation_committed`)
+- Remove `changelog_gen` action block
+
+### 6. Add `completed → stopped` transition (A1)
+
+The `completed` state has a bash action (`echo '✅ ...'`) but no `job_done` transition. When the action finishes, the engine re-enters it forever — same infinite loop bug fixed in `failed` state. Add:
+
+```yaml
+  - from: completed
+    to: stopped
+    event: job_done
+```
+
+This is prerequisite for AC-5 — without it the pipeline cannot terminate via the success path.
 
 ## Acceptance Criteria
 
 - [ ] AC-1: `create_pr.sh` accepts `--title` flag to override default PR title
 - [ ] AC-2: Integration pipeline uses `docs(integration): smoke test` as PR title
-- [ ] AC-3: Preflight runs `ruff check .` and `ruff format --check .` on main before worktree creation
-- [ ] AC-4: `run-integration-test.sh` exits non-zero when pipeline does not reach `completed`
+- [ ] AC-3: Ruff check added to existing `preflight.sh` (not a replacement action) (A2)
+- [ ] AC-4: `run-integration-test.sh` kills dispatcher, then exits non-zero when pipeline does not reach `completed` (A4)
 - [ ] AC-5: Pipeline reaches `completed → stopped` on a clean main branch
-- [ ] AC-6: `changelog_gen` state removed from integration pipeline (unnecessary with `docs:` title)
-- [ ] AC-7: Tests added validating pipeline structure changes
-- [ ] AC-8: Existing FR-301 unit tests updated to reflect structural changes
+- [ ] AC-6: `changelog_gen` state fully removed — state, event, all transitions, action block (A3)
+- [ ] AC-7: `completed → stopped` transition on `job_done` added (A1)
+- [ ] AC-8: Tests added validating pipeline structure changes
+- [ ] AC-9: Existing FR-301 unit tests updated to reflect structural changes (changelog_gen removal)
 
 ## Alternatives Considered
 
