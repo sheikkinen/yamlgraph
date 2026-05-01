@@ -412,7 +412,7 @@ actions:
 
   merging:
     - type: bash
-      command: "gh pr merge {pr_number} --squash --delete-branch"
+      command: "gh pr merge {pr_number} --squash"
       success: merged
       error: error
       description: "🔀 Merging PR"
