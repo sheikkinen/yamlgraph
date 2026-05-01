@@ -484,4 +484,4 @@ class TestFR302RunScript:
     def test_script_checks_completed(self):
         """Script asserts pipeline reached completed state."""
         text = INTEGRATION_SCRIPT.read_text()
-        assert "completed --job_done--> stopped" in text
+        assert "terminal state: completed" in text

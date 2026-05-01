@@ -51,7 +51,7 @@ FINAL_LOG=""
 for i in $(seq 1 120); do
   sleep 5
   FINAL_LOG=$(ls -1t logs/fsm-integration-${TOPIC_SLUG}-*.log 2>/dev/null | head -1)
-  if [ -n "$FINAL_LOG" ] && grep -q "terminal state: stopped" "$FINAL_LOG" 2>/dev/null; then
+  if [ -n "$FINAL_LOG" ] && grep -qE "terminal state: (completed|stopped)|Integration pipeline failed" "$FINAL_LOG" 2>/dev/null; then
     break
   fi
 done
@@ -68,7 +68,7 @@ if [ -z "$FINAL_LOG" ]; then
   echo "❌ FAIL: No pipeline log found"
   exit 1
 fi
-if grep -q "completed --job_done--> stopped" "$FINAL_LOG"; then
+if grep -q "terminal state: completed" "$FINAL_LOG"; then
   echo "✅ PASS: Pipeline reached completed"
   exit 0
 else
