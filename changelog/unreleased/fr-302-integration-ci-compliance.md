@@ -8,3 +8,5 @@ scope: ci
 - **FR-302 Source Guard**: Guard `create_pr.sh` arg parsing for source vs direct execution; fix test mock ordering for `common.sh` log functions; add `ruff` mock to preflight tests.
 - **FR-302 Merge Fix**: Remove `--delete-branch` from merge command; worktree teardown handles local branch cleanup.
 - **FR-302 Unique Branch**: Use timestamped topic slug to avoid merged-PR collision guard blocking re-runs.
+- **FR-302 Terminal State Assertion**: Fix polling and success assertion to match FSM engine terminal-state semantics (`completed` halts, no `stopped` transition).
+- **FR-302 CI Timeout**: Increase `waiting_ci` state timeout from 300s to 660s to match action timeout; detect `failed` state in polling loop.
