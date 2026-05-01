@@ -32,12 +32,12 @@ _TEST_HARNESS = textwrap.dedent("""\
     #!/usr/bin/env bash
     set -euo pipefail
 
-    # Mock log functions
+    # Source the create_pr.sh library (also sources common.sh)
+    source "{create_pr_path}"
+
+    # Override log functions AFTER sourcing (common.sh defines them with emoji to stderr)
     log_info() {{ echo "INFO: $1"; }}
     log_error() {{ echo "ERROR: $1" >&2; }}
-
-    # Source the create_pr.sh library
-    source "{create_pr_path}"
 
     # Set required environment variables
     export WT_BRANCH="$1"

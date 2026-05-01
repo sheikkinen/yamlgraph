@@ -40,6 +40,7 @@ log_info() {{ :; }}
 log_warn() {{ :; }}
 log_error() {{ :; }}
 python3() {{ return 0; }}
+ruff() {{ return 0; }}
 source "{PREFLIGHT_SH}"
 preflight
 rc=$?
