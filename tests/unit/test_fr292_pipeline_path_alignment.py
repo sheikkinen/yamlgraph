@@ -183,10 +183,10 @@ class TestCommittingTestsRemoved:
 
 @pytest.mark.req("REQ-YG-162")
 class TestChangelogGenBash:
-    """changelog_gen action must use bash type."""
+    """changelog_gen action uses custom changelog_gen type (FR-303)."""
 
-    def test_changelog_gen_is_bash(self):
-        """AC-04: changelog_gen action uses bash type."""
+    def test_changelog_gen_is_custom_type(self):
+        """AC-04: changelog_gen action uses changelog_gen custom type."""
         config = load_config(PIPELINE_PATH)
         actions = get_action_blocks(config)
         changelog_actions = actions.get("changelog_gen", [])
@@ -194,8 +194,8 @@ class TestChangelogGenBash:
             len(changelog_actions) >= 1
         ), "changelog_gen must have at least one action"
         assert (
-            changelog_actions[0].get("type") == "bash"
-        ), f"changelog_gen should be bash, got: {changelog_actions[0].get('type')}"
+            changelog_actions[0].get("type") == "changelog_gen"
+        ), f"changelog_gen should be changelog_gen type, got: {changelog_actions[0].get('type')}"
 
     def test_changelog_gen_no_graph_key(self):
         """AC-04: changelog_gen action must not have a graph: key."""

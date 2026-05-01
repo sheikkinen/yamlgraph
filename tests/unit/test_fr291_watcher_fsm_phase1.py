@@ -235,6 +235,9 @@ class TestPipelineConfig:
             "yamlgraph_async",
             "git_commit",
             "precommit",
+            "verify_red",
+            "changelog_gen",
+            "failure_cleanup",
         }
         # Every action type must be one of the expected real types
         for at in action_types:

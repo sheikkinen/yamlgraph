@@ -1,6 +1,7 @@
 # Watcher2 Integration Dispatcher — No-LLM End-to-End Test
-# FR-301: Polls .chaplain/inbox-integration/ and runs integration-pipeline.yaml.
-# Same structure as watcher-dispatcher.yaml but isolated inbox + pipeline.
+# FR-301: Polls .chaplain/inbox-integration/ and runs watcher-pipeline.yaml with stubs.
+# FR-303: Uses unified pipeline with --actions-dir .chaplain/actions-stub.
+# Same structure as watcher-dispatcher.yaml but isolated inbox + stub actions.
 
 metadata:
   name: "Integration Dispatcher (No-LLM)"
@@ -81,19 +82,19 @@ actions:
       description: "📥 Find next integration test topic"
 
   processing_topic:
-    # Run the integration pipeline FSM for this topic
+    # Run the unified pipeline FSM for this topic (with stubs via --actions-dir)
     - type: bash
       command: |
         TOPIC="{topic_file}"
         BASENAME=$(basename "$TOPIC" .md)
         LOG="logs/fsm-integration-${BASENAME}-$(date +%Y%m%d-%H%M%S).log"
         ls -1t logs/fsm-integration-*.log 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
-        statemachine .chaplain/config/integration-pipeline.yaml \
-          --actions-dir .chaplain/actions \
-          --initial-context "{\"topic_file\":\"$TOPIC\"}" \
+        statemachine .chaplain/config/watcher-pipeline.yaml \
+          --actions-dir .chaplain/actions-stub \
+          --initial-context "{\"topic_file\":\"$TOPIC\",\"merge_flags\":\"\",\"pr_title_flag\":\"--title \\\"docs(integration): smoke test\\\"\",\"post_merge_cmd\":\"echo done\",\"plan_commit_msg\":\"docs: integration plan — $TOPIC\"}" \
           --debug \
           2>&1 | tee "$LOG"
       success: topic_done
       error: error
       timeout: 900
-      description: "🚀 Run integration pipeline for topic"
+      description: "🚀 Run unified pipeline for topic (stub profile)"
