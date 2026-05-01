@@ -1,0 +1,145 @@
+# Feature Request: FR-302 Integration Test CI Compliance
+
+**Priority:** HIGH
+**Type:** Enhancement
+**Status:** Proposed
+**Effort:** 0.5 days
+**Requested:** 2026-05-01
+
+## Summary
+
+Make the FR-301 integration test pipeline produce artifacts that satisfy all CI gates, so the pipeline reaches `completed` instead of `failed`. Currently, the pipeline stubs create docs-only content that fails `commitlint` (missing FR-XXX in feat PR title). The fix is to use a `docs:` PR title prefix, bypassing all feat-specific gates.
+
+## Value Statement
+
+Watcher developers get a green integration test that proves the *entire* pipeline works end-to-end — including PR creation, CI pass, merge, and teardown — not just the failure path.
+
+## Problem
+
+FR-301 built the integration pipeline with bash stubs replacing LLM steps. The pipeline traverses all states correctly but always fails at `waiting_ci` because:
+
+1. **`commitlint` fails**: `create_pr.sh` hardcodes `feat(chaplain):` as the PR title prefix. This triggers the `feat commits require FR-XXX` check. The integration pipeline has no FR reference to inject.
+
+2. **Success path untested**: The pipeline reaches `failed → stopped` every run. States `merging`, `cleaning_up`, and `completed` have never been exercised. The test proves the failure path works but not the success path.
+
+3. **Latent lint debt invisible**: Pre-commit on main runs on changed files only. The integration pipeline runs `--all-files` in the worktree (correct) but inherits latent ruff errors from main that were never caught by normal commits.
+
+4. **No pass/fail exit code**: `run-integration-test.sh` exits 0 regardless of pipeline outcome. There is no assertion that the pipeline reached `completed`.
+
+## Root Cause Analysis
+
+The integration pipeline uses real `create_pr.sh` which assumes all PRs are `feat(chaplain):` changes. The integration test produces `docs:`-scoped changes (no code, no FR) that structurally cannot satisfy feat-specific CI gates. The design conflated "test the plumbing" with "produce a real feature PR."
+
+### CI Gate Analysis
+
+| Gate | Trigger | Integration Status | Fix Needed |
+|------|---------|-------------------|------------|
+| `commitlint` | All PRs | **FAILS** — `feat` title without FR-XXX | Use `docs:` or `chore:` title |
+| `test` | All PRs | Passes — docs-only, no coverage impact | None |
+| `conflict-check` | All PRs | Passes — clean generated files | None |
+| `changelog-gate` | feat/fix PRs only | Passes (fragment exists) — but **skips** with docs title | None |
+| `changelog-req-gate` | feat/fix PRs only | Passes (no `req:` field) — but **skips** with docs title | None |
+| `diary-gate` | feat/fix PRs with FR-XXX | **Skips** — no FR in title | None |
+| `demo-gate` | feat/fix PRs | **Skips** — no demo files touched | None |
+| `security` | All PRs | Passes — no dep changes | None |
+
+**Key insight**: Using a `docs:` PR title prefix makes 6/8 gates skip or pass trivially. Only `commitlint` (format check) and `test` (unit tests) remain active, and both pass.
+
+## Proposed Solution
+
+### 1. Add `--title` flag to `create_pr.sh`
+
+Allow the caller to override the default `feat(chaplain):` title:
+
+```bash
+# Current (hardcoded):
+PR_TITLE="feat(chaplain): ${WT_BRANCH#chaplain/}"
+
+# New (with override):
+PR_TITLE="${TITLE_OVERRIDE:-feat(chaplain): ${WT_BRANCH#chaplain/}}"
+```
+
+The integration pipeline passes `--title "docs(integration): smoke test"`.
+
+### 2. Integration pipeline `creating_pr` state passes `--title`
+
+```yaml
+  creating_pr:
+    - type: bash_context
+      command: >-
+        bash .chaplain/lib/watcher/create_pr.sh
+        --branch {wt_branch}
+        --dir {wt_dir}
+        --title "docs(integration): smoke test"
+      capture_keys: [pr_number, pr_url]
+      success: pr_created
+      error: error
+```
+
+### 3. Add preflight ruff check on main
+
+Before creating the worktree, run `ruff check .` on main. If it fails, the test fails immediately with a clear message instead of discovering lint errors 10 states later during pre-commit in the worktree.
+
+```yaml
+  preflight:
+    - type: bash
+      command: |
+        ruff check . --quiet
+        ruff format --check . --quiet
+      success: preflight_done
+      error: error
+      description: "🔍 Preflight: verify main is lint-clean"
+```
+
+### 4. Exit code in `run-integration-test.sh`
+
+After the dispatcher exits, check what state the pipeline reached:
+
+```bash
+# After dispatcher exits, check pipeline outcome
+FINAL_LOG=$(ls -1t logs/fsm-integration-smoke-test-*.log | head -1)
+if grep -q "terminal state: stopped" "$FINAL_LOG"; then
+  if grep -q "completed --job_done--> stopped" "$FINAL_LOG"; then
+    echo "✅ PASS: Pipeline reached completed"
+    exit 0
+  else
+    echo "❌ FAIL: Pipeline reached stopped via failure path"
+    exit 1
+  fi
+else
+  echo "❌ FAIL: Pipeline did not terminate cleanly"
+  exit 1
+fi
+```
+
+### 5. Drop changelog fragment from integration stubs
+
+With a `docs:` PR title, `changelog-gate` and `changelog-req-gate` skip entirely. The stub changelog fragment generation is unnecessary complexity. Remove the `changelog_gen` state and transition directly from `committing_implementation` to `finalizing`.
+
+## Acceptance Criteria
+
+- [ ] AC-1: `create_pr.sh` accepts `--title` flag to override default PR title
+- [ ] AC-2: Integration pipeline uses `docs(integration): smoke test` as PR title
+- [ ] AC-3: Preflight runs `ruff check .` and `ruff format --check .` on main before worktree creation
+- [ ] AC-4: `run-integration-test.sh` exits non-zero when pipeline does not reach `completed`
+- [ ] AC-5: Pipeline reaches `completed → stopped` on a clean main branch
+- [ ] AC-6: `changelog_gen` state removed from integration pipeline (unnecessary with `docs:` title)
+- [ ] AC-7: Tests added validating pipeline structure changes
+- [ ] AC-8: Existing FR-301 unit tests updated to reflect structural changes
+
+## Alternatives Considered
+
+### A: Make stubs produce real feat-quality artifacts
+Rejected. Would require stubs to generate valid FR references, diary entries, and changelog fragments with correct REQ cross-references. This contradicts the "no LLM" constraint and adds fragile coupling to the capability registry.
+
+### B: Skip `waiting_ci` entirely in integration mode
+Partially rejected. Skipping CI validation defeats the purpose — we want to prove the full loop including merge. However, if CI proves unreliable (e.g., upstream CVE in `security` gate), a `--skip-ci` flag may be needed as a fallback.
+
+### C: Use `chore:` instead of `docs:`
+Either works. `docs:` is slightly more accurate since the stub produces `docs/watcher-integration.md` entries.
+
+## Related
+
+- FR-301: Watcher FSM Integration Test (parent — created the pipeline)
+- FR-124: Watcher2 PR Reuse (create_pr.sh `--title` flag aligns with reuse pattern)
+- CONF-300: `--no-verify` in integration stub commits
