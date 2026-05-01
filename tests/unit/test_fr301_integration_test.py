@@ -309,7 +309,7 @@ class TestIntegrationScript:
         """Script seeds the integration inbox."""
         text = INTEGRATION_SCRIPT.read_text()
         assert "inbox-integration" in text
-        assert "smoke-test.md" in text
+        assert "TOPIC_SLUG" in text
 
     def test_script_runs_dispatcher(self):
         """Script invokes integration-dispatcher.yaml."""
@@ -484,4 +484,4 @@ class TestFR302RunScript:
     def test_script_checks_completed(self):
         """Script asserts pipeline reached completed state."""
         text = INTEGRATION_SCRIPT.read_text()
-        assert "completed --job_done--> stopped" in text
+        assert "terminal state: completed" in text
