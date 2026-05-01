@@ -405,6 +405,7 @@ actions:
     - type: bash_context
       command: "bash .chaplain/lib/watcher/wait_ci.sh --pr {pr_number}"
       capture_keys: [ci_result]
+      timeout: 660
       success: ci_passed
       error: ci_failed
       description: "⏳ Waiting for CI"

@@ -19,6 +19,9 @@ if git branch --list "feat/watcher2-smoke-test" | grep -q .; then
 fi
 rm -f .chaplain/failed/smoke-test.md .chaplain/processing/smoke-test.md
 
+# Clean stale pipeline logs so polling loop doesn't find old results
+rm -f logs/fsm-integration-smoke-test-*.log
+
 # Seed the inbox
 mkdir -p "$INBOX"
 echo "# Integration smoke test — $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$INBOX/smoke-test.md"
