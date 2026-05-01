@@ -1,10 +1,14 @@
-"""FR-301: Watcher FSM Integration Test (No-LLM End-to-End).
+"""FR-301/FR-303: Watcher FSM Integration Test (Unified Pipeline).
 
-Acceptance tests for the integration pipeline and dispatcher configs.
-These validate config structure, state mapping, and tooling — NOT the
+Acceptance tests for the unified watcher pipeline and integration dispatcher.
+FR-303 unified the separate integration-pipeline.yaml into watcher-pipeline.yaml
+with action directory swap (--actions-dir .chaplain/actions-stub).
+
+These validate config structure, stub directory, and tooling — NOT the
 actual end-to-end run (which requires GitHub API access).
 """
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -14,12 +18,13 @@ import yaml
 
 WORKTREE = Path(__file__).resolve().parents[2]
 CHAPLAIN = WORKTREE / ".chaplain"
-INTEGRATION_PIPELINE = CHAPLAIN / "config" / "integration-pipeline.yaml"
+UNIFIED_PIPELINE = CHAPLAIN / "config" / "watcher-pipeline.yaml"
 INTEGRATION_DISPATCHER = CHAPLAIN / "config" / "integration-dispatcher.yaml"
-PRODUCTION_PIPELINE = CHAPLAIN / "config" / "watcher-pipeline.yaml"
 PRODUCTION_DISPATCHER = CHAPLAIN / "config" / "watcher-dispatcher.yaml"
 INTEGRATION_SCRIPT = WORKTREE / "scripts" / "run-integration-test.sh"
 CONFESSIONS = WORKTREE / "docs" / "confessions.md"
+ACTIONS_DIR = CHAPLAIN / "actions"
+ACTIONS_STUB_DIR = CHAPLAIN / "actions-stub"
 
 HAS_FSM_CLI = shutil.which("statemachine-lint") is not None
 requires_fsm_cli = pytest.mark.skipif(
@@ -60,37 +65,27 @@ def get_action_type_for_state(config: dict, state: str) -> str | None:
 
 
 @pytest.mark.req("REQ-YG-162")
-class TestIntegrationPipelineConfig:
-    """Integration pipeline config validation."""
+class TestUnifiedPipelineConfig:
+    """Unified pipeline config validation (FR-303)."""
 
     def test_config_exists(self):
-        """Integration pipeline config file exists."""
-        assert INTEGRATION_PIPELINE.exists()
+        """Unified pipeline config file exists."""
+        assert UNIFIED_PIPELINE.exists()
 
     def test_machine_name(self):
         """machine_name matches filename convention."""
-        config = load_config(INTEGRATION_PIPELINE)
-        assert config["metadata"]["machine_name"] == "integration-pipeline"
+        config = load_config(UNIFIED_PIPELINE)
+        assert config["metadata"]["machine_name"] == "watcher-pipeline"
 
-    def test_no_yamlgraph_async_actions(self):
-        """No yamlgraph_async actions — all LLM steps are stubbed."""
-        config = load_config(INTEGRATION_PIPELINE)
+    def test_has_yamlgraph_async_actions(self):
+        """Unified pipeline uses yamlgraph_async for LLM steps."""
+        config = load_config(UNIFIED_PIPELINE)
         action_types = get_action_types(config)
-        assert (
-            "yamlgraph_async" not in action_types
-        ), f"Integration pipeline must not use yamlgraph_async: {action_types}"
-
-    def test_has_state_mapping_comment(self):
-        """A5: State mapping comment block at top of file."""
-        text = INTEGRATION_PIPELINE.read_text()
-        assert "STATE MAPPING" in text, "Missing state mapping comment block (A5)"
-        assert "REAL" in text
-        assert "STUBBED" in text
-        assert "REMOVED" in text
+        assert "yamlgraph_async" in action_types
 
     def test_planning_states_present(self):
-        """Pipeline has planning phase states."""
-        config = load_config(INTEGRATION_PIPELINE)
+        """Pipeline has all planning phase states."""
+        config = load_config(UNIFIED_PIPELINE)
         states = set(config.get("states", []))
         planning = {
             "preflight",
@@ -99,22 +94,28 @@ class TestIntegrationPipelineConfig:
             "committing_plan",
             "researching",
             "committing_research",
+            "writing_tests",
+            "verifying_red",
             "judging",
         }
         missing = planning - states
         assert not missing, f"Missing planning states: {missing}"
 
     def test_enforcement_states_present(self):
-        """Pipeline has enforcement phase states."""
-        config = load_config(INTEGRATION_PIPELINE)
+        """Pipeline has all enforcement phase states."""
+        config = load_config(UNIFIED_PIPELINE)
         states = set(config.get("states", []))
         enforcement = {
             "implementing",
             "committing_implementation",
+            "testing_demo",
+            "critiquing",
+            "changelog_gen",
             "finalizing",
             "pushing",
             "creating_pr",
             "waiting_ci",
+            "remediating_ci",
             "merging",
             "cleaning_up",
         }
@@ -123,97 +124,28 @@ class TestIntegrationPipelineConfig:
 
     def test_terminal_states_present(self):
         """Pipeline has terminal states."""
-        config = load_config(INTEGRATION_PIPELINE)
+        config = load_config(UNIFIED_PIPELINE)
         states = set(config.get("states", []))
-        terminal = {"completed", "failed", "stopped"}
+        terminal = {"completed", "failed", "forensics", "stopped"}
         missing = terminal - states
         assert not missing, f"Missing terminal states: {missing}"
 
-    def test_removed_states_absent(self):
-        """Removed production states are not in integration pipeline."""
-        config = load_config(INTEGRATION_PIPELINE)
-        states = set(config.get("states", []))
-        removed = {
-            "writing_tests",
-            "verifying_red",
-            "testing_demo",
-            "critiquing",
-            "remediating_ci",
-            "forensics",
-        }
-        overlap = states & removed
-        assert not overlap, f"Removed states still present: {overlap}"
+    def test_error_event_declared(self):
+        """Error event is declared in events block (FR-303 Phase 0)."""
+        config = load_config(UNIFIED_PIPELINE)
+        events = config.get("events", {})
+        assert "error" in events
 
-
-# ════════════════════════════════════════════════════════════════════════
-# AC: A1 — git_commit actions use real action type
-# ════════════════════════════════════════════════════════════════════════
-
-
-@pytest.mark.req("REQ-YG-162")
-class TestGitCommitActions:
-    """A1: committing_* states use real git_commit action type."""
-
-    @pytest.fixture()
-    def config(self):
-        return load_config(INTEGRATION_PIPELINE)
-
-    def test_committing_plan_uses_git_commit(self, config):
-        """committing_plan uses git_commit action type."""
-        assert get_action_type_for_state(config, "committing_plan") == "git_commit"
-
-    def test_committing_research_uses_git_commit(self, config):
-        """committing_research uses git_commit action type."""
-        assert get_action_type_for_state(config, "committing_research") == "git_commit"
-
-    def test_committing_implementation_uses_git_commit(self, config):
-        """committing_implementation uses git_commit action type."""
-        assert (
-            get_action_type_for_state(config, "committing_implementation")
-            == "git_commit"
-        )
-
-
-# ════════════════════════════════════════════════════════════════════════
-# AC: A3 — Failure path cleanup
-# ════════════════════════════════════════════════════════════════════════
-
-
-@pytest.mark.req("REQ-YG-162")
-class TestFailurePath:
-    """A3: Failed state does cleanup."""
-
-    def test_failed_state_has_action(self):
-        """Failed state has an action defined."""
-        config = load_config(INTEGRATION_PIPELINE)
-        actions = config.get("actions", {})
-        assert "failed" in actions, "No action for failed state"
-
-    def test_failed_action_does_cleanup(self):
-        """Failed action cleans up worktree, branch, PR, and topic."""
-        config = load_config(INTEGRATION_PIPELINE)
-        failed_action = config["actions"]["failed"]
-        command = failed_action[0].get("command", "")
-        assert "worktree_teardown" in command, "Failed action doesn't clean up worktree"
-        assert (
-            "git push origin --delete" in command
-        ), "Failed action doesn't delete remote branch"
-        assert "gh pr close" in command, "Failed action doesn't close PR"
-        assert (
-            ".chaplain/failed" in command
-        ), "Failed action doesn't move topic to failed/"
-
-    def test_all_states_can_reach_failed(self):
-        """All non-terminal states have a transition to failed."""
-        config = load_config(INTEGRATION_PIPELINE)
+    def test_all_non_terminal_states_have_error_transition(self):
+        """All non-terminal states can reach failed on error (FR-303 Phase 0)."""
+        config = load_config(UNIFIED_PIPELINE)
         transitions = config.get("transitions", [])
-        terminal = {"completed", "failed", "stopped"}
+        terminal = {"completed", "failed", "forensics", "stopped"}
         non_terminal = set(config.get("states", [])) - terminal
 
-        # Collect states that have a path to failed
         can_fail = set()
         for t in transitions:
-            if t.get("to") == "failed":
+            if t.get("to") == "failed" and t.get("event") == "error":
                 from_state = t.get("from")
                 if from_state == "*":
                     can_fail = non_terminal
@@ -221,7 +153,161 @@ class TestFailurePath:
                 can_fail.add(from_state)
 
         missing = non_terminal - can_fail
-        assert not missing, f"States without failure path: {missing}"
+        assert not missing, f"States without error -> failed: {missing}"
+
+
+# ════════════════════════════════════════════════════════════════════════
+# FR-303 Phase 1: Custom action types
+# ════════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestCustomActionTypes:
+    """FR-303 Phase 1: verifying_red, changelog_gen, failed use custom types."""
+
+    def test_verify_red_uses_custom_type(self):
+        """verifying_red uses verify_red action type (not inline bash)."""
+        config = load_config(UNIFIED_PIPELINE)
+        assert get_action_type_for_state(config, "verifying_red") == "verify_red"
+
+    def test_changelog_gen_uses_custom_type(self):
+        """changelog_gen uses changelog_gen action type (not inline bash)."""
+        config = load_config(UNIFIED_PIPELINE)
+        assert get_action_type_for_state(config, "changelog_gen") == "changelog_gen"
+
+    def test_failed_uses_custom_type(self):
+        """failed uses failure_cleanup action type (not inline bash)."""
+        config = load_config(UNIFIED_PIPELINE)
+        assert get_action_type_for_state(config, "failed") == "failure_cleanup"
+
+    def test_production_action_files_exist(self):
+        """Custom action files exist in production actions dir."""
+        assert (ACTIONS_DIR / "verify_red_action.py").exists()
+        assert (ACTIONS_DIR / "changelog_gen_action.py").exists()
+        assert (ACTIONS_DIR / "failure_cleanup_action.py").exists()
+
+
+# ════════════════════════════════════════════════════════════════════════
+# FR-303 Phase 2: Parameterized context variables
+# ════════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestContextVariables:
+    """FR-303 Phase 2: Inline bash parameterized with context variables."""
+
+    def test_merging_uses_merge_flags(self):
+        """merging command uses {merge_flags} context variable."""
+        config = load_config(UNIFIED_PIPELINE)
+        merging = config["actions"]["merging"]
+        command = merging[0].get("command", "")
+        assert "{merge_flags}" in command
+        assert "--delete-branch" not in command
+
+    def test_creating_pr_uses_title_flag(self):
+        """creating_pr command uses {pr_title_flag} context variable."""
+        config = load_config(UNIFIED_PIPELINE)
+        creating_pr = config["actions"]["creating_pr"]
+        command = creating_pr[0].get("command", "")
+        assert "{pr_title_flag}" in command
+
+    def test_completed_uses_post_merge_cmd(self):
+        """completed command uses {post_merge_cmd} context variable."""
+        config = load_config(UNIFIED_PIPELINE)
+        completed = config["actions"]["completed"]
+        command = completed[0].get("command", "")
+        assert "{post_merge_cmd}" in command
+
+    def test_committing_plan_uses_plan_commit_msg(self):
+        """committing_plan uses {plan_commit_msg} for commit message."""
+        config = load_config(UNIFIED_PIPELINE)
+        committing = config["actions"]["committing_plan"]
+        message = committing[0].get("message", "")
+        assert "{plan_commit_msg}" in message
+
+    def test_committing_plan_uses_broad_add_paths(self):
+        """committing_plan uses [\".\"] for add_paths (universal)."""
+        config = load_config(UNIFIED_PIPELINE)
+        committing = config["actions"]["committing_plan"]
+        add_paths = committing[0].get("add_paths", [])
+        assert add_paths == ["."]
+
+
+# ════════════════════════════════════════════════════════════════════════
+# FR-303 Phase 3: Stub directory
+# ════════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.req("REQ-YG-162")
+class TestStubDirectory:
+    """FR-303 Phase 3: actions-stub/ directory with stubs and symlinks."""
+
+    def test_stub_dir_exists(self):
+        """actions-stub/ directory exists."""
+        assert ACTIONS_STUB_DIR.exists()
+        assert ACTIONS_STUB_DIR.is_dir()
+
+    def test_stub_yamlgraph_async_exists(self):
+        """Stub yamlgraph_async_action.py exists (not a symlink)."""
+        stub = ACTIONS_STUB_DIR / "yamlgraph_async_action.py"
+        assert stub.exists()
+        assert not stub.is_symlink()
+
+    def test_stub_verify_red_exists(self):
+        """Stub verify_red_action.py exists (not a symlink)."""
+        stub = ACTIONS_STUB_DIR / "verify_red_action.py"
+        assert stub.exists()
+        assert not stub.is_symlink()
+
+    def test_stub_changelog_gen_exists(self):
+        """Stub changelog_gen_action.py exists (not a symlink)."""
+        stub = ACTIONS_STUB_DIR / "changelog_gen_action.py"
+        assert stub.exists()
+        assert not stub.is_symlink()
+
+    def test_stub_failure_cleanup_exists(self):
+        """Stub failure_cleanup_action.py exists (not a symlink)."""
+        stub = ACTIONS_STUB_DIR / "failure_cleanup_action.py"
+        assert stub.exists()
+        assert not stub.is_symlink()
+
+    def test_bash_context_symlinked(self):
+        """bash_context_action.py is symlinked to real action."""
+        stub = ACTIONS_STUB_DIR / "bash_context_action.py"
+        assert stub.exists()
+        assert stub.is_symlink()
+
+    def test_git_commit_symlinked(self):
+        """git_commit_action.py is symlinked to real action."""
+        stub = ACTIONS_STUB_DIR / "git_commit_action.py"
+        assert stub.exists()
+        assert stub.is_symlink()
+
+    def test_precommit_symlinked(self):
+        """precommit_action.py is symlinked to real action."""
+        stub = ACTIONS_STUB_DIR / "precommit_action.py"
+        assert stub.exists()
+        assert stub.is_symlink()
+
+    def test_symlinks_resolve(self):
+        """All symlinks resolve to existing files."""
+        for name in [
+            "bash_context_action.py",
+            "git_commit_action.py",
+            "precommit_action.py",
+        ]:
+            stub = ACTIONS_STUB_DIR / name
+            assert stub.resolve().exists(), f"Symlink {name} does not resolve"
+
+    def test_stub_yamlgraph_async_has_intent_sequence(self):
+        """Stub yamlgraph_async supports _intent_sequence pattern."""
+        text = (ACTIONS_STUB_DIR / "yamlgraph_async_action.py").read_text()
+        assert "_intent_sequence" in text
+
+    def test_stub_yamlgraph_async_creates_files(self):
+        """Stub yamlgraph_async creates placeholder files in worktree."""
+        text = (ACTIONS_STUB_DIR / "yamlgraph_async_action.py").read_text()
+        assert "watcher-integration.md" in text
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -247,14 +333,25 @@ class TestIntegrationDispatcherConfig:
         config = load_config(INTEGRATION_DISPATCHER)
         assert config["context"]["inbox_dir"] == ".chaplain/inbox-integration"
 
-    def test_launches_integration_pipeline(self):
-        """Dispatcher launches integration-pipeline.yaml, not production."""
+    def test_launches_unified_pipeline(self):
+        """Dispatcher launches watcher-pipeline.yaml with actions-stub (FR-303)."""
         config = load_config(INTEGRATION_DISPATCHER)
         actions = config.get("actions", {})
         processing = actions.get("processing_topic", [])
         command = processing[0].get("command", "")
-        assert "integration-pipeline.yaml" in command
-        assert "watcher-pipeline.yaml" not in command
+        assert "watcher-pipeline.yaml" in command
+        assert "actions-stub" in command
+
+    def test_passes_integration_context_variables(self):
+        """Dispatcher passes integration profile context variables."""
+        config = load_config(INTEGRATION_DISPATCHER)
+        actions = config.get("actions", {})
+        processing = actions.get("processing_topic", [])
+        command = processing[0].get("command", "")
+        assert "merge_flags" in command
+        assert "pr_title_flag" in command
+        assert "post_merge_cmd" in command
+        assert "plan_commit_msg" in command
 
     def test_no_inbox_sync(self):
         """Integration dispatcher doesn't call inbox_sync.sh (no GitHub)."""
@@ -266,17 +363,17 @@ class TestIntegrationDispatcherConfig:
 
 
 # ════════════════════════════════════════════════════════════════════════
-# AC: Production configs unchanged
+# Production dispatcher context variables
 # ════════════════════════════════════════════════════════════════════════
 
 
 @pytest.mark.req("REQ-YG-162")
-class TestProductionUnchanged:
-    """Production configs must not be modified by FR-301."""
+class TestProductionDispatcher:
+    """Production dispatcher passes production context variables."""
 
     def test_production_pipeline_has_yamlgraph_async(self):
         """Production pipeline still uses yamlgraph_async for LLM steps."""
-        config = load_config(PRODUCTION_PIPELINE)
+        config = load_config(UNIFIED_PIPELINE)
         action_types = get_action_types(config)
         assert "yamlgraph_async" in action_types
 
@@ -284,6 +381,22 @@ class TestProductionUnchanged:
         """Production dispatcher machine_name unchanged."""
         config = load_config(PRODUCTION_DISPATCHER)
         assert config["metadata"]["machine_name"] == "watcher-dispatcher"
+
+    def test_production_dispatcher_passes_delete_branch(self):
+        """Production dispatcher passes --delete-branch in merge_flags."""
+        config = load_config(PRODUCTION_DISPATCHER)
+        actions = config.get("actions", {})
+        processing = actions.get("processing_topic", [])
+        command = processing[0].get("command", "")
+        assert "--delete-branch" in command
+
+    def test_production_dispatcher_passes_post_merge(self):
+        """Production dispatcher passes post_merge.sh command."""
+        config = load_config(PRODUCTION_DISPATCHER)
+        actions = config.get("actions", {})
+        processing = actions.get("processing_topic", [])
+        command = processing[0].get("command", "")
+        assert "post_merge.sh" in command
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -301,8 +414,6 @@ class TestIntegrationScript:
 
     def test_script_executable(self):
         """Script has executable permission."""
-        import os
-
         assert os.access(INTEGRATION_SCRIPT, os.X_OK)
 
     def test_script_seeds_inbox(self):
@@ -331,7 +442,6 @@ class TestConfessionEntry:
         text = CONFESSIONS.read_text()
         assert "CONF-300" in text
         assert "--no-verify" in text
-        assert "integration-pipeline" in text
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -341,17 +451,17 @@ class TestConfessionEntry:
 
 @pytest.mark.req("REQ-YG-162")
 class TestLintValidation:
-    """Both integration configs pass statemachine-lint."""
+    """Unified pipeline and dispatcher pass statemachine-lint."""
 
     @requires_fsm_cli
     def test_pipeline_lints_clean(self):
-        """Integration pipeline passes statemachine-lint (excluding E008/E012 — custom types)."""
+        """Unified pipeline passes statemachine-lint."""
         result = subprocess.run(
             [
                 "statemachine-lint",
                 "--select",
                 "E001,E002,E003,E004,E005,E006,E007",
-                str(INTEGRATION_PIPELINE),
+                str(UNIFIED_PIPELINE),
             ],
             capture_output=True,
             text=True,
@@ -362,7 +472,7 @@ class TestLintValidation:
 
     @requires_fsm_cli
     def test_dispatcher_lints_clean(self):
-        """Integration dispatcher passes statemachine-lint (excluding E008/E012 — custom types)."""
+        """Integration dispatcher passes statemachine-lint."""
         result = subprocess.run(
             [
                 "statemachine-lint",
@@ -389,20 +499,21 @@ PREFLIGHT_SCRIPT = CHAPLAIN / "lib" / "watcher" / "preflight.sh"
 
 @pytest.mark.req("REQ-YG-162")
 class TestFR302TitleOverride:
-    """AC-1/AC-2: create_pr.sh supports --title flag, pipeline uses docs: title."""
+    """AC-1/AC-2: create_pr.sh supports --title flag, dispatcher passes it."""
 
     def test_create_pr_accepts_title_flag(self):
         """AC-1: create_pr.sh parses --title argument."""
         text = CREATE_PR_SCRIPT.read_text()
         assert "--title" in text, "create_pr.sh must accept --title flag"
-        assert "TITLE_OVERRIDE" in text, "create_pr.sh must use TITLE_OVERRIDE variable"
+        assert "TITLE_OVERRIDE" in text
 
-    def test_pipeline_passes_docs_title(self):
-        """AC-2: Integration pipeline uses docs(integration) PR title."""
-        config = load_config(INTEGRATION_PIPELINE)
-        creating_pr = config["actions"]["creating_pr"]
-        command = creating_pr[0].get("command", "")
-        assert '--title "docs(integration): smoke test"' in command
+    def test_dispatcher_passes_docs_title(self):
+        """AC-2: Integration dispatcher passes docs(integration) PR title via context."""
+        config = load_config(INTEGRATION_DISPATCHER)
+        actions = config.get("actions", {})
+        processing = actions.get("processing_topic", [])
+        command = processing[0].get("command", "")
+        assert "docs(integration): smoke test" in command
 
 
 @pytest.mark.req("REQ-YG-162")
@@ -414,57 +525,6 @@ class TestFR302PreflightRuff:
         text = PREFLIGHT_SCRIPT.read_text()
         assert "ruff check" in text, "preflight.sh must run ruff check"
         assert "ruff format" in text, "preflight.sh must run ruff format"
-
-
-@pytest.mark.req("REQ-YG-162")
-class TestFR302ChangelogGenRemoved:
-    """AC-6: changelog_gen state fully removed from integration pipeline."""
-
-    def test_changelog_gen_not_in_states(self):
-        """changelog_gen is not in the states list."""
-        config = load_config(INTEGRATION_PIPELINE)
-        states = config.get("states", [])
-        assert "changelog_gen" not in states
-
-    def test_changelog_done_not_in_events(self):
-        """changelog_done event is removed."""
-        config = load_config(INTEGRATION_PIPELINE)
-        events = config.get("events", {})
-        assert "changelog_done" not in events
-
-    def test_no_changelog_gen_action_block(self):
-        """No action block for changelog_gen."""
-        config = load_config(INTEGRATION_PIPELINE)
-        actions = config.get("actions", {})
-        assert "changelog_gen" not in actions
-
-    def test_implementation_committed_routes_to_finalizing(self):
-        """implementation_committed routes directly to finalizing."""
-        config = load_config(INTEGRATION_PIPELINE)
-        transitions = config.get("transitions", [])
-        ic_transitions = [
-            t for t in transitions if t.get("event") == "implementation_committed"
-        ]
-        assert len(ic_transitions) == 1
-        assert ic_transitions[0]["from"] == "committing_implementation"
-        assert ic_transitions[0]["to"] == "finalizing"
-
-
-@pytest.mark.req("REQ-YG-162")
-class TestFR302CompletedTermination:
-    """AC-7: completed state terminates cleanly via job_done → stopped."""
-
-    def test_completed_has_job_done_transition(self):
-        """completed state transitions to stopped on job_done."""
-        config = load_config(INTEGRATION_PIPELINE)
-        transitions = config.get("transitions", [])
-        completed_transitions = [
-            t
-            for t in transitions
-            if t.get("from") == "completed" and t.get("event") == "job_done"
-        ]
-        assert len(completed_transitions) == 1
-        assert completed_transitions[0]["to"] == "stopped"
 
 
 @pytest.mark.req("REQ-YG-162")

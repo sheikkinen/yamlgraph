@@ -79,7 +79,9 @@ events:
   analyze: {}
   forensics_done: {}
   stop: {}
+  error: {}
   "timeout(600)": {}
+  "timeout(660)": {}
 
 transitions:
   # ── PLANNING PHASE ──────────────────────────────────────────────────
@@ -242,6 +244,96 @@ transitions:
     to: failed
     event: "timeout(600)"
 
+  # ── ERROR TRANSITIONS (FR-303 Phase 0) ─────────────────────────────
+
+  - from: preflight
+    to: failed
+    event: error
+
+  - from: worktree_setup
+    to: failed
+    event: error
+
+  - from: planning
+    to: failed
+    event: error
+
+  - from: committing_plan
+    to: failed
+    event: error
+
+  - from: researching
+    to: failed
+    event: error
+
+  - from: committing_research
+    to: failed
+    event: error
+
+  - from: writing_tests
+    to: failed
+    event: error
+
+  - from: judging
+    to: failed
+    event: error
+
+  - from: implementing
+    to: failed
+    event: error
+
+  - from: committing_implementation
+    to: failed
+    event: error
+
+  - from: testing_demo
+    to: failed
+    event: error
+
+  - from: critiquing
+    to: failed
+    event: error
+
+  - from: changelog_gen
+    to: failed
+    event: error
+
+  - from: finalizing
+    to: failed
+    event: error
+
+  - from: pushing
+    to: failed
+    event: error
+
+  - from: creating_pr
+    to: failed
+    event: error
+
+  - from: waiting_ci
+    to: failed
+    event: "timeout(660)"
+
+  - from: merging
+    to: failed
+    event: error
+
+  - from: cleaning_up
+    to: failed
+    event: error
+
+  - from: verifying_red
+    to: failed
+    event: error
+
+  - from: remediating_ci
+    to: failed
+    event: error
+
+  - from: waiting_ci
+    to: failed
+    event: error
+
   # ── GLOBAL SHUTDOWN ────────────────────────────────────────────────
 
   - from: "*"
@@ -278,8 +370,8 @@ actions:
 
   committing_plan:
     - type: git_commit
-      message: "feat: FR plan — {topic_file}"
-      add_paths: ["feature-requests/"]
+      message: "{plan_commit_msg}"
+      add_paths: ["."]
       capture_fr_path: true
       success: plan_committed
       error: error
@@ -314,8 +406,7 @@ actions:
       description: "🧪 Writing acceptance tests"
 
   verifying_red:
-    - type: bash
-      command: "cd {wt_dir} && python -m pytest tests/ --no-cov -x 2>&1 | tail -5; test ${PIPESTATUS[0]} -ne 0"
+    - type: verify_red
       success: red_verified
       error: error
       description: "🔴 Verifying RED"
@@ -376,23 +467,7 @@ actions:
       description: "🔍 Critiquing implementation"
 
   changelog_gen:
-    - type: bash
-      command: |
-        FR_NUM=$(basename "{fr_path}" | grep -oE 'FR-[0-9]+' | sed 's/FR-//' || true)
-        FR_ID="FR-${FR_NUM}"
-        SLUG=$(basename "{fr_path}" .md | sed "s/FR-${FR_NUM}-//" | head -c 40)
-        SCOPE=$(echo "$SLUG" | cut -d- -f1)
-        FRAG="changelog/unreleased/fr-${FR_NUM}-${SLUG}.md"
-        if [ ! -f "$FRAG" ] && ! ls changelog/unreleased/fr-"${FR_NUM}"-*.md 1>/dev/null 2>&1; then
-          REQ_ID=$(grep -l "fr: $FR_ID" capabilities/CAP-*.yaml 2>/dev/null | head -1 | xargs -I{} grep -oE 'REQ-YG-[0-9]+' {} 2>/dev/null | head -1 || true)
-          mkdir -p "$(dirname "$FRAG")"
-          echo "---" > "$FRAG"
-          echo "type: feat" >> "$FRAG"
-          echo "scope: $SCOPE" >> "$FRAG"
-          [ -n "$REQ_ID" ] && echo "req: $REQ_ID" >> "$FRAG"
-          echo "---" >> "$FRAG"
-          echo "- **$FR_ID**: Generated changelog fragment. ($REQ_ID)" >> "$FRAG"
-        fi
+    - type: changelog_gen
       success: changelog_done
       error: error
       description: "📋 Generating changelog fragment"
@@ -413,7 +488,7 @@ actions:
 
   creating_pr:
     - type: bash_context
-      command: "bash .chaplain/lib/watcher/create_pr.sh --branch {wt_branch} --dir {wt_dir}"
+      command: "bash .chaplain/lib/watcher/create_pr.sh --branch {wt_branch} --dir {wt_dir} {pr_title_flag}"
       capture_keys: [pr_number, pr_url]
       success: pr_created
       error: error
@@ -440,7 +515,7 @@ actions:
 
   merging:
     - type: bash
-      command: "gh pr merge {pr_number} --squash --delete-branch"
+      command: "gh pr merge {pr_number} --squash {merge_flags}"
       success: merged
       error: error
       description: "🔀 Merging PR"
@@ -458,16 +533,11 @@ actions:
 
   completed:
     - type: bash
-      command: "bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true"
+      command: "{post_merge_cmd}"
       description: "✅ Pipeline completed"
 
   failed:
-    - type: bash
-      command: |
-        mkdir -p .chaplain/failed
-        if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
-          mv "{topic_file}" .chaplain/failed/
-        fi
+    - type: failure_cleanup
       success: analyze
       description: "❌ Pipeline failed — moving topic to failed/"
 
