@@ -93,6 +93,7 @@ events:
   cleaned_up: {}
   stop: {}
   error: {}
+  failed: {}
   "timeout(300)": {}
 
 transitions:
@@ -148,6 +149,11 @@ transitions:
   - from: finalizing
     to: pushing
     event: finalize_done
+
+  # precommit action emits "failed" (not "error") when max_attempts exceeded
+  - from: finalizing
+    to: failed
+    event: failed
 
   - from: pushing
     to: creating_pr
