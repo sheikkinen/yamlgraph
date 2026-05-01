@@ -35,13 +35,42 @@ fi
 echo "✓ Starting integration dispatcher..."
 echo ""
 
-# Run the dispatcher
+# Run the dispatcher in background so we can kill it after pipeline terminates
 statemachine .chaplain/config/integration-dispatcher.yaml \
   --actions-dir .chaplain/actions \
   --initial-context "{\"inbox_dir\":\"$INBOX\"}" \
-  --debug
+  --debug &
+DISPATCHER_PID=$!
+
+# Wait for pipeline to complete (monitor log for terminal state)
+FINAL_LOG=""
+for i in $(seq 1 120); do
+  sleep 5
+  FINAL_LOG=$(ls -1t logs/fsm-integration-smoke-test-*.log 2>/dev/null | head -1)
+  if [ -n "$FINAL_LOG" ] && grep -q "terminal state: stopped" "$FINAL_LOG" 2>/dev/null; then
+    break
+  fi
+done
+
+# Kill dispatcher
+kill "$DISPATCHER_PID" 2>/dev/null || true
+wait "$DISPATCHER_PID" 2>/dev/null || true
 
 echo ""
-echo "=== Integration Test Complete ==="
-echo "Check $LOG_FILE for timestamped entries."
-echo "Check GitHub for merged PR."
+echo "=== Integration Test Result ==="
+
+# Assert pipeline outcome
+if [ -z "$FINAL_LOG" ]; then
+  echo "❌ FAIL: No pipeline log found"
+  exit 1
+fi
+if grep -q "completed --job_done--> stopped" "$FINAL_LOG"; then
+  echo "✅ PASS: Pipeline reached completed"
+  exit 0
+else
+  echo "❌ FAIL: Pipeline did not reach completed"
+  echo ""
+  echo "Last 20 lines of log:"
+  tail -20 "$FINAL_LOG"
+  exit 1
+fi

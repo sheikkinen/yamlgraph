@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Amended
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-05-01
 
