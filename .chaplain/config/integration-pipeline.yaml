@@ -93,6 +93,7 @@ events:
   failed: {}
   job_done: {}
   "timeout(300)": {}
+  "timeout(660)": {}
 
 transitions:
   # ── PLANNING PHASE ──────────────────────────────────────────────────
@@ -262,7 +263,7 @@ transitions:
 
   - from: waiting_ci
     to: failed
-    event: "timeout(300)"
+    event: "timeout(660)"
 
   # ── GLOBAL SHUTDOWN ────────────────────────────────────────────────
 
