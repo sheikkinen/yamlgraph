@@ -2,10 +2,11 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** AMEND — Conditionally Approved
-**Effort:** 2 days (revised from 1)
+**Status:** Approved
+**Effort:** 2 days
 **Requested:** 2026-05-01
 **Judged:** 2026-05-01
+**Amended:** 2026-05-01
 
 ## Summary
 
@@ -54,135 +55,363 @@ start-fsm.sh --stub              ← --actions-dir swap via CLI flag
 
 **Key invariant:** Every real action file has a stub counterpart with identical filename and class name. The engine doesn't know which profile it loaded.
 
-## Proposed Solution
+## Proposed Solution (Amended)
 
-### Phase 1: Action Directory + Stub Actions
+Six phases. Each phase is independently committable and testable.
 
-#### Directory Layout
+### Phase 0: Error Transitions (production improvement)
+
+Add per-state `error → failed` transitions to `watcher-pipeline.yaml`. Currently only integration has these; production has none — an action returning `"error"` leaves the engine stuck.
+
+```yaml
+# Add to watcher-pipeline.yaml transitions:
+- from: preflight
+  to: failed
+  event: error
+- from: worktree_setup
+  to: failed
+  event: error
+- from: planning
+  to: failed
+  event: error
+- from: committing_plan
+  to: failed
+  event: error
+- from: researching
+  to: failed
+  event: error
+- from: committing_research
+  to: failed
+  event: error
+- from: writing_tests
+  to: failed
+  event: error
+- from: judging
+  to: failed
+  event: error
+- from: implementing
+  to: failed
+  event: error
+- from: committing_implementation
+  to: failed
+  event: error
+- from: testing_demo
+  to: failed
+  event: error
+- from: critiquing
+  to: failed
+  event: error
+- from: changelog_gen
+  to: failed
+  event: error
+- from: finalizing
+  to: failed
+  event: error
+- from: pushing
+  to: failed
+  event: error
+- from: creating_pr
+  to: failed
+  event: error
+- from: merging
+  to: failed
+  event: error
+- from: cleaning_up
+  to: failed
+  event: error
+```
+
+Also add the `error` event to the events block and add missing `timeout(660)` for `waiting_ci`.
+
+### Phase 1: Custom Action Types
+
+Extract 3 inline `type: bash` states to custom action types so stubs can intercept them.
+
+#### 1a. `verify_red_action.py` (production)
+
+```python
+"""VerifyRed — run pytest and expect failure (RED state in TDD)."""
+import asyncio
+from statemachine_engine.actions.base import BaseAction
+
+class VerifyRedAction(BaseAction):
+    async def execute(self, context):
+        wt_dir = context.get("wt_dir", ".")
+        cmd = f"cd {wt_dir} && python -m pytest tests/ --no-cov -x 2>&1 | tail -5; test ${{PIPESTATUS[0]}} -ne 0"
+        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        await proc.communicate()
+        if proc.returncode == 0:
+            return self.get_config_value("success", "red_verified")
+        return self.get_config_value("error", "error")
+```
+
+#### 1b. `changelog_gen_action.py` (production)
+
+Wraps the existing inline bash (the 12-line fragment generator) in a custom action. No logic change — just move from inline YAML to Python file.
+
+#### 1c. `failure_cleanup_action.py` (production)
+
+```python
+"""FailureCleanup — move topic to failed/ directory."""
+import asyncio
+from statemachine_engine.actions.base import BaseAction
+
+class FailureCleanupAction(BaseAction):
+    async def execute(self, context):
+        topic_file = context.get("topic_file", "")
+        cmd = f'''mkdir -p .chaplain/failed
+if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
+  mv "{topic_file}" .chaplain/failed/
+fi'''
+        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        await proc.communicate()
+        return self.get_config_value("success", "analyze")
+```
+
+#### Pipeline YAML changes
+
+```yaml
+# BEFORE                                          # AFTER
+verifying_red:                                     verifying_red:
+  - type: bash                                       - type: verify_red
+    command: "cd {wt_dir} && ..."                        success: red_verified
+    success: red_verified                                error: error
+                                                         description: "🔴 Verifying RED"
+
+changelog_gen:                                     changelog_gen:
+  - type: bash                                       - type: changelog_gen
+    command: |                                           success: changelog_done
+      FR_NUM=...                                         error: error
+                                                         description: "📋 Generating changelog"
+
+failed:                                            failed:
+  - type: bash                                       - type: failure_cleanup
+    command: |                                           success: analyze
+      mkdir -p .chaplain/failed                          description: "❌ Pipeline failed"
+      ...
+```
+
+### Phase 2: Parameterize Bash Divergence
+
+Four inline `type: bash`/`bash_context` states need context variables to handle production vs integration differences.
+
+#### 2a. `merging` — merge flags
+
+```yaml
+merging:
+  - type: bash
+    command: "gh pr merge {pr_number} --squash {merge_flags}"
+    success: merged
+    error: error
+```
+
+- **Production context:** `merge_flags: "--delete-branch"`
+- **Integration context:** `merge_flags: ""`
+
+#### 2b. `creating_pr` — PR title override
+
+```yaml
+creating_pr:
+  - type: bash_context
+    command: "bash .chaplain/lib/watcher/create_pr.sh --branch {wt_branch} --dir {wt_dir} {pr_title_flag}"
+    capture_keys: [pr_number, pr_url]
+    success: pr_created
+    error: error
+```
+
+- **Production context:** `pr_title_flag: ""` (auto-generated from FR)
+- **Integration context:** `pr_title_flag: '--title "docs(integration): smoke test"'`
+
+#### 2c. `completed` — post-merge command
+
+```yaml
+completed:
+  - type: bash
+    command: "{post_merge_cmd}"
+    description: "✅ Pipeline completed"
+```
+
+- **Production context:** `post_merge_cmd: "bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true"`
+- **Integration context:** `post_merge_cmd: "echo done"`
+
+#### 2d. `committing_plan` — add paths
+
+```yaml
+committing_plan:
+  - type: git_commit
+    message: "{plan_commit_msg}"
+    add_paths: ["."]
+    capture_fr_path: true
+    success: plan_committed
+    error: error
+```
+
+Use `add_paths: ["."]` universally (broader but safe — pre-commit catches unwanted files). Both production and integration benefit from not having to maintain path lists. The commit message varies:
+- **Production context:** `plan_commit_msg: "feat: FR plan — {topic_file}"`
+- **Integration context:** `plan_commit_msg: "docs: integration plan — {topic_file}"`
+
+### Phase 3: Stub Directory
+
+Create `.chaplain/actions-stub/` with stubs for all custom action types and symlinks for real actions.
+
+#### Directory layout
 
 ```
-.chaplain/actions/                          ← production (existing, unchanged)
-  yamlgraph_async_action.py                 ← real LLM calls
-  bash_context_action.py                    ← real bash with JSON capture
-  git_commit_action.py                      ← real git operations
-  precommit_action.py                       ← real pre-commit
-  verify_red_action.py                      ← NEW: extracted from inline bash
-  changelog_gen_action.py                   ← NEW: extracted from inline bash
-
-.chaplain/actions-stub/                     ← integration stubs (NEW)
-  yamlgraph_async_action.py                 ← echo + return success; judging auto-approves
-  bash_context_action.py  → ../actions/     ← symlink to real
-  git_commit_action.py    → ../actions/     ← symlink to real
-  precommit_action.py     → ../actions/     ← symlink to real
-  verify_red_action.py                      ← always succeeds (no pytest needed)
-  changelog_gen_action.py                   ← generates minimal valid fragment
+.chaplain/actions-stub/
+  yamlgraph_async_action.py          ← stub (file-creating, _intent_sequence-aware)
+  verify_red_action.py               ← stub (always succeeds)
+  changelog_gen_action.py            ← stub (generates minimal valid fragment)
+  failure_cleanup_action.py          ← stub (full cleanup: worktree, branch, PR, topic)
+  bash_context_action.py → ../actions/bash_context_action.py     ← symlink
+  git_commit_action.py   → ../actions/git_commit_action.py       ← symlink
+  precommit_action.py    → ../actions/precommit_action.py        ← symlink
 ```
 
-#### Stub yamlgraph_async Implementation
+#### Stub `yamlgraph_async_action.py`
+
+Adopts ninchat_voice `_intent_sequence` pattern. Creates a placeholder file in the worktree so downstream `git_commit` has something to commit.
 
 ```python
 """Stub: yamlgraph_async — instant return, no LLM call.
 
-Mirrors production interface: reads graph, vars, event_map, success from config.
-Returns success event immediately. For judging state, always returns 'approve'.
+Creates a placeholder file in the worktree (so git_commit has content)
+and returns the success event. Supports _intent_sequence for injecting
+specific verdict sequences in tests.
 """
+import os
+from datetime import datetime, timezone
 from statemachine_engine.actions.base import BaseAction
+
 
 class YamlgraphAsyncAction(BaseAction):
     async def execute(self, context):
-        event_map = self.get_config_value("event_map", {})
-        if event_map:
-            return "approve"  # judging: always approve in stub mode
+        current_state = context.get("current_state", "unknown")
+
+        # Hold support (same as ninchat_voice)
+        if context.get(f"_hold_yamlgraph_async_{current_state}"):
+            return None
+
+        # Intent sequence override: pop next intent if available
+        intent_seq = context.get("_intent_sequence")
+        if intent_seq and isinstance(intent_seq, list) and len(intent_seq) > 0:
+            return intent_seq.pop(0)
+
+        # Create placeholder file in worktree (stub content for git_commit)
+        wt_dir = context.get("wt_dir", ".")
+        if os.path.isdir(wt_dir):
+            docs_dir = os.path.join(wt_dir, "docs")
+            os.makedirs(docs_dir, exist_ok=True)
+            stub_file = os.path.join(docs_dir, "watcher-integration.md")
+            ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            with open(stub_file, "a") as f:
+                f.write(f"## {ts} — {current_state}\n\n")
+
         return self.get_config_value("success", "done")
 ```
 
-#### New Custom Action Types
+#### Stub `verify_red_action.py`
 
-Extract `verifying_red` and `changelog_gen` from inline `type: bash` to custom action types so stubs can intercept them:
-
-**Production `verify_red_action.py`:**
-```python
-class VerifyRedAction(BaseAction):
-    async def execute(self, context):
-        wt_dir = context.get("wt_dir", ".")
-        # Run pytest, expect failure (RED state)
-        result = await run_bash(f"cd {wt_dir} && python -m pytest tests/ --no-cov -x")
-        if result.returncode != 0:
-            return self.get_config_value("success", "red_verified")
-        return self.get_config_value("error", "error")  # Tests passed = RED failed
-```
-
-**Stub `verify_red_action.py`:**
 ```python
 class VerifyRedAction(BaseAction):
     async def execute(self, context):
         return self.get_config_value("success", "red_verified")
 ```
 
-#### Pipeline YAML Changes
+#### Stub `changelog_gen_action.py`
 
-In `watcher-pipeline.yaml`, replace inline bash with custom types:
+```python
+"""Stub: generates a minimal valid changelog fragment."""
+import os
+from statemachine_engine.actions.base import BaseAction
 
-```yaml
-# BEFORE
-verifying_red:
-  - type: bash
-    command: "cd {wt_dir} && python -m pytest tests/ --no-cov -x 2>&1 | tail -5; test ${PIPESTATUS[0]} -ne 0"
-
-# AFTER
-verifying_red:
-  - type: verify_red
-    success: red_verified
-    error: error
-    description: "🔴 Verifying RED"
+class ChangelogGenAction(BaseAction):
+    async def execute(self, context):
+        # Create minimal fragment so changelog-gate passes
+        wt_dir = context.get("wt_dir", ".")
+        frag_dir = os.path.join(wt_dir, "changelog", "unreleased")
+        os.makedirs(frag_dir, exist_ok=True)
+        frag = os.path.join(frag_dir, "integration-stub.md")
+        if not os.path.exists(frag):
+            with open(frag, "w") as f:
+                f.write("---\ntype: feat\nscope: integration\n---\n")
+                f.write("- **Integration**: stub changelog fragment.\n")
+        return self.get_config_value("success", "changelog_done")
 ```
 
-### Phase 2: Merge Flag Handling
+#### Stub `failure_cleanup_action.py`
 
-The `merging` state uses `--delete-branch` in production but not in integration (worktree conflict). Two options:
+Full cleanup for integration (worktree teardown, remote branch delete, PR close, topic move):
 
-**Option A (context variable):**
-```yaml
-merging:
-  - type: bash
-    command: "gh pr merge {pr_number} --squash {merge_flags}"
+```python
+"""Stub: full integration failure cleanup."""
+import asyncio
+from statemachine_engine.actions.base import BaseAction
+
+class FailureCleanupAction(BaseAction):
+    async def execute(self, context):
+        wt_dir = context.get("wt_dir", "")
+        wt_branch = context.get("wt_branch", "")
+        pr_number = context.get("pr_number", "")
+        topic_file = context.get("topic_file", "")
+
+        cmds = []
+        if wt_dir:
+            cmds.append(f"bash .chaplain/lib/watcher/worktree_teardown.sh --dir {wt_dir} || true")
+        if wt_branch:
+            cmds.append(f"git push origin --delete {wt_branch} 2>/dev/null || true")
+        if pr_number:
+            cmds.append(f"gh pr close {pr_number} 2>/dev/null || true")
+        cmds.append("mkdir -p .chaplain/failed")
+        if topic_file:
+            cmds.append(f'[ -f "{topic_file}" ] && mv "{topic_file}" .chaplain/failed/ || true')
+
+        cmd = " && ".join(cmds)
+        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        await proc.communicate()
+        return self.get_config_value("success", "analyze")
 ```
-Pass `--initial-context '{"merge_flags": ""}'` for integration, `'{"merge_flags": "--delete-branch"}'` for production.
 
-**Option B (custom action):** Extract to `type: merge_pr` custom action. Production adds `--delete-branch`, stub omits it.
+### Phase 4: Integration Test Update
 
-Recommend Option A — minimal change, no new action type needed.
-
-### Phase 3: Delete integration-pipeline.yaml
-
-Once the unified pipeline works with both action directories:
-
-1. Update `integration-dispatcher.yaml` to reference `watcher-pipeline.yaml` instead of `integration-pipeline.yaml`
-2. Update `run-integration-test.sh` to pass `--actions-dir .chaplain/actions-stub/`
-3. Delete `integration-pipeline.yaml`
-4. Update unit tests in `test_fr301_integration_test.py`
-
-### Phase 4: Run Script Update
+1. Update `integration-dispatcher.yaml` — change pipeline reference from `integration-pipeline.yaml` to `watcher-pipeline.yaml` and pass `--actions-dir .chaplain/actions-stub`
+2. Update `run-integration-test.sh` — pass context variables for integration profile:
 
 ```bash
-# scripts/run-integration-test.sh
 statemachine .chaplain/config/integration-dispatcher.yaml \
   --actions-dir .chaplain/actions-stub \
-  --initial-context "{\"inbox_dir\":\"$INBOX\", \"merge_flags\":\"\"}" \
+  --initial-context "{
+    \"inbox_dir\":\"$INBOX\",
+    \"merge_flags\":\"\",
+    \"pr_title_flag\":\"--title \\\"docs(integration): smoke test\\\"\",
+    \"post_merge_cmd\":\"echo done\",
+    \"plan_commit_msg\":\"docs: integration plan — {topic_file}\"
+  }" \
   --debug > logs/integration-dispatcher-${TOPIC_SLUG}.log 2>&1 &
 ```
 
+3. Delete `integration-pipeline.yaml`
+4. Update unit tests in `test_fr301_integration_test.py` to reflect unified config
+
+### Phase 5: Verification
+
+- Green integration test end-to-end: `bash scripts/run-integration-test.sh` → exit 0
+- Production watcher still works: `bash .chaplain/watcher2.sh` with real actions
+- Unit tests pass: `pytest tests/unit/test_fr301_integration_test.py -v --no-cov`
+
 ## Acceptance Criteria
 
-- [ ] Single `watcher-pipeline.yaml` used by both production and integration
-- [ ] `integration-pipeline.yaml` deleted
-- [ ] `.chaplain/actions-stub/` directory with stub actions for all `yamlgraph_async`, `verify_red`, and `changelog_gen` types
-- [ ] Symlinks for `bash_context`, `git_commit`, `precommit` actions in stub dir
-- [ ] `verifying_red` and `changelog_gen` extracted to custom action types
-- [ ] `run-integration-test.sh` passes with `--actions-dir .chaplain/actions-stub/`
-- [ ] Production watcher still works with `--actions-dir .chaplain/actions/`
-- [ ] Unit tests updated for unified config
-- [ ] Integration test green: full pipeline preflight → completed
+- [ ] Per-state `error → failed` transitions added to `watcher-pipeline.yaml` (Phase 0)
+- [ ] `verifying_red`, `changelog_gen`, `failed` extracted to custom action types in `.chaplain/actions/` (Phase 1)
+- [ ] Inline bash parameterized with context variables: `merge_flags`, `pr_title_flag`, `post_merge_cmd`, `plan_commit_msg` (Phase 2)
+- [ ] `.chaplain/actions-stub/` directory with stub actions for `yamlgraph_async`, `verify_red`, `changelog_gen`, `failure_cleanup` (Phase 3)
+- [ ] Stub yamlgraph_async creates placeholder files in worktree and supports `_intent_sequence` (Phase 3)
+- [ ] Symlinks for `bash_context`, `git_commit`, `precommit` actions in stub dir (Phase 3)
+- [ ] `integration-dispatcher.yaml` references `watcher-pipeline.yaml` with `--actions-dir .chaplain/actions-stub` (Phase 4)
+- [ ] `integration-pipeline.yaml` deleted (Phase 4)
+- [ ] `run-integration-test.sh` passes context variables for integration profile (Phase 4)
+- [ ] Unit tests updated for unified config (Phase 4)
+- [ ] Integration test green: full pipeline preflight → completed (Phase 5)
+- [ ] Production watcher still works with `--actions-dir .chaplain/actions/` (Phase 5)
 
 ## Judgement
 
@@ -287,7 +516,7 @@ return params.get("success", "done")
 
 ### Authority
 
-**Granted conditionally.** Incorporate the 6 gaps into the proposed solution before beginning Phase 1. The revised phase plan above supersedes the original 4-phase plan.
+**Granted.** All 6 gaps have been incorporated into the amended Proposed Solution. The revised 6-phase plan is the implementation contract. Proceed to Phase 0.
 
 ## Alternatives Considered
 
