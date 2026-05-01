@@ -2,9 +2,69 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged
 **Effort:** 0.5 days
 **Requested:** 2026-05-01
+
+---
+
+## Judgement
+
+**Verdict: APPROVED with amendments.**
+
+The FR correctly diagnoses the root cause — `create_pr.sh` hardcodes `feat(chaplain):` which triggers CI gates the stubs cannot satisfy. The `docs:` title solution is minimal and sound. Five amendments:
+
+### Amendment A1: `completed` state has the same infinite loop bug as `failed` had
+
+The `completed` state has a bash action (`echo '✅ ...'`) but no `job_done` transition. When the action finishes, the engine re-enters it forever — identical to the `failed` loop fixed in the previous commit. Production `watcher-pipeline.yaml` has the same latent bug (post_merge.sh in `completed`).
+
+**Fix**: Add `from: completed, to: stopped, event: job_done` transition. Same pattern as the `failed → stopped` fix. This is prerequisite for AC-5 — without it the pipeline can never terminate via the success path.
+
+### Amendment A2: Preflight scope is wrong
+
+The proposed preflight replaces the existing `preflight.sh` call with ruff checks. But `preflight.sh` does real work (validates CLI tools exist, checks git state). The ruff check should be **added** to the existing preflight action, not replace it. Either:
+- Add ruff commands to `preflight.sh` itself (preferred — keeps all preflight logic in one place), or
+- Add a second action in the preflight action list
+
+### Amendment A3: Drop `changelog_gen` state — but also clean up events, transitions, and timeouts
+
+AC-6 says "remove `changelog_gen` state" but doesn't mention the cascade: the `changelog_done` event, the `implementation_committed → changelog_gen` transition, the `changelog_gen → finalizing` transition, and the `changelog_gen → failed` error transition must all be removed. The `implementation_committed` event must route to `finalizing` directly. The existing FR-301 tests that validate `changelog_gen` existence must be updated (AC-8 covers this but should be explicit about which tests).
+
+### Amendment A4: `run-integration-test.sh` must also stop the dispatcher
+
+The current script runs the dispatcher indefinitely. After the pipeline completes (success or failure), the dispatcher returns to its idle loop and polls the inbox forever. The script needs to either:
+- Send a `stop` event to the dispatcher after the pipeline exits, or
+- Run the dispatcher with a `--once` mode (if supported), or
+- Kill the dispatcher process after detecting pipeline termination in the log
+
+Without this, the script never exits and AC-4 (exit code) is unreachable.
+
+### Amendment A5: Branch name prefix should be `docs/` not `feat/`
+
+`worktree_setup.sh` creates branch `feat/watcher2-<topic>`. With a `docs:` PR title, a `feat/` branch prefix is misleading. The integration pipeline should either:
+- Override the branch name (add `--branch-prefix` to `worktree_setup.sh`), or
+- Accept the mismatch as cosmetic and document it
+
+**Recommendation**: Accept the mismatch. The branch name is not checked by any CI gate. Adding `--branch-prefix` is scope creep for a cosmetic concern.
+
+### Scope Freeze
+
+The following are in scope:
+1. `--title` flag on `create_pr.sh` (AC-1)
+2. Integration pipeline uses `docs(integration): smoke test` title (AC-2)
+3. Ruff check added to `preflight.sh` (AC-3, amended per A2)
+4. Exit code assertion in `run-integration-test.sh` (AC-4, amended per A4)
+5. `completed → stopped` transition added (A1)
+6. `changelog_gen` state fully removed with cascade cleanup (AC-6, amended per A3)
+7. Tests updated (AC-7, AC-8)
+
+The following are **out of scope**:
+- Fixing the same `completed` loop bug in production `watcher-pipeline.yaml` (separate FR)
+- Adding `--branch-prefix` to `worktree_setup.sh` (cosmetic, A5)
+- Adding `--skip-ci` fallback flag (Alternative B — defer until needed)
+- Any changes to CI gate definitions
+
+**Authority granted. Enforce.**
 
 ## Summary
 
