@@ -10,6 +10,15 @@ LOG_FILE="docs/watcher-integration.md"
 echo "=== FR-301 Integration Test ==="
 echo ""
 
+# Clean up stale state from previous runs
+if git worktree list | grep -q "feat/watcher2-smoke-test"; then
+  git worktree remove tmp/worktrees/feat/watcher2-smoke-test --force 2>/dev/null || true
+fi
+if git branch --list "feat/watcher2-smoke-test" | grep -q .; then
+  git branch -D feat/watcher2-smoke-test 2>/dev/null || true
+fi
+rm -f .chaplain/failed/smoke-test.md .chaplain/processing/smoke-test.md
+
 # Seed the inbox
 mkdir -p "$INBOX"
 echo "# Integration smoke test — $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$INBOX/smoke-test.md"

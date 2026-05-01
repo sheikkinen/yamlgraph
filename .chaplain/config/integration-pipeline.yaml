@@ -94,6 +94,7 @@ events:
   stop: {}
   error: {}
   failed: {}
+  job_done: {}
   "timeout(300)": {}
 
 transitions:
@@ -154,6 +155,11 @@ transitions:
   - from: finalizing
     to: failed
     event: failed
+
+  # failed cleanup completes → stop the machine
+  - from: failed
+    to: stopped
+    event: job_done
 
   - from: pushing
     to: creating_pr
