@@ -43,7 +43,7 @@ echo ""
 statemachine .chaplain/config/integration-dispatcher.yaml \
   --actions-dir .chaplain/actions \
   --initial-context "{\"inbox_dir\":\"$INBOX\"}" \
-  --debug &
+  --debug > logs/integration-dispatcher-${TOPIC_SLUG}.log 2>&1 &
 DISPATCHER_PID=$!
 
 # Wait for pipeline to complete (monitor log for terminal state)
@@ -52,12 +52,17 @@ for i in $(seq 1 120); do
   sleep 5
   FINAL_LOG=$(ls -1t logs/fsm-integration-${TOPIC_SLUG}-*.log 2>/dev/null | head -1)
   if [ -n "$FINAL_LOG" ] && grep -qE "terminal state: (completed|stopped)|Integration pipeline failed" "$FINAL_LOG" 2>/dev/null; then
+    echo "✓ Pipeline terminal state detected (iteration $i)"
     break
   fi
+  # Progress indicator every 12 iterations (60s)
+  if (( i % 12 == 0 )); then echo "⏳ Waiting... ($((i*5))s)"; fi
 done
 
 # Kill dispatcher
 kill "$DISPATCHER_PID" 2>/dev/null || true
+sleep 2
+kill -9 "$DISPATCHER_PID" 2>/dev/null || true
 wait "$DISPATCHER_PID" 2>/dev/null || true
 
 echo ""
