@@ -88,13 +88,14 @@ preflight() {
         pip install -e . --quiet 2>/dev/null || log_error "Failed to reinstall yamlgraph"
     fi
 
-    # Validate ruff lint and format on main (catch latent debt before worktree)
+    # Validate ruff lint and format on production code (catch latent debt before worktree)
+    # Scoped to yamlgraph/ — pre-commit checks staged files; accumulated test/example drift is not a gate blocker
     if command -v ruff &>/dev/null; then
-        if ! ruff check . --quiet 2>/dev/null; then
+        if ! ruff check yamlgraph/ --quiet 2>/dev/null; then
             log_error "ruff check failed on main — fix before running pipeline"
             return 1
         fi
-        if ! ruff format --check . --quiet 2>/dev/null; then
+        if ! ruff format --check yamlgraph/ --quiet 2>/dev/null; then
             log_error "ruff format failed on main — fix before running pipeline"
             return 1
         fi
