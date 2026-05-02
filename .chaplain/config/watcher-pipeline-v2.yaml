@@ -91,6 +91,10 @@ transitions:
     to: failed
     event: error
 
+  - from: commit_plan
+    to: failed
+    event: error
+
   - from: judge
     to: failed
     event: reject
@@ -157,7 +161,7 @@ actions:
 
   commit_plan:
     - type: git_commit
-      message: "feat: FR plan — {topic_file}"
+      message: "chore(watcher): plan artifacts — {topic_file}"
       add_paths: ["."]
       capture_fr_path: true
       success: committed

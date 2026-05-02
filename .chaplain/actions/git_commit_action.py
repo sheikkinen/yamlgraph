@@ -77,9 +77,17 @@ class GitCommitAction(BaseAction):
             )
             stdout, _ = await proc.communicate()
             for line in stdout.decode().splitlines():
-                if re.match(r"feature-requests/FR-\d+", line):
+                match = re.match(r"feature-requests/(FR-\d+)", line)
+                if match:
                     context["fr_path"] = line.strip()
+                    fr_id = match.group(1)
                     logger.info(f"[{machine_name}] Captured fr_path={line.strip()}")
+                    # Rewrite message to include FR number
+                    if fr_id not in message:
+                        message = f"{message} — {fr_id}"
+                        logger.info(
+                            f"[{machine_name}] Rewrote commit message: {message[:80]}"
+                        )
                     break
 
         # Commit (write message to tmp file to avoid shell escaping issues)
