@@ -33,11 +33,12 @@ ACTIONS_DIR = CHAPLAIN / "actions"
 # Skip conditions for CI where statemachine-engine is not installed
 HAS_FSM_ENGINE = importlib.util.find_spec("statemachine_engine") is not None
 HAS_FSM_CLI = shutil.which("statemachine-validate") is not None
+HAS_FSM_LINT = shutil.which("statemachine-lint") is not None
 requires_fsm_engine = pytest.mark.skipif(
     not HAS_FSM_ENGINE, reason="statemachine_engine not installed"
 )
 requires_fsm_cli = pytest.mark.skipif(
-    not HAS_FSM_CLI, reason="statemachine CLI tools not installed"
+    not HAS_FSM_LINT, reason="statemachine-lint not installed"
 )
 
 
@@ -585,7 +586,7 @@ class TestPrecommitAction:
         assert event == "precommit_retry"
 
     def test_fails_after_max_attempts(self):
-        """AC-13: Returns failed after max_attempts exceeded."""
+        """AC-13: Returns error after max_attempts exceeded."""
         cls = self._load_action()
         action = cls(
             {
@@ -599,7 +600,7 @@ class TestPrecommitAction:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="failed")
             event = asyncio.run(action.execute(context))
-        assert event == "failed"
+        assert event == "error"
 
 
 # ════════════════════════════════════════════════════════════════════════
