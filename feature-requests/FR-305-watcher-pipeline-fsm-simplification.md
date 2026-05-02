@@ -2,13 +2,14 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 2 days
 **Requested:** 2026-05-02
+**Judged:** 2026-05-02
 
 ## Summary
 
-Collapse the 20+ state watcher pipeline FSM into 5 operational states by leveraging copilot session continuations (FR-105) for the enforce→evaluate loop.
+Collapse the 20+ state watcher pipeline FSM into 6 operational states with an enforce⇄validate loop, leveraging copilot session continuations (FR-105) for fix iterations.
 
 ## Value Statement
 
@@ -26,39 +27,57 @@ Key pain points:
 
 ## Proposed Solution
 
-### New FSM: 5 States
+### New FSM: 6 States
 
 ```
-plan → commit_plan → judge →(approve)→ enforce_session → done
-                       ↑ revise                │ timeout
-                       └────────┘              ▼
-                                            failed
+plan → commit_plan → judge →(approve)→ enforce → validate → done
+  ↑                  revise               ↑        │
+  └─────────────────────┘                 └────────┘ (fix_needed, resumes session)
+                                           │
+                                           ▼ (max retries)
+                                        failed
 ```
 
 ### State Definitions
 
 | State | Action | Session |
-|-------|--------|---------|
-| `plan` | Single copilot node — worktree setup, FR drafting, research, acceptance tests, verify-red | New session (captures `session_id`) |
-| `commit_plan` | `git_commit` — all planning artifacts in one commit | N/A |
-| `judge` | Copilot node with `resume: session_id` — renders APPROVE/REVISE/REJECT | Continues plan session |
-| `enforce_session` | Copilot node with `resume: session_id`, `allow_all_tools: true` — implement + pre-commit + pytest loop within one invocation | Continues same session |
-| `done` | Bash — push, create PR, wait CI, merge, cleanup | N/A |
+|-------|--------|--------|
+| `plan` | Single copilot node — worktree setup, FR drafting, research | New session (model A, e.g. claude-sonnet) |
+| `commit_plan` | `git_commit` — all planning artifacts (FR + research) in one commit | N/A |
+| `judge` | Copilot node — reads FR + research artifacts, renders APPROVE/REVISE/REJECT | New session, **different model** (model B, e.g. gpt-5.3-codex) — fresh eyes + different reasoning biases |
+| `enforce` | Copilot node, `allow_all_tools: true` — TDD: write tests, verify-red, implement, commit | New session on first entry; resumes own `session_id` on re-entry from validate |
+| `validate` | Bash — runs `pre-commit run --all-files` + `pytest tests/ --no-cov -x` | N/A (no LLM) |
+| `done` | Bash — push, create PR, wait CI, merge, cleanup. CI failure → `failed` | N/A |
 
-### `enforce_session` Design
+### Design Principle: Session & Model Independence
 
-Uses the existing copilot node `resume` feature (FR-105). The prompt instructs copilot to:
-1. Read acceptance tests as specification
-2. Implement the FR
-3. Run `pre-commit run --all-files`
-4. Run `pytest tests/ --no-cov -x`
-5. If failures: read errors, fix, re-run (iterate within session)
-6. Generate changelog fragment
-7. Commit when green
+Plan and judge MUST use:
+1. **Different sessions** — no shared context, no anchoring
+2. **Different models** — different reasoning biases catch different flaws
 
-The entire implement→evaluate→fix loop runs **inside one copilot session** — no FSM transitions for retries. The LLM retains full context of errors and attempted fixes.
+The judge evaluates only the committed artifacts (FR + research), not the planner's internal reasoning. A different model ensures the judge isn't pattern-matching against the planner's style.
 
-Timeout at FSM level (900s) is the safety net.
+### `enforce` Design
+
+First entry: starts a fresh copilot session. Reads the approved FR, writes acceptance tests, verifies RED, implements to GREEN, generates changelog fragment, commits.
+
+Re-entry (from validate failure): resumes its own session via `resume: session_id`. The LLM already knows what it implemented and can read the pre-commit/pytest errors passed in context. Fixes and commits.
+
+Session ID capture: the copilot action uses `--share` flag; the FSM action config includes `capture_keys: [session_id]` to store it in context for subsequent `resume` on re-entry.
+
+### `validate` Design
+
+Pure bash — no LLM. Runs:
+1. `pre-commit run --all-files`
+2. `pytest tests/ --no-cov -x`
+
+If both pass → `pass` event → `done`.
+If either fails → `fix_needed` event → back to `enforce` (which resumes session).
+Tracks `validate_attempt` in context (max 5). If exceeded → `error` → `failed`.
+
+Timeout at FSM level (900s) on enforce is the additional safety net.
+
+All bash states (`validate`, `done`) use internal command timeouts (120s per command) to prevent hangs.
 
 ### Transitions
 
@@ -73,7 +92,7 @@ transitions:
     event: committed
 
   - from: judge
-    to: enforce_session
+    to: enforce
     event: approve
 
   - from: judge
@@ -84,11 +103,23 @@ transitions:
     to: failed
     event: reject
 
-  - from: enforce_session
+  - from: enforce
+    to: validate
+    event: enforce_done
+
+  - from: validate
     to: done
     event: pass
 
-  - from: enforce_session
+  - from: validate
+    to: enforce
+    event: fix_needed
+
+  - from: validate
+    to: failed
+    event: error
+
+  - from: enforce
     to: failed
     event: error
 
@@ -100,9 +131,17 @@ transitions:
     to: failed
     event: "timeout(600)"
 
-  - from: enforce_session
+  - from: enforce
     to: failed
     event: "timeout(900)"
+
+  - from: validate
+    to: failed
+    event: "timeout(120)"
+
+  - from: done
+    to: failed
+    event: "timeout(300)"
 
   - from: "*"
     to: stopped
@@ -115,31 +154,48 @@ transitions:
 |------|---------|
 | `.chaplain/config/watcher-pipeline-v2.yaml` | Simplified FSM config |
 | `.chaplain/graphs/watcher-plan/step-plan-unified.yaml` | Combined plan graph |
-| `.chaplain/graphs/watcher-enforce/enforce-session.yaml` | Single copilot node for enforce+evaluate |
-| `.chaplain/prompts/enforce-session.yaml` | Prompt for the enforce copilot node |
+| `.chaplain/graphs/watcher-enforce/enforce.yaml` | Copilot node for TDD enforce step |
+| `.chaplain/prompts/enforce.yaml` | Prompt for the enforce copilot node |
 
 ### Files to Retire (after validation)
 
 | File | Replaced by |
 |------|-------------|
-| `.chaplain/graphs/watcher-enforce/step-implement.yaml` | `enforce-session.yaml` |
-| `.chaplain/graphs/watcher-enforce/step-test-demo.yaml` | `enforce-session.yaml` |
-| `.chaplain/graphs/watcher-enforce/step-critique.yaml` | `enforce-session.yaml` |
-| `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` | `enforce-session.yaml` |
-| `.chaplain/graphs/watcher-enforce/step-finalize.yaml` | `enforce-session.yaml` |
+| `.chaplain/graphs/watcher-enforce/step-implement.yaml` | `enforce.yaml` |
+| `.chaplain/graphs/watcher-enforce/step-test-demo.yaml` | `enforce.yaml` |
+| `.chaplain/graphs/watcher-enforce/step-critique.yaml` | `enforce.yaml` |
+| `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` | `enforce.yaml` |
+| `.chaplain/graphs/watcher-enforce/step-finalize.yaml` | `enforce.yaml` |
+
+## Scope Freeze
+
+- 6 operational states + 2 terminals (failed, stopped). No more.
+- Dispatcher unchanged.
+- statemachine-engine unchanged.
+- CI remediation out of scope (CI failure in `done` → `failed`).
+
+## Implementation Order
+
+1. Create `watcher-pipeline-v2.yaml` (FSM config — validate structure)
+2. Create `enforce.yaml` graph + prompt (the novel piece)
+3. Create `step-plan-unified.yaml` graph (consolidation)
+4. Wire dispatcher to invoke v2 config (flag-gated)
+5. Validate on test topic
+6. Retire old graphs after 3 successful runs
 
 ## Acceptance Criteria
 
-- [ ] `watcher-pipeline-v2.yaml` validates with `statemachine` CLI (valid FSM config)
-- [ ] `plan` state produces FR + acceptance tests + commit in one invocation
-- [ ] `judge` resumes plan session and routes to approve/revise/reject
-- [ ] `revise` loops back to plan (integration test with mock)
-- [ ] `enforce_session` runs implement→evaluate loop in single copilot session
-- [ ] `enforce_session` handles pre-commit + pytest failures with in-session fixes
+- [ ] `watcher-pipeline-v2.yaml` validates with `statemachine` CLI
+- [ ] `plan` state produces FR + research in one invocation (no tests)
+- [ ] `judge` uses fresh session, **different model**, and routes to approve/revise/reject
+- [ ] `revise` loops back to plan
+- [ ] `enforce` performs full TDD (write tests → RED → implement → GREEN → commit)
+- [ ] `enforce` resumes own session on re-entry from validate with error context
+- [ ] `validate` runs pre-commit + pytest, loops back to enforce on failure (max 5)
 - [ ] `done` state pushes, creates PR, and merges
-- [ ] Dispatcher invokes v2 pipeline successfully on a test topic
-- [ ] Old pipeline remains available as fallback until v2 is validated in production
+- [ ] Old pipeline remains available as fallback
 - [ ] Tests added for FSM transition correctness
+- [ ] Dispatcher integration on test topic (stretch)
 
 ## Alternatives Considered
 

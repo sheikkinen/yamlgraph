@@ -1,0 +1,41 @@
+# FR-305: Enforce Session graph
+# Single copilot node that resumes the plan session.
+# The implement→precommit→pytest→fix loop runs INSIDE this one invocation.
+# No separate FSM transitions for retries.
+
+version: "1.0"
+name: watcher-enforce-session
+description: "FR-305 — Single copilot session for enforce+evaluate loop"
+
+prompts_relative: true
+prompts_dir: ./prompts
+
+state:
+  fr_path: str
+  worktree_dir: str
+  branch: str
+  session_id: str
+  enforce_result: dict
+
+nodes:
+  enforce:
+    type: copilot
+    prompt: enforce-session
+    backend: cli
+    cli_flags:
+      model: gpt-5.3-codex
+      allow_all_paths: true
+      allow_all_tools: true
+      resume: "{state.session_id}"
+    variables:
+      fr_path: "{state.fr_path}"
+      worktree_dir: "{state.worktree_dir}"
+      branch: "{state.branch}"
+    state_key: enforce_result
+    timeout: 900
+
+edges:
+  - from: START
+    to: enforce
+  - from: enforce
+    to: END
