@@ -20,6 +20,9 @@ class ProviderTestContent(BaseModel):
     tags: list[str] = Field(default_factory=list, description="Relevant tags")
 
 
+@pytest.mark.skipif(
+    not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+)
 class TestProviderIntegration:
     """Test multi-provider functionality end-to-end."""
 
@@ -169,6 +172,9 @@ class TestProviderIntegration:
         assert isinstance(result2, str)
 
 
+@pytest.mark.skipif(
+    not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+)
 class TestJinja2WithProviders:
     """Test Jinja2 templates work with different providers."""
 

@@ -10,10 +10,13 @@ Uses run_graph_streaming_native() for token streaming and
 run_graph_async() for non-streaming multi-turn operations.
 """
 
+import os
+
 import pytest
 from langgraph.types import Command
 
 
+@pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set")
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-049")
 async def test_multi_turn_resume_with_command():
@@ -39,6 +42,7 @@ async def test_multi_turn_resume_with_command():
     assert "__interrupt__" in result2, "Turn 2 should interrupt for next turn"
 
 
+@pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set")
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-049")
 async def test_guard_classification_separate_call():
@@ -62,6 +66,7 @@ async def test_guard_classification_separate_call():
     ), f"Normal message should classify as continue, got: {intent}"
 
 
+@pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set")
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-049")
 async def test_checkpointer_persists_across_turns():

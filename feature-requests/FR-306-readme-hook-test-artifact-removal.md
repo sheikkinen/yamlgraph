@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Draft
+**Status:** Implemented
 **Effort:** 0.1 days
 **Requested:** 2026-05-03
 
@@ -42,10 +42,10 @@ No other files, sections, or wording changes.
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** `README.md` does not contain a line exactly equal to `hook test`
-- [ ] **AC-02:** The last non-empty line of `README.md` is `[MIT w/ SWC](LICENSE)`
-- [ ] **AC-03:** Only `README.md` is modified by the fix
-- [ ] **AC-04:** No new tooling, scripts, or workflow gates are introduced
+- [x] **AC-01:** `README.md` does not contain a line exactly equal to `hook test`
+- [x] **AC-02:** The last non-empty line of `README.md` is `[MIT w/ SWC](LICENSE)`
+- [x] **AC-03:** Only `README.md` is modified by the fix
+- [x] **AC-04:** No new tooling, scripts, or workflow gates are introduced
 
 ## Failing Acceptance Tests (RED)
 
