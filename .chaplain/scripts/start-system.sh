@@ -24,7 +24,7 @@ CONFIG_DIR=".chaplain/config"
 ACTIONS_DIR=".chaplain/actions"
 CONFIG_FILES=(
     "$CONFIG_DIR/watcher-dispatcher.yaml"
-    "$CONFIG_DIR/watcher-pipeline.yaml"
+    "$CONFIG_DIR/watcher-pipeline-v2.yaml"
 )
 INBOX_DIR=".chaplain/inbox"
 UI_PORT=3001
