@@ -24,6 +24,7 @@ states:
   - done
 
   # === TERMINAL STATES ===
+  - completed
   - failed
   - stopped
 
@@ -41,6 +42,7 @@ events:
   revise: {}
   reject: {}
   pass: {}
+  completed: {}
   error: {}
   stop: {}
   "timeout(600)": {}
@@ -68,6 +70,10 @@ transitions:
   - from: enforce_session
     to: done
     event: pass
+
+  - from: done
+    to: completed
+    event: completed
 
   # ── REVISE LOOP ────────────────────────────────────────────────────
 
@@ -159,11 +165,12 @@ actions:
       description: "💾 Committing plan artifacts"
 
   # ── JUDGE ──────────────────────────────────────────────────────────
-  # Resumes plan session to render verdict with full context.
+  # Fresh session, DIFFERENT MODEL from plan — no shared context, no anchoring.
+  # Evaluates only committed artifacts (FR + research), not plan's reasoning.
 
   judge:
     - type: yamlgraph_async
-      graph: .chaplain/graphs/watcher-plan/step-judge.yaml
+      graph: .chaplain/graphs/watcher-plan/step-judge-v2.yaml
       vars:
         topic_file: "{topic_file}"
         fr_path: "{fr_path}"
@@ -174,7 +181,7 @@ actions:
       success: approve
       error: error
       timeout: 600
-      description: "⚖️ Judging feature request"
+      description: "⚖️ Judging feature request (model B — fresh eyes)"
 
   # ── ENFORCE SESSION ────────────────────────────────────────────────
   # Single copilot session with resume: the implement→precommit→pytest→fix

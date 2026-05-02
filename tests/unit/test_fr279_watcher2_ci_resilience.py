@@ -109,94 +109,9 @@ def test_wait_ci_checks_in_progress_before_failure():
         os.unlink(test_script_path)
 
 
-@pytest.mark.req("REQ-YG-295")
-def test_ci_remediation_loop_in_watcher2():
-    """AC-02: CI remediation loop invokes copilot node on first CI failure.
-
-    Current behavior: watcher2.sh calls handle_failure "CI" and gives up.
-    Expected fix: 2-attempt remediation loop with step-ci-remediate.yaml invocation.
-
-    This test MUST fail because current watcher2.sh has no remediation loop.
-    """
-    # Simulate watcher2.sh environment and test for CI remediation loop
-    with patch.dict(
-        os.environ,
-        {
-            "WT_DIR": "/tmp/test-worktree",
-            "ENFORCE_DIR": str(ENFORCE_DIR),
-            "ENFORCE_STATE": "/tmp/enforce-state.json",
-            "PR_NUMBER": "123",
-            "WT_BRANCH": "test-branch",
-            "MAIN_DIR": str(REPO_ROOT),
-        },
-    ):
-        # Check if watcher2.sh contains CI remediation loop
-        watcher2_content = WATCHER2_SH.read_text()
-
-        # Expected fix should have remediation loop with these elements
-        expected_patterns = [
-            "CI_REMEDIATED=false",
-            "ci_attempt in 1 2",
-            "step-ci-remediate.yaml",
-            "gh run view",
-        ]
-
-        for pattern in expected_patterns:
-            assert (
-                pattern in watcher2_content
-            ), f"FIXED: watcher2.sh should contain CI remediation pattern: {pattern}"
-
-
-@pytest.mark.req("REQ-YG-296")
-def test_step_ci_remediate_graph_exists():
-    """AC-08: step-ci-remediate.yaml graph created and tested.
-
-    This graph should exist in the enforce directory and follow the standard pattern.
-
-    This test MUST fail because step-ci-remediate.yaml doesn't exist yet.
-    """
-    ci_remediate_graph = ENFORCE_DIR / "step-ci-remediate.yaml"
-
-    # This should fail because the file doesn't exist
-    assert (
-        ci_remediate_graph.exists()
-    ), "FIXED: step-ci-remediate.yaml graph should exist in watcher-enforce directory"
-
-    if ci_remediate_graph.exists():  # pragma: no cover
-        content = ci_remediate_graph.read_text()
-
-        # Check for required graph structure
-        assert "type: copilot" in content, "Graph should contain copilot node"
-        assert (
-            "prompt: enforce-ci-remediate" in content
-        ), "Graph should use enforce-ci-remediate prompt"
-        assert "ci_log_path:" in content, "Graph should accept ci_log_path variable"
-        assert "pr_number:" in content, "Graph should accept pr_number variable"
-
-
-@pytest.mark.req("REQ-YG-297")
-def test_step_ci_remediate_prompt_exists():
-    """AC-09: step-ci-remediate prompt template created in enforce/prompts/.
-
-    This prompt should exist and be structured to handle CI failure diagnosis.
-
-    This test MUST fail because enforce-ci-remediate.yaml doesn't exist yet.
-    """
-    ci_remediate_prompt = ENFORCE_PROMPTS / "enforce-ci-remediate.yaml"
-
-    # This should fail because the file doesn't exist
-    assert ci_remediate_prompt.exists(), "FIXED: enforce-ci-remediate.yaml prompt should exist in enforce/prompts directory"
-
-    if ci_remediate_prompt.exists():  # pragma: no cover
-        content = ci_remediate_prompt.read_text()
-
-        # Check for required prompt structure
-        assert "ci_log_path" in content, "Prompt should reference ci_log_path variable"
-        assert "syntax error" in content.lower(), "Prompt should handle syntax errors"
-        assert (
-            "changelog" in content.lower()
-        ), "Prompt should handle missing changelog fragments"
-        assert "diary" in content.lower(), "Prompt should handle missing diary entries"
+# AC-02 (step-ci-remediate references), AC-08, AC-09 tests removed:
+# step-ci-remediate.yaml and its prompt are retired (FR-305).
+# CI remediation is now handled inside enforce-session.yaml.
 
 
 @pytest.mark.req("REQ-YG-298")
