@@ -185,16 +185,16 @@ transitions:
 
 ## Acceptance Criteria
 
-- [ ] `watcher-pipeline-v2.yaml` validates with `statemachine` CLI
-- [ ] `plan` state produces FR + research in one invocation (no tests)
-- [ ] `judge` uses fresh session, **different model**, and routes to approve/revise/reject
-- [ ] `revise` loops back to plan
-- [ ] `enforce` performs full TDD (write tests → RED → implement → GREEN → commit)
-- [ ] `enforce` resumes own session on re-entry from validate with error context
+- [x] `watcher-pipeline-v2.yaml` validates with `statemachine` CLI
+- [x] `plan` state produces FR + research in one invocation (no tests)
+- [x] `judge` uses fresh session, **different model**, and routes to approve/revise/reject
+- [x] `revise` loops back to plan
+- [x] `enforce` performs full TDD (write tests → RED → implement → GREEN → commit)
+- [x] `enforce` resumes own session on re-entry from validate with error context
 - [ ] `validate` runs pre-commit + pytest, loops back to enforce on failure (max 5)
-- [ ] `done` state pushes, creates PR, and merges
-- [ ] Old pipeline remains available as fallback
-- [ ] Tests added for FSM transition correctness
+- [x] `done` state pushes, creates PR, and merges
+- [x] Old pipeline remains available as fallback
+- [x] Tests added for FSM transition correctness
 - [ ] Dispatcher integration on test topic (stretch)
 
 ## Alternatives Considered

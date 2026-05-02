@@ -1,0 +1,25 @@
+id: CAP-138
+name: Watcher Pipeline FSM Simplification
+description: >
+  Simplified watcher pipeline v2: 6 operational states (setup, plan,
+  commit_plan, judge, enforce_session, done) + 3 terminals (completed,
+  failed, stopped). Judge uses different model from plan with fresh session.
+  Enforce resumes plan session. Dispatcher flag-gated via pipeline_version.
+modules:
+  - .chaplain/config/watcher-pipeline-v2.yaml
+  - .chaplain/graphs/watcher-plan/step-judge-v2.yaml
+  - .chaplain/graphs/watcher-enforce/enforce-session.yaml
+requirements:
+  - id: REQ-YG-316
+    description: >
+      Simplified watcher pipeline v2 FSM: 6 operational states (setup, plan,
+      commit_plan, judge, enforce_session, done) + 3 terminals (completed,
+      failed, stopped). Judge uses different model from plan with fresh session
+      (no resume). Enforce resumes plan session for full context continuity.
+      Dispatcher flag-gated via pipeline_version context key.
+    modules:
+      - .chaplain/config/watcher-pipeline-v2.yaml
+      - .chaplain/graphs/watcher-plan/step-judge-v2.yaml
+      - .chaplain/graphs/watcher-enforce/enforce-session.yaml
+      - tests/unit/test_fr305_watcher_pipeline_v2.py
+fr: FR-305
