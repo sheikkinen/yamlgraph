@@ -202,6 +202,12 @@ class TestV2FailurePaths:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "enforce_session", "failed", "error")
 
+    def test_commit_plan_error_to_failed(self):
+        """FR-305a: commit_plan must have error→failed to prevent infinite retry."""
+        config = load_config(V2_PIPELINE_PATH)
+        transitions = get_transitions(config)
+        assert transition_exists(transitions, "commit_plan", "failed", "error")
+
     def test_done_error_to_failed(self):
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
@@ -358,6 +364,17 @@ class TestV2ContextPropagation:
         context_map = plan_done.get("context_map", {})
         assert "session_id" in context_map
 
+    def test_dispatcher_plan_commit_msg_uses_chore(self):
+        """FR-305a: dispatcher must pass chore: prefix for plan commit."""
+        dispatcher_path = CHAPLAIN / "config" / "watcher-dispatcher.yaml"
+        config = load_config(dispatcher_path)
+        actions = config["actions"]["processing_topic"]
+        command = actions[0]["command"]
+        assert "plan_commit_msg" in command
+        assert (
+            'plan_commit_msg\\":\\"chore' in command
+        ), f"Dispatcher plan_commit_msg must use chore: prefix, got: {command}"
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # AC-10: Plan unified graph structure
@@ -413,6 +430,14 @@ class TestV2ActionTypes:
         config = load_config(V2_PIPELINE_PATH)
         actions = get_action_config(config, "commit_plan")
         assert actions[0]["type"] == "git_commit"
+
+    def test_commit_plan_uses_chore_prefix(self):
+        """FR-305a: plan commit must use chore: not feat: to avoid hook rejection."""
+        config = load_config(V2_PIPELINE_PATH)
+        actions = get_action_config(config, "commit_plan")
+        message = actions[0]["message"]
+        assert message.startswith("chore"), f"Expected chore: prefix, got: {message}"
+        assert not message.startswith("feat"), f"feat: triggers FR-XXX hook: {message}"
 
     def test_judge_is_yamlgraph_async(self):
         config = load_config(V2_PIPELINE_PATH)

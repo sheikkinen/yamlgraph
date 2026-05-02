@@ -93,7 +93,7 @@ actions:
         ls -1t logs/fsm-pipeline-*.log 2>/dev/null | tail -n +21 | xargs rm -f 2>/dev/null || true
         statemachine .chaplain/config/watcher-pipeline-v2.yaml \
           --actions-dir .chaplain/actions \
-          --initial-context "{\"topic_file\":\"$TOPIC\",\"merge_flags\":\"--delete-branch\",\"pr_title_flag\":\"\",\"post_merge_cmd\":\"bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true\",\"plan_commit_msg\":\"feat: FR plan — $TOPIC\"}" \
+          --initial-context "{\"topic_file\":\"$TOPIC\",\"merge_flags\":\"--delete-branch\",\"pr_title_flag\":\"\",\"post_merge_cmd\":\"bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true\",\"plan_commit_msg\":\"chore(watcher): plan artifacts\"}" \
           --debug \
           2>&1 | tee "$LOG"
       success: topic_done
