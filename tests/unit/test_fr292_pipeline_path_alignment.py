@@ -59,7 +59,7 @@ class TestGraphPathsResolve:
                 full_path = WORKTREE / graph_path
                 if not full_path.exists():
                     missing.append(f"{state_name}: {graph_path}")
-        assert not missing, "Graph files not found:\n" + "\n".join(missing)
+        assert not missing, f"Graph files not found:\n" + "\n".join(missing)
 
     def test_graph_paths_use_chaplain_prefix(self):
         """All yamlgraph_async graph paths must start with .chaplain/graphs/."""
@@ -76,7 +76,8 @@ class TestGraphPathsResolve:
                 if not graph_path.startswith(".chaplain/graphs/"):
                     wrong_prefix.append(f"{state_name}: {graph_path}")
         assert not wrong_prefix, (
-            "Graph paths missing .chaplain/graphs/ prefix:\n" + "\n".join(wrong_prefix)
+            f"Graph paths missing .chaplain/graphs/ prefix:\n"
+            + "\n".join(wrong_prefix)
         )
 
     def test_exactly_nine_yamlgraph_async_actions(self):
@@ -112,10 +113,12 @@ class TestSplittingRemoved:
         """AC-02: split event from judging goes directly to failed."""
         config = load_config(PIPELINE_PATH)
         transitions = get_transitions(config)
-        split_transitions = [t for t in transitions if t.get("event") == "split"]
-        assert (
-            len(split_transitions) == 1
-        ), f"Expected exactly 1 split transition, got {len(split_transitions)}"
+        split_transitions = [
+            t for t in transitions if t.get("event") == "split"
+        ]
+        assert len(split_transitions) == 1, (
+            f"Expected exactly 1 split transition, got {len(split_transitions)}"
+        )
         assert split_transitions[0]["from"] == "judging"
         assert split_transitions[0]["to"] == "failed"
 
@@ -124,7 +127,9 @@ class TestSplittingRemoved:
         config = load_config(PIPELINE_PATH)
         events = config.get("events", {})
         # events can be a dict or list depending on format
-        if isinstance(events, dict | list):
+        if isinstance(events, dict):
+            assert "split_done" not in events
+        elif isinstance(events, list):
             assert "split_done" not in events
 
     def test_no_splitting_action_block(self):
@@ -147,15 +152,17 @@ class TestCommittingTestsRemoved:
         """AC-03: committing_tests is not in the states list."""
         config = load_config(PIPELINE_PATH)
         states = config.get("states", [])
-        assert (
-            "committing_tests" not in states
-        ), "committing_tests state should be removed"
+        assert "committing_tests" not in states, (
+            "committing_tests state should be removed"
+        )
 
     def test_test_demo_done_routes_to_critiquing(self):
         """AC-03: test_demo_done event routes directly to critiquing."""
         config = load_config(PIPELINE_PATH)
         transitions = get_transitions(config)
-        td_transitions = [t for t in transitions if t.get("event") == "test_demo_done"]
+        td_transitions = [
+            t for t in transitions if t.get("event") == "test_demo_done"
+        ]
         assert len(td_transitions) == 1
         assert td_transitions[0]["from"] == "testing_demo"
         assert td_transitions[0]["to"] == "critiquing"
@@ -164,16 +171,18 @@ class TestCommittingTestsRemoved:
         """AC-03: tests_committed event should not exist."""
         config = load_config(PIPELINE_PATH)
         events = config.get("events", {})
-        if isinstance(events, dict | list):
+        if isinstance(events, dict):
+            assert "tests_committed" not in events
+        elif isinstance(events, list):
             assert "tests_committed" not in events
 
     def test_no_committing_tests_action_block(self):
         """AC-03: No action block for committing_tests state."""
         config = load_config(PIPELINE_PATH)
         actions = get_action_blocks(config)
-        assert (
-            "committing_tests" not in actions
-        ), "committing_tests action block should be removed"
+        assert "committing_tests" not in actions, (
+            "committing_tests action block should be removed"
+        )
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -183,19 +192,17 @@ class TestCommittingTestsRemoved:
 
 @pytest.mark.req("REQ-YG-162")
 class TestChangelogGenBash:
-    """changelog_gen action uses custom changelog_gen type (FR-303)."""
+    """changelog_gen action must use bash type."""
 
-    def test_changelog_gen_is_custom_type(self):
-        """AC-04: changelog_gen action uses changelog_gen custom type."""
+    def test_changelog_gen_is_bash(self):
+        """AC-04: changelog_gen action uses bash type."""
         config = load_config(PIPELINE_PATH)
         actions = get_action_blocks(config)
         changelog_actions = actions.get("changelog_gen", [])
-        assert (
-            len(changelog_actions) >= 1
-        ), "changelog_gen must have at least one action"
-        assert (
-            changelog_actions[0].get("type") == "changelog_gen"
-        ), f"changelog_gen should be changelog_gen type, got: {changelog_actions[0].get('type')}"
+        assert len(changelog_actions) >= 1, "changelog_gen must have at least one action"
+        assert changelog_actions[0].get("type") == "bash", (
+            f"changelog_gen should be bash, got: {changelog_actions[0].get('type')}"
+        )
 
     def test_changelog_gen_no_graph_key(self):
         """AC-04: changelog_gen action must not have a graph: key."""
@@ -203,9 +210,9 @@ class TestChangelogGenBash:
         actions = get_action_blocks(config)
         changelog_actions = actions.get("changelog_gen", [])
         for action in changelog_actions:
-            assert (
-                "graph" not in action
-            ), "changelog_gen should not reference a graph file"
+            assert "graph" not in action, (
+                "changelog_gen should not reference a graph file"
+            )
 
 
 # ════════════════════════════════════════════════════════════════════════
