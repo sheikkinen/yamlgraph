@@ -4,7 +4,7 @@
 **Type:** Bug
 **Status:** Draft
 **Effort:** 0.1 days
-**Requested:** 2026-05-02
+**Requested:** 2026-05-03
 
 ## Summary
 
@@ -16,17 +16,17 @@ Repository readers get a clean, trustworthy top-level README without accidental 
 
 ## Problem
 
-`README.md` currently ends with an unintended line:
+Topic `.chaplain/processing/gh-264-v5.md` requests removing a leftover README artifact. Current state confirms `README.md` ends with an unintended line:
 
 ```markdown
 hook test
 ```
 
-Research findings:
+Research findings from this worktree:
 
 1. The artifact is present at `README.md:323`.
-2. Repository search shows only one real occurrence (`README.md`), indicating this is a leftover edit artifact, not intended documentation content.
-3. Existing documentation FRs follow a minimal direct-edit pattern (`FR-086`, `FR-091`) for content hygiene fixes.
+2. `rg '^hook test$' README.md` matches exactly one line in the target file.
+3. Existing README hygiene FRs (`FR-086`, `FR-091`) use minimal, direct documentation edits without adding new tooling.
 
 This creates visible documentation noise at the primary project entry point.
 
@@ -49,7 +49,7 @@ No other files, sections, or wording changes.
 
 ## Failing Acceptance Tests (RED)
 
-Current failing checks in `tmp/worktrees/feat/watcher2-gh-264`:
+Current failing checks in `tmp/worktrees/feat/watcher2-gh-264-v5`:
 
 ```bash
 test "$(tail -n 1 README.md)" = "[MIT w/ SWC](LICENSE)"
@@ -69,6 +69,6 @@ These checks should pass after implementation.
 
 ## Related
 
-- Topic source: `.chaplain/processing/gh-264.md`
+- Topic source: `.chaplain/processing/gh-264-v5.md` (main checkout)
 - Target file: `README.md`
 - Prior doc-hygiene FRs: `feature-requests/FR-086-readme-when-not-to-use.md`, `feature-requests/FR-091-readme-missing-node-types.md`
