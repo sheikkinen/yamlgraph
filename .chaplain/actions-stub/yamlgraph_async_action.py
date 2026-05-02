@@ -43,8 +43,9 @@ class YamlgraphAsyncAction(BaseAction):
             os.makedirs(docs_dir, exist_ok=True)
             stub_file = os.path.join(docs_dir, "watcher-integration.md")
             ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-            with open(stub_file, "a") as f:
-                f.write(f"## {ts} — {current_state}\n\n")
+            # Write (not append) — ensures single trailing newline for end-of-file-fixer
+            with open(stub_file, "w") as f:
+                f.write(f"## {ts} — {current_state}\n")
 
         success_event = self.get_config_value("success", "done")
         logger.info(

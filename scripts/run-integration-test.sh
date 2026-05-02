@@ -41,7 +41,7 @@ echo ""
 
 # Run the dispatcher in background so we can kill it after pipeline terminates
 statemachine .chaplain/config/integration-dispatcher.yaml \
-  --actions-dir .chaplain/actions \
+  --actions-dir .chaplain/actions-stub \
   --initial-context "{\"inbox_dir\":\"$INBOX\"}" \
   --debug > logs/integration-dispatcher-${TOPIC_SLUG}.log 2>&1 &
 DISPATCHER_PID=$!
@@ -50,7 +50,7 @@ DISPATCHER_PID=$!
 FINAL_LOG=""
 for i in $(seq 1 120); do
   sleep 5
-  FINAL_LOG=$(ls -1t logs/fsm-integration-${TOPIC_SLUG}-*.log 2>/dev/null | head -1)
+  FINAL_LOG=$(ls -1t logs/fsm-integration-${TOPIC_SLUG}-*.log 2>/dev/null | head -1 || true)
   if [ -n "$FINAL_LOG" ] && grep -qE "terminal state: (completed|stopped)|Integration pipeline failed" "$FINAL_LOG" 2>/dev/null; then
     echo "✓ Pipeline terminal state detected (iteration $i)"
     break
@@ -74,7 +74,15 @@ if [ -z "$FINAL_LOG" ]; then
   exit 1
 fi
 if grep -q "terminal state: completed" "$FINAL_LOG"; then
-  echo "✅ PASS: Pipeline reached completed"
+  # Verify happy path — forensics means error path masquerading as success
+  if grep -q 'forensics' "$FINAL_LOG"; then
+    echo "❌ FAIL: Pipeline reached completed via error/forensics path"
+    echo ""
+    echo "Transition chain:"
+    grep -E 'INFO.*watcher-pipeline.*-->' "$FINAL_LOG"
+    exit 1
+  fi
+  echo "✅ PASS: Pipeline reached completed (happy path)"
   exit 0
 else
   echo "❌ FAIL: Pipeline did not reach completed"
