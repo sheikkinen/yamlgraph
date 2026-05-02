@@ -440,7 +440,7 @@ actions:
 
   committing_implementation:
     - type: git_commit
-      message: "feat: implementation — {topic_file}"
+      message: "chore: implementation — {topic_file}"
       add_paths: ["."]
       success: implementation_committed
       error: error

@@ -35,7 +35,7 @@ class PrecommitAction(BaseAction):
             logger.error(
                 f"[{machine_name}] Pre-commit exceeded {max_attempts} attempts"
             )
-            return "failed"
+            return "error"
 
         # Increment attempt counter
         context["precommit_attempt"] = attempt + 1
@@ -51,12 +51,16 @@ class PrecommitAction(BaseAction):
 
         if result.returncode == 0:
             logger.info(f"[{machine_name}] Pre-commit passed")
+            if result.stdout.strip():
+                logger.debug(
+                    f"[{machine_name}] pre-commit output:\n{result.stdout.strip()}"
+                )
             return success_event
 
-        # Pre-commit failed — check if it auto-fixed files
+        # Pre-commit failed — log full output for debugging
         logger.warning(
-            f"[{machine_name}] Pre-commit failed (attempt {attempt + 1}): "
-            f"{result.stdout[:200]}"
+            f"[{machine_name}] Pre-commit failed (attempt {attempt + 1}):\n"
+            f"{result.stdout.strip()}"
         )
 
         # Stage any auto-fixed files

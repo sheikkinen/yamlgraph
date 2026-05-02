@@ -588,7 +588,7 @@ class TestPrecommitAction:
         assert event == "precommit_retry"
 
     def test_fails_after_max_attempts(self):
-        """AC-13: Returns failed after max_attempts exceeded."""
+        """AC-13: Returns error after max_attempts exceeded."""
         cls = self._load_action()
         action = cls(
             {
@@ -602,7 +602,7 @@ class TestPrecommitAction:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="failed")
             event = asyncio.run(action.execute(context))
-        assert event == "failed"
+        assert event == "error"
 
 
 # ════════════════════════════════════════════════════════════════════════

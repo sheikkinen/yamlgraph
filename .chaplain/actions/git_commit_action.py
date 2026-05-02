@@ -93,11 +93,14 @@ class GitCommitAction(BaseAction):
             stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await proc.communicate()
+        combined = (stdout.decode() + stderr.decode()).strip()
         if proc.returncode != 0:
             logger.error(
-                f"[{machine_name}] git commit failed: {stderr.decode().strip()[:200]}"
+                f"[{machine_name}] git commit failed (rc={proc.returncode}):\n{combined}"
             )
             return error_event
 
         logger.info(f"[{machine_name}] Committed: {message[:60]}")
+        if combined:
+            logger.debug(f"[{machine_name}] pre-commit output:\n{combined}")
         return success_event
