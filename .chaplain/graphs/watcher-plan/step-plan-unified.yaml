@@ -1,0 +1,39 @@
+# FR-305: Unified Plan step
+# Single copilot node: worktree setup already done by FSM,
+# this handles FR drafting + research + acceptance tests + verify-red
+# in one session. Captures session_id for continuation by judge + enforce.
+
+version: "1.0"
+name: watcher-plan-unified
+description: "FR-305 — Unified plan (FR + research + tests + verify-red in one session)"
+
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  topic_file: str
+  worktree_dir: str
+  branch: str
+  plan_result: dict
+
+nodes:
+  plan_unified:
+    type: copilot
+    prompt: plan-unified
+    backend: cli
+    cli_flags:
+      model: gpt-5.3-codex
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+      worktree_dir: "{state.worktree_dir}"
+      branch: "{state.branch}"
+    state_key: plan_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: plan_unified
+  - from: plan_unified
+    to: END

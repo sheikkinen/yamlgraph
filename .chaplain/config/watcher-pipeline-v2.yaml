@@ -1,0 +1,232 @@
+# Watcher2 Pipeline Worker FSM — v2 (Simplified)
+# FR-305: Collapsed 20+ states into 6 operational states + 2 terminals.
+# Leverages copilot session continuations for enforce→evaluate loop.
+#
+# Flow: setup → plan → commit_plan → judge →(approve)→ enforce_session → done
+#                                      ↑ revise              │ timeout
+#                                      └────────┘            ▼
+#                                                          failed
+
+metadata:
+  name: "Watcher2 Pipeline Worker v2"
+  machine_name: watcher2_pipeline_v2
+  version: "1.0.0"
+
+initial_state: setup
+
+states:
+  # === OPERATIONAL STATES ===
+  - setup
+  - plan
+  - commit_plan
+  - judge
+  - enforce_session
+  - done
+
+  # === TERMINAL STATES ===
+  - failed
+  - stopped
+
+events:
+  setup_done:
+    context_map:
+      wt_dir: payload.wt_dir
+      wt_branch: payload.wt_branch
+      main_dir: payload.main_dir
+  plan_done:
+    context_map:
+      session_id: payload.session_id
+  committed: {}
+  approve: {}
+  revise: {}
+  reject: {}
+  pass: {}
+  error: {}
+  stop: {}
+  "timeout(600)": {}
+  "timeout(900)": {}
+
+transitions:
+  # ── HAPPY PATH ─────────────────────────────────────────────────────
+
+  - from: setup
+    to: plan
+    event: setup_done
+
+  - from: plan
+    to: commit_plan
+    event: plan_done
+
+  - from: commit_plan
+    to: judge
+    event: committed
+
+  - from: judge
+    to: enforce_session
+    event: approve
+
+  - from: enforce_session
+    to: done
+    event: pass
+
+  # ── REVISE LOOP ────────────────────────────────────────────────────
+
+  - from: judge
+    to: plan
+    event: revise
+
+  # ── FAILURE PATHS ──────────────────────────────────────────────────
+
+  - from: setup
+    to: failed
+    event: error
+
+  - from: plan
+    to: failed
+    event: error
+
+  - from: judge
+    to: failed
+    event: reject
+
+  - from: enforce_session
+    to: failed
+    event: error
+
+  - from: done
+    to: failed
+    event: error
+
+  # ── TIMEOUTS ───────────────────────────────────────────────────────
+
+  - from: plan
+    to: failed
+    event: "timeout(600)"
+
+  - from: judge
+    to: failed
+    event: "timeout(600)"
+
+  - from: enforce_session
+    to: failed
+    event: "timeout(900)"
+
+  # ── GLOBAL SHUTDOWN ────────────────────────────────────────────────
+
+  - from: "*"
+    to: stopped
+    event: stop
+
+actions:
+  # ── SETUP ──────────────────────────────────────────────────────────
+  # Preflight checks + worktree creation. Captures wt_dir, wt_branch, main_dir.
+
+  setup:
+    - type: bash_context
+      command: "bash .chaplain/lib/watcher/preflight.sh && bash .chaplain/lib/watcher/worktree_setup.sh --topic {topic_file}"
+      capture_keys: [wt_dir, wt_branch, main_dir]
+      success: setup_done
+      error: error
+      timeout: 30
+      description: "🔧 Preflight + worktree setup"
+
+  # ── PLAN ───────────────────────────────────────────────────────────
+  # Single copilot invocation: FR drafting + research + acceptance tests +
+  # verify-red. Captures session_id for continuation by judge + enforce.
+
+  plan:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-plan/step-plan-unified.yaml
+      vars:
+        topic_file: "{topic_file}"
+        worktree_dir: "{wt_dir}"
+        branch: "{wt_branch}"
+      success: plan_done
+      error: error
+      timeout: 600
+      description: "📝 Planning (unified: FR + research + tests + verify-red)"
+
+  # ── COMMIT PLAN ────────────────────────────────────────────────────
+  # Commits all planning artifacts in one atomic commit.
+
+  commit_plan:
+    - type: git_commit
+      message: "feat: FR plan — {topic_file}"
+      add_paths: ["."]
+      capture_fr_path: true
+      success: committed
+      error: error
+      description: "💾 Committing plan artifacts"
+
+  # ── JUDGE ──────────────────────────────────────────────────────────
+  # Resumes plan session to render verdict with full context.
+
+  judge:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-plan/step-judge.yaml
+      vars:
+        topic_file: "{topic_file}"
+        fr_path: "{fr_path}"
+      event_map:
+        APPROVE: approve
+        REVISE: revise
+        REJECT: reject
+      success: approve
+      error: error
+      timeout: 600
+      description: "⚖️ Judging feature request"
+
+  # ── ENFORCE SESSION ────────────────────────────────────────────────
+  # Single copilot session with resume: the implement→precommit→pytest→fix
+  # loop runs INSIDE one invocation. No FSM transitions for retries.
+
+  enforce_session:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-enforce/enforce-session.yaml
+      vars:
+        fr_path: "{fr_path}"
+        worktree_dir: "{wt_dir}"
+        branch: "{wt_branch}"
+        session_id: "{session_id}"
+      success: pass
+      error: error
+      timeout: 900
+      description: "🔨 Enforce session (implement + evaluate loop)"
+
+  # ── DONE ───────────────────────────────────────────────────────────
+  # Push, create PR, wait CI, merge, cleanup — single compound script.
+
+  done:
+    - type: bash
+      command: |
+        set -e
+        cd {wt_dir}
+        git push origin {wt_branch} --force-with-lease
+        PR_URL=$(gh pr create --fill --head {wt_branch} 2>/dev/null || gh pr view {wt_branch} --json url -q .url)
+        PR_NUM=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+        echo "Created/found PR #${PR_NUM}: ${PR_URL}"
+        bash {main_dir}/.chaplain/lib/watcher/wait_ci.sh --pr "$PR_NUM"
+        gh pr merge "$PR_NUM" --squash --delete-branch
+        bash {main_dir}/.chaplain/lib/watcher/worktree_teardown.sh --dir {wt_dir}
+        rm -f {topic_file}
+        bash {main_dir}/.chaplain/lib/watcher/post_merge.sh 2>/dev/null || true
+      success: completed
+      error: error
+      timeout: 300
+      description: "📤 Push → PR → CI → Merge → Cleanup"
+
+  # ── TERMINAL STATES ────────────────────────────────────────────────
+
+  failed:
+    - type: bash
+      command: |
+        mkdir -p .chaplain/failed
+        if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
+          mv "{topic_file}" .chaplain/failed/
+        fi
+      description: "❌ Pipeline failed — moving topic to failed/"
+
+  stopped:
+    - type: bash
+      command: "echo 'Pipeline stopped via external signal'"
+      description: "🛑 Pipeline stopped"
