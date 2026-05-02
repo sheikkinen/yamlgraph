@@ -106,7 +106,7 @@ class TestStartSystemScript:
     def test_both_configs_referenced(self):
         content = SCRIPT_PATH.read_text()
         assert "watcher-dispatcher.yaml" in content
-        assert "watcher-pipeline.yaml" in content
+        assert "watcher-pipeline-v2.yaml" in content
 
     def test_syntax_valid(self):
         """bash -n checks syntax without executing."""

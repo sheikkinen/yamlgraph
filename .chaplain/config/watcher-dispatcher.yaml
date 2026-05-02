@@ -91,7 +91,7 @@ actions:
         BASENAME=$(basename "$TOPIC" .md)
         LOG="logs/fsm-pipeline-${BASENAME}-$(date +%Y%m%d-%H%M%S).log"
         ls -1t logs/fsm-pipeline-*.log 2>/dev/null | tail -n +21 | xargs rm -f 2>/dev/null || true
-        statemachine .chaplain/config/watcher-pipeline.yaml \
+        statemachine .chaplain/config/watcher-pipeline-v2.yaml \
           --actions-dir .chaplain/actions \
           --initial-context "{\"topic_file\":\"$TOPIC\",\"merge_flags\":\"--delete-branch\",\"pr_title_flag\":\"\",\"post_merge_cmd\":\"bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true\",\"plan_commit_msg\":\"feat: FR plan — $TOPIC\"}" \
           --debug \

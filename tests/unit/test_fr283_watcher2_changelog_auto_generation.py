@@ -276,27 +276,8 @@ class TestWatcher2ChangelogAutoGeneration:
                 indicator in content
             ), f"Missing changelog generation in critique prompt: {indicator}"
 
-    def test_ci_remediation_fr_context(self):
-        """AC-8: CI remediation receives FR context for correct fragment naming.
-
-        Verify that step-ci-remediate.yaml passes fr_path variable to the prompt.
-        """
-        ci_remediate_step_path = (
-            REPO_ROOT
-            / ".chaplain"
-            / "graphs"
-            / "watcher-enforce"
-            / "step-ci-remediate.yaml"
-        )
-        assert ci_remediate_step_path.exists(), "step-ci-remediate.yaml must exist"
-
-        content = ci_remediate_step_path.read_text()
-
-        # This should fail - fr_path variable is not passed to CI remediation yet
-        fr_context_indicators = ["fr_path:", "--var fr_path=", "{{ fr_path }}"]
-
-        found_any = any(indicator in content for indicator in fr_context_indicators)
-        assert found_any, "Missing fr_path variable context in CI remediation step"
+    # test_ci_remediation_fr_context removed: step-ci-remediate.yaml retired (FR-305).
+    # CI remediation is handled inside enforce-session.yaml.
 
     def test_no_cross_wiring_between_fr_and_fragment(self):
         """AC-9: Fragment FR number matches branch FR (no cross-wiring like fr-276 vs fr-219).
