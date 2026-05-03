@@ -320,4 +320,3 @@ For production deployments, consider:
 ## License
 
 [MIT w/ SWC](LICENSE)
-hook test
