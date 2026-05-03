@@ -36,5 +36,5 @@ FR-196: This graph is self-contained in `.chaplain/graphs/philosopher/`. Copy th
 
 ## Related
 
-- [.chaplain/graphs/copilot/](../copilot/) — Plan→Judge→Diary workflow
-- [.chaplain/graphs/enforce/](../enforce/) — Feature enforcement pipeline
+- [.chaplain/graphs/watcher-plan/](../watcher-plan/) — Planning + judge workflow
+- [.chaplain/graphs/watcher-enforce/](../watcher-enforce/) — Enforce/validate/sanity sessions

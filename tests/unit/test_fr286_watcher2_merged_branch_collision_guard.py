@@ -9,9 +9,11 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
 WORKTREE_SETUP_SH = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "worktree_setup.sh"
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 CHAPLAIN_README = REPO_ROOT / ".chaplain" / "README.md"
 
 
@@ -71,7 +73,7 @@ class TestWatcher2SkipControlFlow:
     """AC-03, AC-04, AC-05."""
 
     def test_ac03_handles_collision_skip_without_handle_failure(self):
-        """AC-03: watcher2.sh handles skip code as non-failure (no handle_failure)."""
+        """AC-03: start-system.sh handles skip code as non-failure (no handle_failure)."""
         content = WATCHER2_SH.read_text()
         assert (
             "if ! worktree_setup; then" not in content

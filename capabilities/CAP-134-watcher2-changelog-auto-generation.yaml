@@ -6,9 +6,9 @@ description: >
   and CI remediation context. Extracts FR number, derives scope/type, looks up REQ-YG-XXX
   from capabilities registry, and prevents cross-wiring.
 modules:
-  - .chaplain/watcher2.sh
-  - .chaplain/graphs/enforce/prompts/enforce-critique-and-distill.yaml
-  - .chaplain/graphs/enforce/prompts/enforce-finalize.yaml
+  - .chaplain/scripts/start-system.sh
+  - .chaplain/graphs/watcher-enforce/prompts/enforce-critique-and-distill.yaml
+  - .chaplain/graphs/watcher-enforce/prompts/enforce-finalize.yaml
   - .chaplain/graphs/watcher-enforce/step-ci-remediate.yaml
 requirements:
   - id: REQ-YG-308
@@ -19,6 +19,6 @@ requirements:
       REQ-YG-XXX from capability registry, validate FR number to prevent
       cross-wiring, create YAML frontmatter and fragment content automatically.
     modules:
-      - .chaplain/watcher2.sh (lines 309-341)
+      - .chaplain/scripts/start-system.sh (lines 309-341)
       - tests/unit/test_fr283_watcher2_changelog_auto_generation.py
 fr: FR-283

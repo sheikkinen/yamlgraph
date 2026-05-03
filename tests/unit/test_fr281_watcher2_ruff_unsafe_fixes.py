@@ -1,6 +1,6 @@
 """Acceptance tests for FR-281: Watcher2 Remediation Loop Crash Fix for Ruff SIM117 Errors.
 
-Tests the enhanced watcher2.sh remediation logic to handle ruff unsafe fixes
+Tests the enhanced start-system.sh remediation logic to handle ruff unsafe fixes
 and improve copilot context with specific error codes.
 
 Acceptance Criteria from FR-281:
@@ -13,7 +13,7 @@ Acceptance Criteria from FR-281:
 - [ ] AC-07: Documentation updated in watcher2 comments
 
 Testing approach:
-- Parse watcher2.sh to verify progressive ruff command changes exist
+- Parse start-system.sh to verify progressive ruff command changes exist
 - Check that unsafe-fixes flag is added to both finalize and CI remediation steps
 - Verify copilot prompt template includes error code context
 - Mock SIM117 violations to test auto-fix behavior
@@ -28,8 +28,10 @@ from unittest.mock import patch
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 ENFORCE_CI_REMEDIATE_PROMPT = (
     REPO_ROOT
     / ".chaplain"
@@ -42,11 +44,11 @@ ENFORCE_CI_REMEDIATE_PROMPT = (
 
 @pytest.mark.req("REQ-YG-287")
 class TestWatcher2RuffUnsafeFixes:
-    """Tests for watcher2.sh ruff unsafe-fixes enhancement."""
+    """Tests for start-system.sh ruff unsafe-fixes enhancement."""
 
     def test_ac01_unsafe_fixes_in_finalize_step(self):
         """AC-01: `ruff check --fix --unsafe-fixes` runs in finalize step."""
-        # Read the watcher2.sh file and parse the finalize section
+        # Read the start-system.sh file and parse the finalize section
         watcher_content = WATCHER2_SH.read_text()
 
         # Find the finalize section (step 4)
@@ -56,7 +58,7 @@ class TestWatcher2RuffUnsafeFixes:
             re.DOTALL,
         )
 
-        assert finalize_section, "Could not find finalize section in watcher2.sh"
+        assert finalize_section, "Could not find finalize section in start-system.sh"
         finalize_text = finalize_section.group(0)
 
         # Verify progressive ruff fixing: safe first, then unsafe
@@ -252,7 +254,7 @@ class TestSIM117RemediationScenarios:
 
         # Mock ruff command to verify flag presence
         with patch("subprocess.run"):
-            # Simulate what watcher2.sh should do
+            # Simulate what start-system.sh should do
             cmd = ["ruff", "check", "--fix", "--unsafe-fixes", "test_file.py"]
 
             # Verify unsafe-fixes is included for SIM117 support

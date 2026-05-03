@@ -345,7 +345,9 @@ class TestEnforcerPromptUpdated:
 
     def test_enforcer_mentions_demo_output_log(self) -> None:
         """The enforce-test-demo prompt must instruct capturing demo-output.log."""
-        prompt_path = Path(".chaplain/graphs/enforce/prompts/enforce-test-demo.yaml")
+        prompt_path = Path(
+            ".chaplain/graphs/watcher-enforce/prompts/enforce-test-demo.yaml"
+        )
         if not prompt_path.exists():
             pytest.skip("Enforcer prompt not found in this worktree")
         content = prompt_path.read_text()

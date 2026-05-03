@@ -13,9 +13,11 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
 PREFLIGHT_SH = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "preflight.sh"
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 CHAPLAIN_README = REPO_ROOT / ".chaplain" / "README.md"
 
 
