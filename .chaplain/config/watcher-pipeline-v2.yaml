@@ -54,7 +54,7 @@ events:
   error: {}
   stop: {}
   "timeout(600)": {}
-  "timeout(900)": {}
+  "timeout(3600)": {}
 
 transitions:
   # ── HAPPY PATH ─────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ transitions:
 
   - from: enforce_session
     to: failed
-    event: "timeout(900)"
+    event: "timeout(3600)"
 
   # ── GLOBAL SHUTDOWN ────────────────────────────────────────────────
 
@@ -231,7 +231,7 @@ actions:
         branch: "{wt_branch}"
       success: enforce_done
       error: error
-      timeout: 900
+      timeout: 3600
       description: "🔨 Enforce session (implement only)"
 
   # ── VALIDATE ───────────────────────────────────────────────────────

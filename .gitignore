@@ -92,6 +92,7 @@ docs/ebook/v*/
 .chaplain/inbox-fsm/
 .chaplain/drafts/
 watcher.pid
+docs/fsm-diagrams/
 
 # Generated files (FR-179: append-only changelog fragments)
 CHANGELOG.md
