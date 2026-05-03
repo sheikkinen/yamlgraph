@@ -1,35 +1,31 @@
 id: CAP-116
 name: Acceptance Tests Before Enforce
 description: >
-  Move worktree creation from the enforce phase into the plan-judge loop,
-  and add a dedicated acceptance test generation step between research and
-  judge. Judge evaluates the FR, the research brief, AND concrete failing
-  tests — three inputs instead of two. Enforce receives a worktree with
-  pre-committed RED tests and a clear contract: make these tests pass.
+  Ensure acceptance tests are authored before enforce execution in the active
+  FSM runtime. Setup creates the worktree, the unified plan step includes
+  acceptance-test authoring instructions, Judge evaluates test evidence, and
+  enforce_session executes against that contract.
 modules:
-  - .chaplain/graphs/copilot/graph.yaml
-  - .chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml
-  - .chaplain/graphs/copilot/prompts/judge.yaml
-  - .chaplain/graphs/enforce/prompts/enforce-implement.yaml
+  - .chaplain/config/watcher-pipeline-v2.yaml
+  - .chaplain/graphs/watcher-plan/step-plan-unified.yaml
+  - .chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml
+  - .chaplain/graphs/watcher-plan/prompts/judge.yaml
+  - .chaplain/graphs/watcher-enforce/prompts/enforce-session.yaml
   - .chaplain/lib/worktree.py
-  - scripts/enforce_worktree.sh
 requirements:
   - id: REQ-YG-263
     description: >
-      create_worktree python node and write_acceptance_tests copilot node
-      inserted between research and judge in .chaplain/graphs/copilot/graph.yaml;
-      create_worktree tool at .chaplain/lib/worktree.py commits FR draft to
-      main and creates worktree with .venv symlink; write-acceptance-tests
-      prompt reads FR acceptance criteria and generates pytest tests with
-      @pytest.mark.req tags; tests committed as RED in worktree; judge
-      prompt includes criterion 8 for test evidence evaluation; enforce
-      implement prompt references existing RED tests; enforce_worktree.sh
-      accepts optional pre-existing worktree path (FR-260).
+      `setup` action in watcher-pipeline-v2 creates the worktree before plan;
+      unified plan prompt includes acceptance-test authoring protocol using
+      `@pytest.mark.req` tags and RED commit guidance; judge prompt includes
+      criterion 8 for test evidence evaluation; enforce session prompt
+      explicitly preserves acceptance test assertions as the contract
+      for implementation (FR-260).
     modules:
-      - .chaplain/graphs/copilot/graph.yaml
-      - .chaplain/graphs/copilot/prompts/write-acceptance-tests.yaml
-      - .chaplain/graphs/copilot/prompts/judge.yaml
-      - .chaplain/graphs/enforce/prompts/enforce-implement.yaml
+      - .chaplain/config/watcher-pipeline-v2.yaml
+      - .chaplain/graphs/watcher-plan/step-plan-unified.yaml
+      - .chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml
+      - .chaplain/graphs/watcher-plan/prompts/judge.yaml
+      - .chaplain/graphs/watcher-enforce/prompts/enforce-session.yaml
       - .chaplain/lib/worktree.py
-      - scripts/enforce_worktree.sh
 fr: FR-260

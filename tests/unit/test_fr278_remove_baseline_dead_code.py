@@ -102,17 +102,17 @@ class TestFR278CapabilityRegistrationRemoval:
 
 @pytest.mark.req("REQ-YG-294")
 class TestFR278Watcher2ConfigCleanup:
-    """AC-06: Import state line removed from watcher2.sh."""
+    """AC-06: Import state line removed from start-system.sh."""
 
     def test_watcher2_baseline_import_removed(self):
-        """watcher2.sh must not contain --import-state .chaplain/baseline/latest.json."""
-        watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
+        """start-system.sh must not contain --import-state .chaplain/baseline/latest.json."""
+        watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
 
         if watcher2_path.exists():
             content = watcher2_path.read_text()
             assert (
                 "--import-state .chaplain/baseline/latest.json" not in content
-            ), "watcher2.sh still contains baseline import reference"
+            ), "start-system.sh still contains baseline import reference"
 
 
 @pytest.mark.req("REQ-YG-294")

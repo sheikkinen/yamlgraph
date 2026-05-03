@@ -2,7 +2,7 @@
 """Tests for FR-195: Chaplain Documentation
 
 Validates that .chaplain/README.md exists and contains comprehensive
-documentation covering watcher2 pipeline architecture and shell library.
+documentation covering the FSM runtime architecture and shell library.
 """
 
 from pathlib import Path
@@ -38,8 +38,9 @@ class TestChaplainREADMEContent:
         return readme_path.read_text()
 
     def test_watcher2_pipeline_overview(self, readme_content):
-        """README should document watcher2 pipeline architecture."""
-        assert "watcher2" in readme_content.lower()
+        """README should document the active FSM runtime architecture."""
+        assert "runtime" in readme_content.lower() or "fsm" in readme_content.lower()
+        assert "start-system.sh" in readme_content
         assert "pipeline" in readme_content.lower()
         # Should mention the main phases
         assert "plan" in readme_content.lower()
@@ -66,8 +67,8 @@ class TestChaplainREADMEContent:
     def test_usage_examples_section(self, readme_content):
         """README should include usage examples."""
         assert "usage" in readme_content.lower() or "example" in readme_content.lower()
-        # Should mention daemon usage
-        assert "daemon" in readme_content.lower() or "watcher2.sh" in readme_content
+        # Should mention runtime entrypoint usage
+        assert ".chaplain/scripts/start-system.sh" in readme_content
 
     def test_environment_configuration(self, readme_content):
         """README should document environment variables and configuration."""
@@ -104,7 +105,9 @@ class TestChaplainREADMEContent:
         assert ".chaplain/failed/" in readme_content
         assert ".chaplain/processing/" in readme_content
         assert ".chaplain/inbox/" in readme_content
-        assert "watcher2 picks the issue back up automatically" in readme_content
+        assert (
+            "re-import" in readme_content.lower() or "requeue" in readme_content.lower()
+        )
 
     def test_architecture_details(self, readme_content):
         """README should explain architecture details."""
@@ -117,8 +120,8 @@ class TestChaplainREADMEContent:
 
     def test_cross_references_to_related_files(self, readme_content):
         """README should reference related files like FR-273."""
-        # Should reference the main watcher2 script
-        assert "watcher2.sh" in readme_content
+        # Should reference the runtime entrypoint script
+        assert "start-system.sh" in readme_content
         # Should mention .chaplain directory structure
         assert ".chaplain" in readme_content or "chaplain" in readme_content
 

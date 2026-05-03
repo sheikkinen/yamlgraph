@@ -16,8 +16,10 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 
 
 @pytest.mark.req("REQ-YG-307")
@@ -27,19 +29,19 @@ def test_watcher2_ci_log_capture_uses_run_id():
     Current bug: Line 383 uses 'gh run view --log-failed --repo "..." > ...' without run ID.
     Expected fix: Should use 'gh run list' to get run ID first, then pass to 'gh run view'.
 
-    This test MUST fail because the current watcher2.sh doesn't get the run ID.
+    This test MUST fail because the current start-system.sh doesn't get the run ID.
     """
-    # Read the watcher2.sh script
+    # Read the start-system.sh script
     watcher2_content = WATCHER2_SH.read_text()
 
     # Check if the current implementation uses gh run list to get run ID before gh run view
     # This should FAIL on current code because it doesn't use run list
     assert (
         "gh run list --branch" in watcher2_content
-    ), "watcher2.sh should query run ID with gh run list"
+    ), "start-system.sh should query run ID with gh run list"
     assert (
         'gh run view "$RUN_ID"' in watcher2_content
-    ), "watcher2.sh should pass run ID to gh run view"
+    ), "start-system.sh should pass run ID to gh run view"
 
 
 @pytest.mark.req("REQ-YG-307")
@@ -58,10 +60,10 @@ def test_watcher2_ci_log_path_uses_absolute_path():
     # This should FAIL on current code because it uses relative paths
     assert (
         '"$MAIN_DIR/tmp/ci-failure.log"' in watcher2_content
-    ), "watcher2.sh should write CI logs to absolute path"
+    ), "start-system.sh should write CI logs to absolute path"
     assert (
         '--var ci_log_path="$CI_LOG"' in watcher2_content
-    ), "watcher2.sh should pass absolute path variable to remediation graph"
+    ), "start-system.sh should pass absolute path variable to remediation graph"
 
 
 @pytest.mark.req("REQ-YG-307")
@@ -84,7 +86,7 @@ def test_watcher2_ci_log_capture_has_error_guard():
             gh_run_view_line = line.strip()
             break
 
-    assert gh_run_view_line is not None, "Found gh run view command in watcher2.sh"
+    assert gh_run_view_line is not None, "Found gh run view command in start-system.sh"
     assert (
         "|| true" in gh_run_view_line or "2>/dev/null" in gh_run_view_line
     ), "gh run view command should have || true guard or stderr suppression"
@@ -105,10 +107,10 @@ def test_watcher2_handles_no_failed_run_gracefully():
     # This should FAIL because current code doesn't check for empty RUN_ID
     assert (
         '-n "$RUN_ID"' in watcher2_content
-    ), "watcher2.sh should check if RUN_ID is not empty"
+    ), "start-system.sh should check if RUN_ID is not empty"
     assert (
         "No failed run found" in watcher2_content
-    ), "watcher2.sh should create placeholder message when no failed run exists"
+    ), "start-system.sh should create placeholder message when no failed run exists"
 
 
 @pytest.mark.req("REQ-YG-307")

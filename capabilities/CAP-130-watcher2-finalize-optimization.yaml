@@ -4,7 +4,7 @@ description: >
   Optimize watcher2 finalize step to reduce copilot session invocations by pre-formatting
   code before pre-commit loops and increasing retry attempts from 3 to 5.
 modules:
-  - .chaplain/watcher2.sh
+  - .chaplain/scripts/start-system.sh
   - tests/unit/test_fr198_watcher2_finalize_optimization.py
 requirements:
   - id: REQ-YG-286
@@ -14,6 +14,6 @@ requirements:
       (was 3); failure message shows "5 attempts"; git add -A stages files before and
       after ruff commands; prevents copilot fallback for auto-fixable cascading issues
     modules:
-      - .chaplain/watcher2.sh
+      - .chaplain/scripts/start-system.sh
       - tests/unit/test_fr198_watcher2_finalize_optimization.py
 fr: FR-198
