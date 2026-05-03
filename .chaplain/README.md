@@ -183,12 +183,18 @@ post_merge
   - `gh pr view "$PR_NUMBER" --json title --jq '.title'`
   - fallback to existing `PR_TITLE`
   - final fallback to `TOPIC_FILE` content
-- If no FR token resolves, logs explicit no-op and returns success
+- If no FR token resolves, logs explicit no-op for inbox cleanup and continues
 - Scans `.chaplain/inbox/*.md` for files containing the resolved FR token
 - Moves matching inbox files to `.chaplain/done/` (consumed-completed queue)
 - Creates `.chaplain/done/` automatically when missing
 - Handles destination collisions by appending a timestamp suffix (no overwrite)
 - Logs token resolution outcome and consumed count
+- Reconciles local main after merge with:
+  - `git status --porcelain` dirty-tree detection
+  - conditional `git stash push --include-untracked -m "watcher2-post-merge-<timestamp>"`
+  - `git pull --rebase --quiet origin main`
+  - conditional `git stash pop` only if stash was created
+- Surfaces stash/pull/pop failures via non-zero control flow (no silent ignore path)
 
 ### Pipeline Support
 

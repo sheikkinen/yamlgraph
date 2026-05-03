@@ -92,6 +92,63 @@ consume_matching_inbox_items() {
     return 0
 }
 
+sync_main_after_merge() {
+    local stash_created=0
+    local stash_message=""
+    local current_branch=""
+    local pull_failed=0
+    local git_status_output=""
+
+    if ! git_status_output=$(git status --porcelain); then
+        log_error "post_merge failed to read git status before main sync"
+        return 1
+    fi
+
+    if [[ -n "$git_status_output" ]]; then
+        stash_message="watcher2-post-merge-$(date +%Y%m%d%H%M%S)"
+        if git stash push --include-untracked -m "$stash_message" >/dev/null; then
+            stash_created=1
+            log_info "post_merge stashed local changes before main sync: $stash_message"
+        else
+            log_error "post_merge failed to stash local changes before main sync"
+            return 1
+        fi
+    else
+        log_info "post_merge working tree clean; no stash needed before main sync"
+    fi
+
+    current_branch=$(git branch --show-current 2>/dev/null || true)
+    if [[ "$current_branch" != "main" ]]; then
+        if git checkout main --quiet; then
+            log_info "post_merge switched to main for reconciliation"
+        else
+            log_error "post_merge failed to switch to main for reconciliation"
+            return 1
+        fi
+    fi
+
+    if ! git pull --rebase --quiet origin main; then
+        log_error "post_merge failed to pull --rebase from origin main"
+        pull_failed=1
+    fi
+
+    if [[ "$stash_created" -eq 1 ]]; then
+        if git stash pop >/dev/null; then
+            log_info "post_merge restored stashed local changes after main sync"
+        else
+            log_error "post_merge failed to restore stashed local changes (git stash pop)"
+            return 1
+        fi
+    fi
+
+    if [[ "$pull_failed" -ne 0 ]]; then
+        return 1
+    fi
+
+    log_info "post_merge main sync complete"
+    return 0
+}
+
 post_merge() {
     local inbox_basename
     local merged_fr_token
@@ -111,11 +168,15 @@ post_merge() {
     resolve_post_merge_fr_token
     merged_fr_token="${POST_MERGE_FR_TOKEN:-}"
     if [[ -z "$merged_fr_token" ]]; then
-        log_info "No FR token available for post_merge inbox cleanup; returning success"
-        return 0
+        log_info "No FR token available for post_merge inbox cleanup; continuing to main sync"
+    else
+        consume_matching_inbox_items "$merged_fr_token"
     fi
 
-    consume_matching_inbox_items "$merged_fr_token"
+    if ! sync_main_after_merge; then
+        return 1
+    fi
+
     return 0
 }
 
