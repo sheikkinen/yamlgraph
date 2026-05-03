@@ -1,0 +1,21 @@
+id: CAP-139
+name: Root README Accuracy Contract
+description: >
+  Root README claims stay aligned with implemented provider support and include
+  explicit review freshness metadata via a dedicated unit contract test.
+modules:
+  - README.md
+  - tests/unit/test_root_readme_accuracy.py
+requirements:
+  - id: REQ-YG-317
+    description: >
+      Root `README.md` includes all currently supported provider identifiers
+      (`anthropic`, `azure`, `deepseek`, `google`, `inception`, `lmstudio`,
+      `mistral`, `openai`, `replicate`, `vertex`, `xai`) in provider
+      documentation, contains no hardcoded `all <number> reference docs`
+      wording, and ends with `Last reviewed: 2026-05-03`; contract enforced by
+      `tests/unit/test_root_readme_accuracy.py` (FR-313).
+    modules:
+      - README.md
+      - tests/unit/test_root_readme_accuracy.py
+fr: FR-313
