@@ -138,3 +138,5 @@ uvicorn examples.your_app.api.app:app --port 8000 --workers 4
 - [examples/npc/api/](../examples/npc/api/) - Complete working example
 - [graph-yaml.md](graph-yaml.md) - Graph configuration
 - [prompt-yaml.md](prompt-yaml.md) - Prompt templates
+
+Last reviewed: 2026-05-03

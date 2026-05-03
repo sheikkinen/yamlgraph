@@ -1481,3 +1481,5 @@ For scheduled pipelines using launchd:
 
 - [FR-051: Output Shape Contracts](../feature-requests/051-output-shape-contracts.md) — In-graph validation (complementary)
 - [reference/scheduling-agents.md](scheduling-agents.md) — launchd setup guide
+
+Last reviewed: 2026-05-03

@@ -162,3 +162,5 @@ jobs:
 
 - `examples/daily_digest/` — Fly.io deployment with GitHub Action trigger
 - `scripts/diary_rotate.py` — Pre-commit hook (event-driven, not scheduled)
+
+Last reviewed: 2026-05-03

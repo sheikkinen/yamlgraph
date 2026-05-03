@@ -230,3 +230,5 @@ pytest tests/ -q                 # Full suite with coverage
 - **Tests**: 886 pass, 87% coverage
 - **Lint**: ruff clean
 - **Python**: 3.11-3.13
+
+Last reviewed: 2026-05-03

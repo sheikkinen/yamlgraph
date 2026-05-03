@@ -192,3 +192,5 @@ yamlgraph a2a card examples/demos/hello/
 | 0 | Success |
 | 1 | General error |
 | 2 | Invalid arguments |
+
+Last reviewed: 2026-05-03

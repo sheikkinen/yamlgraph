@@ -247,3 +247,5 @@ print(share_trace(tracer))     # Public URL (or None)
 | `inject_tracer_config(config, tracer)` | Add tracer to LangGraph config callbacks dict |
 
 All functions accept `None` tracer and return `None` gracefully — no need to guard with `if tracer:`.
+
+Last reviewed: 2026-05-03

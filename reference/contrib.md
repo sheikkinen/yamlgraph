@@ -136,3 +136,5 @@ data = to_serializable(obj)
 - [Map Nodes](map-nodes.md) - Parallel processing with fan-out
 - [Patterns](patterns.md) - Common pipeline patterns
 - [ARCHITECTURE.md](../ARCHITECTURE.md#20-contrib-utilities) - REQ-YG-070, REQ-YG-071 specification
+
+Last reviewed: 2026-05-03

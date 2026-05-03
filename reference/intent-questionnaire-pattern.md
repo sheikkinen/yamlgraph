@@ -456,3 +456,5 @@ When implementing this pattern in a new project:
 - [ ] Return actual `session_id` and `template` in response
 - [ ] Add Redis connection to app state
 - [ ] Write tests for registry and resolution functions
+
+Last reviewed: 2026-05-03

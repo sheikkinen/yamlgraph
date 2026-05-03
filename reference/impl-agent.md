@@ -91,3 +91,5 @@ START → parse_story → discover → analyze → plan → END
 - **discover** - Find relevant files using `list_modules`
 - **analyze** - Deep analysis with all tools
 - **plan** - Generate implementation plan
+
+Last reviewed: 2026-05-03

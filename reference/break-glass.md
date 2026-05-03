@@ -76,3 +76,5 @@ Only repository admins (`sheikkinen` and collaborators with admin role) can bypa
 - **FR-127**: CI commitlint enforcement (required status check)
 - **FR-149**: CI CHANGELOG gate (future required status check)
 - `CLAUDE.md` → Branch Protection section
+
+Last reviewed: 2026-05-03

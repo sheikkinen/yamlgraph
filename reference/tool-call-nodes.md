@@ -162,3 +162,5 @@ This allows downstream nodes to process partial results even when some tools fai
 - [Map Nodes](map-nodes.md) - For parallel tool execution
 - [Patterns](patterns.md) - LLM-driven orchestration patterns
 - [impl-agent](impl-agent.md) - Example using tool_call for discovery
+
+Last reviewed: 2026-05-03

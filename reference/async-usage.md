@@ -315,3 +315,5 @@ loop.set_exception_handler(lambda loop, ctx: logger.error(
 - [Interrupt Nodes](interrupt-nodes.md) - Human-in-the-loop
 - [Checkpointers](checkpointers.md) - State persistence
 - [Fire-and-Forget Integration](#fire-and-forget-integration) - Event-driven orchestrators
+
+Last reviewed: 2026-05-03

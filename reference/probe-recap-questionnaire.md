@@ -285,3 +285,5 @@ The FSM manages call lifecycle (warm-up, barge-in, farewell) while the graph han
 - [Subgraph Nodes](subgraph-nodes.md) — Graph composition
 - [Checkpointers](checkpointers.md) — State persistence
 - [Common Patterns](patterns.md) — Router, loop, agent patterns
+
+Last reviewed: 2026-05-03

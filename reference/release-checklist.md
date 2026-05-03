@@ -109,3 +109,5 @@ git commit -F tmp/msg.txt
 ```
 
 This avoids the dquote trap from special characters in shell strings.
+
+Last reviewed: 2026-05-03

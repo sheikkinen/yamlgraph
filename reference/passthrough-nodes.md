@@ -187,3 +187,5 @@ This prevents loops from breaking on transient errors.
 - [Expression Language Reference](expressions.md) - Complete expression syntax and grammar
 - [Graph YAML Reference](graph-yaml.md) - Full graph configuration
 - [Interrupt Nodes](patterns.md#human-in-the-loop) - Human input in loops
+
+Last reviewed: 2026-05-03

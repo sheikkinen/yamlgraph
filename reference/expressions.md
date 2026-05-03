@@ -420,3 +420,5 @@ identifier     = letter_or_underscore { letter_or_underscore | digit | "." } ;
 - [Passthrough Nodes](passthrough-nodes.md) — Counter and accumulator patterns
 - [Map Nodes](map-nodes.md) — Fan-out with `over:` expression
 - [Patterns](patterns.md) — Common graph patterns using expressions
+
+Last reviewed: 2026-05-03

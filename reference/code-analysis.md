@@ -183,3 +183,5 @@ pip install ruff bandit radon vulture
 
 - [Graph YAML Reference](graph-yaml.md) - Full graph configuration options
 - [Patterns](patterns.md) - Agent and tool patterns
+
+Last reviewed: 2026-05-03

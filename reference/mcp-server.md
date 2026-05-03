@@ -118,3 +118,5 @@ The `state` keys become `required_vars` in the tool listing.
 | `ModuleNotFoundError: yamlgraph` | Ensure `.mcp.json` uses `.venv/bin/python3` |
 | Graph not listed | Verify path matches a scan pattern |
 | Timeout errors | Graph execution exceeds 120s default; check `config.timeout` in graph YAML |
+
+Last reviewed: 2026-05-03

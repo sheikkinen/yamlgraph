@@ -449,3 +449,5 @@ The MCP server exposes graphs as tools (`yamlgraph_list_graphs`, `yamlgraph_run_
 - [`reference/mcp-server.md`](mcp-server.md) — MCP server reference
 - [`examples/demos/a2a_server/`](../examples/demos/a2a_server/) — A2A server demo
 - [`examples/demos/a2a_call/`](../examples/demos/a2a_call/) — A2A call consumer demo
+
+Last reviewed: 2026-05-03

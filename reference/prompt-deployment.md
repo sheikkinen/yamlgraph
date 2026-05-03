@@ -221,3 +221,5 @@ async def update_prompt(name: str, content: dict):
 - [Graph YAML Reference](graph-yaml.md) - `prompts_dir` configuration
 - [Prompt YAML Reference](prompt-yaml.md) - Prompt file format
 - [Async Usage](async-usage.md) - Hot-reloading graphs
+
+Last reviewed: 2026-05-03

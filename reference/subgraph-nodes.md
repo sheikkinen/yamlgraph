@@ -261,3 +261,5 @@ Each level has its own state, mapped through `input_mapping` and `output_mapping
 2. **Self-contained** - Subgraphs should work independently
 3. **Organize in folder** - Use `graphs/subgraphs/` for reusable graphs
 4. **Consistent naming** - Use `input_*` and `output_*` for interface keys
+
+Last reviewed: 2026-05-03

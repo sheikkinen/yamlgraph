@@ -566,7 +566,7 @@ nodes:
     state_key: verdict
 ```
 
-See [examples/copilot/](../examples/copilot/) for a complete demo.
+See [examples/bugfix/](../examples/bugfix/) for a complete demo using `type: copilot`.
 
 ### `type: map` - Parallel Fan-Out Node
 
@@ -1457,3 +1457,5 @@ edges:
   - from: respond_positive
     to: END
 ```
+
+Last reviewed: 2026-05-03
