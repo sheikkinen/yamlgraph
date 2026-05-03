@@ -4,7 +4,7 @@
 **Type:** Bug
 **Status:** Draft
 **Effort:** 0.1 days
-**Requested:** 2026-05-02
+**Requested:** 2026-05-03
 
 ## Summary
 
@@ -49,7 +49,7 @@ No other files, sections, or wording changes.
 
 ## Failing Acceptance Tests (RED)
 
-Current failing checks in `tmp/worktrees/feat/watcher2-gh-264`:
+Current failing checks in `tmp/worktrees/feat/watcher2-gh-270`:
 
 ```bash
 test "$(tail -n 1 README.md)" = "[MIT w/ SWC](LICENSE)"
@@ -69,6 +69,6 @@ These checks should pass after implementation.
 
 ## Related
 
-- Topic source: `.chaplain/processing/gh-264.md`
+- Topic source: `.chaplain/processing/gh-270.md` (issue content: GitHub issue #270)
 - Target file: `README.md`
 - Prior doc-hygiene FRs: `feature-requests/FR-086-readme-when-not-to-use.md`, `feature-requests/FR-091-readme-missing-node-types.md`
