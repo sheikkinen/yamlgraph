@@ -137,7 +137,7 @@ class GitCommitAction(BaseAction):
                     f"[{machine_name}] Hook modified files (attempt {attempt}/"
                     f"{max_attempts}), re-staging and retrying: {modified_files}"
                 )
-                await asyncio.create_subprocess_exec(
+                restage_proc = await asyncio.create_subprocess_exec(
                     "git",
                     "add",
                     "-u",
@@ -145,6 +145,7 @@ class GitCommitAction(BaseAction):
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                 )
+                await restage_proc.communicate()
             else:
                 logger.error(
                     f"[{machine_name}] git commit failed after {max_attempts}"
