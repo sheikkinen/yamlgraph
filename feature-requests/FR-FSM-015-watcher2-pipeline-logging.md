@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 0.5 day
 **Requested:** 2026-04-29
 
@@ -119,12 +119,17 @@ provides full coverage of engine state transitions and action outcomes.
 
 ## Acceptance Criteria
 
-- [ ] Pipeline subprocess output written to `logs/fsm-pipeline-<topic>-<timestamp>.log`
-- [ ] `--debug` flag enables verbose engine logging
-- [ ] Log rotation: keep last 20 pipeline logs
-- [ ] Existing dispatcher log (`logs/fsm-dispatcher.log`) unchanged
-- [ ] Log file path visible in dispatcher startup or identifiable by topic name
-- [ ] Smoke test: drop topic, verify log file created and contains state transitions
+- [x] Pipeline subprocess output written to `logs/fsm-pipeline-<topic>-<timestamp>.log`
+- [x] `--debug` flag enables verbose engine logging
+- [x] Log rotation: keep last 20 pipeline logs
+- [x] Existing dispatcher log (`logs/fsm-dispatcher.log`) unchanged
+- [x] Log file path visible in dispatcher startup or identifiable by topic name
+- [x] Smoke test: drop topic, verify log file created and contains state transitions
+
+## Implementation Notes
+
+- `watcher-dispatcher.yaml` now ensures `logs/` exists, emits the resolved pipeline log path, and runs the pipeline with `2>&1 | tee "$LOG"` under `--debug`.
+- Added unit acceptance coverage in `tests/unit/test_frfsm015_watcher2_pipeline_logging.py`.
 
 ## Related
 
