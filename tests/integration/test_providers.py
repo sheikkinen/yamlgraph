@@ -27,6 +27,9 @@ class TestProviderIntegration:
         """Clear LLM cache before each test."""
         clear_cache()
 
+    @pytest.mark.skipif(
+        not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+    )
     @pytest.mark.req("REQ-YG-010")
     def test_execute_prompt_with_anthropic_provider(self):
         """Should execute prompt with explicit Anthropic provider."""
@@ -80,6 +83,9 @@ class TestProviderIntegration:
         assert isinstance(result, str)
         assert len(result) > 0
 
+    @pytest.mark.skipif(
+        not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+    )
     @pytest.mark.req("REQ-YG-010")
     def test_provider_from_environment_variable(self):
         """Should use provider from PROVIDER env var."""
@@ -91,6 +97,9 @@ class TestProviderIntegration:
             assert isinstance(result, str)
             assert len(result) > 0
 
+    @pytest.mark.skipif(
+        not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+    )
     @pytest.mark.req("REQ-YG-010")
     def test_provider_in_yaml_metadata(self):
         """Should extract provider from YAML metadata."""
@@ -106,6 +115,9 @@ class TestProviderIntegration:
         )
         assert isinstance(result, str)
 
+    @pytest.mark.skipif(
+        not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+    )
     @pytest.mark.req("REQ-YG-010")
     def test_structured_output_with_different_providers(self):
         """Should work with structured outputs across providers."""
@@ -123,6 +135,9 @@ class TestProviderIntegration:
         assert result.content
         assert isinstance(result.tags, list)
 
+    @pytest.mark.skipif(
+        not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+    )
     @pytest.mark.req("REQ-YG-010")
     def test_temperature_and_provider_together(self):
         """Should handle both temperature and provider parameters."""
@@ -145,6 +160,9 @@ class TestProviderIntegration:
                 provider="invalid-provider",
             )
 
+    @pytest.mark.skipif(
+        not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+    )
     @pytest.mark.req("REQ-YG-010")
     def test_caching_across_calls_with_same_provider(self):
         """Should reuse LLM instances for same provider/temperature."""
@@ -176,6 +194,9 @@ class TestJinja2WithProviders:
         """Clear LLM cache before each test."""
         clear_cache()
 
+    @pytest.mark.skipif(
+        not os.getenv("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set"
+    )
     @pytest.mark.req("REQ-YG-010")
     def test_simple_prompt_template_format(self):
         """Should work with simple {variable} templates on any provider."""

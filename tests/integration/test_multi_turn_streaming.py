@@ -14,9 +14,35 @@ import pytest
 from langgraph.types import Command
 
 
+def _fake_execute_prompt(
+    prompt_name: str, variables: dict | None = None, **_: object
+) -> str:
+    """Deterministic prompt stub for integration tests without provider keys."""
+    vars_dict = variables or {}
+    if prompt_name == "classify_intent":
+        message = str(vars_dict.get("message", "")).lower()
+        stop_tokens = ("stop", "quit", "bye", "exit", "end", "goodbye")
+        return "stop" if any(token in message for token in stop_tokens) else "continue"
+
+    if prompt_name == "respond":
+        message = str(vars_dict.get("message", "")).strip()
+        return f"Mock response to: {message}" if message else "Mock response"
+
+    return "Mock response"
+
+
+@pytest.fixture
+def mock_multi_turn_llm(monkeypatch):
+    """Patch LLM execution for deterministic, offline integration behavior."""
+    monkeypatch.setattr(
+        "yamlgraph.node_factory.llm_nodes.execute_prompt",
+        _fake_execute_prompt,
+    )
+
+
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-049")
-async def test_multi_turn_resume_with_command():
+async def test_multi_turn_resume_with_command(mock_multi_turn_llm):
     """Multi-turn resume works with Command and checkpointer."""
     from yamlgraph.executor_async import load_and_compile_async, run_graph_async
 
@@ -41,7 +67,7 @@ async def test_multi_turn_resume_with_command():
 
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-049")
-async def test_guard_classification_separate_call():
+async def test_guard_classification_separate_call(mock_multi_turn_llm):
     """Guard classification works as separate graph call."""
     from yamlgraph.graph_loader import load_and_compile
 
@@ -64,7 +90,7 @@ async def test_guard_classification_separate_call():
 
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-049")
-async def test_checkpointer_persists_across_turns():
+async def test_checkpointer_persists_across_turns(mock_multi_turn_llm):
     """State persists across turns via checkpointer."""
     from yamlgraph.executor_async import load_and_compile_async, run_graph_async
 
