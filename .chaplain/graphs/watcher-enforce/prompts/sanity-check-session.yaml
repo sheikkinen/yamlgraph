@@ -45,7 +45,11 @@ user: |
      - Find latest `logs/fsm-pipeline-*.log` if available.
      - Inspect transition/timing lines and reference pipeline log findings.
   6. **Write diary entry**
-     - Create `docs/diary/YYYY-MM-DD-reflection-fr-316-watcher2-sanity-check-state.md`
+     - Derive the diary filename stem from `{{ fr_path }}`:
+       - Use the basename without `.md`, normalized to lowercase kebab-case.
+       - Diary path pattern: `docs/diary/YYYY-MM-DD-reflection-<derived-fr-stem>.md`
+      - The diary filename must be derived from {{ fr_path }} for this run.
+       - Example: `feature-requests/FR-317-reference-docs-review.md` → `docs/diary/YYYY-MM-DD-reflection-fr-317-reference-docs-review.md`
      - Include sections: Date, FR, Trap, What Happened, Root Cause, What Worked, Seed:
      - Seed: must be a forward-looking question.
   7. **Return routing status**
