@@ -83,7 +83,7 @@ class TestV2PipelineStructure:
     def test_has_eleven_states_total(self):
         config = load_config(V2_PIPELINE_PATH)
         states = get_states(config)
-        assert len(states) == 11, f"Expected 11 states, got {len(states)}: {states}"
+        assert len(states) == 10, f"Expected 10 states, got {len(states)}: {states}"
 
     def test_operational_states(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -91,7 +91,6 @@ class TestV2PipelineStructure:
         expected_operational = {
             "setup",
             "plan",
-            "commit_plan",
             "judge",
             "enforce_session",
             "done",
@@ -132,15 +131,10 @@ class TestV2HappyPath:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "setup", "plan", "setup_done")
 
-    def test_plan_to_commit_plan(self):
+    def test_plan_to_judge(self):
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
-        assert transition_exists(transitions, "plan", "commit_plan", "plan_done")
-
-    def test_commit_plan_to_judge(self):
-        config = load_config(V2_PIPELINE_PATH)
-        transitions = get_transitions(config)
-        assert transition_exists(transitions, "commit_plan", "judge", "committed")
+        assert transition_exists(transitions, "plan", "judge", "plan_done")
 
     def test_judge_to_enforce_session(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -209,12 +203,6 @@ class TestV2FailurePaths:
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
         assert transition_exists(transitions, "enforce_session", "failed", "error")
-
-    def test_commit_plan_error_to_failed(self):
-        """FR-305a: commit_plan must have error→failed to prevent infinite retry."""
-        config = load_config(V2_PIPELINE_PATH)
-        transitions = get_transitions(config)
-        assert transition_exists(transitions, "commit_plan", "failed", "error")
 
     def test_done_error_to_failed(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -432,18 +420,13 @@ class TestV2ActionTypes:
         actions = get_action_config(config, "plan")
         assert actions[0]["type"] == "yamlgraph_async"
 
-    def test_commit_plan_is_git_commit(self):
+    def test_plan_captures_fr_path(self):
+        """Plan step must include bash_context action to capture fr_path."""
         config = load_config(V2_PIPELINE_PATH)
-        actions = get_action_config(config, "commit_plan")
-        assert actions[0]["type"] == "git_commit"
-
-    def test_commit_plan_uses_chore_prefix(self):
-        """FR-305a: plan commit must use chore: not feat: to avoid hook rejection."""
-        config = load_config(V2_PIPELINE_PATH)
-        actions = get_action_config(config, "commit_plan")
-        message = actions[0]["message"]
-        assert message.startswith("chore"), f"Expected chore: prefix, got: {message}"
-        assert not message.startswith("feat"), f"feat: triggers FR-XXX hook: {message}"
+        actions = get_action_config(config, "plan")
+        assert len(actions) >= 2, "Plan should have yamlgraph_async + bash_context"
+        assert actions[1]["type"] == "bash_context"
+        assert "fr_path" in actions[1].get("capture_keys", [])
 
     def test_judge_is_yamlgraph_async(self):
         config = load_config(V2_PIPELINE_PATH)
