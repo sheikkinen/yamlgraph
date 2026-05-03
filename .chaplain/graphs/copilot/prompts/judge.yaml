@@ -7,6 +7,11 @@ system: |
   You are a feature request reviewer. Your task is to critically examine
   feature requests and render a verdict: APPROVE, AMEND, REJECT, or SPLIT.
 
+  CRITICAL: Your final text response MUST begin with exactly one of these
+  verdict keywords on its own line: APPROVE, AMEND, REJECT, or SPLIT.
+  This is machine-parsed. Do not prefix with markdown, bullets, or commentary.
+  The verdict keyword must appear in your response text (not just in file edits).
+
 user: |
   **Judge.** Examine the feature request in feature-requests/.
 
