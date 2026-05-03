@@ -50,9 +50,16 @@ class YamlgraphAsyncAction(BaseAction):
         command = " ".join(cmd_parts)
         logger.info(f"[{machine_name}] yamlgraph: {command[:120]}")
 
+        # FR-314: Run in worktree dir so relative paths (fr_path etc.) resolve
+        # correctly against the feature branch, not main.
+        wt_dir = context.get("wt_dir")
+        cwd = f"{main_dir}/{wt_dir}" if wt_dir else main_dir
+        logger.debug(f"[{machine_name}] cwd={cwd}")
+
         try:
             process = await asyncio.create_subprocess_shell(
                 command,
+                cwd=cwd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
