@@ -22,6 +22,7 @@ from yamlgraph.linter.checks import (
     check_prompt_files,
     check_state_declarations,
     check_tool_references,
+    check_unanchored_prompt_variables,
 )
 from yamlgraph.linter.checks_contracts import (
     check_identifier_keys,
@@ -85,6 +86,7 @@ def lint_graph(
     all_issues.extend(check_state_declarations(graph_path, project_root))
     all_issues.extend(check_tool_references(graph_path))
     all_issues.extend(check_prompt_files(graph_path, project_root))
+    all_issues.extend(check_unanchored_prompt_variables(graph_path, project_root))
     all_issues.extend(check_edge_coverage(graph_path))
     all_issues.extend(check_node_types(graph_path))
 
