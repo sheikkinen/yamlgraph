@@ -21,7 +21,10 @@ stateDiagram-v2
         plan --> commit_plan : plan_done
         commit_plan --> judge : committed
         judge --> enforce_session : approve
-        enforce_session --> done : pass
+        enforce_session --> validate : enforce_done
+        validate --> precommit_check : validate_done
+        precommit_check --> done : pass
+        precommit_check --> validate : fix_needed
         judge --> plan : revise
         done --> [*] : completed
         judge --> [*] : reject
@@ -54,13 +57,15 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Error Handling Flow
-    plan : plan
+    precommit_check : precommit_check
     judge : judge
-    enforce_session : enforce_session
-    commit_plan : commit_plan
+    plan : plan
     setup : setup
+    commit_plan : commit_plan
+    enforce_session : enforce_session
     failed : failed
     done : done
+    precommit_check --> failed : error
     setup --> failed : error
     plan --> failed : error
     commit_plan --> failed : error
@@ -94,6 +99,8 @@ stateDiagram-v2
 | `commit_plan` | Commit Plan | git_commit |
 | `judge` | Judge | yamlgraph_async |
 | `enforce_session` | Enforce Session | yamlgraph_async |
+| `validate` | Validate | yamlgraph_async |
+| `precommit_check` | Precommit Check | precommit |
 | `done` | Done | bash |
 | `completed` | Completed | N/A |
 | `failed` | Failed | bash |
@@ -111,6 +118,9 @@ stateDiagram-v2
 | `approve` | Internal | Approve |
 | `revise` | Internal | Revise |
 | `reject` | Internal | Reject |
+| `enforce_done` | Success | Enforce Done |
+| `validate_done` | Success | Validate Done |
+| `fix_needed` | Internal | Fix Needed |
 | `pass` | Internal | Pass |
 | `completed` | Internal | Completed |
 | `error` | Error | Error |
@@ -122,9 +132,9 @@ stateDiagram-v2
 
 ## Configuration Summary
 
-- **States:** 9
-- **Events:** 12
-- **Transitions:** 18
+- **States:** 11
+- **Events:** 15
+- **Transitions:** 22
 - **Initial State:** `setup`
 
 ---

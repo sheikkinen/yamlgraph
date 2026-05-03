@@ -21,7 +21,7 @@ nodes:
     prompt: judge
     backend: cli
     cli_flags:
-      model: claude-sonnet-4-5
+      model: claude-sonnet-4
       allow_all_paths: true
       allow_all_tools: true
     variables:
