@@ -86,6 +86,26 @@ class TestChaplainREADMEContent:
             or "issue" in readme_content.lower()
         )
 
+    @pytest.mark.req("REQ-YG-278")
+    def test_retry_requeue_failed_github_topics_guidance(self, readme_content):
+        """README should document the failed topic retry/requeue workflow."""
+        assert "Retry/Requeue Failed GitHub Topics" in readme_content
+
+        required_lines = [
+            "rm .chaplain/failed/gh-<NUM>.md",
+            "git worktree remove tmp/worktrees/feat/watcher2-gh-<NUM> --force",
+            "git branch -D feat/watcher2-gh-<NUM> && git push origin --delete feat/watcher2-gh-<NUM>",
+            "gh issue edit <NUM> --add-label chaplain",
+        ]
+        missing = [line for line in required_lines if line not in readme_content]
+        assert not missing, f"missing retry/requeue lines: {missing}"
+
+        assert "inbox_sync.sh" in readme_content
+        assert ".chaplain/failed/" in readme_content
+        assert ".chaplain/processing/" in readme_content
+        assert ".chaplain/inbox/" in readme_content
+        assert "watcher2 picks the issue back up automatically" in readme_content
+
     def test_architecture_details(self, readme_content):
         """README should explain architecture details."""
         assert (
