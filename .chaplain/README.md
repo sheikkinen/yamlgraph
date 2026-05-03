@@ -6,6 +6,61 @@ The `.chaplain/` directory contains the watcher2 pipeline orchestrator and its s
 
 The watcher2 system is a sophisticated 8-step automation pipeline that processes proposals from the `.chaplain/inbox/` directory through the complete development lifecycle:
 
+### Watcher2 FSM v2 (Current)
+
+Source-of-truth configs:
+
+- `.chaplain/config/watcher-pipeline-v2.yaml`
+- `.chaplain/config/watcher-dispatcher.yaml`
+
+Operational state chain:
+
+`setup -> plan -> capture_fr -> judge -> enforce_session -> validate -> sanity_check -> precommit_check -> done`
+
+Terminal states: `completed`, `failed`, `stopped`.
+
+#### Dispatcher poll loop contract
+
+- Dispatcher runs `idle -> syncing_inbox` on `timeout(10)`.
+- `syncing_inbox` calls `inbox_sync.sh`, imports GitHub issues labeled `chaplain`, and moves the next topic into `.chaplain/processing/`.
+- If no topic is found, dispatcher returns to `idle`; after a topic completes, it also returns to `idle`.
+
+#### Sanity-check placement and WARN routing
+
+- Pipeline route is `validate -> sanity_check -> precommit_check`.
+- `sanity_check` emits `PASS` or `WARN`; both continue to `precommit_check`.
+- `WARN` is non-blocking (advisory), not a terminal failure.
+
+#### Model mapping (graph configs)
+
+| Stage | Graph | Model |
+|---|---|---|
+| plan | `.chaplain/graphs/watcher-plan/step-plan-unified.yaml` | `gpt-5.3-codex` |
+| judge | `.chaplain/graphs/watcher-plan/step-judge-v2.yaml` | `claude-sonnet-4` |
+| enforce | `.chaplain/graphs/watcher-enforce/enforce-session.yaml` | `gpt-5.3-codex` |
+| validate | `.chaplain/graphs/watcher-enforce/validate-session.yaml` | `claude-sonnet-4-6` |
+| sanity | `.chaplain/graphs/watcher-enforce/sanity-check-session.yaml` | `claude-sonnet-4-6` |
+
+#### Action types in v2 pipeline
+
+- Active in `.chaplain/config/watcher-pipeline-v2.yaml`: `yamlgraph_async`, `bash_context`, `precommit`, `bash`.
+- Available plugin (not wired in v2; currently not active): `failure_cleanup` (`.chaplain/actions/failure_cleanup_action.py`).
+
+#### Key operational scripts
+
+- `.chaplain/scripts/start-system.sh`
+- `.chaplain/lib/watcher/inbox_sync.sh`
+- `.chaplain/lib/watcher/wait_ci.sh`
+- `.chaplain/lib/watcher/merge_pr.sh`
+- `.chaplain/lib/watcher/worktree_teardown.sh`
+- `.chaplain/lib/watcher/post_merge.sh`
+
+#### Processing directory hygiene
+
+`.chaplain/processing/` can accumulate stale files (for example after interrupted or manually aborted runs). Operators should periodically clean stale entries after confirming no active watcher2 cycle owns them.
+
+For retry/requeue runbook details, see [Retry/Requeue Failed GitHub Topics](#retryrequeue-failed-github-topics).
+
 ### Architecture: 4-Phase Pipeline
 
 ```

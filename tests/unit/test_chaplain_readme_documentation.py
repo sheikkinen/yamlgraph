@@ -144,3 +144,72 @@ class TestChaplainREADMEStyle:
         assert readme_content.startswith("# "), "Should start with main header"
         # Should be well-structured
         assert len(readme_content.split("\n")) > 20, "Should be comprehensive"
+
+
+@pytest.mark.req("REQ-YG-278")
+class TestChaplainREADMEWatcher2FSMV2:
+    """FR-317 watcher2 FSM v2 documentation contract."""
+
+    @pytest.fixture
+    def readme_content(self):
+        return Path(".chaplain/README.md").read_text()
+
+    def test_ac01_documents_operational_state_chain(self, readme_content):
+        assert (
+            "setup -> plan -> capture_fr -> judge -> enforce_session -> validate -> sanity_check -> precommit_check -> done"
+            in readme_content
+        )
+
+    def test_ac02_lists_terminal_states(self, readme_content):
+        for state in ("completed", "failed", "stopped"):
+            assert state in readme_content
+
+    def test_ac03_documents_dispatcher_polling_contract(self, readme_content):
+        assert "timeout(10)" in readme_content
+        assert "inbox_sync.sh" in readme_content
+        assert "chaplain" in readme_content.lower()
+        assert "label" in readme_content.lower()
+
+    def test_ac04_documents_sanity_check_position_and_warn(self, readme_content):
+        assert "validate -> sanity_check -> precommit_check" in readme_content
+        assert "WARN" in readme_content
+
+    def test_ac05_documents_model_mapping_from_graph_configs(self, readme_content):
+        required = [
+            "plan",
+            "judge",
+            "enforce",
+            "validate",
+            "sanity",
+            "gpt-5.3-codex",
+            "claude-sonnet-4",
+            "claude-sonnet-4-6",
+        ]
+        missing = [item for item in required if item not in readme_content]
+        assert not missing, f"missing model mapping details: {missing}"
+
+    def test_ac06_documents_action_types_and_failure_cleanup_status(
+        self, readme_content
+    ):
+        for action_type in ("yamlgraph_async", "bash_context", "precommit", "bash"):
+            assert action_type in readme_content
+        assert "failure_cleanup" in readme_content
+        assert "not wired" in readme_content.lower()
+
+    def test_ac07_references_key_scripts(self, readme_content):
+        required_scripts = [
+            "start-system.sh",
+            "inbox_sync.sh",
+            "wait_ci.sh",
+            "merge_pr.sh",
+            "worktree_teardown.sh",
+            "post_merge.sh",
+        ]
+        missing = [
+            script for script in required_scripts if script not in readme_content
+        ]
+        assert not missing, f"missing script references: {missing}"
+
+    def test_ac08_documents_processing_directory_hygiene(self, readme_content):
+        assert ".chaplain/processing/" in readme_content
+        assert "stale" in readme_content.lower()
