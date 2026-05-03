@@ -1,0 +1,27 @@
+id: CAP-140
+name: Watcher2 Validate Split Fix/Gate
+description: >
+  Split watcher2 post-enforce validation into explicit LLM remediation
+  (validate_fix) and deterministic CI-parity gate (validate_gate) with bounded
+  retry semantics before done.
+modules:
+  - .chaplain/config/watcher-pipeline-v2.yaml
+  - .chaplain/actions/validate_gate_action.py
+  - .chaplain/graphs/watcher-enforce/validate-session.yaml
+  - .chaplain/graphs/watcher-enforce/prompts/validate-session.yaml
+  - tests/unit/test_fr316_watcher2_validate_split_fix_gate.py
+requirements:
+  - id: REQ-YG-318
+    description: >
+      Watcher2 pipeline routes post-enforce flow through validate_fix then
+      sanity_check then validate_gate; validate_gate performs deterministic
+      pre-commit, commit-title, branch-freshness, and diary-in-diff checks with
+      max-attempt retry contract (pass → done, fix_needed → validate_fix,
+      error → failed), while done keeps PR title source as
+      `git log -1 --format=%s`.
+    modules:
+      - .chaplain/config/watcher-pipeline-v2.yaml
+      - .chaplain/actions/validate_gate_action.py
+      - .chaplain/graphs/watcher-enforce/prompts/validate-session.yaml
+      - tests/unit/test_fr316_watcher2_validate_split_fix_gate.py
+fr: FR-316

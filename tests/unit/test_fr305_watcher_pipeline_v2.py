@@ -94,9 +94,9 @@ class TestV2PipelineStructure:
             "capture_fr",
             "judge",
             "enforce_session",
-            "validate",
+            "validate_fix",
             "sanity_check",
-            "precommit_check",
+            "validate_gate",
             "done",
         }
         assert expected_operational.issubset(
@@ -150,11 +150,11 @@ class TestV2HappyPath:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "judge", "enforce_session", "approve")
 
-    def test_enforce_session_to_validate(self):
+    def test_enforce_session_to_validate_fix(self):
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
         assert transition_exists(
-            transitions, "enforce_session", "validate", "enforce_done"
+            transitions, "enforce_session", "validate_fix", "enforce_done"
         )
 
     def test_done_to_completed(self):
