@@ -45,10 +45,14 @@ user: |
      - Find latest `logs/fsm-pipeline-*.log` if available.
      - Inspect transition/timing lines and reference pipeline log findings.
   6. **Write diary entry**
-     - Create `docs/diary/YYYY-MM-DD-reflection-fr-316-watcher2-sanity-check-state.md`
+     - Derive the FR slug from `{{ fr_path }}` (for example, `feature-requests/FR-318-...md` -> `fr-318`).
+     - Create `docs/diary/YYYY-MM-DD-reflection-<derived-fr-slug>-watcher2-sanity-check-state.md`
      - Include sections: Date, FR, Trap, What Happened, Root Cause, What Worked, Seed:
      - Seed: must be a forward-looking question.
-  7. **Return routing status**
+  7. **STAGE + COMMIT**
+     - Stage the diary artifact: `git add docs/diary/YYYY-MM-DD-reflection-<derived-fr-slug>-watcher2-sanity-check-state.md`
+     - Commit with an FR-derived message (for example: `git commit -m "docs(diary): FR-318 watcher2 sanity-check reflection"`).
+  8. **Return routing status**
      - Return exactly `PASS` when proportionality, test quality, and FR/code alignment are acceptable.
      - Return exactly `WARN` when concerns exist. WARN is non-blocking and still proceeds to precommit_check.
 

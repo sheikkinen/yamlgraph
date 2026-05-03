@@ -49,6 +49,6 @@ This is an active AI/LLM automation project called **"Chaplain"** with heavy foc
 
 #### **4. Chaplain Forensic & CI Hardening**
 - **Commits**: `12911db2`, `8fd9370e` (Apr 24-25)
-- **What**: 
+- **What**:
   - Converted forensic graph to copilot node with tool access
   - Removed hard
