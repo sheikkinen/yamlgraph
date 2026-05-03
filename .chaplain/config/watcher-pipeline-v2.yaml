@@ -194,16 +194,16 @@ actions:
       description: "📝 Planning (unified: FR + research + tests + verify-red)"
 
   # ── CAPTURE FR PATH ─────────────────────────────────────────────────
-  # Lightweight state: find the newest FR file in the worktree.
+  # Lightweight state: find the newest FR created by the plan step (not inherited from main).
 
   capture_fr:
     - type: bash_context
-      command: "cd {wt_dir} && FR=$(ls feature-requests/FR-*.md 2>/dev/null | sort -t- -k2 -n | tail -1) && echo \"{\\\"fr_path\\\": \\\"$FR\\\"}\""
+      command: "cd {wt_dir} && FR=$(git diff --name-only main -- feature-requests/FR-*.md 2>/dev/null | tail -1) && [ -n \"$FR\" ] && echo \"{\\\"fr_path\\\": \\\"$FR\\\"}\" || (echo 'No new FR found — plan did not create one' >&2 && exit 1)"
       capture_keys: [fr_path]
       success: fr_captured
       error: error
       timeout: 10
-      description: "🔍 Capture FR path from plan artifacts"
+      description: "🔍 Capture FR path from plan artifacts (new files only, not inherited from main)"
 
   # ── JUDGE ──────────────────────────────────────────────────────────
   # Fresh session, DIFFERENT MODEL from plan — no shared context, no anchoring.
