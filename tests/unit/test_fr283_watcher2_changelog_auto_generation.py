@@ -20,6 +20,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
@@ -30,11 +32,11 @@ class TestWatcher2ChangelogAutoGeneration:
     def test_shell_changelog_generation_script_exists(self):
         """AC-1: Shell step generates fragment between critique and finalize steps.
 
-        Verify that watcher2.sh contains changelog generation logic after the
+        Verify that start-system.sh contains changelog generation logic after the
         critique step (around line 307) and before finalize (around line 309).
         """
-        watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
-        assert watcher2_path.exists(), "watcher2.sh must exist"
+        watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
+        assert watcher2_path.exists(), "start-system.sh must exist"
 
         content = watcher2_path.read_text()
 
@@ -65,10 +67,10 @@ class TestWatcher2ChangelogAutoGeneration:
     def test_fr_number_extraction_pattern_in_watcher2(self):
         """AC-2: Changelog fragment auto-generated with correct FR number from FR_PATH variable.
 
-        Verify that watcher2.sh can extract FR number correctly and use it for
+        Verify that start-system.sh can extract FR number correctly and use it for
         changelog fragment generation.
         """
-        watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
+        watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
         content = watcher2_path.read_text()
 
         # Verify FR_NUM extraction exists (this should pass - it's already there)
@@ -97,7 +99,7 @@ class TestWatcher2ChangelogAutoGeneration:
                 "feature-requests/FR-283-auto-generate-changelog-fragments-watcher2.md"
             )
 
-            # This logic should exist in watcher2.sh but doesn't yet
+            # This logic should exist in start-system.sh but doesn't yet
             # Extract FR number
             fr_num = re.search(r"FR-(\d+)", fr_path).group(1)
 
@@ -109,19 +111,19 @@ class TestWatcher2ChangelogAutoGeneration:
             # Expected fragment filename
             expected_filename = f"fr-{fr_num}-{descriptive}.md"
 
-            # This should fail - the actual generation logic doesn't exist in watcher2.sh
+            # This should fail - the actual generation logic doesn't exist in start-system.sh
             changelog_dir = tmppath / "changelog" / "unreleased"
             changelog_dir.mkdir(parents=True)
             changelog_dir / expected_filename
 
-            # Simulate checking if the logic exists in watcher2.sh
-            watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
+            # Simulate checking if the logic exists in start-system.sh
+            watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
             watcher2_content = watcher2_path.read_text()
 
             # This assertion should fail - the generation logic doesn't exist yet
             assert (
                 "head -c 40" in watcher2_content
-            ), "Missing descriptive name truncation logic in watcher2.sh"
+            ), "Missing descriptive name truncation logic in start-system.sh"
 
     def test_capability_registry_req_derivation(self):
         """AC-4: Fragment type/scope/req derived from capability registry when available.
@@ -150,7 +152,7 @@ class TestWatcher2ChangelogAutoGeneration:
             }
             cap_file.write_text(yaml.dump(cap_content))
 
-            # Test the shell logic that should exist in watcher2.sh
+            # Test the shell logic that should exist in start-system.sh
             # This simulates: grep -l "fr: $FR_ID" capabilities/CAP-*.yaml
             fr_id = "FR-179"
 
@@ -183,13 +185,13 @@ class TestWatcher2ChangelogAutoGeneration:
                 except subprocess.CalledProcessError:
                     pytest.fail("Failed to extract REQ-YG-XXX from capability file")
 
-            # This should fail - the capability lookup logic doesn't exist in watcher2.sh yet
-            watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
+            # This should fail - the capability lookup logic doesn't exist in start-system.sh yet
+            watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
             watcher2_content = watcher2_path.read_text()
 
             assert (
                 'grep -l "fr: $FR_ID" capabilities/CAP-*.yaml' in watcher2_content
-            ), "Missing capability registry lookup logic in watcher2.sh"
+            ), "Missing capability registry lookup logic in start-system.sh"
 
     def test_yaml_frontmatter_generation_logic(self):
         """AC-5: Fragment content includes proper YAML frontmatter and FR reference.
@@ -198,8 +200,8 @@ class TestWatcher2ChangelogAutoGeneration:
         """
         # Expected fragment structure
 
-        # This should fail - the YAML generation logic doesn't exist in watcher2.sh yet
-        watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
+        # This should fail - the YAML generation logic doesn't exist in start-system.sh yet
+        watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
         watcher2_content = watcher2_path.read_text()
 
         # Look for YAML frontmatter generation
@@ -282,9 +284,9 @@ class TestWatcher2ChangelogAutoGeneration:
     def test_no_cross_wiring_between_fr_and_fragment(self):
         """AC-9: Fragment FR number matches branch FR (no cross-wiring like fr-276 vs fr-219).
 
-        Verify that watcher2.sh has logic to prevent FR number cross-wiring.
+        Verify that start-system.sh has logic to prevent FR number cross-wiring.
         """
-        watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
+        watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
         content = watcher2_path.read_text()
 
         # This should fail - no validation logic exists to prevent cross-wiring
@@ -298,14 +300,14 @@ class TestWatcher2ChangelogAutoGeneration:
         found_any = any(
             indicator in content for indicator in cross_wiring_prevention_indicators
         )
-        assert found_any, "Missing cross-wiring prevention logic in watcher2.sh"
+        assert found_any, "Missing cross-wiring prevention logic in start-system.sh"
 
     def test_ruff_flow_unchanged(self):
         """AC-10: Existing ruff fix flow unchanged (lines 314-316 are already correct).
 
         Verify that the progressive ruff fixing logic remains intact after changelog additions.
         """
-        watcher2_path = REPO_ROOT / ".chaplain" / "watcher2.sh"
+        watcher2_path = REPO_ROOT / ".chaplain" / "start-system.sh"
         content = watcher2_path.read_text()
 
         # These lines should exist and remain unchanged

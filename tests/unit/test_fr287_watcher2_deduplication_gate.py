@@ -8,8 +8,10 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 DEDUP_GATE_SH = REPO_ROOT / ".chaplain" / "lib" / "watcher" / "dedup_gate.sh"
 CHAPLAIN_README = REPO_ROOT / ".chaplain" / "README.md"
 

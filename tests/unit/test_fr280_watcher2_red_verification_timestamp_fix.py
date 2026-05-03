@@ -1,6 +1,6 @@
 """Acceptance tests for FR-280: Watcher2 RED Verification Timestamp Fix.
 
-The RED verification step in watcher2.sh never detects new test files because
+The RED verification step in start-system.sh never detects new test files because
 `find -newer` compares against the pipeline state file, which is updated *after*
 the test files are written during the acceptance step.
 
@@ -23,8 +23,10 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 
 
 @pytest.fixture
@@ -34,7 +36,7 @@ def watcher2_env(tmp_path):
     tmp_dir = tmp_path / "tmp"
     tmp_dir.mkdir()
 
-    # Create the marker file that watcher2.sh would create
+    # Create the marker file that start-system.sh would create
     marker_file = tmp_dir / "pre-acceptance-marker"
     marker_file.touch()
 
@@ -85,7 +87,7 @@ class TestFR280RedVerificationTimestampFix:
             test_file2.stat().st_mtime < pipeline_state.stat().st_mtime
         ), "Test setup failed: test file should be older"
 
-        # Simulate the current buggy find command from watcher2.sh line 176
+        # Simulate the current buggy find command from start-system.sh line 176
         result = subprocess.run(
             [
                 "find",
@@ -171,7 +173,7 @@ class TestFR280RedVerificationTimestampFix:
         found_files = result.stdout.strip().split("\n") if result.stdout.strip() else []
         found_basenames = [Path(f).name for f in found_files]
 
-        # EXPECTATION: This test should FAIL because watcher2.sh still uses pipeline_state
+        # EXPECTATION: This test should FAIL because start-system.sh still uses pipeline_state
         # The marker file approach would work, but it's not implemented yet
         assert (
             "test_new_feature.py" in found_basenames
@@ -201,28 +203,28 @@ class TestFR280RedVerificationTimestampFix:
         assert expected_marker.is_file(), "Marker should be a file, not directory"
 
     def test_watcher2_uses_marker_not_pipeline_state(self):
-        """AC-04: watcher2.sh find command references marker file, not pipeline state.
+        """AC-04: start-system.sh find command references marker file, not pipeline state.
 
         Tests that the shell script has been updated to use the marker file approach.
         """
         watcher2_content = WATCHER2_SH.read_text()
 
-        # EXPECTATION: These should FAIL because watcher2.sh hasn't been updated yet
+        # EXPECTATION: These should FAIL because start-system.sh hasn't been updated yet
 
         # Should NOT find the old buggy pattern
         assert (
             'find tests/ -name "*.py" -newer "$PIPELINE_STATE"' not in watcher2_content
-        ), "watcher2.sh still uses buggy pipeline state timestamp reference"
+        ), "start-system.sh still uses buggy pipeline state timestamp reference"
 
         # Should find the new marker file pattern
         assert (
             'find tests/ -name "*.py" -newer "$ACCEPTANCE_MARKER"' in watcher2_content
-        ), "watcher2.sh should use marker file for RED verification"
+        ), "start-system.sh should use marker file for RED verification"
 
         # Should have marker file creation before acceptance step
         assert (
             'touch "$ACCEPTANCE_MARKER"' in watcher2_content
-        ), "watcher2.sh should create marker file before acceptance step"
+        ), "start-system.sh should create marker file before acceptance step"
 
     def test_marker_file_cleanup_after_verification(self, tmp_path):
         """AC-05: Marker file cleaned up after RED verification completes.
@@ -244,7 +246,7 @@ class TestFR280RedVerificationTimestampFix:
         # Check that cleanup code exists in the script
         assert (
             'rm "$ACCEPTANCE_MARKER"' in watcher2_content
-        ), "watcher2.sh should clean up marker file after RED verification"
+        ), "start-system.sh should clean up marker file after RED verification"
 
     def test_red_verification_actually_runs_with_new_tests(self, tmp_path):
         """AC-06: RED verification runs when new test files are detected via marker.

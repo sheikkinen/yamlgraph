@@ -1,6 +1,6 @@
 """Acceptance tests for FR-198: Watcher2 Finalize Pre-commit Optimization.
 
-Tests the enhanced watcher2.sh finalize step to pre-format code before
+Tests the enhanced start-system.sh finalize step to pre-format code before
 pre-commit loops and increase retry attempts from 3 to 5.
 
 Acceptance Criteria from FR-198:
@@ -12,7 +12,7 @@ Acceptance Criteria from FR-198:
 - [ ] AC-06: Tests added for the optimization logic
 
 Testing approach:
-- Parse watcher2.sh to verify the structural changes exist
+- Parse start-system.sh to verify the structural changes exist
 - Mock filesystem to test the optimization flow without real git operations
 - Verify that ruff commands are called before the pre-commit loop
 - Verify that the loop runs up to 5 attempts
@@ -26,17 +26,19 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 
 
 @pytest.mark.req("REQ-YG-286")
 class TestWatcher2FinalizeOptimization:
-    """Tests for watcher2.sh finalize step optimization."""
+    """Tests for start-system.sh finalize step optimization."""
 
     def test_ac01_ruff_check_fix_before_loop(self):
         """AC-01: `ruff check --fix` runs before pre-commit loop."""
-        # Read the watcher2.sh file and parse the finalize section
+        # Read the start-system.sh file and parse the finalize section
         watcher_content = WATCHER2_SH.read_text()
 
         # Find the finalize section (between step 4 comment and the pre-commit loop)
@@ -46,7 +48,7 @@ class TestWatcher2FinalizeOptimization:
             re.DOTALL,
         )
 
-        assert finalize_section, "Could not find finalize section in watcher2.sh"
+        assert finalize_section, "Could not find finalize section in start-system.sh"
         finalize_text = finalize_section.group(0)
 
         # Verify ruff check --fix is called before the loop
@@ -70,7 +72,7 @@ class TestWatcher2FinalizeOptimization:
             re.DOTALL,
         )
 
-        assert finalize_section, "Could not find finalize section in watcher2.sh"
+        assert finalize_section, "Could not find finalize section in start-system.sh"
         finalize_text = finalize_section.group(0)
 
         # Verify ruff format is called before the loop
@@ -89,7 +91,7 @@ class TestWatcher2FinalizeOptimization:
 
         # Find the pre-commit loop definition
         loop_match = re.search(r"for attempt in ([0-9\s]+);", watcher_content)
-        assert loop_match, "Could not find pre-commit loop in watcher2.sh"
+        assert loop_match, "Could not find pre-commit loop in start-system.sh"
 
         loop_attempts = loop_match.group(1).split()
 
@@ -192,7 +194,7 @@ class TestWatcher2FinalizeOptimization:
 
 @pytest.mark.req("REQ-YG-286")
 def test_current_watcher2_has_five_attempts():
-    """Optimized watcher2.sh should have 5 attempts for pre-commit resilience."""
+    """Optimized start-system.sh should have 5 attempts for pre-commit resilience."""
     watcher_content = WATCHER2_SH.read_text()
 
     loop_match = re.search(r"for attempt in ([0-9\s]+);", watcher_content)
@@ -213,7 +215,7 @@ def test_current_watcher2_has_five_attempts():
 
 @pytest.mark.req("REQ-YG-286")
 def test_current_watcher2_has_pre_formatting():
-    """Optimized watcher2.sh should have pre-formatting before the pre-commit loop."""
+    """Optimized start-system.sh should have pre-formatting before the pre-commit loop."""
     watcher_content = WATCHER2_SH.read_text()
 
     # Find the finalize section (between step 4 comment and the pre-commit loop)

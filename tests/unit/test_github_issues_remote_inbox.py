@@ -16,13 +16,15 @@ import textwrap
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
-WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "watcher2.sh")
+WATCH_SH = os.path.join(REPO_ROOT, ".chaplain", "start-system.sh")
 WATCHER_LIB = os.path.join(REPO_ROOT, ".chaplain", "lib", "watcher")
 
 
 def _read_watch_sh() -> str:
-    """Read watcher2.sh + all library scripts (patterns split across files)."""
+    """Read start-system.sh + all library scripts (patterns split across files)."""
     parts = []
     with open(WATCH_SH) as fh:
         parts.append(fh.read())

@@ -30,8 +30,8 @@ class TestClaudeMdChaplainInbox:
     def test_claude_md_mentions_watch_daemon(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()
         assert (
-            ".chaplain/watcher2.sh" in content
-        ), "CLAUDE.md must reference the watcher2.sh daemon"
+            ".chaplain/scripts/start-system.sh" in content
+        ), "CLAUDE.md must reference the start-system.sh daemon"
 
     def test_claude_md_mentions_plan_judge_enforce(self):
         content = (REPO_ROOT / "CLAUDE.md").read_text()

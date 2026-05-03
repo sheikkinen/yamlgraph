@@ -8,7 +8,7 @@ name: watcher-judge-v2
 description: "FR-305 — Judge with model independence (fresh session, different model)"
 
 prompts_relative: true
-prompts_dir: ../copilot/prompts
+prompts_dir: prompts
 
 state:
   topic_file: str

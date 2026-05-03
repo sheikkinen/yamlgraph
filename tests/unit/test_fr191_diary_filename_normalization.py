@@ -21,8 +21,10 @@ from pathlib import Path
 import pytest
 import yaml
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 REPO_ROOT = Path(__file__).parent.parent.parent
-WATCHER2_SH = REPO_ROOT / ".chaplain" / "watcher2.sh"
+WATCHER2_SH = REPO_ROOT / ".chaplain" / "start-system.sh"
 CRITIQUE_PROMPT = (
     REPO_ROOT
     / ".chaplain"
