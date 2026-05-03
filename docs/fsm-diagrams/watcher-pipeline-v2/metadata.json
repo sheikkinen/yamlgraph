@@ -21,11 +21,14 @@
         "commit_plan",
         "judge",
         "enforce_session",
+        "validate",
+        "precommit_check",
         "done"
       ],
       "entry_states": [],
       "exit_states": [
         "done",
+        "precommit_check",
         "setup",
         "plan",
         "commit_plan",
