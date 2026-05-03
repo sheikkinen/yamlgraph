@@ -1,16 +1,17 @@
 # Watcher2 Pipeline Worker FSM — v2
 # FR-305: Collapsed 20+ states into operational states + terminals.
 # FR-310: Added validate + precommit_check post-enforce gate.
+# FR-316: Split post-enforce validation into validate_fix + validate_gate.
 #
 # Flow: setup → plan → capture_fr → judge →(approve)→ enforce_session
 #                              ↑ revise       │ enforce_done
 #                              └────────┘     ▼
-#                        validate ← fix_needed ← precommit_check
+#                     validate_fix ← fix_needed ← validate_gate
 #                           │ validate_done
 #                           ▼
 #                       sanity_check
 #                        │ pass/warn
-#                        └──────────→ precommit_check ──→ done
+#                        └──────────→ validate_gate ──→ done
 #                                   │ error (max 5)
 #                                   ▼
 #                                 failed
@@ -29,9 +30,9 @@ states:
   - capture_fr
   - judge
   - enforce_session
-  - validate
+  - validate_fix
   - sanity_check
-  - precommit_check
+  - validate_gate
   - done
 
   # === TERMINAL STATES ===
@@ -82,22 +83,22 @@ transitions:
     event: approve
 
   - from: enforce_session
-    to: validate
+    to: validate_fix
     event: enforce_done
 
-  - from: validate
+  - from: validate_fix
     to: sanity_check
     event: validate_done
 
   - from: sanity_check
-    to: precommit_check
+    to: validate_gate
     event: pass
 
   - from: sanity_check
-    to: precommit_check
+    to: validate_gate
     event: warn
 
-  - from: precommit_check
+  - from: validate_gate
     to: done
     event: pass
 
@@ -107,11 +108,11 @@ transitions:
 
   # ── VALIDATE / PRECOMMIT LOOP ──────────────────────────────────────
 
-  - from: precommit_check
-    to: validate
+  - from: validate_gate
+    to: validate_fix
     event: fix_needed
 
-  - from: precommit_check
+  - from: validate_gate
     to: failed
     event: error
 
@@ -258,11 +259,11 @@ actions:
       timeout: 3600
       description: "🔨 Enforce session (implement only)"
 
-  # ── VALIDATE ───────────────────────────────────────────────────────
+  # ── VALIDATE FIX ───────────────────────────────────────────────────
   # Fresh copilot session: reads FR + precommit failure output,
   # runs ruff fix/format + pytest, commits remediation.
 
-  validate:
+  validate_fix:
     - type: yamlgraph_async
       graph: .chaplain/graphs/watcher-enforce/validate-session.yaml
       vars:
@@ -273,7 +274,7 @@ actions:
       success: validate_done
       error: error
       timeout: 600
-      description: "🔍 Validate session (ruff + pytest remediation)"
+      description: "🛠️ Validate fix session (mechanical remediation)"
 
   # ── SANITY CHECK ────────────────────────────────────────────────────
   # Fresh copilot session: post-validate review of FR/code alignment,
@@ -295,16 +296,17 @@ actions:
       timeout: 600
       description: "🧭 Sanity check (post-validate review + diary)"
 
-  # ── PRECOMMIT CHECK ────────────────────────────────────────────────
-  # Mechanical gate — no LLM. Uses precommit action with retry loop.
+  # ── VALIDATE GATE ──────────────────────────────────────────────────
+  # Deterministic CI-parity gate — no LLM.
 
-  precommit_check:
-    - type: precommit
+  validate_gate:
+    - type: validate_gate
       max_attempts: 5
       success: pass
       retry: fix_needed
+      error: error
       cwd: "{wt_dir}"
-      description: "🔒 Pre-commit gate (mechanical)"
+      description: "🔒 Validate gate (pre-commit + title + branch + diary parity)"
 
   # ── DONE ───────────────────────────────────────────────────────────
   # Push, create PR, wait CI, merge, cleanup — single compound script.

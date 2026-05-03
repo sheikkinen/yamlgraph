@@ -1,6 +1,6 @@
 # FR-305: Enforce Session — single copilot invocation
 # FR-310: Removed pre-commit/pytest gate ownership.
-# Validation is handled by the validate + precommit_check FSM states.
+# Validation is handled by the validate_fix + validate_gate FSM states.
 
 system: |
   You are implementing a feature in the YAMLGraph framework.
@@ -49,8 +49,8 @@ user: |
      - Set status to "Implemented"
      - Do not create diary entries here; diary ownership belongs to sanity_check.
 
-  Note: Pre-commit and final quality gating are handled by the validate
-  and precommit_check FSM states that run after this enforce session.
+  Note: Pre-commit and final quality gating are handled by the validate_fix
+  and validate_gate FSM states that run after this enforce session.
 
   ## Rules
 
