@@ -2,15 +2,15 @@
 # FR-305: Collapsed 20+ states into operational states + terminals.
 # FR-310: Added validate + precommit_check post-enforce gate.
 #
-# Flow: setup → plan → commit_plan → judge →(approve)→ enforce_session
-#                                      ↑ revise       │ enforce_done
-#                                      └────────┘     ▼
-#                               validate ← fix_needed ← precommit_check
-#                                  │ validate_done         │ pass
-#                                  └──→ precommit_check ──→ done
-#                                          │ error (max 5)
-#                                          ▼
-#                                        failed
+# Flow: setup → plan → judge →(approve)→ enforce_session
+#                       ↑ revise       │ enforce_done
+#                       └────────┘     ▼
+#                        validate ← fix_needed ← precommit_check
+#                           │ validate_done         │ pass
+#                           └──→ precommit_check ──→ done
+#                                   │ error (max 5)
+#                                   ▼
+#                                 failed
 
 metadata:
   name: "Watcher2 Pipeline Worker v2"
@@ -23,7 +23,6 @@ states:
   # === OPERATIONAL STATES ===
   - setup
   - plan
-  - commit_plan
   - judge
   - enforce_session
   - validate
@@ -42,7 +41,6 @@ events:
       wt_branch: payload.wt_branch
       main_dir: payload.main_dir
   plan_done: {}
-  committed: {}
   approve: {}
   revise: {}
   reject: {}
@@ -64,12 +62,8 @@ transitions:
     event: setup_done
 
   - from: plan
-    to: commit_plan
-    event: plan_done
-
-  - from: commit_plan
     to: judge
-    event: committed
+    event: plan_done
 
   - from: judge
     to: enforce_session
@@ -114,10 +108,6 @@ transitions:
     event: error
 
   - from: plan
-    to: failed
-    event: error
-
-  - from: commit_plan
     to: failed
     event: error
 
@@ -181,22 +171,17 @@ actions:
         topic_file: "{topic_file}"
         worktree_dir: "{wt_dir}"
         branch: "{wt_branch}"
-      success: plan_done
+      success: ""
       error: error
       timeout: 600
       description: "📝 Planning (unified: FR + research + tests + verify-red)"
-
-  # ── COMMIT PLAN ────────────────────────────────────────────────────
-  # Commits all planning artifacts in one atomic commit.
-
-  commit_plan:
-    - type: git_commit
-      message: "chore(watcher): plan artifacts — {topic_file}"
-      add_paths: ["."]
-      capture_fr_path: true
-      success: committed
+    - type: bash_context
+      command: "cd {wt_dir} && FR=$(ls feature-requests/FR-*.md 2>/dev/null | sort -t- -k2 -n | tail -1) && echo \"{\\\"fr_path\\\": \\\"$FR\\\"}\""
+      capture_keys: [fr_path]
+      success: plan_done
       error: error
-      description: "💾 Committing plan artifacts"
+      timeout: 5
+      description: "🔍 Capture FR path from plan artifacts"
 
   # ── JUDGE ──────────────────────────────────────────────────────────
   # Fresh session, DIFFERENT MODEL from plan — no shared context, no anchoring.
