@@ -8,6 +8,7 @@ Config keys:
   nothing_event:   Event when nothing to commit (default: success event)
   capture_fr_path: If true, capture FR path from staged files into context['fr_path']
   cwd:             Working directory (default: context['wt_dir'])
+  max_attempts:    Max commit attempts after hook auto-fixes (default: 3, FR-311)
 """
 
 import asyncio
@@ -31,6 +32,7 @@ class GitCommitAction(BaseAction):
         nothing_event = self.get_config_value("nothing_event", success_event)
         capture_fr = self.get_config_value("capture_fr_path", False)
         cwd = self.get_config_value("cwd") or context.get("wt_dir", ".")
+        max_attempts = int(self.get_config_value("max_attempts", 3))
         machine_name = self.get_machine_name(context)
 
         # Substitute {var} in message
@@ -90,25 +92,63 @@ class GitCommitAction(BaseAction):
                         )
                     break
 
-        # Commit (write message to tmp file to avoid shell escaping issues)
-        proc = await asyncio.create_subprocess_exec(
-            "git",
-            "commit",
-            "-m",
-            message,
-            cwd=cwd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await proc.communicate()
-        combined = (stdout.decode() + stderr.decode()).strip()
-        if proc.returncode != 0:
-            logger.error(
-                f"[{machine_name}] git commit failed (rc={proc.returncode}):\n{combined}"
+        # Commit with retry on hook auto-fixes (FR-311)
+        for attempt in range(1, max_attempts + 1):
+            proc = await asyncio.create_subprocess_exec(
+                "git",
+                "commit",
+                "-m",
+                message,
+                cwd=cwd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            return error_event
+            stdout, stderr = await proc.communicate()
+            combined = (stdout.decode() + stderr.decode()).strip()
 
-        logger.info(f"[{machine_name}] Committed: {message[:60]}")
-        if combined:
-            logger.debug(f"[{machine_name}] pre-commit output:\n{combined}")
-        return success_event
+            if proc.returncode == 0:
+                logger.info(f"[{machine_name}] Committed: {message[:60]}")
+                if combined:
+                    logger.debug(f"[{machine_name}] pre-commit output:\n{combined}")
+                return success_event
+
+            # Check if hooks modified files (recoverable)
+            diff_proc = await asyncio.create_subprocess_exec(
+                "git",
+                "diff",
+                "--name-only",
+                cwd=cwd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            diff_stdout, _ = await diff_proc.communicate()
+            modified_files = diff_stdout.decode().strip()
+
+            if not modified_files:
+                # Genuine failure — no hook-modified files to re-stage
+                logger.error(
+                    f"[{machine_name}] git commit failed (rc={proc.returncode}):"
+                    f"\n{combined}"
+                )
+                return error_event
+
+            if attempt < max_attempts:
+                logger.info(
+                    f"[{machine_name}] Hook modified files (attempt {attempt}/"
+                    f"{max_attempts}), re-staging and retrying: {modified_files}"
+                )
+                await asyncio.create_subprocess_exec(
+                    "git",
+                    "add",
+                    "-u",
+                    cwd=cwd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+            else:
+                logger.error(
+                    f"[{machine_name}] git commit failed after {max_attempts}"
+                    f" attempts (rc={proc.returncode}):\n{combined}"
+                )
+
+        return error_event
