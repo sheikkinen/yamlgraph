@@ -41,6 +41,20 @@ class PrecommitAction(BaseAction):
         context["precommit_attempt"] = attempt + 1
         logger.info(f"[{machine_name}] Pre-commit attempt {attempt + 1}/{max_attempts}")
 
+        # FR-320: Stage tracked + untracked files before running pre-commit.
+        prestage = subprocess.run(  # noqa: S603
+            ["git", "add", "-A"],  # noqa: S607
+            capture_output=True,
+            text=True,
+            cwd=cwd,
+        )
+        if prestage.returncode != 0:
+            logger.error(
+                f"[{machine_name}] Failed to stage files before pre-commit:\n"
+                f"{prestage.stderr.strip() or prestage.stdout.strip()}"
+            )
+            return "error"
+
         # Run pre-commit
         result = subprocess.run(  # noqa: S603
             ["pre-commit", "run", "--all-files"],  # noqa: S607
@@ -66,11 +80,18 @@ class PrecommitAction(BaseAction):
         # FR-310: Store failure output in context for validate-step remediation
         context["precommit_output"] = result.stdout.strip()
 
-        # Stage any auto-fixed files
-        subprocess.run(  # noqa: S603
-            ["git", "add", "-u"],  # noqa: S607
+        # FR-320: Restage all changes so untracked auto-fixes are not dropped.
+        restage = subprocess.run(  # noqa: S603
+            ["git", "add", "-A"],  # noqa: S607
             capture_output=True,
+            text=True,
             cwd=cwd,
         )
+        if restage.returncode != 0:
+            logger.error(
+                f"[{machine_name}] Failed to restage files after pre-commit failure:\n"
+                f"{restage.stderr.strip() or restage.stdout.strip()}"
+            )
+            return "error"
 
         return retry_event
