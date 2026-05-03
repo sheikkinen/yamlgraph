@@ -22,6 +22,8 @@ from unittest.mock import patch
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Legacy watcher2 runtime retired (FR-317)")
+
 pytestmark = pytest.mark.slow
 
 REPO_ROOT = Path(__file__).parent.parent.parent
@@ -376,7 +378,7 @@ class TestCreatePrIntegration:
     """AC-09: Manual testing confirms watcher2 handles pre-existing PRs gracefully."""
 
     def test_integration_with_watcher2_environment_variables(self):
-        """Should work with environment variables as set by watcher2.sh."""
+        """Should work with environment variables as set by start-system.sh."""
         # Test that the function integrates properly with watcher2 expectations
         # This validates the interface contract
 

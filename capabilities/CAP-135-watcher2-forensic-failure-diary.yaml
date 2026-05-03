@@ -6,7 +6,7 @@ description: >
   logs, worktree state), perform LLM-driven root cause analysis, and generate structured
   diary entries with evidence and recommendations for institutional learning.
 modules:
-  - .chaplain/watcher2.sh
+  - .chaplain/scripts/start-system.sh
   - .chaplain/graphs/watcher-forensic/
   - .chaplain/lib/diary.py
 requirements:
@@ -17,7 +17,7 @@ requirements:
       and prevention recommendations using LLM-driven investigation of failure context,
       logs, and worktree state
     modules:
-      - .chaplain/watcher2.sh (lines 56-89, 98)
+      - .chaplain/scripts/start-system.sh (lines 56-89, 98)
       - .chaplain/lib/diary.py (lines 44-67, 100-123)
       - .chaplain/graphs/watcher-forensic/graph.yaml
       - tests/unit/test_fr285_watcher2_forensic_failure_diary.py
