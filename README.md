@@ -18,7 +18,7 @@ A YAML-first framework for building LLM pipelines using:
 - **YAML Graph Configuration** - Declarative pipeline definition with schema validation
 - **YAML Prompts** - Declarative prompt templates with Jinja2 support
 - **Pydantic Models** - Structured LLM outputs
-- **Multi-Provider LLMs** - Anthropic, Google/Gemini, Mistral, OpenAI, Replicate, xAI, LM Studio
+- **Multi-Provider LLMs** - anthropic, azure, deepseek, google, inception, lmstudio, mistral, openai, replicate, vertex, xai
 - **LangGraph** - Pipeline orchestration with resume support
 - **Human-in-the-Loop** - Interrupt nodes for user input
 - **Streaming** - Token-by-token LLM output (prompt-level and graph-level)
@@ -32,7 +32,7 @@ A YAML-first framework for building LLM pipelines using:
 
 ## What is YAMLGraph?
 
-**YAMLGraph** is a declarative LLM pipeline orchestration framework that lets you define complex AI workflows entirely in YAML—no Python required for 60-80% of use cases. Built on LangGraph, it provides multi-provider LLM support (Anthropic, Google/Gemini, OpenAI, Mistral, Replicate, xAI, LM Studio), parallel batch processing via map nodes (using LangGraph Send), LLM-driven conditional routing, graph-level streaming, and human-in-the-loop interrupts with checkpointing. Pipelines are version-controlled, linted, and observable via LangSmith. The key insight: by constraining the API surface to YAML + Jinja2 templates + Pydantic schemas, YAMLGraph trades some flexibility for dramatically faster prototyping, easier maintenance, and built-in best practices—making it ideal for teams who want production-ready AI pipelines without the complexity of full-code frameworks.
+**YAMLGraph** is a declarative LLM pipeline orchestration framework that lets you define complex AI workflows entirely in YAML—no Python required for 60-80% of use cases. Built on LangGraph, it provides multi-provider LLM support (`anthropic`, `azure`, `deepseek`, `google`, `inception`, `lmstudio`, `mistral`, `openai`, `replicate`, `vertex`, `xai`), parallel batch processing via map nodes (using LangGraph Send), LLM-driven conditional routing, graph-level streaming, and human-in-the-loop interrupts with checkpointing. Pipelines are version-controlled, linted, and observable via LangSmith. The key insight: by constraining the API surface to YAML + Jinja2 templates + Pydantic schemas, YAMLGraph trades some flexibility for dramatically faster prototyping, easier maintenance, and built-in best practices—making it ideal for teams who want production-ready AI pipelines without the complexity of full-code frameworks.
 
 ## When NOT to Use YAMLGraph
 
@@ -172,7 +172,7 @@ yamlgraph graph run examples/demos/yamlgraph/graph.yaml --var topic="AI" --share
 
 ## Documentation
 
-📚 **Start here:** [reference/README.md](reference/README.md) - Complete index of all 18 reference docs
+📚 **Start here:** [reference/README.md](reference/README.md) - Complete reference documentation index
 
 ### Reading Order
 
@@ -221,7 +221,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#file-reference) for detailed module line c
 | `ANTHROPIC_API_KEY` | Yes* | Anthropic API key (* if using Anthropic) |
 | `MISTRAL_API_KEY` | No | Mistral API key (required if using Mistral) |
 | `OPENAI_API_KEY` | No | OpenAI API key (required if using OpenAI) |
-| `PROVIDER` | No | Default LLM provider (anthropic/mistral/openai) |
+| `PROVIDER` | No | Default LLM provider (anthropic/azure/deepseek/google/inception/lmstudio/mistral/openai/replicate/vertex/xai) |
 | `ANTHROPIC_MODEL` | No | Anthropic model (default: claude-haiku-4-5) |
 | `MISTRAL_MODEL` | No | Mistral model (default: mistral-large-latest) |
 | `OPENAI_MODEL` | No | OpenAI model (default: gpt-4o) |
@@ -320,3 +320,5 @@ For production deployments, consider:
 ## License
 
 [MIT w/ SWC](LICENSE)
+
+Last reviewed: 2026-05-03
