@@ -115,7 +115,7 @@ class TestV2PipelineStructure:
     def test_metadata_version(self):
         config = load_config(V2_PIPELINE_PATH)
         assert config["metadata"]["version"] == "1.0.0"
-        assert config["metadata"]["machine_name"] == "watcher2_pipeline_v2"
+        assert config["metadata"]["machine_name"] == "watcher-pipeline-v2"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
