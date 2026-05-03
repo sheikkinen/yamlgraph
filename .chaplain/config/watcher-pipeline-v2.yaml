@@ -2,9 +2,9 @@
 # FR-305: Collapsed 20+ states into operational states + terminals.
 # FR-310: Added validate + precommit_check post-enforce gate.
 #
-# Flow: setup → plan → judge →(approve)→ enforce_session
-#                       ↑ revise       │ enforce_done
-#                       └────────┘     ▼
+# Flow: setup → plan → capture_fr → judge →(approve)→ enforce_session
+#                              ↑ revise       │ enforce_done
+#                              └────────┘     ▼
 #                        validate ← fix_needed ← precommit_check
 #                           │ validate_done         │ pass
 #                           └──→ precommit_check ──→ done
@@ -23,6 +23,7 @@ states:
   # === OPERATIONAL STATES ===
   - setup
   - plan
+  - capture_fr
   - judge
   - enforce_session
   - validate
@@ -41,6 +42,7 @@ events:
       wt_branch: payload.wt_branch
       main_dir: payload.main_dir
   plan_done: {}
+  fr_captured: {}
   approve: {}
   revise: {}
   reject: {}
@@ -62,8 +64,12 @@ transitions:
     event: setup_done
 
   - from: plan
-    to: judge
+    to: capture_fr
     event: plan_done
+
+  - from: capture_fr
+    to: judge
+    event: fr_captured
 
   - from: judge
     to: enforce_session
@@ -108,6 +114,10 @@ transitions:
     event: error
 
   - from: plan
+    to: failed
+    event: error
+
+  - from: capture_fr
     to: failed
     event: error
 
@@ -171,16 +181,21 @@ actions:
         topic_file: "{topic_file}"
         worktree_dir: "{wt_dir}"
         branch: "{wt_branch}"
-      success: ""
+      success: plan_done
       error: error
       timeout: 600
       description: "📝 Planning (unified: FR + research + tests + verify-red)"
+
+  # ── CAPTURE FR PATH ─────────────────────────────────────────────────
+  # Lightweight state: find the newest FR file in the worktree.
+
+  capture_fr:
     - type: bash_context
       command: "cd {wt_dir} && FR=$(ls feature-requests/FR-*.md 2>/dev/null | sort -t- -k2 -n | tail -1) && echo \"{\\\"fr_path\\\": \\\"$FR\\\"}\""
       capture_keys: [fr_path]
-      success: plan_done
+      success: fr_captured
       error: error
-      timeout: 5
+      timeout: 10
       description: "🔍 Capture FR path from plan artifacts"
 
   # ── JUDGE ──────────────────────────────────────────────────────────
