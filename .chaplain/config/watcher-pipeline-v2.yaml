@@ -51,6 +51,7 @@ events:
   fix_needed: {}
   pass: {}
   completed: {}
+  cleanup_done: {}
   error: {}
   stop: {}
   "timeout(600)": {}
@@ -150,6 +151,12 @@ transitions:
   - from: enforce_session
     to: failed
     event: "timeout(3600)"
+
+  # ── FAILED → TERMINAL ──────────────────────────────────────────────
+
+  - from: failed
+    to: stopped
+    event: cleanup_done
 
   # ── GLOBAL SHUTDOWN ────────────────────────────────────────────────
 
@@ -277,7 +284,7 @@ actions:
         PR_NUM=$(echo "$PR_URL" | grep -oE '[0-9]+$')
         echo "Created/found PR #${PR_NUM}: ${PR_URL}"
         bash {main_dir}/.chaplain/lib/watcher/wait_ci.sh --pr "$PR_NUM"
-        gh pr merge "$PR_NUM" --squash --delete-branch
+        bash {main_dir}/.chaplain/lib/watcher/merge_pr.sh --pr "$PR_NUM"
         bash {main_dir}/.chaplain/lib/watcher/worktree_teardown.sh --dir {wt_dir}
         rm -f {topic_file}
         bash {main_dir}/.chaplain/lib/watcher/post_merge.sh 2>/dev/null || true
@@ -295,6 +302,8 @@ actions:
         if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
           mv "{topic_file}" .chaplain/failed/
         fi
+      success: cleanup_done
+      error: cleanup_done
       description: "❌ Pipeline failed — moving topic to failed/"
 
   stopped:
