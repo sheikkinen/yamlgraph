@@ -81,9 +81,13 @@ class TestFR310PipelineStates:
         assert _transition_exists(
             transitions, "enforce_session", "validate", "enforce_done"
         )
-        assert _transition_exists(
+        direct_validate_to_precommit = _transition_exists(
             transitions, "validate", "precommit_check", "validate_done"
         )
+        via_sanity_check = _transition_exists(
+            transitions, "validate", "sanity_check", "validate_done"
+        ) and _transition_exists(transitions, "sanity_check", "precommit_check", "pass")
+        assert direct_validate_to_precommit or via_sanity_check
         assert _transition_exists(transitions, "precommit_check", "done", "pass")
 
     def test_ac04_precommit_failure_loops_back_to_validate(self):

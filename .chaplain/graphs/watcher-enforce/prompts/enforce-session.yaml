@@ -47,16 +47,7 @@ user: |
      - Do NOT use --no-verify
   6. **UPDATE FR** — Mark acceptance criteria checkboxes in {{ fr_path }}
      - Set status to "Implemented"
-  7. **DIARY** — Create a metacognitive reflection in `docs/diary/`:
-     - Filename: `YYYY-MM-DD-reflection-fr-XXX-<slug>.md`
-     - Content must include:
-       - **Date**, **FR** reference
-       - **Trap** — name the cognitive trap or insight (from Scripture traps)
-       - **What Happened** — what went wrong or what you learned
-       - **Root Cause** — trace to the actual cause
-       - **What Worked** — which cure or pattern resolved it
-       - **Seed** — a forward-looking question to grow new ideas
-     - If no trap was encountered, reflect on the implementation process itself
+     - Do not create diary entries here; diary ownership belongs to sanity_check.
 
   Note: Pre-commit and final quality gating are handled by the validate
   and precommit_check FSM states that run after this enforce session.

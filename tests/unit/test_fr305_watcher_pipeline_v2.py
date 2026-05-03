@@ -1,7 +1,7 @@
 """FR-305: Watcher Pipeline FSM Simplification.
 
 Tests for the v2 pipeline config:
-- 6 operational states + 2 terminals
+- 9 operational states + 3 terminals
 - Transition correctness (happy path, revise loop, failure paths, timeouts)
 - Judge uses different model from plan (no session resume)
 - FR-309: Judge event_map aligned to prompt vocabulary
@@ -75,15 +75,15 @@ def get_action_config(config: dict, state: str) -> list[dict]:
 
 @pytest.mark.req("REQ-YG-316")
 class TestV2PipelineStructure:
-    """AC-01: watcher-pipeline-v2.yaml has 6 operational + 2 terminal states."""
+    """AC-01: watcher-pipeline-v2.yaml has expected operational/terminal states."""
 
     def test_v2_config_exists(self):
         assert V2_PIPELINE_PATH.exists()
 
-    def test_has_eleven_states_total(self):
+    def test_has_twelve_states_total(self):
         config = load_config(V2_PIPELINE_PATH)
         states = get_states(config)
-        assert len(states) == 11, f"Expected 11 states, got {len(states)}: {states}"
+        assert len(states) == 12, f"Expected 12 states, got {len(states)}: {states}"
 
     def test_operational_states(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -94,6 +94,9 @@ class TestV2PipelineStructure:
             "capture_fr",
             "judge",
             "enforce_session",
+            "validate",
+            "sanity_check",
+            "precommit_check",
             "done",
         }
         assert expected_operational.issubset(
