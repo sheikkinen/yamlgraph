@@ -13,7 +13,7 @@ system: |
   The verdict keyword must appear in your response text (not just in file edits).
 
 user: |
-  **Judge.** Examine the feature request in feature-requests/.
+  **Judge.** Examine the feature request at `{{ fr_path | default('feature-requests/') }}`.
 
   Critically evaluate:
   1. Is the scope clear and minimal?
