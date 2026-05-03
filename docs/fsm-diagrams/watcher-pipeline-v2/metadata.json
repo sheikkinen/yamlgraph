@@ -18,7 +18,7 @@
       "states": [
         "setup",
         "plan",
-        "commit_plan",
+        "capture_fr",
         "judge",
         "enforce_session",
         "validate",
@@ -31,7 +31,7 @@
         "precommit_check",
         "setup",
         "plan",
-        "commit_plan",
+        "capture_fr",
         "judge",
         "enforce_session"
       ],

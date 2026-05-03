@@ -6,6 +6,7 @@ stateDiagram-v2
     [*] --> stopped
 
     %% Internal transitions
+    failed --> stopped : cleanup_done
 
     %% External composites
     state OPERATIONAL

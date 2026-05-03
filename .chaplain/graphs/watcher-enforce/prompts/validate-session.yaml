@@ -43,6 +43,7 @@ user: |
   - Do NOT modify acceptance test assertions
   - Focus on: ruff errors, format issues, trailing whitespace, test failures
   - If tests cannot pass after 3 cycles, STOP and report
+  - Commit all changes in a worktree
 
   ## Final Report
 
