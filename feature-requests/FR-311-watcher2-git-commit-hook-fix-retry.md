@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Draft
+**Status:** Judged — Approved
 **Effort:** 0.5 day
 **Requested:** 2026-05-03
 
@@ -104,6 +104,24 @@ Current behavior expected in RED phase:
 1. **Handle this in FSM transitions instead of action logic** — rejected; duplicates retry logic in orchestration and leaves `git_commit` action inconsistent across callsites.
 2. **Use shell wrapper in `commit_plan` state** — rejected; bypasses reusable action boundary and increases YAML/bash complexity.
 3. **Treat all commit failures as fatal** — rejected; known recoverable hook-fix failures cause avoidable pipeline aborts.
+
+## Judgement
+
+**Verdict:** APPROVE
+**Date:** 2026-05-03
+**Model:** manual (copilot judge hit wrong FR; evaluated manually against 8 criteria)
+
+**Evaluation:**
+1. Scope clear and minimal — YES. Single file (`git_commit_action.py`), single concern (retry on hook auto-fix).
+2. No contradictions — clean problem statement, consistent with prior art references.
+3. ACs measurable — 8 acceptance criteria, each testable and specific.
+4. Feasible — follows existing `PrecommitAction` retry pattern exactly.
+5. Architecture aligned — boundary normalization at the action level (the One Law).
+6. Single responsibility — only hook-fix retry logic, no FSM topology changes.
+7. Classification: **Bug fix** — recoverable failures treated as fatal is a defect.
+8. Tests compile and fail correctly — 2 RED (AC-01, AC-02: no retry exists), 1 GREEN (AC-04: genuine errors already fatal). Correct TDD phase.
+
+**Scope frozen. Authority granted to implement.**
 
 ## Related
 
