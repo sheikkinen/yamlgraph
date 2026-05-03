@@ -30,7 +30,7 @@ stateDiagram-v2
         judge --> [*] : reject
         plan --> [*] : timeout(600)
         judge --> [*] : timeout(600)
-        enforce_session --> [*] : timeout(900)
+        enforce_session --> [*] : timeout(3600)
     }
 
     %% TERMINAL
@@ -45,7 +45,7 @@ stateDiagram-v2
     OPERATIONAL --> TERMINAL : reject
     OPERATIONAL --> TERMINAL : timeout(600)
     OPERATIONAL --> TERMINAL : timeout(600)
-    OPERATIONAL --> TERMINAL : timeout(900)
+    OPERATIONAL --> TERMINAL : timeout(3600)
 
     stopped --> [*]
 ```
@@ -58,13 +58,13 @@ stateDiagram-v2
 stateDiagram-v2
     %% Error Handling Flow
     precommit_check : precommit_check
-    judge : judge
-    plan : plan
-    setup : setup
     commit_plan : commit_plan
-    enforce_session : enforce_session
-    failed : failed
+    plan : plan
+    judge : judge
+    setup : setup
     done : done
+    failed : failed
+    enforce_session : enforce_session
     precommit_check --> failed : error
     setup --> failed : error
     plan --> failed : error
@@ -126,7 +126,7 @@ stateDiagram-v2
 | `error` | Error | Error |
 | `stop` | Control | Stop |
 | `timeout(600)` | Internal | Timeout(600) |
-| `timeout(900)` | Internal | Timeout(900) |
+| `timeout(3600)` | Internal | Timeout(3600) |
 
 ---
 
