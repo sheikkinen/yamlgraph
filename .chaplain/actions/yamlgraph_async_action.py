@@ -66,14 +66,25 @@ class YamlgraphAsyncAction(BaseAction):
             logger.error(f"[{machine_name}] yamlgraph failed: {exc}")
             return error_event
 
+        stdout_text = stdout.decode().strip()
+        stderr_text = stderr.decode().strip()
+
+        # FR-307 AC-03: Always log exit code, stdout/stderr lengths
+        logger.info(
+            f"[{machine_name}] yamlgraph exit={process.returncode}, "
+            f"stdout={len(stdout_text)} chars, stderr={len(stderr_text)} chars"
+        )
+
+        # FR-307 AC-01: Always log stderr when non-empty
+        if stderr_text:
+            logger.warning(f"[{machine_name}] yamlgraph stderr: {stderr_text[:2000]}")
+
         if process.returncode != 0:
             logger.error(
                 f"[{machine_name}] yamlgraph exit {process.returncode}: "
-                f"{stderr.decode().strip()[:300]}"
+                f"{stderr_text[:300]}"
             )
             return error_event
-
-        stdout_text = stdout.decode().strip()
 
         # Route via event_map if configured
         if event_map:
@@ -82,9 +93,14 @@ class YamlgraphAsyncAction(BaseAction):
                     logger.info(
                         f"[{machine_name}] event_map matched '{pattern}' → {event}"
                     )
+                    logger.debug(
+                        f"[{machine_name}] yamlgraph stdout: {stdout_text[:2000]}"
+                    )
                     return event
+            # FR-307 AC-02: Log full stdout on event_map miss
             logger.warning(
-                f"[{machine_name}] No event_map match in output: {stdout_text[:200]}"
+                f"[{machine_name}] No event_map match in output: "
+                f"{stdout_text[:2000]}"
             )
 
         return success_event

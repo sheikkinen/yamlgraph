@@ -4,9 +4,9 @@ Tests for the v2 pipeline config:
 - 6 operational states + 2 terminals
 - Transition correctness (happy path, revise loop, failure paths, timeouts)
 - Judge uses different model from plan (no session resume)
-- Enforce session uses resume from plan session
+- FR-309: Judge event_map aligned to prompt vocabulary
+- FR-309: Enforce session runs fresh (no resume)
 - Action types correct for each state
-- Context propagation (session_id from plan → enforce)
 """
 
 from pathlib import Path
@@ -197,6 +197,12 @@ class TestV2FailurePaths:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "judge", "failed", "reject")
 
+    def test_judge_error_to_failed(self):
+        """FR-309: judge error (no event_map match) must route to failed."""
+        config = load_config(V2_PIPELINE_PATH)
+        transitions = get_transitions(config)
+        assert transition_exists(transitions, "judge", "failed", "error")
+
     def test_enforce_error_to_failed(self):
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
@@ -298,13 +304,13 @@ class TestV2JudgeModelIndependence:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# AC-08: Enforce session resumes plan session
+# AC-08: Enforce session — fresh session (FR-309)
 # ═══════════════════════════════════════════════════════════════════════════
 
 
 @pytest.mark.req("REQ-YG-316")
 class TestV2EnforceSession:
-    """AC-05: Enforce resumes own session on re-entry."""
+    """FR-309 AC-09: Enforce runs fresh session (no resume)."""
 
     def test_enforce_session_graph_exists(self):
         assert ENFORCE_SESSION_PATH.exists()
@@ -312,13 +318,12 @@ class TestV2EnforceSession:
     def test_enforce_session_prompt_exists(self):
         assert ENFORCE_PROMPT_PATH.exists()
 
-    def test_enforce_uses_resume(self):
-        """Enforce resumes the plan session for full context continuity."""
+    def test_enforce_does_not_use_resume(self):
+        """FR-309 AC-09: Enforce runs fresh — no resume in cli_flags."""
         config = load_config(ENFORCE_SESSION_PATH)
         enforce_node = config["nodes"]["enforce"]
         cli_flags = enforce_node.get("cli_flags", {})
-        assert "resume" in cli_flags
-        assert "session_id" in cli_flags["resume"]
+        assert "resume" not in cli_flags, "Enforce must not use resume (FR-309)"
 
     def test_enforce_has_allow_all_tools(self):
         """Enforce needs full tool access for TDD loop."""
@@ -327,14 +332,13 @@ class TestV2EnforceSession:
         cli_flags = enforce_node.get("cli_flags", {})
         assert cli_flags.get("allow_all_tools") is True
 
-    def test_enforce_action_passes_session_id(self):
-        """Pipeline v2 enforce action passes session_id from context."""
+    def test_enforce_action_does_not_pass_session_id(self):
+        """FR-309 AC-04: Pipeline enforce vars have no session_id."""
         config = load_config(V2_PIPELINE_PATH)
         enforce_actions = get_action_config(config, "enforce_session")
         assert len(enforce_actions) == 1
         vars_config = enforce_actions[0].get("vars", {})
-        assert "session_id" in vars_config
-        assert "{session_id}" in vars_config["session_id"]
+        assert "session_id" not in vars_config
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -356,13 +360,13 @@ class TestV2ContextPropagation:
         assert "wt_branch" in context_map
         assert "main_dir" in context_map
 
-    def test_plan_done_captures_session_id(self):
-        """plan_done event captures session_id for enforce continuation."""
+    def test_plan_done_has_no_session_id(self):
+        """FR-309 AC-04: plan_done has no session_id context_map."""
         config = load_config(V2_PIPELINE_PATH)
         events = config.get("events", {})
         plan_done = events.get("plan_done", {})
         context_map = plan_done.get("context_map", {})
-        assert "session_id" in context_map
+        assert "session_id" not in context_map
 
     def test_dispatcher_plan_commit_msg_uses_chore(self):
         """FR-305a: dispatcher must pass chore: prefix for plan commit."""
@@ -453,3 +457,69 @@ class TestV2ActionTypes:
         config = load_config(V2_PIPELINE_PATH)
         actions = get_action_config(config, "done")
         assert actions[0]["type"] == "bash"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FR-309: Judge event vocabulary alignment
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.req("REQ-YG-316")
+class TestV2JudgeVocabularyAlignment:
+    """FR-309: Judge event_map aligned to prompt vocabulary."""
+
+    def test_judge_event_map_has_amend(self):
+        """FR-309 AC-01: event_map contains AMEND → revise."""
+        config = load_config(V2_PIPELINE_PATH)
+        judge_actions = get_action_config(config, "judge")
+        event_map = judge_actions[0]["event_map"]
+        assert "AMEND" in event_map
+        assert event_map["AMEND"] == "revise"
+
+    def test_judge_event_map_has_split(self):
+        """FR-309 AC-01: event_map contains SPLIT → revise."""
+        config = load_config(V2_PIPELINE_PATH)
+        judge_actions = get_action_config(config, "judge")
+        event_map = judge_actions[0]["event_map"]
+        assert "SPLIT" in event_map
+        assert event_map["SPLIT"] == "revise"
+
+    def test_judge_event_map_no_revise(self):
+        """FR-309 AC-02: event_map does NOT contain REVISE (old vocabulary)."""
+        config = load_config(V2_PIPELINE_PATH)
+        judge_actions = get_action_config(config, "judge")
+        event_map = judge_actions[0]["event_map"]
+        assert "REVISE" not in event_map
+
+    def test_judge_fallback_is_error(self):
+        """FR-309 AC-03 / FR-308: no-match fallback is error, not approve."""
+        config = load_config(V2_PIPELINE_PATH)
+        judge_actions = get_action_config(config, "judge")
+        assert judge_actions[0]["success"] == "error"
+
+    def test_judge_event_map_has_approve(self):
+        """APPROVE still maps to approve (unchanged)."""
+        config = load_config(V2_PIPELINE_PATH)
+        judge_actions = get_action_config(config, "judge")
+        event_map = judge_actions[0]["event_map"]
+        assert "APPROVE" in event_map
+        assert event_map["APPROVE"] == "approve"
+
+    def test_judge_event_map_has_reject(self):
+        """REJECT still maps to reject (unchanged)."""
+        config = load_config(V2_PIPELINE_PATH)
+        judge_actions = get_action_config(config, "judge")
+        event_map = judge_actions[0]["event_map"]
+        assert "REJECT" in event_map
+        assert event_map["REJECT"] == "reject"
+
+    def test_split_triggers_revise_transition(self):
+        """FR-309 AC-08: SPLIT verdict routes judge→plan via revise event."""
+        config = load_config(V2_PIPELINE_PATH)
+        judge_actions = get_action_config(config, "judge")
+        event_map = judge_actions[0]["event_map"]
+        # SPLIT maps to revise
+        split_event = event_map["SPLIT"]
+        # revise transition exists (judge→plan)
+        transitions = get_transitions(config)
+        assert transition_exists(transitions, "judge", "plan", split_event)
