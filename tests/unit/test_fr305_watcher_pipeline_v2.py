@@ -245,7 +245,7 @@ class TestV2Timeouts:
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
         assert transition_exists(
-            transitions, "enforce_session", "failed", "timeout(900)"
+            transitions, "enforce_session", "failed", "timeout(3600)"
         )
 
 
