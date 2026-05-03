@@ -18,8 +18,8 @@ stateDiagram-v2
     %% OPERATIONAL
     state OPERATIONAL {
         setup --> plan : setup_done
-        plan --> commit_plan : plan_done
-        commit_plan --> judge : committed
+        plan --> capture_fr : plan_done
+        capture_fr --> judge : fr_captured
         judge --> enforce_session : approve
         enforce_session --> validate : enforce_done
         validate --> precommit_check : validate_done
@@ -38,6 +38,7 @@ stateDiagram-v2
         [*] --> completed
         [*] --> failed
         [*] --> stopped
+        failed --> stopped : cleanup_done
     }
 
     %% Transitions
@@ -57,18 +58,18 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Error Handling Flow
-    precommit_check : precommit_check
-    commit_plan : commit_plan
-    plan : plan
-    judge : judge
-    setup : setup
-    done : done
-    failed : failed
+    capture_fr : capture_fr
     enforce_session : enforce_session
+    judge : judge
+    done : done
+    setup : setup
+    plan : plan
+    failed : failed
+    precommit_check : precommit_check
     precommit_check --> failed : error
     setup --> failed : error
     plan --> failed : error
-    commit_plan --> failed : error
+    capture_fr --> failed : error
     judge --> failed : error
     enforce_session --> failed : error
     done --> failed : error
@@ -81,11 +82,13 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Stop/Shutdown Flow
+    failed : failed
     stopped : ⏹️ stopped
     stopped --> [*]
+    failed --> stopped : cleanup_done
     setup --> stopped : stop
     plan --> stopped : stop
-    commit_plan --> stopped : stop
+    capture_fr --> stopped : stop
 ```
 
 ---
@@ -96,7 +99,7 @@ stateDiagram-v2
 |-------|-------------|-------------|
 | `setup` | Setup | bash_context |
 | `plan` | Plan | yamlgraph_async |
-| `commit_plan` | Commit Plan | git_commit |
+| `capture_fr` | Capture Fr | bash_context |
 | `judge` | Judge | yamlgraph_async |
 | `enforce_session` | Enforce Session | yamlgraph_async |
 | `validate` | Validate | yamlgraph_async |
@@ -114,7 +117,7 @@ stateDiagram-v2
 |-------|------|-------------|
 | `setup_done` | Success | Setup Done |
 | `plan_done` | Success | Plan Done |
-| `committed` | Internal | Committed |
+| `fr_captured` | Internal | Fr Captured |
 | `approve` | Internal | Approve |
 | `revise` | Internal | Revise |
 | `reject` | Internal | Reject |
@@ -123,6 +126,7 @@ stateDiagram-v2
 | `fix_needed` | Internal | Fix Needed |
 | `pass` | Internal | Pass |
 | `completed` | Internal | Completed |
+| `cleanup_done` | Success | Cleanup Done |
 | `error` | Error | Error |
 | `stop` | Control | Stop |
 | `timeout(600)` | Internal | Timeout(600) |
@@ -133,8 +137,8 @@ stateDiagram-v2
 ## Configuration Summary
 
 - **States:** 11
-- **Events:** 15
-- **Transitions:** 22
+- **Events:** 16
+- **Transitions:** 23
 - **Initial State:** `setup`
 
 ---

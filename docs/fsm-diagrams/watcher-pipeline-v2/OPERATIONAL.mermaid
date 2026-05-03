@@ -5,8 +5,8 @@ stateDiagram-v2
 
     %% Internal transitions
     setup --> plan : setup_done
-    plan --> commit_plan : plan_done
-    commit_plan --> judge : committed
+    plan --> capture_fr : plan_done
+    capture_fr --> judge : fr_captured
     judge --> enforce_session : approve
     enforce_session --> validate : enforce_done
     validate --> precommit_check : validate_done
