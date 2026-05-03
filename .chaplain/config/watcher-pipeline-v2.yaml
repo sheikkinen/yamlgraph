@@ -6,8 +6,11 @@
 #                              ↑ revise       │ enforce_done
 #                              └────────┘     ▼
 #                        validate ← fix_needed ← precommit_check
-#                           │ validate_done         │ pass
-#                           └──→ precommit_check ──→ done
+#                           │ validate_done
+#                           ▼
+#                       sanity_check
+#                        │ pass/warn
+#                        └──────────→ precommit_check ──→ done
 #                                   │ error (max 5)
 #                                   ▼
 #                                 failed
@@ -27,6 +30,7 @@ states:
   - judge
   - enforce_session
   - validate
+  - sanity_check
   - precommit_check
   - done
 
@@ -50,6 +54,7 @@ events:
   validate_done: {}
   fix_needed: {}
   pass: {}
+  warn: {}
   completed: {}
   cleanup_done: {}
   error: {}
@@ -81,8 +86,16 @@ transitions:
     event: enforce_done
 
   - from: validate
-    to: precommit_check
+    to: sanity_check
     event: validate_done
+
+  - from: sanity_check
+    to: precommit_check
+    event: pass
+
+  - from: sanity_check
+    to: precommit_check
+    event: warn
 
   - from: precommit_check
     to: done
@@ -99,6 +112,10 @@ transitions:
     event: fix_needed
 
   - from: precommit_check
+    to: failed
+    event: error
+
+  - from: sanity_check
     to: failed
     event: error
 
@@ -257,6 +274,26 @@ actions:
       error: error
       timeout: 600
       description: "🔍 Validate session (ruff + pytest remediation)"
+
+  # ── SANITY CHECK ────────────────────────────────────────────────────
+  # Fresh copilot session: post-validate review of FR/code alignment,
+  # diff proportionality, test quality, and diary reflection output.
+
+  sanity_check:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-enforce/sanity-check-session.yaml
+      vars:
+        fr_path: "{fr_path}"
+        worktree_dir: "{wt_dir}"
+        branch: "{wt_branch}"
+        topic_file: "{topic_file}"
+      event_map:
+        PASS: pass
+        WARN: warn
+      success: pass
+      error: error
+      timeout: 600
+      description: "🧭 Sanity check (post-validate review + diary)"
 
   # ── PRECOMMIT CHECK ────────────────────────────────────────────────
   # Mechanical gate — no LLM. Uses precommit action with retry loop.
