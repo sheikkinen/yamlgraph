@@ -4,7 +4,7 @@
 **Type:** Bug
 **Status:** Draft
 **Effort:** 0.1 days
-**Requested:** 2026-05-02
+**Requested:** 2026-05-03
 
 ## Summary
 
@@ -40,6 +40,18 @@ Edit only `README.md` and delete the final `hook test` line. Keep:
 
 No other files, sections, or wording changes.
 
+## Objectives
+
+1. Remove the accidental `hook test` line from `README.md`.
+2. Keep the README ending intact except for that single-line deletion.
+3. Provide shell-level acceptance checks that fail before implementation.
+
+## Constraints
+
+- Scope is single-file (`README.md`) documentation hygiene only.
+- No new lint rules, scripts, CI gates, or watcher pipeline changes.
+- No wording rewrite outside the accidental artifact removal.
+
 ## Acceptance Criteria
 
 - [ ] **AC-01:** `README.md` does not contain a line exactly equal to `hook test`
@@ -49,7 +61,7 @@ No other files, sections, or wording changes.
 
 ## Failing Acceptance Tests (RED)
 
-Current failing checks in `tmp/worktrees/feat/watcher2-gh-264`:
+Current failing checks in this worktree (`tmp/worktrees/feat/watcher2-gh-273`), run from repo root:
 
 ```bash
 test "$(tail -n 1 README.md)" = "[MIT w/ SWC](LICENSE)"
@@ -69,6 +81,6 @@ These checks should pass after implementation.
 
 ## Related
 
-- Topic source: `.chaplain/processing/gh-264.md`
+- Topic source: `.chaplain/processing/gh-273.md`
 - Target file: `README.md`
 - Prior doc-hygiene FRs: `feature-requests/FR-086-readme-when-not-to-use.md`, `feature-requests/FR-091-readme-missing-node-types.md`
