@@ -40,7 +40,7 @@ This tells *where* the pipeline is stuck, not *why*.
 | **ninchat_voice** | `ui_log` action | Custom Python action writes to DB + Unix socket per state | Per-state YAML entries required |
 | **image-generator-fsm** | `log_action.sh` | Shell sourced in each action script, appends to `troubleshoot.log` | Only covers bash actions |
 | **old watcher2.sh** | Global exec redirect | `exec > >(tee -a "$LOG_FILE") 2>&1` | Mixes all output in one file |
-| **validate-fsm-single.sh** | Tee | `2>&1 \| tee "$LOG_FILE"` | Test-only, captures everything |
+| **Legacy single-worker harness** | Tee | `2>&1 \| tee "$LOG_FILE"` | Test-only, captures everything |
 
 ## Approaches Evaluated
 

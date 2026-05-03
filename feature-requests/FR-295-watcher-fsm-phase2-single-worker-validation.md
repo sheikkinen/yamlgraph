@@ -41,7 +41,7 @@ Phase 2 validates this works end-to-end, not just in unit tests.
 
 ### 3. Validation Script
 
-`.chaplain/scripts/validate-fsm-single.sh` — runs the dispatcher in single-cycle mode (process one topic, then stop). Asserts:
+Single-worker FSM validation harness — runs the dispatcher in single-cycle mode (process one topic, then stop). Asserts:
 - All expected states visited in order (preflight → ... → cleaning_up → completed)
 - PR created and merged on GitHub
 - Worktree cleaned up (no stale dirs)
@@ -67,7 +67,7 @@ Phase 2 validates this works end-to-end, not just in unit tests.
 
 - [ ] Dispatcher `syncing_inbox` uses `{inbox_dir}` context variable (default: `.chaplain/inbox`)
 - [ ] `.chaplain/inbox-fsm/` exists, gitignored
-- [ ] `validate-fsm-single.sh` processes one topic end-to-end (happy path)
+- [ ] Single-worker validation harness processes one topic end-to-end (happy path)
 - [ ] PR created and merged by FSM
 - [ ] Worktree cleaned up after completion
 - [ ] watcher2.sh production inbox unaffected
@@ -103,7 +103,7 @@ Phase 2 validates this works end-to-end, not just in unit tests.
    ```
    Production invocation: `--initial-context '{"inbox_dir":".chaplain/inbox"}'`
    Test invocation: `--initial-context '{"inbox_dir":".chaplain/inbox-fsm"}'`
-2. **Validation script** — new `.chaplain/scripts/validate-fsm-single.sh` (this *is* the test — no unit tests needed for an integration run)
+2. **Validation harness** — new single-worker runner script (this *is* the test — no unit tests needed for an integration run)
 3. **Test topic** — trivial docs-only change that will pass judge + CI
 4. **`.gitignore`** — add `.chaplain/inbox-fsm/`
 

@@ -58,7 +58,7 @@ Issue #300 is valid in spirit (legacy drift), but codebase research shows the cl
 ### Out of scope
 
 1. Behavioral redesign of dispatcher/pipeline-v2 flow.
-2. Removing `philosopher.sh`, `inquisitor.sh`, or `validate-fsm-single.sh`.
+2. Removing `philosopher.sh` or `inquisitor.sh`.
 3. New features unrelated to watcher2-era retirement.
 
 ## Acceptance Criteria

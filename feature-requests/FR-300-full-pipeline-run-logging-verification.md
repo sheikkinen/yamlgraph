@@ -2,13 +2,13 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Superseded
 **Effort:** 0.5 days
 **Requested:** 2026-04-30
 
 ## Summary
 
-Harden the existing FSM smoke-run script so a "full pipeline run" is only considered successful when logging is explicitly verified (dispatcher validation log + per-topic pipeline log).
+Historical proposal to harden a single-worker FSM smoke-run harness so a "full pipeline run" is only considered successful when logging is explicitly verified (dispatcher validation log + per-topic pipeline log). Superseded by FR-320 harness retirement.
 
 ## Value Statement
 
@@ -16,13 +16,13 @@ Watcher operators get a single deterministic command that proves both execution 
 
 ## Problem
 
-`.chaplain/scripts/validate-fsm-single.sh` already validates end-to-end flow, but its pass criteria focus on topic consumption, worktree cleanup, and error text scanning. It does not explicitly fail when expected pipeline log artifacts are missing or when debug logging output is absent.
+The legacy single-worker validation harness validated end-to-end flow, but its pass criteria focused on topic consumption, worktree cleanup, and error text scanning. It did not explicitly fail when expected pipeline log artifacts were missing or when debug logging output was absent.
 
 This leaves a gap: a run can appear healthy while log visibility is degraded, making future failures harder to diagnose.
 
 ## Research: Existing Patterns
 
-1. `.chaplain/scripts/validate-fsm-single.sh` runs dispatcher with `--debug` and captures output to `logs/fsm-validation/validate-*.log`.
+1. The legacy single-worker harness ran the dispatcher with `--debug` and captured output to `logs/fsm-validation/validate-*.log`.
 2. `.chaplain/config/watcher-dispatcher.yaml` `processing_topic` action already writes per-topic logs to `logs/fsm-pipeline-<topic>-<timestamp>.log` using `tee` and `--debug`.
 3. `.chaplain/watcher2.sh` uses global `tee` logging (`logs/watcher2-run-*.log`) and log rotation, showing the same "log first, debug by file" operating pattern.
 
@@ -40,7 +40,7 @@ This leaves a gap: a run can appear healthy while log visibility is degraded, ma
 
 ## Proposed Solution
 
-Enhance `.chaplain/scripts/validate-fsm-single.sh` with explicit logging assertions:
+Enhance the legacy single-worker harness with explicit logging assertions:
 
 1. After run completion, derive topic basename and assert a matching `logs/fsm-pipeline-<basename>-*.log` file exists and is non-empty.
 2. Assert `logs/fsm-validation/validate-*.log` is non-empty and contains pipeline progression markers (for example `topic_done`, `cleaning_up`, or `completed`).
@@ -48,7 +48,7 @@ Enhance `.chaplain/scripts/validate-fsm-single.sh` with explicit logging asserti
 4. Add focused tests for the script contract and update docs with the canonical command.
 
 ```bash
-bash .chaplain/scripts/validate-fsm-single.sh .chaplain/inbox-fsm/test-pipeline-run.md
+# Superseded in FR-320 (retirement cleanup): no active command retained here.
 ```
 
 ## Acceptance Criteria
@@ -69,7 +69,7 @@ bash .chaplain/scripts/validate-fsm-single.sh .chaplain/inbox-fsm/test-pipeline-
 
 ## Related
 
-- `.chaplain/scripts/validate-fsm-single.sh`
+- `feature-requests/FR-320-retire-validate-fsm-single-harness.md`
 - `.chaplain/config/watcher-dispatcher.yaml`
 - `.chaplain/watcher2.sh`
 - `feature-requests/FR-295-watcher-fsm-phase2-single-worker-validation.md`
