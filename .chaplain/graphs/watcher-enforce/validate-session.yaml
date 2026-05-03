@@ -1,10 +1,10 @@
-# FR-310: Validate Session graph
+# FR-310/FR-316: Validate Fix Session graph
 # Fresh copilot session for post-enforce remediation.
-# Reads FR + precommit failure output, runs ruff + pytest, commits fixes.
+# Reads FR + deterministic gate diagnostics, applies mechanical fixes, commits.
 
 version: "1.0"
 name: watcher-validate-session
-description: "FR-310 — Fresh copilot session for validate remediation"
+description: "FR-316 — Fresh session for validate_fix remediation"
 
 prompts_relative: true
 prompts_dir: ./prompts
@@ -17,7 +17,7 @@ state:
   validate_result: dict
 
 nodes:
-  validate:
+  validate_fix:
     type: copilot
     prompt: validate-session
     backend: cli
@@ -35,6 +35,6 @@ nodes:
 
 edges:
   - from: START
-    to: validate
-  - from: validate
+    to: validate_fix
+  - from: validate_fix
     to: END
