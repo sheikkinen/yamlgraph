@@ -34,9 +34,7 @@ events:
       wt_dir: payload.wt_dir
       wt_branch: payload.wt_branch
       main_dir: payload.main_dir
-  plan_done:
-    context_map:
-      session_id: payload.session_id
+  plan_done: {}
   committed: {}
   approve: {}
   revise: {}
@@ -98,6 +96,10 @@ transitions:
   - from: judge
     to: failed
     event: reject
+
+  - from: judge
+    to: failed
+    event: error
 
   - from: enforce_session
     to: failed
@@ -180,9 +182,10 @@ actions:
         fr_path: "{fr_path}"
       event_map:
         APPROVE: approve
-        REVISE: revise
+        AMEND: revise
         REJECT: reject
-      success: approve
+        SPLIT: revise
+      success: error
       error: error
       timeout: 600
       description: "⚖️ Judging feature request (model B — fresh eyes)"
@@ -198,7 +201,6 @@ actions:
         fr_path: "{fr_path}"
         worktree_dir: "{wt_dir}"
         branch: "{wt_branch}"
-        session_id: "{session_id}"
       success: pass
       error: error
       timeout: 900
