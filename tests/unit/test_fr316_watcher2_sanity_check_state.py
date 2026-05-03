@@ -48,7 +48,7 @@ def _action_for(config: dict, state: str) -> dict:
     return action
 
 
-@pytest.mark.req("REQ-YG-316")
+@pytest.mark.req("REQ-YG-318")
 class TestFR316Watcher2SanityCheckState:
     """AC-01..AC-08 contracts for sanity-check insertion and ownership split."""
 
@@ -63,8 +63,8 @@ class TestFR316Watcher2SanityCheckState:
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
         assert not _transition_exists(
-            transitions, "validate", "precommit_check", "validate_done"
-        ), "validate should route to sanity_check first, not directly to precommit_check"
+            transitions, "validate_fix", "validate_gate", "validate_done"
+        ), "validate_fix should route to sanity_check first, not directly to validate_gate"
 
     def test_ac03_ac04_routes_validate_to_sanity_then_precommit_with_warn_non_blocking(
         self,
@@ -72,14 +72,12 @@ class TestFR316Watcher2SanityCheckState:
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
         assert _transition_exists(
-            transitions, "validate", "sanity_check", "validate_done"
+            transitions, "validate_fix", "sanity_check", "validate_done"
         )
+        assert _transition_exists(transitions, "sanity_check", "validate_gate", "pass")
         assert _transition_exists(
-            transitions, "sanity_check", "precommit_check", "pass"
-        )
-        assert _transition_exists(
-            transitions, "sanity_check", "precommit_check", "warn"
-        ), "warn should be non-blocking and continue to precommit_check"
+            transitions, "sanity_check", "validate_gate", "warn"
+        ), "warn should be non-blocking and continue to validate_gate"
 
     def test_ac05_sanity_check_state_uses_yamlgraph_async_action(self):
         config = _load_yaml(PIPELINE_V2)

@@ -1,6 +1,6 @@
-"""Acceptance tests for FR-310: watcher2 validate + precommit states.
+"""Acceptance tests for watcher2 validate_fix + validate_gate states.
 
-These tests define RED contracts for inserting validate/precommit_check states
+These tests define RED contracts for inserting validate_fix/validate_gate states
 into watcher-pipeline-v2 and tightening enforce/validate prompt boundaries.
 """
 
@@ -54,19 +54,19 @@ def _action_for(config: dict, state: str) -> dict:
     return action
 
 
-@pytest.mark.req("REQ-YG-316")
+@pytest.mark.req("REQ-YG-318")
 class TestFR310PipelineStates:
     """AC-01..AC-06: FSM states, transitions, and gate action contract."""
 
-    def test_ac01_adds_validate_and_precommit_check_states(self):
+    def test_ac01_adds_validate_fix_and_validate_gate_states(self):
         config = _load_yaml(PIPELINE_V2)
         states = set(config.get("states", []))
         assert (
-            "validate" in states
-        ), "Expected new validate state in watcher-pipeline-v2"
+            "validate_fix" in states
+        ), "Expected new validate_fix state in watcher-pipeline-v2"
         assert (
-            "precommit_check" in states
-        ), "Expected new precommit_check state in watcher-pipeline-v2"
+            "validate_gate" in states
+        ), "Expected new validate_gate state in watcher-pipeline-v2"
 
     def test_ac02_removes_direct_enforce_session_to_done_transition(self):
         config = _load_yaml(PIPELINE_V2)
@@ -75,45 +75,44 @@ class TestFR310PipelineStates:
             transitions, "enforce_session", "done", "pass"
         ), "enforce_session should not transition directly to done"
 
-    def test_ac03_adds_validate_precommit_happy_path(self):
+    def test_ac03_adds_validate_fix_gate_happy_path(self):
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
         assert _transition_exists(
-            transitions, "enforce_session", "validate", "enforce_done"
+            transitions, "enforce_session", "validate_fix", "enforce_done"
         )
-        direct_validate_to_precommit = _transition_exists(
-            transitions, "validate", "precommit_check", "validate_done"
+        assert _transition_exists(
+            transitions, "validate_fix", "sanity_check", "validate_done"
         )
-        via_sanity_check = _transition_exists(
-            transitions, "validate", "sanity_check", "validate_done"
-        ) and _transition_exists(transitions, "sanity_check", "precommit_check", "pass")
-        assert direct_validate_to_precommit or via_sanity_check
-        assert _transition_exists(transitions, "precommit_check", "done", "pass")
+        assert _transition_exists(transitions, "sanity_check", "validate_gate", "pass")
+        assert _transition_exists(transitions, "sanity_check", "validate_gate", "warn")
+        assert _transition_exists(transitions, "validate_gate", "done", "pass")
 
-    def test_ac04_precommit_failure_loops_back_to_validate(self):
+    def test_ac04_validate_gate_failure_loops_back_to_validate_fix(self):
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
         assert _transition_exists(
-            transitions, "precommit_check", "validate", "fix_needed"
+            transitions, "validate_gate", "validate_fix", "fix_needed"
         )
 
-    def test_ac05_precommit_attempt_cap_routes_to_failed(self):
+    def test_ac05_validate_gate_attempt_cap_routes_to_failed(self):
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
-        assert _transition_exists(transitions, "precommit_check", "failed", "error")
+        assert _transition_exists(transitions, "validate_gate", "failed", "error")
 
-    def test_ac06_precommit_check_uses_precommit_action_with_retry(self):
+    def test_ac06_validate_gate_uses_deterministic_action_with_retry(self):
         config = _load_yaml(PIPELINE_V2)
-        action = _action_for(config, "precommit_check")
+        action = _action_for(config, "validate_gate")
         assert (
-            action["type"] == "precommit"
-        ), "precommit_check must use precommit action type"
+            action["type"] == "validate_gate"
+        ), "validate_gate must use validate_gate action type"
         assert action.get("max_attempts", 0) > 0, "must configure max_attempts"
         assert "retry" in action, "must configure retry event for fix_needed routing"
         assert "success" in action, "must configure success event"
+        assert "error" in action, "must configure error event for attempt exhaustion"
 
 
-@pytest.mark.req("REQ-YG-316")
+@pytest.mark.req("REQ-YG-318")
 class TestFR310ValidateArtifacts:
     """AC-07..AC-08: validate graph and prompt contracts."""
 
@@ -128,7 +127,7 @@ class TestFR310ValidateArtifacts:
         assert "pytest tests/unit/ -q --no-cov -x" in content
 
 
-@pytest.mark.req("REQ-YG-316")
+@pytest.mark.req("REQ-YG-318")
 class TestFR310EnforcePromptBoundary:
     """AC-09: enforce prompt no longer owns pre-commit/pytest gate execution."""
 
