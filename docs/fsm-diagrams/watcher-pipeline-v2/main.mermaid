@@ -1,0 +1,13 @@
+stateDiagram-v2
+    [*] --> OPERATIONAL
+
+    %% OPERATIONAL (6 states)
+    state OPERATIONAL
+
+    %% TERMINAL (3 states)
+    state TERMINAL
+
+    %% Transitions between composites
+    OPERATIONAL --> TERMINAL : completed
+
+    TERMINAL --> [*]

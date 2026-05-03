@@ -1,0 +1,55 @@
+{
+  "machine_name": "watcher-pipeline-v2",
+  "template": false,
+  "diagrams": {
+    "main": {
+      "file": "main.mermaid",
+      "title": "State Machine Overview",
+      "description": "High-level state machine flow with composite states",
+      "composites": [
+        "OPERATIONAL",
+        "TERMINAL"
+      ]
+    },
+    "OPERATIONAL": {
+      "file": "OPERATIONAL.mermaid",
+      "title": "OPERATIONAL",
+      "description": "Detailed view of operational",
+      "states": [
+        "setup",
+        "plan",
+        "commit_plan",
+        "judge",
+        "enforce_session",
+        "done"
+      ],
+      "entry_states": [],
+      "exit_states": [
+        "done",
+        "setup",
+        "plan",
+        "commit_plan",
+        "judge",
+        "enforce_session"
+      ],
+      "parent": "main"
+    },
+    "TERMINAL": {
+      "file": "TERMINAL.mermaid",
+      "title": "TERMINAL",
+      "description": "Detailed view of terminal",
+      "states": [
+        "completed",
+        "failed",
+        "stopped"
+      ],
+      "entry_states": [
+        "completed",
+        "failed",
+        "stopped"
+      ],
+      "exit_states": [],
+      "parent": "main"
+    }
+  }
+}
