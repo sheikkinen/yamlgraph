@@ -31,7 +31,7 @@ nodes:
       worktree_dir: "{state.worktree_dir}"
       branch: "{state.branch}"
     state_key: enforce_result
-    timeout: 900
+    timeout: 3600
 
 edges:
   - from: START

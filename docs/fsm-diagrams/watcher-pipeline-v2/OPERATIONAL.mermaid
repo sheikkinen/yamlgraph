@@ -8,7 +8,10 @@ stateDiagram-v2
     plan --> commit_plan : plan_done
     commit_plan --> judge : committed
     judge --> enforce_session : approve
-    enforce_session --> done : pass
+    enforce_session --> validate : enforce_done
+    validate --> precommit_check : validate_done
+    precommit_check --> done : pass
+    precommit_check --> validate : fix_needed
     judge --> plan : revise
 
     %% External composites
