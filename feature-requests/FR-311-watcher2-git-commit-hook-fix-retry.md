@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — Approved
+**Status:** Enforced — Implemented
 **Effort:** 0.5 day
 **Requested:** 2026-05-03
 
