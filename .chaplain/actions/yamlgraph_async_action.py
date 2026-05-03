@@ -110,4 +110,5 @@ class YamlgraphAsyncAction(BaseAction):
                 f"{stdout_text[:2000]}"
             )
 
+        logger.debug(f"[{machine_name}] yamlgraph stdout: {stdout_text[:2000]}")
         return success_event
