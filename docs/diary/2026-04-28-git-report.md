@@ -28,7 +28,7 @@ This repository is an **AI-driven automation framework** (appears to be "Chaplai
 
 #### **2. FR-291: Per-Graph Typed MCP Tools & Mastra Integration** 🔌
 - **Status**: COMPLETED (2 commits)
-- **Scope**: 
+- **Scope**:
   - Implemented typed MCP tools per graph for better tool isolation
   - Full Mastra.js integration example (TypeScript/Node.js)
   - 479 lines of test coverage added
