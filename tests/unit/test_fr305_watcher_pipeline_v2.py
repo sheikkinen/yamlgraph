@@ -83,7 +83,7 @@ class TestV2PipelineStructure:
     def test_has_eleven_states_total(self):
         config = load_config(V2_PIPELINE_PATH)
         states = get_states(config)
-        assert len(states) == 10, f"Expected 10 states, got {len(states)}: {states}"
+        assert len(states) == 11, f"Expected 11 states, got {len(states)}: {states}"
 
     def test_operational_states(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -91,6 +91,7 @@ class TestV2PipelineStructure:
         expected_operational = {
             "setup",
             "plan",
+            "capture_fr",
             "judge",
             "enforce_session",
             "done",
@@ -131,10 +132,15 @@ class TestV2HappyPath:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "setup", "plan", "setup_done")
 
-    def test_plan_to_judge(self):
+    def test_plan_to_capture_fr(self):
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
-        assert transition_exists(transitions, "plan", "judge", "plan_done")
+        assert transition_exists(transitions, "plan", "capture_fr", "plan_done")
+
+    def test_capture_fr_to_judge(self):
+        config = load_config(V2_PIPELINE_PATH)
+        transitions = get_transitions(config)
+        assert transition_exists(transitions, "capture_fr", "judge", "fr_captured")
 
     def test_judge_to_enforce_session(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -421,12 +427,11 @@ class TestV2ActionTypes:
         assert actions[0]["type"] == "yamlgraph_async"
 
     def test_plan_captures_fr_path(self):
-        """Plan step must include bash_context action to capture fr_path."""
+        """capture_fr state uses bash_context to find FR file."""
         config = load_config(V2_PIPELINE_PATH)
-        actions = get_action_config(config, "plan")
-        assert len(actions) >= 2, "Plan should have yamlgraph_async + bash_context"
-        assert actions[1]["type"] == "bash_context"
-        assert "fr_path" in actions[1].get("capture_keys", [])
+        actions = get_action_config(config, "capture_fr")
+        assert actions[0]["type"] == "bash_context"
+        assert "fr_path" in actions[0].get("capture_keys", [])
 
     def test_judge_is_yamlgraph_async(self):
         config = load_config(V2_PIPELINE_PATH)
