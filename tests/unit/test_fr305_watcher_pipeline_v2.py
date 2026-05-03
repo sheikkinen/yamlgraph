@@ -80,10 +80,10 @@ class TestV2PipelineStructure:
     def test_v2_config_exists(self):
         assert V2_PIPELINE_PATH.exists()
 
-    def test_has_nine_states_total(self):
+    def test_has_eleven_states_total(self):
         config = load_config(V2_PIPELINE_PATH)
         states = get_states(config)
-        assert len(states) == 9, f"Expected 9 states, got {len(states)}: {states}"
+        assert len(states) == 11, f"Expected 11 states, got {len(states)}: {states}"
 
     def test_operational_states(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -147,10 +147,12 @@ class TestV2HappyPath:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "judge", "enforce_session", "approve")
 
-    def test_enforce_session_to_done(self):
+    def test_enforce_session_to_validate(self):
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
-        assert transition_exists(transitions, "enforce_session", "done", "pass")
+        assert transition_exists(
+            transitions, "enforce_session", "validate", "enforce_done"
+        )
 
     def test_done_to_completed(self):
         config = load_config(V2_PIPELINE_PATH)

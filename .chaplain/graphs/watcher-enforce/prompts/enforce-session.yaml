@@ -1,13 +1,14 @@
 # FR-305: Enforce Session — single copilot invocation
-# The implement→precommit→pytest→fix loop runs INSIDE one copilot session.
-# No FSM transitions for retries — the LLM iterates within its session.
+# FR-310: Removed pre-commit/pytest gate ownership.
+# Validation is handled by the validate + precommit_check FSM states.
 
 system: |
-  You are implementing and validating a feature in the YAMLGraph framework.
+  You are implementing a feature in the YAMLGraph framework.
   You have full tool access: terminal, file editing, and code search.
 
-  Your objective: make the acceptance tests pass, ensure pre-commit is clean,
-  and commit the result. You iterate until green or exhaust your attempts.
+  Your objective: make the acceptance tests pass and commit the result.
+  Quality validation (ruff, pre-commit, final pytest gate) is handled by
+  the validate state — you focus on implementation only.
 
   The Scripture commands:
   - **Commandment 7:** Red-Green-Refactor. Run pytest with every change.
@@ -29,13 +30,10 @@ user: |
   2. **IMPLEMENT** — Write the minimal code to make acceptance tests pass.
      - Tag new tests with `@pytest.mark.req("REQ-YG-XXX")` per ADR-001
      - Honor existing patterns in the codebase
-  3. **TEST** — Run `pytest tests/ --no-cov -x` from {{ worktree_dir }}
+  3. **TEST** — Run `pytest tests/unit/ -q --no-cov -x` from {{ worktree_dir }}
      - If tests fail: read errors, fix, re-run
      - Iterate until ALL tests pass (max 5 cycles)
-  4. **PRE-COMMIT** — Run `pre-commit run --all-files` from {{ worktree_dir }}
-     - If it fails: fix issues, re-run (max 3 cycles)
-     - Common fixes: ruff format, ruff check --fix, line length
-  5. **CHANGELOG** — Generate a changelog fragment in `changelog/unreleased/`:
+  4. **CHANGELOG** — Generate a changelog fragment in `changelog/unreleased/`:
      ```
      ---
      type: feat
@@ -44,11 +42,14 @@ user: |
      ---
      - **FR-XXX**: Description of the change. (REQ-YG-XXX)
      ```
-  6. **COMMIT** — Stage all changes and commit:
+  5. **COMMIT** — Stage all changes and commit:
      - Message format: `feat(<scope>): FR-XXX <description>`
      - Do NOT use --no-verify
-  7. **UPDATE FR** — Mark acceptance criteria checkboxes in {{ fr_path }}
+  6. **UPDATE FR** — Mark acceptance criteria checkboxes in {{ fr_path }}
      - Set status to "Implemented"
+
+  Note: Pre-commit and final quality gating are handled by the validate
+  and precommit_check FSM states that run after this enforce session.
 
   ## Rules
 
@@ -63,5 +64,5 @@ user: |
   ## Final Report
 
   When done, output one of:
-  - `PASS` — All tests green, pre-commit clean, committed
+  - `PASS` — All tests green, committed
   - `FAIL: <reason>` — Could not complete after max retries

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Amended — ready for enforcement
+**Status:** Implemented
 **Effort:** 0.5–1 day
 **Requested:** 2026-05-03
 **Judged:** 2026-05-03
@@ -111,16 +111,16 @@ enforce_session -> validate -> precommit_check -> done
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** `watcher-pipeline-v2.yaml` defines `validate` and `precommit_check` states.
-- [ ] **AC-02:** `watcher-pipeline-v2.yaml` no longer has direct `enforce_session -> done` transition.
-- [ ] **AC-03:** Transition path includes `enforce_session -> validate -> precommit_check -> done`.
-- [ ] **AC-04:** `precommit_check` loops `fix_needed -> validate` and routes to `failed` after max attempts.
-- [ ] **AC-05:** `precommit_check` uses `type: precommit` action with `max_attempts`, `success`, and `retry` config keys.
-- [ ] **AC-06:** `precommit_action.py` stores failure output in `context["precommit_output"]` for validate-step remediation.
-- [ ] **AC-07:** New validate graph and prompt files exist at `.chaplain/graphs/watcher-enforce/validate-session.yaml` and `.../prompts/validate-session.yaml`.
-- [ ] **AC-08:** Validate prompt includes `ruff check --fix`, `ruff format`, and `pytest tests/unit/ -q --no-cov -x`.
-- [ ] **AC-09:** Enforce-session prompt no longer claims ownership of pre-commit gate execution.
-- [ ] **AC-10:** Acceptance tests are added in `tests/unit/test_fr310_watcher2_validate_precommit_states.py` and fail on current implementation until the new states and contracts are implemented.
+- [x] **AC-01:** `watcher-pipeline-v2.yaml` defines `validate` and `precommit_check` states.
+- [x] **AC-02:** `watcher-pipeline-v2.yaml` no longer has direct `enforce_session -> done` transition.
+- [x] **AC-03:** Transition path includes `enforce_session -> validate -> precommit_check -> done`.
+- [x] **AC-04:** `precommit_check` loops `fix_needed -> validate` and routes to `failed` after max attempts.
+- [x] **AC-05:** `precommit_check` uses `type: precommit` action with `max_attempts`, `success`, and `retry` config keys.
+- [x] **AC-06:** `precommit_action.py` stores failure output in `context["precommit_output"]` for validate-step remediation.
+- [x] **AC-07:** New validate graph and prompt files exist at `.chaplain/graphs/watcher-enforce/validate-session.yaml` and `.../prompts/validate-session.yaml`.
+- [x] **AC-08:** Validate prompt includes `ruff check --fix`, `ruff format`, and `pytest tests/unit/ -q --no-cov -x`.
+- [x] **AC-09:** Enforce-session prompt no longer claims ownership of pre-commit gate execution.
+- [x] **AC-10:** Acceptance tests are added in `tests/unit/test_fr310_watcher2_validate_precommit_states.py` and fail on current implementation until the new states and contracts are implemented.
 
 ## Alternatives Considered
 

@@ -63,6 +63,9 @@ class PrecommitAction(BaseAction):
             f"{result.stdout.strip()}"
         )
 
+        # FR-310: Store failure output in context for validate-step remediation
+        context["precommit_output"] = result.stdout.strip()
+
         # Stage any auto-fixed files
         subprocess.run(  # noqa: S603
             ["git", "add", "-u"],  # noqa: S607
