@@ -1,0 +1,22 @@
+stateDiagram-v2
+    %% Detailed view of OPERATIONAL
+
+    [*] --> setup
+
+    %% Internal transitions
+    setup --> plan : setup_done
+    plan --> commit_plan : plan_done
+    commit_plan --> judge : committed
+    judge --> enforce_session : approve
+    enforce_session --> done : pass
+    judge --> plan : revise
+
+    %% External composites
+    state TERMINAL
+
+    %% Transitions to other composites
+    done --> TERMINAL : completed
+    judge --> TERMINAL : reject
+    plan --> TERMINAL : timeout(600)
+    judge --> TERMINAL : timeout(600)
+    enforce_session --> TERMINAL : timeout(900)
