@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Draft
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-05-03
 
@@ -74,15 +74,24 @@ Update `.chaplain/README.md` post-merge section to document the stash/pull-rebas
 
 ## Acceptance Criteria
 
-- [ ] **AC-01:** `post_merge.sh` detects dirty working tree state before pulling.
-- [ ] **AC-02:** When dirty, `post_merge.sh` stashes tracked + untracked changes with a watcher2 post-merge message.
-- [ ] **AC-03:** `post_merge.sh` executes `git pull --rebase` against `origin main`.
-- [ ] **AC-04:** `git stash pop` is attempted only when stash was created in AC-02.
-- [ ] **AC-05:** Clean working tree path still performs pull/rebase and does not create/pop stash.
-- [ ] **AC-06:** Stash/pop/pull failures are surfaced via logs and non-silent control flow (no hidden ignore path).
-- [ ] **AC-07:** Existing post-merge behaviors remain: issue close for `gh-*.md` and FR-token inbox consumption.
-- [ ] **AC-08:** Failing acceptance tests are added in `tests/unit/test_fr312_watcher2_post_merge_main_sync.py`.
-- [ ] **AC-09:** `.chaplain/README.md` documents the new post-merge reconciliation contract.
+- [x] **AC-01:** `post_merge.sh` detects dirty working tree state before pulling.
+- [x] **AC-02:** When dirty, `post_merge.sh` stashes tracked + untracked changes with a watcher2 post-merge message.
+- [x] **AC-03:** `post_merge.sh` executes `git pull --rebase` against `origin main`.
+- [x] **AC-04:** `git stash pop` is attempted only when stash was created in AC-02.
+- [x] **AC-05:** Clean working tree path still performs pull/rebase and does not create/pop stash.
+- [x] **AC-06:** Stash/pop/pull failures are surfaced via logs and non-silent control flow (no hidden ignore path).
+- [x] **AC-07:** Existing post-merge behaviors remain: issue close for `gh-*.md` and FR-token inbox consumption.
+- [x] **AC-08:** Failing acceptance tests are added in `tests/unit/test_fr312_watcher2_post_merge_main_sync.py`.
+- [x] **AC-09:** `.chaplain/README.md` documents the new post-merge reconciliation contract.
+
+## Implementation Notes
+
+- Added `sync_main_after_merge()` to `.chaplain/lib/watcher/post_merge.sh` and invoked it from `post_merge()` after issue close and FR-token inbox handling.
+- Implemented conditional stash (`git stash push --include-untracked -m "watcher2-post-merge-<timestamp>"`) based on `git status --porcelain`.
+- Implemented `git pull --rebase --quiet origin main` and conditional `git stash pop` restore when stash was created.
+- Added explicit failure logs with non-zero returns on stash/pull/pop errors.
+- Added acceptance coverage in `tests/unit/test_fr312_watcher2_post_merge_main_sync.py` with `@pytest.mark.req("REQ-YG-276")`.
+- Updated `.chaplain/README.md` post-merge contract documentation for stash/pull-rebase/pop reconciliation.
 
 ## Failing Acceptance Tests (RED plan)
 
