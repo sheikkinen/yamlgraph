@@ -113,15 +113,28 @@ After watcher2 retirement, failure handling maps as follows:
 
 ## Retry/Requeue Failed GitHub Topics
 
+`worktree_setup.sh` now performs automated cleanup for retry-safe requeues:
+
+- removes stale worktree attachments for `feat/watcher2-gh-<NUM>`
+- removes stale local worktree directory before `git worktree add`
+- deletes stale local branch with explicit failure on unrecoverable cleanup
+- attempts remote stale-branch deletion as best-effort
+
 When retrying a failed `gh-<NUM>.md` topic, run:
 
 ```bash
 rm .chaplain/failed/gh-<NUM>.md
-git worktree remove tmp/worktrees/feat/watcher2-gh-<NUM> --force
-git branch -D feat/watcher2-gh-<NUM> && git push origin --delete feat/watcher2-gh-<NUM>
 gh issue edit <NUM> --add-label chaplain
 ```
 
 `inbox_sync.sh` skips issues already present in `.chaplain/failed/`,
 `.chaplain/processing/`, or `.chaplain/inbox/`. Removing the failed marker first
 is mandatory for re-import.
+
+Manual branch/worktree cleanup is now a fallback only if setup logs an explicit
+cleanup failure.
+
+```bash
+git worktree remove tmp/worktrees/feat/watcher2-gh-<NUM> --force
+git branch -D feat/watcher2-gh-<NUM> && git push origin --delete feat/watcher2-gh-<NUM>
+```

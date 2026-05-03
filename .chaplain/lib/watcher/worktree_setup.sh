@@ -23,6 +23,8 @@ worktree_setup() {
     local topic_basename
     local existing_merged_pr
     local gh_pr_list_exit=0
+    local cleanup_worktree_path=""
+    local worktree_bindings=""
     topic_basename=$(basename "$TOPIC_FILE" .md)
 
     # Derive branch name from topic file
@@ -33,11 +35,35 @@ worktree_setup() {
     # Prune orphaned worktree metadata before branch creation
     git worktree prune
 
+    # Remove stale worktree attachments bound to this branch before branch cleanup
+    worktree_bindings="$(git worktree list --porcelain)"
+    while IFS= read -r line; do
+        if [[ "$line" == worktree\ * ]]; then
+            cleanup_worktree_path="${line#worktree }"
+        elif [[ "$line" == "branch refs/heads/$WT_BRANCH" ]]; then
+            if [[ -n "$cleanup_worktree_path" ]]; then
+                log_warn "Stale worktree attachment for $WT_BRANCH at $cleanup_worktree_path — removing"
+                if ! git worktree remove "$cleanup_worktree_path" --force 2>/dev/null; then
+                    log_error "Failed to remove stale worktree attachment: $cleanup_worktree_path"
+                    return 1
+                fi
+            fi
+        elif [[ -z "$line" ]]; then
+            cleanup_worktree_path=""
+        fi
+    done <<< "$worktree_bindings"
+
     # Remove stale local branch if it exists
     if git show-ref --verify --quiet "refs/heads/$WT_BRANCH" 2>/dev/null; then
         log_warn "Stale branch $WT_BRANCH exists — deleting"
-        git branch -D "$WT_BRANCH" 2>/dev/null || true
+        if ! git branch -D "$WT_BRANCH" 2>/dev/null; then
+            log_error "Failed to delete stale local branch $WT_BRANCH"
+            return 1
+        fi
     fi
+
+    # Best-effort remote stale branch cleanup
+    git push origin --delete "$WT_BRANCH" 2>/dev/null || log_warn "Remote stale branch cleanup skipped for $WT_BRANCH"
 
     # Guard against recycled branch names that already have merged PR history
     if command -v gh >/dev/null 2>&1; then
@@ -60,6 +86,13 @@ worktree_setup() {
     # Create worktree
     log_info "Creating worktree: $WT_DIR (branch: $WT_BRANCH)"
     mkdir -p "$(dirname "$WT_DIR")"
+    if [[ -d "$WT_DIR" ]]; then
+        log_warn "Stale worktree directory $WT_DIR exists — removing"
+        if ! rm -rf "$WT_DIR"; then
+            log_error "Failed to remove stale worktree directory $WT_DIR"
+            return 1
+        fi
+    fi
     git worktree add "$WT_DIR" -b "$WT_BRANCH" main || {
         log_error "Failed to create worktree"
         return 1
