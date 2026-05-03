@@ -14,6 +14,7 @@ Config keys:
 
 import asyncio
 import logging
+import shlex
 from typing import Any
 
 from statemachine_engine.actions.base import BaseAction
@@ -45,7 +46,7 @@ class YamlgraphAsyncAction(BaseAction):
             resolved = str(value)
             for ctx_key, ctx_val in context.items():
                 resolved = resolved.replace(f"{{{ctx_key}}}", str(ctx_val))
-            cmd_parts.extend(["--var", f'{key}="{resolved}"'])
+            cmd_parts.extend(["--var", f"{key}={shlex.quote(resolved)}"])
 
         command = " ".join(cmd_parts)
         logger.info(f"[{machine_name}] yamlgraph: {command[:120]}")
