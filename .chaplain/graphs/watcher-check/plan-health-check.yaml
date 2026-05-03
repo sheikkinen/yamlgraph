@@ -1,0 +1,33 @@
+# FR-317 health-check graph: plan boundary
+# Forbidden operations: file edits, git commit, git push, PR operations.
+
+version: "1.0"
+name: watcher-check-plan
+description: "Read-only health check for watcher2 plan boundary"
+
+prompts_relative: true
+prompts_dir: ./prompts
+
+state:
+  topic_file: str
+  plan_check_result: dict
+
+nodes:
+  plan_health_check:
+    type: copilot
+    prompt: plan-health-check
+    backend: cli
+    cli_flags:
+      model: gpt-5.3-codex
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+    state_key: plan_check_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: plan_health_check
+  - from: plan_health_check
+    to: END

@@ -1,0 +1,33 @@
+# FR-317 health-check graph: judge boundary
+# Forbidden operations: file edits, git commit, git push, PR operations.
+
+version: "1.0"
+name: watcher-check-judge
+description: "Read-only health check for watcher2 judge boundary"
+
+prompts_relative: true
+prompts_dir: ./prompts
+
+state:
+  topic_file: str
+  judge_check_result: dict
+
+nodes:
+  judge_health_check:
+    type: copilot
+    prompt: judge-health-check
+    backend: cli
+    cli_flags:
+      model: claude-sonnet-4
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+    state_key: judge_check_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: judge_health_check
+  - from: judge_health_check
+    to: END

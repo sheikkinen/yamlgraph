@@ -1,0 +1,33 @@
+# FR-317 health-check graph: validate boundary
+# Forbidden operations: file edits, git commit, git push, PR operations.
+
+version: "1.0"
+name: watcher-check-validate
+description: "Read-only health check for watcher2 validate boundary"
+
+prompts_relative: true
+prompts_dir: ./prompts
+
+state:
+  topic_file: str
+  validate_check_result: dict
+
+nodes:
+  validate_health_check:
+    type: copilot
+    prompt: validate-health-check
+    backend: cli
+    cli_flags:
+      model: claude-sonnet-4-6
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+    state_key: validate_check_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: validate_health_check
+  - from: validate_health_check
+    to: END

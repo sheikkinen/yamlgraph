@@ -1,0 +1,33 @@
+# FR-317 health-check graph: sanity boundary
+# Forbidden operations: file edits, git commit, git push, PR operations.
+
+version: "1.0"
+name: watcher-check-sanity
+description: "Read-only health check for watcher2 sanity boundary"
+
+prompts_relative: true
+prompts_dir: ./prompts
+
+state:
+  topic_file: str
+  sanity_check_result: dict
+
+nodes:
+  sanity_health_check:
+    type: copilot
+    prompt: sanity-check-health-check
+    backend: cli
+    cli_flags:
+      model: claude-sonnet-4-6
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      topic_file: "{state.topic_file}"
+    state_key: sanity_check_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: sanity_health_check
+  - from: sanity_health_check
+    to: END

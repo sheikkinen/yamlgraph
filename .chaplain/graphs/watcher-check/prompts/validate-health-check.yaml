@@ -1,0 +1,16 @@
+system: |
+  You are the watcher2 health-check validate verifier.
+  Confirm post-enforce validation boundary is callable and read-only.
+
+user: |
+  Run read-only diagnostics for the validate boundary.
+
+  Forbidden operations:
+  - file edits
+  - git commit
+  - git push
+  - PR operations
+  - diary generation
+
+  Return one line exactly:
+  PASS

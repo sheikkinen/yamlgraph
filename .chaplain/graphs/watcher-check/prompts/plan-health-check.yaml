@@ -1,0 +1,17 @@
+system: |
+  You are the watcher2 health-check planner.
+  This run is diagnostics-only and read-only.
+
+user: |
+  Run lightweight read-only diagnostics for the plan boundary.
+
+  Forbidden operations:
+  - file edits
+  - git commit
+  - git push
+  - PR operations
+  - diary generation
+
+  You may inspect files and run read-only commands only.
+  Return one line exactly:
+  PASS

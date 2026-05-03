@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# inbox_sync.sh — Import GitHub Issues labeled 'chaplain' into local inbox
+# inbox_sync.sh — Import GitHub Issues labeled 'chaplain' and 'chaplain-check' into local inbox
 # Extracted from watch.sh (FR-243, FR-251)
 #
 # Uses env vars: INBOX, PROCESSING, ALLOWED_AUTHORS, BODY_SIZE_CAP
@@ -19,22 +19,25 @@ inbox_sync() {
         return 0
     fi
 
-    gh issue list --state open --label chaplain --json number --jq '.[].number' 2>/dev/null \
-    | while read -r num; do
+    import_issue() {
+        local num="$1"
+        local mode="$2"
+        local issue_label="$3"
+
         # Skip if already in any pipeline stage (inbox, processing, or failed)
-        [[ -f "$INBOX/gh-$num.md" ]] && continue
-        [[ -f "$PROCESSING/gh-$num.md" ]] && continue
-        [[ -f ".chaplain/failed/gh-$num.md" ]] && continue
+        [[ -f "$INBOX/gh-$num.md" ]] && return 0
+        [[ -f "$PROCESSING/gh-$num.md" ]] && return 0
+        [[ -f ".chaplain/failed/gh-$num.md" ]] && return 0
 
         # FR-251: Author allowlist check
-        author=$(gh issue view "$num" --json author --jq '.author.login' 2>/dev/null) || continue
+        author=$(gh issue view "$num" --json author --jq '.author.login' 2>/dev/null) || return 0
         if [[ -f "$ALLOWED_AUTHORS" ]] && ! grep -qxF "$author" "$ALLOWED_AUTHORS"; then
             log_warn "Skipped issue #$num from untrusted author @$author"
-            continue
+            return 0
         fi
 
-        title=$(gh issue view "$num" --json title --jq '.title' 2>/dev/null) || continue
-        body=$(gh issue view "$num" --json body --jq '.body' 2>/dev/null) || continue
+        title=$(gh issue view "$num" --json title --jq '.title' 2>/dev/null) || return 0
+        body=$(gh issue view "$num" --json body --jq '.body' 2>/dev/null) || return 0
 
         # FR-251: Body size cap
         if [[ ${#body} -gt $BODY_SIZE_CAP ]]; then
@@ -43,9 +46,29 @@ inbox_sync() {
         fi
 
         # FR-251: Author audit header
-        printf "<!-- author: @%s -->\n# %s\n\n%s\n" "$author" "$title" "$body" > "$INBOX/gh-$num.md"
-        gh issue edit "$num" --remove-label chaplain 2>/dev/null || log_warn "Failed to remove label from issue #$num"
+        # FR-317: mode marker for health-check topics.
+        if [[ "$mode" == "health-check" ]]; then
+            printf "<!-- author: @%s -->\n<!-- mode: health-check -->\n# %s\n\n%s\n" "$author" "$title" "$body" > "$INBOX/gh-$num.md"
+        else
+            printf "<!-- author: @%s -->\n# %s\n\n%s\n" "$author" "$title" "$body" > "$INBOX/gh-$num.md"
+        fi
+        if [[ "$issue_label" == "chaplain" ]]; then
+            gh issue edit "$num" --remove-label chaplain 2>/dev/null || log_warn "Failed to remove label 'chaplain' from issue #$num"
+        else
+            gh issue edit "$num" --remove-label "$issue_label" 2>/dev/null || log_warn "Failed to remove label '$issue_label' from issue #$num"
+        fi
         log_info "📥 Imported GitHub Issue #$num: $title"
+    }
+
+    gh issue list --state open --label chaplain --json number --jq '.[].number' 2>/dev/null \
+    | while read -r num; do
+        # author is fetched before title/body inside import_issue (REQ-YG-256)
+        import_issue "$num" "" "chaplain"
+    done
+
+    gh issue list --state open --label chaplain-check --json number --jq '.[].number' 2>/dev/null \
+    | while read -r num; do
+        import_issue "$num" "health-check" "chaplain-check"
     done
 }
 

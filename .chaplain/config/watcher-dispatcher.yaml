@@ -91,9 +91,13 @@ actions:
         mkdir -p logs
         BASENAME=$(basename "$TOPIC" .md)
         LOG="logs/fsm-pipeline-${BASENAME}-$(date +%Y%m%d-%H%M%S).log"
+        PIPELINE=".chaplain/config/watcher-pipeline-v2.yaml"
+        if grep -q '^<!-- mode: health-check -->' "$TOPIC"; then
+          PIPELINE=".chaplain/config/watcher-pipeline-health-check.yaml"
+        fi
         ls -1t logs/fsm-pipeline-*.log 2>/dev/null | tail -n +21 | xargs rm -f 2>/dev/null || true
         echo "Pipeline log: $LOG"
-        statemachine .chaplain/config/watcher-pipeline-v2.yaml \
+        statemachine "$PIPELINE" \
           --actions-dir .chaplain/actions \
           --initial-context "{\"topic_file\":\"$TOPIC\",\"merge_flags\":\"\",\"pr_title_flag\":\"\",\"post_merge_cmd\":\"bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true\",\"plan_commit_msg\":\"chore(watcher): plan artifacts\"}" \
           --debug \

@@ -1,0 +1,27 @@
+id: CAP-140
+name: Watcher2 No-Action Health Check Mode
+description: >
+  Adds an explicit label-driven watcher2 health-check path that exercises
+  plan/judge/enforce/validate/sanity boundaries without repository side effects.
+  Dispatcher routes to a dedicated health-check pipeline from topic metadata.
+modules:
+  - .chaplain/lib/watcher/inbox_sync.sh
+  - .chaplain/config/watcher-dispatcher.yaml
+  - .chaplain/config/watcher-pipeline-health-check.yaml
+  - .chaplain/graphs/watcher-check/
+  - tests/unit/test_fr317_watcher2_no_action_health_check_mode.py
+requirements:
+  - id: REQ-YG-318
+    description: >
+      Watcher2 imports `chaplain-check` labeled issues with `<!-- mode: health-check -->`
+      topic marker, dispatcher routes those topics to `watcher-pipeline-health-check.yaml`,
+      and the health-check pipeline runs plan/judge/enforce_session/validate/sanity_check
+      boundaries with PASS/WARN non-blocking sanity semantics and cleanup-only completion
+      behavior.
+    modules:
+      - .chaplain/lib/watcher/inbox_sync.sh
+      - .chaplain/config/watcher-dispatcher.yaml
+      - .chaplain/config/watcher-pipeline-health-check.yaml
+      - .chaplain/graphs/watcher-check/
+      - tests/unit/test_fr317_watcher2_no_action_health_check_mode.py
+fr: FR-317

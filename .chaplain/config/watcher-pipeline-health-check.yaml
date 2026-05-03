@@ -1,0 +1,226 @@
+# Watcher2 Pipeline Worker — health-check mode
+# FR-317: no-action pipeline path for stage-boundary health diagnostics.
+
+metadata:
+  name: "Watcher2 Pipeline Health Check"
+  machine_name: watcher-pipeline-health-check
+  version: "1.0.0"
+
+initial_state: plan
+
+states:
+  # === OPERATIONAL STATES ===
+  - plan
+  - judge
+  - enforce_session
+  - validate
+  - sanity_check
+  - precommit_check
+  - done
+
+  # === TERMINAL STATES ===
+  - completed
+  - failed
+  - stopped
+
+events:
+  plan_done: {}
+  approve: {}
+  reject: {}
+  enforce_done: {}
+  validate_done: {}
+  pass: {}
+  warn: {}
+  completed: {}
+  cleanup_done: {}
+  error: {}
+  stop: {}
+  "timeout(600)": {}
+  "timeout(1800)": {}
+
+transitions:
+  - from: plan
+    to: judge
+    event: plan_done
+
+  - from: judge
+    to: enforce_session
+    event: approve
+
+  - from: judge
+    to: failed
+    event: reject
+
+  - from: enforce_session
+    to: validate
+    event: enforce_done
+
+  - from: validate
+    to: sanity_check
+    event: validate_done
+
+  - from: sanity_check
+    to: precommit_check
+    event: pass
+
+  - from: sanity_check
+    to: precommit_check
+    event: warn
+
+  - from: precommit_check
+    to: done
+    event: pass
+
+  - from: precommit_check
+    to: failed
+    event: error
+
+  - from: done
+    to: completed
+    event: completed
+
+  - from: plan
+    to: failed
+    event: error
+
+  - from: judge
+    to: failed
+    event: error
+
+  - from: enforce_session
+    to: failed
+    event: error
+
+  - from: validate
+    to: failed
+    event: error
+
+  - from: sanity_check
+    to: failed
+    event: error
+
+  - from: done
+    to: failed
+    event: error
+
+  - from: plan
+    to: failed
+    event: "timeout(600)"
+
+  - from: judge
+    to: failed
+    event: "timeout(600)"
+
+  - from: enforce_session
+    to: failed
+    event: "timeout(1800)"
+
+  - from: validate
+    to: failed
+    event: "timeout(600)"
+
+  - from: sanity_check
+    to: failed
+    event: "timeout(600)"
+
+  - from: failed
+    to: stopped
+    event: cleanup_done
+
+  - from: "*"
+    to: stopped
+    event: stop
+
+actions:
+  plan:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-check/plan-health-check.yaml
+      vars:
+        topic_file: "{topic_file}"
+      success: plan_done
+      error: error
+      timeout: 600
+      description: "🩺 Health check: plan boundary"
+
+  judge:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-check/judge-health-check.yaml
+      vars:
+        topic_file: "{topic_file}"
+      event_map:
+        APPROVE: approve
+        REJECT: reject
+      success: error
+      error: error
+      timeout: 600
+      description: "🩺 Health check: judge boundary"
+
+  enforce_session:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-check/enforce-health-check.yaml
+      vars:
+        topic_file: "{topic_file}"
+      success: enforce_done
+      error: error
+      timeout: 1800
+      description: "🩺 Health check: enforce boundary"
+
+  validate:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-check/validate-health-check.yaml
+      vars:
+        topic_file: "{topic_file}"
+      success: validate_done
+      error: error
+      timeout: 600
+      description: "🩺 Health check: validate boundary"
+
+  sanity_check:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-check/sanity-check-health-check.yaml
+      vars:
+        topic_file: "{topic_file}"
+      event_map:
+        PASS: pass
+        WARN: warn
+      success: pass
+      error: error
+      timeout: 600
+      description: "🩺 Health check: sanity boundary"
+
+  precommit_check:
+    - type: bash
+      command: "echo 'Health-check gate: continuing to done'"
+      success: pass
+      error: error
+      timeout: 15
+      description: "🔒 Health-check gate"
+
+  done:
+    - type: bash
+      command: |
+        mkdir -p .chaplain/completed-health-check
+        if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
+          mv "{topic_file}" .chaplain/completed-health-check/
+        fi
+        echo "Health-check pipeline completed with cleanup only"
+      success: completed
+      error: error
+      timeout: 30
+      description: "🧹 Health-check cleanup"
+
+  failed:
+    - type: bash
+      command: |
+        mkdir -p .chaplain/failed
+        if [ -n "{topic_file}" ] && [ -f "{topic_file}" ]; then
+          mv "{topic_file}" .chaplain/failed/
+        fi
+      success: cleanup_done
+      error: cleanup_done
+      description: "❌ Health-check pipeline failed"
+
+  stopped:
+    - type: bash
+      command: "echo 'Health-check pipeline stopped'"
+      description: "🛑 Health-check stopped"
