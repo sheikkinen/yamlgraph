@@ -216,7 +216,7 @@ Passed from dispatcher via `--initial-context`, then accumulated through the pip
 │   └── precommit_action.py           # pre-commit with retry counter ✅
 ├── scripts/
 │   ├── inbox_sync_wrapper.sh         # Phase 3: calls inbox_sync.sh then inserts jobs
-│   ├── validate-fsm-single.sh        # Phase 2 validation (NEW)
+│   ├── single-worker harness (retired by FR-320)
 │   ├── validate-fsm-parallel.sh      # Phase 3 validation (NEW)
 │   └── stress-test-git-locks.sh      # Phase 3 git lock stress test (NEW)
 ├── graphs/                           # YAMLGraph LLM pipelines (EXIST — used by watcher2.sh)
@@ -443,7 +443,7 @@ Fix graph paths in all `yamlgraph_async` action blocks:
 - Configure dispatcher to use `inbox-fsm/` (via `--initial-context '{"inbox_dir":".chaplain/inbox-fsm/"}'`)
 - Write a simple test topic: `.chaplain/inbox-fsm/test-fsm-migration.md` with a trivial feature request
 
-#### Validation script: `.chaplain/scripts/validate-fsm-single.sh` **(NEW)**
+#### Validation harness (retired by FR-320)
 - Start dispatcher in foreground (single cycle, not loop): process one topic then stop
 - Monitor state transitions via `statemachine-events --machine watcher2_pipeline_* --format compact`
 - Assert: all expected states visited in order (preflight → ... → cleaning_up → completed)
