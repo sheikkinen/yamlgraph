@@ -1,0 +1,40 @@
+# FR-310: Validate Session graph
+# Fresh copilot session for post-enforce remediation.
+# Reads FR + precommit failure output, runs ruff + pytest, commits fixes.
+
+version: "1.0"
+name: watcher-validate-session
+description: "FR-310 — Fresh copilot session for validate remediation"
+
+prompts_relative: true
+prompts_dir: ./prompts
+
+state:
+  fr_path: str
+  worktree_dir: str
+  branch: str
+  precommit_output: str
+  validate_result: dict
+
+nodes:
+  validate:
+    type: copilot
+    prompt: validate-session
+    backend: cli
+    cli_flags:
+      model: claude-sonnet-4
+      allow_all_paths: true
+      allow_all_tools: true
+    variables:
+      fr_path: "{state.fr_path}"
+      worktree_dir: "{state.worktree_dir}"
+      branch: "{state.branch}"
+      precommit_output: "{state.precommit_output}"
+    state_key: validate_result
+    timeout: 600
+
+edges:
+  - from: START
+    to: validate
+  - from: validate
+    to: END

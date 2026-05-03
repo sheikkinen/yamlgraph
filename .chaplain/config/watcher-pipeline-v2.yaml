@@ -1,11 +1,16 @@
-# Watcher2 Pipeline Worker FSM — v2 (Simplified)
-# FR-305: Collapsed 20+ states into 6 operational states + 2 terminals.
-# Leverages copilot session continuations for enforce→evaluate loop.
+# Watcher2 Pipeline Worker FSM — v2
+# FR-305: Collapsed 20+ states into operational states + terminals.
+# FR-310: Added validate + precommit_check post-enforce gate.
 #
-# Flow: setup → plan → commit_plan → judge →(approve)→ enforce_session → done
-#                                      ↑ revise              │ timeout
-#                                      └────────┘            ▼
-#                                                          failed
+# Flow: setup → plan → commit_plan → judge →(approve)→ enforce_session
+#                                      ↑ revise       │ enforce_done
+#                                      └────────┘     ▼
+#                               validate ← fix_needed ← precommit_check
+#                                  │ validate_done         │ pass
+#                                  └──→ precommit_check ──→ done
+#                                          │ error (max 5)
+#                                          ▼
+#                                        failed
 
 metadata:
   name: "Watcher2 Pipeline Worker v2"
@@ -21,6 +26,8 @@ states:
   - commit_plan
   - judge
   - enforce_session
+  - validate
+  - precommit_check
   - done
 
   # === TERMINAL STATES ===
@@ -39,6 +46,9 @@ events:
   approve: {}
   revise: {}
   reject: {}
+  enforce_done: {}
+  validate_done: {}
+  fix_needed: {}
   pass: {}
   completed: {}
   error: {}
@@ -66,12 +76,30 @@ transitions:
     event: approve
 
   - from: enforce_session
+    to: validate
+    event: enforce_done
+
+  - from: validate
+    to: precommit_check
+    event: validate_done
+
+  - from: precommit_check
     to: done
     event: pass
 
   - from: done
     to: completed
     event: completed
+
+  # ── VALIDATE / PRECOMMIT LOOP ──────────────────────────────────────
+
+  - from: precommit_check
+    to: validate
+    event: fix_needed
+
+  - from: precommit_check
+    to: failed
+    event: error
 
   # ── REVISE LOOP ────────────────────────────────────────────────────
 
@@ -201,10 +229,38 @@ actions:
         fr_path: "{fr_path}"
         worktree_dir: "{wt_dir}"
         branch: "{wt_branch}"
-      success: pass
+      success: enforce_done
       error: error
       timeout: 900
-      description: "🔨 Enforce session (implement + evaluate loop)"
+      description: "🔨 Enforce session (implement only)"
+
+  # ── VALIDATE ───────────────────────────────────────────────────────
+  # Fresh copilot session: reads FR + precommit failure output,
+  # runs ruff fix/format + pytest, commits remediation.
+
+  validate:
+    - type: yamlgraph_async
+      graph: .chaplain/graphs/watcher-enforce/validate-session.yaml
+      vars:
+        fr_path: "{fr_path}"
+        worktree_dir: "{wt_dir}"
+        branch: "{wt_branch}"
+        precommit_output: "{precommit_output}"
+      success: validate_done
+      error: error
+      timeout: 600
+      description: "🔍 Validate session (ruff + pytest remediation)"
+
+  # ── PRECOMMIT CHECK ────────────────────────────────────────────────
+  # Mechanical gate — no LLM. Uses precommit action with retry loop.
+
+  precommit_check:
+    - type: precommit
+      max_attempts: 5
+      success: pass
+      retry: fix_needed
+      cwd: "{wt_dir}"
+      description: "🔒 Pre-commit gate (mechanical)"
 
   # ── DONE ───────────────────────────────────────────────────────────
   # Push, create PR, wait CI, merge, cleanup — single compound script.
