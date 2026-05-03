@@ -360,6 +360,21 @@ gh auth status
 gh auth refresh
 ```
 
+### Retry/Requeue Failed GitHub Topics
+
+When retrying a failed `gh-<NUM>.md` topic, follow this exact sequence:
+
+```bash
+rm .chaplain/failed/gh-<NUM>.md
+git worktree remove tmp/worktrees/feat/watcher2-gh-<NUM> --force
+git branch -D feat/watcher2-gh-<NUM> && git push origin --delete feat/watcher2-gh-<NUM>
+gh issue edit <NUM> --add-label chaplain
+```
+
+Step 1 is mandatory: `inbox_sync.sh` skips issues already represented in `.chaplain/failed/`, `.chaplain/processing/`, or `.chaplain/inbox/`, so re-labeling alone will not re-import the topic while the failed marker remains.
+
+After re-labeling, wait for the next normal inbox sync cycle (`inbox_sync.sh` in the dispatcher `syncing_inbox` phase); watcher2 picks the issue back up automatically.
+
 ### CI and Merge Issues
 
 **Problem:** CI timeout or failures
