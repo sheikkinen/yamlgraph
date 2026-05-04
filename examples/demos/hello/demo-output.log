@@ -1,0 +1,13 @@
+2026-05-04 11:56:51,088 [INFO] yamlgraph.node_compiler: Added node: greet (type=llm)
+2026-05-04 11:56:51,092 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-05-04 11:56:51,422 [ERROR] yamlgraph.error_handlers: Node greet failed: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+🚀 Running graph: graph.yaml
+   Variables: {'name': 'World', 'style': 'holy see of code'}
+
+============================================================
+RESULT
+============================================================
+  current_step: greet
+  style: holy see of code
+  name: World
