@@ -142,11 +142,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify demo output logs exist
+      - name: Verify demo output logs
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          source scripts/demo_log_semantics.sh
+
           # Find demo directories with changed files (excluding the log itself
           # and the shared tests/ directory which is test infrastructure)
           CHANGED_DEMOS=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" \
@@ -162,19 +164,22 @@ jobs:
           fi
 
           MISSING=0
+          INVALID=0
           for DEMO in $CHANGED_DEMOS; do
             LOG="examples/demos/${DEMO}/demo-output.log"
             if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qF "$LOG"; then
-              echo "✅ Demo proof found: $LOG"
+              if ! validate_demo_output_log_file "$LOG" "$LOG"; then
+                INVALID=$((INVALID + 1))
+              fi
             else
               echo "::error::Demo '$DEMO' changed but no demo-output.log in diff"
               MISSING=$((MISSING + 1))
             fi
           done
 
-          if [ "$MISSING" -gt 0 ]; then
+          if [ "$MISSING" -gt 0 ] || [ "$INVALID" -gt 0 ]; then
             echo ""
-            echo "Run each changed demo and commit the output log:"
+            echo "Run each changed demo and commit a successful output log:"
             echo "  yamlgraph graph run examples/demos/<name>/graph.yaml --full 2>&1 | tee examples/demos/<name>/demo-output.log"
             exit 1
           fi
