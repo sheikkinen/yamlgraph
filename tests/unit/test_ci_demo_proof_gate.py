@@ -195,7 +195,11 @@ class TestDemoProofShellLogic:
         result = _run_demo_proof_check(
             {
                 "examples/demos/hello/graph.yaml": "nodes: {}\n",
-                "examples/demos/hello/demo-output.log": "output here\n",
+                "examples/demos/hello/demo-output.log": (
+                    "2026-01-01 00:00:00 [INFO] yamlgraph.node_factory.llm_nodes: "
+                    "Node greet completed successfully\n"
+                    "✓ Graph execution completed successfully\n"
+                ),
             }
         )
         assert result.returncode == 0, f"Should pass with log: {result.stdout}"

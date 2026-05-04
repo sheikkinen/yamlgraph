@@ -2,8 +2,10 @@ id: CAP-79
 name: Demo Proof Gate
 description: >
   CI gate and pre-commit hook requiring demo-output.log artifact when demos
-  are created or modified, proving the demo was actually executed before merge.
-  Enforces Commandment 2 ("demonstrate with example") at the merge boundary.
+  are created or modified, and validating log semantics (not only presence):
+  logs must be non-empty, contain success evidence, and contain no fatal
+  execution markers. Enforces Commandment 2 ("demonstrate with example") at
+  the merge boundary.
 modules:
   - scripts/check_demo_proof.sh
   - .github/workflows/commitlint.yml
@@ -13,16 +15,19 @@ requirements:
     description: >
       demo-gate CI job in commitlint.yml extracts changed demo directories from
       git diff (excluding demo-output.log itself), verifies each has a
-      demo-output.log in the diff, exits 1 on missing logs and 0 when no demos
+      demo-output.log in the diff, then validates content semantics using
+      shared rules: reject empty logs, reject fatal execution markers (for
+      example Node .* failed, [ERROR], ❌ Error:, exit code [1-9]), and reject
+      logs with no success evidence; exits 1 on violations and 0 when no demos
       changed; job-level if condition restricts to feat/fix PR titles; uses
       actions/checkout@v4 with fetch-depth: 0; pre-commit hook
-      demo-proof-check calls scripts/check_demo_proof.sh which checks staged
-      files with identical logic; .gitignore negates *.log for
-      examples/demos/*/demo-output.log; CLAUDE.md documents demo-gate in
-      branch protection section; enforcer Phase 2 prompt instructs capturing
-      demo-output.log
+      demo-proof-check calls scripts/check_demo_proof.sh with identical semantic
+      rules; .gitignore negates *.log for examples/demos/*/demo-output.log;
+      CLAUDE.md documents demo-gate in branch protection section; enforcer
+      Phase 2 prompt instructs capturing demo-output.log
     modules:
       - scripts/check_demo_proof.sh
+      - scripts/demo_log_semantics.sh
       - .github/workflows/commitlint.yml
       - .pre-commit-config.yaml
       - .gitignore
