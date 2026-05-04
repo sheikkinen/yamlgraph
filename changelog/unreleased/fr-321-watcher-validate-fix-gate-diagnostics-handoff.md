@@ -2,4 +2,4 @@
 type: feat
 scope: watcher
 ---
-- **FR-321**: Pass validate_gate diagnostics into validate_fix remediation context and ignore literal first-pass precommit placeholders in prompt rendering.
+- **FR-321**: Switch `YamlgraphAsyncAction` from shell command execution to `create_subprocess_exec(*argv)`, passing `--var` payloads as literal argv tokens and preserving existing routing/timeout behavior.

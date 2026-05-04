@@ -14,7 +14,6 @@ Config keys:
 
 import asyncio
 import logging
-import shlex
 from typing import Any
 
 from statemachine_engine.actions.base import BaseAction
@@ -46,10 +45,8 @@ class YamlgraphAsyncAction(BaseAction):
             resolved = str(value)
             for ctx_key, ctx_val in context.items():
                 resolved = resolved.replace(f"{{{ctx_key}}}", str(ctx_val))
-            cmd_parts.extend(["--var", f"{key}={shlex.quote(resolved)}"])
-
-        command = " ".join(cmd_parts)
-        logger.info(f"[{machine_name}] yamlgraph: {command[:120]}")
+            cmd_parts.extend(["--var", f"{key}={resolved}"])
+        logger.info(f"[{machine_name}] yamlgraph argv={cmd_parts[:20]}")
 
         # FR-314: Run in worktree dir so relative paths (fr_path etc.) resolve
         # correctly against the feature branch, not main.
@@ -58,8 +55,8 @@ class YamlgraphAsyncAction(BaseAction):
         logger.debug(f"[{machine_name}] cwd={cwd}")
 
         try:
-            process = await asyncio.create_subprocess_shell(
-                command,
+            process = await asyncio.create_subprocess_exec(
+                *cmd_parts,
                 cwd=cwd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
@@ -107,8 +104,7 @@ class YamlgraphAsyncAction(BaseAction):
                     return event
             # FR-307 AC-02: Log full stdout on event_map miss
             logger.warning(
-                f"[{machine_name}] No event_map match in output: "
-                f"{stdout_text[:2000]}"
+                f"[{machine_name}] No event_map match in output: {stdout_text[:2000]}"
             )
 
         logger.debug(f"[{machine_name}] yamlgraph stdout: {stdout_text[:2000]}")

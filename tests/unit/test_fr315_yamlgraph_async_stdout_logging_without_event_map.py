@@ -74,12 +74,10 @@ def _build_action(monkeypatch, **config):
 def _patch_subprocess(
     monkeypatch, *, stdout: str, stderr: str = "", returncode: int = 0
 ):
-    async def fake_create_subprocess_shell(*_args, **_kwargs):
+    async def fake_create_subprocess_exec(*_args, **_kwargs):
         return _FakeProcess(returncode=returncode, stdout=stdout, stderr=stderr)
 
-    monkeypatch.setattr(
-        asyncio, "create_subprocess_shell", fake_create_subprocess_shell
-    )
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_create_subprocess_exec)
 
 
 @pytest.mark.req("REQ-YG-027")
