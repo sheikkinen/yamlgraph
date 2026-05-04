@@ -13,6 +13,24 @@ yamlgraph graph run examples/demos/hello/graph.yaml \
   --var name="World" --var style="enthusiastic"
 ```
 
+### Vertex Gemini 3.1 smoke (Express mode)
+
+Use environment-level provider/model selection (the CLI does not expose direct
+`--provider` / `--model` flags):
+
+```bash
+export VERTEX_API_KEY="your-key"
+export PROVIDER="vertex"
+export VERTEX_MODEL="gemini-3.1-pro"
+yamlgraph graph run examples/demos/hello/graph.yaml \
+  --var name="World" --var style="holy see of code" --full
+```
+
+Verified model identifiers for project `scp-tenant-dps-dev`:
+
+- Pro: `gemini-3.1-pro` (if region/project catalog requires pinned ID, use `gemini-3.1-pro-001`)
+- Flash: `gemini-3.1-flash` (if region/project catalog requires pinned ID, use `gemini-3.1-flash-001`)
+
 ## What It Does
 
 1. Takes `name` and `style` as input
