@@ -4,8 +4,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+pytest.importorskip("statemachine_engine", reason="statemachine_engine not installed")
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.chaplain"))
-from actions.yamlgraph_async_action import YamlgraphAsyncAction
+from actions.yamlgraph_async_action import YamlgraphAsyncAction  # noqa: E402
 
 
 @pytest.mark.req("REQ-YG-027")
