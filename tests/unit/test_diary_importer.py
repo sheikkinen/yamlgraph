@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from yamlgraph.diary import importer
 from yamlgraph.diary.importer import (
     ImportResult,
     import_git_reports,
@@ -88,9 +89,12 @@ class TestImportScheduledEntries:
         results = import_scheduled_entries(diary_dir, Path("/nonexistent"))
         assert results == []
 
-    def test_default_source_dir(self, diary_dir: Path) -> None:
+    def test_default_source_dir(
+        self, diary_dir: Path, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
         """When source_dir is None, uses ~/scheduled-yamlgraphs/outputs/."""
-        # Just verifying it doesn't crash — default dir won't exist in test
+        # Force deterministic default source regardless of host HOME contents.
+        monkeypatch.setattr(importer, "DEFAULT_SOURCE", tmp_path / "missing-default")
         results = import_scheduled_entries(diary_dir)
         assert results == []
 

@@ -19,13 +19,24 @@ user: |
 
   ## Validate-gate context
 
-  {% if precommit_output and precommit_output != "" %}
+  {% set normalized_precommit_output = precommit_output | default("", true) | trim %}
+  {% if normalized_precommit_output and normalized_precommit_output != "{precommit_output}" %}
   The previous validate_gate/pre-commit attempt reported:
   ```
-  {{ precommit_output }}
+  {{ normalized_precommit_output }}
   ```
   {% else %}
   This is the first validate_fix pass — no prior gate diagnostics.
+  {% endif %}
+
+  {% set normalized_validate_gate_output = validate_gate_output | default("", true) | trim %}
+  {% if normalized_validate_gate_output and normalized_validate_gate_output != "{validate_gate_output}" %}
+  ## Validate-gate diagnostics (checks/failures)
+
+  Deterministic validate_gate checks/failures payload:
+  ```
+  {{ normalized_validate_gate_output }}
+  ```
   {% endif %}
 
   ## Process

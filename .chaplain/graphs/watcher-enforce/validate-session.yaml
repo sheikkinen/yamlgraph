@@ -14,6 +14,7 @@ state:
   worktree_dir: str
   branch: str
   precommit_output: str
+  validate_gate_output: str
   validate_result: dict
 
 nodes:
@@ -30,6 +31,7 @@ nodes:
       worktree_dir: "{state.worktree_dir}"
       branch: "{state.branch}"
       precommit_output: "{state.precommit_output}"
+      validate_gate_output: "{state.validate_gate_output}"
     state_key: validate_result
     timeout: 600
 
