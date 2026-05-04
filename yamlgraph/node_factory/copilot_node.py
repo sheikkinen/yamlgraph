@@ -308,6 +308,22 @@ def _execute_cli(
             else ""
         )
 
+        # FR-322: Detect copilot CLI boundary lie — exit 0 with empty stdout
+        # and error on stderr indicates silent failure (e.g. invalid model name).
+        stderr_text = result.stderr or ""
+        if (
+            result.returncode == 0
+            and not stdout_clean.strip()
+            and "error" in stderr_text.lower()
+        ):
+            logger.error(
+                f"[{node_name}] Copilot CLI returned exit 0 but produced no output. "
+                f"stderr: {stderr_text[:500]}"
+            )
+            raise RuntimeError(
+                f"Copilot CLI silent failure (exit 0, empty output): {stderr_text[:200]}"
+            )
+
         copilot_result = CopilotResult(
             output=stdout_clean,
             exit_code=result.returncode,

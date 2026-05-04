@@ -21,7 +21,7 @@ nodes:
     prompt: sanity-check-session
     backend: cli
     cli_flags:
-      model: claude-sonnet-4-6
+      model: claude-sonnet-4.6
       allow_all_paths: true
       allow_all_tools: true
     variables:
