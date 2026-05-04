@@ -271,6 +271,7 @@ actions:
         worktree_dir: "{wt_dir}"
         branch: "{wt_branch}"
         precommit_output: "{precommit_output}"
+        validate_gate_output: "{validate_gate_output}"
       success: validate_done
       error: error
       timeout: 600
