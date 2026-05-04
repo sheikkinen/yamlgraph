@@ -394,6 +394,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Import `mcp.types` after `pytest.importorskip("mcp")` guard.
 - **Penance**: Same pattern as CONF-034. The `mcp` package is an optional dependency; `importorskip` must execute before any `mcp` imports to skip the test file gracefully when the package is not installed.
 
+### CONF-047
+- **File**: [tests/unit/test_fr321_yamlgraph_async_subprocess_exec.py](../tests/unit/test_fr321_yamlgraph_async_subprocess_exec.py#L10)
+- **Code**: E402
+- **Sin**: Import `YamlgraphAsyncAction` after `pytest.importorskip("statemachine_engine")` guard.
+- **Penance**: Same pattern as CONF-037. The `statemachine_engine` package is a local dependency not installed in CI; `importorskip` must execute before the action import to skip gracefully.
+
 ---
 
 ## Example Code

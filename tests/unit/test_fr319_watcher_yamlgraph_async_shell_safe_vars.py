@@ -2,7 +2,6 @@
 
 import asyncio
 import importlib.util
-import shlex
 import sys
 import types
 from pathlib import Path
@@ -77,20 +76,18 @@ def _build_action(monkeypatch, *, vars_override: dict[str, str] | None = None):
 
 
 def _patch_subprocess_capture(monkeypatch):
-    captured: dict[str, str] = {}
+    captured: dict[str, tuple[str, ...]] = {}
 
-    async def fake_create_subprocess_shell(command, **_kwargs):
-        captured["command"] = command
+    async def fake_create_subprocess_exec(*argv, **_kwargs):
+        captured["argv"] = argv
         return _FakeProcess(returncode=0)
 
-    monkeypatch.setattr(
-        asyncio, "create_subprocess_shell", fake_create_subprocess_shell
-    )
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_create_subprocess_exec)
     return captured
 
 
-def _extract_var_pairs(command: str) -> list[str]:
-    tokens = shlex.split(command)
+def _extract_var_pairs(argv: tuple[str, ...]) -> list[str]:
+    tokens = list(argv)
     return [
         tokens[i + 1]
         for i, arg_fragment in enumerate(tokens[:-1])
@@ -122,11 +119,11 @@ class TestFR319WatcherYamlgraphAsyncShellSafeVars:
         )
 
         assert event == "validate_done"
-        pairs = _extract_var_pairs(captured["command"])
+        pairs = _extract_var_pairs(captured["argv"])
         pair = next(p for p in pairs if p.startswith("precommit_output="))
         assert pair == f"precommit_output={precommit_output}"
 
-    def test_ac02_shell_metacharacters_use_shlex_quote_contract(self, monkeypatch):
+    def test_ac02_shell_metacharacters_pass_as_literal_argv(self, monkeypatch):
         action = _build_action(monkeypatch)
         captured = _patch_subprocess_capture(monkeypatch)
 
@@ -143,10 +140,11 @@ class TestFR319WatcherYamlgraphAsyncShellSafeVars:
             )
         )
 
-        expected_segment = f"precommit_output={shlex.quote(precommit_output)}"
-        assert expected_segment in captured["command"]
+        pairs = _extract_var_pairs(captured["argv"])
+        pair = next(p for p in pairs if p.startswith("precommit_output="))
+        assert pair == f"precommit_output={precommit_output}"
 
-    def test_ac04_context_placeholders_resolve_before_quoting(self, monkeypatch):
+    def test_ac04_context_placeholders_resolve_before_var_encoding(self, monkeypatch):
         action = _build_action(
             monkeypatch,
             vars_override={
@@ -167,6 +165,6 @@ class TestFR319WatcherYamlgraphAsyncShellSafeVars:
             )
         )
 
-        pairs = _extract_var_pairs(captured["command"])
+        pairs = _extract_var_pairs(captured["argv"])
         pair = next(p for p in pairs if p.startswith("precommit_output="))
         assert pair == f"precommit_output=PREFIX:{source_value}:SUFFIX"
