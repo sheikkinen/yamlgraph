@@ -21,10 +21,12 @@ stateDiagram-v2
         plan --> capture_fr : plan_done
         capture_fr --> judge : fr_captured
         judge --> enforce_session : approve
-        enforce_session --> validate : enforce_done
-        validate --> precommit_check : validate_done
-        precommit_check --> done : pass
-        precommit_check --> validate : fix_needed
+        enforce_session --> validate_fix : enforce_done
+        validate_fix --> sanity_check : validate_done
+        sanity_check --> validate_gate : pass
+        sanity_check --> validate_gate : warn
+        validate_gate --> done : pass
+        validate_gate --> validate_fix : fix_needed
         judge --> plan : revise
         done --> [*] : completed
         judge --> [*] : reject
@@ -59,14 +61,16 @@ stateDiagram-v2
 stateDiagram-v2
     %% Error Handling Flow
     capture_fr : capture_fr
-    enforce_session : enforce_session
-    judge : judge
-    done : done
+    sanity_check : sanity_check
     setup : setup
-    plan : plan
+    validate_gate : validate_gate
+    done : done
+    judge : judge
     failed : failed
-    precommit_check : precommit_check
-    precommit_check --> failed : error
+    enforce_session : enforce_session
+    plan : plan
+    validate_gate --> failed : error
+    sanity_check --> failed : error
     setup --> failed : error
     plan --> failed : error
     capture_fr --> failed : error
@@ -82,8 +86,8 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Stop/Shutdown Flow
-    failed : failed
     stopped : ⏹️ stopped
+    failed : failed
     stopped --> [*]
     failed --> stopped : cleanup_done
     setup --> stopped : stop
@@ -102,8 +106,9 @@ stateDiagram-v2
 | `capture_fr` | Capture Fr | bash_context |
 | `judge` | Judge | yamlgraph_async |
 | `enforce_session` | Enforce Session | yamlgraph_async |
-| `validate` | Validate | yamlgraph_async |
-| `precommit_check` | Precommit Check | precommit |
+| `validate_fix` | Validate Fix | yamlgraph_async |
+| `sanity_check` | Sanity Check | yamlgraph_async |
+| `validate_gate` | Validate Gate | validate_gate |
 | `done` | Done | bash |
 | `completed` | Completed | N/A |
 | `failed` | Failed | bash |
@@ -125,6 +130,7 @@ stateDiagram-v2
 | `validate_done` | Success | Validate Done |
 | `fix_needed` | Internal | Fix Needed |
 | `pass` | Internal | Pass |
+| `warn` | Internal | Warn |
 | `completed` | Internal | Completed |
 | `cleanup_done` | Success | Cleanup Done |
 | `error` | Error | Error |
@@ -136,9 +142,9 @@ stateDiagram-v2
 
 ## Configuration Summary
 
-- **States:** 11
-- **Events:** 16
-- **Transitions:** 23
+- **States:** 12
+- **Events:** 17
+- **Transitions:** 26
 - **Initial State:** `setup`
 
 ---
