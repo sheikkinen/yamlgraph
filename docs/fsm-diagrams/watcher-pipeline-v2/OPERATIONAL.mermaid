@@ -8,10 +8,12 @@ stateDiagram-v2
     plan --> capture_fr : plan_done
     capture_fr --> judge : fr_captured
     judge --> enforce_session : approve
-    enforce_session --> validate : enforce_done
-    validate --> precommit_check : validate_done
-    precommit_check --> done : pass
-    precommit_check --> validate : fix_needed
+    enforce_session --> validate_fix : enforce_done
+    validate_fix --> sanity_check : validate_done
+    sanity_check --> validate_gate : pass
+    sanity_check --> validate_gate : warn
+    validate_gate --> done : pass
+    validate_gate --> validate_fix : fix_needed
     judge --> plan : revise
 
     %% External composites
