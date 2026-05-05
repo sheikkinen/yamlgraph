@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **YAMLGraph** is a YAML-first framework for building LLM pipelines using LangGraph. The key insight: 60-80% of AI workflows can be defined entirely in YAML (graphs + prompts + schemas) without writing Python code. Built on LangGraph with multi-provider LLM support (Anthropic, Mistral, OpenAI).
 
+For fast repository orientation, use the generated static module map at `reference/module-map.md`.
+
 ## Development Process
 
 Before implementing any feature or fix:
