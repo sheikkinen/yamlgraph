@@ -31,6 +31,7 @@ After the learning path, explore production examples below.
 
 | Example | Description | Key Features |
 |---------|-------------|--------------|
+| [agent-sdk-planner/](agent-sdk-planner/) | Standalone FR planner spike | Anthropic Agent SDK, custom tools, PostToolUse audit hooks |
 | [beautify/](beautify/) | Graph → HTML infographic | LLM analysis, Mermaid diagrams, Tailwind CSS |
 | [book_translator/](book_translator/) | Translate books & documents | Map nodes, parallel translation, glossary, checkpointing |
 | [booking/](booking/) | Appointment booking assistant | Interrupt nodes, tool nodes, multi-turn conversation |
