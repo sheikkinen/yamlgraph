@@ -78,17 +78,44 @@ def _extract_exports(tree: ast.Module) -> list[str]:
     return exports
 
 
-def _extract_dependencies(tree: ast.Module) -> list[str]:
+def _module_parts(module_file: Path) -> tuple[list[str], bool]:
+    rel = module_file.relative_to(SOURCE_ROOT).with_suffix("")
+    parts = list(rel.parts)
+    is_package = bool(parts and parts[-1] == "__init__")
+    if is_package:
+        parts = parts[:-1]
+    return parts, is_package
+
+
+def _extract_dependencies(tree: ast.Module, module_file: Path) -> list[str]:
     deps: set[str] = set()
+    module_parts, is_package = _module_parts(module_file)
+    package_parts = module_parts if is_package else module_parts[:-1]
+
     for node in tree.body:
         if isinstance(node, ast.Import):
             for alias in node.names:
-                deps.add(alias.name)
+                if alias.name == "yamlgraph" or alias.name.startswith("yamlgraph."):
+                    deps.add(alias.name)
         elif isinstance(node, ast.ImportFrom):
-            module = node.module or ""
-            level = "." * node.level if node.level else ""
-            deps.add(f"{level}{module}".rstrip("."))
-    return sorted(dep for dep in deps if dep)
+            if node.level:
+                up_steps = max(node.level - 1, 0)
+                if up_steps >= len(package_parts):
+                    base_parts: list[str] = []
+                else:
+                    base_parts = package_parts[: len(package_parts) - up_steps]
+                suffix_parts = (node.module or "").split(".") if node.module else []
+                rel_parts = [part for part in [*base_parts, *suffix_parts] if part]
+                dep = "yamlgraph"
+                if rel_parts:
+                    dep = f"yamlgraph.{'.'.join(rel_parts)}"
+                deps.add(dep)
+            else:
+                module = node.module or ""
+                if module == "yamlgraph" or module.startswith("yamlgraph."):
+                    deps.add(module)
+
+    return sorted(deps)
 
 
 def _index_tests(test_root: Path) -> dict[str, list[str]]:
@@ -141,7 +168,7 @@ def _build_entries() -> list[ModuleEntry]:
                 module_path=module_path,
                 line_count=line_count,
                 exports=_extract_exports(tree),
-                dependencies=_extract_dependencies(tree),
+                dependencies=_extract_dependencies(tree, module_file),
                 test_paths=_match_tests(module_file, tests_by_filename),
             )
         )
@@ -150,54 +177,54 @@ def _build_entries() -> list[ModuleEntry]:
 
 
 def _render_markdown(entries: list[ModuleEntry]) -> str:
+    def _format_exports(exports: list[str]) -> str:
+        if not exports:
+            return "_none_"
+        return ", ".join(f"`{exported}`" for exported in exports)
+
+    def _format_dependencies(deps: list[str]) -> str:
+        if not deps:
+            return "_none_"
+        return ", ".join(f"`{dep}`" for dep in deps)
+
+    def _is_trivial_init(entry: ModuleEntry) -> bool:
+        return (
+            entry.module_path.endswith("__init__.py")
+            and entry.line_count < 10
+            and len(entry.exports) <= 1
+        )
+
     lines: list[str] = []
     lines.append("# Module Map")
     lines.append("")
     lines.append("## Metadata")
-    lines.append("")
     lines.append("- source_root: `yamlgraph/`")
     lines.append("- parser: stdlib `ast.parse()`")
     lines.append("- deterministic ordering: modules sorted by relative path")
     lines.append(f"- module count: {len(entries)}")
     lines.append("")
     lines.append("## Module index/tree")
-    lines.append("")
 
     for entry in entries:
-        lines.append(f"### `{entry.module_path}`")
-        lines.append(f"- line count: {entry.line_count}")
-        if entry.exports:
-            lines.append("- exports:")
-            for exported in entry.exports:
-                lines.append(f"  - `{exported}`")
-        else:
-            lines.append("- exports: _none_")
-
-        if entry.dependencies:
-            lines.append("- import dependencies:")
-            for dep in entry.dependencies:
-                lines.append(f"  - `{dep}`")
-        else:
-            lines.append("- import dependencies: _none_")
-        lines.append("")
+        lines.append(
+            f"- `{entry.module_path}` - {entry.line_count} lines; exports: {_format_exports(entry.exports)}"
+        )
+        if not _is_trivial_init(entry):
+            lines.append(
+                f"  - import dependencies: {_format_dependencies(entry.dependencies)}"
+            )
 
     lines.append("## test_map")
     lines.append("")
-    lines.append("Deterministic mapping rule:")
-    lines.append(
-        "1. Convert module path to candidate filenames `test_<stem>.py` and `test_<flattened_path>.py`."
+    mapped_modules = sum(1 for entry in entries if entry.test_paths)
+    mapped_tests = len(
+        {test_path for entry in entries for test_path in entry.test_paths}
     )
-    lines.append("2. Resolve candidates against discovered files under `tests/`.")
-    lines.append("3. Emit lexicographically sorted module and test paths.")
-    lines.append("")
-
-    for entry in entries:
-        lines.append(f"- `{entry.module_path}`")
-        if entry.test_paths:
-            for test_path in entry.test_paths:
-                lines.append(f"  - `{test_path}`")
-        else:
-            lines.append("  - `_none_`")
+    lines.append(
+        "- deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`."
+    )
+    lines.append(f"- mapped modules: {mapped_modules}/{len(entries)}")
+    lines.append(f"- discovered tests: {mapped_tests}")
     lines.append("")
 
     return "\n".join(lines)
