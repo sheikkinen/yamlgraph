@@ -210,3 +210,59 @@ class TestGraphConfigSchema:
         }
         schema = validate_graph_schema(config)
         assert len(schema.edges) == 2
+
+
+@pytest.mark.req("REQ-YG-154")
+def test_node_config_guards_pre_post_validation():
+    """NodeConfig validates guards pre/post phase action constraints."""
+    node = NodeConfig.model_validate(
+        {
+            "type": "llm",
+            "prompt": "guarded",
+            "guards": {
+                "pre": [{"check": "state.ready == True", "on_fail": "skip"}],
+                "post": [
+                    {
+                        "check": "output.summary | length < 50",
+                        "on_fail": "retry",
+                        "max_retries": 2,
+                    }
+                ],
+            },
+        }
+    )
+    assert node.guards is not None
+    assert node.guards.post[0].max_retries == 2
+
+    with pytest.raises(
+        ValidationError, match="Input should be 'warn', 'halt' or 'skip'"
+    ):
+        NodeConfig.model_validate(
+            {
+                "type": "llm",
+                "prompt": "guarded",
+                "guards": {
+                    "pre": [{"check": "state.ready == True", "on_fail": "retry"}]
+                },
+            }
+        )
+
+    with pytest.raises(
+        ValidationError,
+        match="max_retries is only valid for post guards with on_fail=retry",
+    ):
+        NodeConfig.model_validate(
+            {
+                "type": "llm",
+                "prompt": "guarded",
+                "guards": {
+                    "post": [
+                        {
+                            "check": "output != None",
+                            "on_fail": "warn",
+                            "max_retries": 1,
+                        }
+                    ]
+                },
+            }
+        )

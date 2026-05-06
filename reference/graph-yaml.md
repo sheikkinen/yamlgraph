@@ -256,6 +256,7 @@ Each node in the `nodes` section defines a processing step.
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
 | `route_field` | `string` | — | **Required for routers.** Schema field to extract route key from (FR-107) |
 | `verification` | `object` | `null` | Verification gate: falsifiable prediction checked after execution (FR-164) |
+| `guards` | `object` | `null` | Deterministic pre/post guard rules with explicit policy (FR-344) |
 | `timeout` | `float` | `null` | Per-node execution timeout in seconds (FR-069). Wraps execution in a one-shot `ThreadPoolExecutor`. On timeout, a `PipelineError` with `error_type=TIMEOUT_ERROR` is returned. Works on all node types. |
 
 ### `type: llm` - Standard LLM Node
@@ -1021,6 +1022,41 @@ nodes:
 | Custom | Any other text | Annotation only (logged, no failure) |
 
 **Lint rule W022:** Warns when a node uses `on_error: skip` without a verification question.
+
+### Deterministic Node Guards (FR-344)
+
+Add `guards.pre` and `guards.post` to assert deterministic constraints before and after node execution.
+
+```yaml
+nodes:
+  enforce_inputs:
+    type: llm
+    prompt: summarize
+    state_key: summary
+    guards:
+      pre:
+        - check: "state.fr_path | file_exists"
+          on_fail: halt
+          message: "FR file not found"
+      post:
+        - check: "output | length < 500"
+          on_fail: warn
+        - check: "'summary' in output | keys"
+          on_fail: retry
+          max_retries: 2
+```
+
+| Path | Type | Description |
+|------|------|-------------|
+| `guards.pre` | `list[rule]` | Pre-execution guards. `on_fail`: `warn`, `halt`, `skip` |
+| `guards.post` | `list[rule]` | Post-execution guards. `on_fail`: `warn`, `halt`, `retry` |
+| `rule.check` | `str` | Deterministic expression (`state.*`, `output.*`, logic/comparisons, filters) |
+| `rule.message` | `str \| null` | Optional custom failure message |
+| `rule.max_retries` | `int` | Only valid for post guards with `on_fail: retry` (default `1`) |
+
+Supported filters in guard expressions: `length`, `file_exists`, `dir_exists`, `type`, `keys`.
+
+**Lint rule W025:** Warns when guard rules are syntactically valid YAML but not executable guard expressions.
 
 ---
 

@@ -25,6 +25,7 @@ from yamlgraph.linter.checks import (
     check_unanchored_prompt_variables,
 )
 from yamlgraph.linter.checks_contracts import (
+    check_guard_expressions,
     check_identifier_keys,
     check_silent_fallback,
     check_skip_if_exists_add_reducer,
@@ -126,6 +127,9 @@ def lint_graph(
 
     # FR-165: Silent fallback detection
     all_issues.extend(check_silent_fallback(graph_path))
+
+    # FR-344: Deterministic guard expression validation
+    all_issues.extend(check_guard_expressions(graph_path))
 
     # FR-071: Thinking budget checks
     all_issues.extend(check_thinking_budget(graph_path))

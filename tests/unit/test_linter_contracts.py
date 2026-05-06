@@ -15,6 +15,7 @@ import pytest
 import yaml
 
 from yamlgraph.linter.checks_contracts import (
+    check_guard_expressions,
     check_identifier_keys,
     check_python_node_variables,
     check_silent_fallback,
@@ -484,3 +485,29 @@ class TestW017SilentFallback:
         assert len(issues) == 1
         assert "on_error: fail" in issues[0].fix
         assert "on_error: fallback" in issues[0].fix
+
+
+@pytest.mark.req("REQ-YG-154")
+def test_w025_invalid_guard_expression_warning():
+    """W025 warns for invalid guard expression syntax/filter usage."""
+    graph = _create_temp_graph(
+        {
+            "nodes": {
+                "guarded": {
+                    "type": "llm",
+                    "prompt": "generate",
+                    "guards": {
+                        "pre": [
+                            {
+                                "check": "state.path | unknown_filter",
+                                "on_fail": "halt",
+                            }
+                        ]
+                    },
+                }
+            }
+        }
+    )
+    issues = check_guard_expressions(graph)
+    assert any(i.code == "W025" for i in issues)
+    assert any("invalid guard expression" in i.message for i in issues)

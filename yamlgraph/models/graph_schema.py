@@ -51,6 +51,67 @@ class VerificationConfig(BaseModel):
         return v
 
 
+class GuardRuleBase(BaseModel):
+    """Base schema for deterministic guard rules (FR-344)."""
+
+    check: str = Field(..., description="Deterministic guard expression")
+    message: str | None = Field(
+        default=None,
+        description="Optional human-readable failure message",
+    )
+
+    model_config = {"extra": "forbid"}
+
+
+class PreGuardRule(GuardRuleBase):
+    """Pre-execution guard rule."""
+
+    on_fail: Literal["warn", "halt", "skip"] = Field(
+        ..., description="Pre-guard action: warn | halt | skip"
+    )
+
+
+class PostGuardRule(GuardRuleBase):
+    """Post-execution guard rule."""
+
+    on_fail: Literal["warn", "halt", "retry"] = Field(
+        ..., description="Post-guard action: warn | halt | retry"
+    )
+    max_retries: int | None = Field(
+        default=None,
+        ge=1,
+        description="Retry budget for post guards with on_fail=retry (default 1)",
+    )
+
+    @model_validator(mode="after")
+    def validate_retry_fields(self) -> "PostGuardRule":
+        """Allow max_retries only with on_fail=retry, defaulting to 1."""
+        if self.on_fail == "retry":
+            if self.max_retries is None:
+                self.max_retries = 1
+            return self
+        if self.max_retries is not None:
+            raise ValueError(
+                "max_retries is only valid for post guards with on_fail=retry"
+            )
+        return self
+
+
+class GuardConfig(BaseModel):
+    """Per-node deterministic guard configuration."""
+
+    pre: list[PreGuardRule] = Field(
+        default_factory=list,
+        description="Pre-execution deterministic guards",
+    )
+    post: list[PostGuardRule] = Field(
+        default_factory=list,
+        description="Post-execution deterministic guards",
+    )
+
+    model_config = {"extra": "forbid"}
+
+
 class SubgraphNodeConfig(BaseModel):
     """Configuration for a subgraph node."""
 
@@ -159,6 +220,10 @@ class NodeConfig(BaseModel):
         default=None,
         description="Verification gate — falsifiable prediction checked after execution",
     )
+    guards: GuardConfig | None = Field(
+        default=None,
+        description="Deterministic pre/post guard checks with explicit failure policy",
+    )
 
     # Node-level caching (FR-032)
     cache: CacheConfig | None = Field(
@@ -186,6 +251,14 @@ class NodeConfig(BaseModel):
         """Parse verification from dict (YAML input) to VerificationConfig."""
         if isinstance(v, dict):
             return VerificationConfig(**v)
+        return v
+
+    @field_validator("guards", mode="before")
+    @classmethod
+    def parse_guards(cls, v: Any) -> Any:
+        """Parse guards from dict (YAML input) to GuardConfig."""
+        if isinstance(v, dict):
+            return GuardConfig(**v)
         return v
 
     @field_validator("timeout")

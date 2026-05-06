@@ -10,29 +10,31 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from yamlgraph.constants import ErrorHandler, NodeType
-from yamlgraph.error_handlers import (
-    check_loop_limit,
-    check_requirements,
-    handle_default,
-    handle_fail,
-    handle_fallback,
-    handle_retry,
-    handle_skip,
-)
+from yamlgraph.constants import NodeType
+from yamlgraph.error_handlers import check_loop_limit, check_requirements
 from yamlgraph.executor import execute_prompt
 from yamlgraph.models import PipelineError
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
+from yamlgraph.node_factory.guard_runtime import (
+    evaluate_guards_once,
+    extract_guard_rules,
+)
+from yamlgraph.node_factory.llm_execution import (
+    apply_verification as _apply_verification,
+)
+from yamlgraph.node_factory.llm_execution import (
+    handle_error as _handle_error,
+)
+from yamlgraph.node_factory.llm_execution import (
+    resolve_route as _resolve_route,
+)
+from yamlgraph.node_factory.llm_execution import (
+    should_skip_if_exists as _should_skip_if_exists,
+)
 from yamlgraph.utils.expressions import resolve_node_variables
 from yamlgraph.utils.json_extract import extract_json
-from yamlgraph.verification import VerificationError, evaluate_verification
 
 logger = logging.getLogger(__name__)
-
-
-# =============================================================================
-# Phase 1: Config resolution (FR-223)
-# =============================================================================
 
 
 @dataclass(frozen=True)
@@ -66,6 +68,8 @@ class LLMNodeConfig:
     node_type: str
     candidates: list[dict[str, Any]] | None = field(default=None)
     timeout: float | None = field(default=None)
+    guards_pre: list[dict[str, Any]] = field(default_factory=list)
+    guards_post: list[dict[str, Any]] = field(default_factory=list)
 
 
 def resolve_llm_node_config(
@@ -136,6 +140,7 @@ def resolve_llm_node_config(
         verification_question = None
         verification_on_fail = None
         verification_max_retries = 1
+    guards_pre, guards_post = extract_guard_rules(node_config)
 
     return LLMNodeConfig(
         prompt_name=node_config.get("prompt"),
@@ -165,156 +170,221 @@ def resolve_llm_node_config(
         node_type=node_type,
         candidates=node_config.get("candidates"),
         timeout=node_config.get("timeout"),
+        guards_pre=guards_pre,
+        guards_post=guards_post,
     )
 
 
-# =============================================================================
-# Phase 2: Execution helpers (FR-223)
-# =============================================================================
-
-
-def _should_skip_if_exists(skip_if_exists: bool, state_key: str, state: dict) -> bool:
-    """Check if node should skip based on existing state value.
-
-    FR-050: Uses truthiness check, not existence check.
-    Empty collections ([], {}), empty strings (""), None, 0, and False
-    do NOT trigger skip — only truthy values do.
-    """
-    if not skip_if_exists:
-        return False
-    return bool(state.get(state_key))
-
-
-ExecuteFn = Callable[[str | None], tuple[Any, Exception | None]]
-
-
-def _apply_verification(
+def _evaluate_pre_guards(
     cfg: LLMNodeConfig,
     node_name: str,
-    result: Any,
-    state: dict,
-    attempt_execute: ExecuteFn,
-) -> tuple[Any, Any]:
-    """Apply verification gate with optional retry (FR-164).
-
-    Returns:
-        (result, violation) — violation is None if verification passed
-    """
-    if cfg.verification_question is None:
-        return result, None
-
-    violation = evaluate_verification(
-        question=cfg.verification_question,
-        actual=result,
-        state=state,
-    )
-    if violation is None:
-        return result, None
-
-    violation.node = node_name
-
-    if cfg.verification_on_fail == "halt":
-        raise VerificationError(node_name, violation)
-
-    if cfg.verification_on_fail == "retry":
-        for _attempt in range(cfg.verification_max_retries):
-            retry_result, retry_error = attempt_execute(cfg.provider)
-            if retry_error is not None:
-                break
-            if cfg.parse_json and isinstance(retry_result, str):
-                retry_result = extract_json(retry_result)
-            retry_violation = evaluate_verification(
-                question=cfg.verification_question,
-                actual=retry_result,
-                state=state,
-            )
-            if retry_violation is None:
-                return retry_result, None
-            result = retry_result
-
-    # warn (default) or retry exhausted
-    logger.warning(
-        f"⚠ Verification violated [{node_name}]: "
-        f'predicted "{cfg.verification_question}", '
-        f"got {repr(result)} "
-        f"(check: {violation.check_type}, on_fail: {cfg.verification_on_fail})"
-    )
-    return result, violation
-
-
-def _resolve_route(
-    cfg: LLMNodeConfig,
-    result: Any,
-) -> tuple[str | None, Any]:
-    """Resolve router routing from result (FR-107).
-
-    Returns:
-        (route_target, store_value) — both None for non-router nodes
-    """
-    if cfg.node_type != NodeType.ROUTER or not cfg.routes or not cfg.route_field:
-        return None, None
-
-    if isinstance(result, dict):
-        route_key = result.get(cfg.route_field)
-    else:
-        route_key = getattr(result, cfg.route_field, None)
-
-    if route_key and route_key in cfg.routes:
-        route = cfg.routes[route_key]
-    elif cfg.default_route:
-        route = cfg.default_route
-    else:
-        route = list(cfg.routes.values())[0]
-
-    return route, route_key
-
-
-def _handle_error(
-    cfg: LLMNodeConfig,
-    node_name: str,
-    error: Exception,
     state: dict,
     loop_counts: dict,
-    attempt_execute: ExecuteFn,
-) -> dict:
-    """Dispatch error to the configured strategy handler.
+) -> tuple[list[PipelineError], dict | None]:
+    """Evaluate pre-guards and return either errors or an early state update."""
+    guard_errors: list[PipelineError] = []
+    pre_decision = evaluate_guards_once(
+        node_name=node_name,
+        phase="pre",
+        rules=cfg.guards_pre,
+        state=state,
+        output=None,
+    )
+    guard_errors.extend(pre_decision.warnings)
 
-    Returns:
-        State update dict
-    """
-    if cfg.on_error == ErrorHandler.SKIP:
-        handle_skip(node_name, error, loop_counts)
-        return {
+    if pre_decision.action == "skip":
+        if pre_decision.violation is not None:
+            guard_errors.append(pre_decision.violation)
+        return guard_errors, {
             cfg.state_key: None,
             "current_step": node_name,
             "_loop_counts": loop_counts,
             "_skipped": True,
-            "_skip_reason": "error",
-            "errors": [PipelineError.from_exception(error, node=node_name)],
+            "_skip_reason": "guard",
+            "errors": guard_errors,
         }
 
-    if cfg.on_error == ErrorHandler.FAIL:
-        handle_fail(node_name, error)
+    if pre_decision.action == "halt":
+        if pre_decision.violation is not None:
+            guard_errors.append(pre_decision.violation)
+        return guard_errors, {
+            "errors": guard_errors,
+            "current_step": node_name,
+            "_loop_counts": loop_counts,
+        }
 
-    if cfg.on_error == ErrorHandler.RETRY:
-        nr = handle_retry(
-            node_name,
-            lambda: attempt_execute(cfg.provider),
-            cfg.max_retries,
+    return guard_errors, None
+
+
+def _evaluate_post_guards(
+    cfg: LLMNodeConfig,
+    node_name: str,
+    state: dict,
+    result: Any,
+    loop_counts: dict,
+    attempt_execute: Callable[[str | None], tuple[Any, Exception | None]],
+) -> tuple[Any, list[PipelineError], dict | None]:
+    """Evaluate post-guards, including retry policy."""
+    guard_errors: list[PipelineError] = []
+    post_retry_budget = {
+        i: int(rule.get("max_retries", 1))
+        for i, rule in enumerate(cfg.guards_post)
+        if rule.get("on_fail") == "retry"
+    }
+
+    while True:
+        post_decision = evaluate_guards_once(
+            node_name=node_name,
+            phase="post",
+            rules=cfg.guards_post,
+            state=state,
+            output=result,
         )
-        return nr.to_state_update(cfg.state_key, node_name, loop_counts)
+        guard_errors.extend(post_decision.warnings)
 
-    if cfg.on_error == ErrorHandler.FALLBACK and cfg.fallback_provider:
-        nr = handle_fallback(node_name, attempt_execute, cfg.fallback_provider)
-        return nr.to_state_update(cfg.state_key, node_name, loop_counts)
+        if post_decision.action is None:
+            return result, guard_errors, None
 
-    nr = handle_default(node_name, error)
-    return nr.to_state_update(cfg.state_key, node_name, loop_counts)
+        can_retry = (
+            post_decision.action == "retry"
+            and post_decision.failed_rule_index is not None
+            and post_retry_budget.get(post_decision.failed_rule_index, 0) > 0
+        )
+        if can_retry:
+            post_retry_budget[post_decision.failed_rule_index] -= 1
+            retry_result, retry_error = attempt_execute(cfg.provider)
+            if retry_error is not None:
+                update = _handle_error(
+                    cfg, node_name, retry_error, state, loop_counts, attempt_execute
+                )
+                return result, guard_errors, update
+            if cfg.parse_json and isinstance(retry_result, str):
+                retry_result = extract_json(retry_result)
+            result = retry_result
+            continue
+
+        if post_decision.violation is not None:
+            guard_errors.append(post_decision.violation)
+        return (
+            result,
+            guard_errors,
+            {
+                cfg.state_key: result,
+                "current_step": node_name,
+                "_loop_counts": loop_counts,
+                "errors": guard_errors,
+            },
+        )
 
 
-# =============================================================================
-# Phase 3: Orchestrator (FR-223)
-# =============================================================================
+def _run_node(
+    cfg: LLMNodeConfig,
+    node_name: str,
+    state: dict,
+    graph_path: Path | None,
+) -> dict:  # noqa: C901
+    """Execute one llm/router node with guards, verification, and routing."""
+    loop_counts = dict(state.get("_loop_counts") or {})
+    current_count = loop_counts.get(node_name, 0)
+
+    if check_loop_limit(node_name, cfg.loop_limit, current_count):
+        return {"_loop_limit_reached": True, "current_step": node_name}
+
+    loop_counts[node_name] = current_count + 1
+    if _should_skip_if_exists(cfg.skip_if_exists, cfg.state_key, state):
+        logger.info(f"Node {node_name} skipped - {cfg.state_key} already in state")
+        return {"current_step": node_name, "_loop_counts": loop_counts}
+
+    if req_error := check_requirements(cfg.requires, state, node_name):
+        return {
+            "errors": [req_error],
+            "current_step": node_name,
+            "_loop_counts": loop_counts,
+        }
+
+    guard_errors, pre_update = _evaluate_pre_guards(
+        cfg=cfg,
+        node_name=node_name,
+        state=state,
+        loop_counts=loop_counts,
+    )
+    if pre_update is not None:
+        return pre_update
+
+    variables = resolve_node_variables(cfg.variable_templates, state)
+    if cfg.candidates and cfg.node_type == NodeType.ROUTER:
+        from yamlgraph.node_factory.router_race_node import _execute_router_race
+
+        return _execute_router_race(
+            cfg, node_name, variables, state, loop_counts, graph_path
+        )
+
+    def attempt_execute(use_provider: str | None) -> tuple[Any, Exception | None]:
+        try:
+            result = execute_prompt(
+                prompt_name=cfg.prompt_name,
+                variables=variables,
+                output_model=cfg.output_model,
+                temperature=cfg.temperature,
+                provider=use_provider,
+                model=cfg.model,
+                graph_path=graph_path,
+                prompts_dir=cfg.prompts_dir,
+                prompts_relative=cfg.prompts_relative,
+                state=state,
+                max_tokens=cfg.max_tokens,
+                thinking_budget=cfg.thinking_budget,
+            )
+            return result, None
+        except Exception as error:
+            return None, error
+
+    result, error = attempt_execute(cfg.provider)
+    if error is not None:
+        return _handle_error(cfg, node_name, error, state, loop_counts, attempt_execute)
+
+    if cfg.parse_json and isinstance(result, str):
+        result = extract_json(result)
+
+    result, post_guard_errors, post_update = _evaluate_post_guards(
+        cfg=cfg,
+        node_name=node_name,
+        state=state,
+        result=result,
+        loop_counts=loop_counts,
+        attempt_execute=attempt_execute,
+    )
+    guard_errors.extend(post_guard_errors)
+    if post_update is not None:
+        return post_update
+
+    result, violation = _apply_verification(
+        cfg, node_name, result, state, attempt_execute
+    )
+    if violation is not None:
+        guard_errors.append(violation)
+        return {
+            cfg.state_key: result,
+            "current_step": node_name,
+            "_loop_counts": loop_counts,
+            "errors": guard_errors,
+        }
+
+    logger.info(f"Node {node_name} completed successfully")
+    update: dict[str, Any] = {
+        cfg.state_key: result,
+        "current_step": node_name,
+        "_loop_counts": loop_counts,
+    }
+    route, route_key = _resolve_route(cfg, result)
+    if route is not None:
+        update["_route"] = route
+        if route_key is not None:
+            update[cfg.state_key] = route_key
+        logger.info(f"Router {node_name} routing to: {route}")
+    if guard_errors:
+        update["errors"] = guard_errors
+    return update
 
 
 def create_node_function(
@@ -353,97 +423,11 @@ def create_node_function(
 
     cfg = resolve_llm_node_config(node_name, node_config, defaults, graph_path)
 
-    def node_fn(state: dict) -> dict:  # noqa: C901
+    def node_fn(state: dict) -> dict:
         """Generated node function."""
-        loop_counts = dict(state.get("_loop_counts") or {})
-        current_count = loop_counts.get(node_name, 0)
-
-        if check_loop_limit(node_name, cfg.loop_limit, current_count):
-            return {"_loop_limit_reached": True, "current_step": node_name}
-
-        loop_counts[node_name] = current_count + 1
-
-        # FR-050: skip on truthy existing value
-        if _should_skip_if_exists(cfg.skip_if_exists, cfg.state_key, state):
-            logger.info(f"Node {node_name} skipped - {cfg.state_key} already in state")
-            return {"current_step": node_name, "_loop_counts": loop_counts}
-
-        if req_error := check_requirements(cfg.requires, state, node_name):
-            return {
-                "errors": [req_error],
-                "current_step": node_name,
-                "_loop_counts": loop_counts,
-            }
-
-        variables = resolve_node_variables(cfg.variable_templates, state)
-
-        # FR-272: Router with candidates uses race execution path
-        if cfg.candidates and cfg.node_type == NodeType.ROUTER:
-            from yamlgraph.node_factory.router_race_node import _execute_router_race
-
-            return _execute_router_race(
-                cfg, node_name, variables, state, loop_counts, graph_path
-            )
-
-        def attempt_execute(use_provider: str | None) -> tuple[Any, Exception | None]:
-            try:
-                r = execute_prompt(
-                    prompt_name=cfg.prompt_name,
-                    variables=variables,
-                    output_model=cfg.output_model,
-                    temperature=cfg.temperature,
-                    provider=use_provider,
-                    model=cfg.model,
-                    graph_path=graph_path,
-                    prompts_dir=cfg.prompts_dir,
-                    prompts_relative=cfg.prompts_relative,
-                    state=state,
-                    max_tokens=cfg.max_tokens,
-                    thinking_budget=cfg.thinking_budget,
-                )
-                return r, None
-            except Exception as e:
-                return None, e
-
-        result, error = attempt_execute(cfg.provider)
-
-        if error is not None:
-            return _handle_error(
-                cfg, node_name, error, state, loop_counts, attempt_execute
-            )
-
-        # Post-process: JSON extraction if enabled
-        if cfg.parse_json and isinstance(result, str):
-            result = extract_json(result)
-
-        # FR-164: Verification gate
-        result, violation = _apply_verification(
-            cfg, node_name, result, state, attempt_execute
+        return _run_node(
+            cfg=cfg, node_name=node_name, state=state, graph_path=graph_path
         )
-        if violation is not None:
-            return {
-                cfg.state_key: result,
-                "current_step": node_name,
-                "_loop_counts": loop_counts,
-                "errors": [violation],
-            }
-
-        logger.info(f"Node {node_name} completed successfully")
-        update: dict[str, Any] = {
-            cfg.state_key: result,
-            "current_step": node_name,
-            "_loop_counts": loop_counts,
-        }
-
-        # Router routing (FR-107)
-        route, route_key = _resolve_route(cfg, result)
-        if route is not None:
-            update["_route"] = route
-            if route_key is not None:
-                update[cfg.state_key] = route_key
-            logger.info(f"Router {node_name} routing to: {route}")
-
-        return update
 
     node_fn.__name__ = f"{node_name}_node"
     return node_fn
