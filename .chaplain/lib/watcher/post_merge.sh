@@ -92,6 +92,84 @@ consume_matching_inbox_items() {
     return 0
 }
 
+resolve_post_merge_pr_state() {
+    local resolved_state=""
+
+    if [[ -z "${PR_NUMBER:-}" ]]; then
+        log_info "post_merge skip processing topic cleanup: PR number unavailable; merged state unknown"
+        POST_MERGE_PR_STATE=""
+        return 0
+    fi
+
+    if ! command -v gh >/dev/null 2>&1; then
+        log_warn "post_merge skip processing topic cleanup: gh unavailable for merged-state check"
+        POST_MERGE_PR_STATE=""
+        return 0
+    fi
+
+    resolved_state=$(gh pr view "$PR_NUMBER" --json state --jq '.state' 2>/dev/null || true)
+
+    if [[ -z "$resolved_state" ]]; then
+        log_warn "post_merge skip processing topic cleanup: unable to read PR #$PR_NUMBER state via gh pr view --json state --jq '.state'"
+    else
+        log_info "post_merge PR #$PR_NUMBER state: $resolved_state"
+    fi
+
+    POST_MERGE_PR_STATE="$resolved_state"
+    return 0
+}
+
+cleanup_processing_topic() {
+    local processing_topic="${TOPIC_FILE:-}"
+    local done_dir=".chaplain/done"
+    local source_name=""
+    local done_path=""
+
+    if [[ "${POST_MERGE_PR_STATE:-}" != "MERGED" ]]; then
+        log_info "post_merge skip processing topic cleanup: PR state is not merged (${POST_MERGE_PR_STATE:-unknown})"
+        return 0
+    fi
+
+    if [[ -z "$processing_topic" ]]; then
+        log_info "post_merge processing topic missing from context; no-op cleanup"
+        return 0
+    fi
+
+    if [[ "$processing_topic" != *"/.chaplain/processing/"* && "$processing_topic" != .chaplain/processing/* ]]; then
+        log_warn "post_merge skip processing topic cleanup: TOPIC_FILE is not under .chaplain/processing/: $processing_topic"
+        return 0
+    fi
+
+    if [[ ! -f "$processing_topic" ]]; then
+        log_info "post_merge processing topic missing; idempotent no-op: $processing_topic"
+        return 0
+    fi
+
+    if ! mkdir -p "$done_dir"; then
+        log_warn "Failed to create $done_dir — skipping processing topic move"
+        return 0
+    fi
+
+    source_name=$(basename "$processing_topic")
+    done_path="$done_dir/$source_name"
+
+    if [[ -e "$done_path" ]]; then
+        local timestamp
+        local stem
+        timestamp=$(date +%Y%m%d%H%M%S)
+        stem="${source_name%.md}"
+        done_path="$done_dir/${stem}-${timestamp}.md"
+    fi
+
+    if mv "$processing_topic" "$done_path"; then
+        log_info "post_merge moved processing topic to done: $source_name"
+    else
+        log_warn "Failed to move processing topic to done queue: $source_name"
+    fi
+
+    return 0
+}
+
 sync_main_after_merge() {
     local stash_created=0
     local stash_message=""
@@ -172,6 +250,9 @@ post_merge() {
     else
         consume_matching_inbox_items "$merged_fr_token"
     fi
+
+    resolve_post_merge_pr_state
+    cleanup_processing_topic
 
     if ! sync_main_after_merge; then
         return 1
