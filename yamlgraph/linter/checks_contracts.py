@@ -16,6 +16,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from yamlgraph.linter.checks import LintIssue, load_graph
+from yamlgraph.utils.guard_evaluator import (
+    GuardExpressionError,
+    validate_guard_expression,
+)
 
 
 def check_python_node_variables(graph_path: Path) -> list[LintIssue]:
@@ -239,10 +243,133 @@ def check_silent_fallback(graph_path: Path) -> list[LintIssue]:
     return issues
 
 
+def check_guard_expressions(graph_path: Path) -> list[LintIssue]:
+    """W025: guards parse in YAML but are invalid/non-executable."""
+    issues: list[LintIssue] = []
+    graph = load_graph(graph_path)
+    allowed = {"pre": {"warn", "halt", "skip"}, "post": {"warn", "halt", "retry"}}
+
+    for node_name, node_config in graph.get("nodes", {}).items():
+        guards = node_config.get("guards")
+        if guards is None:
+            continue
+        if not isinstance(guards, dict):
+            issues.append(
+                LintIssue(
+                    severity="warning",
+                    code="W025",
+                    message=f"Node '{node_name}' guards must be an object with pre/post lists",
+                    fix="Use guards:\n  pre: []\n  post: []",
+                )
+            )
+            continue
+        for phase in ("pre", "post"):
+            rules = guards.get(phase)
+            if rules is None:
+                continue
+            if not isinstance(rules, list):
+                issues.append(
+                    LintIssue(
+                        severity="warning",
+                        code="W025",
+                        message=f"Node '{node_name}' guards.{phase} must be a list",
+                        fix=f"Set guards.{phase} to a list of {{check, on_fail}} rules",
+                    )
+                )
+                continue
+            for index, rule in enumerate(rules):
+                if not isinstance(rule, dict):
+                    issues.append(
+                        LintIssue(
+                            severity="warning",
+                            code="W025",
+                            message=(
+                                f"Node '{node_name}' guards.{phase}[{index}] must be an object"
+                            ),
+                            fix='Use {check: "...", on_fail: "warn|halt|skip|retry"}',
+                        )
+                    )
+                    continue
+                check = rule.get("check")
+                on_fail = rule.get("on_fail")
+                if not isinstance(check, str) or not check.strip():
+                    issues.append(
+                        LintIssue(
+                            severity="warning",
+                            code="W025",
+                            message=(
+                                f"Node '{node_name}' guards.{phase}[{index}] missing non-empty check expression"
+                            ),
+                            fix="Set check to a deterministic expression (e.g. state.path | file_exists)",
+                        )
+                    )
+                    continue
+                if on_fail not in allowed[phase]:
+                    valid = ", ".join(sorted(allowed[phase]))
+                    issues.append(
+                        LintIssue(
+                            severity="warning",
+                            code="W025",
+                            message=(
+                                f"Node '{node_name}' guards.{phase}[{index}] "
+                                f"has invalid on_fail '{on_fail}'"
+                            ),
+                            fix=f"Use one of: {valid}",
+                        )
+                    )
+                if phase == "post" and on_fail == "retry":
+                    retries = rule.get("max_retries", 1)
+                    if not isinstance(retries, int) or retries < 1:
+                        issues.append(
+                            LintIssue(
+                                severity="warning",
+                                code="W025",
+                                message=(
+                                    f"Node '{node_name}' guards.post[{index}] "
+                                    "retry max_retries must be integer >= 1"
+                                ),
+                                fix="Set max_retries: 1 (or greater integer)",
+                            )
+                        )
+                if phase == "post" and on_fail != "retry" and "max_retries" in rule:
+                    issues.append(
+                        LintIssue(
+                            severity="warning",
+                            code="W025",
+                            message=(
+                                f"Node '{node_name}' guards.post[{index}] "
+                                "uses max_retries without on_fail=retry"
+                            ),
+                            fix="Remove max_retries or set on_fail: retry",
+                        )
+                    )
+                try:
+                    validate_guard_expression(check)
+                except GuardExpressionError as exc:
+                    issues.append(
+                        LintIssue(
+                            severity="warning",
+                            code="W025",
+                            message=(
+                                f"Node '{node_name}' guards.{phase}[{index}] "
+                                f"has invalid guard expression: {exc}"
+                            ),
+                            fix=(
+                                "Use deterministic guard syntax (state/output refs, "
+                                "and/or/not, comparisons, in/not in, filters: length, "
+                                "file_exists, dir_exists, type, keys)"
+                            ),
+                        )
+                    )
+
+    return issues
+
+
 __all__ = [
     "check_identifier_keys",
     "check_skip_if_exists_add_reducer",
     "check_top_level_provider_model",
     "check_skip_without_verification",
     "check_silent_fallback",
+    "check_guard_expressions",
 ]

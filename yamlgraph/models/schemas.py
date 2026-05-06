@@ -6,7 +6,7 @@ Demo-specific output schemas are defined inline in graph YAML files.
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -23,6 +23,7 @@ class ErrorType(StrEnum):
     PROMPT_ERROR = "prompt_error"  # Missing prompt, template errors
     STATE_ERROR = "state_error"  # Missing required state data
     VERIFICATION_ERROR = "verification_error"  # Verification gate violations (FR-164)
+    GUARD_ERROR = "guard_error"  # Deterministic node guard violations (FR-344)
     TIMEOUT_ERROR = "timeout_error"  # Per-node execution timeout (FR-069)
     UNKNOWN_ERROR = "unknown_error"  # Catch-all
 
@@ -90,6 +91,15 @@ class VerificationViolation(PipelineError):
     check_type: str = Field(
         description="Evaluator pattern: count_range | non_empty | contains | annotation"
     )
+
+
+class GuardViolation(PipelineError):
+    """A deterministic node guard check failed (FR-344)."""
+
+    phase: Literal["pre", "post"] = Field(description="Guard phase")
+    check: str = Field(description="Guard expression that failed")
+    actual: str = Field(description="Actual evaluated guard result")
+    on_fail: str = Field(description="Configured guard failure action")
 
 
 # =============================================================================

@@ -26,6 +26,7 @@ Start here and progress in order:
 | [reflexion/](reflexion/) | `llm` | Self-correction with loop limits |
 | [yamlgraph/](yamlgraph/) | `llm` | Multi-step pipeline |
 | [git-report/](git-report/) | `agent` | Git analysis with tools |
+| [guards/](guards/) | `llm` | Deterministic pre/post node guards with explicit policy (FR-344) |
 | [memory/](memory/) | `agent` | Multi-turn with memory |
 | [interview/](interview/) | `interrupt` | Human-in-the-loop |
 | [interrupt/](interrupt/) | `subgraph`, `interrupt` | Subgraph interrupt tests |
