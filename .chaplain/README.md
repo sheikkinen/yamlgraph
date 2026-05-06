@@ -44,7 +44,7 @@ Reusable shell primitives live in `.chaplain/lib/watcher/`:
 - `create_pr.sh` — PR create/reuse logic
 - `wait_ci.sh` — CI polling and result handling
 - `merge_pr.sh` — squash merge handling
-- `post_merge.sh` — post-merge inbox/topic reconciliation; resolves FR token (`FR-[0-9]+`) from PR title, scans inbox for matching files, moves them to `.chaplain/done/` (consumed-completed queue); creates `.chaplain/done/` automatically when missing; reconciles local main after merge with `git stash push --include-untracked` → `git pull --rebase --quiet origin main` → conditional `git stash pop`
+- `post_merge.sh` — post-merge inbox/topic reconciliation; resolves FR token (`FR-[0-9]+`) from PR title, scans inbox for matching files, moves them to `.chaplain/done/` (consumed-completed queue); checks merged PR state with `gh pr view --json state --jq '.state'`; moves merged topics from `.chaplain/processing/` to `.chaplain/done/` (missing processing topic is an explicit idempotent no-op; unmerged/unknown state skips processing cleanup); creates `.chaplain/done/` automatically when missing; reconciles local main after merge with `git stash push --include-untracked` → `git pull --rebase --quiet origin main` → conditional `git stash pop`. This contract moves merged topics from .chaplain/processing/ to .chaplain/done/.
 - `metrics.sh` — cycle metrics emission
 
 ## Usage

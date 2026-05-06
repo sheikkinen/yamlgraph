@@ -326,8 +326,8 @@ actions:
         bash {main_dir}/.chaplain/lib/watcher/wait_ci.sh --pr "$PR_NUM"
         bash {main_dir}/.chaplain/lib/watcher/merge_pr.sh --pr "$PR_NUM"
         bash {main_dir}/.chaplain/lib/watcher/worktree_teardown.sh --dir {wt_dir}
-        rm -f {topic_file}
-        bash {main_dir}/.chaplain/lib/watcher/post_merge.sh 2>/dev/null || true
+        cd {main_dir}
+        PR_NUMBER="$PR_NUM" PR_TITLE="$PR_TITLE" TOPIC_FILE="{main_dir}/{topic_file}" bash {main_dir}/.chaplain/lib/watcher/post_merge.sh 2>/dev/null || true
       success: completed
       error: error
       timeout: 300
