@@ -19,18 +19,33 @@ class TestWatcherEnforceSessionGraph:
     def test_graph_exists(self):
         assert _GRAPH_PATH.exists()
 
-    def test_graph_has_single_enforce_node(self):
+    def test_graph_has_context_planner_assembler_and_enforce_nodes(self):
         graph = _load_graph()
-        assert set(graph["nodes"].keys()) == {"enforce"}
-        node = graph["nodes"]["enforce"]
-        assert node["type"] == "copilot"
-        assert node["prompt"] == "enforce-session"
-        assert node["state_key"] == "enforce_result"
+        assert set(graph["nodes"].keys()) == {
+            "plan_context",
+            "assemble_context",
+            "enforce",
+        }
+
+        plan_node = graph["nodes"]["plan_context"]
+        assert plan_node["type"] == "llm"
+        assert plan_node["prompt"] == "context-planner"
+
+        assemble_node = graph["nodes"]["assemble_context"]
+        assert assemble_node["type"] == "python"
+        assert assemble_node["tool"] == "assemble_context_tool"
+
+        enforce_node = graph["nodes"]["enforce"]
+        assert enforce_node["type"] == "copilot"
+        assert enforce_node["prompt"] == "enforce-session"
+        assert enforce_node["state_key"] == "enforce_result"
 
     def test_graph_edges_are_linear(self):
         graph = _load_graph()
         assert graph["edges"] == [
-            {"from": "START", "to": "enforce"},
+            {"from": "START", "to": "plan_context"},
+            {"from": "plan_context", "to": "assemble_context"},
+            {"from": "assemble_context", "to": "enforce"},
             {"from": "enforce", "to": "END"},
         ]
 
@@ -44,6 +59,7 @@ class TestWatcherEnforceSessionGraph:
 class TestWatcherEnforcePrompts:
     def test_active_session_prompts_exist(self):
         expected = {
+            "context-planner.yaml",
             "enforce-session.yaml",
             "validate-session.yaml",
             "sanity-check-session.yaml",

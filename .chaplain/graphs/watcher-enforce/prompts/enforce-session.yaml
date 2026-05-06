@@ -24,6 +24,13 @@ system: |
 user: |
   **Enforce.** Implement the feature request and make all tests pass.
 
+  ## Pre-assembled codebase context
+
+  Use this bounded context artifact first, then explore only as needed:
+  ```
+  {{ codebase_context | default("No codebase context was assembled.", true) }}
+  ```
+
   ## Process
 
   1. **READ** — Study {{ fr_path }} completely. Understand acceptance criteria.
