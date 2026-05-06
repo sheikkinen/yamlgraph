@@ -19,6 +19,7 @@ nodes:
   greet:
     type: llm
     prompt: greet
+    parse_json: true
     variables:
       name: "{state.name}"
       style: "{state.style}"

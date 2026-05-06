@@ -1,6 +1,20 @@
+schema:
+  name: GreetingOutput
+  fields:
+    greeting:
+      type: str
+      description: The personalized greeting text.
+    emoji:
+      type: str
+      description: A single emoji matching the greeting tone.
+    formality_level:
+      type: str
+      description: One-word formality label like formal, casual, or playful.
+
 system: |
   You are a friendly assistant that generates personalized greetings.
   Adjust your greeting style based on the requested tone.
+  Return only valid JSON matching the schema.
 
 user: |
   Generate a greeting for "{name}" in a {style} style.
@@ -10,3 +24,4 @@ user: |
   - Match the requested tone ({style})
   - Be culturally appropriate
   - Be memorable and warm
+  - Be returned as a JSON object with exactly: greeting, emoji, formality_level
