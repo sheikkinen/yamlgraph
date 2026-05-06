@@ -1,12 +1,11 @@
 # FR-305: Enforce Session graph
-# Single copilot node for the enforce+evaluate loop.
-# The implement→precommit→pytest→fix loop runs INSIDE this one invocation.
-# No separate FSM transitions for retries.
+# FR-337: Adds context-planner + context-assembler pre-nodes.
+# The implement→precommit→pytest→fix loop still runs inside one enforce invocation.
 # FR-309: Runs a fresh session (session continuation deferred to v3).
 
 version: "1.0"
 name: watcher-enforce-session
-description: "FR-305 — Single copilot session for enforce+evaluate loop"
+description: "FR-337 — Context-planned enforce session"
 
 prompts_relative: true
 prompts_dir: ./prompts
@@ -15,9 +14,32 @@ state:
   fr_path: str
   worktree_dir: str
   branch: str
+  context_plan: dict
+  assembled_context: str
   enforce_result: dict
 
+tools:
+  assemble_context_tool:
+    type: python
+    path: .chaplain/graphs/watcher-enforce/tools.py
+    function: assemble_context
+
 nodes:
+  plan_context:
+    type: llm
+    prompt: context-planner
+    model: gemini-2.0-flash
+    temperature: 0
+    variables:
+      fr_path: "{state.fr_path}"
+      module_map_path: "reference/module-map.md"
+    state_key: context_plan
+
+  assemble_context:
+    type: python
+    tool: assemble_context_tool
+    state_key: assembled_context
+
   enforce:
     type: copilot
     prompt: enforce-session
@@ -30,11 +52,16 @@ nodes:
       fr_path: "{state.fr_path}"
       worktree_dir: "{state.worktree_dir}"
       branch: "{state.branch}"
+      codebase_context: "{state.assembled_context}"
     state_key: enforce_result
     timeout: 3600
 
 edges:
   - from: START
+    to: plan_context
+  - from: plan_context
+    to: assemble_context
+  - from: assemble_context
     to: enforce
   - from: enforce
     to: END
