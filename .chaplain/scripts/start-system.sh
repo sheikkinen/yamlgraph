@@ -105,6 +105,15 @@ if [[ -z "${VIRTUAL_ENV:-}" ]]; then
     fi
 fi
 
+# Load environment variables from .env if present
+if [[ -f ".env" ]]; then
+    echo "📦 Loading .env..."
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+fi
+
 echo "🔍 Checking requirements..."
 for cmd in statemachine statemachine-ui statemachine-validate statemachine-diagrams; do
     if ! command -v "$cmd" >/dev/null 2>&1; then

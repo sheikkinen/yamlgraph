@@ -13,6 +13,17 @@ CONTEXT_BUDGET_CHARS = 12_000
 SOURCE_SNIPPET_CHARS = 1_200
 DOC_SNIPPET_CHARS = 1_200
 
+MODULE_MAP_PATH = "reference/module-map.md"
+
+
+def load_module_map(state: dict) -> dict:
+    """Read the static module map into state for the context planner prompt."""
+    repo_root = Path(state.get("worktree_dir") or ".").resolve()
+    map_path = repo_root / MODULE_MAP_PATH
+    if not map_path.exists():
+        return {"module_map": "(module map not found)"}
+    return {"module_map": map_path.read_text(encoding="utf-8")}
+
 
 class ContextPlan(BaseModel):
     """Validated planner output for context assembly."""
@@ -144,7 +155,11 @@ def assemble_context(state: dict) -> dict:
         sections.extend([f"- {symbol}" for symbol in plan.key_symbols])
 
     for source in plan.source_files:
-        source_path = _resolve_repo_file(repo_root, source)
+        try:
+            source_path = _resolve_repo_file(repo_root, source)
+        except ValueError:
+            sections.append(f"\n## Source: {source} (not found, skipped)")
+            continue
         signatures = _extract_source_signatures(source_path)
         sections.append("")
         sections.append(f"## Source: {source}")
@@ -158,7 +173,11 @@ def assemble_context(state: dict) -> dict:
         sections.append("```")
 
     for test_file in plan.test_files:
-        test_path = _resolve_repo_file(repo_root, test_file)
+        try:
+            test_path = _resolve_repo_file(repo_root, test_file)
+        except ValueError:
+            sections.append(f"\n## Tests: {test_file} (not found, skipped)")
+            continue
         test_names = _extract_test_names(test_path)
         sections.append("")
         sections.append(f"## Tests: {test_file}")
@@ -166,7 +185,11 @@ def assemble_context(state: dict) -> dict:
         sections.extend([f"- {name}" for name in test_names] or ["- (none found)"])
 
     for doc_ref in plan.doc_sections:
-        doc_path = _resolve_repo_file(repo_root, doc_ref)
+        try:
+            doc_path = _resolve_repo_file(repo_root, doc_ref)
+        except ValueError:
+            sections.append(f"\n## Docs: {doc_ref} (not found, skipped)")
+            continue
         sections.append("")
         sections.append(f"## Docs: {doc_ref}")
         sections.append("```markdown")
