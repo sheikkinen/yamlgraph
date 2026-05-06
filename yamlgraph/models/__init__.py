@@ -14,6 +14,7 @@ from yamlgraph.models.graph_schema import (
 from yamlgraph.models.schemas import (
     ErrorType,
     GenericReport,
+    GuardViolation,
     PipelineError,
     VerificationViolation,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "ErrorType",
     "PipelineError",
     "VerificationViolation",
+    "GuardViolation",
     "GenericReport",
     # Graph config schema
     "GraphConfigSchema",

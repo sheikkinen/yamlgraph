@@ -17,6 +17,10 @@ from typing import Any
 from yamlgraph.executor_base import format_prompt
 from yamlgraph.models.schemas import CopilotResult
 from yamlgraph.node_factory.base import GraphState
+from yamlgraph.node_factory.guard_runtime import (
+    evaluate_guards_once,
+    extract_guard_rules,
+)
 from yamlgraph.utils.expressions import resolve_state_expression
 from yamlgraph.utils.prompts import load_prompt
 
@@ -193,12 +197,37 @@ def create_copilot_node(
         cli_flags = {**cli_flags, "model": resolved_model}
     timeout = config.get("timeout", DEFAULT_TIMEOUT)
     variables_config = config.get("variables", {})
+    guards_pre, guards_post = extract_guard_rules(config)
 
     if not state_key:
         raise ValueError(f"Copilot node '{node_name}' requires 'state_key'")
 
     def copilot_fn(state: GraphState) -> dict:
         """Execute copilot with CLI backend."""
+        guard_errors = []
+        pre_decision = evaluate_guards_once(
+            node_name=node_name,
+            phase="pre",
+            rules=guards_pre,
+            state=state,
+            output=None,
+        )
+        guard_errors.extend(pre_decision.warnings)
+        if pre_decision.action == "skip":
+            if pre_decision.violation is not None:
+                guard_errors.append(pre_decision.violation)
+            return {
+                state_key: None,
+                "current_step": node_name,
+                "_skipped": True,
+                "_skip_reason": "guard",
+                "errors": guard_errors,
+            }
+        if pre_decision.action == "halt":
+            if pre_decision.violation is not None:
+                guard_errors.append(pre_decision.violation)
+            return {"current_step": node_name, "errors": guard_errors}
+
         # Resolve variables from state
         resolved_vars = _resolve_variables(variables_config, state)
 
@@ -211,14 +240,53 @@ def create_copilot_node(
             prompts_relative=prompts_relative,
         )
 
-        return _execute_cli(
-            node_name=node_name,
-            prompt=rendered_prompt,
-            state_key=state_key,
-            cli_flags=cli_flags,
-            timeout=timeout,
-            state=state,  # FR-105: pass state for resume expression resolution
-        )
+        def execute_once() -> dict:
+            return _execute_cli(
+                node_name=node_name,
+                prompt=rendered_prompt,
+                state_key=state_key,
+                cli_flags=cli_flags,
+                timeout=timeout,
+                state=state,  # FR-105: pass state for resume expression resolution
+            )
+
+        update = execute_once()
+        output = update[state_key]
+        post_retry_budget = {
+            i: int(rule.get("max_retries", 1))
+            for i, rule in enumerate(guards_post)
+            if rule.get("on_fail") == "retry"
+        }
+        while True:
+            post_decision = evaluate_guards_once(
+                node_name=node_name,
+                phase="post",
+                rules=guards_post,
+                state=state,
+                output=output,
+            )
+            guard_errors.extend(post_decision.warnings)
+            if post_decision.action is None:
+                break
+            if (
+                post_decision.action == "retry"
+                and post_decision.failed_rule_index is not None
+                and post_retry_budget.get(post_decision.failed_rule_index, 0) > 0
+            ):
+                post_retry_budget[post_decision.failed_rule_index] -= 1
+                update = execute_once()
+                output = update[state_key]
+                continue
+            if post_decision.violation is not None:
+                guard_errors.append(post_decision.violation)
+            return {
+                state_key: output,
+                "current_step": node_name,
+                "errors": guard_errors,
+            }
+        if guard_errors:
+            update["errors"] = guard_errors
+        return update
 
     copilot_fn.__name__ = f"copilot_{node_name}"
     return copilot_fn

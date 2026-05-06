@@ -74,6 +74,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [reflexion](demos/reflexion/) | `llm` | Self-correction with loop limits |
 | [research-agent](demos/research-agent/) | `agent`, `llm` | 5-step agentic research (extract → plan → execute → validate → respond) |
 | [git-report](demos/git-report/) | `agent` | Git analysis with tools |
+| [guards](demos/guards/) | `llm` | Deterministic pre/post node guards with explicit policy (FR-344) |
 | [horoscope](demos/horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs |
 | [chatterbox](demos/chatterbox/) | `map`, `python` | Multilingual TTS with Chatterbox (5 languages → WAV) |
 | [chatterbox_clone](demos/chatterbox_clone/) | `python` | Voice cloning with Chatterbox reference audio → WAV (FR-236) |
