@@ -38,8 +38,8 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Error Handling Flow
-    processing_topic : processing_topic
     idle : idle
+    processing_topic : processing_topic
     processing_topic --> idle : error
 ```
 
