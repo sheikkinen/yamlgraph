@@ -1,6 +1,7 @@
 # Hello World Demo
 
-Minimal YAMLGraph example demonstrating basic LLM call with variable substitution.
+Minimal YAMLGraph example demonstrating basic LLM call with variable substitution
+and inline-schema structured output.
 
 ## Usage
 
@@ -34,7 +35,10 @@ Verified model identifiers for project `scp-tenant-dps-dev`:
 ## What It Does
 
 1. Takes `name` and `style` as input
-2. Generates a personalized greeting
+2. Generates a structured greeting with:
+   - `greeting` (message text)
+   - `emoji` (tone marker)
+   - `formality_level` (style classification)
 
 ## Pipeline
 
