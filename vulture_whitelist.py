@@ -112,6 +112,7 @@ from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
     CheckpointConfig,
     DefaultsConfig,
     NodeConfig,
+    PostGuardRule,
     VerificationConfig,
 )
 
@@ -129,6 +130,8 @@ NodeConfig.validate_thinking_budget
 NodeConfig.validate_node_requirements
 NodeConfig.parse_cache
 NodeConfig.parse_verification
+NodeConfig.parse_guards
+PostGuardRule.validate_retry_fields
 VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget
 GraphConfig.validate_router_targets

@@ -716,3 +716,93 @@ class TestRefactoredCreateNodeFunction:
         # Inputs unchanged
         assert defaults == defaults_copy
         assert minimal_node_config == config_copy
+
+
+@pytest.mark.req("REQ-YG-154")
+def test_pre_guard_halt_prevents_execute_prompt():
+    """Pre-guard halt fails fast and does not invoke execute_prompt."""
+    from yamlgraph.models.schemas import ErrorType
+    from yamlgraph.node_factory.llm_nodes import create_node_function
+
+    node_fn = create_node_function(
+        "guarded",
+        {
+            "type": "llm",
+            "prompt": "generate",
+            "state_key": "generated",
+            "guards": {
+                "pre": [{"check": "state.ready == True", "on_fail": "halt"}],
+            },
+        },
+        {},
+    )
+    with patch("yamlgraph.node_factory.llm_nodes.execute_prompt") as mock_execute:
+        result = node_fn({"ready": False})
+
+    mock_execute.assert_not_called()
+    assert result["current_step"] == "guarded"
+    assert result["errors"][0].type == ErrorType.GUARD_ERROR
+
+
+@pytest.mark.req("REQ-YG-154")
+def test_post_guard_retry_reexecutes_until_pass_or_exhausted():
+    """Post-guard retry re-executes and returns violation when retries are exhausted."""
+    from yamlgraph.models.schemas import ErrorType
+    from yamlgraph.node_factory.llm_nodes import create_node_function
+
+    node_config = {
+        "type": "llm",
+        "prompt": "generate",
+        "state_key": "generated",
+        "skip_if_exists": False,
+        "guards": {
+            "post": [
+                {"check": "output == 'good'", "on_fail": "retry", "max_retries": 1}
+            ]
+        },
+    }
+
+    with patch(
+        "yamlgraph.node_factory.llm_nodes.execute_prompt",
+        side_effect=["bad", "good"],
+    ) as mock_execute:
+        node_fn = create_node_function("guarded", node_config, {})
+        success = node_fn({})
+    assert mock_execute.call_count == 2
+    assert success["generated"] == "good"
+    assert "errors" not in success
+
+    with patch(
+        "yamlgraph.node_factory.llm_nodes.execute_prompt",
+        side_effect=["bad", "still_bad"],
+    ) as mock_execute:
+        node_fn = create_node_function("guarded", node_config, {})
+        exhausted = node_fn({})
+    assert mock_execute.call_count == 2
+    assert exhausted["generated"] == "still_bad"
+    assert exhausted["errors"][0].type == ErrorType.GUARD_ERROR
+
+
+@pytest.mark.req("REQ-YG-154")
+def test_pre_guard_skip_returns_explicit_skipped_metadata():
+    """Pre-guard skip returns explicit skip markers and no external call."""
+    from yamlgraph.node_factory.llm_nodes import create_node_function
+
+    node_fn = create_node_function(
+        "guarded",
+        {
+            "type": "llm",
+            "prompt": "generate",
+            "state_key": "generated",
+            "guards": {
+                "pre": [{"check": "state.ready == True", "on_fail": "skip"}],
+            },
+        },
+        {},
+    )
+    with patch("yamlgraph.node_factory.llm_nodes.execute_prompt") as mock_execute:
+        result = node_fn({"ready": False})
+    mock_execute.assert_not_called()
+    assert result["_skipped"] is True
+    assert result["_skip_reason"] == "guard"
+    assert result["generated"] is None

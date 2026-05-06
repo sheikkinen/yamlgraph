@@ -1,0 +1,35 @@
+version: "1.0"
+name: deterministic-guards-demo
+description: Demonstrate deterministic pre/post node guards without extra LLM calls
+
+state:
+  run_llm: bool
+  topic: str
+  result: str
+
+defaults:
+  prompts_relative: true
+  prompts_dir: prompts
+
+nodes:
+  guarded_generate:
+    type: llm
+    prompt: prompts/generate
+    state_key: result
+    variables:
+      topic: "{state.topic}"
+    guards:
+      pre:
+        - check: "state.run_llm == True"
+          on_fail: skip
+          message: "Set run_llm=true to execute the LLM call"
+      post:
+        - check: "output | length < 200"
+          on_fail: warn
+          message: "Generated output exceeded expected demo length"
+
+edges:
+  - from: START
+    to: guarded_generate
+  - from: guarded_generate
+    to: END

@@ -758,3 +758,31 @@ class TestCopilotSessionContinuation:
 
             copilot_result = result["result"]
             assert copilot_result.session_id is None
+
+
+@pytest.mark.req("REQ-YG-154")
+def test_copilot_pre_guard_halt_prevents_subprocess_run(tmp_path: Path) -> None:
+    """Pre-guard halt in copilot node blocks CLI invocation."""
+    from yamlgraph.models.schemas import ErrorType
+    from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+    prompt_file = tmp_path / "prompts" / "guard.yaml"
+    prompt_file.parent.mkdir(parents=True)
+    prompt_file.write_text("system: Guard test\nuser: Hello")
+
+    config = {
+        "type": "copilot",
+        "prompt": str(prompt_file),
+        "state_key": "result",
+        "guards": {
+            "pre": [{"check": "state.allow == True", "on_fail": "halt"}],
+        },
+    }
+
+    with patch("subprocess.run") as mock_run:
+        node_fn = create_copilot_node("guarded_copilot", config)
+        result = node_fn({"allow": False})
+
+    mock_run.assert_not_called()
+    assert result["current_step"] == "guarded_copilot"
+    assert result["errors"][0].type == ErrorType.GUARD_ERROR
