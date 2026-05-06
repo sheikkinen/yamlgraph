@@ -22,10 +22,14 @@ class TestWatcherEnforceSessionGraph:
     def test_graph_has_context_planner_assembler_and_enforce_nodes(self):
         graph = _load_graph()
         assert set(graph["nodes"].keys()) == {
+            "load_module_map",
             "plan_context",
             "assemble_context",
             "enforce",
         }
+
+        load_map_node = graph["nodes"]["load_module_map"]
+        assert load_map_node["type"] == "python"
 
         plan_node = graph["nodes"]["plan_context"]
         assert plan_node["type"] == "llm"
@@ -43,7 +47,8 @@ class TestWatcherEnforceSessionGraph:
     def test_graph_edges_are_linear(self):
         graph = _load_graph()
         assert graph["edges"] == [
-            {"from": "START", "to": "plan_context"},
+            {"from": "START", "to": "load_module_map"},
+            {"from": "load_module_map", "to": "plan_context"},
             {"from": "plan_context", "to": "assemble_context"},
             {"from": "assemble_context", "to": "enforce"},
             {"from": "enforce", "to": "END"},
