@@ -14,25 +14,36 @@ state:
   fr_path: str
   worktree_dir: str
   branch: str
+  module_map: str
   context_plan: dict
   assembled_context: str
   enforce_result: dict
 
 tools:
+  load_module_map_tool:
+    type: python
+    path: .chaplain/graphs/watcher-enforce/tools.py
+    function: load_module_map
   assemble_context_tool:
     type: python
     path: .chaplain/graphs/watcher-enforce/tools.py
     function: assemble_context
 
 nodes:
+  load_module_map:
+    type: python
+    tool: load_module_map_tool
+    state_key: module_map
+
   plan_context:
     type: llm
     prompt: context-planner
-    model: gemini-2.0-flash
+    provider: inception
+    model: mercury-2
     temperature: 0
     variables:
       fr_path: "{state.fr_path}"
-      module_map_path: "reference/module-map.md"
+      module_map: "{state.module_map}"
     state_key: context_plan
 
   assemble_context:
@@ -58,6 +69,8 @@ nodes:
 
 edges:
   - from: START
+    to: load_module_map
+  - from: load_module_map
     to: plan_context
   - from: plan_context
     to: assemble_context

@@ -13,7 +13,9 @@ user: |
   Plan context assembly inputs for this feature request:
 
   - Feature request path: {{ fr_path }}
-  - Static module map path: {{ module_map_path }}
+
+  ## Static Module Map
+  {{ module_map }}
 
   Return only the structured schema output.
   Rules:

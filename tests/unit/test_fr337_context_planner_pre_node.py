@@ -82,7 +82,8 @@ class TestFR337ContextPlannerPreNode:
         edge_map = {(e["from"], e["to"]) for e in edges}
 
         expected_edges = [
-            ("START", "plan_context"),
+            ("START", "load_module_map"),
+            ("load_module_map", "plan_context"),
             ("plan_context", "assemble_context"),
             ("assemble_context", "enforce"),
             ("enforce", "END"),
@@ -115,10 +116,16 @@ class TestFR337ContextPlannerPreNode:
         assert model_spec is not None, "plan_context node should specify a model"
 
         # Check it's a lightweight model
-        lightweight_models = ["flash", "haiku", "gemini-2.0-flash", "claude-3-haiku"]
+        lightweight_models = [
+            "flash",
+            "haiku",
+            "gemini-2.0-flash",
+            "claude-3-haiku",
+            "mercury",
+        ]
         assert any(
             lm in model_spec.lower() for lm in lightweight_models
-        ), f"Model {model_spec} should be lightweight (flash/haiku class)"
+        ), f"Model {model_spec} should be lightweight (flash/haiku/mercury class)"
 
     def test_ac05_enforce_prompt_references_injected_codebase_context_variable(self):
         """Enforce prompt should reference injected codebase_context variable."""
@@ -160,7 +167,12 @@ class TestFR337ContextPlannerPreNode:
             graph = yaml.safe_load(f)
 
         # Should now have 3 nodes instead of just 'enforce'
-        expected_nodes = {"plan_context", "assemble_context", "enforce"}
+        expected_nodes = {
+            "load_module_map",
+            "plan_context",
+            "assemble_context",
+            "enforce",
+        }
         actual_nodes = set(graph["nodes"].keys())
 
         assert (
