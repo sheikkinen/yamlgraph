@@ -14,6 +14,14 @@ class TestFR323VertexGemini31HelloSmoke:
     """Integration smoke tests for hello graph on Vertex Gemini 3.1 models."""
 
     @staticmethod
+    def _greeting_text(result: dict) -> str:
+        """Extract greeting text from structured hello output."""
+        greeting = result["greeting"]
+        if isinstance(greeting, dict):
+            return greeting["greeting"]
+        return greeting
+
+    @staticmethod
     def _invoke_hello_graph(vertex_model: str, thread_id: str) -> dict:
         with patch.dict(
             os.environ,
@@ -41,7 +49,7 @@ class TestFR323VertexGemini31HelloSmoke:
 
         assert "greeting" in result
         assert result["greeting"]
-        assert "World" in result["greeting"]
+        assert "World" in self._greeting_text(result)
 
     @pytest.mark.skipif(
         not os.environ.get("VERTEX_API_KEY"),
@@ -56,7 +64,7 @@ class TestFR323VertexGemini31HelloSmoke:
 
         assert "greeting" in result
         assert result["greeting"]
-        assert "World" in result["greeting"]
+        assert "World" in self._greeting_text(result)
 
     def test_ac03_hello_vertex_smoke_uses_vertex_api_key_gate(self):
         """AC-03: Tests are gated by VERTEX_API_KEY (Express mode)."""
