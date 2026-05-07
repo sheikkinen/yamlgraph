@@ -406,6 +406,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Import from `yamlgraph.utils.fsm` inside the test function.
 - **Penance**: The test is explicitly validating package-level importability as an acceptance criterion. Keeping the import inside the test body ensures evaluation happens at assertion time and avoids module-import side effects during test collection.
 
+### CONF-302
+- **File**: [yamlgraph/utils/fsm/event_sender.py](../yamlgraph/utils/fsm/event_sender.py#L13)
+- **Code**: S108
+- **Sin**: Hardcoded `/tmp/statemachine-control` path.
+- **Penance**: This is the statemachine-engine's AF_UNIX socket convention — not a temp file vulnerability. The engine binds to `/tmp/statemachine-control-{name}.sock` and all clients must match.
+
 ---
 
 ## Example Code
