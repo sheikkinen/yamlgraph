@@ -75,7 +75,7 @@ class TestYamlgraphAsyncAction:
         action = YamlgraphAsyncAction(action_config)
 
         with patch(
-            "actions.yamlgraph_async_action._run_and_dispatch", new_callable=AsyncMock
+            "yamlgraph.utils.fsm.action.run_and_dispatch", new_callable=AsyncMock
         ):
             event = await action.execute(context)
 
@@ -105,7 +105,7 @@ class TestYamlgraphAsyncAction:
         action = YamlgraphAsyncAction(action_config)
 
         with patch(
-            "actions.yamlgraph_async_action._run_and_dispatch", new_callable=AsyncMock
+            "yamlgraph.utils.fsm.action.run_and_dispatch", new_callable=AsyncMock
         ):
             await action.execute(context)
 
@@ -121,7 +121,7 @@ class TestYamlgraphAsyncAction:
         context["_graph_running_other_state"] = True
 
         with patch(
-            "actions.yamlgraph_async_action._run_and_dispatch", new_callable=AsyncMock
+            "yamlgraph.utils.fsm.action.run_and_dispatch", new_callable=AsyncMock
         ):
             await action.execute(context)
 
@@ -153,10 +153,10 @@ class TestYamlgraphAsyncAction:
 
         with (
             patch(
-                "actions.yamlgraph_async_action.asyncio.create_task",
+                "yamlgraph.utils.fsm.action.asyncio.create_task",
                 side_effect=capture_create_task,
             ),
-            patch("actions.yamlgraph_async_action._run_and_dispatch") as mock_dispatch,
+            patch("yamlgraph.utils.fsm.action.run_and_dispatch") as mock_dispatch,
         ):
             await action.execute(context)
             call_kwargs = mock_dispatch.call_args
@@ -201,10 +201,10 @@ class TestYamlgraphAsyncAction:
 
         with (
             patch(
-                "actions.yamlgraph_async_action.asyncio.create_task",
+                "yamlgraph.utils.fsm.action.asyncio.create_task",
                 side_effect=capture_create_task,
             ),
-            patch("actions.yamlgraph_async_action._run_and_dispatch") as mock_dispatch,
+            patch("yamlgraph.utils.fsm.action.run_and_dispatch") as mock_dispatch,
         ):
             await action.execute(context)
 
@@ -220,9 +220,12 @@ class TestRunAndDispatch:
         """Test that route from result is dispatched."""
         pytest.importorskip("statemachine_engine")
         pytest.importorskip("yamlgraph")
-        from actions.yamlgraph_async_action import _run_and_dispatch
+        from yamlgraph.utils.fsm.graph_runner import (
+            run_and_dispatch as _run_and_dispatch,
+        )
 
         mock_result = {"_route": "complex", "category": "technical"}
+        mock_send = MagicMock()
 
         with (
             patch(
@@ -232,7 +235,6 @@ class TestRunAndDispatch:
             patch(
                 "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
             ) as mock_run,
-            patch("actions.yamlgraph_async_action._send_event") as mock_send,
         ):
             mock_load.return_value = MagicMock()
             mock_run.return_value = mock_result
@@ -247,6 +249,7 @@ class TestRunAndDispatch:
                 success_event="classified",
                 failure_event="failed",
                 machine_name="test_router",
+                send_fn=mock_send,
             )
 
         mock_send.assert_called_once_with("test_router", "complex", None)
@@ -256,9 +259,12 @@ class TestRunAndDispatch:
         """Test that event_map maps LLM output to FSM event."""
         pytest.importorskip("statemachine_engine")
         pytest.importorskip("yamlgraph")
-        from actions.yamlgraph_async_action import _run_and_dispatch
+        from yamlgraph.utils.fsm.graph_runner import (
+            run_and_dispatch as _run_and_dispatch,
+        )
 
         mock_result = {"intent": "goodbye"}
+        mock_send = MagicMock()
 
         with (
             patch(
@@ -268,7 +274,6 @@ class TestRunAndDispatch:
             patch(
                 "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
             ) as mock_run,
-            patch("actions.yamlgraph_async_action._send_event") as mock_send,
         ):
             mock_load.return_value = MagicMock()
             mock_run.return_value = mock_result
@@ -283,6 +288,7 @@ class TestRunAndDispatch:
                 success_event="on_question",
                 failure_event="failed",
                 machine_name="test_router",
+                send_fn=mock_send,
             )
 
         mock_send.assert_called_once()
@@ -294,15 +300,16 @@ class TestRunAndDispatch:
         """Test that failure event is dispatched on error."""
         pytest.importorskip("statemachine_engine")
         pytest.importorskip("yamlgraph")
-        from actions.yamlgraph_async_action import _run_and_dispatch
+        from yamlgraph.utils.fsm.graph_runner import (
+            run_and_dispatch as _run_and_dispatch,
+        )
 
-        with (
-            patch(
-                "yamlgraph.executor_async.load_and_compile_async",
-                new_callable=AsyncMock,
-            ) as mock_load,
-            patch("actions.yamlgraph_async_action._send_event") as mock_send,
-        ):
+        mock_send = MagicMock()
+
+        with patch(
+            "yamlgraph.executor_async.load_and_compile_async",
+            new_callable=AsyncMock,
+        ) as mock_load:
             mock_load.side_effect = Exception("Graph compilation failed")
 
             await _run_and_dispatch(
@@ -315,6 +322,7 @@ class TestRunAndDispatch:
                 success_event="classified",
                 failure_event="failed",
                 machine_name="test_router",
+                send_fn=mock_send,
             )
 
         mock_send.assert_called_once_with("test_router", "failed")
@@ -324,7 +332,9 @@ class TestRunAndDispatch:
         """Test that guard key is cleared when task finishes."""
         pytest.importorskip("statemachine_engine")
         pytest.importorskip("yamlgraph")
-        from actions.yamlgraph_async_action import _run_and_dispatch
+        from yamlgraph.utils.fsm.graph_runner import (
+            run_and_dispatch as _run_and_dispatch,
+        )
 
         context = {"_graph_running_classifying": True}
 
@@ -336,7 +346,6 @@ class TestRunAndDispatch:
             patch(
                 "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
             ) as mock_run,
-            patch("actions.yamlgraph_async_action._send_event"),
         ):
             mock_load.return_value = MagicMock()
             mock_run.return_value = {"result": "ok"}
@@ -353,6 +362,7 @@ class TestRunAndDispatch:
                 machine_name="test_router",
                 context=context,
                 guard_key="_graph_running_classifying",
+                send_fn=MagicMock(),
             )
 
         assert "_graph_running_classifying" not in context
@@ -363,7 +373,9 @@ class TestRunAndDispatch:
         """Interrupted runs resume with Command and emit continue when still paused."""
         pytest.importorskip("statemachine_engine")
         pytest.importorskip("yamlgraph")
-        from actions.yamlgraph_async_action import _run_and_dispatch
+        from yamlgraph.utils.fsm.graph_runner import (
+            run_and_dispatch as _run_and_dispatch,
+        )
 
         app = MagicMock()
         app.aget_state = AsyncMock(
@@ -373,6 +385,8 @@ class TestRunAndDispatch:
             ]
         )
 
+        mock_send = MagicMock()
+
         with (
             patch(
                 "yamlgraph.executor_async.load_and_compile_async",
@@ -381,7 +395,6 @@ class TestRunAndDispatch:
             patch(
                 "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
             ) as mock_run,
-            patch("actions.yamlgraph_async_action._send_event") as mock_send,
         ):
             mock_load.return_value = app
             mock_run.return_value = {"assistant_response": "Need more details"}
@@ -397,6 +410,7 @@ class TestRunAndDispatch:
                 failure_event="failed",
                 machine_name="test_router",
                 thread_id="thread-123",
+                send_fn=mock_send,
             )
 
         mock_load.assert_awaited_once()
@@ -421,7 +435,9 @@ class TestRunAndDispatch:
         """Completed interrupt flows emit event_map.done instead of success fallback."""
         pytest.importorskip("statemachine_engine")
         pytest.importorskip("yamlgraph")
-        from actions.yamlgraph_async_action import _run_and_dispatch
+        from yamlgraph.utils.fsm.graph_runner import (
+            run_and_dispatch as _run_and_dispatch,
+        )
 
         app = MagicMock()
         app.aget_state = AsyncMock(
@@ -431,6 +447,8 @@ class TestRunAndDispatch:
             ]
         )
 
+        mock_send = MagicMock()
+
         with (
             patch(
                 "yamlgraph.executor_async.load_and_compile_async",
@@ -439,7 +457,6 @@ class TestRunAndDispatch:
             patch(
                 "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
             ) as mock_run,
-            patch("actions.yamlgraph_async_action._send_event") as mock_send,
         ):
             mock_load.return_value = app
             mock_run.return_value = {"assistant_response": "All set"}
@@ -455,6 +472,7 @@ class TestRunAndDispatch:
                 failure_event="failed",
                 machine_name="test_router",
                 thread_id="thread-123",
+                send_fn=mock_send,
             )
 
         mock_run.assert_awaited_once_with(
@@ -474,10 +492,14 @@ class TestRunAndDispatch:
         """Without thread_id the action keeps the legacy route fallback behavior."""
         pytest.importorskip("statemachine_engine")
         pytest.importorskip("yamlgraph")
-        from actions.yamlgraph_async_action import _run_and_dispatch
+        from yamlgraph.utils.fsm.graph_runner import (
+            run_and_dispatch as _run_and_dispatch,
+        )
 
         app = MagicMock()
         app.aget_state = AsyncMock()
+
+        mock_send = MagicMock()
 
         with (
             patch(
@@ -487,7 +509,6 @@ class TestRunAndDispatch:
             patch(
                 "yamlgraph.executor_async.run_graph_async", new_callable=AsyncMock
             ) as mock_run,
-            patch("actions.yamlgraph_async_action._send_event") as mock_send,
         ):
             mock_load.return_value = app
             mock_run.return_value = {"_route": "complex", "assistant_response": "ok"}
@@ -502,6 +523,7 @@ class TestRunAndDispatch:
                 success_event="classified",
                 failure_event="failed",
                 machine_name="test_router",
+                send_fn=mock_send,
             )
 
         app.aget_state.assert_not_awaited()

@@ -5,13 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import socket
-import tempfile
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PREFIX = str(Path(tempfile.gettempdir()) / "statemachine-control")
+SOCKET_PREFIX = "/tmp/statemachine-control"  # noqa: S108 — CONF-302
 MAX_MESSAGE_BYTES = 4096
 
 
