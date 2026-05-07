@@ -61,30 +61,30 @@ class SkillExporter:
         graph_path = self._resolve_graph_path(request.graph_path_or_dir)
         graph_config = self._load_valid_graph(graph_path)
         package_data = self._build_package_data(graph_path, graph_config)
-        target_dir = self._resolve_target_dir(
+        target_path = self._resolve_target_dir(
             output_dir=request.output_dir,
             skill_name=package_data["skill_name"],
             format_name=request.format,
         )
         if request.format == SkillFormat.AGENT_MD:
             target_file = self._resolve_target_file(
-                target_dir, package_data["skill_name"]
+                target_path, package_data["skill_name"]
             )
             self._assert_target_file_is_safe(target_file)
             write_agent_md_file(package_data, target_file)
             return SkillPackage(
                 skill_name=package_data["skill_name"],
                 graph_path=graph_path,
-                target_dir=target_dir,
+                target_dir=target_path,
                 target_file=target_file,
                 format=request.format,
             )
-        self._assert_target_dir_is_safe(target_dir)
-        write_skill_package(package_data, target_dir)
+        self._assert_target_dir_is_safe(target_path)
+        write_skill_package(package_data, target_path)
         return SkillPackage(
             skill_name=package_data["skill_name"],
             graph_path=graph_path,
-            target_dir=target_dir,
+            target_dir=target_path,
             format=request.format,
         )
 

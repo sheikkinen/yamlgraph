@@ -8,8 +8,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 
 def write_skill_package(package_data: dict[str, Any], target_dir: Path) -> None:
     """Write all skill package artifacts into target_dir atomically."""
@@ -104,16 +102,13 @@ def _build_agent_md_content(package_data: dict[str, Any]) -> str:
     input_schema = package_data["input_schema"]
     input_descriptions = package_data["input_descriptions"]
     skill_name = package_data["skill_name"]
-    description = package_data["description"]
+    description = str(package_data["description"]).replace("\n", " ").strip()
 
-    frontmatter_payload = {
-        "description": description,
-        "tools": ["yamlgraph/*"],
-        "model": "Claude Sonnet 4",
-    }
-    frontmatter = yaml.safe_dump(
-        frontmatter_payload, sort_keys=False, default_flow_style=False
-    ).strip()
+    frontmatter = (
+        f"description: {description}\n"
+        "tools: [yamlgraph/*]\n"
+        "model: Claude Sonnet 4"
+    )
 
     input_lines: list[str] = []
     for key in sorted(input_schema["properties"].keys()):
@@ -126,6 +121,8 @@ def _build_agent_md_content(package_data: dict[str, Any]) -> str:
     body = (
         f"# {skill_name}\n\n"
         f"{description}\n\n"
+        f"You are {skill_name}, a graph-scoped assistant. "
+        "Operate through YAMLGraph MCP tools only.\n\n"
         "## Inputs\n\n"
         f"{chr(10).join(input_lines)}\n\n"
         "## Invocation\n\n"
