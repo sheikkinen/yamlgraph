@@ -4,7 +4,7 @@
 
 ## The Pattern
 
-An FSM orchestrates workflow states, guards, timeouts, and retries. YAMLGraph graphs handle LLM processing as fire-and-forget actions. The bridge between them is `yamlgraph_async_action` — it launches a graph as a background task and sends an AF_UNIX DGRAM event back when done.
+An FSM orchestrates workflow states, guards, timeouts, and retries. YAMLGraph graphs handle LLM processing as fire-and-forget actions. The canonical bridge lives in `yamlgraph.utils.fsm` (`YamlgraphAsyncAction`) — it launches a graph as a background task and sends an AF_UNIX DGRAM event back when done.
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -55,7 +55,7 @@ nodes:
 
 ## The Bridge Action
 
-`yamlgraph_async_action.py` is the canonical bridge. It:
+`yamlgraph.utils.fsm` is the canonical bridge package. It:
 
 1. Sets a guard key to prevent duplicate launches (FSM polls at 50ms)
 2. Launches the graph via `asyncio.create_task`
