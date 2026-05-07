@@ -60,14 +60,14 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Error Handling Flow
-    done : done
-    validate_gate : validate_gate
-    failed : failed
     sanity_check : sanity_check
-    judge : judge
-    plan : plan
     capture_fr : capture_fr
     setup : setup
+    plan : plan
+    done : done
+    failed : failed
+    validate_gate : validate_gate
+    judge : judge
     enforce_session : enforce_session
     validate_gate --> failed : error
     sanity_check --> failed : error
