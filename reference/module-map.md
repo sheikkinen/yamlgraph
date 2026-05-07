@@ -33,7 +33,7 @@
   - import dependencies: _none_
 - `yamlgraph/cli/schema_commands.py` - 52 lines; exports: `cmd_schema_export(args)`, `cmd_schema_path(args)`, `cmd_schema_dispatch(args)`
   - import dependencies: `yamlgraph`, `yamlgraph.models.graph_schema`
-- `yamlgraph/cli/skill_commands.py` - 31 lines; exports: `cmd_skill_export(args)`, `cmd_skill_dispatch(args)`
+- `yamlgraph/cli/skill_commands.py` - 32 lines; exports: `cmd_skill_export(args)`, `cmd_skill_dispatch(args)`
   - import dependencies: `yamlgraph.skill_export`
 - `yamlgraph/config.py` - 81 lines; exports: _none_
   - import dependencies: _none_
@@ -146,9 +146,9 @@
   - import dependencies: `yamlgraph.utils.conditions`
 - `yamlgraph/schema_loader.py` - 268 lines; exports: `normalize_coding_keys(field)`, `resolve_type(type_str, field_name)`, `build_pydantic_model(schema)`, `build_pydantic_model_from_json_schema(schema, model_name)`, `load_schema_from_yaml(yaml_path)`
   - import dependencies: _none_
-- `yamlgraph/skill_export.py` - 289 lines; exports: `class SkillFormat`, `class PackageSkill`, `class SkillPackage`, `class SkillExporter`, `export_skill(graph_path_or_dir, *, format, output_dir)`
+- `yamlgraph/skill_export.py` - 313 lines; exports: `class SkillFormat`, `class PackageSkill`, `class SkillPackage`, `class SkillExporter`, `export_skill(graph_path_or_dir, *, format, output_dir)`
   - import dependencies: `yamlgraph.graph_loader`, `yamlgraph.skill_export_writer`, `yamlgraph.utils.prompts`
-- `yamlgraph/skill_export_writer.py` - 90 lines; exports: `write_skill_package(package_data, target_dir)`
+- `yamlgraph/skill_export_writer.py` - 135 lines; exports: `write_skill_package(package_data, target_dir)`, `write_agent_md_file(package_data, target_file)`
   - import dependencies: _none_
 - `yamlgraph/storage/__init__.py` - 18 lines; exports: _none_
   - import dependencies: `yamlgraph.storage.checkpointer_factory`, `yamlgraph.storage.export`
