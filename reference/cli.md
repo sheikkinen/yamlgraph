@@ -5,17 +5,16 @@ Complete command reference for the `yamlgraph` CLI.
 ## Commands Overview
 
 ```
-yamlgraph [-h] {list-runs,resume,trace,export,graph,a2a} ...
+yamlgraph [-h] {graph,schema,skill,diary,a2a} ...
 ```
 
 | Command | Description |
 |---------|-------------|
 | `graph` | Run graphs, list, validate, lint, generate diagrams |
+| `schema` | Export bundled JSON schema and print schema path |
+| `skill` | Export graphs as portable skill packages |
+| `diary` | Import pending diary insights |
 | `a2a` | A2A protocol server: serve graphs as agents, print Agent Cards |
-| `list-runs` | List recent pipeline runs |
-| `resume` | Resume a paused pipeline |
-| `trace` | Show execution trace (requires LangSmith) |
-| `export` | Export run results to JSON |
 
 ---
 
@@ -168,6 +167,53 @@ yamlgraph a2a card <graph_path> [options]
 **Example:**
 ```bash
 yamlgraph a2a card examples/demos/hello/
+```
+
+---
+
+## yamlgraph skill
+
+Portable skill packaging commands.
+
+```bash
+yamlgraph skill export <graph_path_or_dir> [--format skill-md|copilot|cursor] [--output-dir PATH]
+```
+
+### skill export
+
+Export a graph into a portable skill bundle with:
+
+- `SKILL.md`
+- `scripts/run.sh`
+- `references/`
+- `assets/schema.json`
+
+**Options:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--format` | `skill-md` | Output layout variant: `skill-md`, `copilot`, `cursor` |
+| `--output-dir` | `output` | Base output directory |
+
+**Layout by format:**
+
+| Format | Output path |
+|--------|-------------|
+| `skill-md` | `<output-dir>/<skill-name>/...` |
+| `copilot` | `<output-dir>/.copilot/skills/<skill-name>/...` |
+| `cursor` | `<output-dir>/.cursor/skills/<skill-name>/...` |
+
+**Examples:**
+
+```bash
+# Standard package layout
+yamlgraph skill export examples/demos/hello/graph.yaml --format skill-md
+
+# Copilot-compatible skills directory
+yamlgraph skill export examples/demos/hello/graph.yaml --format copilot --output-dir .
+
+# Cursor-compatible skills directory
+yamlgraph skill export examples/demos/hello/graph.yaml --format cursor --output-dir .
 ```
 
 ---
