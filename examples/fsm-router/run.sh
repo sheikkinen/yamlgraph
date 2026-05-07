@@ -56,8 +56,8 @@ if [ ! -L docs/fsm-diagrams/router ] && [ -d docs/fsm-diagrams/query_router ]; t
 fi
 
 # Start UI in background
-echo "🌐 Starting Web UI on http://localhost:3001..."
-statemachine-ui --port 3001 --project-root . &
+echo "🌐 Starting Web UI on http://localhost:3101..."
+statemachine-ui --port 3101 --websocket-port 3102 --project-root . &
 UI_PID=$!
 sleep 2
 
@@ -76,7 +76,7 @@ echo ""
 echo "📡 Send queries with:"
 echo "   statemachine-db send-event --target query_router --type new_query --payload '{\"query\": \"Hello!\"}'"
 echo ""
-echo "🌐 Open UI: http://localhost:3001"
+echo "🌐 Open UI: http://localhost:3101"
 echo ""
 echo "🛑 Stop with: Ctrl+C"
 echo ""

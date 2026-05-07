@@ -60,15 +60,15 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Error Handling Flow
-    sanity_check : sanity_check
-    capture_fr : capture_fr
-    setup : setup
-    plan : plan
     done : done
+    enforce_session : enforce_session
     failed : failed
     validate_gate : validate_gate
+    capture_fr : capture_fr
+    setup : setup
+    sanity_check : sanity_check
     judge : judge
-    enforce_session : enforce_session
+    plan : plan
     validate_gate --> failed : error
     sanity_check --> failed : error
     setup --> failed : error
@@ -86,8 +86,8 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     %% Stop/Shutdown Flow
-    failed : failed
     stopped : ⏹️ stopped
+    failed : failed
     stopped --> [*]
     failed --> stopped : cleanup_done
     setup --> stopped : stop
