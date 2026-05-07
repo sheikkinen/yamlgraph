@@ -11,7 +11,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from yamlgraph.graph_loader import GraphConfig, load_graph_config
-from yamlgraph.skill_export_writer import write_agent_markdown, write_skill_package
+from yamlgraph.skill_export_writer import write_agent_md_file, write_skill_package
 from yamlgraph.utils.prompts import resolve_prompt_path
 
 _TYPE_MAP: dict[str, str] = {
@@ -66,11 +66,21 @@ class SkillExporter:
             skill_name=package_data["skill_name"],
             format_name=request.format,
         )
-        self._assert_target_is_safe(target_path, request.format)
         if request.format == SkillFormat.AGENT_MD:
-            write_agent_markdown(package_data, target_path)
-        else:
-            write_skill_package(package_data, target_path)
+            target_file = self._resolve_target_file(
+                target_path, package_data["skill_name"]
+            )
+            self._assert_target_file_is_safe(target_file)
+            write_agent_md_file(package_data, target_file)
+            return SkillPackage(
+                skill_name=package_data["skill_name"],
+                graph_path=graph_path,
+                target_dir=target_path,
+                target_file=target_file,
+                format=request.format,
+            )
+        self._assert_target_dir_is_safe(target_path)
+        write_skill_package(package_data, target_path)
         return SkillPackage(
             skill_name=package_data["skill_name"],
             graph_path=graph_path,
@@ -113,24 +123,27 @@ class SkillExporter:
         if format_name == SkillFormat.CURSOR:
             return base / ".cursor" / "skills" / skill_name
         if format_name == SkillFormat.AGENT_MD:
-            return base / ".github" / "agents" / f"{skill_name}.agent.md"
+            return base / ".github" / "agents"
         raise ValueError(f"Unsupported format: {format_name}")
 
-    def _assert_target_is_safe(
-        self, target_path: Path, format_name: SkillFormat
-    ) -> None:
-        if not target_path.exists():
+    def _resolve_target_file(self, target_dir: Path, skill_name: str) -> Path:
+        return target_dir / f"{skill_name}.agent.md"
+
+    def _assert_target_dir_is_safe(self, target_dir: Path) -> None:
+        if not target_dir.exists():
             return
-        if format_name == SkillFormat.AGENT_MD:
-            raise FileExistsError(f"Output target already exists: {target_path}")
-        if not target_path.is_dir():
+        if not target_dir.is_dir():
             raise FileExistsError(
-                f"Output target exists and is not a directory: {target_path}"
+                f"Output target exists and is not a directory: {target_dir}"
             )
-        if any(target_path.iterdir()):
+        if any(target_dir.iterdir()):
             raise FileExistsError(
-                f"Output target already exists and is not empty: {target_path}"
+                f"Output target already exists and is not empty: {target_dir}"
             )
+
+    def _assert_target_file_is_safe(self, target_file: Path) -> None:
+        if target_file.exists():
+            raise FileExistsError(f"Output target file already exists: {target_file}")
 
     def _build_package_data(
         self, graph_path: Path, graph_config: GraphConfig

@@ -90,17 +90,43 @@ def _write_schema(package_root: Path, package_data: dict[str, Any]) -> None:
     )
 
 
-def write_agent_markdown(package_data: dict[str, Any], target_file: Path) -> None:
-    """Write a graph-scoped Copilot agent mode file."""
+def write_agent_md_file(package_data: dict[str, Any], target_file: Path) -> None:
+    """Write a single .agent.md artifact for GitHub agent mode."""
     target_file.parent.mkdir(parents=True, exist_ok=True)
+    content = _build_agent_md_content(package_data)
+    with target_file.open("x") as handle:
+        handle.write(content)
+
+
+def _build_agent_md_content(package_data: dict[str, Any]) -> str:
+    input_schema = package_data["input_schema"]
+    input_descriptions = package_data["input_descriptions"]
+    skill_name = package_data["skill_name"]
     description = str(package_data["description"]).replace("\n", " ").strip()
-    content = (
-        "---\n"
+
+    frontmatter = (
         f"description: {description}\n"
         "tools: [yamlgraph/*]\n"
-        "---\n\n"
-        f"You are {package_data['skill_name']}, a graph-scoped assistant.\n\n"
-        "Operate through YAMLGraph MCP tools only. Do not use non-YAMLGraph tools "
-        "when executing graph tasks.\n"
+        "model: Claude Sonnet 4"
     )
-    target_file.write_text(content)
+
+    input_lines: list[str] = []
+    for key in sorted(input_schema["properties"].keys()):
+        schema_type = input_schema["properties"][key]["type"]
+        field_description = input_descriptions.get(key, "No description provided.")
+        input_lines.append(f"- `{key}` (`{schema_type}`): {field_description}")
+    if not input_lines:
+        input_lines.append("- None")
+
+    body = (
+        f"# {skill_name}\n\n"
+        f"{description}\n\n"
+        f"You are {skill_name}, a graph-scoped assistant. "
+        "Operate through YAMLGraph MCP tools only.\n\n"
+        "## Inputs\n\n"
+        f"{chr(10).join(input_lines)}\n\n"
+        "## Invocation\n\n"
+        f"Invoke this agent with `@{skill_name}` and include all required inputs."
+    )
+
+    return f"---\n{frontmatter}\n---\n\n{body}\n"
