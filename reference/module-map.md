@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 105
+- module count: 108
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -13,8 +13,8 @@
   - import dependencies: `yamlgraph.models`
 - `yamlgraph/a2a_server.py` - 351 lines; exports: `class YAMLGraphAgentExecutor`, `create_a2a_app(graph_patterns, host, port)`
   - import dependencies: `yamlgraph.a2a_message`, `yamlgraph.discovery`, `yamlgraph.executor_async`, `yamlgraph.models`, `yamlgraph.models.streaming`
-- `yamlgraph/cli/__init__.py` - 325 lines; exports: `create_parser()`, `main()`
-  - import dependencies: `yamlgraph.cli.a2a_commands`, `yamlgraph.cli.diary_commands`, `yamlgraph.cli.graph_commands`, `yamlgraph.cli.schema_commands`
+- `yamlgraph/cli/__init__.py` - 358 lines; exports: `create_parser()`, `main()`
+  - import dependencies: `yamlgraph.cli.a2a_commands`, `yamlgraph.cli.diary_commands`, `yamlgraph.cli.graph_commands`, `yamlgraph.cli.schema_commands`, `yamlgraph.cli.skill_commands`
 - `yamlgraph/cli/__main__.py` - 6 lines; exports: _none_
   - import dependencies: `yamlgraph.cli`
 - `yamlgraph/cli/a2a_commands.py` - 92 lines; exports: `cmd_a2a_dispatch(args)`
@@ -33,6 +33,8 @@
   - import dependencies: _none_
 - `yamlgraph/cli/schema_commands.py` - 52 lines; exports: `cmd_schema_export(args)`, `cmd_schema_path(args)`, `cmd_schema_dispatch(args)`
   - import dependencies: `yamlgraph`, `yamlgraph.models.graph_schema`
+- `yamlgraph/cli/skill_commands.py` - 31 lines; exports: `cmd_skill_export(args)`, `cmd_skill_dispatch(args)`
+  - import dependencies: `yamlgraph.skill_export`
 - `yamlgraph/config.py` - 81 lines; exports: _none_
   - import dependencies: _none_
 - `yamlgraph/constants.py` - 74 lines; exports: `class NodeType`, `class ErrorHandler`, `class EdgeType`, `class SpecialNodes`
@@ -144,6 +146,10 @@
   - import dependencies: `yamlgraph.utils.conditions`
 - `yamlgraph/schema_loader.py` - 268 lines; exports: `normalize_coding_keys(field)`, `resolve_type(type_str, field_name)`, `build_pydantic_model(schema)`, `build_pydantic_model_from_json_schema(schema, model_name)`, `load_schema_from_yaml(yaml_path)`
   - import dependencies: _none_
+- `yamlgraph/skill_export.py` - 289 lines; exports: `class SkillFormat`, `class PackageSkill`, `class SkillPackage`, `class SkillExporter`, `export_skill(graph_path_or_dir, *, format, output_dir)`
+  - import dependencies: `yamlgraph.graph_loader`, `yamlgraph.skill_export_writer`, `yamlgraph.utils.prompts`
+- `yamlgraph/skill_export_writer.py` - 90 lines; exports: `write_skill_package(package_data, target_dir)`
+  - import dependencies: _none_
 - `yamlgraph/storage/__init__.py` - 18 lines; exports: _none_
   - import dependencies: `yamlgraph.storage.checkpointer_factory`, `yamlgraph.storage.export`
 - `yamlgraph/storage/checkpointer.py` - 72 lines; exports: `get_checkpointer(db_path)`, `get_state_history(graph, thread_id)`
@@ -218,5 +224,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 60/105
+- mapped modules: 60/108
 - discovered tests: 62
