@@ -244,7 +244,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     skill_export_parser.add_argument(
         "--format",
-        choices=["skill-md", "copilot", "cursor"],
+        choices=["skill-md", "copilot", "cursor", "agent-md"],
         default="skill-md",
         help="Target format layout (default: skill-md)",
     )
