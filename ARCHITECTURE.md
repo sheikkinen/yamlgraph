@@ -397,6 +397,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 125 | Pipeline Script Retirement (FR-276) | `.chaplain/scripts/start-system.sh`, `.chaplain/lib/watcher/worktree_setup.sh`, `tests/unit/test_retire_old_pipeline_scripts.py` | REQ-YG-276 |
 
 | 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/watcher-plan/graph.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, `.chaplain/graphs/watcher-enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
+| 142 | Skill Export Portable Packaging (FR-348) | `yamlgraph/skill_export.py`, `yamlgraph/cli/skill_commands.py`, `reference/skills-export.md`, `tests/unit/test_fr348_skill_export_red.py` | REQ-YG-320 – 326 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1687,6 +1688,13 @@ Comprehensive documentation for the watcher2 pipeline orchestrator and shell lib
 | REQ-YG-317 | Root `README.md` includes all currently supported provider identifiers (`anthropic`, `azure`, `deepseek`, `google`, `inception`, `lmstudio`, `mistral`, `openai`, `replicate`, `vertex`, `xai`) in provider documentation, contains no hardcoded `all <number> reference docs` phrasing, and ends with `Last reviewed: 2026-05-03`; enforced by dedicated root README contract test (FR-313). | `README.md`, `tests/unit/test_root_readme_accuracy.py` |
 | REQ-YG-318 | Watcher2 post-enforce flow splits into `validate_fix` (LLM remediation) and `validate_gate` (deterministic CI-parity gate). `validate_gate` enforces pre-commit, commit-title contract, branch freshness vs `origin/main`, and diary-in-diff parity with bounded retry (`pass → done`, `fix_needed → validate_fix`, `error → failed`), while `done` still derives PR title from `git log -1 --format=%s`. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr316_watcher2_validate_split_fix_gate.py` |
 | REQ-YG-319 | FSM bridge shared module: `yamlgraph.utils.fsm` package with `YamlgraphAsyncAction`, `extract_event`, `json_safe`, `resolve_context_ref` exported from `yamlgraph.utils.fsm`; fire-and-forget guard semantics; AF_UNIX DGRAM event dispatch; interrupt/event_map/route/success resolution cascade. | `yamlgraph/utils/fsm`, `examples/fsm-router/actions/yamlgraph_async_action.py`, `tests/unit/test_fsm_bridge_shared.py`, `tests/unit/test_fr346_fsm_bridge_shared_module_red.py` |
+| REQ-YG-320 | CLI parser registers `yamlgraph skill export` with `--format {skill-md,copilot,cursor}` and `--output-dir` options; dispatch routes through `cli/skill_commands.py` | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-321 | Skill export creates package artifacts: `SKILL.md`, executable `scripts/run.sh`, `references/`, and `assets/schema.json`; run script includes one `--var key=example` per input | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-322 | `SKILL.md` contract includes H1 skill name, description paragraph, `## Inputs` with type+description, `## Outputs` with type list, and `## Run` command example | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-323 | `assets/schema.json` contains top-level `input` and `output` JSON Schema objects derived from graph state inputs and node `state_key` outputs | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-324 | `--format skill-md|copilot|cursor` writes package to expected directory layouts for each ecosystem | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-325 | Export is deterministic and non-LLM; missing/invalid graph, unsupported format, or non-empty existing target directory fail with explicit non-zero errors and no silent overwrite | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-326 | CLI/reference documentation includes `yamlgraph skill export` usage and format layout examples, and reference index links to skill export guide | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr348_skill_export_red.py` |
 
 ---
 
@@ -2208,8 +2216,11 @@ _loading_stack: ContextVar[list[Path]] = ContextVar("loading_stack")
 | `cli/graph_commands.py` | graph run, info, codegen | 9, 10 |
 | `cli/graph_validate.py` | graph validate, lint | 9 |
 | `cli/schema_commands.py` | schema export, path | 10 |
+| `cli/skill_commands.py` | skill export dispatch | 9, 10 |
 | `cli/helpers.py` | Shared CLI utilities | 9 |
 | `cli/deprecation.py` | Deprecated command handling | 9 |
+| `skill_export.py` | Portable skill package generation | 10 |
+| `skill_export_writer.py` | Portable skill package file writers | 10 |
 
 ---
 

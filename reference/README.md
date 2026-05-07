@@ -51,6 +51,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Prompt Deployment](prompt-deployment.md) | Patterns for updating prompts without rebuild |
 | [MCP Server](mcp-server.md) | Expose graphs as Copilot/MCP tools |
 | [A2A Server](a2a-server.md) | Expose graphs as A2A protocol agents |
+| [Skills Export](skills-export.md) | Export graphs as portable skill bundles |
 | [Contrib Utilities](contrib.md) | Shared utilities for map results and serialization |
 | [Scheduling Agents](scheduling-agents.md) | Run graphs on schedule (launchd, cron, CI) |
 
