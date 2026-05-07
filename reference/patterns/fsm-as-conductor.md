@@ -117,7 +117,9 @@ First turn starts the graph. Subsequent turns resume with `Command(resume=user_i
 |--------|-----------|------------------|-----|---------|
 | **fsm-router** (example) | 5 | 1-node graphs | in-process task | seconds |
 | **voicebot** (production) | 15+ | 1-node subgraphs | two-process DGRAM | milliseconds |
-| **Chaplain** (automation) | 9+3 | 1–4 node graphs | subprocess + task | minutes |
+| **Chaplain** (automation) | 9+3 | 1–4 node graphs | subprocess¹ | minutes |
+
+> ¹ The Chaplain's `yamlgraph_async_action` is a misnomer — it invokes `yamlgraph graph run` as a subprocess and `await`s completion, returning the event string directly. There is no `asyncio.create_task`, no guard key, and no socket dispatch. Event routing uses substring matching against stdout rather than structured state inspection. This works because the pipeline FSM's per-action timeouts (600–3600s) absorb the blocking call. The fsm-router and voicebot implementations are the true fire-and-forget variants.
 
 ### fsm-router — Query Routing
 
