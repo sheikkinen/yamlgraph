@@ -1866,6 +1866,12 @@ Comprehensive documentation for the watcher2 pipeline orchestrator and shell lib
 | REQ-YG-324 | `--format skill-md|copilot|cursor` writes package to expected directory layouts for each ecosystem | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
 | REQ-YG-325 | Export is deterministic and non-LLM; missing/invalid graph, unsupported format, or non-empty existing target directory fail with explicit non-zero errors and no silent overwrite | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
 | REQ-YG-326 | CLI/reference documentation includes `yamlgraph skill export` usage and format layout examples, and reference index links to skill export guide | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-327 | CLI parser accepts `yamlgraph skill export ... --format agent-md` and preserves existing export command wiring | `yamlgraph/cli/__init__.py`, `tests/unit/test_fr351_agent_export_red.py` |
+| REQ-YG-328 | `--format agent-md` writes exactly one file artifact at `<output-dir>/.github/agents/<skill-name>.agent.md` | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr351_agent_export_red.py` |
+| REQ-YG-329 | Generated `.agent.md` frontmatter includes graph description and tool scope `tools: [yamlgraph/*]` | `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr351_agent_export_red.py` |
+| REQ-YG-330 | Generated `.agent.md` body includes graph-scoped persona and explicit YAMLGraph MCP-only execution instruction | `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr351_agent_export_red.py` |
+| REQ-YG-331 | Export fails explicitly for missing graph path, invalid graph YAML, and existing output target collisions; CLI returns non-zero on export errors | `yamlgraph/skill_export.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr351_agent_export_red.py` |
+| REQ-YG-332 | CLI and skill export reference documentation include `agent-md` usage and `.github/agents/<skill-name>.agent.md` layout | `reference/cli.md`, `reference/skills-export.md`, `tests/unit/test_fr351_agent_export_red.py` |
 
 ---
 
