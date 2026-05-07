@@ -1,0 +1,32 @@
+id: CAP-141
+name: Shared FSM Bridge Module
+description: >
+  Extract canonical fire-and-forget FSM↔YAMLGraph bridge behavior into
+  `yamlgraph.utils.fsm` and make fsm-router consume it via a thin wrapper.
+modules:
+  - yamlgraph/utils/fsm/__init__.py
+  - yamlgraph/utils/fsm/helpers.py
+  - yamlgraph/utils/fsm/event_sender.py
+  - yamlgraph/utils/fsm/graph_runner.py
+  - yamlgraph/utils/fsm/action.py
+  - examples/fsm-router/actions/yamlgraph_async_action.py
+  - reference/patterns/fsm-as-conductor.md
+  - tests/unit/test_fr346_fsm_bridge_shared_module_red.py
+  - tests/unit/test_fsm_bridge_shared.py
+requirements:
+  - id: REQ-YG-319
+    description: >
+      FSM bridge shared module: `yamlgraph.utils.fsm` package with
+      `YamlgraphAsyncAction`, `extract_event`, `json_safe`,
+      `resolve_context_ref` exported from `yamlgraph.utils.fsm`;
+      fire-and-forget guard semantics; AF_UNIX DGRAM event dispatch;
+      interrupt/event_map/route/success resolution cascade.
+    modules:
+      - yamlgraph/utils/fsm/__init__.py
+      - yamlgraph/utils/fsm/helpers.py
+      - yamlgraph/utils/fsm/event_sender.py
+      - yamlgraph/utils/fsm/graph_runner.py
+      - yamlgraph/utils/fsm/action.py
+      - examples/fsm-router/actions/yamlgraph_async_action.py
+      - tests/unit/test_fsm_bridge_shared.py
+fr: FR-346
