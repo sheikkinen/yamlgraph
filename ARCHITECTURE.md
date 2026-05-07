@@ -360,7 +360,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 88 | Google/Vertex Thinking Budget Support | `yamlgraph/utils/llm_factory.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/linter/checks_providers.py` | REQ-YG-230 |
 | 89 | Execution Timing Callback | `yamlgraph/utils/timing_tracker.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-231 |
 | 90 | Graph Bench Command | `yamlgraph/cli/bench_commands.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/__init__.py` | REQ-YG-232 |
-| 91 | Race Node Type | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, … | REQ-YG-233 |
+| 91 | Race Node Type | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, … | REQ-YG-233, 269 |
 | 92 | Chatterbox TTS Demo | `examples/demos/chatterbox` | REQ-YG-234 |
 | 93 | Chatterbox Voice Clone Demo | `examples/demos/chatterbox` | REQ-YG-235, 238 |
 | 94 | Compile-Time Pipeline Templates | `yamlgraph/pipeline_template.py`, `yamlgraph/constants.py`, `yamlgraph/graph_loader.py`, `yamlgraph/linter/checks.py`, … | REQ-YG-236 |
@@ -380,24 +380,34 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 109 | Harden GitHub Issues Remote Inbox | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` | REQ-YG-256 |
 | 110 | Diary Index Graph | `examples/demos/diary_index` | REQ-YG-257 |
 | 111 | Shared Graph Invocation | `graph_loader` | REQ-YG-258 |
-| 113 | Chaplain Research Step (FR-257) | `.chaplain/graphs/watcher-plan/graph.yaml`, `.chaplain/graphs/watcher-plan/prompts/research.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml` | REQ-YG-260 |
-| 114 | Automated Post-Merge Finalization (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh` | REQ-YG-261 |
-| 117 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py` | REQ-YG-264 |
-| 118 | Copilot Node Model Selection (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
-| 119 | Race Node Timeout Fix (FR-267) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py` | REQ-YG-266 |
-| 120 | CLI Inter-Run State Chaining (FR-269) | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/storage/export.py` | REQ-YG-267, REQ-YG-268 |
-| 121 | Race Node Pool Shutdown Non-Blocking (FR-270) | `yamlgraph/node_factory/race_node.py` | REQ-YG-269 |
-| 122 | Async Race Node with Cancellable Candidates (FR-271) | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` | REQ-YG-270 |
-| 123 | Router Node with Candidates Race Support (FR-272) | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_router_race.py` | REQ-YG-271 |
+| 113 | Chaplain Research Step | `.chaplain/graphs/watcher-plan` | REQ-YG-260 |
+| 114 | Automated Post-Merge Finalization | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` | REQ-YG-261 |
+| 116 | Acceptance Tests Before Enforce | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-plan-unified.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, … | REQ-YG-263 |
+| 117 | Race Node parse_json & Content Normalization | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py` | REQ-YG-264 |
+| 118 | Copilot Node Model Selection | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py` | REQ-YG-265 |
+| 119 | Race Node Timeout Fix | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py` | REQ-YG-266 |
+| 120 | CLI Inter-Run State Chaining | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py` | REQ-YG-267 – 268 |
+| 121 | Async Race Node with Cancellable Candidates | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` | REQ-YG-270 |
+| 122 | Router Node with Candidates Race Support | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/node_compiler.py`, … | REQ-YG-271 |
 | 124 | Watcher2 PR Reuse (FR-275) | `.chaplain/lib/watcher/create_pr.sh`, `tests/unit/test_watcher2_create_pr_reuse.py` | REQ-YG-272 |
-| 126 | Test Speed Optimization (FR-275) | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, `tests/unit/test_fr275_test_speed_optimization.py`, `CLAUDE.md` | REQ-YG-275 |
-| 127 | CI Hardening Consolidation (FR-196) | `.github/workflows/workflow.yml`, `.github/workflows/security.yml`, `.github/workflows/commitlint.yml`, `tests/unit/test_ci_hardening_consolidation.py` | REQ-YG-277 |
-| 130 | Watcher2 Finalize Pre-commit Optimization (FR-198) | `.chaplain/scripts/start-system.sh`, `tests/unit/test_fr198_watcher2_finalize_optimization.py` | REQ-YG-286 |
-| REQ-YG-275 | pytest slow marker infrastructure enables selective test execution. `slow` marker defined in pyproject.toml for tests taking >1 second; tests using sleep >1s marked with `@pytest.mark.slow`; `pytest -m "not slow"` excludes slow tests for fast iteration; `pytest -m "slow"` runs only slow tests for full validation; `CHAOS_DELAY` and test timing configurable via `TEST_DELAY_SCALE` environment variable; development commands documented in CLAUDE.md for ultra-fast, fast, and slow-only execution; test behavior unchanged when no marker filters applied; comprehensive acceptance tests validate marker functionality | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, `tests/unit/test_fr275_test_speed_optimization.py`, `CLAUDE.md` |
-| 125 | Pipeline Script Retirement (FR-276) | `.chaplain/scripts/start-system.sh`, `.chaplain/lib/watcher/worktree_setup.sh`, `tests/unit/test_retire_old_pipeline_scripts.py` | REQ-YG-276 |
-
-| 116 | Acceptance Tests Before Enforce | `.chaplain/graphs/watcher-plan/graph.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, `.chaplain/graphs/watcher-enforce/prompts/enforce-implement.yaml`, … | REQ-YG-263 |
-| 142 | Skill Export Portable Packaging (FR-348) | `yamlgraph/skill_export.py`, `yamlgraph/cli/skill_commands.py`, `reference/skills-export.md`, `tests/unit/test_fr348_skill_export_red.py` | REQ-YG-320 – 326 |
+| 125 | Pipeline Script Retirement (FR-276) | `.chaplain/scripts/start-system.sh`, `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/lib/watcher/worktree_setup.sh`, … | REQ-YG-276 |
+| 126 | Test Speed Optimization | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, … | REQ-YG-275 |
+| 127 | CI Hardening Consolidation | `.github/workflows/workflow.yml`, `.github/workflows/security.yml`, `.github/workflows/commitlint.yml`, `tests/unit/test_ci_hardening_consolidation.py` | REQ-YG-277 |
+| 128 | Chaplain Documentation | `.chaplain/README.md`, `tests/unit/test_chaplain_readme_documentation` | REQ-YG-278 |
+| 130 | Watcher2 Finalize Pre-commit Optimization | `.chaplain/scripts/start-system.sh`, `tests/unit/test_fr198_watcher2_finalize_optimization.py` | REQ-YG-286 |
+| 131 | Anthropic Prompt Caching Support | `yamlgraph/executor_base.py`, `yamlgraph/utils/prompts.py`, `tests/unit/test_prompt_caching_fr276.py`, `tests/unit/test_prompt_caching_demo_fr219.py`, … | REQ-YG-287 – 293, 302 – 306 |
+| 132 | Watcher2 CI Resilience | `.chaplain/lib/watcher/wait_ci.sh`, `tests/unit/test_fr279_watcher2_ci_resilience.py` | REQ-YG-294, 298 – 301 |
+| 133 | Watcher2 CI Remediation Crash Fix | `.chaplain/scripts/start-system.sh`, `tests/unit/test_fr284_watcher2_ci_remediation_crash_fix.py` | REQ-YG-307 |
+| 134 | Watcher2 Changelog Auto-Generation | `.chaplain/scripts/start-system.sh`, `.chaplain/graphs/watcher-enforce/prompts/enforce-critique-and-distill.yaml`, `.chaplain/graphs/watcher-enforce/prompts/enforce-finalize.yaml`, `.chaplain/graphs/watcher-enforce/step-ci-remediate.yaml` | REQ-YG-308 |
+| 135 | Watcher2 Forensic Failure Diary | `.chaplain/scripts/start-system.sh`, `.chaplain/graphs/watcher-forensic/`, `.chaplain/lib/diary.py` | REQ-YG-309 |
+| 136 | Per-Graph Typed MCP Tools | `yamlgraph/discovery.py`, `yamlgraph/mcp_server.py` | REQ-YG-310 – 314 |
+| 137 | Watcher FSM System Startup Script | `.chaplain/scripts/start-system.sh` | REQ-YG-315 |
+| 138 | Watcher Pipeline FSM Simplification | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-judge-v2.yaml`, `.chaplain/graphs/watcher-enforce/enforce-session.yaml` | REQ-YG-316 |
+| 139 | Root README Accuracy Contract | `README.md`, `tests/unit/test_root_readme_accuracy.py` | REQ-YG-317 |
+| 140 | Watcher2 Validate Split Fix/Gate | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/graphs/watcher-enforce/validate-session.yaml`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, … | REQ-YG-318 |
+| 141 | Shared FSM Bridge Module | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, … | REQ-YG-319 |
+| 142 | Skill Export Portable Packaging | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
+| 143 | Agent Export Tool-Scoped Personas | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -595,35 +605,6 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-062 | Linter W013: warn when map node `over:` is a dynamic expression without `max_items` or `config.max_map_items` | `linter/checks_semantic`, `linter/patterns/map` |
 | REQ-YG-064 | Token usage tracking via `TokenUsageCallbackHandler` callback injected at graph-level; accumulates `input_tokens`, `output_tokens`, `total_calls` across all LLM invocations; CLI `--token-usage` flag prints summary | `utils/token_tracker`, `cli/graph_commands`, `cli/__init__` |
 | REQ-YG-113 | Linter W015: warn when cycle node has explicit `skip_if_exists: true` | `linter/checks_semantic`, `linter/graph_linter` |
-| REQ-YG-231 | Execution timing callback tracks per-call and total wall-clock LLM duration via `ExecutionTimingCallbackHandler`; `on_llm_start`/`on_llm_end` using `time.monotonic`; CLI `--timing` flag injects callback and prints timing summary | `utils/timing_tracker`, `cli/graph_commands`, `cli/__init__` |
-| REQ-YG-232 | `yamlgraph graph bench` command runs a graph across `--models provider/model` list; displays comparison table with duration, tokens, status; `--export` saves JSON; `--runs N` repeats each model; per-model errors captured gracefully; `BenchResult` Pydantic model | `cli/bench_commands`, `cli/graph_commands`, `cli/__init__` |
-| REQ-YG-233 | `type: race` node fires prompt to all candidates concurrently via `ThreadPoolExecutor`; returns first successful result; remaining cancelled; all-fail triggers `on_error`; `_race_winner` metadata in state; candidates validated ≥2 with provider/model; lint E301–E304; structured output support; race `timeout` is total race deadline (not per-candidate); `_maybe_wrap_timeout` must not be applied (FR-267) | `node_factory/race_node`, `constants`, `node_compiler`, `models/graph_schema`, `models/state_builder`, `linter/patterns/race` |
-| REQ-YG-234 | Chatterbox TTS demo: map node fans out over 5 languages, collects translations, synthesizes to WAV via `synthesize_audio` python tool with Chatterbox Multilingual TTS. Auto-detects CUDA/CPU. Optional dependency `chatterbox-tts` (FR-233) | `examples/demos/chatterbox` |
-| REQ-YG-235 | Chatterbox voice cloning demo: `synthesize_cloned_audio` in `examples/demos/chatterbox/tools.py` accepts text and voice_prompt_path, synthesizes to WAV via `ChatterboxTTS` (not `ChatterboxMultilingualTTS`). Device selection follows `cuda > mps > cpu`. `clone.yaml` graph and `speak.py` CLI both use this tool. Optional dependency `chatterbox-tts` (FR-236, consolidated FR-237) | `examples/demos/chatterbox` |
-| REQ-YG-236 | `type: pipeline` meta-node expands at compile time into concrete nodes and sequential edges; `{item.field}` interpolation in prompt, variables, state_key; non-string fields copied verbatim; external edges rewritten to first/last expanded node; lint E401 (empty items), E402 (empty stages), E403 (unresolved item refs), E404 (missing name); `NodeType.PIPELINE` in constants; expansion in `graph_loader` after `expand_interactive_tools` | `pipeline_template`, `constants`, `graph_loader`, `linter/patterns/pipeline`, `linter/checks`, `linter/graph_linter` |
-| REQ-YG-241 | `parse_state_config()` handles dict-syntax state definitions `{type: str, reducer: str}`; `REDUCER_MAP` maps `"add"`, `"last_value"`, `"sorted_add"` to their functions; unknown reducer names log a warning; dict syntax without `reducer` key works as type-only; `generate_typeddict_code()` extracts type string from dict-syntax entries via `CODEGEN_TYPE_MAP`; `reference/graph-yaml.md` documents accumulated state pattern with glossary example, sequential execution constraint, and W021 `skip_if_exists: false` requirement (FR-238) | `models/state_builder`, `reference/graph-yaml.md`, `tests/unit/test_state_builder_reducers` |
-| REQ-YG-240 | Reference docs for `type: race` and `type: pipeline` in `graph-yaml.md` (purpose, config keys, state output, error handling, examples) and node type table rows in `getting-started.md` (FR-237) | `reference/graph-yaml.md`, `reference/getting-started.md` |
-| REQ-YG-237 | Parallel fan-out edges: `to: [a, b, c]` without `type: conditional` compiles as parallel fan-out via multiple `add_edge()` calls; handles interrupt node redirect to `_prepare`; handles map node targets via conditional edges; START fan-out uses conditional entry point; existing conditional routing with `type: conditional` unchanged (FR-234) | `edge_compiler` |
-| REQ-YG-245 | A2A SDK v1.0 compatibility: protobuf-based types replace Pydantic models; `Part(text=...)` replaces `Part(root=TextPart(text=...))`; `TextPart` removed; `Role.ROLE_USER/ROLE_AGENT` replaces `Role.user/agent`; `TaskState.TASK_STATE_*` replaces `TaskState.*`; `A2AStarletteApplication` replaced by `Starlette` + `create_jsonrpc_routes`/`create_agent_card_routes`; `EventQueue.close()` removed; `AgentCard.url` field removed; `InMemoryTaskStore.save/get` require `ServerCallContext`; `DefaultRequestHandler` requires `agent_card` parameter; `kind` discriminator removed from JSON-RPC part payloads (member-name discriminator); `contrib/a2a_client.py` extraction uses key-presence check; `a2a_commands.py` uses `MessageToDict` for card JSON serialization (FR-244) | `yamlgraph/a2a_server.py`, `yamlgraph/a2a_message.py`, `yamlgraph/contrib/a2a_client.py`, `yamlgraph/cli/a2a_commands.py` |
-| REQ-YG-244 | `validate_editable_install()` in `worktree_helpers.py` probes import health via `sys.executable`; `enforce_worktree.sh` cleanup validates `import yamlgraph` after `.pth` cleaning and self-heals with `pip install -e`; `bugfix_worktree.sh` has FR-174 parity: `validate_venv_health` before symlink, `validate_venv_symlink` after symlink, `clean_stale_pth_entries` in cleanup, import validation, and `pip install -e` self-heal (FR-241) | `utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh` |
-| REQ-YG-238 | Chatterbox speak CLI: `speak.py` accepts `--ref` (reference WAV path, required) and positional text; validates ref exists (exit 1 on missing); calls `ChatterboxTTS.generate()` without `language_id`; writes to `outputs/chatterbox/speak.wav`; prints output path to stdout (FR-237) | `examples/demos/chatterbox` |
-| REQ-YG-243 | `yamlgraph.contrib.a2a_client.send_a2a_message()` sends Jinja2-templated message to external A2A agent URL via HTTP JSON-RPC `message/send`; extracts text artifacts from response; returns `{"response": text}`; invoked via `type: python` node with `variables:` for `agent_url`, `message`/`message_template`, `skill`, `streaming`, `timeout`; supports Agent Card fetch, skill validation, SSE streaming; uses httpx for sync and A2AClient for streaming transport (FR-240, FR-253) | `yamlgraph/contrib/a2a_client.py`, `yamlgraph/tools/python_tool.py` |
-| REQ-YG-242 | Chatterbox multilingual CLI: `speak.py --lang <code>` routes to `ChatterboxMultilingualTTS` for non-English codes (fi, sv, de, es, …); `--ref` incompatible with non-English lang (parser.error); `--lang en` (default) preserves voice-cloning path requiring `--ref`; output always `outputs/chatterbox/speak.wav` (FR-239) | `examples/demos/chatterbox` |
-| REQ-YG-250 | `send_a2a_message()` fetches Agent Card via sync `httpx.get()` to `{agent_url}/.well-known/agent.json`; parsed into SDK `AgentCard` model via `ParseDict`; cached per `agent_url` within graph invocation using `ContextVar`; cache isolated across invocations; timeout configurable (FR-248, FR-253) | `yamlgraph/contrib/a2a_client.py` |
-| REQ-YG-251 | `skill` parameter in state selects a specific agent skill; validated against Agent Card skills at runtime; `ValueError` raised on skill ID miss with available skills listed in error message; no card fetch when skill not specified (FR-248, FR-253) | `yamlgraph/contrib/a2a_client.py` |
-| REQ-YG-252 | `streaming: true` in state uses `A2AClient.send_message_streaming()` via dedicated thread with own event loop; requires `card.capabilities.streaming == True`; result returned as complete string; streaming events logged at DEBUG; transport-only, not FR-030 graph-level streaming (FR-248, FR-253) | `yamlgraph/contrib/a2a_client.py` |
-| REQ-YG-253 | Dedicated `type: a2a_call` node type replaced by `type: python` + `yamlgraph.contrib.a2a_client` contrib function; `NodeType.A2A_CALL` removed from constants; `a2a_nodes.py` and `linter/patterns/a2a.py` deleted; W901/E904 linter checks removed (skill/streaming validated at runtime in contrib); FR-252 enables `variables:` resolution on `type: python` nodes (FR-253) | `yamlgraph/contrib/a2a_client.py`, `yamlgraph/tools/python_tool.py` |
-| REQ-YG-254 | Pattern 11 "Input Guardrails" in `reference/patterns.md` documents the echo → validate → respond pipeline with Problem/Solution sections, valid YAML graph example, Python tool implementations, prompt template, Key Points table, and Related links referencing `examples/openai_proxy/`; `examples/README.md` includes a Guardrails category in "By Feature" section (FR-249) | `reference/patterns.md`, `examples/README.md` |
-| REQ-YG-246 | `reference/a2a-server.md` created with 10 sections: Quickstart, CLI Commands, Agent Card Generation, Message-to-State Mapping, Task Lifecycle, Error Mapping, Interrupt/Human-in-Loop, Authentication, Deployment Patterns, Relationship to MCP Server; `reference/cli.md` updated with `a2a serve` and `a2a card` subcommands; `reference/README.md` links to `a2a-server.md`; all examples verified against `a2a_server.py`, `a2a_message.py`, `cli/a2a_commands.py` (FR-246) | `reference/a2a-server.md`, `reference/cli.md` |
-| REQ-YG-247 | GitHub Issues remote inbox: `watch.sh` polls open issues labeled `chaplain` via two-pass `gh` CLI (list numbers, view each body), writes `.chaplain/inbox/gh-{number}.md`, removes label after import; `EXIT_CODE=1` sentinel before enforcement branches; closes originating issue with commit hash on `EXIT_CODE=0` and `gh-*.md` filename; sync silently skipped when `gh` is not installed or not authenticated; `CLAUDE.md` and `copilot-instructions.md` document remote submission (FR-243) | `.chaplain/watch.sh`, `CLAUDE.md`, `.github/copilot-instructions.md` |
-| REQ-YG-255 | Changelog REQ cross-validation gate: `scripts/check_changelog_req.py` parses YAML front-matter `req:` from `changelog/unreleased/*.md`, validates each REQ-YG-XXX exists in `capabilities/CAP-*.yaml` via direct `id:` lookup (rejects phantoms), skips fragments without `req:` field; single-REQ CAPs pass mechanically; multi-REQ CAPs deferred to LLM graph `graphs/enforcement/changelog-req-check.yaml` (Haiku, temperature 0); `--strict` exits non-zero on failure; `--skip-llm` runs mechanical-only; pre-commit hook and CI job wired (FR-247) | `scripts/check_changelog_req.py`, `graphs/enforcement/changelog-req-check.yaml`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` |
-| REQ-YG-256 | `watch.sh` gates GitHub Issue import on `.chaplain/allowed-authors.txt` (one login per line); issues from unlisted authors skipped with warning, `chaplain` label retained; when file absent all authors accepted; body truncated at `BODY_SIZE_CAP` (10000) with warning; every imported file starts with `<!-- author: @login -->` audit header; author login fetched before title/body for early rejection (FR-251) | `.chaplain/watch.sh`, `.chaplain/allowed-authors.txt` |
-| REQ-YG-257 | Diary index graph: map node fans out over diary files, LLM extracts traps/heuristics/seeds/FR refs per entry via inline schema prompt, deterministic Python `aggregate_index()` builds cross-reference index (traps_index sorted by frequency, seeds_index with dedup, fr_index reverse mapping, heuristics_candidates with 2+ threshold, statistics by category). `write_index()` persists to `docs/diary-index.yaml`. Graph lints clean. `model: claude-haiku-4-5` for cost control (FR-254) | `examples/demos/diary_index` |
-| REQ-YG-258 | `invoke_graph(path, variables, config=None)` in `graph_loader.py`: loads graph config, compiles to StateGraph, compiles to CompiledGraph, invokes synchronously with optional LangGraph run config; `mcp_server._invoke_graph` and `a2a_server._invoke_graph` delegate to this shared function (FR-255) | `graph_loader`, `mcp_server`, `a2a_server` |
-| REQ-YG-260 | Research copilot node inserted between plan and judge in `.chaplain/graphs/watcher-plan/graph.yaml`; resumes plan session via `cli_flags.resume`; writes to `state_key: research_brief`; prompt instructs codebase search for existing abstractions, diary precedent check, usage evidence count, and classification signal (primitive/integration/pattern); research brief appended to FR draft before Judge evaluation; judge prompt updated with criterion 7 for strategic classification (framework primitive / contrib / pattern documentation / reject) (FR-257) | `.chaplain/graphs/watcher-plan/graph.yaml`, `.chaplain/graphs/watcher-plan/prompts/research.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml` |
-| REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently (FR-258) | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
-| REQ-YG-264 | Race node `_invoke_candidate` normalizes `response.content` to string via shared `normalize_content()` in `yamlgraph/utils/content.py` (handles Anthropic list-of-blocks, OpenAI string, None); race node supports `parse_json: true` config — skips `output_model` resolution at factory time and applies `extract_json()` after content normalization; `agent.py` imports from shared utility instead of inlining (FR-264) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_race_node.py` |
-| REQ-YG-277 | CI hardening consolidation: all workflows (workflow.yml, security.yml, commitlint.yml) have concurrency groups with cancel-in-progress; all setup-python steps include cache: pip; main workflow renamed to "CI"; tag pushes validate version against pyproject.toml; pip-audit has retry mechanism (3 attempts, 30s intervals); test matrix includes Python 3.11 and 3.12; existing job dependencies and triggers preserved; security scan still blocks on vulnerabilities; release process unchanged (FR-196) | `.github/workflows/workflow.yml`, `.github/workflows/security.yml`, `.github/workflows/commitlint.yml`, `tests/unit/test_ci_hardening_consolidation.py` |
 
 ### 18. Testing & Quality
 
@@ -763,15 +744,6 @@ Process-global compiled graph cache so load_and_compile_async() results survive 
 |------------|-------------|-------------|
 | REQ-YG-107 | Process-global `GRAPH_CACHE` dict in installed package; `load_and_compile_async()` uses cache by default with `cache=None` opt-out; `clear_cache()` for test teardown; cache-hit logs at DEBUG, compile logs at INFO | `graph_cache`, `executor_async` |
 
-### 35. Watch→Enforce Integration
-
-Post-graph hook in watch.sh that detects new feature request files via ephemeral find + comm diff, skips rejected FRs, and spawns enforce_worktree.sh in the background.
-
-**Feature Request:** FR-116
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-
 ### 36. Inquisitor Auto-Propose
 
 --propose flag on inquisitor.sh detects violations persisting across consecutive Inquisitor Audit entries and writes targeted fix proposals to .chaplain/inbox/.
@@ -811,15 +783,6 @@ inquisitor.sh commit-delta gate extracts last audit SHA from docs/diary/, counts
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-131 | `inquisitor.sh` commit-delta gate extracts last audit SHA from `docs/diary/`, counts `feat:`/`fix:` commits since that SHA via `git log`, and aborts with clear message when none found; `--force` bypasses gate; gate degrades gracefully on missing diary, unparseable SHA, or first-ever audit; `--propose` respects gate; gate logic is pure shell | `.chaplain/inquisitor.sh`, `tests/unit/test_inquisitor_gate` |
-
-### 40. Enforce Pipeline Graph Delegation
-
-enforce_worktree.sh delegates all LLM orchestration to examples/enforce/graph.yaml instead of inline copilot -p calls, completing the three-layer separation.
-
-**Feature Request:** FR-128
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
 
 ### 41. Clean GIT Env Test Fixture
 
@@ -1001,24 +964,6 @@ Worktree venv corruption guard: validate_venv_health() raises on missing or brok
 |------------|-------------|-------------|
 | REQ-YG-156 | Worktree venv corruption guard: `validate_venv_health()` raises `FileNotFoundError` when `.venv` directory is missing, `bin/python` is absent, or not executable (no silent skip). `validate_venv_symlink()` raises `OSError` when worktree `.venv` symlink doesn't resolve. `clean_stale_pth_entries()` removes `.pth`/`.egg-link` files referencing a deleted worktree directory to prevent import corruption from dangling editable installs | `yamlgraph/utils/worktree_helpers`, `scripts/enforce_worktree.sh`, `tests/unit/test_worktree_venv_guard` |
 
-### 61. Bugfix Pipeline with Condemning Test
-
-4-phase pipeline (condemn-fix-verify-submit_pr) for bugfix with condemning test first. Commandment 7 compliance.
-
-**Feature Request:** FR-173
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-
-### 62. Sequential Enforcement Mode
-
-watch.sh runs enforce and bugfix pipelines in the foreground, eliminating merge conflicts on shared files.
-
-**Feature Request:** FR-175
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-
 ### 64. Concurrency Safety Map
 
 docs/concurrency-safety.md documents every concurrency pattern in YAMLGraph with verdict, model, shared state, and evidence.
@@ -1175,13 +1120,13 @@ Multi-stage pipeline crawling .fi country-level domains: LLM query planning, Duc
 
 ### 79. Demo Proof Gate
 
-CI gate and pre-commit hook requiring demo-output.log artifact when demos are created or modified, then validating log semantics (non-empty, success evidence present, no fatal markers) to prove the demo actually executed successfully before merge. Enforces Commandment 2 ("demonstrate with example") at the merge boundary.
+CI gate and pre-commit hook requiring demo-output.log artifact when demos are created or modified, and validating log semantics (not only presence): logs must be non-empty, contain success evidence, and contain no fatal execution markers. Enforces Commandment 2 ("demonstrate with example") at the merge boundary.
 
 **Feature Request:** FR-206
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-200 | demo-gate CI job in commitlint.yml extracts changed demo directories from git diff (excluding demo-output.log itself), verifies each has a demo-output.log in the diff, then validates content semantics with shared rules: reject empty logs, reject fatal execution markers (for example Node .* failed, [ERROR], ❌ Error:, exit code [1-9]), and reject logs with no success evidence; exits 1 on violations and 0 when no demos changed; job-level if condition restricts to feat/fix PR titles; uses actions/checkout@v4 with fetch-depth: 0; pre-commit hook demo-proof-check calls scripts/check_demo_proof.sh with identical semantic rules; .gitignore negates *.log for examples/demos/*/demo-output.log; CLAUDE.md documents demo-gate in branch protection section; enforcer Phase 2 prompt instructs capturing demo-output.log | `scripts/check_demo_proof.sh`, `scripts/demo_log_semantics.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`, `.gitignore`, `CLAUDE.md`, `.chaplain/graphs/watcher-enforce/prompts/enforce-test-demo.yaml`, `tests/unit/test_ci_demo_proof_gate.py` |
+| REQ-YG-200 | demo-gate CI job in commitlint.yml extracts changed demo directories from git diff (excluding demo-output.log itself), verifies each has a demo-output.log in the diff, then validates content semantics using shared rules: reject empty logs, reject fatal execution markers (for example Node .* failed, [ERROR], ❌ Error:, exit code [1-9]), and reject logs with no success evidence; exits 1 on violations and 0 when no demos changed; job-level if condition restricts to feat/fix PR titles; uses actions/checkout@v4 with fetch-depth: 0; pre-commit hook demo-proof-check calls scripts/check_demo_proof.sh with identical semantic rules; .gitignore negates *.log for examples/demos/*/demo-output.log; CLAUDE.md documents demo-gate in branch protection section; enforcer Phase 2 prompt instructs capturing demo-output.log | `scripts/check_demo_proof.sh`, `scripts/demo_log_semantics.sh`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`, `.gitignore`, `CLAUDE.md`, `.chaplain/graphs/watcher-enforce/prompts/enforce-test-demo.yaml`, `tests/unit/test_ci_demo_proof_gate.py` |
 
 ### 81. A2A Protocol Server
 
@@ -1298,7 +1243,8 @@ A type: race node that fires the same prompt to N provider/model candidates conc
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-233 | type: race node fires prompt to all candidates concurrently using ThreadPoolExecutor; returns first successful result (not just first to complete); remaining candidates cancelled; all-fail triggers on_error policy; _race_winner metadata in state; candidates validated ≥2 entries each with provider or model; graph lint E301-E304; structured output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered; race `timeout` is total race deadline (not per-candidate); timeout enforcement internal to race node; `_maybe_wrap_timeout` must not be applied (FR-267) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/linter/patterns/race.py`, `yamlgraph/linter/checks.py`, `tests/unit/test_race_node.py`, `tests/unit/test_linter_patterns_race.py` |
+| REQ-YG-233 | type: race node fires prompt to all candidates concurrently using ThreadPoolExecutor; returns first successful result (not just first to complete); remaining candidates cancelled; all-fail triggers on_error policy; _race_winner metadata in state; candidates validated ≥2 entries each with provider or model; graph lint E301-E304; structured output works; NodeType.RACE in constants; NODE_TYPE_HANDLERS registered | `yamlgraph/node_factory/race_node.py`, `yamlgraph/constants.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/linter/patterns/race.py`, `yamlgraph/linter/checks.py`, `tests/unit/test_race_node.py`, `tests/unit/test_linter_patterns_race.py` |
+| REQ-YG-269 | Race node must not block on losing candidates after a winner is found. ThreadPoolExecutor shut down with wait=False, cancel_futures=True after returning winner. No with ThreadPoolExecutor context manager pattern. Loser threads terminate naturally; their results are discarded. | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` |
 
 ### 92. Chatterbox TTS Demo
 
@@ -1349,7 +1295,7 @@ Per-node timeout bounding for map branches and all node types via ThreadPoolExec
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-078 | Per-node timeout: optional float timeout field on NodeConfig validated as positive; map branch timeout via wrap_for_reducer with ThreadPoolExecutor; non-map node timeout via _maybe_wrap_timeout in node_compiler handlers **except race** (which owns timeout natively — FR-267); TIMEOUT_ERROR error type in ErrorType enum; from_exception classification unchanged (callers pass error_type explicitly); lint warning W203 for map+agent without timeout; except concurrent.futures.TimeoutError before except Exception in both paths | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py`, `tests/unit/test_map_node_timeout.py` |
+| REQ-YG-078 | Per-node timeout: optional float timeout field on NodeConfig validated as positive; map branch timeout via wrap_for_reducer with ThreadPoolExecutor; non-map node timeout via _maybe_wrap_timeout in node_compiler handlers; TIMEOUT_ERROR error type in ErrorType enum; from_exception classification unchanged (callers pass error_type explicitly); lint warning W203 for map+agent without timeout; except concurrent.futures.TimeoutError before except Exception in both paths | `yamlgraph/map_compiler.py`, `yamlgraph/node_compiler.py`, `yamlgraph/models/graph_schema.py`, `yamlgraph/models/schemas.py`, `yamlgraph/linter/patterns/map.py`, `tests/unit/test_map_node_timeout.py` |
 
 ### 98. Pipeline Accumulated State
 
@@ -1494,24 +1440,15 @@ Shared invoke_graph() function in graph_loader eliminates duplicated graph invoc
 |------------|-------------|-------------|
 | REQ-YG-258 | invoke_graph(path, variables, config) in graph_loader.py: loads config, compiles graph, invokes synchronously with optional LangGraph run config. MCP and A2A servers delegate to this shared function. | `graph_loader`, `mcp_server`, `a2a_server` |
 
-### 112. Pipeline Timing Metrics
-
-Lightweight timing and outcome instrumentation for the three core pipeline scripts (enforce_worktree.sh, bugfix_worktree.sh, watch.sh). Writes JSON metrics files to tmp/pipeline-metrics/ on every exit. Includes a read-only Python aggregation script for daily summaries. Pure bash + Python stdlib.
-
-**Feature Request:** FR-256
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-
 ### 113. Chaplain Research Step
 
-Research step between Plan and Judge in the Chaplain pipeline. The research node gathers strategic evidence (existing abstractions, diary precedents, usage evidence, classification signal) so the Judge can distinguish technically feasible from strategically warranted (FR-257).
+Research guidance in the active watcher-plan runtime. The unified planning step and watcher-plan research prompt gather strategic evidence (existing abstractions, diary precedents, usage evidence, classification signal) so Judge can distinguish technically feasible from strategically warranted (FR-257).
 
 **Feature Request:** FR-257
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-260 | Research copilot node inserted between plan and judge in .chaplain/graphs/watcher-plan/graph.yaml; resumes plan session via cli_flags.resume; writes to state_key research_brief; prompt instructs codebase search for existing abstractions, diary precedent check, usage evidence count, and classification signal (primitive/integration/pattern); research brief appended to FR draft before Judge evaluation; judge prompt updated with criterion 7 for strategic classification (framework primitive / contrib / pattern documentation / reject) (FR-257). | `.chaplain/graphs/watcher-plan/graph.yaml`, `.chaplain/graphs/watcher-plan/prompts/research.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml` |
+| REQ-YG-260 | Unified plan step in `.chaplain/graphs/watcher-plan/step-plan-unified.yaml` includes explicit research guidance, while `.chaplain/graphs/watcher-plan/prompts/research.yaml` preserves strategic research instructions (existing abstraction scan, diary precedent check, usage evidence, classification signal); judge prompt in watcher-plan includes strategic classification criteria (framework primitive / contrib / pattern documentation / reject) (FR-257). | `.chaplain/graphs/watcher-plan/step-plan-unified.yaml`, `.chaplain/graphs/watcher-plan/prompts/research.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml` |
 
 ### 114. Automated Post-Merge Finalization
 
@@ -1522,63 +1459,297 @@ Shared finalization library and watch.sh integration that automatically creates 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-261 | Shared library `.chaplain/lib/finalize_lib.sh` provides `extract_fr_metadata`, `create_changelog_fragment`, `update_fr_status`, and `create_diary_stub` functions; `scripts/finalize_merge.sh` sources the library instead of inlining logic; `watch.sh` detects recently merged PRs via timestamp-based `gh pr list` query, creates finalization PRs with changelog fragment, FR status update, and diary stub, enables auto-merge, and skips already-finalized FRs idempotently | `.chaplain/lib/finalize_lib.sh`, `.chaplain/watch.sh`, `scripts/finalize_merge.sh`, `tests/unit/test_automated_post_merge_finalization` |
-| REQ-YG-262 | Race node `_invoke_candidate` normalizes `response.content` to string via shared `normalize_content()` in `yamlgraph/utils/content.py`; race node supports `parse_json: true` config — skips `output_model` resolution at factory time and applies `extract_json()` after content normalization; `agent.py` imports from shared utility (FR-264) | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_race_node.py` |
 
-### 115. Inquisitor Watch Loop Integration
-
-Moves the Inquisitor from a fire-and-forget `inquisitor-background` post-commit hook into the `watch.sh` polling loop, making watch.sh the single orchestrator for all audit and enforcement activity. The Inquisitor runs with `--propose` after each successful enforce cycle, feeding findings back into the inbox.
-
-**Feature Request:** FR-261
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
 ### 116. Acceptance Tests Before Enforce
 
-Move worktree creation from the enforce phase into the plan-judge loop, and add a dedicated acceptance test generation step between research and judge. Judge evaluates the FR, the research brief, AND concrete failing tests — three inputs instead of two. Enforce receives a worktree with pre-committed RED tests and a clear contract: make these tests pass.
+Ensure acceptance tests are authored before enforce execution in the active FSM runtime. Setup creates the worktree, the unified plan step includes acceptance-test authoring instructions, Judge evaluates test evidence, and enforce_session executes against that contract.
 
 **Feature Request:** FR-260
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-263 | create_worktree python node and write_acceptance_tests copilot node inserted between research and judge in .chaplain/graphs/watcher-plan/graph.yaml; create_worktree tool at .chaplain/lib/worktree.py commits FR draft to main and creates worktree with .venv symlink; write-acceptance-tests prompt reads FR acceptance criteria and generates pytest tests with @pytest.mark.req tags; tests committed as RED in worktree; judge prompt includes criterion 8 for test evidence evaluation; enforce implement prompt references existing RED tests; enforce_worktree.sh accepts optional pre-existing worktree path (FR-260). | `.chaplain/graphs/watcher-plan/graph.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, `.chaplain/graphs/watcher-enforce/prompts/enforce-implement.yaml`, `.chaplain/lib/worktree.py`, `scripts/enforce_worktree.sh` |
+| REQ-YG-263 | `setup` action in watcher-pipeline-v2 creates the worktree before plan; unified plan prompt includes acceptance-test authoring protocol using `@pytest.mark.req` tags and RED commit guidance; judge prompt includes criterion 8 for test evidence evaluation; enforce session prompt explicitly preserves acceptance test assertions as the contract for implementation (FR-260). | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-plan-unified.yaml`, `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml`, `.chaplain/graphs/watcher-plan/prompts/judge.yaml`, `.chaplain/graphs/watcher-enforce/prompts/enforce-session.yaml`, `.chaplain/lib/worktree.py` |
+
+### 117. Race Node parse_json & Content Normalization
+
+Race node _invoke_candidate normalizes response.content to string via shared normalize_content() in yamlgraph/utils/content.py (handles Anthropic list-of-blocks, OpenAI string, None). Race node supports parse_json: true config — skips output_model resolution at factory time and applies extract_json() after content normalization. agent.py imports from shared utility instead of inlining.
+
+**Feature Request:** FR-264
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-264 | Race node _invoke_candidate normalizes response.content to string via shared normalize_content(); supports parse_json: true skipping output_model and applying extract_json(); agent.py uses shared utility | `yamlgraph/node_factory/race_node.py`, `yamlgraph/utils/content.py`, `yamlgraph/tools/agent.py`, `tests/unit/test_race_node.py` |
 
 ### 118. Copilot Node Model Selection
 
-Copilot nodes support `model` as a top-level node config key, consistent with LLM nodes. Falls back to `defaults.model` from graph metadata when not specified. `cli_flags.model` continues to work as the highest-priority override.
+Copilot nodes support model as a top-level node config key, consistent with LLM nodes. Falls back to defaults.model from graph metadata when not specified. cli_flags.model continues to work as the highest-priority override. Priority chain: cli_flags.model > node-level model > defaults.model > omit.
 
 **Feature Request:** FR-266
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-265 | `NodeConfig` has `model: str \| None` field; `create_copilot_node()` accepts `defaults` parameter; `_compile_copilot_node()` passes `effective_defaults` to factory; model resolution follows `cli_flags.model` > node-level `model` > `defaults.model` > omit; `CopilotResult.model` reflects the resolved model regardless of source (FR-266) | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py`, `tests/unit/test_copilot_node_model_selection.py` |
+| REQ-YG-265 | NodeConfig has model: str \| None field; create_copilot_node accepts defaults parameter; _compile_copilot_node passes effective_defaults to factory; model resolution follows cli_flags.model > node-level model > defaults.model > omit; CopilotResult.model reflects the resolved model regardless of source | `yamlgraph/models/graph_schema.py`, `yamlgraph/node_compiler.py`, `yamlgraph/node_factory/copilot_node.py`, `tests/unit/test_copilot_node_model_selection.py` |
 
-### 119. Race Node Timeout Fix (FR-267)
+### 119. Race Node Timeout Fix
 
-Race node applies exactly one timeout mechanism — its native `as_completed(timeout=...)`. The node compiler does not apply `_maybe_wrap_timeout` to race nodes (nested pools drop return value). On timeout expiry, the race node produces a structured `PipelineError(TIMEOUT_ERROR)` and respects `on_error` configuration.
+Race node applies exactly one timeout mechanism — its native as_completed(timeout=...). The node compiler does not apply _maybe_wrap_timeout to race nodes (nested ThreadPoolExecutors silently drop the return value). On timeout expiry (no candidate succeeds within deadline), the race node produces a structured PipelineError(TIMEOUT_ERROR) and respects on_error configuration. Without on_error, raises AllCandidatesFailedError.
 
 **Feature Request:** FR-267
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-266 | Race node applies exactly one timeout mechanism — its native `as_completed(timeout=...)`; `_compile_race_node` must NOT call `_maybe_wrap_timeout`; on timeout expiry (no candidate succeeds within deadline), race node produces `PipelineError(TIMEOUT_ERROR)` and respects `on_error` config; without `on_error`, raises `AllCandidatesFailedError`; race `timeout` is total race deadline, not per-candidate | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_race_node.py` |
+| REQ-YG-266 | Race node applies exactly one timeout mechanism — its native as_completed(timeout=...); _compile_race_node must NOT call _maybe_wrap_timeout; on timeout expiry (no candidate succeeds within deadline), race node produces PipelineError(TIMEOUT_ERROR) and respects on_error config; without on_error, raises AllCandidatesFailedError; race timeout is total race deadline, not per-candidate | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_race_node.py` |
 
-### 120. CLI Inter-Run State Chaining (FR-269)
+### 120. CLI Inter-Run State Chaining
 
-`--import-state` and `--export-state` flags for `yamlgraph graph run` enabling external orchestrators to chain graph invocations across shell boundaries while preserving state.
+--import-state and --export-state flags for yamlgraph graph run enabling external orchestrators to chain graph invocations across shell boundaries while preserving state, including CopilotResult.session_id for copilot session resume.
 
 **Feature Request:** FR-269
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-267 | `--import-state <path>` loads exported JSON as initial graph state; merge order is `graph_config.data < imported < --var-file < --var`; missing file prints clear error and exits 1; malformed JSON prints clear error and exits 1 | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
-| REQ-YG-268 | `--export-state <path>` writes full post-run state to explicit JSON path using `_serialize_state()`; creates parent directories; write failures print clear error and exit 1; `CopilotResult.session_id` survives round-trip and resolves via `resolve_state_expression()` | `yamlgraph/cli/graph_commands.py`, `yamlgraph/storage/export.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
-| REQ-YG-269 | Race node must not block on losing candidates after a winner is found; `ThreadPoolExecutor` shut down with `wait=False, cancel_futures=True` in a `finally` block; no `with ThreadPoolExecutor(...) as pool:` pattern; loser threads terminate naturally; their results are discarded; node returns within `fast_candidate_time + ε` regardless of slow losers | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` |
-| REQ-YG-270 | Race node rewired to asyncio: `ThreadPoolExecutor` removed; `_invoke_candidate_async` uses `await llm.ainvoke(messages)`; `_race_async` uses `asyncio.wait(FIRST_COMPLETED)` to cancel losers after winner; `_run_coro_sync_safe` bridges sync node_fn to async core without event-loop conflicts; loser `asyncio.Task` objects cancelled and gathered before node_fn returns; deadline computed once and decremented across wait iterations; `on_error: skip` preserved; `AllCandidatesFailedError` raised when all candidates fail without skip | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` |
-| REQ-YG-271 | Router node accepts optional `candidates:` list (≥2 `{provider, model}` dicts) for race-based routing: fires prompt concurrently, first-valid result used for routing resolution via `_resolve_route`; losers cancelled via `asyncio.Task.cancel()`; `timeout:` managed by `_race_async` (no outer `_maybe_wrap_timeout`); `provider:` + `candidates:` mutually exclusive (compile error); `on_error: skip` rejected at compile time; timeout/all-fail with `on_error: fail` raises `AllCandidatesFailedError`, with `on_error: fallback`/unset routes via `default_route` + records error; `_race_winner` metadata set in state; missing `route_field` in winner falls to `default_route` (no disqualification); single-provider routers unchanged | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_router_race.py` |
-| REQ-YG-272 | `create_pr.sh` checks for existing open PRs on `$WT_BRANCH` using `gh pr list --state open --head "$WT_BRANCH" --json number,url,title --jq ".[0] | select(.number != null)"`; if existing PR found, reuses PR number and URL instead of creating new; if no existing PR found, creates new PR as before; sets `PR_NUMBER` and `PR_URL` variables correctly in both cases; logs clearly whether reusing or creating; handles network failures gracefully by falling back to creation; updates PR title when different from requested title | `.chaplain/lib/watcher/create_pr.sh`, `tests/unit/test_watcher2_create_pr_reuse.py` |
-| REQ-YG-275 | pytest slow marker infrastructure enables selective test execution. `slow` marker defined in pyproject.toml for tests taking >1 second; tests using sleep >1s marked with `@pytest.mark.slow`; `pytest -m "not slow"` excludes slow tests for fast iteration; `pytest -m "slow"` runs only slow tests for full validation; `CHAOS_DELAY` and test timing configurable via `TEST_DELAY_SCALE` environment variable; development commands documented in CLAUDE.md for ultra-fast, fast, and slow-only execution; test behavior unchanged when no marker filters applied; comprehensive acceptance tests validate marker functionality | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, `tests/unit/test_fr275_test_speed_optimization.py`, `CLAUDE.md` |
-| REQ-YG-276 | All three obsolete scripts (`.chaplain/watch.sh`, `scripts/enforce_worktree.sh`, `scripts/bugfix_worktree.sh`) are deleted from the filesystem; any documentation references to them are updated to point to `start-system.sh`; `start-system.sh` is documented as the single entry point; failure paths preserve worktree and topic file in `.chaplain/failed/` for forensic inspection; success paths clean up normally (teardown worktree, delete topic); `worktree_setup.sh` calls `git worktree prune` to clean orphaned metadata before branch creation; no functional regression (`start-system.sh` covers all capabilities of old scripts) | `.chaplain/scripts/start-system.sh`, `.chaplain/lib/watcher/worktree_setup.sh`, `CLAUDE.md`, `README.md`, `tests/unit/test_retire_old_pipeline_scripts.py` |
+| REQ-YG-267 | --import-state loads exported JSON as initial graph state; merge order is graph_config.data < imported < --var-file < --var; missing file prints clear error and exits 1; malformed JSON prints clear error and exits 1 | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
+| REQ-YG-268 | --export-state writes full post-run state to explicit JSON path using _serialize_state(); creates parent directories; write failures print clear error and exit 1; CopilotResult.session_id survives round-trip and resolves via resolve_state_expression() | `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, `tests/unit/test_cli_inter_run_state_chaining.py` |
+
+### 121. Async Race Node with Cancellable Candidates
+
+Rewrites the race node from ThreadPoolExecutor to asyncio so losing candidates are cooperatively cancelled at await points after a winner is found. Eliminates orphan HTTP connections, loser billing, and interpreter-exit delays from post-win background threads. _run_coro_sync_safe bridges sync node_fn to the async core without event-loop conflicts under both invoke and ainvoke execution paths.
+
+**Feature Request:** FR-271
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-270 | Race node rewired to asyncio: ThreadPoolExecutor removed; _invoke_candidate_async uses await llm.ainvoke(messages); _race_async uses asyncio.wait(FIRST_COMPLETED) to cancel losers after winner; _run_coro_sync_safe bridges sync node_fn to async core without event-loop conflicts; loser asyncio.Task objects cancelled and gathered before node_fn returns; deadline computed once and decremented across wait iterations; on_error: skip preserved; AllCandidatesFailedError raised when all candidates fail without skip | `yamlgraph/node_factory/race_node.py`, `tests/unit/test_race_node.py` |
+
+### 122. Router Node with Candidates Race Support
+
+Extends the router node type to accept an optional `candidates:` list (identical schema to `race`), racing them for the routing decision and cancelling losers via asyncio cooperative cancellation. Routing semantics (route_field, routes, default_route) are unchanged. Eliminates the need for a manual race+python+conditional-edges workaround for low-latency classification on the critical path. Single-provider routers are unaffected.
+
+**Feature Request:** FR-272
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-271 | Router node accepts optional candidates: list (≥2 {provider, model} dicts) for race-based routing: fires prompt concurrently, first-valid result used for routing resolution via _resolve_route; losers cancelled via asyncio.Task.cancel(); timeout: managed by _race_async (no outer _maybe_wrap_timeout); provider: + candidates: mutually exclusive (compile error); on_error: skip rejected at compile time; timeout/all-fail with on_error: fail raises AllCandidatesFailedError, with on_error: fallback/unset routes via default_route + records error; _race_winner metadata set in state; missing route_field in winner falls to default_route (no disqualification); single-provider routers unchanged | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_router_race.py` |
+
+### 124. Watcher2 PR Reuse (FR-275)
+
+Enhanced create_pr.sh checks for existing PRs before creating new ones, reuses existing PRs to prevent automation failures and manual intervention.
+
+**Feature Request:** FR-275
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-272 | create_pr.sh checks for existing open PRs on $WT_BRANCH using gh pr list --state open --head "$WT_BRANCH" --json number,url,title --jq ".[0] \| select(.number != null)"; if existing PR found, reuses PR number and URL instead of creating new; if no existing PR found, creates new PR as before; sets PR_NUMBER and PR_URL variables correctly in both cases; logs clearly whether reusing or creating; handles network failures gracefully by falling back to creation; updates PR title when different from requested title | `.chaplain/lib/watcher/create_pr.sh`, `tests/unit/test_watcher2_create_pr_reuse.py` |
+
+### 125. Pipeline Script Retirement (FR-276)
+
+Retire obsolete pipeline scripts (watch.sh, enforce_worktree.sh, bugfix_worktree.sh) in favor of the FSM runtime entrypoint start-system.sh as sole orchestrator. Implement forensic failure preservation by keeping failed worktrees and topics for investigation rather than destroying evidence.
+
+**Feature Request:** FR-276
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-276 | All three obsolete scripts (.chaplain/watch.sh, scripts/enforce_worktree.sh, scripts/bugfix_worktree.sh) are deleted from the filesystem; any documentation references to them are updated to point to `.chaplain/scripts/start-system.sh`; start-system.sh is documented as the single entry point; failure paths preserve worktree and topic file in .chaplain/failed/ for forensic inspection; success paths clean up normally (teardown worktree, delete topic); worktree_setup.sh calls git worktree prune to clean orphaned metadata before branch creation; no functional regression (FSM runtime covers all capabilities of old scripts) | `.chaplain/scripts/start-system.sh`, `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/lib/watcher/worktree_setup.sh`, `CLAUDE.md`, `README.md` |
+
+### 126. Test Speed Optimization
+
+Pytest markers and configurable timing to enable faster development cycles. Adds 'slow' marker for tests >1s, configurable TEST_DELAY_SCALE for accelerated timing, and developer commands for selective test execution during rapid iteration.
+
+**Feature Request:** FR-275
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-275 | pytest slow marker infrastructure enables selective test execution. 'slow' marker defined in pyproject.toml for tests taking >1 second; tests using sleep >1s marked with @pytest.mark.slow; pytest -m "not slow" excludes slow tests for fast iteration; pytest -m "slow" runs only slow tests for full validation; CHAOS_DELAY and test timing configurable via TEST_DELAY_SCALE environment variable; development commands documented in CLAUDE.md for ultra-fast, fast, and slow-only execution; test behavior unchanged when no marker filters applied; comprehensive acceptance tests validate marker functionality | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, `tests/unit/test_fr275_test_speed_optimization.py`, `CLAUDE.md` |
+
+### 127. CI Hardening Consolidation
+
+Consolidate and harden CI/CD workflows with performance optimizations, security improvements, and resource management across all GitHub Actions workflows.
+
+**Feature Request:** FR-196
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-277 | CI hardening consolidation: all workflows have concurrency groups with cancel-in-progress; all setup-python steps include cache: pip; main workflow renamed to "CI"; tag pushes validate version against pyproject.toml; pip-audit has retry mechanism (3 attempts, 30s intervals); test matrix includes Python 3.11 and 3.12; existing job dependencies and triggers preserved; security scan still blocks on vulnerabilities; release process unchanged. | `.github/workflows/workflow.yml`, `.github/workflows/security.yml`, `.github/workflows/commitlint.yml`, `tests/unit/test_ci_hardening_consolidation.py` |
+
+### 128. Chaplain Documentation
+
+Comprehensive documentation for the FSM runtime orchestrator and shell library in .chaplain/README.md covering architecture, usage, and troubleshooting.
+
+**Feature Request:** FR-195
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-278 | `.chaplain/README.md` exists with comprehensive documentation covering: runtime architecture anchored on `.chaplain/scripts/start-system.sh` with dispatcher/pipeline FSM flow across plan/judge/enforce phases, shell library reference for all tools in `.chaplain/lib/watcher/*.sh` (worktree_setup.sh, worktree_teardown.sh, preflight.sh, create_pr.sh, merge_pr.sh, wait_ci.sh, post_merge.sh, inbox_sync.sh, metrics.sh), usage examples for daemon and individual tools, environment variables and configuration, troubleshooting section, architecture details, and cross-references to related files (FR-273, etc.) | `.chaplain/README.md`, `tests/unit/test_chaplain_readme_documentation` |
+
+### 130. Watcher2 Finalize Pre-commit Optimization
+
+Optimize watcher2 finalize step to reduce copilot session invocations by pre-formatting code before pre-commit loops and increasing retry attempts from 3 to 5.
+
+**Feature Request:** FR-198
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
 | REQ-YG-286 | Watcher2 finalize section runs ruff check --fix and ruff format on yamlgraph/ and tests/ directories before entering the pre-commit loop; loop allows 5 attempts (was 3); failure message shows "5 attempts"; git add -A stages files before and after ruff commands; prevents copilot fallback for auto-fixable cascading issues | `.chaplain/scripts/start-system.sh`, `tests/unit/test_fr198_watcher2_finalize_optimization.py` |
+
+### 131. Anthropic Prompt Caching Support
+
+YAML system_segments field with per-segment cache control for token cost optimization. Enables Anthropic prompt caching to reduce costs by 3x for stable context prefixes.
+
+**Feature Request:** FR-219
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-287 | System segments schema validation and parsing | `yamlgraph/utils/prompts.py` |
+| REQ-YG-288 | Backward compatibility with scalar system prompts | `yamlgraph/executor_base.py` |
+| REQ-YG-289 | Anthropic cache_control injection for cached segments | `yamlgraph/executor_base.py` |
+| REQ-YG-290 | Non-Anthropic segment flattening gracefully ignores cache flags | `yamlgraph/executor_base.py` |
+| REQ-YG-291 | Async/streaming executor consistency with segments | `yamlgraph/executor_async.py` |
+| REQ-YG-292 | Error handling for conflicting system and system_segments fields | `yamlgraph/utils/prompts.py` |
+| REQ-YG-293 | Variable substitution and Jinja2 support in segments | `yamlgraph/utils/prompts.py` |
+| REQ-YG-302 | Demo structure and files exist in proper format | `examples/demos/prompt-caching/` |
+| REQ-YG-303 | Demo graph configuration uses Anthropic provider correctly | `examples/demos/prompt-caching/graph.yaml` |
+| REQ-YG-304 | Demo prompts use identical cached system segments | `examples/demos/prompt-caching/prompts/` |
+| REQ-YG-305 | Documentation updates explain caching benefits | `reference/prompt-yaml.md`, `examples/demos/prompt-caching/README.md` |
+| REQ-YG-306 | Demo execution proof shows realistic output | `examples/demos/prompt-caching/demo-output.log` |
+
+### 132. Watcher2 CI Resilience
+
+Fix wait_ci.sh check ordering and CI resilience patterns for the watcher pipeline. v1 CI remediation artifacts (step-ci-remediate, enforce-ci-remediate) retired by FR-305; v2 handles CI fixes inside enforce_session.
+
+**Feature Request:** FR-279
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-294 | Wait logic checks IN_PROGRESS before FAILURE to avoid premature CI failure | `.chaplain/lib/watcher/wait_ci.sh` |
+| REQ-YG-298 | Maximum 2 remediation attempts before escalating to human | `.chaplain/config/watcher-pipeline-v2.yaml` |
+| REQ-YG-299 | Remediation covers syntax errors, missing changelog/diary fragments | `.chaplain/graphs/watcher-enforce/enforce-session.yaml` |
+| REQ-YG-300 | Existing passing pipelines unaffected by CI resilience changes | `.chaplain/config/watcher-pipeline-v2.yaml` |
+| REQ-YG-301 | Test coverage for wait_ci.sh ordering and CI remediation loop | `tests/unit/test_fr279_watcher2_ci_resilience.py` |
+
+### 133. Watcher2 CI Remediation Crash Fix
+
+Fix three bugs in the watcher2 CI remediation loop that cause immediate script crash: missing run ID in gh run view, relative path resolution after cd, and missing error guard.
+
+**Feature Request:** FR-284
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-307 | gh run view --log-failed uses proper run ID from gh run list | `.chaplain/scripts/start-system.sh` |
+
+### 134. Watcher2 Changelog Auto-Generation
+
+Auto-generate changelog fragments in watcher2 pipeline to eliminate manual intervention. Defense-in-depth approach with shell generation, prompt instructions, finalize verification, and CI remediation context. Extracts FR number, derives scope/type, looks up REQ-YG-XXX from capabilities registry, and prevents cross-wiring.
+
+**Feature Request:** FR-283
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-308 | Auto-generate changelog fragments in watcher2 pipeline between critique and finalize steps. Extract FR number from FR_PATH, generate filename with 40-char descriptive suffix, derive type/scope from path, lookup REQ-YG-XXX from capability registry, validate FR number to prevent cross-wiring, create YAML frontmatter and fragment content automatically. | `.chaplain/scripts/start-system.sh (lines 309-341)`, `tests/unit/test_fr283_watcher2_changelog_auto_generation.py` |
+
+### 135. Watcher2 Forensic Failure Diary
+
+Automated forensic analysis for watcher2 failures with structured diary generation. When handle_failure is called, automatically capture failure context (reason, topic content, logs, worktree state), perform LLM-driven root cause analysis, and generate structured diary entries with evidence and recommendations for institutional learning.
+
+**Feature Request:** FR-285
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-309 | Forensic failure analysis shall be automatically invoked on watcher2 handle_failure and generate structured diary entries containing root cause analysis, evidence sources, and prevention recommendations using LLM-driven investigation of failure context, logs, and worktree state | `.chaplain/scripts/start-system.sh (lines 56-89, 98)`, `.chaplain/lib/diary.py (lines 44-67, 100-123)`, `.chaplain/graphs/watcher-forensic/graph.yaml`, `tests/unit/test_fr285_watcher2_forensic_failure_diary.py` |
+
+### 136. Per-Graph Typed MCP Tools
+
+Derive per-graph typed MCP tool definitions from graph YAML metadata (name, description, state) so each graph appears as its own named tool with a typed JSON Schema. Shared schema derivation in discovery.py.
+
+**Feature Request:** FR-291
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-310 | Input/output var separation: discovery excludes state_key targets from input_vars, exposing only user-supplied inputs. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-311 | JSON Schema derivation from state type annotations. Maps str->string, int->integer, float->number, bool->boolean, list->array, dict->object. Parameterized types map to base type. Unknown types fall back to string. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-312 | Per-graph MCP tool registration: each discovered graph registers as its own named MCP tool with typed inputSchema derived from input_vars. | `yamlgraph/mcp_server.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-313 | Tool name normalization: graph name hyphens replaced with underscores to produce valid MCP tool names. | `yamlgraph/discovery.py`, `tests/unit/test_mcp_typed_tools.py` |
+| REQ-YG-314 | Name collision detection: duplicate tool_name values across discovered graphs raise ValueError at server startup. | `yamlgraph/mcp_server.py`, `tests/unit/test_mcp_typed_tools.py` |
+
+### 137. Watcher FSM System Startup Script
+
+Single startup script for the full watcher FSM system. Starts UI (creates event socket), generates diagrams, launches dispatcher with correct --initial-context in proper sequence. Signal-based cleanup kills all child processes. --inbox DIR overrides inbox directory.
+
+**Feature Request:** FR-296
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-315 | Watcher FSM system startup script: single script starts UI (event socket), generates diagrams, and launches dispatcher with correct --initial-context in proper sequence; cleanup on SIGINT/SIGTERM kills all child processes by PID with pkill fallback; --inbox DIR overrides inbox directory | `.chaplain/scripts/start-system.sh` |
+
+### 138. Watcher Pipeline FSM Simplification
+
+Simplified watcher pipeline v2: 6 operational states (setup, plan, commit_plan, judge, enforce_session, done) + 3 terminals (completed, failed, stopped). Judge uses different model from plan with fresh session. Enforce resumes plan session. Dispatcher flag-gated via pipeline_version.
+
+**Feature Request:** FR-305
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-316 | Simplified watcher pipeline v2 FSM: 6 operational states (setup, plan, commit_plan, judge, enforce_session, done) + 3 terminals (completed, failed, stopped). Judge uses different model from plan with fresh session (no resume). Enforce resumes plan session for full context continuity. Dispatcher flag-gated via pipeline_version context key. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-judge-v2.yaml`, `.chaplain/graphs/watcher-enforce/enforce-session.yaml`, `tests/unit/test_fr305_watcher_pipeline_v2.py` |
+
+### 139. Root README Accuracy Contract
+
+Root README claims stay aligned with implemented provider support and include explicit review freshness metadata via a dedicated unit contract test.
+
+**Feature Request:** FR-313
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-317 | Root `README.md` includes all currently supported provider identifiers (`anthropic`, `azure`, `deepseek`, `google`, `inception`, `lmstudio`, `mistral`, `openai`, `replicate`, `vertex`, `xai`) in provider documentation, contains no hardcoded `all <number> reference docs` wording, and ends with `Last reviewed: 2026-05-03`; contract enforced by `tests/unit/test_root_readme_accuracy.py` (FR-313). | `README.md`, `tests/unit/test_root_readme_accuracy.py` |
+
+### 140. Watcher2 Validate Split Fix/Gate
+
+Split watcher2 post-enforce validation into explicit LLM remediation (validate_fix) and deterministic CI-parity gate (validate_gate) with bounded retry semantics before done.
+
+**Feature Request:** FR-316
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-318 | Watcher2 pipeline routes post-enforce flow through validate_fix then sanity_check then validate_gate; validate_gate performs deterministic pre-commit, commit-title, branch-freshness, and diary-in-diff checks with max-attempt retry contract (pass → done, fix_needed → validate_fix, error → failed), while done keeps PR title source as `git log -1 --format=%s`. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr316_watcher2_validate_split_fix_gate.py` |
+
+### 141. Shared FSM Bridge Module
+
+Extract canonical fire-and-forget FSM↔YAMLGraph bridge behavior into `yamlgraph.utils.fsm` and make fsm-router consume it via a thin wrapper.
+
+**Feature Request:** FR-346
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-319 | FSM bridge shared module: `yamlgraph.utils.fsm` package with `YamlgraphAsyncAction`, `extract_event`, `json_safe`, `resolve_context_ref` exported from `yamlgraph.utils.fsm`; fire-and-forget guard semantics; AF_UNIX DGRAM event dispatch; interrupt/event_map/route/success resolution cascade. | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/action.py`, `examples/fsm-router/actions/yamlgraph_async_action.py`, `tests/unit/test_fsm_bridge_shared.py` |
+
+### 142. Skill Export Portable Packaging
+
+Add `yamlgraph skill export` to package existing graphs into portable Skills bundles with deterministic filesystem artifacts for skill discovery.
+
+**Feature Request:** FR-348
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-320 | CLI parser registers `yamlgraph skill export` with `--format` and `--output-dir` options and dispatches to skill command handlers. | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-321 | Export generates required package artifacts: `SKILL.md`, executable `scripts/run.sh`, `references/`, and `assets/schema.json`. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-322 | `SKILL.md` includes skill metadata, typed input/output sections, and runnable CLI invocation example. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-323 | `assets/schema.json` contains top-level `input` and `output` schema objects derived from graph input vars and output state keys. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-324 | Format variants map to expected paths for `skill-md`, `copilot`, and `cursor` package layouts. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-325 | Export is deterministic and non-LLM with explicit errors for invalid graph input, unsupported format, and target collisions. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr348_skill_export_red.py` |
+| REQ-YG-326 | CLI/reference docs include `yamlgraph skill export` usage and output layout examples for all format variants. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr348_skill_export_red.py` |
+
+### 143. Agent Export Tool-Scoped Personas
+
+Add `agent-md` export format to generate GitHub Copilot `.agent.md` files with YAMLGraph MCP tool scoping from graph metadata.
+
+**Feature Request:** FR-350
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-327 | CLI parser accepts `--format agent-md` for `yamlgraph skill export` and dispatches through existing skill command handlers. | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-328 | `agent-md` export writes a single file at `<output-dir>/.github/agents/<skill-name>.agent.md`. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-329 | Generated `.agent.md` frontmatter includes non-empty `description`, `tools: [yamlgraph/*]`, and `model: Claude Sonnet 4`. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-330 | Generated `.agent.md` body includes agent heading, inputs derived from graph schema, and `@agent-name` invocation guidance. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-331 | Export remains deterministic and non-LLM with explicit failures for invalid graph path, unsupported format, and output file collisions. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
+| REQ-YG-332 | CLI/reference docs include `agent-md` usage and output layout examples. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr350_agent_export_red.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -16,7 +16,8 @@ def cmd_skill_export(args: argparse.Namespace) -> None:
             format=args.format,
             output_dir=args.output_dir,
         )
-        print(f"✓ Skill exported: {package.target_dir}")
+        target = package.target_file or package.target_dir
+        print(f"✓ Skill exported: {target}")
     except Exception as exc:
         print(f"❌ Error exporting skill: {exc}")
         sys.exit(1)

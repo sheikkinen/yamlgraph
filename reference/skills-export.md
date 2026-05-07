@@ -5,7 +5,7 @@ Export YAMLGraph graphs as portable filesystem skill bundles.
 ## Command
 
 ```bash
-yamlgraph skill export <graph_path_or_dir> --format {skill-md,copilot,cursor} [--output-dir PATH]
+yamlgraph skill export <graph_path_or_dir> --format {skill-md,copilot,cursor,agent-md} [--output-dir PATH]
 ```
 
 ## Bundle Contents
@@ -35,6 +35,7 @@ yamlgraph graph run <graph_path> --var <key>=<example> ...
 | `skill-md` | `<output-dir>/<skill-name>/...` |
 | `copilot` | `<output-dir>/.copilot/skills/<skill-name>/...` |
 | `cursor` | `<output-dir>/.cursor/skills/<skill-name>/...` |
+| `agent-md` | `<output-dir>/.github/agents/<skill-name>.agent.md` |
 
 ## Examples
 
@@ -47,4 +48,7 @@ yamlgraph skill export examples/demos/hello/graph.yaml --format copilot --output
 
 # Cursor Skills layout
 yamlgraph skill export examples/demos/hello/graph.yaml --format cursor --output-dir .
+
+# Copilot agent mode file with YAMLGraph tool scoping
+yamlgraph skill export examples/demos/hello/graph.yaml --format agent-md --output-dir .
 ```
