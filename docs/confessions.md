@@ -400,6 +400,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Import `YamlgraphAsyncAction` after `pytest.importorskip("statemachine_engine")` guard.
 - **Penance**: Same pattern as CONF-037. The `statemachine_engine` package is a local dependency not installed in CI; `importorskip` must execute before the action import to skip gracefully.
 
+### CONF-301
+- **File**: [tests/unit/test_fr346_fsm_bridge_shared_module_red.py](../tests/unit/test_fr346_fsm_bridge_shared_module_red.py#L19)
+- **Code**: PLC0415
+- **Sin**: Import from `yamlgraph.utils.fsm` inside the test function.
+- **Penance**: The test is explicitly validating package-level importability as an acceptance criterion. Keeping the import inside the test body ensures evaluation happens at assertion time and avoids module-import side effects during test collection.
+
 ---
 
 ## Example Code
