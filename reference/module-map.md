@@ -146,9 +146,9 @@
   - import dependencies: `yamlgraph.utils.conditions`
 - `yamlgraph/schema_loader.py` - 268 lines; exports: `normalize_coding_keys(field)`, `resolve_type(type_str, field_name)`, `build_pydantic_model(schema)`, `build_pydantic_model_from_json_schema(schema, model_name)`, `load_schema_from_yaml(yaml_path)`
   - import dependencies: _none_
-- `yamlgraph/skill_export.py` - 313 lines; exports: `class SkillFormat`, `class PackageSkill`, `class SkillPackage`, `class SkillExporter`, `export_skill(graph_path_or_dir, *, format, output_dir)`
+- `yamlgraph/skill_export.py` - 299 lines; exports: `class SkillFormat`, `class PackageSkill`, `class SkillPackage`, `class SkillExporter`, `export_skill(graph_path_or_dir, *, format, output_dir)`
   - import dependencies: `yamlgraph.graph_loader`, `yamlgraph.skill_export_writer`, `yamlgraph.utils.prompts`
-- `yamlgraph/skill_export_writer.py` - 135 lines; exports: `write_skill_package(package_data, target_dir)`, `write_agent_md_file(package_data, target_file)`
+- `yamlgraph/skill_export_writer.py` - 106 lines; exports: `write_skill_package(package_data, target_dir)`, `write_agent_markdown(package_data, target_file)`
   - import dependencies: _none_
 - `yamlgraph/storage/__init__.py` - 18 lines; exports: _none_
   - import dependencies: `yamlgraph.storage.checkpointer_factory`, `yamlgraph.storage.export`
