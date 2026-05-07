@@ -62,6 +62,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Implementation Agent](impl-agent.md) | 14-tool agent for codebase analysis |
 | [Web UI & API](web-ui-api.md) | Serving graphs as web applications |
 | [Intent + Questionnaire](intent-questionnaire-pattern.md) | Multi-graph routing with session registry |
+| [FSM-as-Conductor](patterns/fsm-as-conductor.md) | statemachine-engine orchestrates lifecycle; YAMLGraph handles LLM |
 | [LLM-as-Gate Pattern](patterns/llm-as-gate.md) | Semantic pass/fail gating with router edges |
 
 ### Example Architectures
