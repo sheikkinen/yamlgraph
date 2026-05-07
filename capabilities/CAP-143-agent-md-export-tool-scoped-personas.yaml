@@ -1,0 +1,73 @@
+id: CAP-143
+name: Agent Export Tool-Scoped Personas
+description: >
+  Add `agent-md` export format to generate GitHub Copilot `.agent.md` files
+  with YAMLGraph MCP tool scoping from graph metadata.
+
+modules:
+  - yamlgraph/skill_export.py
+  - yamlgraph/skill_export_writer.py
+  - yamlgraph/cli/__init__.py
+  - yamlgraph/cli/skill_commands.py
+  - reference/cli.md
+  - reference/skills-export.md
+  - reference/README.md
+  - tests/unit/test_fr350_agent_export_red.py
+
+requirements:
+  - id: REQ-YG-327
+    description: >
+      CLI parser accepts `--format agent-md` for `yamlgraph skill export` and
+      dispatches through existing skill command handlers.
+    modules:
+      - yamlgraph/cli/__init__.py
+      - yamlgraph/cli/skill_commands.py
+      - tests/unit/test_fr350_agent_export_red.py
+
+  - id: REQ-YG-328
+    description: >
+      `agent-md` export writes a single file at
+      `<output-dir>/.github/agents/<skill-name>.agent.md`.
+    modules:
+      - yamlgraph/skill_export.py
+      - yamlgraph/skill_export_writer.py
+      - tests/unit/test_fr350_agent_export_red.py
+
+  - id: REQ-YG-329
+    description: >
+      Generated `.agent.md` frontmatter includes non-empty `description`,
+      `tools: [yamlgraph/*]`, and `model: Claude Sonnet 4`.
+    modules:
+      - yamlgraph/skill_export.py
+      - yamlgraph/skill_export_writer.py
+      - tests/unit/test_fr350_agent_export_red.py
+
+  - id: REQ-YG-330
+    description: >
+      Generated `.agent.md` body includes agent heading, inputs derived from
+      graph schema, and `@agent-name` invocation guidance.
+    modules:
+      - yamlgraph/skill_export.py
+      - yamlgraph/skill_export_writer.py
+      - tests/unit/test_fr350_agent_export_red.py
+
+  - id: REQ-YG-331
+    description: >
+      Export remains deterministic and non-LLM with explicit failures for
+      invalid graph path, unsupported format, and output file collisions.
+    modules:
+      - yamlgraph/skill_export.py
+      - yamlgraph/skill_export_writer.py
+      - yamlgraph/cli/skill_commands.py
+      - tests/unit/test_fr350_agent_export_red.py
+
+  - id: REQ-YG-332
+    description: >
+      CLI/reference docs include `agent-md` usage and output layout examples.
+    modules:
+      - reference/cli.md
+      - reference/skills-export.md
+      - reference/README.md
+      - tests/unit/test_fr350_agent_export_red.py
+
+fr: FR-350

@@ -176,7 +176,7 @@ yamlgraph a2a card examples/demos/hello/
 Portable skill packaging commands.
 
 ```bash
-yamlgraph skill export <graph_path_or_dir> [--format skill-md|copilot|cursor] [--output-dir PATH]
+yamlgraph skill export <graph_path_or_dir> [--format skill-md|copilot|cursor|agent-md] [--output-dir PATH]
 ```
 
 ### skill export
@@ -192,7 +192,7 @@ Export a graph into a portable skill bundle with:
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--format` | `skill-md` | Output layout variant: `skill-md`, `copilot`, `cursor` |
+| `--format` | `skill-md` | Output layout variant: `skill-md`, `copilot`, `cursor`, `agent-md` |
 | `--output-dir` | `output` | Base output directory |
 
 **Layout by format:**
@@ -202,6 +202,7 @@ Export a graph into a portable skill bundle with:
 | `skill-md` | `<output-dir>/<skill-name>/...` |
 | `copilot` | `<output-dir>/.copilot/skills/<skill-name>/...` |
 | `cursor` | `<output-dir>/.cursor/skills/<skill-name>/...` |
+| `agent-md` | `<output-dir>/.github/agents/<skill-name>.agent.md` |
 
 **Examples:**
 
@@ -214,6 +215,9 @@ yamlgraph skill export examples/demos/hello/graph.yaml --format copilot --output
 
 # Cursor-compatible skills directory
 yamlgraph skill export examples/demos/hello/graph.yaml --format cursor --output-dir .
+
+# Copilot agent mode file constrained to YAMLGraph MCP tools
+yamlgraph skill export examples/demos/hello/graph.yaml --format agent-md --output-dir .
 ```
 
 ---
