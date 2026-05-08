@@ -105,9 +105,7 @@ def _build_agent_md_content(package_data: dict[str, Any]) -> str:
     description = str(package_data["description"]).replace("\n", " ").strip()
 
     frontmatter = (
-        f"description: {description}\n"
-        "tools: [yamlgraph/*]\n"
-        "model: Claude Sonnet 4"
+        f"description: {description}\ntools: [yamlgraph/*]\nmodel: Claude Sonnet 4"
     )
 
     input_lines: list[str] = []
