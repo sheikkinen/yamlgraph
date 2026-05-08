@@ -214,7 +214,7 @@ edges:
 
 @pytest.mark.req("REQ-YG-311")
 def test_discover_input_schema_types(tmp_path: Path):
-    """input_vars includes JSON Schema types derived from state type annotations."""
+    """input_vars includes JSON Schema property dicts derived from state type annotations."""
     from yamlgraph.discovery import discover_graphs
 
     _write_graph(tmp_path, "demo", GRAPH_MULTI_TYPE)
@@ -222,19 +222,19 @@ def test_discover_input_schema_types(tmp_path: Path):
 
     assert len(graphs) == 1
     iv = graphs[0]["input_vars"]
-    assert iv["topic"] == "string"
-    assert iv["depth"] == "integer"
-    assert iv["temperature"] == "number"
-    assert iv["verbose"] == "boolean"
-    assert iv["tags"] == "array"
-    assert iv["options"] == "object"
+    assert iv["topic"] == {"type": "string"}
+    assert iv["depth"] == {"type": "integer"}
+    assert iv["temperature"] == {"type": "number"}
+    assert iv["verbose"] == {"type": "boolean"}
+    assert iv["tags"] == {"type": "array", "items": {"type": "string"}}
+    assert iv["options"] == {"type": "object", "additionalProperties": True}
     # 'result' is a state_key output — excluded
     assert "result" not in iv
 
 
 @pytest.mark.req("REQ-YG-311")
 def test_discover_parameterized_types(tmp_path: Path):
-    """Parameterized types like list[str] map to base JSON Schema type."""
+    """Parameterized types like list[str] extract element type for items."""
     from yamlgraph.discovery import discover_graphs
 
     _write_graph(tmp_path, "demo", GRAPH_PARAMETERIZED)
@@ -242,8 +242,11 @@ def test_discover_parameterized_types(tmp_path: Path):
 
     assert len(graphs) == 1
     iv = graphs[0]["input_vars"]
-    assert iv["items"] == "array"
-    assert iv["config"] == "object"
+    assert iv["items"] == {"type": "array", "items": {"type": "string"}}
+    assert iv["config"] == {
+        "type": "object",
+        "additionalProperties": {"type": "integer"},
+    }
     assert "output" not in iv  # state_key target
 
 
@@ -274,7 +277,95 @@ edges:
     graphs = discover_graphs([str(tmp_path / "*/graph.yaml")])
 
     assert len(graphs) == 1
-    assert graphs[0]["input_vars"]["custom"] == "string"
+    assert graphs[0]["input_vars"]["custom"] == {"type": "string"}
+
+
+@pytest.mark.req("REQ-YG-311")
+def test_array_schema_includes_items(tmp_path: Path):
+    """Array-typed input vars produce JSON Schema with required 'items' field.
+
+    Regression test: GitHub Copilot rejects MCP tools whose array parameters
+    lack ``items`` (JSON Schema §6.4.1). Without ``items``, the entire MCP
+    server fails to load.
+    """
+    from yamlgraph.discovery import discover_graphs
+
+    yaml_content = """\
+version: "1.0"
+name: array-test
+description: Graph with list inputs
+state:
+  plain_list: list
+  typed_list: list[int]
+  output: str
+nodes:
+  n:
+    type: llm
+    prompt: p
+    state_key: output
+edges:
+  - from: START
+    to: n
+  - from: n
+    to: END
+"""
+    _write_graph(tmp_path, "demo", yaml_content)
+    graphs = discover_graphs([str(tmp_path / "*/graph.yaml")])
+
+    g = graphs[0]
+    schema = g["input_schema"]
+    props = schema["properties"]
+
+    # Plain list → array with default string items
+    assert props["plain_list"]["type"] == "array"
+    assert "items" in props["plain_list"], "array type must include 'items'"
+    assert props["plain_list"]["items"] == {"type": "string"}
+
+    # Typed list[int] → array with integer items
+    assert props["typed_list"]["type"] == "array"
+    assert "items" in props["typed_list"], "array type must include 'items'"
+    assert props["typed_list"]["items"] == {"type": "integer"}
+
+    # Output excluded
+    assert "output" not in props
+
+
+@pytest.mark.req("REQ-YG-311")
+@pytest.mark.asyncio
+async def test_mcp_tool_array_param_valid_schema(tmp_path: Path):
+    """MCP tool with array parameter produces schema Copilot can validate."""
+    from yamlgraph.mcp_server import create_server
+
+    yaml_content = """\
+version: "1.0"
+name: array-tool
+description: Tool with array params
+state:
+  tags: list
+  items: list[str]
+  result: str
+nodes:
+  n:
+    type: llm
+    prompt: p
+    state_key: result
+edges:
+  - from: START
+    to: n
+  - from: n
+    to: END
+"""
+    _write_graph(tmp_path, "demo", yaml_content)
+    server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
+
+    tools = await _call_list_tools(server)
+    tool = next(t for t in tools if t.name == "array_tool")
+
+    props = tool.inputSchema["properties"]
+    # Both array params must have items
+    for key in ("tags", "items"):
+        assert props[key]["type"] == "array", f"{key} should be array"
+        assert "items" in props[key], f"{key} array must have 'items'"
 
 
 # ---------------------------------------------------------------------------
@@ -477,3 +568,96 @@ def test_no_collision_different_names(tmp_path: Path):
     # Should not raise — names are different (test-graph vs stateless)
     server = create_server(graph_patterns=[str(tmp_path / "*/graph.yaml")])
     assert server is not None
+
+
+# ---------------------------------------------------------------------------
+# Map node collect key exclusion
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-310")
+def test_discover_excludes_collect_key_from_inputs(tmp_path: Path):
+    """Map node ``collect`` target is an output, not an input var.
+
+    Regression: animated-character-storyboard's ``animated_panels``
+    was exposed as a required input because ``collect`` was not treated
+    as an output key — only ``state_key`` was checked.
+    """
+    from yamlgraph.discovery import discover_graphs
+
+    yaml_content = """\
+version: "1.0"
+name: map-collect-test
+description: Graph with map node using collect
+state:
+  concept: str
+  panels: list
+  result: str
+nodes:
+  generate:
+    type: map
+    over: "{state.concept}"
+    as: item
+    node:
+      type: llm
+      prompt: gen
+      state_key: panel
+    collect: panels
+  finalize:
+    type: llm
+    prompt: final
+    state_key: result
+edges:
+  - from: START
+    to: generate
+  - from: generate
+    to: finalize
+  - from: finalize
+    to: END
+"""
+    _write_graph(tmp_path, "demo", yaml_content)
+    graphs = discover_graphs([str(tmp_path / "*/graph.yaml")])
+
+    assert len(graphs) == 1
+    iv = graphs[0]["input_vars"]
+    # 'concept' is input (not state_key or collect target)
+    assert "concept" in iv
+    # 'panels' is a collect target — should be excluded
+    assert "panels" not in iv
+    # 'result' is a state_key — should be excluded
+    assert "result" not in iv
+
+
+# ---------------------------------------------------------------------------
+# Schema validation guard
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-311")
+def test_validate_json_schema_rejects_array_without_items():
+    """_validate_json_schema raises on array missing items."""
+    from yamlgraph.discovery import _validate_json_schema
+
+    bad_schema = {
+        "type": "object",
+        "properties": {
+            "tags": {"type": "array"},  # missing items
+        },
+    }
+    with pytest.raises(ValueError, match="missing 'items'"):
+        _validate_json_schema(bad_schema, "broken_tool")
+
+
+@pytest.mark.req("REQ-YG-311")
+def test_validate_json_schema_accepts_valid_array():
+    """_validate_json_schema passes for arrays with items."""
+    from yamlgraph.discovery import _validate_json_schema
+
+    good_schema = {
+        "type": "object",
+        "properties": {
+            "tags": {"type": "array", "items": {"type": "string"}},
+        },
+    }
+    # Should not raise
+    _validate_json_schema(good_schema, "good_tool")
