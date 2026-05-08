@@ -52,7 +52,7 @@
 - `yamlgraph/diary/__init__.py` - 4 lines; exports: _none_
 - `yamlgraph/diary/importer.py` - 247 lines; exports: `class ImportResult`, `import_scheduled_entries(diary_dir, source_dir, *, dry_run)`, `import_git_reports(diary_dir, source_dir, *, dry_run)`
   - import dependencies: _none_
-- `yamlgraph/discovery.py` - 162 lines; exports: `discover_graphs(patterns)`
+- `yamlgraph/discovery.py` - 232 lines; exports: `discover_graphs(patterns)`
   - import dependencies: _none_
 - `yamlgraph/edge_compiler.py` - 240 lines; exports: _none_
   - import dependencies: `yamlgraph.routing`
@@ -102,7 +102,7 @@
   - import dependencies: `yamlgraph.linter.checks`
 - `yamlgraph/map_compiler.py` - 352 lines; exports: `flatten_map_results(items)`, `wrap_for_reducer(node_fn, collect_key, state_key, flatten_output, timeout)`, `compile_map_node(name, config, builder, defaults, tools_registry, graph_path, python_tools, tools)`
   - import dependencies: `yamlgraph.config`, `yamlgraph.constants`, `yamlgraph.node_factory`, `yamlgraph.tools.agent`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.expressions`
-- `yamlgraph/mcp_server.py` - 310 lines; exports: `create_server(graph_patterns)`, `async main()`
+- `yamlgraph/mcp_server.py` - 370 lines; exports: `create_server(graph_patterns)`, `async main()`
   - import dependencies: `yamlgraph.discovery`
 - `yamlgraph/models/__init__.py` - 45 lines; exports: _none_
   - import dependencies: `yamlgraph.models.graph_schema`, `yamlgraph.models.schemas`, `yamlgraph.models.state_builder`, `yamlgraph.verification`

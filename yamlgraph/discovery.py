@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import glob
 import logging
-import re
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +35,52 @@ _TYPE_MAP: dict[str, str] = {
 }
 
 
+def _split_top_level_args(text: str) -> list[str]:
+    """Split comma-separated generic args while respecting nested brackets."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+
+    for ch in text:
+        if ch == "[":
+            depth += 1
+        elif ch == "]" and depth > 0:
+            depth -= 1
+
+        if ch == "," and depth == 0:
+            part = "".join(current).strip()
+            if part:
+                parts.append(part)
+            current = []
+            continue
+
+        current.append(ch)
+
+    tail = "".join(current).strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+def _parse_yaml_type(type_str: str) -> tuple[str, list[str]]:
+    """Parse a YAML type into base type and optional generic args."""
+    text = type_str.strip()
+    if "[" not in text or not text.endswith("]"):
+        return text, []
+    base, arg_text = text.split("[", maxsplit=1)
+    return base.strip(), _split_top_level_args(arg_text[:-1])
+
+
+def _state_type_string(type_val: str | dict | Any) -> str:
+    """Normalize state value into a type annotation string."""
+    if isinstance(type_val, dict):
+        type_str = type_val.get("type", "str")
+        return type_str if isinstance(type_str, str) else "str"
+    if isinstance(type_val, str):
+        return type_val
+    return "str"
+
+
 def _yaml_type_to_json_schema(type_str: str) -> str:
     """Map a YAML state type annotation to a JSON Schema type.
 
@@ -48,19 +93,54 @@ def _yaml_type_to_json_schema(type_str: str) -> str:
     Returns:
         JSON Schema type string.
     """
-    # Strip parameterization: list[str] → list, dict[str, int] → dict
-    base = re.split(r"\[", type_str, maxsplit=1)[0].strip()
+    base, _ = _parse_yaml_type(type_str)
     return _TYPE_MAP.get(base, "string")
 
 
+def _build_property_schema(type_str: str) -> dict[str, Any]:
+    """Build a JSON Schema property from a YAML state type annotation."""
+    json_type = _yaml_type_to_json_schema(type_str)
+    schema: dict[str, Any] = {"type": json_type}
+    _, params = _parse_yaml_type(type_str)
+
+    if json_type == "array":
+        item_type = params[0] if params else "str"
+        schema["items"] = {"type": _yaml_type_to_json_schema(item_type)}
+    elif json_type == "object":
+        value_type = params[1] if len(params) >= 2 else "str"
+        schema["additionalProperties"] = {"type": _yaml_type_to_json_schema(value_type)}
+
+    return schema
+
+
+def _extract_output_state_keys(nodes: dict[str, Any]) -> set[str]:
+    """Extract state keys that are outputs from node config."""
+    output_keys: set[str] = set()
+
+    for node in nodes.values():
+        if not isinstance(node, dict):
+            continue
+
+        state_key = node.get("state_key")
+        if isinstance(state_key, str):
+            output_keys.add(state_key)
+
+        collect = node.get("collect")
+        if isinstance(collect, str):
+            output_keys.add(collect)
+        elif isinstance(collect, list):
+            output_keys.update(item for item in collect if isinstance(item, str))
+
+    return output_keys
+
+
 def _extract_input_vars(
-    state: dict[str, str | dict],
-    nodes: dict[str, Any],
+    state: dict[str, str | dict], nodes: dict[str, Any]
 ) -> dict[str, str]:
     """Separate input vars from output vars in the state block.
 
     REQ-YG-310: Input vars are state keys NOT used as any node's
-    ``state_key``. Output vars (state_key targets) are excluded.
+    ``state_key`` or map-node ``collect`` output.
 
     Args:
         state: State block from graph YAML (key → type string or dict).
@@ -69,22 +149,12 @@ def _extract_input_vars(
     Returns:
         Dict of input var name → JSON Schema type string.
     """
-    state_keys_used_as_output = {
-        node.get("state_key")
-        for node in nodes.values()
-        if isinstance(node, dict) and "state_key" in node
-    }
+    state_keys_used_as_output = _extract_output_state_keys(nodes)
     result: dict[str, str] = {}
     for key, type_val in state.items():
         if key in state_keys_used_as_output:
             continue
-        # State value can be a string ("str") or a dict ({"type": "list", "reducer": ...})
-        if isinstance(type_val, dict):
-            type_str = type_val.get("type", "str")
-        elif isinstance(type_val, str):
-            type_str = type_val
-        else:
-            type_str = "str"
+        type_str = _state_type_string(type_val)
         result[key] = _yaml_type_to_json_schema(type_str)
     return result
 
@@ -138,10 +208,10 @@ def discover_graphs(patterns: list[str]) -> list[dict[str, Any]]:
                 tool_name = name.replace("-", "_").replace(" ", "_")
 
                 # REQ-YG-311: Build JSON Schema for MCP inputSchema
-                input_schema: dict[str, Any] = {
-                    "type": "object",
-                    "properties": {k: {"type": v} for k, v in input_vars.items()},
-                }
+                input_schema: dict[str, Any] = {"type": "object", "properties": {}}
+                for key in input_vars:
+                    type_str = _state_type_string(state.get(key))
+                    input_schema["properties"][key] = _build_property_schema(type_str)
                 if input_vars:
                     input_schema["required"] = list(input_vars.keys())
 

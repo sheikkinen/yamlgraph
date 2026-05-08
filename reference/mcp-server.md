@@ -117,4 +117,5 @@ The `state` keys become `required_vars` in the tool listing.
 | `ModuleNotFoundError: mcp` | `pip install -e ".[mcp]"` |
 | `ModuleNotFoundError: yamlgraph` | Ensure `.mcp.json` uses `.venv/bin/python3` |
 | Graph not listed | Verify path matches a scan pattern |
+| Per-graph typed tool missing | Check startup logs for schema-validation warnings; invalid graph input schemas are excluded at startup |
 | Timeout errors | Graph execution exceeds 120s default; check `config.timeout` in graph YAML |

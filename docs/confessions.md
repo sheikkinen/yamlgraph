@@ -689,6 +689,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Import from `yamlgraph.utils.id_registry` after `sys.path.insert()`.
 - **Penance**: The `sys.path` modification is required before the import so `yamlgraph` is resolvable when running the script standalone. Standard pattern for repo scripts.
 
+### CONF-211
+- **File**: [tests/unit/test_fr355_mcp_schema_validation_gate_red.py](../tests/unit/test_fr355_mcp_schema_validation_gate_red.py#L12)
+- **Code**: E402
+- **Sin**: Import `mcp.types` after `pytest.importorskip("mcp")` guard.
+- **Penance**: `mcp` is an optional dependency; the skip guard must execute before importing `mcp.types` so the test file is skipped cleanly when MCP extras are not installed.
+
 ---
 
 ## Process Exceptions
