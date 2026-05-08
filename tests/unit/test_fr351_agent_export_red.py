@@ -16,7 +16,7 @@ def _write_demo_agent_graph(tmp_path: Path) -> Path:
     prompts_dir = graph_dir / "prompts"
     prompts_dir.mkdir()
     (prompts_dir / "greet.yaml").write_text(
-        "description: Demo greeting prompt\n" "template: |\n" "  Say hello to {name}\n"
+        "description: Demo greeting prompt\ntemplate: |\n  Say hello to {name}\n"
     )
 
     graph_path = graph_dir / "graph.yaml"

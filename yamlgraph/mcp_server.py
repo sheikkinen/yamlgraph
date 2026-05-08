@@ -49,6 +49,63 @@ INVOKE_TIMEOUT = 120
 _executor = ThreadPoolExecutor(max_workers=1)
 
 
+def _validate_input_schema(input_schema: dict[str, Any]) -> list[str]:
+    """Validate minimal JSON Schema quality required by MCP typed tools."""
+    errors: list[str] = []
+
+    properties = input_schema.get("properties", {})
+    if not isinstance(properties, dict):
+        return ["input_schema.properties must be an object"]
+
+    for key, prop in properties.items():
+        if not isinstance(prop, dict):
+            errors.append(f"{key}: property schema must be an object")
+            continue
+
+        schema_type = prop.get("type")
+        if schema_type == "array" and "items" not in prop:
+            errors.append(f"{key}: array type must include items")
+        if schema_type == "object" and not (
+            "properties" in prop or "additionalProperties" in prop
+        ):
+            errors.append(
+                f"{key}: object type should include properties or additionalProperties"
+            )
+
+    required = input_schema.get("required", [])
+    if not isinstance(required, list):
+        errors.append("input_schema.required must be a list when present")
+        return errors
+
+    for required_key in required:
+        if required_key not in properties:
+            errors.append(f"required key '{required_key}' missing from properties")
+
+    return errors
+
+
+def _partition_graphs_by_schema(
+    graphs: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Split discovered graphs into valid/invalid typed-tool candidates."""
+    valid_graphs: list[dict[str, Any]] = []
+    invalid_graphs: list[dict[str, Any]] = []
+
+    for graph in graphs:
+        errors = _validate_input_schema(graph["input_schema"])
+        if errors:
+            logger.warning(
+                "Excluding graph '%s' from MCP typed tools: %s",
+                graph["name"],
+                "; ".join(errors),
+            )
+            invalid_graphs.append(graph)
+            continue
+        valid_graphs.append(graph)
+
+    return valid_graphs, invalid_graphs
+
+
 # ---------------------------------------------------------------------------
 # REQ-YG-068: Graph invocation
 # ---------------------------------------------------------------------------
@@ -92,11 +149,12 @@ def create_server(
         graph_patterns = DEFAULT_GRAPH_PATTERNS
 
     graphs = discover_graphs(graph_patterns)
+    valid_typed_graphs, _ = _partition_graphs_by_schema(graphs)
     graph_lookup: dict[str, dict[str, Any]] = {g["name"]: g for g in graphs}
 
     # REQ-YG-314: Collision detection — tool_name must be unique
     tool_name_to_graph: dict[str, str] = {}
-    for g in graphs:
+    for g in valid_typed_graphs:
         tool_name = g["tool_name"]
         if tool_name in tool_name_to_graph:
             raise ValueError(
@@ -106,7 +164,9 @@ def create_server(
         tool_name_to_graph[tool_name] = g["name"]
 
     # REQ-YG-312: Build per-graph tool lookup (tool_name → graph info)
-    typed_tool_lookup: dict[str, dict[str, Any]] = {g["tool_name"]: g for g in graphs}
+    typed_tool_lookup: dict[str, dict[str, Any]] = {
+        g["tool_name"]: g for g in valid_typed_graphs
+    }
 
     server = Server("yamlgraph")
 
@@ -150,7 +210,7 @@ def create_server(
         ]
 
         # REQ-YG-312: Per-graph typed tools
-        for g in graphs:
+        for g in valid_typed_graphs:
             tools.append(
                 types.Tool(
                     name=g["tool_name"],
