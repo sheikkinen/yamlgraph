@@ -2,7 +2,7 @@
 # Routes responses based on detected message tone
 
 version: "1.0"
-name: tone-router-demo
+name: promptfoo-tone-router-demo
 description: Route responses based on detected message tone
 prompts_relative: true
 prompts_dir: prompts
