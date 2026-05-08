@@ -107,8 +107,13 @@ def _build_property_schema(type_str: str) -> dict[str, Any]:
         item_type = params[0] if params else "str"
         schema["items"] = {"type": _yaml_type_to_json_schema(item_type)}
     elif json_type == "object":
-        value_type = params[1] if len(params) >= 2 else "str"
-        schema["additionalProperties"] = {"type": _yaml_type_to_json_schema(value_type)}
+        if len(params) >= 2:
+            value_type = params[1]
+            schema["additionalProperties"] = {
+                "type": _yaml_type_to_json_schema(value_type)
+            }
+        else:
+            schema["additionalProperties"] = True
 
     return schema
 
@@ -136,7 +141,7 @@ def _extract_output_state_keys(nodes: dict[str, Any]) -> set[str]:
 
 def _extract_input_vars(
     state: dict[str, str | dict], nodes: dict[str, Any]
-) -> dict[str, str]:
+) -> dict[str, dict[str, Any]]:
     """Separate input vars from output vars in the state block.
 
     REQ-YG-310: Input vars are state keys NOT used as any node's
@@ -147,16 +152,47 @@ def _extract_input_vars(
         nodes: Nodes block from graph YAML.
 
     Returns:
-        Dict of input var name → JSON Schema type string.
+        Dict of input var name → JSON Schema property dict.
     """
     state_keys_used_as_output = _extract_output_state_keys(nodes)
-    result: dict[str, str] = {}
+    result: dict[str, dict[str, Any]] = {}
     for key, type_val in state.items():
         if key in state_keys_used_as_output:
             continue
         type_str = _state_type_string(type_val)
-        result[key] = _yaml_type_to_json_schema(type_str)
+        result[key] = _build_property_schema(type_str)
     return result
+
+
+def _validate_json_schema(schema: dict[str, Any], tool_name: str) -> None:
+    """Validate a JSON Schema has ``items`` for every array type.
+
+    MCP clients (VS Code Copilot) reject tool schemas where an array
+    property lacks ``items``.  This guard prevents broken schemas from
+    reaching the wire.
+
+    Args:
+        schema: JSON Schema dict to validate.
+        tool_name: Tool name for error reporting.
+
+    Raises:
+        ValueError: If any array property is missing ``items``.
+    """
+
+    def _check(obj: Any, path: str) -> None:
+        if isinstance(obj, dict):
+            if obj.get("type") == "array" and "items" not in obj:
+                raise ValueError(
+                    f"Tool '{tool_name}': array at '{path}' missing 'items'. "
+                    f"MCP clients require items for array types."
+                )
+            for k, v in obj.items():
+                _check(v, f"{path}.{k}")
+        elif isinstance(obj, list):
+            for i, v in enumerate(obj):
+                _check(v, f"{path}[{i}]")
+
+    _check(schema, "inputSchema")
 
 
 def discover_graphs(patterns: list[str]) -> list[dict[str, Any]]:
@@ -208,12 +244,15 @@ def discover_graphs(patterns: list[str]) -> list[dict[str, Any]]:
                 tool_name = name.replace("-", "_").replace(" ", "_")
 
                 # REQ-YG-311: Build JSON Schema for MCP inputSchema
-                input_schema: dict[str, Any] = {"type": "object", "properties": {}}
-                for key in input_vars:
-                    type_str = _state_type_string(state.get(key))
-                    input_schema["properties"][key] = _build_property_schema(type_str)
+                input_schema: dict[str, Any] = {
+                    "type": "object",
+                    "properties": dict(input_vars),
+                }
                 if input_vars:
                     input_schema["required"] = list(input_vars.keys())
+
+                # Guard: validate schema before serving to MCP clients
+                _validate_json_schema(input_schema, tool_name)
 
                 graphs.append(
                     {
