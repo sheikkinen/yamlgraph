@@ -227,7 +227,7 @@ def test_discover_input_schema_types(tmp_path: Path):
     assert iv["temperature"] == {"type": "number"}
     assert iv["verbose"] == {"type": "boolean"}
     assert iv["tags"] == {"type": "array", "items": {"type": "string"}}
-    assert iv["options"] == {"type": "object", "additionalProperties": True}
+    assert iv["options"] == {"type": "object", "additionalProperties": {}}
     # 'result' is a state_key output — excluded
     assert "result" not in iv
 
@@ -243,10 +243,7 @@ def test_discover_parameterized_types(tmp_path: Path):
     assert len(graphs) == 1
     iv = graphs[0]["input_vars"]
     assert iv["items"] == {"type": "array", "items": {"type": "string"}}
-    assert iv["config"] == {
-        "type": "object",
-        "additionalProperties": {"type": "integer"},
-    }
+    assert iv["config"] == {"type": "object", "additionalProperties": {}}
     assert "output" not in iv  # state_key target
 
 
