@@ -148,7 +148,7 @@
   - import dependencies: _none_
 - `yamlgraph/skill_export.py` - 313 lines; exports: `class SkillFormat`, `class PackageSkill`, `class SkillPackage`, `class SkillExporter`, `export_skill(graph_path_or_dir, *, format, output_dir)`
   - import dependencies: `yamlgraph.graph_loader`, `yamlgraph.skill_export_writer`, `yamlgraph.utils.prompts`
-- `yamlgraph/skill_export_writer.py` - 132 lines; exports: `write_skill_package(package_data, target_dir)`, `write_agent_md_file(package_data, target_file)`
+- `yamlgraph/skill_export_writer.py` - 130 lines; exports: `write_skill_package(package_data, target_dir)`, `write_agent_md_file(package_data, target_file)`
   - import dependencies: _none_
 - `yamlgraph/storage/__init__.py` - 18 lines; exports: _none_
   - import dependencies: `yamlgraph.storage.checkpointer_factory`, `yamlgraph.storage.export`
