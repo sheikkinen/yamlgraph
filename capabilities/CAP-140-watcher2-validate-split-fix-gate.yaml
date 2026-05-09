@@ -17,11 +17,14 @@ requirements:
       sanity_check then validate_gate; validate_gate performs deterministic
       pre-commit, commit-title, branch-freshness, and diary-in-diff checks with
       max-attempt retry contract (pass → done, fix_needed → validate_fix,
-      error → failed), while done keeps PR title source as
-      `git log -1 --format=%s`.
+      error → failed). Both done and validate_gate diary-parity trigger use a
+      shared primary PR title selector: first feat/fix in `origin/main..HEAD`,
+      else first non-docs/non-chore, else first subject.
     modules:
       - .chaplain/config/watcher-pipeline-v2.yaml
       - .chaplain/actions/validate_gate_action.py
+      - .chaplain/lib/watcher/select_primary_pr_title.sh
       - .chaplain/graphs/watcher-enforce/prompts/validate-session.yaml
       - tests/unit/test_fr316_watcher2_validate_split_fix_gate.py
+      - tests/unit/test_fr358_watcher2_primary_pr_title_selection.py
 fr: FR-316
