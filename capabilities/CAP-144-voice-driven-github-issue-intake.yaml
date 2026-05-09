@@ -1,0 +1,78 @@
+id: CAP-144
+name: Voice-driven GitHub Issue Intake
+description: >
+  Incaller supports `mode=github_issue_intake` to create GitHub issues via
+  `gh issue create` after recap confirmation, with deterministic chaplain label
+  opt-in, explicit success/error state, and spoken readback routing.
+
+modules:
+  - projects/incaller/graph.yaml
+  - projects/incaller/nodes/create_issue.py
+  - projects/incaller/prompts/speak_issue_url.yaml
+  - projects/incaller/prompts/speak_issue_error.yaml
+  - projects/incaller/README.md
+  - tests/unit/test_fr360_voice_issue_intake_red.py
+
+requirements:
+  - id: REQ-YG-333
+    description: >
+      `projects/incaller/graph.yaml` declares issue intake state keys: `mode`,
+      `issue_url`, `issue_number`, and `issue_create_error`.
+    modules:
+      - projects/incaller/graph.yaml
+      - tests/unit/test_fr360_voice_issue_intake_red.py
+
+  - id: REQ-YG-334
+    description: >
+      In `github_issue_intake` mode, confirmed recap routes to `create_issue`;
+      confirmed non-intake routes to normal goodbye. Timeout path
+      (`recap_count >= 3`) in intake mode routes to goodbye and never to
+      create_issue.
+    modules:
+      - projects/incaller/graph.yaml
+      - tests/unit/test_fr360_voice_issue_intake_red.py
+
+  - id: REQ-YG-335
+    description: >
+      `projects/incaller/nodes/create_issue.py` executes `gh issue create` and
+      records `issue_url` and parsed `issue_number` on success.
+    modules:
+      - projects/incaller/nodes/create_issue.py
+      - tests/unit/test_fr360_voice_issue_intake_red.py
+
+  - id: REQ-YG-336
+    description: >
+      `chaplain` label is applied only when normalized `chaplain_opt_in`
+      resolves true; falsey values do not add labels.
+    modules:
+      - projects/incaller/nodes/create_issue.py
+      - tests/unit/test_fr360_voice_issue_intake_red.py
+
+  - id: REQ-YG-337
+    description: >
+      gh missing/auth/create failures set explicit `issue_create_error` and do
+      not set success URL/number.
+    modules:
+      - projects/incaller/nodes/create_issue.py
+      - tests/unit/test_fr360_voice_issue_intake_red.py
+
+  - id: REQ-YG-338
+    description: >
+      `speak_issue_url` and `speak_issue_error` llm nodes read success/error
+      state to `next_utterance` and route through `speak` for final caller
+      readback.
+    modules:
+      - projects/incaller/graph.yaml
+      - projects/incaller/prompts/speak_issue_url.yaml
+      - projects/incaller/prompts/speak_issue_error.yaml
+      - tests/unit/test_fr360_voice_issue_intake_red.py
+
+  - id: REQ-YG-339
+    description: >
+      `projects/incaller/README.md` documents `github_issue_intake` mode and
+      GitHub CLI authentication prerequisite.
+    modules:
+      - projects/incaller/README.md
+      - tests/unit/test_fr360_voice_issue_intake_red.py
+
+fr: FR-360

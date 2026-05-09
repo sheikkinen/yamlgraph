@@ -64,6 +64,12 @@ Each confession must include:
 - **Sin**: Module-level import `from req_coverage import CAPABILITIES` appears after `sys.path.insert()` manipulation.
 - **Penance**: The import must occur after sys.path is modified to find `req_coverage.py` in the scripts directory. This is standard Python pattern for runtime path manipulation.
 
+### CONF-208
+- **File**: [projects/incaller/nodes/create_issue.py](../projects/incaller/nodes/create_issue.py#L102)
+- **Code**: S603
+- **Sin**: `create_issue()` invokes `subprocess.run(["gh", "issue", "create", ...])`.
+- **Penance**: The command is executed with explicit argv (no shell), fixed executable (`gh`), and deterministic flags; values are passed as isolated arguments, so shell injection is not possible.
+
 ---
 
 ## Framework Code
