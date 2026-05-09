@@ -114,8 +114,9 @@ class TestFR316ValidateSplitFixGate:
         assert "ruff check --fix" in content
         assert "pytest tests/unit/ -q --no-cov -x" in content
 
-    def test_ac09_done_pr_title_source_remains_latest_commit_subject(self):
+    def test_ac09_done_pr_title_uses_primary_selector_policy(self):
         config = _load_yaml(PIPELINE_V2)
         action = _action_for(config, "done")
         command = action["command"]
-        assert "PR_TITLE=$(git log -1 --format=%s)" in command
+        assert "select_primary_pr_title.sh" in command
+        assert "PR_TITLE=$(git log -1 --format=%s)" not in command

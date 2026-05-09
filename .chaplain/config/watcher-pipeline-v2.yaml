@@ -318,10 +318,15 @@ actions:
         set -e
         cd {wt_dir}
         git push origin {wt_branch} --force-with-lease
-        # Derive PR title from latest commit (already Conventional Commits format)
-        PR_TITLE=$(git log -1 --format=%s)
-        PR_URL=$(gh pr create --title "$PR_TITLE" --body "" --head {wt_branch} 2>/dev/null || gh pr view {wt_branch} --json url -q .url)
+        # Derive PR title from branch primary implementation commit.
+        PR_TITLE=$(bash .chaplain/lib/watcher/select_primary_pr_title.sh)
+        if PR_URL=$(gh pr create --title "$PR_TITLE" --body "" --head {wt_branch} 2>/dev/null); then
+          :
+        else
+          PR_URL=$(gh pr view {wt_branch} --json url -q .url)
+        fi
         PR_NUM=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+        gh pr edit "$PR_NUM" --title "$PR_TITLE" >/dev/null 2>&1 || true
         echo "Created/found PR #${PR_NUM}: ${PR_URL}"
         bash {main_dir}/.chaplain/lib/watcher/wait_ci.sh --pr "$PR_NUM"
         bash {main_dir}/.chaplain/lib/watcher/merge_pr.sh --pr "$PR_NUM"
