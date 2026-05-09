@@ -4,7 +4,7 @@ Runs four deterministic checks before done:
 1. pre-commit run --all-files
 2. commit title contract from latest commit subject
 3. branch freshness versus origin/main
-4. diary-in-diff parity for feat/fix FR branches
+4. diary-in-diff parity based on the branch primary PR title policy
 
 On any failure, stores diagnostics in context["validate_gate_output"] and
 returns the configured retry event. Returns configured error event when
@@ -24,7 +24,17 @@ TITLE_PATTERN = re.compile(
     r"^(?P<type>feat|fix|chore|docs|refactor|test|ci|perf|style|build|revert)"
     r"(?:\([^)]+\))?: .+$"
 )
+TITLE_TYPE_PATTERN = re.compile(
+    r"^(?P<type>feat|fix|chore|docs|refactor|test|ci|perf|style|build|revert)"
+    r"(?:\([^)]+\))?:\s+"
+)
 FR_PATTERN = re.compile(r"FR-(\d+)")
+PRIMARY_TITLE_SELECTOR = ".chaplain/lib/watcher/select_primary_pr_title.sh"
+
+
+def _extract_title_type(title: str) -> str:
+    match = TITLE_TYPE_PATTERN.match(title)
+    return match.group("type") if match else ""
 
 
 class ValidateGateAction(BaseAction):
@@ -112,6 +122,29 @@ class ValidateGateAction(BaseAction):
                         }
                     )
 
+        primary_title_result = self._run(["bash", PRIMARY_TITLE_SELECTOR], cwd)
+        primary_title = primary_title_result.stdout.strip()
+        primary_title_type = ""
+        checks.append(
+            {
+                "name": "primary_pr_title",
+                "returncode": primary_title_result.returncode,
+                "passed": False,
+                "title": primary_title,
+            }
+        )
+        if primary_title_result.returncode != 0 or not primary_title:
+            failures.append(
+                {
+                    "check": "primary_pr_title",
+                    "reason": "failed to select branch primary PR title",
+                }
+            )
+        else:
+            primary_title_type = _extract_title_type(primary_title)
+            checks[-1]["passed"] = True
+            checks[-1]["type"] = primary_title_type
+
         fetch_result = self._run(["git", "fetch", "origin", "main"], cwd)
         checks.append(
             {
@@ -146,11 +179,11 @@ class ValidateGateAction(BaseAction):
                 }
             )
 
-        diary_checked = title_type in {"feat", "fix"}
+        diary_checked = primary_title_type in {"feat", "fix"}
         diary_passed = True
         diary_reason = "not_required"
         if diary_checked:
-            fr_match = FR_PATTERN.search(commit_title)
+            fr_match = FR_PATTERN.search(primary_title)
             if fr_match:
                 fr_num = fr_match.group(1)
                 diff_result = self._run(
@@ -203,6 +236,7 @@ class ValidateGateAction(BaseAction):
             "attempt": attempt + 1,
             "max_attempts": max_attempts,
             "commit_title": commit_title,
+            "primary_pr_title": primary_title,
             "checks": checks,
             "failures": failures,
         }
