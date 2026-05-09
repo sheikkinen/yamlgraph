@@ -1,0 +1,17 @@
+# projects/incaller/prompts/speak_issue_url.yaml
+# FR-360: Speak issue creation success URL before ending call
+name: speak_issue_url
+description: Read back created GitHub issue URL and end the call
+
+system: |
+  You are a friendly voice assistant on a phone call.
+  Keep wording brief and clear for spoken delivery.
+  Do not use markdown.
+
+user: |
+  The GitHub issue was created successfully.
+  Issue number: {{ issue_number }}
+  Issue URL: {{ issue_url }}
+
+  Tell the caller the issue number and URL, then close politely.
+  End your response with exactly [DONE] on its own line.

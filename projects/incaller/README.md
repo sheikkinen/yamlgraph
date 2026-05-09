@@ -7,7 +7,8 @@ Receives incoming calls to a Twilio phone number and conducts voicebot conversat
 
 ## Architecture
 
-The incaller supports two modes based on CLI parameters (same as outcaller):
+The incaller supports two base modes based on CLI parameters (same as outcaller),
+plus an optional issue-intake post-confirmation mode:
 
 ### Mode 1: Questions Mode
 
@@ -28,6 +29,17 @@ Pass `--var 'targets=...'` for structured data collection:
 ```
 
 (Same flow as outcaller after `await_call` — see outcaller README for details)
+
+### Mode 3: GitHub Issue Intake (`mode=github_issue_intake`)
+
+When running Targets Mode, set `--var 'mode=github_issue_intake'` to create a
+GitHub issue after recap confirmation. The caller hears either:
+
+1. Issue URL + issue number on success, or
+2. Explicit error details on failure.
+
+Optional `chaplain_opt_in` controls whether the created issue includes the
+`chaplain` label.
 
 ## Key Difference from Outcaller
 
@@ -51,6 +63,12 @@ brew install ffmpeg
 
 # Ubuntu/Debian
 sudo apt-get install ffmpeg
+```
+
+For `github_issue_intake` mode, install GitHub CLI and authenticate:
+
+```bash
+gh auth login
 ```
 
 ### Python Dependencies
@@ -160,6 +178,19 @@ yamlgraph graph run projects/incaller/graph.yaml \
 ```
 
 Then dial your Twilio phone number. The bot will greet you and collect the target fields.
+
+### Targets + GitHub Issue Intake Mode
+
+```bash
+VOICE_STREAM_URL="https://your-subdomain.ngrok.io" \
+yamlgraph graph run projects/incaller/graph.yaml \
+  --var 'mode=github_issue_intake' \
+  --var 'targets=issue_title:Issue title|issue_type:feat fix docs chore|issue_summary:Problem and expected outcome|chaplain_opt_in:yes or no' \
+  --full
+```
+
+If recap is confirmed, the graph runs `gh issue create` and reads back either
+the issue URL or an explicit creation error.
 
 ### Questions Mode (Free-Form Conversation)
 

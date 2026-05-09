@@ -408,6 +408,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 141 | Shared FSM Bridge Module | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, … | REQ-YG-319 |
 | 142 | Skill Export Portable Packaging | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
 | 143 | Agent Export Tool-Scoped Personas | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
+| 144 | Voice-driven GitHub Issue Intake | `projects/incaller/graph.yaml`, `projects/incaller/nodes/create_issue.py`, `projects/incaller/prompts/speak_issue_url.yaml`, `projects/incaller/prompts/speak_issue_error.yaml`, `tests/unit/test_fr360_voice_issue_intake_red.py` | REQ-YG-333 – 339 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1750,6 +1751,22 @@ Add `agent-md` export format to generate GitHub Copilot `.agent.md` files with Y
 | REQ-YG-330 | Generated `.agent.md` body includes agent heading, inputs derived from graph schema, and `@agent-name` invocation guidance. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr350_agent_export_red.py` |
 | REQ-YG-331 | Export remains deterministic and non-LLM with explicit failures for invalid graph path, unsupported format, and output file collisions. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
 | REQ-YG-332 | CLI/reference docs include `agent-md` usage and output layout examples. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr350_agent_export_red.py` |
+
+### 144. Voice-driven GitHub Issue Intake (FR-360)
+
+Add `github_issue_intake` mode to `projects/incaller` so a caller can confirm a recap and create a GitHub issue via `gh issue create`, with optional `chaplain` label and spoken URL/error readback.
+
+**Feature Request:** FR-360
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-333 | `projects/incaller/graph.yaml` declares issue intake state keys: `mode`, `issue_url`, `issue_number`, and `issue_create_error`. | `projects/incaller/graph.yaml`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
+| REQ-YG-334 | In `github_issue_intake` mode, confirmed recap routes to `create_issue`; confirmed non-intake routes to normal goodbye. Timeout path (`recap_count >= 3`) in intake mode routes to goodbye and never to create_issue. | `projects/incaller/graph.yaml`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
+| REQ-YG-335 | `projects/incaller/nodes/create_issue.py` executes `gh issue create` and records `issue_url` and parsed `issue_number` on success. | `projects/incaller/nodes/create_issue.py`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
+| REQ-YG-336 | `chaplain` label is applied only when normalized `chaplain_opt_in` resolves true; falsey values do not add labels. | `projects/incaller/nodes/create_issue.py`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
+| REQ-YG-337 | gh missing/auth/create failures set explicit `issue_create_error` and do not set success URL/number. | `projects/incaller/nodes/create_issue.py`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
+| REQ-YG-338 | `speak_issue_url` and `speak_issue_error` llm nodes read success/error state to `next_utterance` and route through `speak` for final caller readback. | `projects/incaller/graph.yaml`, `projects/incaller/prompts/speak_issue_url.yaml`, `projects/incaller/prompts/speak_issue_error.yaml`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
+| REQ-YG-339 | `projects/incaller/README.md` documents `github_issue_intake` mode and GitHub CLI authentication prerequisite. | `projects/incaller/README.md`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
