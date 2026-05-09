@@ -45,6 +45,10 @@ state:
   recap_analysis: dict      # RecapAnalysis from LLM
   recap_count: int          # Number of recap correction iterations (max 3)
   user_refused: bool        # True when caller declines to participate
+  mode: str                 # Optional behavior mode (e.g. github_issue_intake)
+  issue_url: str            # Created GitHub issue URL (success path)
+  issue_number: int         # Created GitHub issue number (success path)
+  issue_create_error: str   # Explicit issue creation error (failure path)
 
 loop_limits:
   speak: 10
@@ -60,6 +64,7 @@ loop_limits:
   check_missing: 6
   analyze_recap_response: 4
   apply_corrections: 4
+  create_issue: 2
 
 tools:
   await_call:
@@ -117,6 +122,12 @@ tools:
     module: projects.outcaller.nodes.probe_recap
     function: apply_corrections
     description: Apply caller corrections to extracted answers
+
+  create_issue:
+    type: python
+    module: projects.incaller.nodes.create_issue
+    function: create_issue
+    description: Create a GitHub issue from extracted intake fields via gh CLI
 
 nodes:
   await_call:
@@ -203,6 +214,12 @@ nodes:
     state_key: extracted
     on_error: fail
 
+  create_issue:
+    type: python
+    tool: create_issue
+    state_key: issue_url
+    on_error: fail
+
   generate_goodbye:
     type: llm
     prompt: goodbye
@@ -212,6 +229,18 @@ nodes:
   generate_goodbye_refused:
     type: llm
     prompt: goodbye_refused
+    state_key: next_utterance
+    skip_if_exists: false
+
+  speak_issue_url:
+    type: llm
+    prompt: speak_issue_url
+    state_key: next_utterance
+    skip_if_exists: false
+
+  speak_issue_error:
+    type: llm
+    prompt: speak_issue_error
     state_key: next_utterance
     skip_if_exists: false
 
@@ -246,6 +275,10 @@ edges:
   - from: generate_goodbye
     to: speak
   - from: generate_goodbye_refused
+    to: speak
+  - from: speak_issue_url
+    to: speak
+  - from: speak_issue_error
     to: speak
   - from: generate_response
     to: speak
@@ -297,10 +330,16 @@ edges:
     condition: "recap_analysis.user_refused == True"
   - from: analyze_recap_response
     to: generate_goodbye
-    condition: "recap_analysis.is_confirmed == True"
+    condition: "recap_analysis.is_confirmed == True and mode != \"github_issue_intake\""
+  - from: analyze_recap_response
+    to: create_issue
+    condition: "recap_analysis.is_confirmed == True and mode == \"github_issue_intake\""
   - from: analyze_recap_response
     to: generate_goodbye
-    condition: "recap_count >= 3"
+    condition: "recap_count >= 3 and mode == \"github_issue_intake\""
+  - from: analyze_recap_response
+    to: generate_goodbye
+    condition: "recap_count >= 3 and mode != \"github_issue_intake\""
   - from: analyze_recap_response
     to: apply_corrections
     condition: "recap_analysis.is_confirmed != True"
@@ -308,6 +347,14 @@ edges:
   # === Correction loop ===
   - from: apply_corrections
     to: generate_recap
+
+  # === Issue creation readback ===
+  - from: create_issue
+    to: speak_issue_url
+    condition: "issue_url != None"
+  - from: create_issue
+    to: speak_issue_error
+    condition: "issue_create_error != None"
 
   # === Terminal ===
   - from: end_call
