@@ -39,8 +39,9 @@ class BashContextAction(BaseAction):
             if placeholder in command:
                 command = command.replace(placeholder, str(value))
 
-        # Warn about unsubstituted placeholders
-        remaining = re.findall(r"\{[^}]+\}", command)
+        # Warn about unsubstituted placeholders — match {identifier} only,
+        # not shell group syntax ({ cmd; }) or JSON literals ({"key": ...})
+        remaining = re.findall(r"\{[a-zA-Z_]\w*\}", command)
         if remaining:
             logger.warning(f"[{machine_name}] Unsubstituted placeholders: {remaining}")
 
