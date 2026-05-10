@@ -408,7 +408,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 141 | Shared FSM Bridge Module | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, … | REQ-YG-319 |
 | 142 | Skill Export Portable Packaging | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
 | 143 | Agent Export Tool-Scoped Personas | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
-| 144 | Voice-driven GitHub Issue Intake | `projects/incaller/graph.yaml`, `projects/incaller/nodes/create_issue.py`, `projects/incaller/prompts/speak_issue_url.yaml`, `projects/incaller/prompts/speak_issue_error.yaml`, `tests/unit/test_fr360_voice_issue_intake_red.py` | REQ-YG-333 – 339 |
+| 144 | Voice-driven GitHub Issue Intake | `projects/incaller/graph.yaml`, `projects/incaller/nodes/create_issue.py`, `projects/incaller/prompts/speak_issue_url.yaml`, `projects/incaller/prompts/speak_issue_error.yaml`, … | REQ-YG-333 – 339 |
+| 145 | Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1709,7 +1710,7 @@ Split watcher2 post-enforce validation into explicit LLM remediation (validate_f
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-318 | Watcher2 pipeline routes post-enforce flow through validate_fix then sanity_check then validate_gate; validate_gate performs deterministic pre-commit, commit-title, branch-freshness, and diary-in-diff checks with max-attempt retry contract (pass → done, fix_needed → validate_fix, error → failed). Done PR title selection and validate_gate diary-parity trigger share the primary PR title selector policy: first feat/fix in `origin/main..HEAD`, else first non-docs/non-chore, else first subject. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/lib/watcher/select_primary_pr_title.sh`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr316_watcher2_validate_split_fix_gate.py`, `tests/unit/test_fr358_watcher2_primary_pr_title_selection.py` |
+| REQ-YG-318 | Watcher2 pipeline routes post-enforce flow through validate_fix then sanity_check then validate_gate; validate_gate performs deterministic pre-commit, commit-title, branch-freshness, and diary-in-diff checks with max-attempt retry contract (pass → done, fix_needed → validate_fix, error → failed). Both done and validate_gate diary-parity trigger use a shared primary PR title selector: first feat/fix in `origin/main..HEAD`, else first non-docs/non-chore, else first subject. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/lib/watcher/select_primary_pr_title.sh`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr316_watcher2_validate_split_fix_gate.py`, `tests/unit/test_fr358_watcher2_primary_pr_title_selection.py` |
 
 ### 141. Shared FSM Bridge Module
 
@@ -1752,9 +1753,9 @@ Add `agent-md` export format to generate GitHub Copilot `.agent.md` files with Y
 | REQ-YG-331 | Export remains deterministic and non-LLM with explicit failures for invalid graph path, unsupported format, and output file collisions. | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr350_agent_export_red.py` |
 | REQ-YG-332 | CLI/reference docs include `agent-md` usage and output layout examples. | `reference/cli.md`, `reference/skills-export.md`, `reference/README.md`, `tests/unit/test_fr350_agent_export_red.py` |
 
-### 144. Voice-driven GitHub Issue Intake (FR-360)
+### 144. Voice-driven GitHub Issue Intake
 
-Add `github_issue_intake` mode to `projects/incaller` so a caller can confirm a recap and create a GitHub issue via `gh issue create`, with optional `chaplain` label and spoken URL/error readback.
+Incaller supports `mode=github_issue_intake` to create GitHub issues via `gh issue create` after recap confirmation, with deterministic chaplain label opt-in, explicit success/error state, and spoken readback routing.
 
 **Feature Request:** FR-360
 
@@ -1767,6 +1768,22 @@ Add `github_issue_intake` mode to `projects/incaller` so a caller can confirm a 
 | REQ-YG-337 | gh missing/auth/create failures set explicit `issue_create_error` and do not set success URL/number. | `projects/incaller/nodes/create_issue.py`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
 | REQ-YG-338 | `speak_issue_url` and `speak_issue_error` llm nodes read success/error state to `next_utterance` and route through `speak` for final caller readback. | `projects/incaller/graph.yaml`, `projects/incaller/prompts/speak_issue_url.yaml`, `projects/incaller/prompts/speak_issue_error.yaml`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
 | REQ-YG-339 | `projects/incaller/README.md` documents `github_issue_intake` mode and GitHub CLI authentication prerequisite. | `projects/incaller/README.md`, `tests/unit/test_fr360_voice_issue_intake_red.py` |
+
+### 145. Copilot Instrumentation Gap Closure
+
+Close FR-362 follow-up instrumentation gaps by hardening runner flags and env, adding before/after git snapshots, and extracting semantic process-mining events with deterministic conformance output.
+
+**Feature Request:** FR-364
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-340 | `scripts/copilot_instrument.sh` includes `--output-format json`, `--log-dir`, and `--log-level debug` in both plan and resumed implement invocations. | `scripts/copilot_instrument.sh`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
+| REQ-YG-341 | Runner exports `COPILOT_OTEL_EXPORTER_TYPE=file`, `COPILOT_OTEL_FILE_EXPORTER_PATH`, and `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true` for each phase. | `scripts/copilot_instrument.sh`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
+| REQ-YG-342 | Runner captures explicit per-phase git snapshots: `git-status-before.txt`, `git-diff-before.patch`, `git-status-after.txt`, and `git-diff-after.patch`. | `scripts/copilot_instrument.sh`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
+| REQ-YG-343 | Extracted event schema includes `source`, `success`, and `details` in all emitted JSONL events. | `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
+| REQ-YG-344 | Extractor emits semantic events (`phase_marker`, `test_run`, `lint_run`, `file_create`, `file_edit`, `failure`, `retry`) from observable tool-call telemetry patterns. | `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
+| REQ-YG-345 | Extractor supports deterministic conformance table output via `--conformance-table`. | `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
+| REQ-YG-346 | Instrumentation documentation separates raw telemetry artifacts from normalized semantic events. | `docs/copilot-instrumentation-poc.md`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

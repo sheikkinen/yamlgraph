@@ -4,7 +4,9 @@ This proof-of-concept captures a two-phase Copilot execution (`plan` then resume
 
 Run: `minesweeper-001` (2026-05-10) — Minesweeper game implementation (FR-082)
 
-## Captured Artifacts
+## Raw Telemetry Artifacts
+
+### Captured Artifacts
 
 Artifacts are written to:
 
@@ -23,6 +25,34 @@ Per phase (`plan`, `implement`) the run records:
 - `git-diff.patch`
 
 The run root also contains `run-metadata.json` with run ID, base ref, disposable worktree path, and extracted plan session ID.
+
+## Normalized Semantic Events
+
+The extractor (`scripts/extract_copilot_events.py`) now emits normalized JSONL events with stable fields:
+
+- `case_id`
+- `phase`
+- `event_type`
+- `timestamp`
+- `summary`
+- `source`
+- `success`
+- `details`
+
+Semantic event classes are derived deterministically from captured spans:
+
+- `phase_marker` (from `report_intent.arguments.intent`)
+- `test_run` (bash command includes `pytest`)
+- `lint_run` (bash command includes `ruff` or `yamlgraph graph lint`)
+- `file_create` / `file_edit` (tool call type)
+- `failure` (tool result indicates non-zero/failed execution)
+- `retry` (same failed target later succeeds)
+
+Conformance table output (`--conformance-table`) is deterministic:
+
+- Columns are fixed: `Phase`, `Conformance`, `Events`, `Event Types`.
+- Rows are ordered by phase name ascending.
+- Event types inside each row are sorted lexicographically.
 
 ## Observed Process: minesweeper-001
 
