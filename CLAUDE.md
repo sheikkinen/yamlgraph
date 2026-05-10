@@ -434,6 +434,7 @@ The codebase uses **sync-first with async wrappers**:
 | `AZURE_AI_ENDPOINT` | Azure AI Foundry endpoint URL |
 | `AZURE_AI_API_KEY` | Azure AI API key |
 | `AZURE_MODEL` | Default Azure model/deployment name (default: `gpt-4o`) |
+| `YAMLGRAPH_OTEL_DIR` | Optional directory for per-node copilot OTel files (`<dir>/<node_name>.otel.jsonl`); when set, `_execute_cli` exports `COPILOT_OTEL_FILE_EXPORTER_PATH` per node |
 | `PROVIDER` | Default LLM provider (anthropic/azure/deepseek/google/inception/mistral/openai/replicate/xai/lmstudio) |
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |
