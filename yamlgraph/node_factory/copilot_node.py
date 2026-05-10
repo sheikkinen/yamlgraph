@@ -6,6 +6,7 @@ FR-105: Session Continuations.
 """
 
 import logging
+import os
 import re
 import shutil
 import subprocess
@@ -356,12 +357,23 @@ def _execute_cli(
     logger.info(f"[{node_name}] Executing copilot CLI with timeout={timeout}s")
     logger.debug(f"[{node_name}] Command: {' '.join(cmd[:5])}...")
 
+    # FR-363: Optional per-node OTel exporter path for copilot subprocesses.
+    otel_dir = os.environ.get("YAMLGRAPH_OTEL_DIR")
+    node_env = None
+    if otel_dir:
+        node_otel_path = Path(otel_dir) / f"{node_name}.otel.jsonl"
+        node_env = {
+            **os.environ,
+            "COPILOT_OTEL_FILE_EXPORTER_PATH": str(node_otel_path),
+        }
+
     try:
         result = subprocess.run(  # noqa: S603
             cmd,
             capture_output=True,
             text=True,
             timeout=timeout,
+            env=node_env,
         )
 
         # FR-274: Extract session ID from share file
