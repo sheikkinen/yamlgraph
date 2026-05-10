@@ -1,0 +1,79 @@
+id: CAP-145
+name: Copilot Instrumentation Gap Closure
+description: >
+  Close FR-362 follow-up instrumentation gaps by hardening runner flags and
+  env, adding before/after git snapshots, and extracting semantic process-mining
+  events with deterministic conformance output.
+
+modules:
+  - scripts/copilot_instrument.sh
+  - scripts/extract_copilot_events.py
+  - scripts/extract_copilot_events_lib.py
+  - docs/copilot-instrumentation-poc.md
+  - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+requirements:
+  - id: REQ-YG-340
+    description: >
+      `scripts/copilot_instrument.sh` includes `--output-format json`,
+      `--log-dir`, and `--log-level debug` in both plan and resumed implement
+      invocations.
+    modules:
+      - scripts/copilot_instrument.sh
+      - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+  - id: REQ-YG-341
+    description: >
+      Runner exports `COPILOT_OTEL_EXPORTER_TYPE=file`,
+      `COPILOT_OTEL_FILE_EXPORTER_PATH`, and
+      `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true` for each phase.
+    modules:
+      - scripts/copilot_instrument.sh
+      - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+  - id: REQ-YG-342
+    description: >
+      Runner captures explicit per-phase git snapshots:
+      `git-status-before.txt`, `git-diff-before.patch`,
+      `git-status-after.txt`, and `git-diff-after.patch`.
+    modules:
+      - scripts/copilot_instrument.sh
+      - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+  - id: REQ-YG-343
+    description: >
+      Extracted event schema includes `source`, `success`, and `details` in all
+      emitted JSONL events.
+    modules:
+      - scripts/extract_copilot_events.py
+      - scripts/extract_copilot_events_lib.py
+      - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+  - id: REQ-YG-344
+    description: >
+      Extractor emits semantic events (`phase_marker`, `test_run`, `lint_run`,
+      `file_create`, `file_edit`, `failure`, `retry`) from observable tool-call
+      telemetry patterns.
+    modules:
+      - scripts/extract_copilot_events.py
+      - scripts/extract_copilot_events_lib.py
+      - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+  - id: REQ-YG-345
+    description: >
+      Extractor supports deterministic conformance table output via
+      `--conformance-table`.
+    modules:
+      - scripts/extract_copilot_events.py
+      - scripts/extract_copilot_events_lib.py
+      - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+  - id: REQ-YG-346
+    description: >
+      Instrumentation documentation separates raw telemetry artifacts from
+      normalized semantic events.
+    modules:
+      - docs/copilot-instrumentation-poc.md
+      - tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py
+
+fr: FR-364

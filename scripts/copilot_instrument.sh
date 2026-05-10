@@ -17,8 +17,10 @@
 #     - share.md
 #     - otel.jsonl
 #     - copilot-debug.log
-#     - git-status.txt
-#     - git-diff.patch
+#     - git-status-before.txt
+#     - git-diff-before.patch
+#     - git-status-after.txt
+#     - git-diff-after.patch
 #
 # Safety boundary:
 #   - Copilot execution runs only inside a disposable git worktree.
@@ -128,8 +130,9 @@ capture_debug_log() {
 
 capture_git_state() {
     local phase_dir="$1"
-    git -C "$WORKTREE_DIR" --no-pager status --short --branch >"$phase_dir/git-status.txt"
-    git -C "$WORKTREE_DIR" --no-pager diff >"$phase_dir/git-diff.patch"
+    local snapshot_label="$2"
+    git -C "$WORKTREE_DIR" --no-pager status --short --branch >"$phase_dir/git-status-$snapshot_label.txt"
+    git -C "$WORKTREE_DIR" --no-pager diff >"$phase_dir/git-diff-$snapshot_label.patch"
 }
 
 ensure_otel_artifact() {
@@ -149,12 +152,15 @@ run_phase() {
     local prompt="$2"
     local resume_id="${3:-}"
     local phase_dir="$OUTPUT_DIR/$phase"
+    local phase_log_dir="$phase_dir/logs"
     local otel_file="$phase_dir/otel.jsonl"
 
     mkdir -p "$phase_dir"
+    mkdir -p "$phase_log_dir"
     printf '%s\n' "$prompt" >"$phase_dir/prompt.txt"
 
-    local cmd=("$COPILOT_BIN" "--silent" "--allow-all-tools" "--allow-all-paths" "--share" "$phase_dir/share.md")
+    local output_flags=(--output-format json --log-dir "$phase_log_dir" --log-level debug)
+    local cmd=("$COPILOT_BIN" "--silent" "--allow-all-tools" "--allow-all-paths" "${output_flags[@]}" "--share" "$phase_dir/share.md")
     if [[ -n "$resume_id" ]]; then
         cmd+=("--resume" "$resume_id")
     fi
@@ -163,14 +169,19 @@ run_phase() {
     printf '%q ' "${cmd[@]}" >"$phase_dir/command.txt"
     printf '\n' >>"$phase_dir/command.txt"
 
+    export COPILOT_OTEL_EXPORTER_TYPE=file
     export COPILOT_OTEL_FILE_EXPORTER_PATH="$otel_file"
+    export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
+    capture_git_state "$phase_dir" "before"
     (
         cd "$WORKTREE_DIR"
         "${cmd[@]}" >"$phase_dir/stdout.jsonl" 2>"$phase_dir/stderr.log"
     )
 
     capture_debug_log "$phase_dir"
-    capture_git_state "$phase_dir"
+    capture_git_state "$phase_dir" "after"
+    cp "$phase_dir/git-status-after.txt" "$phase_dir/git-status.txt"
+    cp "$phase_dir/git-diff-after.patch" "$phase_dir/git-diff.patch"
     ensure_otel_artifact "$phase" "$phase_dir"
 }
 
