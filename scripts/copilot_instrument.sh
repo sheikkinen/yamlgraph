@@ -139,7 +139,7 @@ ensure_otel_artifact() {
     if [[ ! -s "$otel_file" ]]; then
         local ts
         ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        printf '{"phase":"%s","event_type":"otel_placeholder","timestamp":"%s","summary":"No exporter configured; set COPILOT_OTEL_JSONL to capture spans."}\n' \
+        printf '{"phase":"%s","event_type":"otel_placeholder","timestamp":"%s","summary":"No exporter configured; set COPILOT_OTEL_FILE_EXPORTER_PATH to capture spans."}\n' \
             "$phase" "$ts" >"$otel_file"
     fi
 }
@@ -154,7 +154,7 @@ run_phase() {
     mkdir -p "$phase_dir"
     printf '%s\n' "$prompt" >"$phase_dir/prompt.txt"
 
-    local cmd=("$COPILOT_BIN" "--silent" "--share" "$phase_dir/share.md")
+    local cmd=("$COPILOT_BIN" "--silent" "--allow-all-tools" "--allow-all-paths" "--share" "$phase_dir/share.md")
     if [[ -n "$resume_id" ]]; then
         cmd+=("--resume" "$resume_id")
     fi
@@ -163,7 +163,7 @@ run_phase() {
     printf '%q ' "${cmd[@]}" >"$phase_dir/command.txt"
     printf '\n' >>"$phase_dir/command.txt"
 
-    export COPILOT_OTEL_JSONL="$otel_file"
+    export COPILOT_OTEL_FILE_EXPORTER_PATH="$otel_file"
     (
         cd "$WORKTREE_DIR"
         "${cmd[@]}" >"$phase_dir/stdout.jsonl" 2>"$phase_dir/stderr.log"
