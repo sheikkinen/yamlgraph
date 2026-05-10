@@ -25,7 +25,7 @@ Based on the commit history and file changes, here's a feature-level summary of 
 
 #### 3. **FR-355: MCP Startup Schema Validation Gate** (May 8)
    - **Status**: ✅ Completed
-   - **Details**: 
+   - **Details**:
      - Fixed MCP dict state field normalization to use `object+additionalProperties`
      - Added schema validation during discovery phase
      - Prevents runtime schema mismatches
