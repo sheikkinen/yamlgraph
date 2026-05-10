@@ -122,7 +122,7 @@
   - import dependencies: _none_
 - `yamlgraph/node_factory/control_nodes.py` - 169 lines; exports: `create_interrupt_node(node_name, config, graph_path, prompts_dir, prompts_relative)`, `create_passthrough_node(node_name, config)`
   - import dependencies: `yamlgraph.executor_base`, `yamlgraph.node_factory.base`
-- `yamlgraph/node_factory/copilot_node.py` - 427 lines; exports: `create_copilot_node(node_name, config, defaults, graph_path, prompts_dir, prompts_relative)`
+- `yamlgraph/node_factory/copilot_node.py` - 439 lines; exports: `create_copilot_node(node_name, config, defaults, graph_path, prompts_dir, prompts_relative)`
   - import dependencies: `yamlgraph.executor_base`, `yamlgraph.models.schemas`, `yamlgraph.node_factory.base`, `yamlgraph.node_factory.guard_runtime`, `yamlgraph.utils.expressions`, `yamlgraph.utils.prompts`
 - `yamlgraph/node_factory/guard_runtime.py` - 134 lines; exports: `class GuardDecision`, `extract_guard_rules(node_config)`, `evaluate_guards_once(node_name, phase, rules, state, output)`
   - import dependencies: `yamlgraph.models`, `yamlgraph.utils.guard_evaluator`
