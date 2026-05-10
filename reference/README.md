@@ -55,6 +55,12 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Contrib Utilities](contrib.md) | Shared utilities for map results and serialization |
 | [Scheduling Agents](scheduling-agents.md) | Run graphs on schedule (launchd, cron, CI) |
 
+### Testing & Evaluation
+
+| Document | Description |
+|----------|-------------|
+| [Promptfoo Evaluation](promptfoo-eval.md) | Systematic LLM prompt evaluation: deterministic assertions, LLM-as-judge, prompt isolation vs. graph evaluation |
+
 ### Examples & Guides
 
 | Document | Description |
