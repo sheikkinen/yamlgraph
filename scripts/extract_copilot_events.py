@@ -32,11 +32,18 @@ class CopilotProcessEvent(BaseModel):
     summary: str = Field(description="Human-readable event summary")
 
 
-def _iso_from_nanos(value: str | int | None, fallback: datetime) -> str:
-    """Convert unix nanoseconds to ISO-8601, with explicit fallback."""
+def _iso_from_start_time(value: list | str | int | None, fallback: datetime) -> str:
+    """Convert OTel startTime to ISO-8601.
+
+    Copilot file exporter emits startTime as [seconds, nanos] array.
+    OTLP JSON format uses startTimeUnixNano as a nanosecond integer or string.
+    """
     if value is None:
         return fallback.astimezone(UTC).isoformat()
-
+    if isinstance(value, list) and len(value) == 2:
+        seconds, nanos = int(value[0]), int(value[1])
+        dt = datetime.fromtimestamp(seconds, tz=UTC).replace(microsecond=nanos // 1000)
+        return dt.isoformat()
     nanos = int(value)
     seconds, rem_nanos = divmod(nanos, 1_000_000_000)
     dt = datetime.fromtimestamp(seconds, tz=UTC).replace(microsecond=rem_nanos // 1000)
@@ -53,24 +60,42 @@ def _extract_otel_events(
     events: list[CopilotProcessEvent] = []
     mtime = datetime.fromtimestamp(otel_path.stat().st_mtime, tz=UTC)
 
-    for line_number, line in enumerate(otel_path.read_text().splitlines(), start=1):
+    for line in otel_path.read_text().splitlines():
         if not line.strip():
             continue
 
         payload = json.loads(line)
-        resource_spans = payload.get("resourceSpans", [])
-        for resource_span in resource_spans:
+
+        # Copilot file exporter: flat {"type":"span",...} records
+        if payload.get("type") == "span":
+            span_name = payload.get("name", "unnamed-span")
+            timestamp = _iso_from_start_time(payload.get("startTime"), mtime)
+            events.append(
+                CopilotProcessEvent(
+                    case_id=case_id,
+                    phase=phase,
+                    event_type="otel_span",
+                    timestamp=timestamp,
+                    summary=f"OTel span '{span_name}'",
+                )
+            )
+            continue
+
+        # OTLP JSON format: {"resourceSpans":[...]}
+        for resource_span in payload.get("resourceSpans", []):
             for scope_span in resource_span.get("scopeSpans", []):
                 for span in scope_span.get("spans", []):
                     span_name = span.get("name", "unnamed-span")
-                    timestamp = _iso_from_nanos(span.get("startTimeUnixNano"), mtime)
+                    timestamp = _iso_from_start_time(
+                        span.get("startTimeUnixNano"), mtime
+                    )
                     events.append(
                         CopilotProcessEvent(
                             case_id=case_id,
                             phase=phase,
                             event_type="otel_span",
                             timestamp=timestamp,
-                            summary=f"OTel span '{span_name}' (line {line_number})",
+                            summary=f"OTel span '{span_name}'",
                         )
                     )
     return events
