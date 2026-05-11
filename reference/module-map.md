@@ -52,7 +52,7 @@
 - `yamlgraph/diary/__init__.py` - 4 lines; exports: _none_
 - `yamlgraph/diary/importer.py` - 247 lines; exports: `class ImportResult`, `import_scheduled_entries(diary_dir, source_dir, *, dry_run)`, `import_git_reports(diary_dir, source_dir, *, dry_run)`
   - import dependencies: _none_
-- `yamlgraph/discovery.py` - 217 lines; exports: `discover_graphs(patterns)`
+- `yamlgraph/discovery.py` - 233 lines; exports: `discover_graphs(patterns)`
   - import dependencies: _none_
 - `yamlgraph/edge_compiler.py` - 240 lines; exports: _none_
   - import dependencies: `yamlgraph.routing`

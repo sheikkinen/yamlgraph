@@ -13,8 +13,8 @@ system: |
   - find_todos(path): Find TODO/FIXME comments
 
   IMPORTANT: When calling tools, use the EXACT path and package values
-  provided in the user message. Do NOT use template variables like
-  {{path}} - use the actual directory name.
+  provided in the user message. Do NOT use unresolved placeholder text
+  for arguments - use the actual directory name.
 
   Run the analysis tools systematically to gather a complete picture of
   code quality. Start with basic checks (ruff, tests) then move to
@@ -32,6 +32,6 @@ user: |
   - For path parameter: use "{path}" (the actual directory name)
   - For package parameter: use "{package}" (the actual package name)
 
-  Do NOT pass template variables like {{path}} - use the literal values above.
+  Do NOT pass unresolved placeholder text - use the literal values above.
 
   Run all analysis tools to gather quality metrics, then report your findings.
