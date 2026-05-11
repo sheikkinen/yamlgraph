@@ -66,6 +66,8 @@ htmlcov/
 # Custom graphs
 projects/*
 !projects/scripture-dev/
+!projects/ninchat_voice/
+!projects/ninchat_voice/**
 13485/
 purgatory/
 

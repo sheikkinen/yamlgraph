@@ -14,6 +14,9 @@ state:
   topic_file: str
   worktree_dir: str
   branch: str
+  project: str
+  fr_template: str
+  architecture_doc: str
   plan_result: dict
 
 nodes:
@@ -29,6 +32,9 @@ nodes:
       topic_file: "{state.topic_file}"
       worktree_dir: "{state.worktree_dir}"
       branch: "{state.branch}"
+      project: "{state.project}"
+      fr_template: "{state.fr_template}"
+      architecture_doc: "{state.architecture_doc}"
     state_key: plan_result
     timeout: 600
 

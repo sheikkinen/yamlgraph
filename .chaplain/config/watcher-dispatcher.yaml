@@ -67,16 +67,18 @@ actions:
     - type: bash_context
       command: |
         bash .chaplain/lib/watcher/inbox_sync.sh 2>/dev/null || true
-        topic=$(ls -1 {inbox_dir}/*.md 2>/dev/null | head -1)
-        if [ -z "$topic" ]; then
-          echo '{"found": "false"}'
-          exit 1
-        fi
-        mkdir -p .chaplain/processing
-        basename=$(basename "$topic")
-        mv "$topic" ".chaplain/processing/$basename"
-        echo "{\"topic_file\": \".chaplain/processing/$basename\", \"found\": \"true\"}"
-      capture_keys: ["topic_file"]
+        python .chaplain/lib/watcher/dispatch_topic.py \
+          --inbox-dir "{inbox_dir}" \
+          --processing-dir ".chaplain/processing"
+      capture_keys:
+        - topic_file
+        - project
+        - branch_prefix
+        - work_dir
+        - test_cmd
+        - precommit_config
+        - fr_template
+        - architecture_doc
       success: topic_found
       error: no_topics
       description: "📥 Sync inbox and find next topic"
@@ -95,7 +97,7 @@ actions:
         echo "Pipeline log: $LOG"
         statemachine .chaplain/config/watcher-pipeline-v2.yaml \
           --actions-dir .chaplain/actions \
-          --initial-context "{\"topic_file\":\"$TOPIC\",\"merge_flags\":\"\",\"pr_title_flag\":\"\",\"post_merge_cmd\":\"bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true\",\"plan_commit_msg\":\"chore(watcher): plan artifacts\"}" \
+          --initial-context "{\"topic_file\":\"$TOPIC\",\"project\":\"{project}\",\"branch_prefix\":\"{branch_prefix}\",\"work_dir\":\"{work_dir}\",\"test_cmd\":\"{test_cmd}\",\"precommit_config\":\"{precommit_config}\",\"fr_template\":\"{fr_template}\",\"architecture_doc\":\"{architecture_doc}\",\"merge_flags\":\"\",\"pr_title_flag\":\"\",\"post_merge_cmd\":\"bash .chaplain/lib/watcher/post_merge.sh 2>/dev/null || true\",\"plan_commit_msg\":\"chore(watcher): plan artifacts\"}" \
           --debug \
           2>&1 | tee "$LOG"
       success: topic_done

@@ -7,9 +7,13 @@
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # Parse args
+BRANCH_PREFIX="feat/watcher2-"
+WORK_DIR="."
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --topic) TOPIC_FILE="$2"; shift 2 ;;
+        --branch-prefix) BRANCH_PREFIX="$2"; shift 2 ;;
+        --work-dir) WORK_DIR="$2"; shift 2 ;;
         *) shift ;;
     esac
 done
@@ -21,13 +25,26 @@ fi
 
 worktree_setup() {
     local topic_basename
+    local work_dir_slug
     local existing_merged_pr
     local gh_pr_list_exit=0
     topic_basename=$(basename "$TOPIC_FILE" .md)
 
+    if [[ -z "$BRANCH_PREFIX" ]]; then
+        BRANCH_PREFIX="feat/watcher2-"
+    fi
+    if [[ -z "$WORK_DIR" ]]; then
+        WORK_DIR="."
+    fi
+
     # Derive branch name from topic file
-    WT_BRANCH="feat/watcher2-${topic_basename}"
-    WT_DIR="tmp/worktrees/${WT_BRANCH}"
+    WT_BRANCH="${BRANCH_PREFIX}${topic_basename}"
+    if [[ "$WORK_DIR" == "." ]]; then
+        WT_DIR="tmp/worktrees/${WT_BRANCH}"
+    else
+        work_dir_slug="${WORK_DIR//\//-}"
+        WT_DIR="tmp/worktrees/${work_dir_slug}/${WT_BRANCH}"
+    fi
     MAIN_DIR="$(pwd)"
 
     # Prune orphaned worktree metadata before branch creation
@@ -80,7 +97,7 @@ worktree_setup() {
     log_info "Worktree ready: $WT_DIR"
 
     # JSON stdout for bash_context_action
-    echo "{\"wt_dir\": \"$WT_DIR\", \"wt_branch\": \"$WT_BRANCH\", \"main_dir\": \"$MAIN_DIR\"}"
+    echo "{\"wt_dir\": \"$WT_DIR\", \"wt_branch\": \"$WT_BRANCH\", \"main_dir\": \"$MAIN_DIR\", \"work_dir\": \"$WORK_DIR\"}"
 }
 
 worktree_setup
