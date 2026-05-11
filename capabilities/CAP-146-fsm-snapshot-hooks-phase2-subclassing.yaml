@@ -1,0 +1,28 @@
+id: CAP-146
+name: FSM Snapshot Hooks Phase 2 Subclassing
+description: >
+  Add a typed snapshot boundary and lifecycle hook callbacks to the shared
+  FSM bridge so domains can subclass behavior without forking dispatch flow.
+
+modules:
+  - yamlgraph/utils/fsm/snapshot.py
+  - yamlgraph/utils/fsm/action.py
+  - yamlgraph/utils/fsm/graph_runner.py
+  - yamlgraph/utils/fsm/__init__.py
+  - tests/unit/test_fr369_fsm_snapshot_hooks_red.py
+
+requirements:
+  - id: REQ-YG-347
+    description: >
+      Shared FSM bridge exposes typed snapshot params (`SnapshotParams` +
+      `snapshot_params`) and lifecycle hooks (`pre_snapshot`, `pre_dispatch`,
+      `on_success`, `on_error`) wired through `YamlgraphAsyncAction.execute()`
+      and `run_and_dispatch()` with dispatch suppression support.
+    modules:
+      - yamlgraph/utils/fsm/snapshot.py
+      - yamlgraph/utils/fsm/action.py
+      - yamlgraph/utils/fsm/graph_runner.py
+      - yamlgraph/utils/fsm/__init__.py
+      - tests/unit/test_fr369_fsm_snapshot_hooks_red.py
+
+fr: FR-369
