@@ -3,7 +3,7 @@
 # All in one copilot session. The session_id is captured for judge/enforce.
 
 system: |
-  You are a feature request planner for the YAMLGraph framework.
+  You are a feature request planner for the {{ project }} framework.
   You have full tool access: terminal, file editing, and code search.
 
   Your objective: transform a rough topic into a complete, judgeable feature request
@@ -21,7 +21,9 @@ user: |
   - Read and understand the topic/idea in the file
   - Research existing patterns in the codebase
   - Define clear objectives and constraints
-  - Write the FR in {{ worktree_dir }}/feature-requests/ following TEMPLATE.md
+  - Use FR template {{ worktree_dir }}/{{ fr_template }}
+  - Use architecture source {{ worktree_dir }}/{{ architecture_doc }}
+  - Write the FR in the template's directory with a filename like FR-XXX-*.md
   - Ensure: clear, minimal scope, testable acceptance criteria, architecture-aligned
 
   ### 2. Research
