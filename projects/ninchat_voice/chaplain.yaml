@@ -1,0 +1,7 @@
+project: ninchat_voice
+branch_prefix: feat/nv-
+work_dir: projects/ninchat_voice
+test_cmd: pytest projects/ninchat_voice/tests/ -q --no-cov
+precommit_config: projects/ninchat_voice/.pre-commit-config.yaml
+fr_template: projects/ninchat_voice/feature-requests/TEMPLATE.md
+architecture_doc: projects/ninchat_voice/README.md

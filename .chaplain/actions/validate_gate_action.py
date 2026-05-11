@@ -37,6 +37,10 @@ def _extract_title_type(title: str) -> str:
     return match.group("type") if match else ""
 
 
+def _is_placeholder(value: str) -> bool:
+    return value.startswith("{") and value.endswith("}")
+
+
 class ValidateGateAction(BaseAction):
     """Run deterministic quality gate checks with bounded retry semantics."""
 
@@ -63,12 +67,15 @@ class ValidateGateAction(BaseAction):
         failures: list[dict[str, str]] = []
         checks: list[dict[str, Any]] = []
 
-        precommit_result = self._run(["pre-commit", "run", "--all-files"], cwd)
+        precommit_command = self._precommit_command(context)
+
+        precommit_result = self._run(precommit_command, cwd)
         precommit_output = self._combined_output(precommit_result).strip()
         context["precommit_output"] = precommit_output
         checks.append(
             {
                 "name": "precommit",
+                "command": " ".join(precommit_command),
                 "returncode": precommit_result.returncode,
                 "passed": precommit_result.returncode == 0,
             }
@@ -77,10 +84,14 @@ class ValidateGateAction(BaseAction):
             failures.append(
                 {
                     "check": "precommit",
-                    "reason": "pre-commit run --all-files failed",
+                    "reason": f"{' '.join(precommit_command)} failed",
                 }
             )
             self._run(["git", "add", "-u"], cwd)
+
+        project_checks, project_failures = self._run_project_test_cmd(context, cwd)
+        checks.extend(project_checks)
+        failures.extend(project_failures)
 
         title_result = self._run(["git", "log", "-1", "--format=%s"], cwd)
         commit_title = title_result.stdout.strip()
@@ -259,6 +270,40 @@ class ValidateGateAction(BaseAction):
             text=True,
             cwd=cwd,
         )
+
+    @staticmethod
+    def _precommit_command(context: dict[str, Any]) -> list[str]:
+        command = ["pre-commit", "run", "--all-files"]
+        precommit_config = str(context.get("precommit_config", "")).strip()
+        if precommit_config and not _is_placeholder(precommit_config):
+            command.extend(["--config", precommit_config])
+        return command
+
+    def _run_project_test_cmd(
+        self, context: dict[str, Any], cwd: str
+    ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+        test_cmd = str(context.get("test_cmd", "")).strip()
+        if not test_cmd or _is_placeholder(test_cmd):
+            return [], []
+
+        test_result = self._run(["bash", "-lc", test_cmd], cwd)
+        checks: list[dict[str, Any]] = [
+            {
+                "name": "project_test_cmd",
+                "command": test_cmd,
+                "returncode": test_result.returncode,
+                "passed": test_result.returncode == 0,
+            }
+        ]
+        failures: list[dict[str, str]] = []
+        if test_result.returncode != 0:
+            failures.append(
+                {
+                    "check": "project_test_cmd",
+                    "reason": f"project test_cmd failed: {test_cmd}",
+                }
+            )
+        return checks, failures
 
     @staticmethod
     def _combined_output(result: subprocess.CompletedProcess[str]) -> str:

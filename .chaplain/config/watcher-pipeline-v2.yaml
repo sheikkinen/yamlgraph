@@ -188,7 +188,7 @@ actions:
 
   setup:
     - type: bash_context
-      command: "bash .chaplain/lib/watcher/preflight.sh && bash .chaplain/lib/watcher/worktree_setup.sh --topic {topic_file}"
+      command: "bash .chaplain/lib/watcher/preflight.sh && bash .chaplain/lib/watcher/worktree_setup.sh --topic {topic_file} --branch-prefix {branch_prefix} --work-dir {work_dir}"
       capture_keys: [wt_dir, wt_branch, main_dir]
       success: setup_done
       error: error
@@ -206,6 +206,9 @@ actions:
         topic_file: "{topic_file}"
         worktree_dir: "{wt_dir}"
         branch: "{wt_branch}"
+        project: "{project}"
+        fr_template: "{fr_template}"
+        architecture_doc: "{architecture_doc}"
       success: plan_done
       error: error
       timeout: 600
@@ -216,7 +219,7 @@ actions:
 
   capture_fr:
     - type: bash_context
-      command: "cd {wt_dir} && FR=$( { git diff --name-only main -- feature-requests/FR-*.md 2>/dev/null; git ls-files --others --exclude-standard -- feature-requests/FR-*.md 2>/dev/null; } | sort -u | tail -1) && [ -n \"$FR\" ] && echo \"{\\\"fr_path\\\": \\\"$FR\\\"}\" || (echo 'No new FR found — plan did not create one' >&2 && exit 1)"
+      command: "cd {wt_dir} && FR_TEMPLATE=\"{fr_template}\" && FR_DIR=$(dirname \"$FR_TEMPLATE\") && FR_GLOB=\"$FR_DIR/FR-*.md\" && FR=$( { git diff --name-only main -- \"$FR_GLOB\" 2>/dev/null; git ls-files --others --exclude-standard -- \"$FR_GLOB\" 2>/dev/null; } | sort -u | tail -1) && [ -n \"$FR\" ] && echo \"{\\\"fr_path\\\": \\\"$FR\\\"}\" || (echo \"No new FR found under $FR_GLOB — plan did not create one\" >&2 && exit 1)"
       capture_keys: [fr_path]
       success: fr_captured
       error: error

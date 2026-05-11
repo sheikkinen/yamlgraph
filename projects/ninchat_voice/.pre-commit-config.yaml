@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ninchat-voice-noop
+        name: ninchat voice noop hook
+        entry: bash -lc 'echo "ninchat_voice pre-commit noop"'
+        language: system
+        pass_filenames: false
