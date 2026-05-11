@@ -12,12 +12,93 @@ from langgraph.types import Command
 
 from yamlgraph.utils.fsm.event_sender import send_event
 from yamlgraph.utils.fsm.helpers import extract_event, has_pending_next, json_safe
+from yamlgraph.utils.fsm.snapshot import SnapshotParams
 
 logger = logging.getLogger(__name__)
 
 LoadFn = Callable[[str], Awaitable[Any]]
 RunFn = Callable[..., Awaitable[Any]]
 SendFn = Callable[..., None]
+PreDispatchFn = Callable[
+    [SnapshotParams | None, str, dict[str, Any] | None, dict[str, Any] | None], bool
+]
+OnSuccessFn = Callable[[SnapshotParams | None, str, int, dict[str, Any] | None], None]
+OnErrorFn = Callable[
+    [SnapshotParams | None, Exception, int, dict[str, Any] | None], None
+]
+
+
+def _should_dispatch(
+    pre_dispatch_fn: PreDispatchFn | None,
+    *,
+    snapshot: SnapshotParams | None,
+    event: str,
+    payload: dict[str, Any] | None,
+    context: dict[str, Any] | None,
+) -> bool:
+    """Return True when dispatch should proceed."""
+    should_dispatch = True
+    if pre_dispatch_fn is not None:
+        should_dispatch = pre_dispatch_fn(snapshot, event, payload, context)
+    return should_dispatch
+
+
+def _handle_success_dispatch(
+    *,
+    send_fn: SendFn,
+    machine_name: str,
+    event: str,
+    payload: dict[str, Any] | None,
+    snapshot: SnapshotParams | None,
+    elapsed_ms: int,
+    context: dict[str, Any] | None,
+    pre_dispatch_fn: PreDispatchFn | None,
+    on_success_fn: OnSuccessFn | None,
+) -> None:
+    """Invoke success hooks and dispatch if allowed."""
+    if on_success_fn is not None:
+        on_success_fn(snapshot, event, elapsed_ms, context)
+
+    should_dispatch = _should_dispatch(
+        pre_dispatch_fn,
+        snapshot=snapshot,
+        event=event,
+        payload=payload,
+        context=context,
+    )
+    if should_dispatch:
+        send_fn(machine_name, event, payload)
+    else:
+        logger.info("🛑 yamlgraph_async dispatch suppressed: event=%s", event)
+
+
+def _handle_error_dispatch(
+    *,
+    send_fn: SendFn,
+    machine_name: str,
+    failure_event: str,
+    snapshot: SnapshotParams | None,
+    exc: Exception,
+    elapsed_ms: int,
+    context: dict[str, Any] | None,
+    pre_dispatch_fn: PreDispatchFn | None,
+    on_error_fn: OnErrorFn | None,
+) -> None:
+    """Invoke error hooks and dispatch failure event if allowed."""
+    if on_error_fn is not None:
+        on_error_fn(snapshot, exc, elapsed_ms, context)
+
+    should_dispatch = _should_dispatch(
+        pre_dispatch_fn,
+        snapshot=snapshot,
+        event=failure_event,
+        payload=None,
+        context=context,
+    )
+    if should_dispatch:
+        send_fn(machine_name, failure_event)
+    else:
+        logger.info("🛑 yamlgraph_async dispatch suppressed: event=%s", failure_event)
 
 
 def _resolve_event(
@@ -66,6 +147,10 @@ async def run_and_dispatch(
     load_fn: LoadFn | None = None,
     run_fn: RunFn | None = None,
     send_fn: SendFn = send_event,
+    snapshot: SnapshotParams | None = None,
+    pre_dispatch_fn: PreDispatchFn | None = None,
+    on_success_fn: OnSuccessFn | None = None,
+    on_error_fn: OnErrorFn | None = None,
 ) -> None:
     """Execute a graph in the background and send the resulting FSM event."""
     started = time.perf_counter()
@@ -109,11 +194,31 @@ async def run_and_dispatch(
         logger.info(
             "✅ yamlgraph_async completed: event=%s elapsed_ms=%s", event, elapsed_ms
         )
-        send_fn(machine_name, event, payload or None)
+        _handle_success_dispatch(
+            send_fn=send_fn,
+            machine_name=machine_name,
+            event=event,
+            payload=payload or None,
+            snapshot=snapshot,
+            elapsed_ms=elapsed_ms,
+            context=context,
+            pre_dispatch_fn=pre_dispatch_fn,
+            on_success_fn=on_success_fn,
+        )
     except Exception as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         logger.error("❌ yamlgraph_async failed: %s (elapsed_ms=%s)", exc, elapsed_ms)
-        send_fn(machine_name, failure_event)
+        _handle_error_dispatch(
+            send_fn=send_fn,
+            machine_name=machine_name,
+            failure_event=failure_event,
+            snapshot=snapshot,
+            exc=exc,
+            elapsed_ms=elapsed_ms,
+            context=context,
+            pre_dispatch_fn=pre_dispatch_fn,
+            on_error_fn=on_error_fn,
+        )
     finally:
         if context is not None and guard_key:
             context.pop(guard_key, None)

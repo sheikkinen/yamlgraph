@@ -410,6 +410,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 143 | Agent Export Tool-Scoped Personas | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
 | 144 | Voice-driven GitHub Issue Intake | `projects/incaller/graph.yaml`, `projects/incaller/nodes/create_issue.py`, `projects/incaller/prompts/speak_issue_url.yaml`, `projects/incaller/prompts/speak_issue_error.yaml`, … | REQ-YG-333 – 339 |
 | 145 | Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
+| 146 | FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1784,6 +1785,16 @@ Close FR-362 follow-up instrumentation gaps by hardening runner flags and env, a
 | REQ-YG-344 | Extractor emits semantic events (`phase_marker`, `test_run`, `lint_run`, `file_create`, `file_edit`, `failure`, `retry`) from observable tool-call telemetry patterns. | `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
 | REQ-YG-345 | Extractor supports deterministic conformance table output via `--conformance-table`. | `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
 | REQ-YG-346 | Instrumentation documentation separates raw telemetry artifacts from normalized semantic events. | `docs/copilot-instrumentation-poc.md`, `tests/unit/test_fr364_copilot_instrumentation_gap_closure_red.py` |
+
+### 146. FSM Snapshot Hooks Phase 2 Subclassing
+
+Add a typed snapshot contract and lifecycle hook callbacks to the shared FSM bridge so integrations can subclass behavior without forking dispatch logic.
+
+**Feature Request:** FR-369
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-347 | Shared FSM bridge exposes typed snapshot params (`SnapshotParams` + `snapshot_params`) and lifecycle hooks (`pre_snapshot`, `pre_dispatch`, `on_success`, `on_error`) wired through `YamlgraphAsyncAction.execute()` and `run_and_dispatch()` with dispatch suppression support. | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, `tests/unit/test_fr369_fsm_snapshot_hooks_red.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
