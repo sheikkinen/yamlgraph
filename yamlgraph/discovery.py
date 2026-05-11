@@ -52,27 +52,57 @@ def _yaml_type_to_json_schema(type_str: str) -> dict[str, Any]:
     # Split parameterization: list[str] → ("list", "str]")
     parts = re.split(r"\[", type_str, maxsplit=1)
     base = parts[0].strip()
+    params_str = parts[1].rstrip("]") if len(parts) > 1 else ""
+    params = (
+        [p.strip() for p in params_str.split(",") if p.strip()] if params_str else []
+    )
     json_type = _TYPE_MAP.get(base, "string")
 
+    schema: dict[str, Any] = {"type": json_type}
+
     if json_type == "array":
-        # Extract element type from parameterization if present
-        if len(parts) > 1:
-            inner = parts[1].rstrip("]").strip()
-            inner_type = _TYPE_MAP.get(inner, "string")
+        item_type = params[0] if params else "str"
+        schema["items"] = _yaml_type_to_json_schema(item_type)
+    elif json_type == "object":
+        if len(params) >= 2:
+            value_type = params[1]
+            schema["additionalProperties"] = _yaml_type_to_json_schema(value_type)
         else:
-            inner_type = "string"
-        return {"type": "array", "items": {"type": inner_type}}
+            schema["additionalProperties"] = True
 
-    if json_type == "object":
-        # Bare dict/object — accept any properties to satisfy MCP schema validation
-        return {"type": "object", "additionalProperties": {}}
+    return schema
 
-    return {"type": json_type}
+
+def _extract_output_state_keys(nodes: dict[str, Any]) -> set[str | None]:
+    """Extract state keys used as node outputs (state_key or collect targets)."""
+    state_keys_used_as_output: set[str | None] = set()
+    for node in nodes.values():
+        if not isinstance(node, dict):
+            continue
+        if "state_key" in node:
+            state_keys_used_as_output.add(node["state_key"])
+        # Map nodes write to their ``collect`` target, not ``state_key``
+        if "collect" in node:
+            state_keys_used_as_output.add(node["collect"])
+    return state_keys_used_as_output
+
+
+def _state_type_string(type_val: str | dict | Any) -> str:
+    """Extract the type string from a state value (string or dict with 'type' key)."""
+    if isinstance(type_val, dict):
+        return type_val.get("type", "str")
+    if isinstance(type_val, str):
+        return type_val
+    return "str"
+
+
+def _build_property_schema(type_str: str) -> dict[str, Any]:
+    """Build a JSON Schema property dict from a YAML type string."""
+    return _yaml_type_to_json_schema(type_str)
 
 
 def _extract_input_vars(
-    state: dict[str, str | dict],
-    nodes: dict[str, Any],
+    state: dict[str, str | dict], nodes: dict[str, Any]
 ) -> dict[str, dict[str, Any]]:
     """Separate input vars from output vars in the state block.
 
@@ -86,27 +116,13 @@ def _extract_input_vars(
     Returns:
         Dict of input var name → JSON Schema property dict.
     """
-    state_keys_used_as_output: set[str | None] = set()
-    for node in nodes.values():
-        if not isinstance(node, dict):
-            continue
-        if "state_key" in node:
-            state_keys_used_as_output.add(node["state_key"])
-        # Map nodes write to their ``collect`` target, not ``state_key``
-        if "collect" in node:
-            state_keys_used_as_output.add(node["collect"])
+    state_keys_used_as_output = _extract_output_state_keys(nodes)
     result: dict[str, dict[str, Any]] = {}
     for key, type_val in state.items():
         if key in state_keys_used_as_output:
             continue
-        # State value can be a string ("str") or a dict ({"type": "list", "reducer": ...})
-        if isinstance(type_val, dict):
-            type_str = type_val.get("type", "str")
-        elif isinstance(type_val, str):
-            type_str = type_val
-        else:
-            type_str = "str"
-        result[key] = _yaml_type_to_json_schema(type_str)
+        type_str = _state_type_string(type_val)
+        result[key] = _build_property_schema(type_str)
     return result
 
 
