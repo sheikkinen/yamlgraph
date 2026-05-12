@@ -180,6 +180,21 @@ def find_orphaned(
     return sorted(set(registry.keys()) - all_dep_names)
 
 
+def _is_gitignored(root: Path, path: str) -> bool:
+    """Return True if the path is gitignored (intentionally absent from worktrees)."""
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["git", "check-ignore", "-q", path],
+            cwd=root,
+            capture_output=True,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 def find_stale_modules(
     registry: dict[str, dict],
     root: Path,
@@ -187,6 +202,7 @@ def find_stale_modules(
     """Find registry entries with modules paths that don't exist on disk.
 
     Skips non-filesystem references (e.g., 'pyproject.toml [tool.ruff]').
+    Skips gitignored paths — absent by design, not stale.
     Returns list of (package_name, invalid_path) tuples.
     """
     stale: list[tuple[str, str]] = []
@@ -201,8 +217,12 @@ def find_stale_modules(
                 continue
             resolved = root / mod_path
             # Accept symlinks (even broken) — they indicate intentional reference
-            if not resolved.exists() and not resolved.is_symlink():
-                stale.append((pkg_name, mod_path))
+            if resolved.exists() or resolved.is_symlink():
+                continue
+            # Accept gitignored paths — absent by design (e.g. private projects/)
+            if _is_gitignored(root, mod_path):
+                continue
+            stale.append((pkg_name, mod_path))
     return stale
 
 

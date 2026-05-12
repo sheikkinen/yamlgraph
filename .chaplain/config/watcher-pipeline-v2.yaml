@@ -90,6 +90,10 @@ transitions:
     to: sanity_check
     event: validate_done
 
+  - from: validate_fix
+    to: failed
+    event: error
+
   - from: sanity_check
     to: validate_gate
     event: pass
