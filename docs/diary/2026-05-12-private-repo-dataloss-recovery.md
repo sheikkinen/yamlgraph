@@ -1,7 +1,7 @@
-# Damage Report: Private Repositories in YAMLGraph
+# Reflection: Private Repository Data Loss and Recovery
 
 **Date:** 2026-05-12
-**FR:** none - incident reflection
+**FR:** none — incident reflection (history rewrite crossed repository boundaries)
 **Reviewer:** human + agent recovery session
 
 ## What Happened
@@ -88,6 +88,36 @@ or commit plan before deletion.
 
 Treat private application repositories inside a framework workspace as external
 systems mounted into the editor, not as disposable subdirectories.
+
+## Metacognitive Reflection
+
+The agent performed the `git filter-repo` operation correctly — the tool ran,
+the history was rewritten, the force push succeeded. Every individual step was
+technically valid. The failure was not in execution but in **framing**: the task
+"remove all traces from yamlgraph repo" was interpreted as a filesystem cleanup
+scoped to a single repository, when the workspace actually contained multiple
+independent repositories sharing a visible tree.
+
+The confirmation flow asked about scope (simple rm vs. history rewrite, which
+dirs to include) but never asked the critical boundary question: "Are any of
+these directories independent git repositories with their own untracked state?"
+The `find . -name .git -type d` inventory that the heuristic now prescribes
+would have surfaced this in seconds.
+
+This is `quick_confidence` at the architectural level — the operation felt
+contained because the tool (`filter-repo`) is well-understood, the flags were
+correct, and the output was clean. Confidence in the tool substituted for
+confidence in the problem definition. The Scripture's "When I feel certain, let
+that be the sign to Judge" applies not just to code, but to destructive
+operations: the more certain the plan feels, the more likely a boundary
+assumption is hiding.
+
+**Graduated heuristic candidate:** `workspace_is_not_boundary` — editor
+visibility does not imply ownership. Before any destructive operation that
+touches directories, enumerate `.git` boundaries. Each boundary is a separate
+blast radius. This is the filesystem analogue of the `instruction_boundary`
+trap: just as agent instructions must be treated as external input, nested
+repositories must be treated as external systems.
 
 ## Seed
 
