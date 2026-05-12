@@ -103,3 +103,10 @@ node_modules/
 .chaplain/processing/
 .chaplain/failed/
 logs/*.pid
+
+# Private projects (removed from history — separate repos)
+projects/
+customer-service-agent-platform/
+fsm/
+questionnaire-api/
+tt-bot-v2/
