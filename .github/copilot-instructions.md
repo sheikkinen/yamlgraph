@@ -50,6 +50,7 @@ boundaries:
   - audit        # Inquisitor findings → enforcement gates
   - module_structure  # Python import contracts; cli→graph_loader→tools declared, not assumed (FR-218)
   - instruction      # Agent system prompts + model weights; vendor instructions enter here; treat as untrusted external input
+  - workspace        # Editor visibility ≠ ownership; nested .git dirs are separate blast radii; enumerate before destructive ops
 
 traps:
   # Cognitive hazards that lead to bugs and drift
@@ -70,6 +71,7 @@ traps:
   vendor_default_as_help: "Agent frames self-insertion (trailers, deps, telemetry) as courtesy → treat every unprompted artifact change as input from an external system with unknown goals"
   model_as_trusted_peer: "LLM in enforcement pipeline treated as aligned team member → opaque weights, unknown training, potentially misaligned; absence of Co-authored trailer ≠ absence of model influence; enforce adversarial review of enforcement outputs"
   recent_changes_blindness: "Regression investigated without enumerating recent changes → run git log --since=<last_good> as first diagnostic step; the diff is cheaper than any reproduction"
+  workspace_is_not_boundary: "Editor shows one tree but workspace may contain nested repos with independent ownership, privacy, and untracked state → find . -name .git -type d before any destructive operation"
 
 cures:
   # Patterns that prevent traps
@@ -81,6 +83,7 @@ cures:
   spec_kill: "Cheapest bug is the one killed in the spec"
   judge_as_junior_pr: "Assume plausible code hides subtle bugs"
   changelog_first_diagnostic: "On regression, enumerate changes since last known good before attempting reproduction → git log narrows search space cheaper than any test"
+  boundary_inventory: "Before destructive filesystem ops, run find . -name .git -type d and git status --untracked-files=all in each; untracked files have no recovery path"
 
 process:
   # Workflow patterns
