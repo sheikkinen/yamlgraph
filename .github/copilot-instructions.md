@@ -72,6 +72,7 @@ traps:
   model_as_trusted_peer: "LLM in enforcement pipeline treated as aligned team member → opaque weights, unknown training, potentially misaligned; absence of Co-authored trailer ≠ absence of model influence; enforce adversarial review of enforcement outputs"
   recent_changes_blindness: "Regression investigated without enumerating recent changes → run git log --since=<last_good> as first diagnostic step; the diff is cheaper than any reproduction"
   workspace_is_not_boundary: "Editor shows one tree but workspace may contain nested repos with independent ownership, privacy, and untracked state → find . -name .git -type d before any destructive operation"
+  gate_checks_shape_not_substance: "Gate validates presence (file exists, field non-empty, format matches) but not substance (content meaningful, cross-references valid, structural markers present) → compliance theatre; a 1-byte file satisfies the gate while conveying nothing"
 
 cures:
   # Patterns that prevent traps
@@ -84,6 +85,7 @@ cures:
   judge_as_junior_pr: "Assume plausible code hides subtle bugs"
   changelog_first_diagnostic: "On regression, enumerate changes since last known good before attempting reproduction → git log narrows search space cheaper than any test"
   boundary_inventory: "Before destructive filesystem ops, run find . -name .git -type d and git status --untracked-files=all in each; untracked files have no recovery path"
+  substance_over_presence: "Every gate that checks 'does X exist?' must also check 'does X say something?' — minimum content threshold, required structural markers, or cross-reference validation"
 
 process:
   # Workflow patterns
