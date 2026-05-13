@@ -4,8 +4,9 @@ Shared functions for CLI commands to reduce boilerplate.
 """
 
 import json
+import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 import yaml
 
@@ -129,7 +130,9 @@ def load_var_file(path: str | None) -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
-def load_imported_state(import_state_path: str | None) -> dict:
+def load_imported_state(
+    import_state_path: str | None, *, error_stream: TextIO | None = None
+) -> dict:
     """Load and validate imported state from a prior run's JSON export.
 
     Args:
@@ -138,14 +141,14 @@ def load_imported_state(import_state_path: str | None) -> dict:
     Returns:
         Loaded state dict, or empty dict if no import requested.
     """
-    import sys
-
+    if error_stream is None:
+        error_stream = sys.stdout
     if import_state_path is None:
         return {}
 
     import_path = Path(import_state_path)
     if not import_path.exists():
-        print(f"\u274c --import-state file not found: {import_path}")
+        print(f"\u274c --import-state file not found: {import_path}", file=error_stream)
         sys.exit(1)
 
     from yamlgraph.storage.export import load_export
@@ -153,26 +156,40 @@ def load_imported_state(import_state_path: str | None) -> dict:
     try:
         return load_export(import_path)
     except (json.JSONDecodeError, ValueError) as e:
-        print(f"\u274c --import-state invalid JSON: {import_path}\n  {e}")
+        print(
+            f"\u274c --import-state invalid JSON: {import_path}\n  {e}",
+            file=error_stream,
+        )
         sys.exit(1)
 
 
-def handle_state_export(result: dict, export_state_path: str) -> None:
+def handle_state_export(
+    result: dict,
+    export_state_path: str,
+    *,
+    quiet: bool = False,
+    error_stream: TextIO | None = None,
+) -> None:
     """Export full pipeline state to an explicit path for inter-run chaining.
 
     Args:
         result: Graph execution result dict.
         export_state_path: Target file path for JSON export.
     """
-    import sys
-
     from yamlgraph.storage.export import export_state_to_path
+
+    if error_stream is None:
+        error_stream = sys.stdout
 
     try:
         p = export_state_to_path(result, export_state_path)
-        print(f"\n\U0001f4be State exported: {p}")
+        if not quiet:
+            print(f"\n\U0001f4be State exported: {p}")
     except (OSError, IsADirectoryError) as e:
-        print(f"\n\u274c --export-state error writing {export_state_path}\n  {e}")
+        print(
+            f"\n\u274c --export-state error writing {export_state_path}\n  {e}",
+            file=error_stream,
+        )
         sys.exit(1)
 
 

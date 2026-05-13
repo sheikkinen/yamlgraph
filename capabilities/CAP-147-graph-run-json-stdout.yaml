@@ -1,0 +1,88 @@
+id: CAP-147
+name: Graph Run JSON Stdout + TypeScript Node Integration
+description: >
+  Add machine-readable JSON stdout mode for `yamlgraph graph run` and
+  a minimal Node.js/TypeScript subprocess demo using `child_process.execFile`.
+
+modules:
+  - yamlgraph/cli/__init__.py
+  - yamlgraph/cli/graph_commands.py
+  - yamlgraph/cli/helpers.py
+  - yamlgraph/storage/export.py
+  - reference/cli.md
+  - examples/README.md
+  - examples/demos/typescript-node/
+  - tests/unit/test_fr375_graph_run_json_stdout_red.py
+  - tests/unit/test_fr375_typescript_node_demo_red.py
+
+requirements:
+  - id: REQ-YG-348
+    description: >
+      CLI parser accepts `yamlgraph graph run --json` and defaults the flag to
+      `False` when omitted.
+    modules:
+      - yamlgraph/cli/__init__.py
+      - tests/unit/test_fr375_graph_run_json_stdout_red.py
+
+  - id: REQ-YG-349
+    description: >
+      On success with `--json`, stdout contains only valid final-state JSON
+      without human-oriented run/result headers or summaries.
+    modules:
+      - yamlgraph/cli/graph_commands.py
+      - tests/unit/test_fr375_graph_run_json_stdout_red.py
+
+  - id: REQ-YG-350
+    description: >
+      On failure with `--json`, stdout remains empty, error details are written
+      to stderr, and process exits non-zero.
+    modules:
+      - yamlgraph/cli/graph_commands.py
+      - yamlgraph/cli/helpers.py
+      - tests/unit/test_fr375_graph_run_json_stdout_red.py
+
+  - id: REQ-YG-351
+    description: >
+      `--json` mode is non-interactive: if execution returns `__interrupt__`,
+      the command fails fast with non-zero exit and does not prompt for input.
+    modules:
+      - yamlgraph/cli/graph_commands.py
+      - tests/unit/test_fr375_graph_run_json_stdout_red.py
+
+  - id: REQ-YG-352
+    description: >
+      JSON mode emits full final state without display truncation and reuses
+      existing `_serialize_state()` serialization semantics.
+    modules:
+      - yamlgraph/cli/graph_commands.py
+      - yamlgraph/storage/export.py
+      - tests/unit/test_fr375_graph_run_json_stdout_red.py
+
+  - id: REQ-YG-353
+    description: >
+      JSON mode preserves run input/merge behavior for `--var`, `--var-file`,
+      and `--import-state`, and remains compatible with `--export-state`.
+    modules:
+      - yamlgraph/cli/graph_commands.py
+      - yamlgraph/cli/helpers.py
+      - tests/unit/test_fr375_graph_run_json_stdout_red.py
+
+  - id: REQ-YG-354
+    description: >
+      `examples/demos/typescript-node/` includes runnable Node.js/TypeScript
+      assets where `src/index.ts` uses `execFile` to call
+      `yamlgraph graph run ... --json` and parse stdout JSON.
+    modules:
+      - examples/demos/typescript-node/
+      - tests/unit/test_fr375_typescript_node_demo_red.py
+
+  - id: REQ-YG-355
+    description: >
+      CLI/examples docs describe `--json` usage and guidance for when to use
+      subprocess JSON mode versus MCP/A2A integration patterns.
+    modules:
+      - reference/cli.md
+      - examples/README.md
+      - tests/unit/test_fr375_typescript_node_demo_red.py
+
+fr: FR-375

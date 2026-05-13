@@ -8,13 +8,11 @@ Implements:
 - graph codegen <path> [--output FILE] [--include-base]
 """
 
-import logging
 import sys
 from argparse import Namespace
 from pathlib import Path
 
-import yaml
-
+from yamlgraph.cli import graph_run_helpers as _graph_run_helpers
 from yamlgraph.cli.graph_validate import cmd_graph_lint, cmd_graph_validate
 from yamlgraph.cli.helpers import (
     GraphLoadError,
@@ -27,206 +25,41 @@ from yamlgraph.cli.helpers import (
 )
 from yamlgraph.models.state_builder import generate_typeddict_code
 
-logger = logging.getLogger(__name__)
+_setup_timeout = _graph_run_helpers._setup_timeout
+_teardown_timeout = _graph_run_helpers._teardown_timeout
+_display_result = _graph_run_helpers._display_result
+_print_json_result = _graph_run_helpers._print_json_result
+_get_interrupt_message = _graph_run_helpers._get_interrupt_message
+_handle_export = _graph_run_helpers._handle_export
+_print_trace_url = _graph_run_helpers._print_trace_url
+_build_run_config = _graph_run_helpers._build_run_config
+_invoke_graph = _graph_run_helpers._invoke_graph
+_run_graph_until_complete = _graph_run_helpers._run_graph_until_complete
+_emit_success_output = _graph_run_helpers._emit_success_output
 
 
-def _setup_timeout(timeout: int | None) -> dict | None:
-    """Set up execution timeout using signal.alarm on Unix.
+def _handle_optional_exports(
+    args: Namespace,
+    graph_path: Path,
+    result: dict,
+    *,
+    json_mode: bool,
+    error_stream,
+) -> None:
+    """Handle optional --export and --export-state behavior."""
+    if args.export:
+        if json_mode:
+            _handle_export(graph_path, result, quiet=True)
+        else:
+            _handle_export(graph_path, result)
 
-    Args:
-        timeout: Timeout in seconds, or None to skip.
-
-    Returns:
-        Context dict for _teardown_timeout (contains previous handler), or None.
-    """
-    if timeout is None:
-        return None
-
-    import platform
-
-    if platform.system() == "Windows":
-        logger.warning(
-            "Execution timeout is not supported on Windows — ignoring --timeout %d",
-            timeout,
+    if getattr(args, "export_state", None):
+        handle_state_export(
+            result,
+            args.export_state,
+            quiet=json_mode,
+            error_stream=error_stream,
         )
-        return None
-
-    import signal
-
-    def _timeout_handler(_signum, _frame):
-        raise TimeoutError(f"Execution timed out after {timeout}s")
-
-    old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
-    signal.alarm(timeout)
-
-    return {"old_handler": old_handler}
-
-
-def _teardown_timeout(ctx: dict | None) -> None:
-    """Cancel timeout alarm and restore previous signal handler.
-
-    Args:
-        ctx: Context dict from _setup_timeout, or None.
-    """
-    if ctx is None:
-        return
-
-    import signal
-
-    signal.alarm(0)
-    signal.signal(signal.SIGALRM, ctx["old_handler"])
-
-
-def _display_result(result: dict, truncate: bool = True) -> None:
-    """Display result summary to console."""
-    print("=" * 60)
-    print("RESULT")
-    print("=" * 60)
-
-    skip_keys = {"messages", "errors", "_loop_counts"}
-    for key, value in result.items():
-        if key.startswith("_") or key in skip_keys:
-            continue
-        if value is not None:
-            value_str = str(value)
-            if truncate and len(value_str) > 200:
-                value_str = value_str[:200] + "..."
-            print(f"  {key}: {value_str}")
-
-
-def _get_interrupt_message(result: dict) -> str:
-    """Extract human-readable message from interrupt."""
-    interrupt = result.get("__interrupt__", ())
-    if interrupt and len(interrupt) > 0:
-        # Interrupt is tuple of Interrupt objects
-        interrupt_obj = interrupt[0]
-        if hasattr(interrupt_obj, "value"):
-            value = interrupt_obj.value
-            # Value can be string or dict with message
-            if isinstance(value, str):
-                return value
-            if isinstance(value, dict):
-                return value.get("message", value.get("question", str(value)))
-    # Fallback: check response in state
-    return result.get("response", "Please provide input:")
-
-
-def _handle_export(graph_path: Path, result: dict) -> None:
-    """Handle optional result export.
-
-    Args:
-        graph_path: Path to the graph YAML file
-        result: Graph execution result dict
-    """
-    from yamlgraph.storage.export import export_result
-
-    with open(graph_path) as f:
-        graph_config = yaml.safe_load(f)
-
-    export_config = graph_config.get("exports", {})
-    if export_config:
-        paths = export_result(result, export_config)
-        if paths:
-            print("\n📁 Exported:")
-            for p in paths:
-                print(f"   {p}")
-
-
-def _print_trace_url(tracer: object | None, share: bool = False) -> None:
-    """Print LangSmith trace URL after an invoke (FR-022).
-
-    Args:
-        tracer: LangChainTracer instance (or None).
-        share: If True, share the trace publicly.
-    """
-    if tracer is None:
-        return
-
-    from yamlgraph.utils.tracing import get_trace_url, share_trace
-
-    if share:
-        url = share_trace(tracer)
-        if url:
-            print(f"🔗 Trace (public): {url}")
-    else:
-        url = get_trace_url(tracer)
-        if url:
-            print(f"🔗 Trace: {url}")
-
-
-def _build_run_config(args: Namespace, graph_config, initial_state: dict) -> tuple:
-    """Build LangGraph run configuration from CLI args and graph config.
-
-    Assembles thread_id, recursion_limit, timeout, tracing, token
-    tracking, and timing tracking into a single config dict.
-
-    Returns:
-        Tuple of (initial_state, config, tracker, timeout, tracer, share_flag, timing_tracker)
-    """
-    from yamlgraph.utils.tracing import create_tracer, inject_tracer_config
-
-    # FR-021: Merge data_files into initial state (input vars win on collision)
-    if graph_config.data:
-        initial_state = {**graph_config.data, **initial_state}
-
-    # Add thread_id if provided
-    config: dict = {}
-    if args.thread:
-        config["configurable"] = {"thread_id": args.thread}
-        initial_state["thread_id"] = args.thread
-
-    # FR-027: Wire recursion_limit — CLI overrides YAML config
-    recursion_limit = getattr(args, "recursion_limit", None)
-    if recursion_limit is None:
-        recursion_limit = graph_config.recursion_limit
-    config["recursion_limit"] = recursion_limit
-
-    # FR-027: Wire timeout — CLI overrides YAML config
-    timeout = getattr(args, "timeout", None)
-    if timeout is None:
-        timeout = graph_config.timeout
-
-    # FR-022: Set up LangSmith tracing
-    tracer = create_tracer()
-    inject_tracer_config(config, tracer)
-    share_flag = getattr(args, "share_trace", False)
-
-    # FR-027 P2-8: Set up token usage tracking
-    tracker = None
-    if getattr(args, "token_usage", False):
-        from yamlgraph.utils.token_tracker import create_token_tracker
-
-        tracker = create_token_tracker()
-        config.setdefault("callbacks", []).append(tracker)
-
-    # FR-231: Set up execution timing tracking
-    timing_tracker = None
-    if getattr(args, "timing", False):
-        from yamlgraph.utils.timing_tracker import create_timing_tracker
-
-        timing_tracker = create_timing_tracker()
-        config.setdefault("callbacks", []).append(timing_tracker)
-
-    return initial_state, config, tracker, timeout, tracer, share_flag, timing_tracker
-
-
-def _invoke_graph(app, input_data, config: dict, use_async: bool):
-    """Invoke a compiled graph synchronously or asynchronously.
-
-    Args:
-        app: Compiled LangGraph application.
-        input_data: Initial state dict or Command for resume.
-        config: LangGraph run configuration.
-        use_async: If True, use asyncio.run(app.ainvoke(...)).
-
-    Returns:
-        Graph execution result dict.
-    """
-    if use_async:
-        import asyncio
-
-        return asyncio.run(app.ainvoke(input_data, config=config))
-    return app.invoke(input_data, config=config)
 
 
 def cmd_graph_run(args: Namespace) -> None:
@@ -242,9 +75,11 @@ def cmd_graph_run(args: Namespace) -> None:
     )
 
     graph_path = Path(args.graph_path)
+    json_mode = getattr(args, "json", False)
+    error_stream = sys.stderr if json_mode else sys.stdout
 
     if not graph_path.exists():
-        print(f"❌ Graph file not found: {graph_path}")
+        print(f"❌ Graph file not found: {graph_path}", file=error_stream)
         sys.exit(1)
 
     # Parse variables: --var-file provides base, --var overrides
@@ -252,19 +87,23 @@ def cmd_graph_run(args: Namespace) -> None:
         file_vars = load_var_file(getattr(args, "var_file", None))
         cli_vars = parse_vars(args.var)
     except (ValueError, FileNotFoundError) as e:
-        print(f"❌ {e}")
+        print(f"❌ {e}", file=error_stream)
         sys.exit(1)
 
     # FR-269: Import state from prior run as base layer
-    imported_state = load_imported_state(getattr(args, "import_state", None))
+    imported_state = load_imported_state(
+        getattr(args, "import_state", None),
+        error_stream=error_stream,
+    )
 
     # Merge: imported < var-file < CLI vars
     initial_state = {**imported_state, **file_vars, **cli_vars}
 
-    print(f"\n🚀 Running graph: {graph_path.name}")
-    if initial_state:
-        print(f"   Variables: {initial_state}")
-    print()
+    if not json_mode:
+        print(f"\n🚀 Running graph: {graph_path.name}")
+        if initial_state:
+            print(f"   Variables: {initial_state}")
+        print()
 
     try:
         # Load config and compile with checkpointer
@@ -283,65 +122,42 @@ def cmd_graph_run(args: Namespace) -> None:
         timeout_ctx = _setup_timeout(timeout)
 
         try:
-            # Initial invoke
-            result = _invoke_graph(app, initial_state, config, use_async)
-            _print_trace_url(tracer, share_flag)
-
-            # Interrupt loop - handle human-in-the-loop
-            while "__interrupt__" in result:
-                message = _get_interrupt_message(result)
-                print(f"\n💬 {message}")
-                user_input = input("\n> ").strip()
-
-                if not user_input:
-                    print("❌ Empty input. Exiting.")
-                    sys.exit(0)
-
-                # Resume with Command(resume=...)
-                from langgraph.types import Command
-
-                result = _invoke_graph(
-                    app, Command(resume=user_input), config, use_async
-                )
-                _print_trace_url(tracer, share_flag)
+            result = _run_graph_until_complete(
+                app,
+                initial_state,
+                config,
+                use_async,
+                tracer,
+                share_flag,
+                json_mode=json_mode,
+                error_stream=error_stream,
+            )
         except TimeoutError as te:
-            print(f"❌ {te}")
+            print(f"❌ {te}", file=error_stream)
             sys.exit(1)
         finally:
             _teardown_timeout(timeout_ctx)
 
-        _display_result(result, truncate=not getattr(args, "full", False))
+        _emit_success_output(
+            args,
+            result,
+            tracker,
+            timing_tracker,
+            json_mode=json_mode,
+        )
+        _handle_optional_exports(
+            args,
+            graph_path,
+            result,
+            json_mode=json_mode,
+            error_stream=error_stream,
+        )
 
-        # FR-027 P2-8: Print token usage summary
-        if tracker is not None and tracker.total_calls > 0:
-            s = tracker.summary()
-            print(
-                f"\n\U0001f4ca Token usage: "
-                f"{s['total_input_tokens']} in / "
-                f"{s['total_output_tokens']} out "
-                f"({s['total_calls']} call{'s' if s['total_calls'] != 1 else ''})"
-            )
-
-        # FR-231: Print timing summary
-        if timing_tracker is not None and timing_tracker.total_calls > 0:
-            ts = timing_tracker.summary()
-            print(
-                f"\n⏱ Timing: {ts['total_duration_s']}s total "
-                f"({ts['call_count']} call{'s' if ts['call_count'] != 1 else ''}, "
-                f"{ts['mean_duration_s']}s mean)"
-            )
-
-        if args.export:
-            _handle_export(graph_path, result)
-
-        # FR-269: Export full state for inter-run chaining
-        if getattr(args, "export_state", None):
-            handle_state_export(result, args.export_state)
-
-        print()
+        if not json_mode:
+            print()
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error: {e}", file=error_stream)
         sys.exit(1)
 
 

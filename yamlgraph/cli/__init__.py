@@ -71,6 +71,12 @@ def create_parser() -> argparse.ArgumentParser:
         "--full", "-f", action="store_true", help="Show full output without truncation"
     )
     graph_run_parser.add_argument(
+        "--json",
+        action="store_true",
+        default=False,
+        help="Emit final graph state as JSON to stdout (machine-readable mode)",
+    )
+    graph_run_parser.add_argument(
         "--async",
         "-a",
         action="store_true",
