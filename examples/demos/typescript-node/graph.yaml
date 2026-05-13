@@ -1,0 +1,29 @@
+version: "1.0"
+name: typescript-node-json-demo
+description: Deterministic python-node graph for TypeScript subprocess integration
+
+state:
+  name: str
+  style: str
+
+tools:
+  compose_greeting:
+    type: python
+    path: examples/demos/typescript-node/tools.py
+    function: compose_greeting
+    description: Build deterministic greeting payload
+
+nodes:
+  greet:
+    type: python
+    tool: compose_greeting
+    state_key: result
+    variables:
+      name: "{state.name}"
+      style: "{state.style}"
+
+edges:
+  - from: START
+    to: greet
+  - from: greet
+    to: END

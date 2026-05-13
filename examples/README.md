@@ -94,6 +94,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [interactive_tool](demos/interactive_tool/) | `interactive_tool` | Multi-turn trivia quiz with user interrupts |
 | [memory](demos/memory/) | `agent` | Multi-turn with memory |
 | [multi-turn](demos/multi-turn/) | `interrupt`, `llm` | Multi-turn streaming with checkpoints (FR-028) |
+| [typescript-node](demos/typescript-node/) | `python` | Cross-runtime: Node.js/TypeScript subprocess calls `yamlgraph graph run --json` (FR-375) |
 | [novel_generator](demos/novel_generator/) | `llm`, `map` | Three-phase story generation with quality gates |
 | [python-map](demos/python-map/) | `map`, `python` | Parallel Python tools |
 | [python-variables](demos/python-variables/) | `python` | Variables expression resolution on python nodes (FR-252) |
@@ -150,6 +151,8 @@ Most examples can be run with the CLI:
 # From project root
 yamlgraph graph run examples/<name>/graph.yaml --full
 ```
+
+For TypeScript integrations, choose by coupling needs: use `demos/typescript-node/` (`graph run --json`) for direct subprocess request/response; use MCP/A2A demos when you need protocol-based discovery and richer multi-agent interoperability.
 
 Or with specific variables:
 

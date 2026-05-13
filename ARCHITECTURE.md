@@ -408,9 +408,9 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 141 | Shared FSM Bridge Module | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, … | REQ-YG-319 |
 | 142 | Skill Export Portable Packaging | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
 | 143 | Agent Export Tool-Scoped Personas | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
-| 144 | Voice-driven GitHub Issue Intake (retired — moved to private repo) | — | — |
 | 145 | Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
 | 146 | FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
+| 147 | Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1772,13 +1772,30 @@ Close FR-362 follow-up instrumentation gaps by hardening runner flags and env, a
 
 ### 146. FSM Snapshot Hooks Phase 2 Subclassing
 
-Add a typed snapshot contract and lifecycle hook callbacks to the shared FSM bridge so integrations can subclass behavior without forking dispatch logic.
+Add a typed snapshot boundary and lifecycle hook callbacks to the shared FSM bridge so domains can subclass behavior without forking dispatch flow.
 
 **Feature Request:** FR-369
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-347 | Shared FSM bridge exposes typed snapshot params (`SnapshotParams` + `snapshot_params`) and lifecycle hooks (`pre_snapshot`, `pre_dispatch`, `on_success`, `on_error`) wired through `YamlgraphAsyncAction.execute()` and `run_and_dispatch()` with dispatch suppression support. | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, `tests/unit/test_fr369_fsm_snapshot_hooks_red.py` |
+
+### 147. Graph Run JSON Stdout + TypeScript Node Integration
+
+Add machine-readable JSON stdout mode for `yamlgraph graph run` and a minimal Node.js/TypeScript subprocess demo using `child_process.execFile`.
+
+**Feature Request:** FR-375
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-348 | CLI parser accepts `yamlgraph graph run --json` and defaults the flag to `False` when omitted. | `yamlgraph/cli/__init__.py`, `tests/unit/test_fr375_graph_run_json_stdout_red.py` |
+| REQ-YG-349 | On success with `--json`, stdout contains only valid final-state JSON without human-oriented run/result headers or summaries. | `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr375_graph_run_json_stdout_red.py` |
+| REQ-YG-350 | On failure with `--json`, stdout remains empty, error details are written to stderr, and process exits non-zero. | `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `tests/unit/test_fr375_graph_run_json_stdout_red.py` |
+| REQ-YG-351 | `--json` mode is non-interactive: if execution returns `__interrupt__`, the command fails fast with non-zero exit and does not prompt for input. | `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr375_graph_run_json_stdout_red.py` |
+| REQ-YG-352 | JSON mode emits full final state without display truncation and reuses existing `_serialize_state()` serialization semantics. | `yamlgraph/cli/graph_commands.py`, `yamlgraph/storage/export.py`, `tests/unit/test_fr375_graph_run_json_stdout_red.py` |
+| REQ-YG-353 | JSON mode preserves run input/merge behavior for `--var`, `--var-file`, and `--import-state`, and remains compatible with `--export-state`. | `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `tests/unit/test_fr375_graph_run_json_stdout_red.py` |
+| REQ-YG-354 | `examples/demos/typescript-node/` includes runnable Node.js/TypeScript assets where `src/index.ts` uses `execFile` to call `yamlgraph graph run ... --json` and parse stdout JSON. | `examples/demos/typescript-node/`, `tests/unit/test_fr375_typescript_node_demo_red.py` |
+| REQ-YG-355 | CLI/examples docs describe `--json` usage and guidance for when to use subprocess JSON mode versus MCP/A2A integration patterns. | `reference/cli.md`, `examples/README.md`, `tests/unit/test_fr375_typescript_node_demo_red.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

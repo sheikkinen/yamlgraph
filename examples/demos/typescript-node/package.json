@@ -1,0 +1,15 @@
+{
+  "name": "yamlgraph-typescript-node-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo: call yamlgraph graph run --json from Node.js/TypeScript",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "tsx": "^4.20.6",
+    "typescript": "^5.8.3"
+  }
+}

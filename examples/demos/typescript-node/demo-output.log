@@ -1,0 +1,17 @@
+=== TypeScript Node Subprocess Demo ===
+Project root: /Users/sheikki/Documents/src/yamlgraph
+
+--- Step 1: Lint graph ---
+✅ graph.yaml - No issues found
+
+✅ All graphs passed linting
+
+--- Step 2: Install TypeScript dependencies ---
+added 7 packages in 1s
+
+--- Step 3: Run TypeScript execFile integration ---
+Parsed JSON state from yamlgraph graph run --json
+message=Hello, World!
+style=holy see of code
+
+✓ Graph execution completed successfully
