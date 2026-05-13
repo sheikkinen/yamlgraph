@@ -77,17 +77,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify changelog fragment exists
+      - name: Verify changelog fragments
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qE '^changelog/unreleased/'; then
-            echo "✅ Changelog fragment found"
-          else
+          source scripts/gate_artifact_semantics.sh
+
+          CHANGED_FRAGMENTS=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E '^changelog/unreleased/.*\.md$' || true)
+
+          if [ -z "$CHANGED_FRAGMENTS" ]; then
             echo "::error::feat/fix PRs must include a changelog fragment in changelog/unreleased/"
             exit 1
           fi
+
+          INVALID=0
+          while IFS= read -r FRAGMENT; do
+            if [ -z "$FRAGMENT" ]; then
+              continue
+            fi
+            if ! validate_changelog_fragment_file "$FRAGMENT" "$FRAGMENT"; then
+              INVALID=$((INVALID + 1))
+            fi
+          done <<< "$CHANGED_FRAGMENTS"
+
+          if [ "$INVALID" -gt 0 ]; then
+            echo "::error::One or more changelog fragments failed substance validation"
+            exit 1
+          fi
+
+          echo "✅ Changelog fragment(s) validated"
 
   release-hygiene:
     name: Release hygiene (tag validation)
@@ -195,12 +214,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify diary reflection exists
+      - name: Verify diary reflection
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
+          source scripts/gate_artifact_semantics.sh
+
           # Extract FR number from PR title
           FR_NUM=$(echo "$PR_TITLE" | grep -oE 'FR-[0-9]+' | head -1 | sed 's/FR-//')
 
@@ -211,9 +232,9 @@ jobs:
 
           echo "🔍 Checking for diary reflection for FR-$FR_NUM..."
 
-          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qE "docs/diary/.*reflection.*fr-${FR_NUM}[^0-9]"; then
-            echo "✅ Diary reflection found for FR-$FR_NUM"
-          else
+          MATCHING_DIARIES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E "docs/diary/.*reflection.*fr-${FR_NUM}([^0-9]|$)" || true)
+
+          if [ -z "$MATCHING_DIARIES" ]; then
             echo "::error::feat/fix PRs referencing FR-$FR_NUM must include a diary reflection in docs/diary/"
             echo ""
             echo "Expected: docs/diary/YYYY-MM-DD-reflection-fr-${FR_NUM}.md"
@@ -226,3 +247,20 @@ jobs:
             echo "See docs/diary/ for examples."
             exit 1
           fi
+
+          INVALID=0
+          while IFS= read -r DIARY_FILE; do
+            if [ -z "$DIARY_FILE" ]; then
+              continue
+            fi
+            if ! validate_diary_reflection_file "$DIARY_FILE" "$DIARY_FILE"; then
+              INVALID=$((INVALID + 1))
+            fi
+          done <<< "$MATCHING_DIARIES"
+
+          if [ "$INVALID" -gt 0 ]; then
+            echo "::error::Diary reflection content requirements not met for FR-$FR_NUM"
+            exit 1
+          fi
+
+          echo "✅ Diary reflection validated for FR-$FR_NUM"

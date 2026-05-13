@@ -1,249 +1,231 @@
-"""Tests for CI diary reflection gate in commitlint.yml (FR-158).
+"""Tests for CI diary gate in commitlint.yml (FR-158 + FR-373)."""
 
-Validates that the `diary-gate` job in `.github/workflows/commitlint.yml`
-correctly blocks feat/fix PRs without a diary reflection file for the
-referenced FR number, and skips for PRs without an FR reference.
+from __future__ import annotations
 
-Two test layers:
-1. YAML structure — parse the workflow and verify job config, conditions, steps.
-2. Shell logic — run the verification script with mocked git diff output.
-"""
-
+import os
 import subprocess
+import tempfile
+from pathlib import Path
 
 import pytest
 import yaml
 
-WORKFLOW_PATH = ".github/workflows/commitlint.yml"
-
-# The shell script from the diary-gate step, extracted for unit testing.
-# Mirrors the `run:` block in commitlint.yml; uses env vars BASE_SHA/HEAD_SHA/PR_TITLE.
-DIARY_GATE_SCRIPT = """\
-FR_NUM=$(echo "$PR_TITLE" | grep -oE 'FR-[0-9]+' | head -1 | sed 's/FR-//')
-
-if [ -z "$FR_NUM" ]; then
-  echo "⏭️ No FR-XXX reference in title — diary gate skipped"
-  exit 0
-fi
-
-echo "🔍 Checking for diary reflection for FR-$FR_NUM..."
-
-if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qE "docs/diary/.*reflection.*fr-${FR_NUM}[^0-9]"; then
-  echo "✅ Diary reflection found for FR-$FR_NUM"
-else
-  echo "::error::feat/fix PRs referencing FR-$FR_NUM must include a diary reflection in docs/diary/"
-  echo ""
-  echo "Expected: docs/diary/YYYY-MM-DD-reflection-fr-${FR_NUM}.md"
-  echo ""
-  echo "The diary reflection should document:"
-  echo "  - Cognitive traps encountered"
-  echo "  - Heuristics learned"
-  echo "  - A Seed question for future work"
-  echo ""
-  echo "See docs/diary/ for examples."
-  exit 1
-fi
-"""
+WORKFLOW_PATH = Path(".github/workflows/commitlint.yml")
+SEMANTICS_SCRIPT_PATH = Path("scripts/gate_artifact_semantics.sh")
 
 
 def _load_workflow() -> dict:
-    """Load and parse the commitlint workflow YAML."""
-    with open(WORKFLOW_PATH) as f:
+    with WORKFLOW_PATH.open() as f:
         return yaml.safe_load(f)
 
 
-def _run_gate_script(
-    diff_output: str, pr_title: str = "feat(core): FR-158 add diary gate"
+def _diary_gate_run_script() -> str:
+    workflow = _load_workflow()
+    steps = workflow["jobs"]["diary-gate"]["steps"]
+    verify_steps = [
+        step
+        for step in steps
+        if "run" in step and "diary reflection" in step.get("name", "").lower()
+    ]
+    assert verify_steps, "diary-gate must include a verification step"
+    return str(verify_steps[0]["run"])
+
+
+def _setup_git_repo(tmpdir: str) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmpdir, check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"], cwd=tmpdir, check=True
+    )
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=tmpdir, check=True)
+
+
+def _run_ci_diary_gate_check(
+    changed_files: dict[str, str],
+    pr_title: str = "feat(ci): FR-158 diary gate semantics",
 ) -> subprocess.CompletedProcess:
-    """Run the diary gate script with mocked git diff output.
+    run_script = _diary_gate_run_script()
 
-    Replaces `git diff --name-only "$BASE_SHA" "$HEAD_SHA"` with an echo
-    of the provided diff output to test the grep logic in isolation.
-    """
-    script = DIARY_GATE_SCRIPT.replace(
-        'git diff --name-only "$BASE_SHA" "$HEAD_SHA"',
-        f"echo '{diff_output}'",
+    with tempfile.TemporaryDirectory() as tmpdir:
+        _setup_git_repo(tmpdir)
+        tmppath = Path(tmpdir)
+
+        semantics_dest = tmppath / "scripts" / "gate_artifact_semantics.sh"
+        semantics_dest.parent.mkdir(parents=True, exist_ok=True)
+        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text())
+        semantics_dest.chmod(0o755)
+
+        (tmppath / "README.md").write_text("base\n")
+        subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "base"], cwd=tmpdir, check=True)
+        base_sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=tmpdir,
+            check=True,
+            text=True,
+            capture_output=True,
+        ).stdout.strip()
+
+        for relpath, content in changed_files.items():
+            fpath = tmppath / relpath
+            fpath.parent.mkdir(parents=True, exist_ok=True)
+            fpath.write_text(content)
+        subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "head"], cwd=tmpdir, check=True)
+        head_sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=tmpdir,
+            check=True,
+            text=True,
+            capture_output=True,
+        ).stdout.strip()
+
+        env = os.environ.copy()
+        env["BASE_SHA"] = base_sha
+        env["HEAD_SHA"] = head_sha
+        env["PR_TITLE"] = pr_title
+        env["PATH"] = "/usr/bin:/bin"
+        return subprocess.run(
+            ["bash", "-lc", run_script],
+            capture_output=True,
+            text=True,
+            cwd=tmpdir,
+            env=env,
+        )
+
+
+def _valid_diary_body() -> str:
+    return (
+        "# Reflection FR-158\n\n"
+        "## Trap\n"
+        "Assuming file presence equals meaningful reflection caused a false green.\n\n"
+        "## Heuristic\n"
+        "Require structural evidence before passing merge-time compliance gates.\n\n"
+        "## Seed\n"
+        "Seed: How can we standardize substance checks across all merge gates?\n"
     )
-    return subprocess.run(
-        ["bash", "-c", script],
-        capture_output=True,
-        text=True,
-        env={"PR_TITLE": pr_title, "PATH": "/usr/bin:/bin"},
-    )
-
-
-# ── YAML Structure Tests ───────────────────────────────────────────────────
 
 
 @pytest.mark.req("REQ-YG-152")
 class TestDiaryGateJobStructure:
-    """Verify the diary-gate job exists with correct configuration."""
+    """Verify diary-gate wiring in commitlint.yml."""
 
     def test_job_exists(self) -> None:
-        """The commitlint workflow must contain a 'diary-gate' job."""
         wf = _load_workflow()
-        assert "diary-gate" in wf["jobs"], "Missing 'diary-gate' job in commitlint.yml"
+        assert "diary-gate" in wf["jobs"]
 
-    def test_job_name(self) -> None:
-        """The job display name indicates diary is required for feat/fix."""
+    def test_job_name_mentions_diary_and_feat_fix(self) -> None:
         wf = _load_workflow()
-        job = wf["jobs"]["diary-gate"]
-        name = job["name"].lower()
-        assert "diary" in name, "Job name must mention diary"
-        assert "feat" in name or "fix" in name, "Job name must mention feat or fix"
+        name = wf["jobs"]["diary-gate"]["name"].lower()
+        assert "diary" in name
+        assert "feat" in name or "fix" in name
 
-    def test_job_condition_checks_feat(self) -> None:
-        """The job-level `if` condition must check for 'feat' PR titles."""
+    def test_job_condition_checks_feat_and_fix_titles(self) -> None:
         wf = _load_workflow()
-        job = wf["jobs"]["diary-gate"]
-        condition = job.get("if", "")
-        assert (
-            "startsWith(github.event.pull_request.title, 'feat')" in condition
-        ), "Job must check for feat PR titles"
+        condition = wf["jobs"]["diary-gate"].get("if", "")
+        assert "startsWith(github.event.pull_request.title, 'feat')" in condition
+        assert "startsWith(github.event.pull_request.title, 'fix')" in condition
 
-    def test_job_condition_checks_fix(self) -> None:
-        """The job-level `if` condition must check for 'fix' PR titles."""
-        wf = _load_workflow()
-        job = wf["jobs"]["diary-gate"]
-        condition = job.get("if", "")
-        assert (
-            "startsWith(github.event.pull_request.title, 'fix')" in condition
-        ), "Job must check for fix PR titles"
-
-    def test_checkout_with_full_history(self) -> None:
-        """The checkout step must use fetch-depth: 0 for full git history."""
+    def test_checkout_uses_fetch_depth_zero(self) -> None:
         wf = _load_workflow()
         steps = wf["jobs"]["diary-gate"]["steps"]
         checkout_steps = [
-            s for s in steps if s.get("uses", "").startswith("actions/checkout")
+            step
+            for step in steps
+            if step.get("uses", "").startswith("actions/checkout")
         ]
-        assert checkout_steps, "Must have an actions/checkout step"
-        checkout = checkout_steps[0]
-        assert (
-            checkout.get("with", {}).get("fetch-depth") == 0
-        ), "Checkout must use fetch-depth: 0"
-
-    def test_verify_step_uses_git_diff(self) -> None:
-        """The verification step must use git diff with base/head SHAs."""
-        wf = _load_workflow()
-        steps = wf["jobs"]["diary-gate"]["steps"]
-        verify_steps = [s for s in steps if "run" in s and "diary" in s["run"].lower()]
-        assert verify_steps, "Must have a step that checks diary reflection"
-        run_script = verify_steps[0]["run"]
-        assert "git diff --name-only" in run_script
-        assert "diary" in run_script.lower()
+        assert checkout_steps
+        assert checkout_steps[0].get("with", {}).get("fetch-depth") == 0
 
     def test_verify_step_has_required_env_vars(self) -> None:
-        """The verification step must receive BASE_SHA, HEAD_SHA, and PR_TITLE."""
         wf = _load_workflow()
         steps = wf["jobs"]["diary-gate"]["steps"]
-        verify_steps = [s for s in steps if "run" in s and "diary" in s["run"].lower()]
-        assert verify_steps, "Must have a verification step"
+        verify_steps = [
+            step
+            for step in steps
+            if "run" in step and "diary reflection" in step.get("name", "").lower()
+        ]
+        assert verify_steps
         env = verify_steps[0].get("env", {})
-        assert "BASE_SHA" in env, "Must pass BASE_SHA env var"
-        assert "HEAD_SHA" in env, "Must pass HEAD_SHA env var"
-        assert "PR_TITLE" in env, "Must pass PR_TITLE env var"
+        assert "BASE_SHA" in env
+        assert "HEAD_SHA" in env
+        assert "PR_TITLE" in env
 
-    def test_error_message_includes_guidance(self) -> None:
-        """The error message must include expected path pattern and content guidance."""
-        wf = _load_workflow()
-        steps = wf["jobs"]["diary-gate"]["steps"]
-        verify_steps = [s for s in steps if "run" in s and "diary" in s["run"].lower()]
-        assert verify_steps, "Must have a verification step"
-        run_script = verify_steps[0]["run"]
-        assert "reflection" in run_script, "Error must mention reflection"
-        assert "Seed" in run_script, "Error must mention Seed question"
-        assert (
-            "Cognitive traps" in run_script or "traps" in run_script.lower()
-        ), "Error must mention cognitive traps"
-
-
-# ── Shell Script Logic Tests ───────────────────────────────────────────────
+    def test_verify_step_sources_shared_semantics_script(self) -> None:
+        run_script = _diary_gate_run_script()
+        assert "source scripts/gate_artifact_semantics.sh" in run_script
+        assert "validate_diary_reflection_file" in run_script
 
 
 @pytest.mark.req("REQ-YG-152")
 class TestDiaryGateShellLogic:
-    """Test the actual bash script that verifies diary reflection in diff."""
+    """Validate semantic behavior of the diary gate script."""
 
-    def test_diary_reflection_in_diff_passes(self) -> None:
-        """When a matching diary reflection is in the diff, the gate passes."""
-        result = _run_gate_script(
-            "docs/diary/2026-03-08-reflection-fr-158.md",
-            pr_title="feat(ci): FR-158 add diary gate",
+    def test_matching_valid_diary_reflection_passes(self) -> None:
+        result = _run_ci_diary_gate_check(
+            {"docs/diary/2026-05-13-reflection-fr-158.md": _valid_diary_body()},
+            pr_title="feat(ci): FR-158 enforce diary semantics",
         )
-        assert result.returncode == 0, f"Should pass: {result.stderr}"
-        assert "Diary reflection found" in result.stdout
+        assert result.returncode == 0, result.stdout + result.stderr
 
     def test_diary_reflection_absent_from_diff_fails(self) -> None:
-        """When no diary reflection is in the diff, the gate fails."""
-        result = _run_gate_script(
-            "src/main.py\nREADME.md",
-            pr_title="feat(ci): FR-158 add diary gate",
+        result = _run_ci_diary_gate_check(
+            {"src/main.py": "print('x')\n"},
+            pr_title="feat(ci): FR-158 enforce diary semantics",
         )
-        assert result.returncode == 1, "Should fail without diary reflection"
-        assert "must include a diary reflection" in result.stdout
+        assert result.returncode == 1
+        assert "must include a diary reflection" in (result.stdout + result.stderr)
 
-    def test_empty_diff_fails(self) -> None:
-        """An empty diff (no changed files) fails the gate."""
-        result = _run_gate_script(
-            "",
-            pr_title="feat(ci): FR-158 add diary gate",
+    def test_empty_diary_reflection_fails(self) -> None:
+        result = _run_ci_diary_gate_check(
+            {"docs/diary/2026-05-13-reflection-fr-158.md": "\n \t\n"},
+            pr_title="feat(ci): FR-158 enforce diary semantics",
         )
-        assert result.returncode == 1, "Empty diff should fail"
+        assert result.returncode == 1
+        assert "empty" in (result.stdout + result.stderr).lower()
 
-    def test_diary_among_many_files_passes(self) -> None:
-        """A matching diary file among other changed files still passes."""
-        result = _run_gate_script(
-            "src/main.py\ndocs/diary/2026-03-08-reflection-fr-158.md\ntests/test_foo.py",
-            pr_title="feat(ci): FR-158 add diary gate",
+    def test_diary_reflection_below_minimum_size_fails(self) -> None:
+        result = _run_ci_diary_gate_check(
+            {"docs/diary/2026-05-13-reflection-fr-158.md": "## Trap\nSeed: x\n"},
+            pr_title="feat(ci): FR-158 enforce diary semantics",
         )
-        assert result.returncode == 0, "Should pass with diary in file list"
+        assert result.returncode == 1
+        assert ">100 bytes" in (result.stdout + result.stderr)
 
-    def test_wrong_fr_number_rejected(self) -> None:
-        """A diary file for a different FR number should NOT satisfy the gate."""
-        result = _run_gate_script(
-            "docs/diary/2026-03-08-reflection-fr-999.md",
-            pr_title="feat(ci): FR-158 add diary gate",
+    def test_diary_reflection_missing_header_fails(self) -> None:
+        result = _run_ci_diary_gate_check(
+            {
+                "docs/diary/2026-05-13-reflection-fr-158.md": (
+                    "Trap section without markdown headers. " * 8 + "Seed: yes\n"
+                )
+            },
+            pr_title="feat(ci): FR-158 enforce diary semantics",
         )
-        assert result.returncode == 1, "Wrong FR number should not satisfy the check"
+        assert result.returncode == 1
+        assert "## header" in (result.stdout + result.stderr)
 
-    def test_no_fr_reference_skips(self) -> None:
-        """A PR without FR-XXX reference skips the gate (passes)."""
-        result = _run_gate_script(
-            "src/main.py",
-            pr_title="fix(typo): correct spelling in README",
+    def test_diary_reflection_missing_seed_fails(self) -> None:
+        result = _run_ci_diary_gate_check(
+            {
+                "docs/diary/2026-05-13-reflection-fr-158.md": (
+                    "## Trap\n" + ("Content line for size.\n" * 12)
+                )
+            },
+            pr_title="feat(ci): FR-158 enforce diary semantics",
         )
-        assert result.returncode == 0, "No FR reference should skip"
+        assert result.returncode == 1
+        assert "seed:" in (result.stdout + result.stderr).lower()
+
+    def test_wrong_fr_number_does_not_satisfy_gate(self) -> None:
+        result = _run_ci_diary_gate_check(
+            {"docs/diary/2026-05-13-reflection-fr-999.md": _valid_diary_body()},
+            pr_title="feat(ci): FR-158 enforce diary semantics",
+        )
+        assert result.returncode == 1
+
+    def test_no_fr_reference_skips_gate(self) -> None:
+        result = _run_ci_diary_gate_check(
+            {"src/main.py": "print('x')\n"},
+            pr_title="fix(readme): correct typo",
+        )
+        assert result.returncode == 0
         assert "diary gate skipped" in result.stdout
-
-    def test_fix_pr_with_fr_enforced(self) -> None:
-        """A fix PR with FR reference must also include diary reflection."""
-        result = _run_gate_script(
-            "src/main.py",
-            pr_title="fix(core): FR-042 resolve edge case",
-        )
-        assert result.returncode == 1, "fix PR with FR reference should enforce diary"
-
-    def test_fix_pr_with_fr_and_diary_passes(self) -> None:
-        """A fix PR with FR reference and matching diary file passes."""
-        result = _run_gate_script(
-            "src/main.py\ndocs/diary/2026-03-08-reflection-fr-042.md",
-            pr_title="fix(core): FR-042 resolve edge case",
-        )
-        assert result.returncode == 0, "fix PR with FR and diary should pass"
-
-    def test_substring_fr_number_not_matched(self) -> None:
-        """FR-15 should NOT match a diary file for FR-158."""
-        result = _run_gate_script(
-            "docs/diary/2026-03-08-reflection-fr-158.md",
-            pr_title="feat(ci): FR-15 some feature",
-        )
-        assert result.returncode == 1, "FR-15 should not match fr-158 diary file"
-
-    def test_diary_file_with_extra_suffix_passes(self) -> None:
-        """Diary files with extra descriptive suffixes should still match."""
-        result = _run_gate_script(
-            "docs/diary/2026-03-08-reflection-fr-158-diary-gate.md",
-            pr_title="feat(ci): FR-158 add diary gate",
-        )
-        assert result.returncode == 0, "Descriptive suffix should still match"
