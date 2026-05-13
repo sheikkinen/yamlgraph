@@ -44,6 +44,7 @@ yamlgraph graph run <graph_path> [options]
 | `--thread THREAD` | `-t` | Thread ID for state persistence |
 | `--export` | `-e` | Export results to files |
 | `--full` | `-f` | Show full output without truncation |
+| `--json` | | Emit final graph state as JSON-only stdout (machine-readable mode) |
 | `--async` | `-a` | Use async execution for parallel map nodes |
 | `--share-trace` | | Share LangSmith trace publicly and display the URL |
 
@@ -61,6 +62,10 @@ yamlgraph graph run examples/demos/interview/graph.yaml -t session-123
 # Full output for debugging
 yamlgraph graph run examples/demos/reflexion/graph.yaml -v topic="climate" -f
 
+# Machine-readable JSON stdout (no human headers)
+yamlgraph graph run examples/demos/typescript-node/graph.yaml \
+  --json -v name=World -v style=formal
+
 # Export results
 yamlgraph graph run examples/demos/git-report/graph.yaml -v input="What changed?" -e
 
@@ -72,6 +77,8 @@ yamlgraph graph run examples/demos/yamlgraph/graph.yaml -v topic=AI
 yamlgraph graph run examples/demos/yamlgraph/graph.yaml -v topic=AI --share-trace
 # 🔗 Trace (public): https://smith.langchain.com/public/.../r/...
 ```
+
+**Subprocess vs MCP/A2A:** use `graph run --json` for simple request/response subprocess integration (e.g., `child_process.execFile` in Node.js). Prefer MCP/A2A for long-lived agent/tool ecosystems, discovery, and protocol-level interoperability.
 
 ### graph info
 
