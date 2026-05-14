@@ -14,11 +14,19 @@ Config keys:
 
 import asyncio
 import logging
+import re
 from typing import Any
 
 from statemachine_engine.actions.base import BaseAction
 
 logger = logging.getLogger(__name__)
+
+
+def _is_placeholder(value: str) -> bool:
+    return bool(re.fullmatch(r"\{[A-Za-z_][A-Za-z0-9_]*\}", value))
+
+
+_NORMALIZE_EMPTY_ON_UNRESOLVED = {"precommit_output", "validate_gate_output"}
 
 
 class YamlgraphAsyncAction(BaseAction):
@@ -45,6 +53,8 @@ class YamlgraphAsyncAction(BaseAction):
             resolved = str(value)
             for ctx_key, ctx_val in context.items():
                 resolved = resolved.replace(f"{{{ctx_key}}}", str(ctx_val))
+            if key in _NORMALIZE_EMPTY_ON_UNRESOLVED and _is_placeholder(resolved):
+                resolved = ""
             cmd_parts.extend(["--var", f"{key}={resolved}"])
         logger.info(f"[{machine_name}] yamlgraph argv={cmd_parts[:20]}")
 

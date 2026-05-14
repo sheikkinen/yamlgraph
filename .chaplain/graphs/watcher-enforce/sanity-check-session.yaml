@@ -30,7 +30,7 @@ nodes:
       branch: "{state.branch}"
       topic_file: "{state.topic_file}"
     state_key: sanity_result
-    timeout: 600
+    timeout: 1200
 
 edges:
   - from: START
