@@ -18,6 +18,29 @@ Emergency bypass is **never** justified for:
 - Merging a feature faster.
 - Avoiding a commitlint failure.
 
+## Local Boundary Guard: `.gitignore` Edits (FR-372)
+
+Staged changes to any `.gitignore` file are blocked by the local pre-commit
+hook `gitignore-boundary-guard` by default. This boundary exists because
+ignore rules define what is tracked vs. local-only and can silently widen
+exposure if changed casually.
+
+For intentional human edits, use the documented explicit bypass:
+
+```bash
+YAMLGRAPH_ALLOW_GITIGNORE_EDIT=1 \
+YAMLGRAPH_GITIGNORE_REASON="FR-372 adjust ignore boundary for <reason>" \
+git commit
+```
+
+Bypass is accepted only when:
+
+- `YAMLGRAPH_ALLOW_GITIGNORE_EDIT=1`
+- `YAMLGRAPH_GITIGNORE_REASON` is non-empty and includes trace token `FR-<num>` or `gh-<num>`
+
+`--no-verify` is not the normal path for this guard and must not be used as
+routine bypass.
+
 ## Procedure
 
 ### 1. Assess
