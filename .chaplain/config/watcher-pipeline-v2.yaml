@@ -301,7 +301,7 @@ actions:
         WARN: warn
       success: pass
       error: error
-      timeout: 600
+      timeout: 1200
       description: "🧭 Sanity check (post-validate review + diary)"
 
   # ── VALIDATE GATE ──────────────────────────────────────────────────
