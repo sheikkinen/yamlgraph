@@ -16,7 +16,6 @@ from yamlgraph.cli import graph_run_helpers as _graph_run_helpers
 from yamlgraph.cli.graph_validate import cmd_graph_lint, cmd_graph_validate
 from yamlgraph.cli.helpers import (
     GraphLoadError,
-    handle_state_export,
     load_graph_config,
     load_imported_state,
     load_var_file,
@@ -36,30 +35,7 @@ _build_run_config = _graph_run_helpers._build_run_config
 _invoke_graph = _graph_run_helpers._invoke_graph
 _run_graph_until_complete = _graph_run_helpers._run_graph_until_complete
 _emit_success_output = _graph_run_helpers._emit_success_output
-
-
-def _handle_optional_exports(
-    args: Namespace,
-    graph_path: Path,
-    result: dict,
-    *,
-    json_mode: bool,
-    error_stream,
-) -> None:
-    """Handle optional --export and --export-state behavior."""
-    if args.export:
-        if json_mode:
-            _handle_export(graph_path, result, quiet=True)
-        else:
-            _handle_export(graph_path, result)
-
-    if getattr(args, "export_state", None):
-        handle_state_export(
-            result,
-            args.export_state,
-            quiet=json_mode,
-            error_stream=error_stream,
-        )
+_handle_optional_exports = _graph_run_helpers._handle_optional_exports
 
 
 def cmd_graph_run(args: Namespace) -> None:
@@ -145,6 +121,7 @@ def cmd_graph_run(args: Namespace) -> None:
             timing_tracker,
             json_mode=json_mode,
         )
+        _graph_run_helpers._handle_export = _handle_export
         _handle_optional_exports(
             args,
             graph_path,

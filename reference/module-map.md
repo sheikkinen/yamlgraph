@@ -25,7 +25,7 @@
   - import dependencies: _none_
 - `yamlgraph/cli/diary_commands.py` - 64 lines; exports: `cmd_diary_import(args)`, `cmd_diary_dispatch(args)`
   - import dependencies: `yamlgraph.diary.importer`
-- `yamlgraph/cli/graph_commands.py` - 262 lines; exports: `cmd_graph_run(args)`, `cmd_graph_info(args)`, `cmd_graph_codegen(args)`, `cmd_graph_dispatch(args)`
+- `yamlgraph/cli/graph_commands.py` - 239 lines; exports: `cmd_graph_run(args)`, `cmd_graph_info(args)`, `cmd_graph_codegen(args)`, `cmd_graph_dispatch(args)`
   - import dependencies: `yamlgraph.cli`, `yamlgraph.cli.graph_validate`, `yamlgraph.cli.helpers`, `yamlgraph.models.state_builder`
 - `yamlgraph/cli/graph_run_helpers.py` - 271 lines; exports: _none_
   - import dependencies: `yamlgraph.cli.helpers`
