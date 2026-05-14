@@ -2,20 +2,24 @@ id: CAP-54
 name: CI Diary Existence Gate
 description: >
   CI gate ensuring feat/fix PRs with FR references include a diary reflection
-  file in the diff.
+  file in the diff and that the reflection passes substance validation.
 modules:
   - .github/workflows/commitlint.yml
+  - scripts/gate_artifact_semantics.sh
   - tests/unit/test_ci_diary_gate
 requirements:
   - id: REQ-YG-152
     description: >
       `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs
       `git diff --name-only` against base/head SHAs, and fails when no
-      `docs/diary/*reflection*fr-{number}*` file is in diff; skips (passes) when
-      PR title has no FR reference; job-level `if` condition restricts to
-      `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0`
-      for full history
+      `docs/diary/*reflection*fr-{number}*` file is in diff; matching files must
+      be non-empty, exceed 100 bytes, contain at least one markdown `##` header,
+      and include `Seed:` marker; shared validation is sourced from
+      `scripts/gate_artifact_semantics.sh`; skips (passes) when PR title has no
+      FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles;
+      uses `actions/checkout@v4` with `fetch-depth: 0` for full history
     modules:
       - .github/workflows/commitlint.yml
+      - scripts/gate_artifact_semantics.sh
       - tests/unit/test_ci_diary_gate
 fr: FR-158
