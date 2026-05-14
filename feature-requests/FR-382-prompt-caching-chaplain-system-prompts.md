@@ -2,158 +2,154 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
-**Effort:** 0.5 days
+**Status:** Implemented
+**Effort:** 0.5 day
 **Requested:** 2026-05-14
 
 ## Summary
 
-Convert all Chaplain pipeline prompt `system:` blocks to `system_segments:` with
-`cache: true` on the static preamble sections. Zero Python code change. Pure YAML
-configuration. Reduces repeated input token cost by 80–90% across plan→judge→enforce
-pipeline cycles.
+Apply Anthropic prompt caching where Chaplain prompts are actually executed through
+the `type: llm` runtime path: convert
+`.chaplain/graphs/watcher-enforce/prompts/context-planner.yaml` from `system:` to
+`system_segments:` with a cached static segment and an uncached dynamic segment.
+
+This FR is intentionally scoped to the currently cache-compatible surface and does
+not modify Copilot-node prompt files.
 
 ## Value Statement
 
-The Chaplain plan→judge→enforce→validate→sanity cycle invoking 5 nodes in rapid
-succession currently re-sends identical Scripture and instruction preambles on every
-call at full input token price. Prompt caching eliminates that cost for all repeat
-invocations within the 5-minute cache TTL.
+Watcher enforce runs get immediate, low-risk input-token savings on the
+`plan_context` LLM call while avoiding behavior regressions in Copilot-backed nodes.
 
 ## Problem
 
-15 Chaplain prompt YAML files use bare `system:` blocks. Every invocation sends the
-full system prompt as fresh input tokens. For a single plan→judge→enforce cycle:
+The rough topic asked for blanket conversion of Chaplain prompt files. Research in
+this worktree shows that is unsafe with current runtime contracts:
 
-- `plan-unified.yaml`: ~200 tokens system (repeated 1×/cycle)
-- `judge.yaml`: ~150 tokens system
-- `enforce-session.yaml`: ~300 tokens system (Scripture excerpt)
-- `validate-session.yaml`: ~200 tokens system
-- `sanity-check-session.yaml`: ~200 tokens system
+1. Chaplain prompt inventory has 16 files under `.chaplain/graphs/**/prompts/*.yaml`,
+   all currently using `system: |`.
+2. Only one active Chaplain node executes via `type: llm`:
+   `watcher-enforce/enforce-session.yaml` → `plan_context` →
+   `prompt: context-planner`.
+3. Most Chaplain prompts are consumed by `type: copilot` nodes.
+4. `yamlgraph/node_factory/copilot_node.py::_load_and_render_prompt()` reads
+   `prompt_config["system"]` and `prompt_config["user"]` only; it does not read
+   `system_segments`.
 
-Across a typical FR enforcement run (5 nodes, 3–5 invocations each) the static
-system prompt corpus is sent 15–25 times. At Sonnet 4.6: $3/MTok input.
+Therefore, converting Copilot-consumed prompts to `system_segments` in this FR would
+drop their system instructions at runtime instead of enabling caching.
 
-With prompt caching: cache write is $3.75/MTok (first call), cache read is
-$0.30/MTok (all subsequent). On 20 repeat reads: **90% reduction on cached tokens**.
+## Research: Existing Patterns and Prior Art
 
-## Background
+1. **Prompt-caching primitive already exists (no framework feature gap).**
+   `executor_base.py` builds Anthropic `cache_control: {"type":"ephemeral"}` blocks
+   from `system_segments` (`cache: true`) and flattens segments for non-Anthropic
+   providers.
+2. **Architecture traceability already defines this capability.**
+   `ARCHITECTURE.md` capability 131 / REQ-YG-287..292, 303..306 documents
+   `system_segments` and caching behavior.
+3. **Reference syntax is stable.**
+   `reference/prompt-yaml.md` defines `system_segments` entries with `content` and
+   optional `cache` (not `text`).
+4. **Cost mitigation plan remains directionally valid but over-broad for current runtime.**
+   `docs/plan-token-cost-mitigation.md` lists prompt caching as priority 1; this FR
+   narrows execution to cache-compatible prompts today.
+5. **Prompt usage mismatch is measurable.**
+   Chaplain graph configs reference 11 prompt names; 4 prompt files (`plan`,
+   `research`, `summarize`, `write-acceptance-tests`) are currently unreferenced by
+   active graph nodes and should not drive scope.
 
-YAMLGraph already supports `system_segments` with caching (FR-219, CAP-131).
-The syntax is available, tested, and documented. This FR is a configuration
-change, not a feature addition.
+## Objectives
 
-Anthropic's documentation recommends using 1-hour cache duration (`cache_ttl: 3600`)
-for batch workloads. The Chaplain runs sequentially, so 5-minute TTL is sufficient
-unless the Chaplain FSM is extended to batch mode (see FR-381 Seed).
-
-## Proposed Solution
-
-For each of the 15 Chaplain prompt files, convert `system:` to `system_segments:`
-splitting the prompt into:
-
-1. **Static preamble** (role + Scripture + working rules): `cache: true`
-2. **Dynamic variables** (worktree_dir, branch, fr_path): not cached
-
-### Example transformation
-
-**Before** (`enforce-session.yaml`):
-```yaml
-system: |
-  You are implementing a feature in the YAMLGraph framework.
-  You have full tool access: terminal, file editing, and code search.
-
-  Your objective: make the acceptance tests pass and commit the result.
-  ...
-  The Scripture commands:
-  - Commandment 7: Red-Green-Refactor...
-  ...
-  Working directory: {{ worktree_dir }}
-  Branch: {{ branch }}
-  Feature request: {{ fr_path }}
-```
-
-**After**:
-```yaml
-system_segments:
-  - text: |
-      You are implementing a feature in the YAMLGraph framework.
-      You have full tool access: terminal, file editing, and code search.
-
-      Your objective: make the acceptance tests pass and commit the result.
-      ...
-      The Scripture commands:
-      - Commandment 7: Red-Green-Refactor...
-      ...
-    cache: true
-  - text: |
-      Working directory: {{ worktree_dir }}
-      Branch: {{ branch }}
-      Feature request: {{ fr_path }}
-```
-
-### Files to update
-
-All 15 Chaplain prompt files that currently use bare `system:`:
-
-| File | Static tokens (est.) |
-|------|----------------------|
-| `.chaplain/graphs/watcher-plan/prompts/plan-unified.yaml` | ~200 |
-| `.chaplain/graphs/watcher-plan/prompts/judge.yaml` | ~150 |
-| `.chaplain/graphs/watcher-plan/prompts/plan.yaml` | ~180 |
-| `.chaplain/graphs/watcher-plan/prompts/research.yaml` | ~120 |
-| `.chaplain/graphs/watcher-plan/prompts/summarize.yaml` | ~80 |
-| `.chaplain/graphs/watcher-plan/prompts/write-acceptance-tests.yaml` | ~120 |
-| `.chaplain/graphs/watcher-enforce/prompts/enforce-session.yaml` | ~300 |
-| `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml` | ~200 |
-| `.chaplain/graphs/watcher-enforce/prompts/sanity-check-session.yaml` | ~200 |
-| `.chaplain/graphs/watcher-enforce/prompts/context-planner.yaml` | ~100 |
-| `.chaplain/graphs/watcher-diary/prompts/reflect.yaml` | ~150 |
-| `.chaplain/graphs/watcher-forensic/prompts/analyze_failure.yaml` | ~120 |
-| `.chaplain/graphs/philosopher/prompts/challenge.yaml` | ~100 |
-| `.chaplain/graphs/philosopher/prompts/analyze.yaml` | ~100 |
-| `.chaplain/graphs/philosopher/prompts/distill.yaml` | ~100 |
-| `.chaplain/graphs/philosopher/prompts/reflect.yaml` | ~100 |
-
-## Acceptance Criteria
-
-- [ ] AC-01: All Chaplain prompt files use `system_segments:` with at least one
-  `cache: true` segment containing the static role/instruction preamble
-- [ ] AC-02: Dynamic Jinja2 variables (`{{ worktree_dir }}` etc.) remain in
-  uncached segments only — no cached segment contains runtime-variable text
-- [ ] AC-03: `yamlgraph graph lint` passes on all modified prompt files
-- [ ] AC-04: Existing Chaplain integration tests pass unchanged
-- [ ] AC-05: `prompt_caching_demo` smoke test continues to pass
-- [ ] Changelog fragment in `changelog/unreleased/`
-- [ ] Diary reflection in `docs/diary/`
+1. Use existing `system_segments` caching in a live Chaplain `type: llm` node.
+2. Preserve current behavior for all `type: copilot` nodes.
+3. Add explicit tests that lock this safe scope boundary.
 
 ## Constraints
 
-1. No Python code changes. YAML files only.
-2. Minimum cacheable segment size: Anthropic requires ≥1024 tokens for caching.
-   If a static segment is shorter, it will not be cached (API silently ignores);
-   no error, just no savings. Verify each prompt's static block is substantive.
-3. Copilot CLI backend (`type: copilot`) does not use `system_segments` — it
-   constructs its own system prompt from the `system:` field. Only `type: llm`
-   nodes benefit. Verify each node type before converting.
-4. Sequencing: this FR is Priority 1 per `docs/plan-token-cost-mitigation.md`.
-   Should land before FR-381 (Batch API).
+1. **YAML-only change** for FR-382 implementation scope.
+2. **No Copilot prompt conversion** until Copilot backend can consume
+   `system_segments` (separate FR).
+3. Use `system_segments[].content` schema as documented; no custom prompt syntax.
+4. Reuse existing requirements (REQ-YG-287/289); no new requirement ID in this FR.
+
+## Proposed Solution
+
+### In scope
+
+1. Convert `.chaplain/graphs/watcher-enforce/prompts/context-planner.yaml`:
+   - static instruction corpus in `system_segments[0].content` with `cache: true`
+   - runtime-variable lines in `system_segments[1].content` with `cache: false`
+2. Keep all Copilot-consumed prompt files on `system:` unchanged.
+3. Add focused unit tests to enforce the eligibility boundary.
+
+### Out of scope
+
+1. Converting Copilot-node prompt files (`plan-unified`, `judge`, `enforce-session`,
+   `validate-session`, `sanity-check-session`, philosopher prompts, diary/forensic prompts).
+2. Any Python runtime changes in `copilot_node.py`.
+3. Broad prompt-file cleanup for unreferenced prompt templates.
+
+## Acceptance Criteria
+
+- [x] **AC-01:** `context-planner.yaml` uses `system_segments` and contains at least
+  one `cache: true` segment.
+- [x] **AC-02:** Cached segment(s) in `context-planner.yaml` contain no runtime
+  placeholders (`{...}` or `{{ ... }}` tokens).
+- [x] **AC-03:** Copilot-consumed Chaplain prompt files continue to use `system:`
+  (no `system_segments` migration in this FR).
+- [x] **AC-04:** `yamlgraph graph lint .chaplain/graphs/watcher-enforce/enforce-session.yaml`
+  passes after the YAML change.
+- [x] **AC-05:** New FR-382 tests are tagged with existing requirement IDs
+  (`@pytest.mark.req("REQ-YG-287")` and/or `@pytest.mark.req("REQ-YG-289")`).
+
+## Failing Acceptance Tests (RED plan)
+
+Create:
+
+- `tests/unit/test_fr382_chaplain_prompt_caching_scope_red.py`
+
+Planned RED tests (must fail before implementation):
+
+1. `test_ac01_context_planner_uses_system_segments_with_cached_block`
+2. `test_ac02_context_planner_cached_segments_have_no_runtime_placeholders`
+3. `test_ac03_copilot_chaplain_prompts_remain_system_field_only`
+4. `test_ac03_prompt_inventory_scope_matches_graph_node_types`
+
+RED command:
+
+```bash
+pytest tests/unit/test_fr382_chaplain_prompt_caching_scope_red.py -q --no-cov
+```
+
+Additional RED evidence command:
+
+```bash
+rg -n "^system_segments:|^system:\\s*\\|" .chaplain/graphs/**/prompts/*.yaml
+```
 
 ## Alternatives Considered
 
-### No change
-Accept full input cost on every invocation. Valid if Chaplain runs are infrequent.
-Rejected: with 100+ FRs processed per month, savings are material.
-
-### Include ARCHITECTURE.md / Scripture in cached segments
-High-value: the full Scripture (~3000 tokens) is repeated in every enforce prompt
-via the Copilot system instructions. However, those live in `.github/copilot-instructions.md`
-and are injected by the Copilot CLI, not by YAMLGraph — not accessible for
-`system_segments` caching via the Anthropic API directly.
+1. **Convert all Chaplain prompt files now (issue rough topic as-is).**
+   Rejected for this FR: Copilot runtime currently ignores `system_segments`, so
+   this would remove system instructions from Copilot prompts.
+2. **Add Copilot support for `system_segments` in the same change.**
+   Rejected for single-responsibility scope; that is a Python runtime feature FR,
+   not a YAML-only prompt conversion.
+3. **Do nothing.**
+   Rejected: leaves available LLM-path caching savings unused.
 
 ## Related
 
-- FR-219: Anthropic Prompt Caching demo (`system_segments` syntax)
-- FR-381: Batch API — prompt caching can be combined inside batch requests
-- `docs/plan-token-cost-mitigation.md` — Priority 1 in the mitigation plan
-- `examples/demos/prompt-caching/` — working reference implementation
+- Issue #382: <https://github.com/sheikkinen/yamlgraph/issues/382>
+- `docs/plan-token-cost-mitigation.md`
+- `ARCHITECTURE.md` capability 131 (REQ-YG-287..292, 303..306)
+- `reference/prompt-yaml.md`
+- `yamlgraph/executor_base.py`
+- `yamlgraph/node_factory/copilot_node.py`
+
+## Topic Source Note
+
+Requested source file `.chaplain/processing/gh-382.md` is not present in this
+worktree snapshot; planning source used was GitHub issue #382 plus in-repo
+graphs/prompts/runtime code.
