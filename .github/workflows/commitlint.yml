@@ -66,6 +66,38 @@ jobs:
             echo "✅ No conflict markers found"
           fi
 
+  copilot-trailer-gate:
+    name: Block Copilot co-author trailers
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify commits and PR body for Copilot trailer
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          TRAILER_SHORT='Co-authored-by: Copilot'
+          TRAILER_FULL='Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>'
+
+          if git log --format=%B "$BASE_SHA..$HEAD_SHA" | grep -Fq -e "$TRAILER_SHORT" -e "$TRAILER_FULL"; then
+            echo "::error::Copilot co-author trailer found in commit messages"
+            exit 1
+          fi
+
+          if printf '%s\n' "${PR_BODY:-}" | grep -Fq -e "$TRAILER_SHORT" -e "$TRAILER_FULL"; then
+            echo "::error::Copilot co-author trailer found in PR body"
+            exit 1
+          fi
+
+          echo "✅ No Copilot co-author trailers found"
+
   changelog-gate:
     name: Changelog fragment required for feat/fix
     runs-on: ubuntu-latest
