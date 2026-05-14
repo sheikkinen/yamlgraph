@@ -136,6 +136,12 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Sin**: `subprocess.run(cmd, ...)` flagged as untrusted input.
 - **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags and validated graph metadata (model name, timeout). No user input reaches the command arguments.
 
+### CONF-303
+- **File**: [yamlgraph/node_factory/copilot_runtime.py](../yamlgraph/node_factory/copilot_runtime.py#L136)
+- **Code**: S603
+- **Sin**: `subprocess.run(cmd, ...)` in extracted copilot CLI runtime helper is flagged as untrusted input.
+- **Penance**: Command is built as a list (no shell=True), with fixed executable/flags plus validated node configuration (`model`, `resume`, `continue_session`, `timeout`). No raw user input is interpolated into shell commands.
+
 ### CONF-009
 - **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L47)
 - **Code**: S701

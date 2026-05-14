@@ -34,4 +34,20 @@ requirements:
     modules:
       - node_factory/copilot_node
       - models/schemas
+  - id: REQ-YG-356
+    description: >
+      Copilot node supports explicit `backend: api` execution via
+      `execute_prompt()`, while preserving default CLI behavior when backend is
+      omitted or `cli`.
+    modules:
+      - node_factory/copilot_node
+      - models/schemas
+  - id: REQ-YG-357
+    description: >
+      Copilot lint rules are backend-aware: API backend warns when no explicit
+      model signal is present and errors when API mode is combined with
+      CLI-only `cli_flags`.
+    modules:
+      - linter/patterns/copilot
+      - node_factory/copilot_node
 fr: FR-082

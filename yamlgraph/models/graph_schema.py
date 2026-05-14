@@ -197,7 +197,7 @@ class NodeConfig(BaseModel):
 
     # Copilot node fields (REQ-YG-087)
     backend: str | None = Field(
-        default=None, description="Copilot backend: 'cli' or 'sampling'"
+        default=None, description="Copilot backend: 'cli', 'api', or 'sampling'"
     )
     cli_flags: dict[str, Any] | None = Field(
         default=None, description="CLI flags for copilot node (allow_all_paths, etc.)"

@@ -6,68 +6,53 @@ FR-105: Session Continuations.
 """
 
 import logging
-import os
-import re
-import shutil
-import subprocess
-import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from yamlgraph.executor_base import format_prompt
+from pydantic import BaseModel
+
+from yamlgraph.executor import execute_prompt
 from yamlgraph.models.schemas import CopilotResult
-from yamlgraph.node_factory.base import GraphState
+from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
+from yamlgraph.node_factory.copilot_runtime import (
+    _execute_cli,
+)
+from yamlgraph.node_factory.copilot_runtime import (
+    _load_and_render_prompt as _load_and_render_prompt_runtime,
+)
 from yamlgraph.node_factory.guard_runtime import (
     evaluate_guards_once,
     extract_guard_rules,
 )
 from yamlgraph.utils.expressions import resolve_state_expression
-from yamlgraph.utils.prompts import load_prompt
+from yamlgraph.utils.prompts import load_prompt as _load_prompt_for_compat
 
 logger = logging.getLogger(__name__)
+
+# Backward-compatible patch target for tests mocking prompt loading.
+load_prompt = _load_prompt_for_compat
 
 # Default timeout for copilot CLI (seconds)
 DEFAULT_TIMEOUT = 300
 
-# FR-274: Regex to extract session ID from --share file content
-# Matches: **Session ID:** `d0137402-936d-4e5c-a3fe-27e924ef5dd2`
-SHARE_FILE_SESSION_PATTERN = re.compile(
-    r"\*\*Session ID:\*\*\s*`([a-f0-9-]+)`", re.IGNORECASE
-)
 
-
-def _extract_session_id_from_share_file(share_path: Path) -> str | None:
-    """Extract session ID from Copilot CLI --share file.
-
-    FR-274: The --share flag writes a markdown file containing the session ID.
-    Format: **Session ID:** `<uuid>`
-
-    Args:
-        share_path: Path to the share file written by copilot CLI
-
-    Returns:
-        Session ID string if found, None otherwise.
-        Never fabricates a value — returns None if extraction fails.
-    """
-    if not share_path.exists():
-        logger.debug("[session] Share file not found: %s", share_path)
-        return None
-
-    try:
-        content = share_path.read_text()
-    except OSError as e:
-        logger.warning("[session] Failed to read share file: %s", e)
-        return None
-
-    match = SHARE_FILE_SESSION_PATTERN.search(content)
-    if match:
-        session_id = match.group(1)
-        logger.debug("[session] Extracted session ID: %s", session_id)
-        return session_id
-
-    logger.debug("[session] No session ID found in share file")
-    return None
+def _load_and_render_prompt(
+    prompt_path: str | Path,
+    variables: dict[str, Any],
+    graph_path: Path | None = None,
+    prompts_dir: Path | None = None,
+    prompts_relative: bool = False,
+) -> str:
+    """Render prompt text using a patchable module-level load_prompt target."""
+    return _load_and_render_prompt_runtime(
+        prompt_path=prompt_path,
+        variables=variables,
+        graph_path=graph_path,
+        prompts_dir=prompts_dir,
+        prompts_relative=prompts_relative,
+        load_prompt_fn=load_prompt,
+    )
 
 
 def _resolve_variables(
@@ -107,51 +92,104 @@ def _resolve_variables(
     return resolved
 
 
-def _load_and_render_prompt(
+def _normalize_prompt_for_executor(
     prompt_path: str | Path,
-    variables: dict[str, Any],
-    graph_path: Path | None = None,
-    prompts_dir: Path | None = None,
-    prompts_relative: bool = False,
-) -> str:
-    """Load a prompt YAML file and render it with variables.
+    prompts_dir: Path | None,
+    prompts_relative: bool,
+) -> tuple[str, Path | None, bool]:
+    """Normalize copilot prompt path for execute_prompt() resolution.
 
-    Args:
-        prompt_path: Path to prompt YAML file
-        variables: Variables to substitute
-        graph_path: Path to graph file for relative prompt resolution
-        prompts_dir: Explicit prompts directory override
-        prompts_relative: If True, resolve prompts relative to graph_path
-
-    Returns:
-        Rendered prompt text (system + user combined)
+    Copilot nodes historically accepted explicit YAML file paths (including
+    absolute paths with extension). execute_prompt() expects prompt names.
     """
-    # Handle absolute paths directly (needed for testing)
     path_obj = Path(prompt_path)
-    if path_obj.is_absolute() and path_obj.exists():
-        import yaml
 
-        with open(path_obj) as f:
-            prompt_config = yaml.safe_load(f)
-    else:
-        prompt_config = load_prompt(
-            str(prompt_path),
-            prompts_dir=prompts_dir,
+    if path_obj.is_absolute():
+        if path_obj.suffix in {".yaml", ".yml"}:
+            return path_obj.stem, path_obj.parent, False
+        return path_obj.name, path_obj.parent, False
+
+    if path_obj.suffix in {".yaml", ".yml"}:
+        return str(path_obj.with_suffix("")), prompts_dir, prompts_relative
+
+    return str(prompt_path), prompts_dir, prompts_relative
+
+
+def _resolve_api_backend_options(
+    backend: str,
+    config: dict[str, Any],
+    prompt_path: str | Path,
+    graph_path: Path | None,
+    prompts_dir: Path | None,
+    prompts_relative: bool,
+) -> tuple[str, Path | None, bool, type | None]:
+    """Resolve prompt/output-model options needed by backend='api'."""
+    api_prompt_name = ""
+    api_prompts_dir = prompts_dir
+    api_prompts_relative = prompts_relative
+    api_output_model = None
+
+    if backend == "api":
+        api_prompt_name, api_prompts_dir, api_prompts_relative = (
+            _normalize_prompt_for_executor(
+                prompt_path,
+                prompts_dir=prompts_dir,
+                prompts_relative=prompts_relative,
+            )
+        )
+        api_model_config = {**config, "prompt": api_prompt_name}
+        api_output_model = get_output_model_for_node(
+            api_model_config,
+            prompts_dir=api_prompts_dir,
             graph_path=graph_path,
-            prompts_relative=prompts_relative,
+            prompts_relative=api_prompts_relative,
         )
 
-    # Build the prompt text from system + user
-    parts = []
-    if system := prompt_config.get("system"):
-        rendered_system = format_prompt(system, variables, state=variables)
-        parts.append(f"System: {rendered_system}")
+    return api_prompt_name, api_prompts_dir, api_prompts_relative, api_output_model
 
-    if user := prompt_config.get("user"):
-        rendered_user = format_prompt(user, variables, state=variables)
-        parts.append(f"User: {rendered_user}")
 
-    return "\n\n".join(parts)
+def _execute_backend_once(
+    backend: str,
+    node_name: str,
+    state_key: str,
+    state: dict[str, Any],
+    resolved_vars: dict[str, Any],
+    rendered_prompt: str,
+    cli_flags: dict[str, Any],
+    timeout: int,
+    resolved_provider: str | None,
+    resolved_model: str | None,
+    api_prompt_name: str,
+    api_output_model: type | None,
+    graph_path: Path | None,
+    api_prompts_dir: Path | None,
+    api_prompts_relative: bool,
+) -> dict:
+    """Execute one copilot node call for the selected backend."""
+    if backend == "api":
+        return _execute_api(
+            node_name=node_name,
+            prompt_name=api_prompt_name,
+            state_key=state_key,
+            variables=resolved_vars,
+            provider=resolved_provider,
+            model=resolved_model,
+            output_model=api_output_model,
+            graph_path=graph_path,
+            prompts_dir=api_prompts_dir,
+            prompts_relative=api_prompts_relative,
+            state=state,
+        )
+    if backend == "sampling":
+        raise NotImplementedError("Copilot backend 'sampling' is not implemented")
+    return _execute_cli(
+        node_name=node_name,
+        prompt=rendered_prompt,
+        state_key=state_key,
+        cli_flags=cli_flags,
+        timeout=timeout,
+        state=state,  # FR-105: pass state for resume expression resolution
+    )
 
 
 def create_copilot_node(
@@ -186,16 +224,32 @@ def create_copilot_node(
     """
     prompt_path = config.get("prompt")
     state_key = config.get("state_key")
+    backend = config.get("backend") or "cli"
+    backend = backend.lower() if isinstance(backend, str) else "cli"
+
     cli_flags = config.get("cli_flags", {})
     defaults = defaults or {}
 
     # FR-266: Resolve model with priority chain:
     # cli_flags.model > node-level model > defaults.model > omit
-    resolved_model = (
-        cli_flags.get("model") or config.get("model") or defaults.get("model")
-    )
-    if resolved_model:
+    resolved_provider = config.get("provider") or defaults.get("provider")
+    resolved_model = config.get("model") or defaults.get("model")
+    if backend != "api":
+        resolved_model = cli_flags.get("model") or resolved_model
+    if resolved_model and backend != "api":
         cli_flags = {**cli_flags, "model": resolved_model}
+
+    api_prompt_name, api_prompts_dir, api_prompts_relative, api_output_model = (
+        _resolve_api_backend_options(
+            backend=backend,
+            config=config,
+            prompt_path=prompt_path,
+            graph_path=graph_path,
+            prompts_dir=prompts_dir,
+            prompts_relative=prompts_relative,
+        )
+    )
+
     timeout = config.get("timeout", DEFAULT_TIMEOUT)
     variables_config = config.get("variables", {})
     guards_pre, guards_post = extract_guard_rules(config)
@@ -242,13 +296,22 @@ def create_copilot_node(
         )
 
         def execute_once() -> dict:
-            return _execute_cli(
+            return _execute_backend_once(
+                backend=backend,
                 node_name=node_name,
-                prompt=rendered_prompt,
                 state_key=state_key,
+                state=state,
+                resolved_vars=resolved_vars,
+                rendered_prompt=rendered_prompt,
                 cli_flags=cli_flags,
                 timeout=timeout,
-                state=state,  # FR-105: pass state for resume expression resolution
+                resolved_provider=resolved_provider,
+                resolved_model=resolved_model,
+                api_prompt_name=api_prompt_name,
+                api_output_model=api_output_model,
+                graph_path=graph_path,
+                api_prompts_dir=api_prompts_dir,
+                api_prompts_relative=api_prompts_relative,
             )
 
         update = execute_once()
@@ -293,147 +356,45 @@ def create_copilot_node(
     return copilot_fn
 
 
-def _execute_cli(
+def _execute_api(
     node_name: str,
-    prompt: str,
+    prompt_name: str,
     state_key: str,
-    cli_flags: dict[str, Any],
-    timeout: int,
-    state: dict[str, Any] | None = None,
+    variables: dict[str, Any],
+    provider: str | None,
+    model: str | None,
+    output_model: type | None,
+    graph_path: Path | None,
+    prompts_dir: Path | None,
+    prompts_relative: bool,
+    state: dict[str, Any],
 ) -> dict:
-    """Execute copilot via CLI backend.
-
-    Args:
-        node_name: Name of the node for error messages
-        prompt: Rendered prompt text
-        state_key: Where to store result
-        cli_flags: CLI flags configuration
-        timeout: Timeout in seconds
-        state: Current graph state (for resolving resume expressions)
-
-    Returns:
-        State update dict with CopilotResult
-    """
-    # Build command as list (not shell=True) for injection safety
-    cmd = ["copilot", "--silent"]
-
-    # Add configured flags
-    if cli_flags.get("allow_all_paths"):
-        cmd.append("--allow-all-paths")
-
-    if cli_flags.get("allow_all_tools"):
-        cmd.append("--allow-all-tools")
-
-    if model := cli_flags.get("model"):
-        cmd.extend(["--model", model])
-
-    # FR-105: Session continuation flags
-    if resume := cli_flags.get("resume"):
-        # Resolve state expressions like {state.prev_result.session_id}
-        if isinstance(resume, str) and "{state." in resume:
-            if state is None:
-                logger.warning(
-                    f"[{node_name}] Cannot resolve resume expression without state"
-                )
-            else:
-                try:
-                    resume = resolve_state_expression(resume, state)
-                except (KeyError, AttributeError) as e:
-                    logger.warning(f"[{node_name}] Failed to resolve resume: {e}")
-                    resume = None
-        if resume:
-            cmd.extend(["--resume", str(resume)])
-    elif cli_flags.get("continue_session"):
-        cmd.append("--continue")
-
-    # FR-274: Create temp directory for --share file to extract session ID
-    share_tmpdir = Path(tempfile.mkdtemp(prefix="yamlgraph-copilot-"))
-    share_path = share_tmpdir / "session.md"
-    cmd.extend(["--share", str(share_path)])
-
-    # Add prompt
-    cmd.extend(["-p", prompt])
-
-    logger.info(f"[{node_name}] Executing copilot CLI with timeout={timeout}s")
-    logger.debug(f"[{node_name}] Command: {' '.join(cmd[:5])}...")
-
-    # FR-363: Optional per-node OTel exporter path for copilot subprocesses.
-    otel_dir = os.environ.get("YAMLGRAPH_OTEL_DIR")
-    node_env = None
-    if otel_dir:
-        node_otel_path = Path(otel_dir) / f"{node_name}.otel.jsonl"
-        node_env = {
-            **os.environ,
-            "COPILOT_OTEL_FILE_EXPORTER_PATH": str(node_otel_path),
-        }
-
-    try:
-        result = subprocess.run(  # noqa: S603
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            env=node_env,
-        )
-
-        # FR-274: Extract session ID from share file
-        session_id = _extract_session_id_from_share_file(share_path)
-
-        # Normalize at boundary: copilot CLI may emit bytes that produce
-        # surrogates when decoded with text=True; replace them to prevent
-        # downstream print() crashes (especially with piped stdout).
-        stdout_clean = (
-            result.stdout.encode("utf-8", errors="replace").decode("utf-8")
-            if result.stdout
-            else ""
-        )
-
-        # FR-322: Detect copilot CLI boundary lie — exit 0 with empty stdout
-        # and error on stderr indicates silent failure (e.g. invalid model name).
-        stderr_text = result.stderr or ""
-        if (
-            result.returncode == 0
-            and not stdout_clean.strip()
-            and "error" in stderr_text.lower()
-        ):
-            logger.error(
-                f"[{node_name}] Copilot CLI returned exit 0 but produced no output. "
-                f"stderr: {stderr_text[:500]}"
-            )
-            raise RuntimeError(
-                f"Copilot CLI silent failure (exit 0, empty output): {stderr_text[:200]}"
-            )
-
-        copilot_result = CopilotResult(
-            output=stdout_clean,
-            exit_code=result.returncode,
-            model=cli_flags.get("model"),
-            backend="cli",
-            session_id=session_id,
-        )
-
-        logger.info(
-            f"[{node_name}] Copilot CLI completed with exit code {result.returncode}"
-        )
-
-        return {
-            state_key: copilot_result,
-            "current_step": node_name,
-        }
-
-    except FileNotFoundError as e:
-        raise RuntimeError(
-            f"copilot binary not found. Is GitHub Copilot CLI installed and in PATH? "
-            f"Error: {e}"
-        ) from e
-    except subprocess.TimeoutExpired as e:
-        raise RuntimeError(
-            f"Copilot CLI timed out after {timeout}s in node '{node_name}'. "
-            f"Consider increasing 'timeout' or simplifying the prompt."
-        ) from e
-    finally:
-        # FR-274 AC-3: Always clean up share file tempdir
-        shutil.rmtree(share_tmpdir, ignore_errors=True)
+    """Execute copilot via provider API backend."""
+    result = execute_prompt(
+        prompt_name=prompt_name,
+        variables=variables,
+        output_model=output_model,
+        provider=provider,
+        model=model,
+        graph_path=graph_path,
+        prompts_dir=prompts_dir,
+        prompts_relative=prompts_relative,
+        state=state,
+    )
+    output_text = (
+        result.model_dump_json() if isinstance(result, BaseModel) else str(result)
+    )
+    copilot_result = CopilotResult(
+        output=output_text,
+        exit_code=0,
+        model=model,
+        backend="api",
+        session_id=None,
+    )
+    return {
+        state_key: copilot_result,
+        "current_step": node_name,
+    }
 
 
 __all__ = ["create_copilot_node"]

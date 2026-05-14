@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 110
+- module count: 111
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -88,7 +88,7 @@
   - import dependencies: `yamlgraph.linter.patterns.agent`, `yamlgraph.linter.patterns.copilot`, `yamlgraph.linter.patterns.interrupt`, `yamlgraph.linter.patterns.map`, `yamlgraph.linter.patterns.pipeline`, `yamlgraph.linter.patterns.race`, `yamlgraph.linter.patterns.router`, `yamlgraph.linter.patterns.subgraph`
 - `yamlgraph/linter/patterns/agent.py` - 89 lines; exports: `check_agent_node_tools(node_name, node_config, graph)`, `check_agent_patterns(graph_path, project_root)`
   - import dependencies: `yamlgraph.linter.checks`
-- `yamlgraph/linter/patterns/copilot.py` - 90 lines; exports: `check_copilot_node_structure(node_name, node_config)`, `check_copilot_patterns(graph_path)`
+- `yamlgraph/linter/patterns/copilot.py` - 151 lines; exports: `check_copilot_node_structure(node_name, node_config, graph_defaults)`, `check_copilot_patterns(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`
 - `yamlgraph/linter/patterns/interrupt.py` - 200 lines; exports: `check_interrupt_node_structure(node_name, node_config)`, `check_interrupt_state_declarations(node_name, node_config, graph)`, `check_interrupt_checkpointer(graph)`, `check_interrupt_patterns(graph_path, project_root)`
   - import dependencies: `yamlgraph.linter.checks`
@@ -124,8 +124,10 @@
   - import dependencies: _none_
 - `yamlgraph/node_factory/control_nodes.py` - 169 lines; exports: `create_interrupt_node(node_name, config, graph_path, prompts_dir, prompts_relative)`, `create_passthrough_node(node_name, config)`
   - import dependencies: `yamlgraph.executor_base`, `yamlgraph.node_factory.base`
-- `yamlgraph/node_factory/copilot_node.py` - 439 lines; exports: `create_copilot_node(node_name, config, defaults, graph_path, prompts_dir, prompts_relative)`
-  - import dependencies: `yamlgraph.executor_base`, `yamlgraph.models.schemas`, `yamlgraph.node_factory.base`, `yamlgraph.node_factory.guard_runtime`, `yamlgraph.utils.expressions`, `yamlgraph.utils.prompts`
+- `yamlgraph/node_factory/copilot_node.py` - 400 lines; exports: `create_copilot_node(node_name, config, defaults, graph_path, prompts_dir, prompts_relative)`
+  - import dependencies: `yamlgraph.executor`, `yamlgraph.models.schemas`, `yamlgraph.node_factory.base`, `yamlgraph.node_factory.copilot_runtime`, `yamlgraph.node_factory.guard_runtime`, `yamlgraph.utils.expressions`, `yamlgraph.utils.prompts`
+- `yamlgraph/node_factory/copilot_runtime.py` - 192 lines; exports: _none_
+  - import dependencies: `yamlgraph.executor_base`, `yamlgraph.models.schemas`, `yamlgraph.utils.expressions`, `yamlgraph.utils.prompts`
 - `yamlgraph/node_factory/guard_runtime.py` - 134 lines; exports: `class GuardDecision`, `extract_guard_rules(node_config)`, `evaluate_guards_once(node_name, phase, rules, state, output)`
   - import dependencies: `yamlgraph.models`, `yamlgraph.utils.guard_evaluator`
 - `yamlgraph/node_factory/llm_execution.py` - 147 lines; exports: `should_skip_if_exists(skip_if_exists, state_key, state)`, `apply_verification(cfg, node_name, result, state, attempt_execute)`, `resolve_route(cfg, result)`, `handle_error(cfg, node_name, error, state, loop_counts, attempt_execute)`
@@ -228,5 +230,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 60/110
+- mapped modules: 60/111
 - discovered tests: 62

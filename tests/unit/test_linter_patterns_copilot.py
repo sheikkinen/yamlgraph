@@ -115,3 +115,47 @@ class TestCopilotNodeStructure:
 
         issues = check_copilot_node_structure("task", node_config)
         assert len(issues) == 0
+
+
+@pytest.mark.req("REQ-YG-357")
+class TestCopilotBackendApiLintRules:
+    """Backend-aware lint rules for copilot API fallback."""
+
+    def test_warning_backend_api_without_model_signal(self):
+        """Warn when backend=api lacks node.model and defaults.model."""
+        node_config = {
+            "type": "copilot",
+            "prompt": "task_prompt",
+            "state_key": "result",
+            "backend": "api",
+        }
+
+        issues = check_copilot_node_structure(
+            "task", node_config, graph_defaults={"temperature": 0.7}
+        )
+
+        assert len(issues) == 1
+        assert issues[0].severity == "warning"
+        assert issues[0].code == "W-COPILOT-API-MODEL"
+
+    def test_error_backend_api_with_cli_flags(self):
+        """Error when backend=api combines with CLI-only flags."""
+        node_config = {
+            "type": "copilot",
+            "prompt": "task_prompt",
+            "state_key": "result",
+            "backend": "api",
+            "model": "claude-sonnet-4.6",
+            "cli_flags": {
+                "allow_all_tools": True,
+                "resume": "{state.prev_result.session_id}",
+            },
+        }
+
+        issues = check_copilot_node_structure("task", node_config)
+
+        assert len(issues) == 1
+        assert issues[0].severity == "error"
+        assert issues[0].code == "E-COPILOT-API-FLAGS"
+        assert "allow_all_tools" in issues[0].message
+        assert "resume" in issues[0].message
