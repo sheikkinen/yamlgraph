@@ -29,6 +29,7 @@ Use these as smoke test for new graph development.
 - YAMLGraph and LLM should be used instead of complex regex logic.
 - Conventional Commits + FR Enforcement, e.g. "feat(streaming): FR-030 add subgraphs parameter"
 - Final task on any list of tasks is to reflect and add a metacognitive entry to `docs/diary/` describing the cognitive process, traps, insights encountered, and a **Seed:** — a forward-looking question to promote new ideas. If the heuristic proves recurring, graduate it to this Scripture.
+- Do not add `Co-authored-by` trailers to commits or PR bodies — CI rejects them.
 - All code edits are done in the context of a judged feature request. The FR must be updated with implementation status, decisions, and any deviations from the original plan. The FR is the source of truth for the change, not the commit message or code comments.
 
 ### The Knowledge Graph of the Diary
