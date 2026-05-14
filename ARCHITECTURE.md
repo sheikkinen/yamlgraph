@@ -307,7 +307,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 25 | Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 | 26 | Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
 | 28 | Graph-Level Thinking Budget | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-083 |
-| 30 | Copilot Node | `constants.NodeType.COPILOT`, `models/schemas`, `node_compiler`, `node_factory/copilot_node` | REQ-YG-087, 089, 105 |
+| 30 | Copilot Node | `constants.NodeType.COPILOT`, `models/schemas`, `node_compiler`, `node_factory/copilot_node` | REQ-YG-087, 089, 105, 356 – 357 |
 | 31 | Chaplain Diary Append | `examples/copilot/graph.yaml`, `examples/copilot/prompts/summarize.yaml`, `examples/shared/diary` | REQ-YG-090 |
 | 32 | eBook Authoring Pipeline | `examples/ebook/nodes/writing.py`, `tests/unit/test_ebook_doctrine_validation.py` | REQ-YG-091 – 092 |
 | 33 | Worktree Pipeline | `examples/enforce/graph.yaml`, `scripts/enforce_worktree.sh`, `utils/worktree_helpers` | REQ-YG-106 |
@@ -325,10 +325,10 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 47 | Phantom Requirement Detection | `scripts/req_coverage.py`, `tests/unit/test_req_coverage` | REQ-YG-145 |
 | 48 | CHANGELOG Removal Completeness | `CHANGELOG.md`, `tests/unit/test_demo_cleanup_changelog` | REQ-YG-146 |
 | 49 | Examples Documentation Audit | `examples/README.md`, `tests/unit/test_examples_readme_audit` | REQ-YG-147 |
-| 50 | CI CHANGELOG Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_changelog_gate` | REQ-YG-148 |
+| 50 | CI CHANGELOG Gate | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_changelog_gate` | REQ-YG-148 |
 | 51 | Branch Protection Documentation | `CLAUDE.md`, `reference/break-glass.md`, `tests/unit/test_branch_protection_docs` | REQ-YG-149 |
 | 53 | CI Conflict Marker Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_conflict_check` | REQ-YG-151 |
-| 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_diary_gate` | REQ-YG-152 |
+| 54 | CI Diary Existence Gate | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_diary_gate` | REQ-YG-152 |
 | 55 | Chaplain Inbox Documentation | `CLAUDE.md`, `tests/unit/test_claude_md_chaplain_inbox` | REQ-YG-153 |
 | 56 | Verification Gate Pattern | `yamlgraph/verification`, `node_factory/llm_nodes`, `linter/checks_contracts` | REQ-YG-154 |
 | 57 | Verification Count Range Pydantic | `tests/unit/test_verification`, `yamlgraph/models/__init__`, `yamlgraph/verification` | REQ-YG-155 |
@@ -411,6 +411,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 145 | Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
 | 146 | FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 | 147 | Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
+| 148 | CI Copilot Trailer Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` | REQ-YG-358 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -698,15 +699,15 @@ Graph-level and per-node thinking_budget YAML field for Anthropic extended think
 
 New copilot node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node.
 
-**Feature Request:** FR-082, FR-383
+**Feature Request:** FR-082
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-087 | Copilot node executes via CLI backend with configurable flags and timeout; `--silent` always forced; list-based `subprocess.run()` for injection safety; graceful `FileNotFoundError` when copilot binary missing | `node_factory/copilot_node`, `node_compiler`, `constants.NodeType.COPILOT` |
 | REQ-YG-089 | Copilot node composes with router, map, and FSM-router patterns; standard node guarantees apply (requires, on_error, skip_if_exists, loop protection) | `node_factory/copilot_node`, `node_compiler` |
 | REQ-YG-105 | Copilot node session continuations via `--resume` and `--continue` flags; session ID captured from stderr into `CopilotResult.session_id`; state expression resolution for `cli_flags.resume` | `node_factory/copilot_node`, `models/schemas` |
-| REQ-YG-356 | Copilot node supports explicit `backend: api` execution via `execute_prompt()` while preserving default CLI behavior when backend is omitted or `cli` | `node_factory/copilot_node`, `models/schemas` |
-| REQ-YG-357 | Copilot lint rules are backend-aware: API backend warns when no explicit model signal exists and errors when API mode is combined with CLI-only `cli_flags` | `linter/patterns/copilot`, `node_factory/copilot_node` |
+| REQ-YG-356 | Copilot node supports explicit `backend: api` execution via `execute_prompt()`, while preserving default CLI behavior when backend is omitted or `cli`. | `node_factory/copilot_node`, `models/schemas` |
+| REQ-YG-357 | Copilot lint rules are backend-aware: API backend warns when no explicit model signal is present and errors when API mode is combined with CLI-only `cli_flags`. | `linter/patterns/copilot`, `node_factory/copilot_node` |
 
 ### 31. Chaplain Diary Append
 
@@ -831,15 +832,13 @@ Add a fourth judge verdict (SPLIT) for multi-concern feature requests, enabling 
 
 ### 45. Diary Reflection Enforcement
 
-Pre-commit hook diary-reflection-check rejects commits when staged docs/diary/
-reflection files contain unfilled placeholder text or lack a literal `Seed:`
-marker.
+Pre-commit hook diary-reflection-check rejects commits when staged docs/diary/ reflection files contain unfilled placeholder text or miss the literal `Seed:` marker.
 
 **Feature Request:** FR-144
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-144 | `diary-reflection-check` pre-commit hook scans staged tracked reflection files for unfilled placeholder text and missing literal `Seed:` markers, then blocks commit on violations; `finalize_merge.sh` creates stubs as untracked files (no `git add` of `docs/diary/`); hook passes when placeholders are filled and `Seed:` is present | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh`, `tests/unit/test_precommit_hooks` |
+| REQ-YG-144 | `diary-reflection-check` pre-commit hook scans staged tracked reflection files for unfilled placeholder text and missing literal `Seed:` markers, then blocks commit; `finalize_merge.sh` creates stubs as untracked files (no `git add` of `docs/diary/`); hook passes when placeholders are filled and `Seed:` is present | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh`, `tests/unit/test_precommit_hooks` |
 
 ### 46. Diary Import CLI
 
@@ -883,13 +882,13 @@ Every on-disk example and demo is accurately indexed in examples/README.md with 
 
 ### 50. CI CHANGELOG Gate
 
-GitHub Actions job in commitlint.yml that blocks merge of feat and fix PRs unless changed fragments in `changelog/unreleased/` satisfy semantic substance checks.
+GitHub Actions job in commitlint.yml that blocks merge of feat and fix PRs unless changed changelog fragments under changelog/unreleased/ pass substance validation.
 
 **Feature Request:** FR-149
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-148 | `changelog-gate` job in `commitlint.yml` runs `git diff --name-only` against base/head SHAs and fails when no `changelog/unreleased/*.md` fragment is present in diff; each changed fragment must be non-empty, include YAML front matter with `type:`, and contain at least one markdown list item in the body; semantic checks are shared via `scripts/gate_artifact_semantics.sh`; job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_changelog_gate` |
+| REQ-YG-148 | `changelog-gate` job in `commitlint.yml` runs `git diff --name-only` against base/head SHAs and fails when no `changelog/unreleased/*.md` fragment is present in diff; each changed fragment must be non-empty, contain YAML front matter with `type:`, and include at least one markdown list item in the body; shared validation is sourced from `scripts/gate_artifact_semantics.sh`; job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_changelog_gate` |
 
 ### 51. Branch Protection Documentation
 
@@ -913,13 +912,13 @@ CI job that fails when unresolved merge conflict markers are found in tracked fi
 
 ### 54. CI Diary Existence Gate
 
-CI gate ensuring feat/fix PRs with FR references include a diary reflection file in the diff and that reflection content is substantive.
+CI gate ensuring feat/fix PRs with FR references include a diary reflection file in the diff and that the reflection passes substance validation.
 
 **Feature Request:** FR-158
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-152 | `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs `git diff --name-only` against base/head SHAs, and fails when no `docs/diary/*reflection*fr-{number}*` file is in diff; matching diary files must be non-empty, larger than 100 bytes, include at least one markdown `##` header, and contain a `Seed:` marker; semantic checks are shared via `scripts/gate_artifact_semantics.sh`; skips (passes) when PR title has no FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_diary_gate` |
+| REQ-YG-152 | `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs `git diff --name-only` against base/head SHAs, and fails when no `docs/diary/*reflection*fr-{number}*` file is in diff; matching files must be non-empty, exceed 100 bytes, contain at least one markdown `##` header, and include `Seed:` marker; shared validation is sourced from `scripts/gate_artifact_semantics.sh`; skips (passes) when PR title has no FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_diary_gate` |
 
 ### 55. Chaplain Inbox Documentation
 
@@ -1800,6 +1799,16 @@ Add machine-readable JSON stdout mode for `yamlgraph graph run` and a minimal No
 | REQ-YG-353 | JSON mode preserves run input/merge behavior for `--var`, `--var-file`, and `--import-state`, and remains compatible with `--export-state`. | `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `tests/unit/test_fr375_graph_run_json_stdout_red.py` |
 | REQ-YG-354 | `examples/demos/typescript-node/` includes runnable Node.js/TypeScript assets where `src/index.ts` uses `execFile` to call `yamlgraph graph run ... --json` and parse stdout JSON. | `examples/demos/typescript-node/`, `tests/unit/test_fr375_typescript_node_demo_red.py` |
 | REQ-YG-355 | CLI/examples docs describe `--json` usage and guidance for when to use subprocess JSON mode versus MCP/A2A integration patterns. | `reference/cli.md`, `examples/README.md`, `tests/unit/test_fr375_typescript_node_demo_red.py` |
+
+### 148. CI Copilot Trailer Gate
+
+GitHub Actions job in commitlint.yml that blocks pull requests when `Co-authored-by: Copilot` trailers are present in PR commit messages or PR body text.
+
+**Feature Request:** FR-385
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-358 | `copilot-trailer-gate` job in `commitlint.yml` deterministically scans `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body` for `Co-authored-by: Copilot` trailer forms (short and full email), fails with exit 1 on detection, and passes unchanged PRs otherwise. | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` |
 
 <!-- END GENERATED CAPABILITIES -->
 
