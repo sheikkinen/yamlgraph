@@ -20,4 +20,4 @@ The task was narrow: remove the duplicate `_handle_optional_exports` definition 
 
 ## Seed
 
-Is there a lightweight static analysis rule (e.g., import-linter contract, custom ruff plugin, or AST walker in CI) that could detect "function defined locally that matches name+signature of a function in the designated helper module"? Automating the alias-completeness check would turn this class of structural debt into a failing gate rather than a code-review concern.
+**Seed:** Is there a lightweight static analysis rule (e.g., import-linter contract, custom ruff plugin, or AST walker in CI) that could detect "function defined locally that matches name+signature of a function in the designated helper module"? Automating the alias-completeness check would turn this class of structural debt into a failing gate rather than a code-review concern.
