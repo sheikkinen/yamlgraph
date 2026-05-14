@@ -879,13 +879,13 @@ Every on-disk example and demo is accurately indexed in examples/README.md with 
 
 ### 50. CI CHANGELOG Gate
 
-GitHub Actions job in commitlint.yml that blocks merge of feat and fix PRs unless CHANGELOG.md is modified in the PR diff.
+GitHub Actions job in commitlint.yml that blocks merge of feat and fix PRs unless changed fragments in `changelog/unreleased/` satisfy semantic substance checks.
 
 **Feature Request:** FR-149
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-148 | `changelog-gate` job in `commitlint.yml` runs `git diff --name-only` against base/head SHAs and fails when `CHANGELOG.md` is absent from diff; job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_changelog_gate` |
+| REQ-YG-148 | `changelog-gate` job in `commitlint.yml` runs `git diff --name-only` against base/head SHAs and fails when no `changelog/unreleased/*.md` fragment is present in diff; each changed fragment must be non-empty, include YAML front matter with `type:`, and contain at least one markdown list item in the body; semantic checks are shared via `scripts/gate_artifact_semantics.sh`; job-level `if` condition restricts to `feat`/`fix` PR titles (skipped for other types); uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_changelog_gate` |
 
 ### 51. Branch Protection Documentation
 
@@ -909,13 +909,13 @@ CI job that fails when unresolved merge conflict markers are found in tracked fi
 
 ### 54. CI Diary Existence Gate
 
-CI gate ensuring feat/fix PRs with FR references include a diary reflection file in the diff.
+CI gate ensuring feat/fix PRs with FR references include a diary reflection file in the diff and that reflection content is substantive.
 
 **Feature Request:** FR-158
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-152 | `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs `git diff --name-only` against base/head SHAs, and fails when no `docs/diary/*reflection*fr-{number}*` file is in diff; skips (passes) when PR title has no FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `tests/unit/test_ci_diary_gate` |
+| REQ-YG-152 | `diary-gate` job in `commitlint.yml` extracts `FR-XXX` from PR title, runs `git diff --name-only` against base/head SHAs, and fails when no `docs/diary/*reflection*fr-{number}*` file is in diff; matching diary files must be non-empty, larger than 100 bytes, include at least one markdown `##` header, and contain a `Seed:` marker; semantic checks are shared via `scripts/gate_artifact_semantics.sh`; skips (passes) when PR title has no FR reference; job-level `if` condition restricts to `feat`/`fix` PR titles; uses `actions/checkout@v4` with `fetch-depth: 0` for full history | `.github/workflows/commitlint.yml`, `scripts/gate_artifact_semantics.sh`, `tests/unit/test_ci_diary_gate` |
 
 ### 55. Chaplain Inbox Documentation
 
