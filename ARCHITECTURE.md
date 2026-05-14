@@ -829,13 +829,15 @@ Add a fourth judge verdict (SPLIT) for multi-concern feature requests, enabling 
 
 ### 45. Diary Reflection Enforcement
 
-Pre-commit hook diary-reflection-check rejects commits when tracked docs/diary/ reflection files contain unfilled placeholder text.
+Pre-commit hook diary-reflection-check rejects commits when staged docs/diary/
+reflection files contain unfilled placeholder text or lack a literal `Seed:`
+marker.
 
 **Feature Request:** FR-144
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-144 | `diary-reflection-check` pre-commit hook scans tracked reflection files for unfilled placeholder text and blocks commit; `finalize_merge.sh` creates stubs as untracked files (no `git add` of `docs/diary/`); hook passes when no placeholders remain | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh`, `tests/unit/test_precommit_hooks` |
+| REQ-YG-144 | `diary-reflection-check` pre-commit hook scans staged tracked reflection files for unfilled placeholder text and missing literal `Seed:` markers, then blocks commit on violations; `finalize_merge.sh` creates stubs as untracked files (no `git add` of `docs/diary/`); hook passes when placeholders are filled and `Seed:` is present | `.pre-commit-config.yaml`, `scripts/finalize_merge.sh`, `tests/unit/test_precommit_hooks` |
 
 ### 46. Diary Import CLI
 

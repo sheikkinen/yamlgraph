@@ -1,8 +1,9 @@
 id: CAP-45
 name: Diary Reflection Enforcement
 description: >
-  Pre-commit hook diary-reflection-check rejects commits when tracked
-  docs/diary/ reflection files contain unfilled placeholder text.
+  Pre-commit hook diary-reflection-check rejects commits when staged
+  docs/diary/ reflection files contain unfilled placeholder text or miss
+  the literal `Seed:` marker.
 modules:
   - .pre-commit-config.yaml
   - scripts/finalize_merge.sh
@@ -10,10 +11,11 @@ modules:
 requirements:
   - id: REQ-YG-144
     description: >
-      `diary-reflection-check` pre-commit hook scans tracked reflection files
-      for unfilled placeholder text and blocks commit; `finalize_merge.sh`
-      creates stubs as untracked files (no `git add` of `docs/diary/`); hook
-      passes when no placeholders remain
+      `diary-reflection-check` pre-commit hook scans staged tracked
+      reflection files for unfilled placeholder text and missing literal
+      `Seed:` markers, then blocks commit; `finalize_merge.sh` creates stubs
+      as untracked files (no `git add` of `docs/diary/`); hook passes when
+      placeholders are filled and `Seed:` is present
     modules:
       - .pre-commit-config.yaml
       - scripts/finalize_merge.sh
