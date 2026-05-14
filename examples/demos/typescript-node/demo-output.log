@@ -7,7 +7,8 @@ Project root: /Users/sheikki/Documents/src/yamlgraph
 ✅ All graphs passed linting
 
 --- Step 2: Install TypeScript dependencies ---
-added 7 packages in 1s
+
+up to date in 499ms
 
 --- Step 3: Run TypeScript execFile integration ---
 Parsed JSON state from yamlgraph graph run --json
