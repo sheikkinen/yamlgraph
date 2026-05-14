@@ -163,7 +163,7 @@ class CopilotResult(BaseModel):
         default=0, description="Process exit code (cli backend only)"
     )
     model: str | None = Field(default=None, description="Model used (if reported)")
-    backend: str = Field(description="Execution backend: 'cli' or 'sampling'")
+    backend: str = Field(description="Execution backend: 'cli', 'api', or 'sampling'")
     session_id: str | None = Field(
         default=None,
         description="Copilot session ID for resumption (FR-105)",

@@ -698,13 +698,15 @@ Graph-level and per-node thinking_budget YAML field for Anthropic extended think
 
 New copilot node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node.
 
-**Feature Request:** FR-082
+**Feature Request:** FR-082, FR-383
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-087 | Copilot node executes via CLI backend with configurable flags and timeout; `--silent` always forced; list-based `subprocess.run()` for injection safety; graceful `FileNotFoundError` when copilot binary missing | `node_factory/copilot_node`, `node_compiler`, `constants.NodeType.COPILOT` |
 | REQ-YG-089 | Copilot node composes with router, map, and FSM-router patterns; standard node guarantees apply (requires, on_error, skip_if_exists, loop protection) | `node_factory/copilot_node`, `node_compiler` |
 | REQ-YG-105 | Copilot node session continuations via `--resume` and `--continue` flags; session ID captured from stderr into `CopilotResult.session_id`; state expression resolution for `cli_flags.resume` | `node_factory/copilot_node`, `models/schemas` |
+| REQ-YG-356 | Copilot node supports explicit `backend: api` execution via `execute_prompt()` while preserving default CLI behavior when backend is omitted or `cli` | `node_factory/copilot_node`, `models/schemas` |
+| REQ-YG-357 | Copilot lint rules are backend-aware: API backend warns when no explicit model signal exists and errors when API mode is combined with CLI-only `cli_flags` | `linter/patterns/copilot`, `node_factory/copilot_node` |
 
 ### 31. Chaplain Diary Append
 

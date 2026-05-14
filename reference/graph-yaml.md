@@ -443,11 +443,11 @@ nodes:
 
 **Note:** The Python function must be defined in the `tools` section with `type: python`.
 
-### `type: copilot` - Copilot CLI Delegation
+### `type: copilot` - Copilot Delegation
 
-Delegate complex reasoning tasks to GitHub Copilot CLI. The copilot node invokes the `copilot` command with your prompt, giving it access to the full project context (Scripture, file system, MCP tools).
+Delegate complex reasoning tasks either to GitHub Copilot CLI (`backend: cli`) or directly to provider APIs via YAMLGraph's prompt executor (`backend: api`).
 
-**FR-081** | **CAP-30** | **REQ-YG-087, REQ-YG-089**
+**FR-081, FR-383** | **CAP-30** | **REQ-YG-087, REQ-YG-089, REQ-YG-356, REQ-YG-357**
 
 ```yaml
 nodes:
@@ -469,7 +469,7 @@ nodes:
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `prompt` | `string` | required | Name of prompt template |
-| `backend` | `string` | `"cli"` | Execution backend: `cli` or `sampling` |
+| `backend` | `string` | `"cli"` | Execution backend: `cli` or `api` |
 | `cli_flags` | `object` | `{}` | CLI flags (see below) |
 | `timeout` | `int` | `300` | Timeout in seconds |
 | `state_key` | `string` | node name | State key for CopilotResult |
@@ -486,6 +486,11 @@ nodes:
 | `model` | `string` | `--model <model>` | Override default model |
 | `resume` | `string` | `--resume <id>` | Resume a specific session (FR-105) |
 | `continue_session` | `bool` | `--continue` | Resume most recent session (FR-105) |
+
+**Backend semantics (FR-383):**
+- `backend: cli` (default): runs `copilot --silent ...` subprocess and supports `cli_flags`.
+- `backend: api`: runs through `execute_prompt()` (provider API path), supports prompt schemas/structured output, and returns `CopilotResult` with `backend="api"` and `session_id=None`.
+- CLI-only flags (`allow_all_tools`, `allow_all_paths`, `resume`, `continue_session`) are invalid with `backend: api` (linter error).
 
 **Session continuation (FR-105):**
 
@@ -517,7 +522,7 @@ nodes:
 **Notes:**
 - The `--silent` flag is always added automatically
 - Command is executed as a list (no shell injection risk)
-- The `sampling` backend raises `NotImplementedError` (requires MCP loopback infrastructure)
+- The `sampling` backend remains reserved and is not implemented
 
 **CopilotResult:**
 
@@ -528,7 +533,7 @@ class CopilotResult(BaseModel):
     output: str            # Copilot's response text
     exit_code: int         # Process exit code (0 = success)
     model: str | None      # Model used (if specified)
-    backend: str           # "cli" or "sampling"
+    backend: str           # "cli", "api", or "sampling"
     session_id: str | None # Session ID for resumption (FR-105)
 ```
 

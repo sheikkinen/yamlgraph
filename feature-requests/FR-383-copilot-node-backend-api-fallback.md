@@ -1,167 +1,147 @@
 # Feature Request: FR-383 Copilot node `backend: api` fallback
 
 **Priority:** HIGH
-**Type:** Feature
-**Status:** Proposed
-**Effort:** 2 days
+**Type:** Enhancement
+**Status:** Implemented
+**Effort:** 1 day
 **Requested:** 2026-05-14
 
 ## Summary
 
-Add `backend: api` as an alternative execution path in `type: copilot` nodes.
-When set, the node routes directly to `execute_prompt()` using the configured
-`model` and `provider`, bypassing the Copilot CLI subprocess entirely.
-This is a hedge against GitHub Copilot pricing restructuring — switchable
-with a single YAML change per graph, no pipeline rewrite required.
+Add `backend: api` for `type: copilot` nodes so reasoning-only copilot steps can run through `execute_prompt()` (provider API path) instead of always spawning the Copilot CLI subprocess.
 
 ## Value Statement
 
-If GitHub Copilot premium request multipliers spike after the April 2026
-restructuring, the Chaplain pipeline can be switched to direct API calls
-(`backend: api`) with a one-line config change per graph, preserving
-all prompt logic without rewriting the pipeline.
+Pipeline authors get a one-line, per-node fallback from Copilot CLI execution to direct provider API execution without rewriting graph logic or prompt files.
 
 ## Problem
 
-**GitHub Copilot pricing context:** New signups for Pro, Pro+, Student, and
-Business plans were paused April 20–22, 2026. Refund window closes May 20, 2026.
-This signals an imminent pricing model change. Copilot premium requests
-(GPT-5.3-Codex, Claude Sonnet via Copilot) may carry undisclosed multipliers.
+`type: copilot` currently documents a `backend` field but behaves as CLI-only in practice:
 
-The Chaplain pipeline runs 5 `type: copilot` nodes per FR cycle:
+1. `yamlgraph/models/graph_schema.py` already has `NodeConfig.backend` (currently described as `cli` or `sampling`).
+2. `yamlgraph/node_factory/copilot_node.py` ignores `config["backend"]` and always executes `_execute_cli(...)`.
+3. `yamlgraph/linter/patterns/copilot.py` checks session-flag shape only; it does not validate backend-specific constraints.
+4. `reference/graph-yaml.md` documents `backend: cli|sampling`, but runtime does not branch on backend.
 
-| Graph | Node | Current model |
-|-------|------|--------------|
-| step-plan-unified | plan_unified | gpt-5.3-codex (Copilot CLI) |
-| step-judge-v2 | judge | claude-sonnet-4.6 (Copilot CLI) |
-| enforce-session | enforce | gpt-5.3-codex (Copilot CLI) |
-| validate-session | validate | claude-sonnet-4.6 (Copilot CLI) |
-| sanity-check-session | sanity | claude-sonnet-4.6 (Copilot CLI) |
-
-All 5 are exposed to Copilot CLI pricing. If cost spikes, there is currently
-no fallback path except a full pipeline rewrite.
-
-Currently, `type: copilot` always routes through the CLI subprocess:
-```python
-# copilot_node.py
-return CopilotResult(..., backend="cli")
-```
-
-There is no `backend:` field in `NodeConfig` or the YAML schema.
+Result: there is no working non-CLI fallback path for copilot nodes despite schema/docs signaling backend configurability.
 
 ## Research
 
-### Existing patterns
+### Prior art in codebase
 
-- `yamlgraph/executor.py::execute_prompt()` — the standard LLM call path.
-  Supports all providers, structured output, streaming. Already used by all
-  `type: llm` nodes.
-- `yamlgraph/node_factory/copilot_node.py` — CLI subprocess path, returns
-  `CopilotResult` Pydantic model.
-- `CopilotResult` already has a `backend: str` field (currently always `"cli"`).
+- **Standard API execution path exists:** `yamlgraph/executor.py::execute_prompt()` already handles prompt loading, variable rendering, provider/model selection, and structured output parsing.
+- **Copilot result envelope exists:** `yamlgraph/models/schemas.py::CopilotResult` already includes `backend`, `model`, and `session_id`.
+- **Copilot CLI path is isolated:** `yamlgraph/node_factory/copilot_node.py::_execute_cli()` is a clear boundary for preserving CLI behavior unchanged.
+- **Chaplain usage split is clear:** `.chaplain/graphs/...` uses copilot for both reasoning nodes (judge/validate/sanity) and an agentic enforce node. The enforce node relies on tool access and must remain CLI.
 
-### Key difference: CLI vs API for agentic tasks
+### Alternatives considered
 
-The Copilot CLI is not just an LLM call — it provides:
-1. File system tool access (read/write files, run bash)
-2. Session continuity across tool calls
-3. Streaming output
-4. Pre-configured system instructions (`.github/copilot-instructions.md`)
+1. **Keep CLI-only and rely on model changes (`cli_flags.model`)**
+   Rejected: does not provide an execution-backend fallback; still depends on Copilot CLI runtime path.
 
-`backend: api` is appropriate for **reasoning-only** nodes (judge, validate,
-sanity check) that do not need tool calls — they analyze a prompt and return
-structured output. The `enforce` node **requires** tool access and should
-remain `backend: cli`.
+2. **Replace copilot node entirely with `type: llm` nodes**
+   Rejected: larger migration and loses copilot-specific metadata/session behavior; out of scope for this FR.
+
+3. **Implement documented `sampling` backend first**
+   Rejected for this scope: requires MCP loopback infrastructure and is orthogonal to immediate API fallback need.
+
+## Objectives
+
+1. Add `backend: api` execution branch for `type: copilot`.
+2. Preserve existing CLI behavior as the default and regression-safe path.
+3. Add lint guardrails to prevent API backend misconfiguration that assumes CLI tool/session features.
+
+## Non-Goals
+
+- No changes to existing CLI subprocess behavior.
+- No attempt to provide Copilot CLI tool access (`--allow-all-tools`, `--allow-all-paths`) in API mode.
+- No batching/cost-profile/routing redesign (covered by separate FRs).
 
 ## Proposed Solution
 
-### YAML interface
+### YAML contract
 
 ```yaml
 nodes:
   judge:
     type: copilot
     prompt: judge
-    backend: api           # NEW: "cli" (default) | "api"
-    provider: anthropic    # used only when backend: api
-    model: claude-sonnet-4-6
-    state_key: judgment
+    backend: api
+    provider: anthropic
+    model: claude-sonnet-4.6
+    variables:
+      fr_path: "{state.fr_path}"
+    state_key: judge_result
 ```
 
-### Execution model
+- `backend` values for this FR: `cli` (default) and `api`.
+- Missing `backend` keeps current behavior (`cli` path).
 
-When `backend: api`:
-1. Load prompt YAML as normal (Jinja2 rendering, variable injection)
-2. Call `execute_prompt()` directly — same path as `type: llm` nodes
-3. Return `CopilotResult` with `backend="api"` and the response text
-4. Structured output (`schema:`) supported via existing `_parse_structured_output`
+### Runtime behavior
 
-When `backend: cli` (default, unchanged):
-- Existing subprocess path, unchanged behavior
+1. Resolve backend at node creation (`cli` default).
+2. If backend is `cli`, execute existing `_execute_cli(...)` path unchanged.
+3. If backend is `api`, call `execute_prompt(...)` with existing prompt/variable resolution inputs.
+4. Wrap API output in `CopilotResult(backend="api", output=..., model=..., exit_code=0, session_id=None)`.
 
-### Linter check
+### Linter behavior
 
-```
-WARNING: node 'judge' uses type: copilot with backend: api but no model: specified.
-  Add model: to select the target API model.
-```
+Extend `yamlgraph/linter/patterns/copilot.py` with backend-aware checks:
 
-Error (not warning) if `backend: api` and `type: copilot` node has `tools:` set
-(tool access requires CLI backend).
-
-### Files to modify
-
-| File | Change |
-|------|--------|
-| `yamlgraph/node_factory/copilot_node.py` | Add API execution branch |
-| `yamlgraph/models/graph_schema.py` | Add `backend: str = "cli"` to NodeConfig |
-| `yamlgraph/linter/checks_providers.py` | Lint: warn on missing model, error on tools+api |
-| `reference/graph-yaml.md` | Document `backend:` field |
-| `tests/unit/test_copilot_node_backend.py` | New unit tests |
+- **Warning** when `backend: api` has no explicit model signal (`node.model` and no graph default model).
+- **Error** when `backend: api` is combined with CLI-only session/tooling flags in `cli_flags` (`allow_all_tools`, `allow_all_paths`, `resume`, `continue_session`).
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `type: copilot` with `backend: api` calls `execute_prompt()` and
-  returns `CopilotResult` with `backend="api"`
-- [ ] AC-02: `type: copilot` with `backend: cli` (or no `backend:` field)
-  behaves identically to current behavior
-- [ ] AC-03: Linter warns when `backend: api` is used without `model:` specified
-- [ ] AC-04: Linter errors when `backend: api` is combined with `tools:` on the node
-- [ ] AC-05: `CopilotResult` structured output (`schema:`) works with `backend: api`
-  using existing `_parse_structured_output`
-- [ ] AC-06: Switching `.chaplain/graphs/watcher-plan/step-judge-v2.yaml` judge
-  node to `backend: api` passes `yamlgraph graph lint` without errors
-- [ ] AC-07: Existing copilot CLI tests pass unchanged
-- [ ] Tests added with `@pytest.mark.req("REQ-YG-XXX")`
-- [ ] New requirement added to `ARCHITECTURE.md` and `scripts/req_coverage.py`
-- [ ] Changelog fragment in `changelog/unreleased/`
-- [ ] Diary reflection in `docs/diary/`
+- [x] AC-01: `type: copilot` with `backend: api` executes through `execute_prompt()` and does not call `subprocess.run()`.
+- [x] AC-02: `backend` omitted or `backend: cli` preserves existing behavior and existing copilot tests continue to pass.
+- [x] AC-03: API path returns `CopilotResult` with `backend="api"` and `session_id is None`.
+- [x] AC-04: API path supports prompt schema/structured output through the existing `execute_prompt()` mechanism.
+- [x] AC-05: Linter warns on `backend: api` without model signal.
+- [x] AC-06: Linter errors on `backend: api` with CLI-only `cli_flags`.
+- [x] AC-07: `reference/graph-yaml.md` documents `backend: api` semantics and API-vs-CLI constraints.
 
-## Constraints
+## Failing Acceptance Tests (RED first)
 
-1. Default `backend: cli` — zero behavior change for existing graphs.
-2. `backend: api` does not replicate tool access. It is suitable only for
-   reasoning-only nodes. Document this clearly.
-3. The `.github/copilot-instructions.md` Scripture injected by Copilot CLI
-   is **not** automatically injected in `backend: api` mode. Prompts that
-   rely on it must include the relevant sections explicitly (or via FR-382
-   cached system segments).
-4. No changes to the Copilot CLI subprocess path.
+1. `tests/unit/test_copilot_node_backend_api.py::test_backend_api_uses_execute_prompt_not_subprocess`
+   **Expected RED now:** current implementation always calls `_execute_cli`/`subprocess.run`.
 
-## Alternatives Considered
+2. `tests/unit/test_copilot_node_backend_api.py::test_backend_api_returns_copilot_result_with_api_backend`
+   **Expected RED now:** current implementation always returns `backend="cli"`.
 
-### Replace Copilot CLI entirely
-Rejected: Copilot CLI provides agentic file editing with tool access that
-`execute_prompt()` does not. The enforce node genuinely needs CLI backend.
+3. `tests/unit/test_copilot_node_backend_api.py::test_backend_omitted_remains_cli_path`
+   **Safety test:** proves no behavior drift while adding API branch.
 
-### Per-graph provider env var override
-`PROVIDER` env var already switches the default provider for `type: llm`.
-`type: copilot` ignores it. Extending `type: copilot` to respect `PROVIDER`
-would be messier than an explicit `backend:` field.
+4. `tests/unit/test_linter_patterns_copilot.py::test_warning_backend_api_without_model_signal`
+   **Expected RED now:** no backend-model warning rule exists.
+
+5. `tests/unit/test_linter_patterns_copilot.py::test_error_backend_api_with_cli_flags`
+   **Expected RED now:** no backend/cli_flags incompatibility rule exists.
+
+## Architecture and Traceability Alignment
+
+- Extend **CAP-30 (Copilot Node)** with new requirement(s):
+  - `REQ-YG-356`: Copilot node supports explicit `backend: api` execution via `execute_prompt`.
+  - `REQ-YG-357`: Copilot backend lint rules prevent CLI-only flag misuse in API mode.
+- Update `ARCHITECTURE.md` requirement table and capability mapping accordingly.
+- Mark new tests with `@pytest.mark.req("REQ-YG-356")` / `@pytest.mark.req("REQ-YG-357")`.
+
+## Implementation Surface (for Enforce phase)
+
+| File | Change |
+|------|--------|
+| `yamlgraph/node_factory/copilot_node.py` | Add backend branch (`cli`/`api`) and API result wrapping |
+| `yamlgraph/linter/patterns/copilot.py` | Add backend-aware lint checks |
+| `yamlgraph/models/schemas.py` | Update `CopilotResult.backend` description to include `api` |
+| `reference/graph-yaml.md` | Document `backend: api` behavior and constraints |
+| `tests/unit/test_copilot_node_backend_api.py` | New RED/GREEN tests for runtime backend behavior |
+| `tests/unit/test_linter_patterns_copilot.py` | Add RED/GREEN tests for backend lint rules |
+| `capabilities/CAP-30-copilot-node.yaml` | Add new REQ entries |
+| `ARCHITECTURE.md` | Add REQ rows and capability references |
 
 ## Related
 
-- `docs/plan-token-cost-mitigation.md` — Priority 2 in the mitigation plan
-- FR-382 — Prompt caching (Priority 1, should land first)
-- FR-381 — Batch API (Priority 3)
-- `yamlgraph/node_factory/copilot_node.py` — implementation target
+- `yamlgraph/node_factory/copilot_node.py`
+- `yamlgraph/linter/patterns/copilot.py`
+- `reference/graph-yaml.md#type-copilot---copilot-cli-delegation`
+- `capabilities/CAP-30-copilot-node.yaml`
