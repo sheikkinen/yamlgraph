@@ -38,7 +38,8 @@ repos:
     hooks:
       - id: diary-reflection-check
         name: diary-reflection-check
-        entry: bash -c 'STUBS=$(git ls-files "docs/diary/*reflection*.md" | xargs grep -l "\[What cognitive trap\|\[What lesson\|\[What question" 2>/dev/null); if [ -n "$STUBS" ]; then echo "❌ Unfilled diary reflection stubs:"; echo "$STUBS"; echo "Fill Trap/Heuristic/Seed sections before committing."; exit 1; fi'
+        entry: >-
+          bash -c 'FILES=$(git diff --cached --name-only -- "docs/diary/*reflection*.md"); if [ -n "$FILES" ]; then STUBS=$(echo "$FILES" | xargs grep -l "\[What cognitive trap\|\[What lesson\|\[What question" 2>/dev/null); if [ -n "$STUBS" ]; then echo "❌ Unfilled diary reflection stubs:"; echo "$STUBS"; echo "Fill Trap/Heuristic/Seed sections before committing."; exit 1; fi; MISSING_SEED=$(echo "$FILES" | xargs grep -L "Seed:" 2>/dev/null); if [ -n "$MISSING_SEED" ]; then echo "❌ Diary reflections missing Seed: marker:"; echo "$MISSING_SEED"; echo "Add literal Seed: marker to each reflection before committing."; exit 1; fi; fi'
         language: system
         pass_filenames: false
         always_run: true

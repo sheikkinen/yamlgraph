@@ -230,29 +230,40 @@ class TestHookEntryFormat:
 # ── FR-144: Diary Reflection Content Enforcement ────────────────────────────
 
 # The exact entry from .pre-commit-config.yaml for diary-reflection-check hook.
-# Uses git ls-files to scan tracked reflection files for unfilled placeholders.
+# Uses staged reflection files to scan for placeholders and Seed:.
 DIARY_REFLECTION_CHECK_ENTRY = (
     "bash -c '"
-    'STUBS=$(git ls-files "docs/diary/*reflection*.md" '
-    "| xargs grep -l "
+    'FILES=$(git diff --cached --name-only -- "docs/diary/*reflection*.md"); '
+    'if [ -n "$FILES" ]; then '
+    'STUBS=$(echo "$FILES" | xargs grep -l '
     '"\\[What cognitive trap\\|\\[What lesson\\|\\[What question" '
     "2>/dev/null); "
     'if [ -n "$STUBS" ]; then '
     'echo "❌ Unfilled diary reflection stubs:"; '
     'echo "$STUBS"; '
     'echo "Fill Trap/Heuristic/Seed sections before committing."; '
-    "exit 1; fi'"
+    "exit 1; fi; "
+    'MISSING_SEED=$(echo "$FILES" | xargs grep -L "Seed:" 2>/dev/null); '
+    'if [ -n "$MISSING_SEED" ]; then '
+    'echo "❌ Diary reflections missing Seed: marker:"; '
+    'echo "$MISSING_SEED"; '
+    'echo "Add literal Seed: marker to each reflection before committing."; '
+    "exit 1; fi; fi'"
 )
 
 
 def run_diary_hook(entry: str, file_paths: list[str]) -> subprocess.CompletedProcess:
     """Run the diary-reflection-check hook with mocked file list.
 
-    Replaces `git ls-files ...` with an echo of the given file paths
+    Replaces the staged-file command with an echo of the given file paths
     so the grep pattern is tested against real temp files.
     """
     mock_ls = 'echo "' + " ".join(file_paths) + '"' if file_paths else "echo ''"
-    modified = entry.replace('git ls-files "docs/diary/*reflection*.md"', mock_ls)
+    modified = entry
+    modified = modified.replace(
+        'git diff --cached --name-only -- "docs/diary/*reflection*.md"', mock_ls
+    )
+    modified = modified.replace('git ls-files "docs/diary/*reflection*.md"', mock_ls)
     result = subprocess.run(
         modified,
         shell=True,
@@ -291,6 +302,10 @@ FILLED_REFLECTION = """\
 class TestDiaryReflectionCheck:
     """Tests for diary-reflection-check pre-commit hook (FR-144)."""
 
+    def test_hook_entry_checks_missing_seed_marker(self) -> None:
+        """Hook entry must include missing-Seed detection for parity with CI gate."""
+        assert 'grep -L "Seed:"' in DIARY_REFLECTION_CHECK_ENTRY
+
     def test_unfilled_trap_placeholder_rejected(self, tmp_path: Path) -> None:
         """A reflection with [What cognitive trap] placeholder is rejected."""
         f = tmp_path / "reflection.md"
@@ -312,6 +327,20 @@ class TestDiaryReflectionCheck:
         f.write_text("**Seed:** [What question remains?]\n")
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert result.returncode == 1, f"Unfilled question should fail: {result.stdout}"
+
+    def test_missing_seed_marker_rejected(self, tmp_path: Path) -> None:
+        """A reflection without literal Seed: marker is rejected."""
+        f = tmp_path / "reflection.md"
+        f.write_text(
+            "## Reflection\n\n"
+            "**Trap:** Assumed checks were aligned.\n\n"
+            "**Heuristic:** Keep local and CI semantics in parity.\n"
+        )
+        result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
+        assert (
+            result.returncode == 1
+        ), f"Missing Seed marker should fail: {result.stdout}"
+        assert "Seed:" in result.stdout
 
     def test_filled_reflection_accepted(self, tmp_path: Path) -> None:
         """A reflection with real content passes the hook."""
