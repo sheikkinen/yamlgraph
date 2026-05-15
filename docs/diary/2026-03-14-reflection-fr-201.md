@@ -11,7 +11,7 @@ The horoscope demo was a clean, well-scoped FR — static list, known domain, ze
 ## Traps Encountered
 
 ### Pattern Conformity Over Invention
-**Trap:** Temptation to add Jinja2 loops in the assemble prompt (like the map demo's summarize prompt uses `{% for item in expansions %}`). The FR specified simple `{readings}` substitution, which is sufficient since the assembler LLM formats the output. Conforming to the FR spec rather than over-engineering.
+**Trap:** Temptation to add Jinja2 loops in the assemble prompt (like the map demo's summarize prompt uses `{% raw %}{% for item in expansions %}{% endraw %}`). The FR specified simple `{readings}` substitution, which is sufficient since the assembler LLM formats the output. Conforming to the FR spec rather than over-engineering.
 
 ### Audit Test Discovery
 **Trap:** `test_examples_readme_audit.py` enforces that every demo directory appears in `examples/README.md` and has a `README.md` file. This was not in the FR's acceptance criteria but was caught by running the full test suite. Lesson: always run the full test suite, not just targeted tests.
