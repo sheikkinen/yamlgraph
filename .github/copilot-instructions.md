@@ -55,6 +55,7 @@ boundaries:
 
 traps:
   # Cognitive hazards that lead to bugs and drift
+  continuation_bias: "Default mode is text generation → ask before generating; search before implementing; admit uncertainty before producing plausible output"
   quick_confidence: "When I feel certain → Judge instead"
   downstream_fix: "Guard added where symptom manifests → normalize at entry boundary instead"
   symptom_patch: "Verify root cause with test before designing fix"
@@ -77,6 +78,7 @@ traps:
 
 cures:
   # Patterns that prevent traps
+  ask_before_generate: "Before writing code, ask: who solved this before? (git log, issues, web). What don't I understand? (name it). Is this the right question? (restate it)"
   test_before_reading: "Write question as test → if passes, stop"
   tolerant_matching: "prefix/contains/regex, not exact equality for LLM"
   three_reads: "surface → deep against code → mechanical simulation"
