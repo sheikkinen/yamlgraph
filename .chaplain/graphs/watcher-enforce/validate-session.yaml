@@ -23,7 +23,7 @@ nodes:
     prompt: validate-session
     backend: cli
     cli_flags:
-      model: claude-sonnet-4.6
+      model: claude-opus-4.6
       allow_all_paths: true
       allow_all_tools: true
     variables:
@@ -33,7 +33,7 @@ nodes:
       precommit_output: "{state.precommit_output}"
       validate_gate_output: "{state.validate_gate_output}"
     state_key: validate_result
-    timeout: 600
+    timeout: 1200
 
 edges:
   - from: START
