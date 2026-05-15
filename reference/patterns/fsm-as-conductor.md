@@ -84,10 +84,12 @@ actions:
 
 ### Event Resolution Order
 
-1. **Interrupt path** — if graph paused at checkpoint, emit `event_map.continue`; if finished, emit `event_map.done`
-2. **event_map** — match `event_key` field value against map keys
-3. **_route / route** — use graph's built-in route field
-4. **success** — fallback event
+1. **Interrupt path** — if graph paused at checkpoint, emit `event_map.continue`
+2. **Completion phase map** — if graph finished and checkpoint state has `phase`, emit `event_map[phase]` when mapped
+3. **Done fallback** — if graph finished and `event_map.done` is configured, emit it
+4. **event_map** — match `event_key` field value against map keys
+5. **_route / route** — use graph's built-in route field
+6. **success** — fallback event
 
 ### Interrupt/Resume (Checkpoint-Backed)
 
