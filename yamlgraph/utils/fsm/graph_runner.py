@@ -137,6 +137,45 @@ def _resolve_event(
     return success_event
 
 
+def _extract_completion_state(
+    after_state: Any,
+) -> tuple[bool, str | None, dict[str, Any] | None]:
+    """Extract completion metadata from post-run checkpoint state."""
+    interrupt_pending = has_pending_next(after_state)
+    completion_phase: str | None = None
+    after_values: dict[str, Any] | None = None
+
+    maybe_after_values = getattr(after_state, "values", {}) or {}
+    if isinstance(maybe_after_values, dict):
+        after_values = maybe_after_values
+        phase = maybe_after_values.get("phase")
+        if isinstance(phase, str):
+            completion_phase = phase.strip() or None
+
+    return interrupt_pending, completion_phase, after_values
+
+
+def _build_payload(
+    result: Any,
+    *,
+    output_key: str,
+    snapshot: SnapshotParams | None,
+    after_values: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Build dispatch payload from result and checkpoint payload keys."""
+    payload: dict[str, Any] = {}
+    if isinstance(result, dict) and output_key and output_key in result:
+        payload[output_key] = json_safe(result[output_key])
+    if snapshot and snapshot.payload_keys and after_values:
+        for key in snapshot.payload_keys:
+            if key in payload:
+                continue
+            value = after_values.get(key)
+            if value is not None:
+                payload[key] = json_safe(value)
+    return payload
+
+
 async def run_and_dispatch(
     graph_path: str,
     initial_state: dict[str, Any],
@@ -178,24 +217,24 @@ async def run_and_dispatch(
             if has_pending_next(before_state):
                 graph_input = Command(resume=initial_state.get(input_key))
 
+        after_values: dict[str, Any] | None = None
         if run_config:
             result = await run_fn(app, graph_input, run_config)
             after_state = await app.aget_state(run_config)
-            interrupt_pending: bool | None = has_pending_next(after_state)
-            completion_phase: str | None = None
-            after_values = getattr(after_state, "values", {}) or {}
-            if isinstance(after_values, dict):
-                phase = after_values.get("phase")
-                if isinstance(phase, str):
-                    completion_phase = phase.strip() or None
+            interrupt_pending, completion_phase, after_values = (
+                _extract_completion_state(after_state)
+            )
         else:
             result = await run_fn(app, graph_input)
             interrupt_pending = None
             completion_phase = None
 
-        payload: dict[str, Any] = {}
-        if isinstance(result, dict) and output_key and output_key in result:
-            payload[output_key] = json_safe(result[output_key])
+        payload = _build_payload(
+            result,
+            output_key=output_key,
+            snapshot=snapshot,
+            after_values=after_values,
+        )
 
         event = _resolve_event(
             result,
