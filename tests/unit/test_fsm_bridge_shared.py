@@ -51,7 +51,7 @@ class TestSharedFSMHelpers:
 
 @pytest.mark.req("REQ-YG-319")
 class TestSharedFSMEventCascade:
-    """Event resolution follows interrupt → event_map → route → success."""
+    """Event resolution follows interrupt → phase/done → event_map → route → success."""
 
     @pytest.mark.asyncio
     async def test_interrupt_continue_precedes_event_map_and_route(self) -> None:

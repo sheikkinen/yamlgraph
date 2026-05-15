@@ -108,10 +108,17 @@ def _resolve_event(
     event_map: dict[str, str],
     success_event: str,
     interrupt_pending: bool | None,
+    completion_phase: str | None = None,
 ) -> str:
     """Resolve completion event with the documented cascade order."""
     if interrupt_pending is True:
         return event_map.get("continue", success_event)
+    if (
+        interrupt_pending is False
+        and completion_phase
+        and completion_phase in event_map
+    ):
+        return event_map[completion_phase]
     if interrupt_pending is False and "done" in event_map:
         return event_map["done"]
 
@@ -175,9 +182,16 @@ async def run_and_dispatch(
             result = await run_fn(app, graph_input, run_config)
             after_state = await app.aget_state(run_config)
             interrupt_pending: bool | None = has_pending_next(after_state)
+            completion_phase: str | None = None
+            after_values = getattr(after_state, "values", {}) or {}
+            if isinstance(after_values, dict):
+                phase = after_values.get("phase")
+                if isinstance(phase, str):
+                    completion_phase = phase.strip() or None
         else:
             result = await run_fn(app, graph_input)
             interrupt_pending = None
+            completion_phase = None
 
         payload: dict[str, Any] = {}
         if isinstance(result, dict) and output_key and output_key in result:
@@ -189,6 +203,7 @@ async def run_and_dispatch(
             event_map=event_map,
             success_event=success_event,
             interrupt_pending=interrupt_pending,
+            completion_phase=completion_phase,
         )
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         logger.info(
