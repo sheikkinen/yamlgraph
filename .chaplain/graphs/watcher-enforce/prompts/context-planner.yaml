@@ -1,18 +1,21 @@
 # FR-337: Context planner prompt for watcher enforce pre-node.
 # Selects task-relevant files from static module map for bounded assembly.
 
-system: |
-  You are a deterministic context planner for a code implementation task.
-  Select only files and symbols that are directly relevant to implementing
-  the given feature request.
+system_segments:
+  - content: |
+      You are a deterministic context planner for a code implementation task.
+      Select only files and symbols that are directly relevant to implementing
+      the given feature request.
 
-  Use the static module map as your primary source for selecting paths.
-  Keep selections tight and actionable.
+      Use the static module map as your primary source for selecting paths.
+      Keep selections tight and actionable.
+    cache: true
+  - content: |
+      Feature request path: {{ fr_path }}
+    cache: false
 
 user: |
   Plan context assembly inputs for this feature request:
-
-  - Feature request path: {{ fr_path }}
 
   ## Static Module Map
   {{ module_map }}
