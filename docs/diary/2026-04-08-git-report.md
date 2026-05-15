@@ -20,7 +20,7 @@ Based on the analysis of the most recent commits (April 5-7, 2026), here's the f
 #### **2. Template Engine Bug Fix (FR-214)** 🐛 **BUGFIX**
 - **Status**: Fixed
 - **Issue**: `extract_variables()` incorrectly reported nested set targets as required variables
-- **Solution**: AST-based fix to properly exclude variable assignments in nested `{% for %}{% if %}` blocks
+- **Solution**: AST-based fix to properly exclude variable assignments in nested `{% raw %}{% for %}{% if %}{% endraw %}` blocks
 - **Impact**: Prevents false positive variable requirement detection in complex Jinja2 templates
 
 #### **3. AI Co-Author Trailer Blocking (FR-212)** 🔒 **SECURITY**

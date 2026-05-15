@@ -102,7 +102,7 @@ condition: "score < 0.8"
 $ yamlgraph graph lint tests/fixtures/linter/condition_syntax_fail.yaml
 ⚠️ condition_syntax_fail.yaml
    ⚠ [W801] Condition '{state.score} < 0.8' uses braces — conditions use bare variable names
-      Fix: Remove {{ }} braces and 'state.' prefix from condition expression
+      Fix: Remove {% raw %}{{ }}{% endraw %} braces and 'state.' prefix from condition expression
 ```
 
 ### 6. Batch Linting
