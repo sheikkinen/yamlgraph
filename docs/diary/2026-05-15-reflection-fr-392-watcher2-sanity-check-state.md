@@ -1,56 +1,65 @@
-# Watcher2 Sanity Check: FR-392 — FSM Runner payload_keys Forwarding
+# Watcher2 Sanity Check: FR-392 — FSM Race Winner Payload Sanitization
 
 **Date:** 2026-05-15
-**FR:** FR-392
+**FR:** FR-392 — sanitize `_race_winner` in shared FSM event payloads
 **Reviewer:** watcher2 post-validate
 **Verdict:** PASS
 
 ## What Was Reviewed
 
-`yamlgraph/utils/fsm/graph_runner.py` — payload assembly path in `run_and_dispatch()`.
-Five acceptance tests in `tests/unit/test_fr392_fsm_payload_keys_red.py`.
+`yamlgraph/utils/fsm/graph_runner.py` — `_strip_race_winner()` helper and its call
+site in `run_and_dispatch()`.
+Four acceptance tests in `tests/unit/test_fr392_fsm_race_winner_payload_sanitization.py`.
 
-## Trap: Boundary Contract Existed, Wiring Did Not
+## Trap: Downstream Fix Correctly Avoided
 
-`SnapshotParams.payload_keys` was declared in the typed contract (`snapshot.py`) since
-FR-369, but the runner never read it. The fix belongs at the single boundary where
-checkpoint state is already available — not patched into consumers downstream.
-This is a textbook instance of `downstream_fix` avoidance: the right cure was
-`_build_payload` at the boundary, not a `pre_dispatch` workaround at each callsite.
+`downstream_fix` — the temptation was to let each consumer strip `_race_winner`
+(issue #395 documented exactly this consumer-side `_pop_race_winner()` workaround).
+The fix correctly landed in `run_and_dispatch()`, the canonical dispatch boundary
+defined by `REQ-YG-319`. Single `result.pop("_race_winner", None)` enforces the
+contract once, eliminating per-consumer workaround drift.
 
 ## What Happened
 
-- `_build_payload` extracted as a pure function: receives `result`, `output_key`,
-  `snapshot`, and `after_values`; returns payload dict with no side effects.
-- `_extract_completion_state` isolated the checkpoint-state parsing that was already
-  present but inlined; this refactor had zero behavior change for existing paths.
-- `after_values` stays `None` on the legacy (no `thread_id`) path, so `_build_payload`
-  silently skips the payload-key merge — AC-05 confirmed.
+`_strip_race_winner()` was extracted as a private helper (12 lines including
+docstring), called immediately after `result` is obtained and before `_build_payload()`.
+When stripped, `logger.info("race.winner: %s", winner)` preserves telemetry
+observability. The fix is surgical: no changes to race/router-race node outputs,
+no cascade/routing changes, no new public API.
 
 ## Root Cause
 
-Missing wiring: `snapshot.payload_keys` was populated by `snapshot_params()` but
-`run_and_dispatch()` never iterated it. The bug was silent — no exception, just
-missing context in dispatched events.
+No explicit metadata-sanitization step existed at the dispatch boundary. The contract
+between graph state (internal) and FSM payload (external) was implicit rather than
+enforced. `_race_winner` is legitimately produced by race nodes for telemetry but must
+not cross the FSM bridge boundary.
 
 ## Test Quality
 
-- 5 tests map 1:1 to AC-01..AC-05.
-- Each test exercises the full `run_and_dispatch` integration path via mocked
-  `load_fn`/`run_fn`/`aget_state`.
-- Assertions target dispatched payload contents (behavior), not internal state.
-- All 5 pass; regression suite (17 tests across bridge + FR-391) passes clean.
-- No pipeline logs available; test evidence is sufficient for a boundary-wiring fix.
+- 4 tests map 1:1 to AC-01..AC-04.
+- All assertions target dispatched behavior (what reaches `send_fn`), not internal
+  state.
+- test_ac01: edge case where `output_key` equals `"_race_winner"` — stripped key
+  yields `None` payload.
+- test_ac02: INFO log assertion using `monkeypatch` on logger — behavioral, not trivial.
+- test_ac03: multiple keys; confirms only `output_key` reaches payload.
+- test_ac04: validates event cascade priority (interrupt_pending=False + "done" in
+  event_map fires before event_key lookup) is unchanged post-strip.
+- Regression: 12/12 tests pass across `test_fsm_bridge_shared.py` and
+  `test_fr391_fsm_phase_aware_event_resolution.py`.
 
 ## Proportionality
 
-48 lines of production code change (two extracted helpers + call-site update),
-204 lines of acceptance tests, supporting changelog/FR/diary artifacts.
-Scope is tightly bounded to the payload-assembly boundary. No cascade/routing
-changes. Proportional to the declared 0.5-day effort.
+12 lines of production code, 137 lines of acceptance tests, changelog fragment,
+FR, diary. Appropriately minimal for a 0.5-day boundary hygiene bug fix.
+
+## Minor Finding
+
+Changelog fragment uses `type: feat` while FR type is `Bug`. Should be `type: fix`.
+Non-blocking — does not affect runtime behavior or test coverage.
 
 ## Seed:
 
-Could `_build_payload` become the authoritative payload-assembly contract for all
-`run_and_dispatch` dispatch paths (success, error, interrupt), eliminating any
-remaining per-path payload construction scattered across the function?
+Could the FSM bridge declare a configurable `_INTERNAL_METADATA_KEYS` set so that
+any future framework-private keys (e.g., `_node_timing`, `_checkpoint_id`) are
+automatically stripped at the same boundary, without requiring per-key pop additions?
