@@ -15,6 +15,7 @@ from yamlgraph.utils.fsm.helpers import extract_event, has_pending_next, json_sa
 from yamlgraph.utils.fsm.snapshot import SnapshotParams
 
 logger = logging.getLogger(__name__)
+_MISSING = object()
 
 LoadFn = Callable[[str], Awaitable[Any]]
 RunFn = Callable[..., Awaitable[Any]]
@@ -155,6 +156,15 @@ def _extract_completion_state(
     return interrupt_pending, completion_phase, after_values
 
 
+def _strip_race_winner(result: Any) -> Any:
+    """Remove framework-internal race metadata before payload dispatch."""
+    if isinstance(result, dict):
+        winner = result.pop("_race_winner", _MISSING)
+        if winner is not _MISSING:
+            logger.info("race.winner: %s", winner)
+    return result
+
+
 def _build_payload(
     result: Any,
     *,
@@ -228,6 +238,8 @@ async def run_and_dispatch(
             result = await run_fn(app, graph_input)
             interrupt_pending = None
             completion_phase = None
+
+        result = _strip_race_winner(result)
 
         payload = _build_payload(
             result,
