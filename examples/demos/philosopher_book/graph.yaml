@@ -9,7 +9,7 @@ prompts_dir: prompts
 
 defaults:
   provider: anthropic
-  model: claude-opus-4-6
+  model: claude-opus-4.6
   temperature: 1
 
 state:
