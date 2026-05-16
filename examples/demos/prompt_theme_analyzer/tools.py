@@ -80,6 +80,8 @@ def write_report(state: dict) -> dict:
         raise ValueError("theme_counts must be a list")
 
     theme_groups = state.get("theme_groups")
+    if hasattr(theme_groups, "model_dump"):
+        theme_groups = theme_groups.model_dump()
     if not isinstance(theme_groups, dict):
         raise ValueError("theme_groups must be a dict")
 

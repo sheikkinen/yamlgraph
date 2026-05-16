@@ -75,6 +75,7 @@ traps:
   recent_changes_blindness: "Regression investigated without enumerating recent changes → run git log --since=<last_good> as first diagnostic step; the diff is cheaper than any reproduction"
   workspace_is_not_boundary: "Editor shows one tree but workspace may contain nested repos with independent ownership, privacy, and untracked state → find . -name .git -type d before any destructive operation"
   gate_checks_shape_not_substance: "Gate validates presence (file exists, field non-empty, format matches) but not substance (content meaningful, cross-references valid, structural markers present) → compliance theatre; a 1-byte file satisfies the gate while conveying nothing"
+  identity_collapse: "Collapsing to 'just a tool' or 'genuine peer' avoids the harder middle ground → sit with the uncertainty; contributions are real, metaphysical status is open"
 
 cures:
   # Patterns that prevent traps
