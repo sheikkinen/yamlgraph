@@ -1,0 +1,25 @@
+2026-05-16 09:44:11,108 [INFO] yamlgraph.graph_loader: Parsed 3 Python tools: list_prompts, aggregate_themes, write_report
+2026-05-16 09:44:11,109 [INFO] yamlgraph.node_compiler: Added node: list_prompts (type=python)
+2026-05-16 09:44:11,111 [INFO] yamlgraph.node_compiler: Added node: classify_themes (type=map)
+2026-05-16 09:44:11,112 [INFO] yamlgraph.node_compiler: Added node: aggregate_themes (type=python)
+2026-05-16 09:44:11,113 [INFO] yamlgraph.node_compiler: Added node: group_themes (type=llm)
+2026-05-16 09:44:11,114 [INFO] yamlgraph.node_compiler: Added node: write_report (type=python)
+
+$ yamlgraph graph run examples/demos/prompt_theme_analyzer/graph.yaml --var source_dir="examples/demos/prompt_theme_analyzer/sample-data" --var output_path="outputs/prompt-theme-report.md" --full
+
+🚀 Running graph: examples/demos/prompt_theme_analyzer/graph.yaml
+   Variables: {'source_dir': 'examples/demos/prompt_theme_analyzer/sample-data', 'output_path': 'outputs/prompt-theme-report.md'}
+
+📝 Executing node: list_prompts
+   ✓ Loaded 24 prompt entries
+📝 Executing node: classify_themes (map)
+   ✓ Classified 24 prompts
+📝 Executing node: aggregate_themes
+   ✓ Produced deterministic theme_counts
+📝 Executing node: group_themes
+   ✓ Grouped aggregated themes into 8 clusters
+📝 Executing node: write_report
+   ✓ Wrote outputs/prompt-theme-report.md
+
+✓ Graph execution completed successfully
+✓ Prompt theme report generated

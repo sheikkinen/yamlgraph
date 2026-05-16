@@ -1,0 +1,24 @@
+system: >
+  You are an art taxonomy expert. Group pre-aggregated theme/count pairs into
+  coherent clusters and provide clear cluster descriptions.
+
+user: |
+  We already aggregated classifications deterministically before this step.
+  Input has {{ theme_counts | length }} unique themes with counts:
+
+  {% for item in theme_counts %}
+  - {{ item.theme }}: {{ item.count }}
+  {% endfor %}
+
+  Group these into approximately 10 thematic clusters.
+  Return concise cluster names and member themes.
+
+schema:
+  name: ThemeGroups
+  fields:
+    grouped_themes_markdown:
+      type: str
+      description: "Markdown bullet list describing grouped clusters"
+    total_classified:
+      type: int
+      description: "Total prompt count covered by groups"

@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Judged
+**Status:** Superseded by FR-402
 **Effort:** 1 day
 **Requested:** 2026-05-16
 
