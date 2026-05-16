@@ -21,7 +21,7 @@
 #   --var output_dir="outputs/philosopher-book" \
 #   --var chapter_num=5 --full
 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_trap_list -> load_trap_list
-[INFO] Loaded 1 trap chapter (chapter_num=5: plausible_wrong_answer)
+[INFO] Loaded 1 trap chapter (chapter_num=5: false_duplicate)
 [INFO] yamlgraph.node_factory.copilot_runtime: [write_chapters] map node write_chapters completed successfully (1 items)
-[INFO] Saved: outputs/philosopher-book/chapters/ch-05-plausible_wrong_answer.md
+[INFO] Saved: outputs/philosopher-book/chapters/ch-05-false_duplicate.md
 ✓ Graph execution completed successfully
