@@ -112,6 +112,56 @@ def test_assemble_book_creates_file(tmp_path):
 
 
 @pytest.mark.req("REQ-YG-404")
+def test_load_trap_list_single_chapter():
+    """chapter_num in state returns only that one chapter."""
+    from examples.demos.philosopher_book.tools import load_trap_list
+
+    result = load_trap_list({"chapter_num": 5})
+    chapters = result["trap_chapters"]
+    assert len(chapters) == 1
+    assert chapters[0]["chapter_num"] == 5
+
+
+@pytest.mark.req("REQ-YG-404")
+def test_load_trap_list_chapter_num_zero_returns_all():
+    """chapter_num=0 (default) returns all 21 chapters."""
+    from examples.demos.philosopher_book.tools import load_trap_list
+
+    result = load_trap_list({"chapter_num": 0})
+    assert len(result["trap_chapters"]) == 21
+
+
+@pytest.mark.req("REQ-YG-404")
+def test_assemble_book_reads_saved_chapter_files(tmp_path):
+    """assemble_book prefers saved chapter files over state list."""
+    from examples.demos.philosopher_book.tools import assemble_book
+
+    chapters_dir = tmp_path / "chapters"
+    chapters_dir.mkdir()
+    (chapters_dir / "ch-01-downstream_fix.md").write_text(
+        "# Chapter 1\n\nSaved content.", encoding="utf-8"
+    )
+
+    state = {
+        "trap_chapters": [
+            {
+                "chapter_num": 1,
+                "trap_name": "downstream_fix",
+                "title": "Where You Guard Is Where You Failed",
+                "part": "Part I",
+            }
+        ],
+        "chapters": ["stale state content"],
+        "epilogue": "",
+        "output_dir": str(tmp_path),
+    }
+    result = assemble_book(state)
+    content = Path(result["assembled_path"]).read_text()
+    assert "Saved content." in content
+    assert "stale state content" not in content
+
+
+@pytest.mark.req("REQ-YG-404")
 def test_assemble_book_includes_toc(tmp_path):
     from examples.demos.philosopher_book.tools import assemble_book
 

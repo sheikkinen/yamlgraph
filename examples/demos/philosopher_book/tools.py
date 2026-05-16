@@ -173,7 +173,12 @@ _TRAPS: list[dict[str, str]] = [
 
 
 def load_trap_list(state: dict[str, Any]) -> dict[str, Any]:
-    """Load the 21 traps with part/chapter/title/definition/cure assignments."""
+    """Load the 21 traps with part/chapter/title/definition/cure assignments.
+
+    If state contains ``chapter_num`` (non-zero int), only that chapter is
+    returned — enabling single-chapter generation via
+    ``--var chapter_num=5``.
+    """
     chapters = []
     for i, trap in enumerate(_TRAPS, start=1):
         chapters.append(
@@ -186,6 +191,11 @@ def load_trap_list(state: dict[str, Any]) -> dict[str, Any]:
                 "cure": trap["cure"],
             }
         )
+
+    requested = int(state.get("chapter_num") or 0)
+    if requested:
+        chapters = [ch for ch in chapters if ch["chapter_num"] == requested]
+
     return {"trap_chapters": chapters}
 
 
@@ -282,6 +292,10 @@ def _to_str(val: Any) -> str | None:
 def assemble_book(state: dict[str, Any]) -> dict[str, str]:
     """Assemble chapters into a final markdown book.
 
+    For each chapter, prefers a saved file at
+    ``{output_dir}/chapters/ch-{num:02d}-{trap_name}.md`` over the
+    in-state ``chapters`` list — enabling crash-safe incremental runs.
+
     Builds: title page → table of contents (by part) → chapters → epilogue.
     Writes to {output_dir}/philosopher-book.md.
     Returns {"assembled_path": str(path)}.
@@ -317,7 +331,8 @@ def assemble_book(state: dict[str, Any]) -> dict[str, str]:
         )
     lines += ["- Epilogue: The One Law", "", "---", ""]
 
-    # Chapters — pair each chapter metadata with its content
+    # Chapters — prefer saved file, fallback to state list
+    chapters_dir = output_dir / "chapters"
     current_part = None
     for i, ch in enumerate(trap_chapters):
         part = ch.get("part", "")
@@ -325,9 +340,14 @@ def assemble_book(state: dict[str, Any]) -> dict[str, str]:
             lines += [f"# {part}", "", "---", ""]
             current_part = part
 
-        raw = chapters[i] if i < len(chapters) else None
-        # Guard against non-string entries (e.g. skipped map nodes, CopilotResult)
-        chapter_text = _to_str(raw)
+        # Prefer saved file over state
+        saved_path = chapters_dir / f"ch-{ch['chapter_num']:02d}-{ch['trap_name']}.md"
+        if saved_path.exists():
+            chapter_text = saved_path.read_text(encoding="utf-8").strip() or None
+        else:
+            raw = chapters[i] if i < len(chapters) else None
+            chapter_text = _to_str(raw)
+
         if chapter_text:
             lines += [chapter_text, "", "---", ""]
         else:

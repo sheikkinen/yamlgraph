@@ -17,6 +17,7 @@ state:
   book_plan: str
   chapters: list
   epilogue: str
+  chapter_num: int
   output_dir: str
   assembled_path: str
 
@@ -84,6 +85,7 @@ nodes:
         chapter_num: "{state.chapter.chapter_num}"
         chapter_title: "{state.chapter.title}"
         book_plan: "{state.book_plan}"
+        output_dir: "{state.output_dir}"
     collect: chapters
 
   write_epilogue:

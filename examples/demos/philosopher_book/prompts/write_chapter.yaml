@@ -21,6 +21,10 @@ system: |
   4. Present the cure and why the cure works
   5. End with what the trap reveals about thinking itself
 
+  After writing the chapter, save it to disk:
+  Create the file {{ output_dir }}/chapters/ch-{{ "%02d" | format(chapter_num) }}-{{ trap_name }}.md
+  with the full chapter text. This enables crash-safe incremental runs.
+
 user: |
   ## {{ trap_name }}
   **Definition:** {{ definition }}
@@ -29,3 +33,4 @@ user: |
 
   Begin by searching the diary for relevant entries.
   Then write the chapter.
+  Then save it to {{ output_dir }}/chapters/ch-{{ "%02d" | format(chapter_num) }}-{{ trap_name }}.md
