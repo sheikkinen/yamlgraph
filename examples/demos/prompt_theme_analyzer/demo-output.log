@@ -1,52 +1,52 @@
 yamlgraph graph run examples/demos/prompt_theme_analyzer/graph.yaml \
   --var source_dir="examples/demos/prompt_theme_analyzer/fixtures" \
   --var output_path="outputs/prompt-theme-report.md"
-2026-05-16 19:22:48,415 [INFO] yamlgraph.graph_loader: Parsed 3 Python tools: list_prompts, aggregate_themes, write_report
-2026-05-16 19:22:48,415 [INFO] yamlgraph.node_compiler: Added node: list_prompts (type=python)
-2026-05-16 19:22:48,419 [INFO] yamlgraph.node_compiler: Added node: classify_themes (type=map)
-2026-05-16 19:22:48,419 [INFO] yamlgraph.node_compiler: Added node: aggregate_themes (type=python)
-2026-05-16 19:22:48,421 [INFO] yamlgraph.node_compiler: Added node: group_themes (type=llm)
-2026-05-16 19:22:48,421 [INFO] yamlgraph.node_compiler: Added node: write_report (type=python)
-2026-05-16 19:22:48,514 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: list_prompts -> list_prompts
-2026-05-16 19:22:48,722 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0.2)
-2026-05-16 19:22:50,510 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-16 19:22:50,529 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
-2026-05-16 19:22:50,608 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-16 19:22:50,608 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-16 19:22:50,609 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-16 19:22:50,615 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
-2026-05-16 19:22:50,616 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
-2026-05-16 19:22:50,617 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
-2026-05-16 19:22:50,631 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-16 19:22:50,633 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
-2026-05-16 19:22:50,635 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: aggregate_themes -> aggregate_themes
-2026-05-16 19:22:51,422 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-05-16 19:22:51,431 [INFO] yamlgraph.node_factory.llm_nodes: Node group_themes completed successfully
-2026-05-16 19:22:51,432 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: write_report -> write_report
+2026-05-16 19:29:56,379 [INFO] yamlgraph.graph_loader: Parsed 3 Python tools: list_prompts, aggregate_themes, write_report
+2026-05-16 19:29:56,380 [INFO] yamlgraph.node_compiler: Added node: list_prompts (type=python)
+2026-05-16 19:29:56,382 [INFO] yamlgraph.node_compiler: Added node: classify_themes (type=map)
+2026-05-16 19:29:56,383 [INFO] yamlgraph.node_compiler: Added node: aggregate_themes (type=python)
+2026-05-16 19:29:56,387 [INFO] yamlgraph.node_compiler: Added node: group_themes (type=llm)
+2026-05-16 19:29:56,387 [INFO] yamlgraph.node_compiler: Added node: write_report (type=python)
+2026-05-16 19:29:56,514 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: list_prompts -> list_prompts
+2026-05-16 19:29:56,733 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2 (temp=0.2)
+2026-05-16 19:29:58,420 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 19:29:58,436 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 19:29:58,441 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
+2026-05-16 19:29:58,443 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
+2026-05-16 19:29:58,569 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 19:29:58,571 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
+2026-05-16 19:29:58,575 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 19:29:58,578 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
+2026-05-16 19:29:58,660 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 19:29:58,663 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_classify_themes_sub completed successfully
+2026-05-16 19:29:58,664 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: aggregate_themes -> aggregate_themes
+2026-05-16 19:29:59,473 [INFO] httpx: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 19:29:59,484 [INFO] yamlgraph.node_factory.llm_nodes: Node group_themes completed successfully
+2026-05-16 19:29:59,486 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: write_report -> write_report
 
 🚀 Running graph: graph.yaml
    Variables: {'source_dir': 'examples/demos/prompt_theme_analyzer/fixtures', 'output_path': 'outputs/prompt-theme-report.md'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019e3198-f56e-78e0-9758-8632d43d62bf?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019e319f-7d33-7722-9c9c-c71a8075830d?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: write_report
   source_dir: examples/demos/prompt_theme_analyzer/fixtures
   prompt_entries: [{'timestamp': 'baroque-portrait', 'text': 'A formal baroque portrait of an aged philosopher seated at a carved mahogany desk, surrounded by leather-bound tomes and antique celestial globes, dramatic ...
-  classifications: [{'_map_index': 0, 'timestamp': 'baroque-portrait', 'theme': 'Baroque Portrait'}, {'_map_index': 1, 'timestamp': 'fantasy-landscape', 'theme': 'Enchanted Twilight Forest'}, {'_map_index': 2, 'timestam...
-  theme_counts: [{'theme': 'Baroque Portrait', 'count': 1}, {'theme': 'Enchanted Twilight Forest', 'count': 1}, {'theme': 'Futuristic Megacity', 'count': 1}, {'theme': 'Japanese Spring Landscape', 'count': 1}, {'them...
-  theme_groups: grouped_themes_markdown='- **Baroque Portrait**: Baroque Portrait\n- **Enchanted Twilight Forest**: Enchanted Twilight Forest\n- **Futuristic Megacity**: Futuristic Megacity\n- **Japanese Spring Lands...
+  classifications: [{'_map_index': 0, 'timestamp': 'baroque-portrait', 'theme': 'Baroque Philosopher Portrait'}, {'_map_index': 1, 'timestamp': 'fantasy-landscape', 'theme': 'Enchanted Moonlit Forest'}, {'_map_index': 2...
+  theme_counts: [{'theme': 'Baroque Philosopher Portrait', 'count': 1}, {'theme': 'Enchanted Moonlit Forest', 'count': 1}, {'theme': 'Futuristic Neon City', 'count': 1}, {'theme': 'Japanese Spring Landscape', 'count'...
+  theme_groups: grouped_themes_markdown='- **Cluster 1:** Baroque Philosopher Portrait\n- **Cluster 2:** Enchanted Moonlit Forest\n- **Cluster 3:** Futuristic Neon City\n- **Cluster 4:** Japanese Spring Landscape\n- ...
   report: # Prompt Theme Analysis Report
 
 ## Deterministic Theme Counts
 
 | Theme | Count |
 | --- | ---: |
-| Baroque Portrait | 1 |
-| Enchanted Twilight Forest | 1 |
-| Futuristic Megacity | 1 |
-| Japanese Spring...
+| Baroque Philosopher Portrait | 1 |
+| Enchanted Moonlit Forest | 1 |
+| Futuristic Neon City | 1 |
+| Jap...
   output_path: outputs/prompt-theme-report.md
 
 
