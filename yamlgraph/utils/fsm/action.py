@@ -71,6 +71,9 @@ class YamlgraphAsyncAction(BaseAction):
     ) -> None:
         """Lifecycle hook called when graph execution fails."""
 
+    def on_launch(self, _snap: SnapshotParams, _context: dict[str, Any]) -> None:
+        """Lifecycle hook called after snapshot resolution and before task launch."""
+
     def pre_dispatch(
         self,
         _snap: SnapshotParams | None,
@@ -114,6 +117,7 @@ class YamlgraphAsyncAction(BaseAction):
             snapshot.graph_path,
             current_state,
         )
+        self.on_launch(snapshot, context)
 
         asyncio.create_task(
             run_and_dispatch(
