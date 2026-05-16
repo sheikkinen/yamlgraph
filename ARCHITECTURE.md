@@ -1942,6 +1942,7 @@ Comprehensive documentation for the watcher2 pipeline orchestrator and shell lib
 | REQ-YG-330 | Generated `.agent.md` body includes graph-scoped persona and explicit YAMLGraph MCP-only execution instruction | `yamlgraph/skill_export_writer.py`, `tests/unit/test_fr351_agent_export_red.py` |
 | REQ-YG-331 | Export fails explicitly for missing graph path, invalid graph YAML, and existing output target collisions; CLI returns non-zero on export errors | `yamlgraph/skill_export.py`, `yamlgraph/cli/skill_commands.py`, `tests/unit/test_fr351_agent_export_red.py` |
 | REQ-YG-332 | CLI and skill export reference documentation include `agent-md` usage and `.github/agents/<skill-name>.agent.md` layout | `reference/cli.md`, `reference/skills-export.md`, `tests/unit/test_fr351_agent_export_red.py` |
+| REQ-YG-404 | YAMLGraph includes `examples/demos/philosopher_book/` with a five-node pipeline (load_trap_list → plan_book(copilot) → write_chapters(map×21, sequential) → write_epilogue → assemble_book), where diary search and file reading tools are available to copilot nodes, and the assembled output is a complete markdown book with table of contents. | `examples/demos/philosopher_book/`, `tests/unit/test_philosopher_book.py` |
 
 ---
 
