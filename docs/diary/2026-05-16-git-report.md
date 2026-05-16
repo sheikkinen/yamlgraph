@@ -22,7 +22,7 @@ Based on analysis of the 50 most recent commits, here's a feature-level summary 
 - Upgraded model to Claude Opus 4.6
 - Impact: Performance optimization for session validation
 
-#### 🟢 **Phase 3: FSM Phase-Aware Event Resolution** 
+#### 🟢 **Phase 3: FSM Phase-Aware Event Resolution**
 **Commits:** 1 feature (May 14)
 - **FR-391**: Phase-aware completion event resolution
 - Improves event handling in planning vs. enforcement phases

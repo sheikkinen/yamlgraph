@@ -1,0 +1,96 @@
+version: "1.0"
+name: prompt-theme-analyzer
+description: >
+  Read prompt files, classify concise themes with map fan-out, aggregate
+  deterministically in Python, then group themes and write a markdown report.
+  (FR-402)
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: inception
+  model: mercury-2
+  temperature: 0.2
+
+state:
+  source_dir: str
+  prompt_entries:
+    type: list
+  classifications:
+    type: list
+    reducer: sorted_add
+  theme_counts:
+    type: list
+  theme_groups: dict
+  report: str
+  output_path: str
+
+tools:
+  list_prompts:
+    type: python
+    module: examples.demos.prompt_theme_analyzer.tools
+    function: list_prompts
+    description: "List and boundary-normalize prompts from source_dir"
+  aggregate_themes:
+    type: python
+    module: examples.demos.prompt_theme_analyzer.tools
+    function: aggregate_themes
+    description: "Deterministically count normalized theme labels"
+  write_report:
+    type: python
+    module: examples.demos.prompt_theme_analyzer.tools
+    function: write_report
+    description: "Write grouped markdown report"
+
+nodes:
+  list_prompts:
+    type: python
+    tool: list_prompts
+    state_key: prompt_entries
+
+  classify_themes:
+    type: map
+    over: "{state.prompt_entries}"
+    as: entry
+    max_items: 1000
+    node:
+      type: llm
+      prompt: classify_theme
+      state_key: classification
+      on_error: skip
+      variables:
+        timestamp: "{state.entry.timestamp}"
+        prompt_text: "{state.entry.text}"
+    collect: classifications
+
+  aggregate_themes:
+    type: python
+    tool: aggregate_themes
+    state_key: theme_counts
+
+  group_themes:
+    type: llm
+    prompt: group_themes
+    state_key: theme_groups
+    variables:
+      theme_counts: "{state.theme_counts}"
+
+  write_report:
+    type: python
+    tool: write_report
+    state_key: output_path
+
+edges:
+  - from: START
+    to: list_prompts
+  - from: list_prompts
+    to: classify_themes
+  - from: classify_themes
+    to: aggregate_themes
+  - from: aggregate_themes
+    to: group_themes
+  - from: group_themes
+    to: write_report
+  - from: write_report
+    to: END

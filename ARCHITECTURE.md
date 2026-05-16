@@ -412,6 +412,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 146 | FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 | 147 | Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
 | 148 | CI Copilot Trailer Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` | REQ-YG-358 |
+| 149 | Prompt Theme Analyzer Demo | `examples/demos/prompt_theme_analyzer/`, `tests/unit/test_fr402_prompt_theme_analyzer_red.py`, `capabilities/CAP-149-prompt-theme-analyzer-demo.yaml`, `docs/diary/2026-05-16-reflection-fr-402-prompt-theme-analyzer-demo.md` | REQ-YG-359 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1809,6 +1810,16 @@ GitHub Actions job in commitlint.yml that blocks pull requests when `Co-authored
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-358 | `copilot-trailer-gate` job in `commitlint.yml` deterministically scans `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body` for `Co-authored-by: Copilot` trailer forms (short and full email), fails with exit 1 on detection, and passes unchanged PRs otherwise. | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` |
+
+### 149. Prompt Theme Analyzer Demo
+
+Demo graph for prompt-theme analysis using map fan-out, deterministic Python aggregation, and grouped markdown reporting.
+
+**Feature Request:** FR-402
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-359 | `examples/demos/prompt_theme_analyzer/` provides a five-node pipeline (`list_prompts -> classify_themes(map) -> aggregate_themes(python) -> group_themes(llm) -> write_report`) where `source_dir` is required, prompt text truncation happens at Python boundary, grouping consumes aggregated theme counts, and the feature includes tests, capability traceability, diary reflection, and `demo-output.log` integration evidence. | `examples/demos/prompt_theme_analyzer/graph.yaml`, `examples/demos/prompt_theme_analyzer/tools.py`, `examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml`, `tests/unit/test_fr402_prompt_theme_analyzer_red.py`, `docs/diary/2026-05-16-reflection-fr-402-prompt-theme-analyzer-demo.md`, `capabilities/CAP-149-prompt-theme-analyzer-demo.yaml` |
 
 <!-- END GENERATED CAPABILITIES -->
 

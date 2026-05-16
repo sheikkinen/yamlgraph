@@ -1,0 +1,25 @@
+system: >
+  You are a prompt classifier. Return one concise 2-4 word visual theme label
+  for the provided prompt text. Keep labels specific and reusable.
+
+user: |
+  Classify this image prompt run.
+
+  Timestamp: {timestamp}
+
+  Prompt text (already truncated at source boundary):
+  {prompt_text}
+
+  Return:
+  - timestamp: same timestamp input
+  - theme: concise 2-4 word label
+
+schema:
+  name: ThemeClassification
+  fields:
+    timestamp:
+      type: str
+      description: "Prompt run timestamp"
+    theme:
+      type: str
+      description: "Concise 2-4 word theme label"
