@@ -199,6 +199,51 @@ def load_trap_list(state: dict[str, Any]) -> dict[str, Any]:
     return {"trap_chapters": chapters}
 
 
+def load_trap(state: dict[str, Any]) -> dict[str, Any]:
+    """Load a single trap by chapter_num (required in state).
+
+    Raises ValueError if chapter_num is missing or out of range.
+    """
+    requested = int(state.get("chapter_num") or 0)
+    if not requested:
+        raise ValueError("chapter_num is required (1-21). Use --var chapter_num=N")
+
+    for i, trap in enumerate(_TRAPS, start=1):
+        if i == requested:
+            return {
+                "trap": {
+                    "chapter_num": i,
+                    "part": trap["part"],
+                    "trap_name": trap["trap_name"],
+                    "title": trap["title"],
+                    "definition": trap["definition"],
+                    "cure": trap["cure"],
+                }
+            }
+
+    raise ValueError(f"chapter_num {requested} out of range (1-{len(_TRAPS)})")
+
+
+def save_chapter(state: dict[str, Any]) -> dict[str, Any]:
+    """Save the written chapter text to output_dir/chapters/ch-{num:02d}-{trap}.md.
+
+    Returns the state unchanged (chapter_text preserved).
+    """
+    trap: dict[str, Any] = state.get("trap") or {}
+    chapter_text = _to_str(state.get("chapter_text"))
+    output_dir = Path(state.get("output_dir") or ".")
+    chapters_dir = output_dir / "chapters"
+    chapters_dir.mkdir(parents=True, exist_ok=True)
+
+    if chapter_text:
+        num = int(trap.get("chapter_num", 0))
+        trap_name = trap.get("trap_name", "unknown")
+        out_path = chapters_dir / f"ch-{num:02d}-{trap_name}.md"
+        out_path.write_text(chapter_text, encoding="utf-8")
+
+    return {"chapter_text": chapter_text}
+
+
 def search_diary(
     state: dict[str, Any],
     *,

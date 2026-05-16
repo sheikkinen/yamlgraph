@@ -1,27 +1,25 @@
 id: CAP-150
 name: Philosopher's Book Demo
 description: >
-  Demo pipeline generating a 21-chapter philosophical work on cognitive traps,
-  one chapter per trap from the Knowledge Graph, using copilot nodes with
-  diary search tools and sequential map execution. (FR-404)
+  Demo pipeline generating one chapter at a time of a philosophical work on
+  cognitive traps. Plan → write a single chapter using Copilot with diary
+  search tools. Run with --var chapter_num=N. (FR-404)
 modules:
   - examples/demos/philosopher_book/graph.yaml
   - examples/demos/philosopher_book/tools.py
-  - examples/demos/philosopher_book/prompts/plan_book.yaml
+  - examples/demos/philosopher_book/prompts/plan_chapter.yaml
   - examples/demos/philosopher_book/prompts/write_chapter.yaml
-  - examples/demos/philosopher_book/prompts/write_epilogue.yaml
   - tests/unit/test_philosopher_book.py
   - ARCHITECTURE.md
 requirements:
   - id: REQ-YG-404
     description: >
-      YAMLGraph includes `examples/demos/philosopher_book/` with a five-node
-      pipeline (load_trap_list -> plan_book(copilot) -> write_chapters(map×21,
-      sequential) -> write_epilogue(copilot) -> assemble_book) where traps are
-      loaded from hardcoded Knowledge Graph data, search_diary searches docs/diary/
-      using case-insensitive substring matching, read_file validates allowed path
-      prefixes and truncates at 8000 chars, and assemble_book produces a markdown
-      book with table of contents and part structure.
+      YAMLGraph includes `examples/demos/philosopher_book/` with a four-node
+      pipeline (load_trap -> plan_chapter(copilot) -> write_chapter(copilot)
+      -> save_chapter) where load_trap loads a single trap by chapter_num,
+      search_diary searches docs/diary/ using case-insensitive substring
+      matching, read_file validates allowed path prefixes and truncates at
+      8000 chars, and save_chapter writes to output_dir/chapters/.
     modules:
       - examples/demos/philosopher_book/graph.yaml
       - examples/demos/philosopher_book/tools.py

@@ -1,8 +1,9 @@
 version: "1.0"
 name: philosopher-book
 description: >
-  The Philosopher's book: one chapter per trap from the Knowledge Graph.
-  Each chapter actively researches diary entries as primary sources. (FR-404)
+  The Philosopher writes one chapter at a time.
+  Plan → write a single chapter using Copilot with diary search tools.
+  Run with --var chapter_num=N (1-21). (FR-404)
 
 prompts_relative: true
 prompts_dir: prompts
@@ -13,20 +14,18 @@ defaults:
   temperature: 1
 
 state:
-  trap_chapters: list
-  book_plan: str
-  chapters: list
-  epilogue: str
+  trap: dict
+  chapter_plan: str
+  chapter_text: str
   chapter_num: int
   output_dir: str
-  assembled_path: str
 
 tools:
-  load_trap_list:
+  load_trap:
     type: python
     module: examples.demos.philosopher_book.tools
-    function: load_trap_list
-    description: "Load trap names, definitions, cures, and chapter assignments"
+    function: load_trap
+    description: "Load one trap by chapter_num from the Knowledge Graph"
   search_diary:
     type: python
     module: examples.demos.philosopher_book.tools
@@ -37,84 +36,67 @@ tools:
     module: examples.demos.philosopher_book.tools
     function: read_file
     description: "Read a file by path (diary entry, letter, or Scripture)"
-  assemble_book:
+  save_chapter:
     type: python
     module: examples.demos.philosopher_book.tools
-    function: assemble_book
-    description: "Assemble chapters into final markdown book"
+    function: save_chapter
+    description: "Save the written chapter to output_dir/chapters/"
 
 nodes:
-  load_trap_list:
+  load_trap:
     type: python
-    tool: load_trap_list
-    state_key: trap_chapters
+    tool: load_trap
+    state_key: trap
 
-  plan_book:
+  plan_chapter:
     type: copilot
-    prompt: plan_book
-    state_key: book_plan
+    prompt: plan_chapter
+    state_key: chapter_plan
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    timeout: 600
+    timeout: 300
     variables:
-      trap_chapters: "{state.trap_chapters}"
+      trap_name: "{state.trap.trap_name}"
+      definition: "{state.trap.definition}"
+      cure: "{state.trap.cure}"
+      part_name: "{state.trap.part}"
+      chapter_num: "{state.trap.chapter_num}"
+      chapter_title: "{state.trap.title}"
 
-  write_chapters:
-    type: map
-    over: "{state.trap_chapters}"
-    as: chapter
-    max_items: 21
-    sequential: true
-    node:
-      type: copilot
-      prompt: write_chapter
-      state_key: chapter_text
-      backend: cli
-      cli_flags:
-        allow_all_paths: true
-        allow_all_tools: true
-      timeout: 900
-      on_error: skip
-      variables:
-        trap_name: "{state.chapter.trap_name}"
-        definition: "{state.chapter.definition}"
-        cure: "{state.chapter.cure}"
-        part_name: "{state.chapter.part}"
-        chapter_num: "{state.chapter.chapter_num}"
-        chapter_title: "{state.chapter.title}"
-        book_plan: "{state.book_plan}"
-        output_dir: "{state.output_dir}"
-    collect: chapters
-
-  write_epilogue:
+  write_chapter:
     type: copilot
-    prompt: write_epilogue
-    state_key: epilogue
+    prompt: write_chapter
+    state_key: chapter_text
     backend: cli
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    timeout: 600
+    timeout: 900
     variables:
-      book_plan: "{state.book_plan}"
+      trap_name: "{state.trap.trap_name}"
+      definition: "{state.trap.definition}"
+      cure: "{state.trap.cure}"
+      part_name: "{state.trap.part}"
+      chapter_num: "{state.trap.chapter_num}"
+      chapter_title: "{state.trap.title}"
+      chapter_plan: "{state.chapter_plan}"
+      output_dir: "{state.output_dir}"
 
-  assemble_book:
+  save_chapter:
     type: python
-    tool: assemble_book
-    state_key: assembled_path
+    tool: save_chapter
+    state_key: chapter_text
 
 edges:
   - from: START
-    to: load_trap_list
-  - from: load_trap_list
-    to: plan_book
-  - from: plan_book
-    to: write_chapters
-  - from: write_chapters
-    to: write_epilogue
-  - from: write_epilogue
-    to: assemble_book
-  - from: assemble_book
+    to: load_trap
+  - from: load_trap
+    to: plan_chapter
+  - from: plan_chapter
+    to: write_chapter
+  - from: write_chapter
+    to: save_chapter
+  - from: save_chapter
     to: END
