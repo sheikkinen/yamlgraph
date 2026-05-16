@@ -47,6 +47,54 @@ def test_load_trap_list_has_required_keys():
 
 
 @pytest.mark.req("REQ-YG-404")
+def test_load_trap_returns_single_trap():
+    """load_trap with chapter_num returns exactly one trap dict."""
+    from examples.demos.philosopher_book.tools import load_trap
+
+    result = load_trap({"chapter_num": 5})
+    assert "trap" in result
+    trap = result["trap"]
+    assert trap["chapter_num"] == 5
+    assert "trap_name" in trap
+    assert "definition" in trap
+    assert "cure" in trap
+
+
+@pytest.mark.req("REQ-YG-404")
+def test_load_trap_requires_chapter_num():
+    """load_trap raises ValueError if chapter_num missing."""
+    from examples.demos.philosopher_book.tools import load_trap
+
+    with pytest.raises(ValueError, match="chapter_num is required"):
+        load_trap({})
+
+
+@pytest.mark.req("REQ-YG-404")
+def test_load_trap_out_of_range():
+    """load_trap raises ValueError for chapter_num > 21."""
+    from examples.demos.philosopher_book.tools import load_trap
+
+    with pytest.raises(ValueError, match="out of range"):
+        load_trap({"chapter_num": 99})
+
+
+@pytest.mark.req("REQ-YG-404")
+def test_save_chapter_writes_file(tmp_path):
+    """save_chapter writes chapter text to chapters/ subdir."""
+    from examples.demos.philosopher_book.tools import save_chapter
+
+    state = {
+        "trap": {"chapter_num": 5, "trap_name": "false_duplicate"},
+        "chapter_text": "# Chapter 5\n\nContent here.",
+        "output_dir": str(tmp_path),
+    }
+    save_chapter(state)
+    out = tmp_path / "chapters" / "ch-05-false_duplicate.md"
+    assert out.exists()
+    assert "Content here." in out.read_text()
+
+
+@pytest.mark.req("REQ-YG-404")
 def test_search_diary_returns_list():
     from examples.demos.philosopher_book.tools import search_diary
 
@@ -83,32 +131,8 @@ def test_read_file_disallowed_path():
 def test_read_file_truncates():
     from examples.demos.philosopher_book.tools import read_file
 
-    # Any large file should be truncated to 8000 chars
-    # Use .github/copilot-instructions.md which is definitely > 8000 chars
     content = read_file({}, path=".github/copilot-instructions.md")
     assert len(content) <= 8000
-
-
-@pytest.mark.req("REQ-YG-404")
-def test_assemble_book_creates_file(tmp_path):
-    from examples.demos.philosopher_book.tools import assemble_book
-
-    state = {
-        "trap_chapters": [
-            {
-                "chapter_num": 1,
-                "trap_name": "test_trap",
-                "title": "Test Chapter",
-                "part": "Part I",
-            }
-        ],
-        "chapters": ["# Chapter 1\n\nTest content."],
-        "epilogue": "# Epilogue\n\nThe One Law.",
-        "output_dir": str(tmp_path),
-    }
-    result = assemble_book(state)
-    assert "assembled_path" in result
-    assert Path(result["assembled_path"]).exists()
 
 
 @pytest.mark.req("REQ-YG-404")

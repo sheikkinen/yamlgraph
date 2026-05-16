@@ -1,27 +1,13 @@
-[INFO] yamlgraph.graph_loader: Parsed 4 Python tools: load_trap_list, search_diary, read_file, assemble_book
-[INFO] yamlgraph.node_compiler: Added node: load_trap_list (type=python)
-[INFO] yamlgraph.node_compiler: Added node: plan_book (type=copilot)
-[INFO] yamlgraph.node_compiler: Added node: write_chapters (type=map)
-[INFO] yamlgraph.node_compiler: Added node: write_epilogue (type=copilot)
-[INFO] yamlgraph.node_compiler: Added node: assemble_book (type=python)
-[INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_trap_list -> load_trap_list
-[INFO] Loaded 21 trap chapters across 5 parts
-[INFO] yamlgraph.node_factory.copilot_runtime: [plan_book] Node plan_book completed successfully
-[INFO] yamlgraph.node_factory.copilot_runtime: [write_chapters] map node write_chapters completed successfully (21 items)
-[INFO] Saved chapter files: outputs/philosopher-book/chapters/ch-01-downstream_fix.md ... ch-21-identity_collapse.md
-[INFO] yamlgraph.node_factory.copilot_runtime: [write_epilogue] Node write_epilogue completed successfully
-[INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: assemble_book -> assemble_book
-[INFO] assemble_book: read 21 saved chapter files from outputs/philosopher-book/chapters/
-[INFO] assembled_path: outputs/philosopher-book/philosopher-book.md
-
-✓ Graph execution completed successfully
-
-# Single-chapter generation (chapter 5 only):
-# yamlgraph graph run examples/demos/philosopher_book/graph.yaml \
-#   --var output_dir="outputs/philosopher-book" \
-#   --var chapter_num=5 --full
-[INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_trap_list -> load_trap_list
-[INFO] Loaded 1 trap chapter (chapter_num=5: false_duplicate)
-[INFO] yamlgraph.node_factory.copilot_runtime: [write_chapters] map node write_chapters completed successfully (1 items)
+[INFO] yamlgraph.graph_loader: Parsed 4 Python tools: load_trap, search_diary, read_file, save_chapter
+[INFO] yamlgraph.node_compiler: Added node: load_trap (type=python)
+[INFO] yamlgraph.node_compiler: Added node: plan_chapter (type=copilot)
+[INFO] yamlgraph.node_compiler: Added node: write_chapter (type=copilot)
+[INFO] yamlgraph.node_compiler: Added node: save_chapter (type=python)
+[INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_trap -> load_trap
+[INFO] Loaded trap chapter_num=5: false_duplicate — "Same Shape, Different Soul"
+[INFO] yamlgraph.node_factory.copilot_runtime: [plan_chapter] Node plan_chapter completed successfully
+[INFO] yamlgraph.node_factory.copilot_runtime: [write_chapter] Node write_chapter completed successfully
+[INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: save_chapter -> save_chapter
 [INFO] Saved: outputs/philosopher-book/chapters/ch-05-false_duplicate.md
+
 ✓ Graph execution completed successfully
