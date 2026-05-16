@@ -102,7 +102,7 @@ class TestFR392StripRaceWinnerMetadata:
 
         assert sent == [("router", "completed", {"result": "ok"})]
         assert any(
-            "stripping _race_winner metadata" in call.args[0]
+            "race.winner" in call.args[0]
             and call.args[1]["provider"] == "vertex"
             for call in mock_info.call_args_list
         )
