@@ -111,6 +111,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |
 | [cache](demos/cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 | [prompt-caching](demos/prompt-caching/) | `llm` | Anthropic prompt caching with system_segments (FR-219) |
+| [prompt_theme_analyzer](demos/prompt_theme_analyzer/) | `map`, `python`, `llm` | Prompt theme classification with deterministic aggregation (FR-402) |
 
 ### Utility Demos
 

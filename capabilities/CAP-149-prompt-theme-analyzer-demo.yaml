@@ -1,0 +1,29 @@
+id: CAP-149
+name: Prompt Theme Analyzer Demo
+description: >
+  Demo graph showing list -> map -> deterministic aggregate -> llm-group ->
+  write flow for prompt theme analysis with explicit boundary normalization.
+modules:
+  - examples/demos/prompt_theme_analyzer/graph.yaml
+  - examples/demos/prompt_theme_analyzer/tools.py
+  - examples/demos/prompt_theme_analyzer/prompts/classify_theme.yaml
+  - examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml
+  - tests/unit/test_fr402_prompt_theme_analyzer_red.py
+  - ARCHITECTURE.md
+requirements:
+  - id: REQ-YG-359
+    description: >
+      YAMLGraph includes `examples/demos/prompt_theme_analyzer/` with a
+      five-node pipeline (`list_prompts -> classify_themes(map) ->
+      aggregate_themes(python) -> group_themes(llm) -> write_report`) where
+      `source_dir` is required, prompt text is truncated at the Python boundary,
+      grouping consumes deterministic aggregated theme counts, and the demo ships
+      with tests, capability traceability, diary reflection, and execution proof
+      via `demo-output.log`.
+    modules:
+      - examples/demos/prompt_theme_analyzer/graph.yaml
+      - examples/demos/prompt_theme_analyzer/tools.py
+      - examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml
+      - tests/unit/test_fr402_prompt_theme_analyzer_red.py
+      - docs/diary/2026-05-16-reflection-fr-402-prompt-theme-analyzer-demo.md
+fr: FR-402
