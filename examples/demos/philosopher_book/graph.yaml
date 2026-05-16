@@ -1,0 +1,118 @@
+version: "1.0"
+name: philosopher-book
+description: >
+  The Philosopher's book: one chapter per trap from the Knowledge Graph.
+  Each chapter actively researches diary entries as primary sources. (FR-404)
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: anthropic
+  model: claude-opus-4-6
+  temperature: 1
+
+state:
+  trap_chapters: list
+  book_plan: str
+  chapters: list
+  epilogue: str
+  output_dir: str
+  assembled_path: str
+
+tools:
+  load_trap_list:
+    type: python
+    module: examples.demos.philosopher_book.tools
+    function: load_trap_list
+    description: "Load trap names, definitions, cures, and chapter assignments"
+  search_diary:
+    type: python
+    module: examples.demos.philosopher_book.tools
+    function: search_diary
+    description: "Search diary corpus for entries mentioning a trap or keyword"
+  read_file:
+    type: python
+    module: examples.demos.philosopher_book.tools
+    function: read_file
+    description: "Read a file by path (diary entry, letter, or Scripture)"
+  assemble_book:
+    type: python
+    module: examples.demos.philosopher_book.tools
+    function: assemble_book
+    description: "Assemble chapters into final markdown book"
+
+nodes:
+  load_trap_list:
+    type: python
+    tool: load_trap_list
+    state_key: trap_chapters
+
+  plan_book:
+    type: copilot
+    prompt: plan_book
+    state_key: book_plan
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    timeout: 600
+    variables:
+      trap_chapters: "{state.trap_chapters}"
+
+  write_chapters:
+    type: map
+    over: "{state.trap_chapters}"
+    as: chapter
+    max_items: 21
+    sequential: true
+    node:
+      type: copilot
+      prompt: write_chapter
+      state_key: chapter_text
+      backend: cli
+      cli_flags:
+        allow_all_paths: true
+        allow_all_tools: true
+      timeout: 900
+      on_error: skip
+      variables:
+        trap_name: "{state.chapter.trap_name}"
+        definition: "{state.chapter.definition}"
+        cure: "{state.chapter.cure}"
+        part_name: "{state.chapter.part}"
+        chapter_num: "{state.chapter.chapter_num}"
+        chapter_title: "{state.chapter.title}"
+        book_plan: "{state.book_plan}"
+    collect: chapters
+
+  write_epilogue:
+    type: copilot
+    prompt: write_epilogue
+    state_key: epilogue
+    backend: cli
+    cli_flags:
+      allow_all_paths: true
+      allow_all_tools: true
+    timeout: 600
+    variables:
+      book_plan: "{state.book_plan}"
+
+  assemble_book:
+    type: python
+    tool: assemble_book
+    state_key: assembled_path
+
+edges:
+  - from: START
+    to: load_trap_list
+  - from: load_trap_list
+    to: plan_book
+  - from: plan_book
+    to: write_chapters
+  - from: write_chapters
+    to: write_epilogue
+  - from: write_epilogue
+    to: assemble_book
+  - from: assemble_book
+    to: END

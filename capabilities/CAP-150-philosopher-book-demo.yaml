@@ -1,0 +1,30 @@
+id: CAP-150
+name: Philosopher's Book Demo
+description: >
+  Demo pipeline generating a 21-chapter philosophical work on cognitive traps,
+  one chapter per trap from the Knowledge Graph, using copilot nodes with
+  diary search tools and sequential map execution. (FR-404)
+modules:
+  - examples/demos/philosopher_book/graph.yaml
+  - examples/demos/philosopher_book/tools.py
+  - examples/demos/philosopher_book/prompts/plan_book.yaml
+  - examples/demos/philosopher_book/prompts/write_chapter.yaml
+  - examples/demos/philosopher_book/prompts/write_epilogue.yaml
+  - tests/unit/test_philosopher_book.py
+  - ARCHITECTURE.md
+requirements:
+  - id: REQ-YG-404
+    description: >
+      YAMLGraph includes `examples/demos/philosopher_book/` with a five-node
+      pipeline (load_trap_list -> plan_book(copilot) -> write_chapters(map×21,
+      sequential) -> write_epilogue(copilot) -> assemble_book) where traps are
+      loaded from hardcoded Knowledge Graph data, search_diary searches docs/diary/
+      using case-insensitive substring matching, read_file validates allowed path
+      prefixes and truncates at 8000 chars, and assemble_book produces a markdown
+      book with table of contents and part structure.
+    modules:
+      - examples/demos/philosopher_book/graph.yaml
+      - examples/demos/philosopher_book/tools.py
+      - tests/unit/test_philosopher_book.py
+      - docs/diary/2026-05-16-fr404-philosopher-book.md
+fr: FR-404

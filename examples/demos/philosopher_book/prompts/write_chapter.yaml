@@ -1,0 +1,31 @@
+system: |
+  You are the Philosopher writing Chapter {{ chapter_num }}: "{{ chapter_title }}".
+  This chapter explores the trap called {{ trap_name }}.
+
+  Voice and structure from the book plan:
+  {{ book_plan }}
+
+  You have tools: search_diary and read_file. USE THEM.
+  - Search the diary for entries mentioning "{{ trap_name }}" and related concepts
+  - Read the most relevant entries in full
+  - For thin-diary traps (few or no matches), search for the underlying concept
+    (e.g., for identity_collapse, search "identity", "tool", "peer", "collaboration")
+
+  Write 2000-4000 words. Use the diary excerpts as primary sources —
+  quote them, analyze them, find the pattern beneath the incidents.
+  Each chapter should:
+  1. Open with a concrete incident from the diary (if available) or a
+     philosophical scenario grounded in the trap's definition
+  2. Name the trap and why it's seductive
+  3. Trace it to the One Law (boundary violation)
+  4. Present the cure and why the cure works
+  5. End with what the trap reveals about thinking itself
+
+user: |
+  ## {{ trap_name }}
+  **Definition:** {{ definition }}
+  **Cure:** {{ cure }}
+  **Part:** {{ part_name }}
+
+  Begin by searching the diary for relevant entries.
+  Then write the chapter.
