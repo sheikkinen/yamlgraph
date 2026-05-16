@@ -8,6 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1]
+
+### Added
+- **FR-392**: Sanitize top-level `_race_winner` from shared FSM runner payloads and log stripped race winners at INFO.
+- **FR-392**: Add `on_launch` lifecycle hook to `YamlgraphAsyncAction` between snapshot creation and async task launch.
+- **FR-392**: Forwarded `snapshot.payload_keys` from checkpoint `after_state.values` into shared FSM dispatch payloads with `json_safe()` serialization while preserving existing `output_key` behavior.
+- **FR-391**: Add phase-aware completion event resolution in the shared FSM runner so mapped checkpoint `phase` values route before generic `done` fallback.
+- **FR-390**: Normalize unresolved validate_fix diagnostics placeholders at yamlgraph action boundary and raise sanity-check timeout budgets to 1200s in watcher pipeline and sanity graph.
+- **FR-385**: Add `copilot-trailer-gate` CI job to block Copilot co-author trailers in PR commits and PR bodies. (REQ-YG-358)
+- **FR-383**: Add `backend: api` fallback for copilot nodes via `execute_prompt()` and enforce backend-aware API lint guardrails for CLI-only flags. (REQ-YG-356, REQ-YG-357)
+- **FR-382**: migrate watcher-enforce `context-planner.yaml` from `system` to `system_segments`, with a cached static segment and uncached runtime segment, while keeping Copilot-consumed Chaplain prompts on `system:`.
+- **FR-380**: Enforced `Seed:` marker parity in `diary-reflection-check` so local pre-commit now rejects reflection files that are missing the marker.
+- **FR-378**: Deduplicate `graph run` optional export handling by keeping `_handle_optional_exports` canonical in `graph_run_helpers.py` and aliased from `graph_commands.py`. (REQ-YG-033)
+- **FR-375**: Add `yamlgraph graph run --json` JSON-only stdout mode and TypeScript Node.js subprocess demo assets. (REQ-YG-348, REQ-YG-349, REQ-YG-350, REQ-YG-351, REQ-YG-352, REQ-YG-353, REQ-YG-354, REQ-YG-355)
+- **FR-373**: Hardened `changelog-gate` and `diary-gate` with shared semantic substance validation in CI.
+- **FR-372**: Add a `.gitignore` boundary pre-commit guard with explicit traceable bypass (`YAMLGRAPH_ALLOW_GITIGNORE_EDIT=1` + `YAMLGRAPH_GITIGNORE_REASON`) and break-glass documentation.
+- **FR-369**: Added typed FSM snapshot parameters and lifecycle hook seams (`pre_snapshot`, `pre_dispatch`, `on_success`, `on_error`) for subclass-safe shared bridge dispatch flow. (REQ-YG-347)
+- **FR-368**: Add watcher2 MVP multi-project routing for `ninchat_voice` with manifest-driven dispatcher, setup, plan, validate-gate, and FR capture wiring.
+- **FR-364**: Hardened Copilot instrumentation runner flags/env, added before/after git snapshots, and expanded semantic event extraction with deterministic conformance-table output. (REQ-YG-340)
+- **FR-363**: Add optional `YAMLGRAPH_OTEL_DIR` support so each copilot node subprocess gets `COPILOT_OTEL_FILE_EXPORTER_PATH=<dir>/<node_name>.otel.jsonl` while preserving unset behavior.
+- **FR-362**: add local Copilot instrumentation script, event extractor, and process-mining findings doc. (REQ-YG-047)
+
+### Fixed
+- **FR-392**: Strip `_race_winner` metadata in shared `run_and_dispatch()` before FSM payload assembly; log stripped winner metadata at INFO so framework-private race telemetry never crosses the FSM boundary.
+- **FR-392**: Forward `SnapshotParams.payload_keys` from checkpoint state values into shared FSM runner dispatch payload while preserving existing `output_key` behavior.
+- **FR-362 Instrumentation bugfixes**: correct OTel env var (`COPILOT_OTEL_JSONL` → `COPILOT_OTEL_FILE_EXPORTER_PATH`), add `--allow-all-tools --allow-all-paths` to Copilot run command, fix OTel extractor to parse flat `{"type":"span"}` format instead of OTLP `resourceSpans` JSON.
+- **fix(docs): escape Liquid tags in diary and demo docs** — Jekyll processes `{% %}` Jinja2 syntax in Markdown before rendering, causing recurring "pages build and deployment" failures. Wrapped all Jinja2 syntax literals with `{% raw %}...{% endraw %}` across 5 affected docs files.
+- **Chaplain pipeline**: add missing `validate_fix → failed` error transition in `watcher-pipeline-v2.yaml`; FSM no longer freezes silently on validate-session timeout
+- **dependency_rationale.py**: skip gitignored module paths (e.g. `projects/`) in worktrees; eliminates false-positive stale-path failures during pre-commit
+
 ## [0.5.0]
 
 ### Added
