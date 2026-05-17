@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -416,3 +418,218 @@ def assemble_book(state: dict[str, Any]) -> dict[str, str]:
     out_path.write_text(content, encoding="utf-8")
 
     return {"assembled_path": str(out_path)}
+
+
+def load_chapters(state: dict[str, Any]) -> dict[str, Any]:
+    """Load chapter drafts from a stable snapshot of a repo-contained folder."""
+    input_dir = _resolve_repo_path(state.get("input_dir"), "input_dir")
+    output_dir = _resolve_repo_path(state.get("output_dir"), "output_dir")
+    glob_pattern = str(state.get("glob_pattern") or "*.md")
+
+    if input_dir.resolve() == output_dir.resolve():
+        raise ValueError("input_dir and output_dir must differ for editorial runs")
+    if not input_dir.exists() or not input_dir.is_dir():
+        raise ValueError(f"input_dir does not exist or is not a directory: {input_dir}")
+
+    source_files = sorted(
+        path for path in input_dir.glob(glob_pattern) if path.is_file()
+    )
+    if not source_files:
+        raise ValueError(
+            f"No chapter files found in {input_dir} matching {glob_pattern}"
+        )
+
+    snapshot_dir = output_dir / "_input_snapshot"
+    if snapshot_dir.exists():
+        shutil.rmtree(snapshot_dir)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    chapters: list[dict[str, Any]] = []
+    brief_inputs: list[dict[str, Any]] = []
+    for source in source_files:
+        snapshot_path = snapshot_dir / source.name
+        shutil.copy2(source, snapshot_path)
+        text = snapshot_path.read_text(encoding="utf-8")
+        chapter = {
+            "filename": snapshot_path.name,
+            "path": str(snapshot_path),
+            "chapter_num": _parse_chapter_num(snapshot_path.name),
+            "title": _extract_title(text),
+            "text": text,
+            "word_count": _word_count(text),
+        }
+        chapters.append(chapter)
+        brief_inputs.append(
+            {
+                "filename": chapter["filename"],
+                "chapter_num": chapter["chapter_num"],
+                "title": chapter["title"],
+                "word_count": chapter["word_count"],
+                "excerpt": _bounded_excerpt(text),
+            }
+        )
+
+    return {
+        "chapters": chapters,
+        "chapter_brief_inputs": brief_inputs,
+        "chapter_snapshot_dir": str(snapshot_dir),
+    }
+
+
+def save_edited_chapters(state: dict[str, Any]) -> dict[str, Any]:
+    """Save edited chapter markdown to output_dir with original filenames."""
+    input_dir = _resolve_repo_path(state.get("input_dir"), "input_dir")
+    output_dir = _resolve_repo_path(state.get("output_dir"), "output_dir")
+    if input_dir.resolve() == output_dir.resolve():
+        raise ValueError("input_dir and output_dir must differ for editorial runs")
+
+    chapters = list(state.get("chapters") or [])
+    edited_chapters = _sorted_map_items(state.get("edited_chapters") or [])
+    if len(edited_chapters) != len(chapters):
+        raise ValueError(
+            f"edited_chapters count ({len(edited_chapters)}) does not match "
+            f"chapters count ({len(chapters)})"
+        )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    saved: list[dict[str, Any]] = []
+    for index, chapter in enumerate(chapters):
+        edited = _coerce_mapping(edited_chapters[index], f"edited_chapters[{index}]")
+        if "_error" in edited:
+            raise ValueError(
+                f"Map edit failed for {chapter['filename']}: {edited['_error']}"
+            )
+
+        edited_markdown = _to_str(edited.get("edited_markdown"))
+        if edited_markdown is None:
+            raise ValueError(f"Missing edited_markdown for {chapter['filename']}")
+
+        filename = Path(str(chapter["filename"])).name
+        out_path = output_dir / filename
+        out_path.write_text(edited_markdown.rstrip() + "\n", encoding="utf-8")
+
+        original_word_count = int(
+            chapter.get("word_count") or _word_count(chapter["text"])
+        )
+        edited_word_count = _word_count(edited_markdown)
+        compression_ratio = (
+            (original_word_count - edited_word_count) / original_word_count
+            if original_word_count
+            else 0.0
+        )
+        saved.append(
+            {
+                "filename": filename,
+                "path": str(out_path),
+                "original_word_count": original_word_count,
+                "edited_word_count": edited_word_count,
+                "compression_ratio": compression_ratio,
+                "editorial_notes": list(edited.get("editorial_notes") or []),
+                "compression_summary": str(edited.get("compression_summary") or ""),
+            }
+        )
+
+    return {"saved_chapters": saved}
+
+
+def write_editorial_report(state: dict[str, Any]) -> dict[str, str]:
+    """Write editorial-report.md summarizing compression and edit decisions."""
+    output_dir = _resolve_repo_path(state.get("output_dir"), "output_dir")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    editorial_brief = state.get("editorial_brief") or {}
+    if hasattr(editorial_brief, "model_dump"):
+        editorial_brief = editorial_brief.model_dump()
+    saved_chapters = list(state.get("saved_chapters") or [])
+
+    lines = [
+        "# Philosopher Book Editorial Report",
+        "",
+        "## Global Editorial Brief",
+        "",
+        str(editorial_brief.get("summary") or editorial_brief),
+        "",
+    ]
+
+    constraints = editorial_brief.get("global_constraints") or []
+    if constraints:
+        lines += ["### Global Constraints", ""]
+        lines += [f"- {constraint}" for constraint in constraints]
+        lines.append("")
+
+    lines += ["## Chapter Results", ""]
+    for item in saved_chapters:
+        ratio = float(item.get("compression_ratio") or 0.0)
+        lines += [
+            f"### {item['filename']}",
+            "",
+            f"- Original words: {item['original_word_count']}",
+            f"- Edited words: {item['edited_word_count']}",
+            f"- Compression: {ratio:.1%}",
+        ]
+        summary = item.get("compression_summary")
+        if summary:
+            lines.append(f"- Summary: {summary}")
+        notes = item.get("editorial_notes") or []
+        if notes:
+            lines += ["", "Notes:"]
+            lines += [f"- {note}" for note in notes]
+        lines.append("")
+
+    report_path = output_dir / "editorial-report.md"
+    report_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    return {"editorial_report_path": str(report_path)}
+
+
+def _resolve_repo_path(raw_path: Any, label: str) -> Path:
+    if not raw_path:
+        raise ValueError(f"{label} is required")
+
+    raw = Path(str(raw_path))
+    target = raw if raw.is_absolute() else REPO_ROOT / raw
+    resolved = target.resolve()
+    root = REPO_ROOT.resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f"{label} path is outside repository: {raw_path}") from exc
+    return resolved
+
+
+def _parse_chapter_num(filename: str) -> int | None:
+    match = re.match(r"ch-(\d+)-", filename)
+    return int(match.group(1)) if match else None
+
+
+def _extract_title(text: str) -> str:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            return stripped.lstrip("#").strip()
+    return ""
+
+
+def _word_count(text: str) -> int:
+    return len(re.findall(r"\b[\w'-]+\b", text))
+
+
+def _bounded_excerpt(text: str, limit: int = 2500) -> str:
+    stripped = text.strip()
+    if len(stripped) <= limit:
+        return stripped
+    return stripped[:limit].rsplit(" ", 1)[0].rstrip() + "\n\n[excerpt truncated]"
+
+
+def _sorted_map_items(items: list[Any]) -> list[Any]:
+    return sorted(
+        items,
+        key=lambda item: item.get("_map_index", 0) if isinstance(item, dict) else 0,
+    )
+
+
+def _coerce_mapping(value: Any, label: str) -> dict[str, Any]:
+    if hasattr(value, "model_dump"):
+        value = value.model_dump()
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be a mapping")
+    return value

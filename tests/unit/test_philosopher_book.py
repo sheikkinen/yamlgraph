@@ -211,3 +211,149 @@ def test_assemble_book_includes_toc(tmp_path):
     result = assemble_book(state)
     content = Path(result["assembled_path"]).read_text()
     assert "Table of Contents" in content or "Contents" in content
+
+
+@pytest.mark.req("REQ-YG-405")
+def test_load_chapters_snapshots_and_sorts_markdown_files(tmp_path, monkeypatch):
+    from examples.demos.philosopher_book import tools
+
+    monkeypatch.setattr(tools, "REPO_ROOT", tmp_path)
+    input_dir = tmp_path / "drafts"
+    output_dir = tmp_path / "edited"
+    input_dir.mkdir()
+    (input_dir / "ch-02-second.md").write_text("# Chapter 2\n\nSecond text.", "utf-8")
+    (input_dir / "ch-01-first.md").write_text("# Chapter 1\n\nFirst text.", "utf-8")
+    (input_dir / "notes.txt").write_text("ignored", "utf-8")
+
+    result = tools.load_chapters(
+        {"input_dir": "drafts", "output_dir": "edited", "glob_pattern": "*.md"}
+    )
+
+    chapters = result["chapters"]
+    assert [chapter["filename"] for chapter in chapters] == [
+        "ch-01-first.md",
+        "ch-02-second.md",
+    ]
+    assert chapters[0]["chapter_num"] == 1
+    assert chapters[0]["title"] == "Chapter 1"
+    assert chapters[0]["word_count"] == 4
+    assert (output_dir / "_input_snapshot" / "ch-01-first.md").exists()
+
+
+@pytest.mark.req("REQ-YG-405")
+def test_load_chapters_rejects_path_traversal(tmp_path, monkeypatch):
+    from examples.demos.philosopher_book import tools
+
+    monkeypatch.setattr(tools, "REPO_ROOT", tmp_path)
+
+    with pytest.raises(ValueError, match="outside repository"):
+        tools.load_chapters({"input_dir": "../outside", "output_dir": "edited"})
+
+
+@pytest.mark.req("REQ-YG-405")
+def test_load_chapters_raises_for_empty_input(tmp_path, monkeypatch):
+    from examples.demos.philosopher_book import tools
+
+    monkeypatch.setattr(tools, "REPO_ROOT", tmp_path)
+    (tmp_path / "drafts").mkdir()
+
+    with pytest.raises(ValueError, match="No chapter files found"):
+        tools.load_chapters({"input_dir": "drafts", "output_dir": "edited"})
+
+
+@pytest.mark.req("REQ-YG-405")
+def test_save_edited_chapters_preserves_filenames_and_originals(tmp_path, monkeypatch):
+    from examples.demos.philosopher_book import tools
+
+    monkeypatch.setattr(tools, "REPO_ROOT", tmp_path)
+    input_dir = tmp_path / "drafts"
+    input_dir.mkdir()
+    original = input_dir / "ch-01-first.md"
+    original.write_text("# Chapter 1\n\nOriginal text.", "utf-8")
+
+    state = {
+        "input_dir": "drafts",
+        "output_dir": "edited",
+        "chapters": [
+            {
+                "filename": "ch-01-first.md",
+                "text": "# Chapter 1\n\nOriginal text.",
+                "word_count": 4,
+            }
+        ],
+        "edited_chapters": [
+            {
+                "_map_index": 0,
+                "edited_markdown": "# Chapter 1\n\nEdited text.",
+                "editorial_notes": ["Cut repetition."],
+                "compression_summary": "Shortened.",
+            }
+        ],
+    }
+
+    result = tools.save_edited_chapters(state)
+
+    edited = tmp_path / "edited" / "ch-01-first.md"
+    assert edited.read_text("utf-8") == "# Chapter 1\n\nEdited text.\n"
+    assert original.read_text("utf-8") == "# Chapter 1\n\nOriginal text."
+    assert result["saved_chapters"][0]["filename"] == "ch-01-first.md"
+    assert result["saved_chapters"][0]["original_word_count"] == 4
+    assert result["saved_chapters"][0]["edited_word_count"] == 4
+
+
+@pytest.mark.req("REQ-YG-405")
+def test_save_edited_chapters_rejects_input_output_collision(tmp_path, monkeypatch):
+    from examples.demos.philosopher_book import tools
+
+    monkeypatch.setattr(tools, "REPO_ROOT", tmp_path)
+    (tmp_path / "drafts").mkdir()
+
+    with pytest.raises(ValueError, match="must differ"):
+        tools.save_edited_chapters(
+            {
+                "input_dir": "drafts",
+                "output_dir": "drafts",
+                "chapters": [],
+                "edited_chapters": [],
+            }
+        )
+
+
+@pytest.mark.req("REQ-YG-405")
+def test_write_editorial_report_includes_counts_and_notes(tmp_path, monkeypatch):
+    from examples.demos.philosopher_book import tools
+
+    monkeypatch.setattr(tools, "REPO_ROOT", tmp_path)
+    state = {
+        "output_dir": "edited",
+        "editorial_brief": {
+            "summary": "Reduce repeated NC-291 examples.",
+            "global_constraints": ["Preserve voice."],
+        },
+        "saved_chapters": [
+            {
+                "filename": "ch-01-first.md",
+                "original_word_count": 100,
+                "edited_word_count": 75,
+                "compression_ratio": 0.25,
+                "editorial_notes": ["Removed repeated aphorisms."],
+                "compression_summary": "Compressed by one quarter.",
+            }
+        ],
+    }
+
+    result = tools.write_editorial_report(state)
+
+    report = Path(result["editorial_report_path"])
+    content = report.read_text("utf-8")
+    assert "Reduce repeated NC-291 examples." in content
+    assert "ch-01-first.md" in content
+    assert "25.0%" in content
+    assert "Removed repeated aphorisms." in content
+
+
+@pytest.mark.req("REQ-YG-405")
+def test_editorial_graph_and_prompts_exist():
+    assert (DEMO_DIR / "editorial_graph.yaml").exists()
+    assert (DEMO_DIR / "prompts" / "editorial_brief.yaml").exists()
+    assert (DEMO_DIR / "prompts" / "edit_chapter.yaml").exists()

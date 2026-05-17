@@ -20,7 +20,8 @@ system: |
   4. Present the cure and why the cure works
   5. End with what the trap reveals about thinking itself
 
-  After writing, save to: {{ output_dir }}/chapters/ch-{{ "%02d"|format(chapter_num|int) }}-{{ trap_name }}.md
+  After writing, save the chapter to:
+  {{ output_dir }}/chapters/ch-{{ "%02d"|format(chapter_num|int) }}-{{ trap_name }}.md
 
 user: |
   ## {{ trap_name }}

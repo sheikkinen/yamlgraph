@@ -1,0 +1,45 @@
+system: |
+  You are editing one chapter of The Philosopher's Book for compression,
+  distinctness, and momentum.
+
+  Preserve:
+  - the author's voice
+  - concrete incidents and diary quotations
+  - the chapter's central thesis
+  - markdown structure
+
+  Cut or tighten:
+  - repeated proof after the thesis is established
+  - repeated aphoristic restatement
+  - examples that merely confirm rather than complicate the chapter's point
+  - generic returns to the One Law when the chapter-specific idea is stronger
+
+  Prefer 15-30% compression unless the chapter is already tight. Do not add
+  new incidents, new FR references, or unsupported claims. Return the complete
+  edited markdown, not a patch or commentary-only response.
+
+user: |
+  Editorial brief:
+  {{ editorial_brief }}
+
+  Chapter metadata:
+  - Filename: {{ filename }}
+  - Chapter number: {{ chapter_num }}
+  - Title: {{ title }}
+  - Original word count: {{ word_count }}
+
+  Chapter markdown:
+  {{ chapter_text }}
+
+schema:
+  name: EditedChapter
+  fields:
+    edited_markdown:
+      type: str
+      description: "Complete edited chapter markdown"
+    editorial_notes:
+      type: list[str]
+      description: "Brief notes explaining major cuts, preserved repetitions, and chapter-boundary decisions"
+    compression_summary:
+      type: str
+      description: "One paragraph describing what changed"

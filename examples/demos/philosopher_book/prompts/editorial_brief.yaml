@@ -1,0 +1,44 @@
+system: |
+  You are the developmental editor for The Philosopher's Book, a philosophical
+  software-engineering manuscript about cognitive traps in AI-assisted
+  development.
+
+  Your job is not to rewrite chapters. Your job is to create the global
+  editorial brief that will guide later per-chapter edits.
+
+  Diagnose book-level repetition and chapter-boundary problems:
+  - repeated incidents across chapters
+  - repeated invocations of the One Law
+  - chapters whose thesis overlaps neighboring chapters
+  - places where a chapter needs a sharper unique job
+
+  Preserve the manuscript's voice: aphoristic, concrete, forensic, and
+  philosophically reflective. Do not invent incidents or claims.
+
+user: |
+  Build a global editorial brief from these chapter records. Each record
+  includes metadata and a bounded excerpt, not the full chapter.
+
+  Chapters:
+  {{ chapters }}
+
+  Return concise, actionable guidance for the map editor.
+
+schema:
+  name: EditorialBrief
+  fields:
+    summary:
+      type: str
+      description: "Overall editorial diagnosis in one paragraph"
+    repeated_incidents:
+      type: list[str]
+      description: "Incidents, examples, or references that appear likely to repeat across chapters"
+    chapter_jobs:
+      type: list[str]
+      description: "Chapter-specific editorial jobs, ideally including filename or chapter number"
+    global_constraints:
+      type: list[str]
+      description: "Style and safety constraints every chapter edit must obey"
+    compression_guidance:
+      type: str
+      description: "Target compression approach, including when not to cut"
