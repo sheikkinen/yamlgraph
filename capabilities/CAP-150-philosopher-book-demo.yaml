@@ -6,9 +6,12 @@ description: >
   search tools. Run with --var chapter_num=N. (FR-404)
 modules:
   - examples/demos/philosopher_book/graph.yaml
+  - examples/demos/philosopher_book/editorial_graph.yaml
   - examples/demos/philosopher_book/tools.py
   - examples/demos/philosopher_book/prompts/plan_chapter.yaml
   - examples/demos/philosopher_book/prompts/write_chapter.yaml
+  - examples/demos/philosopher_book/prompts/editorial_brief.yaml
+  - examples/demos/philosopher_book/prompts/edit_chapter.yaml
   - tests/unit/test_philosopher_book.py
   - ARCHITECTURE.md
 requirements:
@@ -25,4 +28,19 @@ requirements:
       - examples/demos/philosopher_book/tools.py
       - tests/unit/test_philosopher_book.py
       - docs/diary/2026-05-16-fr404-philosopher-book.md
+  - id: REQ-YG-405
+    description: >
+      YAMLGraph includes a separate philosopher-book editorial graph that
+      snapshots repo-contained chapter inputs, builds a token-bounded global
+      editorial brief, edits chapters through a type: map LLM pass, writes
+      edited markdown to a separate repo-contained output folder with original
+      filenames preserved, and writes an editorial report with word-count
+      deltas and editorial notes.
+    modules:
+      - examples/demos/philosopher_book/editorial_graph.yaml
+      - examples/demos/philosopher_book/tools.py
+      - examples/demos/philosopher_book/prompts/editorial_brief.yaml
+      - examples/demos/philosopher_book/prompts/edit_chapter.yaml
+      - tests/unit/test_philosopher_book.py
+      - docs/diary/2026-05-17-fr405-philosopher-book-editorial-graph.md
 fr: FR-404

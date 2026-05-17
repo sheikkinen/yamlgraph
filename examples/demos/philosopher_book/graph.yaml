@@ -36,11 +36,6 @@ tools:
     module: examples.demos.philosopher_book.tools
     function: read_file
     description: "Read a file by path (diary entry, letter, or Scripture)"
-  save_chapter:
-    type: python
-    module: examples.demos.philosopher_book.tools
-    function: save_chapter
-    description: "Save the written chapter to output_dir/chapters/"
 
 nodes:
   load_trap:
@@ -56,7 +51,7 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    timeout: 300
+    timeout: 3600
     variables:
       trap_name: "{state.trap.trap_name}"
       definition: "{state.trap.definition}"
@@ -73,7 +68,7 @@ nodes:
     cli_flags:
       allow_all_paths: true
       allow_all_tools: true
-    timeout: 900
+    timeout: 3600
     variables:
       trap_name: "{state.trap.trap_name}"
       definition: "{state.trap.definition}"
@@ -84,11 +79,6 @@ nodes:
       chapter_plan: "{state.chapter_plan}"
       output_dir: "{state.output_dir}"
 
-  save_chapter:
-    type: python
-    tool: save_chapter
-    state_key: chapter_text
-
 edges:
   - from: START
     to: load_trap
@@ -97,6 +87,4 @@ edges:
   - from: plan_chapter
     to: write_chapter
   - from: write_chapter
-    to: save_chapter
-  - from: save_chapter
     to: END

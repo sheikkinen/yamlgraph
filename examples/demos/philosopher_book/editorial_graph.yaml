@@ -1,0 +1,99 @@
+version: "1.0"
+name: philosopher-book-editorial
+description: >
+  Editorial pass for the Philosopher's Book. Reads generated chapter drafts,
+  builds a global editorial brief, edits chapters in parallel via map, and
+  writes edited chapters plus an editorial report. (FR-405)
+
+prompts_relative: true
+prompts_dir: prompts
+
+config:
+  max_map_items: 50
+
+state:
+  input_dir: str
+  output_dir: str
+  glob_pattern: str
+  chapters: list
+  chapter_brief_inputs: list
+  chapter_snapshot_dir: str
+  editorial_brief: dict
+  edited_chapters:
+    type: list
+    reducer: sorted_add
+  saved_chapters: list
+  editorial_report_path: str
+
+tools:
+  load_chapters:
+    type: python
+    module: examples.demos.philosopher_book.tools
+    function: load_chapters
+    description: "Load chapter drafts from a stable repo-contained snapshot"
+  save_edited_chapters:
+    type: python
+    module: examples.demos.philosopher_book.tools
+    function: save_edited_chapters
+    description: "Write edited chapter markdown with original filenames preserved"
+  write_editorial_report:
+    type: python
+    module: examples.demos.philosopher_book.tools
+    function: write_editorial_report
+    description: "Write editorial report with word-count deltas and notes"
+
+nodes:
+  load_chapters:
+    type: python
+    tool: load_chapters
+    state_key: chapters
+
+  build_editorial_brief:
+    type: llm
+    prompt: editorial_brief
+    state_key: editorial_brief
+    variables:
+      chapters: "{state.chapter_brief_inputs}"
+
+  edit_chapters:
+    type: map
+    over: "{state.chapters}"
+    as: chapter
+    max_items: 50
+    timeout: 3600
+    node:
+      type: llm
+      prompt: edit_chapter
+      state_key: edited_chapter
+      variables:
+        filename: "{state.chapter.filename}"
+        chapter_num: "{state.chapter.chapter_num}"
+        title: "{state.chapter.title}"
+        word_count: "{state.chapter.word_count}"
+        chapter_text: "{state.chapter.text}"
+        editorial_brief: "{state.editorial_brief}"
+    collect: edited_chapters
+
+  save_edited_chapters:
+    type: python
+    tool: save_edited_chapters
+    state_key: saved_chapters
+
+  write_editorial_report:
+    type: python
+    tool: write_editorial_report
+    state_key: editorial_report_path
+
+edges:
+  - from: START
+    to: load_chapters
+  - from: load_chapters
+    to: build_editorial_brief
+  - from: build_editorial_brief
+    to: edit_chapters
+  - from: edit_chapters
+    to: save_edited_chapters
+  - from: save_edited_chapters
+    to: write_editorial_report
+  - from: write_editorial_report
+    to: END

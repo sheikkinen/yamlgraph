@@ -32,9 +32,28 @@ yamlgraph graph run examples/demos/philosopher_book/graph.yaml \
 
 Output: `outputs/philosopher-book/philosopher-book.md`
 
+## Editorial pass
+
+FR-405 adds a separate editorial graph for revising generated chapter drafts
+without overwriting them. It snapshots the input folder into the output folder,
+builds a global editorial brief, edits each chapter via `type: map`, and writes
+an `editorial-report.md`.
+
+```bash
+yamlgraph graph run examples/demos/philosopher_book/editorial_graph.yaml \
+  --var input_dir="outputs/philosopher-book/chapters" \
+  --var output_dir="outputs/philosopher-book/edited-chapters"
+```
+
+The editorial graph should be run only when you are ready to edit a stable set
+of drafts. It writes to a separate output directory and preserves original
+filenames.
+
 ## Architecture notes
 
 - `tools.py` hardcodes the 21 traps (stable Knowledge Graph enumeration)
 - `read_file` validates path prefixes (`docs/`, `.github/`, `feature-requests/`) at the boundary
-- `sequential: true` on the map node prevents API rate limiting
-- `on_error: skip` allows partial book generation if some chapters fail
+- The editorial graph snapshots chapter inputs before editing so active
+  generation cannot change the files mid-run
+- The editorial graph uses Python tools for filesystem effects and LLM nodes
+  only for prose judgement

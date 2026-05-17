@@ -1,13 +1,1 @@
-[INFO] yamlgraph.graph_loader: Parsed 4 Python tools: load_trap, search_diary, read_file, save_chapter
-[INFO] yamlgraph.node_compiler: Added node: load_trap (type=python)
-[INFO] yamlgraph.node_compiler: Added node: plan_chapter (type=copilot)
-[INFO] yamlgraph.node_compiler: Added node: write_chapter (type=copilot)
-[INFO] yamlgraph.node_compiler: Added node: save_chapter (type=python)
-[INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: load_trap -> load_trap
-[INFO] Loaded trap chapter_num=5: false_duplicate — "Same Shape, Different Soul"
-[INFO] yamlgraph.node_factory.copilot_runtime: [plan_chapter] Node plan_chapter completed successfully
-[INFO] yamlgraph.node_factory.copilot_runtime: [write_chapter] Node write_chapter completed successfully
-[INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: save_chapter -> save_chapter
-[INFO] Saved: outputs/philosopher-book/chapters/ch-05-false_duplicate.md
-
-✓ Graph execution completed successfully
+Graph execution completed successfully
