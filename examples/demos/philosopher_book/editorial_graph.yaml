@@ -11,6 +11,9 @@ prompts_dir: prompts
 config:
   max_map_items: 50
 
+defaults:
+  temperature: 0.4
+
 state:
   input_dir: str
   output_dir: str
