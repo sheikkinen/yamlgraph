@@ -59,6 +59,11 @@ def _run_gitignore_boundary_check(
         subprocess.run(["git", "add", "."], cwd=tmpdir, check=True)
 
         run_env = os.environ.copy()
+        # Strip bypass vars unless explicitly provided — prevents env leakage
+        # when pre-commit runs pytest with bypass vars set for the commit itself.
+        for key in ("YAMLGRAPH_ALLOW_GITIGNORE_EDIT", "YAMLGRAPH_GITIGNORE_REASON"):
+            if (env is None or key not in env) and key in run_env:
+                del run_env[key]
         if env:
             run_env.update(env)
 

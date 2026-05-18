@@ -26,6 +26,10 @@ purgatory/
 
 # Symlinks to external projects
 matrix
+customer-service-agent-platform
+fsm
+questionnaire-api
+tt-bot-v2
 
 # Extracted to separate repos
 projects/scripture-dev/
