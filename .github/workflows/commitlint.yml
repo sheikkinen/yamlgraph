@@ -67,7 +67,7 @@ jobs:
           fi
 
   copilot-trailer-gate:
-    name: Block Copilot co-author trailers
+    name: Block Co-authored-by trailers
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
@@ -75,7 +75,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify commits and PR body for Copilot trailer
+      - name: Verify commits and PR body for Co-authored-by trailer
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -83,20 +83,19 @@ jobs:
         run: |
           set -euo pipefail
 
-          TRAILER_SHORT='Co-authored-by: Copilot'
-          TRAILER_FULL='Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>'
+          TRAILER_PATTERN='^[[:space:]]*Co-authored-by:[[:space:]]+'
 
-          if git log --format=%B "$BASE_SHA..$HEAD_SHA" | grep -Fq -e "$TRAILER_SHORT" -e "$TRAILER_FULL"; then
-            echo "::error::Copilot co-author trailer found in commit messages"
+          if git log --format=%B "$BASE_SHA..$HEAD_SHA" | grep -Eiq "$TRAILER_PATTERN"; then
+            echo "::error::Co-authored-by trailer found in commit messages"
             exit 1
           fi
 
-          if printf '%s\n' "${PR_BODY:-}" | grep -Fq -e "$TRAILER_SHORT" -e "$TRAILER_FULL"; then
-            echo "::error::Copilot co-author trailer found in PR body"
+          if printf '%s\n' "${PR_BODY:-}" | grep -Eiq "$TRAILER_PATTERN"; then
+            echo "::error::Co-authored-by trailer found in PR body"
             exit 1
           fi
 
-          echo "✅ No Copilot co-author trailers found"
+          echo "✅ No Co-authored-by trailers found"
 
   changelog-gate:
     name: Changelog fragment required for feat/fix
