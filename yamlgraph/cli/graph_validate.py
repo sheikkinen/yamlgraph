@@ -6,10 +6,12 @@ Provides validation helpers and CLI commands for checking graph YAML files.
 import sys
 from argparse import Namespace
 from pathlib import Path
+from typing import TextIO
 
 from yamlgraph.cli.helpers import GraphLoadError, require_graph_config
 from yamlgraph.config import WORKING_DIR
 from yamlgraph.linter import lint_graph
+from yamlgraph.linter.checks import LintIssue
 
 
 def _validate_required_fields(config: dict) -> tuple[list[str], list[str]]:
@@ -158,6 +160,50 @@ def cmd_graph_validate(args: Namespace) -> None:
         sys.exit(1)
 
 
+def _report_human_lint_result(
+    graph_path: Path,
+    errors: list[LintIssue],
+    warnings: list[LintIssue],
+    issues: list[LintIssue],
+) -> None:
+    """Print human-readable lint output for a single graph file."""
+    if not errors and not warnings:
+        print(f"✅ {graph_path.name} - No issues found")
+        return
+
+    status = "❌" if errors else "⚠️"
+    print(f"{status} {graph_path.name}")
+    for issue in issues:
+        icon = "❌" if issue.severity == "error" else "⚠"
+        print(f"   {icon} [{issue.code}] {issue.message}")
+        if issue.fix:
+            print(f"      Fix: {issue.fix}")
+
+
+def _lint_single_graph(
+    graph_path: Path,
+    *,
+    json_mode: bool,
+    error_stream: TextIO,
+) -> tuple[int, int]:
+    """Lint one graph file and emit output in human or JSON mode."""
+    try:
+        result = lint_graph(graph_path, WORKING_DIR)
+    except Exception as e:
+        print(f"❌ Error linting {graph_path}: {e}", file=error_stream)
+        return 1, 0
+
+    errors = [issue for issue in result.issues if issue.severity == "error"]
+    warnings = [issue for issue in result.issues if issue.severity == "warning"]
+
+    if json_mode:
+        print(result.model_dump_json())
+    else:
+        _report_human_lint_result(graph_path, errors, warnings, result.issues)
+
+    return len(errors), len(warnings)
+
+
 def cmd_graph_lint(args: Namespace) -> None:
     """Lint graph YAML files for issues.
 
@@ -170,41 +216,31 @@ def cmd_graph_lint(args: Namespace) -> None:
     """
     total_errors = 0
     total_warnings = 0
+    json_mode = getattr(args, "json", False)
+    error_stream = sys.stderr if json_mode else sys.stdout
 
     for graph_path_str in args.graph_path:
         graph_path = Path(graph_path_str)
 
         if not graph_path.exists():
-            print(f"❌ Graph file not found: {graph_path}")
+            print(f"❌ Graph file not found: {graph_path}", file=error_stream)
             total_errors += 1
             continue
 
-        try:
-            result = lint_graph(graph_path, WORKING_DIR)
-
-            errors = [i for i in result.issues if i.severity == "error"]
-            warnings = [i for i in result.issues if i.severity == "warning"]
-
-            if result.valid and not warnings:
-                print(f"✅ {graph_path.name} - No issues found")
-            else:
-                status = "❌" if errors else "⚠️"
-                print(f"{status} {graph_path.name}")
-
-                for issue in result.issues:
-                    icon = "❌" if issue.severity == "error" else "⚠"
-                    print(f"   {icon} [{issue.code}] {issue.message}")
-                    if issue.fix:
-                        print(f"      Fix: {issue.fix}")
-
-            total_errors += len(errors)
-            total_warnings += len(warnings)
-
-        except Exception as e:
-            print(f"❌ Error linting {graph_path}: {e}")
-            total_errors += 1
+        errors, warnings = _lint_single_graph(
+            graph_path,
+            json_mode=json_mode,
+            error_stream=error_stream,
+        )
+        total_errors += errors
+        total_warnings += warnings
 
     # Summary
+    if json_mode:
+        if total_errors > 0:
+            sys.exit(1)
+        return
+
     print()
     if total_errors == 0 and total_warnings == 0:
         print("✅ All graphs passed linting")

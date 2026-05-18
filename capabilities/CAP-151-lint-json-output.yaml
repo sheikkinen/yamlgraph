@@ -1,0 +1,22 @@
+id: CAP-151
+name: Graph Lint JSON Output
+description: >
+  Add machine-readable NDJSON output mode for `yamlgraph graph lint` while
+  preserving default human output and existing lint exit-code semantics.
+modules:
+  - yamlgraph/cli/__init__.py
+  - yamlgraph/cli/graph_validate.py
+  - tests/unit/test_fr406_lint_json_output_red.py
+  - ARCHITECTURE.md
+requirements:
+  - id: REQ-YG-406
+    description: >
+      CLI parser accepts `yamlgraph graph lint --json` (default false), JSON mode
+      emits one `LintResult` JSON object per linted file to stdout (NDJSON), routes
+      diagnostics/errors to stderr, and preserves existing lint exit semantics
+      (non-zero when lint errors occur, zero for warnings-only/clean runs).
+    modules:
+      - yamlgraph/cli/__init__.py
+      - yamlgraph/cli/graph_validate.py
+      - tests/unit/test_fr406_lint_json_output_red.py
+fr: FR-406
