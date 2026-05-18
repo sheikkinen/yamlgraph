@@ -411,7 +411,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 145 | Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
 | 146 | FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 | 147 | Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
-| 148 | CI Copilot Trailer Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` | REQ-YG-358 |
+| 148 | CI Co-authored-by Trailer Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `tests/unit/test_fr409_ci_coauthored_by_gate_generalization_red.py`, `CLAUDE.md` | REQ-YG-358 |
 | 149 | Prompt Theme Analyzer Demo | `examples/demos/prompt_theme_analyzer/`, `tests/unit/test_fr402_prompt_theme_analyzer_red.py`, `capabilities/CAP-149-prompt-theme-analyzer-demo.yaml`, `docs/diary/2026-05-16-reflection-fr-402-prompt-theme-analyzer-demo.md` | REQ-YG-359 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -1801,15 +1801,15 @@ Add machine-readable JSON stdout mode for `yamlgraph graph run` and a minimal No
 | REQ-YG-354 | `examples/demos/typescript-node/` includes runnable Node.js/TypeScript assets where `src/index.ts` uses `execFile` to call `yamlgraph graph run ... --json` and parse stdout JSON. | `examples/demos/typescript-node/`, `tests/unit/test_fr375_typescript_node_demo_red.py` |
 | REQ-YG-355 | CLI/examples docs describe `--json` usage and guidance for when to use subprocess JSON mode versus MCP/A2A integration patterns. | `reference/cli.md`, `examples/README.md`, `tests/unit/test_fr375_typescript_node_demo_red.py` |
 
-### 148. CI Copilot Trailer Gate
+### 148. CI Co-authored-by Trailer Gate
 
-GitHub Actions job in commitlint.yml that blocks pull requests when `Co-authored-by: Copilot` trailers are present in PR commit messages or PR body text.
+GitHub Actions job in commitlint.yml that blocks pull requests when any `Co-authored-by:` trailer identities are present in PR commit messages or PR body text.
 
 **Feature Request:** FR-385
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-358 | `copilot-trailer-gate` job in `commitlint.yml` deterministically scans `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body` for `Co-authored-by: Copilot` trailer forms (short and full email), fails with exit 1 on detection, and passes unchanged PRs otherwise. | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` |
+| REQ-YG-358 | `copilot-trailer-gate` job in `commitlint.yml` deterministically scans `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body` for any `Co-authored-by:` trailer line, fails with exit 1 on detection, and passes unchanged PRs otherwise. | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `tests/unit/test_fr409_ci_coauthored_by_gate_generalization_red.py`, `CLAUDE.md` |
 
 ### 149. Prompt Theme Analyzer Demo
 

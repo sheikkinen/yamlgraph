@@ -1,4 +1,4 @@
-"""Acceptance tests for FR-385 CI Copilot trailer gate."""
+"""Acceptance tests for FR-409 CI Co-authored-by gate generalization."""
 
 from __future__ import annotations
 
@@ -15,11 +15,11 @@ CAP_148_PATH = Path("capabilities/CAP-148-ci-copilot-trailer-gate.yaml")
 ARCHITECTURE_PATH = Path("ARCHITECTURE.md")
 CLAUDE_PATH = Path("CLAUDE.md")
 
+NON_COPILOT_TRAILER = "Co-authored-by: Test <test@example.com>"
 COPILOT_TRAILER_SHORT = "Co-authored-by: Copilot"
 COPILOT_TRAILER_FULL = (
     "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 )
-NON_COPILOT_TRAILER = "Co-authored-by: Test <test@example.com>"
 
 
 def _load_workflow() -> dict:
@@ -27,12 +27,12 @@ def _load_workflow() -> dict:
         return yaml.safe_load(f)
 
 
-def _copilot_trailer_gate_run_script() -> str:
+def _gate_run_script() -> str:
     steps = _load_workflow()["jobs"]["copilot-trailer-gate"]["steps"]
     verify_steps = [
         step
         for step in steps
-        if "run" in step and "trailer" in step.get("name", "").lower()
+        if "run" in step and "co-authored-by trailer" in step.get("name", "").lower()
     ]
     assert verify_steps, "copilot-trailer-gate must include a verification step"
     return str(verify_steps[0]["run"])
@@ -59,10 +59,10 @@ def _commit_with_message(
     subprocess.run(["git", "commit", "-q", "-F", str(msg_file)], cwd=tmpdir, check=True)
 
 
-def _run_copilot_trailer_gate(
+def _run_trailer_gate(
     commit_messages: list[str], pr_body: str = ""
 ) -> subprocess.CompletedProcess:
-    run_script = _copilot_trailer_gate_run_script()
+    run_script = _gate_run_script()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         _setup_git_repo(tmpdir)
@@ -111,63 +111,15 @@ def _run_copilot_trailer_gate(
 
 
 @pytest.mark.req("REQ-YG-358")
-def test_ac01_workflow_has_copilot_trailer_gate_job() -> None:
-    wf = _load_workflow()
-    assert "copilot-trailer-gate" in wf["jobs"]
-    name = wf["jobs"]["copilot-trailer-gate"]["name"].lower()
-    assert "co-authored-by" in name and "trailer" in name
-
-
-@pytest.mark.req("REQ-YG-358")
-def test_ac01_commit_scan_detects_short_form_copilot_trailer() -> None:
-    result = _run_copilot_trailer_gate(
-        [f"feat(ci): test gate\n\n{COPILOT_TRAILER_SHORT}"]
-    )
+def test_ac01_commit_scan_rejects_non_copilot_coauthored_by_trailer() -> None:
+    result = _run_trailer_gate([f"feat(ci): test gate\n\n{NON_COPILOT_TRAILER}"])
     assert result.returncode == 1
     assert "commit messages" in (result.stdout + result.stderr).lower()
 
 
 @pytest.mark.req("REQ-YG-358")
-def test_ac02_commit_scan_detects_full_form_copilot_trailer() -> None:
-    result = _run_copilot_trailer_gate(
-        [f"feat(ci): test gate\n\n{COPILOT_TRAILER_FULL}"]
-    )
-    assert result.returncode == 1
-    assert "commit messages" in (result.stdout + result.stderr).lower()
-
-
-@pytest.mark.req("REQ-YG-358")
-def test_ac02b_commit_scan_detects_non_copilot_trailer() -> None:
-    result = _run_copilot_trailer_gate(
-        [f"feat(ci): test gate\n\n{NON_COPILOT_TRAILER}"]
-    )
-    assert result.returncode == 1
-    assert "commit messages" in (result.stdout + result.stderr).lower()
-
-
-@pytest.mark.req("REQ-YG-358")
-def test_ac03_pr_body_scan_detects_short_form_copilot_trailer() -> None:
-    result = _run_copilot_trailer_gate(
-        ["feat(ci): clean commit"],
-        pr_body=f"This PR body contains a trailer.\n\n{COPILOT_TRAILER_SHORT}",
-    )
-    assert result.returncode == 1
-    assert "pr body" in (result.stdout + result.stderr).lower()
-
-
-@pytest.mark.req("REQ-YG-358")
-def test_ac04_pr_body_scan_detects_full_form_copilot_trailer() -> None:
-    result = _run_copilot_trailer_gate(
-        ["feat(ci): clean commit"],
-        pr_body=f"This PR body contains a trailer.\n\n{COPILOT_TRAILER_FULL}",
-    )
-    assert result.returncode == 1
-    assert "pr body" in (result.stdout + result.stderr).lower()
-
-
-@pytest.mark.req("REQ-YG-358")
-def test_ac04b_pr_body_scan_detects_non_copilot_trailer() -> None:
-    result = _run_copilot_trailer_gate(
+def test_ac02_pr_body_scan_rejects_non_copilot_coauthored_by_trailer() -> None:
+    result = _run_trailer_gate(
         ["feat(ci): clean commit"],
         pr_body=f"This PR body contains a trailer.\n\n{NON_COPILOT_TRAILER}",
     )
@@ -176,8 +128,21 @@ def test_ac04b_pr_body_scan_detects_non_copilot_trailer() -> None:
 
 
 @pytest.mark.req("REQ-YG-358")
-def test_ac05_clean_commit_messages_and_pr_body_pass() -> None:
-    result = _run_copilot_trailer_gate(
+@pytest.mark.parametrize(
+    "trailer",
+    [COPILOT_TRAILER_SHORT, COPILOT_TRAILER_FULL],
+)
+def test_ac03_commit_scan_still_rejects_copilot_short_and_full_forms(
+    trailer: str,
+) -> None:
+    result = _run_trailer_gate([f"feat(ci): test gate\n\n{trailer}"])
+    assert result.returncode == 1
+    assert "commit messages" in (result.stdout + result.stderr).lower()
+
+
+@pytest.mark.req("REQ-YG-358")
+def test_ac04_clean_commits_and_pr_body_pass_without_trailers() -> None:
+    result = _run_trailer_gate(
         ["feat(ci): safe commit message"],
         pr_body="Normal body content without co-author trailers.",
     )
@@ -186,26 +151,21 @@ def test_ac05_clean_commit_messages_and_pr_body_pass() -> None:
 
 
 @pytest.mark.req("REQ-YG-358")
-def test_ac06_workflow_step_uses_deterministic_grep_without_llm() -> None:
-    script = _copilot_trailer_gate_run_script()
-    assert "git log --format=%B" in script
-    assert "grep -Eiq" in script
-    assert "PR_BODY" in script
+def test_ac05_workflow_script_no_longer_depends_on_copilot_literal_constants() -> None:
+    script = _gate_run_script()
+    assert "TRAILER_SHORT" not in script
+    assert "TRAILER_FULL" not in script
+    assert "Co-authored-by: Copilot" not in script
     assert "TRAILER_PATTERN" in script
     assert "Co-authored-by:" in script
-    assert "llm" not in script.lower()
-    assert "execute_prompt" not in script
 
 
 @pytest.mark.req("REQ-YG-358")
-def test_ac07_architecture_and_capability_entries_reference_new_req() -> None:
-    cap = CAP_148_PATH.read_text().lower()
-    architecture = ARCHITECTURE_PATH.read_text().lower()
-    claude = CLAUDE_PATH.read_text().lower()
+def test_ac06_traceability_docs_use_generalized_coauthored_by_language() -> None:
+    cap = CAP_148_PATH.read_text()
+    architecture = ARCHITECTURE_PATH.read_text()
+    claude = CLAUDE_PATH.read_text()
 
-    assert "req-yg-358" in cap
-    assert "copilot-trailer-gate" in cap
-    assert "req-yg-358" in architecture
-    assert "copilot-trailer-gate" in architecture
-    assert "copilot-trailer-gate" in claude
-    assert "co-authored-by" in claude
+    assert "any `Co-authored-by:` trailer" in cap
+    assert "any `Co-authored-by:` trailer" in architecture
+    assert "any `Co-authored-by:` trailer" in claude

@@ -1,9 +1,9 @@
 id: CAP-148
-name: CI Copilot Trailer Gate
+name: CI Co-authored-by Trailer Gate
 description: >
   GitHub Actions job in commitlint.yml that blocks pull requests when
-  `Co-authored-by: Copilot` trailers are present in PR commit messages or PR
-  body text.
+  any `Co-authored-by:` trailer identities are present in PR commit messages
+  or PR body text.
 modules:
   - .github/workflows/commitlint.yml
   - tests/unit/test_fr385_ci_copilot_trailer_gate_red.py
@@ -13,8 +13,8 @@ requirements:
     description: >
       `copilot-trailer-gate` job in `commitlint.yml` deterministically scans
       `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body`
-      for `Co-authored-by: Copilot` trailer forms (short and full email), fails
-      with exit 1 on detection, and passes unchanged PRs otherwise.
+      for any `Co-authored-by:` trailer line, fails with exit 1 on detection,
+      and passes unchanged PRs otherwise.
     modules:
       - .github/workflows/commitlint.yml
       - tests/unit/test_fr385_ci_copilot_trailer_gate_red.py
