@@ -163,3 +163,5 @@ The plan says X. The code should say X. Open both. Compare. And when the compari
 ---
 
 *When I feel certain I remember the plan — that is the moment to open it. Not because I'm wrong. Because certainty is the costume drift wears when it wants to pass unnoticed.*
+
+Seed: echo

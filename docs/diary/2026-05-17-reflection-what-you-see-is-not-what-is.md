@@ -157,3 +157,5 @@ The inventory would have taken five seconds. The recovery took hours.
 ---
 
 *The editor shows one tree. The filesystem contains many. And the gap between what you see and what is — that narrow, silent gap — is where the untracked files live, and where they die.*
+
+Seed: echo

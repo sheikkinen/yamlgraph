@@ -9,13 +9,17 @@ def extract_event(raw: Any, event_map: dict[str, str]) -> str | None:
     """Extract an FSM event from raw graph output using *event_map*.
 
     Matching order (first hit wins):
-    1. Exact stripped/lowercased match.
-    2. First-line stripped/lowercased match (for multi-line verdict strings).
+    1. Exact stripped/lowercased match of the whole value.
+    2. Each line scanned in order — first exact line match wins.
+
+    For ``str`` input, lines are scanned directly.
+    For ``dict`` / Pydantic model inputs, each string field value is scanned
+    line-by-line.  This handles ``CopilotResult.output`` where the verdict
+    keyword appears on its own line but is preceded by preamble text.
 
     Accepted input types:
-    - ``str`` — matched directly.
-    - ``dict`` — string field values scanned in insertion order (handles
-      ``CopilotResult.model_dump()`` returned by LangGraph state machinery).
+    - ``str`` — scanned directly.
+    - ``dict`` — string field values scanned in insertion order.
     - Pydantic model — converted via ``model_dump()`` then treated as dict.
     """
     if isinstance(raw, str):
@@ -23,8 +27,11 @@ def extract_event(raw: Any, event_map: dict[str, str]) -> str | None:
         mapped = event_map.get(candidate)
         if mapped:
             return mapped
-        first_line = candidate.split("\n", 1)[0].strip()
-        return event_map.get(first_line)
+        for line in candidate.splitlines():
+            mapped = event_map.get(line.strip())
+            if mapped:
+                return mapped
+        return None
 
     # Handles plain dict (LangGraph serialized state) and Pydantic models uniformly.
     d: dict | None = (
@@ -39,10 +46,10 @@ def extract_event(raw: Any, event_map: dict[str, str]) -> str | None:
                 mapped = event_map.get(candidate)
                 if mapped:
                     return mapped
-                first_line = candidate.split("\n", 1)[0].strip()
-                mapped = event_map.get(first_line)
-                if mapped:
-                    return mapped
+                for line in candidate.splitlines():
+                    mapped = event_map.get(line.strip())
+                    if mapped:
+                        return mapped
 
     return None
 

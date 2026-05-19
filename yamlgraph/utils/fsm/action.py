@@ -22,9 +22,11 @@ _MISSING_FSM_EXTRA = (
 )
 _NORMALIZE_EMPTY_ON_UNRESOLVED = {"precommit_output", "validate_gate_output"}
 
-# Engine envelope keys injected by statemachine_engine at the action level.
-# These must be stripped before ActionConfig validation to avoid extra=forbid failures.
-_ENVELOPE_KEYS: frozenset[str] = frozenset({"type", "params"})
+# Keys stripped before ActionConfig validation.
+# Two categories:
+#   engine-injected: "type", "params" — added by statemachine_engine, not authored
+#   author-annotation: "description" — human label, no runtime meaning
+_STRIP_BEFORE_VALIDATE: frozenset[str] = frozenset({"type", "params", "description"})
 
 
 class ActionConfig(BaseModel):
@@ -145,7 +147,7 @@ class YamlgraphAsyncAction(BaseAction):
         """Launch graph in the background and return immediately."""
         # Strip engine envelope keys; prefer params sub-dict if graph not at top level
         raw_payload: dict[str, Any] = {
-            k: v for k, v in self.config.items() if k not in _ENVELOPE_KEYS
+            k: v for k, v in self.config.items() if k not in _STRIP_BEFORE_VALIDATE
         }
         if not raw_payload.get("graph") and isinstance(self.config.get("params"), dict):
             raw_payload = dict(self.config["params"])

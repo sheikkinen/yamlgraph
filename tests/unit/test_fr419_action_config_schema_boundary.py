@@ -236,3 +236,104 @@ class TestEventMapNormalizationPreservation:
         assert (
             "amend" in cfg.event_map
         ), "event_map keys must be stripped and lowercased by ActionConfig validator"
+
+
+# ---------------------------------------------------------------------------
+# 6. Author-annotation key `description` is stripped, not rejected
+# ---------------------------------------------------------------------------
+@pytest.mark.req("REQ-YG-319")
+class TestActionConfigDescriptionStrip:
+    """Condemns the description-field regression introduced by FR-419.
+
+    Every action block in watcher-pipeline-v2.yaml carries a `description:` field
+    as a human-readable label.  FR-419's ActionConfig(extra='forbid') had no
+    `description` field and did not strip it before validation, so *every* plan,
+    judge, and enforce step emitted event=error immediately — before the graph
+    was ever launched.
+
+    Fix contract:
+    - `description` is an author annotation (not an execution field).
+    - It must be stripped alongside engine-envelope keys (`type`, `params`) in
+      ``_STRIP_BEFORE_VALIDATE`` before ``ActionConfig.model_validate()`` is called.
+    - ``ActionConfig`` itself must NOT have a ``description`` field.
+    - Genuine execution-field typos must still be caught.
+    """
+
+    # Verbatim from watcher-pipeline-v2.yaml judge action (lines ~273-283)
+    _REAL_JUDGE_ACTION = {
+        "type": "yamlgraph_async",
+        "description": "⚖️ Judging feature request (model B — fresh eyes)",
+        "graph": ".chaplain/graphs/watcher-plan/step-judge-v2.yaml",
+        "vars": {"topic_file": "{topic_file}", "fr_path": "{fr_path}"},
+        "event_key": "judge_result",
+        "event_map": {"APPROVE": "approve", "AMEND": "revise", "REJECT": "reject"},
+        "success": "error",
+        "error": "error",
+        "timeout": 600,
+    }
+
+    def test_description_without_stripping_raises(self) -> None:
+        """Condemns the bug: raw payload with description= raises ValidationError.
+
+        This is what every pipeline run did before the fix — strip only
+        {type, params} (old _ENVELOPE_KEYS), leaving description= in the payload.
+        """
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+
+        from pydantic import ValidationError
+
+        old_envelope_keys = {"type", "params"}
+        raw_with_description = {
+            k: v
+            for k, v in self._REAL_JUDGE_ACTION.items()
+            if k not in old_envelope_keys
+        }
+        assert "description" in raw_with_description  # confirm the bug scenario
+
+        with pytest.raises(ValidationError, match="description"):
+            ActionConfig.model_validate(raw_with_description)
+
+    def test_description_stripped_before_validate_succeeds(self) -> None:
+        """Fix contract: _STRIP_BEFORE_VALIDATE removes description before parse."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+
+        from yamlgraph.utils.fsm.action import _STRIP_BEFORE_VALIDATE
+
+        assert (
+            "description" in _STRIP_BEFORE_VALIDATE
+        ), "_STRIP_BEFORE_VALIDATE must include 'description'"
+
+        stripped = {
+            k: v
+            for k, v in self._REAL_JUDGE_ACTION.items()
+            if k not in _STRIP_BEFORE_VALIDATE
+        }
+        cfg = ActionConfig.model_validate(stripped)
+        assert cfg.graph == ".chaplain/graphs/watcher-plan/step-judge-v2.yaml"
+        assert cfg.event_key == "judge_result"
+        assert "approve" in cfg.event_map  # also exercises _normalize_event_map
+
+    def test_description_not_a_model_field(self) -> None:
+        """ActionConfig must NOT have a description field — it is not execution state."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+
+        assert (
+            "description" not in ActionConfig.model_fields
+        ), "description belongs in _STRIP_BEFORE_VALIDATE, not in ActionConfig"
+
+    def test_typo_still_rejected_after_fix(self) -> None:
+        """Regression guard: stripping description must not weaken typo detection."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+
+        from pydantic import ValidationError
+
+        from yamlgraph.utils.fsm.action import _STRIP_BEFORE_VALIDATE
+
+        payload = {"graph": "x.yaml", "evnt_key": "result"}  # deliberate typo
+        stripped = {k: v for k, v in payload.items() if k not in _STRIP_BEFORE_VALIDATE}
+        with pytest.raises(ValidationError, match="evnt_key"):
+            ActionConfig.model_validate(stripped)
