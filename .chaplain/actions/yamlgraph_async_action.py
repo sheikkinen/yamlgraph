@@ -72,6 +72,9 @@ class YamlgraphAsyncAction(_SharedYamlgraphAsyncAction):
         if "error" in config:
             params["failure"] = config.get("error")
 
+        if "event_key" in config:
+            params["event_key"] = config.get("event_key")
+
         event_map = config.get("event_map")
         if isinstance(event_map, dict):
             merged = dict(params.get("event_map", {}))
