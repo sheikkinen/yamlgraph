@@ -10,6 +10,7 @@ modules:
   - linter/graph_linter
   - map_compiler
   - node_factory/llm_nodes
+  - scripts/hedging_check
   - utils/prompts
 requirements:
   - id: REQ-YG-053
@@ -47,4 +48,15 @@ requirements:
     modules:
       - linter/checks_contracts
       - linter/graph_linter
+  - id: REQ-YG-408
+    description: >
+      hedging_check enforces fallback-token hygiene in production Python by
+      reporting lexical `fallback` usage as FB001, validating confession-backed
+      allowlist mappings (`file:line -> CONF-XXX` with Code=FB001), preserving
+      existing Pattern 1 detection, adding Pattern 2 (`X = expr or fallback`),
+      and running pre-commit scope on both `yamlgraph/` and `scripts/`.
+    modules:
+      - scripts/hedging_check
+      - .pre-commit-config.yaml
+      - docs/confessions.md
 fr: legacy

@@ -295,7 +295,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 13 | LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047 |
 | 14 | Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065 |
 | 15 | Expression Language | `utils/conditions`, `utils/expressions`, `utils/parsing` | REQ-YG-051 – 052 |
-| 16 | Linter Cross-Reference | `linter/checks`, `linter/checks_contracts`, `linter/checks_semantic`, `linter/graph_linter`, … | REQ-YG-053 – 054, 069, 114 |
+| 16 | Linter Cross-Reference | `linter/checks`, `linter/checks_contracts`, `linter/checks_semantic`, `linter/graph_linter`, … | REQ-YG-053 – 054, 069, 114, 408 |
 | 17 | Execution Safety Guards | `cli/__init__`, `cli/graph_commands`, `config`, `executor`, … | REQ-YG-055 – 062, 064, 113 |
 | 18 | Testing & Quality | `tests/conftest`, `tests/unit/test_requirement_enforcement` | REQ-YG-063 |
 | 19 | MCP Server Interface | `mcp_server` | REQ-YG-066 – 068 |
@@ -404,15 +404,18 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 137 | Watcher FSM System Startup Script | `.chaplain/scripts/start-system.sh` | REQ-YG-315 |
 | 138 | Watcher Pipeline FSM Simplification | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/graphs/watcher-plan/step-judge-v2.yaml`, `.chaplain/graphs/watcher-enforce/enforce-session.yaml` | REQ-YG-316 |
 | 139 | Root README Accuracy Contract | `README.md`, `tests/unit/test_root_readme_accuracy.py` | REQ-YG-317 |
-| 140 | Watcher2 Validate Split Fix/Gate + Micro-Remediation Fast Path | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/changelog_gen_action.py`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/graphs/watcher-enforce/validate-session.yaml`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr412_watcher2_micro_remediation_fast_path.py`, … | REQ-YG-318 |
+| 140 | Watcher2 Validate Split Fix/Gate | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/changelog_gen_action.py`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/graphs/watcher-enforce/validate-session.yaml`, … | REQ-YG-318 |
 | 141 | Shared FSM Bridge Module | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, … | REQ-YG-319 |
 | 142 | Skill Export Portable Packaging | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-320 – 326 |
 | 143 | Agent Export Tool-Scoped Personas | `yamlgraph/skill_export.py`, `yamlgraph/skill_export_writer.py`, `yamlgraph/cli/__init__.py`, `yamlgraph/cli/skill_commands.py`, … | REQ-YG-327 – 332 |
 | 145 | Copilot Instrumentation Gap Closure | `scripts/copilot_instrument.sh`, `scripts/extract_copilot_events.py`, `scripts/extract_copilot_events_lib.py`, `docs/copilot-instrumentation-poc.md`, … | REQ-YG-340 – 346 |
 | 146 | FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 | 147 | Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
-| 148 | CI Co-authored-by Trailer Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `tests/unit/test_fr409_ci_coauthored_by_gate_generalization_red.py`, `CLAUDE.md` | REQ-YG-358 |
-| 149 | Prompt Theme Analyzer Demo | `examples/demos/prompt_theme_analyzer/`, `tests/unit/test_fr402_prompt_theme_analyzer_red.py`, `capabilities/CAP-149-prompt-theme-analyzer-demo.yaml`, `docs/diary/2026-05-16-reflection-fr-402-prompt-theme-analyzer-demo.md` | REQ-YG-359 |
+| 148 | CI Co-authored-by Trailer Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` | REQ-YG-358 |
+| 149 | Prompt Theme Analyzer Demo | `examples/demos/prompt_theme_analyzer/graph.yaml`, `examples/demos/prompt_theme_analyzer/tools.py`, `examples/demos/prompt_theme_analyzer/prompts/classify_theme.yaml`, `examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml`, … | REQ-YG-359 |
+| 150 | Philosopher's Book Demo | `examples/demos/philosopher_book/graph.yaml`, `examples/demos/philosopher_book/editorial_graph.yaml`, `examples/demos/philosopher_book/tools.py`, `examples/demos/philosopher_book/prompts/plan_chapter.yaml`, … | REQ-YG-404 – 405 |
+| 151 | Graph Lint JSON Output | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_validate.py`, `tests/unit/test_fr406_lint_json_output_red.py`, `ARCHITECTURE.md` | REQ-YG-406 |
+| 152 | Watcher2 Dispatcher Audit Cadence | `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/actions/syncing_inbox_action.py`, `.chaplain/actions/audit_action.py`, `tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py`, … | REQ-YG-407 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -593,6 +596,7 @@ Linter cross-reference and semantic checks for edge endpoints, loop limits, stat
 | REQ-YG-054 | Chaplain audit fixes: `wrap_for_reducer` non-dict return handling, LLM SKIP error recording, linter E011 retry/fallback on tool/python nodes, `prompts_relative` warning | `map_compiler`, `node_factory/llm_nodes`, `linter/checks`, `utils/prompts` |
 | REQ-YG-069 | Linter E007: error when `{state.X}` in node `variables`/`output`/`over`/`args`/`input_mapping` references a field not in known state (declared `state:` + node `state_key` + `BUILTIN_STATE_FIELDS` + `COMMON_INPUT_FIELDS` + `data_files` + map `collect`). Promoted from W014 warning to E007 error (FR-110) | `linter/checks_semantic` |
 | REQ-YG-114 | Linter W017: warn when node uses `on_error: skip` — silent fallback that drops failures without trace | `linter/checks_contracts`, `linter/graph_linter` |
+| REQ-YG-408 | hedging_check enforces fallback-token hygiene in production Python by reporting lexical `fallback` usage as FB001, validating confession-backed allowlist mappings (`file:line -> CONF-XXX` with Code=FB001), preserving existing Pattern 1 detection, adding Pattern 2 (`X = expr or fallback`), and running pre-commit scope on both `yamlgraph/` and `scripts/`. | `scripts/hedging_check`, `.pre-commit-config.yaml`, `docs/confessions.md` |
 
 ### 17. Execution Safety Guards
 
@@ -1707,15 +1711,15 @@ Root README claims stay aligned with implemented provider support and include ex
 |------------|-------------|-------------|
 | REQ-YG-317 | Root `README.md` includes all currently supported provider identifiers (`anthropic`, `azure`, `deepseek`, `google`, `inception`, `lmstudio`, `mistral`, `openai`, `replicate`, `vertex`, `xai`) in provider documentation, contains no hardcoded `all <number> reference docs` wording, and ends with `Last reviewed: 2026-05-03`; contract enforced by `tests/unit/test_root_readme_accuracy.py` (FR-313). | `README.md`, `tests/unit/test_root_readme_accuracy.py` |
 
-### 140. Watcher2 Validate Split Fix/Gate + Micro-Remediation Fast Path
+### 140. Watcher2 Validate Split Fix/Gate
 
-Split watcher2 post-enforce validation into deterministic micro-remediation fast path (`micro_changelog`, `micro_title`), explicit LLM remediation fallback (`validate_fix`), and deterministic CI-parity gate (`validate_gate`) with bounded retry semantics before done.
+Split watcher2 post-enforce validation into deterministic micro-remediation fast path (micro_changelog + micro_title), explicit LLM remediation fallback (validate_fix), and deterministic CI-parity gate (validate_gate) with bounded retry semantics before done.
 
 **Feature Request:** FR-316
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-318 | Watcher2 pipeline routes post-enforce flow through deterministic `micro_changelog` then `micro_title` then `sanity_check` then `validate_gate`; micro-step failures fall back to `validate_fix`; `validate_gate` performs deterministic pre-commit, commit-title, branch-freshness, and diary-in-diff checks with max-attempt retry contract (pass → done, fix_needed → validate_fix, error → failed). Both done and validate_gate diary-parity trigger use a shared primary PR title selector: first feat/fix in `origin/main..HEAD`, else first non-docs/non-chore, else first subject. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/changelog_gen_action.py`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/lib/watcher/select_primary_pr_title.sh`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr316_watcher2_validate_split_fix_gate.py`, `tests/unit/test_fr358_watcher2_primary_pr_title_selection.py`, `tests/unit/test_fr412_watcher2_micro_remediation_fast_path.py` |
+| REQ-YG-318 | Watcher2 pipeline routes post-enforce flow through deterministic micro_changelog then micro_title then sanity_check then validate_gate; validate_gate performs deterministic pre-commit, commit-title, branch-freshness, and diary-in-diff checks with max-attempt retry contract (pass → done, fix_needed → validate_fix, error → failed). micro-step errors fall back to validate_fix. Both done and validate_gate diary-parity trigger use a shared primary PR title selector: first feat/fix in `origin/main..HEAD`, else first non-docs/non-chore, else first subject. | `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/actions/changelog_gen_action.py`, `.chaplain/actions/validate_gate_action.py`, `.chaplain/lib/watcher/select_primary_pr_title.sh`, `.chaplain/graphs/watcher-enforce/prompts/validate-session.yaml`, `tests/unit/test_fr316_watcher2_validate_split_fix_gate.py`, `tests/unit/test_fr412_watcher2_micro_remediation_fast_path.py`, `tests/unit/test_fr358_watcher2_primary_pr_title_selection.py` |
 
 ### 141. Shared FSM Bridge Module
 
@@ -1725,7 +1729,7 @@ Extract canonical fire-and-forget FSM↔YAMLGraph bridge behavior into `yamlgrap
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-319 | FSM bridge shared module: `yamlgraph.utils.fsm` package with `YamlgraphAsyncAction`, `extract_event`, `json_safe`, `resolve_context_ref` exported from `yamlgraph.utils.fsm`; fire-and-forget guard semantics; AF_UNIX DGRAM event dispatch; interrupt/completion-phase/done/event_map/route/success resolution cascade. | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/action.py`, `examples/fsm-router/actions/yamlgraph_async_action.py`, `tests/unit/test_fsm_bridge_shared.py`, `tests/unit/test_fr391_fsm_phase_aware_event_resolution.py` |
+| REQ-YG-319 | FSM bridge shared module: `yamlgraph.utils.fsm` package with `YamlgraphAsyncAction`, `extract_event`, `json_safe`, `resolve_context_ref` exported from `yamlgraph.utils.fsm`; fire-and-forget guard semantics; AF_UNIX DGRAM event dispatch; interrupt/event_map/route/success resolution cascade. | `yamlgraph/utils/fsm/__init__.py`, `yamlgraph/utils/fsm/helpers.py`, `yamlgraph/utils/fsm/event_sender.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/action.py`, `examples/fsm-router/actions/yamlgraph_async_action.py`, `tests/unit/test_fsm_bridge_shared.py` |
 
 ### 142. Skill Export Portable Packaging
 
@@ -1809,17 +1813,48 @@ GitHub Actions job in commitlint.yml that blocks pull requests when any `Co-auth
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-358 | `copilot-trailer-gate` job in `commitlint.yml` deterministically scans `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body` for any `Co-authored-by:` trailer line, fails with exit 1 on detection, and passes unchanged PRs otherwise. | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `tests/unit/test_fr409_ci_coauthored_by_gate_generalization_red.py`, `CLAUDE.md` |
+| REQ-YG-358 | `copilot-trailer-gate` job in `commitlint.yml` deterministically scans `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body` for any `Co-authored-by:` trailer line, fails with exit 1 on detection, and passes unchanged PRs otherwise. | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` |
 
-### 149. Prompt Theme Analyzer Demo
+### 149. Prompt Theme Analyzer Demo (CAP-149)
 
-Demo graph for prompt-theme analysis using map fan-out, deterministic Python aggregation, and grouped markdown reporting.
+Demo graph showing list -> map -> deterministic aggregate -> llm-group -> write flow for prompt theme analysis with explicit boundary normalization.
 
 **Feature Request:** FR-402
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-359 | `examples/demos/prompt_theme_analyzer/` provides a five-node pipeline (`list_prompts -> classify_themes(map) -> aggregate_themes(python) -> group_themes(llm) -> write_report`) where `source_dir` is required, prompt text truncation happens at Python boundary, grouping consumes aggregated theme counts, and the feature includes tests, capability traceability, diary reflection, and `demo-output.log` integration evidence. | `examples/demos/prompt_theme_analyzer/graph.yaml`, `examples/demos/prompt_theme_analyzer/tools.py`, `examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml`, `tests/unit/test_fr402_prompt_theme_analyzer_red.py`, `docs/diary/2026-05-16-reflection-fr-402-prompt-theme-analyzer-demo.md`, `capabilities/CAP-149-prompt-theme-analyzer-demo.yaml` |
+| REQ-YG-359 | YAMLGraph includes `examples/demos/prompt_theme_analyzer/` with a five-node pipeline (`list_prompts -> classify_themes(map) -> aggregate_themes(python) -> group_themes(llm) -> write_report`) where `source_dir` is required, prompt text is truncated at the Python boundary, grouping consumes deterministic aggregated theme counts, and the demo ships with tests, capability traceability, diary reflection, and execution proof via `demo-output.log`. | `examples/demos/prompt_theme_analyzer/graph.yaml`, `examples/demos/prompt_theme_analyzer/tools.py`, `examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml`, `tests/unit/test_fr402_prompt_theme_analyzer_red.py`, `docs/diary/2026-05-16-reflection-fr-402-prompt-theme-analyzer-demo.md` |
+
+### 150. Philosopher's Book Demo
+
+Demo pipeline generating one chapter at a time of a philosophical work on cognitive traps. Plan → write a single chapter using Copilot with diary search tools. Run with --var chapter_num=N. (FR-404)
+
+**Feature Request:** FR-404
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-404 | YAMLGraph includes `examples/demos/philosopher_book/` with a four-node pipeline (load_trap -> plan_chapter(copilot) -> write_chapter(copilot) -> save_chapter) where load_trap loads a single trap by chapter_num, search_diary searches docs/diary/ using case-insensitive substring matching, read_file validates allowed path prefixes and truncates at 8000 chars, and save_chapter writes to output_dir/chapters/. | `examples/demos/philosopher_book/graph.yaml`, `examples/demos/philosopher_book/tools.py`, `tests/unit/test_philosopher_book.py`, `docs/diary/2026-05-16-fr404-philosopher-book.md` |
+| REQ-YG-405 | YAMLGraph includes a separate philosopher-book editorial graph that snapshots repo-contained chapter inputs, builds a token-bounded global editorial brief, edits chapters through a type: map LLM pass, writes edited markdown to a separate repo-contained output folder with original filenames preserved, and writes an editorial report with word-count deltas and editorial notes. | `examples/demos/philosopher_book/editorial_graph.yaml`, `examples/demos/philosopher_book/tools.py`, `examples/demos/philosopher_book/prompts/editorial_brief.yaml`, `examples/demos/philosopher_book/prompts/edit_chapter.yaml`, `tests/unit/test_philosopher_book.py`, `docs/diary/2026-05-17-fr405-philosopher-book-editorial-graph.md` |
+
+### 151. Graph Lint JSON Output
+
+Add machine-readable NDJSON output mode for `yamlgraph graph lint` while preserving default human output and existing lint exit-code semantics.
+
+**Feature Request:** FR-406
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-406 | CLI parser accepts `yamlgraph graph lint --json` (default false), JSON mode emits one `LintResult` JSON object per linted file to stdout (NDJSON), routes diagnostics/errors to stderr, and preserves existing lint exit semantics (non-zero when lint errors occur, zero for warnings-only/clean runs). | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_validate.py`, `tests/unit/test_fr406_lint_json_output_red.py` |
+
+### 152. Watcher2 Dispatcher Audit Cadence
+
+Reintegrates inquisitor cadence into watcher-dispatcher so no-topic cycles can trigger `.chaplain/inquisitor.sh --propose` at most once per 24 hours while preserving topic-first routing. (FR-411)
+
+**Feature Request:** FR-411
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-407 | Watcher2 dispatcher includes an `auditing` state and `last_audit_ts` context key; syncing_inbox emits `audit_needed` only when no topic is available and 24h cadence elapsed; audit runs `.chaplain/inquisitor.sh --propose`, updates `last_audit_ts` on success, and routes failures back to idle without stopping the daemon. | `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/actions/syncing_inbox_action.py`, `.chaplain/actions/audit_action.py`, `tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
