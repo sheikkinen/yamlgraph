@@ -11,6 +11,12 @@ def extract_event(raw: Any, event_map: dict[str, str]) -> str | None:
     Matching order (first hit wins):
     1. Exact stripped/lowercased match.
     2. First-line stripped/lowercased match (for multi-line verdict strings).
+
+    Accepted input types:
+    - ``str`` — matched directly.
+    - ``dict`` — string field values scanned in insertion order (handles
+      ``CopilotResult.model_dump()`` returned by LangGraph state machinery).
+    - Pydantic model — converted via ``model_dump()`` then treated as dict.
     """
     if isinstance(raw, str):
         candidate = raw.strip().lower()
@@ -20,8 +26,14 @@ def extract_event(raw: Any, event_map: dict[str, str]) -> str | None:
         first_line = candidate.split("\n", 1)[0].strip()
         return event_map.get(first_line)
 
-    if hasattr(raw, "model_dump"):
-        for field_value in raw.model_dump().values():
+    # Handles plain dict (LangGraph serialized state) and Pydantic models uniformly.
+    d: dict | None = (
+        raw
+        if isinstance(raw, dict)
+        else (raw.model_dump() if hasattr(raw, "model_dump") else None)
+    )
+    if d is not None:
+        for field_value in d.values():
             if isinstance(field_value, str):
                 candidate = field_value.strip().lower()
                 mapped = event_map.get(candidate)
