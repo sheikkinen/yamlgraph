@@ -159,7 +159,8 @@ Two FSMs: dispatcher (poll inbox) + pipeline worker (plan → judge → enforce 
 
 ```
 setup → plan → capture_fr → judge → enforce_session
-  → validate_fix → sanity_check → validate_gate → done
+  → micro_changelog → micro_title → sanity_check → validate_gate → done
+                    ↘ (error) validate_fix ↗
 ```
 
 - Graphs are multi-node pipelines (enforce-session: load map → plan context → assemble → enforce)

@@ -64,7 +64,7 @@
 |-----------|------|------|
 | Chaplain Pipeline | [docs/context/chaplain-system.md](../docs/context/chaplain-system.md) | Full FSM architecture documentation |
 | Dispatcher FSM | `.chaplain/config/watcher-dispatcher.yaml` | Inbox polling, topic routing |
-| Pipeline FSM | `.chaplain/config/watcher-pipeline-v2.yaml` | Plan → Judge → Enforce → Validate → Merge |
+| Pipeline FSM | `.chaplain/config/watcher-pipeline-v2.yaml` | Plan → Judge → Enforce → Micro-Remediate → Validate → Merge |
 | Inquisitor | `.chaplain/inquisitor.sh` | Post-commit Scripture compliance audit |
 | Philosopher | `.chaplain/philosopher.sh` | Diary pattern scanning, graduation proposals |
 | Author allowlist | `.chaplain/allowed-authors.txt` | Issue intake filter |

@@ -29,7 +29,8 @@ High-level flow:
 
 ```text
 Inbox sync -> setup -> plan -> capture_fr -> judge -> enforce_session
-          -> validate -> sanity_check -> precommit_check -> done
+          -> micro_changelog -> micro_title -> sanity_check -> validate_gate
+          -> (fix_needed -> validate_fix -> sanity_check -> validate_gate)* -> done
 ```
 
 ## Shell Library Reference

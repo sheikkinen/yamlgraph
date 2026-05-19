@@ -75,11 +75,17 @@ class TestFR310PipelineStates:
             transitions, "enforce_session", "done", "pass"
         ), "enforce_session should not transition directly to done"
 
-    def test_ac03_adds_validate_fix_gate_happy_path(self):
+    def test_ac03_adds_micro_remediation_before_validate_fix_gate_happy_path(self):
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
         assert _transition_exists(
-            transitions, "enforce_session", "validate_fix", "enforce_done"
+            transitions, "enforce_session", "micro_changelog", "enforce_done"
+        )
+        assert _transition_exists(
+            transitions, "micro_changelog", "micro_title", "changelog_done"
+        )
+        assert _transition_exists(
+            transitions, "micro_title", "sanity_check", "title_done"
         )
         assert _transition_exists(
             transitions, "validate_fix", "sanity_check", "validate_done"
