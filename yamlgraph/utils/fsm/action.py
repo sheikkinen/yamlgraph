@@ -26,7 +26,7 @@ except ImportError as exc:  # pragma: no cover - exercised in environments witho
     _FSM_IMPORT_ERROR = exc
 
     class BaseAction:  # type: ignore[no-redef]
-        """Fallback base class that raises a clear optional-extra error."""
+        """Fallback base class that fails fast when fsm extra is missing."""
 
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise ImportError(_MISSING_FSM_EXTRA) from _FSM_IMPORT_ERROR
