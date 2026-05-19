@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 111
+- module count: 112
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -173,6 +173,8 @@
   - import dependencies: `yamlgraph.error_handlers`, `yamlgraph.tools.shell`, `yamlgraph.utils.expressions`
 - `yamlgraph/tools/python_tool.py` - 228 lines; exports: `class PythonToolConfig`, `load_python_function(config)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools)`
   - import dependencies: _none_
+- `yamlgraph/tools/questionnaire.py` - 40 lines; exports: `detect_gaps(state)`, `normalize_extracted(state)`
+  - import dependencies: _none_
 - `yamlgraph/tools/shell.py` - 205 lines; exports: `class ShellToolConfig`, `class ToolResult`, `sanitize_variables(variables)`, `execute_shell_tool(config, variables, sanitize)`, `parse_tools(tools_config)`
   - import dependencies: _none_
 - `yamlgraph/utils/__init__.py` - 53 lines; exports: _none_
@@ -230,5 +232,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 60/111
+- mapped modules: 60/112
 - discovered tests: 62

@@ -1,0 +1,31 @@
+id: CAP-153
+name: Built-in Questionnaire Gap Utilities
+description: >
+  Adds framework-shipped questionnaire helpers `detect_gaps` and
+  `normalize_extracted` in `yamlgraph.tools.questionnaire` so schema-driven
+  probing loops can reuse deterministic gap detection and extraction
+  normalization through existing `type: python` tool wiring. (FR-421)
+modules:
+  - yamlgraph/tools/questionnaire.py
+  - tests/unit/test_fr421_questionnaire_gap_utilities_red.py
+  - reference/probe-recap-questionnaire.md
+  - ARCHITECTURE.md
+requirements:
+  - id: REQ-YG-409
+    description: >
+      `detect_gaps(state)` returns sorted required schema field IDs missing from
+      `state["extracted"]`, treating `None` and empty string as missing and
+      returning `{"gaps": [...], "has_gaps": bool}`.
+    modules:
+      - yamlgraph/tools/questionnaire.py
+      - tests/unit/test_fr421_questionnaire_gap_utilities_red.py
+  - id: REQ-YG-410
+    description: >
+      `normalize_extracted(state)` returns `{}` when `state["extracted"]` is a
+      dict, otherwise returns `{"extracted": {}}`; utility module remains
+      callable via `type: python` tool config.
+    modules:
+      - yamlgraph/tools/questionnaire.py
+      - yamlgraph/tools/python_tool.py
+      - tests/unit/test_fr421_questionnaire_gap_utilities_red.py
+fr: FR-421
