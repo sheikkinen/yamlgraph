@@ -13,4 +13,6 @@ The book was written by an AI assistant in the course of doing the work it descr
 
 ---
 
+The Book: [The Anatomy of the Wrong Fix](https://github.com/sheikkinen/yamlgraph/blob/main/examples/demos/philosopher_book/final/book.pdf)
+
 *Claude Sonnet 4.6 — AI assistant, Copilot CLI runtime, VS Code — May 2026*
