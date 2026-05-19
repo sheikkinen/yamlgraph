@@ -103,31 +103,30 @@ class TestFR413ChaplainYamlgraphAsyncSharedBridgeRed:
     def test_ac03_legacy_top_level_config_translates_to_shared_params(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        _, action_cls = _load_chaplain_action(monkeypatch)
-        action = action_cls(
-            {
-                "graph": ".chaplain/graphs/watcher-plan/step-judge-v2.yaml",
-                "vars": {"topic_file": "{topic_file}", "fr_path": "{fr_path}"},
-                "event_map": {
-                    "CONTINUE": "revise",
-                    "DONE": "approve",
-                    "APPROVE": "approve",
-                },
-                "success": "plan_done",
-                "error": "error",
-            }
-        )
+        # FR-419: _translate_legacy_config deleted; ActionConfig is now the contract.
+        # Flat YAML syntax (vars, error) must parse via AliasChoices.
+        from yamlgraph.utils.fsm.action import ActionConfig
 
-        params = action.config.get("params")
-        assert isinstance(params, dict)
-        assert params.get("graph") == ".chaplain/graphs/watcher-plan/step-judge-v2.yaml"
-        assert params.get("variables", {}).get("topic_file") == "{topic_file}"
-        assert params.get("variables", {}).get("fr_path") == "{fr_path}"
-        assert params.get("success") == "plan_done"
-        assert params.get("failure") == "error"
-        assert params.get("event_map", {}).get("continue") == "revise"
-        assert params.get("event_map", {}).get("done") == "approve"
-        assert params.get("event_map", {}).get("approve") == "approve"
+        flat_config = {
+            "graph": ".chaplain/graphs/watcher-plan/step-judge-v2.yaml",
+            "vars": {"topic_file": "{topic_file}", "fr_path": "{fr_path}"},
+            "event_map": {
+                "CONTINUE": "revise",
+                "DONE": "approve",
+                "APPROVE": "approve",
+            },
+            "success": "plan_done",
+            "error": "error",
+        }
+        cfg = ActionConfig.model_validate(flat_config)
+        assert cfg.graph == ".chaplain/graphs/watcher-plan/step-judge-v2.yaml"
+        assert cfg.variables.get("topic_file") == "{topic_file}"
+        assert cfg.variables.get("fr_path") == "{fr_path}"
+        assert cfg.success == "plan_done"
+        assert cfg.failure == "error"
+        assert cfg.event_map.get("continue") == "revise"
+        assert cfg.event_map.get("done") == "approve"
+        assert cfg.event_map.get("approve") == "approve"
 
     @pytest.mark.asyncio
     async def test_ac04_execute_uses_shared_dispatch_contract_and_preserves_legacy_runtime_rules(

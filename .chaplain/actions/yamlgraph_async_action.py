@@ -30,60 +30,14 @@ def _interpolate_legacy(value: Any, context: dict[str, Any]) -> Any:
     return _PLACEHOLDER_PATTERN.sub(_replace, value)
 
 
-def _normalize_event_map(event_map: dict[str, str]) -> dict[str, str]:
-    normalized: dict[str, str] = {}
-    for token, event in event_map.items():
-        key = str(token).strip().lower()
-        if key:
-            normalized[key] = event
-    return normalized
-
-
 class YamlgraphAsyncAction(_SharedYamlgraphAsyncAction):
-    """Chaplain adapter over the shared FSM bridge with legacy config parity."""
+    """Chaplain adapter over the shared FSM bridge."""
 
     GRAPH_BASE_DIR = Path(__file__).resolve().parents[2]
 
     def __init__(self, config: dict[str, Any] | None = None):
-        source = dict(config or {})
-        source["params"] = self._translate_legacy_config(source)
-        super().__init__(source)
+        super().__init__(dict(config or {}))
         self._runtime_main_dir: str | None = None
-
-    @staticmethod
-    def _translate_legacy_config(config: dict[str, Any]) -> dict[str, Any]:
-        params = (
-            dict(config.get("params", {}))
-            if isinstance(config.get("params"), dict)
-            else {}
-        )
-
-        graph = config.get("graph")
-        if isinstance(graph, str) and graph:
-            params["graph"] = graph
-
-        vars_map = config.get("vars")
-        if isinstance(vars_map, dict):
-            params["variables"] = dict(vars_map)
-
-        if "success" in config:
-            params["success"] = config.get("success")
-
-        if "error" in config:
-            params["failure"] = config.get("error")
-
-        if "event_key" in config:
-            params["event_key"] = config.get("event_key")
-
-        event_map = config.get("event_map")
-        if isinstance(event_map, dict):
-            merged = dict(params.get("event_map", {}))
-            merged.update(event_map)
-            params["event_map"] = _normalize_event_map(merged)
-        elif isinstance(params.get("event_map"), dict):
-            params["event_map"] = _normalize_event_map(params["event_map"])
-
-        return params
 
     async def execute(self, context: dict[str, Any]) -> str | None:
         _ = asyncio.current_task()

@@ -1,27 +1,15 @@
-"""Tests for FR-416: extract_event first-line verdict matching and
-chaplain translate_legacy_config event_key passthrough."""
+"""Tests for FR-416: extract_event first-line verdict matching.
+
+The translate_legacy_config tests were retired when that shim was deleted in FR-419.
+EventKey passthrough is now covered by test_fr419_action_config_schema_boundary.py.
+"""
 
 from __future__ import annotations
-
-import importlib.util
-from pathlib import Path
 
 import pytest
 from pydantic import BaseModel
 
 from yamlgraph.utils.fsm.helpers import extract_event
-
-# Load ChaplainYamlgraphAsyncAction from .chaplain/actions/ (outside package)
-_ACTION_FILE = (
-    Path(__file__).resolve().parents[2]
-    / ".chaplain"
-    / "actions"
-    / "yamlgraph_async_action.py"
-)
-_spec = importlib.util.spec_from_file_location("_chaplain_action", _ACTION_FILE)
-_mod = importlib.util.module_from_spec(_spec)  # type: ignore[arg-type]
-_spec.loader.exec_module(_mod)  # type: ignore[union-attr]
-_translate = _mod.YamlgraphAsyncAction._translate_legacy_config
 
 
 class _CopilotResult(BaseModel):
@@ -79,31 +67,3 @@ class TestExtractEventFirstLine:
 
     def test_none_returns_none(self) -> None:
         assert extract_event(None, JUDGE_EVENT_MAP) is None
-
-
-class TestTranslateLegacyConfigEventKey:
-    """Condemn: _translate_legacy_config dropped event_key, breaking judge routing."""
-
-    @pytest.mark.req("REQ-YG-319")
-    def test_event_key_passes_through_to_params(self) -> None:
-        """event_key in top-level config must appear in params output."""
-        config = {
-            "graph": ".chaplain/graphs/watcher-plan/step-judge-v2.yaml",
-            "vars": {"topic_file": "{topic_file}"},
-            "event_key": "judge_result",
-            "success": "done",
-            "error": "error",
-        }
-        params = _translate(config)
-        assert params.get("event_key") == "judge_result", (
-            "event_key must be forwarded to params so snapshot_params() can read it; "
-            "without it, snapshot_params falls back to 'yamlgraph_result' and "
-            "judge output is never found."
-        )
-
-    @pytest.mark.req("REQ-YG-319")
-    def test_missing_event_key_does_not_crash(self) -> None:
-        """When event_key is absent, params must not contain event_key key."""
-        config = {"graph": "foo.yaml"}
-        params = _translate(config)
-        assert "event_key" not in params
