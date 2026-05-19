@@ -13,7 +13,7 @@
   - import dependencies: `yamlgraph.models`
 - `yamlgraph/a2a_server.py` - 351 lines; exports: `class YAMLGraphAgentExecutor`, `create_a2a_app(graph_patterns, host, port)`
   - import dependencies: `yamlgraph.a2a_message`, `yamlgraph.discovery`, `yamlgraph.executor_async`, `yamlgraph.models`, `yamlgraph.models.streaming`
-- `yamlgraph/cli/__init__.py` - 364 lines; exports: `create_parser()`, `main()`
+- `yamlgraph/cli/__init__.py` - 370 lines; exports: `create_parser()`, `main()`
   - import dependencies: `yamlgraph.cli.a2a_commands`, `yamlgraph.cli.diary_commands`, `yamlgraph.cli.graph_commands`, `yamlgraph.cli.schema_commands`, `yamlgraph.cli.skill_commands`
 - `yamlgraph/cli/__main__.py` - 6 lines; exports: _none_
   - import dependencies: `yamlgraph.cli`
@@ -29,8 +29,8 @@
   - import dependencies: `yamlgraph.cli`, `yamlgraph.cli.graph_validate`, `yamlgraph.cli.helpers`, `yamlgraph.models.state_builder`
 - `yamlgraph/cli/graph_run_helpers.py` - 271 lines; exports: _none_
   - import dependencies: `yamlgraph.cli.helpers`
-- `yamlgraph/cli/graph_validate.py` - 224 lines; exports: `cmd_graph_validate(args)`, `cmd_graph_lint(args)`
-  - import dependencies: `yamlgraph.cli.helpers`, `yamlgraph.config`, `yamlgraph.linter`
+- `yamlgraph/cli/graph_validate.py` - 260 lines; exports: `cmd_graph_validate(args)`, `cmd_graph_lint(args)`
+  - import dependencies: `yamlgraph.cli.helpers`, `yamlgraph.config`, `yamlgraph.linter`, `yamlgraph.linter.checks`
 - `yamlgraph/cli/helpers.py` - 204 lines; exports: `class GraphLoadError`, `load_graph_config(path)`, `require_graph_config(path)`, `parse_vars(var_list)`, `load_var_file(path)`, `load_imported_state(import_state_path, *, error_stream)`, `handle_state_export(result, export_state_path, *, quiet, error_stream)`
   - import dependencies: _none_
 - `yamlgraph/cli/schema_commands.py` - 52 lines; exports: `cmd_schema_export(args)`, `cmd_schema_path(args)`, `cmd_schema_dispatch(args)`

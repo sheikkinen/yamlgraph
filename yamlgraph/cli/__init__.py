@@ -149,6 +149,12 @@ def create_parser() -> argparse.ArgumentParser:
     graph_lint_parser.add_argument(
         "graph_path", nargs="+", help="Path(s) to graph YAML file(s)"
     )
+    graph_lint_parser.add_argument(
+        "--json",
+        action="store_true",
+        default=False,
+        help="Emit per-file lint results as NDJSON to stdout (machine-readable mode)",
+    )
 
     # graph codegen (FR-008)
     graph_codegen_parser = graph_subparsers.add_parser(
