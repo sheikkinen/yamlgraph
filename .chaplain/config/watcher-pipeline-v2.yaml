@@ -263,6 +263,7 @@ actions:
       vars:
         topic_file: "{topic_file}"
         fr_path: "{fr_path}"
+      event_key: judge_result
       event_map:
         APPROVE: approve
         AMEND: revise
