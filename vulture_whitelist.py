@@ -267,4 +267,5 @@ from yamlgraph.utils.fsm.action import (  # noqa: F401 (CONF-126)
 check_python_node_variables
 run_legacy_yamlgraph_async
 ActionConfig._normalize_event_map  # Pydantic @field_validator; invoked by framework
+ActionConfig._coerce_variable_values  # Pydantic @field_validator; invoked by framework
 ActionConfig.failure  # Pydantic field with AliasChoices; read via attribute access

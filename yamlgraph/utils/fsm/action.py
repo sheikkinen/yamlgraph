@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import re
 from pathlib import Path
@@ -68,12 +69,39 @@ class ActionConfig(BaseModel):
     @field_validator("event_map", mode="before")
     @classmethod
     def _normalize_event_map(cls, v: Any) -> dict[str, str]:
-        """Lowercase and strip all event_map keys for case-insensitive matching."""
-        if not isinstance(v, dict):
+        """Lowercase and strip all event_map keys for case-insensitive matching.
+
+        None normalizes to {} (YAML null / omitted key).
+        Any non-null non-dict raises — silently returning {} would hide misroutes.
+        """
+        if v is None:
             return {}
+        if not isinstance(v, dict):
+            raise ValueError(f"event_map must be a mapping, got {type(v).__name__!r}")
         return {
             str(k).strip().lower(): str(val) for k, val in v.items() if str(k).strip()
         }
+
+    @field_validator("variables", mode="before")
+    @classmethod
+    def _coerce_variable_values(cls, v: Any) -> dict[str, str]:
+        """Coerce non-string variable values to JSON strings.
+
+        statemachine_engine single-expression template substitution passes
+        through the raw context value (e.g. a dict) when the template is
+        exactly ``"{key}"``.  Normalize at the schema boundary.
+        """
+        if not isinstance(v, dict):
+            return {}
+        result: dict[str, str] = {}
+        for key, value in v.items():
+            if isinstance(value, str):
+                result[key] = value
+            elif isinstance(value, dict | list):
+                result[key] = json.dumps(value, ensure_ascii=False)
+            else:
+                result[key] = str(value)
+        return result
 
 
 try:
@@ -145,12 +173,18 @@ class YamlgraphAsyncAction(BaseAction):
 
     async def execute(self, context: dict[str, Any]) -> str | None:
         """Launch graph in the background and return immediately."""
-        # Strip engine envelope keys; prefer params sub-dict if graph not at top level
+        # Strip engine envelope keys; prefer params sub-dict if graph not at top level.
+        # _STRIP_BEFORE_VALIDATE applied to both branches: annotation keys must be
+        # removed regardless of whether the payload is flat or nested under "params".
         raw_payload: dict[str, Any] = {
             k: v for k, v in self.config.items() if k not in _STRIP_BEFORE_VALIDATE
         }
         if not raw_payload.get("graph") and isinstance(self.config.get("params"), dict):
-            raw_payload = dict(self.config["params"])
+            raw_payload = {
+                k: v
+                for k, v in self.config["params"].items()
+                if k not in _STRIP_BEFORE_VALIDATE
+            }
 
         from pydantic import ValidationError
 

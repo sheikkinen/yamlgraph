@@ -337,3 +337,186 @@ class TestActionConfigDescriptionStrip:
         stripped = {k: v for k, v in payload.items() if k not in _STRIP_BEFORE_VALIDATE}
         with pytest.raises(ValidationError, match="evnt_key"):
             ActionConfig.model_validate(stripped)
+
+
+# ---------------------------------------------------------------------------
+# Bug: statemachine_engine passes context dict as vars value (single-expression
+# template substitution passes through raw dict instead of stringifying)
+# ---------------------------------------------------------------------------
+
+
+class TestActionConfigVariablesCoercion:
+    """AC: variables values that are non-string must be coerced to JSON strings.
+
+    Condemns the failure seen in validate_fix when validate_gate_output (a dict
+    from the custom_action_validate_gate) is passed as-is via single-expression
+    template substitution by statemachine_engine.
+    """
+
+    # Real shape of validate_gate_output from watcher-pipeline-v2 validate_gate
+    _GATE_OUTPUT_DICT = {
+        "attempt": 1,
+        "max_attempts": 5,
+        "check": "branch_freshness",
+        "reason": "branch is behind origin/main (rebase or merge required)",
+    }
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_dict_variable_value_coerced_to_json_string(self) -> None:
+        """Fix contract: dict value in vars must be JSON-serialised to string."""
+        import json
+
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+
+        payload = {
+            "graph": ".chaplain/graphs/watcher-enforce/validate-session.yaml",
+            "vars": {
+                "fr_path": "feature-requests/FR-xxx/FR-xxx.md",
+                "validate_gate_output": self._GATE_OUTPUT_DICT,
+            },
+            "success": "validate_done",
+        }
+
+        cfg = ActionConfig.model_validate(payload)
+        coerced = cfg.variables["validate_gate_output"]
+        assert isinstance(coerced, str), f"Expected str, got {type(coerced)}"
+        # Must round-trip as valid JSON
+        parsed = json.loads(coerced)
+        assert parsed["check"] == "branch_freshness"
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_int_variable_value_coerced_to_string(self) -> None:
+        """int variable values (e.g. attempt count) must also coerce."""
+        payload = {
+            "graph": "x.yaml",
+            "vars": {"attempt": 3},
+        }
+        cfg = ActionConfig.model_validate(payload)
+        assert cfg.variables["attempt"] == "3"
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_string_variable_unchanged(self) -> None:
+        """Normal string values must pass through untouched."""
+        payload = {
+            "graph": "x.yaml",
+            "vars": {"fr_path": "feature-requests/FR-999/FR-999.md"},
+        }
+        cfg = ActionConfig.model_validate(payload)
+        assert cfg.variables["fr_path"] == "feature-requests/FR-999/FR-999.md"
+
+
+# ---------------------------------------------------------------------------
+# FR-422: event_map strict typing and nested params strip consistency
+# ---------------------------------------------------------------------------
+
+
+class TestEventMapStrictTyping:
+    """FR-422 AC-01/02/03: event_map must reject non-null non-dict values.
+
+    Defensive hardening: not a live failure, but silently wrong —
+    event_map: "APPROVE" currently normalizes to {} and routing falls
+    through to success event without matching any keyword.
+    """
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_string_event_map_raises(self) -> None:
+        """event_map as string must raise ValidationError, not silently become {}."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="event_map"):
+            ActionConfig.model_validate({"graph": "x.yaml", "event_map": "APPROVE"})
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_list_event_map_raises(self) -> None:
+        """event_map as list must raise ValidationError."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="event_map"):
+            ActionConfig.model_validate(
+                {"graph": "x.yaml", "event_map": ["APPROVE", "REJECT"]}
+            )
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_null_event_map_normalizes_to_empty_dict(self) -> None:
+        """event_map: null (None) must normalize to {} — not raise."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+
+        cfg = ActionConfig.model_validate({"graph": "x.yaml", "event_map": None})
+        assert cfg.event_map == {}
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_dict_event_map_still_normalizes(self) -> None:
+        """Existing dict event_map normalization must not regress."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+
+        cfg = ActionConfig.model_validate(
+            {
+                "graph": "x.yaml",
+                "event_map": {"APPROVE": "approve", " AMEND ": "revise"},
+            }
+        )
+        assert cfg.event_map == {"approve": "approve", "amend": "revise"}
+
+
+class TestNestedParamsStripConsistency:
+    """FR-422 AC-04/05: _STRIP_BEFORE_VALIDATE applied consistently to params branch.
+
+    Defensive hardening: nested params style not in watcher-pipeline-v2.yaml
+    currently, but the execute() path exists and the strip gap is real.
+    """
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_nested_params_with_description_raises_without_strip(self) -> None:
+        """Condemning test: description in params dict fails validation (proves gap)."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+        from pydantic import ValidationError
+
+        from yamlgraph.utils.fsm.action import _STRIP_BEFORE_VALIDATE
+
+        # Simulate the execute() params branch WITHOUT stripping
+        params = {
+            "graph": "graphs/classifier.yaml",
+            "description": "nested style description",
+            "success": "ok",
+            "error": "err",
+        }
+        raw_unstripped = dict(params)  # no strip applied
+
+        assert "description" in raw_unstripped
+        with pytest.raises(ValidationError, match="description"):
+            ActionConfig.model_validate(raw_unstripped)
+
+        # Fix path: strip before validate
+        raw_stripped = {
+            k: v for k, v in params.items() if k not in _STRIP_BEFORE_VALIDATE
+        }
+        cfg = ActionConfig.model_validate(raw_stripped)
+        assert cfg.graph == "graphs/classifier.yaml"
+
+    @pytest.mark.req("REQ-YG-319")
+    def test_nested_params_typo_still_rejected_after_fix(self) -> None:
+        """Regression guard: stripping description must not weaken typo detection."""
+        if not _ACTION_CONFIG_AVAILABLE:
+            pytest.fail("ActionConfig not yet defined")
+        from pydantic import ValidationError
+
+        from yamlgraph.utils.fsm.action import _STRIP_BEFORE_VALIDATE
+
+        params = {
+            "graph": "x.yaml",
+            "description": "label",
+            "evnt_key": "result",  # deliberate typo
+        }
+        raw_stripped = {
+            k: v for k, v in params.items() if k not in _STRIP_BEFORE_VALIDATE
+        }
+        with pytest.raises(ValidationError, match="evnt_key"):
+            ActionConfig.model_validate(raw_stripped)
