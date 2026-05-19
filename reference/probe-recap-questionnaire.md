@@ -77,6 +77,30 @@ graphs/my-assessment/
 
 No Python required per questionnaire. Shared handlers (gap detection, message management, corrections) live in a reusable service layer.
 
+For built-in gap detection/normalization, wire framework utilities directly:
+
+```yaml
+tools:
+  normalize_extracted:
+    type: python
+    module: yamlgraph.tools.questionnaire
+    function: normalize_extracted
+
+  detect_gaps:
+    type: python
+    module: yamlgraph.tools.questionnaire
+    function: detect_gaps
+
+nodes:
+  normalize:
+    type: python
+    tool: normalize_extracted
+
+  detect:
+    type: python
+    tool: detect_gaps
+```
+
 ---
 
 ### Schema — What to Collect

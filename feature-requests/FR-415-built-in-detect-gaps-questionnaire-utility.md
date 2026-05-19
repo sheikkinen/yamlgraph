@@ -1,6 +1,6 @@
 # FR-415: Built-in detect_gaps Questionnaire Utility
 
-**Status:** AMEND — see amendment notes below before implementing
+**Status:** Superseded by FR-421
 
 ---
 
