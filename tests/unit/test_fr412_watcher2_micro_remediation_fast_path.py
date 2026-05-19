@@ -1,4 +1,4 @@
-"""Acceptance tests for FR-316 watcher2 validate split (fix + deterministic gate)."""
+"""Acceptance tests for FR-412 watcher2 micro-remediation fast path."""
 
 from pathlib import Path
 
@@ -8,9 +8,6 @@ import yaml
 WORKTREE = Path(__file__).resolve().parents[2]
 CHAPLAIN = WORKTREE / ".chaplain"
 PIPELINE_V2 = CHAPLAIN / "config" / "watcher-pipeline-v2.yaml"
-VALIDATE_FIX_PROMPT = (
-    CHAPLAIN / "graphs" / "watcher-enforce" / "prompts" / "validate-session.yaml"
-)
 VALIDATE_GATE_ACTION = CHAPLAIN / "actions" / "validate_gate_action.py"
 
 
@@ -45,22 +42,16 @@ def _action_for(config: dict, state: str) -> dict:
 
 
 @pytest.mark.req("REQ-YG-318")
-class TestFR316ValidateSplitFixGate:
-    """AC-01..AC-09 contracts for validate_fix + validate_gate split."""
+class TestFR412MicroRemediationFastPath:
+    """AC-01..AC-08 contracts for pre-gate micro-remediation."""
 
-    def test_ac01_adds_validate_fix_and_validate_gate_states(self):
+    def test_ac01_adds_micro_changelog_and_micro_title_states(self):
         config = _load_yaml(PIPELINE_V2)
         states = set(config.get("states", []))
-        assert "validate_fix" in states
-        assert "validate_gate" in states
+        assert "micro_changelog" in states
+        assert "micro_title" in states
 
-    def test_ac02_removes_legacy_validate_and_precommit_check_states(self):
-        config = _load_yaml(PIPELINE_V2)
-        states = set(config.get("states", []))
-        assert "validate" not in states
-        assert "precommit_check" not in states
-
-    def test_ac03_routes_enforce_micro_validatefix_sanity_validategate_done(self):
+    def test_ac02_routes_happy_path_through_micro_steps_before_gate(self):
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
         assert _transition_exists(
@@ -72,27 +63,55 @@ class TestFR316ValidateSplitFixGate:
         assert _transition_exists(
             transitions, "micro_title", "sanity_check", "title_done"
         )
-        assert _transition_exists(
-            transitions, "validate_fix", "sanity_check", "validate_done"
-        )
         assert _transition_exists(transitions, "sanity_check", "validate_gate", "pass")
         assert _transition_exists(transitions, "sanity_check", "validate_gate", "warn")
-        assert _transition_exists(transitions, "validate_gate", "done", "pass")
 
-    def test_ac04_validate_gate_loops_fix_needed_and_errors_to_failed(self):
+    def test_ac03_removes_direct_enforce_to_validate_fix_happy_path_edge(self):
+        config = _load_yaml(PIPELINE_V2)
+        transitions = config.get("transitions", [])
+        assert not _transition_exists(
+            transitions, "enforce_session", "validate_fix", "enforce_done"
+        )
+
+    def test_ac04_preserves_validate_gate_fix_needed_fallback_to_validate_fix(self):
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
         assert _transition_exists(
             transitions, "validate_gate", "validate_fix", "fix_needed"
         )
-        assert _transition_exists(transitions, "validate_gate", "failed", "error")
 
-    def test_ac05_sanity_warn_routes_to_validate_gate(self):
+    def test_ac05_micro_changelog_uses_changelog_gen_action_contract(self):
+        config = _load_yaml(PIPELINE_V2)
+        action = _action_for(config, "micro_changelog")
+        assert action["type"] == "changelog_gen"
+        assert action["success"] == "changelog_done"
+        assert action["error"] == "error"
+        assert int(action.get("timeout", 0)) > 0
+
+    def test_ac06_micro_title_repairs_title_contract_deterministically(self):
+        config = _load_yaml(PIPELINE_V2)
+        action = _action_for(config, "micro_title")
+        assert action["type"] in {"bash", "bash_context"}
+        command = action["command"]
+        assert "git log -1 --format=%s" in command
+        assert "git commit --amend" in command
+        assert "FR-" in command
+        assert action["success"] == "title_done"
+        assert action["error"] == "error"
+
+    def test_ac07_micro_steps_have_independent_timeouts_and_fallback_routes(self):
         config = _load_yaml(PIPELINE_V2)
         transitions = config.get("transitions", [])
-        assert _transition_exists(transitions, "sanity_check", "validate_gate", "warn")
+        changelog_action = _action_for(config, "micro_changelog")
+        title_action = _action_for(config, "micro_title")
+        assert int(changelog_action.get("timeout", 0)) > 0
+        assert int(title_action.get("timeout", 0)) > 0
+        assert _transition_exists(
+            transitions, "micro_changelog", "validate_fix", "error"
+        )
+        assert _transition_exists(transitions, "micro_title", "validate_fix", "error")
 
-    def test_ac06_validate_gate_has_deterministic_retry_contract(self):
+    def test_ac08_validate_gate_contract_unchanged_after_micro_step_insertion(self):
         config = _load_yaml(PIPELINE_V2)
         action = _action_for(config, "validate_gate")
         assert action["type"] == "validate_gate"
@@ -100,29 +119,6 @@ class TestFR316ValidateSplitFixGate:
         assert action["success"] == "pass"
         assert action["retry"] == "fix_needed"
         assert action["error"] == "error"
-
-    def test_ac07_validate_gate_checks_ci_parity_rules(self):
         content = _load_text(VALIDATE_GATE_ACTION)
         assert '["pre-commit", "run", "--all-files"]' in content
         assert '["git", "log", "-1", "--format=%s"]' in content
-        assert '["git", "fetch", "origin", "main"]' in content
-        assert (
-            '["git", "merge-base", "--is-ancestor", "origin/main", "HEAD"]' in content
-        )
-        assert "docs/diary/" in content and "reflection" in content and "fr-" in content
-
-    def test_ac08_validate_fix_prompt_covers_mechanical_repairs(self):
-        content = _load_text(VALIDATE_FIX_PROMPT).lower()
-        assert "repair artifact staging/amend" in content
-        assert "repair commit title contract" in content
-        assert "repair branch freshness" in content
-        assert "git rebase origin/main" in content
-        assert "ruff check --fix" in content
-        assert "pytest tests/unit/ -q --no-cov -x" in content
-
-    def test_ac09_done_pr_title_uses_primary_selector_policy(self):
-        config = _load_yaml(PIPELINE_V2)
-        action = _action_for(config, "done")
-        command = action["command"]
-        assert "select_primary_pr_title.sh" in command
-        assert "PR_TITLE=$(git log -1 --format=%s)" not in command

@@ -1,11 +1,11 @@
 # Chaplain System Context
 
 > FSM-based automation runtime for the YAMLGraph development lifecycle.
-> Updated: 2026-05-07
+> Updated: 2026-05-19
 
 ## Overview
 
-The Chaplain system automates feature delivery from GitHub Issue intake through PR merge. Two FSM instances (dispatcher + pipeline worker) orchestrate a Plan → Judge → Enforce → Validate → Merge lifecycle, using YAMLGraph graphs for LLM steps and shell scripts for git/CI operations.
+The Chaplain system automates feature delivery from GitHub Issue intake through PR merge. Two FSM instances (dispatcher + pipeline worker) orchestrate a Plan → Judge → Enforce → Micro-Remediate → Validate → Merge lifecycle, using YAMLGraph graphs for LLM steps and shell scripts for git/CI operations.
 
 | Component | Role | Location |
 |-----------|------|----------|
@@ -23,7 +23,7 @@ GitHub Issue (chaplain label)
 .chaplain/inbox/gh-XXX.md
     ↓ Dispatcher FSM
 .chaplain/processing/gh-XXX.md
-    ↓ Pipeline FSM (plan → judge → enforce → validate → merge)
+    ↓ Pipeline FSM (plan → judge → enforce → micro-remediate → validate → merge)
     ├→ SUCCESS → .chaplain/done/gh-XXX.md
     └→ FAILURE → .chaplain/failed/gh-XXX.md
 ```
@@ -65,12 +65,14 @@ setup → plan → capture_fr → judge ──┐
                                     ↓
                           enforce_session
                                     ↓
-                            validate_fix
+                          micro_changelog
                                     ↓
+                            micro_title
+                                   ↓
                           sanity_check → validate_gate → done → completed
-                                              ↑
-                                              │ fix_needed (max 5)
-                                              └── validate_fix
+                                             ↑
+                                             │ fix_needed (max 5)
+                                             └── validate_fix → sanity_check
                           (all errors) → failed → stopped
 ```
 
@@ -83,8 +85,10 @@ setup → plan → capture_fr → judge ──┐
 | `capture_fr` | bash_context | git diff/ls-files | 10s | Find newest FR path |
 | `judge` | yamlgraph_async | step-judge-v2.yaml | 600s | Fresh session, different model |
 | `enforce_session` | yamlgraph_async | enforce-session.yaml | 3600s | Implement changes |
+| `micro_changelog` | changelog_gen | Python action | 30s | Deterministic changelog fragment remediation |
+| `micro_title` | bash | git commit title repair | 30s | Deterministic Conventional Commit + FR title repair |
 | `validate_fix` | yamlgraph_async | validate-session.yaml | 600s | Precommit/pytest remediation |
-| `sanity_check` | yamlgraph_async | sanity-check-session.yaml | 600s | Post-validate review + diary |
+| `sanity_check` | yamlgraph_async | sanity-check-session.yaml | 1200s | Post-validate review + diary |
 | `validate_gate` | validate_gate | Python action | — | Deterministic gate (max 5 retries) |
 | `done` | bash | push/create PR/wait CI/merge/cleanup | 300s | Push → PR → merge |
 | `failed` | bash | Move to .chaplain/failed/ | — | Cleanup on failure |
@@ -104,6 +108,15 @@ setup → plan → capture_fr → judge ──┐
 ### Validate Loop
 
 `validate_gate` runs up to 5 times. On failure: `fix_needed` → `validate_fix` → retry. After 5: move to `failed`.
+
+### Post-Enforce Micro-Remediation
+
+Before deterministic gate validation, pipeline v2 now runs two cheap idempotent repair steps:
+
+1. `micro_changelog`: generate a missing changelog fragment via `changelog_gen_action.py`.
+2. `micro_title`: repair latest commit title contract when needed (`feat` must include `FR-XXX`).
+
+If either micro-step fails, control falls back to `validate_fix`.
 
 ---
 

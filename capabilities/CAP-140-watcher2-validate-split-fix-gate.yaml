@@ -1,30 +1,37 @@
 id: CAP-140
 name: Watcher2 Validate Split Fix/Gate
 description: >
-  Split watcher2 post-enforce validation into explicit LLM remediation
-  (validate_fix) and deterministic CI-parity gate (validate_gate) with bounded
+  Split watcher2 post-enforce validation into deterministic micro-remediation
+  fast path (micro_changelog + micro_title), explicit LLM remediation fallback
+  (validate_fix), and deterministic CI-parity gate (validate_gate) with bounded
   retry semantics before done.
 modules:
   - .chaplain/config/watcher-pipeline-v2.yaml
+  - .chaplain/actions/changelog_gen_action.py
   - .chaplain/actions/validate_gate_action.py
   - .chaplain/graphs/watcher-enforce/validate-session.yaml
   - .chaplain/graphs/watcher-enforce/prompts/validate-session.yaml
   - tests/unit/test_fr316_watcher2_validate_split_fix_gate.py
+  - tests/unit/test_fr412_watcher2_micro_remediation_fast_path.py
 requirements:
   - id: REQ-YG-318
     description: >
-      Watcher2 pipeline routes post-enforce flow through validate_fix then
-      sanity_check then validate_gate; validate_gate performs deterministic
-      pre-commit, commit-title, branch-freshness, and diary-in-diff checks with
-      max-attempt retry contract (pass → done, fix_needed → validate_fix,
-      error → failed). Both done and validate_gate diary-parity trigger use a
-      shared primary PR title selector: first feat/fix in `origin/main..HEAD`,
-      else first non-docs/non-chore, else first subject.
+      Watcher2 pipeline routes post-enforce flow through deterministic
+      micro_changelog then micro_title then sanity_check then validate_gate;
+      validate_gate performs deterministic pre-commit, commit-title,
+      branch-freshness, and diary-in-diff checks with max-attempt retry
+      contract (pass → done, fix_needed → validate_fix, error → failed).
+      micro-step errors fall back to validate_fix. Both done and validate_gate
+      diary-parity trigger use a shared primary PR title selector: first
+      feat/fix in `origin/main..HEAD`, else first non-docs/non-chore, else
+      first subject.
     modules:
       - .chaplain/config/watcher-pipeline-v2.yaml
+      - .chaplain/actions/changelog_gen_action.py
       - .chaplain/actions/validate_gate_action.py
       - .chaplain/lib/watcher/select_primary_pr_title.sh
       - .chaplain/graphs/watcher-enforce/prompts/validate-session.yaml
       - tests/unit/test_fr316_watcher2_validate_split_fix_gate.py
+      - tests/unit/test_fr412_watcher2_micro_remediation_fast_path.py
       - tests/unit/test_fr358_watcher2_primary_pr_title_selection.py
 fr: FR-316

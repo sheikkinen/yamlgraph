@@ -1,7 +1,7 @@
 """FR-305: Watcher Pipeline FSM Simplification.
 
 Tests for the v2 pipeline config:
-- 9 operational states + 3 terminals
+- 11 operational states + 3 terminals
 - Transition correctness (happy path, revise loop, failure paths, timeouts)
 - Judge uses different model from plan (no session resume)
 - FR-309: Judge event_map aligned to prompt vocabulary
@@ -80,10 +80,10 @@ class TestV2PipelineStructure:
     def test_v2_config_exists(self):
         assert V2_PIPELINE_PATH.exists()
 
-    def test_has_twelve_states_total(self):
+    def test_has_fourteen_states_total(self):
         config = load_config(V2_PIPELINE_PATH)
         states = get_states(config)
-        assert len(states) == 12, f"Expected 12 states, got {len(states)}: {states}"
+        assert len(states) == 14, f"Expected 14 states, got {len(states)}: {states}"
 
     def test_operational_states(self):
         config = load_config(V2_PIPELINE_PATH)
@@ -94,6 +94,8 @@ class TestV2PipelineStructure:
             "capture_fr",
             "judge",
             "enforce_session",
+            "micro_changelog",
+            "micro_title",
             "validate_fix",
             "sanity_check",
             "validate_gate",
@@ -150,11 +152,17 @@ class TestV2HappyPath:
         transitions = get_transitions(config)
         assert transition_exists(transitions, "judge", "enforce_session", "approve")
 
-    def test_enforce_session_to_validate_fix(self):
+    def test_enforce_session_to_micro_steps(self):
         config = load_config(V2_PIPELINE_PATH)
         transitions = get_transitions(config)
         assert transition_exists(
-            transitions, "enforce_session", "validate_fix", "enforce_done"
+            transitions, "enforce_session", "micro_changelog", "enforce_done"
+        )
+        assert transition_exists(
+            transitions, "micro_changelog", "micro_title", "changelog_done"
+        )
+        assert transition_exists(
+            transitions, "micro_title", "sanity_check", "title_done"
         )
 
     def test_done_to_completed(self):
