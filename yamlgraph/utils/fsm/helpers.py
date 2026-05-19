@@ -6,16 +6,29 @@ from typing import Any
 
 
 def extract_event(raw: Any, event_map: dict[str, str]) -> str | None:
-    """Extract an FSM event from raw graph output using *event_map*."""
+    """Extract an FSM event from raw graph output using *event_map*.
+
+    Matching order (first hit wins):
+    1. Exact stripped/lowercased match.
+    2. First-line stripped/lowercased match (for multi-line verdict strings).
+    """
     if isinstance(raw, str):
         candidate = raw.strip().lower()
-        return event_map.get(candidate)
+        mapped = event_map.get(candidate)
+        if mapped:
+            return mapped
+        first_line = candidate.split("\n", 1)[0].strip()
+        return event_map.get(first_line)
 
     if hasattr(raw, "model_dump"):
         for field_value in raw.model_dump().values():
             if isinstance(field_value, str):
                 candidate = field_value.strip().lower()
                 mapped = event_map.get(candidate)
+                if mapped:
+                    return mapped
+                first_line = candidate.split("\n", 1)[0].strip()
+                mapped = event_map.get(first_line)
                 if mapped:
                     return mapped
 
