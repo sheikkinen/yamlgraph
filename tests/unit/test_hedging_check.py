@@ -20,7 +20,7 @@ class TestScanFile:
         code = """\
 result = filter_data(items)
 if not result:
-    result = all_items  # silent fallback
+    result = all_items  # reviewed branch
 """
         py_file = tmp_path / "fallback.py"
         py_file.write_text(code)
@@ -56,7 +56,7 @@ if not result:
         py_file.write_text(code)
         allowlist_key = f"{py_file}:2"
 
-        with patch.object(hedging_check, "ALLOWLIST", {allowlist_key}):
+        with patch.object(hedging_check, "ALLOWLIST", {allowlist_key: "CONF-999"}):
             findings = hedging_check.scan_file(py_file)
 
         assert findings == []
