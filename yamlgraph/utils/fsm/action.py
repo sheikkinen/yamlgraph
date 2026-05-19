@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+
 from yamlgraph.utils.fsm.graph_runner import run_and_dispatch
 from yamlgraph.utils.fsm.snapshot import SnapshotParams, snapshot_params
 
@@ -20,13 +22,65 @@ _MISSING_FSM_EXTRA = (
 )
 _NORMALIZE_EMPTY_ON_UNRESOLVED = {"precommit_output", "validate_gate_output"}
 
+# Engine envelope keys injected by statemachine_engine at the action level.
+# These must be stripped before ActionConfig validation to avoid extra=forbid failures.
+_ENVELOPE_KEYS: frozenset[str] = frozenset({"type", "params"})
+
+
+class ActionConfig(BaseModel):
+    """Validated contract for a yamlgraph_async FSM action payload.
+
+    Accepts both flat YAML syntax (vars, error) and canonical names (variables,
+    failure) via AliasChoices. Unknown keys are rejected at parse time.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    # Required
+    graph: str
+
+    # Input/output wiring
+    input_key: str = "input"
+    input_value: str | None = None
+    output_key: str = "yamlgraph_result"
+    event_key: str | None = None
+    payload_keys: list[str] | None = None
+
+    # Routing
+    event_map: dict[str, str] = Field(default_factory=dict)
+    success: str = "completed"
+    failure: str = Field(
+        "failed",
+        validation_alias=AliasChoices("failure", "error"),
+    )
+
+    # Graph execution context
+    variables: dict[str, str] = Field(
+        default_factory=dict,
+        validation_alias=AliasChoices("variables", "vars"),
+    )
+    thread_id: str | None = None
+    phase: str = "graph"
+    timeout: int = 300
+
+    @field_validator("event_map", mode="before")
+    @classmethod
+    def _normalize_event_map(cls, v: Any) -> dict[str, str]:
+        """Lowercase and strip all event_map keys for case-insensitive matching."""
+        if not isinstance(v, dict):
+            return {}
+        return {
+            str(k).strip().lower(): str(val) for k, val in v.items() if str(k).strip()
+        }
+
+
 try:
     from statemachine_engine.actions.base import BaseAction
 except ImportError as exc:  # pragma: no cover - exercised in environments without fsm
     _FSM_IMPORT_ERROR = exc
 
     class BaseAction:  # type: ignore[no-redef]
-        """Fallback base class that fails fast when fsm extra is missing."""
+        """Placeholder raised when fsm extra is missing at import time."""
 
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise ImportError(_MISSING_FSM_EXTRA) from _FSM_IMPORT_ERROR
@@ -89,7 +143,22 @@ class YamlgraphAsyncAction(BaseAction):
 
     async def execute(self, context: dict[str, Any]) -> str | None:
         """Launch graph in the background and return immediately."""
-        params = self.config.get("params", {})
+        # Strip engine envelope keys; prefer params sub-dict if graph not at top level
+        raw_payload: dict[str, Any] = {
+            k: v for k, v in self.config.items() if k not in _ENVELOPE_KEYS
+        }
+        if not raw_payload.get("graph") and isinstance(self.config.get("params"), dict):
+            raw_payload = dict(self.config["params"])
+
+        from pydantic import ValidationError
+
+        try:
+            action_config = ActionConfig.model_validate(raw_payload)
+        except ValidationError as exc:
+            logger.error("yamlgraph_async: invalid action config: %s", exc)
+            return raw_payload.get("failure") or raw_payload.get("error", "error")
+
+        params: dict[str, Any] = action_config.model_dump(by_alias=False)
         current_state = context.get("current_state", "unknown")
         guard_key = f"{_GUARD_PREFIX}{current_state}"
 

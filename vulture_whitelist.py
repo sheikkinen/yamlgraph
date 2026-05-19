@@ -260,8 +260,11 @@ from yamlgraph.linter.checks_contracts import (
     check_python_node_variables,  # noqa: F401 (API stub for FR-252 compat)
 )
 from yamlgraph.utils.fsm.action import (  # noqa: F401 (CONF-126)
+    ActionConfig,
     run_legacy_yamlgraph_async,
 )
 
 check_python_node_variables
 run_legacy_yamlgraph_async
+ActionConfig._normalize_event_map  # Pydantic @field_validator; invoked by framework
+ActionConfig.failure  # Pydantic field with AliasChoices; read via attribute access
