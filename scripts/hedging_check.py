@@ -69,7 +69,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/node_factory/router_race_node.py:38": "CONF-247",
     "yamlgraph/storage/serializers.py:64": "CONF-248",
     "yamlgraph/utils/conditions.py:123": "CONF-249",
-    "yamlgraph/utils/fsm/action.py:26": "CONF-250",
+    "yamlgraph/utils/fsm/action.py:29": "CONF-250",
     "yamlgraph/utils/prompts.py:1": "CONF-251",
     "yamlgraph/utils/prompts.py:138": "CONF-252",
     "yamlgraph/utils/prompts.py:50": "CONF-253",

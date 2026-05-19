@@ -924,7 +924,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-250
-- **File**: [yamlgraph/utils/fsm/action.py](../yamlgraph/utils/fsm/action.py#L26)
+- **File**: [yamlgraph/utils/fsm/action.py](../yamlgraph/utils/fsm/action.py#L29)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
