@@ -5,11 +5,12 @@
 metadata:
   name: "Watcher2 Dispatcher"
   machine_name: watcher-dispatcher
-  version: "1.1.0"
+  version: "1.2.0"
 
 # Default context — override with --initial-context '{"inbox_dir":".chaplain/inbox-fsm"}'
 context:
   inbox_dir: ".chaplain/inbox"
+  last_audit_ts: 0
 
 initial_state: idle
 
@@ -17,6 +18,7 @@ states:
   # === OPERATIONAL ===
   - idle
   - syncing_inbox
+  - auditing
   - processing_topic
   # === TERMINAL ===
   - stopped
@@ -25,6 +27,8 @@ events:
   - "timeout(10)"
   - topic_found
   - no_topics
+  - audit_needed
+  - audit_done
   - topic_done
   - error
   - stop
@@ -45,6 +49,20 @@ transitions:
     to: idle
     event: no_topics
 
+  # No topics and cadence elapsed — run inquisitor audit
+  - from: syncing_inbox
+    to: auditing
+    event: audit_needed
+
+  # Audit completed or failed — continue polling loop
+  - from: auditing
+    to: idle
+    event: audit_done
+
+  - from: auditing
+    to: idle
+    event: error
+
   # Pipeline completed — return to idle
   - from: processing_topic
     to: idle
@@ -64,12 +82,7 @@ actions:
   syncing_inbox:
     # Sync GitHub issues, find first topic, move to processing/
     # inbox_dir is configurable via --initial-context '{"inbox_dir":".chaplain/inbox-fsm"}'
-    - type: bash_context
-      command: |
-        bash .chaplain/lib/watcher/inbox_sync.sh 2>/dev/null || true
-        python .chaplain/lib/watcher/dispatch_topic.py \
-          --inbox-dir "{inbox_dir}" \
-          --processing-dir ".chaplain/processing"
+    - type: syncing_inbox
       capture_keys:
         - topic_file
         - project
@@ -79,9 +92,16 @@ actions:
         - precommit_config
         - fr_template
         - architecture_doc
+      audit_needed: audit_needed
       success: topic_found
       error: no_topics
       description: "📥 Sync inbox and find next topic"
+
+  auditing:
+    - type: audit
+      success: audit_done
+      error: error
+      description: "🔎 Run inquisitor audit cadence"
 
   processing_topic:
     # Run the pipeline FSM for this topic

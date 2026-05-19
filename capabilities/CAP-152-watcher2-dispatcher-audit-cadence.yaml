@@ -1,0 +1,26 @@
+id: CAP-152
+name: Watcher2 Dispatcher Audit Cadence
+description: >
+  Reintegrates inquisitor cadence into watcher-dispatcher so no-topic cycles can
+  trigger `.chaplain/inquisitor.sh --propose` at most once per 24 hours while
+  preserving topic-first routing. (FR-411)
+modules:
+  - .chaplain/config/watcher-dispatcher.yaml
+  - .chaplain/actions/syncing_inbox_action.py
+  - .chaplain/actions/audit_action.py
+  - tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py
+  - ARCHITECTURE.md
+requirements:
+  - id: REQ-YG-407
+    description: >
+      Watcher2 dispatcher includes an `auditing` state and `last_audit_ts`
+      context key; syncing_inbox emits `audit_needed` only when no topic is
+      available and 24h cadence elapsed; audit runs `.chaplain/inquisitor.sh
+      --propose`, updates `last_audit_ts` on success, and routes failures back
+      to idle without stopping the daemon.
+    modules:
+      - .chaplain/config/watcher-dispatcher.yaml
+      - .chaplain/actions/syncing_inbox_action.py
+      - .chaplain/actions/audit_action.py
+      - tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py
+fr: FR-411
