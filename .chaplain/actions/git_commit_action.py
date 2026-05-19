@@ -13,6 +13,7 @@ Config keys:
 
 import asyncio
 import logging
+import os
 import re
 from typing import Any
 
@@ -23,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 class GitCommitAction(BaseAction):
     """Stage files, check diff, commit, optionally capture fr_path."""
+
+    BLOCKED_AUTHOR_NAME = "Test"
+    BLOCKED_AUTHOR_EMAIL = "test@test.com"
 
     async def execute(self, context: dict[str, Any]) -> str:
         add_paths = self.get_config_value("add_paths", ["."])
@@ -92,6 +96,11 @@ class GitCommitAction(BaseAction):
                         )
                     break
 
+        # Resolve and validate commit identity from repository git config.
+        commit_env = await self._build_commit_env(cwd, machine_name)
+        if commit_env is None:
+            return error_event
+
         # Commit with retry on hook auto-fixes (FR-311)
         for attempt in range(1, max_attempts + 1):
             proc = await asyncio.create_subprocess_exec(
@@ -100,6 +109,7 @@ class GitCommitAction(BaseAction):
                 "-m",
                 message,
                 cwd=cwd,
+                env=commit_env,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -153,3 +163,60 @@ class GitCommitAction(BaseAction):
                 )
 
         return error_event
+
+    async def _resolve_identity(self, cwd: str) -> tuple[str, str]:
+        name = await self._git_config_get(cwd, "user.name")
+        email = await self._git_config_get(cwd, "user.email")
+        return name, email
+
+    async def _build_commit_env(self, cwd: str, machine_name: str) -> dict | None:
+        author_name, author_email = await self._resolve_identity(cwd)
+        if not author_name:
+            logger.error(
+                f"[{machine_name}] Missing git user.name in {cwd}. "
+                'Run: git config user.name "Your Name"'
+            )
+            return None
+        if not author_email:
+            logger.error(
+                f"[{machine_name}] Missing git user.email in {cwd}. "
+                'Run: git config user.email "you@example.com"'
+            )
+            return None
+        if (
+            author_name == self.BLOCKED_AUTHOR_NAME
+            or author_email == self.BLOCKED_AUTHOR_EMAIL
+        ):
+            logger.error(
+                f"[{machine_name}] Blocked git identity detected: "
+                f"{author_name} <{author_email}>. "
+                'Run: git config user.name "Your Name" && '
+                'git config user.email "you@example.com"'
+            )
+            return None
+
+        commit_env = os.environ.copy()
+        commit_env.update(
+            {
+                "GIT_AUTHOR_NAME": author_name,
+                "GIT_AUTHOR_EMAIL": author_email,
+                "GIT_COMMITTER_NAME": author_name,
+                "GIT_COMMITTER_EMAIL": author_email,
+            }
+        )
+        return commit_env
+
+    async def _git_config_get(self, cwd: str, key: str) -> str:
+        proc = await asyncio.create_subprocess_exec(
+            "git",
+            "config",
+            "--get",
+            key,
+            cwd=cwd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await proc.communicate()
+        if proc.returncode != 0:
+            return ""
+        return stdout.decode().strip()
