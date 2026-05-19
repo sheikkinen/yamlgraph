@@ -185,7 +185,7 @@
   - import dependencies: `yamlgraph.utils.parsing`
 - `yamlgraph/utils/fsm/__init__.py` - 14 lines; exports: _none_
   - import dependencies: `yamlgraph.utils.fsm.action`, `yamlgraph.utils.fsm.helpers`, `yamlgraph.utils.fsm.snapshot`
-- `yamlgraph/utils/fsm/action.py` - 144 lines; exports: `class YamlgraphAsyncAction`
+- `yamlgraph/utils/fsm/action.py` - 242 lines; exports: `class YamlgraphAsyncAction`, `async run_legacy_yamlgraph_async(*, config, context, logger_obj)`
   - import dependencies: `yamlgraph.utils.fsm.graph_runner`, `yamlgraph.utils.fsm.snapshot`
 - `yamlgraph/utils/fsm/event_sender.py` - 41 lines; exports: `send_event(machine_name, event_type, payload)`
   - import dependencies: _none_

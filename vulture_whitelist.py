@@ -259,5 +259,9 @@ ExecutionTimingCallbackHandler.on_llm_start
 from yamlgraph.linter.checks_contracts import (
     check_python_node_variables,  # noqa: F401 (API stub for FR-252 compat)
 )
+from yamlgraph.utils.fsm.action import (  # noqa: F401 (CONF-126)
+    run_legacy_yamlgraph_async,
+)
 
 check_python_node_variables
+run_legacy_yamlgraph_async

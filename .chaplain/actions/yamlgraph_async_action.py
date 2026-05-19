@@ -1,121 +1,140 @@
-"""YamlGraphAsyncAction — Run a yamlgraph graph and route via event_map.
-
-Executes `yamlgraph graph run <graph>` as a subprocess, optionally mapping
-the LLM output to FSM events via an event_map dict.
-
-Config keys:
-  graph:      Path to graph YAML (resolved relative to context['main_dir'])
-  vars:       Dict of --var key=value pairs to pass
-  success:    Default success event
-  error:      Error event (default: "error")
-  event_map:  Dict mapping LLM output substrings to FSM events
-  timeout:    Command timeout in seconds (default: 300)
-"""
-
 import asyncio
 import logging
 import re
+from pathlib import Path
 from typing import Any
 
-from statemachine_engine.actions.base import BaseAction
+from yamlgraph.utils.fsm import YamlgraphAsyncAction as _SharedYamlgraphAsyncAction
+from yamlgraph.utils.fsm.action import run_legacy_yamlgraph_async
 
+_PLACEHOLDER_PATTERN = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+_EXACT_PLACEHOLDER_PATTERN = re.compile(r"^\{[A-Za-z_][A-Za-z0-9_]*\}$")
+_NORMALIZE_EMPTY_ON_UNRESOLVED = {"precommit_output", "validate_gate_output"}
 logger = logging.getLogger(__name__)
 
 
-def _is_placeholder(value: str) -> bool:
-    return bool(re.fullmatch(r"\{[A-Za-z_][A-Za-z0-9_]*\}", value))
+def _is_unresolved_placeholder(value: str) -> bool:
+    return bool(_EXACT_PLACEHOLDER_PATTERN.fullmatch(value))
 
 
-_NORMALIZE_EMPTY_ON_UNRESOLVED = {"precommit_output", "validate_gate_output"}
+def _interpolate_legacy(value: Any, context: dict[str, Any]) -> Any:
+    if not isinstance(value, str):
+        return value
+
+    def _replace(match: re.Match[str]) -> str:
+        key = match.group(1)
+        if key in context:
+            return str(context[key])
+        return match.group(0)
+
+    return _PLACEHOLDER_PATTERN.sub(_replace, value)
 
 
-class YamlgraphAsyncAction(BaseAction):
-    """Execute yamlgraph graph run and route output via event_map."""
+def _normalize_event_map(event_map: dict[str, str]) -> dict[str, str]:
+    normalized: dict[str, str] = {}
+    for token, event in event_map.items():
+        key = str(token).strip().lower()
+        if key:
+            normalized[key] = event
+    return normalized
 
-    async def execute(self, context: dict[str, Any]) -> str:
-        graph = self.get_config_value("graph", "")
-        var_dict = self.get_config_value("vars", {})
-        success_event = self.get_config_value("success", "done")
-        error_event = self.get_config_value("error", "error")
-        event_map = self.get_config_value("event_map", {})
-        timeout = self.get_config_value("timeout", 300)
-        machine_name = self.get_machine_name(context)
 
-        # Resolve graph path relative to main_dir
-        main_dir = context.get("main_dir", ".")
-        graph_path = f"{main_dir}/{graph}" if not graph.startswith("/") else graph
+class YamlgraphAsyncAction(_SharedYamlgraphAsyncAction):
+    """Chaplain adapter over the shared FSM bridge with legacy config parity."""
 
-        # Build command
-        cmd_parts = ["yamlgraph", "graph", "run", graph_path, "--full"]
+    GRAPH_BASE_DIR = Path(__file__).resolve().parents[2]
 
-        # Add --var pairs (substitute {placeholders} from context)
-        for key, value in var_dict.items():
-            resolved = str(value)
-            for ctx_key, ctx_val in context.items():
-                resolved = resolved.replace(f"{{{ctx_key}}}", str(ctx_val))
-            if key in _NORMALIZE_EMPTY_ON_UNRESOLVED and _is_placeholder(resolved):
-                resolved = ""
-            cmd_parts.extend(["--var", f"{key}={resolved}"])
-        logger.info(f"[{machine_name}] yamlgraph argv={cmd_parts[:20]}")
+    def __init__(self, config: dict[str, Any] | None = None):
+        source = dict(config or {})
+        source["params"] = self._translate_legacy_config(source)
+        super().__init__(source)
+        self._runtime_main_dir: str | None = None
 
-        # FR-314: Run in worktree dir so relative paths (fr_path etc.) resolve
-        # correctly against the feature branch, not main.
-        wt_dir = context.get("wt_dir")
-        cwd = f"{main_dir}/{wt_dir}" if wt_dir else main_dir
-        logger.debug(f"[{machine_name}] cwd={cwd}")
-
-        try:
-            process = await asyncio.create_subprocess_exec(
-                *cmd_parts,
-                cwd=cwd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=timeout
-            )
-        except TimeoutError:
-            logger.error(f"[{machine_name}] yamlgraph timed out after {timeout}s")
-            return error_event
-        except Exception as exc:
-            logger.error(f"[{machine_name}] yamlgraph failed: {exc}")
-            return error_event
-
-        stdout_text = stdout.decode().strip()
-        stderr_text = stderr.decode().strip()
-
-        # FR-307 AC-03: Always log exit code, stdout/stderr lengths
-        logger.info(
-            f"[{machine_name}] yamlgraph exit={process.returncode}, "
-            f"stdout={len(stdout_text)} chars, stderr={len(stderr_text)} chars"
+    @staticmethod
+    def _translate_legacy_config(config: dict[str, Any]) -> dict[str, Any]:
+        params = (
+            dict(config.get("params", {}))
+            if isinstance(config.get("params"), dict)
+            else {}
         )
 
-        # FR-307 AC-01: Always log stderr when non-empty
-        if stderr_text:
-            logger.warning(f"[{machine_name}] yamlgraph stderr: {stderr_text[:2000]}")
+        graph = config.get("graph")
+        if isinstance(graph, str) and graph:
+            params["graph"] = graph
 
-        if process.returncode != 0:
-            logger.error(
-                f"[{machine_name}] yamlgraph exit {process.returncode}: "
-                f"{stderr_text[:300]}"
+        vars_map = config.get("vars")
+        if isinstance(vars_map, dict):
+            params["variables"] = dict(vars_map)
+
+        if "success" in config:
+            params["success"] = config.get("success")
+
+        if "error" in config:
+            params["failure"] = config.get("error")
+
+        event_map = config.get("event_map")
+        if isinstance(event_map, dict):
+            merged = dict(params.get("event_map", {}))
+            merged.update(event_map)
+            params["event_map"] = _normalize_event_map(merged)
+        elif isinstance(params.get("event_map"), dict):
+            params["event_map"] = _normalize_event_map(params["event_map"])
+
+        return params
+
+    async def execute(self, context: dict[str, Any]) -> str | None:
+        _ = asyncio.current_task()
+        if "current_state" not in context:
+            return await run_legacy_yamlgraph_async(
+                config=self.config,
+                context=context,
+                logger_obj=logger,
             )
-            return error_event
 
-        # Route via event_map if configured
-        if event_map:
-            for pattern, event in event_map.items():
-                if pattern in stdout_text:
-                    logger.info(
-                        f"[{machine_name}] event_map matched '{pattern}' → {event}"
-                    )
-                    logger.debug(
-                        f"[{machine_name}] yamlgraph stdout: {stdout_text[:2000]}"
-                    )
-                    return event
-            # FR-307 AC-02: Log full stdout on event_map miss
-            logger.warning(
-                f"[{machine_name}] No event_map match in output: {stdout_text[:2000]}"
-            )
+        main_dir = context.get("main_dir")
+        self._runtime_main_dir = (
+            str(main_dir) if isinstance(main_dir, str) and main_dir else None
+        )
+        try:
+            return await super().execute(context)
+        finally:
+            self._runtime_main_dir = None
 
-        logger.debug(f"[{machine_name}] yamlgraph stdout: {stdout_text[:2000]}")
-        return success_event
+    def _resolve_graph_path(self, graph_path: str) -> str:
+        raw = Path(graph_path)
+        if raw.is_absolute():
+            return str(raw)
+        if self._runtime_main_dir:
+            return str(Path(self._runtime_main_dir) / raw)
+        return super()._resolve_graph_path(graph_path)
+
+    def pre_snapshot(self, params: dict[str, Any], context: dict[str, Any]) -> None:
+        graph = params.get("graph")
+        main_dir = context.get("main_dir")
+        if (
+            isinstance(graph, str)
+            and isinstance(main_dir, str)
+            and graph
+            and not Path(graph).is_absolute()
+        ):
+            params["graph"] = str(Path(main_dir) / Path(graph))
+
+        variables = params.get("variables")
+        if not isinstance(variables, dict):
+            return
+
+        resolved_variables: dict[str, Any] = {}
+        for key, value in variables.items():
+            resolved = _interpolate_legacy(value, context)
+            if (
+                key in _NORMALIZE_EMPTY_ON_UNRESOLVED
+                and isinstance(resolved, str)
+                and _is_unresolved_placeholder(resolved)
+            ):
+                resolved = ""
+            resolved_variables[key] = resolved
+
+        params["variables"] = resolved_variables
+
+
+__all__ = ["YamlgraphAsyncAction"]
