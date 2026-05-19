@@ -33,3 +33,5 @@ This is the `gate_checks_shape_not_substance` trap graduated to enforcement: pre
 ## IV. Seed
 
 *When is pattern-matching too broad? The generalized gate now catches human Co-authored-by trailers too — a deliberate policy choice documented in the FR. But what happens when legitimate pair-programming trailers are desired? The answer lives in the policy, not the gate. Gates enforce; humans decide what to enforce.*
+
+Seed: echo

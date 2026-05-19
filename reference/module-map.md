@@ -185,13 +185,13 @@
   - import dependencies: `yamlgraph.utils.parsing`
 - `yamlgraph/utils/fsm/__init__.py` - 14 lines; exports: _none_
   - import dependencies: `yamlgraph.utils.fsm.action`, `yamlgraph.utils.fsm.helpers`, `yamlgraph.utils.fsm.snapshot`
-- `yamlgraph/utils/fsm/action.py` - 311 lines; exports: `class ActionConfig`, `class YamlgraphAsyncAction`, `async run_legacy_yamlgraph_async(*, config, context, logger_obj)`
+- `yamlgraph/utils/fsm/action.py` - 313 lines; exports: `class ActionConfig`, `class YamlgraphAsyncAction`, `async run_legacy_yamlgraph_async(*, config, context, logger_obj)`
   - import dependencies: `yamlgraph.utils.fsm.graph_runner`, `yamlgraph.utils.fsm.snapshot`
 - `yamlgraph/utils/fsm/event_sender.py` - 41 lines; exports: `send_event(machine_name, event_type, payload)`
   - import dependencies: _none_
 - `yamlgraph/utils/fsm/graph_runner.py` - 290 lines; exports: `async run_and_dispatch(graph_path, initial_state, input_key, output_key, event_key, event_map, success_event, failure_event, machine_name, thread_id, context, guard_key, *, load_fn, run_fn, send_fn, snapshot, pre_dispatch_fn, on_success_fn, on_error_fn)`
   - import dependencies: `yamlgraph.utils.fsm.event_sender`, `yamlgraph.utils.fsm.helpers`, `yamlgraph.utils.fsm.snapshot`
-- `yamlgraph/utils/fsm/helpers.py` - 79 lines; exports: `extract_event(raw, event_map)`, `json_safe(value)`, `resolve_context_ref(value, context, *, missing)`, `has_pending_next(state)`
+- `yamlgraph/utils/fsm/helpers.py` - 86 lines; exports: `extract_event(raw, event_map)`, `json_safe(value)`, `resolve_context_ref(value, context, *, missing)`, `has_pending_next(state)`
   - import dependencies: _none_
 - `yamlgraph/utils/fsm/snapshot.py` - 76 lines; exports: `class SnapshotParams`, `snapshot_params(params, context, *, project_root)`
   - import dependencies: `yamlgraph.utils.fsm.helpers`

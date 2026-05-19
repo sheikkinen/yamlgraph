@@ -121,3 +121,5 @@ The cheapest root cause is the one found in the diff. The most expensive is the 
 ---
 
 *The most dangerous fix is the one that works. It silences the alarm without extinguishing the fire — and the silence feels, for a while, exactly like safety.*
+
+Seed: echo

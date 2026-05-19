@@ -127,3 +127,60 @@ class TestExtractEventRegressionGuards:
 
     def test_none_returns_none(self) -> None:
         assert extract_event(None, _EVENT_MAP) is None
+
+
+# ---------------------------------------------------------------------------
+# Preamble: copilot CLI output has reasoning before the verdict keyword
+# ---------------------------------------------------------------------------
+
+
+class TestExtractEventPreamble:
+    """Condemns the first-line-only assumption.
+
+    The Copilot CLI outputs reasoning text before the verdict keyword.
+    Captured from a real judge run on 2026-05-19:
+        First line: "Now I have enough context for a thorough judgment..."
+        Verdict:    "AMEND" on line 3
+
+    Old first-line logic returned None → event=error.
+    Fix: scan all lines for an exact event_map key match.
+    """
+
+    # Verbatim from a real standalone judge run (2026-05-19)
+    _REAL_JUDGE_OUTPUT = {
+        "output": (
+            "Now I have enough context for a thorough judgment. "
+            "Let me write the verdict back into the FR.\n\n"
+            "AMEND\n\n"
+            "**Three issues block APPROVE:**\n\n"
+            "1. **AMEND-01 — Integration path is architecturally broken.**..."
+        )
+    }
+
+    def test_verdict_after_preamble_matches(self) -> None:
+        """AMEND on line 3, preamble on line 1 — must match to 'revise'."""
+        assert extract_event(self._REAL_JUDGE_OUTPUT, _EVENT_MAP) == "revise"
+
+    def test_verdict_after_markdown_header_matches(self) -> None:
+        raw = {"output": "## Judgement\n\nAPPROVE\n\nReasoning..."}
+        assert extract_event(raw, _EVENT_MAP) == "approve"
+
+    def test_verdict_on_first_line_still_matches(self) -> None:
+        """First-line verdict must still work after the fix."""
+        raw = {"output": "APPROVE\n\nThe FR is clear."}
+        assert extract_event(raw, _EVENT_MAP) == "approve"
+
+    def test_str_preamble_matches(self) -> None:
+        """str input with preamble must also scan all lines."""
+        assert (
+            extract_event("Reasoning text\n\nREJECT\n\nDetails", _EVENT_MAP) == "reject"
+        )
+
+    def test_buried_inline_does_not_match(self) -> None:
+        """Verdict embedded mid-sentence must NOT match — only standalone lines."""
+        assert (
+            extract_event(
+                {"output": "I would approve this if it were clearer."}, _EVENT_MAP
+            )
+            is None
+        )
