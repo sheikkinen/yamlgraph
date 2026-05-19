@@ -82,6 +82,10 @@ class TestFR311GitCommitHookRetry:
             argv = list(cmd)
             calls.append(argv)
 
+            if argv[:4] == ["git", "config", "--get", "user.name"]:
+                return _FakeProcess(0, stdout="Sheikki\n")
+            if argv[:4] == ["git", "config", "--get", "user.email"]:
+                return _FakeProcess(0, stdout="sheikki@example.com\n")
             if argv[:2] == ["git", "add"]:
                 return _FakeProcess(0)
             if argv[:4] == ["git", "diff", "--cached", "--quiet"]:
@@ -120,6 +124,10 @@ class TestFR311GitCommitHookRetry:
             argv = list(cmd)
             calls.append(argv)
 
+            if argv[:4] == ["git", "config", "--get", "user.name"]:
+                return _FakeProcess(0, stdout="Sheikki\n")
+            if argv[:4] == ["git", "config", "--get", "user.email"]:
+                return _FakeProcess(0, stdout="sheikki@example.com\n")
             if argv[:2] == ["git", "add"]:
                 return _FakeProcess(0)
             if argv[:4] == ["git", "diff", "--cached", "--quiet"]:
@@ -162,6 +170,10 @@ class TestFR311GitCommitHookRetry:
             argv = list(cmd)
             calls.append(argv)
 
+            if argv[:4] == ["git", "config", "--get", "user.name"]:
+                return _FakeProcess(0, stdout="Sheikki\n")
+            if argv[:4] == ["git", "config", "--get", "user.email"]:
+                return _FakeProcess(0, stdout="sheikki@example.com\n")
             if argv[:2] == ["git", "add"]:
                 return _FakeProcess(0)
             if argv[:4] == ["git", "diff", "--cached", "--quiet"]:
@@ -182,3 +194,124 @@ class TestFR311GitCommitHookRetry:
         assert event == "error"
         assert len(commit_calls) == 1, "Genuine failures should not trigger retry loop"
         assert not any(c[:3] == ["git", "add", "-u"] for c in calls)
+
+    def test_ac05_missing_user_name_fails_before_commit(self, monkeypatch):
+        action = _build_action(monkeypatch)
+        calls: list[list[str]] = []
+
+        async def fake_create_subprocess_exec(*cmd, **_kwargs):
+            argv = list(cmd)
+            calls.append(argv)
+
+            if argv[:2] == ["git", "add"]:
+                return _FakeProcess(0)
+            if argv[:4] == ["git", "diff", "--cached", "--quiet"]:
+                return _FakeProcess(1)
+            if argv[:4] == ["git", "config", "--get", "user.name"]:
+                return _FakeProcess(1)
+            if argv[:4] == ["git", "config", "--get", "user.email"]:
+                return _FakeProcess(0, stdout="sheikki@example.com\n")
+            if argv[:2] == ["git", "commit"]:
+                return _FakeProcess(0, stdout="unexpected commit\n")
+            return _FakeProcess(0)
+
+        monkeypatch.setattr(
+            asyncio, "create_subprocess_exec", fake_create_subprocess_exec
+        )
+
+        event = asyncio.run(action.execute({"wt_dir": "."}))
+
+        assert event == "error"
+        assert not any(c[:2] == ["git", "commit"] for c in calls)
+
+    def test_ac06_missing_user_email_fails_before_commit(self, monkeypatch):
+        action = _build_action(monkeypatch)
+        calls: list[list[str]] = []
+
+        async def fake_create_subprocess_exec(*cmd, **_kwargs):
+            argv = list(cmd)
+            calls.append(argv)
+
+            if argv[:2] == ["git", "add"]:
+                return _FakeProcess(0)
+            if argv[:4] == ["git", "diff", "--cached", "--quiet"]:
+                return _FakeProcess(1)
+            if argv[:4] == ["git", "config", "--get", "user.name"]:
+                return _FakeProcess(0, stdout="Sheikki\n")
+            if argv[:4] == ["git", "config", "--get", "user.email"]:
+                return _FakeProcess(1)
+            if argv[:2] == ["git", "commit"]:
+                return _FakeProcess(0, stdout="unexpected commit\n")
+            return _FakeProcess(0)
+
+        monkeypatch.setattr(
+            asyncio, "create_subprocess_exec", fake_create_subprocess_exec
+        )
+
+        event = asyncio.run(action.execute({"wt_dir": "."}))
+
+        assert event == "error"
+        assert not any(c[:2] == ["git", "commit"] for c in calls)
+
+    def test_ac07_blocklisted_identity_fails_before_commit(self, monkeypatch):
+        action = _build_action(monkeypatch)
+        calls: list[list[str]] = []
+
+        async def fake_create_subprocess_exec(*cmd, **_kwargs):
+            argv = list(cmd)
+            calls.append(argv)
+
+            if argv[:2] == ["git", "add"]:
+                return _FakeProcess(0)
+            if argv[:4] == ["git", "diff", "--cached", "--quiet"]:
+                return _FakeProcess(1)
+            if argv[:4] == ["git", "config", "--get", "user.name"]:
+                return _FakeProcess(0, stdout="Test\n")
+            if argv[:4] == ["git", "config", "--get", "user.email"]:
+                return _FakeProcess(0, stdout="test@test.com\n")
+            if argv[:2] == ["git", "commit"]:
+                return _FakeProcess(0, stdout="unexpected commit\n")
+            return _FakeProcess(0)
+
+        monkeypatch.setattr(
+            asyncio, "create_subprocess_exec", fake_create_subprocess_exec
+        )
+
+        event = asyncio.run(action.execute({"wt_dir": "."}))
+
+        assert event == "error"
+        assert not any(c[:2] == ["git", "commit"] for c in calls)
+
+    def test_ac08_valid_identity_sets_author_and_committer_env(self, monkeypatch):
+        action = _build_action(monkeypatch)
+        commit_env: dict | None = None
+
+        async def fake_create_subprocess_exec(*cmd, **kwargs):
+            nonlocal commit_env
+            argv = list(cmd)
+
+            if argv[:2] == ["git", "add"]:
+                return _FakeProcess(0)
+            if argv[:4] == ["git", "diff", "--cached", "--quiet"]:
+                return _FakeProcess(1)
+            if argv[:4] == ["git", "config", "--get", "user.name"]:
+                return _FakeProcess(0, stdout="Sheikki\n")
+            if argv[:4] == ["git", "config", "--get", "user.email"]:
+                return _FakeProcess(0, stdout="sheikki@example.com\n")
+            if argv[:2] == ["git", "commit"]:
+                commit_env = kwargs.get("env")
+                return _FakeProcess(0, stdout="[main abc123] commit ok\n")
+            return _FakeProcess(0)
+
+        monkeypatch.setattr(
+            asyncio, "create_subprocess_exec", fake_create_subprocess_exec
+        )
+
+        event = asyncio.run(action.execute({"wt_dir": "."}))
+
+        assert event == "committed"
+        assert commit_env is not None
+        assert commit_env.get("GIT_AUTHOR_NAME") == "Sheikki"
+        assert commit_env.get("GIT_AUTHOR_EMAIL") == "sheikki@example.com"
+        assert commit_env.get("GIT_COMMITTER_NAME") == "Sheikki"
+        assert commit_env.get("GIT_COMMITTER_EMAIL") == "sheikki@example.com"

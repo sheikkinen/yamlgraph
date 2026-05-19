@@ -97,6 +97,33 @@ jobs:
 
           echo "✅ No Co-authored-by trailers found"
 
+  author-identity-gate:
+    name: Block placeholder commit authors
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify commit range for blocked author identity
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          BLOCKED_NAME='Test'
+          BLOCKED_EMAIL='test@test.com'
+
+          if git log --format='%an|%ae' "$BASE_SHA..$HEAD_SHA" \
+            | grep -Fxq "${BLOCKED_NAME}|${BLOCKED_EMAIL}"; then
+            echo "::error::Blocked author identity found in commit range: ${BLOCKED_NAME} <${BLOCKED_EMAIL}>"
+            exit 1
+          fi
+
+          echo "✅ No blocked author identities found"
+
   changelog-gate:
     name: Changelog fragment required for feat/fix
     runs-on: ubuntu-latest
