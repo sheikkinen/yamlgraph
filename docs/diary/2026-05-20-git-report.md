@@ -31,7 +31,7 @@ Based on the commit history and changed files from the last 3 days, here's the f
 
 #### 4. **Chaplain YAML Graph Async Bridge Migration** (FR-413)
    - **Focus**: Refactoring chaplain actions to use shared bridge pattern
-   - **Changes**: 
+   - **Changes**:
      - Migrated `yamlgraph_async_action.py` to shared bridge architecture
      - Enhanced FSM action module with shared bridge utilities
      - Added CI hard-fail requirement for statemachine-engine dependency

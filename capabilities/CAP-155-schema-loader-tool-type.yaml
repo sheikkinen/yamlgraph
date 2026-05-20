@@ -1,0 +1,39 @@
+id: CAP-155
+name: Schema Loader Tool Type
+fr: FR-426
+description: >
+  Add built-in tools.type=schema_loader for deterministic graph-relative schema
+  loading and merge-by-topic behavior in type: python nodes without project-local
+  loader functions. (FR-426)
+modules:
+  - yamlgraph/tools/schema_loader_tool.py
+  - yamlgraph/tools/python_tool.py
+  - yamlgraph/graph_loader.py
+  - yamlgraph/node_compiler.py
+  - yamlgraph/map_compiler.py
+  - yamlgraph/tools/agent.py
+  - tests/unit/test_fr426_schema_loader_tool_type_red.py
+requirements:
+  - id: REQ-YG-417
+    description: >
+      parse_schema_loader_tools recognizes type: schema_loader entries, enforces
+      exactly-one-of path/paths_from_state plus required state_key, and supports
+      single-file schema loading into the configured state key via python tool
+      runtime integration.
+    modules:
+      - yamlgraph/tools/schema_loader_tool.py
+      - yamlgraph/tools/python_tool.py
+      - yamlgraph/graph_loader.py
+      - yamlgraph/node_compiler.py
+      - tests/unit/test_fr426_schema_loader_tool_type_red.py
+  - id: REQ-YG-418
+    description: >
+      Merge mode loads schema files from paths_from_state topics under schema_dir
+      with suffix, preserves additive ordering (existing fields first), deduplicates
+      by deduplicate_by, and enforces graph-root path safety including traversal
+      rejection and graph-relative resolution independent of process CWD.
+    modules:
+      - yamlgraph/tools/schema_loader_tool.py
+      - yamlgraph/tools/python_tool.py
+      - yamlgraph/map_compiler.py
+      - tests/unit/test_fr426_schema_loader_tool_type_red.py
