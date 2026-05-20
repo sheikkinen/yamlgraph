@@ -354,7 +354,7 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 |------|---------|---------|
 | Require pull request | Enabled (0 approvals) | No direct pushes to `main` |
 | Squash merge only | Merge commits and rebase disabled | PR title = commit message; enforces Conventional Commits |
-| Required status checks | `commitlint`, `test`, `conflict-check`, `copilot-trailer-gate`, `changelog-gate`, `changelog-req-gate`, `demo-gate`, `diary-gate`, `security` | PR cannot merge with failing CI |
+| Required status checks | `commitlint`, `test`, `conflict-check`, `copilot-trailer-gate`, `wip-gate`, `changelog-gate`, `changelog-req-gate`, `demo-gate`, `diary-gate`, `security` | PR cannot merge with failing CI |
 | Require up to date | Enabled | PRs must be rebased on latest `main` before merge |
 
 ### Required status checks
@@ -363,6 +363,7 @@ The `main` branch is protected by GitHub branch protection rules (FR-150). These
 - **`test`** (`.github/workflows/workflow.yml`): Runs `pytest` with 80% coverage threshold and `ruff` linting.
 - **`conflict-check`** (`.github/workflows/commitlint.yml`): Fails when unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) are found in tracked files (excluding `.github/`). Complements the local `check-merge-conflict` pre-commit hook which is bypassed by server-side squash merges.
 - **`copilot-trailer-gate`** (`.github/workflows/commitlint.yml`): Blocks PRs when any `Co-authored-by:` trailer identities appear in PR commit messages or PR body text.
+- **`wip-gate`** (`.github/workflows/commitlint.yml`): Blocks PRs when any commit subject in `BASE_SHA..HEAD_SHA` contains standalone `wip` (case-insensitive).
 - **`changelog-gate`** (`.github/workflows/commitlint.yml`): Blocks `feat`/`fix` PRs unless a changelog fragment exists in `changelog/unreleased/` (FR-179).
 - **`changelog-req-gate`** (`.github/workflows/commitlint.yml`): Validates changelog fragment `req:` front-matter references valid REQ-YG-XXX IDs in the capabilities registry. Mechanical pre-filter for single-REQ CAPs; multi-REQ CAPs deferred (FR-247).
 - **`diary-gate`** (`.github/workflows/commitlint.yml`): Blocks `feat`/`fix` PRs with `FR-XXX` reference unless a diary reflection file exists in the diff.

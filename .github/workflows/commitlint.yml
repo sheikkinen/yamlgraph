@@ -124,6 +124,31 @@ jobs:
 
           echo "✅ No blocked author identities found"
 
+  wip-gate:
+    name: Block WIP commit subjects
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify commit range for WIP subjects
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          WIP_SUBJECTS=$(git log --format=%s "$BASE_SHA..$HEAD_SHA" | grep -Ei '\bwip\b' || true)
+          if [ -n "$WIP_SUBJECTS" ]; then
+            echo "::error::WIP commit subject(s) found in commit range"
+            echo "$WIP_SUBJECTS"
+            exit 1
+          fi
+
+          echo "✅ No WIP subjects found"
+
   changelog-gate:
     name: Changelog fragment required for feat/fix
     runs-on: ubuntu-latest
