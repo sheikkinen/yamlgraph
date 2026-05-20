@@ -9,6 +9,8 @@ INPUT=$(cat)
 
 # ── Audit log helper ─────────────────────────────────────────────────
 LOG_DIR="${HOOK_LOG_DIR:-$(dirname "$0")/../logs}"
+SESSION_ID=""
+TOOL_USE_ID=""
 
 audit_log() {
   # args: decision reason detail
@@ -16,19 +18,24 @@ audit_log() {
   mkdir -p "$LOG_DIR" 2>/dev/null || return 0
   python3 -c "
 import json, sys, datetime as dt
-print(json.dumps({
+entry = {
     'ts': dt.datetime.now(dt.timezone.utc).isoformat(),
     'hook': 'post-edit-checks',
     'tool': sys.argv[1],
     'decision': sys.argv[2],
     'reason': sys.argv[3],
-    'detail': sys.argv[4][:200]
-}))
-" "${TOOL_NAME:-unknown}" "$decision" "$reason" "$detail" >> "$LOG_DIR/audit.jsonl" 2>/dev/null || true
+    'detail': sys.argv[4][:500]
+}
+if sys.argv[5]: entry['session_id'] = sys.argv[5]
+if sys.argv[6]: entry['tool_use_id'] = sys.argv[6]
+print(json.dumps(entry))
+" "${TOOL_NAME:-unknown}" "$decision" "$reason" "$detail" "$SESSION_ID" "$TOOL_USE_ID" >> "$LOG_DIR/audit.jsonl" 2>/dev/null || true
 }
 
 # ── Extract tool name ────────────────────────────────────────────────
 TOOL_NAME=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_name', d.get('toolName','')))" 2>/dev/null || true)
+SESSION_ID=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('session_id',''))" 2>/dev/null || true)
+TOOL_USE_ID=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_use_id',''))" 2>/dev/null || true)
 
 # Only inspect file-edit tools
 case "$TOOL_NAME" in
