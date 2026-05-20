@@ -284,7 +284,12 @@ def compile_map_node(
             raise ValueError(f"Unknown python tool '{tool_name}' in map node '{name}'")
         # Load the actual function from the tool config
         tool_config = python_tools[tool_name]
-        sub_node = load_python_function(tool_config)
+        graph_root = graph_path.parent.resolve() if graph_path else None
+        sub_node = load_python_function(
+            tool_config,
+            graph_root=graph_root,
+            tool_name=tool_name,
+        )
     elif sub_node_type == NodeType.AGENT:
         if tools is None:
             raise ValueError(

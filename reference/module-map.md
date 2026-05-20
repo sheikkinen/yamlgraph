@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 112
+- module count: 113
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -68,8 +68,8 @@
   - import dependencies: `yamlgraph.utils.prompts`, `yamlgraph.utils.template`
 - `yamlgraph/graph_cache.py` - 31 lines; exports: `clear_cache()`
   - import dependencies: _none_
-- `yamlgraph/graph_loader.py` - 364 lines; exports: `detect_loop_nodes(edges)`, `apply_loop_node_defaults(config)`, `class GraphConfig`, `load_graph_config(path)`, `compile_graph(config)`, `invoke_graph(path, variables, *, config)`, `load_and_compile(path)`, `get_checkpointer_for_graph(config)`
-  - import dependencies: `yamlgraph.data_loader`, `yamlgraph.edge_compiler`, `yamlgraph.models.state_builder`, `yamlgraph.node_compiler`, `yamlgraph.storage.checkpointer_factory`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.validators`
+- `yamlgraph/graph_loader.py` - 376 lines; exports: `detect_loop_nodes(edges)`, `apply_loop_node_defaults(config)`, `class GraphConfig`, `load_graph_config(path)`, `compile_graph(config)`, `invoke_graph(path, variables, *, config)`, `load_and_compile(path)`, `get_checkpointer_for_graph(config)`
+  - import dependencies: `yamlgraph.data_loader`, `yamlgraph.edge_compiler`, `yamlgraph.models.state_builder`, `yamlgraph.node_compiler`, `yamlgraph.storage.checkpointer_factory`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.validators`
 - `yamlgraph/interactive_tool.py` - 183 lines; exports: `expand_interactive_tools(config)`
   - import dependencies: `yamlgraph.utils.conditions`
 - `yamlgraph/linter/__init__.py` - 21 lines; exports: _none_
@@ -102,7 +102,7 @@
   - import dependencies: `yamlgraph.linter.checks`
 - `yamlgraph/linter/patterns/subgraph.py` - 120 lines; exports: `check_subgraph_node_requirements(node_name, node_config, graph_path, project_root)`, `check_subgraph_patterns(graph_path, project_root)`
   - import dependencies: `yamlgraph.linter.checks`
-- `yamlgraph/map_compiler.py` - 352 lines; exports: `flatten_map_results(items)`, `wrap_for_reducer(node_fn, collect_key, state_key, flatten_output, timeout)`, `compile_map_node(name, config, builder, defaults, tools_registry, graph_path, python_tools, tools)`
+- `yamlgraph/map_compiler.py` - 357 lines; exports: `flatten_map_results(items)`, `wrap_for_reducer(node_fn, collect_key, state_key, flatten_output, timeout)`, `compile_map_node(name, config, builder, defaults, tools_registry, graph_path, python_tools, tools)`
   - import dependencies: `yamlgraph.config`, `yamlgraph.constants`, `yamlgraph.node_factory`, `yamlgraph.tools.agent`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.expressions`
 - `yamlgraph/mcp_server.py` - 370 lines; exports: `create_server(graph_patterns)`, `async main()`
   - import dependencies: `yamlgraph.discovery`
@@ -116,7 +116,7 @@
   - import dependencies: _none_
 - `yamlgraph/models/streaming.py` - 29 lines; exports: `class StreamEvent`
   - import dependencies: _none_
-- `yamlgraph/node_compiler.py` - 446 lines; exports: `class NodeCompileContext`, `resolve_cache_policy(cache_config)`, `compile_node(node_name, node_config, graph, config, tools, python_tools, callable_registry)`, `compile_nodes(config, graph, tools, python_tools, callable_registry)`
+- `yamlgraph/node_compiler.py` - 449 lines; exports: `class NodeCompileContext`, `resolve_cache_policy(cache_config)`, `compile_node(node_name, node_config, graph, config, tools, python_tools, callable_registry)`, `compile_nodes(config, graph, tools, python_tools, callable_registry)`
   - import dependencies: `yamlgraph.constants`, `yamlgraph.map_compiler`, `yamlgraph.models.graph_schema`, `yamlgraph.node_factory`, `yamlgraph.tools.agent`, `yamlgraph.tools.nodes`, `yamlgraph.tools.python_tool`
 - `yamlgraph/node_factory/__init__.py` - 50 lines; exports: _none_
   - import dependencies: `yamlgraph.node_factory.base`, `yamlgraph.node_factory.control_nodes`, `yamlgraph.node_factory.copilot_node`, `yamlgraph.node_factory.llm_nodes`, `yamlgraph.node_factory.race_node`, `yamlgraph.node_factory.streaming`, `yamlgraph.node_factory.subgraph_nodes`, `yamlgraph.node_factory.tool_nodes`
@@ -167,13 +167,15 @@
 - `yamlgraph/storage/simple_redis.py` - 341 lines; exports: `class SimpleRedisCheckpointer`
   - import dependencies: `yamlgraph.storage.serializers`
 - `yamlgraph/tools/__init__.py` - 6 lines; exports: _none_
-- `yamlgraph/tools/agent.py` - 363 lines; exports: `build_langchain_tool(name, config)`, `build_python_tool(name, config)`, `create_agent_node(node_name, node_config, tools, python_tools, *, defaults, graph_path)`
-  - import dependencies: `yamlgraph.executor_base`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.content`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.prompts`
+- `yamlgraph/tools/agent.py` - 379 lines; exports: `build_langchain_tool(name, config)`, `build_python_tool(name, config, *, graph_root)`, `create_agent_node(node_name, node_config, tools, python_tools, *, defaults, graph_path)`
+  - import dependencies: `yamlgraph.executor_base`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.content`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.prompts`
 - `yamlgraph/tools/nodes.py` - 130 lines; exports: `resolve_state_variable(template, state)`, `resolve_variables(variables_config, state)`, `create_tool_node(node_name, node_config, tools)`
   - import dependencies: `yamlgraph.error_handlers`, `yamlgraph.tools.shell`, `yamlgraph.utils.expressions`
-- `yamlgraph/tools/python_tool.py` - 228 lines; exports: `class PythonToolConfig`, `load_python_function(config)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools)`
-  - import dependencies: _none_
+- `yamlgraph/tools/python_tool.py` - 256 lines; exports: `class PythonToolConfig`, `load_python_function(config, *, graph_root, tool_name)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools, *, graph_root)`
+  - import dependencies: `yamlgraph.tools.schema_loader_tool`
 - `yamlgraph/tools/questionnaire.py` - 40 lines; exports: `detect_gaps(state)`, `normalize_extracted(state)`
+  - import dependencies: _none_
+- `yamlgraph/tools/schema_loader_tool.py` - 281 lines; exports: `class SchemaLoaderToolConfig`, `parse_schema_loader_tools(tools_config)`, `build_schema_loader_tool(name, config, *, graph_root)`
   - import dependencies: _none_
 - `yamlgraph/tools/shell.py` - 205 lines; exports: `class ShellToolConfig`, `class ToolResult`, `sanitize_variables(variables)`, `execute_shell_tool(config, variables, sanitize)`, `parse_tools(tools_config)`
   - import dependencies: _none_
@@ -232,5 +234,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 60/112
+- mapped modules: 60/113
 - discovered tests: 62

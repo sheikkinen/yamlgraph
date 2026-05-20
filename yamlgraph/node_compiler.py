@@ -148,9 +148,7 @@ def _maybe_wrap_timeout(
     return timed_fn
 
 
-# ---------------------------------------------------------------------------
 # Node type handlers — one per node type
-# ---------------------------------------------------------------------------
 
 NodeTypeHandler = Callable[[NodeCompileContext], tuple[str, Any] | None]
 
@@ -163,7 +161,12 @@ def _compile_tool_node(ctx: NodeCompileContext) -> None:
 
 
 def _compile_python_node(ctx: NodeCompileContext) -> None:
-    node_fn = create_python_node(ctx.node_name, ctx.node_config, ctx.python_tools)
+    node_fn = create_python_node(
+        ctx.node_name,
+        ctx.node_config,
+        ctx.python_tools,
+        graph_root=ctx.config.source_path and ctx.config.source_path.parent.resolve(),
+    )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None

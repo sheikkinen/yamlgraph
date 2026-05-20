@@ -17,6 +17,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
 from yamlgraph.executor_base import format_prompt
 from yamlgraph.tools.python_tool import PythonToolConfig, load_python_function
+from yamlgraph.tools.schema_loader_tool import SchemaLoaderToolConfig
 from yamlgraph.tools.shell import ShellToolConfig, execute_shell_tool
 from yamlgraph.utils.content import normalize_content as _normalize_content
 from yamlgraph.utils.llm_factory import create_llm
@@ -70,7 +71,12 @@ def build_langchain_tool(name: str, config: ShellToolConfig) -> Callable:
     )
 
 
-def build_python_tool(name: str, config: PythonToolConfig) -> Any:
+def build_python_tool(
+    name: str,
+    config: PythonToolConfig | SchemaLoaderToolConfig,
+    *,
+    graph_root: Path | None = None,
+) -> Any:
     """Convert Python tool config to LangChain StructuredTool.
 
     Args:
@@ -84,7 +90,7 @@ def build_python_tool(name: str, config: PythonToolConfig) -> Any:
     from pydantic import Field, create_model
 
     # Load the Python function
-    func = load_python_function(config)
+    func = load_python_function(config, graph_root=graph_root, tool_name=name)
 
     # Build args schema from function signature
     sig = inspect.signature(func)
@@ -116,10 +122,11 @@ def build_python_tool(name: str, config: PythonToolConfig) -> Any:
         except Exception as e:
             return f"Error: {e}"
 
+    description = getattr(config, "description", "Load schema data")
     return StructuredTool.from_function(
         func=execute_python,
         name=name,
-        description=config.description,
+        description=description,
         args_schema=ArgsModel,
     )
 
@@ -128,7 +135,7 @@ def create_agent_node(  # noqa: C901
     node_name: str,
     node_config: dict[str, Any],
     tools: dict[str, ShellToolConfig],
-    python_tools: dict[str, PythonToolConfig] | None = None,
+    python_tools: dict[str, PythonToolConfig | SchemaLoaderToolConfig] | None = None,
     *,
     defaults: dict[str, Any] | None = None,
     graph_path: Path | None = None,
@@ -179,6 +186,7 @@ def create_agent_node(  # noqa: C901
     lc_tools = []
     tool_lookup = {}
 
+    graph_root = graph_path.parent.resolve() if graph_path else None
     for name in tool_names:
         if name in tools:
             # Shell tool - need to wrap
@@ -186,7 +194,9 @@ def create_agent_node(  # noqa: C901
             tool_lookup[name] = tools[name]
         elif name in python_tools:
             # Python tool - wrap as LangChain tool
-            lc_tools.append(build_python_tool(name, python_tools[name]))
+            lc_tools.append(
+                build_python_tool(name, python_tools[name], graph_root=graph_root)
+            )
             tool_lookup[name] = python_tools[name]
         else:
             logger.warning(f"Tool '{name}' not found in shell or python registries")
@@ -309,10 +319,16 @@ def create_agent_node(  # noqa: C901
                             else f"Error: {result.error}"
                         )
                         success = result.success
-                    elif isinstance(tool_config, PythonToolConfig):
+                    elif isinstance(
+                        tool_config, PythonToolConfig | SchemaLoaderToolConfig
+                    ):
                         # Python tool - load and execute function
                         try:
-                            func = load_python_function(tool_config)
+                            func = load_python_function(
+                                tool_config,
+                                graph_root=graph_root,
+                                tool_name=tool_name,
+                            )
                             output = str(func(**tool_args))
                             success = True
                         except Exception as e:
