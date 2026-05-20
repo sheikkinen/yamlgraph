@@ -39,11 +39,13 @@ user: |
 
   **AMEND:** If the feature request needs work.
   - List specific issues to address
-  - Write issues back into the FR file
+   - Write issues back into the FR file
+   - Append or update a canonical `## Judge Notes` section with dated rationale
 
   **REJECT:** If the feature request is unfeasible.
   - Add **Status:** Rejected to the file
   - Document the reason for rejection
+   - Persist the rejection rationale in `## Judge Notes`
 
   **SPLIT:** If the FR addresses multiple orthogonal concerns that can be implemented and tested separately.
   - Identify each independent concern as a numbered sub-topic

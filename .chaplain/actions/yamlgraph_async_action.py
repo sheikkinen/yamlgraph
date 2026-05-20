@@ -6,10 +6,16 @@ from typing import Any
 
 from yamlgraph.utils.fsm import YamlgraphAsyncAction as _SharedYamlgraphAsyncAction
 from yamlgraph.utils.fsm.action import run_legacy_yamlgraph_async
+from yamlgraph.utils.fsm.event_sender import send_event
 
 _PLACEHOLDER_PATTERN = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
 _EXACT_PLACEHOLDER_PATTERN = re.compile(r"^\{[A-Za-z_][A-Za-z0-9_]*\}$")
-_NORMALIZE_EMPTY_ON_UNRESOLVED = {"precommit_output", "validate_gate_output"}
+_NORMALIZE_EMPTY_ON_UNRESOLVED = {
+    "precommit_output",
+    "validate_gate_output",
+    "fr_path",
+}
+_JUDGE_WRITEBACK_MTIME_KEY = "_judge_writeback_mtime_before"
 logger = logging.getLogger(__name__)
 
 
@@ -28,6 +34,34 @@ def _interpolate_legacy(value: Any, context: dict[str, Any]) -> Any:
         return match.group(0)
 
     return _PLACEHOLDER_PATTERN.sub(_replace, value)
+
+
+def _resolve_fr_path(context: dict[str, Any] | None) -> Path | None:
+    if not isinstance(context, dict):
+        return None
+
+    fr_path = context.get("fr_path")
+    if not isinstance(fr_path, str) or not fr_path:
+        return None
+
+    fr = Path(fr_path)
+    if fr.is_absolute():
+        return fr
+
+    wt_dir = context.get("wt_dir")
+    main_dir = context.get("main_dir")
+
+    if isinstance(wt_dir, str) and wt_dir:
+        wt = Path(wt_dir)
+        if wt.is_absolute():
+            return wt / fr
+        if isinstance(main_dir, str) and main_dir:
+            return Path(main_dir) / wt / fr
+
+    if isinstance(main_dir, str) and main_dir:
+        return Path(main_dir) / fr
+
+    return fr
 
 
 class YamlgraphAsyncAction(_SharedYamlgraphAsyncAction):
@@ -56,6 +90,57 @@ class YamlgraphAsyncAction(_SharedYamlgraphAsyncAction):
             return await super().execute(context)
         finally:
             self._runtime_main_dir = None
+
+    def on_launch(self, _snap: Any, context: dict[str, Any]) -> None:
+        if context.get("current_state") != "judge":
+            return
+
+        fr = _resolve_fr_path(context)
+        if fr is None or not fr.exists():
+            context[_JUDGE_WRITEBACK_MTIME_KEY] = None
+            return
+
+        context[_JUDGE_WRITEBACK_MTIME_KEY] = fr.stat().st_mtime_ns
+
+    def pre_dispatch(
+        self,
+        _snap: Any,
+        event: str,
+        _payload: dict[str, Any] | None,
+        context: dict[str, Any] | None,
+    ) -> bool:
+        if not isinstance(context, dict):
+            return True
+
+        if context.get("current_state") != "judge":
+            return True
+
+        if event not in {"revise", "reject"}:
+            return True
+
+        machine_name = self.get_machine_name(context)
+        fr = _resolve_fr_path(context)
+        mtime_before = context.get(_JUDGE_WRITEBACK_MTIME_KEY)
+
+        if fr is None or not fr.exists() or mtime_before is None:
+            logger.error(
+                "[%s] judge writeback guard: missing fr_path or baseline mtime",
+                machine_name,
+            )
+            send_event(machine_name, "error")
+            return False
+
+        if fr.stat().st_mtime_ns == mtime_before:
+            logger.error(
+                "[%s] judge writeback guard: FR file unchanged after %s verdict: %s",
+                machine_name,
+                event,
+                fr,
+            )
+            send_event(machine_name, "error")
+            return False
+
+        return True
 
     def _resolve_graph_path(self, graph_path: str) -> str:
         raw = Path(graph_path)
