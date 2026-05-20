@@ -133,6 +133,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [watcher2-post-merge-inbox-consumption](demos/watcher2-post-merge-inbox-consumption/) | Post-merge inbox FR-token consumption into done queue (FR-289) |
 | [watcher2-red-verification](demos/watcher2-red-verification/) | RED verification timestamp fix demo (FR-280) |
 | [watcher2-remediation](demos/watcher2-remediation/) | Progressive ruff fixing for SIM117 remediation (FR-281) |
+| [hook_classifier](demos/hook_classifier/) | FSM daemon for async hook event classification (FR-425) |
 
 ### FR Validation Demos
 

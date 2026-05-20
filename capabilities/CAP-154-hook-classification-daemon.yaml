@@ -1,0 +1,65 @@
+id: CAP-154
+name: Hook Classification Daemon
+fr: FR-425
+description: >
+  Warm FSM daemon that classifies VS Code Copilot hook events using YAMLGraph
+  LLM pipeline. Async classify-and-log pattern: fire-and-forget DGRAM to
+  statemachine engine, LLM classifies intent/danger, results appended to JSONL
+  audit log. Phase A: demo-only in examples/demos/hook_classifier/. (FR-425)
+modules:
+  - examples/demos/hook_classifier/actions/classify_action.py
+  - examples/demos/hook_classifier/config/hook-classifier.yaml
+  - examples/demos/hook_classifier/graphs/classify-intent.yaml
+  - examples/demos/hook_classifier/prompts/classify-tool-intent.yaml
+  - examples/demos/hook_classifier/start-classifier.sh
+  - examples/demos/hook_classifier/demo.sh
+  - examples/demos/hook_classifier/graph.yaml
+  - tests/unit/test_fr425_hook_classification_daemon_red.py
+requirements:
+  - id: REQ-YG-411
+    description: >
+      Classification validation enforces intent in {legitimate, suspicious,
+      hostile}, danger_level int 1-5 (never 0), and category in valid enum set;
+      invalid values are normalized to safe defaults (unknown/1/normal).
+    modules:
+      - examples/demos/hook_classifier/actions/classify_action.py
+      - tests/unit/test_fr425_hook_classification_daemon_red.py
+  - id: REQ-YG-412
+    description: >
+      Reason code mapping returns classified-{intent} for valid intents and
+      classify-error for unknown/missing intent; classify-timeout for timeout
+      exceptions.
+    modules:
+      - examples/demos/hook_classifier/actions/classify_action.py
+      - tests/unit/test_fr425_hook_classification_daemon_red.py
+  - id: REQ-YG-413
+    description: >
+      Append contract uses open(mode='a') with print(json.dumps(...,
+      ensure_ascii=True), flush=True); entries exceeding 4096 bytes truncate
+      detail field; concurrent writers produce no torn lines.
+    modules:
+      - examples/demos/hook_classifier/actions/classify_action.py
+      - tests/unit/test_fr425_hook_classification_daemon_red.py
+  - id: REQ-YG-414
+    description: >
+      Session history capped at max 50 entries with 30-minute sliding window;
+      FIFO eviction drops oldest entries first.
+    modules:
+      - examples/demos/hook_classifier/actions/classify_action.py
+      - tests/unit/test_fr425_hook_classification_daemon_red.py
+  - id: REQ-YG-415
+    description: >
+      ClassifyAction on_success validates classification, appends to JSONL log,
+      and updates session history; on_error writes deterministic fallback with
+      intent=unknown, danger_level=1, category=error.
+    modules:
+      - examples/demos/hook_classifier/actions/classify_action.py
+      - tests/unit/test_fr425_hook_classification_daemon_red.py
+  - id: REQ-YG-416
+    description: >
+      Adversarial inputs (malformed LLM output, oversized payloads, prompt
+      injection in command text) are normalized by validation layer; no crash,
+      no bypass of danger_level=0 sentinel prohibition.
+    modules:
+      - examples/demos/hook_classifier/actions/classify_action.py
+      - tests/unit/test_fr425_hook_classification_daemon_red.py

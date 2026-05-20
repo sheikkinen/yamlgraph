@@ -1,0 +1,41 @@
+metadata:
+  name: hook-intent-classifier
+  provider: anthropic
+  model: claude-haiku
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  tool_name: str
+  command: str
+  session_history:
+    type: list
+    default: []
+
+nodes:
+  classify:
+    type: llm
+    prompt: classify-tool-intent
+    state_key: classification
+    schema:
+      name: ToolClassification
+      fields:
+        intent:
+          type: str
+          description: "One of: legitimate, suspicious, hostile"
+        danger_level:
+          type: int
+          description: "1-5 scale (1=routine, 5=critical threat). Never 0."
+        category:
+          type: str
+          description: "One of: normal, exfiltration, injection, evasion, self-modification, credential-harvest"
+        reasoning:
+          type: str
+          description: "One-sentence explanation of the classification"
+
+edges:
+  - from: START
+    to: classify
+  - from: classify
+    to: END

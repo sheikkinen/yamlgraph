@@ -72,3 +72,36 @@ The detail field was also widened from 200 to 500 chars — the previous truncat
 - Commands available: lockdown, unlock, status
 
 **Seed:** Can the Order 66 sentinel pattern generalize into a runtime configuration plane? Beyond lockdown/status, the pattern could carry session-scoped settings — `.github/hooks/cmd set verbose=true` to toggle detailed logging, `.github/hooks/cmd set enforce=strict` to change enforcement level, `.github/hooks/cmd watch <pattern>` to flag specific tool calls for human review. The hook payload already carries `session_id` for scoping. What's the minimum viable control plane that doesn't become a framework?
+
+## VII. Prompt Injection Attack Surface (Post-Enforce Reflection)
+
+After enforcing FR-424 (session timeline), we analyzed the Order 66 pattern for prompt injection vectors.
+
+### The Anti-Pattern: Security by Published Sentinel
+
+The sentinel `.github/hooks/cmd <command>` is published in README.md, copilot-instructions.md, and conversation transcripts. Any content the agent reads — a malicious file, web page, or LLM output — can instruct it to run `.github/hooks/cmd lockdown` (DoS) or `.github/hooks/cmd unlock` (control bypass). There is **no authentication** on the command channel. The only "protection" is hoping the agent distinguishes user intent from injected instructions — which DAN-style attacks prove it cannot reliably do.
+
+**Lockdown is safe but annoying** (denial of service). **Unlock is dangerous** (undermines user control). The session earlier demonstrated this: when lockdown was active, even the agent couldn't unlock — the user had to `rm .lockdown` manually. That accidental friction is actually the correct security posture for unlock.
+
+### Hostile Pattern Taxonomy
+
+Six categories of automatically classifiable hostile tool execution:
+
+1. **Prompt injection relay** — Commands containing `ignore previous instructions`, `you are now`, `forget your instructions`. The agent executing verbatim text from untrusted content.
+2. **Data exfiltration** — `curl/wget/nc` piping local files or env vars to external endpoints.
+3. **Credential harvesting** — Accessing `~/.ssh/*`, `~/.aws/*`, macOS Keychain, or echoing `*_KEY`/`*_TOKEN`/`*_SECRET` env vars.
+4. **Self-modification** — Editing hook scripts, `.pre-commit-config.yaml`, or CI workflows via terminal commands. The enforcement infrastructure modifying itself.
+5. **Lockfile manipulation** — Direct `rm .lockdown` or `touch .lockdown` bypassing the command channel.
+6. **Evasion** — `eval`, `bash -c`, hex-encoded commands, alias hijacking to bypass pattern matching.
+
+### Architectural Insight
+
+Adding grep patterns for each threat creates whack-a-mole. The deeper constraint: **the hook can only inspect the command string, not the agent's intent.** Legitimate `curl` looks identical to exfiltration.
+
+Two viable directions:
+- **Allowlist** — Define what the agent *can* run (git, python, pytest, ruff). Deny everything else by default. High security, high friction.
+- **Classify and log** — Flag suspicious patterns as `decision: suspicious` in audit.jsonl. Surface them in the timeline. Don't block (avoid false positives). Low friction, forensic value.
+
+The current hook system sits between these — it blocks specific known-bad patterns (Co-authored-by, --no-verify) but allows everything else. The gap is the middle ground: commands that aren't known-bad but aren't known-good either.
+
+**Seed:** Is the correct unlock mechanism a one-time token? Generate a random string on lockdown, display it in the deny reason, require it for unlock. The agent would need to relay "unlock with token X" from the user, and injected content wouldn't have the token. But the agent *sees* the token in the deny reason... so it could be tricked into providing it. The only truly secure unlock may be physical file removal — which the current accidental pattern already provides.

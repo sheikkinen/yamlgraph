@@ -1,0 +1,46 @@
+metadata:
+  name: "Hook Classifier"
+  machine_name: hook-classifier
+  version: "1.0.0"
+
+context:
+  session_history: []
+  classification_count: 0
+
+initial_state: idle
+
+states:
+  - idle
+  - classifying
+  - stopped
+
+events:
+  - tool_event
+  - classified
+  - error
+  - stop
+
+transitions:
+  - from: idle
+    to: classifying
+    event: tool_event
+  - from: classifying
+    to: idle
+    event: classified
+  - from: classifying
+    to: idle
+    event: error
+  - from: "*"
+    to: stopped
+    event: stop
+
+actions:
+  classifying:
+    - type: yamlgraph_async
+      params:
+        graph: graphs/classify-intent.yaml
+        input_key: tool_event
+        output_key: classification
+        success: classified
+        failure: error
+        timeout: 10
