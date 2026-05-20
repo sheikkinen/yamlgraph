@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/classify-emit.sh",
+        "timeout": 5
+      }
+    ]
+  }
+}
