@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/post-edit-checks.sh",
+        "timeout": 10
+      }
+    ]
+  }
+}
