@@ -48,6 +48,7 @@ Start here and progress in order:
 | [horoscope/](horoscope/) | `map`, `llm` | Parallel daily horoscope for 12 zodiac signs (FR-201) |
 | [cache/](cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 | [watcher2-deduplication-gate/](watcher2-deduplication-gate/) | `tool` | Verifies FR-287 dedup gate skip behavior and graceful degradation |
+| [hook_classifier/](hook_classifier/) | `llm` | FSM daemon for async hook event classification (FR-425) |
 
 ## Running Demos
 
