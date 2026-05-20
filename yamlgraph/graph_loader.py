@@ -19,6 +19,7 @@ from yamlgraph.models.state_builder import build_state_class
 from yamlgraph.node_compiler import compile_nodes
 from yamlgraph.storage.checkpointer_factory import get_checkpointer
 from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
+from yamlgraph.tools.schema_loader_tool import parse_schema_loader_tools
 from yamlgraph.tools.shell import parse_tools
 from yamlgraph.utils.validators import validate_config
 
@@ -245,13 +246,24 @@ def _parse_all_tools(
     """
     tools = parse_tools(config.tools)
     python_tools = parse_python_tools(config.tools)
+    schema_loader_tools = parse_schema_loader_tools(config.tools)
+    python_tools.update(schema_loader_tools)
+    graph_root = (
+        config.source_path.parent.resolve()
+        if config.source_path
+        else Path.cwd().resolve()
+    )
 
     # Build callable registry for tool_call nodes
     callable_registry: dict[str, Callable] = {}
     for name, tool_config in python_tools.items():
         try:
-            callable_registry[name] = load_python_function(tool_config)
-        except (ImportError, AttributeError) as e:
+            callable_registry[name] = load_python_function(
+                tool_config,
+                graph_root=graph_root,
+                tool_name=name,
+            )
+        except (ImportError, AttributeError, ValueError, TypeError) as e:
             logger.warning(f"Failed to load tool '{name}': {e}")
 
     if tools:

@@ -16,6 +16,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from yamlgraph.tools.schema_loader_tool import (
+    SchemaLoaderToolConfig,
+    build_schema_loader_tool,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,11 +42,17 @@ class PythonToolConfig:
     description: str = ""
 
 
-def load_python_function(config: PythonToolConfig) -> Callable:
+def load_python_function(
+    config: PythonToolConfig | SchemaLoaderToolConfig,
+    *,
+    graph_root: Path | None = None,
+    tool_name: str = "",
+) -> Callable:
     """Load a Python function from module path or file path.
 
     Args:
-        config: Python tool configuration
+        config: Python tool configuration or schema loader tool configuration
+        graph_root: Graph root directory for graph-relative schema loader tools
 
     Returns:
         The loaded function
@@ -52,6 +63,17 @@ def load_python_function(config: PythonToolConfig) -> Callable:
         ImportError: If module cannot be imported
         AttributeError: If function not found in module
     """
+    if isinstance(config, SchemaLoaderToolConfig):
+        if graph_root is None:
+            raise ValueError(
+                "SchemaLoaderToolConfig requires graph_root for relative path resolution"
+            )
+        return build_schema_loader_tool(
+            tool_name or "schema_loader",
+            config,
+            graph_root=graph_root,
+        )
+
     if config.path and config.module:
         raise ValueError("PythonToolConfig: set 'path' or 'module', not both")
     if not config.path and not config.module:
@@ -133,7 +155,9 @@ def parse_python_tools(tools_config: dict[str, Any]) -> dict[str, PythonToolConf
 def create_python_node(
     node_name: str,
     node_config: dict[str, Any],
-    python_tools: dict[str, PythonToolConfig],
+    python_tools: dict[str, PythonToolConfig | SchemaLoaderToolConfig],
+    *,
+    graph_root: Path | None = None,
 ) -> Callable[[dict[str, Any]], dict]:
     """Create a node that executes a Python function.
 
@@ -162,7 +186,11 @@ def create_python_node(
     variable_templates = node_config.get("variables", {})
 
     # Load the function at node creation time
-    func = load_python_function(tool_config)
+    func = load_python_function(
+        tool_config,
+        graph_root=graph_root,
+        tool_name=tool_name,
+    )
 
     def node_fn(state: dict[str, Any]) -> dict:
         """Execute the Python function and return state update."""
