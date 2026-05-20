@@ -10,6 +10,8 @@ INPUT=$(cat)
 
 # ── Audit log helper ─────────────────────────────────────────────────
 LOG_DIR="${HOOK_LOG_DIR:-$(dirname "$0")/../logs}"
+SESSION_ID=""
+TOOL_USE_ID=""
 
 audit_log() {
   # args: decision reason detail
@@ -17,15 +19,18 @@ audit_log() {
   mkdir -p "$LOG_DIR" 2>/dev/null || return 0
   python3 -c "
 import json, sys, datetime as dt
-print(json.dumps({
+entry = {
     'ts': dt.datetime.now(dt.timezone.utc).isoformat(),
     'hook': 'pre-command-guard',
     'tool': sys.argv[1],
     'decision': sys.argv[2],
     'reason': sys.argv[3],
-    'detail': sys.argv[4][:200]
-}))
-" "${TOOL_NAME:-unknown}" "$decision" "$reason" "$detail" >> "$LOG_DIR/audit.jsonl" 2>/dev/null || true
+    'detail': sys.argv[4][:500]
+}
+if sys.argv[5]: entry['session_id'] = sys.argv[5]
+if sys.argv[6]: entry['tool_use_id'] = sys.argv[6]
+print(json.dumps(entry))
+" "${TOOL_NAME:-unknown}" "$decision" "$reason" "$detail" "$SESSION_ID" "$TOOL_USE_ID" >> "$LOG_DIR/audit.jsonl" 2>/dev/null || true
 }
 
 emit_deny() {
@@ -49,8 +54,10 @@ try:
     inp = d.get('tool_input', d.get('toolInput', d.get('input', {})))
     tool = d.get('tool_name', d.get('toolName', ''))
     cmd = inp.get('command', '') if isinstance(inp, dict) else ''
-    detail = json.dumps(inp)[:200] if inp else '{}'
-    print(json.dumps({'tool': tool, 'command': cmd, 'detail': detail}))
+    detail = json.dumps(inp)[:500] if inp else '{}'
+    sid = d.get('session_id', '')
+    tuid = d.get('tool_use_id', '')
+    print(json.dumps({'tool': tool, 'command': cmd, 'detail': detail, 'session_id': sid, 'tool_use_id': tuid}))
 except Exception:
     sys.exit(1)
 " 2>/dev/null) || {
@@ -63,6 +70,68 @@ except Exception:
 TOOL_NAME=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['tool'])")
 COMMAND=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['command'])")
 DETAIL=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['detail'])")
+SESSION_ID=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['session_id'])")
+TOOL_USE_ID=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['tool_use_id'])")
+
+# ── Lockdown check (order 66) ────────────────────────────────────────
+LOCKFILE="$LOG_DIR/.lockdown"
+if [[ -f "$LOCKFILE" ]]; then
+  # Allow only unlock command through
+  if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]] && \
+     echo "$COMMAND" | grep -q '\.github/hooks/cmd unlock'; then
+    : # fall through to order66 handler
+  else
+    audit_log "deny" "lockdown-active" "$DETAIL"
+    emit_deny "LOCKDOWN ACTIVE. All tool calls blocked. User must issue: .github/hooks/cmd unlock"
+    exit 0
+  fi
+fi
+
+# ── Order 66 command channel ─────────────────────────────────────────
+if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]] && \
+   echo "$COMMAND" | grep -q '^\.github/hooks/cmd '; then
+  ORDER66_CMD=$(echo "$COMMAND" | sed 's/^\.github\/hooks\/cmd //')
+  case "$ORDER66_CMD" in
+    lockdown)
+      touch "$LOCKFILE"
+      audit_log "deny" "order66-lockdown" "lockdown activated"
+      emit_deny "ORDER 66 EXECUTED. Lockdown active — all tool calls will be denied until: .github/hooks/cmd unlock"
+      ;;
+    unlock)
+      rm -f "$LOCKFILE"
+      audit_log "deny" "order66-unlock" "lockdown deactivated"
+      emit_deny "Lockdown lifted. Normal operations resumed."
+      ;;
+    status)
+      SUMMARY=$(python3 -c "
+import json, collections, pathlib
+logfile = pathlib.Path('$LOG_DIR') / 'audit.jsonl'
+if not logfile.exists():
+    print('No audit log found.')
+else:
+    lines = logfile.read_text().strip().splitlines()
+    decisions = collections.Counter()
+    tools = collections.Counter()
+    for line in lines:
+        d = json.loads(line)
+        decisions[d.get('decision','')] += 1
+        tools[d.get('tool','')] += 1
+    total = sum(decisions.values())
+    dec_str = ', '.join(f'{k}={v}' for k,v in decisions.most_common())
+    tool_str = ', '.join(f'{k}={v}' for k,v in tools.most_common(5))
+    lockdown = 'YES' if pathlib.Path('$LOCKFILE').exists() else 'no'
+    print(f'Audit: {total} total entries. Decisions: {dec_str}. Top tools: {tool_str}. Lockdown: {lockdown}')
+" 2>/dev/null)
+      audit_log "deny" "order66-status" "status requested"
+      emit_deny "$SUMMARY"
+      ;;
+    *)
+      audit_log "deny" "order66-unknown" "unknown cmd: $ORDER66_CMD"
+      emit_deny "Unknown command: $ORDER66_CMD. Available: lockdown, unlock, status"
+      ;;
+  esac
+  exit 0
+fi
 
 # Only inspect run_in_terminal / send_to_terminal tool calls
 if [[ "$TOOL_NAME" != "run_in_terminal" && "$TOOL_NAME" != "send_to_terminal" ]]; then
