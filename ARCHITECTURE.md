@@ -417,6 +417,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 151 | Graph Lint JSON Output | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_validate.py`, `tests/unit/test_fr406_lint_json_output_red.py`, `ARCHITECTURE.md` | REQ-YG-406 |
 | 152 | Watcher2 Dispatcher Audit Cadence | `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/actions/syncing_inbox_action.py`, `.chaplain/actions/audit_action.py`, `tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py`, … | REQ-YG-407 |
 | 153 | Built-in Questionnaire Gap Utilities | `yamlgraph/tools/questionnaire.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py`, `reference/probe-recap-questionnaire.md`, `ARCHITECTURE.md` | REQ-YG-409 – 410 |
+| 156 | WIP Commit Subject Gate | `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr424_wip_main_gate_red.py`, `CLAUDE.md`, … | REQ-YG-419 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1866,6 +1867,27 @@ Reintegrates inquisitor cadence into watcher-dispatcher so no-topic cycles can t
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-407 | Watcher2 dispatcher includes an `auditing` state and `last_audit_ts` context key; syncing_inbox emits `audit_needed` only when no topic is available and 24h cadence elapsed; audit runs `.chaplain/inquisitor.sh --propose`, updates `last_audit_ts` on success, and routes failures back to idle without stopping the daemon. | `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/actions/syncing_inbox_action.py`, `.chaplain/actions/audit_action.py`, `tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py` |
+
+### 153. Built-in Questionnaire Gap Utilities
+
+Adds framework-shipped questionnaire helpers `detect_gaps` and `normalize_extracted` in `yamlgraph.tools.questionnaire` so schema-driven probing loops can reuse deterministic gap detection and extraction normalization through existing `type: python` tool wiring. (FR-421)
+
+**Feature Request:** FR-421
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-409 | `detect_gaps(state)` returns sorted required schema field IDs missing from `state["extracted"]`, treating `None` and empty string as missing and returning `{"gaps": [...], "has_gaps": bool}`. | `yamlgraph/tools/questionnaire.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py` |
+| REQ-YG-410 | `normalize_extracted(state)` returns `{}` when `state["extracted"]` is a dict, otherwise returns `{"extracted": {}}`; utility module remains callable via `type: python` tool config. | `yamlgraph/tools/questionnaire.py`, `yamlgraph/tools/python_tool.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py` |
+
+### 154. WIP Commit Subject Gate
+
+Adds deterministic local and CI commit-subject enforcement that blocks the standalone word `wip` (case-insensitive) on the protected main merge path. Local commit-msg checks apply only on branch `main`, while CI scans PR commit subjects in `BASE_SHA..HEAD_SHA`. (FR-424)
+
+**Feature Request:** FR-424
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-419 | Commit subject gate blocks standalone `wip` (case-insensitive) on local `main` commit-msg flow and in CI `wip-gate` pull-request commit ranges (`BASE_SHA..HEAD_SHA`) via deterministic subject scanning, while allowing non-main branches and non-boundary substrings like `swipe`. | `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr424_wip_main_gate_red.py`, `CLAUDE.md` |
 
 <!-- END GENERATED CAPABILITIES -->
 

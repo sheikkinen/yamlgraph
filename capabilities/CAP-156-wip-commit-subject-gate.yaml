@@ -1,0 +1,26 @@
+id: CAP-156
+name: WIP Commit Subject Gate
+description: >
+  Adds deterministic local and CI commit-subject enforcement that blocks the
+  standalone word `wip` (case-insensitive) on the protected main merge path.
+  Local commit-msg checks apply only on branch `main`, while CI scans PR commit
+  subjects in `BASE_SHA..HEAD_SHA`. (FR-424)
+modules:
+  - .pre-commit-config.yaml
+  - .github/workflows/commitlint.yml
+  - tests/unit/test_fr424_wip_main_gate_red.py
+  - CLAUDE.md
+  - ARCHITECTURE.md
+requirements:
+  - id: REQ-YG-419
+    description: >
+      Commit subject gate blocks standalone `wip` (case-insensitive) on local
+      `main` commit-msg flow and in CI `wip-gate` pull-request commit ranges
+      (`BASE_SHA..HEAD_SHA`) via deterministic subject scanning, while allowing
+      non-main branches and non-boundary substrings like `swipe`.
+    modules:
+      - .pre-commit-config.yaml
+      - .github/workflows/commitlint.yml
+      - tests/unit/test_fr424_wip_main_gate_red.py
+      - CLAUDE.md
+fr: FR-424
