@@ -12,6 +12,7 @@ prompts_dir: prompts
 
 state:
   topic_file: str
+  fr_path: str
   worktree_dir: str
   branch: str
   project: str
@@ -30,6 +31,7 @@ nodes:
       allow_all_tools: true
     variables:
       topic_file: "{state.topic_file}"
+      fr_path: "{state.fr_path}"
       worktree_dir: "{state.worktree_dir}"
       branch: "{state.branch}"
       project: "{state.project}"

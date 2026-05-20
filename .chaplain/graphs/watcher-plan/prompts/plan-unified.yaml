@@ -21,6 +21,9 @@ user: |
   - Read and understand the topic/idea in the file
   - Research existing patterns in the codebase
   - Define clear objectives and constraints
+  - If fr_path is provided, edit that file in place
+  - Do not create a new FR number during AMEND cycles
+  - Create a new FR file only when fr_path is absent
   - Use FR template {{ worktree_dir }}/{{ fr_template }}
   - Use architecture source {{ worktree_dir }}/{{ architecture_doc }}
   - Write the FR in the template's directory with a filename like FR-XXX-*.md
