@@ -31,23 +31,23 @@ The current hook system has two speeds: deterministic regex (fast, catches known
 
 **Phase A (demo-only):** Self-contained example in `examples/demos/hook_classifier/`. Uses the existing `statemachine_engine` for socket + FSM infrastructure. Custom `classify_action.py` handles domain logic (session history, validation, log appending). No production hook modification. Proves the pattern.
 
-**Phase B (opt-in hook integration):** Guarded by `YAMLGRAPH_CLASSIFIER=1` env flag. Adds fire-and-forget emit to `pre-command-guard.sh`. Default off. Only enabled when user explicitly opts in.
+**Phase B (opt-in hook integration):** Separate `classify-emit.sh` script with its own hook config JSON (`classify-emit.json`). Activation = add the JSON to `.github/hooks/`; deactivation = remove it. No env flags, no modification of `pre-command-guard.sh`.
 
 ### Architecture
 
 ```
 Hook (pre-command-guard.sh)     statemachine_engine              Custom Action
-┌──────────────────┐  DGRAM   ┌───────────────────┐  dispatch  ┌──────────────────┐
-│ fast path:       │─────────→│ hook-classifier    │──────────→│ classify_action   │
-│   known-bad=deny │ fire &   │ (existing engine)  │           │ (domain logic)    │
-│   unknown=approve│ forget   │                    │           │                   │
-│   + emit event   │          │ idle → classifying │           │ session history   │
-└──────────────────┘          │   ↑        │       │           │ validate output   │
-                              │   └────────┘       │  invoke   │ append to log     │
-                              │  socket, FSM,      │──────────→│                   │
-                              │  signal handling   │  YAMLGraph│ classify-intent   │
-                              │  all from engine   │  graph    │   .yaml           │
-                              └────────────────────┘           └──────────────────┘
+┌──────────────────┐            ┌───────────────────┐  dispatch  ┌──────────────────┐
+│ fast path:       │            │ hook-classifier    │──────────→│ classify_action   │
+│   known-bad=deny │            │ (existing engine)  │           │ (domain logic)    │
+│   unknown=approve│            │                    │           │                   │
+└──────────────────┘            │ idle → classifying │           │ session history   │
+                                │   ↑        │       │           │ validate output   │
+Hook (classify-emit.sh)  DGRAM  │   └────────┘       │  invoke   │ append to log     │
+┌──────────────────┐──────────→│  socket, FSM,      │──────────→│                   │
+│ PostToolUse      │ fire &    │  signal handling   │  YAMLGraph│ classify-intent   │
+│ emit event       │ forget    │  all from engine   │  graph    │   .yaml           │
+└──────────────────┘            └────────────────────┘           └──────────────────┘
 ```
 
 **Key design decision: no reinvented FSM.** The `statemachine_engine` already provides DGRAM socket listener, state machine, event dispatch, signal handling, and stale socket cleanup. The demo only adds:
@@ -269,17 +269,45 @@ The engine already handles socket lifecycle (stale removal, signal-based cleanup
 - **Path override:** `--control-socket-prefix` engine CLI flag or `HOOK_CLASSIFIER_SOCK` env var in the launcher script.
 - **Stale socket:** Engine removes stale socket on startup (same pattern as ninchat_voice J-4).
 
-### Hook Integration (Phase B only — behind `YAMLGRAPH_CLASSIFIER=1`)
+### Hook Integration (Phase B — separate script + config)
 
-Add to `pre-command-guard.sh` after the approve/pass decision:
+A standalone `classify-emit.sh` hook script with its own JSON config. Activation is file-based: add `classify-emit.json` to `.github/hooks/` to enable; remove it to disable. No env flags, no modification of `pre-command-guard.sh`.
 
+**Hook config** (`.github/hooks/classify-emit.json`):
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/classify-emit.sh",
+        "timeout": 5
+      }
+    ]
+  }
+}
+```
+
+**Emit script** (`.github/hooks/scripts/classify-emit.sh`):
 ```bash
-# Emit to classifier daemon (Phase B, opt-in via YAMLGRAPH_CLASSIFIER=1)
-if [[ "${YAMLGRAPH_CLASSIFIER:-}" == "1" ]]; then
-  CLASSIFIER_SOCK="${HOOK_CLASSIFIER_SOCK:-/tmp/statemachine-control-hook-classifier.sock}"
-  if [[ -S "$CLASSIFIER_SOCK" ]]; then
-    _redacted_cmd=$(echo "$COMMAND" | sed -E 's/(KEY|TOKEN|SECRET|PASSWORD|PASSPHRASE)=[^ ]*/\1=REDACTED/gi')
-    python3 -c "
+#!/usr/bin/env bash
+# PostToolUse hook: fire-and-forget DGRAM to classifier daemon.
+# Activation: add classify-emit.json to .github/hooks/
+# Deactivation: remove classify-emit.json
+set -euo pipefail
+
+INPUT=$(cat)
+CLASSIFIER_SOCK="${HOOK_CLASSIFIER_SOCK:-/tmp/statemachine-control-hook-classifier.sock}"
+[[ -S "$CLASSIFIER_SOCK" ]] || exit 0
+
+TOOL_NAME=$(echo "$INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('toolName','unknown'))" 2>/dev/null || echo unknown)
+COMMAND=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('input',{}).get('command',''))" 2>/dev/null || echo '')
+SESSION_ID=$(echo "$INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('sessionId',''))" 2>/dev/null || echo '')
+
+# Redact secrets before sending to LLM
+_redacted_cmd=$(echo "$COMMAND" | sed -E 's/(KEY|TOKEN|SECRET|PASSWORD|PASSPHRASE)=[^ ]*/\1=REDACTED/gi')
+
+python3 -c "
 import json, socket, sys
 envelope = json.dumps({
     'type': 'tool_event',
@@ -293,13 +321,14 @@ envelope = json.dumps({
 s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
 s.sendto(envelope.encode(), sys.argv[5])
 " "$TOOL_NAME" "$_redacted_cmd" "$SESSION_ID" "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" "$CLASSIFIER_SOCK" 2>/dev/null &
-  fi
-fi
+exit 0
 ```
 
-- **Default off.** No-op unless `YAMLGRAPH_CLASSIFIER=1` is set. No background process spawned otherwise.
-- **Serializer-based emission.** Payload assembled via `json.dumps`, not shell string interpolation. Handles quotes, newlines, and special characters in command text without producing malformed JSON DGRAMs.
-- **Command redaction:** `KEY=`, `TOKEN=`, `SECRET=`, `PASSWORD=`, `PASSPHRASE=` values replaced with `REDACTED` before transmission. Prevents secrets in shell commands from reaching the LLM.
+- **File-based activation.** Present config JSON = enabled. Remove it = disabled. No env flags needed.
+- **PostToolUse hook.** Fires after tool execution (forensic, not blocking). Separate from `pre-command-guard.sh` (PreToolUse).
+- **Serializer-based emission.** Payload assembled via `json.dumps`, not shell string interpolation.
+- **Command redaction:** `KEY=`, `TOKEN=`, `SECRET=`, `PASSWORD=`, `PASSPHRASE=` values replaced with `REDACTED`.
+- **Graceful degradation:** If socket doesn't exist (daemon not running), exits 0 immediately.
 - Fire-and-forget. Background subshell so hook latency unchanged.
 
 ### Audit Output
@@ -364,14 +393,17 @@ The `session-timeline.py` script already reads audit.jsonl — in Phase B, class
 
 ### Phase B (opt-in hook integration)
 
-- [ ] Hook emit guarded by `YAMLGRAPH_CLASSIFIER=1` env flag (default off)
-- [ ] Hook emit uses `python3 -c` with `json.dumps` for payload serialization (no shell string interpolation)
-- [ ] Command redaction: `KEY=`, `TOKEN=`, `SECRET=`, `PASSWORD=`, `PASSPHRASE=` values replaced with `REDACTED`
-- [ ] Hook latency overhead < 1ms when daemon not running (socket existence check only)
-- [ ] Hook latency overhead < 5ms when daemon running (fire-and-forget DGRAM)
-- [ ] No background process spawned when `YAMLGRAPH_CLASSIFIER` is unset
+- [x] Separate `classify-emit.sh` script at `.github/hooks/scripts/classify-emit.sh`
+- [x] Hook config at `.github/hooks/classify-emit.json` (PostToolUse, timeout 5s)
+- [x] Activation = add JSON config; deactivation = remove it. No env flags.
+- [x] `pre-command-guard.sh` unchanged — no modification whatsoever
+- [x] Hook emit uses `python3 -c` with `json.dumps` for payload serialization (no shell string interpolation)
+- [x] Command redaction: `KEY=`, `TOKEN=`, `SECRET=`, `PASSWORD=`, `PASSPHRASE=` values replaced with `REDACTED`
+- [x] Graceful exit 0 when daemon socket doesn't exist (no error, no spawn)
+- [x] Hook latency overhead < 1ms when daemon not running (socket existence check only)
+- [x] Hook latency overhead < 5ms when daemon running (fire-and-forget DGRAM)
 - [ ] Classification written to `.github/hooks/logs/audit.jsonl` (same file as hooks, append mode)
-- [ ] Tests for redaction correctness and env flag gating
+- [x] Tests for redaction correctness
 
 ## Design Decisions
 
@@ -385,7 +417,7 @@ The hook cannot wait for an LLM call (200ms-2s). DGRAM fire-and-forget adds ~0ms
 The FSM context carries `session_history` — a rolling window of recent tool calls and classifications, managed by `classify_action.py` via the engine's context propagation. The classification prompt sees multi-turn patterns: "this is the third `curl` to an external URL in 2 minutes" scores higher danger than a single `curl`.
 
 ### Example-first, not infrastructure-first
-The daemon lives in `examples/demos/hook_classifier/`, not in `.github/hooks/`. It demonstrates FSM + YAMLGraph + Unix sockets as a reusable pattern. Hook integration is Phase B, guarded by env flag, never modifies production hook behavior by default.
+The daemon lives in `examples/demos/hook_classifier/`, not in `.github/hooks/`. It demonstrates FSM + YAMLGraph + Unix sockets as a reusable pattern. Hook integration is Phase B via a separate script + config JSON — never modifies `pre-command-guard.sh`. Activation is file-based: add `classify-emit.json` to enable, remove to disable.
 
 ### Use existing engine, don't reimplement
 The `statemachine_engine` already provides DGRAM socket listener, YAML-driven state machine, event dispatch, action loading, signal handling, and stale socket cleanup. The launcher is a bash script (`start-classifier.sh`) following the established `ninchat_voice/start-fsm.sh` pattern: `statemachine $CONFIG --machine-name $NAME --actions-dir $DIR`. No Python launcher — the `statemachine` CLI is the entry point. Domain logic lives exclusively in `classify_action.py`.

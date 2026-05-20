@@ -1,7 +1,5 @@
 metadata:
   name: hook-intent-classifier
-  provider: anthropic
-  model: claude-haiku
 
 prompts_relative: true
 prompts_dir: ../prompts
