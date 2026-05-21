@@ -56,78 +56,129 @@ if not fp:
 print(fp)
 " 2>/dev/null || true)
 
-# Skip if not a Python file or file doesn't exist
-if [[ ! "$FILE_PATH" == *.py ]] || [[ ! -f "$FILE_PATH" ]]; then
+# Skip if file doesn't exist
+if [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
 
 # ── Run checks ───────────────────────────────────────────────────────
 ISSUES=""
 
-# 1. Ruff lint
-if command -v ruff &>/dev/null; then
-  RUFF_LINT=$(ruff check --no-fix --quiet "$FILE_PATH" 2>/dev/null || true)
-  if [[ -n "$RUFF_LINT" ]]; then
-    ISSUES="${ISSUES}⚠ Ruff lint errors:\n${RUFF_LINT}\n\n"
-  fi
-else
-  audit_log "error" "ruff-missing" "$FILE_PATH"
-fi
-
-# 2. Ruff format check
-if command -v ruff &>/dev/null; then
-  RUFF_FMT=$(ruff format --check --quiet "$FILE_PATH" 2>&1 || true)
-  if echo "$RUFF_FMT" | grep -q "would reformat\|reformatted"; then
-    ISSUES="${ISSUES}⚠ Ruff format: file needs reformatting. Run: ruff format ${FILE_PATH}\n\n"
-  fi
-fi
-
-# 3. Forbidden terms (TODO, FIXME, backward compatibility)
-FORBIDDEN=$(grep -nE 'TODO|FIXME|backward compati(bility)?' "$FILE_PATH" 2>/dev/null || true)
-if [[ -n "$FORBIDDEN" ]]; then
-  ISSUES="${ISSUES}⚠ Forbidden terms found (pre-commit will reject):\n${FORBIDDEN}\n\n"
-fi
-
-# 4. File size
-LINE_COUNT=$(wc -l < "$FILE_PATH" | tr -d ' ')
-if [[ "$LINE_COUNT" -gt 450 ]]; then
-  ISSUES="${ISSUES}✗ File size: ${LINE_COUNT} lines (max 450). Split into submodules.\n\n"
-elif [[ "$LINE_COUNT" -gt 400 ]]; then
-  ISSUES="${ISSUES}⚠ File size: ${LINE_COUNT} lines (target ≤400). Consider splitting.\n\n"
-fi
-
-# 5. Debug statements
-DEBUG=$(grep -nE '^\s*(import pdb|from pdb import|breakpoint\(\))' "$FILE_PATH" 2>/dev/null || true)
-if [[ -n "$DEBUG" ]]; then
-  ISSUES="${ISSUES}⚠ Debug statements found (pre-commit will reject):\n${DEBUG}\n\n"
-fi
-
-# 6. noqa without confession (cross-reference docs/confessions.md)
-NOQA_LINES=$(grep -nE '#\s*noqa' "$FILE_PATH" 2>/dev/null || true)
-if [[ -n "$NOQA_LINES" ]]; then
-  # Find project root (where docs/confessions.md lives)
-  PROJ_ROOT=$(cd "$(dirname "$FILE_PATH")" && git rev-parse --show-toplevel 2>/dev/null || echo "")
-  CONFESSIONS="${PROJ_ROOT}/docs/confessions.md"
-  REL_PATH=""
-  if [[ -n "$PROJ_ROOT" ]]; then
-    REL_PATH="${FILE_PATH#$PROJ_ROOT/}"
+# ── Python file checks ───────────────────────────────────────────────
+if [[ "$FILE_PATH" == *.py ]]; then
+  # 1. Ruff lint
+  if command -v ruff &>/dev/null; then
+    RUFF_LINT=$(ruff check --no-fix --quiet "$FILE_PATH" 2>/dev/null || true)
+    if [[ -n "$RUFF_LINT" ]]; then
+      ISSUES="${ISSUES}⚠ Ruff lint errors:\n${RUFF_LINT}\n\n"
+    fi
+  else
+    audit_log "error" "ruff-missing" "$FILE_PATH"
   fi
 
-  UNDOCUMENTED=""
-  while IFS= read -r line; do
-    LINENO_NUM=$(echo "$line" | cut -d: -f1)
-    # Check if this file:line appears in confessions.md
-    if [[ -f "$CONFESSIONS" ]] && [[ -n "$REL_PATH" ]]; then
-      if grep -q "${REL_PATH}#L${LINENO_NUM}" "$CONFESSIONS" 2>/dev/null; then
-        continue
+  # 2. Ruff format check
+  if command -v ruff &>/dev/null; then
+    RUFF_FMT=$(ruff format --check --quiet "$FILE_PATH" 2>&1 || true)
+    if echo "$RUFF_FMT" | grep -q "would reformat\|reformatted"; then
+      ISSUES="${ISSUES}⚠ Ruff format: file needs reformatting. Run: ruff format ${FILE_PATH}\n\n"
+    fi
+  fi
+
+  # 3. Forbidden terms (TODO, FIXME, backward compatibility)
+  FORBIDDEN=$(grep -nE 'TODO|FIXME|backward compati(bility)?' "$FILE_PATH" 2>/dev/null || true)
+  if [[ -n "$FORBIDDEN" ]]; then
+    ISSUES="${ISSUES}⚠ Forbidden terms found (pre-commit will reject):\n${FORBIDDEN}\n\n"
+  fi
+
+  # 4. File size
+  LINE_COUNT=$(wc -l < "$FILE_PATH" | tr -d ' ')
+  if [[ "$LINE_COUNT" -gt 450 ]]; then
+    ISSUES="${ISSUES}✗ File size: ${LINE_COUNT} lines (max 450). Split into submodules.\n\n"
+  elif [[ "$LINE_COUNT" -gt 400 ]]; then
+    ISSUES="${ISSUES}⚠ File size: ${LINE_COUNT} lines (target ≤400). Consider splitting.\n\n"
+  fi
+
+  # 5. Debug statements
+  DEBUG=$(grep -nE '^\s*(import pdb|from pdb import|breakpoint\(\))' "$FILE_PATH" 2>/dev/null || true)
+  if [[ -n "$DEBUG" ]]; then
+    ISSUES="${ISSUES}⚠ Debug statements found (pre-commit will reject):\n${DEBUG}\n\n"
+  fi
+
+  # 6. noqa without confession (cross-reference docs/confessions.md)
+  NOQA_LINES=$(grep -nE '#\s*noqa' "$FILE_PATH" 2>/dev/null || true)
+  if [[ -n "$NOQA_LINES" ]]; then
+    # Find project root (where docs/confessions.md lives)
+    PROJ_ROOT=$(cd "$(dirname "$FILE_PATH")" && git rev-parse --show-toplevel 2>/dev/null || echo "")
+    CONFESSIONS="${PROJ_ROOT}/docs/confessions.md"
+    REL_PATH=""
+    if [[ -n "$PROJ_ROOT" ]]; then
+      REL_PATH="${FILE_PATH#$PROJ_ROOT/}"
+    fi
+
+    UNDOCUMENTED=""
+    while IFS= read -r line; do
+      LINENO_NUM=$(echo "$line" | cut -d: -f1)
+      # Check if this file:line appears in confessions.md
+      if [[ -f "$CONFESSIONS" ]] && [[ -n "$REL_PATH" ]]; then
+        if grep -q "${REL_PATH}#L${LINENO_NUM}" "$CONFESSIONS" 2>/dev/null; then
+          continue
+        fi
+      fi
+      UNDOCUMENTED="${UNDOCUMENTED}  ${line}\n"
+    done <<< "$NOQA_LINES"
+
+    if [[ -n "$UNDOCUMENTED" ]]; then
+      ISSUES="${ISSUES}⚠ noqa without confession in docs/confessions.md (pre-commit will reject):\n${UNDOCUMENTED}Add CONF-XXX entry with File, Code, Sin, and Penance.\n\n"
+    fi
+  fi
+fi
+
+# ── YAML file checks ─────────────────────────────────────────────────
+if [[ "$FILE_PATH" == *.yaml || "$FILE_PATH" == *.yml ]]; then
+  IS_GRAPH=$(python3 -c "
+import sys
+import yaml
+
+with open(sys.argv[1], encoding='utf-8') as f:
+    data = yaml.safe_load(f)
+
+if isinstance(data, dict) and 'nodes' in data and 'edges' in data:
+    print('graph')
+" "$FILE_PATH" 2>/dev/null || true)
+
+  if [[ "$IS_GRAPH" == "graph" ]]; then
+    if command -v yamlgraph &>/dev/null; then
+      if LINT_OUT=$(yamlgraph graph lint "$FILE_PATH" 2>&1); then
+        LINT_RC=0
+      else
+        LINT_RC=$?
+      fi
+      if [[ $LINT_RC -ne 0 ]] && [[ -n "$LINT_OUT" ]]; then
+        ISSUES="${ISSUES}⚠ Graph lint issues:\n${LINT_OUT}\n\n"
       fi
     fi
-    UNDOCUMENTED="${UNDOCUMENTED}  ${line}\n"
-  done <<< "$NOQA_LINES"
+  elif [[ "$FILE_PATH" == */prompts/*.yaml || "$FILE_PATH" == */prompts/*.yml ]]; then
+    PARSE_ERR=$(python3 -c "
+import sys
+import yaml
 
-  if [[ -n "$UNDOCUMENTED" ]]; then
-    ISSUES="${ISSUES}⚠ noqa without confession in docs/confessions.md (pre-commit will reject):\n${UNDOCUMENTED}Add CONF-XXX entry with File, Code, Sin, and Penance.\n\n"
+try:
+    with open(sys.argv[1], encoding='utf-8') as f:
+        yaml.safe_load(f)
+except yaml.YAMLError as exc:
+    print(f'YAML parse error: {exc}')
+" "$FILE_PATH" 2>/dev/null || true)
+    if [[ -n "$PARSE_ERR" ]]; then
+      ISSUES="${ISSUES}⚠ Prompt file error:\n${PARSE_ERR}\n\n"
+    fi
+  else
+    exit 0
   fi
+fi
+
+# Skip non-Python, non-YAML files
+if [[ ! "$FILE_PATH" == *.py && ! "$FILE_PATH" == *.yaml && ! "$FILE_PATH" == *.yml ]]; then
+  exit 0
 fi
 
 # ── Return results ───────────────────────────────────────────────────

@@ -63,9 +63,9 @@ def test_skips_non_edit_tools():
 
 
 def test_skips_non_python_files():
-    """Edits to non-Python files should be approved silently."""
+    """Edits to non-target YAML files should be approved silently."""
     with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
-        f.write("key: value\n")
+        f.write("name: ci\non: push\n")
         f.flush()
         try:
             code, out = run_hook(make_payload("replace_string_in_file", f.name))
@@ -73,6 +73,73 @@ def test_skips_non_python_files():
             assert "systemMessage" not in out, f"unexpected: {out}"
         finally:
             os.unlink(f.name)
+
+
+def test_graph_yaml_invalid_reports_lint_errors():
+    """Graph YAML with nodes/edges and invalid content should be linted and flagged."""
+    with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+        f.write(
+            "nodes:\n"
+            "  bad:\n"
+            "    type: does_not_exist\n"
+            "edges:\n"
+            "  - from: START\n"
+            "    to: bad\n"
+            "  - from: bad\n"
+            "    to: END\n"
+        )
+        f.flush()
+        try:
+            code, out = run_hook(make_payload("replace_string_in_file", f.name))
+            assert code == 0
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert "graph lint issues" in msg.lower(), f"expected graph lint: {msg}"
+        finally:
+            os.unlink(f.name)
+
+
+def test_graph_yaml_valid_no_message():
+    """A known-valid graph YAML should pass with no systemMessage."""
+    repo_root = Path(__file__).resolve().parents[3]
+    graph_path = repo_root / "examples" / "demos" / "hello" / "graph.yaml"
+    code, out = run_hook(make_payload("replace_string_in_file", str(graph_path)))
+    assert code == 0
+    if out:
+        parsed = json.loads(out)
+        msg = parsed.get("systemMessage", "")
+        assert msg == "", f"unexpected issues for valid graph: {msg}"
+
+
+def test_prompt_yaml_parse_error_reported():
+    """Invalid YAML under prompts/ should emit prompt parse errors."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        prompt_dir = Path(tmpdir) / "prompts"
+        prompt_dir.mkdir(parents=True, exist_ok=True)
+        prompt_file = prompt_dir / "bad.yaml"
+        prompt_file.write_text("template: [broken\n", encoding="utf-8")
+
+        code, out = run_hook(make_payload("replace_string_in_file", str(prompt_file)))
+        assert code == 0
+        parsed = json.loads(out)
+        msg = parsed.get("systemMessage", "")
+        assert "prompt file error" in msg.lower(), f"expected prompt parse error: {msg}"
+
+
+def test_prompt_yaml_valid_no_message():
+    """Valid YAML under prompts/ should pass parse check with no message."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        prompt_dir = Path(tmpdir) / "prompts"
+        prompt_dir.mkdir(parents=True, exist_ok=True)
+        prompt_file = prompt_dir / "ok.yaml"
+        prompt_file.write_text("template: hello\n", encoding="utf-8")
+
+        code, out = run_hook(make_payload("replace_string_in_file", str(prompt_file)))
+        assert code == 0
+        if out:
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert msg == "", f"unexpected prompt issues: {msg}"
 
 
 # ── Ruff lint ─────────────────────────────────────────────────────────
@@ -437,6 +504,10 @@ def test_ruff_missing_logs_error():
 ALL_TESTS = [
     test_skips_non_edit_tools,
     test_skips_non_python_files,
+    test_graph_yaml_invalid_reports_lint_errors,
+    test_graph_yaml_valid_no_message,
+    test_prompt_yaml_parse_error_reported,
+    test_prompt_yaml_valid_no_message,
     test_ruff_lint_catches_errors,
     test_ruff_format_catches_issues,
     test_forbid_terms_catches_todo,
