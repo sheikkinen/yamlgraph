@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 114
+- module count: 115
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -189,8 +189,8 @@
   - import dependencies: _none_
 - `yamlgraph/utils/expressions.py` - 255 lines; exports: `resolve_state_path(path, state)`, `resolve_state_expression(expr, state)`, `resolve_template(template, state)`, `resolve_node_variables(variable_templates, state)`
   - import dependencies: `yamlgraph.utils.parsing`
-- `yamlgraph/utils/fsm/__init__.py` - 14 lines; exports: _none_
-  - import dependencies: `yamlgraph.utils.fsm.action`, `yamlgraph.utils.fsm.helpers`, `yamlgraph.utils.fsm.snapshot`
+- `yamlgraph/utils/fsm/__init__.py` - 16 lines; exports: _none_
+  - import dependencies: `yamlgraph.utils.fsm.action`, `yamlgraph.utils.fsm.helpers`, `yamlgraph.utils.fsm.snapshot`, `yamlgraph.utils.fsm.ui_log`
 - `yamlgraph/utils/fsm/action.py` - 347 lines; exports: `class ActionConfig`, `class YamlgraphAsyncAction`, `async run_legacy_yamlgraph_async(*, config, context, logger_obj)`
   - import dependencies: `yamlgraph.utils.fsm.graph_runner`, `yamlgraph.utils.fsm.snapshot`
 - `yamlgraph/utils/fsm/event_sender.py` - 41 lines; exports: `send_event(machine_name, event_type, payload)`
@@ -201,6 +201,8 @@
   - import dependencies: _none_
 - `yamlgraph/utils/fsm/snapshot.py` - 76 lines; exports: `class SnapshotParams`, `snapshot_params(params, context, *, project_root)`
   - import dependencies: `yamlgraph.utils.fsm.helpers`
+- `yamlgraph/utils/fsm/ui_log.py` - 59 lines; exports: `emit_ui_activity(message, *, level, source, timeout_seconds)`
+  - import dependencies: _none_
 - `yamlgraph/utils/guard_evaluator.py` - 222 lines; exports: `class GuardExpressionError`, `validate_guard_expression(check)`, `evaluate_guard_expression(check, state, output)`
   - import dependencies: _none_
 - `yamlgraph/utils/id_registry.py` - 243 lines; exports: `class Reservation`, `class IdRegistry`, `load_registry(path)`, `reserve_ids(registry, fr_id, cap_count, req_count, note)`, `save_registry(registry, path)`, `validate_registry(registry)`, `format_cap_id(cap_num)`, `format_req_id(req_num)`
@@ -236,5 +238,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 60/114
+- mapped modules: 60/115
 - discovered tests: 62

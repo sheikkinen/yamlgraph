@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 day
 **Requested:** 2026-05-21
 
@@ -140,13 +140,13 @@ __all__ = [
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph/utils/fsm/ui_log.py` exists with `emit_ui_activity()` function
-- [ ] Guarded by `UI_EVENTS_ENABLED` env var (no-op when disabled)
-- [ ] Graceful degradation: no crash when statemachine-engine is not installed
-- [ ] Timeout protection on subprocess call (5s default)
-- [ ] Exported from `yamlgraph.utils.fsm` package
-- [ ] Unit tests with mocked subprocess
-- [ ] Documented in `yamlgraph/utils/fsm/` module docstring
+- [x] `yamlgraph/utils/fsm/ui_log.py` exists with `emit_ui_activity()` function
+- [x] Guarded by `UI_EVENTS_ENABLED` env var (no-op when disabled)
+- [x] Graceful degradation: no crash when statemachine-engine is not installed
+- [x] Timeout protection on subprocess call (5s default)
+- [x] Exported from `yamlgraph.utils.fsm` package
+- [x] Unit tests with mocked subprocess
+- [x] Documented in `yamlgraph/utils/fsm/` module docstring
 
 ## Design Decisions
 
