@@ -4,7 +4,7 @@ Framework for building LLM pipelines with YAML configuration.
 State is generated dynamically from graph config.
 """
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 from pathlib import Path
 
