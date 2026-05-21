@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-05-21
 
@@ -104,13 +104,20 @@ fi
 
 ## Acceptance Criteria
 
-- [ ] `post-edit-checks` fires on `feature-requests/*.md` file edits (routing from FR-429)
-- [ ] Warning emitted when 2+ FSM signal keywords found without escape-hatch references
-- [ ] No false positive when FR mentions `statemachine_engine`, `statemachine-engine`, `fsm-as-conductor`, or `yamlgraph.utils.fsm`
-- [ ] No false positive on non-FR markdown files (changelogs, docs, diary)
-- [ ] Existing Python checks unaffected
-- [ ] All checks complete within 10s hook timeout
-- [ ] Tests: FR with FSM signals → warning, FR with escape hatch → clean, FR without signals → clean
+- [x] `post-edit-checks` fires on `feature-requests/*.md` file edits (routing from FR-429)
+- [x] Warning emitted when 2+ FSM signal keywords found without escape-hatch references
+- [x] No false positive when FR mentions `statemachine_engine`, `statemachine-engine`, `fsm-as-conductor`, or `yamlgraph.utils.fsm`
+- [x] No false positive on non-FR markdown files (changelogs, docs, diary)
+- [x] Existing Python checks unaffected
+- [x] All checks complete within 10s hook timeout
+- [x] Tests: FR with FSM signals → warning, FR with escape hatch → clean, FR without signals → clean
+
+## Implementation Notes (2026-05-21)
+
+- Extended `.github/hooks/scripts/post-edit-checks.sh` with FR markdown routing for `*/feature-requests/*.md`.
+- Added deterministic FSM reinvention detector (2+ signal keywords) with escape hatches for existing integration references.
+- Added warning message pointing to `reference/patterns/fsm-as-conductor.md`.
+- Extended `.github/hooks/tests/test_post_edit_checks.py` with FR-specific tests for warning, escape hatch, and clean no-signal behavior.
 
 ## Dependencies
 

@@ -142,6 +142,68 @@ def test_prompt_yaml_valid_no_message():
             assert msg == "", f"unexpected prompt issues: {msg}"
 
 
+def test_feature_request_fsm_reinvention_warns():
+    """FR markdown with 2+ FSM signals should emit reinvention warning."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fr_dir = Path(tmpdir) / "feature-requests"
+        fr_dir.mkdir(parents=True, exist_ok=True)
+        fr_file = fr_dir / "FR-test.md"
+        fr_file.write_text(
+            "We should build a state machine for lifecycle management.\n"
+            "Use event-driven workflow and explicit transition guard logic.\n",
+            encoding="utf-8",
+        )
+
+        code, out = run_hook(make_payload("replace_string_in_file", str(fr_file)))
+        assert code == 0
+        parsed = json.loads(out)
+        msg = parsed.get("systemMessage", "")
+        assert "fsm patterns detected" in msg.lower(), f"expected FSM warning: {msg}"
+
+
+def test_feature_request_fsm_escape_hatch_clean():
+    """FR markdown referencing existing FSM integration should not warn."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fr_dir = Path(tmpdir) / "feature-requests"
+        fr_dir.mkdir(parents=True, exist_ok=True)
+        fr_file = fr_dir / "FR-test.md"
+        fr_file.write_text(
+            "Use statemachine_engine with event-driven workflow.\n"
+            "This FSM integration already exists in yamlgraph/utils/fsm.\n",
+            encoding="utf-8",
+        )
+
+        code, out = run_hook(make_payload("replace_string_in_file", str(fr_file)))
+        assert code == 0
+        if out:
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert (
+                "fsm patterns detected" not in msg.lower()
+            ), f"unexpected FSM warning: {msg}"
+
+
+def test_feature_request_without_fsm_signals_clean():
+    """FR markdown without FSM signals should not warn."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fr_dir = Path(tmpdir) / "feature-requests"
+        fr_dir.mkdir(parents=True, exist_ok=True)
+        fr_file = fr_dir / "FR-test.md"
+        fr_file.write_text(
+            "Improve prompt lint ergonomics and clearer diagnostics.\n",
+            encoding="utf-8",
+        )
+
+        code, out = run_hook(make_payload("replace_string_in_file", str(fr_file)))
+        assert code == 0
+        if out:
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert (
+                "fsm patterns detected" not in msg.lower()
+            ), f"unexpected FSM warning: {msg}"
+
+
 # ── Ruff lint ─────────────────────────────────────────────────────────
 
 
@@ -508,6 +570,9 @@ ALL_TESTS = [
     test_graph_yaml_valid_no_message,
     test_prompt_yaml_parse_error_reported,
     test_prompt_yaml_valid_no_message,
+    test_feature_request_fsm_reinvention_warns,
+    test_feature_request_fsm_escape_hatch_clean,
+    test_feature_request_without_fsm_signals_clean,
     test_ruff_lint_catches_errors,
     test_ruff_format_catches_issues,
     test_forbid_terms_catches_todo,
