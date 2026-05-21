@@ -14,12 +14,19 @@ from pathlib import Path
 HOOK = Path(__file__).resolve().parents[1] / "scripts" / "post-edit-checks.sh"
 
 
-def run_hook(payload: dict, *, log_dir: str | None = None) -> tuple[int, str]:
+def run_hook(
+    payload: dict,
+    *,
+    log_dir: str | None = None,
+    extra_env: dict[str, str] | None = None,
+) -> tuple[int, str]:
     """Run the hook script with JSON payload, return (exit_code, stdout)."""
     inp = json.dumps(payload)
     env = {**os.environ, "PATH": f".venv/bin:{os.environ.get('PATH', '')}"}
     if log_dir:
         env["HOOK_LOG_DIR"] = log_dir
+    if extra_env:
+        env.update(extra_env)
     r = subprocess.run(
         [str(HOOK)],
         input=inp,
@@ -50,6 +57,22 @@ def make_payload(tool_name: str, file_path: str) -> dict:
             "toolInput": {"replacements": [{"filePath": file_path}]},
         }
     return {"toolName": tool_name, "toolInput": {"filePath": file_path}}
+
+
+def make_apply_patch_payload(file_paths: list[str]) -> dict:
+    """Build an apply_patch payload touching the provided files."""
+    lines = ["*** Begin Patch"]
+    for file_path in file_paths:
+        lines.extend(
+            [
+                f"*** Update File: {file_path}",
+                "@@",
+                "-old",
+                "+new",
+            ]
+        )
+    lines.append("*** End Patch")
+    return {"toolName": "apply_patch", "toolInput": {"input": "\n".join(lines)}}
 
 
 # ── Skip non-file-edit tools ──────────────────────────────────────────
@@ -405,6 +428,125 @@ def test_multi_replace_extracts_filepath():
             os.unlink(f.name)
 
 
+# ── apply_patch coverage (FR-433) ───────────────────────────────────
+
+
+def test_apply_patch_extracts_single_filepath():
+    """apply_patch payload should route checks to touched file."""
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+        f.write("x = 1  # TODO: remove\n")
+        f.flush()
+        try:
+            payload = make_apply_patch_payload([f.name])
+            code, out = run_hook(payload)
+            assert code == 0
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert f"File: {f.name}" in msg, f"missing file prefix: {msg}"
+            assert "TODO" in msg or "forbidden" in msg.lower(), f"expected TODO: {msg}"
+        finally:
+            os.unlink(f.name)
+
+
+def test_apply_patch_aggregates_multi_file_issues():
+    """apply_patch should aggregate issues from multiple touched files."""
+    with (
+        tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f1,
+        tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f2,
+    ):
+        f1.write("x = 1  # TODO: remove\n")
+        f2.write("import pdb\npdb.set_trace()\n")
+        f1.flush()
+        f2.flush()
+        try:
+            payload = make_apply_patch_payload([f1.name, f2.name])
+            code, out = run_hook(payload)
+            assert code == 0
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert f"File: {f1.name}" in msg, f"missing first file prefix: {msg}"
+            assert f"File: {f2.name}" in msg, f"missing second file prefix: {msg}"
+            assert "TODO" in msg or "forbidden" in msg.lower(), f"missing TODO: {msg}"
+            assert "pdb" in msg.lower() or "debug" in msg.lower(), f"missing pdb: {msg}"
+        finally:
+            os.unlink(f1.name)
+            os.unlink(f2.name)
+
+
+def test_apply_patch_reports_file_size_gate():
+    """apply_patch should emit file size diagnostics for oversized files."""
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+        f.write("x = 1\n" * 460)
+        f.flush()
+        try:
+            payload = make_apply_patch_payload([f.name])
+            code, out = run_hook(payload)
+            assert code == 0
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert f"File: {f.name}" in msg, f"missing file prefix: {msg}"
+            assert "460" in msg or "450" in msg, f"expected size error: {msg}"
+        finally:
+            os.unlink(f.name)
+
+
+def test_apply_patch_ruff_warning_without_autofix():
+    """Without POST_EDIT_AUTO_RUFF, format/lint issues should be reported only."""
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+        original = "import os\nx=1\n"
+        f.write(original)
+        f.flush()
+        try:
+            payload = make_apply_patch_payload([f.name])
+            code, out = run_hook(payload)
+            assert code == 0
+            parsed = json.loads(out)
+            msg = parsed.get("systemMessage", "")
+            assert (
+                "ruff" in msg.lower() or "format" in msg.lower()
+            ), f"expected ruff warning: {msg}"
+            current = Path(f.name).read_text(encoding="utf-8")
+            assert current == original, "file should not be auto-fixed by default"
+        finally:
+            os.unlink(f.name)
+
+
+def test_apply_patch_autofix_enabled_applies_ruff_fixes():
+    """With POST_EDIT_AUTO_RUFF=1, ruff fix+format should mutate the file."""
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+        original = "import os\nx=1\n"
+        f.write(original)
+        f.flush()
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                payload = make_apply_patch_payload([f.name])
+                code, out = run_hook(
+                    payload,
+                    log_dir=tmpdir,
+                    extra_env={"POST_EDIT_AUTO_RUFF": "1"},
+                )
+                assert code == 0
+                current = Path(f.name).read_text(encoding="utf-8")
+                assert current != original, "expected auto-fix to modify file"
+
+                if out:
+                    parsed = json.loads(out)
+                    msg = parsed.get("systemMessage", "")
+                    assert (
+                        "F401" not in msg
+                    ), f"lint should be reduced after autofix: {msg}"
+
+                entries = read_audit_log(tmpdir)
+                autofix_entries = [
+                    e for e in entries if e.get("reason") == "ruff-autofix-applied"
+                ]
+                assert (
+                    len(autofix_entries) >= 1
+                ), f"expected autofix audit log: {entries}"
+        finally:
+            os.unlink(f.name)
+
+
 # ── noqa confession cross-reference ──────────────────────────────────
 
 
@@ -584,6 +726,11 @@ ALL_TESTS = [
     test_debug_pdb_import,
     test_clean_file_no_message,
     test_multi_replace_extracts_filepath,
+    test_apply_patch_extracts_single_filepath,
+    test_apply_patch_aggregates_multi_file_issues,
+    test_apply_patch_reports_file_size_gate,
+    test_apply_patch_ruff_warning_without_autofix,
+    test_apply_patch_autofix_enabled_applies_ruff_fixes,
     test_noqa_undocumented_flagged,
     test_noqa_blanket_flagged,
     test_no_noqa_no_warning,
