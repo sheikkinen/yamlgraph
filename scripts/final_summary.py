@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """Final pre-commit summary hook.
 
-If all hooks pass (we reached this point), grant absolution with Distill reminder.
+If all hooks pass (we reached this point), print the final summary and the
+Distill reminder. Renamed from scripts/absolution.py in FR-439.
 """
 
 import sys
 
 
 def main() -> int:
-    """Grant absolution with Distill reminder."""
+    """Print final summary and Distill reminder."""
     print()
-    print("✓ Absolution granted")
+    print("✓ Final summary OK")
     print()
     print(
         "**Distill.** After completing a task list, add a metacognitive entry to docs/diary/."

@@ -63,7 +63,7 @@ As defined in `.pre-commit-config.yaml`, the pipeline contains **27 hooks** span
 
 | Hook | Source | Stage | Purpose |
 |------|--------|-------|---------|
-| `absolution` | Local: `scripts/absolution.py` | `pre-commit`, `commit-msg` | Final gate — prints success message and Distill reminder |
+| `final-summary` | Local: `scripts/final_summary.py` | `pre-commit`, `commit-msg` | Final gate — prints success message and Distill reminder |
 
 ### Post-commit Stage Hook
 
@@ -75,19 +75,19 @@ As defined in `.pre-commit-config.yaml`, the pipeline contains **27 hooks** span
 
 ## Key Scripts
 
-### absolution.py — The Final Gate
+### final_summary.py — The Final Gate
 
-**File:** `scripts/absolution.py`
+**File:** `scripts/final_summary.py`
 **Stage:** `pre-commit` and `commit-msg`
-**Purpose:** Grant absolution when all hooks pass.
+**Purpose:** Print the final summary when all hooks pass.
 
-This is the last hook in the chain. If execution reaches `absolution.py`, it means every prior hook — linters, tests, coverage, complexity, duplication — has passed. The script prints a success message and a reminder to follow the Distill phase of the development doctrine:
+This is the last hook in the chain. If execution reaches `final_summary.py`, it means every prior hook — linters, tests, coverage, complexity, duplication — has passed. The script prints a success message and a reminder to follow the Distill phase of the development doctrine:
 
 ```python
 def main() -> int:
-    """Grant absolution with Distill reminder."""
+    """Print final summary and Distill reminder."""
     print()
-    print("✓ Absolution granted")
+    print("✓ Final summary OK")
     print()
     print("**Distill.** After completing a task list, ...")
     print("Name the cognitive trap or insight. Extract a heuristic.")
@@ -101,7 +101,7 @@ The hook always returns `0` (success). Its purpose is not to gate — it is to *
 **Example output:**
 
 ```
-✓ Absolution granted
+✓ Final summary OK
 
 **Distill.** After completing a task list, add a metacognitive entry to docs/diary.md.
 Name the cognitive trap or insight. Extract a heuristic.
@@ -328,7 +328,7 @@ git commit
   ├─ 20. vulture-dead-code      Dead code detection
   ├─ 21. hedging-check          Silent fallback detection
   ├─ 22. pytest (unit)          Unit test suite (~20s)
-  └─ 23. absolution             ✓ Absolution granted
+  └─ 23. final-summary          ✓ Final summary OK
 ```
 
 If any hook from steps 1–22 fails, `fail_fast: true` halts the pipeline immediately. The commit is rejected. No partial passes.
@@ -341,10 +341,10 @@ After the pre-commit hooks pass and the commit message is written:
   ├─ 24. conventional-pre-commit   Conventional Commits format check
   ├─ 25. feat-requires-fr          FR-XXX required for feat: commits
   ├─ 26. changelog-required        CHANGELOG.md required for feat:/fix:
-  └─ 27. absolution                ✓ Absolution granted (again)
+  └─ 27. final-summary             ✓ Final summary OK (again)
 ```
 
-The commit message must follow Conventional Commits format. Feature commits must reference a feature request (`FR-XXX`). Both feature and fix commits must include changes to `CHANGELOG.md`. Absolution runs again to confirm the message-stage gates passed.
+The commit message must follow Conventional Commits format. Feature commits must reference a feature request (`FR-XXX`). Both feature and fix commits must include changes to `CHANGELOG.md`. The final-summary hook runs again to confirm the message-stage gates passed.
 
 ### Phase 3: Post-commit Stage
 
@@ -375,7 +375,7 @@ Developer runs: git commit -m "feat(streaming): FR-045 add token callbacks"
                     │ All pass?
                     ▼
             ┌───────────────┐
-            │  Commit       │  ✓ Absolution granted
+            │  Commit       │  ✓ Final summary OK
             │  Created      │
             └───────┬───────┘
                     │

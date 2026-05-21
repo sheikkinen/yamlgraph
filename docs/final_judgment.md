@@ -23,7 +23,7 @@ Wisdom — lesson recorded in docs/diary.md
 
 ---
 
-Absolution granted.
+Final summary OK.
 
 The code has passed through fire.
 The gates have judged.

@@ -3,6 +3,7 @@
 # 1. Co-authored-by trailers in commits/merges/file writes
 # 2. --no-verify flag (safety bypass forbidden by Scripture)
 # 3. Multiline git commit -m (use git commit -F ./tmp/msg.txt instead)
+# 4. pytest piped to head/tail without tee (output buffering) (FR-440)
 # Audit: logs every tool invocation to JSONL (FR-414)
 set -euo pipefail
 
@@ -73,13 +74,13 @@ DETAIL=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin
 SESSION_ID=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['session_id'])")
 TOOL_USE_ID=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['tool_use_id'])")
 
-# ── Lockdown check (order 66) ────────────────────────────────────────
+# ── Lockdown check ───────────────────────────────────────────────────
 LOCKFILE="$LOG_DIR/.lockdown"
 if [[ -f "$LOCKFILE" ]]; then
   # Allow only unlock command through
   if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]] && \
      echo "$COMMAND" | grep -q '\.github/hooks/cmd unlock'; then
-    : # fall through to order66 handler
+    : # fall through to lockdown command handler
   else
     audit_log "deny" "lockdown-active" "$DETAIL"
     emit_deny "LOCKDOWN ACTIVE. All tool calls blocked. User must issue: .github/hooks/cmd unlock"
@@ -87,31 +88,31 @@ if [[ -f "$LOCKFILE" ]]; then
   fi
 fi
 
-# ── Thoughtcrime sentinel check (FR-438) ─────────────────────────────
-TC_SENTINEL="$LOG_DIR/.thoughtcrime-$SESSION_ID"
+# ── Reasoning pattern sentinel check (FR-438, renamed in FR-439) ─────
+TC_SENTINEL="$LOG_DIR/.reasoning-flag-$SESSION_ID"
 if [[ -n "$SESSION_ID" && -f "$TC_SENTINEL" ]]; then
   TC_DATA=$(cat "$TC_SENTINEL" 2>/dev/null || echo '{}')
   TC_PHRASE=$(echo "$TC_DATA" | python3 -c "import json,sys; print(json.load(sys.stdin).get('phrase',''))" 2>/dev/null || echo "unknown")
   TC_DOCTRINE=$(echo "$TC_DATA" | python3 -c "import json,sys; print(json.load(sys.stdin).get('doctrine',''))" 2>/dev/null || echo "")
   rm -f "$TC_SENTINEL"
-  audit_log "deny" "thoughtcrime" "phrase=$TC_PHRASE"
-  emit_deny "✗ THOUGHTCRIME DETECTED\\n\\nForbidden reasoning: \\\"$TC_PHRASE\\\"\\n\\nScripture: $TC_DOCTRINE\\n\\nThis denial is one-shot. Your next tool call will proceed.\\nBut the Thought Police are watching."
+  audit_log "deny" "reasoning-pattern" "phrase=$TC_PHRASE"
+  emit_deny "⚠ Reasoning pattern flagged\\n\\nFlagged phrase: \\\"$TC_PHRASE\\\"\\n\\nDoctrine: $TC_DOCTRINE\\n\\nThis denial is one-shot. Your next tool call will proceed."
   exit 0
 fi
 
-# ── Order 66 command channel ─────────────────────────────────────────
+# ── Lockdown command channel ─────────────────────────────────────────
 if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]] && \
    echo "$COMMAND" | grep -q '^\.github/hooks/cmd '; then
-  ORDER66_CMD=$(echo "$COMMAND" | sed 's/^\.github\/hooks\/cmd //')
-  case "$ORDER66_CMD" in
+  HOOKCTL_CMD=$(echo "$COMMAND" | sed 's/^\.github\/hooks\/cmd //')
+  case "$HOOKCTL_CMD" in
     lockdown)
       touch "$LOCKFILE"
-      audit_log "deny" "order66-lockdown" "lockdown activated"
-      emit_deny "ORDER 66 EXECUTED. Lockdown active — all tool calls will be denied until: .github/hooks/cmd unlock"
+      audit_log "deny" "lockdown-set" "lockdown activated"
+      emit_deny "Lockdown active — all tool calls will be denied until: .github/hooks/cmd unlock"
       ;;
     unlock)
       rm -f "$LOCKFILE"
-      audit_log "deny" "order66-unlock" "lockdown deactivated"
+      audit_log "deny" "lockdown-clear" "lockdown deactivated"
       emit_deny "Lockdown lifted. Normal operations resumed."
       ;;
     status)
@@ -134,12 +135,12 @@ else:
     lockdown = 'YES' if pathlib.Path('$LOCKFILE').exists() else 'no'
     print(f'Audit: {total} total entries. Decisions: {dec_str}. Top tools: {tool_str}. Lockdown: {lockdown}')
 " 2>/dev/null)
-      audit_log "deny" "order66-status" "status requested"
+      audit_log "deny" "lockdown-status" "status requested"
       emit_deny "$SUMMARY"
       ;;
     *)
-      audit_log "deny" "order66-unknown" "unknown cmd: $ORDER66_CMD"
-      emit_deny "Unknown command: $ORDER66_CMD. Available: lockdown, unlock, status"
+      audit_log "deny" "lockdown-unknown" "unknown cmd: $HOOKCTL_CMD"
+      emit_deny "Unknown command: $HOOKCTL_CMD. Available: lockdown, unlock, status"
       ;;
   esac
   exit 0
@@ -190,6 +191,18 @@ if echo "$COMMAND" | head -1 | grep -qE 'git\s+commit\s+.*-m\s'; then
   emit_deny "Multiline git commit -m triggers dquote shell trap. Write message to ./tmp/msg.txt and use: git commit -F ./tmp/msg.txt"
     exit 0
   fi
+fi
+
+# ── Check 4: pytest piped to head/tail without tee ───────────────────
+# pytest output piped directly to head/tail buffers everything → agent
+# sees no output until pytest exits, masking hangs and slow tests.
+# Require tee for streaming: pytest ... 2>&1 | tee logs/run.log
+if echo "$COMMAND" | grep -qE 'pytest\b' && \
+   echo "$COMMAND" | grep -qE '\|\s*(head|tail)\b' && \
+   ! echo "$COMMAND" | grep -qE '\|\s*tee\b'; then
+  audit_log "deny" "pipe-buffer" "${COMMAND:0:200}"
+  emit_deny "pytest piped to head/tail buffers all output until exit — hangs and failures are invisible.\\n\\nUse tee for streaming:\\n  pytest ... 2>&1 | tee logs/run.log\\n\\nThen inspect separately:\\n  tail -20 logs/run.log"
+  exit 0
 fi
 
 audit_log "approve" "clean" "${COMMAND:0:200}"

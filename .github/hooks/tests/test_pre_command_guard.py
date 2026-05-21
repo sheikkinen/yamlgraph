@@ -2,7 +2,7 @@
 """Tests for .github/hooks/scripts/pre-command-guard.sh
 
 Covers: Co-authored-by trailers, --no-verify blocker, multiline commit -m guard,
-        audit logging (FR-414), fail-closed on parse error.
+        pipe-buffer guard (FR-440), audit logging (FR-414), fail-closed on parse error.
 
 Run:  python3 .github/hooks/tests/test_pre_command_guard.py
 """
@@ -209,6 +209,49 @@ TESTS: list[tuple[str, dict, str]] = [
         },
         "deny",
     ),
+    # --- pipe-buffer guard (FR-440) ---
+    (
+        "pytest piped to tail denied",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "pytest tests/ -v 2>&1 | tail -20"},
+        },
+        "deny",
+    ),
+    (
+        "pytest piped to head denied",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "pytest tests/ -q | head -5"},
+        },
+        "deny",
+    ),
+    (
+        "pytest with tee then tail allowed",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {
+                "command": "pytest tests/ -v 2>&1 | tee logs/run.log | tail -20"
+            },
+        },
+        "approve",
+    ),
+    (
+        "pytest without pipe allowed",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "pytest tests/ -v --no-cov"},
+        },
+        "approve",
+    ),
+    (
+        "cat piped to tail allowed (not pytest)",
+        {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "cat logs/run.log | tail -20"},
+        },
+        "approve",
+    ),
 ]
 
 
@@ -244,11 +287,12 @@ def main() -> int:
         test_session_id_in_audit_entry,
         test_session_id_absent_when_not_in_payload,
         test_tool_use_id_in_audit_entry,
-        test_order66_lockdown,
-        test_order66_lockdown_blocks_subsequent_tools,
-        test_order66_unlock,
-        test_order66_status,
-        test_order66_unknown_command,
+        test_lockdown_set,
+        test_lockdown_blocks_subsequent_tools,
+        test_lockdown_unlock,
+        test_lockdown_status,
+        test_lockdown_unknown_command,
+        test_pipe_buffer_deny_logs_audit,
     ]
     for test in audit_tests:
         name = test.__name__
@@ -387,10 +431,10 @@ def test_tool_use_id_in_audit_entry():
         ), f"expected tool_use_id in audit entry, got: {e}"
 
 
-# ── Order 66 command channel tests ───────────────────────────────────
+# ── Lockdown command channel tests ───────────────────────────────────
 
 
-def test_order66_lockdown():
+def test_lockdown_set():
     """hookctl lockdown must create lockfile and deny with confirmation."""
     with tempfile.TemporaryDirectory() as tmpdir:
         payload = {
@@ -407,10 +451,10 @@ def test_order66_lockdown():
         # Audit entry must log the command
         assert len(entries) >= 1
         e = entries[-1]
-        assert e["reason"] == "order66-lockdown", f"wrong reason: {e}"
+        assert e["reason"] == "lockdown-set", f"wrong reason: {e}"
 
 
-def test_order66_lockdown_blocks_subsequent_tools():
+def test_lockdown_blocks_subsequent_tools():
     """When lockdown is active, ALL tool calls must be denied."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # First, activate lockdown
@@ -433,7 +477,7 @@ def test_order66_lockdown_blocks_subsequent_tools():
         assert e["reason"] == "lockdown-active", f"wrong reason: {e}"
 
 
-def test_order66_unlock():
+def test_lockdown_unlock():
     """hookctl unlock must remove lockfile and allow subsequent tools."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Activate lockdown
@@ -465,7 +509,7 @@ def test_order66_unlock():
         assert "deny" not in out2, f"unlock should allow tools: {out2}"
 
 
-def test_order66_status():
+def test_lockdown_status():
     """hookctl status must return audit summary in deny reason."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Generate some audit entries first
@@ -503,7 +547,7 @@ def test_order66_status():
         ), f"status should show summary: {reason}"
 
 
-def test_order66_unknown_command():
+def test_lockdown_unknown_command():
     """Unknown hookctl commands must deny with help text."""
     with tempfile.TemporaryDirectory() as tmpdir:
         payload = {
@@ -514,7 +558,26 @@ def test_order66_unknown_command():
         assert "deny" in out
         assert len(entries) >= 1
         e = entries[-1]
-        assert e["reason"] == "order66-unknown", f"wrong reason: {e}"
+        assert e["reason"] == "lockdown-unknown", f"wrong reason: {e}"
+
+
+# ── Pipe-buffer guard tests (FR-440) ─────────────────────────────────
+
+
+def test_pipe_buffer_deny_logs_audit():
+    """pytest | tail must be denied with pipe-buffer reason in audit."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        payload = {
+            "toolName": "run_in_terminal",
+            "toolInput": {"command": "pytest tests/ -v 2>&1 | tail -20"},
+        }
+        code, out, entries = run_hook(payload, log_dir=tmpdir)
+        assert code == 0
+        assert "deny" in out
+        assert len(entries) >= 1
+        e = entries[-1]
+        assert e["decision"] == "deny", f"expected deny, got: {e}"
+        assert e["reason"] == "pipe-buffer", f"expected pipe-buffer reason, got: {e}"
 
 
 if __name__ == "__main__":

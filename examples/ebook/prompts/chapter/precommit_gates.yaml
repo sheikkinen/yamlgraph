@@ -13,7 +13,7 @@ user: |
   ## Files to Read
 
   1. `.pre-commit-config.yaml` — **PRIMARY SOURCE** for all hook definitions
-  2. `scripts/absolution.py` — Coverage gate script
+  2. `scripts/final_summary.py` — Final summary gate script (renamed from `absolution.py` in FR-439)
   3. `scripts/req_coverage.py` — Requirement traceability script
   4. `scripts/noqa_confession.py` — noqa audit script
   5. `scripts/diary_rotate.py` — Diary rotation script
@@ -41,8 +41,8 @@ user: |
   - Key logic explained
   - Example output
 
-  #### absolution.py
-  Coverage baseline enforcement
+  #### final_summary.py
+  Final summary gate (renamed from `absolution.py` in FR-439)
 
   #### req_coverage.py
   Requirement traceability (REQ-YG-XXX markers)
