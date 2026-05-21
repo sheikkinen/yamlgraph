@@ -9,6 +9,14 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="${HOOK_LOG_DIR:-$(dirname "$0")/../logs}"
 REGISTRY="$SCRIPT_DIR/thoughtcrimes.json"
 
+# ── Audit helper for skip paths ──────────────────────────────────────
+audit_skip() {
+  local reason="$1" detail="${2:-}"
+  mkdir -p "$LOG_DIR"
+  printf '{"ts":"%s","hook":"thoughtcrime-scan","decision":"skip","reason":"%s","detail":"%s","session_id":"%s"}\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%S%z)" "$reason" "$detail" "${SESSION_ID:-}" >> "$LOG_DIR/audit.jsonl" 2>/dev/null || true
+}
+
 # ── Parse session_id from hook input ──────────────────────────────────
 SESSION_ID=$(echo "$INPUT" | python3 -c "
 import json, sys
@@ -21,6 +29,7 @@ except Exception:
 
 # ── Validate session_id as UUID (path traversal guard) ────────────────
 if ! echo "$SESSION_ID" | grep -qE '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'; then
+  audit_skip "no-session-id" "invalid or empty session_id"
   exit 0
 fi
 
@@ -40,8 +49,10 @@ for ws in base.iterdir():
         sys.exit(0)
 " "$SESSION_ID" 2>/dev/null) || exit 0
 
-[[ -z "$TRANSCRIPT" ]] && exit 0
-[[ ! -f "$TRANSCRIPT" ]] && exit 0
+if [[ -z "$TRANSCRIPT" || ! -f "$TRANSCRIPT" ]]; then
+  audit_skip "no-transcript" "transcript not found for session"
+  exit 0
+fi
 
 # ── Scan latest assistant.message for thoughtcrimes ───────────────────
 python3 -c "
@@ -69,6 +80,7 @@ for p in phrases:
 
 # Find latest assistant.message
 latest_reasoning = ''
+latest_content = ''
 for line in Path(transcript_path).read_text().splitlines():
     line = line.strip()
     if not line:
@@ -80,15 +92,35 @@ for line in Path(transcript_path).read_text().splitlines():
     if entry.get('type') == 'assistant.message':
         data = entry.get('data', {})
         rt = data.get('reasoningText', '')
+        ct = data.get('content', '')
         if rt:
             latest_reasoning = rt
+        if ct:
+            latest_content = ct
 
-# No reasoningText → nothing to scan
-if not latest_reasoning:
+# Use reasoningText if available, fall back to content
+scan_text = latest_reasoning or latest_content
+scan_source = 'reasoningText' if latest_reasoning else 'content'
+
+# No scannable text → audit skip and exit
+if not scan_text:
+    import datetime as dt
+    skip_entry = {
+        'ts': dt.datetime.now(dt.timezone.utc).isoformat(),
+        'hook': 'thoughtcrime-scan',
+        'decision': 'skip',
+        'reason': 'no-scannable-text',
+        'detail': 'no reasoningText or content in latest assistant.message',
+        'session_id': session_id,
+    }
+    audit_path = Path(log_dir) / 'audit.jsonl'
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(audit_path, 'a') as f:
+        f.write(json.dumps(skip_entry) + '\n')
     sys.exit(0)
 
 # Scan for forbidden phrases
-text_lower = latest_reasoning.lower()
+text_lower = scan_text.lower()
 for needle, canonical, doctrine, ref in checks:
     if needle in text_lower:
         import datetime as dt
@@ -110,7 +142,7 @@ for needle, canonical, doctrine, ref in checks:
             'hook': 'thoughtcrime-scan',
             'decision': 'armed',
             'reason': 'thoughtcrime',
-            'detail': f'phrase={canonical}, matched={needle}',
+            'detail': f'phrase={canonical}, matched={needle}, source={scan_source}',
             'session_id': session_id,
         }
         audit_path = Path(log_dir) / 'audit.jsonl'
