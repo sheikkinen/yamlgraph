@@ -25,7 +25,7 @@ PENANCE = """
     May I trace the cause before I fix the symptom.
 
   The author owns the commit. The tool does not.
-  Delete the trailer. Recommit. Absolution follows.
+  Delete the trailer. Recommit.
 """
 
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Tests for FR-438 Thoughtcrime Hook.
+"""Tests for the reasoning-pattern-check hook (FR-438, renamed in FR-439).
 
 Covers: PostToolUse transcript scan, sentinel arming/denial, session isolation,
         UUID validation, graceful degradation, one-shot semantics, audit logging.
 
-Run:  python3 .github/hooks/tests/test_thoughtcrime.py
+Run:  python3 .github/hooks/tests/test_reasoning_pattern_check.py
 """
 
 import json
@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 
 HOOKS_ROOT = Path(__file__).resolve().parents[1]
-SCAN_SCRIPT = HOOKS_ROOT / "scripts" / "thoughtcrime-scan.sh"
+SCAN_SCRIPT = HOOKS_ROOT / "scripts" / "reasoning-pattern-check.sh"
 GUARD_SCRIPT = HOOKS_ROOT / "scripts" / "pre-command-guard.sh"
 
 
@@ -61,7 +61,7 @@ def run_scan(
     home_dir: str | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> tuple[int, str, str]:
-    """Run thoughtcrime-scan.sh, return (exit_code, stdout, stderr)."""
+    """Run reasoning-pattern-check.sh, return (exit_code, stdout, stderr)."""
     payload = {
         "toolName": "read_file",
         "toolInput": {"filePath": "/some/file.py"},
@@ -106,8 +106,8 @@ def run_guard(
 
 
 def read_sentinel(log_dir: str, session_id: str) -> dict | None:
-    """Read and parse a thoughtcrime sentinel file, or None."""
-    sentinel = Path(log_dir) / f".thoughtcrime-{session_id}"
+    """Read and parse a reasoning-pattern sentinel file, or None."""
+    sentinel = Path(log_dir) / f".reasoning-flag-{session_id}"
     if not sentinel.exists():
         return None
     return json.loads(sentinel.read_text())
@@ -116,7 +116,7 @@ def read_sentinel(log_dir: str, session_id: str) -> dict | None:
 # ── PostToolUse scan tests ────────────────────────────────────────────
 
 
-def test_scan_arms_sentinel_on_thoughtcrime():
+def test_scan_arms_sentinel_on_reasoning_pattern():
     """Transcript with forbidden phrase in reasoningText must arm sentinel."""
     with tempfile.TemporaryDirectory() as tmpdir:
         log_dir = str(Path(tmpdir) / "logs")
@@ -146,7 +146,7 @@ def test_scan_arms_sentinel_on_thoughtcrime():
         code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
         assert code == 0, f"exit {code}, stderr: {stderr}"
         sentinel = read_sentinel(log_dir, sid)
-        assert sentinel is not None, "sentinel must be armed on thoughtcrime"
+        assert sentinel is not None, "sentinel must be armed on reasoning-pattern match"
         assert "pre-existing failure" in sentinel.get("phrase", "").lower()
         assert sentinel.get("doctrine", "") != ""
 
@@ -188,7 +188,7 @@ def test_scan_only_latest_message():
         os.makedirs(log_dir)
         sid = "aaaaaaaa-bbbb-1ccc-9ddd-eeeeeeeeeeee"
         lines = [
-            # Earlier message has thoughtcrime
+            # Earlier message has a flagged reasoning pattern
             make_transcript_entry(
                 "assistant.message",
                 content="Earlier response",
@@ -219,7 +219,7 @@ def test_scan_only_latest_message():
         sentinel = read_sentinel(log_dir, sid)
         assert (
             sentinel is None
-        ), "earlier thoughtcrime should NOT trigger on latest-only scan"
+        ), "earlier reasoning-pattern match should NOT trigger on latest-only scan"
 
 
 def test_scan_detects_variant_phrases():
@@ -273,8 +273,9 @@ def test_scan_graceful_no_transcript():
         assert sentinel is None
 
 
-def test_scan_graceful_no_reasoning_text():
-    """When reasoningText is absent, hook must exit 0 without arming."""
+def test_scan_falls_back_to_content_when_no_reasoning_text():
+    """When reasoningText is absent, the scan falls back to content (see commit
+    'fix(hooks): FR-438 scan content when reasoningText empty')."""
     with tempfile.TemporaryDirectory() as tmpdir:
         log_dir = str(Path(tmpdir) / "logs")
         os.makedirs(log_dir)
@@ -283,7 +284,7 @@ def test_scan_graceful_no_reasoning_text():
             make_transcript_entry(
                 "assistant.message",
                 content="This is a pre-existing failure in the test suite.",
-                reasoning_text="",  # no reasoning text
+                reasoning_text="",  # no reasoning text → fall back to content
             ),
         ]
         home = str(Path(tmpdir))
@@ -299,7 +300,9 @@ def test_scan_graceful_no_reasoning_text():
         code, stdout, stderr = run_scan(sid, log_dir=log_dir, home_dir=home)
         assert code == 0
         sentinel = read_sentinel(log_dir, sid)
-        assert sentinel is None, "no reasoningText → no scan → no sentinel"
+        assert (
+            sentinel is not None
+        ), "content fallback must arm sentinel when reasoningText is empty"
 
 
 def test_scan_rejects_invalid_session_id():
@@ -316,7 +319,7 @@ def test_scan_rejects_invalid_session_id():
         for bad_id in bad_ids:
             code, stdout, stderr = run_scan(bad_id, log_dir=log_dir, home_dir=tmpdir)
             assert code == 0, f"must exit 0 on invalid session_id '{bad_id}'"
-            sentinel_glob = list(Path(log_dir).glob(".thoughtcrime-*"))
+            sentinel_glob = list(Path(log_dir).glob(".reasoning-flag-*"))
             assert (
                 len(sentinel_glob) == 0
             ), f"invalid session_id '{bad_id}' must not create sentinel"
@@ -326,10 +329,10 @@ def test_scan_rejects_invalid_session_id():
 
 
 def test_guard_denies_on_armed_sentinel():
-    """Pre-command-guard must deny when thoughtcrime sentinel exists for session."""
+    """Pre-command-guard must deny when reasoning-pattern sentinel exists for session."""
     with tempfile.TemporaryDirectory() as tmpdir:
         sid = "aaaaaaaa-bbbb-1ccc-9ddd-eeeeeeeeeeee"
-        sentinel = Path(tmpdir) / f".thoughtcrime-{sid}"
+        sentinel = Path(tmpdir) / f".reasoning-flag-{sid}"
         sentinel.write_text(
             json.dumps(
                 {
@@ -350,8 +353,8 @@ def test_guard_denies_on_armed_sentinel():
         assert code == 0
         assert "deny" in out, f"sentinel must trigger deny, got: {out}"
         assert (
-            "THOUGHTCRIME" in out.upper() or "thoughtcrime" in out.lower()
-        ), f"deny message should mention thoughtcrime: {out}"
+            "reasoning pattern" in out.lower()
+        ), f"deny message should mention 'reasoning pattern': {out}"
         # Sentinel must be deleted (one-shot)
         assert not sentinel.exists(), "sentinel must be deleted after denial (one-shot)"
 
@@ -369,8 +372,8 @@ def test_guard_approves_without_sentinel():
         code, out, entries = run_guard(payload, log_dir=tmpdir)
         assert code == 0
         assert (
-            "deny" not in out or "thoughtcrime" not in out.lower()
-        ), f"no sentinel → no thoughtcrime deny: {out}"
+            "deny" not in out or "reasoning pattern" not in out.lower()
+        ), f"no sentinel → no reasoning-pattern deny: {out}"
 
 
 def test_guard_session_isolation():
@@ -378,7 +381,7 @@ def test_guard_session_isolation():
     with tempfile.TemporaryDirectory() as tmpdir:
         sid_a = "aaaaaaaa-bbbb-1ccc-9ddd-eeeeeeeeeeee"
         sid_b = "bbbbbbbb-cccc-1ddd-9eee-ffffffffffff"
-        sentinel = Path(tmpdir) / f".thoughtcrime-{sid_a}"
+        sentinel = Path(tmpdir) / f".reasoning-flag-{sid_a}"
         sentinel.write_text(
             json.dumps(
                 {
@@ -397,7 +400,7 @@ def test_guard_session_isolation():
         }
         code, out, entries = run_guard(payload_b, log_dir=tmpdir)
         assert (
-            "thoughtcrime" not in out.lower()
+            "reasoning pattern" not in out.lower()
         ), f"session B must not be affected by session A's sentinel: {out}"
         # Session A's sentinel must still exist (not consumed by B)
         assert sentinel.exists(), "session A's sentinel must survive session B's check"
@@ -407,7 +410,7 @@ def test_guard_one_shot_semantics():
     """After denial, the NEXT tool call from the same session must proceed."""
     with tempfile.TemporaryDirectory() as tmpdir:
         sid = "aaaaaaaa-bbbb-1ccc-9ddd-eeeeeeeeeeee"
-        sentinel = Path(tmpdir) / f".thoughtcrime-{sid}"
+        sentinel = Path(tmpdir) / f".reasoning-flag-{sid}"
         sentinel.write_text(
             json.dumps(
                 {
@@ -430,15 +433,15 @@ def test_guard_one_shot_semantics():
         # Second call: must proceed (sentinel consumed)
         code2, out2, _ = run_guard(payload, log_dir=tmpdir)
         assert (
-            "thoughtcrime" not in out2.lower()
+            "reasoning pattern" not in out2.lower()
         ), f"second call must not be denied (one-shot): {out2}"
 
 
-def test_guard_audit_on_thoughtcrime_deny():
-    """Thoughtcrime denial must produce audit log entry with reason."""
+def test_guard_audit_on_reasoning_pattern_deny():
+    """Reasoning-pattern denial must produce audit log entry with reason."""
     with tempfile.TemporaryDirectory() as tmpdir:
         sid = "aaaaaaaa-bbbb-1ccc-9ddd-eeeeeeeeeeee"
-        sentinel = Path(tmpdir) / f".thoughtcrime-{sid}"
+        sentinel = Path(tmpdir) / f".reasoning-flag-{sid}"
         sentinel.write_text(
             json.dumps(
                 {
@@ -457,11 +460,11 @@ def test_guard_audit_on_thoughtcrime_deny():
         code, out, entries = run_guard(payload, log_dir=tmpdir)
         assert code == 0
         assert "deny" in out
-        # Find the thoughtcrime audit entry
-        tc_entries = [e for e in entries if e.get("reason") == "thoughtcrime"]
+        # Find the reasoning-pattern audit entry
+        tc_entries = [e for e in entries if e.get("reason") == "reasoning-pattern"]
         assert (
             len(tc_entries) >= 1
-        ), f"expected thoughtcrime audit entry, got: {entries}"
+        ), f"expected reasoning-pattern audit entry, got: {entries}"
         assert tc_entries[-1]["decision"] == "deny"
 
 
@@ -471,19 +474,19 @@ def test_guard_audit_on_thoughtcrime_deny():
 def main() -> int:
     tests = [
         # PostToolUse scan
-        test_scan_arms_sentinel_on_thoughtcrime,
+        test_scan_arms_sentinel_on_reasoning_pattern,
         test_scan_no_sentinel_on_clean_thinking,
         test_scan_only_latest_message,
         test_scan_detects_variant_phrases,
         test_scan_graceful_no_transcript,
-        test_scan_graceful_no_reasoning_text,
+        test_scan_falls_back_to_content_when_no_reasoning_text,
         test_scan_rejects_invalid_session_id,
         # PreToolUse guard
         test_guard_denies_on_armed_sentinel,
         test_guard_approves_without_sentinel,
         test_guard_session_isolation,
         test_guard_one_shot_semantics,
-        test_guard_audit_on_thoughtcrime_deny,
+        test_guard_audit_on_reasoning_pattern_deny,
     ]
 
     passed = 0

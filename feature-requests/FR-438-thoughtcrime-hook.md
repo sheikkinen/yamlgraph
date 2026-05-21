@@ -6,6 +6,8 @@
 **Effort:** 1 day
 **Requested:** 2026-05-21
 
+**See also:** [FR-439](FR-439-tone-down-enforcement-terminology.md) renamed the shipped implementation to `reasoning-pattern-check` (sentinel `.reasoning-flag-<sid>`, audit reason `reasoning-pattern`). This document is preserved as the historical record of the original intent; the deny-message and "Welcome to 1984" framing below no longer matches shipped behaviour.
+
 ## Summary
 
 A PostToolUse hook that scans the agent's transcript (including internal `reasoningText`) for forbidden reasoning patterns ("thoughtcrimes") and arms a one-shot PreToolUse denial on the next tool call, forcing the agent to confront and correct its reasoning before proceeding.

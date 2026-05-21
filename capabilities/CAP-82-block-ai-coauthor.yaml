@@ -14,7 +14,7 @@ requirements:
       block_ai_coauthor.py commit-msg hook: regex-detects AI agent trailers,
       exits 1 with offending line + penance liturgy; exits 0 for clean and
       human-only messages; registered as block-ai-coauthor in pre-commit-config
-      at commit-msg stage before absolution
+      at commit-msg stage before final-summary
     modules:
       - scripts/block_ai_coauthor.py
       - .pre-commit-config.yaml

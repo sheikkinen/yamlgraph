@@ -164,7 +164,7 @@ jq 'select(.tool == "read_file")' .github/hooks/logs/audit.jsonl
 jq 'select(.session_id == "6f3f3dbf-...")' .github/hooks/logs/audit.jsonl
 ```
 
-## Order 66 — User Command Channel
+## Lockdown — User Command Channel
 
 Since VS Code has no user-prompt hook, the command channel uses a sentinel pattern that the agent relays through `run_in_terminal`. The PreToolUse hook intercepts it before execution.
 
@@ -191,7 +191,7 @@ The deny response is the communication channel — the command never actually ru
 - When active, **every tool call** (not just terminal) is denied with `"LOCKDOWN ACTIVE"`
 - Only `.github/hooks/cmd unlock` passes through the lockdown
 - Lockdown state persists in `.github/hooks/logs/.lockdown` (survives session restarts)
-- All lockdown events are logged to `audit.jsonl` with `reason: order66-*`
+- All lockdown events are logged to `audit.jsonl` with `reason: lockdown-*`
 
 ## Session Timeline (FR-424)
 

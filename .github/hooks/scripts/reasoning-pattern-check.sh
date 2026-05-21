@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# PostToolUse hook: scan agent transcript for forbidden reasoning patterns.
+# PostToolUse hook: scan agent transcript for flagged reasoning patterns.
 # Arms a one-shot sentinel that pre-command-guard.sh will consume on next PreToolUse.
-# FR-438 Phase 1: keyword-based, no LLM.
+# FR-438 Phase 1: keyword-based, no LLM. Renamed in FR-439.
 set -euo pipefail
 
 INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="${HOOK_LOG_DIR:-$(dirname "$0")/../logs}"
-REGISTRY="$SCRIPT_DIR/thoughtcrimes.json"
+REGISTRY="$SCRIPT_DIR/reasoning-patterns.json"
 
 # ── Audit helper for skip paths ──────────────────────────────────────
-audit_skip() {
+emit_audit_skip() {
   local reason="$1" detail="${2:-}"
   mkdir -p "$LOG_DIR"
-  printf '{"ts":"%s","hook":"thoughtcrime-scan","decision":"skip","reason":"%s","detail":"%s","session_id":"%s"}\n' \
+  printf '{"ts":"%s","hook":"reasoning-pattern-check","decision":"skip","reason":"%s","detail":"%s","session_id":"%s"}\n' \
     "$(date -u +%Y-%m-%dT%H:%M:%S%z)" "$reason" "$detail" "${SESSION_ID:-}" >> "$LOG_DIR/audit.jsonl" 2>/dev/null || true
 }
 
@@ -29,7 +29,7 @@ except Exception:
 
 # ── Validate session_id as UUID (path traversal guard) ────────────────
 if ! echo "$SESSION_ID" | grep -qE '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'; then
-  audit_skip "no-session-id" "invalid or empty session_id"
+  emit_audit_skip "no-session-id" "invalid or empty session_id"
   exit 0
 fi
 
@@ -50,11 +50,11 @@ for ws in base.iterdir():
 " "$SESSION_ID" 2>/dev/null) || exit 0
 
 if [[ -z "$TRANSCRIPT" || ! -f "$TRANSCRIPT" ]]; then
-  audit_skip "no-transcript" "transcript not found for session"
+  emit_audit_skip "no-transcript" "transcript not found for session"
   exit 0
 fi
 
-# ── Scan latest assistant.message for thoughtcrimes ───────────────────
+# ── Scan latest assistant.message for flagged reasoning patterns ────────
 python3 -c "
 import json, sys
 from pathlib import Path
@@ -107,7 +107,7 @@ if not scan_text:
     import datetime as dt
     skip_entry = {
         'ts': dt.datetime.now(dt.timezone.utc).isoformat(),
-        'hook': 'thoughtcrime-scan',
+        'hook': 'reasoning-pattern-check',
         'decision': 'skip',
         'reason': 'no-scannable-text',
         'detail': 'no reasoningText or content in latest assistant.message',
@@ -132,16 +132,16 @@ for needle, canonical, doctrine, ref in checks:
             'session_id': session_id,
             'ts': dt.datetime.now(dt.timezone.utc).isoformat(),
         }
-        sentinel_path = Path(log_dir) / f'.thoughtcrime-{session_id}'
+        sentinel_path = Path(log_dir) / f'.reasoning-flag-{session_id}'
         sentinel_path.parent.mkdir(parents=True, exist_ok=True)
         sentinel_path.write_text(json.dumps(sentinel))
 
         # Audit log
         audit_entry = {
             'ts': dt.datetime.now(dt.timezone.utc).isoformat(),
-            'hook': 'thoughtcrime-scan',
+            'hook': 'reasoning-pattern-check',
             'decision': 'armed',
-            'reason': 'thoughtcrime',
+            'reason': 'reasoning-pattern',
             'detail': f'phrase={canonical}, matched={needle}, source={scan_source}',
             'session_id': session_id,
         }

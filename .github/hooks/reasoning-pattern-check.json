@@ -3,7 +3,7 @@
     "PostToolUse": [
       {
         "type": "command",
-        "command": ".github/hooks/scripts/thoughtcrime-scan.sh",
+        "command": ".github/hooks/scripts/reasoning-pattern-check.sh",
         "timeout": 5
       }
     ]

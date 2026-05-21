@@ -286,9 +286,9 @@ repos:
 
   - repo: local
     hooks:
-      - id: absolution
-        name: "Absolution"
-        entry: .venv/bin/python scripts/absolution.py
+      - id: final-summary
+        name: "Final summary"
+        entry: .venv/bin/python scripts/final_summary.py
         language: system
         pass_filenames: false
         always_run: true
