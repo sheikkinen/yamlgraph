@@ -17,7 +17,7 @@ README_PATH = EXAMPLES_DIR / "README.md"
 DEMO_EXCLUSIONS = {"tests", "__pycache__"}
 
 # Top-level directories inside examples/ that are NOT examples
-TOPLEVEL_EXCLUSIONS = {"demos", "shared", "__pycache__"}
+TOPLEVEL_EXCLUSIONS = {"demos", "shared", "__pycache__", "malformed"}
 
 
 def _read_readme() -> str:

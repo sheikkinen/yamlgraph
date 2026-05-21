@@ -8,6 +8,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2]
+
+### Added
+- **FR-435 Markdown post-edit hygiene hook**: added `markdown-checks.sh` for non-FR markdown trailing-whitespace feedback with optional `POST_EDIT_AUTO_MD=1` auto-fix and audit logging.
+- **FR-431 FSM Reinvention Detection Hook**: `post-edit-checks` now inspects `feature-requests/*.md` edits and warns when a feature request shows FSM reinvention signals without references to existing FSM integration (`statemachine_engine`, `fsm-as-conductor`, `yamlgraph.utils.fsm`).
+- **FR-430 Linter Rule W024**: Added warning `W024` to detect prompt files that mix simple `{variable}` placeholders with Jinja2 syntax (`{{ ... }}` / `{% ... %}`). The check is wired into `yamlgraph graph lint` with a fix suggestion and avoids false positives on pure Jinja2 templates.
+- **FR-429 Post-Edit YAML Checks**: `post-edit-checks` now routes by file type instead of skipping all non-Python edits. Graph YAML files (`nodes` + `edges`) run `yamlgraph graph lint`; prompt YAML files under `prompts/` get YAML parse validation; non-target YAML is skipped to avoid false positives. Hook tests were extended with graph/prompt coverage while preserving Python checks.
+- **FR-428**: Add missing FR-numbered diary reflections for FR-423 and FR-424, plus witness tests enforcing presence, substance, trap naming, and Seed markers.
+- **FR-426 Schema Loader Tool Type**: Added built-in `tools.type: schema_loader` with typed parsing, graph-relative file safety, and additive merge mode with deterministic deduplication for topic-based schema composition. (REQ-YG-417, REQ-YG-418)
+- **FR-425 Hook Classification Daemon**: Warm FSM daemon classifies VS Code Copilot hook events using YAMLGraph LLM pipeline. Phase A demo with classify-and-log pattern, session history accumulation, and adversarial input validation. (REQ-YG-411, REQ-YG-412, REQ-YG-413, REQ-YG-414, REQ-YG-415, REQ-YG-416)
+- **FR-425 Phase B Hook Emit**: Separate `classify-emit.sh` PostToolUse hook script with file-based activation. Fire-and-forget DGRAM to classifier daemon with secret redaction. (REQ-YG-411)
+- **FR-424**: Generated changelog fragment. ()
+- **FR-424 Session Timeline Join Script**: Joins audit.jsonl and VS Code transcript JSONL into a unified session narrative with user prompts as group headers.
+- **FR-424**: Block standalone `wip` commit subjects on `main` in commit-msg hooks and PR commit ranges via `wip-gate`. (REQ-YG-419)
+- **FR-421 Built-in Questionnaire Gap Utilities**: Add `yamlgraph.tools.questionnaire` with reusable `detect_gaps` and `normalize_extracted` helpers for schema-driven probing loops and python-tool graph wiring. (REQ-YG-409)
+- **FR-421**: Generated changelog fragment. ()
+- **FR-418**: Enforce fallback-token confession gate in `scripts/hedging_check.py` with FB001 lexical detection, confession-backed allowlisting, and expanded pre-commit scan scope (`yamlgraph/` + `scripts/`). (REQ-YG-408)
+- **FR-414 Session ID and Order 66 Command Channel**: Audit entries now include `session_id` and `tool_use_id` for transcript correlation. Added Order 66 command channel (lockdown/unlock/status) via sentinel pattern.
+- **FR-414 Copilot Hook Audit Logging**: PreToolUse and PostToolUse hooks now log every tool invocation to append-only JSONL audit trail (`.github/hooks/logs/audit.jsonl`). Fail-closed parsing denies on malformed input. Supports both snake_case and camelCase VS Code payload formats. 43 tests validate enforcement and audit behavior.
+- **FR-413 Chaplain Shared FSM Bridge Adapter**: Migrated Chaplain `yamlgraph_async` to subclass the shared FSM bridge, added legacy config-to-`params` translation with normalized event tokens, and preserved runtime parity for `main_dir` path resolution plus unresolved validate placeholder normalization.
+- **FR-412**: Add watcher2 deterministic micro-remediation fast path (`micro_changelog`, `micro_title`) before validate gate with `validate_fix` fallback.
+- **FR-411**: Generated changelog fragment. ()
+- **FR-411**: Reintegrate watcher2 dispatcher inquisitor cadence with `auditing` state and 24h `last_audit_ts` routing. (REQ-YG-407)
+- **FR-409 Generalize CI Trailer Gate**: Reject any `Co-authored-by:` trailer identity in commit messages and PR body text, replacing Copilot-literal matching. (REQ-YG-358)
+- **FR-406 Lint JSON Output**: Add `yamlgraph graph lint --json` machine mode that emits per-file `LintResult` NDJSON to stdout, keeps diagnostics on stderr, and preserves existing lint exit semantics. (REQ-YG-406)
+- **FR-405 Philosopher Book Editorial Graph**: Add a separate editorial graph that snapshots generated chapter drafts, builds a global editorial brief, edits chapters through a `type: map` LLM pass, writes edited chapters to a separate output folder, and produces an editorial report with word-count deltas and notes. (REQ-YG-405)
+- **FR-404 Philosopher's Book**: YAMLGraph pipeline generating a 21-chapter philosophical work, one chapter per cognitive trap, using copilot nodes with diary search tools and sequential map execution. Chapters saved incrementally to `output_dir/chapters/` for crash-safe runs; single-chapter generation via `--var chapter_num=N`; `assemble_book` prefers saved files over state. (REQ-YG-404)
+- **FR-402 Prompt Theme Analyzer Demo**: Added `examples/demos/prompt_theme_analyzer/` with map fan-out classification, deterministic Python aggregation, grouped markdown reporting, and requirement-traced acceptance tests. (REQ-YG-359)
+
+### Fixed
+- **FR-433 Post-edit apply_patch coverage + optional auto-ruff**: `post-edit-checks.sh` now inspects `apply_patch` payloads, aggregates per-file diagnostics across multi-file patches, and supports opt-in `POST_EDIT_AUTO_RUFF=1` to run `ruff check --fix` + `ruff format` with audit logging when edits are applied.
+- **FR-432 Upward `.env` Search with Git Boundary**: `yamlgraph.config` now searches upward from the current working directory for `.env` and stops at `.git` directory boundaries. Worktree `.git` files no longer incorrectly terminate the search, allowing `.env` discovery at the main repo root.
+- **FR-423 Watcher Plan/Judge Convergence**: Stabilize `fr_path` across AMEND loops, require in-place plan edits when `fr_path` exists, and add judge writeback persistence guard to fail fast when AMEND/REJECT rationale is not persisted to the FR artifact.
+- **FR-422 ActionConfig mapping hardening**: Strict `event_map` typing (non-dict raises `ValueError` instead of silently returning `{}`), `_STRIP_BEFORE_VALIDATE` applied to nested `params` branch in `execute()`, and `dict`/`list` variable coercion via `json.dumps`. (REQ-YG-319)
+- **FR-420 extract_event dict support**: `extract_event()` now handles plain dicts (LangGraph serialized `CopilotResult` state) in addition to strings and Pydantic models. Unified dict/model_dump branches eliminate code duplication. Fixes judge step always routing to `event=error` instead of APPROVE/AMEND/REJECT/SPLIT verdicts.
+- **FR-419 Kill _translate_legacy_config**: Replaced `_translate_legacy_config()` compatibility shim with Pydantic `ActionConfig` schema boundary validation. Unknown YAML keys now raise `ValidationError` at parse time (`extra=forbid`). Flat config aliases (`vars`, `error`) handled via `AliasChoices`. `_normalize_event_map` moved into `ActionConfig` field validator. `_ENVELOPE_KEYS` strips `type`/`params` envelope before validation.
+- **FR-416 translate_legacy_config event_key passthrough**: `_translate_legacy_config()` in the chaplain adapter now forwards `event_key` to the `params` sub-dict, so `snapshot_params()` reads the correct result key and judge routing succeeds.
+- **FR-416 Judge Event Key Mismatch**: Fixed `extract_event()` to match first-line verdict tokens in multiline judge output (e.g., `"APPROVE\n\nRationale: ..."`); added `event_key: judge_result` to watcher-pipeline-v2.yaml judge action to resolve key mismatch between FSM config and graph state. (REQ-YG-319)
+- **FR-410 Watcher Author Identity Gate**: Enforced runtime git author identity in watcher commits and added CI `author-identity-gate` to block placeholder commit authors (`Test <test@test.com>`) in PR commit ranges.
+- **FR-404 Philosopher's Book**: Fix model name typo `claude-opus-4-6` → `claude-opus-4.6` in graph defaults. (REQ-YG-404)
+- Require the `fsm` extra in CI test installs and fail fast when `statemachine_engine` is unavailable in the shared async action path.
+- **gh-407 Gitignore boundary test isolation**: Strip bypass env vars in test helper to prevent leakage when pre-commit runs pytest with bypass vars set.
+
 ## [0.5.1]
 
 ### Added
