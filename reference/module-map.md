@@ -68,7 +68,7 @@
   - import dependencies: `yamlgraph.utils.prompts`, `yamlgraph.utils.template`
 - `yamlgraph/graph_cache.py` - 31 lines; exports: `clear_cache()`
   - import dependencies: _none_
-- `yamlgraph/graph_loader.py` - 376 lines; exports: `detect_loop_nodes(edges)`, `apply_loop_node_defaults(config)`, `class GraphConfig`, `load_graph_config(path)`, `compile_graph(config)`, `invoke_graph(path, variables, *, config)`, `load_and_compile(path)`, `get_checkpointer_for_graph(config)`
+- `yamlgraph/graph_loader.py` - 400 lines; exports: `detect_loop_nodes(edges)`, `apply_loop_node_defaults(config)`, `class GraphConfig`, `load_graph_config(path)`, `compile_graph(config)`, `invoke_graph(path, variables, *, config)`, `load_and_compile(path)`, `get_checkpointer_for_graph(config)`
   - import dependencies: `yamlgraph.data_loader`, `yamlgraph.edge_compiler`, `yamlgraph.models.state_builder`, `yamlgraph.node_compiler`, `yamlgraph.storage.checkpointer_factory`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.validators`
 - `yamlgraph/interactive_tool.py` - 183 lines; exports: `expand_interactive_tools(config)`
   - import dependencies: `yamlgraph.utils.conditions`
