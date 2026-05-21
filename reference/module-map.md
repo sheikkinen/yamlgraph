@@ -37,7 +37,7 @@
   - import dependencies: `yamlgraph`, `yamlgraph.models.graph_schema`
 - `yamlgraph/cli/skill_commands.py` - 32 lines; exports: `cmd_skill_export(args)`, `cmd_skill_dispatch(args)`
   - import dependencies: `yamlgraph.skill_export`
-- `yamlgraph/config.py` - 81 lines; exports: _none_
+- `yamlgraph/config.py` - 105 lines; exports: _none_
   - import dependencies: _none_
 - `yamlgraph/constants.py` - 74 lines; exports: `class NodeType`, `class ErrorHandler`, `class EdgeType`, `class SpecialNodes`
   - import dependencies: _none_

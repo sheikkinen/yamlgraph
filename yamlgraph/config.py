@@ -9,15 +9,39 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
+def _locate_env_file(start: Path) -> Path | None:
+    """Walk upward from *start* to find .env, stopping at .git directory boundary.
+
+    Worktrees use a .git file instead of a directory, so boundary detection must
+    use .is_dir() to keep searching toward the main repo root.
+    """
+    current = start.resolve()
+    while True:
+        candidate = current / ".env"
+        if candidate.is_file():
+            return candidate
+
+        # Stop at real git repository boundary, but not worktree .git files.
+        if (current / ".git").is_dir():
+            return None
+
+        parent = current.parent
+        if parent == current:
+            return None
+        current = parent
+
+
 # Package root (yamlgraph/ directory)
 PACKAGE_ROOT = Path(__file__).parent
 
 # Working directory (where the user runs the CLI from)
 WORKING_DIR = Path.cwd()
 
-# Load environment variables from current working directory
-# This ensures .env is found where the user runs yamlgraph, not in site-packages
-load_dotenv(WORKING_DIR / ".env")
+# Load environment variables by searching upward from CWD.
+_DOTENV_PATH = _locate_env_file(WORKING_DIR)
+if _DOTENV_PATH:
+    load_dotenv(_DOTENV_PATH)
 
 # Directory paths (relative to working directory)
 PROMPTS_DIR = WORKING_DIR / "prompts"
