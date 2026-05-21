@@ -268,6 +268,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: block-wip-main-subject
+        name: block wip subject on main
+        entry: "bash -c 'subject=$(head -n1 \"$1\"); branch=$(git rev-parse --abbrev-ref HEAD); if [ \"$branch\" = \"main\" ] && echo \"$subject\" | grep -Eiq \"\\bwip\\b\"; then echo \"ERROR: main commit subject cannot contain standalone wip\"; echo \"Subject: $subject\"; exit 1; fi' _"
+        language: system
+        stages: [commit-msg]
+        always_run: true
+
+  - repo: local
+    hooks:
       - id: block-ai-coauthor
         name: "Block AI co-author trailers"
         entry: .venv/bin/python scripts/block_ai_coauthor.py
