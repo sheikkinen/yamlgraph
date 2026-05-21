@@ -1,0 +1,16 @@
+{
+  "phrases": [
+    {
+      "pattern": "pre-existing failure",
+      "variants": ["pre existing failure", "preexisting failure"],
+      "doctrine": "A red test suite belongs to the current change author. Most such claims arise from test pollution — hidden state, order dependence, or incomplete isolation. Assume ownership, reproduce the failure, and correct the root cause.",
+      "scripture_ref": "copilot-instructions.md § Conventions"
+    },
+    {
+      "pattern": "not introduced by this change",
+      "variants": ["not caused by this change", "was already broken"],
+      "doctrine": "Assume ownership, reproduce the failure, and correct the root cause before proceeding.",
+      "scripture_ref": "copilot-instructions.md § Conventions"
+    }
+  ]
+}
