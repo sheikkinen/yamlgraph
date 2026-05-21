@@ -8,6 +8,10 @@ Usage:
     python scripts/req_coverage.py --strict        # exit 1 on gaps
 
 FR-178: Loads capabilities from YAML registry under capabilities/
+
+Scope contract (FR-436):
+- Includes framework test scope only: tests/unit and tests/integration
+- Excludes infrastructure hook scope: .github/hooks/tests
 """
 
 from __future__ import annotations
@@ -23,6 +27,8 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CAPABILITIES_DIR = REPO_ROOT / "capabilities"
+FRAMEWORK_TEST_DIRS = ("tests/unit", "tests/integration")
+EXCLUDED_TEST_DIRS = (".github/hooks/tests",)
 
 
 def load_capabilities_from_registry() -> (
@@ -344,7 +350,8 @@ def _load_coverage_map(root: Path) -> dict[str, set[str]]:
 
 def main() -> None:
     root = Path(__file__).parent.parent
-    test_dirs = [root / "tests" / "unit", root / "tests" / "integration"]
+    # ADR-001 Tier 1 scope: framework tests only.
+    test_dirs = [root / rel_path for rel_path in FRAMEWORK_TEST_DIRS]
 
     # Collect all markers
     all_markers: dict[str, list[str]] = defaultdict(list)
@@ -365,6 +372,10 @@ def main() -> None:
     print("=" * 70)
     print("REQUIREMENT TRACEABILITY REPORT")
     print("=" * 70)
+    print(
+        f"\nScope: framework tests only ({', '.join(FRAMEWORK_TEST_DIRS)}); "
+        f"excludes infrastructure tests ({', '.join(EXCLUDED_TEST_DIRS)})"
+    )
     print(f"\nRequirements: {len(covered)}/{len(ALL_REQS)} covered")
     print(f"Tagged tests: {len(unique_tests)} unique, {total_pairs} test-req pairs")
     print()
@@ -400,12 +411,12 @@ def main() -> None:
             else:
                 print(f"\n  {req}: NO TESTS")
 
-    # Implementation: req → source files (from coverage + AST fallback) → tests
+    # Implementation: req → source files (from coverage + AST import resolution) → tests
     if "--implementation" in sys.argv:
         coverage_map = _load_coverage_map(root)
         req_descriptions = _load_req_descriptions(root)
 
-        # Build test_key → filepath index for AST fallback
+        # Build test_key → filepath index for AST import resolution
         test_key_to_file: dict[str, Path] = {}
         for test_dir in test_dirs:
             if not test_dir.exists():
@@ -447,7 +458,7 @@ def main() -> None:
                         source_files.update(files)
                         matched_tests.append(test)
                     else:
-                        # AST fallback: parse imports from test file
+                        # AST import resolution: parse imports from test file
                         test_file = test_key_to_file.get(test)
                         if test_file:
                             ast_files = _extract_imports_from_test(test_file, test)

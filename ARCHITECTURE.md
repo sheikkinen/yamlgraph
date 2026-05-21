@@ -623,7 +623,7 @@ Requirement traceability enforcement and testing infrastructure.
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-063 | Requirement traceability enforcement: `pytest_collection_modifyitems` hook structurally enforces ADR-001 — all tests must have `@pytest.mark.req` | `tests/conftest`, `tests/unit/test_requirement_enforcement` |
+| REQ-YG-063 | Requirement traceability enforcement: ADR-001 Tier 1 framework tests under `tests/unit` and `tests/integration` must have `@pytest.mark.req`; infrastructure hook tests under `.github/hooks/tests` are excluded by scope contract | `tests/conftest`, `tests/unit/test_requirement_enforcement`, `scripts/req_coverage.py` |
 
 ### 19. MCP Server Interface
 
@@ -2363,7 +2363,16 @@ nodes:
 
 ### Requirement Traceability (ADR-001)
 
-Every test function is linked to one or more requirements via `@pytest.mark.req`:
+ADR-001 defines explicit traceability tiers:
+
+1. **Tier 1 (framework tests):** `tests/unit/` and `tests/integration/` require
+   `@pytest.mark.req("REQ-YG-XXX")` on each test.
+2. **Tier 2 (infrastructure hook tests):** `.github/hooks/tests/` is explicitly
+   exempt from REQ-YG markers because these tests validate hook operational
+   guards, not framework capability requirements.
+3. **Tier 3 (demo/proof docs):** no REQ marker mandate.
+
+Tier 1 tests are linked to one or more requirements via `@pytest.mark.req`:
 
 ```python
 @pytest.mark.req("REQ-YG-014", "REQ-YG-031")
@@ -2373,7 +2382,9 @@ def test_invoke_with_retry_succeeds_after_transient_failure(mock_llm):
 
 #### `scripts/req_coverage.py`
 
-Generates a traceability matrix from `@pytest.mark.req` markers using AST parsing.
+Generates a traceability matrix from `@pytest.mark.req` markers using AST
+parsing for Tier 1 framework scope only (`tests/unit`, `tests/integration`).
+Infrastructure hook tests under `.github/hooks/tests` are intentionally excluded.
 
 | Command | Purpose |
 |---------|---------|
