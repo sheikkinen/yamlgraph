@@ -48,8 +48,9 @@ EOF
 }
 
 # ── Parse input (fail-closed) ────────────────────────────────────────
-PARSED=$(echo "$INPUT" | python3 -c "
-import sys, json
+parse_hook_input() {
+  python3 -c "
+import json, sys
 try:
     d = json.load(sys.stdin)
     inp = d.get('tool_input', d.get('toolInput', d.get('input', {})))
@@ -58,21 +59,26 @@ try:
     detail = json.dumps(inp)[:500] if inp else '{}'
     sid = d.get('session_id', '')
     tuid = d.get('tool_use_id', '')
-    print(json.dumps({'tool': tool, 'command': cmd, 'detail': detail, 'session_id': sid, 'tool_use_id': tuid}))
+    for value in (tool, cmd, detail, sid, tuid):
+        sys.stdout.write(value if isinstance(value, str) else str(value))
+        sys.stdout.write('\0')
 except Exception:
     sys.exit(1)
-" 2>/dev/null) || {
+"
+}
+
+if ! {
+  IFS= read -r -d '' TOOL_NAME &&
+  IFS= read -r -d '' COMMAND &&
+  IFS= read -r -d '' DETAIL &&
+  IFS= read -r -d '' SESSION_ID &&
+  IFS= read -r -d '' TOOL_USE_ID
+} < <(printf '%s' "$INPUT" | parse_hook_input 2>/dev/null); then
   TOOL_NAME="unknown"
   audit_log "deny" "parse-error" "JSON parse failed"
   emit_deny "Hook cannot parse input — denying for safety."
   exit 0
-}
-
-TOOL_NAME=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['tool'])")
-COMMAND=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['command'])")
-DETAIL=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['detail'])")
-SESSION_ID=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['session_id'])")
-TOOL_USE_ID=$(echo "$PARSED" | python3 -c "import sys,json; print(json.load(sys.stdin)['tool_use_id'])")
+fi
 
 # ── Lockdown check ───────────────────────────────────────────────────
 LOCKFILE="$LOG_DIR/.lockdown"
