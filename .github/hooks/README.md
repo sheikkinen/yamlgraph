@@ -112,6 +112,11 @@ python3 .github/hooks/tests/test_pre_command_guard.py
 python3 .github/hooks/tests/test_session_timeline.py
 ```
 
+Traceability policy (FR-436): `.github/hooks/tests/` is infrastructure test
+scope. These tests validate hook operational guards and are intentionally
+outside REQ-YG marker coverage. ADR-001 marker enforcement applies to framework
+tests in `tests/unit/` and `tests/integration/`.
+
 ## Audit Trail (FR-414)
 
 Both hooks log every invocation to `.github/hooks/logs/audit.jsonl` (gitignored, local-only). This creates a complete forensic timeline of every tool the agent uses during a session.
