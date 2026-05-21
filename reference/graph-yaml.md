@@ -216,6 +216,7 @@ config:
   max_map_items: 100      # Default fan-out cap for map nodes (default: 100)
   max_tokens: 4096        # Default max output tokens for LLM calls (default: provider default)
   timeout: 120            # Global execution timeout in seconds (default: none)
+  tool_load_mode: strict  # Python tool loading policy: strict|warn (default: strict)
 ```
 
 | Property | Type | Default | Description |
@@ -224,6 +225,7 @@ config:
 | `max_map_items` | `int` | `100` | Default fan-out cap for map nodes. Can be overridden per-node with `max_items`. |
 | `max_tokens` | `int` | provider default | Default max output tokens for LLM calls. Can be overridden per-node. |
 | `timeout` | `int` | none | Global execution timeout in seconds. Covers the entire graph run including interrupt loops. |
+| `tool_load_mode` | `string` | `strict` | Python tool load policy: `strict` fails compilation on import/symbol errors, `warn` logs warnings and compiles with a partial runtime tool registry. |
 
 **CLI overrides:**
 ```bash
