@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 113
+- module count: 114
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -74,16 +74,18 @@
   - import dependencies: `yamlgraph.utils.conditions`
 - `yamlgraph/linter/__init__.py` - 21 lines; exports: _none_
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.linter.graph_linter`
-- `yamlgraph/linter/checks.py` - 449 lines; exports: `class LintIssue`, `load_graph(graph_path)`, `extract_variables(text)`, `get_prompt_path(prompt_name, prompts_dir)`, `resolve_prompts_dir(graph, graph_path, project_root)`, `check_state_declarations(graph_path, project_root)`, `check_tool_references(graph_path)`, `check_prompt_files(graph_path, project_root)`, `check_edge_coverage(graph_path)`, `check_node_types(graph_path)`, `check_unanchored_prompt_variables(graph_path, project_root)`
-  - import dependencies: `yamlgraph.utils.template`
+- `yamlgraph/linter/checks.py` - 383 lines; exports: `class LintIssue`, `load_graph(graph_path)`, `extract_variables(text)`, `get_prompt_path(prompt_name, prompts_dir)`, `resolve_prompts_dir(graph, graph_path, project_root)`, `check_state_declarations(graph_path, project_root)`, `check_tool_references(graph_path)`, `check_prompt_files(graph_path, project_root)`, `check_edge_coverage(graph_path)`, `check_node_types(graph_path)`
+  - import dependencies: _none_
 - `yamlgraph/linter/checks_contracts.py` - 375 lines; exports: `check_python_node_variables(graph_path)`, `check_identifier_keys(graph_path)`, `check_skip_if_exists_add_reducer(graph_path)`, `check_top_level_provider_model(graph_path)`, `check_skip_without_verification(graph_path)`, `check_silent_fallback(graph_path)`, `check_guard_expressions(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.guard_evaluator`
+- `yamlgraph/linter/checks_prompts.py` - 141 lines; exports: `check_unanchored_prompt_variables(graph_path, project_root)`, `check_mixed_template_syntax(graph_path, project_root)`
+  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.template`
 - `yamlgraph/linter/checks_providers.py` - 140 lines; exports: `check_thinking_budget(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`
 - `yamlgraph/linter/checks_semantic.py` - 435 lines; exports: `check_cross_references(graph_path)`, `check_passthrough_nodes(graph_path)`, `check_tool_call_nodes(graph_path)`, `check_expression_syntax(graph_path)`, `check_error_handling(graph_path)`, `check_edge_types(graph_path)`, `check_unguarded_cycles(graph_path)`, `check_skip_if_exists_in_cycle(graph_path)`, `check_dynamic_map_without_max_items(node_name, node_config, graph_config)`
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.models.state_builder`
-- `yamlgraph/linter/graph_linter.py` - 153 lines; exports: `class LintResult`, `lint_graph(graph_path, project_root)`
-  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.linter.checks_contracts`, `yamlgraph.linter.checks_providers`, `yamlgraph.linter.checks_semantic`, `yamlgraph.linter.patterns`
+- `yamlgraph/linter/graph_linter.py` - 159 lines; exports: `class LintResult`, `lint_graph(graph_path, project_root)`
+  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.linter.checks_contracts`, `yamlgraph.linter.checks_prompts`, `yamlgraph.linter.checks_providers`, `yamlgraph.linter.checks_semantic`, `yamlgraph.linter.patterns`
 - `yamlgraph/linter/patterns/__init__.py` - 25 lines; exports: _none_
   - import dependencies: `yamlgraph.linter.patterns.agent`, `yamlgraph.linter.patterns.copilot`, `yamlgraph.linter.patterns.interrupt`, `yamlgraph.linter.patterns.map`, `yamlgraph.linter.patterns.pipeline`, `yamlgraph.linter.patterns.race`, `yamlgraph.linter.patterns.router`, `yamlgraph.linter.patterns.subgraph`
 - `yamlgraph/linter/patterns/agent.py` - 89 lines; exports: `check_agent_node_tools(node_name, node_config, graph)`, `check_agent_patterns(graph_path, project_root)`
@@ -234,5 +236,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 60/113
+- mapped modules: 60/114
 - discovered tests: 62

@@ -22,15 +22,20 @@ from yamlgraph.linter.checks import (
     check_prompt_files,
     check_state_declarations,
     check_tool_references,
-    check_unanchored_prompt_variables,
 )
 from yamlgraph.linter.checks_contracts import (
     check_guard_expressions,
     check_identifier_keys,
-    check_silent_fallback,
     check_skip_if_exists_add_reducer,
     check_skip_without_verification,
     check_top_level_provider_model,
+)
+from yamlgraph.linter.checks_contracts import (
+    check_silent_fallback as check_silent_default_path,
+)
+from yamlgraph.linter.checks_prompts import (
+    check_mixed_template_syntax,
+    check_unanchored_prompt_variables,
 )
 from yamlgraph.linter.checks_providers import check_thinking_budget
 from yamlgraph.linter.checks_semantic import (
@@ -88,6 +93,7 @@ def lint_graph(
     all_issues.extend(check_tool_references(graph_path))
     all_issues.extend(check_prompt_files(graph_path, project_root))
     all_issues.extend(check_unanchored_prompt_variables(graph_path, project_root))
+    all_issues.extend(check_mixed_template_syntax(graph_path, project_root))
     all_issues.extend(check_edge_coverage(graph_path))
     all_issues.extend(check_node_types(graph_path))
 
@@ -125,8 +131,8 @@ def lint_graph(
     # FR-119: Top-level provider/model detection
     all_issues.extend(check_top_level_provider_model(graph_path))
 
-    # FR-165: Silent fallback detection
-    all_issues.extend(check_silent_fallback(graph_path))
+    # FR-165: Detect implicit default-path behavior
+    all_issues.extend(check_silent_default_path(graph_path))
 
     # FR-344: Deterministic guard expression validation
     all_issues.extend(check_guard_expressions(graph_path))

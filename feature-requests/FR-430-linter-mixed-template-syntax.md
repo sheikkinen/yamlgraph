@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 0.5 days
 **Requested:** 2026-05-21
 
@@ -79,15 +79,22 @@ all_issues.extend(check_mixed_template_syntax(graph_path, project_root))
 
 ## Acceptance Criteria
 
-- [ ] `W024` rule added to `yamlgraph/linter/checks.py`
-- [ ] Simple variable detection reuses `extract_template_variables` (same as W023)
-- [ ] Rule registered in `graph_linter.py` `lint_graph()` function
-- [ ] `check_mixed_template_syntax` added to `__all__` in `checks.py`
-- [ ] `yamlgraph graph lint` reports W024 for prompts with mixed syntax
-- [ ] No false positives on pure-simple or pure-Jinja2 prompt files
-- [ ] Tests: mixed syntax warns, pure simple clean, pure Jinja2 clean, missing prompt skipped
-- [ ] Rule appears in linter output with fix suggestion
-- [ ] FR-429 hook automatically picks up W024 via `yamlgraph graph lint` (no hook changes needed)
+- [x] `W024` rule added to `yamlgraph/linter/checks.py`
+- [x] Simple variable detection reuses `extract_template_variables` (same as W023)
+- [x] Rule registered in `graph_linter.py` `lint_graph()` function
+- [x] `check_mixed_template_syntax` added to `__all__` in `checks.py`
+- [x] `yamlgraph graph lint` reports W024 for prompts with mixed syntax
+- [x] No false positives on pure-simple or pure-Jinja2 prompt files
+- [x] Tests: mixed syntax warns, pure simple clean, pure Jinja2 clean, missing prompt skipped
+- [x] Rule appears in linter output with fix suggestion
+- [x] FR-429 hook automatically picks up W024 via `yamlgraph graph lint` (no hook changes needed)
+
+## Implementation Notes (2026-05-21)
+
+- Added `check_mixed_template_syntax()` to `yamlgraph/linter/checks.py` as warning rule `W024`.
+- Registered `W024` in `yamlgraph/linter/graph_linter.py` so it runs with normal `yamlgraph graph lint`.
+- Implemented mixed-syntax detection by stripping Jinja2 constructs and reusing `extract_template_variables` to detect remaining simple `{var}` placeholders.
+- Added unit tests in `tests/unit/test_fr430_lint_mixed_template_syntax.py` covering mixed warning, pure simple, pure Jinja2, and missing prompt cases.
 
 ## Alternatives Considered
 
