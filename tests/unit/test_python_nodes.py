@@ -287,9 +287,12 @@ class TestLoadPythonFunctionPath:
             load_python_function(config)
 
     @pytest.mark.req("REQ-YG-196")
-    def test_path_resolves_relative_to_cwd(self, tmp_path, monkeypatch):
-        """Path field resolves relative to CWD."""
-        tool_file = tmp_path / "tools" / "helper.py"
+    def test_path_resolves_relative_to_graph_root_when_provided(
+        self, tmp_path, monkeypatch
+    ):
+        """Path field resolves relative to graph_root when graph_root is provided."""
+        graph_root = tmp_path / "graph_root"
+        tool_file = graph_root / "tools" / "helper.py"
         tool_file.parent.mkdir(parents=True, exist_ok=True)
         tool_file.write_text("def helper(state):\n    return {'ok': True}\n")
         monkeypatch.chdir(tmp_path)
@@ -298,7 +301,11 @@ class TestLoadPythonFunctionPath:
             path="tools/helper.py",
             function="helper",
         )
-        func = load_python_function(config)
+        func = load_python_function(
+            config,
+            graph_root=graph_root,
+            tool_name="helper_tool",
+        )
         assert func({}) == {"ok": True}
 
 

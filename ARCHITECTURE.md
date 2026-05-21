@@ -1096,13 +1096,13 @@ Upgrades fsm/CLAUDE.md (statemachine-engine/CLAUDE.md) from a four-line YAGNI/TD
 
 ### 75. Portable Chaplain (FR-196)
 
-PythonToolConfig supports a `path` field for file-path-based tool loading via importlib.util.spec_from_file_location(). Path resolves relative to CWD. Enables .chaplain/ directory portability by bypassing dotted-package import restrictions. Chaplain graphs, prompts, and Python tools relocated from examples/ to .chaplain/graphs/ for self-contained portability.
+PythonToolConfig supports a `path` field for file-path-based tool loading via importlib.util.spec_from_file_location(). When graph context is available, relative paths resolve from graph root and are confined to graph root. Enables .chaplain/ directory portability by bypassing dotted-package import restrictions while preserving deterministic graph-scoped loading.
 
 **Feature Request:** FR-196
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; path resolves relative to CWD; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
+| REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; when graph_root is provided, relative paths resolve from graph root and both relative/absolute out-of-root paths are rejected; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
 
 ### 76. Horoscope Demo
 
@@ -1927,7 +1927,7 @@ Path-based Python tool loading and Chaplain subsystem portability.
 
 **Feature Request:** FR-196
 
-| REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; path resolves relative to CWD; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
+| REQ-YG-196 | PythonToolConfig supports path field (mutually exclusive with module) for file-path-based Python tool loading via spec_from_file_location; when graph_root is provided, relative paths resolve from graph root and both relative/absolute out-of-root paths are rejected; validation rejects both-set and neither-set; parse_python_tools accepts path or module in YAML tool definitions | `yamlgraph/tools/python_tool.py`, `tests/unit/test_python_nodes.py` |
 
 ---
 
