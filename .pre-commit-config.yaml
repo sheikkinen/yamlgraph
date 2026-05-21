@@ -42,7 +42,7 @@ repos:
           bash -c 'FILES=$(git diff --cached --name-only -- "docs/diary/*reflection*.md"); if [ -n "$FILES" ]; then STUBS=$(echo "$FILES" | xargs grep -l "\[What cognitive trap\|\[What lesson\|\[What question" 2>/dev/null); if [ -n "$STUBS" ]; then echo "❌ Unfilled diary reflection stubs:"; echo "$STUBS"; echo "Fill Trap/Heuristic/Seed sections before committing."; exit 1; fi; MISSING_SEED=$(echo "$FILES" | xargs grep -L "Seed:" 2>/dev/null); if [ -n "$MISSING_SEED" ]; then echo "❌ Diary reflections missing Seed: marker:"; echo "$MISSING_SEED"; echo "Add literal Seed: marker to each reflection before committing."; exit 1; fi; fi'
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^docs/diary/
         stages: [pre-commit]
 
   - repo: local
@@ -52,7 +52,7 @@ repos:
         entry: .venv/bin/python scripts/req_coverage.py --strict
         language: system
         pass_filenames: false
-        always_run: true
+        files: (^yamlgraph/|^tests/|^ARCHITECTURE\.md$|^capabilities/|^scripts/req_coverage\.py$)
         stages: [pre-commit]
 
   - repo: local
@@ -62,7 +62,7 @@ repos:
         entry: .venv/bin/python scripts/validate_capabilities.py
         language: system
         pass_filenames: false
-        always_run: true
+        files: (^capabilities/|^scripts/validate_capabilities\.py$)
         stages: [pre-commit]
 
   - repo: local
@@ -72,7 +72,7 @@ repos:
         entry: .venv/bin/python scripts/validate_id_registry.py
         language: system
         pass_filenames: false
-        always_run: true
+        files: (^capabilities/|^scripts/validate_id_registry\.py$)
         stages: [pre-commit]
 
   - repo: local
@@ -82,7 +82,7 @@ repos:
         entry: .venv/bin/python scripts/noqa_coverage.py --strict
         language: system
         pass_filenames: false
-        always_run: true
+        files: (\.py$|^docs/confessions\.md$|^scripts/noqa_coverage\.py$)
         stages: [pre-commit]
 
   - repo: local
@@ -102,7 +102,7 @@ repos:
         entry: .venv/bin/python scripts/lint_inline_llm.py
         language: system
         pass_filenames: false
-        always_run: true
+        files: (\.py$|^scripts/lint_inline_llm\.py$)
         stages: [pre-commit]
 
   - repo: local
@@ -112,7 +112,7 @@ repos:
         entry: bash -c 'output=$(.venv/bin/python -m radon cc yamlgraph/ -n D -s 2>&1); if [ -n "$output" ]; then echo "$output"; echo ""; echo "FAIL -- functions with cyclomatic complexity >= 21 (grade D) detected"; exit 1; fi'
         language: system
         pass_filenames: false
-        always_run: true
+        files: \.py$
         stages: [pre-commit]
 
   - repo: local
@@ -122,7 +122,7 @@ repos:
         entry: bash -c 'fail=0; warn=0; for f in $(find yamlgraph -type f -name "*.py" ! -path "*/__pycache__/*"); do lines=$(wc -l < "$f"); if [ "$lines" -gt 450 ]; then echo "ERROR $f -- $lines lines (max 450)"; fail=1; elif [ "$lines" -gt 400 ]; then echo "WARN  $f -- $lines lines (target <=400)"; warn=1; fi; done; if [ "$fail" -eq 1 ]; then echo ""; echo "FAIL -- code files exceeding 450 lines detected"; exit 1; fi; if [ "$warn" -eq 1 ]; then echo ""; echo "(warnings only -- hook passes)"; fi'
         language: system
         pass_filenames: false
-        always_run: true
+        files: \.py$
         stages: [pre-commit]
 
   - repo: local
@@ -132,7 +132,7 @@ repos:
         entry: bash -c '! find yamlgraph -type f -name "*.py" ! -path "*/__pycache__/*" ! -path "*/.pytest_cache/*" ! -path "*/.mypy_cache/*" ! -path "*/.ruff_cache/*" ! -path "*/.venv/*" -print0 | xargs -0 grep -nE "TODO|FIXME|backward compati(bility)?"'
         language: system
         pass_filenames: false
-        always_run: true
+        files: \.py$
         stages: [pre-commit]
 
   - repo: local
@@ -142,7 +142,7 @@ repos:
         entry: bash -c 'npx jscpd yamlgraph --threshold 10 --min-lines 10 --min-tokens 80 --format python --gitignore --reporters console'
         language: system
         pass_filenames: false
-        always_run: true
+        files: \.py$
         stages: [pre-commit]
 
   - repo: local
@@ -152,7 +152,7 @@ repos:
         entry: bash -c 'PATH="$PWD/.venv/bin:$PATH" lint-imports'
         language: system
         pass_filenames: false
-        always_run: true
+        files: (\.py$|^\.importlinter$)
         stages: [pre-commit]
 
   - repo: local
@@ -162,7 +162,7 @@ repos:
         entry: bash -c '.venv/bin/python -m vulture yamlgraph vulture_whitelist.py --min-confidence 60'
         language: system
         pass_filenames: false
-        always_run: true
+        files: (\.py$|^vulture_whitelist\.py$)
         stages: [pre-commit]
 
   - repo: local
@@ -172,7 +172,7 @@ repos:
         entry: bash -c '.venv/bin/python scripts/hedging_check.py yamlgraph scripts --strict'
         language: system
         pass_filenames: false
-        always_run: true
+        files: \.py$
         stages: [pre-commit]
 
   - repo: local
@@ -200,7 +200,7 @@ repos:
         entry: .venv/bin/python scripts/check_changelog_req.py --strict --skip-llm
         language: system
         pass_filenames: false
-        always_run: true
+        files: (^changelog/|^capabilities/|^scripts/check_changelog_req\.py$)
         stages: [pre-commit]
 
   - repo: local
@@ -210,7 +210,7 @@ repos:
         entry: .venv/bin/python scripts/check_changelog_release_sync.py
         language: system
         pass_filenames: false
-        always_run: true
+        files: (^changelog/|^pyproject\.toml$|^scripts/check_changelog_release_sync\.py$|^scripts/release\.sh$)
         stages: [pre-commit]
 
   - repo: local
@@ -228,7 +228,7 @@ repos:
           fi'
         language: system
         pass_filenames: false
-        always_run: true
+        files: ^docs/diary/
         stages: [pre-commit]
 
   - repo: local
@@ -238,7 +238,7 @@ repos:
         entry: bash -c 'export PATH=".venv/bin:$PATH" && .venv/bin/python -m pytest tests/unit/ -q --tb=short --no-cov -m "not slow" -n auto && echo "" && echo "✓ Unit tests passed. Run integration tests separately:" && echo "  pytest tests/integration/ -v"'
         language: system
         pass_filenames: false
-        always_run: true
+        files: (\.py$|\.yaml$|\.yml$|^pyproject\.toml$)
         stages: [pre-commit]
 
   - repo: https://github.com/compilerla/conventional-pre-commit
