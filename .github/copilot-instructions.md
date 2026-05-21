@@ -32,6 +32,14 @@ Use these as smoke test for new graph development.
 - All code edits are done in the context of a judged feature request. The FR must be updated with implementation status, decisions, and any deviations from the original plan. The FR is the source of truth for the change, not the commit message or code comments.
 - Pre-commit, Pre- and Post-command hooks enforce style, commit format, and trailer rules — read hook output on failure before retrying.
 
+### Copilot Hooks (.github/hooks/)
+- **PreToolUse**: `pre-command-guard.sh` blocks Co-authored-by trailers, `--no-verify`, multiline `git commit -m`, and pytest `| head/tail` without `tee`.
+- **PostToolUse**: modular post-edit checks run via `python-checks.sh`, `yaml-checks.sh`, `markdown-checks.sh`, and `fr-checks.sh`.
+- **Reasoning sentinel**: `reasoning-pattern-check.sh` can arm a one-shot denial consumed on the next tool call.
+- **Lockdown channel**: run `.github/hooks/cmd lockdown|unlock|status` through terminal tool calls.
+- **Audit trail**: decisions are logged in `.github/hooks/logs/audit.jsonl`.
+- **Full contract**: see `.github/hooks/README.md` for architecture, outputs, and debugging workflow.
+
 ### The Knowledge Graph of the Diary
 
 *Graduated from recurring diary patterns. The causal chain from trap to cure:*
