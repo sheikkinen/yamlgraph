@@ -412,12 +412,15 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 146 | FSM Snapshot Hooks Phase 2 Subclassing | `yamlgraph/utils/fsm/snapshot.py`, `yamlgraph/utils/fsm/action.py`, `yamlgraph/utils/fsm/graph_runner.py`, `yamlgraph/utils/fsm/__init__.py`, … | REQ-YG-347 |
 | 147 | Graph Run JSON Stdout + TypeScript Node Integration | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/cli/helpers.py`, `yamlgraph/storage/export.py`, … | REQ-YG-348 – 355 |
 | 148 | CI Co-authored-by Trailer Gate | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` | REQ-YG-358 |
-| 149 | Prompt Theme Analyzer Demo | `examples/demos/prompt_theme_analyzer/graph.yaml`, `examples/demos/prompt_theme_analyzer/tools.py`, `examples/demos/prompt_theme_analyzer/prompts/classify_theme.yaml`, `examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml`, … | REQ-YG-359 |
+| 149 | CAP-149 Prompt Theme Analyzer Demo | `examples/demos/prompt_theme_analyzer/graph.yaml`, `examples/demos/prompt_theme_analyzer/tools.py`, `examples/demos/prompt_theme_analyzer/prompts/classify_theme.yaml`, `examples/demos/prompt_theme_analyzer/prompts/group_themes.yaml`, … | REQ-YG-359 |
 | 150 | Philosopher's Book Demo | `examples/demos/philosopher_book/graph.yaml`, `examples/demos/philosopher_book/editorial_graph.yaml`, `examples/demos/philosopher_book/tools.py`, `examples/demos/philosopher_book/prompts/plan_chapter.yaml`, … | REQ-YG-404 – 405 |
 | 151 | Graph Lint JSON Output | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_validate.py`, `tests/unit/test_fr406_lint_json_output_red.py`, `ARCHITECTURE.md` | REQ-YG-406 |
 | 152 | Watcher2 Dispatcher Audit Cadence | `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/actions/syncing_inbox_action.py`, `.chaplain/actions/audit_action.py`, `tests/unit/test_fr411_watcher2_dispatcher_inquisitor_audit_cadence.py`, … | REQ-YG-407 |
 | 153 | Built-in Questionnaire Gap Utilities | `yamlgraph/tools/questionnaire.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py`, `reference/probe-recap-questionnaire.md`, `ARCHITECTURE.md` | REQ-YG-409 – 410 |
+| 154 | Hook Classification Daemon | `examples/demos/hook_classifier/actions/classify_action.py`, `examples/demos/hook_classifier/config/hook-classifier.yaml`, `examples/demos/hook_classifier/graphs/classify-intent.yaml`, `examples/demos/hook_classifier/prompts/classify-tool-intent.yaml`, … | REQ-YG-411 – 416 |
+| 155 | Schema Loader Tool Type | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/graph_loader.py`, `yamlgraph/node_compiler.py`, … | REQ-YG-417 – 418 |
 | 156 | WIP Commit Subject Gate | `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr424_wip_main_gate_red.py`, `CLAUDE.md`, … | REQ-YG-419 |
+| 157 | Graph Loader Strict Tool Load Fail Fast | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md`, `ARCHITECTURE.md` | REQ-YG-420 – 421 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -623,7 +626,7 @@ Requirement traceability enforcement and testing infrastructure.
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-063 | Requirement traceability enforcement: ADR-001 Tier 1 framework tests under `tests/unit` and `tests/integration` must have `@pytest.mark.req`; infrastructure hook tests under `.github/hooks/tests` are excluded by scope contract | `tests/conftest`, `tests/unit/test_requirement_enforcement`, `scripts/req_coverage.py` |
+| REQ-YG-063 | Requirement traceability enforcement: ADR-001 Tier 1 framework scope (`tests/unit`, `tests/integration`) requires `@pytest.mark.req`, while Tier 2 infrastructure hook tests under `.github/hooks/tests` are explicitly exempt from REQ marker coverage. | `tests/conftest`, `tests/unit/test_requirement_enforcement`, `tests/integration`, `.github/hooks/tests` |
 
 ### 19. MCP Server Interface
 
@@ -643,16 +646,6 @@ Shared utilities extracted from pipeline patterns. Eliminates copy-paste duplica
 |------------|-------------|-------------|
 | REQ-YG-070 | Contrib utils: `get_map_result()` unwraps single-key `_map_*_sub` dicts; `to_serializable()` converts Pydantic models to dicts recursively | `contrib/utils` |
 | REQ-YG-071 | Contrib progress: `SkipReport` reads `state["errors"]` and provides human-readable skip summaries with counts and node names | `contrib/progress` |
-| REQ-YG-409 | Built-in questionnaire `detect_gaps(state)` utility returns `{"gaps": sorted_ids, "has_gaps": bool}` for required `schema.fields[].id` values missing from `state["extracted"]`, treating `None` and empty string as missing while ignoring non-required fields. | `yamlgraph/tools/questionnaire.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py` |
-| REQ-YG-410 | Built-in questionnaire `normalize_extracted(state)` returns `{}` when `state["extracted"]` is already a dict and returns `{"extracted": {}}` for missing/non-dict values; utility module resolves via existing `type: python` tool wiring. | `yamlgraph/tools/questionnaire.py`, `yamlgraph/tools/python_tool.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py` |
-| REQ-YG-411 | Classification validation enforces intent in {legitimate, suspicious, hostile}, danger_level int 1-5 (never 0), category in valid enum; invalid values normalized to safe defaults. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
-| REQ-YG-412 | Reason code mapping: classified-{intent} for valid intents, classify-error for unknown, classify-timeout for timeout exceptions. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
-| REQ-YG-413 | Append contract: open(mode='a'), print(json.dumps, flush=True), max 4096 bytes per line, concurrent writers produce no torn lines. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
-| REQ-YG-414 | Session history capped at 50 entries with 30-min sliding window; FIFO eviction drops oldest first. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
-| REQ-YG-415 | ClassifyAction on_success validates, logs, updates history; on_error writes deterministic fallback (intent=unknown, danger_level=1, category=error). | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
-| REQ-YG-416 | Adversarial inputs (malformed LLM output, oversized payloads, prompt injection) normalized by validation; no crash, no danger_level=0 bypass. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
-| REQ-YG-417 | `tools.type: schema_loader` parsing returns typed `SchemaLoaderToolConfig`, enforces exactly one of `path`/`paths_from_state`, and integrates with `type: python` execution to load single graph-relative schema files into `state_key`. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/graph_loader.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
-| REQ-YG-418 | Schema-loader merge mode loads topic schemas from `paths_from_state + schema_dir + suffix`, preserves additive order (existing fields first), deduplicates by `deduplicate_by`, raises explicit missing-file errors, and rejects traversal outside graph root. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/map_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
 
 ### 21. Diary Digest Tools
 
@@ -1176,7 +1169,7 @@ Commit-msg hook that detects and blocks AI agent Co-authored-by trailers (Copilo
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-215 | block_ai_coauthor.py commit-msg hook: regex-detects AI agent trailers, exits 1 with offending line + penance liturgy; exits 0 for clean and human-only messages; registered as block-ai-coauthor in pre-commit-config at commit-msg stage before absolution | `scripts/block_ai_coauthor.py`, `.pre-commit-config.yaml`, `tests/unit/test_precommit_hooks.py` |
+| REQ-YG-215 | block_ai_coauthor.py commit-msg hook: regex-detects AI agent trailers, exits 1 with offending line + penance liturgy; exits 0 for clean and human-only messages; registered as block-ai-coauthor in pre-commit-config at commit-msg stage before final-summary | `scripts/block_ai_coauthor.py`, `.pre-commit-config.yaml`, `tests/unit/test_precommit_hooks.py` |
 
 ### 83. Research Agent Demo
 
@@ -1827,7 +1820,7 @@ GitHub Actions job in commitlint.yml that blocks pull requests when any `Co-auth
 |------------|-------------|-------------|
 | REQ-YG-358 | `copilot-trailer-gate` job in `commitlint.yml` deterministically scans `BASE_SHA..HEAD_SHA` commit messages and `github.event.pull_request.body` for any `Co-authored-by:` trailer line, fails with exit 1 on detection, and passes unchanged PRs otherwise. | `.github/workflows/commitlint.yml`, `tests/unit/test_fr385_ci_copilot_trailer_gate_red.py`, `CLAUDE.md` |
 
-### 149. Prompt Theme Analyzer Demo (CAP-149)
+### 149. CAP-149 Prompt Theme Analyzer Demo
 
 Demo graph showing list -> map -> deterministic aggregate -> llm-group -> write flow for prompt theme analysis with explicit boundary normalization.
 
@@ -1879,7 +1872,33 @@ Adds framework-shipped questionnaire helpers `detect_gaps` and `normalize_extrac
 | REQ-YG-409 | `detect_gaps(state)` returns sorted required schema field IDs missing from `state["extracted"]`, treating `None` and empty string as missing and returning `{"gaps": [...], "has_gaps": bool}`. | `yamlgraph/tools/questionnaire.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py` |
 | REQ-YG-410 | `normalize_extracted(state)` returns `{}` when `state["extracted"]` is a dict, otherwise returns `{"extracted": {}}`; utility module remains callable via `type: python` tool config. | `yamlgraph/tools/questionnaire.py`, `yamlgraph/tools/python_tool.py`, `tests/unit/test_fr421_questionnaire_gap_utilities_red.py` |
 
-### 154. WIP Commit Subject Gate
+### 154. Hook Classification Daemon
+
+Warm FSM daemon that classifies VS Code Copilot hook events using YAMLGraph LLM pipeline. Async classify-and-log pattern: fire-and-forget DGRAM to statemachine engine, LLM classifies intent/danger, results appended to JSONL audit log. Phase A: demo-only in examples/demos/hook_classifier/. (FR-425)
+
+**Feature Request:** FR-425
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-411 | Classification validation enforces intent in {legitimate, suspicious, hostile}, danger_level int 1-5 (never 0), and category in valid enum set; invalid values are normalized to safe defaults (unknown/1/normal). | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
+| REQ-YG-412 | Reason code mapping returns classified-{intent} for valid intents and classify-error for unknown/missing intent; classify-timeout for timeout exceptions. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
+| REQ-YG-413 | Append contract uses open(mode='a') with print(json.dumps(..., ensure_ascii=True), flush=True); entries exceeding 4096 bytes truncate detail field; concurrent writers produce no torn lines. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
+| REQ-YG-414 | Session history capped at max 50 entries with 30-minute sliding window; FIFO eviction drops oldest entries first. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
+| REQ-YG-415 | ClassifyAction on_success validates classification, appends to JSONL log, and updates session history; on_error writes deterministic fallback with intent=unknown, danger_level=1, category=error. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
+| REQ-YG-416 | Adversarial inputs (malformed LLM output, oversized payloads, prompt injection in command text) are normalized by validation layer; no crash, no bypass of danger_level=0 sentinel prohibition. | `examples/demos/hook_classifier/actions/classify_action.py`, `tests/unit/test_fr425_hook_classification_daemon_red.py` |
+
+### 155. Schema Loader Tool Type
+
+Add built-in tools.type=schema_loader for deterministic graph-relative schema loading and merge-by-topic behavior in type: python nodes without project-local loader functions. (FR-426)
+
+**Feature Request:** FR-426
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-417 | parse_schema_loader_tools recognizes type: schema_loader entries, enforces exactly-one-of path/paths_from_state plus required state_key, and supports single-file schema loading into the configured state key via python tool runtime integration. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/graph_loader.py`, `yamlgraph/node_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
+| REQ-YG-418 | Merge mode loads schema files from paths_from_state topics under schema_dir with suffix, preserves additive ordering (existing fields first), deduplicates by deduplicate_by, and enforces graph-root path safety including traversal rejection and graph-relative resolution independent of process CWD. | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/map_compiler.py`, `tests/unit/test_fr426_schema_loader_tool_type_red.py` |
+
+### 156. WIP Commit Subject Gate
 
 Adds deterministic local and CI commit-subject enforcement that blocks the standalone word `wip` (case-insensitive) on the protected main merge path. Local commit-msg checks apply only on branch `main`, while CI scans PR commit subjects in `BASE_SHA..HEAD_SHA`. (FR-424)
 
@@ -1888,6 +1907,17 @@ Adds deterministic local and CI commit-subject enforcement that blocks the stand
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-419 | Commit subject gate blocks standalone `wip` (case-insensitive) on local `main` commit-msg flow and in CI `wip-gate` pull-request commit ranges (`BASE_SHA..HEAD_SHA`) via deterministic subject scanning, while allowing non-main branches and non-boundary substrings like `swipe`. | `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr424_wip_main_gate_red.py`, `CLAUDE.md` |
+
+### 157. Graph Loader Strict Tool Load Fail Fast
+
+Graph compilation enforces explicit Python tool loading policy with strict fail-fast default and warn-mode opt-out for partial registries.
+
+**Feature Request:** FR-444
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-420 | Graph compilation defaults to strict Python tool loading and raises a compile-time ValueError when any Python tool import/symbol load fails, reporting each failed tool and root cause in one actionable error. | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py` |
+| REQ-YG-421 | Graph config supports config.tool_load_mode: warn to preserve warn-and-continue behavior: failed Python tools emit warnings during compile and unresolved tools surface as runtime Unknown tool errors in tool_call nodes. | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md` |
 
 <!-- END GENERATED CAPABILITIES -->
 

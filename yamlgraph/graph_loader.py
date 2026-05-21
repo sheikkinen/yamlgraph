@@ -28,6 +28,10 @@ GraphState = dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
+TOOL_LOAD_MODE_STRICT = "strict"
+TOOL_LOAD_MODE_WARN = "warn"
+VALID_TOOL_LOAD_MODES = {TOOL_LOAD_MODE_STRICT, TOOL_LOAD_MODE_WARN}
+
 
 def detect_loop_nodes(edges: list[dict]) -> set[str]:
     """Detect nodes that participate in cycles (loops).
@@ -158,6 +162,15 @@ class GraphConfig:
         self.max_map_items = graph_level_config.get("max_map_items", 100)
         self.max_tokens = graph_level_config.get("max_tokens")
         self.timeout = graph_level_config.get("timeout")
+        self.tool_load_mode = graph_level_config.get(
+            "tool_load_mode", TOOL_LOAD_MODE_STRICT
+        )
+        if self.tool_load_mode not in VALID_TOOL_LOAD_MODES:
+            valid_modes = ", ".join(sorted(VALID_TOOL_LOAD_MODES))
+            raise ValueError(
+                f"Invalid config.tool_load_mode '{self.tool_load_mode}'. "
+                f"Expected one of: {valid_modes}"
+            )
         # Store raw config for dynamic state building
         self.raw_config = config
         # Store source path for subgraph resolution
@@ -256,6 +269,7 @@ def _parse_all_tools(
 
     # Build callable registry for tool_call nodes
     callable_registry: dict[str, Callable] = {}
+    load_failures: list[tuple[str, Exception]] = []
     for name, tool_config in python_tools.items():
         try:
             callable_registry[name] = load_python_function(
@@ -264,7 +278,17 @@ def _parse_all_tools(
                 tool_name=name,
             )
         except (ImportError, AttributeError, ValueError, TypeError) as e:
-            logger.warning(f"Failed to load tool '{name}': {e}")
+            if config.tool_load_mode == TOOL_LOAD_MODE_WARN:
+                logger.warning(f"Failed to load tool '{name}': {e}")
+            else:
+                load_failures.append((name, e))
+
+    if load_failures:
+        failures = "; ".join(f"{name}: {error}" for name, error in load_failures)
+        raise ValueError(
+            "Python tool load failed in strict mode "
+            f"(config.tool_load_mode={TOOL_LOAD_MODE_STRICT}): {failures}"
+        )
 
     if tools:
         logger.info(f"Parsed {len(tools)} shell tools: {', '.join(tools.keys())}")
