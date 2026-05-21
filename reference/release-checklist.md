@@ -109,3 +109,30 @@ git commit -F tmp/msg.txt
 ```
 
 This avoids the dquote trap from special characters in shell strings.
+
+## Post-Push Verification
+
+After `git push && git push --tags`, verify the release landed cleanly:
+
+```bash
+# 1. Check CI workflows triggered by the push
+gh run list --limit 5 --json name,status,conclusion,headBranch \
+  --jq '.[] | "\(.status) \(.conclusion // "—") \(.name) \(.headBranch)"'
+
+# 2. Check if GH release was created (manual step if no auto-release workflow)
+gh release view v0.X.Y 2>&1
+
+# 3. Create GH release manually if needed
+gh release create v0.X.Y --title "v0.X.Y" --generate-notes
+```
+
+### Expected CI behavior on direct push to main
+
+| Workflow | Expected | Notes |
+|----------|----------|-------|
+| **CI** (test + lint) | Pass | Main gate — must be green |
+| **Commitlint** | Fail | Requires PR event; harmless on direct push |
+| **Security scan** | Fail | `pip-audit` can't find private package on PyPI |
+| **Pages** | May fail | Separate concern, not release-blocking |
+
+The commitlint and security failures are **structural** — they only pass in PR context or with a published package. They do not indicate a broken release.
