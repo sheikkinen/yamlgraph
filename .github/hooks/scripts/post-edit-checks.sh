@@ -39,103 +39,148 @@ TOOL_USE_ID=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin
 
 # Only inspect file-edit tools
 case "$TOOL_NAME" in
-  replace_string_in_file|create_file|multi_replace_string_in_file) ;;
+  replace_string_in_file|create_file|multi_replace_string_in_file|apply_patch) ;;
   *) exit 0 ;;
 esac
 
-# ── Extract file path ────────────────────────────────────────────────
-FILE_PATH=$(echo "$INPUT" | python3 -c "
+# ── Extract file paths ───────────────────────────────────────────────
+FILE_PATHS=$(echo "$INPUT" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
 inp = d.get('tool_input', d.get('toolInput', d.get('input', {})))
-fp = inp.get('filePath', inp.get('file_path', ''))
-if not fp:
-    reps = inp.get('replacements', [])
-    if reps:
-        fp = reps[0].get('filePath', reps[0].get('file_path', ''))
-print(fp)
+tool_name = d.get('tool_name', d.get('toolName', ''))
+
+if tool_name == 'apply_patch':
+    patch_text = inp.get('input', '')
+    files = []
+    for line in patch_text.splitlines():
+        if line.startswith('*** Add File: ') or line.startswith('*** Update File: '):
+            files.append(line.split(': ', 1)[1].strip())
+    seen = set()
+    for file_path in files:
+        if file_path and file_path not in seen:
+            seen.add(file_path)
+            print(file_path)
+else:
+    fp = inp.get('filePath', inp.get('file_path', ''))
+    if not fp:
+        reps = inp.get('replacements', [])
+        if reps:
+            fp = reps[0].get('filePath', reps[0].get('file_path', ''))
+    if fp:
+        print(fp)
 " 2>/dev/null || true)
 
-# Skip if file doesn't exist
-if [[ ! -f "$FILE_PATH" ]]; then
+# Skip if no touched files were detected
+if [[ -z "$FILE_PATHS" ]]; then
   exit 0
 fi
 
-# ── Run checks ───────────────────────────────────────────────────────
-ISSUES=""
+build_file_issues() {
+  local file_path="$1"
+  local file_issues=""
 
-# ── Python file checks ───────────────────────────────────────────────
-if [[ "$FILE_PATH" == *.py ]]; then
-  # 1. Ruff lint
-  if command -v ruff &>/dev/null; then
-    RUFF_LINT=$(ruff check --no-fix --quiet "$FILE_PATH" 2>/dev/null || true)
-    if [[ -n "$RUFF_LINT" ]]; then
-      ISSUES="${ISSUES}⚠ Ruff lint errors:\n${RUFF_LINT}\n\n"
-    fi
-  else
-    audit_log "error" "ruff-missing" "$FILE_PATH"
+  # Skip if file doesn't exist
+  if [[ ! -f "$file_path" ]]; then
+    echo ""
+    return
   fi
 
-  # 2. Ruff format check
-  if command -v ruff &>/dev/null; then
-    RUFF_FMT=$(ruff format --check --quiet "$FILE_PATH" 2>&1 || true)
-    if echo "$RUFF_FMT" | grep -q "would reformat\|reformatted"; then
-      ISSUES="${ISSUES}⚠ Ruff format: file needs reformatting. Run: ruff format ${FILE_PATH}\n\n"
-    fi
-  fi
-
-  # 3. Forbidden terms (TODO, FIXME, backward compatibility)
-  FORBIDDEN=$(grep -nE 'TODO|FIXME|backward compati(bility)?' "$FILE_PATH" 2>/dev/null || true)
-  if [[ -n "$FORBIDDEN" ]]; then
-    ISSUES="${ISSUES}⚠ Forbidden terms found (pre-commit will reject):\n${FORBIDDEN}\n\n"
-  fi
-
-  # 4. File size
-  LINE_COUNT=$(wc -l < "$FILE_PATH" | tr -d ' ')
-  if [[ "$LINE_COUNT" -gt 450 ]]; then
-    ISSUES="${ISSUES}✗ File size: ${LINE_COUNT} lines (max 450). Split into submodules.\n\n"
-  elif [[ "$LINE_COUNT" -gt 400 ]]; then
-    ISSUES="${ISSUES}⚠ File size: ${LINE_COUNT} lines (target ≤400). Consider splitting.\n\n"
-  fi
-
-  # 5. Debug statements
-  DEBUG=$(grep -nE '^\s*(import pdb|from pdb import|breakpoint\(\))' "$FILE_PATH" 2>/dev/null || true)
-  if [[ -n "$DEBUG" ]]; then
-    ISSUES="${ISSUES}⚠ Debug statements found (pre-commit will reject):\n${DEBUG}\n\n"
-  fi
-
-  # 6. noqa without confession (cross-reference docs/confessions.md)
-  NOQA_LINES=$(grep -nE '#\s*noqa' "$FILE_PATH" 2>/dev/null || true)
-  if [[ -n "$NOQA_LINES" ]]; then
-    # Find project root (where docs/confessions.md lives)
-    PROJ_ROOT=$(cd "$(dirname "$FILE_PATH")" && git rev-parse --show-toplevel 2>/dev/null || echo "")
-    CONFESSIONS="${PROJ_ROOT}/docs/confessions.md"
-    REL_PATH=""
-    if [[ -n "$PROJ_ROOT" ]]; then
-      REL_PATH="${FILE_PATH#$PROJ_ROOT/}"
-    fi
-
-    UNDOCUMENTED=""
-    while IFS= read -r line; do
-      LINENO_NUM=$(echo "$line" | cut -d: -f1)
-      # Check if this file:line appears in confessions.md
-      if [[ -f "$CONFESSIONS" ]] && [[ -n "$REL_PATH" ]]; then
-        if grep -q "${REL_PATH}#L${LINENO_NUM}" "$CONFESSIONS" 2>/dev/null; then
-          continue
-        fi
+  # ── Python file checks ─────────────────────────────────────────────
+  if [[ "$file_path" == *.py ]]; then
+    # Optional Phase 2 auto-fix (default off)
+    if [[ "${POST_EDIT_AUTO_RUFF:-}" == "1" ]] && command -v ruff &>/dev/null; then
+      local before_sig
+      local after_sig
+      before_sig=$(cksum "$file_path" | awk '{print $1":"$2}')
+      ruff check --fix --quiet "$file_path" >/dev/null 2>&1 || true
+      ruff format --quiet "$file_path" >/dev/null 2>&1 || true
+      after_sig=$(cksum "$file_path" | awk '{print $1":"$2}')
+      if [[ "$before_sig" != "$after_sig" ]]; then
+        audit_log "feedback" "ruff-autofix-applied" "$file_path"
       fi
-      UNDOCUMENTED="${UNDOCUMENTED}  ${line}\n"
-    done <<< "$NOQA_LINES"
+    fi
 
-    if [[ -n "$UNDOCUMENTED" ]]; then
-      ISSUES="${ISSUES}⚠ noqa without confession in docs/confessions.md (pre-commit will reject):\n${UNDOCUMENTED}Add CONF-XXX entry with File, Code, Sin, and Penance.\n\n"
+    # 1. Ruff lint
+    if command -v ruff &>/dev/null; then
+      local ruff_lint
+      ruff_lint=$(ruff check --no-fix --quiet "$file_path" 2>/dev/null || true)
+      if [[ -n "$ruff_lint" ]]; then
+        file_issues="${file_issues}⚠ Ruff lint errors:\n${ruff_lint}\n\n"
+      fi
+    else
+      audit_log "error" "ruff-missing" "$file_path"
+    fi
+
+    # 2. Ruff format check
+    if command -v ruff &>/dev/null; then
+      local ruff_fmt
+      ruff_fmt=$(ruff format --check --quiet "$file_path" 2>&1 || true)
+      if echo "$ruff_fmt" | grep -q "would reformat\|reformatted"; then
+        file_issues="${file_issues}⚠ Ruff format: file needs reformatting. Run: ruff format ${file_path}\n\n"
+      fi
+    fi
+
+    # 3. Forbidden terms (TODO, FIXME, backward compatibility)
+    local forbidden
+    forbidden=$(grep -nE 'TODO|FIXME|backward compati(bility)?' "$file_path" 2>/dev/null || true)
+    if [[ -n "$forbidden" ]]; then
+      file_issues="${file_issues}⚠ Forbidden terms found (pre-commit will reject):\n${forbidden}\n\n"
+    fi
+
+    # 4. File size
+    local line_count
+    line_count=$(wc -l < "$file_path" | tr -d ' ')
+    if [[ "$line_count" -gt 450 ]]; then
+      file_issues="${file_issues}✗ File size: ${line_count} lines (max 450). Split into submodules.\n\n"
+    elif [[ "$line_count" -gt 400 ]]; then
+      file_issues="${file_issues}⚠ File size: ${line_count} lines (target ≤400). Consider splitting.\n\n"
+    fi
+
+    # 5. Debug statements
+    local debug
+    debug=$(grep -nE '^\s*(import pdb|from pdb import|breakpoint\(\))' "$file_path" 2>/dev/null || true)
+    if [[ -n "$debug" ]]; then
+      file_issues="${file_issues}⚠ Debug statements found (pre-commit will reject):\n${debug}\n\n"
+    fi
+
+    # 6. noqa without confession (cross-reference docs/confessions.md)
+    local noqa_lines
+    noqa_lines=$(grep -nE '#\s*noqa' "$file_path" 2>/dev/null || true)
+    if [[ -n "$noqa_lines" ]]; then
+      local proj_root
+      local confessions
+      local rel_path
+      proj_root=$(cd "$(dirname "$file_path")" && git rev-parse --show-toplevel 2>/dev/null || echo "")
+      confessions="${proj_root}/docs/confessions.md"
+      rel_path=""
+      if [[ -n "$proj_root" ]]; then
+        rel_path="${file_path#$proj_root/}"
+      fi
+
+      local undocumented
+      undocumented=""
+      while IFS= read -r line; do
+        local lineno_num
+        lineno_num=$(echo "$line" | cut -d: -f1)
+        if [[ -f "$confessions" ]] && [[ -n "$rel_path" ]]; then
+          if grep -q "${rel_path}#L${lineno_num}" "$confessions" 2>/dev/null; then
+            continue
+          fi
+        fi
+        undocumented="${undocumented}  ${line}\n"
+      done <<< "$noqa_lines"
+
+      if [[ -n "$undocumented" ]]; then
+        file_issues="${file_issues}⚠ noqa without confession in docs/confessions.md (pre-commit will reject):\n${undocumented}Add CONF-XXX entry with File, Code, Sin, and Penance.\n\n"
+      fi
     fi
   fi
-fi
 
-# ── YAML file checks ─────────────────────────────────────────────────
-if [[ "$FILE_PATH" == *.yaml || "$FILE_PATH" == *.yml ]]; then
-  IS_GRAPH=$(python3 -c "
+  # ── YAML file checks ───────────────────────────────────────────────
+  if [[ "$file_path" == *.yaml || "$file_path" == *.yml ]]; then
+    local is_graph
+    is_graph=$(python3 -c "
 import sys
 import yaml
 
@@ -144,21 +189,24 @@ with open(sys.argv[1], encoding='utf-8') as f:
 
 if isinstance(data, dict) and 'nodes' in data and 'edges' in data:
     print('graph')
-" "$FILE_PATH" 2>/dev/null || true)
+" "$file_path" 2>/dev/null || true)
 
-  if [[ "$IS_GRAPH" == "graph" ]]; then
-    if command -v yamlgraph &>/dev/null; then
-      if LINT_OUT=$(yamlgraph graph lint "$FILE_PATH" 2>&1); then
-        LINT_RC=0
-      else
-        LINT_RC=$?
+    if [[ "$is_graph" == "graph" ]]; then
+      if command -v yamlgraph &>/dev/null; then
+        local lint_out
+        local lint_rc
+        if lint_out=$(yamlgraph graph lint "$file_path" 2>&1); then
+          lint_rc=0
+        else
+          lint_rc=$?
+        fi
+        if [[ $lint_rc -ne 0 ]] && [[ -n "$lint_out" ]]; then
+          file_issues="${file_issues}⚠ Graph lint issues:\n${lint_out}\n\n"
+        fi
       fi
-      if [[ $LINT_RC -ne 0 ]] && [[ -n "$LINT_OUT" ]]; then
-        ISSUES="${ISSUES}⚠ Graph lint issues:\n${LINT_OUT}\n\n"
-      fi
-    fi
-  elif [[ "$FILE_PATH" == */prompts/*.yaml || "$FILE_PATH" == */prompts/*.yml ]]; then
-    PARSE_ERR=$(python3 -c "
+    elif [[ "$file_path" == */prompts/*.yaml || "$file_path" == */prompts/*.yml ]]; then
+      local parse_err
+      parse_err=$(python3 -c "
 import sys
 import yaml
 
@@ -167,18 +215,17 @@ try:
         yaml.safe_load(f)
 except yaml.YAMLError as exc:
     print(f'YAML parse error: {exc}')
-" "$FILE_PATH" 2>/dev/null || true)
-    if [[ -n "$PARSE_ERR" ]]; then
-      ISSUES="${ISSUES}⚠ Prompt file error:\n${PARSE_ERR}\n\n"
+" "$file_path" 2>/dev/null || true)
+      if [[ -n "$parse_err" ]]; then
+        file_issues="${file_issues}⚠ Prompt file error:\n${parse_err}\n\n"
+      fi
     fi
-  else
-    exit 0
   fi
-fi
 
-# ── Feature request checks ───────────────────────────────────────────
-if [[ "$FILE_PATH" == */feature-requests/*.md ]]; then
-  FSM_HIT=$(python3 -c "
+  # ── Feature request checks ─────────────────────────────────────────
+  if [[ "$file_path" == */feature-requests/*.md ]]; then
+    local fsm_hit
+    fsm_hit=$(python3 -c "
 import re
 import sys
 
@@ -212,32 +259,41 @@ signals = [
 hits = sum(1 for pattern in signals if re.search(pattern, text))
 if hits >= 2:
     print('fsm_reinvention')
-" "$FILE_PATH" 2>/dev/null || true)
+" "$file_path" 2>/dev/null || true)
 
-  if [[ "$FSM_HIT" == "fsm_reinvention" ]]; then
-    ISSUES="${ISSUES}⚠ FSM patterns detected - see reference/patterns/fsm-as-conductor.md before reinventing.\n\n"
+    if [[ "$fsm_hit" == "fsm_reinvention" ]]; then
+      file_issues="${file_issues}⚠ FSM patterns detected - see reference/patterns/fsm-as-conductor.md before reinventing.\n\n"
+    fi
   fi
-fi
 
-# Skip non-Python, non-YAML, non-FR markdown files
-if [[ ! "$FILE_PATH" == *.py && ! "$FILE_PATH" == *.yaml && ! "$FILE_PATH" == *.yml && ! "$FILE_PATH" == */feature-requests/*.md ]]; then
-  exit 0
-fi
+  echo "$file_issues"
+}
+
+ALL_ISSUES=""
+while IFS= read -r target_file; do
+  if [[ -z "$target_file" ]]; then
+    continue
+  fi
+  FILE_ISSUES=$(build_file_issues "$target_file")
+  if [[ -n "$FILE_ISSUES" ]]; then
+    ALL_ISSUES="${ALL_ISSUES}File: ${target_file}\n${FILE_ISSUES}"
+  fi
+done <<< "$FILE_PATHS"
 
 # ── Return results ───────────────────────────────────────────────────
-if [[ -z "$ISSUES" ]]; then
-  audit_log "approve" "all-checks-clean" "$FILE_PATH"
+if [[ -z "$ALL_ISSUES" ]]; then
+  audit_log "approve" "all-checks-clean" "$(echo "$FILE_PATHS" | paste -sd, -)"
   echo '{}'
   exit 0
 fi
 
-audit_log "feedback" "issues-found" "$FILE_PATH"
+audit_log "feedback" "issues-found" "$(echo "$FILE_PATHS" | paste -sd, -)"
 
 # Build JSON with systemMessage using python for safe escaping
 python3 -c "
 import json, sys
 msg = sys.stdin.read().strip()
 print(json.dumps({'systemMessage': msg}))
-" <<< "$(echo -e "$ISSUES")"
+" <<< "$(echo -e "$ALL_ISSUES")"
 
 exit 0
