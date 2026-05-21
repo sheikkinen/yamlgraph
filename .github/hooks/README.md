@@ -9,11 +9,15 @@ Hook JSON files in `.github/hooks/` are auto-discovered by VS Code Copilot. Each
 ```
 .github/hooks/
 ├── pre-command-guard.json            # PreToolUse: block dangerous terminal patterns
-├── post-edit-checks.json             # PostToolUse: ruff, size, terms, debug, noqa
+├── post-edit-checks.json             # PostToolUse: per-concern checks (python/yaml/fr)
 ├── classify-emit.json                # PostToolUse: fire-and-forget to classifier daemon (FR-425)
 ├── scripts/
 │   ├── pre-command-guard.sh          # Co-authored-by, --no-verify, multiline -m
-│   ├── post-edit-checks.sh           # Fast lint/style checks on edited .py files
+│   ├── checks/
+│   │   ├── common.sh                 # Shared parsing, logging, output helpers
+│   │   ├── python-checks.sh          # Ruff, size, terms, debug, noqa
+│   │   ├── yaml-checks.sh            # Graph lint and prompt YAML parse
+│   │   └── fr-checks.sh              # FR markdown FSM reinvention checks
 │   ├── classify-emit.sh              # Parse input, redact secrets, emit DGRAM
 │   └── session-timeline.py           # Join audit + transcript into session narrative
 ├── logs/
@@ -21,7 +25,10 @@ Hook JSON files in `.github/hooks/` are auto-discovered by VS Code Copilot. Each
 │   └── audit.jsonl                   # Append-only audit trail (gitignored)
 ├── tests/
 │   ├── test_pre_command_guard.py     # 31 tests
-│   ├── test_post_edit_checks.py      # 20 tests
+│   ├── conftest.py                   # Shared hook test helpers
+│   ├── test_python_checks.py         # Python post-edit checks
+│   ├── test_yaml_checks.py           # YAML post-edit checks
+│   ├── test_fr_checks.py             # FR markdown checks
 │   └── test_session_timeline.py      # 8 tests
 └── README.md
 ```
@@ -71,7 +78,7 @@ Blocks dangerous terminal patterns *before* the command runs:
 
 ### `post-edit-checks` (PostToolUse)
 
-Runs fast checks on Python files immediately after the agent edits them (`replace_string_in_file`, `create_file`, `multi_replace_string_in_file`). Returns issues as a `systemMessage` so the agent can self-correct before writing more code.
+Runs modular checks immediately after edits. `post-edit-checks.json` now registers three independent scripts (`python-checks.sh`, `yaml-checks.sh`, `fr-checks.sh`), each with its own relevance filter and timeout.
 
 | Check | Pre-commit equivalent | What it catches |
 |-------|----------------------|-----------------|
@@ -94,8 +101,10 @@ Runs fast checks on Python files immediately after the agent edits them (`replac
 ## Testing
 
 ```bash
+pytest .github/hooks/tests/test_python_checks.py -q
+pytest .github/hooks/tests/test_yaml_checks.py -q
+pytest .github/hooks/tests/test_fr_checks.py -q
 python3 .github/hooks/tests/test_pre_command_guard.py
-python3 .github/hooks/tests/test_post_edit_checks.py
 python3 .github/hooks/tests/test_session_timeline.py
 ```
 
@@ -108,7 +117,9 @@ Both hooks log every invocation to `.github/hooks/logs/audit.jsonl` (gitignored,
 | Hook | Tool scope | Decision values |
 |------|-----------|-----------------|
 | `pre-command-guard` | **All tools** (every PreToolUse invocation) | `pass` (not inspected), `approve` (clean), `deny` (blocked), `error` (parse failure) |
-| `post-edit-checks` | **Only edit tools** on `.py` files | `approve` (all-checks-clean), `feedback` (issues found), `error` (ruff-missing) |
+| `post-edit-python-checks` | Edit tools, `.py` checks | `approve` (all-checks-clean), `feedback` (issues found), `error` (ruff-missing) |
+| `post-edit-yaml-checks` | Edit tools, `.yaml/.yml` checks | `approve` (all-checks-clean), `feedback` (issues found) |
+| `post-edit-fr-checks` | Edit tools, `feature-requests/*.md` checks | `approve` (all-checks-clean), `feedback` (issues found) |
 
 Non-edit tools are logged once by PreToolUse as `pass/not-inspected` (no double-logging).
 
