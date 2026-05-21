@@ -176,8 +176,51 @@ except yaml.YAMLError as exc:
   fi
 fi
 
-# Skip non-Python, non-YAML files
-if [[ ! "$FILE_PATH" == *.py && ! "$FILE_PATH" == *.yaml && ! "$FILE_PATH" == *.yml ]]; then
+# ── Feature request checks ───────────────────────────────────────────
+if [[ "$FILE_PATH" == */feature-requests/*.md ]]; then
+  FSM_HIT=$(python3 -c "
+import re
+import sys
+
+text = open(sys.argv[1], encoding='utf-8').read().lower()
+
+escapes = [
+    'statemachine_engine',
+    'statemachine-engine',
+    'fsm-as-conductor',
+    'yamlgraph.utils.fsm',
+    'yamlgraph/utils/fsm',
+]
+if any(e in text for e in escapes):
+    sys.exit(0)
+
+signals = [
+    r'\\bstate\\s*machine\\b',
+    r'\\bfinite\\s*state\\b',
+    r'\\bfsm\\b',
+    r'\\bstates\\s+and\\s+transitions\\b',
+    r'\\bstate\\s*diagram\\b',
+    r'\\blifecycle\\s+management\\b',
+    r'\\bworkflow\\s+states?\\b',
+    r'\\bpolling\\s+loop\\b',
+    r'\\bevent[- ]driven\\s+workflow\\b',
+    r'\\bevent\\s+dispatch\\b',
+    r'\\bguard\\s+condition\\b',
+    r'\\bstate\\s+transition\\b',
+    r'\\btransition\\s+guard\\b',
+]
+hits = sum(1 for pattern in signals if re.search(pattern, text))
+if hits >= 2:
+    print('fsm_reinvention')
+" "$FILE_PATH" 2>/dev/null || true)
+
+  if [[ "$FSM_HIT" == "fsm_reinvention" ]]; then
+    ISSUES="${ISSUES}⚠ FSM patterns detected - see reference/patterns/fsm-as-conductor.md before reinventing.\n\n"
+  fi
+fi
+
+# Skip non-Python, non-YAML, non-FR markdown files
+if [[ ! "$FILE_PATH" == *.py && ! "$FILE_PATH" == *.yaml && ! "$FILE_PATH" == *.yml && ! "$FILE_PATH" == */feature-requests/*.md ]]; then
   exit 0
 fi
 
