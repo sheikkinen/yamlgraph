@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3]
+
+### Added
+- **FR-443**: Add a concise Copilot hooks operational map to `.github/copilot-instructions.md` under Conventions for first-denial self-debugging.
+- **FR-442**: Consolidate `pre-command-guard.sh` PreToolUse parse/extract hot path to a single Python parse invocation with native bash field assignment, preserving fail-closed behavior and guard semantics.
+- **FR-441**: Add `files:` selectors to scoped local pre-commit hooks and remove unnecessary `always_run: true` so docs-only and diary-only commits skip unrelated heavy checks. (REQ-YG-002)
+- **FR-440 Pipe-Buffer Guard**: PreToolUse hook denies `pytest ... | tail` and `pytest ... | head` without intermediate `tee`. Prevents silent output buffering that masks test hangs.
+- **FR-438 Thoughtcrime Hook**: PostToolUse hook scans agent transcript for forbidden reasoning patterns, arms one-shot deny sentinel. Scans `reasoningText` with `content` fallback when extended thinking is unavailable. Explicit audit entries (`skip/no-session-id`, `skip/no-transcript`, `skip/no-scannable-text`) for all skip paths. Armed entries include `source` field for traceability.
+- **FR-437 FSM UI Log Bridge**: Added shared `yamlgraph.utils.fsm.emit_ui_activity` utility with `UI_EVENTS_ENABLED` gating, subprocess timeout protection, graceful degradation, and unit tests for subprocess/error behavior.
+- **FR-436**: Clarified ADR-001 traceability scope so REQ markers are enforced for framework tests (`tests/unit`, `tests/integration`) while `.github/hooks/tests` is documented and audited as infrastructure scope. (REQ-YG-063)
+
 ## [0.5.2]
 
 ### Added
