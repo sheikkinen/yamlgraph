@@ -30,8 +30,9 @@ class PythonToolConfig:
 
     Attributes:
         module: Full module path (e.g., "examples.storyboard.nodes.image_node")
-        path: File path to Python module, resolved relative to CWD.
-              Mutually exclusive with ``module``.
+        path: File path to Python module. When ``graph_root`` is provided to
+              loader callsites, relative paths resolve from that root and are
+              confined within it. Mutually exclusive with ``module``.
         function: Function name within the module
         description: Human-readable description
     """
@@ -52,7 +53,7 @@ def load_python_function(
 
     Args:
         config: Python tool configuration or schema loader tool configuration
-        graph_root: Graph root directory for graph-relative schema loader tools
+        graph_root: Graph root directory for graph-relative tool loading
 
     Returns:
         The loaded function
@@ -80,7 +81,11 @@ def load_python_function(
         raise ValueError("PythonToolConfig: one of 'path' or 'module' is required")
 
     if config.path:
-        resolved = Path(config.path).resolve()
+        resolved = _resolve_python_tool_path(
+            config.path,
+            graph_root=graph_root,
+            tool_name=tool_name,
+        )
         if not resolved.is_file():
             raise FileNotFoundError(f"Python tool path not found: {resolved}")
         spec = importlib.util.spec_from_file_location(resolved.stem, resolved)
@@ -113,6 +118,31 @@ def load_python_function(
 
     logger.debug(f"Loaded Python function: {source_label}.{config.function}")
     return func
+
+
+def _resolve_python_tool_path(
+    path: str,
+    *,
+    graph_root: Path | None,
+    tool_name: str,
+) -> Path:
+    candidate = Path(path)
+    if graph_root is None:
+        return candidate.resolve()
+
+    root = graph_root.resolve()
+    resolved = (
+        candidate.resolve() if candidate.is_absolute() else (root / candidate).resolve()
+    )
+    try:
+        resolved.relative_to(root)
+    except ValueError:
+        tool_label = f" '{tool_name}'" if tool_name else ""
+        raise ValueError(
+            f"Python tool{tool_label}: path '{path}' escapes graph root '{root}' "
+            f"(resolved: {resolved})"
+        ) from None
+    return resolved
 
 
 def parse_python_tools(tools_config: dict[str, Any]) -> dict[str, PythonToolConfig]:

@@ -173,7 +173,7 @@
   - import dependencies: `yamlgraph.executor_base`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.content`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.prompts`
 - `yamlgraph/tools/nodes.py` - 130 lines; exports: `resolve_state_variable(template, state)`, `resolve_variables(variables_config, state)`, `create_tool_node(node_name, node_config, tools)`
   - import dependencies: `yamlgraph.error_handlers`, `yamlgraph.tools.shell`, `yamlgraph.utils.expressions`
-- `yamlgraph/tools/python_tool.py` - 256 lines; exports: `class PythonToolConfig`, `load_python_function(config, *, graph_root, tool_name)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools, *, graph_root)`
+- `yamlgraph/tools/python_tool.py` - 286 lines; exports: `class PythonToolConfig`, `load_python_function(config, *, graph_root, tool_name)`, `parse_python_tools(tools_config)`, `create_python_node(node_name, node_config, python_tools, *, graph_root)`
   - import dependencies: `yamlgraph.tools.schema_loader_tool`
 - `yamlgraph/tools/questionnaire.py` - 40 lines; exports: `detect_gaps(state)`, `normalize_extracted(state)`
   - import dependencies: _none_
