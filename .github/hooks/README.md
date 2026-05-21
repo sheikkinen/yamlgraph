@@ -17,6 +17,7 @@ Hook JSON files in `.github/hooks/` are auto-discovered by VS Code Copilot. Each
 │   │   ├── common.sh                 # Shared parsing, logging, output helpers
 │   │   ├── python-checks.sh          # Ruff, size, terms, debug, noqa
 │   │   ├── yaml-checks.sh            # Graph lint and prompt YAML parse
+│   │   ├── markdown-checks.sh        # Markdown trailing-whitespace hygiene
 │   │   └── fr-checks.sh              # FR markdown FSM reinvention checks
 │   ├── classify-emit.sh              # Parse input, redact secrets, emit DGRAM
 │   └── session-timeline.py           # Join audit + transcript into session narrative
@@ -28,6 +29,7 @@ Hook JSON files in `.github/hooks/` are auto-discovered by VS Code Copilot. Each
 │   ├── conftest.py                   # Shared hook test helpers
 │   ├── test_python_checks.py         # Python post-edit checks
 │   ├── test_yaml_checks.py           # YAML post-edit checks
+│   ├── test_markdown_checks.py       # Markdown hygiene checks
 │   ├── test_fr_checks.py             # FR markdown checks
 │   └── test_session_timeline.py      # 8 tests
 └── README.md
@@ -78,7 +80,7 @@ Blocks dangerous terminal patterns *before* the command runs:
 
 ### `post-edit-checks` (PostToolUse)
 
-Runs modular checks immediately after edits. `post-edit-checks.json` now registers three independent scripts (`python-checks.sh`, `yaml-checks.sh`, `fr-checks.sh`), each with its own relevance filter and timeout.
+Runs modular checks immediately after edits. `post-edit-checks.json` now registers independent scripts (`python-checks.sh`, `yaml-checks.sh`, `markdown-checks.sh`, `fr-checks.sh`), each with its own relevance filter and timeout.
 
 | Check | Pre-commit equivalent | What it catches |
 |-------|----------------------|-----------------|
@@ -88,6 +90,7 @@ Runs modular checks immediately after edits. `post-edit-checks.json` now registe
 | File size | `file-size-gate` | Files over 400 lines (warn) / 450 lines (error) |
 | Debug statements | `debug-statements` | `breakpoint()`, `import pdb` |
 | noqa confession | `noqa-confession` | `# noqa` without matching entry in `docs/confessions.md` |
+| Markdown trailing whitespace | `trim trailing whitespace` parity | Trailing whitespace in non-FR markdown files |
 
 ## Relationship to Other Enforcement
 
@@ -103,6 +106,7 @@ Runs modular checks immediately after edits. `post-edit-checks.json` now registe
 ```bash
 pytest .github/hooks/tests/test_python_checks.py -q
 pytest .github/hooks/tests/test_yaml_checks.py -q
+pytest .github/hooks/tests/test_markdown_checks.py -q
 pytest .github/hooks/tests/test_fr_checks.py -q
 python3 .github/hooks/tests/test_pre_command_guard.py
 python3 .github/hooks/tests/test_session_timeline.py
@@ -119,6 +123,7 @@ Both hooks log every invocation to `.github/hooks/logs/audit.jsonl` (gitignored,
 | `pre-command-guard` | **All tools** (every PreToolUse invocation) | `pass` (not inspected), `approve` (clean), `deny` (blocked), `error` (parse failure) |
 | `post-edit-python-checks` | Edit tools, `.py` checks | `approve` (all-checks-clean), `feedback` (issues found), `error` (ruff-missing) |
 | `post-edit-yaml-checks` | Edit tools, `.yaml/.yml` checks | `approve` (all-checks-clean), `feedback` (issues found) |
+| `post-edit-markdown-checks` | Edit tools, non-FR `.md` hygiene checks | `approve` (all-checks-clean), `feedback` (issues found) |
 | `post-edit-fr-checks` | Edit tools, `feature-requests/*.md` checks | `approve` (all-checks-clean), `feedback` (issues found) |
 
 Non-edit tools are logged once by PreToolUse as `pass/not-inspected` (no double-logging).
