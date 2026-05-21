@@ -953,6 +953,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
+### CONF-255
+- **File**: [yamlgraph/utils/fsm/ui_log.py](../yamlgraph/utils/fsm/ui_log.py#L50)
+- **Code**: S603
+- **Sin**: `subprocess.run(cmd, ...)` is flagged as potentially executing untrusted input.
+- **Penance**: Command is a fixed argv list for `statemachine_engine.database.cli send-event`; inputs are structured message fields serialized into JSON and passed as an argument (no shell expansion, `shell=True` is not used).
+
 ---
 
 ## Process Exceptions

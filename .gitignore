@@ -115,3 +115,7 @@ fsm/
 questionnaire-api/
 tt-bot-v2/
 ella/
+
+# Keep private top-level fsm project ignored, but track framework FSM utilities.
+!yamlgraph/utils/fsm/
+!yamlgraph/utils/fsm/*.py
