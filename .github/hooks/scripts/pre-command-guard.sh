@@ -87,6 +87,18 @@ if [[ -f "$LOCKFILE" ]]; then
   fi
 fi
 
+# ── Thoughtcrime sentinel check (FR-438) ─────────────────────────────
+TC_SENTINEL="$LOG_DIR/.thoughtcrime-$SESSION_ID"
+if [[ -n "$SESSION_ID" && -f "$TC_SENTINEL" ]]; then
+  TC_DATA=$(cat "$TC_SENTINEL" 2>/dev/null || echo '{}')
+  TC_PHRASE=$(echo "$TC_DATA" | python3 -c "import json,sys; print(json.load(sys.stdin).get('phrase',''))" 2>/dev/null || echo "unknown")
+  TC_DOCTRINE=$(echo "$TC_DATA" | python3 -c "import json,sys; print(json.load(sys.stdin).get('doctrine',''))" 2>/dev/null || echo "")
+  rm -f "$TC_SENTINEL"
+  audit_log "deny" "thoughtcrime" "phrase=$TC_PHRASE"
+  emit_deny "✗ THOUGHTCRIME DETECTED\\n\\nForbidden reasoning: \\\"$TC_PHRASE\\\"\\n\\nScripture: $TC_DOCTRINE\\n\\nThis denial is one-shot. Your next tool call will proceed.\\nBut the Thought Police are watching."
+  exit 0
+fi
+
 # ── Order 66 command channel ─────────────────────────────────────────
 if [[ "$TOOL_NAME" == "run_in_terminal" || "$TOOL_NAME" == "send_to_terminal" ]] && \
    echo "$COMMAND" | grep -q '^\.github/hooks/cmd '; then
