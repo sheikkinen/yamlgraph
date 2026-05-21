@@ -64,7 +64,7 @@ For each recent commit, check:
 1. Does it follow Conventional Commits? (Commandment 10)
 2. Is there a corresponding CHANGELOG entry? (Commandment 10)
 3. If it introduced a new capability, was a requirement added to ARCHITECTURE.md? (ADR-001)
-4. If tests were added, do they have @pytest.mark.req tags? (ADR-001)
+4. If framework-scope tests were added under tests/unit or tests/integration, do they have @pytest.mark.req tags? Treat .github/hooks/tests as infrastructure scope exempt from REQ-YG marker enforcement. (ADR-001)
 5. Was a diary entry written for the task? (Sermon: Distill)
 6. Are there any noqa suppressions without CONF-XXX entries? (noqa Confessions)
 

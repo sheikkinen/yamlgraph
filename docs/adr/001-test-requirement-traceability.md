@@ -8,6 +8,20 @@
 
 Use `@pytest.mark.req("REQ-YG-XXX")` markers to link tests to requirements.
 
+## Scope Contract (FR-436)
+
+ADR-001 traceability is scope-aware:
+
+1. **Tier 1 (framework tests):** `tests/unit/` and `tests/integration/` require
+   `@pytest.mark.req("REQ-YG-XXX")`.
+2. **Tier 2 (infrastructure hook tests):** `.github/hooks/tests/` is exempt from
+   REQ-YG marker enforcement because these tests validate hook operational
+   guards, not YAMLGraph capability requirements.
+3. **Tier 3 (demo/proof docs):** no REQ marker mandate.
+
+This keeps strict requirement traceability for framework capabilities while
+avoiding false violations in infrastructure-only hook suites.
+
 ## Context
 
 ARCHITECTURE.md maps 46 requirements across 12 capabilities to modules. The missing link is **module → tests → requirement**. Three options were evaluated:
@@ -54,6 +68,8 @@ pytest --co -q | python scripts/req_coverage.py
 ```
 
 Output: requirement → test count matrix, flagging any REQ with zero tests.
+Scope: scans Tier 1 framework tests only (`tests/unit`, `tests/integration`);
+excludes Tier 2 infrastructure hook tests under `.github/hooks/tests`.
 
 ### 4. CI gate (future)
 
