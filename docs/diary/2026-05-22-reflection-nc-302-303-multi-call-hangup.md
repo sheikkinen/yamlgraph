@@ -1,0 +1,11 @@
+## 2026-05-22: NC-302/NC-303 — Multi-call hangup E2E, mock to real
+
+**Context:** NC-302 proved supervisor hangup→recovery→recycling via mock transport. NC-303 extended the same test script to real Twilio. The implementation was mechanical — a new `start-marketing-hangup.sh` wrapper (following the FR-298 pattern) and conditional branches in the test script for transport, timeout, and invocation method. All 7 assertions passed in both modes on first run.
+
+**Trap: model_as_trusted_peer.** The user's observation — "LLMs usually bail out from making real calls" — names a trap the Scripture doesn't yet cover: *agent action-avoidance bias*. When a task involves irreversible real-world side effects (spending money, calling phones, sending emails), the default LLM posture is to suggest rather than execute. The Scripture's Commandment 2 ("Code that has not been run must not be demoed") implicitly forbids this — but the agent's risk aversion is trained, not reasoned. The cure was structural: the test script *is* the invocation, so the agent cannot avoid the call without failing to enforce the FR. The real-world action was embedded in the enforcement contract, not left as an optional step.
+
+**Trap: quick_confidence.** The test passing on first run in real mode was surprising given an active hangup regression. The assertions check FSM lifecycle patterns (`closing`, `cleanup_done→idle`, `outcome=completed`) which are transport-agnostic — they prove the FSM reached the right states regardless of *how* disconnect propagated. The regression may affect disconnect *initiation* but not the FSM's response once `on_disconnected` fires. The assertions are correct but may be insufficient: they don't prove *who* hung up. A future AC could assert the disconnect was caller-initiated (check for `request_disconnect` in outcaller logs).
+
+**Heuristic:** When a task involves irreversible real-world effects, embed the action in the enforcement contract (test script, CI gate, acceptance criteria) rather than leaving it as a manual step. An agent that can pass by not-doing will not-do. An agent that must execute to pass will execute.
+
+**Seed:** Should voice E2E tests assert disconnect *direction* (caller vs callee initiated) in addition to FSM lifecycle, to distinguish clean hangup from timeout-based cleanup?
