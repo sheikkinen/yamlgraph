@@ -1,0 +1,30 @@
+id: CAP-158
+name: Copilot Skill Promotion
+description: >
+  Promote reference docs to Copilot Skills (.github/skills/) for
+  on-demand loading in VS Code Copilot Chat.
+
+modules:
+  - .github/skills/author-graph/SKILL.md
+  - .github/skills/author-prompt/SKILL.md
+  - .github/skills/release-version/SKILL.md
+  - .github/skills/chaplain-ops/SKILL.md
+  - .github/skills/run-code-analysis/SKILL.md
+  - .github/skills/feature-request/SKILL.md
+
+requirements:
+  - id: REQ-YG-423
+    description: >
+      Six Tier 1 skills created from reference docs: author-graph,
+      author-prompt, release-version, chaplain-ops, run-code-analysis,
+      feature-request. Each skill is a self-contained SKILL.md with
+      applyTo patterns and tool restrictions (FR-446).
+    modules:
+      - .github/skills/author-graph/SKILL.md
+      - .github/skills/author-prompt/SKILL.md
+      - .github/skills/release-version/SKILL.md
+      - .github/skills/chaplain-ops/SKILL.md
+      - .github/skills/run-code-analysis/SKILL.md
+      - .github/skills/feature-request/SKILL.md
+
+fr: FR-446

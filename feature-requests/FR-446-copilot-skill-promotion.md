@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Completed
+**Status:** In Progress
 **Effort:** 1 day
 **Requested:** 2026-05-22
 
@@ -116,7 +116,7 @@ Followed by a curated subset of the source reference docs — not a raw copy, bu
 - [x] Each skill contains curated procedural content (~200 lines, not raw doc copy)
 - [x] Existing `check-langsmith-trace` skill unchanged
 - [x] Skills auto-discovered by VS Code from `.github/skills/*/SKILL.md` (no manual registration needed)
-- [x] Smoke test: open new chat, ask "how do I add a node to a graph?" — verify `author-graph` skill loads
+- [ ] Smoke test: open new chat, ask "how do I add a node to a graph?" — verify `author-graph` skill loads
 
 ## Alternatives Considered
 

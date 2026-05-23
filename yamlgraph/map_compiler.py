@@ -295,6 +295,16 @@ def compile_map_node(
             raise ValueError(
                 f"Map node '{name}' has agent sub-node but no tools registry"
             )
+        from yamlgraph.node_factory.base import get_output_model_for_node
+
+        agent_output_model = get_output_model_for_node(
+            sub_node_config,
+            prompts_dir=defaults.get("prompts_dir") if defaults else None,
+            graph_path=graph_path,
+            prompts_relative=defaults.get("prompts_relative", False)
+            if defaults
+            else False,
+        )
         sub_node = create_agent_node(
             sub_node_name,
             sub_node_config,
@@ -302,6 +312,7 @@ def compile_map_node(
             python_tools=python_tools or {},
             defaults=defaults,
             graph_path=graph_path,
+            output_model=agent_output_model,
         )
     elif sub_node_type == NodeType.SUBGRAPH:
         # FR-202: Map over subgraphs for nested pipelines

@@ -27,4 +27,8 @@ requirements:
     description: Python tool integration and execution
     modules:
       - tools/python_tool
+  - id: REQ-YG-422
+    description: Agent node structured output via prompt schema (FR-448)
+    modules:
+      - tools/agent
 fr: legacy

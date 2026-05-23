@@ -421,6 +421,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 155 | Schema Loader Tool Type | `yamlgraph/tools/schema_loader_tool.py`, `yamlgraph/tools/python_tool.py`, `yamlgraph/graph_loader.py`, `yamlgraph/node_compiler.py`, … | REQ-YG-417 – 418 |
 | 156 | WIP Commit Subject Gate | `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml`, `tests/unit/test_fr424_wip_main_gate_red.py`, `CLAUDE.md`, … | REQ-YG-419 |
 | 157 | Graph Loader Strict Tool Load Fail Fast | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md`, `ARCHITECTURE.md` | REQ-YG-420 – 421 |
+| 158 | Copilot Skill Promotion | `.github/skills/author-graph/SKILL.md`, `.github/skills/author-prompt/SKILL.md`, `.github/skills/release-version/SKILL.md`, `.github/skills/chaplain-ops/SKILL.md`, `.github/skills/run-code-analysis/SKILL.md`, `.github/skills/feature-request/SKILL.md` | REQ-YG-423 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1918,6 +1919,8 @@ Graph compilation enforces explicit Python tool loading policy with strict fail-
 |------------|-------------|-------------|
 | REQ-YG-420 | Graph compilation defaults to strict Python tool loading and raises a compile-time ValueError when any Python tool import/symbol load fails, reporting each failed tool and root cause in one actionable error. | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py` |
 | REQ-YG-421 | Graph config supports config.tool_load_mode: warn to preserve warn-and-continue behavior: failed Python tools emit warnings during compile and unresolved tools surface as runtime Unknown tool errors in tool_call nodes. | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md` |
+| REQ-YG-422 | Agent node structured output via prompt schema: when a prompt defines an inline schema, the agent node returns a typed dict validated against the Pydantic model on both normal exit and max-iterations paths (FR-448). | `yamlgraph/tools/agent.py`, `yamlgraph/node_compiler.py`, `yamlgraph/map_compiler.py`, `tests/unit/test_fr448_agent_structured_output.py` |
+| REQ-YG-423 | Six Tier 1 Copilot skills created from reference docs for on-demand loading in VS Code Copilot Chat (FR-446). | `.github/skills/author-graph/SKILL.md`, `.github/skills/author-prompt/SKILL.md`, `.github/skills/release-version/SKILL.md`, `.github/skills/chaplain-ops/SKILL.md`, `.github/skills/run-code-analysis/SKILL.md`, `.github/skills/feature-request/SKILL.md` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,211 @@
+2026-05-23 15:44:14,386 [INFO] yamlgraph.graph_loader: Parsed 4 shell tools: read_fr, check_architecture, search_existing_frs, read_file
+2026-05-23 15:44:14,393 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
+2026-05-23 15:44:14,482 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-6 (temp=0.7)
+2026-05-23 15:44:14,814 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 8 iterations)
+2026-05-23 15:44:16,978 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-23 15:44:17,006 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_fr({'fr_path': 'feature-requests/FR-448-agent-structured-output.md'})
+2026-05-23 15:44:21,626 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-23 15:44:21,628 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: check_architecture({'kwargs': {'requirement_id': 'REQ-YG-422', 'capability': 'agent structured output', 'node_type': 'agent'}})
+2026-05-23 15:44:21,650 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': 'agent structured output'})
+2026-05-23 15:44:21,766 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/tools/agent.py'})
+2026-05-23 15:44:21,784 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/executor.py'})
+2026-05-23 15:44:21,800 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'node_factory/base.py'})
+2026-05-23 15:44:25,177 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-23 15:44:25,219 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/node_factory/base.py'})
+2026-05-23 15:44:25,288 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/utils/json_extract.py'})
+2026-05-23 15:44:25,304 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': 'schema structured output LLM node'})
+2026-05-23 15:45:23,692 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-23 15:45:23,694 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 4 iterations
+
+🚀 Running graph: graph.yaml
+   Variables: {'fr_path': 'feature-requests/FR-448-agent-structured-output.md'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019e54dd-5ebf-7260-9107-7c6754641a09?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: judge
+  fr_path: feature-requests/FR-448-agent-structured-output.md
+  verdict: I now have all the evidence needed. Here is the full structured verdict.
+
+---
+
+# Verdict: FR-448 — Agent Node Structured Output via Prompt Schema
+
+---
+
+## Evidence Summary
+
+| Source | Finding |
+|---|---|
+| `agent.py` (lines 1–100) | Confirms `extract_json` is already imported; `create_llm` is imported; no `output_model` resolution present — gap is real |
+| `node_factory/base.py` | `get_output_model_for_node(node_config, prompts_dir, graph_path, prompts_relative)` exists with the exact 4-arg signature cited in the FR |
+| `executor.py` (lines 1–100) | `execute_prompt` accepts `output_model` and delegates to `PromptExecutor`; LLM nodes use `with_structured_output` — pattern confirmed |
+| `utils/json_extract.py` | `extract_json(text)` exists, handles raw JSON, markdown fences, and balanced-bracket scan; returns `dict | list | str` — try-parse path is sound |
+| Architecture doc | REQ-YG-017–020 govern Tool & Agent Integration (`tools/agent`). REQ-YG-422 is not yet listed in the table (it's new, assigned by this FR — expected) |
+| `search_existing_frs("agent structured output")` | No results — no overlap |
+| `search_existing_frs("schema structured output LLM node")` | No results — no overlap |
+
+---
+
+## Criterion-by-Criterion Evaluation
+
+### 1. Scope — Is it clear and minimal?
+
+**✅ PASS**
+
+The scope is precisely bounded: two exit paths inside `agent.py`, one new helper function, one saved reference (`llm_base`), and one call to an already-existing resolver. The "Files NOT changed" section actively guards scope creep. No UI, no config schema changes, no new node types.
+
+---
+
+### 2. Contradictions or Ambiguities
+
+**⚠️ CONDITIONAL PASS — one residual ambiguity**
+
+The FR correctly identifies that `bind_tools` and `with_structured_output` are mutually exclusive on most providers, and correctly resolves it by saving `llm_base` before `bind_tools`. However, one edge case is unaddressed:
+
+> **What happens on the max-iterations path when `messages[-1]` is a `ToolMessage`?**
+
+The FR states: *"even if last message is a `ToolMessage`, the full conversation context in `messages` gives the LLM enough to produce structured output."* This is plausible but untested. A `ToolMessage` as the final message is technically a malformed conversation turn for most providers (they expect an assistant message to follow a tool message). The re-invoke branch (`structured_llm.invoke(msgs)`) may produce a provider error rather than structured output in this scenario. This should be called out explicitly in the implementation notes or acceptance criteria, even if the mitigation is just a logged warning and graceful fallback to raw text.
+
+Everything else is unambiguous: the helper signature, the priority order (parse-first → re-invoke), the model_dump return, and the no-regression contract.
+
+---
+
+### 3. Acceptance Criteria — Are they measurable?
+
+**✅ PASS**
+
+All six ACs are binary and testable:
+
+| AC | Measurable? | Notes |
+|---|---|---|
+| Returns `dict` on normal exit with schema | ✅ | `assert isinstance(result[state_key], dict)` |
+| Returns `dict` on max-iterations exit with schema | ✅ | Mock loop exhaustion |
+| Dict validates against Pydantic model | ✅ | `Model.model_validate(result[state_key])` |
+| No schema → still returns text | ✅ | Regression guard |
+| FR-447 judge demo produces `JudgeVerdict` dict | ✅ | Integration test / re-run |
+| Tests tagged `@pytest.mark.req("REQ-YG-422")` | ✅ | Lint-enforceable |
+
+The REQ-YG-422 tag is new (not yet in architecture table) but the tagging convention is established and the assignment is internally consistent.
+
+---
+
+### 4. Implementation Feasibility
+
+**✅ PASS — with one low-risk note**
+
+The implementation is grounded in verified code:
+
+- `get_output_model_for_node` exists with the exact 4-arg signature used in the FR ✅
+- `extract_json` exists and returns `dict | list | str` ✅
+- `model_validate` + `model_dump` is standard Pydantic v2 ✅
+- `llm_base.with_structured_output(output_model)` is the same pattern used in `executor.py` line 161–162 ✅
+- `bind_tools` / `with_structured_output` mutual exclusivity is correctly handled by the `llm_base` split ✅
+
+**Low-risk note:** `extract_json` can return a `list` (not just `dict`). The FR's try-parse block checks `isinstance(parsed, dict)` before `model_validate`, which correctly discards list results and falls through to re-invoke. This is fine, but worth a comment in the code.
+
+**Moderate-risk note (same as §2):** The re-invoke on a conversation ending in `ToolMessage` may fail on some providers. Not a blocker, but should be an explicit test case.
+
+---
+
+### 5. Architecture Alignment
+
+**✅ PASS**
+
+| Check | Result |
+|---|---|
+| Capability area | REQ-YG-017–020 (Tool & Agent Integration) — direct match |
+| Reuses `get_output_model_for_node` | ✅ — no new abstraction invented |
+| Reuses `extract_json` | ✅ — no new utility invented |
+| Mirrors `executor.py` pattern | ✅ — `with_structured_output` already established |
+| No changes to `node_factory/base.py` or `executor.py` | ✅ — correct; those are stable interfaces |
+| REQ-YG-422 not yet in architecture table | ⚠️ — expected for a new requirement; must be registered as part of implementation |
+
+The FR extends an existing capability domain (structured output) to a second node type (agent) using the same infrastructure the first node type (LLM) already uses. This is textbook architecture extension, not divergence.
+
+---
+
+### 6. Single Responsibility
+
+**✅ PASS**
+
+The FR touches exactly one concern: *agent nodes should honour the `schema:` block the same way LLM nodes do.* There is no bundling of:
+- New tool types
+- New routing logic
+- New config schema fields
+- New CLI commands
+- Changes to state persistence
+
+The `_try_structured` helper is a private closure scoped to the agent's `node_fn` — it does not leak into the public API.
+
+---
+
+### 7. Strategic Classification
+
+**✅ FRAMEWORK PRIMITIVE — correctly classified**
+
+Justification for `framework_primitive` (not `contrib` or `pattern_doc`):
+
+1. **3+ concrete use cases confirmed:**
+   - FR-447 judge demo (`JudgeVerdict` — 5 typed fields, FSM routing)
+   - `docs/plan-dogfood-chaplain.md` Phase 2 (event routing on structured dict)
+   - Any future agent node that needs typed state values for downstream `requires:` checks
+2. **No existing abstraction fits:** LLM nodes have this via `execute_prompt()`, but agent nodes bypass that path entirely. There is no existing hook or override point in `agent.py` — the gap is structural.
+3. **Reuses existing infrastructure:** The implementation adds ~20 lines to `agent.py` and calls three already-existing functions. The cost/benefit ratio strongly favours inclusion in core.
+4. **Blocking downstream work:** The chaplain integration is explicitly blocked on this. A primitive that unblocks multiple roadmap items is by definition framework-level.
+
+---
+
+### 8. Acceptance Tests — Do they compile and fail for the right reasons?
+
+**✅ PASS — with one verification note**
+
+The FR provides skeleton test code (referenced via "Skeleton test code — provided in test file" amendment note) and specifies:
+- Mock LLM returning structured JSON text → verify `isinstance(result, dict)`
+- Mock LLM returning plain text with schema → verify re-invoke path is triggered
+- No-schema agent → verify `isinstance(result, str)` regression
+
+These are the correct failure modes:
+- Before the fix: `assert isinstance(result[state_key], dict)` fails because `agent.py` always returns `_normalize_content(response.content)` (a `str`)
+- After the fix: the assertion passes
+
+**Verification note:** The actual test file is not directly readable from the FR (it's referenced as an amendment, not a file path). The evaluator cannot confirm the test code compiles without seeing it. This is a minor gap — the implementation PR should include a `pytest --collect-only` output confirming test discovery before merge.
+
+---
+
+## Risk Register
+
+| Risk | Severity | Likelihood | Mitigation |
+|---|---|---|---|
+| Re-invoke on `ToolMessage`-terminal conversation fails on some providers | Medium | Low–Medium | Add explicit test case; consider appending a synthetic `HumanMessage("Summarize your findings as JSON.")` before re-invoke |
+| `extract_json` returning `list` silently falls through to re-invoke | Low | Low | Add `# list result → not a valid dict, fall through` comment |
+| REQ-YG-422 not registered in architecture table | Low | Certain | Must be added to `docs/architecture.md` as part of the PR |
+| Test skeleton not verified to compile | Low | Low | `pytest --collect-only` gate in CI |
+
+---
+
+## Final Verdict
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  FR-448 — Agent Node Structured Output via Prompt Schema    │
+│                                                             │
+│  VERDICT:  ✅ APPROVED — IMPLEMENT AS FRAMEWORK PRIMITIVE   │
+│                                                             │
+│  Classification:  framework_primitive                       │
+│  Effort estimate: 1 day (confirmed reasonable)              │
+│  Risk level:      LOW                                       │
+│                                                             │
+│  Required before merge:                                     │
+│    1. Add REQ-YG-422 to architecture table (area 5)         │
+│    2. Add test case for ToolMessage-terminal max-iter path  │
+│    3. pytest --collect-only confirms test discovery         │
+│                                                             │
+│  Recommended (non-blocking):                                │
+│    4. Comment on list-result branch in _try_structured      │
+│    5. Document ToolMessage edge case in implementation notes│
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Rationale in one sentence:** The problem is real and verified in source code, the solution reuses three existing functions without modifying any stable interfaces, the scope is minimal, two blocked roadmap items are named, and the implementation is a direct structural mirror of how LLM nodes already work — making this an obvious and low-risk framework extension.

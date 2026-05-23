@@ -20,6 +20,7 @@ from yamlgraph.tools.python_tool import PythonToolConfig, load_python_function
 from yamlgraph.tools.schema_loader_tool import SchemaLoaderToolConfig
 from yamlgraph.tools.shell import ShellToolConfig, execute_shell_tool
 from yamlgraph.utils.content import normalize_content as _normalize_content
+from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.prompts import load_prompt
 
@@ -131,6 +132,28 @@ def build_python_tool(
     )
 
 
+def _try_structured_output(
+    content: str,
+    msgs: list,
+    output_model: type | None,
+    llm_base: Any,
+) -> Any:
+    """Try to extract structured output, fallback to LLM re-invoke (FR-448)."""
+    if not output_model:
+        return _normalize_content(content)
+    # Try parse first (cheap)
+    try:
+        parsed = extract_json(content)
+        if isinstance(parsed, dict):
+            return output_model.model_validate(parsed).model_dump()
+    except Exception:
+        logger.debug("JSON parse failed for structured output, falling back to LLM")
+    # Fallback: structured output re-invoke (expensive)
+    structured_llm = llm_base.with_structured_output(output_model)
+    result = structured_llm.invoke(msgs)
+    return result.model_dump()
+
+
 def create_agent_node(  # noqa: C901
     node_name: str,
     node_config: dict[str, Any],
@@ -139,6 +162,7 @@ def create_agent_node(  # noqa: C901
     *,
     defaults: dict[str, Any] | None = None,
     graph_path: Path | None = None,
+    output_model: type | None = None,
 ) -> Callable[[dict], dict]:
     """Create an agent node that loops with tool calls.
 
@@ -258,12 +282,17 @@ def create_agent_node(  # noqa: C901
         # Track raw tool outputs for persistence
         tool_results: list[dict] = []
 
-        # Get LLM with tools bound - use resolved config
-        llm = create_llm(
+        # Resolve output model for structured output (FR-448)
+        # output_model is passed from the caller (node_compiler.py)
+
+        # Save base LLM before binding tools — with_structured_output
+        # and bind_tools are mutually exclusive on most providers (FR-448)
+        llm_base = create_llm(
             provider=resolved_provider,
             model=resolved_model,
             temperature=resolved_temperature,
-        ).bind_tools(lc_tools)
+        )
+        llm = llm_base.bind_tools(lc_tools)
 
         logger.info(
             f"🤖 Starting agent loop: {node_name} (max {max_iterations} iterations)"
@@ -288,8 +317,11 @@ def create_agent_node(  # noqa: C901
                 # appends to existing state, so returning the full list
                 # would cause quadratic growth (FR-057).
                 new_messages = messages[len(existing_messages) :]
+                final_value = _try_structured_output(
+                    response.content, messages, output_model, llm_base
+                )
                 result = {
-                    state_key: _normalize_content(response.content),
+                    state_key: final_value,
                     "current_step": node_name,
                     "_agent_iterations": iteration + 1,
                     "messages": new_messages,
@@ -362,11 +394,13 @@ def create_agent_node(  # noqa: C901
         # Hit max iterations
         logger.warning(f"Agent hit max iterations ({max_iterations})")
         last_content = messages[-1].content if hasattr(messages[-1], "content") else ""
-        last_content = _normalize_content(last_content)
+        final_value = _try_structured_output(
+            last_content, messages, output_model, llm_base
+        )
         # Return only NEW messages (delta) — see FR-057
         new_messages = messages[len(existing_messages) :]
         result = {
-            state_key: last_content,
+            state_key: final_value,
             "current_step": node_name,
             "_agent_iterations": max_iterations,
             "_agent_limit_reached": True,

@@ -157,7 +157,6 @@ def _compile_tool_node(ctx: NodeCompileContext) -> None:
     node_fn = create_tool_node(ctx.node_name, ctx.node_config, ctx.tools)
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_python_node(ctx: NodeCompileContext) -> None:
@@ -169,10 +168,17 @@ def _compile_python_node(ctx: NodeCompileContext) -> None:
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_agent_node(ctx: NodeCompileContext) -> None:
+    from yamlgraph.node_factory.base import get_output_model_for_node
+
+    output_model = get_output_model_for_node(
+        ctx.node_config,
+        prompts_dir=ctx.effective_defaults.get("prompts_dir"),
+        graph_path=ctx.config.source_path,
+        prompts_relative=ctx.effective_defaults.get("prompts_relative", False),
+    )
     node_fn = create_agent_node(
         ctx.node_name,
         ctx.node_config,
@@ -180,10 +186,10 @@ def _compile_agent_node(ctx: NodeCompileContext) -> None:
         ctx.python_tools,
         defaults=ctx.effective_defaults,
         graph_path=ctx.config.source_path,
+        output_model=output_model,
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_map_node(ctx: NodeCompileContext) -> tuple[str, Any]:
@@ -206,7 +212,6 @@ def _compile_tool_call_node(ctx: NodeCompileContext) -> None:
     )
     node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_interrupt_node(ctx: NodeCompileContext) -> tuple[str, Any]:
@@ -228,7 +233,6 @@ def _compile_interrupt_node(ctx: NodeCompileContext) -> tuple[str, Any]:
 def _compile_passthrough_node(ctx: NodeCompileContext) -> None:
     node_fn = create_passthrough_node(ctx.node_name, ctx.node_config)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_copilot_node(ctx: NodeCompileContext) -> None:
@@ -241,7 +245,6 @@ def _compile_copilot_node(ctx: NodeCompileContext) -> None:
         prompts_relative=ctx.prompts_relative,
     )
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_subgraph_node(ctx: NodeCompileContext) -> None:
@@ -256,7 +259,6 @@ def _compile_subgraph_node(ctx: NodeCompileContext) -> None:
         parent_graph_path=ctx.config.source_path,
     )
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_llm_node(ctx: NodeCompileContext) -> None:
@@ -276,7 +278,6 @@ def _compile_llm_node(ctx: NodeCompileContext) -> None:
     if not has_candidates:
         node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 def _compile_race_node(ctx: NodeCompileContext) -> None:
@@ -289,7 +290,6 @@ def _compile_race_node(ctx: NodeCompileContext) -> None:
     # Race owns `timeout` natively via as_completed(timeout=...);
     # do NOT wrap in _maybe_wrap_timeout (nested pools drop return value — FR-267).
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
-    return None
 
 
 # ---------------------------------------------------------------------------
@@ -441,8 +441,6 @@ __all__ = [
     "NodeCompileContext",
     "NODE_TYPE_HANDLERS",
     "_maybe_wrap_timeout",
-    "compile_node",
-    "compile_nodes",
     "compile_node",
     "compile_nodes",
     "resolve_cache_policy",
