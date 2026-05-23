@@ -4,7 +4,13 @@ Olde Cap Gemini styled Waterfall - Automated. Nothing moves without a proper Fea
 
 ## How One Person Uses 40% of a 150-Person Department's AI Inference
 
+The author of this process has never written a line of Python.
+
+The production system — 4,600 lines of Python actions and services, 26,000 lines of tests across 130 files, 1,958 lines of FSM configuration, a two-process telephony architecture with supervisor forking, AF_UNIX IPC, and crisis-routing voice AI — was built in 84 days, 427 commits, without the human touching the implementation language.
+
 The process described below is not AI-assisted — it is AI-executed with human oversight. Every state machine transition (plan, judge, enforce, validate) is carried out by AI agents. The human role is to set direction, review judgements, and approve merges. The AI does the rest: research, FR generation, code writing, test creation, code review, reflection, and documentation.
+
+**The human contribution is architectural, not syntactic.** Domain decisions (two-process model, supervisor fork, context_map boundary normalization, fire-and-forget actions), constraint identification (engine execution order, cleanup vs abort timing), and process design (the Scripture, the FR pipeline, the trap catalog) — none of these require knowing Python. They require knowing telephony, state machines, and how to constrain an AI agent so its output is trustworthy. The code review is structural: "does the cleanup sweep at the right boundary?" not "is this idiomatic Python?"
 
 **Each Feature Request triggers a chain of agent sessions:**
 
