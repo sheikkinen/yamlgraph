@@ -32,6 +32,7 @@ TYPE_MAP: dict[str, type] = {
     "int": int,
     "float": float,
     "bool": bool,
+    "dict": dict,
     "Any": Any,
 }
 

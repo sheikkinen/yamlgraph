@@ -89,7 +89,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
 
 ### CONF-007
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L134)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L157)
 - **Code**: C901 (cognitive complexity 19 > 15)
 - **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
 - **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
@@ -952,6 +952,18 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
+
+### CONF-304
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L141)
+- **Code**: FB001
+- **Sin**: Docstring of `_try_structured_output` contains `fallback` — describes the try-parse-first, fallback-to-LLM strategy (FR-448).
+- **Penance**: The word describes the actual algorithmic pattern. Renaming would obscure intent.
+
+### CONF-305
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L151)
+- **Code**: FB001
+- **Sin**: Comment `# Fallback: structured output re-invoke (expensive)` uses `fallback` token.
+- **Penance**: Same as CONF-304 — documents the two-phase structured output strategy.
 
 ### CONF-255
 - **File**: [yamlgraph/utils/fsm/ui_log.py](../yamlgraph/utils/fsm/ui_log.py#L50)
