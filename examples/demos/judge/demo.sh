@@ -20,32 +20,23 @@ FR_PATH="$1"
 cd "$PROJECT_ROOT"
 
 echo "yamlgraph graph run examples/demos/judge/graph.yaml \\" | tee "$LOG"
-echo "  --var fr_path=\"$FR_PATH\" --full" | tee -a "$LOG"
+echo "  --var fr_path=\"$FR_PATH\" --json" | tee -a "$LOG"
 yamlgraph graph run examples/demos/judge/graph.yaml \
-  --var fr_path="$FR_PATH" --full 2>&1 | tee -a "$LOG"
-
-# Extract the structured verdict JSON from the graph output
+  --var fr_path="$FR_PATH" --json 2>>"$LOG" | \
 python3 -c "
-import json, re, sys
+import json, sys
 
-log = open('$LOG').read()
-# Find the last JSON block in the output (the verdict dict)
-matches = re.findall(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', log)
-for m in reversed(matches):
-    try:
-        obj = json.loads(m)
-        if 'verdict' in obj or 'overall_verdict' in obj:
-            json.dump(obj, sys.stdout, indent=2)
-            print()
-            with open('$VERDICT', 'w') as f:
-                json.dump(obj, f, indent=2)
-                f.write('\n')
-            print(f'Verdict saved to $VERDICT', file=sys.stderr)
-            sys.exit(0)
-    except json.JSONDecodeError:
-        continue
-print('No verdict JSON found in output', file=sys.stderr)
-sys.exit(1)
+data = json.load(sys.stdin)
+verdict = data.get('verdict')
+if not isinstance(verdict, dict):
+    print('No structured verdict in output', file=sys.stderr)
+    sys.exit(1)
+json.dump(verdict, sys.stdout, indent=2)
+print()
+with open('$VERDICT', 'w') as f:
+    json.dump(verdict, f, indent=2)
+    f.write('\n')
+print(f'Verdict saved to $VERDICT', file=sys.stderr)
 " 2>&1 | tee -a "$LOG"
 
 echo -e "\n✓ Graph execution completed successfully" | tee -a "$LOG"

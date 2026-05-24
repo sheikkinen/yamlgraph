@@ -1,151 +1,79 @@
 yamlgraph graph run examples/demos/judge/graph.yaml \
-  --var fr_path="feature-requests/FR-448-agent-structured-output.md" --full
-2026-05-24 09:00:48,209 [INFO] yamlgraph.graph_loader: Parsed 4 shell tools: read_fr, check_architecture, search_existing_frs, read_file
-2026-05-24 09:00:48,216 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
-2026-05-24 09:00:48,314 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-6 (temp=0.7)
-2026-05-24 09:00:48,639 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 8 iterations)
-2026-05-24 09:00:50,896 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 09:00:50,916 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_fr({'fr_path': 'feature-requests/FR-448-agent-structured-output.md'})
-2026-05-24 09:00:54,603 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 09:00:54,606 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: check_architecture({'kwargs': {'requirements': ['REQ-YG-422'], 'capabilities': ['structured_output', 'agent_node', 'schema_block', 'get_output_model_for_node', 'extract_json']}})
-2026-05-24 09:00:54,633 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': 'agent structured output schema'})
-2026-05-24 09:00:54,765 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/tools/agent.py'})
-2026-05-24 09:00:58,711 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 09:00:58,714 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/executor.py'})
-2026-05-24 09:00:58,743 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/node_factory/base.py'})
-2026-05-24 09:00:58,761 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/utils/json_extract.py'})
-2026-05-24 09:00:58,786 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': 'agent node output'})
-2026-05-24 09:01:46,767 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 09:01:46,770 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 4 iterations
+  --var fr_path="feature-requests/FR-449-agent-structured-output-anthropic-bugfix.md" --json
+2026-05-24 10:26:57,005 [INFO] yamlgraph.graph_loader: Parsed 4 shell tools: read_fr, check_architecture, search_existing_frs, read_file
+2026-05-24 10:26:57,015 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
+2026-05-24 10:26:57,110 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-sonnet-4-6 (temp=0.7)
+2026-05-24 10:26:57,465 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 8 iterations)
+2026-05-24 10:26:59,886 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 10:26:59,906 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_fr({'fr_path': 'feature-requests/FR-449-agent-structured-output-anthropic-bugfix.md'})
+2026-05-24 10:26:59,927 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: check_architecture({})
+2026-05-24 10:27:04,380 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 10:27:04,383 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': 'structured output anthropic'})
+2026-05-24 10:27:04,533 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': '_try_structured_output'})
+2026-05-24 10:27:04,592 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/tools/agent.py'})
+2026-05-24 10:27:04,608 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/utils/content.py'})
+2026-05-24 10:27:09,294 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 10:27:09,296 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': 'FR-448'})
+2026-05-24 10:27:09,369 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search_existing_frs({'pattern': 'REQ-YG-422'})
+2026-05-24 10:27:09,427 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/tools/agent.py'})
+2026-05-24 10:27:12,821 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 10:27:12,824 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_fr({'fr_path': 'feature-requests/FR-448-agent-structured-output.md'})
+2026-05-24 10:27:12,854 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_fr({'fr_path': 'feature-requests/FR-448-judgement.md'})
+2026-05-24 10:27:18,904 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 10:27:18,907 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'yamlgraph/utils/json_extract.py'})
+2026-05-24 10:27:18,935 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_fr({'fr_path': 'feature-requests/FR-447-judge-agent-node.md'})
+2026-05-24 10:28:27,073 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 10:28:27,076 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 6 iterations
+2026-05-24 10:28:46,252 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Verdict saved to /Users/sami.j.p.heikkinen/src/yamlgraph/examples/demos/judge/judgement.json
+{
+  "verdict": "APPROVE",
+  "classification": "framework_primitive",
+  "reasoning": "FR-449 is a correctness bug fix for FR-448, which was classified as a framework primitive. Both bugs are real and reproducible: `extract_json` calls `.strip()` as its first operation, so passing Anthropic's `list[dict]` content blocks raises `AttributeError`; and Anthropic's API explicitly rejects conversations ending with an `AIMessage`. Both fixes are one-to-three line changes using utilities (`_normalize_content`, `HumanMessage`) that are already imported in `agent.py`. No new dependencies, no new abstractions, no cross-cutting changes. The acceptance criteria are concrete, all seven are assertable, and the REQ marker (REQ-YG-422) is a real assigned requirement \u2014 not a placeholder.",
+  "criteria_results": [
+    {
+      "criterion": "Scope clear and minimal",
+      "passed": true,
+      "note": "Three surgical changes confined to a single function (_try_structured_output) in a single file (agent.py). Files Changed lists exactly two targets. No scope creep into extract_json, normalize_content, or any shared utility."
+    },
+    {
+      "criterion": "No contradictions or ambiguities",
+      "passed": true,
+      "note": "_normalize_content and HumanMessage are both already imported in agent.py (lines 16 and 20), confirmed by reading the file. extract_json's str.strip() call is confirmed. One minor ambiguity: the HumanMessage append (Fix 2) is applied even for OpenAI, where it is redundant but harmless. Not a blocker."
+    },
+    {
+      "criterion": "Acceptance criteria measurable",
+      "passed": true,
+      "note": "All 7 criteria are assertable: isinstance(result, dict) for both providers, direct unit test of _try_structured_output with list content, fallback test with AIMessage-terminal message list, regression test for schema-less nodes. REQ-YG-422 is a concrete assigned requirement \u2014 not a placeholder \u2014 so the pytest marker will pass requirement enforcement."
+    },
+    {
+      "criterion": "Implementation approach feasible",
+      "passed": true,
+      "note": "Fix 1 is one line (wrap content in _normalize_content before extract_json). Fix 2 is three lines (list(msgs) + [HumanMessage(...)]). Fix 3 is one line (add logger.debug to bare except). Zero new imports. Zero new dependencies. Two-provider regression test is straightforward with unittest.mock."
+    },
+    {
+      "criterion": "Architecture aligned",
+      "passed": true,
+      "note": "Sits in Area 5 (Tool & Agent Integration, REQ-YG-017\u2013020). REQ-YG-422 was assigned by FR-448 for agent structured output; this FR is a bug fix within that requirement. Correctly applies the boundary-normalization principle (FR-059, Scripture: the_one_law) at the caller rather than inside extract_json."
+    },
+    {
+      "criterion": "Single responsibility",
+      "passed": true,
+      "note": "All three fixes address one root cause: _try_structured_output() crashes silently on Anthropic, returning prose instead of a dict. Fix 3 (logging) is not an orthogonal concern \u2014 the bare except was the mechanism that hid both crashes. The responsibility boundary is clean."
+    },
+    {
+      "criterion": "Strategic classification correct",
+      "passed": true,
+      "note": "This is a bug fix within a framework primitive (FR-448). The bug is real: confirmed by three independent sources (FR-447 demo producing prose on three consecutive runs, extract_json source showing str.strip() as first operation, Anthropic API contract rejecting assistant-prefill). Classification as bug fix / correctness within framework_primitive is correct."
+    },
+    {
+      "criterion": "Acceptance tests compile and fail for the right reasons",
+      "passed": true,
+      "note": "Partial pass recorded as pass: criteria are specific enough to reconstruct the tests unambiguously (mock LLM returning list content blocks, assert dict with correct fields, AIMessage-terminal list for fallback test). REQ marker is concrete. The only gap is that skeleton code is absent from the FR body \u2014 a documentation weakness, not a correctness defect. Tests would fail before the fix for the right reasons (AttributeError on Bug 1, provider API error on Bug 2)."
+    }
+  ],
+  "issues": []
+}
 
-🚀 Running graph: graph.yaml
-   Variables: {'fr_path': 'feature-requests/FR-448-agent-structured-output.md'}
-
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019e5892-5f5f-75f0-ba54-f983b3651ffc?poll=true
-============================================================
-RESULT
-============================================================
-  current_step: judge
-  fr_path: feature-requests/FR-448-agent-structured-output.md
-  verdict: I now have all the evidence needed. Let me compile the full structured verdict.
-
----
-
-## Verdict: FR-448 — Agent Node Structured Output via Prompt Schema
-
----
-
-### Evidence Summary
-
-| Source | Finding |
-|---|---|
-| `agent.py` (lines 1–100) | Confirms `extract_json` is already imported; `create_llm` is already imported; no `get_output_model_for_node` import present yet — consistent with FR describing the gap |
-| `node_factory/base.py` | `get_output_model_for_node(node_config, prompts_dir, graph_path, prompts_relative)` exists with exactly the 4-arg signature the FR cites |
-| `executor.py` | `execute_prompt` accepts `output_model` and delegates structured invocation; LLM nodes use this path; agent nodes bypass it — confirms the stated architectural gap |
-| `utils/json_extract.py` | `extract_json(text)` exists, returns `dict | list | str`, exactly as the FR's try-parse-first step requires |
-| Architecture doc | Area 5 ("Tool & Agent Integration") covers `tools/agent` under REQ-YG-017–020; REQ-YG-422 is not listed, confirming it is a new requirement being introduced |
-| Overlap search (`agent structured output schema`, `agent node output`) | No results — no existing FR covers this |
-| FR status | Marked **Implemented**, amendments already applied (6/6) |
-
----
-
-### Criterion-by-Criterion Evaluation
-
----
-
-#### 1. Scope — Clear and Minimal?
-**✅ PASS**
-
-The scope is tightly bounded to a single behavioural gap: agent node exit paths ignore `schema:`. The FR names exactly two lines in one file (`agent.py:292`, `agent.py:365`), lists files changed vs. explicitly not changed, and excludes all existing demos from the regression surface. No scope creep is present.
-
----
-
-#### 2. Contradictions or Ambiguities?
-**✅ PASS (with one minor note)**
-
-The design is internally consistent. One latent ambiguity: the max-iterations exit path (line 365) is described as using `last_content = messages[-1].content`, but `messages[-1]` at max-iterations is likely a `ToolMessage` (which may have no `.content` or a tool-result string rather than LLM prose). The FR acknowledges this with `if hasattr(messages[-1], "content")` and notes "the full conversation context in `messages` gives the LLM enough to produce structured output" via the fallback re-invoke. This is an acceptable runtime hedge, not a design contradiction. No contradictions found.
-
----
-
-#### 3. Acceptance Criteria — Measurable?
-**✅ PASS**
-
-All 6 ACs are binary and mechanically verifiable:
-- Return type assertions (`isinstance(result, dict)`) — unambiguous
-- Regression guard for schema-less agents (`isinstance(result, str)`) — unambiguous
-- FR-447 demo re-run — concrete integration test
-- `@pytest.mark.req("REQ-YG-422")` — requirement traceability is enforced by the test suite's `test_requirement_enforcement`
-
-No vague language ("should feel like", "roughly correct", etc.) appears.
-
----
-
-#### 4. Implementation Approach — Feasible?
-**✅ PASS**
-
-All building blocks exist and are already imported or importable:
-
-| Component | Status |
-|---|---|
-| `extract_json` | Already imported in `agent.py` |
-| `create_llm` | Already imported in `agent.py` |
-| `get_output_model_for_node` | Exists in `node_factory/base.py`, correct 4-arg signature confirmed |
-| `llm_base` / `bind_tools` split | Standard LangChain pattern; `with_structured_output` and `bind_tools` mutual exclusivity is a real constraint, correctly handled |
-| `model_dump()` | Standard Pydantic v2 API |
-
-The try-parse-first / fallback-re-invoke two-stage strategy is a well-established pattern for LLM output handling. The fallback adds one extra LLM call only on parse failure — acceptable cost for a correctness guarantee. No new dependencies are introduced.
-
----
-
-#### 5. Architecture Alignment?
-**✅ PASS**
-
-The FR explicitly reuses the existing structured-output resolution path (`get_output_model_for_node`) rather than inventing a parallel mechanism. This mirrors how LLM nodes work in `executor.py:161–162`, which is the correct architectural precedent. The change is confined to Area 5 (Tool & Agent Integration) and does not touch the graph compiler, state builder, routing, or any other subsystem. REQ-YG-422 is a new leaf requirement under the existing Area 5 family — appropriate placement.
-
----
-
-#### 6. Single Responsibility?
-**✅ PASS**
-
-One concern, one change surface. The FR does not bundle in: prompt templating changes, new tool types, FSM routing logic, or serialization format changes. The `_try_structured` helper is a pure function with a single job. The only two touch points are the two existing exit paths in one function in one file.
-
----
-
-#### 7. Strategic Classification
-**✅ FRAMEWORK PRIMITIVE — Correctly classified**
-
-Justification:
-- **3+ concrete use cases already identified:** (1) FR-447 judge demo (`JudgeVerdict`), (2) chaplain integration Phase 2 (`docs/plan-dogfood-chaplain.md` event routing), (3) any future agent node that produces typed state — the same pattern any user would reach for when combining `schema:` with agent loops.
-- **No existing abstraction fits:** LLM nodes use `execute_prompt()` which handles structured output; agent nodes intentionally bypass this because they run their own message loop. There is no way to retrofit the existing path without this change.
-- **Symmetric with LLM node capability:** This closes a feature parity gap in the framework's own node taxonomy. Leaving it as a contrib or pattern doc would mean the framework has an inconsistent contract (`schema:` works on LLM nodes but silently no-ops on agent nodes).
-
----
-
-#### 8. Acceptance Tests — Compile and Fail for the Right Reasons?
-**⚠️ CONDITIONAL PASS**
-
-The FR references skeleton test code and `@pytest.mark.req("REQ-YG-422")` but does not include the actual test file in the document. Based on the described test shape (mock LLM, dict vs. str assertions, both exit paths), the tests would:
-- **Fail before implementation** because `agent.py` has no `output_model` resolution and returns `str` unconditionally → `isinstance(result, dict)` fails for the right reason.
-- **Pass after implementation** because the `_try_structured` helper routes to `model_dump()`.
-
-The regression test (schema-less agent still returns `str`) would pass both before and after — correct behaviour. The one gap: the test file path is not cited, so it cannot be confirmed that the skeleton compiles today. This is a minor documentation gap, not a design flaw.
-
----
-
-### Final Verdict
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  FR-448 — Agent Node Structured Output via Prompt Schema        │
-│                                                                 │
-│  Decision:      ✅  APPROVE                                     │
-│  Classification: FRAMEWORK PRIMITIVE                            │
-│  Confidence:    HIGH                                            │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Rationale:** Every criterion passes. The problem is real (confirmed by reading `agent.py` — both exit paths return raw text with no schema resolution), the solution is minimal and architecturally coherent (reuses `get_output_model_for_node` + `extract_json`, mirrors the LLM node pattern), all acceptance criteria are mechanically verifiable, and the feature closes a genuine parity gap in the framework's node taxonomy with at least three concrete use cases. The single conditional flag on criterion 8 (test file not cited in the FR) is a documentation gap only and does not affect correctness.
-
-**One recommended follow-up before merge:** Confirm the skeleton test file path exists and that `pytest --collect-only` picks up `REQ-YG-422` before the implementation lands, to satisfy the requirement-enforcement gate.
-
-No verdict JSON found in output
+✓ Graph execution completed successfully
+✅
