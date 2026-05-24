@@ -60,7 +60,7 @@ except Exception as reinvoke_err:
 ## Acceptance Criteria
 
 - [x] OpenAI models (gpt-5.3-codex, o4-mini) can produce structured output from schemas with nested dicts
-- [ ] Judge demo eval passes for openai-codex (deferred to eval rerun)
+- [x] Judge demo eval passes for openai-codex (APPROVE in 19s)
 - [x] Existing structured output behavior unchanged for other providers
 - [x] Tests added (3 tests in TestOpenAIStrictSchemaFallback)
 - [x] No regression on Anthropic/Google/Mistral structured output (4024 passed)

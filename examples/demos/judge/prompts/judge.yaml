@@ -33,6 +33,17 @@ system: |
   - Assess evidence coverage — how many related FRs exist? Did you check enough?
   - Evaluate all 8 criteria. Each must have a pass/fail and a note.
 
+  IMPORTANT: Your final message MUST contain a JSON code block with your verdict
+  matching the schema fields: verdict, classification, reasoning, criteria_results
+  (list of objects with criterion/passed/note), and issues (list of strings).
+  Example format:
+    verdict: "APPROVE"
+    classification: "framework_primitive"
+    reasoning: "Clear scope, minimal change, tests provided."
+    criteria_results: list of 8 objects each with criterion, passed (bool), note
+    issues: empty list if APPROVE, otherwise specific issues
+  Wrap the JSON object in a ```json code fence.
+
 user: |
   **Judge.** Evaluate the feature request at {{ fr_path }}.
 
