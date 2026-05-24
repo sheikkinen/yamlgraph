@@ -256,11 +256,14 @@ def create_agent_node(  # noqa: C901
             or defaults.get("model")
             or prompt_config.get("model")
         )
-        resolved_temperature = (
-            node_config.get("temperature")
-            or defaults.get("temperature")
-            or prompt_config.get("temperature")
-            or 0.7  # Default temperature for agents
+        # FR-451: Use `is not None` for temperature — 0 is falsy but valid
+        resolved_temperature = next(
+            (
+                v
+                for src in (node_config, defaults, prompt_config)
+                if (v := src.get("temperature")) is not None
+            ),
+            0.7,
         )
 
         # Format prompts using format_prompt (supports Jinja2 and simple vars)

@@ -1,8 +1,8 @@
-# Feature Request: FR-451 Agent Node Temperature Zero Bug
+# Feature Request: FR-451 Fahrenheit 451 — Temperature Adjustments
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-05-24
 

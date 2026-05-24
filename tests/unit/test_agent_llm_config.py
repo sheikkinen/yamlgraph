@@ -217,3 +217,107 @@ class TestAgentConsistencyWithLLMNodes:
             assert call_kwargs.get("provider") == "mistral"
             assert call_kwargs.get("model") == "mistral-large-latest"
             assert call_kwargs.get("temperature") == 0.5
+
+
+class TestAgentTemperatureZero:
+    """FR-451: Agent node temperature=0 must not be treated as falsy."""
+
+    @pytest.mark.req("REQ-YG-018")
+    def test_agent_temperature_zero_from_node_config(self) -> None:
+        """temperature: 0 in node config must produce temperature=0, not 0.7."""
+        from yamlgraph.tools.agent import create_agent_node
+
+        with (
+            patch("yamlgraph.tools.agent.load_prompt") as mock_load,
+            patch("yamlgraph.tools.agent.create_llm") as mock_create_llm,
+        ):
+            mock_load.return_value = {
+                "system": "You are a judge.",
+                "user": "Evaluate {input}",
+            }
+
+            mock_llm = MagicMock()
+            mock_llm.bind_tools.return_value = mock_llm
+            mock_llm.invoke.return_value = MagicMock(content="Done", tool_calls=[])
+            mock_create_llm.return_value = mock_llm
+
+            node_fn = create_agent_node(
+                node_name="test_agent",
+                node_config={"tools": [], "temperature": 0},
+                tools={},
+            )
+
+            node_fn({"input": "test"})
+
+            call_kwargs = mock_create_llm.call_args.kwargs
+            assert call_kwargs.get("temperature") == 0, (
+                f"temperature: 0 must not be treated as falsy. "
+                f"Got temperature={call_kwargs.get('temperature')}"
+            )
+
+    @pytest.mark.req("REQ-YG-018")
+    def test_agent_temperature_zero_from_prompt_yaml(self) -> None:
+        """temperature: 0 in prompt YAML must produce temperature=0."""
+        from yamlgraph.tools.agent import create_agent_node
+
+        with (
+            patch("yamlgraph.tools.agent.load_prompt") as mock_load,
+            patch("yamlgraph.tools.agent.create_llm") as mock_create_llm,
+        ):
+            mock_load.return_value = {
+                "system": "Deterministic.",
+                "user": "{input}",
+                "temperature": 0,
+            }
+
+            mock_llm = MagicMock()
+            mock_llm.bind_tools.return_value = mock_llm
+            mock_llm.invoke.return_value = MagicMock(content="Done", tool_calls=[])
+            mock_create_llm.return_value = mock_llm
+
+            node_fn = create_agent_node(
+                node_name="test_agent",
+                node_config={"tools": []},
+                tools={},
+            )
+
+            node_fn({"input": "test"})
+
+            call_kwargs = mock_create_llm.call_args.kwargs
+            assert call_kwargs.get("temperature") == 0, (
+                f"temperature: 0 from prompt YAML must be respected. "
+                f"Got temperature={call_kwargs.get('temperature')}"
+            )
+
+    @pytest.mark.req("REQ-YG-018")
+    def test_agent_temperature_default_when_unset(self) -> None:
+        """No temperature config anywhere falls back to 0.7."""
+        from yamlgraph.tools.agent import create_agent_node
+
+        with (
+            patch("yamlgraph.tools.agent.load_prompt") as mock_load,
+            patch("yamlgraph.tools.agent.create_llm") as mock_create_llm,
+        ):
+            mock_load.return_value = {
+                "system": "Test.",
+                "user": "{input}",
+            }
+
+            mock_llm = MagicMock()
+            mock_llm.bind_tools.return_value = mock_llm
+            mock_llm.invoke.return_value = MagicMock(content="Done", tool_calls=[])
+            mock_create_llm.return_value = mock_llm
+
+            node_fn = create_agent_node(
+                node_name="test_agent",
+                node_config={"tools": []},
+                tools={},
+            )
+
+            node_fn({"input": "test"})
+
+            call_kwargs = mock_create_llm.call_args.kwargs
+            assert call_kwargs.get("temperature") == 0.7, (
+                f"Default temperature should be 0.7. "
+                f"Got temperature={call_kwargs.get('temperature')}"
+            )
