@@ -1,85 +1,89 @@
 yamlgraph graph run examples/demos/judge/graph.yaml \
-  --var fr_path="feature-requests/FR-454-eval-timeout-config.md" --json
-2026-05-24 20:11:15,981 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: read_file, search, list_dir, git_log, run_tests
-2026-05-24 20:11:16,002 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
-2026-05-24 20:11:16,120 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0)
-2026-05-24 20:11:17,041 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 12 iterations)
-2026-05-24 20:11:18,314 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:18,377 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-454-eval-timeout-config.md'})
-2026-05-24 20:11:19,820 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:19,822 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'ARCHITECTURE.md', 'pattern': 'REQ|CAP'})
-2026-05-24 20:11:23,124 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:23,127 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/eval.sh'})
-2026-05-24 20:11:23,140 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'feature-requests'})
-2026-05-24 20:11:25,285 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:25,288 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-453*.md', 'pattern': 'timeout|eval'})
-2026-05-24 20:11:25,326 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'eval.sh timeout'})
-2026-05-24 20:11:27,158 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:27,161 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-453-judge-model-evaluation.md'})
-2026-05-24 20:11:28,995 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:28,998 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*.py', 'pattern': 'FR-454|eval.*timeout|EVAL_TIMEOUT'})
-2026-05-24 20:11:30,459 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:30,465 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/unit/test_*.py', 'pattern': '454'})
-2026-05-24 20:11:32,041 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:32,044 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos/judge'})
-2026-05-24 20:11:33,581 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:33,583 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/eval.sh'})
-2026-05-24 20:11:36,242 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:36,268 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/README.md'})
-2026-05-24 20:11:38,039 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:38,042 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/judge/README.md', 'pattern': 'eval|timeout|EVAL_TIMEOUT'})
-2026-05-24 20:11:39,538 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 20:11:39,541 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'EVAL_TIMEOUT'})
-2026-05-24 20:11:39,929 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (12)
-2026-05-24 20:11:49,372 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+  --var fr_path="feature-requests/FR-457-eval-cherry-pick-model-refresh.md" --json
+2026-05-24 20:15:34,616 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: read_file, search, list_dir, git_log, run_tests
+2026-05-24 20:15:34,634 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
+2026-05-24 20:15:34,717 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0)
+2026-05-24 20:15:35,436 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 12 iterations)
+2026-05-24 20:15:37,231 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:37,276 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-457-eval-cherry-pick-model-refresh.md'})
+2026-05-24 20:15:37,289 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'feature-requests'})
+2026-05-24 20:15:37,304 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'ARCHITECTURE.md', 'pattern': 'REQ|CAP'})
+2026-05-24 20:15:40,376 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:40,378 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-45*.md', 'pattern': 'eval|model|cherry-pick'})
+2026-05-24 20:15:40,410 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'eval.sh|gpt-4o|gpt-5.3-codex|cherry-pick'})
+2026-05-24 20:15:43,101 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:43,103 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-453-judge-model-evaluation.md'})
+2026-05-24 20:15:43,115 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-454-eval-timeout-config.md'})
+2026-05-24 20:15:43,128 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/judge/eval.sh', 'pattern': 'MODELS|timeout'})
+2026-05-24 20:15:44,678 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:44,680 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/eval.sh'})
+2026-05-24 20:15:47,048 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:47,050 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*.py', 'pattern': 'eval|cherry.pick|FR-457'})
+2026-05-24 20:15:49,128 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:49,130 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*.py', 'pattern': 'FR-457|cherry.pick|eval.sh'})
+2026-05-24 20:15:50,642 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:50,645 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'tests/unit'})
+2026-05-24 20:15:53,691 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:53,693 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/judge/eval.sh', 'pattern': 'gpt-4o|gpt-5.3-codex|openai'})
+2026-05-24 20:15:58,252 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:15:58,260 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/eval.sh'})
+2026-05-24 20:16:15,696 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 20:16:15,698 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 10 iterations
+2026-05-24 20:16:27,056 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
 Verdict saved to /Users/sheikki/Documents/src/yamlgraph/examples/demos/judge/judgement.json
 {
-  "verdict": "APPROVE",
+  "verdict": "REJECT",
   "classification": "pattern_documentation",
-  "reasoning": "FR-454 requests making eval.sh timeout configurable via EVAL_TIMEOUT env var with a default of 300s. The implementation is already complete in the current codebase (line 40 of eval.sh: `TIMEOUT=\"${EVAL_TIMEOUT:-300}\"`), and the timeout is correctly applied to the yamlgraph invocation. However, this is a minimal enhancement to an existing script with no new framework primitives, no new abstractions, and no use cases beyond the single eval.sh harness. The feature is already working and requires only documentation to complete the acceptance criteria.",
+  "reasoning": "FR-457 proposes cherry-pick filtering and model refresh for eval.sh, but both features are already fully implemented in the current codebase (examples/demos/judge/eval.sh lines 52-62 for cherry-pick, line 33 for gpt-5.3-codex, line 44 for configurable timeout). All acceptance criteria are met by existing code. The FR appears to be documenting already-implemented behavior rather than requesting new work. No acceptance tests exist to validate the feature, which is a gap, but the implementation itself is complete and functional.",
   "criteria_results": [
     {
       "criterion": "Is the scope clear and minimal?",
       "passed": true,
-      "note": "Scope is extremely narrow: make one timeout parameter configurable in one script. Clear and minimal."
+      "note": "Two well-defined, minimal concerns: (1) cherry-pick filtering by model label, (2) model array update (gpt-4o \u2192 gpt-5.3-codex). Both are orthogonal but tightly coupled in the same script."
     },
     {
       "criterion": "Are there contradictions or ambiguities?",
       "passed": true,
-      "note": "No contradictions. The FR clearly specifies EVAL_TIMEOUT env var with 300s default. Implementation matches spec exactly."
+      "note": "No contradictions detected. The proposed solution is straightforward: capture remaining CLI args, filter MODELS array by label, update one model entry. Acceptance criteria are unambiguous."
     },
     {
       "criterion": "Are acceptance criteria measurable?",
       "passed": true,
-      "note": "All three acceptance criteria are measurable: (1) env var configurable - YES, (2) default 300s - YES, (3) re-run produces verdicts - testable but requires API keys and time."
+      "note": "All 5 acceptance criteria are testable: backward compatibility (no args \u2192 all models), label filtering (args \u2192 subset), silent skip with log, model replacement in array, report includes only run models. All are binary/observable outcomes."
     },
     {
       "criterion": "Is the implementation approach feasible?",
       "passed": true,
-      "note": "Shell parameter expansion `${EVAL_TIMEOUT:-300}` is standard POSIX and already implemented. No dependencies, no complexity."
+      "note": "The approach is trivial shell scripting (filter loop, env var substitution). No framework changes required. Feasibility is high. Already proven by existing implementation."
     },
     {
       "criterion": "Does it align with existing architecture?",
       "passed": true,
-      "note": "Uses standard shell patterns for env var defaults. Integrates cleanly with existing eval.sh from FR-453. No framework changes needed."
+      "note": "Builds on FR-453 (eval harness) and FR-454 (timeout config), both already partially/fully implemented. Cherry-pick feature is a natural extension of the existing model loop pattern and uses established conventions."
     },
     {
-      "criterion": "Single responsibility or bundled concerns?",
+      "criterion": "Single responsibility \u2014 or does it bundle orthogonal concerns?",
       "passed": true,
-      "note": "Single concern: make timeout configurable. No orthogonal features bundled."
+      "note": "Bundles cherry-pick + model refresh, but they are tightly coupled in the same script and both serve the same goal (flexible model evaluation). Not orthogonal enough to warrant separation. Acceptable bundling."
     },
     {
-      "criterion": "Strategic classification",
-      "passed": true,
-      "note": "Pattern documentation: this is a configuration pattern for an existing script (eval.sh from FR-453). No new framework primitive, no new abstraction, no new use case beyond the single harness. Existing shell parameter expansion pattern applied to one variable."
+      "criterion": "Strategic classification: framework primitive, contrib/example, pattern documentation, or reject?",
+      "passed": false,
+      "note": "Classified as PATTERN_DOCUMENTATION because the feature is already fully implemented in examples/demos/judge/eval.sh (cherry-pick filtering at lines 52-62, gpt-5.3-codex at line 33, configurable timeout at line 44). The FR documents existing behavior rather than requesting new work. However, no acceptance tests exist to validate the feature, which is a gap. The FR should either be closed as superseded by FR-453/454 or reclassified as a test-coverage FR."
     },
     {
       "criterion": "Do acceptance tests compile and fail for the right reasons?",
       "passed": false,
-      "note": "No acceptance tests exist in the codebase. The FR references re-running eval with 300s to produce verdicts from sonnet/4o/mistral, but this is an integration test requiring API keys and ~15 minutes of wall-clock time. No unit tests found for EVAL_TIMEOUT behavior."
+      "note": "No acceptance tests exist for FR-457. Searched tests/ for 'FR-457', 'cherry.pick', 'eval.sh' \u2014 no dedicated test file found. The feature is implemented but untested. All 5 acceptance criteria are met by the current code, but there are no automated tests validating cherry-pick filtering, silent skip behavior, model array contents, or report filtering."
     }
   ],
-  "issues": []
+  "issues": [
+    "Feature already fully implemented in examples/demos/judge/eval.sh \u2014 cherry-pick filtering (lines 52-62), gpt-5.3-codex in MODELS array (line 33), configurable EVAL_TIMEOUT (line 44). All acceptance criteria are met by existing code.",
+    "No acceptance tests exist to validate cherry-pick filtering, silent skip behavior, model array contents, or report filtering. The feature is untested despite being implemented.",
+    "FR appears to be documenting already-implemented behavior rather than requesting new work. Should be closed as superseded by FR-453/454 or reclassified as a test-coverage FR.",
+    "If the intent is to formalize and test the feature, the FR should be amended to focus on test coverage (similar to FR-260 'Acceptance Tests Before Enforce') rather than implementation.",
+    "The FR's status should be updated to reflect that the feature is already implemented. Current status 'Proposed' is misleading."
+  ]
 }
 
 ✓ Graph execution completed successfully

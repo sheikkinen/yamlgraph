@@ -7,14 +7,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 RESULTS_DIR="$SCRIPT_DIR/eval-results"
 FR_PATH="${1:-feature-requests/FR-452-standalone-planner-demo.md}"
+shift 2>/dev/null || true
+SELECTED=("$@")
 
 if [[ ! -f "$PROJECT_ROOT/$FR_PATH" ]]; then
-  echo "Usage: $0 <path-to-feature-request.md>"
+  echo "Usage: $0 <path-to-feature-request.md> [label1 label2 ...]"
   echo ""
   echo "Run the judge demo across multiple LLM providers and compare verdicts."
+  echo "Optional: specify model labels to run only those models."
   echo ""
   echo "Example:"
   echo "  $0 feature-requests/FR-452-standalone-planner-demo.md"
+  echo "  $0 feature-requests/FR-452.md anthropic-sonnet mistral-large openai-codex"
   exit 1
 fi
 
@@ -26,7 +30,7 @@ source .env 2>/dev/null || true
 MODELS=(
   "anthropic|claude-sonnet-4-6|anthropic-sonnet|ANTHROPIC_API_KEY"
   "anthropic|claude-haiku-4-5|anthropic-haiku|ANTHROPIC_API_KEY"
-  "openai|gpt-4o|openai-4o|OPENAI_API_KEY"
+  "openai|gpt-5.3-codex|openai-codex|OPENAI_API_KEY"
   "openai|o4-mini|openai-o4-mini|OPENAI_API_KEY"
   "google|gemini-2.5-flash|google-flash|GOOGLE_API_KEY"
   "google|gemini-2.5-pro|google-pro|GOOGLE_API_KEY"
@@ -48,6 +52,18 @@ echo ""
 for entry in "${MODELS[@]}"; do
   IFS='|' read -r provider model label key_var <<< "$entry"
   CURRENT=$((CURRENT + 1))
+
+  # Cherry-pick filter
+  if [[ ${#SELECTED[@]} -gt 0 ]]; then
+    match=false
+    for sel in "${SELECTED[@]}"; do
+      [[ "$sel" == "$label" ]] && match=true && break
+    done
+    if [[ "$match" == false ]]; then
+      continue
+    fi
+  fi
+
   echo "[$CURRENT/$TOTAL] $label ($provider/$model)"
 
   # Check API key
