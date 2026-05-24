@@ -99,6 +99,14 @@ class TestJudgeDemoGraphStructure:
         assert config.nodes["judge"].get("max_iterations") == 12
 
     @pytest.mark.req("REQ-YG-408")
+    def test_no_hardcoded_model(self) -> None:
+        """FR-453: No hardcoded model — uses env var fallthrough."""
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        assert (
+            "model" not in raw["nodes"]["judge"]
+        ), "Judge node must not hardcode model — use PROVIDER/MODEL env vars"
+
+    @pytest.mark.req("REQ-YG-408")
     def test_judge_state_key_is_verdict(self) -> None:
         """Judge node writes to state_key: verdict."""
         from yamlgraph.graph_loader import load_graph_config

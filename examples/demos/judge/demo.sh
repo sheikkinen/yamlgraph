@@ -17,8 +17,11 @@ fi
 
 FR_PATH="$1"
 
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT"source .env 2>/dev/null || true
 
+# FR-453: Model set via env vars, not hardcoded in graph.yaml
+export PROVIDER="${PROVIDER:-anthropic}"
+export ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-sonnet-4-6}"
 echo "yamlgraph graph run examples/demos/judge/graph.yaml \\" | tee "$LOG"
 echo "  --var fr_path=\"$FR_PATH\" --json" | tee -a "$LOG"
 yamlgraph graph run examples/demos/judge/graph.yaml \

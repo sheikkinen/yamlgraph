@@ -43,7 +43,6 @@ nodes:
   judge:
     type: agent
     prompt: judge
-    model: claude-sonnet-4-6
     temperature: 0
     tools: [read_file, search, list_dir, git_log, run_tests]
     max_iterations: 12
