@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.25 days
 **Requested:** 2026-05-24
 
@@ -52,10 +52,10 @@ This is DeepSeek-specific in effect but benefits all models — the cheap `extra
 
 ## Acceptance Criteria
 
-- [ ] Judge prompt includes JSON output instruction
-- [ ] DeepSeek eval produces a valid verdict JSON
-- [ ] Other models still work (no regression)
-- [ ] Demo output log updated
+- [x] Judge prompt includes JSON output instruction
+- [x] DeepSeek eval produces a valid verdict JSON (APPROVE in 29s)
+- [x] Other models still work (no regression — Anthropic haiku demo ran successfully)
+- [x] Demo output log updated
 
 ## Alternatives Considered
 
