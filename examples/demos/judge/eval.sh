@@ -33,14 +33,16 @@ MODELS=(
   "mistral|mistral-large-latest|mistral-large|MISTRAL_API_KEY"
   "deepseek|deepseek-chat|deepseek|DEEPSEEK_API_KEY"
   "xai|grok-4-1-fast-reasoning|xai-grok|XAI_API_KEY"
+  "inception|mercury-2|inception-mercury|INCEPTION_API_KEY"
 )
 
 TOTAL=${#MODELS[@]}
 CURRENT=0
+TIMEOUT="${EVAL_TIMEOUT:-300}"
 
 echo "=== FR-453 Judge Model Evaluation ==="
 echo "FR: $FR_PATH"
-echo "Models: $TOTAL"
+echo "Models: $TOTAL | Timeout: ${TIMEOUT}s"
 echo ""
 
 for entry in "${MODELS[@]}"; do
@@ -59,7 +61,7 @@ for entry in "${MODELS[@]}"; do
   MODEL_VAR="$(echo "${provider}" | tr '[:lower:]' '[:upper:]')_MODEL"
   START_TIME=$(date +%s)
 
-  if timeout 120 env PROVIDER="$provider" "${MODEL_VAR}=${model}" \
+  if timeout "$TIMEOUT" env PROVIDER="$provider" "${MODEL_VAR}=${model}" \
     yamlgraph graph run examples/demos/judge/graph.yaml \
     --var fr_path="$FR_PATH" --json 2>"$RESULTS_DIR/$label.stderr" | \
     python3 -c "
