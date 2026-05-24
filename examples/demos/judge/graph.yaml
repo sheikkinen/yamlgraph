@@ -1,6 +1,6 @@
 version: "1.0"
 name: fr-judge
-description: "FR-447 — Standalone FR judge with structured verdict output"
+description: "FR-450 — Standalone FR judge with task-shaped tools and structured verdict output"
 prompts_relative: true
 prompts_dir: prompts
 
@@ -9,28 +9,34 @@ state:
   verdict: dict
 
 tools:
-  read_fr:
-    type: shell
-    command: cat {fr_path}
-    description: "Read the feature request document to evaluate."
-    parse: text
-
-  check_architecture:
-    type: shell
-    command: grep -n "REQ-YG-\|CAP-" ARCHITECTURE.md | head -30
-    description: "Search architecture doc for related requirements and capabilities."
-    parse: text
-
-  search_existing_frs:
-    type: shell
-    command: grep -rl "{pattern}" feature-requests/ 2>/dev/null | head -10
-    description: "Search existing FRs for a pattern to check scope overlap."
-    parse: text
-
   read_file:
     type: shell
-    command: head -100 {file}
-    description: "Read the first 100 lines of any project file."
+    command: cat {file}
+    description: "Read a project file in full."
+    parse: text
+
+  search:
+    type: shell
+    command: rg -n --glob {glob} {pattern} .
+    description: "Search files matching a glob pattern. Examples: --glob 'ARCHITECTURE.md', --glob 'feature-requests/*.md', --glob 'yamlgraph/**/*.py', --glob 'tests/**/*.py', --glob 'capabilities/*.yaml'."
+    parse: text
+
+  list_dir:
+    type: shell
+    command: ls {dir}
+    description: "List contents of a directory."
+    parse: text
+
+  git_log:
+    type: shell
+    command: git log --oneline --all --grep={pattern}
+    description: "Search git history for commits mentioning a pattern. Find prior attempts, related FRs, rejected work."
+    parse: text
+
+  run_tests:
+    type: shell
+    command: pytest {test_file} -v --no-cov --tb=short 2>&1
+    description: "Run a specific test file. Verify acceptance tests fail for the right reasons (criterion 8)."
     parse: text
 
 nodes:
@@ -39,8 +45,8 @@ nodes:
     prompt: judge
     model: claude-sonnet-4-6
     temperature: 0
-    tools: [read_fr, check_architecture, search_existing_frs, read_file]
-    max_iterations: 8
+    tools: [read_file, search, list_dir, git_log, run_tests]
+    max_iterations: 12
     state_key: verdict
 
 edges:

@@ -1,8 +1,10 @@
-"""FR-447 Judge Demo — Unit tests.
+"""FR-447/FR-450 Judge Demo — Unit tests.
 
 Tests that the standalone FR judge agent graph loads, lints, and has
-correct structure: single agent node with 4 read-only tools and
+correct structure: single agent node with 5 task-shaped tools and
 structured JudgeVerdict output schema.
+
+FR-450 promotes the demo from facade tools to real investigation tools.
 """
 
 from __future__ import annotations
@@ -47,23 +49,54 @@ class TestJudgeDemoGraphStructure:
         assert config.nodes["judge"]["type"] == "agent"
 
     @pytest.mark.req("REQ-YG-408")
-    def test_judge_has_four_tools(self) -> None:
-        """Judge node must reference exactly 4 read-only tools."""
+    def test_judge_has_five_tools(self) -> None:
+        """FR-450: Judge node must reference exactly 5 task-shaped tools."""
         from yamlgraph.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         tools = config.nodes["judge"]["tools"]
-        assert len(tools) == 4
-        expected = {"read_fr", "check_architecture", "search_existing_frs", "read_file"}
+        assert len(tools) == 5
+        expected = {"read_file", "search", "list_dir", "git_log", "run_tests"}
         assert set(tools) == expected
 
     @pytest.mark.req("REQ-YG-408")
-    def test_graph_has_four_tool_definitions(self) -> None:
-        """Graph tools section defines exactly 4 shell tools."""
+    def test_graph_has_five_tool_definitions(self) -> None:
+        """FR-450: Graph tools section defines exactly 5 shell tools."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
-        assert len(raw["tools"]) == 4
+        assert len(raw["tools"]) == 5
         for tool_cfg in raw["tools"].values():
             assert tool_cfg["type"] == "shell"
+
+    @pytest.mark.req("REQ-YG-408")
+    def test_no_head_truncation_except_run_tests(self) -> None:
+        """FR-450: No tool uses | head -N truncation."""
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        for name, tool_cfg in raw["tools"].items():
+            cmd = tool_cfg.get("command", "")
+            assert "| head" not in cmd, f"Tool '{name}' uses | head truncation: {cmd}"
+
+    @pytest.mark.req("REQ-YG-408")
+    def test_search_uses_rg(self) -> None:
+        """FR-450: search tool uses rg with --glob."""
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        cmd = raw["tools"]["search"]["command"]
+        assert "rg" in cmd
+        assert "--glob" in cmd
+
+    @pytest.mark.req("REQ-YG-408")
+    def test_run_tests_tool_exists(self) -> None:
+        """FR-450: run_tests tool runs pytest."""
+        raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
+        cmd = raw["tools"]["run_tests"]["command"]
+        assert "pytest" in cmd
+
+    @pytest.mark.req("REQ-YG-408")
+    def test_max_iterations_is_12(self) -> None:
+        """FR-450: max_iterations set to 12 for genuine investigation."""
+        from yamlgraph.graph_loader import load_graph_config
+
+        config = load_graph_config(GRAPH_PATH)
+        assert config.nodes["judge"].get("max_iterations") == 12
 
     @pytest.mark.req("REQ-YG-408")
     def test_judge_state_key_is_verdict(self) -> None:

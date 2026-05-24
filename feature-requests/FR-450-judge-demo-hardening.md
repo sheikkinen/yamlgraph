@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — Approved
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-05-24
 
