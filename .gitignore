@@ -119,3 +119,7 @@ ella/
 # Keep private top-level fsm project ignored, but track framework FSM utilities.
 !yamlgraph/utils/fsm/
 !yamlgraph/utils/fsm/*.py
+
+# Judge demo generated artifacts
+examples/demos/judge/judgement.json
+examples/demos/judge/output.json
