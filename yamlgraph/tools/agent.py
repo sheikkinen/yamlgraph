@@ -133,7 +133,7 @@ def build_python_tool(
 
 
 def _try_structured_output(
-    content: str,
+    content: str | list,
     msgs: list,
     output_model: type | None,
     llm_base: Any,
@@ -141,16 +141,25 @@ def _try_structured_output(
     """Try to extract structured output, fallback to LLM re-invoke (FR-448)."""
     if not output_model:
         return _normalize_content(content)
+    # Normalize content — Anthropic returns list of content blocks
+    text = _normalize_content(content)
     # Try parse first (cheap)
     try:
-        parsed = extract_json(content)
+        parsed = extract_json(text)
         if isinstance(parsed, dict):
             return output_model.model_validate(parsed).model_dump()
     except Exception:
-        logger.debug("JSON parse failed for structured output, falling back to LLM")
-    # Fallback: structured output re-invoke (expensive)
+        logger.debug("JSON parse failed for structured output, retrying with LLM")
+    # Structured re-invoke: ask LLM again with schema enforcement (expensive)
+    # Append a user message so the conversation ends with a user turn —
+    # Anthropic rejects assistant prefill when msgs ends with assistant.
+    from langchain_core.messages import HumanMessage
+
+    retry_msgs = list(msgs) + [
+        HumanMessage(content="Now produce your response as structured JSON output.")
+    ]
     structured_llm = llm_base.with_structured_output(output_model)
-    result = structured_llm.invoke(msgs)
+    result = structured_llm.invoke(retry_msgs)
     return result.model_dump()
 
 

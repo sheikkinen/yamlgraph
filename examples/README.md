@@ -134,6 +134,7 @@ Tools for codebase analysis — useful for maintainers, not for learning.
 | [watcher2-red-verification](demos/watcher2-red-verification/) | RED verification timestamp fix demo (FR-280) |
 | [watcher2-remediation](demos/watcher2-remediation/) | Progressive ruff fixing for SIM117 remediation (FR-281) |
 | [hook_classifier](demos/hook_classifier/) | FSM daemon for async hook event classification (FR-425) |
+| [agent-json](demos/agent-json/) | Agent structured JSON output (FR-449) |
 
 ### FR Validation Demos
 

@@ -169,7 +169,7 @@
 - `yamlgraph/storage/simple_redis.py` - 341 lines; exports: `class SimpleRedisCheckpointer`
   - import dependencies: `yamlgraph.storage.serializers`
 - `yamlgraph/tools/__init__.py` - 6 lines; exports: _none_
-- `yamlgraph/tools/agent.py` - 413 lines; exports: `build_langchain_tool(name, config)`, `build_python_tool(name, config, *, graph_root)`, `create_agent_node(node_name, node_config, tools, python_tools, *, defaults, graph_path, output_model)`
+- `yamlgraph/tools/agent.py` - 422 lines; exports: `build_langchain_tool(name, config)`, `build_python_tool(name, config, *, graph_root)`, `create_agent_node(node_name, node_config, tools, python_tools, *, defaults, graph_path, output_model)`
   - import dependencies: `yamlgraph.executor_base`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.content`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.prompts`
 - `yamlgraph/tools/nodes.py` - 130 lines; exports: `resolve_state_variable(template, state)`, `resolve_variables(variables_config, state)`, `create_tool_node(node_name, node_config, tools)`
   - import dependencies: `yamlgraph.error_handlers`, `yamlgraph.tools.shell`, `yamlgraph.utils.expressions`

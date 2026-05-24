@@ -1,0 +1,21 @@
+2026-05-24 09:42:23,372 [INFO] yamlgraph.graph_loader: Parsed 1 shell tools: read
+2026-05-24 09:42:23,379 [INFO] yamlgraph.node_compiler: Added node: analyst (type=agent)
+2026-05-24 09:42:23,470 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.7)
+2026-05-24 09:42:23,802 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: analyst (max 3 iterations)
+2026-05-24 09:42:25,696 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 09:42:25,715 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read({'file_path': 'README.md'})
+2026-05-24 09:42:29,359 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 09:42:29,362 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 2 iterations
+2026-05-24 09:42:30,758 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+
+🚀 Running graph: graph.yaml
+   Variables: {'file_path': 'README.md'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019e58b8-721a-7e00-921d-532c4c933271?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: analyst
+  file_path: README.md
+  analysis: {'summary': 'YAMLGraph is a framework for building production AI pipelines using YAML configuration, supporting LLM workflows with routing, loops, agents, and human-in-the-loop functionality.', 'line_count': 324, 'verdict': 'medium'}
+✅

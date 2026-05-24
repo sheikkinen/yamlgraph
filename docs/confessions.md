@@ -406,6 +406,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: Import `YamlgraphAsyncAction` after `pytest.importorskip("statemachine_engine")` guard.
 - **Penance**: Same pattern as CONF-037. The `statemachine_engine` package is a local dependency not installed in CI; `importorskip` must execute before the action import to skip gracefully.
 
+### CONF-048
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L166)
+- **Code**: C901
+- **Sin**: `create_agent_node` has high cyclomatic complexity due to tool registration loop, LLM config resolution, multi-turn message handling, agent iteration loop with tool calls, and structured output extraction.
+- **Penance**: The function is a factory that builds a closure capturing configuration. The inner `node_fn` orchestrates the agent loop which is inherently sequential and branching. Splitting further would scatter the closure's captured variables across multiple functions with no clarity gain.
+
 ### CONF-301
 - **File**: [tests/unit/test_fr346_fsm_bridge_shared_module_red.py](../tests/unit/test_fr346_fsm_bridge_shared_module_red.py#L19)
 - **Code**: PLC0415

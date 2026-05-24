@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-05-22
 **Discovered by:** FR-447 demo run — agent returned text instead of structured dict
