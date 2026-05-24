@@ -1,0 +1,22 @@
+# FR-449: Minimal agent prompt with inline schema for e2e testing.
+# Proves agent nodes return structured dict output, not prose.
+
+schema:
+  name: Analysis
+  fields:
+    summary:
+      type: str
+      description: "One-sentence summary of the file"
+    line_count:
+      type: int
+      description: "Number of lines in the file"
+    verdict:
+      type: str
+      description: "One of: small, medium, large"
+
+system: |
+  You are a file analyst. Use the read tool to inspect the file,
+  then return a structured JSON analysis.
+
+user: |
+  Analyze the file at: {file_path}

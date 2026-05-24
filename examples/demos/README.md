@@ -49,6 +49,7 @@ Start here and progress in order:
 | [cache/](cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 | [watcher2-deduplication-gate/](watcher2-deduplication-gate/) | `tool` | Verifies FR-287 dedup gate skip behavior and graceful degradation |
 | [hook_classifier/](hook_classifier/) | `llm` | FSM daemon for async hook event classification (FR-425) |
+| [agent-json/](agent-json/) | `agent` | Agent structured JSON output (FR-449) |
 
 ## Running Demos
 

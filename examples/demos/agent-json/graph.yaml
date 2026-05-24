@@ -1,0 +1,32 @@
+# FR-449: Minimal agent node with structured output for e2e testing.
+# Proves agent nodes return dict (not str) when prompt has schema: block.
+version: "1.0"
+name: agent-json
+description: "FR-449 — Minimal agent with structured JSON output"
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  file_path: str
+  analysis: dict
+
+tools:
+  read:
+    type: shell
+    command: wc -l {file_path} && head -5 {file_path}
+    description: "Read line count and first 5 lines of a file."
+    parse: text
+
+nodes:
+  analyst:
+    type: agent
+    prompt: analyst
+    tools: [read]
+    max_iterations: 3
+    state_key: analysis
+
+edges:
+  - from: START
+    to: analyst
+  - from: analyst
+    to: END
