@@ -279,3 +279,136 @@ class TestPipelineSchemaResolution:
         assert (
             fallback_msgs[-1].type == "human"
         ), f"Fallback msgs should end with HumanMessage, got {fallback_msgs[-1].type}"
+
+
+class TestStructuredOutputJsonFallback:
+    """FR-456: Fallback when with_structured_output() rejects response_format."""
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_fallback_when_provider_rejects_response_format_but_content_has_json(self):
+        """When with_structured_output raises but content contains valid JSON,
+        extract and validate against the Pydantic schema."""
+        import tempfile
+
+        from yamlgraph.schema_loader import load_schema_from_yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+            f.write(PROMPT_YAML_WITH_SCHEMA)
+            f.flush()
+            output_model = load_schema_from_yaml(Path(f.name))
+
+        # Content has prose wrapping valid JSON — extract_json won't parse directly
+        # but the JSON is embedded in the text
+        content = (
+            "After thorough analysis, here is my verdict:\n"
+            "```json\n"
+            '{"verdict": "APPROVE", "reasoning": "All criteria met"}\n'
+            "```"
+        )
+
+        msgs = []
+        mock_llm_base = MagicMock()
+        # with_structured_output().invoke() raises — provider rejects response_format
+        mock_structured = MagicMock()
+        mock_structured.invoke.side_effect = Exception(
+            "This response_format type is unavailable now"
+        )
+        mock_llm_base.with_structured_output.return_value = mock_structured
+
+        result = _try_structured_output(
+            content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
+        )
+
+        assert isinstance(result, dict), f"Expected dict, got {type(result)}"
+        assert result["verdict"] == "APPROVE"
+        assert result["reasoning"] == "All criteria met"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_fallback_with_plain_json_content(self):
+        """When content is valid JSON and provider rejects response_format,
+        parse directly without re-invoke."""
+        import tempfile
+
+        from yamlgraph.schema_loader import load_schema_from_yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+            f.write(PROMPT_YAML_WITH_SCHEMA)
+            f.flush()
+            output_model = load_schema_from_yaml(Path(f.name))
+
+        # Pure JSON content — extract_json succeeds, model_validate succeeds
+        content = '{"verdict": "REJECT", "reasoning": "Missing tests"}'
+
+        msgs = []
+        mock_llm_base = MagicMock()
+
+        # This should succeed on the cheap path without even hitting with_structured_output
+        result = _try_structured_output(
+            content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
+        )
+
+        assert isinstance(result, dict)
+        assert result["verdict"] == "REJECT"
+        # with_structured_output should NOT have been called (cheap path sufficed)
+        mock_llm_base.with_structured_output.assert_not_called()
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_fallback_partial_json_when_provider_rejects(self):
+        """When content has JSON missing a field and provider rejects response_format,
+        fall back to lenient model_construct with the partial data."""
+        import tempfile
+
+        from yamlgraph.schema_loader import load_schema_from_yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+            f.write(PROMPT_YAML_WITH_SCHEMA)
+            f.flush()
+            output_model = load_schema_from_yaml(Path(f.name))
+
+        # Partial JSON — missing "reasoning" field, so model_validate will fail
+        content = '{"verdict": "APPROVE"}'
+
+        msgs = []
+        mock_llm_base = MagicMock()
+        mock_structured = MagicMock()
+        mock_structured.invoke.side_effect = Exception(
+            "This response_format type is unavailable now"
+        )
+        mock_llm_base.with_structured_output.return_value = mock_structured
+
+        result = _try_structured_output(
+            content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
+        )
+
+        # Should recover via lenient construction with partial data
+        assert isinstance(result, dict), f"Expected dict, got {type(result)}"
+        assert result["verdict"] == "APPROVE"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_fallback_raises_when_no_json_at_all(self):
+        """When content has no JSON and provider rejects response_format,
+        the original error must propagate."""
+        import tempfile
+
+        from yamlgraph.schema_loader import load_schema_from_yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+            f.write(PROMPT_YAML_WITH_SCHEMA)
+            f.flush()
+            output_model = load_schema_from_yaml(Path(f.name))
+
+        # Pure prose — no JSON anywhere
+        content = "I have completed my analysis and everything looks good."
+
+        msgs = []
+        mock_llm_base = MagicMock()
+        mock_structured = MagicMock()
+        mock_structured.invoke.side_effect = Exception(
+            "This response_format type is unavailable now"
+        )
+        mock_llm_base.with_structured_output.return_value = mock_structured
+
+        with pytest.raises(Exception, match="response_format"):
+            _try_structured_output(
+                content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
+            )

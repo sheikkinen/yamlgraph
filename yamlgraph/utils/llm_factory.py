@@ -36,6 +36,9 @@ ProviderType = Literal[
 # Providers that support thinking_budget natively
 THINKING_PROVIDERS = {"anthropic", "google", "vertex"}
 
+# OpenAI reasoning models that reject the temperature parameter (FR-455)
+REASONING_MODEL_PREFIXES = ("o1", "o3", "o4")
+
 
 _llm_cache: dict[tuple, BaseChatModel] = {}
 _cache_lock = threading.Lock()
@@ -133,6 +136,15 @@ def create_llm(
     # Determine model (parameter > env var > default)
     # Note: DEFAULT_MODELS already handles env var via config.py
     selected_model = model or DEFAULT_MODELS[selected_provider]
+
+    # Omit temperature for OpenAI reasoning models (FR-455)
+    if (
+        selected_provider == "openai"
+        and any(selected_model.startswith(p) for p in REASONING_MODEL_PREFIXES)
+        and temperature is not None
+    ):
+        logger.info(f"Omitting temperature for reasoning model: {selected_model}")
+        temperature = None
 
     # Create cache key (includes thinking_budget, uses overridden temperature)
     cache_key = (

@@ -174,9 +174,7 @@ max-complexity = 15
 testpaths = ["tests"]
 asyncio_mode = "strict"
 addopts = "--cov=yamlgraph --cov-report=term-missing --cov-fail-under=70"
-filterwarnings = [
-    "ignore::pytest_benchmark.logger.PytestBenchmarkWarning",
-]
+filterwarnings = []
 markers = [
     "req(id): links test to requirement(s) e.g. @pytest.mark.req('REQ-YG-014')",
     "integration: marks tests requiring external services",

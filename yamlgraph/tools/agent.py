@@ -138,12 +138,16 @@ def _try_structured_output(
     output_model: type | None,
     llm_base: Any,
 ) -> Any:
-    """Try to extract structured output, fallback to LLM re-invoke (FR-448)."""
+    """Try to extract structured output, fallback to LLM re-invoke (FR-448).
+
+    Falls back to lenient construction when provider rejects response_format (FR-456).
+    """
     if not output_model:
         return _normalize_content(content)
     # Normalize content — Anthropic returns list of content blocks
     text = _normalize_content(content)
     # Try parse first (cheap)
+    parsed = None
     try:
         parsed = extract_json(text)
         if isinstance(parsed, dict):
@@ -158,9 +162,19 @@ def _try_structured_output(
     retry_msgs = list(msgs) + [
         HumanMessage(content="Now produce your response as structured JSON output.")
     ]
-    structured_llm = llm_base.with_structured_output(output_model)
-    result = structured_llm.invoke(retry_msgs)
-    return result.model_dump()
+    try:
+        structured_llm = llm_base.with_structured_output(output_model)
+        result = structured_llm.invoke(retry_msgs)
+        return result.model_dump()
+    except Exception as reinvoke_err:
+        # FR-456: If extract_json found a dict, use lenient construction
+        if isinstance(parsed, dict):
+            logger.warning(
+                "Structured output API rejected, returning best-effort parse: %s",
+                reinvoke_err,
+            )
+            return output_model.model_construct(**parsed).model_dump()
+        raise
 
 
 def create_agent_node(  # noqa: C901
