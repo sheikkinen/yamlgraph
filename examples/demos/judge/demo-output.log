@@ -1,102 +1,90 @@
 yamlgraph graph run examples/demos/judge/graph.yaml \
-  --var fr_path="feature-requests/FR-452-standalone-planner-demo.md" --json
-2026-05-24 14:37:15,970 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: read_file, search, list_dir, git_log, run_tests
-2026-05-24 14:37:15,987 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
-2026-05-24 14:37:16,087 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0)
-2026-05-24 14:37:16,821 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 12 iterations)
-2026-05-24 14:37:18,131 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:18,172 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-452-standalone-planner-demo.md'})
-2026-05-24 14:37:20,472 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:20,474 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'ARCHITECTURE.md', 'pattern': 'agent|copilot|tool'})
-2026-05-24 14:37:20,541 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'feature-requests'})
-2026-05-24 14:37:20,556 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'FR-450|judge demo|planner'})
-2026-05-24 14:37:23,342 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:23,344 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-450-judge-demo-hardening.md'})
-2026-05-24 14:37:23,359 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-447-judge-agent-node.md'})
-2026-05-24 14:37:23,373 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/judge/**/*.yaml', 'pattern': 'agent|tools'})
-2026-05-24 14:37:25,667 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:25,669 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/graph.yaml'})
-2026-05-24 14:37:25,682 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/prompts/judge.yaml'})
-2026-05-24 14:37:25,693 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos'})
-2026-05-24 14:37:28,236 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:28,238 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos/judge'})
-2026-05-24 14:37:28,250 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/*.md', 'pattern': 'planner|plan.*demo'})
-2026-05-24 14:37:28,294 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'planner|plan.*demo|FR-452'})
-2026-05-24 14:37:31,091 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:31,093 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/TEMPLATE.md'})
-2026-05-24 14:37:31,105 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/planner/**/*.yaml', 'pattern': '.'})
-2026-05-24 14:37:31,130 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': '.chaplain/graphs/watcher-plan/*.yaml', 'pattern': 'step-plan'})
-2026-05-24 14:37:33,039 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:33,041 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos/planner'})
-2026-05-24 14:37:34,756 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:34,758 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/research-agent/graph.yaml'})
-2026-05-24 14:37:34,770 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos/research-agent'})
-2026-05-24 14:37:36,636 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:36,638 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/unit/test_judge*.py', 'pattern': 'def test'})
-2026-05-24 14:37:36,660 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/unit/test_research_agent*.py', 'pattern': 'def test'})
-2026-05-24 14:37:38,773 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:38,776 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/unit/test_fr450*.py', 'pattern': 'def test'})
-2026-05-24 14:37:38,802 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/unit/test_*judge*demo*.py', 'pattern': 'def test'})
-2026-05-24 14:37:40,311 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:40,313 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'tests/unit/test_fr447_judge_demo.py'})
-2026-05-24 14:37:42,538 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 14:37:42,540 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'yamlgraph/tools/*.py', 'pattern': 'write_file|shell_tool'})
-2026-05-24 14:37:42,566 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/judge/demo.sh', 'pattern': '.'})
-2026-05-24 14:37:42,591 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (12)
-2026-05-24 14:38:01,212 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+  --var fr_path="feature-requests/FR-453-judge-model-evaluation.md" --json
+2026-05-24 19:50:11,121 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: read_file, search, list_dir, git_log, run_tests
+2026-05-24 19:50:11,139 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
+2026-05-24 19:50:11,234 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0)
+2026-05-24 19:50:11,991 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 12 iterations)
+2026-05-24 19:50:13,289 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:13,331 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-453-judge-model-evaluation.md'})
+2026-05-24 19:50:15,772 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:15,774 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'ARCHITECTURE.md', 'pattern': 'REQ|CAP|resolution chain|model resolution'})
+2026-05-24 19:50:15,817 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'feature-requests'})
+2026-05-24 19:50:15,830 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'FR-453|judge.*eval|model.*resolution'})
+2026-05-24 19:50:19,561 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:19,563 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-450*.md', 'pattern': 'judge|demo|model'})
+2026-05-24 19:50:19,592 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-451*.md', 'pattern': 'temperature|agent'})
+2026-05-24 19:50:19,620 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-452*.md', 'pattern': 'planner|demo'})
+2026-05-24 19:50:19,645 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos/judge'})
+2026-05-24 19:50:22,553 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:22,555 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/graph.yaml'})
+2026-05-24 19:50:22,567 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/demo.sh'})
+2026-05-24 19:50:22,578 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/eval.sh'})
+2026-05-24 19:50:25,143 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:25,145 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*.py', 'pattern': 'judge|FR-450|FR-451|FR-453'})
+2026-05-24 19:50:25,189 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/README.md'})
+2026-05-24 19:50:27,548 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:27,550 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*.py', 'pattern': 'FR-453|eval\\.sh|model.*evaluation|judge.*eval'})
+2026-05-24 19:50:27,585 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-450-judge-demo-hardening.md'})
+2026-05-24 19:50:29,514 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:29,516 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: run_tests({'test_file': 'tests/unit/test_fr447_judge_demo.py'})
+2026-05-24 19:50:37,724 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:37,727 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/judge/graph.yaml', 'pattern': 'model:|provider:'})
+2026-05-24 19:50:37,753 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/.gitignore'})
+2026-05-24 19:50:39,450 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:39,452 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': '.gitignore', 'pattern': 'eval-results|demo-output'})
+2026-05-24 19:50:41,170 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:50:41,173 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-45*.md', 'pattern': 'judge|eval|model|provider'})
+2026-05-24 19:51:11,353 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-05-24 19:51:11,355 [INFO] yamlgraph.tools.agent: ✓ Agent completed after 11 iterations
+2026-05-24 19:51:20,387 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
 Verdict saved to /Users/sheikki/Documents/src/yamlgraph/examples/demos/judge/judgement.json
 {
-  "verdict": "AMEND",
+  "verdict": "APPROVE",
   "classification": "contrib_example",
-  "reasoning": "FR-452 proposes a valuable standalone planner demo that mirrors the judge demo pattern (FR-450) with appropriate tool substitutions. The scope is clear and the implementation approach is sound. However, three issues require amendment: (1) the `write_file` tool via heredoc needs validation or fallback specification, (2) FR numbering strategy is underspecified, and (3) the prompt design section lacks concrete examples of how the agent should structure its research process. These are resolvable without architectural changes.",
+  "reasoning": "FR-453 is a well-scoped evaluation harness for the judge demo. Step 1 (remove hardcoded model) is correctly enforced and tested. Step 2 (eval.sh) is fully implemented with all acceptance criteria met. The FR leverages the existing model resolution chain (REQ-YG-050), requires no framework changes, and includes graceful error handling. Tests verify the contract (env var fallthrough) rather than implementation details. Strategic classification as contrib_example is correct: 4+ use cases identified, no existing abstraction covers multi-model evaluation.",
   "criteria_results": [
     {
       "criterion": "1. Scope clear and minimal",
       "passed": true,
-      "note": "Single-responsibility demo: transform topic \u2192 structured FR. Mirrors judge demo (FR-450) with 4 shared tools + 1 new tool (write_file). Clear boundaries: no test writing, no pipeline composition, no FR numbering automation."
+      "note": "Two-step FR with clear separation: Step 1 removes one line from graph.yaml; Step 2 adds eval.sh harness. No scope creep. Focused on evaluation tooling for judge demo."
     },
     {
-      "criterion": "2. Contradictions or ambiguities",
-      "passed": false,
-      "note": "Three ambiguities found: (a) write_file via heredoc with shlex.quote() on multi-line content needs validation or explicit fallback to Python tool; (b) FR numbering strategy ('manual or sequential scan') is vague \u2014 should specify exact behavior; (c) prompt design section describes the pattern but lacks concrete examples of research steps (e.g., 'search for REQ-YG-XXX in ARCHITECTURE.md')."
+      "criterion": "2. No contradictions or ambiguities",
+      "passed": true,
+      "note": "Amendment clearly explained (env var fallthrough vs yq patching). Acceptance criteria unambiguous. Provider constraints documented. No contradictions between FR text and implementation."
     },
     {
       "criterion": "3. Acceptance criteria measurable",
       "passed": true,
-      "note": "All 9 acceptance criteria are concrete and testable: tool count, no truncation, max_iterations, prompt instructions, schema fields, demo execution, evidence coverage, structured output, write_file validation. Mirrors judge demo test pattern (FR-447)."
+      "note": "All 11 acceptance criteria are concrete and verifiable. Step 1 (3 items) marked [x] and verified by tests. Step 2 (8 items) marked [ ] but implementation is complete and meets all criteria."
     },
     {
       "criterion": "4. Implementation approach feasible",
       "passed": true,
-      "note": "Approach is proven: reuses judge demo pattern (FR-450) with 4 identical tools (read_file, search, list_dir, git_log) and 1 new tool (write_file). Shell tool pipeline with shlex.quote() is established. Fallback to Python tool is documented as contingency. Temperature 0.3 is reasonable for research/drafting balance."
+      "note": "Step 1: trivial (remove one line, update shell script). Step 2: shell script with env var loop + Python reporting. No external dependencies. Graceful degradation for missing API keys. 120s timeout prevents hangs."
     },
     {
-      "criterion": "5. Aligns with existing architecture",
+      "criterion": "5. Alignment with existing architecture",
       "passed": true,
-      "note": "Aligns with agent node pattern (REQ-YG-018, REQ-YG-422 structured output). Follows demo-first pattern (FR-447, FR-450). Uses shell tools (REQ-YG-019) and Python tool fallback (REQ-YG-020). Structured output schema matches judge demo. No framework changes required."
+      "note": "Uses existing model resolution chain (REQ-YG-050). Leverages PROVIDER env var support. No new node types or framework primitives. Follows existing demo pattern (graph.yaml + prompts/ + demo.sh + demo-output.log)."
     },
     {
       "criterion": "6. Single responsibility",
       "passed": true,
-      "note": "Single concern: planner demo with agent + tools. Explicitly defers: test writing (enforce concern), FR numbering (capture concern), pipeline composition (future FR). No bundled orthogonal concerns."
+      "note": "Focused on evaluation tooling for judge demo. Does not bundle framework changes (FR-451), judge tool hardening (FR-450), or planner demo (FR-452). Single concern: run judge across multiple models and compare verdicts."
     },
     {
       "criterion": "7. Strategic classification",
       "passed": true,
-      "note": "Contrib_example is correct. Planner demo has 1-2 use cases (standalone FR drafting, first step in plan\u2192judge\u2192enforce pipeline). Existing abstractions (copilot planner in Chaplain) exist but require VS Code runtime. Demo provides portable alternative. Not framework_primitive (no 3+ use cases yet) but graduates to that if adopted in Chaplain pipeline (future FR)."
+      "note": "contrib_example is correct. Four use cases identified: benchmark provider/model suitability, inform CI gate model selection, inform Chaplain pipeline selection, ad-hoc FR evaluation. No existing abstraction covers multi-model evaluation harness."
     },
     {
-      "criterion": "8. Acceptance tests compile and fail correctly",
+      "criterion": "8. Acceptance tests compile and fail for right reasons",
       "passed": true,
-      "note": "Test pattern is established (FR-447 judge demo has 13 tests). FR-452 should follow same pattern: graph loads, has 5 tools, no truncation, max_iterations=15, prompt has schema, graph compiles. Tests should verify write_file tool exists and uses heredoc or Python fallback. Demo-output.log and plan.json artifacts required (demo-gate)."
+      "note": "tests/unit/test_fr447_judge_demo.py: 13/13 PASS. Includes test_no_hardcoded_model verifying Step 1 enforcement. Tests verify contract (env var fallthrough) rather than implementation details. Would fail if model: field re-added."
     }
   ],
-  "issues": [
-    "ISSUE-1: write_file tool validation incomplete. FR states 'heredoc with shlex.quote() may need validation' but doesn't specify acceptance criteria. Requirement: (a) document exact heredoc syntax expected, (b) add test that verifies write_file can write multi-line markdown without injection, or (c) explicitly specify Python tool fallback as primary implementation with heredoc as optional optimization.",
-    "ISSUE-2: FR numbering strategy underspecified. Current text: 'manual numbering or sequential scan of feature-requests/ may suffice' is vague. Requirement: specify exact behavior \u2014 either (a) planner prompts user for FR number, (b) planner scans feature-requests/ and auto-assigns next number, or (c) planner writes to a temporary file and user renames it. Document in prompt and acceptance criteria.",
-    "ISSUE-3: Prompt design section lacks concrete examples. Section 3 'Research the codebase' describes the pattern but doesn't show example tool calls. Requirement: add 2-3 concrete examples to prompt (e.g., 'search for REQ-YG-XXX in ARCHITECTURE.md', 'list_dir feature-requests/ to see landscape', 'git_log for related commits'). This helps agent understand scope and reduces iteration waste.",
-    "ISSUE-4: PlanResult schema field 'scope_assessment' has enum values but no guidance on when to use each. Requirement: clarify in prompt when planner should return 'single_responsibility' vs 'needs_split' vs 'too_broad' \u2014 or remove this field and let judge assess scope."
-  ]
+  "issues": []
 }
 
 ✓ Graph execution completed successfully
