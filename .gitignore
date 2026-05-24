@@ -123,3 +123,4 @@ ella/
 # Judge demo generated artifacts
 examples/demos/judge/judgement.json
 examples/demos/judge/output.json
+examples/demos/judge/eval-results/
