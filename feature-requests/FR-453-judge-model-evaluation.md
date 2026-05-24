@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — AMEND
+**Status:** Partially Enforced (Step 1 complete, Step 2 pending)
 **Effort:** 0.5 days
 **Requested:** 2026-05-24
 
@@ -234,8 +234,9 @@ Disagreement: {'APPROVE': 5, 'AMEND': 1}
 
 ## Acceptance Criteria
 
-- [ ] Judge `graph.yaml` has no hardcoded `model:` — uses env var fallthrough
-- [ ] `demo.sh` sets `PROVIDER=anthropic ANTHROPIC_MODEL=claude-sonnet-4-6` to preserve default behavior
+- [x] Judge `graph.yaml` has no hardcoded `model:` — uses env var fallthrough *(enforced c84f9cd4)*
+- [x] `demo.sh` sets `PROVIDER=anthropic ANTHROPIC_MODEL=claude-sonnet-4-6` to preserve default behavior *(enforced c84f9cd4)*
+- [x] Existing judge tests updated to reflect removed `model:` field — `test_no_hardcoded_model` added *(enforced c84f9cd4)*
 - [ ] `eval.sh` sets `PROVIDER` and `{PROVIDER}_MODEL` env vars per run — no `yq`, no temp files
 - [ ] Skips providers with missing API keys (graceful degradation)
 - [ ] 120s timeout per model prevents hangs
@@ -244,7 +245,6 @@ Disagreement: {'APPROVE': 5, 'AMEND': 1}
 - [ ] Report includes: verdict, classification, duration, criteria pass rate, consensus
 - [ ] Works with at least 5 providers (anthropic, openai, google, deepseek, xai)
 - [ ] `eval-results/` added to `.gitignore` (results contain LLM output, not source)
-- [ ] Existing judge tests updated to reflect removed `model:` field
 
 ## Alternatives Considered
 
@@ -277,6 +277,8 @@ Disagreement: {'APPROVE': 5, 'AMEND': 1}
 **Verdict:** AMEND → APPROVE (after amendment)
 
 **Date:** 2026-05-24
+
+**Enforcement note:** Step 1 (remove hardcoded model, update demo.sh, update tests) enforced in commit `c84f9cd4` on 2026-05-24. Step 2 (`eval.sh` harness) remains pending. Enforcement was triggered prematurely — the "amend" lifecycle command was misinterpreted as "enforce." See diary entry `diary-2026-05-24-lifecycle-verb-drift.md`.
 
 The original proposal used `yq` to patch a temp copy of `graph.yaml` per model run — adding an external dependency and temp file management. The amendment is simpler: remove `model: claude-sonnet-4-6` from the judge node and let the existing resolution chain (`node_config → defaults → prompt_config → env var → default`) fall through to `PROVIDER` / `{PROVIDER}_MODEL` env vars. The eval script sets these per run.
 
