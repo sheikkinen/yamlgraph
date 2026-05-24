@@ -5,6 +5,7 @@ These models are intentionally NOT imported from yamlgraph.models to
 demonstrate that the framework is truly generic and works with any schema.
 """
 
+import logging
 import os
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -13,6 +14,10 @@ import pytest
 from pydantic import BaseModel, Field
 
 from yamlgraph.models import create_initial_state
+
+# Suppress langsmith client finalizer "Logging error" noise during xdist
+# worker shutdown (atexit race: stderr closed before logger.debug fires).
+logging.getLogger("langsmith.client").setLevel(logging.WARNING)
 
 # =============================================================================
 # Environment Pollution Guard
