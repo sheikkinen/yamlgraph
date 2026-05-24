@@ -72,9 +72,7 @@ would have immediately pointed to "the fix isn't being executed" rather than
 - **LangSmith trace:** 3 LLM calls (tool request, response, fallback structured),
   `analysis=dict` with correct schema keys
 
-## Seed
-
-When `inspect.getsource()` and runtime behavior disagree, the abstraction
+**Seed:** When `inspect.getsource()` and runtime behavior disagree, the abstraction
 layer between source and execution (bytecode cache, installed packages,
 import hooks) is the suspect. Could a pre-flight check in the CLI detect
 stale installs by comparing source mtime vs installed dist-info?
