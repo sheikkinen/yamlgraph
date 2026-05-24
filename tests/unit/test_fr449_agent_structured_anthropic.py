@@ -412,3 +412,129 @@ class TestStructuredOutputJsonFallback:
             _try_structured_output(
                 content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
             )
+
+
+class TestOpenAIStrictSchemaFallback:
+    """FR-458: OpenAI strict mode rejects schemas without additionalProperties.
+
+    When with_structured_output() raises with 'invalid_json_schema' or
+    'additionalProperties', retry with method="function_calling" which
+    uses the more lenient function-calling API.
+    """
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_fallback_to_function_calling_on_invalid_json_schema(self):
+        """When OpenAI rejects schema with invalid_json_schema, retry with
+        method='function_calling'."""
+        import tempfile
+
+        from yamlgraph.schema_loader import load_schema_from_yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+            f.write(PROMPT_YAML_WITH_SCHEMA)
+            f.flush()
+            output_model = load_schema_from_yaml(Path(f.name))
+
+        # Prose content — forces the structured re-invoke path
+        content = "The FR is well-structured and should be approved."
+        msgs = []
+
+        mock_llm_base = MagicMock()
+
+        # First with_structured_output() (default) raises OpenAI strict mode error
+        mock_strict = MagicMock()
+        mock_strict.invoke.side_effect = Exception(
+            "Error code: 400 - {'error': {'message': \"Invalid schema for "
+            "response_format 'JudgeVerdict': In context=('properties', "
+            "'criteria_results', 'items'), 'additionalProperties' is required "
+            "to be supplied and to be false.\", 'type': "
+            "'invalid_request_error', 'param': 'text.format.schema', "
+            "'code': 'invalid_json_schema'}}"
+        )
+
+        # Second with_structured_output(method="function_calling") succeeds
+        mock_fc = MagicMock()
+        mock_fc_result = output_model(verdict="APPROVE", reasoning="Solid")
+        mock_fc.invoke.return_value = mock_fc_result
+
+        def wso_side_effect(model, **kwargs):
+            if kwargs.get("method") == "function_calling":
+                return mock_fc
+            return mock_strict
+
+        mock_llm_base.with_structured_output.side_effect = wso_side_effect
+
+        result = _try_structured_output(
+            content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
+        )
+
+        assert isinstance(result, dict)
+        assert result["verdict"] == "APPROVE"
+        assert result["reasoning"] == "Solid"
+        # Verify function_calling method was used
+        calls = mock_llm_base.with_structured_output.call_args_list
+        assert len(calls) == 2
+        assert calls[1][1].get("method") == "function_calling"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_fallback_to_function_calling_on_additional_properties(self):
+        """When error mentions additionalProperties, retry with function_calling."""
+        import tempfile
+
+        from yamlgraph.schema_loader import load_schema_from_yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+            f.write(PROMPT_YAML_WITH_SCHEMA)
+            f.flush()
+            output_model = load_schema_from_yaml(Path(f.name))
+
+        content = "Analysis complete."
+        msgs = []
+
+        mock_llm_base = MagicMock()
+        mock_strict = MagicMock()
+        mock_strict.invoke.side_effect = Exception(
+            "additionalProperties is required to be supplied and to be false"
+        )
+        mock_fc = MagicMock()
+        mock_fc_result = output_model(verdict="REJECT", reasoning="Missing tests")
+        mock_fc.invoke.return_value = mock_fc_result
+
+        def wso_side_effect(model, **kwargs):
+            if kwargs.get("method") == "function_calling":
+                return mock_fc
+            return mock_strict
+
+        mock_llm_base.with_structured_output.side_effect = wso_side_effect
+
+        result = _try_structured_output(
+            content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
+        )
+
+        assert isinstance(result, dict)
+        assert result["verdict"] == "REJECT"
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_non_schema_error_still_propagates(self):
+        """Errors unrelated to strict schema validation still propagate normally."""
+        import tempfile
+
+        from yamlgraph.schema_loader import load_schema_from_yaml
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", mode="w", delete=False) as f:
+            f.write(PROMPT_YAML_WITH_SCHEMA)
+            f.flush()
+            output_model = load_schema_from_yaml(Path(f.name))
+
+        content = "Analysis complete."
+        msgs = []
+
+        mock_llm_base = MagicMock()
+        mock_structured = MagicMock()
+        mock_structured.invoke.side_effect = Exception("Rate limit exceeded")
+        mock_llm_base.with_structured_output.return_value = mock_structured
+
+        with pytest.raises(Exception, match="Rate limit exceeded"):
+            _try_structured_output(
+                content, msgs=msgs, output_model=output_model, llm_base=mock_llm_base
+            )

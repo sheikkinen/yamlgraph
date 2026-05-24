@@ -167,6 +167,14 @@ def _try_structured_output(
         result = structured_llm.invoke(retry_msgs)
         return result.model_dump()
     except Exception as reinvoke_err:
+        err_str = str(reinvoke_err)
+        # FR-458: OpenAI strict mode rejects schemas without additionalProperties
+        if "invalid_json_schema" in err_str or "additionalProperties" in err_str:
+            logger.warning("Strict schema rejected, retrying with function_calling")
+            fc_llm = llm_base.with_structured_output(
+                output_model, method="function_calling"
+            )
+            return fc_llm.invoke(retry_msgs).model_dump()
         # FR-456: If extract_json found a dict, use lenient construction
         if isinstance(parsed, dict):
             logger.warning(

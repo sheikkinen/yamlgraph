@@ -89,7 +89,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Resolved**: `node_fn` now an orchestrator calling extracted phases. C901 now passes without suppression.
 
 ### CONF-007
-- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L180)
+- **File**: [yamlgraph/tools/agent.py](../yamlgraph/tools/agent.py#L188)
 - **Code**: C901 (cognitive complexity 19 > 15)
 - **Sin**: `create_agent_node` assembles agent with tool binding, prompt loading, and LLM configuration in one function.
 - **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
