@@ -169,7 +169,7 @@
 - `yamlgraph/storage/simple_redis.py` - 341 lines; exports: `class SimpleRedisCheckpointer`
   - import dependencies: `yamlgraph.storage.serializers`
 - `yamlgraph/tools/__init__.py` - 6 lines; exports: _none_
-- `yamlgraph/tools/agent.py` - 425 lines; exports: `build_langchain_tool(name, config)`, `build_python_tool(name, config, *, graph_root)`, `create_agent_node(node_name, node_config, tools, python_tools, *, defaults, graph_path, output_model)`
+- `yamlgraph/tools/agent.py` - 439 lines; exports: `build_langchain_tool(name, config)`, `build_python_tool(name, config, *, graph_root)`, `create_agent_node(node_name, node_config, tools, python_tools, *, defaults, graph_path, output_model)`
   - import dependencies: `yamlgraph.executor_base`, `yamlgraph.tools.python_tool`, `yamlgraph.tools.schema_loader_tool`, `yamlgraph.tools.shell`, `yamlgraph.utils.content`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.prompts`
 - `yamlgraph/tools/nodes.py` - 130 lines; exports: `resolve_state_variable(template, state)`, `resolve_variables(variables_config, state)`, `create_tool_node(node_name, node_config, tools)`
   - import dependencies: `yamlgraph.error_handlers`, `yamlgraph.tools.shell`, `yamlgraph.utils.expressions`
@@ -209,11 +209,11 @@
   - import dependencies: _none_
 - `yamlgraph/utils/json_extract.py` - 130 lines; exports: `find_balanced_json(text, start_char, end_char)`, `extract_json(text)`
   - import dependencies: _none_
-- `yamlgraph/utils/llm_factory.py` - 194 lines; exports: `create_llm(provider, model, temperature, max_tokens, thinking_budget)`, `clear_cache()`
+- `yamlgraph/utils/llm_factory.py` - 206 lines; exports: `create_llm(provider, model, temperature, max_tokens, thinking_budget)`, `clear_cache()`
   - import dependencies: `yamlgraph.config`, `yamlgraph.utils.llm_providers`
 - `yamlgraph/utils/llm_factory_async.py` - 113 lines; exports: `get_executor()`, `async create_llm_async(provider, model, temperature, max_tokens)`, `async invoke_async(llm, messages, output_model)`, `shutdown_executor()`
   - import dependencies: `yamlgraph.utils.llm_factory`
-- `yamlgraph/utils/llm_providers.py` - 314 lines; exports: `dispatch_provider(provider, model, temperature, thinking_budget, **kwargs)`
+- `yamlgraph/utils/llm_providers.py` - 317 lines; exports: `dispatch_provider(provider, model, temperature, thinking_budget, **kwargs)`
   - import dependencies: _none_
 - `yamlgraph/utils/logging.py` - 112 lines; exports: `class StructuredFormatter`, `setup_logging(level, use_json)`, `get_logger(name)`
   - import dependencies: _none_

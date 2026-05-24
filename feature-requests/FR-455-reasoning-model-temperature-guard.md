@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-05-24
 
@@ -55,9 +55,9 @@ def create_llm(provider, model=None, temperature=None, **kwargs):
 
 ## Acceptance Criteria
 
-- [ ] `create_llm(provider="openai", model="o4-mini", temperature=0)` succeeds without 400 error
-- [ ] Temperature is silently omitted for `o1-*`, `o3-*`, `o4-*` model prefixes
-- [ ] Log message emitted when temperature is omitted
+- [x] `create_llm(provider="openai", model="o4-mini", temperature=0)` succeeds without 400 error
+- [x] Temperature is silently omitted for `o1-*`, `o3-*`, `o4-*` model prefixes
+- [x] Log message emitted when temperature is omitted
 - [ ] Non-reasoning OpenAI models (gpt-4o, gpt-4.1) still accept temperature normally
 - [ ] Unit test covers reasoning model temperature guard
 

@@ -165,12 +165,15 @@ def _create_mistral_llm(
 
 
 def _create_openai_llm(
-    model: str, temperature: float, **kwargs: object
+    model: str, temperature: float | None, **kwargs: object
 ) -> BaseChatModel:
     """Create OpenAI LLM."""
     from langchain_openai import ChatOpenAI
 
-    return ChatOpenAI(model=model, temperature=temperature, **kwargs)
+    params: dict[str, object] = {"model": model, **kwargs}
+    if temperature is not None:
+        params["temperature"] = temperature
+    return ChatOpenAI(**params)
 
 
 def _create_replicate_llm(
@@ -285,7 +288,7 @@ def _create_xai_llm(model: str, temperature: float, **kwargs: object) -> BaseCha
 def dispatch_provider(
     provider: str,
     model: str,
-    temperature: float,
+    temperature: float | None,
     thinking_budget: int | None,
     **kwargs: object,
 ) -> BaseChatModel:

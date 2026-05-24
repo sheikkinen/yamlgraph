@@ -525,3 +525,34 @@ class TestCreateLLM:
         assert captured[
             "GOOGLE_API_KEY_present"
         ], "GOOGLE_API_KEY must NOT be masked in ADC mode"
+
+
+class TestReasoningModelTemperatureGuard:
+    """FR-455: Reasoning models reject temperature — guard in create_llm."""
+
+    def setup_method(self):
+        clear_cache()
+
+    @pytest.mark.req("REQ-YG-010")
+    @pytest.mark.parametrize("model", ["o1", "o1-preview", "o3", "o3-mini", "o4-mini"])
+    def test_reasoning_model_omits_temperature(self, model):
+        """Temperature should be omitted for OpenAI reasoning models."""
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
+            llm = create_llm(provider="openai", model=model, temperature=0)
+            # Reasoning models must not receive temperature
+            assert llm.temperature is None or llm.temperature == 1
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_non_reasoning_model_keeps_temperature(self):
+        """Non-reasoning OpenAI models should keep temperature."""
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
+            llm = create_llm(provider="openai", model="gpt-4o", temperature=0)
+            assert llm.temperature == 0
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_non_openai_provider_unaffected(self):
+        """Non-OpenAI providers should not be affected by reasoning guard."""
+        llm = create_llm(
+            provider="anthropic", model="claude-sonnet-4-20250514", temperature=0
+        )
+        assert llm.temperature == 0
