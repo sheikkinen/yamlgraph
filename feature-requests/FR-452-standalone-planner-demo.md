@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-05-24
 

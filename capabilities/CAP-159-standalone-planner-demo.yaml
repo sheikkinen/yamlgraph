@@ -1,0 +1,27 @@
+id: CAP-159
+name: Standalone Planner Demo
+description: >
+  Standalone FR planner demo using agent node with 5 task-shaped tools
+  (4 shell + 1 python). Transforms rough topic files into structured
+  feature requests. Portable — runs without VS Code runtime.
+
+modules:
+  - examples/demos/planner/graph.yaml
+  - examples/demos/planner/prompts/planner.yaml
+  - examples/demos/planner/tools/write_file.py
+  - examples/demos/planner/demo.sh
+
+requirements:
+  - id: REQ-YG-424
+    description: >
+      Planner demo has 5 tools (read_file, search, list_dir, git_log,
+      write_file), agent node with max_iterations 15, PlanResult schema
+      with 6 fields, write_file as python tool, no hardcoded model,
+      and produces a FR file at tmp/plan-output.md.
+    modules:
+      - examples/demos/planner/graph.yaml
+      - examples/demos/planner/prompts/planner.yaml
+      - examples/demos/planner/tools/write_file.py
+      - examples/demos/planner/demo.sh
+
+fr: FR-452

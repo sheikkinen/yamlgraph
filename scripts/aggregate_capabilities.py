@@ -60,7 +60,7 @@ def generate_sections(capabilities: list[dict]) -> str:
             modules += ", …"
         reqs = [r["id"] for r in cap.get("requirements", [])]
         req_str = _compact_req_range(reqs) if reqs else "—"
-        lines.append(f"| {num} | {name} | {modules} | {req_str} |")
+        lines.append(f"| {num} | CAP-{num} {name} | {modules} | {req_str} |")
 
     lines.append("")
     lines.append(
@@ -76,7 +76,7 @@ def generate_sections(capabilities: list[dict]) -> str:
         fr = cap.get("fr", "legacy")
         reqs = cap.get("requirements", [])
 
-        lines.append(f"### {num}. {name}")
+        lines.append(f"### {num}. CAP-{num} {name}")
         lines.append("")
         if desc:
             lines.append(desc)

@@ -1,0 +1,19 @@
+yamlgraph graph run examples/demos/planner/graph.yaml \
+  --var topic_file="tmp/test-topic.md" --json
+Plan saved to /Users/sheikki/Documents/src/yamlgraph/examples/demos/planner/plan.json
+{
+  "fr_path": "tmp/plan-output.md",
+  "title": "Graph Visualization Export",
+  "summary": "Add a `yamlgraph graph export --format mermaid` command that outputs a Mermaid diagram of the graph structure. Useful for documentation and PR descriptions.",
+  "research_findings": [
+    "YAMLGraph has established export patterns: `graph codegen` (TypedDict code), `schema export` (JSON Schema), `skill export` (portable packages). All follow the same CLI dispatch pattern via `cmd_*` functions in `yamlgraph/cli/` with subcommand routing.",
+    "Mermaid diagrams are already referenced in FR-070 (GUI Web Playground uses LangGraph's built-in `get_graph().draw_mermaid()`), FR-290 (FSM state machine diagrams), and FR-100 (eBook authoring with Mermaid diagrams). No existing YAMLGraph export to Mermaid found.",
+    "LangGraph's StateGraph has a built-in `get_graph().draw_mermaid()` method that could be leveraged, but the compiled graph structure is already available via the graph config and compiled StateGraph object.",
+    "Mermaid syntax is plain text \u2014 no external rendering library needed. Output is human-readable and embeddable in Markdown.",
+    "No conflicting or duplicate proposals found in feature-requests/ directory."
+  ],
+  "scope_assessment": "single_responsibility",
+  "estimated_effort": "3 days: 0.5 days CLI integration (add subcommand, dispatch function), 1 day Mermaid generation (traverse graph, generate syntax, handle special cases), 0.25 days unit tests (test diagram generation for each node type), 0.25 days integration tests (test CLI end-to-end), 0.5 days documentation (update reference/cli.md, add examples)"
+}
+
+✓ Graph execution completed successfully
