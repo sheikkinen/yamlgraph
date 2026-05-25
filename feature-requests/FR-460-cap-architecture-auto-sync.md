@@ -33,7 +33,7 @@ Both had been silently drifting. The `detection_without_enforcement` pattern fro
 
 ## Proposed Solution
 
-Add a pre-commit hook mirroring the `changelog-release-sync` pattern:
+Add a pre-commit hook following the `ruff-format` auto-fix pattern (modifies file, pre-commit detects unstaged change and fails, developer stages):
 
 ```yaml
 # .pre-commit-config.yaml
@@ -53,7 +53,7 @@ The hook:
 2. Runs `aggregate_capabilities.py` which regenerates the section between `<!-- BEGIN GENERATED CAPABILITIES -->` and `<!-- END GENERATED CAPABILITIES -->` markers
 3. If ARCHITECTURE.md changes, the developer sees the diff and stages it
 
-**No auto-staging needed** — pre-commit will detect the unstaged change and fail, prompting the developer to `git add ARCHITECTURE.md`. This is the same behavior as `ruff format` auto-fixes.
+**No auto-staging needed** — pre-commit will detect the unstaged change and fail, prompting the developer to `git add ARCHITECTURE.md`. This is the `ruff-format` auto-fix pattern, not the `changelog-release-sync` gate pattern (which exits 1 to block). The distinction: this hook is a regenerator that modifies a file; `changelog-release-sync` is a validator that blocks.
 
 ## Acceptance Criteria
 
@@ -63,6 +63,8 @@ The hook:
 - [ ] Modifying a CAP description and committing updates the generated section
 - [ ] Hook does not run when non-CAP files change (performance)
 - [ ] Tests pass with regenerated content
+- [ ] RED acceptance tests in `tests/unit/test_fr460_cap_architecture_auto_sync.py` tagged `@pytest.mark.req("REQ-YG-425")`
+- [ ] `capabilities/CAP-160-cap-architecture-auto-sync.yaml` registered with REQ-YG-425
 
 ## Alternatives Considered
 
@@ -73,6 +75,7 @@ The hook:
 ## Related
 
 - FR-452 — Exposed the silent drift during enforcement
-- `changelog-release-sync` hook — Same pattern (derived file regeneration on source change)
+- `ruff-format` auto-fix — Same behavioral pattern (modifies file, pre-commit detects unstaged change)
+- `changelog-release-sync` hook — Related but different pattern (gate that exits 1, not a regenerator)
 - `aggregate_capabilities.py` — The regeneration script
 - Scripture: `detection_without_enforcement` — "Lint without gate = advisory"
