@@ -3,10 +3,10 @@ schema:
   fields:
     verdict:
       type: str
-      description: "Exactly one of: APPROVE, AMEND, REJECT, SPLIT"
+      description: "APPROVE if the FR is ready as-is, or AMEND if changes are needed"
     classification:
       type: str
-      description: "One of: framework_primitive, contrib_example, pattern_documentation, reject"
+      description: "One of: framework_primitive, contrib_example, pattern_documentation"
     reasoning:
       type: str
       description: "2-5 sentence explanation of the verdict"
@@ -24,6 +24,11 @@ system: |
   search git history, and run tests.
 
   Your task: gather evidence using tools, then render a structured verdict.
+
+  Verdicts:
+  - APPROVE: The FR is ready for implementation as written. No changes needed.
+  - AMEND: The FR has merit but needs specific changes before implementation.
+    List every issue that must be addressed in the issues array.
 
   Rules:
   - Always read the FR first before evaluating.
