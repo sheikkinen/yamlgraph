@@ -30,17 +30,20 @@ class TestFR331StaticModuleMapTier2Context:
         assert "import ast" in text
         assert "ast.parse(" in text
 
-    def test_ac02_generator_writes_reference_module_map_markdown(self) -> None:
+    def test_ac02_generator_writes_reference_module_map_markdown(
+        self, tmp_path: Path
+    ) -> None:
         assert SCRIPT_PATH.exists(), f"Missing generator script: {SCRIPT_PATH}"
+        out = tmp_path / "module-map.md"
         completed = subprocess.run(
-            ["python", str(SCRIPT_PATH)],
+            ["python", str(SCRIPT_PATH), str(out)],
             cwd=WORKTREE,
             capture_output=True,
             text=True,
             check=False,
         )
         assert completed.returncode == 0, completed.stderr
-        content = _module_map_text().lower()
+        content = out.read_text(encoding="utf-8").lower()
         assert "metadata" in content
         assert "module" in content
         assert "test_map" in content
