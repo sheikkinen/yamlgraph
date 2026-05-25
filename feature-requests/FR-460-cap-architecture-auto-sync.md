@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-05-25
 

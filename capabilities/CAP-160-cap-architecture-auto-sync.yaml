@@ -1,0 +1,22 @@
+id: CAP-160
+name: CAP Architecture Auto-Sync
+fr: FR-460
+description: >
+  Pre-commit hook that auto-regenerates the capabilities section of
+  ARCHITECTURE.md when capabilities/*.yaml files change. Follows the
+  ruff-format auto-fix pattern: modifies file, pre-commit detects
+  unstaged change and fails, developer stages.
+
+modules:
+  - .pre-commit-config.yaml
+  - scripts/aggregate_capabilities.py
+
+requirements:
+  - id: REQ-YG-425
+    description: >
+      cap-architecture-sync pre-commit hook triggers on capabilities/*.yaml
+      and aggregate script changes, runs aggregate_capabilities.py,
+      exits 0, and does not pass filenames.
+    modules:
+      - .pre-commit-config.yaml
+      - scripts/aggregate_capabilities.py
