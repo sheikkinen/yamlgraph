@@ -8,7 +8,9 @@ requirements:
   - id: REQ-YG-063
     description: >
       Requirement traceability enforcement: `pytest_collection_modifyitems` hook
-      structurally enforces ADR-001 — all tests must have `@pytest.mark.req`
+      structurally enforces ADR-001 — framework tests in `tests/unit` and
+      `tests/integration` must have `@pytest.mark.req`; infrastructure tests
+      in `.github/hooks/tests` are excluded from this requirement
     modules:
       - tests/conftest
       - tests/unit/test_requirement_enforcement
