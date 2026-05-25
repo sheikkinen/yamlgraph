@@ -1,57 +1,105 @@
-2026-05-24 22:45:09,649 [INFO] yamlgraph.graph_loader: Parsed 5 shell tools: read_file, search, list_dir, git_log, run_tests
-2026-05-24 22:45:09,682 [INFO] yamlgraph.node_compiler: Added node: judge (type=agent)
-2026-05-24 22:45:09,778 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0)
-2026-05-24 22:45:10,523 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 12 iterations)
-2026-05-24 22:45:11,725 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:11,767 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-452-standalone-planner-demo.md'})
-2026-05-24 22:45:13,630 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:13,632 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'ARCHITECTURE.md', 'pattern': 'agent|copilot|tool'})
-2026-05-24 22:45:13,676 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'feature-requests'})
-2026-05-24 22:45:13,689 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'planner|plan-unified|FR-450|FR-447'})
-2026-05-24 22:45:16,200 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:16,203 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-450-judge-demo-hardening.md'})
-2026-05-24 22:45:16,216 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-447-judge-agent-node.md'})
-2026-05-24 22:45:16,229 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/judge/**/*.yaml', 'pattern': 'agent|tools'})
-2026-05-24 22:45:18,962 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:18,964 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/graph.yaml'})
-2026-05-24 22:45:18,977 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/prompts/judge.yaml'})
-2026-05-24 22:45:18,989 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos'})
-2026-05-24 22:45:22,754 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:22,756 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'examples/demos/judge'})
-2026-05-24 22:45:22,769 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-305*.md', 'pattern': 'plan-unified|planner'})
-2026-05-24 22:45:22,795 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': '.chaplain/graphs/**/*.yaml', 'pattern': 'step-plan-unified'})
-2026-05-24 22:45:24,601 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:24,603 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': '**/*.yaml', 'pattern': 'step-plan-unified'})
-2026-05-24 22:45:24,644 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-305-watcher-pipeline-fsm-simplification.md'})
-2026-05-24 22:45:26,765 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:26,767 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/TEMPLATE.md'})
-2026-05-24 22:45:26,784 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/research-agent/**/*.yaml', 'pattern': 'agent|tools'})
-2026-05-24 22:45:28,702 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:28,704 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/research-agent/graph.yaml'})
-2026-05-24 22:45:28,718 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/research-agent/README.md'})
-2026-05-24 22:45:30,757 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:30,759 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*judge*.py', 'pattern': 'test_'})
-2026-05-24 22:45:30,789 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*research*.py', 'pattern': 'test_'})
-2026-05-24 22:45:32,232 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:32,235 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'tests/unit/test_fr447_judge_demo.py'})
-2026-05-24 22:45:34,011 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:34,014 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/demo.sh'})
-2026-05-24 22:45:34,029 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'examples/demos/judge/README.md'})
-2026-05-24 22:45:36,136 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-05-24 22:45:36,138 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'examples/demos/planner/**/*', 'pattern': '.'})
-2026-05-24 22:45:36,172 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'feature-requests/FR-305*.md', 'pattern': 'write_file|planner'})
-2026-05-24 22:45:36,198 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (12)
-2026-05-24 22:45:46,297 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+yamlgraph graph run examples/demos/judge/graph.yaml \
+  --var fr_path="feature-requests/FR-452-standalone-planner-demo.md" --json
+Verdict saved to /Users/sheikki/Documents/src/yamlgraph/examples/demos/judge/judgement.json
+{
+  "verdict": "AMEND",
+  "classification": "contrib_example",
+  "reasoning": "FR-452 has clear value and sound architecture \u2014 it correctly mirrors the proven judge demo pattern (FR-450) and the 4-of-5 shared tools are already validated in production. However, the `write_file` tool has a fundamental technical blocker: `shlex.quote()` wraps multi-line content in single quotes, collapsing newlines to literal `\\n` sequences, which breaks the heredoc approach. The FR acknowledges this as an open question but does not resolve it before implementation. Additionally, no acceptance tests are provided (unlike FR-450 which had a test skeleton), and the `demo.sh` body is entirely absent. These gaps must be resolved before enforcement.",
+  "criteria_results": [
+    {
+      "criterion": "1. Is the scope clear and minimal?",
+      "passed": true,
+      "note": "Scope is well-bounded: one new demo directory with 5 files (graph.yaml, prompts/planner.yaml, demo.sh, demo-output.log, README.md). No framework changes. Mirrors FR-450 pattern exactly. Tool delta from judge is precisely documented: drop run_tests, add write_file."
+    },
+    {
+      "criterion": "2. Are there contradictions or ambiguities?",
+      "passed": false,
+      "note": "The `write_file` heredoc approach is flagged as an open question but left unresolved. `shlex.quote()` in `sanitize_variables()` wraps the entire `content` value in single quotes, which means multi-line markdown content will have its newlines escaped as literal `\\n` \u2014 the heredoc will receive a single-quoted string, not multi-line text. The FR says 'needs validation during enforcement' but this is a known-broken design that should be resolved at planning time. The fallback (type: python tool with pathlib.Path.write_text()) is the correct answer and should be specified as the primary approach."
+    },
+    {
+      "criterion": "3. Are acceptance criteria measurable?",
+      "passed": true,
+      "note": "9 acceptance criteria are listed, all binary and verifiable: tool count, no head truncation, max_iterations value, prompt instructions, schema fields, demo output file, evidence coverage, demo.sh output, write_file validation. All are checkable by inspection or execution."
+    },
+    {
+      "criterion": "4. Is the implementation approach feasible?",
+      "passed": true,
+      "note": "The agent node + shell tools pattern is proven by FR-450 (judge demo, now implemented). 4 of 5 tools are direct copies from the judge's graph.yaml. The only novel element is write_file, which has a known-good fallback (type: python). temperature: 0.3 and max_iterations: 15 are reasonable. The state contract (topic_file \u2192 plan_result) is clean."
+    },
+    {
+      "criterion": "5. Does it align with existing architecture?",
+      "passed": true,
+      "note": "Directly uses CAP-5 (Tool & Agent Integration, REQ-YG-017\u2013020) and CAP-3 (Node Execution). The type: agent pattern with shell tools is the established demo pattern (research-agent, judge, hook_classifier). No new framework capabilities required. The demo-gate (REQ-YG-200) and examples/README.md audit (REQ-YG-147) will apply at enforcement time."
+    },
+    {
+      "criterion": "6. Single responsibility \u2014 or does it bundle orthogonal concerns?",
+      "passed": true,
+      "note": "Single concern: a portable, scriptable FR planner demo. No framework changes, no chaplain pipeline changes, no new node types. The FR explicitly defers pipeline composition (planner\u2192judge chaining) to future scope. The write_file tool is the planner's unique concern and is correctly scoped to this demo."
+    },
+    {
+      "criterion": "7. Strategic classification",
+      "passed": true,
+      "note": "Correctly classified as contrib/example. The judge demo (FR-450) established the pattern; this is the second instance. Together they form a plan\u2192judge pipeline demo series. FR-329 (agent-sdk planner spike) is a prior related attempt using a different technology (Anthropic Agent SDK directly). Not a framework primitive \u2014 no new abstractions needed. Not pattern documentation \u2014 produces a runnable artifact."
+    },
+    {
+      "criterion": "8. Do acceptance tests compile and fail for the right reasons?",
+      "passed": false,
+      "note": "No acceptance tests are referenced or provided. The FR has no test file (unlike FR-450 which included a test skeleton). The demo-gate (REQ-YG-200) requires demo-output.log but that is a runtime artifact, not a RED test. The FR should include at minimum a structural test (graph.yaml exists, has 5 tools, write_file tool present, PlanResult schema fields present) following the pattern of test_research_agent_demo.py or test_fr402_prompt_theme_analyzer_red.py."
+    }
+  ],
+  "issues": [
+    "BLOCKER \u2014 write_file heredoc is broken by design: shlex.quote() in sanitize_variables() wraps multi-line content in single quotes, collapsing newlines. The heredoc approach cannot work through the shell tool pipeline. Resolve by specifying the primary implementation as a type: python tool using pathlib.Path.write_text(content) \u2014 this is the correct, portable approach. The heredoc option should be dropped, not left as a fallback.",
+    "REQUIRED \u2014 No acceptance tests provided. Add tests/unit/test_fr452_standalone_planner_demo.py with RED structural tests: (1) graph.yaml exists at examples/demos/planner/graph.yaml, (2) graph has exactly 5 tools including write_file, (3) PlanResult schema includes all required fields (fr_path, title, summary, research_findings, scope_assessment, estimated_effort), (4) demo.sh exists and is executable. Follow the pattern of tests/unit/test_research_agent_demo.py.",
+    "REQUIRED \u2014 demo.sh body is absent. The FR shows only a shebang and usage comment. Provide the full demo.sh implementation: accept topic_file argument, invoke yamlgraph graph run with --var topic_file=..., extract plan_result from output (using --json flag per REQ-YG-348/349), write plan.json. Reference examples/demos/judge/demo.sh as the model.",
+    "MINOR \u2014 PlanResult schema inconsistency: scope_assessment and estimated_effort appear in the schema definition but are absent from the acceptance criteria checklist. Either add them to the AC checklist or remove them from the schema if they are not required. The AC checklist only mentions fr_path, title, summary, research_findings."
+  ]
+}
 
-🚀 Running graph: graph.yaml
-   Variables: {'fr_path': 'feature-requests/FR-452-standalone-planner-demo.md'}
+✓ Graph execution completed successfully
+ly documented: drop run_tests, add write_file."
+    },
+    {
+      "criterion": "2. Are there contradictions or ambiguities?",
+      "passed": false,
+      "note": "The `write_file` heredoc approach is flagged as an open question but left unresolved. `shlex.quote()` in `sanitize_variables()` wraps the entire `content` value in single quotes, which means multi-line markdown content will have its newlines escaped as literal `\\n` \u2014 the heredoc will receive a single-quoted string, not multi-line text. The FR says 'needs validation during enforcement' but this is a known-broken design that should be resolved at planning time. The fallback (type: python tool with pathlib.Path.write_text()) is the correct answer and should be specified as the primary approach."
+    },
+    {
+      "criterion": "3. Are acceptance criteria measurable?",
+      "passed": true,
+      "note": "9 acceptance criteria are listed, all binary and verifiable: tool count, no head truncation, max_iterations value, prompt instructions, schema fields, demo output file, evidence coverage, demo.sh output, write_file validation. All are checkable by inspection or execution."
+    },
+    {
+      "criterion": "4. Is the implementation approach feasible?",
+      "passed": true,
+      "note": "The agent node + shell tools pattern is proven by FR-450 (judge demo, now implemented). 4 of 5 tools are direct copies from the judge's graph.yaml. The only novel element is write_file, which has a known-good fallback (type: python). temperature: 0.3 and max_iterations: 15 are reasonable. The state contract (topic_file \u2192 plan_result) is clean."
+    },
+    {
+      "criterion": "5. Does it align with existing architecture?",
+      "passed": true,
+      "note": "Directly uses CAP-5 (Tool & Agent Integration, REQ-YG-017\u2013020) and CAP-3 (Node Execution). The type: agent pattern with shell tools is the established demo pattern (research-agent, judge, hook_classifier). No new framework capabilities required. The demo-gate (REQ-YG-200) and examples/README.md audit (REQ-YG-147) will apply at enforcement time."
+    },
+    {
+      "criterion": "6. Single responsibility \u2014 or does it bundle orthogonal concerns?",
+      "passed": true,
+      "note": "Single concern: a portable, scriptable FR planner demo. No framework changes, no chaplain pipeline changes, no new node types. The FR explicitly defers pipeline composition (planner\u2192judge chaining) to future scope. The write_file tool is the planner's unique concern and is correctly scoped to this demo."
+    },
+    {
+      "criterion": "7. Strategic classification",
+      "passed": true,
+      "note": "Correctly classified as contrib/example. The judge demo (FR-450) established the pattern; this is the second instance. Together they form a plan\u2192judge pipeline demo series. FR-329 (agent-sdk planner spike) is a prior related attempt using a different technology (Anthropic Agent SDK directly). Not a framework primitive \u2014 no new abstractions needed. Not pattern documentation \u2014 produces a runnable artifact."
+    },
+    {
+      "criterion": "8. Do acceptance tests compile and fail for the right reasons?",
+      "passed": false,
+      "note": "No acceptance tests are referenced or provided. The FR has no test file (unlike FR-450 which included a test skeleton). The demo-gate (REQ-YG-200) requires demo-output.log but that is a runtime artifact, not a RED test. The FR should include at minimum a structural test (graph.yaml exists, has 5 tools, write_file tool present, PlanResult schema fields present) following the pattern of test_research_agent_demo.py or test_fr402_prompt_theme_analyzer_red.py."
+    }
+  ],
+  "issues": [
+    "BLOCKER \u2014 write_file heredoc is broken by design: shlex.quote() in sanitize_variables() wraps multi-line content in single quotes, collapsing newlines. The heredoc approach cannot work through the shell tool pipeline. Resolve by specifying the primary implementation as a type: python tool using pathlib.Path.write_text(content) \u2014 this is the correct, portable approach. The heredoc option should be dropped, not left as a fallback.",
+    "REQUIRED \u2014 No acceptance tests provided. Add tests/unit/test_fr452_standalone_planner_demo.py with RED structural tests: (1) graph.yaml exists at examples/demos/planner/graph.yaml, (2) graph has exactly 5 tools including write_file, (3) PlanResult schema includes all required fields (fr_path, title, summary, research_findings, scope_assessment, estimated_effort), (4) demo.sh exists and is executable. Follow the pattern of tests/unit/test_research_agent_demo.py.",
+    "REQUIRED \u2014 demo.sh body is absent. The FR shows only a shebang and usage comment. Provide the full demo.sh implementation: accept topic_file argument, invoke yamlgraph graph run with --var topic_file=..., extract plan_result from output (using --json flag per REQ-YG-348/349), write plan.json. Reference examples/demos/judge/demo.sh as the model.",
+    "MINOR \u2014 PlanResult schema inconsistency: scope_assessment and estimated_effort appear in the schema definition but are absent from the acceptance criteria checklist. Either add them to the AC checklist or remove them from the schema if they are not required. The AC checklist only mentions fr_path, title, summary, research_findings."
+  ]
+}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019e5b85-1846-7ed1-8be8-2d00b403643b?poll=true
-============================================================
-RESULT
-============================================================
-  current_step: judge
-  fr_path: feature-requests/FR-452-standalone-planner-demo.md
-  verdict: {'verdict': 'APPROVE', 'classification': 'contrib_example', 'reasoning': 'FR-452 proposes a well-scoped standalone planner demo mirroring the proven judge demo pattern (FR-450). It reuses 4 of 5 tools from the judge, adds write_file for FR generation, and follows established demo conventions. The scope is clear, minimal, and single-responsibility. Implementation is feasible using existing agent node infrastructure. No contradictions or ambiguities detected.', 'criteria_results': [{'criterion': '1. Is the scope clear and minimal?', 'passed': True, 'note': 'Single demo graph in examples/demos/planner/ with 5 shell tools, one agent node, and one prompt. Mirrors judge demo structure exactly. No framework changes required.'}, {'criterion': '2. Are there contradictions or ambiguities?', 'passed': True, 'note': 'No contradictions found. One open question (write_file via heredoc vs Python tool) is explicitly flagged and deferred to enforcement with fallback strategy. FR template reference is clear.'}, {'criterion': '3. Are acceptance criteria measurable?', 'passed': True, 'note': '9 acceptance criteria are all verifiable: tool count, no truncation, max_iterations value, prompt requirements, schema fields, demo execution, evidence coverage, structured output, and write_file validation. All are testable.'}, {'criterion': '4. Is the implementation approach feasible?', 'passed': True, 'note': 'Reuses proven agent node type and shell tool infrastructure from FR-450 judge demo. write_file via heredoc is standard shell pattern; fallback to Python tool is documented. No new framework primitives required.'}, {'criterion': '5. Does it align with existing architecture?', 'passed': True, 'note': 'Aligns with REQ-YG-017-020 (agent tool integration), REQ-YG-422 (agent structured output), and demo pattern established by FR-447/FR-450. Uses prompts_relative, shell tools, and inline schema—all existing capabilities.'}, {'criterion': '6. Single responsibility — or does it bundle orthogonal concerns?', 'passed': True, 'note': 'Single responsibility: create a standalone planner demo. Does not bundle pipeline integration, FR numbering automation, or test writing. Defers pipeline composition to future scope.'}, {'criterion': '7. Strategic classification', 'passed': True, 'note': 'contrib_example is correct. Planner demo has 1-2 use cases (standalone FR drafting, first step in plan→judge→enforce pipeline). Existing abstractions (agent node + shell tools) suffice; no framework primitive needed. Graduates to framework_primitive if 3+ use cases emerge.'}, {'criterion': '8. Do acceptance tests compile and fail for the right reasons?', 'passed': True, 'note': 'Acceptance criteria are structural (tool count, schema fields, max_iterations) and can be verified via YAML parsing and graph compilation. No runtime tests specified, which is appropriate for a demo. Pattern matches FR-450 test structure.'}], 'issues': []}
-
-✅ Graph execution completed successfully
+✓ Graph execution completed successfully

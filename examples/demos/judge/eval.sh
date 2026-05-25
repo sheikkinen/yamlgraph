@@ -30,14 +30,14 @@ source .env 2>/dev/null || true
 MODELS=(
   "anthropic|claude-sonnet-4-6|anthropic-sonnet|ANTHROPIC_API_KEY"
   "anthropic|claude-haiku-4-5|anthropic-haiku|ANTHROPIC_API_KEY"
-  "openai|gpt-5.3-codex|openai-codex|OPENAI_API_KEY"
-  "openai|o4-mini|openai-o4-mini|OPENAI_API_KEY"
+  "openai|o4-mini|openai-o4mini|OPENAI_API_KEY"
   "google|gemini-2.5-flash|google-flash|GOOGLE_API_KEY"
   "google|gemini-2.5-pro|google-pro|GOOGLE_API_KEY"
   "mistral|mistral-large-latest|mistral-large|MISTRAL_API_KEY"
   "deepseek|deepseek-chat|deepseek|DEEPSEEK_API_KEY"
   "xai|grok-4-1-fast-reasoning|xai-grok|XAI_API_KEY"
   "inception|mercury-2|inception-mercury|INCEPTION_API_KEY"
+  "lmstudio|google/gemma-4-e4b|lmstudio-gemma4|LMSTUDIO_BASE_URL"
 )
 
 TOTAL=${#MODELS[@]}
