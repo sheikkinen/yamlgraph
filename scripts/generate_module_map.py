@@ -235,10 +235,13 @@ def main() -> int:
         print(f"Missing source root: {SOURCE_ROOT}", file=sys.stderr)
         return 1
 
+    output = Path(sys.argv[1]) if len(sys.argv) > 1 else OUTPUT_PATH
     entries = _build_entries()
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(_render_markdown(entries), encoding="utf-8")
-    print(f"Wrote {OUTPUT_PATH.relative_to(REPO_ROOT)} ({len(entries)} modules)")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(_render_markdown(entries), encoding="utf-8")
+    print(
+        f"Wrote {output.relative_to(REPO_ROOT) if output.is_relative_to(REPO_ROOT) else output} ({len(entries)} modules)"
+    )
     return 0
 
 

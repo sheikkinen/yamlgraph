@@ -6,6 +6,7 @@ import ast
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -32,16 +33,21 @@ _DEP_KEYWORDS = {
 
 def _run_generator() -> str:
     assert SCRIPT_PATH.exists(), f"Missing generator script: {SCRIPT_PATH}"
-    completed = subprocess.run(
-        ["python", str(SCRIPT_PATH)],
-        cwd=WORKTREE,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert completed.returncode == 0, completed.stderr
-    assert MODULE_MAP_PATH.exists(), f"Missing generated map: {MODULE_MAP_PATH}"
-    return MODULE_MAP_PATH.read_text(encoding="utf-8")
+    with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as f:
+        out = Path(f.name)
+    try:
+        completed = subprocess.run(
+            ["python", str(SCRIPT_PATH), str(out)],
+            cwd=WORKTREE,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert completed.returncode == 0, completed.stderr
+        assert out.exists(), f"Missing generated map: {out}"
+        return out.read_text(encoding="utf-8")
+    finally:
+        out.unlink(missing_ok=True)
 
 
 def _extract_dependency_tokens(module_map: str) -> set[str]:
