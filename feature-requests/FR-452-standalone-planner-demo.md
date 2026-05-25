@@ -69,12 +69,11 @@ tools:
     parse: text
 
   write_file:
-    type: shell
-    command: cat > {file_path} << 'YAMLGRAPH_EOF'
-    {content}
-    YAMLGRAPH_EOF
+    type: python
+    module: pathlib
+    function: Path.write_text
     description: "Write content to a file. Use to create the feature request."
-    parse: text
+    # Python tool avoids shlex.quote() + heredoc multi-line issues
 ```
 
 Design rationale:
@@ -87,7 +86,7 @@ Design rationale:
 | `git_log` | Yes | Find prior attempts, related work |
 | `write_file` | **New** | Planner must produce a FR file (judge only reads) |
 
-**Note:** `write_file` via heredoc is the simplest portable approach. The agent `execute_shell_tool()` → `sanitize_variables()` → `shlex.quote()` pipeline handles injection. However, heredoc with `shlex.quote()` may need validation — the `content` variable contains multi-line markdown. If heredoc doesn't work cleanly through the shell tool pipeline, fall back to Python's `pathlib.Path.write_text()` via a `type: python` tool instead.
+**Note:** `write_file` uses `type: python` with `pathlib.Path.write_text()`. The heredoc approach was rejected because `shlex.quote()` wraps multi-line content in single quotes, collapsing newlines to literal `\n` sequences. Additionally, the indented `YAMLGRAPH_EOF` terminator would not be recognized by bash. Seven judge models independently identified this as a blocker.
 
 ### Node Configuration
 
@@ -96,8 +95,7 @@ nodes:
   planner:
     type: agent
     prompt: planner
-    model: claude-sonnet-4-6
-    temperature: 0.3
+    temperature: 0.3  # slightly creative for research/drafting
     tools: [read_file, search, list_dir, git_log, write_file]
     max_iterations: 15
     state_key: plan_result
@@ -105,7 +103,7 @@ nodes:
 
 - `temperature: 0.3` — slightly creative for research/drafting (unlike judge's `0`)
 - `max_iterations: 15` — planner does more work than judge (research + draft + write)
-- `model: claude-sonnet-4-6` — same model as judge for consistency
+- Model follows env var fallthrough: `PROVIDER`/`ANTHROPIC_MODEL` set in `demo.sh` (no hardcoded model in graph.yaml, per FR-453 pattern)
 
 ### Structured Output Schema
 
@@ -173,7 +171,9 @@ set -euo pipefail
 - [ ] Demo runs successfully and produces a FR file in `feature-requests/`
 - [ ] Agent evidence includes: architecture search, existing FR landscape, git history
 - [ ] `demo.sh` outputs structured `plan.json`
-- [ ] `write_file` tool validated through shell tool pipeline (or fallback to Python tool)
+- [ ] `write_file` tool implemented as `type: python` with `pathlib.Path.write_text()`
+- [ ] No hardcoded model in graph.yaml (env var fallthrough via demo.sh)
+- [ ] RED acceptance tests in `tests/unit/test_fr452_standalone_planner_demo.py` tagged `@pytest.mark.req("REQ-YG-XXX")`
 
 ## Alternatives Considered
 
@@ -184,6 +184,7 @@ set -euo pipefail
 
 ## Related
 
+- FR-329 — Agent SDK planner spike (`examples/agent-sdk-planner/plan.py`) — prior art using Anthropic Agent SDK directly. FR-452 replaces this with a YAMLGraph agent-node approach for portability and tool budget control.
 - FR-450 — Judge demo hardening (established the pattern)
 - FR-447 — Original judge demo
 - `.chaplain/graphs/watcher-plan/step-plan-unified.yaml` — Chaplain copilot planner
@@ -191,8 +192,8 @@ set -euo pipefail
 - `feature-requests/TEMPLATE.md` — FR template the planner should use
 - Scripture: `spec_kill`, `ask_before_generate`, `demo_vs_test`
 
-## Open Questions
+## Resolved Questions
 
-1. **`write_file` via heredoc** — Does `shlex.quote()` handle multi-line content in heredoc correctly? If not, use a `type: python` tool with `pathlib.Path.write_text()`. Needs validation during enforcement.
-2. **FR numbering** — Should the planner auto-assign the next FR number? The Chaplain's `capture_fr` step handles this. For the demo, manual numbering or sequential scan of `feature-requests/` may suffice.
-3. **Pipeline composition** — Can `demo.sh` chain planner → judge? e.g., `./planner/demo.sh topic.md | ./judge/demo.sh -`. Future scope, but worth considering in the state contract design.
+1. **`write_file` approach** — RESOLVED: Use `type: python` with `pathlib.Path.write_text()`. Heredoc rejected — `shlex.quote()` breaks multi-line content, indented EOF terminator not recognized by bash.
+2. **FR numbering** — RESOLVED: Planner writes to `tmp/plan-output.md`. User renames with correct FR number. Avoids race conditions and keeps planner focused on content, not numbering. Auto-numbering deferred to future `capture_fr` tool.
+3. **Pipeline composition** — DEFERRED to follow-up FR. State contract: planner outputs `fr_path` in `PlanResult`, which judge can consume as input. Exact chaining (`./planner/demo.sh topic.md | ./judge/demo.sh -`) is out of scope for this FR.
