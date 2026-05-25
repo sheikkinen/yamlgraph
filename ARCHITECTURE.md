@@ -423,6 +423,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 157 | CAP-157 Graph Loader Strict Tool Load Fail Fast | `yamlgraph/graph_loader.py`, `tests/unit/test_fr444_graph_loader_tool_load_mode_red.py`, `reference/graph-yaml.md`, `ARCHITECTURE.md` | REQ-YG-420 – 421 |
 | 158 | CAP-158 Copilot Skill Promotion | `.github/skills/author-graph/SKILL.md`, `.github/skills/author-prompt/SKILL.md`, `.github/skills/release-version/SKILL.md`, `.github/skills/chaplain-ops/SKILL.md`, … | REQ-YG-423 |
 | 159 | CAP-159 Standalone Planner Demo | `examples/demos/planner/graph.yaml`, `examples/demos/planner/prompts/planner.yaml`, `examples/demos/planner/tools/write_file.py`, `examples/demos/planner/demo.sh` | REQ-YG-424 |
+| 160 | CAP-160 CAP Architecture Auto-Sync | `.pre-commit-config.yaml`, `scripts/aggregate_capabilities.py` | REQ-YG-425 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1941,6 +1942,16 @@ Standalone FR planner demo using agent node with 5 task-shaped tools (4 shell + 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-424 | Planner demo has 5 tools (read_file, search, list_dir, git_log, write_file), agent node with max_iterations 15, PlanResult schema with 6 fields, write_file as python tool, no hardcoded model, and produces a FR file at tmp/plan-output.md. | `examples/demos/planner/graph.yaml`, `examples/demos/planner/prompts/planner.yaml`, `examples/demos/planner/tools/write_file.py`, `examples/demos/planner/demo.sh` |
+
+### 160. CAP-160 CAP Architecture Auto-Sync
+
+Pre-commit hook that auto-regenerates the capabilities section of ARCHITECTURE.md when capabilities/*.yaml files change. Follows the ruff-format auto-fix pattern: modifies file, pre-commit detects unstaged change and fails, developer stages.
+
+**Feature Request:** FR-460
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-425 | cap-architecture-sync pre-commit hook triggers on capabilities/*.yaml and aggregate script changes, runs aggregate_capabilities.py, exits 0, and does not pass filenames. | `.pre-commit-config.yaml`, `scripts/aggregate_capabilities.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

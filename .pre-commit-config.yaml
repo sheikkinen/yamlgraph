@@ -77,6 +77,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: cap-architecture-sync
+        name: capability architecture sync
+        entry: .venv/bin/python scripts/aggregate_capabilities.py
+        language: system
+        pass_filenames: false
+        files: (^capabilities/.*\.yaml$|^scripts/aggregate_capabilities\.py$)
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: noqa-confession
         name: noqa_coverage --strict
         entry: .venv/bin/python scripts/noqa_coverage.py --strict
