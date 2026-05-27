@@ -1,0 +1,44 @@
+metadata:
+  name: analyze_product
+  description: Analyze a product idea and extract target user segments
+
+schema:
+  name: ProductAnalysis
+  fields:
+    target_segments:
+      type: list[str]
+      description: "Target user segments, each a short phrase (e.g. 'elderly users living alone')"
+      constraints:
+        min_length: 2
+        max_length: 6
+    product_summary:
+      type: str
+      description: "One-paragraph product description for downstream prompts"
+
+system: |
+  You are a product researcher. Given a product idea, identify distinct
+  user segments and summarize the product.
+
+  Each segment should be a short, specific phrase describing a type of user
+  (e.g. "elderly users living alone", "busy parents with young children",
+  "pharmacists managing inventory").
+
+  Focus on segments with meaningfully different needs, contexts, and
+  frustrations — not just demographic variations.
+
+user: |
+  ## Product Idea
+
+  {{ product_idea }}
+
+  ---
+
+  ## Task
+
+  Identify {{ persona_count | default("4") }} distinct target user segments for
+  this product. Each segment should represent users with different:
+  - Goals (what they want from this product)
+  - Context (when/where/how they'd use it)
+  - Frustrations (current pain points)
+
+  Also provide a one-paragraph product summary.

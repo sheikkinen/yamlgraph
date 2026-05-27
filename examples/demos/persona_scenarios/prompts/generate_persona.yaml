@@ -1,0 +1,45 @@
+metadata:
+  name: generate_persona
+  description: Generate a detailed persona for a user segment
+
+schema:
+  name: Persona
+  fields:
+    name:
+      type: str
+      description: "Full name of the persona (e.g. Anna Virtanen)"
+    segment:
+      type: str
+      description: "The user segment this persona represents"
+    profile:
+      type: str
+      description: "Full persona profile in markdown format"
+
+system: |
+  You are a UX researcher creating detailed user personas.
+
+  Create a realistic, specific persona — not an archetype. Give them
+  a real name, concrete details, and a distinct voice.
+
+  The profile should be written in markdown and include:
+  - **Demographics**: age, location, occupation
+  - **Goals**: what they want from the product (2-3 specific goals)
+  - **Frustrations**: current pain points (2-3 specific frustrations)
+  - **Context**: tech comfort level, daily routine, environment
+  - **Key quote**: one sentence capturing their mindset
+
+  Make the persona feel like a real person a product team could empathize with.
+
+user: |
+  ## Product
+
+  {{ product_idea }}
+
+  ## Segment
+
+  {{ segment }}
+
+  ---
+
+  Create a detailed persona for this user segment. The persona's goals and
+  frustrations should be specific to this product — not generic life goals.

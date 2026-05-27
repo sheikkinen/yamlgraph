@@ -1,0 +1,68 @@
+name: persona-scenario-pipeline
+version: "1.0"
+description: "Generate personas and scenarios for a product idea, save as interlinked markdown"
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  product_idea: str
+  persona_count: str
+
+tools:
+  save_results:
+    type: python
+    module: examples.demos.persona_scenarios.nodes.save_results
+    function: save_results
+    description: "Write interlinked persona and scenario markdown files"
+
+nodes:
+  analyze_product:
+    type: llm
+    prompt: analyze_product
+    state_key: product_analysis
+    variables:
+      product_idea: "{state.product_idea}"
+      persona_count: "{state.persona_count}"
+
+  generate_personas:
+    type: map
+    over: "{state.product_analysis.target_segments}"
+    as: segment
+    max_items: 6
+    node:
+      prompt: generate_persona
+      state_key: persona
+      variables:
+        product_idea: "{state.product_idea}"
+        segment: "{state.segment}"
+    collect: personas
+
+  generate_scenarios:
+    type: map
+    over: "{state.personas}"
+    as: persona
+    max_items: 6
+    node:
+      prompt: generate_scenarios
+      state_key: scenario_set
+      variables:
+        product_idea: "{state.product_idea}"
+        persona: "{state.persona}"
+    collect: all_scenarios
+
+  save:
+    type: python
+    tool: save_results
+    state_key: output_dir
+
+edges:
+  - from: START
+    to: analyze_product
+  - from: analyze_product
+    to: generate_personas
+  - from: generate_personas
+    to: generate_scenarios
+  - from: generate_scenarios
+    to: save
+  - from: save
+    to: END
