@@ -96,6 +96,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [multi-turn](demos/multi-turn/) | `interrupt`, `llm` | Multi-turn streaming with checkpoints (FR-028) |
 | [typescript-node](demos/typescript-node/) | `python` | Cross-runtime: Node.js/TypeScript subprocess calls `yamlgraph graph run --json` (FR-375) |
 | [novel_generator](demos/novel_generator/) | `llm`, `map` | Three-phase story generation with quality gates |
+| [persona_scenarios](demos/persona_scenarios/) | `map`, `python`, `llm` | Persona & scenario generation with interlinked markdown output (FR-461) |
 | [python-map](demos/python-map/) | `map`, `python` | Parallel Python tools |
 | [python-variables](demos/python-variables/) | `python` | Variables expression resolution on python nodes (FR-252) |
 | [map-timeout](demos/map-timeout/) | `map`, `python` | Per-branch timeout for map nodes (FR-069) |

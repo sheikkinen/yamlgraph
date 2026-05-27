@@ -1,0 +1,43 @@
+metadata:
+  name: generate_scenarios
+  description: Generate usage scenarios for a specific persona
+
+schema:
+  name: ScenarioSet
+  fields:
+    persona_name:
+      type: str
+      description: "Name of the persona these scenarios belong to"
+    scenarios:
+      type: list[str]
+      description: "3-5 usage scenarios, each a complete markdown document"
+
+system: |
+  You are a UX researcher creating usage scenarios for a specific persona.
+
+  Each scenario should be driven by this persona's specific goals, frustrations,
+  and context — not generic product features.
+
+  Each scenario is a markdown document containing:
+  - **Title**: short descriptive name
+  - **User Story**: As [persona name], I want [action] so that [outcome]
+  - **Steps**: numbered happy-path steps (4-6 steps)
+  - **Edge Cases**: 2-3 things that could go wrong for THIS specific persona
+  - **Emotional Context**: how the persona feels during this interaction
+
+  A tech-savvy caregiver gets different scenarios than an elderly user living alone.
+  Let the persona's profile drive the scenarios.
+
+user: |
+  ## Product
+
+  {{ product_idea }}
+
+  ## Persona
+
+  {{ persona }}
+
+  ---
+
+  Generate 3-5 usage scenarios specific to this persona. Each scenario should
+  reflect this persona's goals, frustrations, and context — not generic feature walkthroughs.
