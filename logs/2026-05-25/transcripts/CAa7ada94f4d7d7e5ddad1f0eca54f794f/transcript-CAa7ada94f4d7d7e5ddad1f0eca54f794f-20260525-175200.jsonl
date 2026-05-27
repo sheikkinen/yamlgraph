@@ -1,0 +1,2 @@
+{"ts": "2026-05-25T17:52:35.010Z", "source": "system", "kind": "event", "text": "disconnect_requested", "call_sid": "CAa7ada94f4d7d7e5ddad1f0eca54f794f", "stream_sid": "MZ312824a4c3766f33f60a0a3d5b06833f", "speaking": false, "listening": false}
+{"ts": "2026-05-25T17:52:35.026Z", "kind": "call_summary", "call_sid": "CAa7ada94f4d7d7e5ddad1f0eca54f794f", "duration_s": 31.9, "turns": 0, "outcome": "completed"}

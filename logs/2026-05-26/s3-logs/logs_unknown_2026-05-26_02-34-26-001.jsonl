@@ -1,0 +1,83 @@
+{"ts": "2026-05-26T02:34:03.163Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['chief_complaint', 'duration', 'recent_changes'] extracted={'chief_complaint': None, 'duration': None, 'recent_changes': None}"}
+{"ts": "2026-05-26T02:34:03.165Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=[] extracted={'chief_complaint': 'Päänsärky', 'duration': '2 päivää', 'recent_changes': 'Pahentunut'}"}
+{"ts": "2026-05-26T02:34:03.167Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['duration', 'recent_changes'] extracted={'chief_complaint': 'Päänsärky', 'duration': None, 'recent_changes': None}"}
+{"ts": "2026-05-26T02:34:03.168Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['chief_complaint', 'duration', 'recent_changes'] extracted={}"}
+{"ts": "2026-05-26T02:34:03.170Z", "level": "WARNING", "logger": "graphs.medical_triage.medical_triage", "msg": "NV-238 detect_gaps: extracted has unexpected type list"}
+{"ts": "2026-05-26T02:34:03.170Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['chief_complaint', 'duration', 'recent_changes'] extracted={}"}
+{"ts": "2026-05-26T02:34:03.170Z", "level": "WARNING", "logger": "graphs.medical_triage.medical_triage", "msg": "NV-238 detect_gaps: extracted has unexpected type str"}
+{"ts": "2026-05-26T02:34:03.170Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['chief_complaint', 'duration', 'recent_changes'] extracted={}"}
+{"ts": "2026-05-26T02:34:03.172Z", "level": "WARNING", "logger": "graphs.medical_triage.medical_triage", "msg": "normalize_extracted: coercing non-dict str to {}"}
+{"ts": "2026-05-26T02:34:03.415Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Control socket listening on: /tmp/test-nc172-nc172_2441ea.sock"}
+{"ts": "2026-05-26T02:34:03.415Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Loaded state machine config: Voice Coordinator (triage)"}
+{"ts": "2026-05-26T02:34:03.415Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Machine name: nc172_2441ea"}
+{"ts": "2026-05-26T02:34:03.415Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Initial state: idle"}
+{"ts": "2026-05-26T02:34:03.415Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Cannot update machine_state: job_model=False, machine_name=nc172_2441ea"}
+{"ts": "2026-05-26T02:34:03.415Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:34:03.415Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Action log: Voice coordinator (triage) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:34:03.517Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc172_2441ea] Cleaned up control socket"}
+{"ts": "2026-05-26T02:34:03.782Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=[] extracted={'chief_complaint': 'Päänsärky', 'duration': '2 päivää', 'recent_changes': 'Pahentunut'}"}
+{"ts": "2026-05-26T02:34:03.784Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['chief_complaint', 'duration', 'recent_changes'] extracted={'chief_complaint': None, 'duration': None, 'recent_changes': None}"}
+{"ts": "2026-05-26T02:34:03.786Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=[] extracted={'chief_complaint': 'Päänsärky', 'duration': 'Kolme viikkoa', 'recent_changes': 'Pahenee kokoajan'}"}
+{"ts": "2026-05-26T02:34:03.788Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['duration', 'recent_changes'] extracted={'chief_complaint': 'Päänsärky', 'duration': None, 'recent_changes': None}"}
+{"ts": "2026-05-26T02:34:03.789Z", "level": "INFO", "logger": "graphs.medical_triage.medical_triage", "msg": "detect_gaps: gaps=['chief_complaint', 'duration', 'recent_changes'] extracted={'chief_complaint': None, 'duration': None, 'recent_changes': None}"}
+{"ts": "2026-05-26T02:34:04.410Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🎯 yamlgraph_async: phase 'crisis' → crisis_detected"}
+{"ts": "2026-05-26T02:34:04.412Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🎯 yamlgraph_async: phase 'done' → graph_done"}
+{"ts": "2026-05-26T02:34:04.413Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async: graph completed, emitting graph_done"}
+{"ts": "2026-05-26T02:34:04.415Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "⏸️ yamlgraph_async: interrupt at ['ask_probe'], emitting graph_continue"}
+{"ts": "2026-05-26T02:34:04.417Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async: graph completed, emitting graph_done"}
+{"ts": "2026-05-26T02:34:04.422Z", "level": "WARNING", "logger": "services.result_delivery", "msg": "send_results: sms_to missing or invalid: ''"}
+{"ts": "2026-05-26T02:34:04.424Z", "level": "INFO", "logger": "services.result_delivery", "msg": "send_results: SMS sent to +358401234567, sid=SM123"}
+{"ts": "2026-05-26T02:34:04.426Z", "level": "ERROR", "logger": "services.result_delivery", "msg": "send_results: SMS failed for +358401234567: provider down"}
+{"ts": "2026-05-26T02:34:04.478Z", "level": "INFO", "logger": "services.result_delivery", "msg": "send_results: SMS sent to +358401234567, sid=SM1"}
+{"ts": "2026-05-26T02:34:04.487Z", "level": "INFO", "logger": "services.result_delivery", "msg": "send_results: SMS sent to +358401234567, sid=SM1"}
+{"ts": "2026-05-26T02:34:04.488Z", "level": "INFO", "logger": "services.result_delivery", "msg": "send_results: SMS sent to +358401234567, sid=SM1"}
+{"ts": "2026-05-26T02:34:04.490Z", "level": "INFO", "logger": "services.result_delivery", "msg": "send_results: SMS sent to +358401234567, sid=SM1"}
+{"ts": "2026-05-26T02:34:04.492Z", "level": "INFO", "logger": "services.result_delivery", "msg": "send_results: SMS sent to +358401234567, sid=SM1"}
+{"ts": "2026-05-26T02:34:04.586Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/test-nc203-eng-d76bc73c.sock (85 bytes)"}
+{"ts": "2026-05-26T02:34:04.586Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'hello world'"}
+{"ts": "2026-05-26T02:34:04.587Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/test-nc203-eng-557cc30f.sock (85 bytes)"}
+{"ts": "2026-05-26T02:34:04.587Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'segment one'"}
+{"ts": "2026-05-26T02:34:04.587Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/test-nc203-eng-557cc30f.sock (85 bytes)"}
+{"ts": "2026-05-26T02:34:04.587Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'segment two'"}
+{"ts": "2026-05-26T02:34:04.588Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/test-nc203-eng-153320e6.sock (54 bytes)"}
+{"ts": "2026-05-26T02:34:04.593Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'hello world' (total: 11 chars)"}
+{"ts": "2026-05-26T02:34:04.594Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'first' (total: 5 chars)"}
+{"ts": "2026-05-26T02:34:04.594Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'second' (total: 12 chars)"}
+{"ts": "2026-05-26T02:34:04.594Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'third' (total: 18 chars)"}
+{"ts": "2026-05-26T02:34:04.596Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 1→2, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:34:04.596Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'continuation text' (total: 31 chars)"}
+{"ts": "2026-05-26T02:34:04.597Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'new text' (total: 8 chars)"}
+{"ts": "2026-05-26T02:34:04.601Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "llm.classify.req state=graph_processing graph=/Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/graphs/intent-classifier.yaml event=graph_continue"}
+{"ts": "2026-05-26T02:34:04.601Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🚀 yamlgraph_async: task launched in state graph_processing"}
+{"ts": "2026-05-26T02:34:04.601Z", "level": "INFO", "logger": "actions.real._yamlgraph_async_helpers", "msg": "llm.classify.rsp state=graph_processing event=graph_continue elapsed_ms=0"}
+{"ts": "2026-05-26T02:34:04.601Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event graph_continue to /tmp/test-nc203-eng-99463353.sock (99 bytes)"}
+{"ts": "2026-05-26T02:34:04.601Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async dispatched: graph_continue"}
+{"ts": "2026-05-26T02:34:04.906Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "NC-203 clear: accumulated_utterance was 28 chars"}
+{"ts": "2026-05-26T02:34:04.906Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "llm.classify.req state=graph_processing graph=/Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/graphs/intent-classifier.yaml event=graph_continue"}
+{"ts": "2026-05-26T02:34:04.907Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🚀 yamlgraph_async: task launched in state graph_processing"}
+{"ts": "2026-05-26T02:34:04.907Z", "level": "INFO", "logger": "actions.real._yamlgraph_async_helpers", "msg": "llm.classify.rsp state=graph_processing event=graph_continue elapsed_ms=0"}
+{"ts": "2026-05-26T02:34:04.908Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event graph_continue to /tmp/test-nc203-eng-463583dd.sock (99 bytes)"}
+{"ts": "2026-05-26T02:34:04.908Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async dispatched: graph_continue"}
+{"ts": "2026-05-26T02:34:05.212Z", "level": "INFO", "logger": "actions.real.silence_detector_action", "msg": "NC-203 silence: speech_complete after 0.2s silence (accumulated: 9 chars)"}
+{"ts": "2026-05-26T02:34:05.217Z", "level": "INFO", "logger": "actions.real.silence_detector_action", "msg": "NC-203 silence: silence_timeout after 0.3s (no speech detected)"}
+{"ts": "2026-05-26T02:34:05.224Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/test-nc203-eng-22952876.sock (88 bytes)"}
+{"ts": "2026-05-26T02:34:05.224Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'test utterance'"}
+{"ts": "2026-05-26T02:34:05.432Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 0→1, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:34:05.432Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'new segment' (total: 25 chars)"}
+{"ts": "2026-05-26T02:34:05.434Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 0→1, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:34:05.434Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'continuation' (total: 21 chars)"}
+{"ts": "2026-05-26T02:34:05.435Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'second segment' (total: 28 chars)"}
+{"ts": "2026-05-26T02:34:05.435Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'third segment' (total: 42 chars)"}
+{"ts": "2026-05-26T02:34:05.437Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 0→1, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:34:05.437Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'hello' (total: 5 chars)"}
+{"ts": "2026-05-26T02:34:05.439Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'hello world' (total: 11 chars)"}
+{"ts": "2026-05-26T02:34:05.441Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 0→1, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:34:05.441Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'new text' (total: 17 chars)"}
+{"ts": "2026-05-26T02:34:05.443Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 5→6, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:34:05.444Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'text' (total: 4 chars)"}
+{"ts": "2026-05-26T02:34:05.445Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 0→1, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:34:05.466Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'hello' (total: 5 chars)"}
+{"ts": "2026-05-26T02:34:05.468Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-203 accumulate: 'Hello' (total: 5 chars)"}
+{"ts": "2026-05-26T02:34:05.469Z", "level": "INFO", "logger": "actions.real.silence_detector_action", "msg": "NC-203 silence: speech_complete after 2.0s silence (accumulated: 5 chars)"}
+{"ts": "2026-05-26T02:34:05.483Z", "level": "INFO", "logger": "services.transcript_archive", "msg": "transcript uploaded: transcripts/CA123/transcript-CA123-20260409.jsonl"}
+{"ts": "2026-05-26T02:34:05.488Z", "level": "WARNING", "logger": "services.transcript_archive", "msg": "transcript upload failed", "exception": "Traceback (most recent call last):\n  File \"/Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/services/transcript_archive.py\", line 51, in upload_transcript\n    s3.upload_file(str(path), bucket_name, key)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.13/3.13.11/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py\", line 1169, in __call__\n    return self._mock_call(*args, **kwargs)\n           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.13/3.13.11/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py\", line 1173, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.13/3.13.11/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py\", line 1228, in _execute_mock_call\n    raise effect\nException: network error"}

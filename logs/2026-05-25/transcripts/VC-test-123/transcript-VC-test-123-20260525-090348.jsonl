@@ -1,0 +1,3 @@
+{"ts": "2026-05-25T09:03:50.333Z", "source": "system", "kind": "utterance", "text": "Olet soittanut Tervolan terveysasemalle.\nKeräisin esitietoja takaisinsoittoa varten.\nMiten voin auttaa?\n", "call_sid": "VC-test-123", "stream_sid": null, "speaking": true, "listening": false}
+{"ts": "2026-05-25T09:04:06.472Z", "source": "system", "kind": "utterance", "text": "En valitettavasti kuule sinua.", "call_sid": "VC-test-123", "stream_sid": null, "speaking": true, "listening": false}
+{"ts": "2026-05-25T09:05:06.648Z", "kind": "call_summary", "call_sid": "VC-test-123", "duration_s": 78.0, "turns": 0, "outcome": "completed"}

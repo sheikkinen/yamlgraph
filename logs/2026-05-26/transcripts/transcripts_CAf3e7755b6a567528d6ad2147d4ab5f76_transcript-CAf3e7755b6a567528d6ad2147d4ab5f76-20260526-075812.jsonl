@@ -1,0 +1,3 @@
+{"ts": "2026-05-26T07:58:14.746Z", "source": "system", "kind": "utterance", "text": "Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?", "call_sid": "CAf3e7755b6a567528d6ad2147d4ab5f76", "stream_sid": "MZ18a7c7427548334e606508cb696d262d", "speaking": true, "listening": false}
+{"ts": "2026-05-26T07:58:30.443Z", "kind": "call_summary", "call_sid": "CAf3e7755b6a567528d6ad2147d4ab5f76", "duration_s": 17.6, "turns": 0, "outcome": "completed"}
+{"ts": "2026-05-26T07:58:30.445Z", "source": "system", "kind": "event", "text": "disconnect_requested", "call_sid": "CAf3e7755b6a567528d6ad2147d4ab5f76", "stream_sid": "MZ18a7c7427548334e606508cb696d262d", "speaking": false, "listening": false}

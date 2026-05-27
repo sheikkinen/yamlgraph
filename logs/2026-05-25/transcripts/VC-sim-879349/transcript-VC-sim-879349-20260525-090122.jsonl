@@ -1,0 +1,4 @@
+{"ts": "2026-05-25T09:01:23.954Z", "source": "system", "kind": "utterance", "text": "Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?", "call_sid": "VC-sim-879349", "stream_sid": null, "speaking": true, "listening": false}
+{"ts": "2026-05-25T09:01:39.514Z", "source": "system", "kind": "utterance", "text": "En valitettavasti kuule sinua.", "call_sid": "VC-sim-879349", "stream_sid": null, "speaking": true, "listening": false}
+{"ts": "2026-05-25T09:02:39.841Z", "kind": "call_summary", "call_sid": "VC-sim-879349", "duration_s": 77.5, "turns": 0, "outcome": "completed"}
+{"ts": "2026-05-25T09:02:39.843Z", "source": "system", "kind": "event", "text": "disconnect_requested", "call_sid": "VC-sim-879349", "stream_sid": null, "speaking": false, "listening": false}

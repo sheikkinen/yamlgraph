@@ -1,0 +1,784 @@
+{"ts": "2026-05-26T02:34:08.978Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Control socket listening on: /tmp/statemachine-control-nc308_8695.sock"}
+{"ts": "2026-05-26T02:34:08.978Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:34:08.979Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Machine name: nc308_8695"}
+{"ts": "2026-05-26T02:34:08.979Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Initial state: idle"}
+{"ts": "2026-05-26T02:34:08.979Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:08.979Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:34:08.979Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:34:08.981Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpmczujyo9/bridge.sock"}
+{"ts": "2026-05-26T02:34:08.981Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpmczujyo9/bridge.sock"}
+{"ts": "2026-05-26T02:34:08.984Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:08.984Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:08.984Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc308-a from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:08.984Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc308-a-20260526-023408.jsonl"}
+{"ts": "2026-05-26T02:34:08.984Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc308_8695.sock (241 bytes)"}
+{"ts": "2026-05-26T02:34:08.985Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:08.986Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:08.986Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:08.986Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:08.986Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc308-a, call_sid=CA-nc308-a"}
+{"ts": "2026-05-26T02:34:08.986Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc308-a"}
+{"ts": "2026-05-26T02:34:09.030Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:09.030Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:09.030Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:09.030Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:34:09.030Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.031Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.031Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.033Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.034Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:34:09.034Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.034Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.034Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.086Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.088Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.088Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:09.140Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:09.140Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:09.140Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:09.140Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak"}
+{"ts": "2026-05-26T02:34:09.140Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.140Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.140Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.142Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.143Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.144Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:34:09.144Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.144Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.144Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.197Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.220Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.292Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:09.294Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.317Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.392Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.415Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.444Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:09.444Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:09.489Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.494Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-26T02:34:09.494Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:09.494Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/statemachine-control-nc308_8695.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:09.495Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:09.511Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.584Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] 📥 Received event: hangup"}
+{"ts": "2026-05-26T02:34:09.584Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:09.584Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:09.584Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] graph_listening --hangup--> closing: call_cleanup"}
+{"ts": "2026-05-26T02:34:09.584Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.584Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.584Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.585Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.586Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] closing --close_done--> cleanup: call_cleanup"}
+{"ts": "2026-05-26T02:34:09.586Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.587Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.587Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.639Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.639Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] cleanup --cleanup_done--> idle: log"}
+{"ts": "2026-05-26T02:34:09.639Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.639Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.639Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.799Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:09.799Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:09.799Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc308-b from=+358409876543 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:09.800Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc308-b-20260526-023409.jsonl"}
+{"ts": "2026-05-26T02:34:09.800Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc308_8695.sock (241 bytes)"}
+{"ts": "2026-05-26T02:34:09.800Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:09.801Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession stopped"}
+{"ts": "2026-05-26T02:34:09.801Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:09.801Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:09.801Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:09.802Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc308-b, call_sid=CA-nc308-b"}
+{"ts": "2026-05-26T02:34:09.802Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc308-b"}
+{"ts": "2026-05-26T02:34:09.843Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:09.843Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:09.843Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:09.843Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] idle --incoming_call--> warming_up: yamlgraph_preload (#2)"}
+{"ts": "2026-05-26T02:34:09.843Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.843Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.843Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.844Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.845Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async (#2)"}
+{"ts": "2026-05-26T02:34:09.845Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.845Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.845Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.897Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.898Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.898Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:09.950Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:09.950Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:09.950Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:09.950Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#2)"}
+{"ts": "2026-05-26T02:34:09.950Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.950Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.950Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:09.951Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.952Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:09.952Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector (#2)"}
+{"ts": "2026-05-26T02:34:09.952Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:09.952Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:09.952Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:10.005Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.028Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.099Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:10.099Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:10.102Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.106Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:10.107Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Disconnect requested — closing WebSocket to end call"}
+{"ts": "2026-05-26T02:34:10.125Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.200Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.224Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.299Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.322Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.395Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.418Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.491Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.513Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.587Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.609Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.611Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket disconnected"}
+{"ts": "2026-05-26T02:34:10.611Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:10.612Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/statemachine-control-nc308_8695.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:10.612Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:10.682Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] 📥 Received event: hangup"}
+{"ts": "2026-05-26T02:34:10.682Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:10.682Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:10.682Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] graph_listening --hangup--> closing: call_cleanup (#2)"}
+{"ts": "2026-05-26T02:34:10.682Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:10.682Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:10.682Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:10.683Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.683Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] closing --close_done--> cleanup: call_cleanup (#2)"}
+{"ts": "2026-05-26T02:34:10.683Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:10.683Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:10.684Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:10.736Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.736Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] cleanup --cleanup_done--> idle: log (#2)"}
+{"ts": "2026-05-26T02:34:10.736Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:10.736Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc308_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:10.736Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cannot update machine_state: job_model=False, machine_name=nc308_8695"}
+{"ts": "2026-05-26T02:34:10.795Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpmczujyo9/bridge.sock"}
+{"ts": "2026-05-26T02:34:10.795Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:10.839Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc308_8695] Cleaned up control socket"}
+{"ts": "2026-05-26T02:34:10.914Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Control socket listening on: /tmp/statemachine-control-nc309a_8695.sock"}
+{"ts": "2026-05-26T02:34:10.914Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:34:10.914Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Machine name: nc309a_8695"}
+{"ts": "2026-05-26T02:34:10.914Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Initial state: idle"}
+{"ts": "2026-05-26T02:34:10.915Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:10.915Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:34:10.916Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:34:10.917Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpi964nygt/bridge.sock"}
+{"ts": "2026-05-26T02:34:10.917Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpi964nygt/bridge.sock"}
+{"ts": "2026-05-26T02:34:10.918Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:10.918Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:10.918Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc309-a from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:10.918Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc309-a-20260526-023410.jsonl"}
+{"ts": "2026-05-26T02:34:10.918Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc309a_8695.sock (241 bytes)"}
+{"ts": "2026-05-26T02:34:10.918Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:10.920Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:10.920Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:10.920Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:10.920Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc309-a, call_sid=CA-nc309-a"}
+{"ts": "2026-05-26T02:34:10.920Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc309-a"}
+{"ts": "2026-05-26T02:34:10.967Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:10.967Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:10.967Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:10.967Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:34:10.967Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:10.967Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:10.968Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:10.969Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:10.969Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:34:10.969Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:10.969Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:10.969Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.022Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.023Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.023Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:11.074Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:11.074Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:11.074Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:11.074Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak"}
+{"ts": "2026-05-26T02:34:11.074Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.074Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.074Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.076Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.077Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.077Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:34:11.077Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.077Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.077Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.129Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.151Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.226Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.227Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:11.233Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:11.233Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:11.249Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.322Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.344Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.417Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.433Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-26T02:34:11.433Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:11.433Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/statemachine-control-nc309a_8695.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:11.433Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:11.440Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.512Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: hangup"}
+{"ts": "2026-05-26T02:34:11.512Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:11.512Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:11.513Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_listening --hangup--> closing: call_cleanup"}
+{"ts": "2026-05-26T02:34:11.513Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.513Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.513Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.514Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.514Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] closing --close_done--> cleanup: call_cleanup"}
+{"ts": "2026-05-26T02:34:11.514Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.514Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.514Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.566Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.566Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] cleanup --cleanup_done--> idle: log"}
+{"ts": "2026-05-26T02:34:11.566Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.566Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.566Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.631Z", "level": "ERROR", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "STT error event: {'error': 'sent 1000 (OK) User ended conversation; no close frame received'}"}
+{"ts": "2026-05-26T02:34:11.740Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:11.740Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:11.740Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc309-b from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:11.740Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc309-b-20260526-023411.jsonl"}
+{"ts": "2026-05-26T02:34:11.741Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc309a_8695.sock (241 bytes)"}
+{"ts": "2026-05-26T02:34:11.741Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:11.741Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession stopped"}
+{"ts": "2026-05-26T02:34:11.742Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:11.742Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:11.742Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:11.742Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc309-b, call_sid=CA-nc309-b"}
+{"ts": "2026-05-26T02:34:11.742Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc309-b"}
+{"ts": "2026-05-26T02:34:11.770Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:11.771Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:11.771Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:11.771Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] idle --incoming_call--> warming_up: yamlgraph_preload (#2)"}
+{"ts": "2026-05-26T02:34:11.771Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.771Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.771Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.772Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.772Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async (#2)"}
+{"ts": "2026-05-26T02:34:11.772Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.772Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.773Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.825Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.827Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.827Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:11.878Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:11.878Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:11.878Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:11.878Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#2)"}
+{"ts": "2026-05-26T02:34:11.878Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.878Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.878Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.880Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.881Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.881Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector (#2)"}
+{"ts": "2026-05-26T02:34:11.882Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:11.882Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:11.882Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:11.898Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:11.935Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:11.959Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.033Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.057Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.082Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:12.083Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:12.103Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-26T02:34:12.103Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:12.103Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/statemachine-control-nc309a_8695.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:12.104Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:12.130Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: hangup"}
+{"ts": "2026-05-26T02:34:12.130Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:12.130Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:12.130Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_listening --hangup--> closing: call_cleanup (#2)"}
+{"ts": "2026-05-26T02:34:12.130Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.130Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.130Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.133Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.133Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] closing --close_done--> cleanup: call_cleanup (#2)"}
+{"ts": "2026-05-26T02:34:12.133Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.134Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.134Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.188Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.188Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] cleanup --cleanup_done--> idle: log (#2)"}
+{"ts": "2026-05-26T02:34:12.188Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.188Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.188Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.410Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:12.410Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:12.410Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc309-c from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:12.410Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc309-c-20260526-023412.jsonl"}
+{"ts": "2026-05-26T02:34:12.410Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc309a_8695.sock (241 bytes)"}
+{"ts": "2026-05-26T02:34:12.410Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:12.411Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession stopped"}
+{"ts": "2026-05-26T02:34:12.411Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:12.411Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:12.412Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:12.412Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc309-c, call_sid=CA-nc309-c"}
+{"ts": "2026-05-26T02:34:12.412Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc309-c"}
+{"ts": "2026-05-26T02:34:12.419Z", "level": "ERROR", "logger": "asyncio", "msg": "Task was destroyed but it is pending!\ntask: <Task pending name='Task-659' coro=<register_voice_websocket.<locals>.websocket_endpoint.<locals>.watch_disconnect() done, defined at /Users/sami.j.p.heikkinen/src/yamlgraph/projects/voice_runtime/voice_runtime/transports/twilio_ws.py:130> wait_for=<Future pending cb=[Task.task_wakeup()]>>"}
+{"ts": "2026-05-26T02:34:12.419Z", "level": "ERROR", "logger": "asyncio", "msg": "Task was destroyed but it is pending!\ntask: <Task pending name='Task-660' coro=<register_voice_websocket.<locals>.websocket_endpoint.<locals>.send_clears() done, defined at /Users/sami.j.p.heikkinen/src/yamlgraph/projects/voice_runtime/voice_runtime/transports/twilio_ws.py:139> wait_for=<Future cancelled>>"}
+{"ts": "2026-05-26T02:34:12.419Z", "level": "ERROR", "logger": "asyncio", "msg": "Task was destroyed but it is pending!\ntask: <Task pending name='Task-671' coro=<register_voice_websocket.<locals>.websocket_endpoint.<locals>.watch_disconnect() done, defined at /Users/sami.j.p.heikkinen/src/yamlgraph/projects/voice_runtime/voice_runtime/transports/twilio_ws.py:130> wait_for=<Future pending cb=[Task.task_wakeup()]>>"}
+{"ts": "2026-05-26T02:34:12.419Z", "level": "ERROR", "logger": "asyncio", "msg": "Task was destroyed but it is pending!\ntask: <Task pending name='Task-672' coro=<register_voice_websocket.<locals>.websocket_endpoint.<locals>.send_clears() done, defined at /Users/sami.j.p.heikkinen/src/yamlgraph/projects/voice_runtime/voice_runtime/transports/twilio_ws.py:139> wait_for=<Future cancelled>>"}
+{"ts": "2026-05-26T02:34:12.444Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:12.444Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:12.444Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:12.444Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] idle --incoming_call--> warming_up: yamlgraph_preload (#3)"}
+{"ts": "2026-05-26T02:34:12.444Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.444Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.444Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.445Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.445Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async (#3)"}
+{"ts": "2026-05-26T02:34:12.445Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.445Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.445Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.497Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.498Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.498Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:12.549Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:12.550Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:12.550Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:12.550Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#3)"}
+{"ts": "2026-05-26T02:34:12.550Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.550Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.550Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.551Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.552Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.552Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector (#3)"}
+{"ts": "2026-05-26T02:34:12.552Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.552Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.552Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.563Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:12.605Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.627Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.701Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.720Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:12.720Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:12.724Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.765Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-26T02:34:12.765Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:12.765Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/statemachine-control-nc309a_8695.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:12.765Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:12.796Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: hangup"}
+{"ts": "2026-05-26T02:34:12.796Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:12.796Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:12.797Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_listening --hangup--> closing: call_cleanup (#3)"}
+{"ts": "2026-05-26T02:34:12.797Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.797Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.797Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.798Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.798Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] closing --close_done--> cleanup: call_cleanup (#3)"}
+{"ts": "2026-05-26T02:34:12.798Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.798Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.798Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:12.851Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:12.851Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] cleanup --cleanup_done--> idle: log (#3)"}
+{"ts": "2026-05-26T02:34:12.851Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:12.851Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:12.851Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:13.070Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:13.071Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:13.071Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc309-d from=+358409876543 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:13.071Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc309-d-20260526-023413.jsonl"}
+{"ts": "2026-05-26T02:34:13.071Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc309a_8695.sock (241 bytes)"}
+{"ts": "2026-05-26T02:34:13.071Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:13.071Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession stopped"}
+{"ts": "2026-05-26T02:34:13.072Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:13.072Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:13.072Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:13.073Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc309-d, call_sid=CA-nc309-d"}
+{"ts": "2026-05-26T02:34:13.073Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc309-d"}
+{"ts": "2026-05-26T02:34:13.107Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:13.107Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:13.107Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:13.107Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] idle --incoming_call--> warming_up: yamlgraph_preload (#4)"}
+{"ts": "2026-05-26T02:34:13.107Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:13.107Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:13.107Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:13.108Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.108Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async (#4)"}
+{"ts": "2026-05-26T02:34:13.108Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:13.108Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:13.108Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:13.160Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.162Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.162Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:13.213Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:13.213Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:13.213Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:13.213Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#4)"}
+{"ts": "2026-05-26T02:34:13.213Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:13.213Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:13.214Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:13.215Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.216Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.217Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector (#4)"}
+{"ts": "2026-05-26T02:34:13.217Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:13.217Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:13.217Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:13.269Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.292Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.366Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.388Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.430Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:13.430Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:13.461Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.484Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.528Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:13.528Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:13.528Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:13.528Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Disconnect requested — closing WebSocket to end call"}
+{"ts": "2026-05-26T02:34:13.559Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.582Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.657Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.680Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.754Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.776Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.850Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.872Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.946Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:13.969Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.030Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket disconnected"}
+{"ts": "2026-05-26T02:34:14.030Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:14.031Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/statemachine-control-nc309a_8695.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:14.031Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:14.041Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] 📥 Received event: hangup"}
+{"ts": "2026-05-26T02:34:14.041Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:14.041Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:14.041Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] graph_listening --hangup--> closing: call_cleanup (#4)"}
+{"ts": "2026-05-26T02:34:14.041Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.041Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.041Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:14.043Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.043Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] closing --close_done--> cleanup: call_cleanup (#4)"}
+{"ts": "2026-05-26T02:34:14.043Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.043Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309a_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.043Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cannot update machine_state: job_model=False, machine_name=nc309a_8695"}
+{"ts": "2026-05-26T02:34:14.066Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpi964nygt/bridge.sock"}
+{"ts": "2026-05-26T02:34:14.066Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:14.095Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309a_8695] Cleaned up control socket"}
+{"ts": "2026-05-26T02:34:14.124Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Control socket listening on: /tmp/statemachine-control-nc309b_8695.sock"}
+{"ts": "2026-05-26T02:34:14.124Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:34:14.124Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Machine name: nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.124Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Initial state: idle"}
+{"ts": "2026-05-26T02:34:14.124Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.125Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:34:14.125Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:34:14.126Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmplblzoa92/bridge.sock"}
+{"ts": "2026-05-26T02:34:14.126Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmplblzoa92/bridge.sock"}
+{"ts": "2026-05-26T02:34:14.127Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:14.127Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:14.127Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc309i-a from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:14.128Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc309i-a-20260526-023414.jsonl"}
+{"ts": "2026-05-26T02:34:14.128Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc309b_8695.sock (243 bytes)"}
+{"ts": "2026-05-26T02:34:14.128Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:14.129Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:14.129Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:14.130Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:14.130Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc309i-a, call_sid=CA-nc309i-a"}
+{"ts": "2026-05-26T02:34:14.130Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc309i-a"}
+{"ts": "2026-05-26T02:34:14.176Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:14.176Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:14.176Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:14.176Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:34:14.176Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.176Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.176Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.178Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.178Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:34:14.178Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.178Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.178Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.231Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.232Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.232Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:14.284Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:14.284Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:14.284Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:14.284Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak"}
+{"ts": "2026-05-26T02:34:14.284Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.284Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.284Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.285Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.286Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.287Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:34:14.287Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.287Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.287Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.339Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.361Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.435Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.438Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:14.447Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:14.447Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:14.459Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.533Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.556Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.631Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.643Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:14.643Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:14.643Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-nc309i-b from=+358409876543 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:14.643Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-nc309i-b-20260526-023414.jsonl"}
+{"ts": "2026-05-26T02:34:14.643Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/statemachine-control-nc309b_8695.sock (243 bytes)"}
+{"ts": "2026-05-26T02:34:14.644Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:14.645Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:14.645Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:34:14.645Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:34:14.645Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-26T02:34:14.646Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ-nc309i-b, call_sid=CA-nc309i-b"}
+{"ts": "2026-05-26T02:34:14.646Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-nc309i-b"}
+{"ts": "2026-05-26T02:34:14.654Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.727Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:34:14.727Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:14.727Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:14.727Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] graph_listening --incoming_call--> aborting: call_abort"}
+{"ts": "2026-05-26T02:34:14.727Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.727Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.727Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.729Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.731Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] aborting --aborted--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:34:14.731Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.731Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.731Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.784Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.784Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async (#2)"}
+{"ts": "2026-05-26T02:34:14.784Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.784Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.784Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.819Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession stopped"}
+{"ts": "2026-05-26T02:34:14.836Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.837Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.838Z", "level": "INFO", "logger": "custom_action_yamlgraph_async", "msg": "stub yamlgraph_async: sent graph_continue"}
+{"ts": "2026-05-26T02:34:14.889Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] 📥 Received event: graph_continue"}
+{"ts": "2026-05-26T02:34:14.889Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:14.889Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:14.889Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#2)"}
+{"ts": "2026-05-26T02:34:14.889Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.889Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.889Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.891Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.892Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.893Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector (#2)"}
+{"ts": "2026-05-26T02:34:14.893Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:14.893Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:14.893Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:14.945Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.950Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:14.950Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Disconnect requested — closing WebSocket to end call"}
+{"ts": "2026-05-26T02:34:14.967Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:14.971Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "Scribe WebSocket connected"}
+{"ts": "2026-05-26T02:34:14.971Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "PersistentSttSession started"}
+{"ts": "2026-05-26T02:34:15.042Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.066Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.139Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.162Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.237Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.260Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.334Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.356Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.429Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.452Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.454Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket disconnected"}
+{"ts": "2026-05-26T02:34:15.455Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:15.455Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/statemachine-control-nc309b_8695.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:15.456Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_stt", "msg": "_feed_audio: cancelled after 0 frames"}
+{"ts": "2026-05-26T02:34:15.456Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket disconnected"}
+{"ts": "2026-05-26T02:34:15.524Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] 📥 Received event: hangup"}
+{"ts": "2026-05-26T02:34:15.524Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:34:15.524Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:34:15.525Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] graph_listening --hangup--> closing: call_cleanup"}
+{"ts": "2026-05-26T02:34:15.525Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:15.525Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:15.525Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:15.526Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.526Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] closing --close_done--> cleanup: call_cleanup"}
+{"ts": "2026-05-26T02:34:15.526Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:15.526Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:15.526Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:15.578Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 23 actions available (built-in: 14, custom: 9)"}
+{"ts": "2026-05-26T02:34:15.579Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] cleanup --cleanup_done--> idle: log"}
+{"ts": "2026-05-26T02:34:15.579Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:34:15.579Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [nc309b_8695] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:34:15.579Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cannot update machine_state: job_model=False, machine_name=nc309b_8695"}
+{"ts": "2026-05-26T02:34:15.942Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmplblzoa92/bridge.sock"}
+{"ts": "2026-05-26T02:34:15.942Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:15.988Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[nc309b_8695] Cleaned up control socket"}
+{"ts": "2026-05-26T02:34:15.997Z", "level": "ERROR", "logger": "asyncio", "msg": "Task was destroyed but it is pending!\ntask: <Task pending name='Task-724' coro=<StateMachineEngine._timeout_handler() running at /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/.venv/lib/python3.13/site-packages/statemachine_engine/core/engine.py:761> wait_for=<Future pending cb=[Task.task_wakeup()]>>"}
+{"ts": "2026-05-26T02:34:16.005Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=stream-A"}
+{"ts": "2026-05-26T02:34:16.005Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:16.005Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=stream-B"}
+{"ts": "2026-05-26T02:34:16.005Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:16.012Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpzk18zx24/bridge.sock"}
+{"ts": "2026-05-26T02:34:16.012Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=stream-A"}
+{"ts": "2026-05-26T02:34:16.117Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:16.117Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:16.117Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=stream-B"}
+{"ts": "2026-05-26T02:34:16.117Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:16.117Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:16.514Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmpzk18zx24/bridge.sock"}
+{"ts": "2026-05-26T02:34:16.521Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmp065x17da/bridge.sock"}
+{"ts": "2026-05-26T02:34:16.521Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmp065x17da/bridge.sock"}
+{"ts": "2026-05-26T02:34:16.522Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:16.522Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:16.522Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-test-a from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:16.523Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-test-a-20260526-023416.jsonl"}
+{"ts": "2026-05-26T02:34:16.523Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmp065x17da/engine.sock (239 bytes)"}
+{"ts": "2026-05-26T02:34:16.523Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:18.524Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:18.630Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:18.630Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:18.630Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-test-b from=+358409876543 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:18.631Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-test-b-20260526-023418.jsonl"}
+{"ts": "2026-05-26T02:34:18.631Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmp065x17da/engine.sock (239 bytes)"}
+{"ts": "2026-05-26T02:34:18.631Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:19.026Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/tmp065x17da/bridge.sock"}
+{"ts": "2026-05-26T02:34:19.026Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:19.183Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🎯 yamlgraph_async: phase 'switch_graph' → graph_switch"}
+{"ts": "2026-05-26T02:34:19.185Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🎯 yamlgraph_async: phase 'switch_graph' → graph_switch"}
+{"ts": "2026-05-26T02:34:19.320Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🛑 Bridge: abort_listen — signaling STT to stop"}
+{"ts": "2026-05-26T02:34:19.441Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🎯 yamlgraph_async: phase 'switch_graph' → graph_switch"}
+{"ts": "2026-05-26T02:34:19.923Z", "level": "WARNING", "logger": "graphs.flex_navigator.flex_navigator", "msg": "normalize_extracted: coercing non-dict str to {}"}
+{"ts": "2026-05-26T02:34:19.924Z", "level": "INFO", "logger": "graphs.flex_navigator.flex_navigator", "msg": "detect_gaps: gaps=['f1', 'f2'] extracted={}"}
+{"ts": "2026-05-26T02:34:19.926Z", "level": "INFO", "logger": "graphs.flex_navigator.flex_navigator", "msg": "detect_gaps: gaps=[] extracted={'f1': 'value'}"}
+{"ts": "2026-05-26T02:34:19.926Z", "level": "INFO", "logger": "graphs.flex_navigator.flex_navigator", "msg": "detect_gaps: gaps=['f_appointment', 'f_symptom'] extracted={}"}
+{"ts": "2026-05-26T02:34:19.932Z", "level": "INFO", "logger": "graphs.flex_navigator.flex_navigator", "msg": "detect_gaps: gaps=['f1', 'f2'] extracted={}"}
+{"ts": "2026-05-26T02:34:19.933Z", "level": "INFO", "logger": "graphs.flex_navigator.flex_navigator", "msg": "detect_gaps: gaps=[] extracted={'f1': 'val'}"}
+{"ts": "2026-05-26T02:34:19.939Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: GET http://testserver/health \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:19.943Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.943Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.943Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-test-123 from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:19.943Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-test-123-20260526-023419.jsonl"}
+{"ts": "2026-05-26T02:34:19.943Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-fsm-srv-e2edb2a8.sock (243 bytes)"}
+{"ts": "2026-05-26T02:34:19.943Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:19.946Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.946Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.946Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-test-456 from=+358409999999 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:19.947Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-test-456-20260526-023419.jsonl"}
+{"ts": "2026-05-26T02:34:19.947Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-fsm-srv-294b4057.sock (243 bytes)"}
+{"ts": "2026-05-26T02:34:19.947Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:19.950Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.950Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.950Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-reg-789 from=+358401111111 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:19.951Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-reg-789-20260526-023419.jsonl"}
+{"ts": "2026-05-26T02:34:19.951Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-fsm-srv-8a82852a.sock (241 bytes)"}
+{"ts": "2026-05-26T02:34:19.951Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:19.954Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.954Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:19.954Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-no-engine from=+358400000000 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:19.954Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /Users/sami.j.p.heikkinen/src/yamlgraph/projects/ninchat_voice/logs/transcript-CA-no-engine-20260526-023419.jsonl"}
+{"ts": "2026-05-26T02:34:19.954Z", "level": "ERROR", "logger": "server_fsm", "msg": "💥 FSM engine not reachable: Control socket not found: /tmp/nonexistent-test.sock"}
+{"ts": "2026-05-26T02:34:19.955Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 503 Service Unavailable\""}
+{"ts": "2026-05-26T02:34:19.962Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-3526554c.sock"}
+{"ts": "2026-05-26T02:34:19.962Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-3526554c.sock"}
+{"ts": "2026-05-26T02:34:20.463Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-3526554c.sock"}
+{"ts": "2026-05-26T02:34:20.463Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:20.467Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-305deebd.sock"}
+{"ts": "2026-05-26T02:34:20.467Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-305deebd.sock"}
+{"ts": "2026-05-26T02:34:20.968Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-305deebd.sock"}
+{"ts": "2026-05-26T02:34:20.968Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:20.972Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-df01d616.sock"}
+{"ts": "2026-05-26T02:34:20.973Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-df01d616.sock"}
+{"ts": "2026-05-26T02:34:20.973Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: GET http://testserver/health \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:21.474Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-df01d616.sock"}
+{"ts": "2026-05-26T02:34:21.474Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:21.479Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-360af60d.sock"}
+{"ts": "2026-05-26T02:34:21.479Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-360af60d.sock"}
+{"ts": "2026-05-26T02:34:21.479Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hello world'"}
+{"ts": "2026-05-26T02:34:21.480Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/test-eng-7c6a8122.sock (53 bytes)"}
+{"ts": "2026-05-26T02:34:21.981Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-360af60d.sock"}
+{"ts": "2026-05-26T02:34:21.981Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:21.989Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-e07fbfd6.sock"}
+{"ts": "2026-05-26T02:34:21.989Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-e07fbfd6.sock"}
+{"ts": "2026-05-26T02:34:21.989Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hello'"}
+{"ts": "2026-05-26T02:34:21.990Z", "level": "ERROR", "logger": "services.bridge_listener", "msg": "Bridge handler 'speak' failed: ElevenLabs API down"}
+{"ts": "2026-05-26T02:34:21.990Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event error to /tmp/test-eng-ea662e46.sock (98 bytes)"}
+{"ts": "2026-05-26T02:34:22.491Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-e07fbfd6.sock"}
+{"ts": "2026-05-26T02:34:22.491Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:22.494Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:22.494Z", "level": "WARNING", "logger": "voice_runtime.session", "msg": "put_inbound: _loop is None — audio frame dropped"}
+{"ts": "2026-05-26T02:34:22.494Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/test-eng-ba96275b.sock (49 bytes)"}
+{"ts": "2026-05-26T02:34:22.501Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-3ab777c4.sock"}
+{"ts": "2026-05-26T02:34:22.501Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-3ab777c4.sock"}
+{"ts": "2026-05-26T02:34:22.502Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:22.502Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:23.003Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-3ab777c4.sock"}
+{"ts": "2026-05-26T02:34:23.003Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:23.008Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-105688e0.sock"}
+{"ts": "2026-05-26T02:34:23.008Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-105688e0.sock"}
+{"ts": "2026-05-26T02:34:23.009Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:23.112Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:23.112Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:23.112Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-call-2 from=+358401111111 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:23.113Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /private/var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/pytest-of-sami.j.p.heikkinen/pytest-121/test_disconnect_logged_resets_0/transcript-CA-call-2-20260526-023423.jsonl"}
+{"ts": "2026-05-26T02:34:23.113Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-eng-a5b606cc.sock (300 bytes)"}
+{"ts": "2026-05-26T02:34:23.113Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:23.218Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-26T02:34:23.720Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-105688e0.sock"}
+{"ts": "2026-05-26T02:34:23.720Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:23.726Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-brg-4122e6eb.sock"}
+{"ts": "2026-05-26T02:34:23.726Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener started: /tmp/test-brg-4122e6eb.sock"}
+{"ts": "2026-05-26T02:34:23.728Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:23.728Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:23.728Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-call-1 from=+358401234567 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:23.728Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /private/var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/pytest-of-sami.j.p.heikkinen/pytest-121/test_abort_listen_after_reset_0/transcript-CA-call-1-20260526-023423.jsonl"}
+{"ts": "2026-05-26T02:34:23.728Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-eng-4c0a52dd.sock (300 bytes)"}
+{"ts": "2026-05-26T02:34:23.728Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:23.834Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:23.835Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:23.835Z", "level": "INFO", "logger": "server_fsm", "msg": "📞 Incoming call: sid=CA-call-2 from=+358409999999 STT=elevenlabs TTS=elevenlabs"}
+{"ts": "2026-05-26T02:34:23.835Z", "level": "INFO", "logger": "server_fsm", "msg": "📝 Transcript artifact: /private/var/folders/2b/jkc6518d1pn0bpd6m9s9jwpw0000gn/T/pytest-of-sami.j.p.heikkinen/pytest-121/test_abort_listen_after_reset_0/transcript-CA-call-2-20260526-023423.jsonl"}
+{"ts": "2026-05-26T02:34:23.835Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-eng-4c0a52dd.sock (300 bytes)"}
+{"ts": "2026-05-26T02:34:23.835Z", "level": "INFO", "logger": "httpx", "msg": "HTTP Request: POST http://testserver/incoming \"HTTP/1.1 200 OK\""}
+{"ts": "2026-05-26T02:34:23.941Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🛑 Bridge: abort_listen — STT already cleared by reset, skipping"}
+{"ts": "2026-05-26T02:34:24.442Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-brg-4122e6eb.sock"}
+{"ts": "2026-05-26T02:34:24.442Z", "level": "INFO", "logger": "server_fsm", "msg": "🌉 Bridge listener stopped"}
+{"ts": "2026-05-26T02:34:24.447Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:24.447Z", "level": "WARNING", "logger": "voice_runtime.session", "msg": "put_inbound: _loop is None — audio frame dropped"}
+{"ts": "2026-05-26T02:34:24.448Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:24.449Z", "level": "WARNING", "logger": "voice_runtime.session", "msg": "put_inbound: _loop is None — audio frame dropped"}
+{"ts": "2026-05-26T02:34:24.450Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ123"}
+{"ts": "2026-05-26T02:34:24.467Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-test"}
+{"ts": "2026-05-26T02:34:24.467Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-26T02:34:24.520Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ-abc"}
+{"ts": "2026-05-26T02:34:24.527Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-26T02:34:24.527Z", "level": "WARNING", "logger": "voice_runtime.session", "msg": "put_inbound: _loop is None — audio frame dropped"}
+{"ts": "2026-05-26T02:34:24.527Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.527Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.528Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.528Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.529Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.529Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.529Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.530Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.531Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.531Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.533Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.533Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-26T02:34:24.540Z", "level": "WARNING", "logger": "services.tts", "msg": "Call disconnected — cannot speak"}
+{"ts": "2026-05-26T02:34:24.555Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: greeting.mulaw"}
+{"ts": "2026-05-26T02:34:24.555Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined greeting.mulaw (0.00s)"}
+{"ts": "2026-05-26T02:34:24.557Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: goodbye.mulaw"}
+{"ts": "2026-05-26T02:34:24.558Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined goodbye.mulaw (0.00s)"}
+{"ts": "2026-05-26T02:34:24.562Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: greeting.mulaw"}
+{"ts": "2026-05-26T02:34:24.562Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined greeting.mulaw (0.00s)"}
+{"ts": "2026-05-26T02:34:24.565Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: goodbye.mulaw"}
+{"ts": "2026-05-26T02:34:24.565Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined goodbye.mulaw (0.00s)"}
+{"ts": "2026-05-26T02:34:24.574Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: Welcome to Ninchat"}
+{"ts": "2026-05-26T02:34:24.575Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: Welcome to Ninchat"}
+{"ts": "2026-05-26T02:34:24.575Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: Welcome to Ninchat"}
+{"ts": "2026-05-26T02:34:24.577Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: Welcome to Ninchat"}
+{"ts": "2026-05-26T02:34:24.577Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: Here is the answer"}
+{"ts": "2026-05-26T02:34:24.578Z", "level": "ERROR", "logger": "actions.real.voice_speak_action", "msg": "Voice speak failed: [Errno 2] No such file or directory"}
+{"ts": "2026-05-26T02:34:24.580Z", "level": "INFO", "logger": "actions.real.voice_listen_action", "msg": "🎤 Sent listen command to bridge (timeout=30s)"}
+{"ts": "2026-05-26T02:34:24.581Z", "level": "INFO", "logger": "actions.real.voice_listen_action", "msg": "🎤 Sent listen command to bridge (timeout=30s)"}
+{"ts": "2026-05-26T02:34:24.783Z", "level": "ERROR", "logger": "actions.real.voice_listen_action", "msg": "Voice listen failed: [Errno 2] No such file or directory"}
+{"ts": "2026-05-26T02:34:25.252Z", "level": "INFO", "logger": "services.error_result_delivery", "msg": "NC-304: Ticket sent for caller=Tuntematon"}
+{"ts": "2026-05-26T02:34:25.252Z", "level": "INFO", "logger": "actions.real.call_cleanup_action", "msg": "📴 Sent disconnect command to bridge"}
+{"ts": "2026-05-26T02:34:25.253Z", "level": "INFO", "logger": "actions.real.call_cleanup_action", "msg": "📊 Call metrics: duration=444735.8s turns=4 outcome=completed"}
+{"ts": "2026-05-26T02:34:25.253Z", "level": "INFO", "logger": "actions.real.call_cleanup_action", "msg": "No transcript_path in context — skipping archive"}
+{"ts": "2026-05-26T02:34:25.253Z", "level": "INFO", "logger": "actions.real._context_sweep", "msg": "🧹 Context sweep (cleanup): removed 15 key(s)"}

@@ -1,0 +1,4 @@
+{"ts": "2026-05-25T09:00:03.279Z", "source": "system", "kind": "utterance", "text": "Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?", "call_sid": "VC-sim-dda5fd", "stream_sid": null, "speaking": true, "listening": false}
+{"ts": "2026-05-25T09:00:49.250Z", "source": "system", "kind": "utterance", "text": "En valitettavasti kuule sinua.", "call_sid": "VC-sim-dda5fd", "stream_sid": null, "speaking": true, "listening": false}
+{"ts": "2026-05-25T09:01:49.656Z", "source": "system", "kind": "event", "text": "disconnect_requested", "call_sid": "VC-sim-dda5fd", "stream_sid": null, "speaking": false, "listening": false}
+{"ts": "2026-05-25T09:01:49.657Z", "kind": "call_summary", "call_sid": "VC-sim-dda5fd", "duration_s": 106.8, "turns": 0, "outcome": "completed"}

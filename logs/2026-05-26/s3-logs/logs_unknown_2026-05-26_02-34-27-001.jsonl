@@ -1,0 +1,377 @@
+{"ts": "2026-05-26T02:33:39.989Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-08c7e5ad.sock"}
+{"ts": "2026-05-26T02:33:40.491Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-08c7e5ad.sock"}
+{"ts": "2026-05-26T02:33:40.493Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-5fdd5847.sock"}
+{"ts": "2026-05-26T02:33:40.994Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-5fdd5847.sock"}
+{"ts": "2026-05-26T02:33:40.996Z", "level": "WARNING", "logger": "services.bridge_listener", "msg": "Removing stale bridge socket: /tmp/test-bridge-354c9d43.sock"}
+{"ts": "2026-05-26T02:33:40.996Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-354c9d43.sock"}
+{"ts": "2026-05-26T02:33:40.997Z", "level": "WARNING", "logger": "services.bridge_listener", "msg": "Unknown bridge command: speak"}
+{"ts": "2026-05-26T02:33:40.997Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-354c9d43.sock"}
+{"ts": "2026-05-26T02:33:40.999Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-007fee23.sock"}
+{"ts": "2026-05-26T02:33:41.500Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-007fee23.sock"}
+{"ts": "2026-05-26T02:33:41.503Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-42f5bfbe.sock"}
+{"ts": "2026-05-26T02:33:42.005Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-42f5bfbe.sock"}
+{"ts": "2026-05-26T02:33:42.006Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-126863db.sock"}
+{"ts": "2026-05-26T02:33:42.007Z", "level": "WARNING", "logger": "services.bridge_listener", "msg": "Unknown bridge command: unknown_cmd"}
+{"ts": "2026-05-26T02:33:42.508Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-126863db.sock"}
+{"ts": "2026-05-26T02:33:42.510Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-f9aaf971.sock"}
+{"ts": "2026-05-26T02:33:42.511Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/test-engine-bb6f0aed.sock (53 bytes)"}
+{"ts": "2026-05-26T02:33:43.012Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-f9aaf971.sock"}
+{"ts": "2026-05-26T02:33:43.015Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-af712cbd.sock"}
+{"ts": "2026-05-26T02:33:43.016Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/test-engine-7cc72e52.sock (85 bytes)"}
+{"ts": "2026-05-26T02:33:43.517Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-af712cbd.sock"}
+{"ts": "2026-05-26T02:33:43.519Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/test-bridge-d1e0ecf2.sock"}
+{"ts": "2026-05-26T02:33:43.519Z", "level": "ERROR", "logger": "services.bridge_listener", "msg": "Bridge handler 'speak' failed: TTS service down"}
+{"ts": "2026-05-26T02:33:43.520Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event error to /tmp/test-engine-830a687b.sock (95 bytes)"}
+{"ts": "2026-05-26T02:33:44.020Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener stopped, socket removed: /tmp/test-bridge-d1e0ecf2.sock"}
+{"ts": "2026-05-26T02:33:44.199Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Control socket listening on: /tmp/test-fr371-fr371_7e1fdb.sock"}
+{"ts": "2026-05-26T02:33:44.200Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:33:44.200Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Machine name: fr371_7e1fdb"}
+{"ts": "2026-05-26T02:33:44.200Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Initial state: idle"}
+{"ts": "2026-05-26T02:33:44.200Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Cannot update machine_state: job_model=False, machine_name=fr371_7e1fdb"}
+{"ts": "2026-05-26T02:33:44.200Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:33:44.200Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:33:44.353Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:33:44.353Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:44.353Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_7e1fdb] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:44.353Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:33:44.353Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:44.353Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_7e1fdb] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:44.353Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Cannot update machine_state: job_model=False, machine_name=fr371_7e1fdb"}
+{"ts": "2026-05-26T02:33:44.355Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:44.356Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:44.356Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:44.356Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_7e1fdb] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:44.356Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Cannot update machine_state: job_model=False, machine_name=fr371_7e1fdb"}
+{"ts": "2026-05-26T02:33:44.408Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:44.409Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:44.613Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] 📥 Received event: recognizing"}
+{"ts": "2026-05-26T02:33:44.614Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:44.614Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_7e1fdb] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:44.614Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] graph_processing --recognizing--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:33:44.614Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:44.614Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_7e1fdb] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:44.614Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Cannot update machine_state: job_model=False, machine_name=fr371_7e1fdb"}
+{"ts": "2026-05-26T02:33:44.616Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:44.639Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:44.712Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_7e1fdb] Cleaned up control socket"}
+{"ts": "2026-05-26T02:33:44.780Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Control socket listening on: /tmp/test-fr371-fr371_16cfe8.sock"}
+{"ts": "2026-05-26T02:33:44.780Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:33:44.780Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Machine name: fr371_16cfe8"}
+{"ts": "2026-05-26T02:33:44.780Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Initial state: idle"}
+{"ts": "2026-05-26T02:33:44.781Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Cannot update machine_state: job_model=False, machine_name=fr371_16cfe8"}
+{"ts": "2026-05-26T02:33:44.781Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:33:44.781Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:33:44.933Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:33:44.933Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:44.934Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:44.934Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:33:44.934Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:44.934Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:44.934Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Cannot update machine_state: job_model=False, machine_name=fr371_16cfe8"}
+{"ts": "2026-05-26T02:33:44.935Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:44.935Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:44.936Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:44.936Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:44.936Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Cannot update machine_state: job_model=False, machine_name=fr371_16cfe8"}
+{"ts": "2026-05-26T02:33:44.988Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:44.990Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.194Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] 📥 Received event: recognizing"}
+{"ts": "2026-05-26T02:33:45.195Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:45.195Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:45.195Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] graph_processing --recognizing--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:33:45.195Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:45.195Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:45.195Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Cannot update machine_state: job_model=False, machine_name=fr371_16cfe8"}
+{"ts": "2026-05-26T02:33:45.197Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.220Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.292Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] 📥 Received event: speech_complete"}
+{"ts": "2026-05-26T02:33:45.292Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:45.292Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:45.292Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] graph_listening --speech_complete--> ack_speaking: voice_speak / set_context"}
+{"ts": "2026-05-26T02:33:45.292Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:45.292Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:45.292Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Cannot update machine_state: job_model=False, machine_name=fr371_16cfe8"}
+{"ts": "2026-05-26T02:33:45.294Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.295Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.303Z", "level": "INFO", "logger": "statemachine_engine.actions.builtin.set_context_action", "msg": "[fr371_16cfe8] Set context['_ack_fired'] = True (was: <not set>)"}
+{"ts": "2026-05-26T02:33:45.303Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] ack_speaking --ack_done--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:45.303Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:45.303Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371_16cfe8] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:45.303Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Cannot update machine_state: job_model=False, machine_name=fr371_16cfe8"}
+{"ts": "2026-05-26T02:33:45.354Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371_16cfe8] Cleaned up control socket"}
+{"ts": "2026-05-26T02:33:45.457Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Control socket listening on: /tmp/test-fr371-l3-fr371l3_b515d6.sock"}
+{"ts": "2026-05-26T02:33:45.458Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:33:45.458Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Machine name: fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:45.458Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Initial state: idle"}
+{"ts": "2026-05-26T02:33:45.458Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:45.458Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:33:45.458Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:33:45.610Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:33:45.610Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:45.610Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:45.610Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:33:45.610Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:45.610Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:45.610Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:45.612Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.612Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:45.612Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:45.612Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:45.612Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:45.664Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.666Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.666Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak"}
+{"ts": "2026-05-26T02:33:45.666Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:45.666Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:45.666Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:45.718Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.719Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.719Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:33:45.720Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:45.720Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:45.720Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:45.772Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.795Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.868Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.891Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.963Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:45.986Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.059Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] 📥 Received event: speech_complete"}
+{"ts": "2026-05-26T02:33:46.059Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:46.059Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:46.059Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] graph_listening --speech_complete--> ack_speaking: voice_speak / set_context"}
+{"ts": "2026-05-26T02:33:46.059Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.059Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.059Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:46.062Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.063Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.063Z", "level": "INFO", "logger": "statemachine_engine.actions.builtin.set_context_action", "msg": "[fr371l3_b515d6] Set context['_ack_fired'] = True (was: <not set>)"}
+{"ts": "2026-05-26T02:33:46.063Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] ack_speaking --ack_done--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:46.063Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.063Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.064Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:46.116Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.117Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.270Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] 📥 Received event: recognizing"}
+{"ts": "2026-05-26T02:33:46.270Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:46.271Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:46.271Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] graph_processing --recognizing--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:33:46.271Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.271Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.271Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:46.272Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.295Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.366Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] 📥 Received event: speech_complete"}
+{"ts": "2026-05-26T02:33:46.367Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:46.367Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:46.367Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] graph_listening --speech_complete--> ack_speaking: voice_speak / set_context (#2)"}
+{"ts": "2026-05-26T02:33:46.367Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.367Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.367Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:46.369Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.370Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.370Z", "level": "INFO", "logger": "statemachine_engine.actions.builtin.set_context_action", "msg": "[fr371l3_b515d6] Set context['_ack_fired'] = True (was: True)"}
+{"ts": "2026-05-26T02:33:46.370Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] ack_speaking --ack_done--> graph_processing: ui_log / yamlgraph_async (#2)"}
+{"ts": "2026-05-26T02:33:46.370Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.371Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.371Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:46.423Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.424Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.424Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#2)"}
+{"ts": "2026-05-26T02:33:46.424Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.424Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_b515d6] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.425Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cannot update machine_state: job_model=False, machine_name=fr371l3_b515d6"}
+{"ts": "2026-05-26T02:33:46.476Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_b515d6] Cleaned up control socket"}
+{"ts": "2026-05-26T02:33:46.548Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Control socket listening on: /tmp/test-fr371-l3-fr371l3_0a331f.sock"}
+{"ts": "2026-05-26T02:33:46.548Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:33:46.548Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Machine name: fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:46.548Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Initial state: idle"}
+{"ts": "2026-05-26T02:33:46.548Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:46.548Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:33:46.548Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:33:46.700Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:33:46.701Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:46.701Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:46.701Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:33:46.701Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.701Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.701Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:46.702Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.702Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:46.703Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.703Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.703Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:46.755Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.756Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.756Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak"}
+{"ts": "2026-05-26T02:33:46.756Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.756Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.756Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:46.809Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.814Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.814Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:33:46.815Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:46.815Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:46.815Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:46.868Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.891Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.965Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:46.989Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.061Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] 📥 Received event: speech_complete"}
+{"ts": "2026-05-26T02:33:47.062Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:47.062Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:47.062Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] graph_listening --speech_complete--> ack_speaking: voice_speak / set_context"}
+{"ts": "2026-05-26T02:33:47.062Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.063Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.063Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:47.065Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.068Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.068Z", "level": "INFO", "logger": "statemachine_engine.actions.builtin.set_context_action", "msg": "[fr371l3_0a331f] Set context['_ack_fired'] = True (was: <not set>)"}
+{"ts": "2026-05-26T02:33:47.068Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] ack_speaking --ack_done--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:47.068Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.068Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.068Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:47.122Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.124Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.124Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#2)"}
+{"ts": "2026-05-26T02:33:47.124Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.124Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_0a331f] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.124Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cannot update machine_state: job_model=False, machine_name=fr371l3_0a331f"}
+{"ts": "2026-05-26T02:33:47.176Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_0a331f] Cleaned up control socket"}
+{"ts": "2026-05-26T02:33:47.286Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Control socket listening on: /tmp/test-fr371-l3-fr371l3_c6ce8a.sock"}
+{"ts": "2026-05-26T02:33:47.286Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Loaded state machine config: Voice Coordinator (navigator)"}
+{"ts": "2026-05-26T02:33:47.286Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Machine name: fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.287Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Initial state: idle"}
+{"ts": "2026-05-26T02:33:47.287Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.287Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Starting state machine execution from state: idle"}
+{"ts": "2026-05-26T02:33:47.287Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Action log: Voice coordinator (navigator) ready — waiting for incoming calls"}
+{"ts": "2026-05-26T02:33:47.439Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] 📥 Received event: incoming_call"}
+{"ts": "2026-05-26T02:33:47.440Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:47.440Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:47.440Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] idle --incoming_call--> warming_up: yamlgraph_preload"}
+{"ts": "2026-05-26T02:33:47.440Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.440Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.440Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.442Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.442Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] warming_up --warmed--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:47.443Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.443Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.443Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.496Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.497Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.498Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak"}
+{"ts": "2026-05-26T02:33:47.498Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.498Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.498Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.551Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.553Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.554Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] graph_speaking --speak_done--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:33:47.554Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.554Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.554Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.607Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.630Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.705Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.730Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.803Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] 📥 Received event: speech_complete"}
+{"ts": "2026-05-26T02:33:47.803Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:47.803Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:47.803Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] graph_listening --speech_complete--> ack_speaking: voice_speak / set_context"}
+{"ts": "2026-05-26T02:33:47.803Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.803Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.803Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.805Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.807Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.807Z", "level": "INFO", "logger": "statemachine_engine.actions.builtin.set_context_action", "msg": "[fr371l3_c6ce8a] Set context['_ack_fired'] = True (was: <not set>)"}
+{"ts": "2026-05-26T02:33:47.807Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] ack_speaking --ack_done--> graph_processing: ui_log / yamlgraph_async"}
+{"ts": "2026-05-26T02:33:47.807Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.807Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.808Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.861Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.863Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.863Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] graph_processing --graph_continue--> graph_speaking: ui_log / voice_speak (#2)"}
+{"ts": "2026-05-26T02:33:47.863Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.863Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.864Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.914Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] 📥 Received event: recognizing"}
+{"ts": "2026-05-26T02:33:47.914Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: activity_log"}
+{"ts": "2026-05-26T02:33:47.914Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: activity_log"}
+{"ts": "2026-05-26T02:33:47.914Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] graph_speaking --recognizing--> graph_listening: accumulate_text / silence_detector"}
+{"ts": "2026-05-26T02:33:47.914Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "📭 Socket not connected, cannot emit: state_change"}
+{"ts": "2026-05-26T02:33:47.914Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "⚠️  [fr371l3_c6ce8a] Unix socket failed, falling back to database for: state_change"}
+{"ts": "2026-05-26T02:33:47.915Z", "level": "WARNING", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cannot update machine_state: job_model=False, machine_name=fr371l3_c6ce8a"}
+{"ts": "2026-05-26T02:33:47.916Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:47.939Z", "level": "INFO", "logger": "statemachine_engine.core.action_loader", "msg": "Action loader initialized: 26 actions available (built-in: 14, custom: 12)"}
+{"ts": "2026-05-26T02:33:48.011Z", "level": "INFO", "logger": "statemachine_engine.core.engine", "msg": "[fr371l3_c6ce8a] Cleaned up control socket"}
+{"ts": "2026-05-26T02:33:48.055Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🗺️ yamlgraph_async event_map: continue → graph_continue"}
+{"ts": "2026-05-26T02:33:48.055Z", "level": "WARNING", "logger": "actions.real.yamlgraph_async_action", "msg": "🗑️ yamlgraph_async: discarding stale graph_continue (launch_gen=0, current_gen=1)"}
+{"ts": "2026-05-26T02:33:48.059Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🗺️ yamlgraph_async event_map: switch_graph → graph_switch"}
+{"ts": "2026-05-26T02:33:48.059Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🔀 yamlgraph_async: dispatching graph_switch despite gen mismatch (launch_gen=0, current_gen=1) — routing/safety event"}
+{"ts": "2026-05-26T02:33:48.059Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async dispatched: graph_switch"}
+{"ts": "2026-05-26T02:33:48.063Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async dispatched: graph_continue"}
+{"ts": "2026-05-26T02:33:48.065Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🗺️ yamlgraph_async event_map: switch_graph → graph_switch"}
+{"ts": "2026-05-26T02:33:48.066Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async dispatched: graph_switch"}
+{"ts": "2026-05-26T02:33:48.067Z", "level": "INFO", "logger": "actions.real.accumulate_text_action", "msg": "NC-207: orphaned task detected (gen 3→4, guards cleared: ['_graph_running_graph_processing'])"}
+{"ts": "2026-05-26T02:33:48.073Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🔄 yamlgraph_async: resuming from interrupt at ['ask_opening']"}
+{"ts": "2026-05-26T02:33:48.079Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🗺️ yamlgraph_async event_map: switch_graph → graph_switch"}
+{"ts": "2026-05-26T02:33:48.079Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🔀 yamlgraph_async: dispatching graph_switch despite gen mismatch (launch_gen=0, current_gen=1) — routing/safety event"}
+{"ts": "2026-05-26T02:33:48.079Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async dispatched: graph_switch"}
+{"ts": "2026-05-26T02:33:48.082Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🗺️ yamlgraph_async event_map: crisis → crisis_detected"}
+{"ts": "2026-05-26T02:33:48.082Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🔀 yamlgraph_async: dispatching crisis_detected despite gen mismatch (launch_gen=0, current_gen=1) — routing/safety event"}
+{"ts": "2026-05-26T02:33:48.082Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async dispatched: crisis_detected"}
+{"ts": "2026-05-26T02:33:48.084Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "🗺️ yamlgraph_async event_map: continue → graph_continue"}
+{"ts": "2026-05-26T02:33:48.084Z", "level": "WARNING", "logger": "actions.real.yamlgraph_async_action", "msg": "🗑️ yamlgraph_async: discarding stale graph_continue (launch_gen=0, current_gen=1)"}
+{"ts": "2026-05-26T02:33:48.087Z", "level": "INFO", "logger": "actions.real.yamlgraph_async_action", "msg": "✅ yamlgraph_async: graph completed, emitting graph_done"}
+{"ts": "2026-05-26T02:33:48.087Z", "level": "WARNING", "logger": "actions.real.yamlgraph_async_action", "msg": "🗑️ yamlgraph_async: discarding stale graph_done (launch_gen=0, current_gen=1)"}
+{"ts": "2026-05-26T02:33:48.089Z", "level": "INFO", "logger": "actions.real.bump_generation_action", "msg": "FR-372: task_generation bumped 3→4"}
+{"ts": "2026-05-26T02:33:48.091Z", "level": "INFO", "logger": "actions.real.bump_generation_action", "msg": "FR-372: task_generation bumped 0→1"}
+{"ts": "2026-05-26T02:33:48.164Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Olet soittanut Tervolan terveysasemalle'"}
+{"ts": "2026-05-26T02:33:48.165Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "FR-375: echo discarded (Jaccard >= threshold): 'olet soittanut tervolan terveysasemalle'"}
+{"ts": "2026-05-26T02:33:48.166Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Olet soittanut Tervolan terveysasemalle'"}
+{"ts": "2026-05-26T02:33:48.168Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Olet soittanut Tervolan terveysasemalle'"}
+{"ts": "2026-05-26T02:33:48.168Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "FR-375: echo discarded (Jaccard >= threshold): 'olet soittanut tervolan terveysasemalle'"}
+{"ts": "2026-05-26T02:33:48.170Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Olet soittanut Tervolan terveysasemalle'"}
+{"ts": "2026-05-26T02:33:48.170Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kertoisitko tarkemmin oireistasi'"}
+{"ts": "2026-05-26T02:33:48.172Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Olet soittanut Tervolan terveysasemalle'"}
+{"ts": "2026-05-26T02:33:48.177Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-fsm-174507e2.sock (75 bytes)"}
+{"ts": "2026-05-26T02:33:48.178Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/test-fsm-cf3c82e2.sock (53 bytes)"}
+{"ts": "2026-05-26T02:33:48.180Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event wake_up to /tmp/test-fsm-ac4c322e.sock (50 bytes)"}
+{"ts": "2026-05-26T02:33:48.183Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/test-fsm-518bcb2a.sock (73 bytes)"}
+{"ts": "2026-05-26T02:33:48.183Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/test-fsm-518bcb2a.sock (67 bytes)"}
+{"ts": "2026-05-26T02:33:48.251Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: Kiitos."}
+{"ts": "2026-05-26T02:33:48.252Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: The answer."}
+{"ts": "2026-05-26T02:33:48.252Z", "level": "INFO", "logger": "actions.real.voice_speak_action", "msg": "🔊 Sent speak command to bridge: Kiitos."}
+{"ts": "2026-05-26T02:33:48.298Z", "level": "INFO", "logger": "actions.real.yamlgraph_preload_action", "msg": "🔥 Preloading 2 graph(s): ['graphs/intent-classifier.yaml', 'graphs/rewrite-response.yaml']"}
+{"ts": "2026-05-26T02:33:48.298Z", "level": "INFO", "logger": "actions.real.yamlgraph_preload_action", "msg": "✅ Preload complete — 2 graph(s) ready"}
+{"ts": "2026-05-26T02:33:48.404Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:33:48.404Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:33:48.404Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-26T02:33:48.408Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:33:48.409Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-26T02:33:48.414Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_AUTH_TOKEN not set — Twilio signature validation disabled"}
+{"ts": "2026-05-26T02:33:48.414Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:33:48.414Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket disconnected"}
+{"ts": "2026-05-26T02:33:48.418Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-26T02:33:48.418Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket disconnected"}
+{"ts": "2026-05-26T02:33:48.507Z", "level": "INFO", "logger": "actions.real.call_abort_action", "msg": "🔌 Ninchat connection closed (abort)"}
+{"ts": "2026-05-26T02:33:48.507Z", "level": "WARNING", "logger": "actions.real.call_abort_action", "msg": "Bridge abort_listen failed: [Errno 2] No such file or directory"}
+{"ts": "2026-05-26T02:33:48.508Z", "level": "WARNING", "logger": "actions.real.call_abort_action", "msg": "Ninchat abort cleanup: already closed"}
+{"ts": "2026-05-26T02:33:48.508Z", "level": "WARNING", "logger": "actions.real.call_abort_action", "msg": "Bridge abort_listen failed: [Errno 2] No such file or directory"}
+{"ts": "2026-05-26T02:33:48.509Z", "level": "INFO", "logger": "actions.real.call_abort_action", "msg": "🧹 Cleared 2 guard(s) (abort)"}
+{"ts": "2026-05-26T02:33:48.509Z", "level": "WARNING", "logger": "actions.real.call_abort_action", "msg": "Bridge abort_listen failed: [Errno 2] No such file or directory"}
+{"ts": "2026-05-26T02:33:48.510Z", "level": "INFO", "logger": "actions.real.call_abort_action", "msg": "🛑 Sent abort_listen command to bridge"}
+{"ts": "2026-05-26T02:33:48.536Z", "level": "INFO", "logger": "actions.real.ui_log_action", "msg": "[voice_coordinator] UI log: 👂 Heard: Hammasvold"}
+{"ts": "2026-05-26T02:33:48.537Z", "level": "INFO", "logger": "actions.real.ui_log_action", "msg": "[voice_coordinator] UI log: 👂 Heard: Hammasvold"}
+{"ts": "2026-05-26T02:33:48.538Z", "level": "ERROR", "logger": "actions.real.ui_log_action", "msg": "UiLogAction failed (non-fatal): socket error"}
+{"ts": "2026-05-26T02:33:48.542Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: test.mulaw"}
+{"ts": "2026-05-26T02:33:48.542Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined test.mulaw (0.00s)"}
+{"ts": "2026-05-26T02:33:48.554Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Speaking: hello"}
+{"ts": "2026-05-26T02:33:48.554Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Barge-in interrupt"}
+{"ts": "2026-05-26T02:33:48.555Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Speaking: hello"}
+{"ts": "2026-05-26T02:33:48.556Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Barge-in interrupt"}
+{"ts": "2026-05-26T02:33:48.557Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Speaking: hello world"}
+{"ts": "2026-05-26T02:33:48.557Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Spoke: hello world (0.00s)"}
+{"ts": "2026-05-26T02:33:48.559Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Speaking: hello"}
+{"ts": "2026-05-26T02:33:48.559Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Spoke: hello (0.00s)"}
+{"ts": "2026-05-26T02:33:48.560Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Speaking: hello"}
+{"ts": "2026-05-26T02:33:48.561Z", "level": "INFO", "logger": "voice_runtime.providers.elevenlabs_tts", "msg": "Spoke: hello (0.00s)"}

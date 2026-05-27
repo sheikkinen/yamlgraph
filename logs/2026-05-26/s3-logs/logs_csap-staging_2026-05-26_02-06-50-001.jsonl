@@ -1,0 +1,2 @@
+{"ts": "2026-05-26T02:06:50.268Z", "level": "WARNING", "logger": "voice_runtime.transports.twilio_ws", "msg": "TWILIO_SKIP_SIGNATURE_VALIDATION is set — Twilio signature validation DISABLED. NEVER set in production."}
+{"ts": "2026-05-26T02:06:50.942Z", "level": "INFO", "logger": "__main__", "msg": "[W0] starting worker on port 8770"}

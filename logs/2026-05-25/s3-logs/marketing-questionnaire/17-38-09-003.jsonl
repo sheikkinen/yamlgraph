@@ -1,0 +1,1000 @@
+{"ts": "2026-05-22T13:33:24.116Z", "level": "INFO", "logger": "services.bridge_listener", "msg": "Bridge listener started on /tmp/nv-bridge-2.sock"}
+{"ts": "2026-05-22T13:33:24.116Z", "level": "INFO", "logger": "__main__", "msg": "🌉 Bridge listener started: /tmp/nv-bridge-2.sock"}
+{"ts": "2026-05-25T12:02:33.677Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-25T12:02:33.677Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-25T12:02:33.678Z", "level": "INFO", "logger": "__main__", "msg": "📞 Incoming call: sid=CAb176f159bc077093a0e8e7ae65b7eadd from=+358400883422 STT=azure TTS=azure"}
+{"ts": "2026-05-25T12:02:33.678Z", "level": "INFO", "logger": "__main__", "msg": "📝 Transcript artifact: /app/logs/transcript-CAb176f159bc077093a0e8e7ae65b7eadd-20260525-120233.jsonl"}
+{"ts": "2026-05-25T12:02:33.678Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/nv-engine-2-voice_coordinator_002.sock (629 bytes)"}
+{"ts": "2026-05-25T12:02:34.158Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-25T12:02:34.162Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-25T12:02:34.164Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ28feb5f2bbc385c2cff9d5b3d1b11910, call_sid=CAb176f159bc077093a0e8e7ae65b7eadd"}
+{"ts": "2026-05-25T12:02:34.164Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ28feb5f2bbc385c2cff9d5b3d1b11910"}
+{"ts": "2026-05-25T12:02:34.175Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt started (lang=fi-FI)"}
+{"ts": "2026-05-25T12:02:35.484Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?'"}
+{"ts": "2026-05-25T12:02:35.484Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hie' (68 chars), STT active"}
+{"ts": "2026-05-25T12:02:35.504Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?"}
+{"ts": "2026-05-25T12:02:35.912Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme  (0.41s)"}
+{"ts": "2026-05-25T12:02:35.913Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__75804e3f"}
+{"ts": "2026-05-25T12:02:36.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:38.006Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:40.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:42.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:42.422Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__75804e3f"}
+{"ts": "2026-05-25T12:02:42.476Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=6.99s"}
+{"ts": "2026-05-25T12:02:42.476Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T12:02:44.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:44.989Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:02:45.587Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:02:45.874Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:02:45.885Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (85 bytes)"}
+{"ts": "2026-05-25T12:02:45.885Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Laura virr.'"}
+{"ts": "2026-05-25T12:02:46.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:46.813Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T12:02:46.814Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T12:02:46.815Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T12:02:46.817Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T12:02:46.822Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__a90bf6d9"}
+{"ts": "2026-05-25T12:02:48.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:50.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:50.682Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__a90bf6d9"}
+{"ts": "2026-05-25T12:02:50.682Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T12:02:50.682Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T12:02:52.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:53.149Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Mikä organisaatio tai yritys Teillä on, Laura?'"}
+{"ts": "2026-05-25T12:02:53.149Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Mikä organisaatio tai yritys Teillä on, Laura?' (46 chars), STT active"}
+{"ts": "2026-05-25T12:02:53.149Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Mikä organisaatio tai yritys Teillä on, Laura?"}
+{"ts": "2026-05-25T12:02:53.688Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Mikä organisaatio tai yritys Teillä on, Laura? (0.54s)"}
+{"ts": "2026-05-25T12:02:53.691Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__efe94de1"}
+{"ts": "2026-05-25T12:02:54.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:56.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:58.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:02:58.221Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__efe94de1"}
+{"ts": "2026-05-25T12:02:58.276Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=5.13s"}
+{"ts": "2026-05-25T12:02:58.277Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T12:03:00.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:00.891Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:01.196Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:01.391Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:01.790Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:02.009Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:02.196Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:02.492Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:03.406Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (89 bytes)"}
+{"ts": "2026-05-25T12:03:03.406Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Ledikonsult OY.'"}
+{"ts": "2026-05-25T12:03:04.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:04.301Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T12:03:04.301Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T12:03:04.301Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T12:03:04.309Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.01s)"}
+{"ts": "2026-05-25T12:03:04.316Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__68d810c7"}
+{"ts": "2026-05-25T12:03:06.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:07.594Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päiviltä?'"}
+{"ts": "2026-05-25T12:03:07.595Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päivil' (63 chars), STT active"}
+{"ts": "2026-05-25T12:03:07.595Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päiviltä?"}
+{"ts": "2026-05-25T12:03:08.007Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:08.043Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Mikä on teille mukava muisto näiltä tai aiemmilta  (0.45s)"}
+{"ts": "2026-05-25T12:03:08.047Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__af202344"}
+{"ts": "2026-05-25T12:03:08.181Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__68d810c7"}
+{"ts": "2026-05-25T12:03:08.182Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.88s"}
+{"ts": "2026-05-25T12:03:08.182Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T12:03:10.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:12.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:12.882Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__af202344"}
+{"ts": "2026-05-25T12:03:12.938Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=5.34s"}
+{"ts": "2026-05-25T12:03:12.938Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T12:03:14.006Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:16.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:16.307Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:16.606Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:16.808Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:17.205Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:17.509Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:17.813Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:18.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:18.605Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (105 bytes)"}
+{"ts": "2026-05-25T12:03:18.605Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Tapaamiset ja verkostoituminen.'"}
+{"ts": "2026-05-25T12:03:19.901Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T12:03:19.901Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T12:03:19.901Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T12:03:19.903Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T12:03:19.914Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__55fc1179"}
+{"ts": "2026-05-25T12:03:20.006Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:22.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:23.197Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Eli kutsumme teidät nimellä Laura virr, organisaatiosta Ledikonsult OY, ja muist'"}
+{"ts": "2026-05-25T12:03:23.197Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Eli kutsumme teidät nimellä Laura virr, organisaatiosta Ledi' (150 chars), STT active"}
+{"ts": "2026-05-25T12:03:23.197Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Eli kutsumme teidät nimellä Laura virr, organisaatiosta Ledikonsult OY, ja muist"}
+{"ts": "2026-05-25T12:03:23.762Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__55fc1179"}
+{"ts": "2026-05-25T12:03:23.762Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.86s"}
+{"ts": "2026-05-25T12:03:23.762Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T12:03:23.923Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Eli kutsumme teidät nimellä Laura virr, organisaat (0.73s)"}
+{"ts": "2026-05-25T12:03:23.925Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__1dd180fc"}
+{"ts": "2026-05-25T12:03:24.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:26.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:28.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:30.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:32.006Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:34.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:35.502Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__1dd180fc"}
+{"ts": "2026-05-25T12:03:35.556Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=12.36s"}
+{"ts": "2026-05-25T12:03:35.556Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T12:03:36.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:38.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:38.586Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:38.882Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (78 bytes)"}
+{"ts": "2026-05-25T12:03:38.882Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Hei.'"}
+{"ts": "2026-05-25T12:03:39.773Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T12:03:39.773Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T12:03:39.773Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T12:03:39.775Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T12:03:39.784Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__dff5a9f5"}
+{"ts": "2026-05-25T12:03:40.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:42.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:42.907Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Eli kutsumme teidät nimellä Laura Virr, organisaatiosta Ledikonsult Oy, ja muist'"}
+{"ts": "2026-05-25T12:03:42.907Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Eli kutsumme teidät nimellä Laura Virr, organisaatiosta Ledi' (150 chars), STT active"}
+{"ts": "2026-05-25T12:03:42.907Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Eli kutsumme teidät nimellä Laura Virr, organisaatiosta Ledikonsult Oy, ja muist"}
+{"ts": "2026-05-25T12:03:43.641Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__dff5a9f5"}
+{"ts": "2026-05-25T12:03:43.642Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T12:03:43.642Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T12:03:44.011Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:44.260Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Eli kutsumme teidät nimellä Laura Virr, organisaat (1.35s)"}
+{"ts": "2026-05-25T12:03:44.262Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__fa27ae93"}
+{"ts": "2026-05-25T12:03:46.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:48.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:50.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:52.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:54.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:55.482Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__fa27ae93"}
+{"ts": "2026-05-25T12:03:55.537Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=12.63s"}
+{"ts": "2026-05-25T12:03:55.537Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T12:03:56.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:56.590Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:03:57.522Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (77 bytes)"}
+{"ts": "2026-05-25T12:03:57.522Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Ei.'"}
+{"ts": "2026-05-25T12:03:58.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:03:58.426Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T12:03:58.426Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T12:03:58.427Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T12:03:58.429Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T12:03:58.439Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__b44a84b8"}
+{"ts": "2026-05-25T12:04:00.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:01.580Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:01.973Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:01.983Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (87 bytes)"}
+{"ts": "2026-05-25T12:04:01.983Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Se ei korjaa.'"}
+{"ts": "2026-05-25T12:04:02.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:02.282Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__b44a84b8"}
+{"ts": "2026-05-25T12:04:02.282Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.86s"}
+{"ts": "2026-05-25T12:04:02.282Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T12:04:02.895Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T12:04:02.895Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T12:04:02.895Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T12:04:02.898Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T12:04:02.910Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__4f9b48d1"}
+{"ts": "2026-05-25T12:04:04.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:06.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:06.016Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin.'"}
+{"ts": "2026-05-25T12:04:06.016Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin.' (58 chars), STT active"}
+{"ts": "2026-05-25T12:04:06.016Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin."}
+{"ts": "2026-05-25T12:04:06.086Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:06.417Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Kiitoksia. Kutsumme teidät mahdollisimman pian. Ku (0.40s)"}
+{"ts": "2026-05-25T12:04:06.418Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__fb3b0c09"}
+{"ts": "2026-05-25T12:04:06.585Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:06.762Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__4f9b48d1"}
+{"ts": "2026-05-25T12:04:06.762Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T12:04:06.762Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T12:04:07.393Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:07.789Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:08.001Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:08.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:08.397Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T12:04:09.812Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (96 bytes)"}
+{"ts": "2026-05-25T12:04:09.812Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Laura vir ledikonsult.'"}
+{"ts": "2026-05-25T12:04:10.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:12.005Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:13.241Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__fb3b0c09"}
+{"ts": "2026-05-25T12:04:13.297Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=7.28s"}
+{"ts": "2026-05-25T12:04:13.297Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T12:04:14.007Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T12:04:14.159Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-25T12:04:14.159Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-25T12:04:14.159Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/nv-engine-2-voice_coordinator_002.sock (49 bytes)"}
+{"ts": "2026-05-25T12:04:14.159Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: cancelled after 5007 frames"}
+{"ts": "2026-05-25T12:04:14.208Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T12:04:14.209Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T12:04:14.266Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T12:04:14.267Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Disconnect requested — closing WebSocket to end call"}
+{"ts": "2026-05-25T12:04:15.414Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T12:04:15.414Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T14:56:29.769Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-25T14:56:29.769Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-25T14:56:29.769Z", "level": "INFO", "logger": "__main__", "msg": "📞 Incoming call: sid=CAb39730290a024aefcd00a251ade53270 from=+358454918222 STT=azure TTS=azure"}
+{"ts": "2026-05-25T14:56:29.770Z", "level": "INFO", "logger": "__main__", "msg": "📝 Transcript artifact: /app/logs/transcript-CAb39730290a024aefcd00a251ade53270-20260525-145629.jsonl"}
+{"ts": "2026-05-25T14:56:29.771Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/nv-engine-2-voice_coordinator_002.sock (629 bytes)"}
+{"ts": "2026-05-25T14:56:29.773Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T14:56:30.310Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-25T14:56:30.312Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-25T14:56:30.312Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ5bcb9b40c7228b3ad1d598d4b8c9a859, call_sid=CAb39730290a024aefcd00a251ade53270"}
+{"ts": "2026-05-25T14:56:30.312Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ5bcb9b40c7228b3ad1d598d4b8c9a859"}
+{"ts": "2026-05-25T14:56:30.743Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt started (lang=fi-FI)"}
+{"ts": "2026-05-25T14:56:32.195Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:34.124Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?'"}
+{"ts": "2026-05-25T14:56:34.125Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hie' (68 chars), STT active"}
+{"ts": "2026-05-25T14:56:34.125Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?"}
+{"ts": "2026-05-25T14:56:34.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:34.814Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme  (0.69s)"}
+{"ts": "2026-05-25T14:56:34.815Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__cd7c8af1"}
+{"ts": "2026-05-25T14:56:36.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:38.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:40.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:41.336Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__cd7c8af1"}
+{"ts": "2026-05-25T14:56:41.390Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=7.27s"}
+{"ts": "2026-05-25T14:56:41.391Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T14:56:42.193Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:44.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:44.873Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:45.176Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:45.474Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:45.666Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:45.780Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:46.176Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:46.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:46.278Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:46.379Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:46.776Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:46.980Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:47.081Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:47.476Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:47.681Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:48.079Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:48.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:48.402Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:56:48.496Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (137 bytes)"}
+{"ts": "2026-05-25T14:56:48.496Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Nimeni on testihenkilö ja edustan organisaatiota testi OY.'"}
+{"ts": "2026-05-25T14:56:49.788Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T14:56:49.789Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T14:56:49.789Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T14:56:49.791Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T14:56:49.799Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__4263c7fe"}
+{"ts": "2026-05-25T14:56:50.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:52.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:53.656Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__4263c7fe"}
+{"ts": "2026-05-25T14:56:53.656Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T14:56:53.656Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T14:56:54.257Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:55.026Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päiviltä?'"}
+{"ts": "2026-05-25T14:56:55.027Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päivil' (63 chars), STT active"}
+{"ts": "2026-05-25T14:56:55.027Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päiviltä?"}
+{"ts": "2026-05-25T14:56:56.124Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Mikä on teille mukava muisto näiltä tai aiemmilta  (1.10s)"}
+{"ts": "2026-05-25T14:56:56.125Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__30152721"}
+{"ts": "2026-05-25T14:56:56.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:56:58.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:00.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:00.372Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:00.676Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:00.770Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:00.957Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__30152721"}
+{"ts": "2026-05-25T14:57:00.974Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:01.010Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=5.98s"}
+{"ts": "2026-05-25T14:57:01.011Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T14:57:01.270Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:01.372Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:01.678Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:01.977Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:02.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:02.271Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:02.677Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:02.984Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (129 bytes)"}
+{"ts": "2026-05-25T14:57:02.984Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Muistan kun ensimmäinen tietokone tuli toimistoon.'"}
+{"ts": "2026-05-25T14:57:04.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:04.275Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T14:57:04.275Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T14:57:04.276Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T14:57:04.278Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T14:57:04.287Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__36ccc9ac"}
+{"ts": "2026-05-25T14:57:06.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:08.156Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__36ccc9ac"}
+{"ts": "2026-05-25T14:57:08.156Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.88s"}
+{"ts": "2026-05-25T14:57:08.156Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T14:57:08.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:10.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:11.805Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Eli kutsumme teidät nimellä testihenkilö, organisaatiosta testi OY, ja muistonne'"}
+{"ts": "2026-05-25T14:57:11.805Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Eli kutsumme teidät nimellä testihenkilö, organisaatiosta te' (168 chars), STT active"}
+{"ts": "2026-05-25T14:57:11.907Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Eli kutsumme teidät nimellä testihenkilö, organisaatiosta testi OY, ja muistonne"}
+{"ts": "2026-05-25T14:57:12.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:13.214Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Eli kutsumme teidät nimellä testihenkilö, organisa (1.31s)"}
+{"ts": "2026-05-25T14:57:13.215Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__3cf2aa1a"}
+{"ts": "2026-05-25T14:57:14.191Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:16.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:18.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:20.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:22.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:24.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:26.136Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__3cf2aa1a"}
+{"ts": "2026-05-25T14:57:26.190Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=14.38s"}
+{"ts": "2026-05-25T14:57:26.190Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T14:57:26.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:28.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:30.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:32.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:34.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:36.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:38.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:40.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:41.696Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'En valitettavasti kuule sinua.'"}
+{"ts": "2026-05-25T14:57:41.697Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'En valitettavasti kuule sinua.' (30 chars), STT active"}
+{"ts": "2026-05-25T14:57:41.697Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): En valitettavasti kuule sinua."}
+{"ts": "2026-05-25T14:57:42.059Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): En valitettavasti kuule sinua. (0.36s)"}
+{"ts": "2026-05-25T14:57:42.059Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__545817d7"}
+{"ts": "2026-05-25T14:57:42.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:44.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:44.976Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__545817d7"}
+{"ts": "2026-05-25T14:57:45.029Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.33s"}
+{"ts": "2026-05-25T14:57:45.029Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T14:57:46.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:48.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:50.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:51.975Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:52.069Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:52.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:52.476Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:52.578Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:52.874Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:53.169Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:53.272Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:53.474Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T14:57:53.807Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (106 bytes)"}
+{"ts": "2026-05-25T14:57:53.807Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Kyllä yhteenveto on oikein.'"}
+{"ts": "2026-05-25T14:57:54.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:55.089Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T14:57:55.089Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T14:57:55.090Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T14:57:55.092Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T14:57:55.104Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__088657a2"}
+{"ts": "2026-05-25T14:57:56.223Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:58.191Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:57:58.955Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__088657a2"}
+{"ts": "2026-05-25T14:57:58.956Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T14:57:58.956Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T14:58:00.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:01.837Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin.'"}
+{"ts": "2026-05-25T14:58:01.838Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin.' (58 chars), STT active"}
+{"ts": "2026-05-25T14:58:01.937Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin."}
+{"ts": "2026-05-25T14:58:02.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:02.735Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Kiitoksia. Kutsumme teidät mahdollisimman pian. Ku (0.80s)"}
+{"ts": "2026-05-25T14:58:02.736Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__7a0228bc"}
+{"ts": "2026-05-25T14:58:04.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:06.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:08.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:09.296Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__7a0228bc"}
+{"ts": "2026-05-25T14:58:09.349Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=7.51s"}
+{"ts": "2026-05-25T14:58:09.349Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T14:58:10.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:12.192Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:14.194Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T14:58:14.375Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-25T14:58:14.375Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-25T14:58:14.375Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/nv-engine-2-voice_coordinator_002.sock (49 bytes)"}
+{"ts": "2026-05-25T14:58:14.375Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: cancelled after 5208 frames"}
+{"ts": "2026-05-25T14:58:14.393Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T14:58:14.394Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T14:58:14.426Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T14:58:14.426Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Disconnect requested — closing WebSocket to end call"}
+{"ts": "2026-05-25T14:58:15.023Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T14:58:15.023Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T16:53:23.668Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-25T16:53:23.668Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-25T16:53:23.668Z", "level": "INFO", "logger": "__main__", "msg": "📞 Incoming call: sid=CA459ca3b99fd32f99222c924a91d63f6c from=+358503098701 STT=azure TTS=azure"}
+{"ts": "2026-05-25T16:53:23.669Z", "level": "INFO", "logger": "__main__", "msg": "📝 Transcript artifact: /app/logs/transcript-CA459ca3b99fd32f99222c924a91d63f6c-20260525-165323.jsonl"}
+{"ts": "2026-05-25T16:53:23.669Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/nv-engine-2-voice_coordinator_002.sock (629 bytes)"}
+{"ts": "2026-05-25T16:53:23.674Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T16:53:24.062Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-25T16:53:24.064Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-25T16:53:24.065Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ41e80067826e5637b9b896d6fdab31d9, call_sid=CA459ca3b99fd32f99222c924a91d63f6c"}
+{"ts": "2026-05-25T16:53:24.065Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ41e80067826e5637b9b896d6fdab31d9"}
+{"ts": "2026-05-25T16:53:24.069Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt started (lang=fi-FI)"}
+{"ts": "2026-05-25T16:53:25.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:27.994Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:28.990Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?'"}
+{"ts": "2026-05-25T16:53:28.990Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hie' (68 chars), STT active"}
+{"ts": "2026-05-25T16:53:28.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?"}
+{"ts": "2026-05-25T16:53:29.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:30.077Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme  (1.09s)"}
+{"ts": "2026-05-25T16:53:30.077Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__20e9cd71"}
+{"ts": "2026-05-25T16:53:31.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:33.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:35.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:36.563Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__20e9cd71"}
+{"ts": "2026-05-25T16:53:36.606Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=7.62s"}
+{"ts": "2026-05-25T16:53:36.606Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T16:53:37.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:39.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:41.369Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T16:53:41.674Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T16:53:41.694Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (80 bytes)"}
+{"ts": "2026-05-25T16:53:41.694Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Terno.'"}
+{"ts": "2026-05-25T16:53:41.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:42.615Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T16:53:42.615Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T16:53:42.615Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T16:53:42.617Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T16:53:42.629Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__56a73d65"}
+{"ts": "2026-05-25T16:53:44.117Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:45.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:46.483Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__56a73d65"}
+{"ts": "2026-05-25T16:53:46.483Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T16:53:46.483Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T16:53:47.991Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T16:53:48.663Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-25T16:53:48.663Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-25T16:53:48.663Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/nv-engine-2-voice_coordinator_002.sock (49 bytes)"}
+{"ts": "2026-05-25T16:53:48.663Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: cancelled after 1233 frames"}
+{"ts": "2026-05-25T16:53:48.749Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T16:53:49.375Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T16:53:49.377Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T16:53:50.055Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T16:53:50.055Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T17:18:56.614Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-25T17:18:56.614Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-25T17:18:56.614Z", "level": "INFO", "logger": "__main__", "msg": "📞 Incoming call: sid=CA20520773b4e2ec84a5f483cfcb05338d from=+358458474484 STT=azure TTS=azure"}
+{"ts": "2026-05-25T17:18:56.614Z", "level": "INFO", "logger": "__main__", "msg": "📝 Transcript artifact: /app/logs/transcript-CA20520773b4e2ec84a5f483cfcb05338d-20260525-171856.jsonl"}
+{"ts": "2026-05-25T17:18:56.614Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/nv-engine-2-voice_coordinator_002.sock (629 bytes)"}
+{"ts": "2026-05-25T17:18:56.618Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T17:18:57.618Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-25T17:18:57.621Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-25T17:18:57.621Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ145d8f3c2091bdbdd35481f17451d1a8, call_sid=CA20520773b4e2ec84a5f483cfcb05338d"}
+{"ts": "2026-05-25T17:18:57.621Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ145d8f3c2091bdbdd35481f17451d1a8"}
+{"ts": "2026-05-25T17:18:57.728Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt started (lang=fi-FI)"}
+{"ts": "2026-05-25T17:18:59.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:18:59.693Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:00.035Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (83 bytes)"}
+{"ts": "2026-05-25T17:19:00.035Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Molemmat.'"}
+{"ts": "2026-05-25T17:19:01.325Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:02.182Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?'"}
+{"ts": "2026-05-25T17:19:02.182Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hie' (68 chars), STT active"}
+{"ts": "2026-05-25T17:19:02.183Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?"}
+{"ts": "2026-05-25T17:19:02.990Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme  (0.81s)"}
+{"ts": "2026-05-25T17:19:02.991Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__36d201b9"}
+{"ts": "2026-05-25T17:19:03.153Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:19:03.153Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:19:03.154Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:19:03.157Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:19:03.167Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__b27bc4ad"}
+{"ts": "2026-05-25T17:19:03.242Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:05.285Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:07.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:09.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:09.514Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__36d201b9"}
+{"ts": "2026-05-25T17:19:09.569Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=7.39s"}
+{"ts": "2026-05-25T17:19:09.569Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:19:11.241Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:12.084Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Voisitteko kertoa vielä koko nimenne, organisaationne sekä jonkin mukavan muisto'"}
+{"ts": "2026-05-25T17:19:12.084Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Voisitteko kertoa vielä koko nimenne, organisaationne sekä j' (116 chars), STT active"}
+{"ts": "2026-05-25T17:19:12.084Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Voisitteko kertoa vielä koko nimenne, organisaationne sekä jonkin mukavan muisto"}
+{"ts": "2026-05-25T17:19:13.233Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__b27bc4ad"}
+{"ts": "2026-05-25T17:19:13.233Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=10.08s"}
+{"ts": "2026-05-25T17:19:13.233Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:19:13.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:13.352Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Voisitteko kertoa vielä koko nimenne, organisaatio (1.27s)"}
+{"ts": "2026-05-25T17:19:13.353Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__a0a91790"}
+{"ts": "2026-05-25T17:19:15.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:17.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:19.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:21.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:21.394Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__a0a91790"}
+{"ts": "2026-05-25T17:19:21.448Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=9.36s"}
+{"ts": "2026-05-25T17:19:21.448Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:19:23.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:24.221Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:24.527Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:24.832Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:24.926Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:25.129Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:25.231Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:25.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:25.426Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:25.527Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:26.126Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:26.531Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:26.827Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:27.233Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:27.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:27.669Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (145 bytes)"}
+{"ts": "2026-05-25T17:19:27.669Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Riikka Satakunnan hyvinvointialue ja ruoka oli todella hyvää'"}
+{"ts": "2026-05-25T17:19:28.965Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:19:28.965Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:19:28.965Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:19:28.967Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:19:28.977Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__b9aa91da"}
+{"ts": "2026-05-25T17:19:29.241Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:31.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:33.001Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__b9aa91da"}
+{"ts": "2026-05-25T17:19:33.002Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=4.04s"}
+{"ts": "2026-05-25T17:19:33.003Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:19:33.310Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:35.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:35.494Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Eli kutsumme teidät nimellä Riikka, Satakunnan hyvinvointialueelta, ja muistonan'"}
+{"ts": "2026-05-25T17:19:35.494Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Eli kutsumme teidät nimellä Riikka, Satakunnan hyvinvointial' (147 chars), STT active"}
+{"ts": "2026-05-25T17:19:35.591Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Eli kutsumme teidät nimellä Riikka, Satakunnan hyvinvointialueelta, ja muistonan"}
+{"ts": "2026-05-25T17:19:37.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:37.353Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Eli kutsumme teidät nimellä Riikka, Satakunnan hyv (1.76s)"}
+{"ts": "2026-05-25T17:19:37.355Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__b3cb3b87"}
+{"ts": "2026-05-25T17:19:39.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:41.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:43.239Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:45.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:47.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:48.353Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__b3cb3b87"}
+{"ts": "2026-05-25T17:19:48.407Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=12.91s"}
+{"ts": "2026-05-25T17:19:48.407Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:19:49.241Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:50.127Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:50.423Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:19:50.646Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (84 bytes)"}
+{"ts": "2026-05-25T17:19:50.646Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'On oikein.'"}
+{"ts": "2026-05-25T17:19:51.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:51.559Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:19:51.561Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:19:51.561Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:19:51.562Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:19:51.572Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__6a135610"}
+{"ts": "2026-05-25T17:19:53.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:55.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:55.434Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__6a135610"}
+{"ts": "2026-05-25T17:19:55.434Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T17:19:55.434Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:19:59.076Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:59.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:19:59.919Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin.'"}
+{"ts": "2026-05-25T17:19:59.920Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin.' (58 chars), STT active"}
+{"ts": "2026-05-25T17:19:59.920Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Kiitoksia. Kutsumme teidät mahdollisimman pian. Kuulemiin."}
+{"ts": "2026-05-25T17:20:00.652Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Kiitoksia. Kutsumme teidät mahdollisimman pian. Ku (0.73s)"}
+{"ts": "2026-05-25T17:20:00.653Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__984a28db"}
+{"ts": "2026-05-25T17:20:01.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:02.951Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:03.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:03.256Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:03.450Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:03.870Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (88 bytes)"}
+{"ts": "2026-05-25T17:20:03.870Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Okei okei joo.'"}
+{"ts": "2026-05-25T17:20:05.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:07.214Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__984a28db"}
+{"ts": "2026-05-25T17:20:07.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:07.258Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=7.34s"}
+{"ts": "2026-05-25T17:20:07.258Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:20:09.240Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:09.629Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:10.772Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-25T17:20:10.772Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-25T17:20:10.772Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/nv-engine-2-voice_coordinator_002.sock (49 bytes)"}
+{"ts": "2026-05-25T17:20:10.773Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: cancelled after 3660 frames"}
+{"ts": "2026-05-25T17:20:10.814Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T17:20:10.814Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T17:20:10.932Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (78 bytes)"}
+{"ts": "2026-05-25T17:20:10.932Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Hei.'"}
+{"ts": "2026-05-25T17:20:10.933Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T17:20:10.933Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Disconnect requested — closing WebSocket to end call"}
+{"ts": "2026-05-25T17:20:11.393Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T17:20:11.393Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T17:20:11.675Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-25T17:20:11.675Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-25T17:20:11.675Z", "level": "INFO", "logger": "__main__", "msg": "📞 Incoming call: sid=CA7de92c20f96087590898257f32f7c6d7 from=+358503634149 STT=azure TTS=azure"}
+{"ts": "2026-05-25T17:20:11.675Z", "level": "INFO", "logger": "__main__", "msg": "📝 Transcript artifact: /app/logs/transcript-CA7de92c20f96087590898257f32f7c6d7-20260525-172011.jsonl"}
+{"ts": "2026-05-25T17:20:11.675Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/nv-engine-2-voice_coordinator_002.sock (629 bytes)"}
+{"ts": "2026-05-25T17:20:11.678Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T17:20:12.298Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-25T17:20:12.359Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-25T17:20:12.359Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZc271ce0f00b6d69bf7e28dd5dd8c1a34, call_sid=CA7de92c20f96087590898257f32f7c6d7"}
+{"ts": "2026-05-25T17:20:12.359Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZc271ce0f00b6d69bf7e28dd5dd8c1a34"}
+{"ts": "2026-05-25T17:20:12.366Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt started (lang=fi-FI)"}
+{"ts": "2026-05-25T17:20:16.188Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:16.231Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:18.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:20.390Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:22.345Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:23.538Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?'"}
+{"ts": "2026-05-25T17:20:23.538Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hie' (68 chars), STT active"}
+{"ts": "2026-05-25T17:20:23.538Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?"}
+{"ts": "2026-05-25T17:20:24.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:24.396Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme  (0.86s)"}
+{"ts": "2026-05-25T17:20:24.396Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__fa966fd6"}
+{"ts": "2026-05-25T17:20:26.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:28.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:30.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:30.870Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__fa966fd6"}
+{"ts": "2026-05-25T17:20:30.924Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=7.39s"}
+{"ts": "2026-05-25T17:20:30.924Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:20:32.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:32.907Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:33.120Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (79 bytes)"}
+{"ts": "2026-05-25T17:20:33.120Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Aine.'"}
+{"ts": "2026-05-25T17:20:34.034Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:20:34.034Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:20:34.034Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:20:34.036Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:20:34.046Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__becd6fe4"}
+{"ts": "2026-05-25T17:20:34.308Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:36.355Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:37.910Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__becd6fe4"}
+{"ts": "2026-05-25T17:20:37.910Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.88s"}
+{"ts": "2026-05-25T17:20:37.916Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:20:39.556Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:40.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:42.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:44.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:46.896Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:47.416Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Minkä organisaation tai yrityksen edustajana te osallistutte?'"}
+{"ts": "2026-05-25T17:20:47.416Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Minkä organisaation tai yrityksen edustajana te osallistutte' (61 chars), STT active"}
+{"ts": "2026-05-25T17:20:47.417Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Minkä organisaation tai yrityksen edustajana te osallistutte?"}
+{"ts": "2026-05-25T17:20:48.236Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:48.263Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Minkä organisaation tai yrityksen edustajana te os (0.85s)"}
+{"ts": "2026-05-25T17:20:48.264Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__1c32c457"}
+{"ts": "2026-05-25T17:20:50.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:52.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:53.271Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__1c32c457"}
+{"ts": "2026-05-25T17:20:53.325Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=5.91s"}
+{"ts": "2026-05-25T17:20:53.325Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:20:54.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:54.326Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:54.428Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:54.835Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:55.131Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:55.526Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:20:55.619Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (101 bytes)"}
+{"ts": "2026-05-25T17:20:55.619Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Satakunnan hyvinvointialue.'"}
+{"ts": "2026-05-25T17:20:56.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:20:56.942Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:20:56.944Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:20:56.944Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:20:56.945Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:20:56.956Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__b6fe2986"}
+{"ts": "2026-05-25T17:20:59.091Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:00.527Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:00.810Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__b6fe2986"}
+{"ts": "2026-05-25T17:21:00.810Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T17:21:00.811Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:21:02.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:04.231Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:06.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:06.630Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päiviltä?'"}
+{"ts": "2026-05-25T17:21:06.630Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päivil' (63 chars), STT active"}
+{"ts": "2026-05-25T17:21:06.726Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Mikä on teille mukava muisto näiltä tai aiemmilta ATK-päiviltä?"}
+{"ts": "2026-05-25T17:21:07.602Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Mikä on teille mukava muisto näiltä tai aiemmilta  (0.88s)"}
+{"ts": "2026-05-25T17:21:07.605Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__4b464b4b"}
+{"ts": "2026-05-25T17:21:08.238Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:10.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:12.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:12.450Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__4b464b4b"}
+{"ts": "2026-05-25T17:21:12.505Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=5.88s"}
+{"ts": "2026-05-25T17:21:12.505Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:21:14.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:14.417Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:21:14.831Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:21:15.013Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:21:15.107Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (86 bytes)"}
+{"ts": "2026-05-25T17:21:15.107Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Liikakarkit.'"}
+{"ts": "2026-05-25T17:21:16.006Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:21:16.006Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:21:16.007Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:21:16.009Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:21:16.015Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__4010e42b"}
+{"ts": "2026-05-25T17:21:16.264Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:18.427Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:19.870Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__4010e42b"}
+{"ts": "2026-05-25T17:21:19.870Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.86s"}
+{"ts": "2026-05-25T17:21:19.871Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:21:20.231Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:23.140Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:24.261Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:26.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:28.317Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:30.572Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:32.914Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:34.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:35.226Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Eli kutsumme teidät nimellä Aine, organisaatiosta Satakunnan hyvinvointialue, ja'"}
+{"ts": "2026-05-25T17:21:35.226Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Eli kutsumme teidät nimellä Aine, organisaatiosta Satakunnan' (137 chars), STT active"}
+{"ts": "2026-05-25T17:21:35.226Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Eli kutsumme teidät nimellä Aine, organisaatiosta Satakunnan hyvinvointialue, ja"}
+{"ts": "2026-05-25T17:21:36.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:36.876Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Eli kutsumme teidät nimellä Aine, organisaatiosta  (1.65s)"}
+{"ts": "2026-05-25T17:21:36.877Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__15c3a029"}
+{"ts": "2026-05-25T17:21:38.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:40.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:42.232Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:44.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:46.232Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:47.530Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__15c3a029"}
+{"ts": "2026-05-25T17:21:47.584Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=12.36s"}
+{"ts": "2026-05-25T17:21:47.584Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:21:48.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:49.213Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:21:49.315Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (77 bytes)"}
+{"ts": "2026-05-25T17:21:49.315Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Ei.'"}
+{"ts": "2026-05-25T17:21:50.182Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:21:50.182Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:21:50.184Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:21:50.184Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:21:50.194Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__8919deb5"}
+{"ts": "2026-05-25T17:21:50.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:52.597Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:55.104Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__8919deb5"}
+{"ts": "2026-05-25T17:21:55.206Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=5.02s"}
+{"ts": "2026-05-25T17:21:55.206Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:21:55.208Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:56.231Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:21:58.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:00.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:02.316Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:06.842Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:06.850Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:08.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:10.419Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 5900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:15.293Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:15.300Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:16.035Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:16.136Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:16.140Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:17.866Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:21.109Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:21.117Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:21.625Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:21.733Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:21.940Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:21.944Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:22.053Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (176 bytes)"}
+{"ts": "2026-05-25T17:22:22.053Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Hei laittoi minun nimen väärin, niin minä minä sanoin, että '"}
+{"ts": "2026-05-25T17:22:22.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:22.268Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Eli kutsumme teidät nimellä Aine, organisaatiosta Satakunnan hyvinvointialue, ja'"}
+{"ts": "2026-05-25T17:22:22.268Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Eli kutsumme teidät nimellä Aine, organisaatiosta Satakunnan' (137 chars), STT active"}
+{"ts": "2026-05-25T17:22:22.269Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Eli kutsumme teidät nimellä Aine, organisaatiosta Satakunnan hyvinvointialue, ja"}
+{"ts": "2026-05-25T17:22:22.752Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:23.548Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:23.549Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:23.552Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:23.558Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:23.561Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (115 bytes)"}
+{"ts": "2026-05-25T17:22:23.561Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Saharankä katsotaan kun ei käy.'"}
+{"ts": "2026-05-25T17:22:23.827Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Eli kutsumme teidät nimellä Aine, organisaatiosta  (1.56s)"}
+{"ts": "2026-05-25T17:22:23.832Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__f4f07cb6"}
+{"ts": "2026-05-25T17:22:24.231Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:25.152Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:22:25.152Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:22:25.153Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:22:25.154Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:22:25.164Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__feac6ed5"}
+{"ts": "2026-05-25T17:22:27.308Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:28.759Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:30.203Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:30.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 6900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:33.085Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:35.619Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:35.620Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__f4f07cb6"}
+{"ts": "2026-05-25T17:22:36.233Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:41.301Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__feac6ed5"}
+{"ts": "2026-05-25T17:22:41.301Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=16.15s"}
+{"ts": "2026-05-25T17:22:41.302Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:22:41.303Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:41.310Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:41.501Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (79 bytes)"}
+{"ts": "2026-05-25T17:22:41.501Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Ei a.'"}
+{"ts": "2026-05-25T17:22:42.231Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:42.315Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=20.05s"}
+{"ts": "2026-05-25T17:22:42.316Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:22:44.350Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:45.281Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:22:45.287Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (88 bytes)"}
+{"ts": "2026-05-25T17:22:45.287Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Sovitaan niin.'"}
+{"ts": "2026-05-25T17:22:46.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:48.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:48.933Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:22:48.935Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:22:48.936Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:22:48.937Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:22:48.949Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__65cedff1"}
+{"ts": "2026-05-25T17:22:50.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 7900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:52.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:52.811Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__65cedff1"}
+{"ts": "2026-05-25T17:22:52.812Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.88s"}
+{"ts": "2026-05-25T17:22:52.812Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:22:54.254Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:54.379Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Eli kutsumme teidät nimellä Saharankä, organisaatiosta Satakunnan hyvinvointialu'"}
+{"ts": "2026-05-25T17:22:54.380Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Eli kutsumme teidät nimellä Saharankä, organisaatiosta Satak' (144 chars), STT active"}
+{"ts": "2026-05-25T17:22:54.480Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Eli kutsumme teidät nimellä Saharankä, organisaatiosta Satakunnan hyvinvointialu"}
+{"ts": "2026-05-25T17:22:56.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:22:56.914Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Eli kutsumme teidät nimellä Saharankä, organisaati (2.43s)"}
+{"ts": "2026-05-25T17:22:56.914Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__3260f007"}
+{"ts": "2026-05-25T17:22:58.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:00.233Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:02.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:04.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:06.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:07.951Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__3260f007"}
+{"ts": "2026-05-25T17:23:07.997Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=13.62s"}
+{"ts": "2026-05-25T17:23:07.998Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:23:08.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:08.913Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:23:09.247Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (85 bytes)"}
+{"ts": "2026-05-25T17:23:09.248Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Kyllä.'"}
+{"ts": "2026-05-25T17:23:10.115Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:23:10.116Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:23:10.117Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:23:10.118Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:23:10.130Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__2890835d"}
+{"ts": "2026-05-25T17:23:10.232Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 8900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:12.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:13.990Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__2890835d"}
+{"ts": "2026-05-25T17:23:13.990Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.87s"}
+{"ts": "2026-05-25T17:23:13.991Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:23:14.282Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:16.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:18.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:20.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:21.509Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:23:21.711Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:23:22.042Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (94 bytes)"}
+{"ts": "2026-05-25T17:23:22.042Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Se on nyt ehkä.'"}
+{"ts": "2026-05-25T17:23:22.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:22.968Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:23:22.968Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:23:22.971Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:23:22.972Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:23:22.984Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__6e753eb5"}
+{"ts": "2026-05-25T17:23:24.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:24.307Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?'"}
+{"ts": "2026-05-25T17:23:24.307Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hie' (68 chars), STT active"}
+{"ts": "2026-05-25T17:23:24.308Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?"}
+{"ts": "2026-05-25T17:23:25.214Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme  (0.91s)"}
+{"ts": "2026-05-25T17:23:25.214Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__0d074bf1"}
+{"ts": "2026-05-25T17:23:26.231Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:26.831Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__6e753eb5"}
+{"ts": "2026-05-25T17:23:26.831Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.86s"}
+{"ts": "2026-05-25T17:23:26.832Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:23:28.230Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:30.229Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 9900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:32.251Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 10000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:23:33.210Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__0d074bf1"}
+{"ts": "2026-05-25T17:23:33.270Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=8.96s"}
+{"ts": "2026-05-25T17:23:33.271Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:23:33.687Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream stopped - user disconnected"}
+{"ts": "2026-05-25T17:23:33.687Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Call disconnected"}
+{"ts": "2026-05-25T17:23:33.688Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event hangup to /tmp/nv-engine-2-voice_coordinator_002.sock (49 bytes)"}
+{"ts": "2026-05-25T17:23:33.688Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: cancelled after 10072 frames"}
+{"ts": "2026-05-25T17:23:33.741Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T17:23:33.900Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T17:23:33.900Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T17:23:34.437Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "📴 Bridge: disconnect requested — closing WebSocket"}
+{"ts": "2026-05-25T17:23:34.437Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "Disconnect requested — transport will terminate call"}
+{"ts": "2026-05-25T17:36:49.211Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "VoiceSession reset for new call"}
+{"ts": "2026-05-25T17:36:49.211Z", "level": "INFO", "logger": "services.telephony", "msg": "TelcoSession reset for new call"}
+{"ts": "2026-05-25T17:36:49.211Z", "level": "INFO", "logger": "__main__", "msg": "📞 Incoming call: sid=CAfa732710834ae20e95a4390d94cd764e from=+358505912592 STT=azure TTS=azure"}
+{"ts": "2026-05-25T17:36:49.212Z", "level": "INFO", "logger": "__main__", "msg": "📝 Transcript artifact: /app/logs/transcript-CAfa732710834ae20e95a4390d94cd764e-20260525-173649.jsonl"}
+{"ts": "2026-05-25T17:36:49.212Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event incoming_call to /tmp/nv-engine-2-voice_coordinator_002.sock (629 bytes)"}
+{"ts": "2026-05-25T17:36:49.216Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt stopped"}
+{"ts": "2026-05-25T17:36:49.704Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "WebSocket connection accepted"}
+{"ts": "2026-05-25T17:36:49.716Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Twilio connected"}
+{"ts": "2026-05-25T17:36:49.716Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Stream started: stream_sid=MZ4bab81b691a22fcf046f617333e69b91, call_sid=CAfa732710834ae20e95a4390d94cd764e"}
+{"ts": "2026-05-25T17:36:49.716Z", "level": "INFO", "logger": "voice_runtime.session", "msg": "WebSocket connected: stream_sid=MZ4bab81b691a22fcf046f617333e69b91"}
+{"ts": "2026-05-25T17:36:50.546Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "AzurePersistentStt started (lang=fi-FI)"}
+{"ts": "2026-05-25T17:36:51.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:36:53.539Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:36:55.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:36:57.554Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:00.625Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:01.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:02.349Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?'"}
+{"ts": "2026-05-25T17:37:02.350Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hie' (68 chars), STT active"}
+{"ts": "2026-05-25T17:37:02.350Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme teidät hierontaan?"}
+{"ts": "2026-05-25T17:37:03.131Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Hei, olen Hieronta Maatti. Millä nimellä kutsumme  (0.78s)"}
+{"ts": "2026-05-25T17:37:03.132Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__40868f19"}
+{"ts": "2026-05-25T17:37:03.535Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:05.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:07.514Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:07.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:08.348Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (82 bytes)"}
+{"ts": "2026-05-25T17:37:08.348Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'No niin.'"}
+{"ts": "2026-05-25T17:37:09.236Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:37:09.237Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:37:09.240Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:37:09.244Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:37:09.254Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__c2fcc576"}
+{"ts": "2026-05-25T17:37:09.555Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:09.657Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__40868f19"}
+{"ts": "2026-05-25T17:37:12.111Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:12.533Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=10.18s"}
+{"ts": "2026-05-25T17:37:12.533Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:37:14.201Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__c2fcc576"}
+{"ts": "2026-05-25T17:37:14.203Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:14.204Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=4.97s"}
+{"ts": "2026-05-25T17:37:14.204Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:37:17.037Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:17.238Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:17.535Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:18.460Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:18.462Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (92 bytes)"}
+{"ts": "2026-05-25T17:37:18.462Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Moro kutsu vaikka.'"}
+{"ts": "2026-05-25T17:37:20.267Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:21.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:23.560Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:25.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:25.667Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:37:25.668Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:37:25.668Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:37:25.671Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:37:25.680Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__5fb70b76"}
+{"ts": "2026-05-25T17:37:27.568Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 1900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:30.145Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__5fb70b76"}
+{"ts": "2026-05-25T17:37:30.145Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=4.48s"}
+{"ts": "2026-05-25T17:37:30.146Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:37:30.147Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:31.535Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:31.970Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Voisitteko kertoa, mikä on koko nimenne, jotta voimme kirjata vastaajan tiedot o'"}
+{"ts": "2026-05-25T17:37:31.971Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Voisitteko kertoa, mikä on koko nimenne, jotta voimme kirjat' (86 chars), STT active"}
+{"ts": "2026-05-25T17:37:31.971Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Speaking (Azure): Voisitteko kertoa, mikä on koko nimenne, jotta voimme kirjata vastaajan tiedot o"}
+{"ts": "2026-05-25T17:37:33.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:33.629Z", "level": "INFO", "logger": "voice_runtime.providers.azure_tts", "msg": "Spoke (Azure): Voisitteko kertoa, mikä on koko nimenne, jotta voi (1.66s)"}
+{"ts": "2026-05-25T17:37:33.630Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__a9adba4a"}
+{"ts": "2026-05-25T17:37:33.959Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:34.146Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:34.552Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:34.755Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:35.151Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:35.456Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:35.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:35.854Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:36.057Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:36.133Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (137 bytes)"}
+{"ts": "2026-05-25T17:37:36.133Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Hei ihan semmoiset kokolaisen lapset on täynnä taina.'"}
+{"ts": "2026-05-25T17:37:37.415Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:37:37.415Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:37:37.416Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:37:37.427Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.01s)"}
+{"ts": "2026-05-25T17:37:37.445Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__232c3716"}
+{"ts": "2026-05-25T17:37:38.222Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:40.572Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:40.573Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__a9adba4a"}
+{"ts": "2026-05-25T17:37:41.404Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=9.43s"}
+{"ts": "2026-05-25T17:37:41.404Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (53 bytes)"}
+{"ts": "2026-05-25T17:37:41.537Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:43.535Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:43.537Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__232c3716"}
+{"ts": "2026-05-25T17:37:43.537Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=6.12s"}
+{"ts": "2026-05-25T17:37:43.538Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:37:44.399Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:44.400Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:44.473Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:44.651Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:44.655Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (139 bytes)"}
+{"ts": "2026-05-25T17:37:44.655Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Mö väytän hyvä tällä hetkellä.'"}
+{"ts": "2026-05-25T17:37:46.725Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:49.563Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 2900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:49.569Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3000 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:52.623Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3100 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:53.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3200 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:54.359Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:54.570Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:54.571Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:54.701Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:56.643Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3300 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:57.536Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3400 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:37:57.976Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:58.478Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:58.979Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (131 bytes)"}
+{"ts": "2026-05-25T17:37:58.979Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Tämä ei vielä kovin vapaamuodisti juttelu.'"}
+{"ts": "2026-05-25T17:37:59.039Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:59.095Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:59.151Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:59.207Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event recognizing to /tmp/nv-engine-2-voice_coordinator_002.sock (54 bytes)"}
+{"ts": "2026-05-25T17:37:59.262Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event transcribed to /tmp/nv-engine-2-voice_coordinator_002.sock (97 bytes)"}
+{"ts": "2026-05-25T17:37:59.262Z", "level": "INFO", "logger": "services.stt", "msg": "STT committed → transcribed: 'Nyt ihan koskaan lihaa.'"}
+{"ts": "2026-05-25T17:37:59.533Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3500 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:38:01.139Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "🔊 Bridge: speaking 'Kiitos. Kirjaan tietoja.'"}
+{"ts": "2026-05-25T17:38:01.140Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak starting: 'Kiitos. Kirjaan tietoja.' (24 chars), STT active"}
+{"ts": "2026-05-25T17:38:01.142Z", "level": "INFO", "logger": "services.tts", "msg": "Speaking predefined: ack_processing.mulaw"}
+{"ts": "2026-05-25T17:38:01.145Z", "level": "INFO", "logger": "services.tts", "msg": "Spoke predefined ack_processing.mulaw (0.00s)"}
+{"ts": "2026-05-25T17:38:01.162Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Sent mark: tts_complete__b640169e"}
+{"ts": "2026-05-25T17:38:01.532Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3600 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:38:03.612Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3700 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:38:05.016Z", "level": "INFO", "logger": "voice_runtime.transports.twilio_ws", "msg": "Received mark: tts_complete__b640169e"}
+{"ts": "2026-05-25T17:38:05.017Z", "level": "INFO", "logger": "services.bridge_handlers", "msg": "tts_speak done: interrupted=None elapsed=3.88s"}
+{"ts": "2026-05-25T17:38:05.018Z", "level": "INFO", "logger": "services.fsm_event_sender", "msg": "Sent event ack_speak_done to /tmp/nv-engine-2-voice_coordinator_002.sock (57 bytes)"}
+{"ts": "2026-05-25T17:38:05.532Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3800 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:38:08.061Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 3900 frames fed (speaking=False)"}
+{"ts": "2026-05-25T17:38:09.696Z", "level": "INFO", "logger": "voice_runtime.providers.azure_stt", "msg": "_feed_audio: 4000 frames fed (speaking=False)"}

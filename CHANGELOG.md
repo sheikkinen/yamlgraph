@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4]
+
+### Added
+- **FR-461 Persona & Scenario Pipeline**: Demo that generates user personas and usage scenarios for a product idea, saving results as interlinked markdown files (index → personas → scenarios with back-links).
+- **FR-460 CAP Architecture Auto-Sync**: Pre-commit hook `cap-architecture-sync` auto-regenerates ARCHITECTURE.md capabilities section when `capabilities/*.yaml` files change. (REQ-YG-425)
+- **FR-452 Standalone Planner Demo**: Agent-based FR planner with 5 task-shaped tools (4 shell + 1 python `write_file`). Transforms topic files into structured feature requests. Portable — no VS Code runtime required. (REQ-YG-424)
+- **FR-450 Promote Judge Demo to Real Judge**: Replaced 4 facade tools with 5 task-shaped tools (`read_file`, `search`, `list_dir`, `git_log`, `run_tests`), increased `max_iterations` to 12, removed all `| head -N` truncation. Judge now produces verdicts from genuine evidence including architecture search, git history, and test execution.
+- **FR-446 Copilot Skill Promotion**: Created 6 Tier 1 skills (`author-graph`, `author-prompt`, `release-version`, `chaplain-ops`, `run-code-analysis`, `feature-request`) from reference docs for on-demand loading. (REQ-YG-423)
+- **FR-445**: Constrain file-path Python tools to graph root during load, rejecting relative and absolute out-of-root paths while preserving module-based loading.
+- **FR-445**: Generated changelog fragment. ()
+- **FR-444**: Generated changelog fragment. ()
+- **FR-444**: Add `config.tool_load_mode` with strict-by-default Python tool loading that fails compilation on import/symbol errors, plus explicit `warn` mode to keep warning-and-continue behavior. (REQ-YG-420,REQ-YG-421)
+- **FR-443**: Generated changelog fragment. ()
+- **FR-436**: Generated changelog fragment. ()
+
+### Fixed
+- **FR-459 Judge JSON output instruction**: Added explicit JSON output instruction to judge prompt so DeepSeek (and other models without `response_format` support) embed structured verdicts in their final message, enabling the `extract_json` cheap path.
+- **FR-458 OpenAI strict schema fallback**: When OpenAI rejects a JSON schema lacking `additionalProperties: false`, retry `with_structured_output()` using `method="function_calling"` for lenient schema handling.
+- **FR-456 Structured Output JSON Fallback**: When `with_structured_output()` fails (provider rejects `response_format`), fall back to lenient `model_construct()` from `extract_json()` parsed content instead of crashing. Recovers structured verdicts from models like DeepSeek that complete agent loops but don't support the formal structured output API. (REQ-YG-010)
+- **FR-455 Reasoning Model Temperature Guard**: `create_llm()` detects OpenAI reasoning models (`o1-*`, `o3-*`, `o4-*`) and omits the `temperature` parameter, which these models reject with a 400 error. (REQ-YG-010)
+- **FR-451 Fahrenheit 451 — Temperature Adjustments**: Fixed `temperature: 0` being treated as falsy and silently falling through to `0.7` default. Agent nodes now correctly respect zero temperature for deterministic outputs. (REQ-YG-018)
+- **FR-449 Judge demo JSON output**: Switch judge demo from `--full` (Python repr) to `--json` for reliable verdict extraction.
+- **FR-449 Agent Structured Output Anthropic Bugfix**: Fixed agent nodes returning prose strings instead of validated dicts with Anthropic provider. Normalized content blocks, appended HumanMessage before fallback invoke, added debug logging for silent parse failures. (REQ-YG-422)
+- **Fix module-map regeneration side effect during pytest**: Tests that validate the module-map generator now write to temp files instead of overwriting `reference/module-map.md`, eliminating the pre-commit commit loop.
+
 ## [0.5.3]
 
 ### Added
@@ -295,7 +320,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **FR-226 Vertex Express API Key Auth**: `_create_vertex_llm` now supports Express mode — when `VERTEX_API_KEY` is set, passes `google_api_key` without `project`/`location`, avoiding the SDK `ValueError` on key+project collision. ADC branch (project+location) unchanged.
 - **FR-225 A2A Module Unit-Test Coverage**: Split monolithic A2A tests into focused modules (commands, message, server) with 60+ new tests covering CLI parsing, message handling, Agent Card generation, error mapping, and server lifecycle. (REQ-YG-225)
-- **FR-223 Refactor create_node_function**: Decomposed monolithic `create_node_function` (C901=35) and nested `node_fn` (C901=26) into 6 composable, independently testable phase functions — each below C901=10. (REQ-YG-162)
+- **FR-223 Refactor create_node_function**: Decomposed monolithic `create_node_function` (C901=35) and nested `node_fn` (C901=26) into 6 composable, independently testable phase functions — each below C901=10. (REQ-YG-223)
 - **FR-222 Ruff Security Rules**: Enabled flake8-bandit `S` ruleset in ruff configuration. 7 existing violations (S104, S602, S603, S607, S701) triaged and suppressed with documented noqa confessions (CONF-005–009, CONF-035–036). New security-sensitive code patterns are now automatically flagged at lint time. (REQ-YG-220)
 - **FR-221 Ruff C901 Cognitive Complexity Gate**: Enable `C901` in ruff `select` with `max-complexity = 15`; refactor `llm_nodes.py`, `agent.py`, and `checks.py` to reduce complexity below threshold; remaining suppressions documented in `docs/confessions.md`. (REQ-YG-221)
 - **FR-220 Refactor God Factory**: Replace 15-branch if/elif dispatch chain in `compile_node()` with a `NODE_TYPE_HANDLERS` registry pattern and `NodeCompileContext` dataclass. Unknown node types now raise `ValueError` instead of silently falling through. (REQ-YG-220)

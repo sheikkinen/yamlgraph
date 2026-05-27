@@ -1,0 +1,6 @@
+{"ts": "2026-05-25T17:41:38.851Z", "source": "user", "kind": "utterance", "text": "Olit vaan.", "call_sid": "CA7cec7403da448bf486d2b8a593dac6c4", "stream_sid": "MZf6e0c868bfd66eec81cb29518300509c", "speaking": false, "listening": false}
+{"ts": "2026-05-25T17:41:39.290Z", "source": "user", "kind": "utterance", "text": "Halunnut.", "call_sid": "CA7cec7403da448bf486d2b8a593dac6c4", "stream_sid": "MZf6e0c868bfd66eec81cb29518300509c", "speaking": false, "listening": false}
+{"ts": "2026-05-25T17:41:51.295Z", "source": "user", "kind": "utterance", "text": "Perus.", "call_sid": "CA7cec7403da448bf486d2b8a593dac6c4", "stream_sid": "MZf6e0c868bfd66eec81cb29518300509c", "speaking": false, "listening": false}
+{"ts": "2026-05-25T17:41:54.139Z", "source": "user", "kind": "utterance", "text": "Elikkä.", "call_sid": "CA7cec7403da448bf486d2b8a593dac6c4", "stream_sid": "MZf6e0c868bfd66eec81cb29518300509c", "speaking": false, "listening": false}
+{"ts": "2026-05-25T17:41:55.288Z", "kind": "call_summary", "call_sid": "CA7cec7403da448bf486d2b8a593dac6c4", "duration_s": 33.2, "turns": 0, "outcome": "completed"}
+{"ts": "2026-05-25T17:41:55.289Z", "source": "system", "kind": "event", "text": "disconnect_requested", "call_sid": "CA7cec7403da448bf486d2b8a593dac6c4", "stream_sid": "MZf6e0c868bfd66eec81cb29518300509c", "speaking": false, "listening": false}
