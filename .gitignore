@@ -106,7 +106,7 @@ CHANGELOG.md
 node_modules/
 .chaplain/processing/
 .chaplain/failed/
-logs/*.pid
+logs/
 
 # Private projects (removed from history — separate repos)
 projects/
