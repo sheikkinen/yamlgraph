@@ -124,3 +124,6 @@ ella/
 examples/demos/judge/judgement.json
 examples/demos/judge/output.json
 examples/demos/judge/eval-results/
+
+# Audit reports (generated, not tracked)
+docs/*-audit/
