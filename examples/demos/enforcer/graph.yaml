@@ -1,0 +1,61 @@
+version: "1.0"
+name: fr-enforcer
+description: "FR-462 — Standalone FR enforcer with task-shaped tools and structured implementation result"
+prompts_relative: true
+prompts_dir: prompts
+
+state:
+  fr_path: str
+  implementation_result: dict
+
+tools:
+  read_file:
+    type: shell
+    command: cat {file}
+    description: "Read a project file in full."
+    parse: text
+
+  search:
+    type: shell
+    command: rg -n --glob {glob} {pattern} .
+    description: "Search files matching a glob pattern. Examples: --glob 'ARCHITECTURE.md', --glob 'feature-requests/*.md', --glob 'yamlgraph/**/*.py', --glob 'tests/**/*.py'."
+    parse: text
+
+  list_dir:
+    type: shell
+    command: ls {dir}
+    description: "List contents of a directory."
+    parse: text
+
+  run_tests:
+    type: shell
+    command: pytest {test_file} -v --no-cov --tb=short 2>&1
+    description: "Run a specific test file to verify implementation."
+    parse: text
+
+  git_commit:
+    type: shell
+    command: git add -A && git commit -m {message}
+    description: "Stage all changes and commit with given message."
+    parse: text
+
+  write_file:
+    type: python
+    path: tools/write_file.py
+    function: write_file
+    description: "Write content to a file. Creates parent directories if needed."
+
+nodes:
+  enforcer:
+    type: agent
+    prompt: enforcer
+    temperature: 0.3
+    tools: [read_file, search, list_dir, run_tests, git_commit, write_file]
+    max_iterations: 25
+    state_key: implementation_result
+
+edges:
+  - from: START
+    to: enforcer
+  - from: enforcer
+    to: END

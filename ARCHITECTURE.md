@@ -424,6 +424,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 158 | CAP-158 Copilot Skill Promotion | `.github/skills/author-graph/SKILL.md`, `.github/skills/author-prompt/SKILL.md`, `.github/skills/release-version/SKILL.md`, `.github/skills/chaplain-ops/SKILL.md`, … | REQ-YG-423 |
 | 159 | CAP-159 Standalone Planner Demo | `examples/demos/planner/graph.yaml`, `examples/demos/planner/prompts/planner.yaml`, `examples/demos/planner/tools/write_file.py`, `examples/demos/planner/demo.sh` | REQ-YG-424 |
 | 160 | CAP-160 CAP Architecture Auto-Sync | `.pre-commit-config.yaml`, `scripts/aggregate_capabilities.py` | REQ-YG-425 |
+| 161 | CAP-161 Standalone Enforcer Demo | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/demo.sh` | REQ-YG-426 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1952,6 +1953,16 @@ Pre-commit hook that auto-regenerates the capabilities section of ARCHITECTURE.m
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-425 | cap-architecture-sync pre-commit hook triggers on capabilities/*.yaml and aggregate script changes, runs aggregate_capabilities.py, exits 0, and does not pass filenames. | `.pre-commit-config.yaml`, `scripts/aggregate_capabilities.py` |
+
+### 161. CAP-161 Standalone Enforcer Demo
+
+Standalone FR enforcer demo using agent node with 6 task-shaped tools (5 shell + 1 python). Implements planned and judged feature requests. Portable — runs without VS Code runtime. Completes the plan→judge→enforce trilogy.
+
+**Feature Request:** FR-462
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-426 | Enforcer demo has 6 tools (read_file, search, list_dir, run_tests, git_commit, write_file), agent node with max_iterations 25, ImplementationResult schema with 5 fields, write_file as python tool, no hardcoded model, and produces structured implementation result. | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/demo.sh` |
 
 <!-- END GENERATED CAPABILITIES -->
 

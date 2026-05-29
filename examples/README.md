@@ -86,17 +86,20 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
 | [data-files](demos/data-files/) | `llm` | External data loading |
 | [diary-index](demos/diary_index/) | `map`, `python`, `llm` | Diary corpus cross-reference index (FR-254) |
+| [enforcer](demos/enforcer/) | `agent` | Standalone FR implementation agent (FR-462) — completes plan→judge→enforce trilogy |
 | [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
 | [forensic-failure-diary](demos/forensic-failure-diary/) | `llm`, `tool` | Automated failure analysis with structured diary generation (FR-285) |
 | [fi_domain_crawl](demos/fi_domain_crawl/) | `map`, `python`, `llm` | .fi domain crawl + sitemap overview |
 | [five-whys](demos/five-whys/) | `llm` | Fixed-count loop with iterative deepening |
 | [innovation_matrix](demos/innovation_matrix/) | `llm` | Capability-constraint innovation matrix |
 | [interactive_tool](demos/interactive_tool/) | `interactive_tool` | Multi-turn trivia quiz with user interrupts |
+| [judge](demos/judge/) | `agent` | Standalone FR judgment agent (FR-450) — evaluates FRs before enforcement |
 | [memory](demos/memory/) | `agent` | Multi-turn with memory |
 | [multi-turn](demos/multi-turn/) | `interrupt`, `llm` | Multi-turn streaming with checkpoints (FR-028) |
 | [typescript-node](demos/typescript-node/) | `python` | Cross-runtime: Node.js/TypeScript subprocess calls `yamlgraph graph run --json` (FR-375) |
 | [novel_generator](demos/novel_generator/) | `llm`, `map` | Three-phase story generation with quality gates |
 | [persona_scenarios](demos/persona_scenarios/) | `map`, `python`, `llm` | Persona & scenario generation with interlinked markdown output (FR-461) |
+| [planner](demos/planner/) | `agent` | Standalone FR planning agent (FR-452) — transforms topics into FRs |
 | [python-map](demos/python-map/) | `map`, `python` | Parallel Python tools |
 | [python-variables](demos/python-variables/) | `python` | Variables expression resolution on python nodes (FR-252) |
 | [map-timeout](demos/map-timeout/) | `map`, `python` | Per-branch timeout for map nodes (FR-069) |

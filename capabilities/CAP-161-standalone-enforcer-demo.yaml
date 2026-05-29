@@ -1,0 +1,28 @@
+id: CAP-161
+name: Standalone Enforcer Demo
+fr: FR-462
+description: >
+  Standalone FR enforcer demo using agent node with 6 task-shaped tools
+  (5 shell + 1 python). Implements planned and judged feature requests.
+  Portable — runs without VS Code runtime. Completes the
+  plan→judge→enforce trilogy.
+
+modules:
+  - examples/demos/enforcer/graph.yaml
+  - examples/demos/enforcer/prompts/enforcer.yaml
+  - examples/demos/enforcer/tools/write_file.py
+  - examples/demos/enforcer/demo.sh
+
+requirements:
+  - id: REQ-YG-426
+    description: >
+      Enforcer demo has 6 tools (read_file, search, list_dir, run_tests,
+      git_commit, write_file), agent node with max_iterations 25,
+      ImplementationResult schema with 5 fields, write_file as python
+      tool, no hardcoded model, and produces structured implementation
+      result.
+    modules:
+      - examples/demos/enforcer/graph.yaml
+      - examples/demos/enforcer/prompts/enforcer.yaml
+      - examples/demos/enforcer/tools/write_file.py
+      - examples/demos/enforcer/demo.sh
