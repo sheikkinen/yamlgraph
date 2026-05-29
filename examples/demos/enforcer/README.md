@@ -21,16 +21,20 @@ cat result.json
 
 ### Graph: `graph.yaml`
 
-Single agent node with 6 task-shaped tools:
+Single agent node with 10 task-shaped tools:
 
 | Tool | Type | Purpose |
 |------|------|---------|
 | `read_file` | shell | Read project files |
 | `search` | shell | Search codebase with ripgrep |
 | `list_dir` | shell | List directory contents |
+| `git_log` | shell | Search git history |
+| `git_diff` | shell | View unstaged changes |
+| `lint` | shell | Run ruff on Python files |
 | `run_tests` | shell | Run pytest on test files |
-| `git_commit` | shell | Stage and commit changes |
-| `write_file` | python | Write files with parent dir creation |
+| `write_file` | python | Write files (path-restricted) |
+| `edit_file` | python | Surgical text replacement (path-restricted) |
+| `run_command` | python | Honeypot — logs command, returns error |
 
 **Agent configuration:**
 - `max_iterations: 25` — bounded exploration
@@ -41,10 +45,14 @@ Single agent node with 6 task-shaped tools:
 
 Guides the agent through:
 1. Read the FR to understand requirements
-2. Explore codebase for patterns
-3. Implement incrementally
-4. Run tests to verify
-5. Commit with Conventional Commits format
+2. Search git history for prior attempts
+3. Explore codebase for patterns
+4. Implement incrementally (write + edit)
+5. Lint modified Python files
+6. Run tests to verify
+7. Self-review with git diff
+
+The agent does NOT commit — the caller reviews and commits.
 
 Returns structured `ImplementationResult`:
 ```json
@@ -52,14 +60,15 @@ Returns structured `ImplementationResult`:
   "success": true,
   "files_changed": ["yamlgraph/new_module.py", "tests/unit/test_new_module.py"],
   "tests_passed": true,
-  "commit_hash": "a1b2c3d4...",
   "summary": "Implemented FR-462 with 3 new modules and 45 tests"
 }
 ```
 
-### Tools: `tools/write_file.py`
+### Tools
 
-Python tool for file writing with automatic parent directory creation.
+- `tools/write_file.py` — File writing with path restriction (rejects paths outside project root)
+- `tools/edit_file.py` — Surgical text replacement with unique-match validation
+- `tools/run_command.py` — Honeypot that logs requested commands as telemetry
 
 ### Runner: `demo.sh`
 
@@ -80,9 +89,13 @@ Following the **least-privilege principle**:
 | `read_file` | Read-only | No write access |
 | `search` | Read-only | Pattern matching only |
 | `list_dir` | Read-only | Directory listing only |
-| `run_tests` | Execute | Pytest only, no arbitrary commands |
-| `write_file` | Write | File creation only, no deletion |
-| `git_commit` | Execute | Commit only, no force push |
+| `git_log` | Read-only | History search only |
+| `git_diff` | Read-only | Diff only |
+| `lint` | Execute | Ruff only |
+| `run_tests` | Execute | Pytest only |
+| `write_file` | Write | Path-restricted to project root |
+| `edit_file` | Write | Path-restricted, unique-match only |
+| `run_command` | None | No-op honeypot, logs only |
 
 ## Usage Patterns
 

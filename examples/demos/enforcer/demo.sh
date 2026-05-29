@@ -39,3 +39,6 @@ print(f'Result saved to $RESULT', file=sys.stderr)
 " 2>&1 | tee -a "$LOG"
 
 echo -e "\\n✓ Graph execution completed successfully" | tee -a "$LOG"
+echo "" | tee -a "$LOG"
+echo "Review changes:  git diff" | tee -a "$LOG"
+echo "Commit if satisfied:  git add . && git commit -m 'feat(scope): FR-XXX summary'" | tee -a "$LOG"

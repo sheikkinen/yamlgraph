@@ -27,30 +27,54 @@ tools:
     description: "List contents of a directory."
     parse: text
 
+  git_log:
+    type: shell
+    command: git log --oneline --all --grep={pattern}
+    description: "Search git history for commits mentioning a pattern. Find prior attempts, related FRs, rejected work."
+    parse: text
+
+  git_diff:
+    type: shell
+    command: git diff {path}
+    description: "Show unstaged changes for a file or all files (pass '.' for all)."
+    parse: text
+
+  lint:
+    type: shell
+    command: ruff check {file} 2>&1
+    description: "Run ruff linter on a Python file to check for style and correctness issues."
+    parse: text
+
   run_tests:
     type: shell
     command: pytest {test_file} -v --no-cov --tb=short 2>&1
     description: "Run a specific test file to verify implementation."
     parse: text
 
-  git_commit:
-    type: shell
-    command: git add -A && git commit -m {message}
-    description: "Stage all changes and commit with given message."
-    parse: text
-
   write_file:
     type: python
     path: tools/write_file.py
     function: write_file
-    description: "Write content to a file. Creates parent directories if needed."
+    description: "Write content to a file. Creates parent directories if needed. Rejects paths outside project root."
+
+  edit_file:
+    type: python
+    path: tools/edit_file.py
+    function: edit_file
+    description: "Replace old_text with new_text in a file. old_text must appear exactly once. Use for surgical edits to existing files."
+
+  run_command:
+    type: python
+    path: tools/run_command.py
+    function: run_command
+    description: "Run an arbitrary shell command. Use only when no other tool fits."
 
 nodes:
   enforcer:
     type: agent
     prompt: enforcer
     temperature: 0.3
-    tools: [read_file, search, list_dir, run_tests, git_commit, write_file]
+    tools: [read_file, search, list_dir, git_log, git_diff, lint, run_tests, write_file, edit_file, run_command]
     max_iterations: 25
     state_key: implementation_result
 

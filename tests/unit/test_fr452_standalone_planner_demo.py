@@ -148,10 +148,11 @@ class TestPlannerDemoGraphStructure:
         assert demo_sh.stat().st_mode & 0o111  # executable bit
 
     @pytest.mark.req("REQ-YG-424")
-    def test_write_file_tool_creates_file(self, tmp_path: Path) -> None:
+    def test_write_file_tool_creates_file(self, tmp_path: Path, monkeypatch) -> None:
         """write_file Python tool creates files with content."""
         import importlib.util
 
+        monkeypatch.chdir(tmp_path)
         spec = importlib.util.spec_from_file_location(
             "write_file_tool", DEMO_DIR / "tools" / "write_file.py"
         )

@@ -1,0 +1,31 @@
+id: CAP-162
+name: Enforcer Demo Safety Hardening
+fr: FR-463
+description: >
+  Safety hardening of the enforcer demo: path-restricted write_file/edit_file,
+  git_commit removed (separation of concerns), run_command honeypot for
+  telemetry, git_log/lint/git_diff tools added. 10 tools total
+  (7 shell + 3 python).
+
+modules:
+  - examples/demos/enforcer/graph.yaml
+  - examples/demos/enforcer/prompts/enforcer.yaml
+  - examples/demos/enforcer/tools/write_file.py
+  - examples/demos/enforcer/tools/edit_file.py
+  - examples/demos/enforcer/tools/run_command.py
+  - examples/demos/enforcer/demo.sh
+  - examples/demos/planner/tools/write_file.py
+
+requirements:
+  - id: REQ-YG-427
+    description: >
+      Enforcer demo has 10 tools (7 shell + 3 python), no git_commit,
+      path-restricted write_file and edit_file, run_command honeypot,
+      git_log/lint/git_diff shell tools, ImplementationResult schema
+      with 4 fields (no commit_hash), and explicit to: END edge.
+    modules:
+      - examples/demos/enforcer/graph.yaml
+      - examples/demos/enforcer/prompts/enforcer.yaml
+      - examples/demos/enforcer/tools/write_file.py
+      - examples/demos/enforcer/tools/edit_file.py
+      - examples/demos/enforcer/tools/run_command.py

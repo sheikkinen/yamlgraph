@@ -47,33 +47,36 @@ class TestEnforcerDemoGraphStructure:
         assert config.nodes["enforcer"]["type"] == "agent"
 
     @pytest.mark.req("REQ-YG-426")
-    def test_enforcer_has_six_tools(self) -> None:
-        """Enforcer node must reference exactly 6 task-shaped tools."""
+    def test_enforcer_has_ten_tools(self) -> None:
+        """Enforcer node must reference exactly 10 task-shaped tools."""
         from yamlgraph.graph_loader import load_graph_config
 
         config = load_graph_config(GRAPH_PATH)
         tools = config.nodes["enforcer"]["tools"]
-        assert len(tools) == 6
+        assert len(tools) == 10
         expected = {
             "read_file",
             "search",
             "list_dir",
+            "git_log",
+            "git_diff",
+            "lint",
             "run_tests",
-            "git_commit",
             "write_file",
+            "edit_file",
+            "run_command",
         }
         assert set(tools) == expected
 
     @pytest.mark.req("REQ-YG-426")
-    def test_graph_has_six_tool_definitions(self) -> None:
-        """Graph tools section defines exactly 6 tools (5 shell + 1 python)."""
+    def test_graph_has_ten_tool_definitions(self) -> None:
+        """Graph tools section defines exactly 10 tools (7 shell + 3 python)."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
-        assert len(raw["tools"]) == 6
+        assert len(raw["tools"]) == 10
         shell_tools = [n for n, c in raw["tools"].items() if c["type"] == "shell"]
         python_tools = [n for n, c in raw["tools"].items() if c["type"] == "python"]
-        assert len(shell_tools) == 5
-        assert len(python_tools) == 1
-        assert python_tools[0] == "write_file"
+        assert len(shell_tools) == 7
+        assert len(python_tools) == 3
 
     @pytest.mark.req("REQ-YG-426")
     def test_write_file_is_python_tool(self) -> None:
@@ -117,7 +120,7 @@ class TestEnforcerDemoGraphStructure:
 
     @pytest.mark.req("REQ-YG-426")
     def test_prompt_has_structured_schema(self) -> None:
-        """Prompt must define ImplementationResult schema with 5 fields."""
+        """Prompt must define ImplementationResult schema with 4 fields."""
         prompt = yaml.safe_load((DEMO_DIR / "prompts" / "enforcer.yaml").read_text())
         schema = prompt["schema"]
         assert schema["name"] == "ImplementationResult"
@@ -125,7 +128,6 @@ class TestEnforcerDemoGraphStructure:
             "success",
             "files_changed",
             "tests_passed",
-            "commit_hash",
             "summary",
         }
         assert set(schema["fields"].keys()) == expected_fields
@@ -138,7 +140,7 @@ class TestEnforcerDemoGraphStructure:
         assert "Explore" in prompt_text
         assert "Implement" in prompt_text
         assert "Test" in prompt_text
-        assert "Commit" in prompt_text
+        assert "Lint" in prompt_text or "lint" in prompt_text
 
     @pytest.mark.req("REQ-YG-426")
     def test_graph_compiles(self) -> None:
@@ -179,10 +181,11 @@ class TestEnforcerDemoGraphStructure:
         assert "--json" in content
 
     @pytest.mark.req("REQ-YG-426")
-    def test_write_file_tool_creates_file(self, tmp_path: Path) -> None:
+    def test_write_file_tool_creates_file(self, tmp_path: Path, monkeypatch) -> None:
         """write_file Python tool creates files with content."""
         import importlib.util
 
+        monkeypatch.chdir(tmp_path)
         spec = importlib.util.spec_from_file_location(
             "write_file_tool", DEMO_DIR / "tools" / "write_file.py"
         )
