@@ -83,6 +83,10 @@ traps:
   recent_changes_blindness: "Regression investigated without enumerating recent changes → run git log --since=<last_good> as first diagnostic step; the diff is cheaper than any reproduction"
   workspace_is_not_boundary: "Editor shows one tree but workspace may contain nested repos with independent ownership, privacy, and untracked state → find . -name .git -type d before any destructive operation"
   gate_checks_shape_not_substance: "Gate validates presence (file exists, field non-empty, format matches) but not substance (content meaningful, cross-references valid, structural markers present) → compliance theatre; a 1-byte file satisfies the gate while conveying nothing"
+  composition_bug: "Every component passes its unit test but the system fails → the defect is in the policy connecting correct parts, not in the parts; trace the full event chain end-to-end before blaming any component (ninchat_voice: FR-371 8-step greeting replay, NC-141 runaway loop, NC-289 concurrent clobber)"
+  mock_escape_hatch: "Agent defaults to mocks even when E2E is explicitly requested → if the feature exists because of a physical phenomenon (acoustic echo, network timing, STT transience), the test must exercise the real phenomenon; a mock E2E is a unit test with extra steps (ninchat_voice: FR-378 three corrections in one session)"
+  refactor_orphans_secondary: "Refactoring removes a handler's primary responsibility but silently orphans its secondary responsibility → enumerate ALL responsibilities of a function before deleting, not just the one named in its docstring (ninchat_voice: NC-203 hangup detection lost inside listen handler removal)"
+  research_as_inventory: "Research output has the shape of analysis (sections, tables, YAML snippets) but contains only descriptions, not decisions → a description of what exists is inventory; a statement of what it means for us is analysis; the deliverable is the analysis (ninchat_voice: CP handbook link list)"
 
 cures:
   # Patterns that prevent traps
@@ -97,6 +101,9 @@ cures:
   changelog_first_diagnostic: "On regression, enumerate changes since last known good before attempting reproduction → git log narrows search space cheaper than any test"
   boundary_inventory: "Before destructive filesystem ops, run find . -name .git -type d and git status --untracked-files=all in each; untracked files have no recovery path"
   substance_over_presence: "Every gate that checks 'does X exist?' must also check 'does X say something?' — minimum content threshold, required structural markers, or cross-reference validation"
+  investigation_before_fix: "When a bug requires >15 min to write the failing test, split into investigation FR (build test harness proving the causal chain) then fix FR (mechanical enforcement); the investigation's tests become the fix's regression suite — FR-371 4h investigation → FR-372 30min fix, zero debugging"
+  assert_path_not_destination: "FSM/pipeline tests that only check the final state can pass via any path including error recovery; assert intermediate state visits or the transition sequence, not just the terminal set (ninchat_voice: NC-179 false pass via error→cleanup→idle)"
+  name_the_seam: "Name tests after the specific seam they exercise, not the feature they aspire to cover; test_barge_in_e2e → test_barge_in_elevenlabs makes the gap visible as absence, not hidden by a name that implies presence (ninchat_voice: NC-131)"
 
 process:
   # Workflow patterns
@@ -111,12 +118,14 @@ process:
   detection_without_enforcement: "Lint without gate = advisory → add CI block or remove claim"
   enforcement_at_merge_boundary: "PR merge is last gate → all enforcement must block there"
   mixed_commits_erode_auditability: "One concern per commit → clear blame, clear revert"
+  cross_project_graduation: "Heuristics that recur 3+ times across sibling projects (ninchat_voice, statemachine-engine) belong in Scripture, not in project-local diaries → periodic diary sweep surfaces candidates for graduation"
 
 seeds:
   # Forward-looking patterns awaiting implementation
   inquisitor_auto_escalation: "Auto-create FR when audit pattern hits threshold"
   req_coverage_as_universal_gate: "Block PR merge on coverage gaps, not just report"
   verification_checkpoint_primitive: "Checkpoint/resume for long enforce pipelines"
+  diary_graduation_pipeline: "Mechanical pipeline: diary entry with 3+ recurrences across projects → auto-proposal to .chaplain/inbox/ for Scripture graduation"
 ```
 
 ### Requirement Traceability (ADR-001)
