@@ -1248,3 +1248,50 @@ class TestAsyncRaceCancellable:
         assert result["_race_winner"]["provider"] == "fast-p"
         assert result["_race_winner"]["model"] == "fast-m"
         assert result["current_step"] == "race_async_meta"
+
+
+class TestRaceStructuredOutputFallback:
+    """FR-464: Race node falls back to JSON extraction when structured output rejected."""
+
+    @pytest.mark.req("REQ-YG-465")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_fallback_on_response_format_rejection(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """Race candidate falls back to extract_json when with_structured_output fails."""
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "deepseek", None)
+
+        # LLM that rejects structured output but returns JSON in plain response
+        llm1 = MagicMock()
+        structured_llm = MagicMock()
+        structured_llm.ainvoke = AsyncMock(
+            side_effect=Exception(
+                "Error code: 400 - {'error': {'message': 'This response_format type is unavailable now'}}"
+            )
+        )
+        llm1.with_structured_output = MagicMock(return_value=structured_llm)
+        # Plain ainvoke returns JSON text
+        plain_response = MagicMock()
+        plain_response.content = '{"answer": "fallback result"}'
+        llm1.ainvoke = AsyncMock(return_value=plain_response)
+
+        mock_create_llm.side_effect = [llm1]
+
+        node_config = {
+            "type": "race",
+            "prompt": "test_prompt",
+            "state_key": "response",
+            "output_model": "tests.unit.test_race_node.RaceTestOutput",
+            "candidates": [
+                {"provider": "deepseek"},
+            ],
+        }
+
+        node_fn = create_race_node("race_node", node_config, {})
+        result = node_fn(sample_state)
+
+        assert isinstance(result["response"], RaceTestOutput)
+        assert result["response"].answer == "fallback result"

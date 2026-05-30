@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from yamlgraph.constants import ErrorHandler
+from yamlgraph.executor import _build_schema_hint
 from yamlgraph.executor_base import prepare_messages
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
@@ -61,9 +62,28 @@ async def _invoke_candidate_async(
         model=candidate.get("model"),
     )
     if output_model:
-        structured_llm = llm.with_structured_output(output_model)
-        result = await structured_llm.ainvoke(messages)
-        return candidate, result
+        try:
+            structured_llm = llm.with_structured_output(output_model)
+            result = await structured_llm.ainvoke(messages)
+            return candidate, result
+        except Exception as struct_err:
+            if "response_format" in str(struct_err):
+                logger.info(
+                    "Structured output rejected in race candidate %s/%s, "
+                    "falling back to JSON extraction (FR-464)",
+                    candidate.get("provider", "?"),
+                    candidate.get("model", "?"),
+                )
+                from langchain_core.messages import HumanMessage
+
+                schema_hint = _build_schema_hint(output_model)
+                retry_msgs = list(messages) + [HumanMessage(content=schema_hint)]
+                response = await llm.ainvoke(retry_msgs)
+                content = normalize_content(response.content)
+                parsed = extract_json(content)
+                if isinstance(parsed, dict):
+                    return candidate, output_model.model_validate(parsed)
+            raise
     else:
         response = await llm.ainvoke(messages)
         content = normalize_content(response.content)

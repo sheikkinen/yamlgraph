@@ -1,9 +1,19 @@
 """Tests for yamlgraph.executor module."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
+from pydantic import BaseModel
 
 from yamlgraph.executor_base import format_prompt
 from yamlgraph.utils.prompts import load_prompt
+
+
+class ExecutorFallbackOutput(BaseModel):
+    """Test schema for structured output fallback tests."""
+
+    summary: str
+    count: int
 
 
 class TestLoadPrompt:
@@ -77,7 +87,7 @@ class TestPromptExecutorGraphRelative:
     @pytest.mark.req("REQ-YG-014")
     def test_execute_with_graph_path_and_prompts_relative(self, tmp_path):
         """Executor should resolve prompts relative to graph when configured."""
-        from unittest.mock import MagicMock, patch
+        from unittest.mock import MagicMock
 
         from yamlgraph.executor import PromptExecutor
 
@@ -119,7 +129,7 @@ user: Generate opening for {questionnaire_name}.
     @pytest.mark.req("REQ-YG-014")
     def test_execute_with_prompts_dir_override(self, tmp_path):
         """Executor should use explicit prompts_dir when provided."""
-        from unittest.mock import MagicMock, patch
+        from unittest.mock import MagicMock
 
         from yamlgraph.executor import PromptExecutor
 
@@ -152,7 +162,7 @@ user: Say hello to {name}.
     @pytest.mark.req("REQ-YG-014")
     def test_execute_prompt_function_passes_path_params(self, tmp_path):
         """execute_prompt() should accept and forward path params."""
-        from unittest.mock import MagicMock, patch
+        from unittest.mock import MagicMock
 
         from yamlgraph.executor import execute_prompt
 
@@ -184,3 +194,97 @@ user: Test {msg}.
             mock_executor.execute.assert_called_once()
             call_kwargs = mock_executor.execute.call_args.kwargs
             assert call_kwargs["prompts_dir"] == prompts_dir
+
+
+class TestStructuredOutputFallback:
+    """FR-464: _invoke_with_retry falls back to JSON extraction when structured output rejected."""
+
+    @pytest.mark.req("REQ-YG-464")
+    def test_fallback_on_response_format_rejection(self):
+        """When with_structured_output raises response_format error, fall back to extract_json."""
+        from yamlgraph.executor import PromptExecutor
+
+        executor = PromptExecutor()
+
+        mock_llm = MagicMock()
+        # with_structured_output().invoke() raises 400
+        structured_llm = MagicMock()
+        structured_llm.invoke.side_effect = Exception(
+            "Error code: 400 - {'error': {'message': 'This response_format type is unavailable now'}}"
+        )
+        mock_llm.with_structured_output.return_value = structured_llm
+        # Plain invoke returns JSON text
+        mock_llm.invoke.return_value = MagicMock(
+            content='{"summary": "test result", "count": 5}'
+        )
+
+        messages = [MagicMock()]
+        result = executor._invoke_with_retry(
+            mock_llm, messages, output_model=ExecutorFallbackOutput
+        )
+
+        assert isinstance(result, ExecutorFallbackOutput)
+        assert result.summary == "test result"
+        assert result.count == 5
+
+    @pytest.mark.req("REQ-YG-464")
+    def test_fallback_validates_against_schema(self):
+        """Fallback validates JSON against Pydantic model, not just raw parse."""
+        from yamlgraph.executor import PromptExecutor
+
+        executor = PromptExecutor()
+
+        mock_llm = MagicMock()
+        structured_llm = MagicMock()
+        structured_llm.invoke.side_effect = Exception(
+            "This response_format type is unavailable now"
+        )
+        mock_llm.with_structured_output.return_value = structured_llm
+        # Return invalid JSON (missing required field)
+        mock_llm.invoke.return_value = MagicMock(content='{"summary": "only summary"}')
+
+        messages = [MagicMock()]
+        with pytest.raises((Exception, ValueError)):
+            executor._invoke_with_retry(
+                mock_llm, messages, output_model=ExecutorFallbackOutput
+            )
+
+    @pytest.mark.req("REQ-YG-464")
+    def test_no_fallback_for_other_errors(self):
+        """Non-response_format errors are not caught by fallback."""
+        from yamlgraph.executor import PromptExecutor
+
+        executor = PromptExecutor()
+
+        mock_llm = MagicMock()
+        structured_llm = MagicMock()
+        structured_llm.invoke.side_effect = Exception("Some other API error")
+        mock_llm.with_structured_output.return_value = structured_llm
+
+        messages = [MagicMock()]
+        with pytest.raises(Exception, match="Some other API error"):
+            executor._invoke_with_retry(
+                mock_llm, messages, output_model=ExecutorFallbackOutput
+            )
+
+    @pytest.mark.req("REQ-YG-464")
+    def test_no_fallback_when_structured_output_succeeds(self):
+        """When with_structured_output works, fallback is not triggered."""
+        from yamlgraph.executor import PromptExecutor
+
+        executor = PromptExecutor()
+
+        expected = ExecutorFallbackOutput(summary="structured", count=10)
+        mock_llm = MagicMock()
+        structured_llm = MagicMock()
+        structured_llm.invoke.return_value = expected
+        mock_llm.with_structured_output.return_value = structured_llm
+
+        messages = [MagicMock()]
+        result = executor._invoke_with_retry(
+            mock_llm, messages, output_model=ExecutorFallbackOutput
+        )
+
+        assert result == expected
+        # Plain invoke should NOT be called
+        mock_llm.invoke.assert_not_called()

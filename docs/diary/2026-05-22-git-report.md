@@ -28,20 +28,20 @@ This is an active development cycle for **yamlgraph** - a YAML-based graph/workf
 #### **2. Hook System Enhancements**
 - **FR-443: Copilot Hooks Documentation** ✅
   - Documented copilot hook instructions and usage patterns
-  
+
 - **FR-442: Pre-Command Parse Path Consolidation** ✅
   - Consolidated pre-command parsing logic
-  
+
 - **FR-441: Pre-commit File Pattern Scoping** ✅
   - Scoped hook execution by file patterns for targeted validation
-  
+
 - **FR-440: Pytest Output Pipe-Buffer Guard** ✅
   - Added buffer protection for pytest output handling
 
 #### **3. Code Quality & Linting**
 - **FR-439: Enforcement Terminology Refactor** ✅
   - Toned down enforcement language in hooks
-  
+
 - **FR-438: Reasoning Anti-Pattern Detection** ✅
   - Added "thoughtcrime hook" for detecting reasoning anti-patterns
   - Scans content when reasoningText is empty
