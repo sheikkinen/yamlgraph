@@ -59,7 +59,11 @@ class TestCapabilityRegistry:
 
     def test_no_retired_ids_in_registry(self) -> None:
         """Retired capability IDs must not have YAML files."""
-        retired = {"CAP-27", "CAP-29", "CAP-52", "CAP-58"}
+        mod = _load_module(
+            "validate_capabilities",
+            REPO_ROOT / "scripts" / "validate_capabilities.py",
+        )
+        retired = set(mod.RETIRED_CAPS.keys())
         for fp in (REPO_ROOT / "capabilities").glob("CAP-*.yaml"):
             cap_id_match = re.match(r"(CAP-\d+)", fp.name)
             if cap_id_match:
@@ -109,10 +113,12 @@ class TestReqCoverageLoadsFromRegistry:
             REPO_ROOT / "scripts" / "req_coverage.py",
         )
 
-        # Collect directly from YAML files
+        # Collect directly from YAML files, excluding retired CAPs
         yaml_reqs: set[str] = set()
         for fp in (REPO_ROOT / "capabilities").glob("CAP-*.yaml"):
             data = yaml.safe_load(fp.read_text())
+            if data.get("status") == "retired":
+                continue
             for req in data.get("requirements", []):
                 yaml_reqs.add(str(req["id"]))
 
