@@ -77,6 +77,20 @@ def validate_file(filepath: Path) -> list[str]:
         errors.append(f"{filename}: Root must be a mapping, got {type(data).__name__}")
         return errors
 
+    # Retired CAPs only need id, name, status
+    if data.get("status") == "retired":
+        cap_id = data.get("id", "")
+        if not CAP_ID_PATTERN.match(str(cap_id)):
+            errors.append(f"{filename}: Invalid id format '{cap_id}'. Expected CAP-XX")
+        elif cap_id != expected_cap_id:
+            errors.append(
+                f"{filename}: ID mismatch. File expects {expected_cap_id} but id is {cap_id}"
+            )
+        name = data.get("name")
+        if not isinstance(name, str) or not name.strip():
+            errors.append(f"{filename}: name must be a non-empty string")
+        return errors
+
     # Check required fields
     missing = REQUIRED_FIELDS - set(data.keys())
     if missing:

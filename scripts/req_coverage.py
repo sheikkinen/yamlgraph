@@ -55,6 +55,9 @@ def load_capabilities_from_registry() -> (
         with open(filepath) as f:
             data = yaml.safe_load(f)
 
+        if data.get("status") == "retired":
+            continue
+
         cap_id = data["id"]
         cap_name = data["name"]
         req_ids = [req["id"] for req in data.get("requirements", [])]
