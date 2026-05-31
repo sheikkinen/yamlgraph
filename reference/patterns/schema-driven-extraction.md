@@ -198,18 +198,117 @@ def normalize_extracted(state: dict) -> dict:
 
 This is `normalize at the boundary` — the LLM is an external system whose output format cannot be trusted.
 
+## Reactive Schemas
+
+The pattern extends naturally to schemas where fields activate based on answers. Three depths of reactivity, with increasing distance from the core loop:
+
+### Conditional Fields (`depends_on`)
+
+The schema defines all possible fields, but some activate based on extracted values:
+
+```yaml
+fields:
+  - id: has_allergies
+    type: boolean
+    required: true
+
+  - id: allergy_list
+    type: string
+    required: true
+    depends_on:
+      field: has_allergies
+      value: true
+
+  - id: pain_location
+    type: string
+    required: true
+
+  - id: cardiac_history
+    type: string
+    required: true
+    depends_on:
+      field: pain_location
+      value: chest
+```
+
+The gap detector grows by ~5 lines to evaluate dependencies against current state:
+
+```python
+def detect_gaps(state: dict) -> dict:
+    schema = state.get("schema", {})
+    extracted = state.get("extracted", {})
+    fields = schema.get("fields", [])
+
+    required_ids = set()
+    for f in fields:
+        if not f.get("required"):
+            continue
+        dep = f.get("depends_on")
+        if dep:
+            dep_value = extracted.get(dep["field"])
+            if str(dep_value).lower() != str(dep["value"]).lower():
+                continue  # dependency not met, skip
+        required_ids.add(f["id"])
+
+    filled_ids = {k for k, v in extracted.items() if v is not None}
+    gaps = sorted(required_ids - filled_ids)
+    return {"gaps": gaps, "has_gaps": bool(gaps)}
+```
+
+Zero structural change to the graph. Same nodes, same edges, same loop. Convergence guarantee holds — the set of activatable fields is finite and bounded by the schema.
+
+### Schema Phases
+
+Fields organize into stages, and stage N+1 activates when stage N converges:
+
+```yaml
+stages:
+  - name: triage
+    fields:
+      - id: chief_complaint
+        required: true
+      - id: severity
+        required: true
+        coding:
+          low: "Not urgent"
+          medium: "Needs attention"
+          high: "Urgent"
+
+  - name: cardiac
+    activate_when:
+      field: chief_complaint
+      contains: ["chest pain", "heart", "palpitation"]
+    fields:
+      - id: cardiac_history
+        required: true
+      - id: onset_activity
+        required: true
+```
+
+The gap detector adds stage activation logic — evaluate `activate_when` against extracted state, flatten active stages into a single field list, then run the same set arithmetic. Graph structure is identical. This is the multi-schema merge pattern triggered by content instead of topic detection.
+
+### LLM-Generated Fields (unbounded)
+
+When the LLM decides *which fields to create* based on answers, the schema becomes an LLM output. This is where the pattern genuinely breaks:
+
+- **Convergence guarantee lost** — the target set can grow faster than you fill it
+- **Deterministic gap detection lost** — gaps depend on a non-deterministic schema
+- **Testability lost** — cannot assert "all required fields collected" when required fields are unknown at compile time
+
+The true boundary is not "static vs. reactive" but **bounded vs. unbounded**. As long as the full set of possible fields is enumerable from the schema file, the pattern works. The moment an LLM invents fields, you've left convergence territory and entered open-ended exploration.
+
 ## When to Use This Pattern
 
 **Good fit:**
 - Structured data collection from conversation (intake forms, assessments, config wizards)
 - Schema is known at graph compile time (or loadable at init)
-- Fields are independently extractable (no complex dependencies between answers)
+- Conditional/branching fields with bounded activation rules (`depends_on`, phases)
 - Convergence is measurable (required fields filled = done)
 
 **Poor fit:**
 - Open-ended exploration (no target shape → no convergence)
 - Adversarial extraction (need consistency detection, not gap detection)
-- Real-time schema mutation (fields change based on answers — need reactive state, not static schema)
+- Unbounded field generation (LLM invents fields → no convergence guarantee)
 - Single-shot extraction from documents (no probe loop needed — just extract + validate)
 
 ## Implementations
