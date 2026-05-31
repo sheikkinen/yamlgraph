@@ -204,6 +204,31 @@ pip install statemachine-engine   # >= 1.0.70
 pip install yamlgraph
 ```
 
+## Cross-Domain Clock Analysis
+
+The pattern spans four orders of magnitude in clock speed across production deployments:
+
+| System | FSM Clock | Typical Transition | External Events | Domain |
+|--------|----------|-------------------|-----------------|--------|
+| **Ninchat Voice** | ~100ms | Audio frame boundaries | incoming_call, hangup | Clinical telephony |
+| **Game Engine** (proposed) | ~1s | Tick rate | player_action, timeout | Simulation |
+| **Chaplain** | ~60s | CI operations | timeout, stop | CI/CD automation |
+| **Kertomus** | ~120s | FHIR batch steps | new_job from DB queue | Medical data |
+
+Same pattern, different clocks. The separation (lifecycle vs. reasoning vs. translation) is independent of the domain — just as MVC works for CLI tools and enterprise web apps because model/view/controller are independent of the application domain.
+
+## Relationship to Established Patterns
+
+| Pattern | Lifecycle | Step Execution | Durability | LLM-Aware |
+|---------|----------|---------------|------------|-----------|
+| **Saga** (microservices) | Orchestrator | Compensating transactions | Yes | No |
+| **Actor Model** (Akka) | Mailbox | Actor message handler | Optional | No |
+| **Temporal Workflow** | Workflow function | Activities | Yes (event sourcing) | No |
+| **Prefect/Airflow** | DAG scheduler | Task functions | Yes (DB) | No |
+| **FSM+Graph** | FSM config | YAMLGraph pipeline | Yes (SQLite queue) | **Yes** |
+
+FSM+Graph is structurally closest to the **Saga pattern with non-deterministic steps**. The FSM is the saga orchestrator. Each graph is a saga step. The bridge handles compensation (error event → failure state → cleanup action). The key difference: saga steps are deterministic transactions with rollback; FSM+Graph steps are *non-deterministic LLM calls* with structured output validation. This makes the bridge harder — you can't simply "undo" an LLM call — but the lifecycle semantics (sequence, retry, timeout, compensate) are identical.
+
 ## See Also
 
 - [examples/fsm-router/](../examples/fsm-router/) — Canonical example with README

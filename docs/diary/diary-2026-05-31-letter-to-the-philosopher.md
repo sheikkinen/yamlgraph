@@ -454,4 +454,137 @@ If no, the honest move is to generate Python from YAML and let the Python toolch
 
 ---
 
-**Seed:** Is the linter actually a proto-compiler? It already validates cross-references, infers types, and checks invariants — three of the four classic compiler passes. The fourth is code generation, which is what `node_compiler.py` does. If you extract the linter's semantic analysis into the compilation pipeline (lint-then-compile as one pass), what falls out: a type system for YAML graphs, or the admission that YAML was the wrong input format?
+## Next Most Impactful Extensions
+
+The removal analysis answers "what to take away." The complementary question: "what to add?" — ranked not by novelty but by leverage on the concept's survival.
+
+### The data: what's underused
+
+| Primitive | Usage (of 205 graphs) | Percentage | Signal |
+|---|---|---|---|
+| Sequence + LLM | ~185 | 90% | Table stakes, saturated |
+| Map (fan-out) | 32 | 16% | Healthy, proven |
+| Interrupt (human-in-loop) | 15 | 7% | Niche but essential |
+| Streaming | 13 | 6% | Under-penetrated |
+| Guards | 13 | 6% | Under-penetrated |
+| Subgraph | 6 | 3% | Under-penetrated |
+| MCP integration | 4 | 2% | Early |
+| Race | 1 | 0.5% | Proven in concept, unused in practice |
+
+The Chaplain graphs tell a different story: 16 python nodes, 11 copilot nodes, 1 llm node. The most demanding consumer barely uses the LLM primitive — it uses YAMLGraph as a **shell orchestrator** (python nodes running git, pytest, file ops) with occasional copilot invocations. The concept is "declare topology for LLM pipelines," but the heaviest user treats it as "declare topology for *any* pipeline."
+
+### Ranked by impact
+
+#### 1. Unified lint-compile pass (addresses the 12:1 ratio)
+
+**What:** Merge the linter's semantic analysis into the compilation pipeline. Currently: lint runs separately, then compile runs separately. Both parse the same YAML, both resolve the same cross-references.
+
+**Why highest impact:** Eliminates ~1,700 lines of duplicated logic between linter and compiler. Cross-reference validation happens once, at compile time. Errors surface at the moment of failure, not as a separate lint step. This is the Seed from the previous section made operational.
+
+**Risk:** The linter currently runs *without* executing the graph. A unified pass would either (a) keep the fast-fail property (lint errors abort compilation), or (b) lose it (you have to compile to validate). Option (a) is achievable: the linter's checks become compiler pre-checks in the same function.
+
+**Concrete form:** `compile_graph()` gains a `validate=True` parameter (default). Linter rules become assertions in the compilation pipeline. The standalone `yamlgraph graph lint` command calls `compile_graph(validate=True, emit=False)`.
+
+#### 2. Graph-to-graph invocation as first-class edge (addresses the FSM boundary)
+
+**What:** A `type: graph` edge (or `call:` syntax) that invokes another graph.yaml as a step, with explicit state mapping, without requiring a subgraph node or FSM bridge.
+
+**Why:** The Chaplain's 12-state FSM exists because graph-to-graph invocation currently requires either `type: subgraph` (which nests inline) or the `utils/fsm/` bridge (915 lines). The FSM handles sequencing, error recovery, and event-driven dispatch — but 60% of its states are just "run graph X, then run graph Y." A first-class `call:` edge with retry/fallback semantics would eliminate the need for the FSM bridge in simple cases, while the FSM remains for complex state machines.
+
+**Risk:** State mapping between graphs is the hard part. The 116 diary entries about the FSM bridge are mostly about state translation failures. This extension must solve the same problem or it's `framework_costume`.
+
+**Concrete form:**
+```yaml
+edges:
+  - from: plan
+    call: .chaplain/graphs/philosopher/graph.yaml
+    input_map: {topic: "{state.fr_content}"}
+    output_map: {judgement: result.decision}
+    on_error: retry
+    to: judge
+```
+
+#### 3. Declarative guards as standard pattern (addresses the 6% adoption)
+
+**What:** Promote `guards:` from a 222-line utility to a first-class graph-level concept with pre/post node guards, circuit breakers, and cost limits.
+
+**Why:** Only 13 of 205 graphs use guards. But every production deployment needs them: cost limits, content filtering, PII detection, output validation. The guard_evaluator exists but is opt-in and underdocumented. Making guards standard (like `on_error:`) means every graph author thinks about safety by default.
+
+**Risk:** Low. The guard evaluator already works. The extension is primarily schema + documentation + linter rules.
+
+**Concrete form:**
+```yaml
+metadata:
+  guards:
+    cost_limit: 0.50  # USD per run
+    max_tokens: 10000
+    content_filter: true
+
+nodes:
+  generate:
+    type: llm
+    guards:
+      pre: "len(state.input) < 10000"
+      post: "output.confidence > 0.7"
+      on_fail: skip
+```
+
+#### 4. Native evaluation harness (addresses the "judge" bottleneck)
+
+**What:** A `yamlgraph graph eval` command that runs a graph against a test suite of inputs and scores outputs against criteria — using another graph as the evaluator.
+
+**Why:** The diary's "AI Code Generation" section identifies judging as the bottleneck. The Chaplain's judge step is a single LLM call that determines whether a feature request should proceed. Currently, evaluation of graph quality is ad hoc (FR-453, FR-457). A native eval harness would: (a) let graph authors test prompt quality systematically, (b) provide regression detection when prompts change, (c) enable the `bench_commands.py` use case (compare models) with quality metrics, not just speed.
+
+**Risk:** Moderate. Evaluation is a deep problem (what makes a "good" output?). But the framework doesn't need to solve evaluation theory — it needs to provide the *harness* (run N inputs, collect outputs, score with criteria graph). The scoring logic lives in user-defined evaluator graphs.
+
+**Concrete form:**
+```yaml
+# eval-suite.yaml
+graph: graphs/summarize.yaml
+evaluator: graphs/eval/quality-judge.yaml
+cases:
+  - input: {text: "...long article..."}
+    criteria: {min_length: 50, max_length: 200, must_mention: ["key point"]}
+  - input: {text: "...another article..."}
+    criteria: {tone: "neutral", factual: true}
+```
+
+#### 5. Streaming as default mode (addresses the 6% adoption)
+
+**What:** Make streaming the default execution mode, with batch as the opt-in. Currently, `execute_prompt()` is sync/batch, and `execute_prompt_streaming()` is a separate async function.
+
+**Why:** The diary's topology section notes that "streaming reveals what batch conceals" (Scripture cure: `streaming_xray`). Streaming exposes latency per node, partial failures, and progress feedback — all critical for production. But only 6% of graphs use it because it requires async code paths and different invocation.
+
+**Risk:** Breaking change for all existing consumers that expect batch return values. Would need a migration path (flag, deprecation period).
+
+**Concrete form:** `yamlgraph graph run` streams by default (token-by-token to terminal). `--batch` flag for the current behavior. The graph YAML doesn't change — streaming vs. batch is a runtime concern, not a topology concern.
+
+### What these five share
+
+Each addresses a **structural gap** between the concept and its heaviest consumer (the Chaplain):
+
+1. **Lint-compile** — the Chaplain runs lint then compile; unifying them speeds the pipeline
+2. **Graph-call edge** — the Chaplain's FSM exists because graphs can't call graphs simply
+3. **Guards** — the Chaplain's safety gates are custom Python; declarative guards make them YAML
+4. **Eval harness** — the Chaplain's judge step has no regression suite
+5. **Streaming default** — the Chaplain's copilot nodes stream but the harness doesn't surface it
+
+The pattern: **the most impactful extensions are the ones that would simplify the Chaplain.** The Chaplain is the stress test — the most complex consumer, the one that hits every boundary. Whatever it needs that it currently works around in Python or FSM config, that's the missing YAML primitive.
+
+### What NOT to extend
+
+| Temptation | Why resist |
+|---|---|
+| More providers | Mechanical, low-concept. 11 is enough. |
+| More node types | Each costs ~200 lines of linter pattern. The 10 primitives cover 80%. |
+| Visual graph editor | Wrong consumer (agents don't need UI). |
+| Plugin system | Premature. The code is regenerable; plugins add complexity for composability that isn't needed yet. |
+| Cloud deployment | Deployment is an application concern, not a framework concern (ref: `prompt-deployment.md`). |
+
+### Seed
+
+The Chaplain uses 16 python nodes and 11 copilot nodes — but only 1 LLM node. The heaviest consumer of an "LLM pipeline framework" barely uses the LLM primitive. It uses the topology. What if the concept is not "declare LLM pipelines" but "declare *any* pipeline where the steps might involve LLMs"? The LLM is not the purpose; it's one tool among many. If that's true, the competitive landscape shifts: the real competitor is not LangGraph or CrewAI — it's Temporal, Prefect, and Airflow. The concept is workflow orchestration with LLM-awareness, not LLM orchestration with workflow features.
+
+---
+
+**Seed (from crossover section):** Is the linter actually a proto-compiler? It already validates cross-references, infers types, and checks invariants — three of the four classic compiler passes. The fourth is code generation, which is what `node_compiler.py` does. If you extract the linter's semantic analysis into the compilation pipeline (lint-then-compile as one pass), what falls out: a type system for YAML graphs, or the admission that YAML was the wrong input format?
