@@ -1,0 +1,17 @@
+id: CAP-165
+name: Watcher2 Baseline Dead Code Removal
+fr: FR-278
+description: >
+  Remove all FR-277 watcher2 baseline checkpointing dead code: Python modules,
+  packages, graphs, tests, capability registrations, and documentation references.
+modules:
+  - tests/unit/test_fr278_remove_baseline_dead_code.py
+requirements:
+  - id: REQ-YG-466
+    description: >
+      All baseline-related Python modules, packages, graphs, tests, capability
+      registrations, architecture references, and documentation references are
+      removed. No import errors from removal. No baseline references remain in
+      Python or YAML files. Ruff check passes after removal.
+    modules:
+      - tests/unit/test_fr278_remove_baseline_dead_code.py

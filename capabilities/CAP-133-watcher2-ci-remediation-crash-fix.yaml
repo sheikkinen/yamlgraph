@@ -1,4 +1,5 @@
 id: CAP-133
+status: retired
 name: Watcher2 CI Remediation Crash Fix
 fr: FR-284
 description: >

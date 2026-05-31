@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-05-31
 **Depends-on:** FR-466 (CAP retirement support)

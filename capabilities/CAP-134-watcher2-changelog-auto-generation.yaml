@@ -1,4 +1,5 @@
 id: CAP-134
+status: retired
 name: Watcher2 Changelog Auto-Generation
 description: >
   Auto-generate changelog fragments in watcher2 pipeline to eliminate manual intervention.

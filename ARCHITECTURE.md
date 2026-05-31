@@ -428,6 +428,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 162 | CAP-162 Enforcer Demo Safety Hardening | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-427 |
 | 163 | CAP-163 CAP Retirement Support | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` | REQ-YG-428 |
 | 164 | CAP-164 Structured Output JSON Fallback | `yamlgraph/executor.py`, `yamlgraph/node_factory/race_node.py` | REQ-YG-464 – 465 |
+| 165 | CAP-165 Watcher2 Baseline Dead Code Removal | `tests/unit/test_fr278_remove_baseline_dead_code.py` | REQ-YG-466 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1997,6 +1998,16 @@ When with_structured_output() fails (provider rejects response_format), fall bac
 |------------|-------------|-------------|
 | REQ-YG-464 | Executor falls back to JSON extraction when structured output rejected | `yamlgraph/executor.py` |
 | REQ-YG-465 | Race node falls back to JSON extraction when structured output rejected | `yamlgraph/node_factory/race_node.py` |
+
+### 165. CAP-165 Watcher2 Baseline Dead Code Removal
+
+Remove all FR-277 watcher2 baseline checkpointing dead code: Python modules, packages, graphs, tests, capability registrations, and documentation references.
+
+**Feature Request:** FR-278
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-466 | All baseline-related Python modules, packages, graphs, tests, capability registrations, architecture references, and documentation references are removed. No import errors from removal. No baseline references remain in Python or YAML files. Ruff check passes after removal. | `tests/unit/test_fr278_remove_baseline_dead_code.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -12,7 +12,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278BaselineCodeRemoval:
     """AC-01: All baseline-related Python modules removed."""
 
@@ -41,7 +41,7 @@ class TestFR278BaselineCodeRemoval:
             importlib.import_module("yamlgraph.models.baseline")
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278ChaplainPackageRemoval:
     """AC-02: Chaplain package init file removed."""
 
@@ -56,7 +56,7 @@ class TestFR278ChaplainPackageRemoval:
             importlib.import_module("yamlgraph.chaplain")
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278BaselineGraphRemoval:
     """AC-03: Baseline graph YAML file removed."""
 
@@ -73,7 +73,7 @@ class TestFR278BaselineGraphRemoval:
         ), f"Dead code directory still exists: {baseline_dir}"
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278BaselineTestRemoval:
     """AC-04: Baseline test file removed."""
 
@@ -88,7 +88,7 @@ class TestFR278BaselineTestRemoval:
         assert not test_path.exists(), f"Dead code test still exists: {test_path}"
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278CapabilityRegistrationRemoval:
     """AC-05: Capability registration removed."""
 
@@ -100,7 +100,7 @@ class TestFR278CapabilityRegistrationRemoval:
         assert not cap_path.exists(), f"Dead code capability still exists: {cap_path}"
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278Watcher2ConfigCleanup:
     """AC-06: Import state line removed from start-system.sh."""
 
@@ -115,7 +115,7 @@ class TestFR278Watcher2ConfigCleanup:
             ), "start-system.sh still contains baseline import reference"
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278ArchitectureCleanup:
     """AC-07: REQ-YG-279 requirement removed from ARCHITECTURE.md."""
 
@@ -130,7 +130,7 @@ class TestFR278ArchitectureCleanup:
             ), "ARCHITECTURE.md still contains REQ-YG-279 requirement"
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278ChaplainReadmeCleanup:
     """AC-08: Baseline documentation removed from .chaplain/README.md."""
 
@@ -154,7 +154,7 @@ class TestFR278ChaplainReadmeCleanup:
                 ), f".chaplain/README.md still contains baseline reference: {term}"
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278FeatureRequestRejection:
     """AC-09: FR-277 marked as rejected in feature requests."""
 
@@ -178,7 +178,7 @@ class TestFR278FeatureRequestRejection:
             ), "FR-277 must be marked as rejected with Status: Rejected"
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278NoImportErrors:
     """AC-10: No import errors when running existing tests."""
 
@@ -205,7 +205,7 @@ class TestFR278NoImportErrors:
 
 
 @pytest.mark.slow
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278NoCodebaseReferences:
     """AC-11: No references to baseline functionality in grep search across codebase."""
 
@@ -260,7 +260,7 @@ class TestFR278NoCodebaseReferences:
                 continue
 
 
-@pytest.mark.req("REQ-YG-294")
+@pytest.mark.req("REQ-YG-466")
 class TestFR278LintingPasses:
     """AC-12: Linting passes (no dead imports or references)."""
 
