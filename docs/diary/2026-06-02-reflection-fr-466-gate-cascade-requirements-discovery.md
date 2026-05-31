@@ -24,6 +24,6 @@ A second trap: using `_import_script` instead of `_load_module` — the helper f
 
 **Gate cascade as requirements discovery**: When a pre-commit hook fails on a RED commit, the failure is not friction — it's the system telling you your change has undeclared dependencies. Each gate failure reveals a boundary you hadn't inventoried. Count gate failures as discovered requirements, not as obstacles.
 
-## Seed
+## Seed:
 
 Could pre-commit failures be automatically logged as "boundary discoveries" in a structured format, creating a feedback loop where the number of gate failures per commit becomes a metric of change complexity? A commit that triggers 4 gate cascades is objectively more complex than one that triggers 0 — could this inform effort estimation?
