@@ -60,6 +60,7 @@ boundaries:
   - module_structure  # Python import contracts; cli→graph_loader→tools declared, not assumed (FR-218)
   - instruction      # Agent system prompts + model weights; vendor instructions enter here; treat as untrusted external input
   - workspace        # Editor visibility ≠ ownership; nested .git dirs are separate blast radii; enumerate before destructive ops
+  - evaluation       # Agent strategic assessment (inventory, triage, priority ranking); method determines conclusion; line-count proxies hide incident-dense boundaries
 
 traps:
   # Cognitive hazards that lead to bugs and drift
@@ -87,6 +88,8 @@ traps:
   mock_escape_hatch: "Agent defaults to mocks even when E2E is explicitly requested → if the feature exists because of a physical phenomenon (acoustic echo, network timing, STT transience), the test must exercise the real phenomenon; a mock E2E is a unit test with extra steps (ninchat_voice: FR-378 three corrections in one session)"
   refactor_orphans_secondary: "Refactoring removes a handler's primary responsibility but silently orphans its secondary responsibility → enumerate ALL responsibilities of a function before deleting, not just the one named in its docstring (ninchat_voice: NC-203 hangup detection lost inside listen handler removal)"
   research_as_inventory: "Research output has the shape of analysis (sections, tables, YAML snippets) but contains only descriptions, not decisions → a description of what exists is inventory; a statement of what it means for us is analysis; the deliverable is the analysis (ninchat_voice: CP handbook link list)"
+  inventory_by_visibility: "Agent evaluates components by current-snapshot legibility (file count, line count, directory depth) instead of historical incident density → importance is proportional to learning cost, not byte count; the FSM bridge was 4% of source but absorbed 26% of diary entries; rank by incidents, not by mass (yamlgraph: 2026-05-31 asset inventory misclassified utils/fsm as Tier 4)"
+  growth_as_default: "Assumption that the next commit should add something → mature systems benefit more from pruning claims than planting features; six of ten commits in a productive week were subtractive; the capability registry becomes honest by retiring phantom claims, not by adding implementations (yamlgraph: FR-465/FR-466 CAP retirement arc)"
 
 cures:
   # Patterns that prevent traps
@@ -104,6 +107,7 @@ cures:
   investigation_before_fix: "When a bug requires >15 min to write the failing test, split into investigation FR (build test harness proving the causal chain) then fix FR (mechanical enforcement); the investigation's tests become the fix's regression suite — FR-371 4h investigation → FR-372 30min fix, zero debugging"
   assert_path_not_destination: "FSM/pipeline tests that only check the final state can pass via any path including error recovery; assert intermediate state visits or the transition sequence, not just the terminal set (ninchat_voice: NC-179 false pass via error→cleanup→idle)"
   name_the_seam: "Name tests after the specific seam they exercise, not the feature they aspire to cover; test_barge_in_e2e → test_barge_in_elevenlabs makes the gap visible as absence, not hidden by a name that implies presence (ninchat_voice: NC-131)"
+  incident_density_ranking: "When inventorying for reimplementation or triage, rank by diary entries / source lines, not by source mass; components with the highest ratio encode the most boundary knowledge — knowledge paid for by production failures invisible in the code; absence of diary entries about a large module signals commodity code or untested boundaries (yamlgraph: utils/fsm 915 lines, 116 diary entries = densest knowledge-to-code ratio in codebase)"
 
 process:
   # Workflow patterns
@@ -119,6 +123,7 @@ process:
   enforcement_at_merge_boundary: "PR merge is last gate → all enforcement must block there"
   mixed_commits_erode_auditability: "One concern per commit → clear blame, clear revert"
   cross_project_graduation: "Heuristics that recur 3+ times across sibling projects (ninchat_voice, statemachine-engine) belong in Scripture, not in project-local diaries → periodic diary sweep surfaces candidates for graduation"
+  constraint_over_code: "216 lines of Scripture produce 21k lines of Python; the constraint is irreplaceable, the code is regenerable; when choosing what to preserve in a rewrite, take the spec, the schema, and the incident record — leave the implementation behind"
 
 seeds:
   # Forward-looking patterns awaiting implementation
