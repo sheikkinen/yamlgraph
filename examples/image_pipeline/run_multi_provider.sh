@@ -15,7 +15,7 @@ CONCEPTS="${CONCEPTS:-3}"
 COUNT="${COUNT:-5}"
 GRAPH="examples/image_pipeline/graph.yaml"
 
-for provider in mistral google inception; do
+for provider in deepseek mistral google inception; do
   echo "========================================"
   echo "  PROVIDER: $provider"
   echo "========================================"
