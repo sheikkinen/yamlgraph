@@ -426,6 +426,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 160 | CAP-160 CAP Architecture Auto-Sync | `.pre-commit-config.yaml`, `scripts/aggregate_capabilities.py` | REQ-YG-425 |
 | 161 | CAP-161 Standalone Enforcer Demo | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-426 |
 | 162 | CAP-162 Enforcer Demo Safety Hardening | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-427 |
+| 163 | CAP-163 CAP Retirement Support | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` | REQ-YG-428 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1974,6 +1975,16 @@ Safety hardening of the enforcer demo: path-restricted write_file/edit_file, git
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-427 | Enforcer demo has 10 tools (7 shell + 3 python), no git_commit, path-restricted write_file and edit_file, run_command honeypot, git_log/lint/git_diff shell tools, ImplementationResult schema with 4 fields (no commit_hash), and explicit to: END edge. | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, `examples/demos/enforcer/tools/run_command.py` |
+
+### 163. CAP-163 CAP Retirement Support
+
+Add status: retired support to capability YAML files. req_coverage.py excludes retired CAPs from coverage checks. validate_capabilities.py accepts retired files with relaxed field requirements. Establishes the retirement lifecycle pattern.
+
+**Feature Request:** FR-466
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-428 | CAP YAML files accept optional status: retired field (default active). req_coverage.py excludes retired CAP REQs from coverage and strict checks. validate_capabilities.py accepts retired files with empty modules/requirements. Tombstone RETIRED_CAPS dict preserved for deleted-file ID reservation. | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

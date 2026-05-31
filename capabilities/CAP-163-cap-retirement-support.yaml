@@ -1,0 +1,24 @@
+id: CAP-163
+name: CAP Retirement Support
+description: >
+  Add status: retired support to capability YAML files. req_coverage.py excludes
+  retired CAPs from coverage checks. validate_capabilities.py accepts retired files
+  with relaxed field requirements. Establishes the retirement lifecycle pattern.
+modules:
+  - scripts/req_coverage.py
+  - scripts/validate_capabilities.py
+  - tests/unit/test_fr466_cap_retirement_support_red.py
+  - tests/unit/test_capability_registry.py
+requirements:
+  - id: REQ-YG-428
+    description: >
+      CAP YAML files accept optional status: retired field (default active).
+      req_coverage.py excludes retired CAP REQs from coverage and strict checks.
+      validate_capabilities.py accepts retired files with empty modules/requirements.
+      Tombstone RETIRED_CAPS dict preserved for deleted-file ID reservation.
+    modules:
+      - scripts/req_coverage.py
+      - scripts/validate_capabilities.py
+      - tests/unit/test_fr466_cap_retirement_support_red.py
+      - tests/unit/test_capability_registry.py
+fr: FR-466
