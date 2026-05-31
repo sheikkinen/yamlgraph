@@ -1,0 +1,27 @@
+id: CAP-164
+name: Structured Output JSON Fallback
+fr: FR-464
+description: >
+  When with_structured_output() fails (provider rejects response_format),
+  fall back to extract_json() + model_validate(). Extends FR-456 pattern
+  from agent.py to executor.py and race_node.py.
+
+modules:
+  - yamlgraph/executor.py
+  - yamlgraph/node_factory/race_node.py
+
+requirements:
+  - id: REQ-YG-464
+    description: Executor falls back to JSON extraction when structured output rejected
+    text: >
+      executor._invoke_with_retry falls back to JSON extraction when
+      with_structured_output raises response_format error.
+    modules:
+      - yamlgraph/executor.py
+  - id: REQ-YG-465
+    description: Race node falls back to JSON extraction when structured output rejected
+    text: >
+      race_node._invoke_candidate_async falls back to JSON extraction when
+      with_structured_output raises response_format error.
+    modules:
+      - yamlgraph/node_factory/race_node.py

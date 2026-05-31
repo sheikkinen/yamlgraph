@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
 from yamlgraph.config import (
@@ -20,6 +21,8 @@ from yamlgraph.config import (
     RETRY_MAX_DELAY,
 )
 from yamlgraph.executor_base import format_prompt, is_retryable, prepare_messages
+from yamlgraph.utils.content import normalize_content
+from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
 
 logger = logging.getLogger(__name__)
@@ -27,6 +30,21 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 __all__ = ["execute_prompt", "format_prompt", "get_executor", "PromptExecutor"]
+
+
+def _build_schema_hint(output_model: type) -> str:
+    """Build a JSON schema instruction string from a Pydantic model (FR-464)."""
+    fields = []
+    for name, info in output_model.model_fields.items():
+        desc = info.description or ""
+        fields.append(
+            f'  "{name}": <{info.annotation.__name__ if hasattr(info.annotation, "__name__") else str(info.annotation)}> — {desc}'
+        )
+    schema_lines = "\n".join(fields)
+    return (
+        "Respond ONLY with valid JSON matching this schema (no markdown, no explanation):\n"
+        f"{{\n{schema_lines}\n}}"
+    )
 
 
 def execute_prompt(
@@ -159,8 +177,24 @@ class PromptExecutor:
         for attempt in range(self._max_retries):
             try:
                 if output_model:
-                    structured_llm = llm.with_structured_output(output_model)
-                    return structured_llm.invoke(messages)
+                    try:
+                        structured_llm = llm.with_structured_output(output_model)
+                        return structured_llm.invoke(messages)
+                    except Exception as struct_err:
+                        if "response_format" in str(struct_err):
+                            logger.info(
+                                "Structured output rejected, falling back to JSON extraction (FR-464)"
+                            )
+                            schema_hint = _build_schema_hint(output_model)
+                            retry_msgs = list(messages) + [
+                                HumanMessage(content=schema_hint)
+                            ]
+                            response = llm.invoke(retry_msgs)
+                            text = normalize_content(response.content)
+                            parsed = extract_json(text)
+                            if isinstance(parsed, dict):
+                                return output_model.model_validate(parsed)
+                        raise
                 else:
                     response = llm.invoke(messages)
                     return response.content

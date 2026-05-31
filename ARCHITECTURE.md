@@ -427,6 +427,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 161 | CAP-161 Standalone Enforcer Demo | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-426 |
 | 162 | CAP-162 Enforcer Demo Safety Hardening | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-427 |
 | 163 | CAP-163 CAP Retirement Support | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` | REQ-YG-428 |
+| 164 | CAP-164 Structured Output JSON Fallback | `yamlgraph/executor.py`, `yamlgraph/node_factory/race_node.py` | REQ-YG-464 – 465 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1985,6 +1986,17 @@ Add status: retired support to capability YAML files. req_coverage.py excludes r
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-428 | CAP YAML files accept optional status: retired field (default active). req_coverage.py excludes retired CAP REQs from coverage and strict checks. validate_capabilities.py accepts retired files with empty modules/requirements. Tombstone RETIRED_CAPS dict preserved for deleted-file ID reservation. | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` |
+
+### 164. CAP-164 Structured Output JSON Fallback
+
+When with_structured_output() fails (provider rejects response_format), fall back to extract_json() + model_validate(). Extends FR-456 pattern from agent.py to executor.py and race_node.py.
+
+**Feature Request:** FR-464
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-464 | Executor falls back to JSON extraction when structured output rejected | `yamlgraph/executor.py` |
+| REQ-YG-465 | Race node falls back to JSON extraction when structured output rejected | `yamlgraph/node_factory/race_node.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

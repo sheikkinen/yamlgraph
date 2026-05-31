@@ -26,10 +26,10 @@ Based on the analysis of the last 50 commits (covering the period from May 20-23
      - `feature-request`: FR lifecycle conventions (124 lines)
    - **Insight**: Skills serve as curated knowledge compression entry points, not reference copies
 
-#### 2. **FR-445: Python Tool Path Confinement** 
+#### 2. **FR-445: Python Tool Path Confinement**
    - **Status**: Completed
    - **Scope**: Enforce graph-root confinement for Python tool file paths
-   - **Changes**: 
+   - **Changes**:
      - Restrict relative path resolution to graph_root
      - Reject path escapes with explicit errors
      - Preserve module-based loading behavior

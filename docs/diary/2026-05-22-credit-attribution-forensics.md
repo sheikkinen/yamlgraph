@@ -1,6 +1,6 @@
 # Diary: Credit Attribution Forensics
 
-**Date**: 2026-05-22  
+**Date**: 2026-05-22
 **Context**: Session that produced `diary-2026-05-22-human-vs-llm.md` and
 `sheikkinen-profile.md` in ninchat_voice/docs.
 

@@ -19,7 +19,7 @@ The repository shows focused development around **graph loading infrastructure**
   - Added `config.tool_load_mode` with strict default validation
   - Compile-time error handling for Python tool load failures
   - Backward compatible "warn mode" for gradual migration
-  
+
 - **FR-445**: Confine Python tool paths to graph root
   - Security/portability enhancement: file-path Python tools now resolve relative paths against graph_root
   - Explicit error handling for path escape attempts
