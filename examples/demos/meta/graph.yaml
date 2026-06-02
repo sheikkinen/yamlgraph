@@ -1,0 +1,63 @@
+# Meta — Self-Reflective Demo
+#
+# Applies a natural-language verb to a code artifact, including this graph's
+# own YAML. A typed, traced homage to the 2023 meta.js trick:
+#   node meta 'explain structure' ./meta.js
+#
+# Usage:
+#   yamlgraph graph run examples/demos/meta/graph.yaml \
+#     --var verb="explain structure" \
+#     --var target="examples/demos/meta/graph.yaml" --full
+
+version: "1.0"
+name: meta
+description: Apply a natural-language verb to a code artifact and return typed output
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.2
+
+state:
+  verb: str
+  target: str
+
+# read_file is a shell tool (cat {target}) per the judge/enforcer convention.
+# Runtime variables are escaped via shlex.quote before substitution.
+tools:
+  read_file:
+    type: shell
+    command: cat {target}
+    description: Read a project file in full.
+    parse: text
+
+nodes:
+  # Read the target artifact into state.source
+  load:
+    type: tool
+    tool: read_file
+    variables:
+      target: "{state.target}"
+    state_key: source
+
+  # Apply the verb to the source and return typed MetaResult
+  transform:
+    type: llm
+    prompt: meta_transform
+    parse_json: true
+    variables:
+      verb: "{state.verb}"
+      target: "{state.target}"
+      source: "{state.source}"
+    state_key: result
+    requires:
+      - source
+
+edges:
+  - from: START
+    to: load
+  - from: load
+    to: transform
+  - from: transform
+    to: END

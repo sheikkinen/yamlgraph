@@ -52,15 +52,15 @@ class TestMetaDemoGraphStructure:
         """load node must pass the target variable into the read_file command."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
         variables = raw["nodes"]["load"]["variables"]
-        assert variables["file"] == "{state.target}"
+        assert variables["target"] == "{state.target}"
 
     @pytest.mark.req("REQ-YG-428")
     def test_read_file_is_shell_tool(self) -> None:
-        """read_file must be a shell tool (cat {file}) per judge/enforcer convention."""
+        """read_file must be a shell tool (cat {target}) per judge/enforcer convention."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text())
         tool = raw["tools"]["read_file"]
         assert tool["type"] == "shell"
-        assert "cat {file}" in tool["command"]
+        assert "cat {target}" in tool["command"]
 
     @pytest.mark.req("REQ-YG-428")
     def test_transform_is_llm_node(self) -> None:

@@ -95,6 +95,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [interactive_tool](demos/interactive_tool/) | `interactive_tool` | Multi-turn trivia quiz with user interrupts |
 | [judge](demos/judge/) | `agent` | Standalone FR judgment agent (FR-450) — evaluates FRs before enforcement |
 | [memory](demos/memory/) | `agent` | Multi-turn with memory |
+| [meta](demos/meta/) | `tool`, `llm` | Apply a natural-language verb to a code artifact, including its own YAML (FR-464) |
 | [multi-turn](demos/multi-turn/) | `interrupt`, `llm` | Multi-turn streaming with checkpoints (FR-028) |
 | [typescript-node](demos/typescript-node/) | `python` | Cross-runtime: Node.js/TypeScript subprocess calls `yamlgraph graph run --json` (FR-375) |
 | [novel_generator](demos/novel_generator/) | `llm`, `map` | Three-phase story generation with quality gates |

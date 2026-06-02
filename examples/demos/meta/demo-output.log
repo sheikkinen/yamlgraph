@@ -1,0 +1,29 @@
+yamlgraph graph run examples/demos/meta/graph.yaml \
+  --var verb="explain structure" \
+  --var target="examples/demos/meta/graph.yaml" --json
+2026-06-02 16:48:23,186 [INFO] yamlgraph.graph_loader: Parsed 1 shell tools: read_file
+2026-06-02 16:48:23,187 [INFO] yamlgraph.node_compiler: Added node: load (type=tool)
+2026-06-02 16:48:23,187 [INFO] yamlgraph.node_compiler: Added node: transform (type=llm)
+2026-06-02 16:48:23,283 [INFO] yamlgraph.tools.nodes: 🔧 Executing tool: read_file
+2026-06-02 16:48:23,301 [INFO] yamlgraph.tools.nodes: ✓ Tool read_file completed
+2026-06-02 16:48:23,304 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.2)
+2026-06-02 16:48:27,495 [INFO] httpx: HTTP Request: POST https://ai-samijpheikkinenaihub338640401537.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-02 16:48:27,506 [INFO] yamlgraph.node_factory.llm_nodes: Node transform completed successfully
+{
+  "summary": "The YAML defines a small two-step graph named `meta` that reads a target file and then applies a natural-language verb to its contents. It is configured as a self-reflective demo that can operate on its own YAML file.",
+  "findings": [
+    "The document starts with comments describing the demo\u2019s purpose: applying a natural-language verb to a code artifact, including the graph\u2019s own YAML, and references a prior `meta.js` trick.",
+    "Top-level metadata includes `version: \"1.0\"`, `name: meta`, and a description stating that it applies a natural-language verb to a code artifact and returns typed output.",
+    "Prompt configuration is set with `prompts_relative: true` and `prompts_dir: prompts`, indicating prompts are loaded from a relative prompts directory.",
+    "A default temperature of `0.2` is specified under `defaults`.",
+    "The graph state contains two string variables: `verb` and `target`.",
+    "A shell tool named `read_file` is defined to run `cat {target}` and read a project file in full; comments note that runtime variables are escaped via `shlex.quote` before substitution.",
+    "The `nodes` section has two nodes: `load` and `transform`. `load` uses the `read_file` tool to populate `state.source` from `state.target`.",
+    "The `transform` node is an LLM step using the `meta_transform` prompt, parsing JSON output, and passing `verb`, `target`, and `source` into the prompt; it stores the result in `state.result` and requires `source` to exist first.",
+    "The `edges` section defines a linear flow: `START -> load -> transform -> END`.",
+    "Overall structure: metadata, prompt settings, defaults, state, tools, nodes, and edges are all present in a straightforward pipeline layout."
+  ],
+  "suggested_code": []
+}
+
+✓ Graph execution completed successfully
