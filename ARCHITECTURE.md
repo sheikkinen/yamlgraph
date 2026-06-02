@@ -427,6 +427,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 161 | CAP-161 Standalone Enforcer Demo | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-426 |
 | 162 | CAP-162 Enforcer Demo Safety Hardening | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-427 |
 | 163 | CAP-163 CAP Retirement Support | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` | REQ-YG-428 |
+| 163 | CAP-163 Meta Self-Reflective Demo | `examples/demos/meta` | REQ-YG-428 |
 | 164 | CAP-164 Structured Output JSON Fallback | `yamlgraph/executor.py`, `yamlgraph/node_factory/race_node.py` | REQ-YG-464 – 465 |
 | 165 | CAP-165 Watcher2 Baseline Dead Code Removal | `tests/unit/test_fr278_remove_baseline_dead_code.py` | REQ-YG-466 |
 
@@ -1987,6 +1988,16 @@ Add status: retired support to capability YAML files. req_coverage.py excludes r
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-428 | CAP YAML files accept optional status: retired field (default active). req_coverage.py excludes retired CAP REQs from coverage and strict checks. validate_capabilities.py accepts retired files with empty modules/requirements. Tombstone RETIRED_CAPS dict preserved for deleted-file ID reservation. | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` |
+
+### 163. CAP-163 Meta Self-Reflective Demo
+
+Demo graph that applies a natural-language verb to a code artifact — including the demo's own graph YAML. A read_file shell tool feeds a tool node, then an LLM node transforms the source per the verb and returns typed output (MetaResult). A typed, traced homage to the 2023 meta.js trick (node meta 'explain structure' ./meta.js), correcting its trust-by-default flaws: YAML prompt instead of hardcoded string, inline schema for typed output, shlex-escaped shell tool, output kept in state rather than piped to disk.
+
+**Feature Request:** FR-464
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-428 | Meta demo: two-node graph (load tool node + transform llm node). read_file shell tool (cat {file}) reads the target into state.source; transform llm node applies state.verb to state.source via the meta_transform prompt and writes typed MetaResult (summary, findings, suggested_code) to state.result. State declares verb and target as str inputs. transform requires source (no LLM call before read). No hardcoded model — PROVIDER/MODEL env fallthrough. Self-referential run (target = the graph's own YAML) is the headline. demo.sh accepts verb and target and runs the graph with --json. Graph lints clean. | `examples/demos/meta` |
 
 ### 164. CAP-164 Structured Output JSON Fallback
 
