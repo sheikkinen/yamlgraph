@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5]
+
+### Added
+- **FR-466 CAP Retirement Support**: CAP YAML files accept optional `status: retired` field. `req_coverage.py` excludes retired CAPs from coverage checks. `validate_capabilities.py` accepts retired files with relaxed validation. Tombstone `RETIRED_CAPS` dict preserved for deleted-file IDs. (REQ-YG-428)
+- **FR-466 Dungeon Master Example**: Turn-based book/dungeon-master example. A `preplan.yaml` graph compiles a synopsis, plot, chapters, and cast into `story.json`; a checkpointed `turn-loop.yaml` runs parallel character "planes" (`plan_all` map), weaves them into one narrative beat, and surfaces a DM interrupt window each turn supporting six actions (accept/edit/nudge/retry/next-chapter/end). (REQ-YG-429, REQ-YG-430, REQ-YG-431, REQ-YG-432, REQ-YG-433)
+- **FR-465 Watcher2 Test Cleanup**: Delete 10 permanently-skipped watcher2 test files (68 fewer skips), mark 4 CAPs retired (CAP-130, CAP-132, CAP-133, CAP-134), create CAP-165 for baseline dead code removal tests with proper REQ traceability. (REQ-YG-466)
+- **FR-464 Structured Output JSON Fallback**: When `with_structured_output()` fails (DeepSeek V4 thinking mode rejects `response_format`), fall back to schema-hinted plain invoke + `extract_json()` + `model_validate()`. Covers `executor.py` and `race_node.py`. (REQ-YG-464, REQ-YG-465)
+- **FR-464 Meta Self-Reflective Demo**: New `examples/demos/meta/` demo applies a
+  natural-language verb to a code artifact — including its own graph YAML. A
+  `read_file` shell tool feeds a tool node, then an LLM node returns typed
+  `MetaResult` output. A typed, traced homage to the 2023 `meta.js` trick. (REQ-YG-467)
+- **FR-462 Standalone Enforcer Demo**: Agent-based FR enforcer with 6 tools (5 shell + 1 python), ImplementationResult schema, portable demo.sh runner. Completes plan→judge→enforce trilogy. (REQ-YG-426)
+
+### Fixed
+- **FR-467 Conditional Edge to Map Node**: A conditional (expression) edge whose target is a `map` node now compiles to a single router that fans out via `Send`, instead of registering a second unconditional map router alongside the expression router. Previously LangGraph ran both routers every superstep, so the condition never took effect and interrupt loops with a terminating branch (e.g. the dungeon-master turn loop) looped forever. Mixing an unconditional edge to a map node with conditional edges on the same source is now rejected at compile time. (REQ-YG-434)
+- **FR-463 Enforcer Demo Safety Hardening**: Path-restricted `write_file`/`edit_file`, removed `git_commit` (separation of concerns), added `run_command` honeypot, `git_log`, `lint`, `git_diff` tools. 10 tools total. (REQ-YG-427)
+
 ## [0.5.4]
 
 ### Added
