@@ -1,4 +1,4 @@
-id: CAP-163
+id: CAP-166
 name: Meta Self-Reflective Demo
 description: >
   Demo graph that applies a natural-language verb to a code artifact —
@@ -12,7 +12,7 @@ description: >
 modules:
   - examples/demos/meta
 requirements:
-  - id: REQ-YG-428
+  - id: REQ-YG-467
     description: >
       Meta demo: two-node graph (load tool node + transform llm node).
       read_file shell tool (cat {file}) reads the target into state.source;

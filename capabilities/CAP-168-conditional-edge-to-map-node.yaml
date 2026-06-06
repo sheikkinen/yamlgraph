@@ -1,4 +1,4 @@
-id: CAP-165
+id: CAP-168
 name: "Conditional Edge to Map Node"
 description: >
   A conditional (expression) edge whose target is a `map` node compiles to a

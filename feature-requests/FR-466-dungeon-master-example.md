@@ -106,7 +106,7 @@ state:
 
 ## Phased Implementation
 
-Each phase is independently demonstrable and lands as its own PR with a witness test and demo output. A new capability `CAP-164-dungeon-master-example.yaml` carries the requirement IDs (`REQ-YG-429`..`REQ-YG-434`), created in Phase 1.
+Each phase is independently demonstrable and lands as its own PR with a witness test and demo output. A new capability `CAP-167-dungeon-master-example.yaml` carries the requirement IDs (`REQ-YG-429`..`REQ-YG-434`), created in Phase 1.
 
 ### Phase 1 — Preplanning spine (`preplan.yaml`)
 **Goal:** Produce a structured story skeleton from a one-line premise.
@@ -152,7 +152,7 @@ Each phase is independently demonstrable and lands as its own PR with a witness 
 - [x] Phase 2: parallel `plan_all` + `weave` produce a beat for a single turn (REQ-YG-431, -432)
 - [x] Phase 3: turn loop honors all six DM actions via interrupt/resume (REQ-YG-433)
 - [ ] Phase 4 (optional): HTMX board start/turn (REQ-YG-434)
-- [x] `CAP-164-dungeon-master-example.yaml` registers REQ-YG-429..434
+- [x] `CAP-167-dungeon-master-example.yaml` registers REQ-YG-429..434
 - [x] Witness test per phase, tagged `@pytest.mark.req(...)`
 - [x] `demo-output.log` committed per phase touching `examples/dungeon-master/`
 - [x] `examples/dungeon-master/README.md` documents usage
@@ -186,7 +186,7 @@ Defects found and resolved:
 - **F4 (layer rule)** — `append_beat` typed as "python / passthrough" mixed a side effect with a state transform. Fixed: single python `commit_beat` tool owns the file write and returns the state update.
 - **F5 (correctness)** — `map` collect order is non-deterministic (`operator.add` reducer). Fixed: `character_plan` output tagged with character name; `weave` attributes by identity.
 
-Non-blocking: Nudge reclassified as a committing action (commit current beat + steer next); `state.steer` consumed and cleared each turn. CAP-164 / REQ-YG-429–434 confirmed collision-free.
+Non-blocking: Nudge reclassified as a committing action (commit current beat + steer next); `state.steer` consumed and cleared each turn. CAP-167 / REQ-YG-429–434 confirmed collision-free.
 
 **Authority granted** to implement Phases 1–3 (Phase 4 optional). Write the failing witness test first per phase; smallest sufficient change; no nodes beyond those enumerated above.
 

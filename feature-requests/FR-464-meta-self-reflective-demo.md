@@ -10,7 +10,7 @@
 
 Implemented via TDD (RED commit `811a80e5`, GREEN to follow). Files:
 `examples/demos/meta/{graph.yaml,prompts/meta_transform.yaml,demo.sh,README.md}`,
-`tests/unit/test_fr464_meta_demo.py` (16 tests, REQ-YG-428), `capabilities/CAP-163`.
+`tests/unit/test_fr464_meta_demo.py` (16 tests, REQ-YG-467), `capabilities/CAP-166`.
 
 **Deviation from plan:** the `read_file` shell-tool placeholder was named `{target}`
 rather than `{file}`. The E001 linter requires shell-tool command placeholders to be
@@ -96,8 +96,8 @@ case — pointing `target` at the graph's own YAML — is the headline demo.
 - [x] Self-referential run (`target` = the graph's own YAML) succeeds and is the documented example
 - [x] `demo-output.log` committed proving the demo was executed (demo-gate)
 - [x] `README.md` in the demo folder explains the `meta.js` lineage and the typed/traced upgrade
-- [x] Tests added with `@pytest.mark.req` linking to the demo's REQ-YG-428
-- [x] Capability file `capabilities/CAP-163-meta-demo.yaml` created
+- [x] Tests added with `@pytest.mark.req` linking to the demo's REQ-YG-467
+- [x] Capability file `capabilities/CAP-166-meta-demo.yaml` created
 - [x] Diary reflection added (diary-gate)
 
 ## Alternatives Considered

@@ -5,7 +5,7 @@
 **Status:** Implemented (2026-06-06)
 **Effort:** 1 day
 **Requested:** 2026-06-06
-**Requirement:** REQ-YG-434 (CAP-165)
+**Requirement:** REQ-YG-434 (CAP-168)
 
 ## Summary
 
@@ -184,7 +184,7 @@ the established convention for invalid graph configuration in this module.
 
 ### Tests / requirement
 
-New capability `CAP-165` with `REQ-YG-434`. Witness and edge tests retagged
+New capability `CAP-168` with `REQ-YG-434`. Witness and edge tests retagged
 from the FR-466 `REQ-YG-433` to `REQ-YG-434` (the fix is framework-level graph
 compilation, not DM-specific). New file
 `tests/unit/test_conditional_edge_to_map.py` (3 tests).
