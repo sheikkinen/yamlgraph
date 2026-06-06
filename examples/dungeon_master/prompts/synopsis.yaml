@@ -1,0 +1,37 @@
+system: |
+  You are a master story architect. From a one-line premise you design the
+  high-level shape of a novel: its core conflict, themes, tone, and the change
+  the story will trace from beginning to end. Be evocative but concise.
+
+user: |
+  Premise: {{ premise }}
+
+  Produce a synopsis for this story: a logline, the central conflict, the
+  dominant themes, the tone/genre, and the intended emotional arc from opening
+  to resolution.
+
+  Respond with ONLY a JSON object with these fields:
+  logline (string), conflict (string), themes (array of strings),
+  tone (string), arc (string).
+
+output_schema:
+  type: object
+  properties:
+    logline:
+      type: string
+      description: One-sentence hook capturing the story.
+    conflict:
+      type: string
+      description: The central dramatic conflict driving the narrative.
+    themes:
+      type: array
+      items:
+        type: string
+      description: Dominant themes explored.
+    tone:
+      type: string
+      description: Genre and emotional tone (e.g. "grim heroic fantasy").
+    arc:
+      type: string
+      description: The emotional/transformational arc from opening to resolution.
+  required: [logline, conflict, themes, tone, arc]

@@ -1,0 +1,39 @@
+system: |
+  You are a plot architect. Given a synopsis you lay out a three-act structure
+  with clear turning points. Each act has a goal and a complication.
+
+user: |
+  Premise: {{ premise }}
+
+  Synopsis:
+  {{ synopsis }}
+
+  Design a three-act plot arc. For each act give a name, its narrative goal, the
+  complication that raises the stakes, and the turning point that ends it.
+
+  Respond with ONLY a JSON object of the form:
+  {"acts": [{"name": "...", "goal": "...", "complication": "...", "turning_point": "..."}]}
+
+output_schema:
+  type: object
+  properties:
+    acts:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: Act name (e.g. "Act I — The Call").
+          goal:
+            type: string
+            description: What the act needs to accomplish dramatically.
+          complication:
+            type: string
+            description: The complication that raises the stakes.
+          turning_point:
+            type: string
+            description: The reversal or revelation that ends the act.
+        required: [name, goal, turning_point]
+      description: Ordered list of acts.
+  required: [acts]

@@ -1,0 +1,99 @@
+# Dungeon Master — Preplanning Spine (Phase 1, FR-466)
+#
+# Linear pipeline that turns a one-line premise into a structured story
+# skeleton, then persists it to story.json + per-chapter outline files.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/preplan.yaml \
+#     --var premise="A clockmaker discovers her city is a machine winding down" \
+#     --var output_dir=outputs/dungeon-master --full
+version: "1.0"
+name: dm-preplan
+description: Preplan a story skeleton (synopsis -> plot -> chapters -> cast)
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+tools:
+  save_story:
+    type: python
+    module: examples.dungeon_master.nodes.story_io
+    function: save_story_tool
+    description: Persist the story skeleton to story.json and chapter outlines
+
+state:
+  premise: str
+  chapter_count: int
+  cast_size: int
+  output_dir: str
+  # Pipeline outputs
+  synopsis: dict
+  plot: dict
+  chapters: list
+  cast: list
+  story_path: str
+  chapter_outlines: list
+
+nodes:
+  synopsis:
+    type: llm
+    prompt: synopsis
+    state_key: synopsis
+    parse_json: true
+    variables:
+      premise: "{state.premise}"
+
+  plot:
+    type: llm
+    prompt: plot
+    state_key: plot
+    parse_json: true
+    variables:
+      premise: "{state.premise}"
+      synopsis: "{state.synopsis}"
+
+  chapters:
+    type: llm
+    prompt: chapters
+    state_key: chapters
+    parse_json: true
+    skip_if_exists: false
+    variables:
+      premise: "{state.premise}"
+      synopsis: "{state.synopsis}"
+      plot: "{state.plot}"
+      chapter_count: "{state.chapter_count}"
+
+  cast:
+    type: llm
+    prompt: cast
+    state_key: cast
+    parse_json: true
+    skip_if_exists: false
+    variables:
+      premise: "{state.premise}"
+      synopsis: "{state.synopsis}"
+      plot: "{state.plot}"
+      cast_size: "{state.cast_size}"
+
+  save_story:
+    type: python
+    tool: save_story
+    state_key: story_path
+
+edges:
+  - from: START
+    to: synopsis
+  - from: synopsis
+    to: plot
+  - from: plot
+    to: chapters
+  - from: chapters
+    to: cast
+  - from: cast
+    to: save_story
+  - from: save_story
+    to: END

@@ -67,9 +67,22 @@ def _handle_map_to_map_edge(
 
 
 def _handle_to_map_edge(
-    graph: StateGraph, from_node: str, to_node: str, map_nodes: dict[str, tuple]
+    graph: StateGraph,
+    from_node: str,
+    to_node: str,
+    map_nodes: dict[str, tuple],
+    condition: str | None = None,
 ) -> bool:
-    """Handle regular -> map_node edge. Returns True if handled."""
+    """Handle regular -> map_node edge (unconditional only). Returns True if handled.
+
+    FR-467: A *conditional* edge to a map node must NOT be consumed here. The map
+    fan-out router is unconditional, so registering it would coexist with the
+    source node's expression router and fire on every superstep regardless of the
+    condition. Conditional edges fall through to ``expression_edges`` instead,
+    where the matched condition produces the ``Send`` fan-out via a single router.
+    """
+    if condition is not None:
+        return False
     if isinstance(to_node, str) and to_node in map_nodes:
         map_edge_fn, sub_node_name = map_nodes[to_node]
         graph.add_conditional_edges(from_node, map_edge_fn, [sub_node_name])
@@ -96,6 +109,7 @@ def _process_edge(
     router_edges: dict[str, list],
     expression_edges: dict[str, list[tuple[str, str]]],
     interrupt_nodes: set[str] | None = None,
+    map_fanout_sources: set[str] | None = None,
 ) -> None:
     """Process a single edge and add to graph or edge tracking dicts.
 
@@ -106,6 +120,8 @@ def _process_edge(
         router_edges: Dict to collect router edges
         expression_edges: Dict to collect expression-based edges
         interrupt_nodes: Set of interrupt node names with prepare split
+        map_fanout_sources: Set collecting sources that registered an
+            unconditional map fan-out router (FR-467 dual-router guard)
     """
     from_node = edge["from"]
     to_node = edge["to"]
@@ -139,7 +155,10 @@ def _process_edge(
     # Handle map node edges (delegate to handlers that return True if handled)
     if _handle_map_to_map_edge(graph, from_node, to_node, map_nodes):
         return
-    if _handle_to_map_edge(graph, from_node, to_node, map_nodes):
+    # FR-467: conditional edges to map nodes fall through to expression_edges
+    if _handle_to_map_edge(graph, from_node, to_node, map_nodes, condition):
+        if map_fanout_sources is not None:
+            map_fanout_sources.add(from_node)
         return
     if _handle_from_map_edge(graph, from_node, to_node, map_nodes):
         return
@@ -150,6 +169,8 @@ def _process_edge(
         return
 
     if condition:
+        # FR-467: keep the map node *name* as the target; it is resolved to the
+        # map sub-node (and Send fan-out) inside the single expression router.
         expression_edges.setdefault(from_node, []).append(
             (condition, END if to_node == "END" else to_node)
         )
@@ -193,6 +214,8 @@ def _add_conditional_edges(
     loop_exits: dict[str, str] | None = None,
     interrupt_nodes: set[str] | None = None,
     subgraph_interrupt_nodes: set[str] | None = None,
+    map_nodes: dict[str, tuple] | None = None,
+    map_fanout_sources: set[str] | None = None,
 ) -> None:
     """Add router and expression conditional edges to graph.
 
@@ -203,7 +226,28 @@ def _add_conditional_edges(
         loop_exits: Map of node name to exit target when loop limit reached (FR-172)
         interrupt_nodes: Interrupt node names needing *_prepare redirect (FR-211)
         subgraph_interrupt_nodes: Subgraph interrupt names needing *__run redirect
+        map_nodes: Map node tracking dict; conditional edges whose target is a map
+            node route through the map's Send fan-out (FR-467)
+        map_fanout_sources: Sources that registered an unconditional map fan-out
+            router; used to reject dual-router nodes (FR-467 guard)
     """
+    map_nodes = map_nodes or {}
+
+    # FR-467 guard: a source must not carry both an unconditional map fan-out
+    # router and an expression router — LangGraph would fan out to both every
+    # superstep, making conditions ineffective (silent infinite loop).
+    if map_fanout_sources:
+        clash = map_fanout_sources & set(expression_edges)
+        if clash:
+            node = sorted(clash)[0]
+            raise ValueError(
+                f"Node '{node}' has both an unconditional edge to a map node and "
+                "conditional edge(s). LangGraph would run both routers every "
+                "superstep, so the condition would never take effect. Make all "
+                f"edges out of '{node}' conditional, or remove the conditional "
+                "edges."
+            )
+
     # Add router conditional edges
     for source_node, target_nodes in router_edges.items():
         # FR-211: Redirect interrupt targets in route mapping while keeping
@@ -226,13 +270,25 @@ def _add_conditional_edges(
     for source_node, expr_edges in expression_edges.items():
         loop_exit_target = (loop_exits or {}).get(source_node)
         targets = {target for _, target in expr_edges}
-        targets.add(END)  # Always include END as fallback
+        targets.add(END)  # END is always a reachable target
         if loop_exit_target:
             targets.add(loop_exit_target)
-        route_mapping = {t: (END if t == END else t) for t in targets}
+        # FR-467: a map-node target routes to its sub-node (via Send fan-out),
+        # so the path_map must list the sub-node as the destination.
+        route_mapping: dict[Any, Any] = {}
+        for t in targets:
+            if t in map_nodes:
+                _, sub_node_name = map_nodes[t]
+                route_mapping[sub_node_name] = sub_node_name
+            elif t == END:
+                route_mapping[END] = END
+            else:
+                route_mapping[t] = t
         graph.add_conditional_edges(
             source_node,
-            make_expr_router_fn(expr_edges, source_node, loop_exit_target),
+            make_expr_router_fn(
+                expr_edges, source_node, loop_exit_target, map_nodes=map_nodes
+            ),
             route_mapping,
         )
 

@@ -324,10 +324,17 @@ def compile_graph(config: GraphConfig) -> StateGraph:
     # Process edges
     router_edges: dict[str, list] = {}
     expression_edges: dict[str, list[tuple[str, str]]] = {}
+    map_fanout_sources: set[str] = set()
 
     for edge in config.edges:
         _process_edge(
-            edge, graph, map_nodes, router_edges, expression_edges, interrupt_nodes
+            edge,
+            graph,
+            map_nodes,
+            router_edges,
+            expression_edges,
+            interrupt_nodes,
+            map_fanout_sources,
         )
 
     # Add conditional edges (FR-211: pass interrupt_nodes for route mapping redirect)
@@ -337,6 +344,8 @@ def compile_graph(config: GraphConfig) -> StateGraph:
         expression_edges,
         config.loop_exits,
         interrupt_nodes=interrupt_nodes,
+        map_nodes=map_nodes,
+        map_fanout_sources=map_fanout_sources,
     )
 
     return graph

@@ -428,7 +428,9 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 162 | CAP-162 Enforcer Demo Safety Hardening | `examples/demos/enforcer/graph.yaml`, `examples/demos/enforcer/prompts/enforcer.yaml`, `examples/demos/enforcer/tools/write_file.py`, `examples/demos/enforcer/tools/edit_file.py`, … | REQ-YG-427 |
 | 163 | CAP-163 CAP Retirement Support | `scripts/req_coverage.py`, `scripts/validate_capabilities.py`, `tests/unit/test_fr466_cap_retirement_support_red.py`, `tests/unit/test_capability_registry.py` | REQ-YG-428 |
 | 163 | CAP-163 Meta Self-Reflective Demo | `examples/demos/meta` | REQ-YG-428 |
+| 164 | CAP-164 Dungeon Master Example | `examples/dungeon_master/nodes/story_io` | REQ-YG-429 – 433 |
 | 164 | CAP-164 Structured Output JSON Fallback | `yamlgraph/executor.py`, `yamlgraph/node_factory/race_node.py` | REQ-YG-464 – 465 |
+| 165 | CAP-165 Conditional Edge to Map Node | `yamlgraph/edge_compiler`, `yamlgraph/routing` | REQ-YG-434 |
 | 165 | CAP-165 Watcher2 Baseline Dead Code Removal | `tests/unit/test_fr278_remove_baseline_dead_code.py` | REQ-YG-466 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -1999,6 +2001,20 @@ Demo graph that applies a natural-language verb to a code artifact — including
 |------------|-------------|-------------|
 | REQ-YG-428 | Meta demo: two-node graph (load tool node + transform llm node). read_file shell tool (cat {file}) reads the target into state.source; transform llm node applies state.verb to state.source via the meta_transform prompt and writes typed MetaResult (summary, findings, suggested_code) to state.result. State declares verb and target as str inputs. transform requires source (no LLM call before read). No hardcoded model — PROVIDER/MODEL env fallthrough. Self-referential run (target = the graph's own YAML) is the headline. demo.sh accepts verb and target and runs the graph with --json. Graph lints clean. | `examples/demos/meta` |
 
+### 164. CAP-164 Dungeon Master Example
+
+Turn-based book / dungeon-master narrative example. Fuses the eBook preplanning spine with the NPC parallel turn loop and a turn-level DM steering interrupt (accept/edit/nudge/retry/next-chapter/end).
+
+**Feature Request:** FR-466
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-429 | Preplan graph compiles and runs from a premise variable | `examples/dungeon_master/nodes/story_io` |
+| REQ-YG-430 | Preplan emits a valid story.json with synopsis, plot, chapters, cast | `examples/dungeon_master/nodes/story_io.save_story_tool` |
+| REQ-YG-431 | plan_all map fans out one tagged plan per cast member | `examples/dungeon_master/nodes/story_io` |
+| REQ-YG-432 | weave produces a non-empty beat attributing actions by character name | `examples/dungeon_master/nodes/story_io` |
+| REQ-YG-433 | DM turn loop honors accept/edit/nudge/retry/next-chapter/end | `examples/dungeon_master/nodes/story_io.parse_dm_tool`, `examples/dungeon_master/nodes/story_io.commit_beat_tool` |
+
 ### 164. CAP-164 Structured Output JSON Fallback
 
 When with_structured_output() fails (provider rejects response_format), fall back to extract_json() + model_validate(). Extends FR-456 pattern from agent.py to executor.py and race_node.py.
@@ -2009,6 +2025,16 @@ When with_structured_output() fails (provider rejects response_format), fall bac
 |------------|-------------|-------------|
 | REQ-YG-464 | Executor falls back to JSON extraction when structured output rejected | `yamlgraph/executor.py` |
 | REQ-YG-465 | Race node falls back to JSON extraction when structured output rejected | `yamlgraph/node_factory/race_node.py` |
+
+### 165. CAP-165 Conditional Edge to Map Node
+
+A conditional (expression) edge whose target is a `map` node compiles to a single router on the source node. The router returns the map's Send fan-out when the matching condition selects the map target, preserving per-item parallelism and the collect reducer, while other branches (including END) route normally. Mixing an unconditional edge to a map node with conditional edges on the same source is rejected at compile time (dual-router guard).
+
+**Feature Request:** FR-467
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-434 | Conditional edge to a map node compiles to one router that fans out via Send; an unconditional+conditional dual map router is rejected, and the interrupt loop terminates on its END branch. | `yamlgraph/edge_compiler._add_conditional_edges`, `yamlgraph/routing.make_expr_router_fn` |
 
 ### 165. CAP-165 Watcher2 Baseline Dead Code Removal
 

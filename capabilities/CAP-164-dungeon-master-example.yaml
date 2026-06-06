@@ -1,0 +1,31 @@
+id: CAP-164
+name: "Dungeon Master Example"
+description: >
+  Turn-based book / dungeon-master narrative example. Fuses the eBook
+  preplanning spine with the NPC parallel turn loop and a turn-level DM
+  steering interrupt (accept/edit/nudge/retry/next-chapter/end).
+modules:
+  - examples/dungeon_master/nodes/story_io
+requirements:
+  - id: REQ-YG-429
+    description: Preplan graph compiles and runs from a premise variable
+    modules:
+      - examples/dungeon_master/nodes/story_io
+  - id: REQ-YG-430
+    description: Preplan emits a valid story.json with synopsis, plot, chapters, cast
+    modules:
+      - examples/dungeon_master/nodes/story_io.save_story_tool
+  - id: REQ-YG-431
+    description: plan_all map fans out one tagged plan per cast member
+    modules:
+      - examples/dungeon_master/nodes/story_io
+  - id: REQ-YG-432
+    description: weave produces a non-empty beat attributing actions by character name
+    modules:
+      - examples/dungeon_master/nodes/story_io
+  - id: REQ-YG-433
+    description: DM turn loop honors accept/edit/nudge/retry/next-chapter/end
+    modules:
+      - examples/dungeon_master/nodes/story_io.parse_dm_tool
+      - examples/dungeon_master/nodes/story_io.commit_beat_tool
+fr: FR-466

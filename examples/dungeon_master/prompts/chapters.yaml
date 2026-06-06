@@ -1,0 +1,44 @@
+system: |
+  You are a chapter planner. Given a synopsis and a three-act plot arc you break
+  the story into a sequence of chapters. Each chapter is a beat-sized unit with a
+  clear goal and a concrete setting.
+
+user: |
+  Premise: {{ premise }}
+
+  Synopsis:
+  {{ synopsis }}
+
+  Plot arc:
+  {{ plot }}
+
+  Break the story into {{ chapter_count | default(5) }} chapters. For each
+  chapter give a title, the act it belongs to, its narrative goal (what must
+  change by the end of the chapter), and the setting where it takes place.
+
+  Respond with ONLY a JSON object of the form:
+  {"chapters": [{"title": "...", "act": "...", "summary": "...", "setting": "..."}]}
+
+output_schema:
+  type: object
+  properties:
+    chapters:
+      type: array
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+            description: Chapter title.
+          act:
+            type: string
+            description: Which act this chapter belongs to.
+          summary:
+            type: string
+            description: One-paragraph goal of the chapter (what changes).
+          setting:
+            type: string
+            description: Primary location/setting of the chapter.
+        required: [title, summary]
+      description: Ordered list of chapters.
+  required: [chapters]

@@ -1,0 +1,22 @@
+id: CAP-165
+name: "Conditional Edge to Map Node"
+description: >
+  A conditional (expression) edge whose target is a `map` node compiles to a
+  single router on the source node. The router returns the map's Send fan-out
+  when the matching condition selects the map target, preserving per-item
+  parallelism and the collect reducer, while other branches (including END)
+  route normally. Mixing an unconditional edge to a map node with conditional
+  edges on the same source is rejected at compile time (dual-router guard).
+modules:
+  - yamlgraph/edge_compiler
+  - yamlgraph/routing
+requirements:
+  - id: REQ-YG-434
+    description: >
+      Conditional edge to a map node compiles to one router that fans out via
+      Send; an unconditional+conditional dual map router is rejected, and the
+      interrupt loop terminates on its END branch.
+    modules:
+      - yamlgraph/edge_compiler._add_conditional_edges
+      - yamlgraph/routing.make_expr_router_fn
+fr: FR-467

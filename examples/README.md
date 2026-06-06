@@ -40,6 +40,7 @@ After the learning path, explore production examples below.
 | [cost-router/](cost-router/) | Multi-provider routing | Router nodes, Granite/Mistral/Claude |
 | [daily_digest/](daily_digest/) | Scheduled news digest | Fly.io deployment, background tasks, email |
 | [diary_digest/](diary_digest/) | Automated diary digest | Data files, feed topics, parallel processing (FR-046) |
+| [dungeon_master/](dungeon_master/) | Interactive DM turn loop | Interrupt loop, parallel character planning (map), conditional-to-map routing (FR-466/467) |
 | [ebook/](ebook/) | eBook authoring pipeline | File-based write→judge→amend pattern |
 | [fsm-router/](fsm-router/) | FSM + YAMLGraph integration | statemachine-engine, LLM routing, job orchestration |
 | [npc/](npc/) | D&D NPC generator | Multi-graph, map nodes, parallel NPCs |

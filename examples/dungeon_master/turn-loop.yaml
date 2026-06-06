@@ -1,0 +1,180 @@
+# Dungeon Master — Turn Loop (Phase 3, FR-466)
+#
+# Checkpointed play loop over a preplanned story.json:
+#   - plan_all (map)  : each character plans its turn in parallel  ("planes")
+#   - weave           : join the plans into one narrative beat       ("middle")
+#   - dm_window       : interrupt; the DM steers every turn          ("end window")
+#   - parse_dm        : parse DM input into action + payload
+#   - commit_beat     : apply edit, write beat to file, advance turn
+#
+# The beat is committed to file only AFTER the DM decision (FR-466 F1/F2):
+# retry re-rolls the same turn with no commit and no counter change.
+#
+# Run with: python examples/dungeon_master/run.py --output-dir outputs/dungeon-master
+version: "1.0"
+name: dm-turn-loop
+description: Turn-based narrative loop with parallel character planes and a DM window
+
+prompts_relative: true
+prompts_dir: prompts
+
+checkpointer:
+  type: sqlite
+  path: ":memory:"
+
+defaults:
+  temperature: 0.8
+
+# The loop is DM-terminated (the 'end' action), but a generous per-node cap
+# guards against a runaway autonomous (Enter-through) run.
+loop_limits:
+  prep_turn: 200
+  plan_all: 200
+  weave: 200
+  normalize_beat: 200
+  dm_window: 200
+  parse_dm: 200
+  commit_beat: 200
+
+tools:
+  load_story:
+    type: python
+    module: examples.dungeon_master.nodes.story_io
+    function: load_story_tool
+    description: Load the preplanned story.json skeleton
+  prep_turn:
+    type: python
+    module: examples.dungeon_master.nodes.story_io
+    function: prep_turn_tool
+    description: Derive chapter goal and recent history for the turn
+  parse_dm:
+    type: python
+    module: examples.dungeon_master.nodes.story_io
+    function: parse_dm_tool
+    description: Parse raw DM input into a structured action + payload
+  commit_beat:
+    type: python
+    module: examples.dungeon_master.nodes.story_io
+    function: commit_beat_tool
+    description: Apply edit, write beat to file, advance turn/history
+
+state:
+  output_dir: str
+  synopsis: dict
+  plot: dict
+  chapters: list
+  cast: list
+  chapter_index: int
+  turn_number: int
+  history: list
+  steer: str
+  # Per-turn working values
+  chapter_goal: str
+  recent_history: str
+  turn_plans: list
+  woven: dict
+  draft_beat: str
+  beat: str
+  dm_input: str
+  dm_action: str
+  dm_payload: str
+
+nodes:
+  load_story:
+    type: python
+    tool: load_story
+    state_key: synopsis
+
+  prep_turn:
+    type: python
+    tool: prep_turn
+    state_key: chapter_goal
+
+  plan_all:
+    type: map
+    over: "{state.cast}"
+    as: char
+    max_items: 8
+    node:
+      type: llm
+      prompt: character_plan
+      state_key: plan
+      parse_json: true
+      variables:
+        char: "{state.char}"
+        chapter_goal: "{state.chapter_goal}"
+        recent_history: "{state.recent_history}"
+        steer: "{state.steer}"
+    collect: turn_plans
+
+  weave:
+    type: llm
+    prompt: weave
+    state_key: woven
+    parse_json: true
+    variables:
+      chapter_goal: "{state.chapter_goal}"
+      recent_history: "{state.recent_history}"
+      turn_plans: "{state.turn_plans}"
+
+  normalize_beat:
+    type: passthrough
+    output:
+      draft_beat: "{state.woven.beat}"
+
+  dm_window:
+    type: interrupt
+    message: |
+      🎲 Turn {{ state.turn_number }} — the beat unfolds:
+
+      {{ state.draft_beat }}
+
+      Steer the story:
+        [Enter]/accept       commit as-is
+        edit: <new beat>     rewrite this beat
+        nudge: <hint>        steer the next turn
+        retry                re-roll this turn
+        next-chapter         commit and advance the chapter
+        end                  finish the story
+    resume_key: dm_input
+
+  parse_dm:
+    type: python
+    tool: parse_dm
+    state_key: dm_action
+
+  commit_beat:
+    type: python
+    tool: commit_beat
+    state_key: beat
+
+edges:
+  - from: START
+    to: load_story
+  - from: load_story
+    to: prep_turn
+  - from: prep_turn
+    to: plan_all
+  - from: plan_all
+    to: weave
+  - from: weave
+    to: normalize_beat
+  - from: normalize_beat
+    to: dm_window
+  - from: dm_window
+    to: parse_dm
+
+  # Route on the parsed DM action.
+  - from: parse_dm
+    to: END
+    condition: "dm_action == 'end'"
+  - from: parse_dm
+    to: plan_all
+    condition: "dm_action == 'retry'"
+  - from: parse_dm
+    to: commit_beat
+    condition: "dm_action != 'end' and dm_action != 'retry'"
+
+  # After committing, prepare and run the next turn.
+  - from: commit_beat
+    to: prep_turn

@@ -50,7 +50,8 @@ def make_expr_router_fn(
     edges: list[tuple[str, str]],
     source_node: str,
     loop_exit_target: str | None = None,
-) -> Callable[[GraphState], str]:
+    map_nodes: dict[str, tuple] | None = None,
+) -> Callable[[GraphState], Any]:
     """Create router that evaluates expression conditions.
 
     Used for reflexion-style loops with expression-based conditions
@@ -60,12 +61,17 @@ def make_expr_router_fn(
         edges: List of (condition, target) tuples
         source_node: Name of the source node (for logging)
         loop_exit_target: Target node when loop limit is reached (FR-172)
+        map_nodes: Map node tracking dict; when a matched condition's target is a
+            map node, the router returns that map's ``Send`` fan-out so per-item
+            parallelism and the ``collect`` reducer are preserved (FR-467)
 
     Returns:
-        Router function that evaluates conditions and returns target
+        Router function returning a target node name (str) or, when the matched
+        target is a map node, a ``list[Send]`` fan-out.
     """
+    map_nodes = map_nodes or {}
 
-    def expr_router_fn(state: GraphState) -> str:
+    def expr_router_fn(state: GraphState) -> Any:
         # Check loop limit first
         if state.get("_loop_limit_reached"):
             if loop_exit_target:
@@ -78,6 +84,11 @@ def make_expr_router_fn(
                     logger.debug(
                         f"Condition '{condition}' matched, routing to {target}"
                     )
+                    # FR-467: a map-node target fans out via Send so item
+                    # injection and the collect reducer are preserved.
+                    if target in map_nodes:
+                        map_edge_fn, _ = map_nodes[target]
+                        return map_edge_fn(state)
                     return target
             except ValueError as e:
                 logger.warning(f"Failed to evaluate condition '{condition}': {e}")

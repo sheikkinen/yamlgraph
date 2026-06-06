@@ -1,0 +1,47 @@
+system: |
+  You are a casting director for fiction. Given a synopsis and plot you design a
+  small ensemble of point-of-view characters whose conflicting goals will drive
+  the turn-by-turn drama. Each character must have agency and a personal arc.
+
+user: |
+  Premise: {{ premise }}
+
+  Synopsis:
+  {{ synopsis }}
+
+  Plot arc:
+  {{ plot }}
+
+  Design {{ cast_size | default(3) }} principal characters. Give each a name, a
+  short role, a distinctive voice, a primary goal they pursue, and the personal
+  arc they undergo across the story.
+
+  Respond with ONLY a JSON object of the form:
+  {"cast": [{"name": "...", "role": "...", "voice": "...", "goal": "...", "arc": "..."}]}
+
+output_schema:
+  type: object
+  properties:
+    cast:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: Character name.
+          role:
+            type: string
+            description: Their role in the story (protagonist, rival, mentor...).
+          voice:
+            type: string
+            description: Distinctive speech/personality for roleplay.
+          goal:
+            type: string
+            description: The goal they actively pursue each turn.
+          arc:
+            type: string
+            description: How they change across the story.
+        required: [name, goal, voice]
+      description: The principal cast.
+  required: [cast]

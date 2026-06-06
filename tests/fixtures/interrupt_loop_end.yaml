@@ -1,0 +1,68 @@
+# Minimal reproduction for FR-466 turn-loop non-termination bug.
+#
+# Structure mirrors the dungeon-master turn loop, including a MAP node as one
+# conditional branch target:
+#
+#   ask (interrupt) -> parse -> { END (stop) | plan (map, loop) -> ask }
+#
+# The real turn loop routes the "retry" action back to a map node (plan_all)
+# while routing "end" to END. A conditional edge whose target is a map node
+# registers an *unconditional* fan-out router on the source, so the map branch
+# fires on every turn regardless of the action — "stop"/"end" never reaches END
+# and the loop runs forever.
+version: "1.0"
+name: interrupt-loop-end-repro
+description: Interrupt node in a cycle with a map-node conditional branch routing to END
+
+checkpointer:
+  type: sqlite
+  path: ":memory:"
+
+loop_limits:
+  ask: 50
+  parse: 50
+  plan: 50
+
+state:
+  reply: str
+  action: str
+  items: list
+  plans: list
+
+nodes:
+  ask:
+    type: interrupt
+    message: "Reply with 'stop' to finish, anything else to loop"
+    resume_key: reply
+
+  parse:
+    type: passthrough
+    output:
+      action: "{state.reply}"
+      items: "{state.items}"
+
+  plan:
+    type: map
+    over: "{state.items}"
+    as: item
+    max_items: 4
+    node:
+      type: passthrough
+      state_key: plan
+      output:
+        plan: "{state.item}"
+    collect: plans
+
+edges:
+  - from: START
+    to: ask
+  - from: ask
+    to: parse
+  - from: parse
+    to: END
+    condition: "action == 'stop'"
+  - from: parse
+    to: plan
+    condition: "action != 'stop'"
+  - from: plan
+    to: ask
