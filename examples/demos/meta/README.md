@@ -6,13 +6,18 @@ the framework reason about its own configuration.
 
 ## Lineage
 
-In January 2023, Santiago Valdarrama's `meta.js` trick showed that an LLM could be
-a general-purpose code transformer driven from the command line:
+In January 2023, the [`meta.js`](https://github.com/sheikkinen/openai-cli) trick
+(from this author's `openai-cli`, MIT) showed that an LLM could be a
+general-purpose code transformer driven from the command line:
 
 ```bash
 node meta 'explain structure' ./meta.js
 node meta 'convert to C code' ./meta.js | tee meta.c
 ```
+
+The transformation prompts themselves were collected from the developer
+community (see the internal "OpenAI Prompts for Developers" page) — but the
+`meta.js` runner is original.
 
 It was brilliant — and trust-by-default. Model output flowed straight to disk, with
 no boundary, no type, and no trace. This demo is the typed, traced upgrade:
