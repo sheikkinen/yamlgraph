@@ -197,7 +197,7 @@ class PromptExecutor:
                         raise
                 else:
                     response = llm.invoke(messages)
-                    return response.content
+                    return normalize_content(response.content)
 
             except Exception as e:
                 last_exception = e

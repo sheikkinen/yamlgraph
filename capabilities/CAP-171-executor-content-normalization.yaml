@@ -1,0 +1,30 @@
+id: CAP-171
+name: Executor Plain-Text Content Normalization
+description: >
+  The synchronous and asynchronous plain-text invoke paths normalize
+  response.content to a string via the shared normalize_content()
+  utility (yamlgraph/utils/content.py), matching the structured-output
+  fallback that already normalized (FR-264). Without this, providers
+  that return content as a list of part-dicts — notably Google Gemini
+  2.5+/3.x on Vertex, which attaches thought-signature parts — leak the
+  raw Python list into graph state instead of a clean string. Completes
+  FR-264's boundary normalization for executor.PromptExecutor and
+  utils/llm_factory_async.invoke_async.
+modules:
+  - yamlgraph/executor.py
+  - yamlgraph/utils/llm_factory_async.py
+  - yamlgraph/utils/content.py
+requirements:
+  - id: REQ-YG-472
+    description: >
+      executor.PromptExecutor._invoke_with_retry (sync, no output_model)
+      and utils/llm_factory_async.invoke_async (async, no output_model)
+      normalize response.content to str via shared normalize_content();
+      list-of-parts content from Gemini-on-Vertex (with thought-signature
+      parts) is collapsed to a string rather than leaked raw into state
+    modules:
+      - yamlgraph/executor.py
+      - yamlgraph/utils/llm_factory_async.py
+      - yamlgraph/utils/content.py
+      - tests/unit/test_executor_retry.py
+fr: FR-476

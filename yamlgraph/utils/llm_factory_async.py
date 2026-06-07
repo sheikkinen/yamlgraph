@@ -18,6 +18,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
 
+from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.llm_factory import ProviderType, create_llm
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ async def invoke_async(
             return structured_llm.invoke(messages)
         else:
             response = llm.invoke(messages)
-            return response.content
+            return normalize_content(response.content)
 
     return await loop.run_in_executor(get_executor(), sync_invoke)
 

@@ -59,6 +59,30 @@ class TestInvokeWithRetrySuccess:
         assert result == "hello world"
         assert mock_llm.invoke.call_count == 1
 
+    @pytest.mark.req("REQ-YG-472")
+    def test_normalizes_list_content_to_string(self):
+        """List content blocks (Anthropic/Gemini) are normalized to a string.
+
+        Gemini 2.5+/3.x on Vertex return content as a list of part dicts that
+        may carry extra keys (e.g. thought signatures). The plain-text path must
+        normalize at the provider boundary, not leak the raw list downstream.
+        """
+        executor = PromptExecutor(max_retries=3)
+        mock_llm = MagicMock()
+        mock_llm.invoke.return_value = MagicMock(
+            content=[
+                {
+                    "type": "text",
+                    "text": "hello from gemini",
+                    "extras": {"signature": "abc123"},
+                }
+            ]
+        )
+
+        result = executor._invoke_with_retry(mock_llm, ["msg"])
+
+        assert result == "hello from gemini"
+
     @pytest.mark.req("REQ-YG-014", "REQ-YG-031")
     def test_returns_structured_output_on_first_attempt(self):
         """Successful first call with output_model returns parsed model."""

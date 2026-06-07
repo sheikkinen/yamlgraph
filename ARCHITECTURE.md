@@ -434,6 +434,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 168 | CAP-168 Conditional Edge to Map Node | `yamlgraph/edge_compiler`, `yamlgraph/routing` | REQ-YG-434 |
 | 169 | CAP-169 Dungeon Master Web UI | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/routes/story` | REQ-YG-435 – 437 |
 | 170 | CAP-170 Dungeon Master Web UI v2 (Journey-First) | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story` | REQ-YG-468 – 471 |
+| 171 | CAP-171 Executor Plain-Text Content Normalization | `yamlgraph/executor.py`, `yamlgraph/utils/llm_factory_async.py`, `yamlgraph/utils/content.py` | REQ-YG-472 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2072,6 +2073,16 @@ RETIRED by FR-474. The journey-first outline/beat board described here was over-
 | REQ-YG-469 | The outline lists chapters as navigation links; opening a chapter lazily materializes its beat stubs once (a materialized guard makes revisits idempotent and preserves DM edits); chapter summaries and beat stubs are editable and persist to the story document; a breadcrumb links back to the outline and names the current chapter | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story` |
 | REQ-YG-470 | For a planned beat, Generate beat runs the stateless weave-beat.yaml graph (plan_all map over cast → weave → normalize_beat; no checkpointer, no interrupt, no loop) and yields editable prose with status generated; Accept persists the prose (verbatim or edited), appends it to the chapter file via append_beat_to_chapter, and flips status to committed; generation targets the chosen beat (arbitrary chapter/beat), not a forced forward order | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story`, `examples/dungeon_master/weave-beat`, `examples/dungeon_master/nodes/story_io` |
 | REQ-YG-471 | The shared editable-prose card (synopsis and woven beat) is iterable: it shows the text in edit mode (autosaving on change), a 3-line prompt textarea, and Iterate + Accept controls. Iterate runs the shared refine prompt ("apply <prompt> to <text>"), replaces the text, and re-renders; an empty prompt is a pure save. Iterating a beat always yields status generated and never writes the chapter file (only Accept commits); Accept ignores the prompt field | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/routes/story`, `examples/dungeon_master/api/templates/components/text_block.html` |
+
+### 171. CAP-171 Executor Plain-Text Content Normalization
+
+The synchronous and asynchronous plain-text invoke paths normalize response.content to a string via the shared normalize_content() utility (yamlgraph/utils/content.py), matching the structured-output fallback that already normalized (FR-264). Without this, providers that return content as a list of part-dicts — notably Google Gemini 2.5+/3.x on Vertex, which attaches thought-signature parts — leak the raw Python list into graph state instead of a clean string. Completes FR-264's boundary normalization for executor.PromptExecutor and utils/llm_factory_async.invoke_async.
+
+**Feature Request:** FR-476
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-472 | executor.PromptExecutor._invoke_with_retry (sync, no output_model) and utils/llm_factory_async.invoke_async (async, no output_model) normalize response.content to str via shared normalize_content(); list-of-parts content from Gemini-on-Vertex (with thought-signature parts) is collapsed to a string rather than leaked raw into state | `yamlgraph/executor.py`, `yamlgraph/utils/llm_factory_async.py`, `yamlgraph/utils/content.py`, `tests/unit/test_executor_retry.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
