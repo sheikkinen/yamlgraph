@@ -17,6 +17,9 @@ prompts_dir: prompts
 
 defaults:
   temperature: 0.7
+  # Reserve headroom for reasoning-model hidden tokens + the full reveal-all
+  # synopsis, so a complex premise is never truncated mid-sentence.
+  max_tokens: 4000
 
 state:
   draft: str

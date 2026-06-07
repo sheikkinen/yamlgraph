@@ -19,7 +19,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from examples.dungeon_master.api.routes.synopsis import router as synopsis_router
-from examples.dungeon_master.api.session import DEFAULT_TAGLINE, FIRST_STAGE, StageView
+from examples.dungeon_master.api.session import DMSession
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,17 +51,14 @@ app.include_router(synopsis_router)
 async def index(request: Request):
     """Land directly on the first stage's card, seeded with the default tagline."""
     session_id = str(uuid.uuid4())[:8]
+    view = DMSession(session_id).view()
     response = templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
             "mode": "stage",
-            "crumbs": [{"label": "Story"}, {"label": FIRST_STAGE.label}],
-            "stage": StageView(
-                stage=FIRST_STAGE.name,
-                label=FIRST_STAGE.label,
-                tagline=DEFAULT_TAGLINE,
-            ),
+            "crumbs": view.crumbs,
+            "stage": view,
             "session_id": session_id,
         },
     )

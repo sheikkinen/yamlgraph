@@ -1,9 +1,13 @@
-"""Prototype walkthrough tests for DM v2 story-stage loop (FR-474, Phases 1–2).
+"""Prototype walkthrough tests for DM v2 preplan tree (FR-474 → FR-475).
 
 These are a *visibility* harness, not a governance gate (FR-474 J3/J4): they live
 under the example, carry no @pytest.mark.req, and exist so the agent can see the
 rendered HTML and persisted document it cannot otherwise inspect. The deliverable
-of FR-474 is a keep/kill/reshape decision, not a green CI pipeline.
+is a keep/kill/reshape decision, not a green CI pipeline.
+
+FR-475 reshapes the preplan from a linear ``synopsis → plot`` chain into a tree:
+``synopsis`` (root) gates ``key_scene`` (leaf) and ``characters`` (a roster that
+spawns one ``char:<id>`` card per character). Navigation is the breadcrumb.
 
 Run directly:
     pytest examples/dungeon_master/tests/test_synopsis_prototype.py --no-cov
@@ -21,19 +25,24 @@ from examples.dungeon_master.api import story_doc
 from examples.dungeon_master.api.app import app
 
 SYNOPSIS_TEXT = "Elara the clockmaker finds the city core and rewinds it; she wins."
-PLOT_TEXT = (
-    "Act One: Elara finds the core. Act Two: she resists. Act Three: she rewinds it."
-)
+KEY_SCENE_TEXT = "Elara climbs the seized tower as the gears grind to their last tooth."
+ROSTER_TEXT = "Elara\nCoil"
 
 
 def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
     variables = variables or {}
-    if prompt_name in ("synopsis", "plot"):
-        draft = variables.get("draft") or ""
-        instruction = variables.get("instruction")
-        if draft.strip():
-            return f"[refined: {instruction}] {draft}"
-        return SYNOPSIS_TEXT if prompt_name == "synopsis" else PLOT_TEXT
+    draft = variables.get("draft") or ""
+    instruction = variables.get("instruction")
+    if draft.strip():
+        return f"[refined: {instruction}] {draft}"
+    if prompt_name == "synopsis":
+        return SYNOPSIS_TEXT
+    if prompt_name == "key_scene":
+        return KEY_SCENE_TEXT
+    if prompt_name == "character_roster":
+        return ROSTER_TEXT
+    if prompt_name == "character":
+        return f"{variables.get('name', '?')} wants the wind-key."
     raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
 
@@ -55,17 +64,30 @@ def client(tmp_path, monkeypatch):
 
 
 def _new_session(client) -> str:
-    """Land on the app and return a fresh session id."""
     resp = client.get("/")
     assert resp.status_code == 200
     return resp.headers["x-session-id"]
 
 
 def _generate(client, session_id, tagline="A clockmaker's city is winding down"):
-    """First weave: empty draft + the tagline as the instruction."""
+    """First synopsis weave: empty draft + the tagline as the instruction."""
     return client.post(
         "/story/synopsis/weave",
         data={"session_id": session_id, "text": "", "prompt": tagline},
+    )
+
+
+def _accept(client, session_id, text=""):
+    return client.post(
+        "/story/synopsis/accept",
+        data={"session_id": session_id, "text": text},
+    )
+
+
+def _nav(client, session_id, stage):
+    return client.post(
+        "/story/nav",
+        data={"session_id": session_id, "stage": stage},
     )
 
 
@@ -81,17 +103,13 @@ def test_landing_shows_seeded_tagline_and_generate(client):
     body = resp.text
     assert resp.status_code == 200
     assert "Synopsis" in body
-    # One screen, one action: an Iterate control that weaves, the seeded prompt
-    # box, the empty draft surface — no separate Generate button, no setup form.
     assert "/story/synopsis/weave" in body
     assert "/story/synopsis/generate" not in body
     assert 'name="prompt"' in body
     assert 'name="text"' in body
-    assert 'name="chapter_count"' not in body
-    assert 'name="cast_size"' not in body
 
 
-# ── 2. Generate produces a synopsis in the iterable card ────────────────────
+# ── 2. Synopsis weave produces an iterable card ─────────────────────────────
 
 
 def test_generate_produces_iterable_card(client):
@@ -101,7 +119,6 @@ def test_generate_produces_iterable_card(client):
     assert resp.status_code == 200
     assert SYNOPSIS_TEXT in body
     assert 'class="text-block"' in body
-    assert 'name="prompt"' in body
     assert "Iterate" in body
     assert "Accept" in body
 
@@ -113,14 +130,11 @@ def test_edit_autosaves(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)
     edited = "Elara fails and the city stops. The end."
-    client.post(
-        "/story/synopsis/edit",
-        data={"session_id": session_id, "text": edited},
-    )
+    client.post("/story/synopsis/edit", data={"session_id": session_id, "text": edited})
     assert _doc(tmp_path, session_id)["synopsis"]["text"] == edited
 
 
-# ── 4. Iterate applies the prompt; empty prompt is a pure save ──────────────
+# ── 4. Iterate applies the prompt ───────────────────────────────────────────
 
 
 def test_iterate_applies_prompt(client, tmp_path):
@@ -128,85 +142,114 @@ def test_iterate_applies_prompt(client, tmp_path):
     _generate(client, session_id)
     resp = client.post(
         "/story/synopsis/weave",
-        data={
-            "session_id": session_id,
-            "text": SYNOPSIS_TEXT,
-            "prompt": "make it grimmer",
-        },
+        data={"session_id": session_id, "text": SYNOPSIS_TEXT, "prompt": "make grim"},
     )
-    assert f"[refined: make it grimmer] {SYNOPSIS_TEXT}" in resp.text
-    assert _doc(tmp_path, session_id)["synopsis"]["text"].startswith(
-        "[refined: make it grimmer]"
-    )
+    assert f"[refined: make grim] {SYNOPSIS_TEXT}" in resp.text
 
 
-def test_iterate_empty_prompt_is_pure_save(client, tmp_path):
+# ── 5. Accept synopsis: derive roster + land on auto-drafted Key Scene ──────
+
+
+def test_accept_synopsis_derives_roster_and_drafts_key_scene(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)
+    resp = _accept(client, session_id)
+    doc = _doc(tmp_path, session_id)
+    # Synopsis frozen; cursor lands on the Key Scene leaf, auto-drafted (A4 + FR-474).
+    assert doc["synopsis"]["reviewed"] is True
+    assert doc["stage"] == "key_scene"
+    assert doc["key_scene"]["text"] == KEY_SCENE_TEXT
+    assert doc["key_scene"]["reviewed"] is False
+    # Roster expanded into one card per character (names only → ids).
+    assert doc["characters"]["roster"] == ["elara", "coil"]
+    assert doc["characters"]["cards"]["elara"]["name"] == "Elara"
+    assert doc["characters"]["cards"]["elara"]["text"] == ""
+    # The breadcrumb now offers Key Scene and Characters as branch peers.
+    assert "Key Scene" in resp.text
+    assert "Characters" in resp.text
+
+
+# ── 6. Key Scene iterates from the accepted synopsis ────────────────────────
+
+
+def test_key_scene_iterates(client, tmp_path):
+    session_id = _new_session(client)
+    _generate(client, session_id)
+    _accept(client, session_id)  # lands on key_scene, auto-drafted
     resp = client.post(
         "/story/synopsis/weave",
-        data={"session_id": session_id, "text": SYNOPSIS_TEXT, "prompt": ""},
+        data={"session_id": session_id, "text": KEY_SCENE_TEXT, "prompt": "grimmer"},
     )
-    assert "[refined:" not in resp.text
-    assert _doc(tmp_path, session_id)["synopsis"]["text"] == SYNOPSIS_TEXT
+    assert f"[refined: grimmer] {KEY_SCENE_TEXT}" in resp.text
+    assert _doc(tmp_path, session_id)["key_scene"]["text"].startswith("[refined:")
 
 
-# ── 5. Accept freezes the synopsis and auto-drafts the plot stage ───────────
+# ── 7. Navigate into a character card; it auto-drafts from synopsis + name ───
 
 
-def test_accept_advances_to_plot_stage(client, tmp_path):
+def test_nav_into_character_card_autodrafts(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)
-    resp = client.post(
-        "/story/synopsis/accept",
-        data={"session_id": session_id},
-    )
+    _accept(client, session_id)  # roster exists
+    resp = _nav(client, session_id, "char:coil")
     doc = _doc(tmp_path, session_id)
-    # Synopsis is frozen reviewed, and the cursor has advanced to plot.
-    assert doc["synopsis"]["reviewed"] is True
-    assert doc["stage"] == "plot"
-    # Auto-draft on entry: the plot card lands populated, not blank, so the DM
-    # has something to react to immediately (FR-474 Phase 2 continuity).
-    assert doc["plot"]["text"] == PLOT_TEXT
-    assert doc["plot"]["reviewed"] is False
-    # The plot card is now showing: drafted prose, breadcrumb has Plot, and an
-    # editable prompt box to iterate further.
-    assert "Plot" in resp.text
-    assert PLOT_TEXT in resp.text
-    assert 'name="prompt"' in resp.text
+    assert doc["stage"] == "char:coil"
+    # A1–A3: nested write to characters.cards, name injected into the graph.
+    assert doc["characters"]["cards"]["coil"]["text"] == "Coil wants the wind-key."
+    assert "Coil wants the wind-key." in resp.text
 
 
-# ── 6. Phase 2: the auto-drafted plot iterates from the accepted synopsis ────
+# ── 8. Weave/accept operate on the current character card ───────────────────
 
 
-def test_plot_stage_weaves_from_synopsis(client, tmp_path):
+def test_character_card_weave_and_accept(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)
-    # Accept auto-drafts the plot from the accepted synopsis.
-    client.post("/story/synopsis/accept", data={"session_id": session_id})
-    assert _doc(tmp_path, session_id)["plot"]["text"] == PLOT_TEXT
-    # Iterating the drafted plot applies the writer's change.
-    resp = client.post(
+    _accept(client, session_id)
+    _nav(client, session_id, "char:elara")  # auto-drafts Elara
+    client.post(
         "/story/synopsis/weave",
         data={
             "session_id": session_id,
-            "text": PLOT_TEXT,
-            "prompt": "make it grimmer",
+            "text": "Elara wants the wind-key.",
+            "prompt": "give her a debt",
         },
     )
-    assert f"[refined: make it grimmer] {PLOT_TEXT}" in resp.text
     doc = _doc(tmp_path, session_id)
-    assert doc["plot"]["text"].startswith("[refined: make it grimmer]")
-    # The accepted synopsis is preserved untouched alongside the new plot.
-    assert doc["synopsis"]["reviewed"] is True
-    assert doc["synopsis"]["text"] == SYNOPSIS_TEXT
+    assert doc["characters"]["cards"]["elara"]["text"].startswith("[refined: give her")
+    # Accept the character; it freezes and lands on the next unreviewed character.
+    _accept(client, session_id, text="Elara, settled.")
+    doc = _doc(tmp_path, session_id)
+    assert doc["characters"]["cards"]["elara"]["reviewed"] is True
+    assert doc["characters"]["cards"]["elara"]["text"] == "Elara, settled."
+    assert doc["stage"] == "char:coil"
 
 
-# ── 7. No outline/beat path is reachable ────────────────────────────────────
+# ── 9. Parent gate: cannot visit a child before the synopsis is reviewed ────
 
 
-def test_no_outline_or_beat_routes(client):
-    assert client.get("/story/outline?session_id=x").status_code == 404
-    assert client.get("/story/nav?session_id=x&chapter=0").status_code == 404
-    # The old two-mode generate endpoint is gone — weave is the only mode.
+def test_nav_to_child_before_synopsis_reviewed_is_rejected(client, tmp_path):
+    session_id = _new_session(client)
+    _generate(client, session_id)  # synopsis drafted but NOT accepted
+    _nav(client, session_id, "key_scene")
+    assert _doc(tmp_path, session_id)["stage"] == "synopsis"
+
+
+def test_nav_to_unknown_character_is_rejected(client, tmp_path):
+    session_id = _new_session(client)
+    _generate(client, session_id)
+    _accept(client, session_id)  # roster has elara, coil
+    _nav(client, session_id, "char:ghost")
+    assert _doc(tmp_path, session_id)["stage"] == "key_scene"
+
+
+# ── 10. No plot stage is reachable; the old generate endpoint is gone ───────
+
+
+def test_no_plot_stage_reachable(client, tmp_path):
+    session_id = _new_session(client)
+    _generate(client, session_id)
+    _accept(client, session_id)
+    _nav(client, session_id, "plot")
+    assert _doc(tmp_path, session_id)["stage"] == "key_scene"
     assert client.post("/story/synopsis/generate", data={}).status_code == 404

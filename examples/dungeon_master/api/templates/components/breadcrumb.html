@@ -1,10 +1,12 @@
 <nav id="story-crumbs" class="crumbs" aria-label="Story navigation">
   {% for c in crumbs %}
-    {%- if c.href -%}
-    <a class="crumb" href="#" hx-get="{{ c.href }}"
-       hx-target="#app-body" hx-swap="innerHTML">{{ c.label }}</a>
+    {%- if c.stage and not c.current -%}
+    <a class="crumb{% if c.member %} crumb-member{% endif %}" href="#"
+       hx-post="/story/nav"
+       hx-vals='{"session_id": "{{ session_id }}", "stage": "{{ c.stage }}"}'
+       hx-target="#app-body" hx-swap="innerHTML">{{ c.label }}{% if c.reviewed %} ✓{% endif %}</a>
     {%- else -%}
-    <span class="crumb">{{ c.label }}</span>
+    <span class="crumb{% if c.current %} crumb-current{% endif %}{% if c.member %} crumb-member{% endif %}">{{ c.label }}{% if c.reviewed %} ✓{% endif %}</span>
     {%- endif -%}
     {%- if not loop.last %}<span class="crumb-sep">·</span>{% endif -%}
   {% endfor %}

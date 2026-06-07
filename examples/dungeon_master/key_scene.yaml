@@ -1,0 +1,47 @@
+# Dungeon Master v2 — Key Scene weave graph (FR-475).
+#
+# A synopsis-derived leaf, same shape as synopsis/plot: given the accepted
+# synopsis as fixed context plus the current draft (possibly empty) and a
+# writer's instruction, produce one vivid, playable key scene as plain prose.
+# Empty draft => first generation; non-empty draft => apply the change.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/key_scene.yaml \
+#     --var synopsis="..." --var draft="" --var instruction="raise the stakes" --full
+version: "1.0"
+name: dm-key-scene
+description: Weave one pivotal key scene from a synopsis + draft + instruction
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # Reasoning models (e.g. gpt-5 mini) spend output budget on hidden reasoning
+  # tokens. A long, many-character synopsis can exhaust the provider's default
+  # cap and cut the scene mid-word, so reserve generous headroom for both the
+  # reasoning pass and the visible prose.
+  max_tokens: 4000
+
+state:
+  synopsis: str
+  draft: str
+  instruction: str
+  key_scene: str
+
+nodes:
+  key_scene:
+    type: llm
+    prompt: key_scene
+    state_key: key_scene
+    parse_json: false
+    variables:
+      synopsis: "{state.synopsis}"
+      draft: "{state.draft}"
+      instruction: "{state.instruction}"
+
+edges:
+  - from: START
+    to: key_scene
+  - from: key_scene
+    to: END

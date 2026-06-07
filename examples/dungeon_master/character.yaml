@@ -1,0 +1,47 @@
+# Dungeon Master v2 — Single character weave graph (FR-475).
+#
+# One shared graph serves every character card, parameterised by `name`: given
+# the accepted synopsis as fixed context, the character's name, the current
+# draft (possibly empty), and a writer's instruction, produce one character as
+# plain prose. Empty draft => first generation; non-empty draft => apply change.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/character.yaml \
+#     --var synopsis="..." --var name="Elara" --var draft="" \
+#     --var instruction="give her a debt" --full
+version: "1.0"
+name: dm-character
+description: Weave one character from a synopsis + name + draft + instruction
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # Reserve headroom for reasoning-model hidden tokens + the full character card.
+  max_tokens: 4000
+
+state:
+  synopsis: str
+  name: str
+  draft: str
+  instruction: str
+  character: str
+
+nodes:
+  character:
+    type: llm
+    prompt: character
+    state_key: character
+    parse_json: false
+    variables:
+      synopsis: "{state.synopsis}"
+      name: "{state.name}"
+      draft: "{state.draft}"
+      instruction: "{state.instruction}"
+
+edges:
+  - from: START
+    to: character
+  - from: character
+    to: END

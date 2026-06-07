@@ -1,0 +1,41 @@
+# Dungeon Master v2 — Character roster graph (FR-475).
+#
+# A non-visitable side-effect graph: given the accepted synopsis, name the
+# characters the story requires — names only, one per line, no prose. The
+# session splits the output into a roster and spawns one card per character
+# (each drafted by character.yaml). There is no card screen for this graph.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/character_roster.yaml \
+#     --var synopsis="..." --var draft="" --var instruction="name the cast" --full
+version: "1.0"
+name: dm-character-roster
+description: Name the cast a synopsis requires (names only, one per line)
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # A names-only list is short, but reasoning models still spend hidden tokens;
+  # keep enough budget that the full cast is emitted.
+  max_tokens: 2000
+
+state:
+  synopsis: str
+  roster: str
+
+nodes:
+  roster:
+    type: llm
+    prompt: character_roster
+    state_key: roster
+    parse_json: false
+    variables:
+      synopsis: "{state.synopsis}"
+
+edges:
+  - from: START
+    to: roster
+  - from: roster
+    to: END

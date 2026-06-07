@@ -24,14 +24,6 @@ router = APIRouter(prefix="/story", tags=["story"])
 templates = Jinja2Templates(directory="examples/dungeon_master/api/templates")
 
 
-def _crumbs(view: StageView) -> list[dict]:
-    """Story · <accepted stages…> · <current stage> for the breadcrumb."""
-    crumbs: list[dict] = [{"label": "Story"}]
-    crumbs.extend({"label": label} for _, label in view.trail)
-    crumbs.append({"label": view.label})
-    return crumbs
-
-
 def render_stage(request: Request, view: StageView, session_id: str) -> HTMLResponse:
     """Render the current stage's card (or an error card) as an #app-body fragment."""
     if view.error:
@@ -46,7 +38,7 @@ def render_stage(request: Request, view: StageView, session_id: str) -> HTMLResp
         name="components/app_body.html",
         context={
             "mode": "stage",
-            "crumbs": _crumbs(view),
+            "crumbs": view.crumbs,
             "stage": view,
             "session_id": session_id,
         },
@@ -83,7 +75,19 @@ async def accept_stage(
     session_id: Annotated[str, Form()],
     text: Annotated[str, Form()] = "",
 ):
-    """Freeze the current stage, advance to the next, and re-render."""
+    """Freeze the current stage, land on the next node, and re-render."""
     logger.info("✓ Stage accepted for session %s", session_id)
     view = await DMSession(session_id).accept(text)
+    return render_stage(request, view, session_id)
+
+
+@router.post("/nav", response_class=HTMLResponse)
+async def nav_stage(
+    request: Request,
+    session_id: Annotated[str, Form()],
+    stage: Annotated[str, Form()],
+):
+    """Navigate to a tree node (static name or ``char:<id>``) and re-render (FR-475)."""
+    logger.info("🧭 Navigating to %s for session %s", stage, session_id)
+    view = await DMSession(session_id).navigate(stage)
     return render_stage(request, view, session_id)
