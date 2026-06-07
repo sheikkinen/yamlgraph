@@ -1,0 +1,71 @@
+id: CAP-170
+status: retired
+name: "Dungeon Master Web UI v2 (Journey-First)"
+description: >
+  RETIRED by FR-474. The journey-first outline/beat board described here was
+  over-scoped before its core loop was proven; it is detached to
+  examples/dungeon_master/purgatory/. v2 restarts as an ungoverned prototype
+  (FR-474 J3: no CAP/REQ/gates until the loop earns them), so REQ-YG-468..471 are
+  intentionally uncovered. A successor FR re-lights governance on promotion.
+  Journey-first redesign of the dungeon-master web board, superseding CAP-169.
+  The DM reads and shapes the synopsis before any prose exists (FR-470), browses
+  and edits the chapter/beat outline with a navigable breadcrumb (FR-471), and
+  generates a chosen beat on demand (FR-472). A per-session story document
+  (story_doc over story.json) is the source of truth; the v1 turn-loop
+  checkpointer is gone from the web path (turn-loop.yaml remains for the CLI).
+modules:
+  - examples/dungeon_master/api/session
+  - examples/dungeon_master/api/story_doc
+  - examples/dungeon_master/api/routes/story
+requirements:
+  - id: REQ-YG-468
+    description: >
+      Preplan stops at the skeleton (no eager weave) and renders a synopsis card
+      with a single editable text block (one prose paragraph) shared with the
+      beat view; regenerate re-invokes the synopsis prompt, edit persists the
+      paragraph to the story document, and accept marks it reviewed and advances
+      to the outline
+    modules:
+      - examples/dungeon_master/api/session
+      - examples/dungeon_master/api/story_doc
+      - examples/dungeon_master/api/routes/story
+      - examples/dungeon_master/api/templates/components/text_block.html
+  - id: REQ-YG-469
+    description: >
+      The outline lists chapters as navigation links; opening a chapter lazily
+      materializes its beat stubs once (a materialized guard makes revisits
+      idempotent and preserves DM edits); chapter summaries and beat stubs are
+      editable and persist to the story document; a breadcrumb links back to the
+      outline and names the current chapter
+    modules:
+      - examples/dungeon_master/api/session
+      - examples/dungeon_master/api/story_doc
+      - examples/dungeon_master/api/routes/story
+  - id: REQ-YG-470
+    description: >
+      For a planned beat, Generate beat runs the stateless weave-beat.yaml graph
+      (plan_all map over cast → weave → normalize_beat; no checkpointer, no
+      interrupt, no loop) and yields editable prose with status generated;
+      Accept persists the prose (verbatim or edited), appends it to the chapter
+      file via append_beat_to_chapter, and flips status to committed; generation
+      targets the chosen beat (arbitrary chapter/beat), not a forced forward order
+    modules:
+      - examples/dungeon_master/api/session
+      - examples/dungeon_master/api/story_doc
+      - examples/dungeon_master/api/routes/story
+      - examples/dungeon_master/weave-beat
+      - examples/dungeon_master/nodes/story_io
+  - id: REQ-YG-471
+    description: >
+      The shared editable-prose card (synopsis and woven beat) is iterable: it
+      shows the text in edit mode (autosaving on change), a 3-line prompt textarea,
+      and Iterate + Accept controls. Iterate runs the shared refine prompt
+      ("apply <prompt> to <text>"), replaces the text, and re-renders; an empty
+      prompt is a pure save. Iterating a beat always yields status generated and
+      never writes the chapter file (only Accept commits); Accept ignores the
+      prompt field
+    modules:
+      - examples/dungeon_master/api/session
+      - examples/dungeon_master/api/routes/story
+      - examples/dungeon_master/api/templates/components/text_block.html
+fr: FR-470

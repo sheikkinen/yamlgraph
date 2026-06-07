@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Judged — Approved (scope frozen 2026-06-06)
+**Status:** Superseded by FR-470/471/472 (v2 journey-first redesign, 2026-06-06) — originally Implemented (3 phases GREEN)
 **Effort:** Phased (3 phases)
 **Requested:** 2026-06-06
 
@@ -102,10 +102,12 @@ uvicorn examples.dungeon_master.api.app:app --reload   # → http://localhost:80
 ## Phased Implementation
 
 Each phase is independently demonstrable and lands as its own PR with a witness
-test and demo output. A new capability `CAP-166-dungeon-master-web-ui.yaml`
-carries `REQ-YG-435`..`REQ-YG-437`, created in Phase 1. This FR realizes the
-deferred `REQ-YG-434` (FR-466 Phase 4); on completion, mark FR-466's Phase 4
-acceptance item done with a pointer here.
+test and demo output. A new capability `CAP-169-dungeon-master-web-ui.yaml`
+carries `REQ-YG-435`..`REQ-YG-437`, created in Phase 1. This FR supersedes the
+deferred FR-466 Phase 4 *concept*; its original `REQ-YG-434` was reassigned by a
+concurrent renumber to CAP-168 (conditional-edge-to-map), so this work allocates
+fresh requirement IDs. On completion, mark FR-466's Phase 4 acceptance item done
+with a pointer here.
 
 ### Phase 1 — Server + session (`REQ-YG-435`)
 **Goal:** A working FastAPI app and stateless `DMSession` driving the existing
@@ -154,18 +156,18 @@ graphs over HTTP.
 
 ## Acceptance Criteria
 
-- [ ] Phase 1: `api/app.py`, `session.py`, `routes/story.py` drive preplan + turn
+- [x] Phase 1: `api/app.py`, `session.py`, `routes/story.py` drive preplan + turn
       over HTTP (REQ-YG-435)
-- [ ] Phase 2: storybook templates + parchment theme render via HTMX swaps
+- [x] Phase 2: storybook templates + parchment theme render via HTMX swaps
       (REQ-YG-436)
-- [ ] Phase 3: end-to-end demo log + README Web UI section (REQ-YG-437)
-- [ ] `CAP-166-dungeon-master-web-ui.yaml` registers REQ-YG-435..437
-- [ ] Witness test per phase, tagged `@pytest.mark.req(...)`, LLM mocked
-- [ ] `demo-output.log` committed (demo-gate)
-- [ ] No changes to `preplan.yaml`, `turn-loop.yaml`, `prompts/`, or
+- [x] Phase 3: end-to-end demo log + README Web UI section (REQ-YG-437)
+- [x] `CAP-169-dungeon-master-web-ui.yaml` registers REQ-YG-435..437
+- [x] Witness test per phase, tagged `@pytest.mark.req(...)`, LLM mocked
+- [x] `demo-output.log` committed (demo-gate)
+- [x] No changes to `preplan.yaml`, `turn-loop.yaml`, `prompts/`, or
       `nodes/story_io.py` (pure Layer-1 addition)
-- [ ] Changelog fragment **and** diary entry in **every** phase PR (J/F2)
-- [ ] FR-466 Phase 4 acceptance item updated to point here
+- [x] Changelog fragment **and** diary entry in **every** phase PR (J/F2)
+- [x] FR-466 Phase 4 acceptance item updated to point here
 
 ## Alternatives Considered
 
@@ -243,9 +245,9 @@ Open decisions resolved:
 
 Non-blocking notes:
 
-- `CAP-166` and `REQ-YG-435..437` are free locally (highest local CAP 165, REQ
-  434) and on `origin/main` (highest FR/REQ 467/434). Confirm `CAP-166` unused on
-  `origin/main` before creating it (mechanical pre-flight, as for CAP-164/165).
+- `CAP-169` and `REQ-YG-435..437` are free locally (highest local CAP 168, REQ
+  467 after a concurrent renumber that also moved the DM example to CAP-167 and
+  reassigned `REQ-YG-434` to CAP-168). `REQ-YG-435..437` confirmed unused.
 - **Out of scope (observation only):** `run.py` prints `state["beat"]` for
   display while the interrupt message correctly renders `{{ state.draft_beat }}`;
   the printed `beat` is stale/empty at the pause. The web design is *more*

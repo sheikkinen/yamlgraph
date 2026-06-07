@@ -1,0 +1,11 @@
+<nav id="story-crumbs" class="crumbs" aria-label="Story navigation">
+  {% for c in crumbs %}
+    {%- if c.href -%}
+    <a class="crumb" href="#" hx-get="{{ c.href }}"
+       hx-target="#app-body" hx-swap="innerHTML">{{ c.label }}</a>
+    {%- else -%}
+    <span class="crumb">{{ c.label }}</span>
+    {%- endif -%}
+    {%- if not loop.last %}<span class="crumb-sep">·</span>{% endif -%}
+  {% endfor %}
+</nav>

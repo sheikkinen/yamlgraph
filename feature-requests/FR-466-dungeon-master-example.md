@@ -151,7 +151,7 @@ Each phase is independently demonstrable and lands as its own PR with a witness 
 - [x] Phase 1: `preplan.yaml` compiles, runs, emits valid `story.json` (REQ-YG-429, -430)
 - [x] Phase 2: parallel `plan_all` + `weave` produce a beat for a single turn (REQ-YG-431, -432)
 - [x] Phase 3: turn loop honors all six DM actions via interrupt/resume (REQ-YG-433)
-- [ ] Phase 4 (optional): HTMX board start/turn (REQ-YG-434)
+- [x] Phase 4 (optional): HTMX board start/turn — **realized by [FR-468](FR-468-dungeon-master-web-ui.md)** (REQ-YG-435..437; the original REQ-YG-434 ID was reassigned to CAP-168)
 - [x] `CAP-167-dungeon-master-example.yaml` registers REQ-YG-429..434
 - [x] Witness test per phase, tagged `@pytest.mark.req(...)`
 - [x] `demo-output.log` committed per phase touching `examples/dungeon-master/`

@@ -432,6 +432,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 166 | CAP-166 Meta Self-Reflective Demo | `examples/demos/meta` | REQ-YG-467 |
 | 167 | CAP-167 Dungeon Master Example | `examples/dungeon_master/nodes/story_io` | REQ-YG-429 – 433 |
 | 168 | CAP-168 Conditional Edge to Map Node | `yamlgraph/edge_compiler`, `yamlgraph/routing` | REQ-YG-434 |
+| 169 | CAP-169 Dungeon Master Web UI | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/routes/story` | REQ-YG-435 – 437 |
+| 170 | CAP-170 Dungeon Master Web UI v2 (Journey-First) | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story` | REQ-YG-468 – 471 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2024,7 +2026,7 @@ Demo graph that applies a natural-language verb to a code artifact — including
 
 ### 167. CAP-167 Dungeon Master Example
 
-Turn-based book / dungeon-master narrative example. Fuses the eBook preplanning spine with the NPC parallel turn loop and a turn-level DM steering interrupt (accept/edit/nudge/retry/next-chapter/end).
+RETIRED by FR-474. The v1 turn-loop / preplan narrative example was detached to examples/dungeon_master/purgatory/ as a reference parts bin when the DM example was restarted around a single proven loop (synopsis -> plot). Its governed test moved with it (purgatory/tests/test_dungeon_master.py), so REQ-YG-429..433 are no longer covered from the governed tree by design. Turn-based book / dungeon-master narrative example. Fuses the eBook preplanning spine with the NPC parallel turn loop and a turn-level DM steering interrupt (accept/edit/nudge/retry/next-chapter/end).
 
 **Feature Request:** FR-466
 
@@ -2045,6 +2047,31 @@ A conditional (expression) edge whose target is a `map` node compiles to a singl
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-434 | Conditional edge to a map node compiles to one router that fans out via Send; an unconditional+conditional dual map router is rejected, and the interrupt loop terminates on its END branch. | `yamlgraph/edge_compiler._add_conditional_edges`, `yamlgraph/routing.make_expr_router_fn` |
+
+### 169. CAP-169 Dungeon Master Web UI
+
+RETIRED by FR-470 (CAP-170). The v1 eager-weave board surfaced only the final woven beat after preplan. v2 is journey-first (synopsis review -> outline browse -> on-demand beat generation), superseding this interaction model. The turn-loop machinery (turn-loop.yaml, compose_dm_input) remains for the CLI. FastAPI + HTMX web board over the dungeon-master example. A stateless DMSession adapter preplans a story and drives the checkpointed turn loop beat-by-beat through HTTP, composing the six DM actions (accept/edit/nudge/retry/next-chapter/end) into the existing parse_dm grammar. Pure Layer-1 presentation reusing nodes/story_io.py untouched.
+
+**Feature Request:** FR-468
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-435 | FastAPI app + stateless DMSession drive preplan and turn over HTTP; GET / returns 200, POST /story/preplan advances the turn loop to the first interrupt and returns a beat, POST /story/turn with accept advances, end completes (is_complete via state.next), with a process-stable checkpointer and per-session story files | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/routes/story` |
+| REQ-YG-436 | Storybook templates render via HTMX swaps; fragments contain the story banner (logline, chapter progress, turn/beat counter), the draft_beat card, the six DM controls, and a completion panel when the session ends | `examples/dungeon_master/api/routes/story` |
+| REQ-YG-437 | End-to-end scripted web session (preplan -> steer -> end) recorded to a demo log and documented in the example README Web UI section | `examples/dungeon_master/api/session` |
+
+### 170. CAP-170 Dungeon Master Web UI v2 (Journey-First)
+
+RETIRED by FR-474. The journey-first outline/beat board described here was over-scoped before its core loop was proven; it is detached to examples/dungeon_master/purgatory/. v2 restarts as an ungoverned prototype (FR-474 J3: no CAP/REQ/gates until the loop earns them), so REQ-YG-468..471 are intentionally uncovered. A successor FR re-lights governance on promotion. Journey-first redesign of the dungeon-master web board, superseding CAP-169. The DM reads and shapes the synopsis before any prose exists (FR-470), browses and edits the chapter/beat outline with a navigable breadcrumb (FR-471), and generates a chosen beat on demand (FR-472). A per-session story document (story_doc over story.json) is the source of truth; the v1 turn-loop checkpointer is gone from the web path (turn-loop.yaml remains for the CLI).
+
+**Feature Request:** FR-470
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-468 | Preplan stops at the skeleton (no eager weave) and renders a synopsis card with a single editable text block (one prose paragraph) shared with the beat view; regenerate re-invokes the synopsis prompt, edit persists the paragraph to the story document, and accept marks it reviewed and advances to the outline | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story`, `examples/dungeon_master/api/templates/components/text_block.html` |
+| REQ-YG-469 | The outline lists chapters as navigation links; opening a chapter lazily materializes its beat stubs once (a materialized guard makes revisits idempotent and preserves DM edits); chapter summaries and beat stubs are editable and persist to the story document; a breadcrumb links back to the outline and names the current chapter | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story` |
+| REQ-YG-470 | For a planned beat, Generate beat runs the stateless weave-beat.yaml graph (plan_all map over cast → weave → normalize_beat; no checkpointer, no interrupt, no loop) and yields editable prose with status generated; Accept persists the prose (verbatim or edited), appends it to the chapter file via append_beat_to_chapter, and flips status to committed; generation targets the chosen beat (arbitrary chapter/beat), not a forced forward order | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story`, `examples/dungeon_master/weave-beat`, `examples/dungeon_master/nodes/story_io` |
+| REQ-YG-471 | The shared editable-prose card (synopsis and woven beat) is iterable: it shows the text in edit mode (autosaving on change), a 3-line prompt textarea, and Iterate + Accept controls. Iterate runs the shared refine prompt ("apply <prompt> to <text>"), replaces the text, and re-renders; an empty prompt is a pure save. Iterating a beat always yields status generated and never writes the chapter file (only Accept commits); Accept ignores the prompt field | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/routes/story`, `examples/dungeon_master/api/templates/components/text_block.html` |
 
 <!-- END GENERATED CAPABILITIES -->
 

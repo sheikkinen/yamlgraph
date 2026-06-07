@@ -1,6 +1,12 @@
 id: CAP-167
+status: retired
 name: "Dungeon Master Example"
 description: >
+  RETIRED by FR-474. The v1 turn-loop / preplan narrative example was detached to
+  examples/dungeon_master/purgatory/ as a reference parts bin when the DM example
+  was restarted around a single proven loop (synopsis -> plot). Its governed test
+  moved with it (purgatory/tests/test_dungeon_master.py), so REQ-YG-429..433 are no
+  longer covered from the governed tree by design.
   Turn-based book / dungeon-master narrative example. Fuses the eBook
   preplanning spine with the NPC parallel turn loop and a turn-level DM
   steering interrupt (accept/edit/nudge/retry/next-chapter/end).

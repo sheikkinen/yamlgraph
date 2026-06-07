@@ -1,0 +1,43 @@
+# Dungeon Master v2 — Plot weave graph (FR-474, Phase 2).
+#
+# The second stage, same shape as the first: given the accepted synopsis as fixed
+# context plus the current plot draft (possibly empty) and a writer's instruction,
+# produce a full three-act plot as plain prose. Empty draft => first generation;
+# non-empty draft => apply the change. There is no separate "generate" vs
+# "iterate" — the prose card and the single weave mechanic carry plot too.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/plot.yaml \
+#     --var synopsis="..." --var draft="" --var instruction="darker middle act" --full
+version: "1.0"
+name: dm-plot
+description: Weave a plain three-act plot from a synopsis + draft + instruction
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  synopsis: str
+  draft: str
+  instruction: str
+  plot: str
+
+nodes:
+  plot:
+    type: llm
+    prompt: plot
+    state_key: plot
+    parse_json: false
+    variables:
+      synopsis: "{state.synopsis}"
+      draft: "{state.draft}"
+      instruction: "{state.instruction}"
+
+edges:
+  - from: START
+    to: plot
+  - from: plot
+    to: END

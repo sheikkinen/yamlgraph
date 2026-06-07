@@ -1,0 +1,41 @@
+id: CAP-169
+status: retired
+name: "Dungeon Master Web UI"
+description: >
+  RETIRED by FR-470 (CAP-170). The v1 eager-weave board surfaced only the final
+  woven beat after preplan. v2 is journey-first (synopsis review -> outline browse
+  -> on-demand beat generation), superseding this interaction model. The
+  turn-loop machinery (turn-loop.yaml, compose_dm_input) remains for the CLI.
+  FastAPI + HTMX web board over the dungeon-master example. A stateless
+  DMSession adapter preplans a story and drives the checkpointed turn loop
+  beat-by-beat through HTTP, composing the six DM actions
+  (accept/edit/nudge/retry/next-chapter/end) into the existing parse_dm grammar.
+  Pure Layer-1 presentation reusing nodes/story_io.py untouched.
+modules:
+  - examples/dungeon_master/api/session
+  - examples/dungeon_master/api/routes/story
+requirements:
+  - id: REQ-YG-435
+    description: >
+      FastAPI app + stateless DMSession drive preplan and turn over HTTP; GET /
+      returns 200, POST /story/preplan advances the turn loop to the first
+      interrupt and returns a beat, POST /story/turn with accept advances, end
+      completes (is_complete via state.next), with a process-stable checkpointer
+      and per-session story files
+    modules:
+      - examples/dungeon_master/api/session
+      - examples/dungeon_master/api/routes/story
+  - id: REQ-YG-436
+    description: >
+      Storybook templates render via HTMX swaps; fragments contain the story
+      banner (logline, chapter progress, turn/beat counter), the draft_beat
+      card, the six DM controls, and a completion panel when the session ends
+    modules:
+      - examples/dungeon_master/api/routes/story
+  - id: REQ-YG-437
+    description: >
+      End-to-end scripted web session (preplan -> steer -> end) recorded to a
+      demo log and documented in the example README Web UI section
+    modules:
+      - examples/dungeon_master/api/session
+fr: FR-468

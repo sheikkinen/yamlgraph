@@ -1,0 +1,43 @@
+<section id="stage-card" class="story-card">
+  <h2 class="card-title">📜 {{ stage.label }}</h2>
+
+  {% if stage.reviewed %}
+    {# ── Accepted: read-only prose ─────────────────────────────────────── #}
+    <p class="card-hint">This {{ stage.label|lower }} is accepted.</p>
+    <div class="text-block readonly">{{ stage.text }}</div>
+    <span class="accepted-badge">Accepted ✓</span>
+
+  {% else %}
+    {# ── One screen, one action: prompt drives generation AND iteration ── #}
+    {% if stage.stage == "synopsis" %}
+    <p class="card-hint">Describe the story you want in the prompt below and
+      <strong>Iterate</strong> — the first run writes the synopsis from your
+      tagline, every run after applies your change. The synopsis appears above
+      and edits save automatically. <strong>Accept</strong> when it reads true.</p>
+    {% else %}
+    <p class="card-hint">A first {{ stage.label|lower }} has been drafted from the
+      accepted synopsis above. Read it, edit the prose directly, or describe a
+      change and <strong>Iterate</strong> — edits save automatically.
+      <strong>Accept</strong> when it reads true.</p>
+    {% endif %}
+    <form class="text-block-form" hx-target="#app-body" hx-swap="innerHTML">
+      <input type="hidden" name="session_id" value="{{ session_id }}" />
+      <textarea name="text" class="text-block"
+                placeholder="Your {{ stage.label|lower }} will appear here…"
+                hx-post="/story/synopsis/edit"
+                hx-trigger="change"
+                hx-include="closest form"
+                hx-swap="none">{{ stage.text }}</textarea>
+      <textarea name="prompt" rows="3" class="iterate-prompt"
+                placeholder="Describe the {{ stage.label|lower }}, or a change to apply…">{% if stage.stage == "synopsis" and not stage.text %}{{ stage.tagline }}{% endif %}</textarea>
+      <div class="card-actions">
+        <button type="button" class="primary"
+                hx-post="/story/synopsis/weave" hx-include="closest form"
+                hx-indicator="#gen-spinner">↻ Iterate</button>
+        <button type="button"
+                hx-post="/story/synopsis/accept" hx-include="closest form">✓ Accept</button>
+        <span id="gen-spinner" class="htmx-indicator">⏳ Weaving…</span>
+      </div>
+    </form>
+  {% endif %}
+</section>

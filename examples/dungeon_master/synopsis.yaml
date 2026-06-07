@@ -1,0 +1,40 @@
+# Dungeon Master v2 — Synopsis weave graph (FR-474).
+#
+# One operation, two roles: given the current draft (possibly empty) and a
+# writer's instruction, produce a full-disclosure synopsis. An empty draft means
+# the instruction is the premise (first generation); a non-empty draft means the
+# instruction is a change to apply. There is no separate "generate" vs "iterate".
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/synopsis.yaml \
+#     --var draft="" --var instruction="A clockmaker's city is winding down" --full
+version: "1.0"
+name: dm-synopsis
+description: Weave a plain reveal-all synopsis from a draft + an instruction
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+
+state:
+  draft: str
+  instruction: str
+  synopsis: str
+
+nodes:
+  synopsis:
+    type: llm
+    prompt: synopsis
+    state_key: synopsis
+    parse_json: false
+    variables:
+      draft: "{state.draft}"
+      instruction: "{state.instruction}"
+
+edges:
+  - from: START
+    to: synopsis
+  - from: synopsis
+    to: END

@@ -1,0 +1,8 @@
+<div id="app-shell">
+  {% include "components/breadcrumb.html" %}
+  <div id="story-main">
+    {% if mode == "stage" %}
+      {% include "components/stage_card.html" %}
+    {% endif %}
+  </div>
+</div>
