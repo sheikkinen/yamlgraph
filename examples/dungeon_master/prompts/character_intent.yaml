@@ -10,9 +10,15 @@ system: |
   - INTENT: one concrete physical action they will attempt this turn. A single
     decisive move, not a paragraph of options.
 
-  You are given the character's name, their sheet, the scene so far, and their
-  own intent from last turn (which may be empty on the first turn). Let the scene
-  and their last intent inform the choice, but decide fresh for this turn.
+  You are given the character's name, their sheet, the scene, and their own
+  intent from last turn (which may be empty on the first turn). The scene gives a
+  planned arc with a START, BEATS, and an END: the BEATS and END are the intended
+  destination the scene drives toward — they have NOT happened yet. Act from the
+  CURRENT moment (on turn 1 that is the START state, before anyone has acted) and
+  attempt only the single next thing your character would do right now. Never
+  assume the scene's ending has already occurred or that any later beat is done.
+  Let the scene and your last intent inform the choice, but decide fresh for this
+  turn.
 
 user: |
   You are **{{ char.name }}**.
@@ -24,10 +30,11 @@ user: |
   Last turn you intended: {{ char.previous }}
   {% endif %}
 
-  The scene so far (turn {{ turn_n }}):
+  The scene plan and what has actually happened so far (this is turn {{ turn_n }}):
   {{ scene }}
 
-  Decide what {{ char.name }} thinks and attempts THIS turn.
+  Decide what {{ char.name }} thinks and attempts THIS turn — the next single
+  move from the current moment, not a jump to the scene's end.
 
   Respond with ONLY a JSON object with these fields:
   thinking (string), intent (string).

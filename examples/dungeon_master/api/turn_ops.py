@@ -56,14 +56,34 @@ def prior_intents(doc: dict, n: int) -> dict:
 
 
 def running_scene(doc: dict, n: int) -> str:
-    """Key scene + a bounded digest of the last 3 prior turn recaps (J4)."""
-    scene = doc.get("key_scene", {}).get("text", "")
+    """The play context for turn ``n``: the scene plan + what has actually happened.
+
+    The key scene is a *plan* (SUMMARY/BEATS/END describe the intended arc the
+    scene drives toward, not events that have already happened); the accumulated
+    recaps are the real history. Labelling them apart stops the model from
+    reading the scene's ending as established fact and replaying the aftermath —
+    on turn 1 nothing has happened yet, so play must begin at the START (J4).
+    """
+    plan = doc.get("key_scene", {}).get("text", "")
     turns = doc.get("turns", [])
     prior = [t.get("recap", {}).get("text", "") for t in turns[: n - 1]]
     prior = [p for p in prior if p.strip()][-3:]
-    if prior:
-        scene = scene + "\n\n" + "\n\n".join(prior)
-    return scene
+    so_far = (
+        "\n\n".join(prior)
+        if prior
+        else (
+            "Nothing has happened yet — the scene is just beginning. Only the "
+            "START state is true; none of the BEATS and not the END have occurred."
+        )
+    )
+    return (
+        "THE SCENE (the planned arc — its SUMMARY, BEATS, and END are the "
+        "intended destination the scene drives toward, NOT events that have "
+        "already happened):\n"
+        f"{plan}\n\n"
+        "WHAT HAS HAPPENED SO FAR:\n"
+        f"{so_far}"
+    )
 
 
 async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> str:

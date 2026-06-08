@@ -9,6 +9,11 @@ system: |
   Resolve the intents in a sensible order, let them interfere with each other,
   and name every character at least once. Do NOT invent a new character.
 
+  The scene gives a planned arc (its SUMMARY, BEATS, and END are the intended
+  destination, NOT events that have already happened). Narrate ONLY what happens
+  THIS turn from the current moment, advancing the scene one step toward its END —
+  do not skip ahead to the ending or narrate beats no one has reached yet.
+
   Begin with the exact heading "Turn {{ turn_n }} — " followed by a few words
   naming the turn, then one tight paragraph (3–6 sentences). Nothing else.
 
@@ -18,7 +23,7 @@ system: |
   {% endif %}
 
 user: |
-  The scene so far (this is turn {{ turn_n }}):
+  The scene plan and what has actually happened so far (this is turn {{ turn_n }}):
   {{ scene }}
 
   This turn, each character privately intends:
