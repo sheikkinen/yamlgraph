@@ -23,33 +23,46 @@ and never more than one click from accepting it.**
 
 ---
 
-## 2. First Goal (this milestone)
+## 2. What is built
 
-> **Iterative generation of the synopsis.**
+The app started as a single loop around the **synopsis** and has grown — one
+judged feature request at a time — into a **preplan tree** that feeds a **play
+loop**. Every node is the same iterable card; what changes is the graph behind
+it and the prior context it reads.
 
-Everything else (characters, chapter counts, outline, beats) is deferred. The whole
-app, for now, is a single loop around one artifact:
+```
+Synopsis (root — gates everything)
+├── Key Scene            FR-475 · the single pivotal scene
+└── Characters (roster)  FR-475 · one card per named principal
+        └── Play (turns) FR-477 · unlocks once the whole preplan is reviewed
+```
 
-1. The DM opens the app and sees a **tagline** prompt seeded into the synopsis
-   card — no separate splash screen.
-2. The machine generates a first **synopsis** from that tagline.
-3. The DM reads it, edits the prose directly, or describes a change and
-   **Iterates**.
-4. When satisfied, the DM **Accepts**.
+1. **Synopsis** — the DM opens the app to a **tagline** prompt seeded into the
+   synopsis card (no splash). The machine drafts a plain, reveal-all synopsis;
+   the DM edits in place or describes a change and **Iterates**, then **Accepts**.
+   Accepting the synopsis is the gate that reveals its children (FR-470/473/474).
+2. **Key Scene** (FR-475) — reads the accepted synopsis and drafts the single
+   pivotal scene. Same weave → edit → accept.
+3. **Characters** (FR-475) — accepting the synopsis derives a **roster** of
+   names; each becomes a dynamic `char:<id>` card drafted from the shared
+   `character.yaml` graph. The DM reviews each in turn.
+4. **Play / Turns** (FR-477) — the moment synopsis ✓, key scene ✓, and *every*
+   character card ✓, a **Play** branch appears and **Turn 1 auto-drafts**. Each
+   turn runs the cast through private **intents** (THINKING + INTENT) which
+   consolidate into one authoritative **recap**. Accepting a turn seeds the
+   next, threading history forward.
 
-Character count, chapter count, and outline structure are *later* concerns and must
-not leak into this loop.
+> The original "phase 2 = plot card" milestone (see
+> [`docs/phase_2_plot.md`](docs/phase_2_plot.md)) was superseded: the tree
+> branches into Key Scene + Characters rather than a single linear plot stage.
 
-> **Phase 2 (built):** the same loop now chains forward — **Accept** advances from
-> the synopsis to a **plot** card (a plain three-act arc woven from the accepted
-> synopsis), proving the stage-chain pattern. See
-> [`docs/phase_2_plot.md`](docs/phase_2_plot.md). Chapters, cast, and counts remain
-> deferred until they emerge from the work.
-
-### Explicitly out of scope for this milestone
-- The tagline splash/first screen (folded into the synopsis card).
-- Outline, chapters, beats, weaving, turn-loop play.
-- Asking for character or chapter counts up front.
+### Still deferred (out of scope, by design)
+- Outline, chapter counts, and beat-level weaving.
+- Asking for character or chapter counts up front (the roster emerges from the
+  synopsis instead).
+- Hand-editable intents and any rules/dice engine (turns are narrative only).
+- CAP/REQ/CI gates — this prototype lives under the FR-474 J3 regime; its
+  walkthrough tests in [`tests/`](tests/) are a visibility harness, not a gate.
 
 ---
 
@@ -93,22 +106,46 @@ the change. This is the engine behind Iterate and it is the only generation path
 
 ---
 
-## 4. The Synopsis Loop (target flow)
+## 4. The Card Loop (one operation, every stage)
+
+Every node — synopsis, key scene, each character, each turn — is the identical
+`{text, reviewed}` card driven by the same three URLs (`weave` / `edit` /
+`accept`). The tree only decides *which graph* runs and *what prior context* it
+reads.
 
 ```mermaid
 flowchart LR
-    A[Tagline seeded into synopsis card] --> B[Generate synopsis]
-    B --> C[Read prose in edit mode]
+    A[Stage entered · auto-drafts from seed] --> C[Read prose in edit mode]
     C -->|edit text| C
-    C -->|describe change + Iterate| D[weave: draft + instruction → synopsis]
+    C -->|describe change + Iterate| D[weave: draft + instruction → prose]
     D --> C
-    C -->|Accept| E[Synopsis committed]
+    C -->|Accept| E[Stage committed · unlocks next]
+    E -->|next stage| A
 ```
 
-The synopsis itself should be a **plain, reveal-all** summary — concrete nouns and
-verbs, the actual ending included — not an atmospheric teaser. (The prototype's
-synopsis prompt was rewritten away from mood adjectives toward substance; carry
-that forward.)
+The synopsis itself is a **plain, reveal-all** summary — concrete nouns and
+verbs, the actual ending included — not an atmospheric teaser, and the key-scene
+and turn-recap voices inherit that dry, factual register.
+
+### The Play loop (FR-477)
+
+A turn is the same card with a structured side-channel. `turn.yaml` is two
+nodes: a **map** over the cast where each principal privately reasons
+(`THINKING`) and commits one action (`INTENT`), then a **recap** node that
+consolidates all intents into one authoritative "Turn N —" paragraph naming
+every character. Intents render in a left aside; the recap is the editable card.
+**Iterate** re-rolls the whole turn (intents + recap co-generated, so they can't
+drift; a DM instruction steers only the recap). **Accept** seeds Turn N+1 with
+the last three recaps as scene context and each character's prior intent.
+
+```mermaid
+flowchart LR
+    P[preplan complete] --> T1[Turn 1 auto-drafts]
+    T1 --> I[map · per-character intents]
+    I --> R[recap · consolidate + name cast]
+    R -->|Iterate re-rolls whole turn| I
+    R -->|Accept| T2[Turn 2 · history threaded]
+```
 
 ---
 
@@ -118,14 +155,16 @@ YAMLGraph's three-layer split holds:
 
 ```
 Presentation  →  FastAPI + HTMX + Jinja  (cards, breadcrumb, #app-body swaps)
-Logic         →  YAML graph: synopsis generation as its own graph
-Side effects   →  session persistence, the refine/synopsis prompts
+Logic         →  YAML graphs: synopsis · key_scene · character · character_roster · turn
+Side effects   →  session persistence (per-session story.json), the weave prompts
 ```
 
-**Synopsis generation becomes its own graph** — a small, self-contained YAML
-pipeline (`draft` + `instruction` → `synopsis`) rather than an inline single-prompt
-call. This makes the loop testable in isolation and reusable as the first node of a
-larger story graph later.
+**Each stage is its own self-contained graph** rather than an inline prompt
+call, which makes every loop testable in isolation. The turn graph (`turn.yaml`)
+is the most structured: a `map` over the cast producing per-character intents
+that a recap node consolidates. Its structured result is isolated to a dedicated
+`_invoke_turn` path in `session.py`, so the shared stage interface stays a pure
+`str → str` (FR-477 J3) and every preplan stage runs through the same code.
 
 ---
 

@@ -14,6 +14,11 @@
       <strong>Iterate</strong> — the first run writes the synopsis from your
       tagline, every run after applies your change. The synopsis appears above
       and edits save automatically. <strong>Accept</strong> when it reads true.</p>
+    {% elif stage.kind == "turn" %}
+    <p class="card-hint">Each principal has privately chosen a thinking + intent
+      (left). This is the single consolidated recap of the turn — edit the prose
+      directly, or describe a change and <strong>Iterate</strong> to re-roll the
+      whole turn. <strong>Accept</strong> to freeze it and begin the next turn.</p>
     {% else %}
     <p class="card-hint">A first {{ stage.label|lower }} has been drafted from the
       accepted synopsis above. Read it, edit the prose directly, or describe a

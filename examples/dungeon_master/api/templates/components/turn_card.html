@@ -1,0 +1,18 @@
+{# Play turn (FR-477): read-only per-character intents aside + the recap card. #}
+<div class="story-grid">
+  <aside id="story-aside" aria-label="Character intents this turn">
+    <h3 class="aside-title">🎭 {{ stage.label }} — Intents</h3>
+    {% for it in stage.intents %}
+    <div class="intent-card">
+      <div class="intent-name">{{ it.name }}</div>
+      <div class="intent-thinking"><span class="intent-label">Thinking</span>{{ it.thinking }}</div>
+      <div class="intent-intent"><span class="intent-label">Intent</span>{{ it.intent }}</div>
+    </div>
+    {% else %}
+    <p class="card-hint">Intents will appear here once the turn is drafted.</p>
+    {% endfor %}
+  </aside>
+  <div class="story-grid-main">
+    {% include "components/stage_card.html" %}
+  </div>
+</div>

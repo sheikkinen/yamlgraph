@@ -1,0 +1,75 @@
+# Dungeon Master v2 — Turn graph (FR-477).
+#
+# One round of play: every principal is prompted privately for THINKING + INTENT
+# (a map over the cast), then those intents are consolidated into one dry
+# "Turn N — …" recap. A single graph returns BOTH the per-character intents and
+# the recap (J1), mirroring the purgatory weave-beat shape (map → consolidate).
+#
+# Inputs (set by the session's _invoke_turn, J3):
+#   cast    — list of {name, sheet, previous} bundles, one per reviewed character
+#   scene   — key scene + a bounded digest of prior turn recaps (J4)
+#   turn_n  — the 1-based turn number
+#   instruction — optional DM steer applied to the recap on Iterate (else "")
+#
+# Outputs: intents (list of {thinking, intent}, cast order) + recap (str).
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/turn.yaml \
+#     --var-json cast='[{"name":"Kara","sheet":"...","previous":""}]' \
+#     --var scene="..." --var turn_n=1 --var instruction="" --full
+version: "1.0"
+name: dm-turn
+description: One turn — private per-character intents mapped over the cast, then consolidated
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # Reserve headroom for reasoning-model hidden tokens + the full recap.
+  max_tokens: 4000
+
+state:
+  cast: list
+  scene: str
+  turn_n: str
+  instruction: str
+  intents: list
+  recap: str
+
+nodes:
+  intents:
+    type: map
+    over: "{state.cast}"
+    as: char
+    max_items: 8
+    node:
+      type: llm
+      prompt: character_intent
+      state_key: intent
+      parse_json: true
+      variables:
+        char: "{state.char}"
+        scene: "{state.scene}"
+        turn_n: "{state.turn_n}"
+    collect: intents
+
+  recap:
+    type: llm
+    prompt: turn_recap
+    state_key: recap
+    parse_json: false
+    variables:
+      scene: "{state.scene}"
+      cast: "{state.cast}"
+      intents: "{state.intents}"
+      turn_n: "{state.turn_n}"
+      instruction: "{state.instruction}"
+
+edges:
+  - from: START
+    to: intents
+  - from: intents
+    to: recap
+  - from: recap
+    to: END

@@ -2,7 +2,11 @@
   {% include "components/breadcrumb.html" %}
   <div id="story-main">
     {% if mode == "stage" %}
-      {% include "components/stage_card.html" %}
+      {% if stage.kind == "turn" %}
+        {% include "components/turn_card.html" %}
+      {% else %}
+        {% include "components/stage_card.html" %}
+      {% endif %}
     {% endif %}
   </div>
 </div>

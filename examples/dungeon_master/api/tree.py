@@ -27,6 +27,12 @@ CHARACTER_GRAPH = f"{GRAPH_DIR}/character.yaml"
 CHARACTER_SEED = "Draft this one character from the synopsis."
 CHAR_PREFIX = "char:"
 
+# Play loop (FR-477): turns are dynamic stages addressed by ``turn:<n>``, run by
+# the shared turn graph, and resolved at runtime like character cards.
+TURN_GRAPH = f"{GRAPH_DIR}/turn.yaml"
+TURN_PREFIX = "turn:"
+TURN_SEED = "Play this turn."
+
 
 @dataclass(frozen=True)
 class Stage:
@@ -107,7 +113,7 @@ def split_roster(raw: str) -> list[str]:
 
 
 def resolve_stage(doc: dict, name: str) -> Stage:
-    """The ``Stage`` for ``name`` — a static one, or a synthetic char stage (A1)."""
+    """The ``Stage`` for ``name`` — a static one, or a synthetic char/turn stage."""
     if name.startswith(CHAR_PREFIX):
         cid = name[len(CHAR_PREFIX) :]
         card = doc.get("characters", {}).get("cards", {}).get(cid, {})
@@ -122,7 +128,38 @@ def resolve_stage(doc: dict, name: str) -> Stage:
             var_name=label,
             output_key="character",
         )
+    if name.startswith(TURN_PREFIX):
+        # A play turn (FR-477). The turn graph is not run through _invoke_stage;
+        # the synthetic stage exists so _view/_entry/breadcrumb can address it.
+        n = name[len(TURN_PREFIX) :]
+        return Stage(
+            name=name,
+            label=f"Turn {n}",
+            graph=TURN_GRAPH,
+            context=("key_scene",),
+            seed=TURN_SEED,
+            parent="play",
+            kind="turn",
+            output_key="recap",
+        )
     return STAGE_BY_NAME.get(name, FIRST_STAGE)
+
+
+def preplan_complete(doc: dict) -> bool:
+    """Whether the whole preplan is reviewed (synopsis ✓, key scene ✓, all cards ✓).
+
+    This is the gate that unlocks the Play branch (FR-477 J5): play cannot begin
+    until there is a frozen synopsis, a frozen key scene, and a fully reviewed
+    cast to act it out.
+    """
+    if not doc.get("synopsis", {}).get("reviewed"):
+        return False
+    if not doc.get("key_scene", {}).get("reviewed"):
+        return False
+    chars = doc.get("characters", {})
+    roster = chars.get("roster", [])
+    cards = chars.get("cards", {})
+    return bool(roster) and all(cards.get(cid, {}).get("reviewed") for cid in roster)
 
 
 def breadcrumb(doc: dict) -> list[dict]:
@@ -185,4 +222,31 @@ def breadcrumb(doc: dict) -> list[dict]:
                     "member": True,
                 }
             )
+
+    # Play branch (FR-477): a peer after Characters, present only once the whole
+    # preplan is reviewed. Inside it, each turn is listed as a member peer.
+    if preplan_complete(doc):
+        turns = doc.get("turns", [])
+        in_play = current.startswith(TURN_PREFIX)
+        crumbs.append(
+            {
+                "label": "Play",
+                "stage": TURN_PREFIX + "1",
+                "current": False,
+                "reviewed": False,
+                "group": True,
+            }
+        )
+        if in_play:
+            for t in turns:
+                n = t.get("n")
+                crumbs.append(
+                    {
+                        "label": f"Turn {n}",
+                        "stage": f"{TURN_PREFIX}{n}",
+                        "current": current == f"{TURN_PREFIX}{n}",
+                        "reviewed": bool(t.get("recap", {}).get("reviewed")),
+                        "member": True,
+                    }
+                )
     return crumbs

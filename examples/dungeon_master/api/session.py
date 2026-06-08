@@ -35,13 +35,22 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from examples.dungeon_master.api import story_doc
+from examples.dungeon_master.api import story_doc, turn_ops
+from examples.dungeon_master.api.graph_app import (
+    clean_text,
+    get_app,
+)
+from examples.dungeon_master.api.graph_app import (
+    reset_caches as _reset_caches,
+)
 from examples.dungeon_master.api.tree import (
     CHAR_PREFIX,
     FIRST_STAGE,
     STAGE_BY_NAME,
+    TURN_PREFIX,
     Stage,
     breadcrumb,
+    preplan_complete,
     resolve_stage,
     split_roster,
     unique_slug,
@@ -57,36 +66,12 @@ STORY_ROOT = Path("outputs/dungeon-master")
 # A sensible default so the first card lands seeded, not empty (FR-474 J1).
 DEFAULT_TAGLINE = "10,000 B.C. in heat. Adult story."
 
-_app_cache: dict[str, object] = {}
-
-
-def _reset_caches() -> None:
-    """Reset the compiled-graph cache (for testing)."""
-    _app_cache.clear()
-
-
-def _get_app(graph: str):
-    """Compile + cache a stage graph (no checkpointer)."""
-    if graph not in _app_cache:
-        from yamlgraph.graph_loader import compile_graph, load_graph_config
-
-        config = load_graph_config(graph)
-        _app_cache[graph] = compile_graph(config).compile()
-    return _app_cache[graph]
+# Re-exported so tests can reset the shared graph cache via this module.
+__all__ = ["DMSession", "StageView", "_reset_caches"]
 
 
 def _story_dir(session_id: str) -> Path:
     return STORY_ROOT / session_id
-
-
-def _clean_text(value: object) -> str:
-    """Normalize a raw model result to plain string, stripping a stray fence."""
-    text = str(value or "").strip()
-    if text.startswith("```"):
-        text = text.split("```", 2)[1]
-        if text.startswith("json"):
-            text = text[4:]
-    return text.strip()
 
 
 @dataclass
@@ -101,6 +86,10 @@ class StageView:
     # The breadcrumb control model (Story / Synopsis / branch + member peers).
     crumbs: list[dict] = field(default_factory=list)
     error: str | None = None
+    # "" for an ordinary card, "turn" for a play turn (selects the two-column view).
+    kind: str = ""
+    # Read-only per-character intents for a turn (``[{name, thinking, intent}]``).
+    intents: list[dict] = field(default_factory=list)
 
 
 class DMSession:
@@ -134,17 +123,25 @@ class DMSession:
         """The per-stage sub-document ``{"text", "reviewed"}`` (created if absent).
 
         Static stages live at the top level; ``char:<id>`` stages are nested under
-        ``characters.cards`` (A2).
+        ``characters.cards`` (A2); ``turn:<n>`` stages reuse the turn's ``recap``
+        entry so weave/edit/accept operate on it unchanged (FR-477 J3).
         """
         if name.startswith(CHAR_PREFIX):
             cid = name[len(CHAR_PREFIX) :]
             cards = self._characters(doc)["cards"]
             return cards.setdefault(cid, {"name": cid, "text": "", "reviewed": False})
+        if name.startswith(TURN_PREFIX):
+            return turn_ops.turn_record(doc, int(name[len(TURN_PREFIX) :]))["recap"]
         return doc.setdefault(name, {"text": "", "reviewed": False})
 
     def _view(self, doc: dict, *, error: str | None = None) -> StageView:
         stage = self._stage(doc)
         entry = self._entry(doc, stage.name)
+        intents: list[dict] = []
+        if stage.kind == "turn":
+            intents = turn_ops.turn_intents(
+                doc, self._characters(doc), int(stage.name[len(TURN_PREFIX) :])
+            )
         return StageView(
             stage=stage.name,
             label=stage.label,
@@ -153,7 +150,28 @@ class DMSession:
             tagline=doc.get("tagline", DEFAULT_TAGLINE),
             crumbs=breadcrumb(doc),
             error=error,
+            kind=stage.kind,
+            intents=intents,
         )
+
+    def _turn_intents(self, doc: dict, n: int) -> list[dict]:
+        """The current turn's intents as ordered ``[{name, thinking, intent}]`` cards."""
+        turns = doc.get("turns", [])
+        if n < 1 or len(turns) < n:
+            return []
+        intents = turns[n - 1].get("intents", {})
+        chars = self._characters(doc)
+        out: list[dict] = []
+        for cid in chars["roster"]:
+            if cid in intents:
+                out.append(
+                    {
+                        "name": chars["cards"].get(cid, {}).get("name") or cid,
+                        "thinking": intents[cid].get("thinking", ""),
+                        "intent": intents[cid].get("intent", ""),
+                    }
+                )
+        return out
 
     def view(self) -> StageView:
         """The current stage's view (no LLM); used by the landing page."""
@@ -176,8 +194,8 @@ class DMSession:
             variables[ctx] = doc.get(ctx, {}).get("text", "")
         if stage.var_name:
             variables["name"] = stage.var_name
-        result = await _get_app(stage.graph).ainvoke(variables)
-        return _clean_text(result.get(stage.output_key or stage.name))
+        result = await get_app(stage.graph).ainvoke(variables)
+        return clean_text(result.get(stage.output_key or stage.name))
 
     # ── actions (operate on the current stage) ──────────────────────────────
 
@@ -203,7 +221,15 @@ class DMSession:
             if stage is FIRST_STAGE and not text.strip():
                 doc["tagline"] = prompt
 
-            entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
+            if stage.kind == "turn":
+                # Iterate re-rolls the whole turn (intents + recap together, J2);
+                # the prompt steers the recap.
+                n = int(stage.name[len(TURN_PREFIX) :])
+                entry["text"] = await turn_ops.invoke_turn(
+                    doc, self._characters(doc), n, instruction=prompt
+                )
+            else:
+                entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
             entry["reviewed"] = False
             story_doc.write(story_dir, doc)
             return self._view(doc)
@@ -288,6 +314,15 @@ class DMSession:
             return bool(doc.get("synopsis", {}).get("reviewed")) and (
                 cid in self._characters(doc)["cards"]
             )
+        if target.startswith(TURN_PREFIX):
+            # Play turns unlock only once the whole preplan is reviewed; a player
+            # may revisit any existing turn or open the next one.
+            if not preplan_complete(doc):
+                return False
+            suffix = target[len(TURN_PREFIX) :]
+            if not suffix.isdigit():
+                return False
+            return 1 <= int(suffix) <= len(doc.get("turns", [])) + 1
         stage = STAGE_BY_NAME.get(target)
         if stage is None or stage.kind == "roster":
             # Unknown stage, or the non-visitable Characters group.
@@ -299,14 +334,24 @@ class DMSession:
     async def _accept_target(
         self, doc: dict, story_dir: Path, stage: Stage
     ) -> str | None:
-        """The node to land on after accepting ``stage`` (FR-475)."""
+        """The node to land on after accepting ``stage`` (FR-475 / FR-477)."""
         if stage.name == "synopsis":
             await self._expand_roster(doc, story_dir)
             return "key_scene"
         if stage.name == "key_scene":
+            # Accepting the key scene may be the act that completes the preplan.
+            if preplan_complete(doc):
+                return f"{TURN_PREFIX}1"
             return self._next_unreviewed_char(doc)
         if stage.name.startswith(CHAR_PREFIX):
-            return self._next_unreviewed_char(doc, after=stage.name[len(CHAR_PREFIX) :])
+            nxt = self._next_unreviewed_char(doc, after=stage.name[len(CHAR_PREFIX) :])
+            if nxt is not None:
+                return nxt
+            # Last character reviewed: open Play if the rest of the preplan is too.
+            return f"{TURN_PREFIX}1" if preplan_complete(doc) else None
+        if stage.name.startswith(TURN_PREFIX):
+            n = int(stage.name[len(TURN_PREFIX) :])
+            return f"{TURN_PREFIX}{n + 1}"
         return None
 
     async def _expand_roster(self, doc: dict, story_dir: Path) -> None:
@@ -342,6 +387,11 @@ class DMSession:
         stage = resolve_stage(doc, target)
         entry = self._entry(doc, target)
         if stage.seed and not entry.get("text", "").strip():
-            entry["text"] = await self._invoke_stage(doc, stage, "", stage.seed)
+            if stage.kind == "turn":
+                entry["text"] = await turn_ops.invoke_turn(
+                    doc, self._characters(doc), int(stage.name[len(TURN_PREFIX) :])
+                )
+            else:
+                entry["text"] = await self._invoke_stage(doc, stage, "", stage.seed)
             entry["reviewed"] = False
             story_doc.write(story_dir, doc)

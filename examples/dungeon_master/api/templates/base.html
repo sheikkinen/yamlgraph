@@ -106,6 +106,30 @@
     }
     .iterate-prompt::placeholder { color: var(--muted); }
 
+    /* Two-column play turn: read-only intents aside + the recap card (FR-477). */
+    .story-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; }
+    #story-aside {
+      align-self: start;
+      background: var(--bg-secondary);
+      padding: 1rem; border-radius: 8px;
+      border-left: 4px solid var(--accent);
+    }
+    .aside-title { margin: 0 0 0.75rem; color: var(--accent); font-size: 1rem; }
+    .intent-card {
+      background: var(--bg-card); border-radius: 6px;
+      padding: 0.75rem; margin-bottom: 0.75rem;
+      border: 1px solid rgba(194,135,63,0.35);
+    }
+    .intent-card:last-child { margin-bottom: 0; }
+    .intent-name { color: var(--accent); font-weight: 700; margin-bottom: 0.4rem; }
+    .intent-thinking { color: var(--muted); font-style: italic; margin-bottom: 0.4rem; }
+    .intent-intent { color: var(--parchment); }
+    .intent-label {
+      display: inline-block; font-size: 0.7rem; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--accent); margin-right: 0.35rem;
+    }
+    @media (max-width: 768px) { .story-grid { grid-template-columns: 1fr; } }
+
     .error { color: #e06c6c; }
     .htmx-indicator { display: none; color: var(--accent); margin-top: 0.5rem; }
     .htmx-request .htmx-indicator { display: inline; }
