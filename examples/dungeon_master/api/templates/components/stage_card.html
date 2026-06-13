@@ -38,10 +38,10 @@
       <div class="card-actions">
         <button type="button" class="primary"
                 hx-post="/story/synopsis/weave" hx-include="closest form"
-                hx-indicator="#gen-spinner">↻ Iterate</button>
+                hx-indicator="#busy">↻ Iterate</button>
         <button type="button"
-                hx-post="/story/synopsis/accept" hx-include="closest form">✓ Accept</button>
-        <span id="gen-spinner" class="htmx-indicator">⏳ Weaving…</span>
+                hx-post="/story/synopsis/accept" hx-include="closest form"
+                hx-indicator="#busy">✓ Accept</button>
       </div>
     </form>
   {% endif %}

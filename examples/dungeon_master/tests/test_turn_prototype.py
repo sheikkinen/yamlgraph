@@ -232,3 +232,28 @@ def test_breadcrumb_lists_turn_members(client, tmp_path):
     body = resp.text
     assert _doc(tmp_path, session_id)["stage"] == "turn:1"
     assert "Turn 1" in body and "Turn 2" in body
+
+
+# ── 7. Every slow press shows the busy overlay; no dead inline spinner (FR-478) ─
+
+
+def test_busy_overlay_wires_every_slow_press(client, tmp_path):
+    session_id = _new_session(client)
+    # The full page shell carries the single #busy overlay, outside #app-body,
+    # and the retired inline spinner is gone.
+    page = client.get("/").text
+    assert 'id="busy"' in page
+    assert 'id="app-body"' in page
+    assert page.index('id="busy"') < page.index('id="app-body"')
+    assert "gen-spinner" not in page
+    # Iterate and Accept on the synopsis card point at the overlay.
+    assert page.count('hx-indicator="#busy"') >= 2
+
+    # On a turn page, Iterate/Accept and every breadcrumb nav link point at it.
+    body = _reach_play(client, tmp_path, session_id).text
+    assert "gen-spinner" not in body
+    # Every slow control carries the overlay: the 2 card buttons + each nav link
+    # (the fast `edit` textarea deliberately does not).
+    nav_count = body.count('hx-post="/story/nav"')
+    assert nav_count >= 1, "expected clickable breadcrumb nav links on a turn page"
+    assert body.count('hx-indicator="#busy"') == nav_count + 2

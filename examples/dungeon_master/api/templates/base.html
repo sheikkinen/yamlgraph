@@ -131,12 +131,27 @@
     @media (max-width: 768px) { .story-grid { grid-template-columns: 1fr; } }
 
     .error { color: #e06c6c; }
-    .htmx-indicator { display: none; color: var(--accent); margin-top: 0.5rem; }
-    .htmx-request .htmx-indicator { display: inline; }
-    .htmx-request.htmx-indicator { display: inline; }
+
+    /* Single busy overlay (FR-478): shown while any slow request is in flight.
+       Lives outside #app-body so the #app-body swap never destroys it; covers
+       the viewport to both signal "weaving" and swallow a second press. */
+    #busy { display: none; }
+    .htmx-request#busy {
+      display: block;
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(0, 0, 0, 0.15);
+      cursor: progress;
+    }
+    .busy-badge {
+      position: fixed; top: 0.75rem; right: 1rem;
+      background: var(--bg-secondary); color: var(--accent);
+      border: 1px solid var(--accent); border-radius: 4px;
+      padding: 0.35rem 0.7rem; font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
+  <div id="busy" aria-live="polite"><span class="busy-badge">⏳ Weaving…</span></div>
   <header>
     <h1>🎲 Dungeon Master</h1>
   </header>

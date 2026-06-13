@@ -4,7 +4,8 @@
     <a class="crumb{% if c.member %} crumb-member{% endif %}" href="#"
        hx-post="/story/nav"
        hx-vals='{"session_id": "{{ session_id }}", "stage": "{{ c.stage }}"}'
-       hx-target="#app-body" hx-swap="innerHTML">{{ c.label }}{% if c.reviewed %} ✓{% endif %}</a>
+       hx-target="#app-body" hx-swap="innerHTML"
+       hx-indicator="#busy">{{ c.label }}{% if c.reviewed %} ✓{% endif %}</a>
     {%- else -%}
     <span class="crumb{% if c.current %} crumb-current{% endif %}{% if c.member %} crumb-member{% endif %}">{{ c.label }}{% if c.reviewed %} ✓{% endif %}</span>
     {%- endif -%}
