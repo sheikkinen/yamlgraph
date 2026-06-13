@@ -149,7 +149,7 @@ repos:
     hooks:
       - id: jscpd-dup
         name: jscpd duplicate check (local)
-        entry: bash -c 'npx jscpd yamlgraph --threshold 10 --min-lines 10 --min-tokens 80 --format python --gitignore --reporters console'
+        entry: bash -c 'npx --yes jscpd@4.0.5 yamlgraph --threshold 10 --min-lines 10 --min-tokens 80 --format python --gitignore --reporters console'
         language: system
         pass_filenames: false
         files: \.py$
