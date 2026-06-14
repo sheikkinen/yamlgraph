@@ -125,6 +125,17 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         arc = variables.get("arc") or ""
         climax = variables.get("climax") or ""
         return f"FINAL CUT ({climax}):\n{arc}"
+    if prompt_name == "final_cut_turns":
+        # The turn-structured cut returns one {n, text} segment per played turn
+        # (FR-485). The mock reads the turn numbers from the assembled arc and
+        # emits one aligned segment each, so the alignment validator sees a 1:1
+        # mapping onto the played turns.
+        arc = variables.get("arc") or ""
+        climax = variables.get("climax") or ""
+        ns = [int(m) for m in re.findall(r"^Turn (\d+)", arc, re.M)]
+        return {
+            "turns": [{"n": n, "text": f"polished turn {n} ({climax})"} for n in ns]
+        }
     raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
 
@@ -924,3 +935,125 @@ def test_final_cut_autodrafts_on_entry(client, tmp_path):
     assert fc["reviewed"] is False
     # The composed draft is rendered on the page with the generic Accept control.
     assert "Accept" in resp.text
+
+
+# ── 27. validate_cut_turns: 1:1 alignment, raises on any divergence (FR-485) ──
+
+
+def test_validate_cut_turns_aligns_and_raises_on_divergence():
+    from examples.dungeon_master.api import turn_ops
+
+    played = [{"n": 1}, {"n": 2}, {"n": 3}]
+
+    # Happy path: exactly one segment per played turn, returned in played order.
+    aligned = turn_ops.validate_cut_turns(
+        played,
+        [
+            {"n": 2, "text": "two"},
+            {"n": 1, "text": "one"},
+            {"n": 3, "text": "three"},
+        ],
+    )
+    assert [s["n"] for s in aligned] == [1, 2, 3]
+    assert [s["text"] for s in aligned] == ["one", "two", "three"]
+
+    # A dropped turn is a defect — surfaced, never silently padded.
+    with pytest.raises(ValueError, match="missing"):
+        turn_ops.validate_cut_turns(
+            played, [{"n": 1, "text": "a"}, {"n": 2, "text": "b"}]
+        )
+
+    # A duplicated turn is a defect — never silently re-keyed by position.
+    with pytest.raises(ValueError, match="duplicat"):
+        turn_ops.validate_cut_turns(
+            played,
+            [
+                {"n": 1, "text": "a"},
+                {"n": 1, "text": "a2"},
+                {"n": 2, "text": "b"},
+                {"n": 3, "text": "c"},
+            ],
+        )
+
+    # An invented turn label (4, never played) is a defect.
+    with pytest.raises(ValueError, match="invented"):
+        turn_ops.validate_cut_turns(
+            played,
+            [
+                {"n": 1, "text": "a"},
+                {"n": 2, "text": "b"},
+                {"n": 4, "text": "d"},
+            ],
+        )
+
+
+# ── 28. The turn-structured cut is gated on scene_complete, like Final Cut ────
+
+
+def test_final_cut_turns_locked_until_scene_complete(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1, scene NOT complete
+    # Locked: not in the breadcrumb and a nav to it is refused.
+    resp = _nav(client, session_id, "final_cut_turns")
+    assert _doc(tmp_path, session_id)["stage"] != "final_cut_turns"
+    assert "Final Cut (Turns)" not in resp.text
+
+    # Play on to completion → the peer appears and is reachable.
+    resp2 = _reach_scene_complete(client, tmp_path, session_id)
+    assert "Final Cut (Turns)" in resp2.text
+    resp3 = _nav(client, session_id, "final_cut_turns")
+    assert _doc(tmp_path, session_id)["stage"] == "final_cut_turns"
+    assert resp3.status_code == 200
+
+
+# ── 29. The cut auto-drafts one polished segment per played turn (aligned) ────
+
+
+def test_final_cut_turns_autodrafts_aligned_track(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # 3 played turns
+    _nav(client, session_id, "final_cut_turns")
+    doc = _doc(tmp_path, session_id)
+    fct = doc["final_cut_turns"]
+    # The validated structure: exactly one segment per played turn, contiguous n.
+    assert [s["n"] for s in fct["turns"]] == [1, 2, 3]
+    assert all(s["text"].strip() for s in fct["turns"])
+    # A rendered text view exists for the generic edit control, not yet accepted.
+    assert fct["text"].strip()
+    assert fct["reviewed"] is False
+
+
+# ── 30. Additive: composing the turn-cut leaves recaps AND the FR-484 cut alone ─
+
+
+def test_final_cut_turns_is_additive_to_recaps_and_continuous_cut(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)
+
+    # Compose AND accept the FR-484 continuous Final Cut first…
+    _nav(client, session_id, "final_cut")
+    client.post(
+        "/story/synopsis/accept",
+        data={"session_id": session_id, "text": ""},
+    )
+    mid = _doc(tmp_path, session_id)
+    continuous_before = mid["final_cut"]["text"]
+    recaps_before = [t["recap"]["text"] for t in mid["turns"]]
+    reviewed_before = [t["recap"]["reviewed"] for t in mid["turns"]]
+
+    # …then compose and accept the turn-structured cut.
+    _nav(client, session_id, "final_cut_turns")
+    client.post(
+        "/story/synopsis/accept",
+        data={"session_id": session_id, "text": ""},
+    )
+    after = _doc(tmp_path, session_id)
+    # The turn-structured cut is its own reviewed artifact under a distinct key…
+    assert after["final_cut_turns"]["reviewed"] is True
+    assert after["final_cut_turns"]["turns"]
+    # …and it clobbers neither the continuous Final Cut…
+    assert after["final_cut"]["text"] == continuous_before
+    assert after["final_cut"]["reviewed"] is True
+    # …nor any played turn recap (byte-for-byte, still reviewed).
+    assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
+    assert [t["recap"]["reviewed"] for t in after["turns"]] == reviewed_before

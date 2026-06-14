@@ -1,0 +1,63 @@
+# Dungeon Master v2 — Turn-structured Final Cut compose graph (FR-485).
+#
+# A sibling of final_cut.yaml. Where final_cut dissolves the turns into one
+# flowing scene (FR-484), this leaf KEEPS the turn skeleton: it returns one
+# polished segment per played turn, aligned 1:1 to the play-by-play, while still
+# spending the whole-arc knowledge on de-repetition (state each standing fact in
+# the turn that introduces it) and climax emphasis (weight the marked turn).
+#
+# The output is STRUCTURED (parse_json: true): a {turns: [{n, text}]} object the
+# turn_ops.validate_cut_turns post-condition checks for 1:1 alignment with the
+# played arc — that deterministic guarantee is the leaf's reason to exist. The
+# played turns are not touched; this is a separate doc["final_cut_turns"]
+# artifact (additive).
+#
+# Inputs are assembled by turn_ops.final_cut_context(doc); draft + instruction
+# carry an Iterate's current rendered cut and steer.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/final_cut_turns.yaml \
+#     --var key_scene="..." --var arc="Turn 1 — ...\n\nTurn 2 — ..." \
+#     --var beats="- a beat" --var climax="Turn 2" \
+#     --var draft="" --var instruction="" --full
+version: "1.0"
+name: dm-final-cut-turns
+description: Compose one polished segment per played turn, aligned to the play-by-play
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # The whole arc goes in and one polished segment per turn comes out; reserve
+  # generous headroom for both a reasoning model's hidden tokens and the prose.
+  max_tokens: 4000
+
+state:
+  key_scene: str
+  arc: str
+  beats: str
+  climax: str
+  draft: str
+  instruction: str
+  cut: dict
+
+nodes:
+  final_cut_turns:
+    type: llm
+    prompt: final_cut_turns
+    state_key: cut
+    parse_json: true
+    variables:
+      key_scene: "{state.key_scene}"
+      arc: "{state.arc}"
+      beats: "{state.beats}"
+      climax: "{state.climax}"
+      draft: "{state.draft}"
+      instruction: "{state.instruction}"
+
+edges:
+  - from: START
+    to: final_cut_turns
+  - from: final_cut_turns
+    to: END

@@ -46,6 +46,7 @@ from examples.dungeon_master.api.graph_app import (
 from examples.dungeon_master.api.tree import (
     CHAR_PREFIX,
     FINAL_CUT,
+    FINAL_CUT_TURNS,
     FIRST_STAGE,
     STAGE_BY_NAME,
     TURN_PREFIX,
@@ -253,6 +254,15 @@ class DMSession:
                 entry["text"] = await turn_ops.invoke_final_cut(
                     doc, instruction=prompt, draft=text
                 )
+            elif stage.name == FINAL_CUT_TURNS:
+                # Iterate re-composes the turn-structured cut: one validated
+                # {n, text} segment per played turn (FR-485). The structured track
+                # carries the alignment guarantee; text is the rendered view.
+                segments = await turn_ops.invoke_final_cut_turns(
+                    doc, instruction=prompt, draft=text
+                )
+                entry["turns"] = segments
+                entry["text"] = turn_ops.render_cut_turns(segments)
             else:
                 entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
             entry["reviewed"] = False
@@ -348,8 +358,9 @@ class DMSession:
             if not suffix.isdigit():
                 return False
             return 1 <= int(suffix) <= len(doc.get("turns", [])) + 1
-        if target == FINAL_CUT:
-            # The terminal Final Cut leaf unlocks only once the scene is complete.
+        if target in (FINAL_CUT, FINAL_CUT_TURNS):
+            # The terminal Final Cut leaves (continuous FR-484 + turn-structured
+            # FR-485) both unlock only once the scene is complete.
             return scene_is_complete(doc)
         stage = STAGE_BY_NAME.get(target)
         if stage is None or stage.kind == "roster":
@@ -426,6 +437,10 @@ class DMSession:
                 )
             elif stage.name == FINAL_CUT:
                 entry["text"] = await turn_ops.invoke_final_cut(doc)
+            elif stage.name == FINAL_CUT_TURNS:
+                segments = await turn_ops.invoke_final_cut_turns(doc)
+                entry["turns"] = segments
+                entry["text"] = turn_ops.render_cut_turns(segments)
             else:
                 entry["text"] = await self._invoke_stage(doc, stage, "", stage.seed)
             entry["reviewed"] = False

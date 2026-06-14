@@ -15,7 +15,11 @@ import re
 from difflib import SequenceMatcher
 
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
-from examples.dungeon_master.api.tree import FINAL_CUT_GRAPH, TURN_GRAPH
+from examples.dungeon_master.api.tree import (
+    FINAL_CUT_GRAPH,
+    FINAL_CUT_TURNS_GRAPH,
+    TURN_GRAPH,
+)
 
 
 def turn_record(doc: dict, n: int) -> dict:
@@ -414,3 +418,81 @@ async def invoke_final_cut(doc: dict, instruction: str = "", draft: str = "") ->
         }
     )
     return clean_text(result.get("final_cut"))
+
+
+def validate_cut_turns(played_turns: list[dict], segments: list[dict]) -> list[dict]:
+    """Verify a structured Final Cut maps 1:1 onto the played turns (FR-485).
+
+    The turn-structured cut's reason to exist is that its alignment to the played
+    arc is a *deterministic post-condition* — unlike FR-484's continuous blob,
+    which can only be judged by eye. This pure validator enforces it: exactly one
+    segment per played turn, the emitted ``n``-set equal to the played ``n``-set,
+    none missing, none invented, none duplicated. It **raises** on any divergence
+    — a misaligned polished play-by-play is a defect, surfaced, never silently
+    padded, truncated, nor re-keyed by position (FR-485 OQ3; Commandment 6). The
+    model's emitted ``n`` labels are validated, not trusted to be in order.
+
+    Returns the segments as ``[{n, text}]`` ordered by the played turn order.
+    """
+    played_ns = [int(t.get("n")) for t in played_turns]
+    seg_by_n: dict[int, dict] = {}
+    for seg in segments:
+        raw_n = seg.get("n") if isinstance(seg, dict) else getattr(seg, "n", None)
+        if raw_n is None:
+            raise ValueError(f"Final Cut segment has no turn number: {seg!r}")
+        try:
+            n = int(raw_n)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"Final Cut segment has a non-integer turn number: {seg!r}"
+            ) from None
+        if n in seg_by_n:
+            raise ValueError(f"Final Cut duplicated turn {n}")
+        text = seg.get("text") if isinstance(seg, dict) else getattr(seg, "text", "")
+        seg_by_n[n] = {"n": n, "text": str(text or "")}
+    emitted, expected = set(seg_by_n), set(played_ns)
+    if emitted != expected:
+        missing = sorted(expected - emitted)
+        invented = sorted(emitted - expected)
+        raise ValueError(
+            "Final Cut misaligned with the played arc: "
+            f"missing turns {missing}, invented turns {invented}"
+        )
+    return [seg_by_n[n] for n in played_ns]
+
+
+def render_cut_turns(segments: list[dict]) -> str:
+    """Join validated ``{n, text}`` segments into a readable turn-structured cut.
+
+    A derived view for the generic edit control (the structured ``segments`` carry
+    the alignment guarantee; this is only the human-readable rendering).
+    """
+    return "\n\n".join(f"Turn {s['n']} — {s['text']}" for s in segments)
+
+
+async def invoke_final_cut_turns(
+    doc: dict, instruction: str = "", draft: str = ""
+) -> list[dict]:
+    """Compose one polished segment per played turn from the whole arc (FR-485).
+
+    Runs ``final_cut_turns.yaml`` once over :func:`final_cut_context` plus the
+    current draft and a writer's instruction, parses the structured
+    ``{turns: [{n, text}]}`` output, and validates it aligns 1:1 with the played
+    turns (:func:`validate_cut_turns` raises on mismatch). Reads the played turns;
+    writes none — the polished track is a separate ``doc["final_cut_turns"]``
+    artifact, so the play-by-play accept contract is preserved.
+    """
+    result = await get_app(FINAL_CUT_TURNS_GRAPH).ainvoke(
+        {
+            **final_cut_context(doc),
+            "draft": draft,
+            "instruction": instruction,
+            "cut": {},
+        }
+    )
+    raw = result.get("cut")
+    if isinstance(raw, dict):
+        segments = raw.get("turns") or []
+    else:
+        segments = getattr(raw, "turns", None) or []
+    return validate_cut_turns(doc.get("turns", []), segments)

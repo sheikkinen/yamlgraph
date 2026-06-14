@@ -41,6 +41,17 @@ FINAL_CUT = "final_cut"
 FINAL_CUT_GRAPH = f"{GRAPH_DIR}/final_cut.yaml"
 FINAL_CUT_SEED = "Compose the final cut of the whole played scene."
 
+# Turn-structured Final Cut (FR-485): a sibling terminal leaf that, instead of
+# dissolving the turns into one flowing scene (FR-484), keeps the turn skeleton —
+# one polished segment per played turn, aligned 1:1 to the play-by-play, with the
+# whole-arc knowledge spent on de-repetition and climax emphasis. A separate
+# ``doc["final_cut_turns"]`` artifact, gated identically on ``scene_is_complete``.
+FINAL_CUT_TURNS = "final_cut_turns"
+FINAL_CUT_TURNS_GRAPH = f"{GRAPH_DIR}/final_cut_turns.yaml"
+FINAL_CUT_TURNS_SEED = (
+    "Compose the turn-structured final cut of the whole played scene."
+)
+
 
 @dataclass(frozen=True)
 class Stage:
@@ -96,6 +107,13 @@ STAGES: tuple[Stage, ...] = (
         FINAL_CUT_GRAPH,
         seed=FINAL_CUT_SEED,
         output_key="final_cut",
+    ),
+    Stage(
+        FINAL_CUT_TURNS,
+        "Final Cut (Turns)",
+        FINAL_CUT_TURNS_GRAPH,
+        seed=FINAL_CUT_TURNS_SEED,
+        output_key="cut",
     ),
 )
 STAGE_BY_NAME = {s.name: s for s in STAGES}
@@ -282,7 +300,8 @@ def breadcrumb(doc: dict) -> list[dict]:
                     }
                 )
     # Final Cut (FR-484): a terminal peer after Play, present once the director
-    # has reported the scene complete on any turn.
+    # has reported the scene complete on any turn. The turn-structured cut
+    # (FR-485) is a sibling peer gated identically — the two finishes coexist.
     if scene_is_complete(doc):
         fc = doc.get("final_cut", {})
         crumbs.append(
@@ -291,6 +310,15 @@ def breadcrumb(doc: dict) -> list[dict]:
                 "stage": FINAL_CUT,
                 "current": current == FINAL_CUT,
                 "reviewed": bool(fc.get("reviewed")),
+            }
+        )
+        fct = doc.get("final_cut_turns", {})
+        crumbs.append(
+            {
+                "label": "Final Cut (Turns)",
+                "stage": FINAL_CUT_TURNS,
+                "current": current == FINAL_CUT_TURNS,
+                "reviewed": bool(fct.get("reviewed")),
             }
         )
     return crumbs
