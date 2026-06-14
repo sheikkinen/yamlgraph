@@ -146,6 +146,11 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
     prior = turn_direction(doc, n - 1)
     _clamp_phase(direction, prior)
     _canonicalize_beats(direction, prior, doc.get("key_scene", {}).get("text", ""))
+    _filter_continuity(
+        direction,
+        [c["name"] for c in cast],
+        doc.get("key_scene", {}).get("text", ""),
+    )
     record["direction"] = direction
     return clean_text(result.get("recap"))
 
@@ -254,6 +259,66 @@ def _canonicalize_beats(direction: dict, prior: dict, key_scene_text: str) -> No
             satisfied.add(i)
     direction["beats_satisfied"] = [canonical[i] for i in sorted(satisfied)]
     direction["beats_total"] = len(canonical)
+
+
+_NAME_SPLIT_RE = re.compile(r"\s+[—–-]\s+")
+
+
+def _parse_scene_characters(key_scene_text: str) -> list[str]:
+    """The names declared in a frozen key-scene's ``CHARACTERS`` block (FR-483).
+
+    The scene lists ``CHARACTERS:`` as ``- Name — clause`` bullets between that
+    label and the next uppercase section label. Returns each bullet's name (the
+    text before the dash) in scene order; empty when the card has no CHARACTERS
+    block. Mirrors :func:`parse_beats`, reading names instead of beat phrases.
+    """
+    names: list[str] = []
+    in_chars = False
+    for line in key_scene_text.splitlines():
+        stripped = line.strip()
+        if _SECTION_RE.match(stripped):
+            in_chars = stripped.upper().startswith("CHARACTERS:")
+            continue
+        if in_chars and stripped.startswith("- "):
+            name = _NAME_SPLIT_RE.split(stripped[2:].strip(), maxsplit=1)[0].strip()
+            if name:
+                names.append(name)
+    return names
+
+
+def _filter_continuity(
+    direction: dict, roster_names: list[str], key_scene_text: str
+) -> None:
+    """Drop continuity flags about a scene-declared non-roster actor (FR-483 B).
+
+    A breach the DM should see is a name taking decisive action with **no
+    provenance** — neither a rostered character nor an actor the frozen scene
+    cast. A non-roster actor the scene's CHARACTERS block already names (a beast,
+    a third party the synopsis introduced) acting at the turn is *expected*, so
+    its flag is noise, not signal. Suppress flags that mention such a
+    scene-declared name; keep every other flag — the filter narrows the breach
+    definition, it does not silence it.
+
+    Exact-name containment (case-insensitive, word-boundary), not fuzzy. Accepted
+    residual (J4): a flag mentioning the scene actor for an unrelated legitimate
+    reason is over-suppressed; acceptable in the prototype.
+    """
+    roster_lower = {n.lower() for n in roster_names}
+    declared = [
+        n
+        for n in _parse_scene_characters(key_scene_text)
+        if n.lower() not in roster_lower
+    ]
+    if not declared:
+        return
+    flags = direction.get("continuity") or []
+    direction["continuity"] = [
+        f
+        for f in flags
+        if not any(
+            re.search(rf"\b{re.escape(n.lower())}\b", f.lower()) for n in declared
+        )
+    ]
 
 
 def _direction_dict(raw: object) -> dict:

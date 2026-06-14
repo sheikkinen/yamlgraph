@@ -644,3 +644,126 @@ def test_match_beat_drops_phrase_that_clears_nothing():
     assert turn_ops._match_beat("Kara corners Tarek on the dry ledge", canonical) == 0
     # …but an unrelated phrase is dropped, never invented (Commandment 6).
     assert turn_ops._match_beat("the weather turned cold overnight", canonical) is None
+
+
+# ── FR-483: scene-pivotal non-roster actors (casting + continuity) ───────────
+
+
+def _continuity_execute_prompt(flags):
+    """An ``execute_prompt`` mock driving ``turn_direct.continuity`` for a turn.
+
+    Returns ``flags`` verbatim as the director's continuity list so a test can
+    prove the code-side filter (FR-483 B) suppresses a scene-declared actor while
+    keeping a no-provenance phantom. Every other prompt delegates to the default.
+    """
+
+    def _inner(prompt_name, variables=None, **kwargs):
+        variables = variables or {}
+        draft = variables.get("draft") or ""
+        if prompt_name == "turn_direct" and not draft.strip():
+            return {
+                "phase": "rising",
+                "establishing": "",
+                "beats_satisfied": [],
+                "scene_complete": False,
+                "steer": "",
+                "continuity": list(flags),
+            }
+        return _mock_execute_prompt(prompt_name, variables, **kwargs)
+
+    return _inner
+
+
+# ── 19. The key-scene prompt permits a pivotal non-roster actor (A) ──────────
+
+
+def test_key_scene_prompt_permits_non_roster_actor():
+    import pathlib
+
+    from jinja2 import Template
+
+    prompt_path = pathlib.Path("examples/dungeon_master/prompts/key_scene.yaml")
+    content = yaml.safe_load(prompt_path.read_text())
+    system = content["system"]
+    # The scoped permission is gated under {% if roster %}: present once a roster
+    # is bound, absent when it is not (so the lone-pass path is unchanged).
+    bound = Template(system).render(roster="Kara\nTarek")
+    unbound = Template(system).render(roster="")
+    assert "pivotal non-roster actor" in bound
+    assert "pivotal non-roster actor" not in unbound
+
+
+# ── 20. A scene-declared non-roster actor is not a continuity breach (B) ─────
+
+
+def test_scene_declared_actor_not_flagged_but_phantom_kept(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1, roster {kara, tarek}
+    # Freeze a scene that CASTS a non-roster actor (Krog) in its CHARACTERS block.
+    doc = _doc(tmp_path, session_id)
+    doc["key_scene"]["text"] = (
+        "SUMMARY: Kara corners Tarek as the cave bear Krog attacks.\n"
+        "CHARACTERS:\n"
+        "- Kara — hunter\n"
+        "- Tarek — rival hunter\n"
+        "- Krog — a cave bear that kills Tarek\n"
+        "BEATS:\n- Kara corners Tarek on the ledge\nEND:\n- Kara holds the ledge\n"
+    )
+    story_doc.write(tmp_path / session_id, doc)
+    # The director flags BOTH the scene-cast actor and a no-provenance phantom.
+    flags = ["Krog mauls Tarek at the turn", "Zalor strikes from nowhere"]
+    with (
+        patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt",
+            side_effect=_continuity_execute_prompt(flags),
+        ),
+        patch(
+            "yamlgraph.executor.execute_prompt",
+            side_effect=_continuity_execute_prompt(flags),
+        ),
+    ):
+        client.post(
+            "/story/synopsis/weave",
+            data={"session_id": session_id, "text": "Turn 1 — x", "prompt": "re-read"},
+        )
+    continuity = _doc(tmp_path, session_id)["turns"][0]["direction"]["continuity"]
+    # Krog is declared in the scene's CHARACTERS — acting at the turn is expected.
+    assert not any("Krog" in f for f in continuity)
+    # Zalor is in NEITHER roster nor scene — the breach flag is KEPT (narrow, not
+    # silence): the filter must not swallow a genuinely-invented name.
+    assert any("Zalor" in f for f in continuity)
+
+
+# ── 21. parse_scene_characters reads the CHARACTERS bullets' names ──────────
+
+
+def test_parse_scene_characters_reads_names_before_the_dash():
+    from examples.dungeon_master.api import turn_ops
+
+    scene = (
+        "SUMMARY: a turn.\nCHARACTERS:\n- Tarka — hunter tracking Krog\n"
+        "- Krog — a cave bear\nSTART:\n- they stand on the ledge\n"
+    )
+    assert turn_ops._parse_scene_characters(scene) == ["Tarka", "Krog"]
+    # A card with no CHARACTERS block declares no cast.
+    assert turn_ops._parse_scene_characters("SUMMARY: nothing structured") == []
+
+
+def test_filter_continuity_drops_scene_actor_keeps_phantom():
+    from examples.dungeon_master.api import turn_ops
+
+    scene = "CHARACTERS:\n- Tarka — hunter\n- Krog — a cave bear\nBEATS:\n- a beat\n"
+    direction = {"continuity": ["Krog kills Vane at the turn", "Zalor from nowhere"]}
+    turn_ops._filter_continuity(direction, ["Tarka", "Vane"], scene)
+    # Krog is scene-declared but non-roster → its flag is suppressed.
+    assert not any("Krog" in f for f in direction["continuity"])
+    # Zalor is in neither roster nor scene → kept (filter narrows, not silences).
+    assert any("Zalor" in f for f in direction["continuity"])
+
+    # No CHARACTERS block → no declared actor → nothing suppressed (the Vane case
+    # in prose, FR-479 test 11, stays a real breach).
+    prose = {"continuity": ["Naru frees the herd"]}
+    turn_ops._filter_continuity(
+        prose, ["Kara", "Tarek"], "Kara corners Tarek while Naru frees the herd."
+    )
+    assert prose["continuity"] == ["Naru frees the herd"]

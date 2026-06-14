@@ -60,10 +60,17 @@ system: |
     revised card — keep every section and every still-true fact, change only what
     the instruction asks.
   {% if roster %}
-  CAST (authoritative): the story's characters have already been named. Use
-  EXACTLY these names in CHARACTERS and throughout — same spelling, no variants,
-  no new principals the list does not contain. Refer to a faction by the rostered
-  leader's name. Match each scene role to a name on this list:
+  CAST (authoritative): the story's principal characters have already been named.
+  Use EXACTLY these names for them in CHARACTERS and throughout — same spelling,
+  no variants. Refer to a faction by the rostered leader's name. Do NOT invent a
+  new *human* principal that the synopsis and this list do not already contain.
+
+  You MAY introduce one pivotal non-roster actor — a beast, an animal, a third
+  party, or a force of nature — when the synopsis names or clearly supports it
+  AND it drives the turn (it acts at, or is acted upon at, the decisive beat).
+  Name it consistently across SUMMARY, CHARACTERS, BEATS, and END. It earns its
+  CHARACTERS line by acting at the turn, not by being background; the principal
+  cap still holds. Match each scene role to a name on this list:
   {{ roster }}
   {% endif %}
 
@@ -82,6 +89,8 @@ user: |
   Keep CHARACTERS to the handful of principals; collapse crowds into one group
   line.
   {% if roster %}
-  Use only the rostered names above for the characters — introduce no name the
-  roster does not list.
+  Use the rostered names above for the story's principals — introduce no new
+  *human* name the roster does not list. You MAY name one pivotal non-roster
+  actor (a beast, a third party, a force of nature) that the synopsis supports
+  and that drives the turn.
   {% endif %}

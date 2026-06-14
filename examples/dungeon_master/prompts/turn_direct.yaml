@@ -31,9 +31,12 @@ system: |
     it to one sentence, or an empty string when the turn sits correctly on the
     arc. Do NOT use steer to police who may act (that is continuity, below).
   - continuity: a list of short flags for breaks the DM should see — most
-    importantly, any name taking a decisive action that is NOT one of the
-    rostered cast (a character the plan names but who has no intent of their own).
-    Report it; do not silently rewrite it. Empty when nothing is amiss.
+    importantly, a name taking a decisive action that is in NEITHER the rostered
+    cast NOR the scene's declared CHARACTERS (a name with no provenance — not a
+    rostered character and not an actor the scene cast). A non-roster actor the
+    scene's CHARACTERS list already names (a beast, a third party) acting at the
+    turn is expected, not a breach — do not flag it. Report a real breach; do not
+    silently rewrite it. Empty when nothing is amiss.
 
 user: |
   THE SCENE and what has actually happened so far (this is turn {{ turn_n }}):
