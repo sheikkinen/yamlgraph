@@ -71,6 +71,16 @@ STORY_ROOT = Path("outputs/dungeon-master")
 # A sensible default so the first card lands seeded, not empty (FR-474 J1).
 DEFAULT_TAGLINE = "10,000 B.C. in Heat. Adult story. Explicit. Germanic Names. Lolita."
 
+# Shown when a generation comes back empty with no recorded error — the shape a
+# provider content-policy block usually takes (an empty completion, not a raise).
+# Surfacing it keeps the DM from mistaking a decline for a blank-card bug, and the
+# blank is never persisted over the existing draft (Commandment 6: no silent
+# fallback).
+DECLINED_MESSAGE = (
+    "The model returned nothing — the request was most likely declined. "
+    "Try rephrasing the scene or softening the explicit details, then Iterate again."
+)
+
 # Re-exported so tests can reset the shared graph cache via this module.
 __all__ = ["DMSession", "StageView", "_reset_caches"]
 
@@ -199,6 +209,15 @@ class DMSession:
             ]
             variables["roster"] = "\n".join(names)
         result = await get_app(stage.graph).ainvoke(variables)
+        errors = result.get("errors") or []
+        if errors:
+            # The graph swallowed a node failure into its errors list (e.g. a
+            # provider content-policy block on an explicit scene). Surface the real
+            # reason instead of returning the empty output it left behind
+            # (Commandment 6: expose the fault, never hide it behind a blank card).
+            last = errors[-1]
+            reason = getattr(last, "message", None) or str(last)
+            raise RuntimeError(reason)
         return clean_text(result.get(stage.output_key or stage.name))
 
     # ── actions (operate on the current stage) ──────────────────────────────
@@ -260,6 +279,11 @@ class DMSession:
                 entry["text"] = turn_ops.render_walkthrough(wt["setting"], wt["turns"])
             else:
                 entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
+            if not entry.get("text", "").strip():
+                # An empty generation with no recorded error is the silent shape of
+                # a content-policy decline. Raise so the DM sees feedback and the
+                # blank is never written over the draft (Commandment 6).
+                raise RuntimeError(DECLINED_MESSAGE)
             entry["reviewed"] = False
             story_doc.write(story_dir, doc)
             return self._view(doc)

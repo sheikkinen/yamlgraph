@@ -25,14 +25,14 @@ templates = Jinja2Templates(directory="examples/dungeon_master/api/templates")
 
 
 def render_stage(request: Request, view: StageView, session_id: str) -> HTMLResponse:
-    """Render the current stage's card (or an error card) as an #app-body fragment."""
-    if view.error:
-        return templates.TemplateResponse(
-            request=request,
-            name="components/error.html",
-            context={"error": view.error, "session_id": session_id},
-            status_code=400,
-        )
+    """Render the current stage's card as an #app-body fragment.
+
+    A failure renders the *same* app body with an error banner above the card,
+    not a dead-end replacement: the breadcrumb and the DM's draft survive so they
+    can rephrase and retry in place. The response stays 2xx because htmx swaps only
+    successful responses — a 4xx body would be silently dropped, leaving the DM
+    with no feedback at all.
+    """
     return templates.TemplateResponse(
         request=request,
         name="components/app_body.html",
@@ -41,6 +41,7 @@ def render_stage(request: Request, view: StageView, session_id: str) -> HTMLResp
             "crumbs": view.crumbs,
             "stage": view,
             "session_id": session_id,
+            "error": view.error,
         },
     )
 

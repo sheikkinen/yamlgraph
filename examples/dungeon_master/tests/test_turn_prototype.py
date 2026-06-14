@@ -1384,3 +1384,72 @@ def test_finishes_chain_through_accept_to_walkthrough(client, tmp_path):
     )
     assert _doc(tmp_path, session_id)["stage"] == "walkthrough"
     assert resp.status_code == 200
+
+
+# ── 41. A declined (empty) generation surfaces, never silently blanks ─────────
+
+
+def test_weave_declined_empty_completion_surfaces_message(client, tmp_path):
+    """An empty completion (a content-policy decline) is shown, not swallowed.
+
+    A Vertex/Gemini SAFETY block on an explicit scene returns an *empty* string
+    rather than raising. The DM must be told the request was declined — not left
+    staring at a blank card that reads like a bug — and nothing blank may be
+    persisted as the synopsis.
+    """
+    session_id = _new_session(client)
+
+    def _decline(prompt_name, variables=None, **kwargs):
+        if prompt_name == "synopsis":
+            return ""  # a blocked completion comes back empty, not as an error
+        return _mock_execute_prompt(prompt_name, variables, **kwargs)
+
+    with (
+        patch("yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=_decline),
+        patch("yamlgraph.executor.execute_prompt", side_effect=_decline),
+    ):
+        resp = client.post(
+            "/story/synopsis/weave",
+            data={"session_id": session_id, "text": "", "prompt": "an explicit scene"},
+        )
+
+    # htmx swaps only 2xx — a dropped 400 would leave the DM with no feedback.
+    assert resp.status_code == 200
+    # The DM is told the request was declined.
+    assert "declined" in resp.text.lower()
+    # The breadcrumb survives (the card is not replaced by a dead-end).
+    assert 'id="app-shell"' in resp.text
+    # Nothing blank was persisted as the synopsis — the doc is either untouched
+    # (never written) or carries no blank synopsis text.
+    try:
+        synopsis = story_doc.read(tmp_path / session_id).get("synopsis", {})
+    except FileNotFoundError:
+        synopsis = {}
+    assert not synopsis.get("text")
+
+
+# ── 42. A provider error surfaces without losing the DM's place or draft ──────
+
+
+def test_weave_provider_error_surfaces_without_losing_place(client, tmp_path):
+    """A raised provider error is shown in-place, preserving breadcrumb + draft."""
+    session_id = _new_session(client)
+
+    def _boom(prompt_name, variables=None, **kwargs):
+        if prompt_name == "synopsis":
+            raise RuntimeError("blocked by content policy")
+        return _mock_execute_prompt(prompt_name, variables, **kwargs)
+
+    with (
+        patch("yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=_boom),
+        patch("yamlgraph.executor.execute_prompt", side_effect=_boom),
+    ):
+        resp = client.post(
+            "/story/synopsis/weave",
+            data={"session_id": session_id, "text": "my draft", "prompt": "go"},
+        )
+
+    assert resp.status_code == 200  # swappable, not a dropped 400
+    assert 'id="app-shell"' in resp.text  # breadcrumb preserved
+    assert "blocked by content policy" in resp.text  # the error reaches the DM
+    assert "my draft" in resp.text  # the draft is kept so the DM can rephrase

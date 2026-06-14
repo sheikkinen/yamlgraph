@@ -1,5 +1,8 @@
 <div id="app-shell">
   {% include "components/breadcrumb.html" %}
+  {% if error %}
+    <div class="error-banner" role="alert">⚠️ {{ error }}</div>
+  {% endif %}
   <div id="story-main">
     {% if mode == "stage" %}
       {% if stage.kind == "turn" %}
