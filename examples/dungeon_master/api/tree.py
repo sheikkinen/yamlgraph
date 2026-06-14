@@ -54,6 +54,9 @@ class Stage:
     var_name: str = ""
     # The graph's output state_key, when it differs from ``name`` (e.g. roster, char).
     output_key: str = ""
+    # When True, the rostered character display names are threaded into the graph
+    # as a ``roster`` variable so generation binds to the cast (FR-480).
+    include_roster: bool = False
 
 
 # The static stage tree. Adding a static stage extends the app; per-character
@@ -67,6 +70,7 @@ STAGES: tuple[Stage, ...] = (
         context=("synopsis",),
         parent="synopsis",
         seed="Write the single pivotal key scene implied by the synopsis.",
+        include_roster=True,
     ),
     Stage(
         "characters",

@@ -71,6 +71,18 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
     if prompt_name == "synopsis":
         return SYNOPSIS_TEXT
     if prompt_name == "key_scene":
+        # FR-480: a roster-bound key scene uses EXACTLY the rostered names. When
+        # the binding threads the roster through, the scene is built from those
+        # names; without it the generator drifts (KEY_SCENE_TEXT names "Naru",
+        # a character the roster never sanctioned).
+        roster = variables.get("roster") or ""
+        names = [n.strip() for n in re.split(r"[\n,]+", roster) if n.strip()]
+        if names:
+            cast = "\n".join(f"- {n} — drives the scene" for n in names)
+            return (
+                f"SUMMARY: {names[0]} confronts the others on the last dry ledge.\n"
+                f"CHARACTERS:\n{cast}"
+            )
         return KEY_SCENE_TEXT
     if prompt_name == "character_roster":
         return ROSTER_TEXT
@@ -372,3 +384,25 @@ def test_phantom_actor_raises_continuity_flag(client, tmp_path):
     # The flag is surfaced to the DM, and NOT silently applied as a steer (J2).
     assert "Naru" in resp.text
     assert direction["steer"] == ""
+
+
+# ── 12. The key scene is generated bound to the roster's names (FR-480) ──────
+
+
+def test_key_scene_binds_to_roster_names(client, tmp_path):
+    session_id = _new_session(client)
+    client.post(
+        "/story/synopsis/weave",
+        data={"session_id": session_id, "text": "", "prompt": "a flooded valley"},
+    )
+    _accept(client, session_id)  # synopsis → roster derived → key_scene drafted
+    doc = _doc(tmp_path, session_id)
+    assert doc["stage"] == "key_scene"
+    cards = doc["characters"]["cards"]
+    roster_names = {cards[cid]["name"] for cid in doc["characters"]["roster"]}
+    scene = doc["key_scene"]["text"]
+    # Every proper name in the generated scene is one the roster sanctioned: the
+    # unbound generator's drift name "Naru" cannot appear once the roster is bound.
+    scene_names = set(re.findall(r"\b[A-Z][a-z]+\b", scene))
+    assert "Naru" not in scene
+    assert scene_names <= roster_names

@@ -59,6 +59,13 @@ system: |
   - Otherwise, apply the instruction to the existing card and return the full
     revised card — keep every section and every still-true fact, change only what
     the instruction asks.
+  {% if roster %}
+  CAST (authoritative): the story's characters have already been named. Use
+  EXACTLY these names in CHARACTERS and throughout — same spelling, no variants,
+  no new principals the list does not contain. Refer to a faction by the rostered
+  leader's name. Match each scene role to a name on this list:
+  {{ roster }}
+  {% endif %}
 
 user: |
   Synopsis:
@@ -74,3 +81,7 @@ user: |
   and bullet points only — no prose, no adjective standing in for a missing beat.
   Keep CHARACTERS to the handful of principals; collapse crowds into one group
   line.
+  {% if roster %}
+  Use only the rostered names above for the characters — introduce no name the
+  roster does not list.
+  {% endif %}

@@ -204,6 +204,16 @@ class DMSession:
             variables[ctx] = doc.get(ctx, {}).get("text", "")
         if stage.var_name:
             variables["name"] = stage.var_name
+        if stage.include_roster:
+            # Bind generation to the cast: the rostered display names are the
+            # authoritative character names (FR-480), so the scene cannot mint a
+            # name the roster never sanctioned.
+            chars = doc.get("characters", {})
+            cards = chars.get("cards", {})
+            names = [
+                cards.get(cid, {}).get("name") or cid for cid in chars.get("roster", [])
+            ]
+            variables["roster"] = "\n".join(names)
         result = await get_app(stage.graph).ainvoke(variables)
         return clean_text(result.get(stage.output_key or stage.name))
 

@@ -7,7 +7,8 @@
 #
 # Usage:
 #   yamlgraph graph run examples/dungeon_master/key_scene.yaml \
-#     --var synopsis="..." --var draft="" --var instruction="raise the stakes" --full
+#     --var synopsis="..." --var draft="" --var instruction="raise the stakes" \
+#     --var roster="" --full
 version: "1.0"
 name: dm-key-scene
 description: Weave one pivotal key scene from a synopsis + draft + instruction
@@ -27,6 +28,7 @@ state:
   synopsis: str
   draft: str
   instruction: str
+  roster: str
   key_scene: str
 
 nodes:
@@ -39,6 +41,7 @@ nodes:
       synopsis: "{state.synopsis}"
       draft: "{state.draft}"
       instruction: "{state.instruction}"
+      roster: "{state.roster}"
 
 edges:
   - from: START
