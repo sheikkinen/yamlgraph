@@ -130,6 +130,31 @@
     }
     @media (max-width: 768px) { .story-grid { grid-template-columns: 1fr; } }
 
+    /* Director card (FR-481): the director's structured judgement, always shown
+       on a turn — a compact, read-only signal beneath the intents. */
+    .director-card {
+      margin-top: 1rem; padding: 0.75rem;
+      background: var(--bg-card); border-radius: 6px;
+      border: 1px solid rgba(194,135,63,0.35);
+    }
+    .director-title { color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; }
+    .director-phase {
+      display: inline-block; font-size: 0.7rem; letter-spacing: 0.05em;
+      text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 999px;
+      border: 1px solid var(--accent); color: var(--accent); margin-bottom: 0.5rem;
+    }
+    .director-label {
+      display: block; font-size: 0.7rem; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--accent); margin: 0.35rem 0 0.2rem;
+    }
+    .director-beats ul { margin: 0; padding-left: 1.1rem; color: var(--parchment); }
+    .director-beats li { margin-bottom: 0.2rem; }
+    .director-steer { color: var(--muted); font-style: italic; }
+    .director-complete { color: var(--accent); font-weight: 700; margin-top: 0.5rem; }
+    .continuity-flags { margin-top: 0.5rem; }
+    .continuity-title { color: #e0a86c; font-weight: 700; font-size: 0.8rem; }
+    .continuity-flag { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; }
+
     .error { color: #e06c6c; }
 
     /* Single busy overlay (FR-478): shown while any slow request is in flight.

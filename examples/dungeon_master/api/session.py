@@ -90,10 +90,11 @@ class StageView:
     kind: str = ""
     # Read-only per-character intents for a turn (``[{name, thinking, intent}]``).
     intents: list[dict] = field(default_factory=list)
-    # The director's signals for a turn (FR-479): the scene has reached its END,
-    # and any continuity flags (e.g. a non-roster name taking decisive action).
-    scene_complete: bool = False
-    continuity: list[str] = field(default_factory=list)
+    # The director's full structured judgement for a turn (FR-479/FR-481): one
+    # dict (``phase, establishing, beats_satisfied, scene_complete, steer,
+    # continuity``) so the always-visible Director card owns its presentation and
+    # a new director field needs no dataclass change.
+    direction: dict = field(default_factory=dict)
 
 
 class DMSession:
@@ -142,14 +143,11 @@ class DMSession:
         stage = self._stage(doc)
         entry = self._entry(doc, stage.name)
         intents: list[dict] = []
-        scene_complete = False
-        continuity: list[str] = []
+        direction: dict = {}
         if stage.kind == "turn":
             n = int(stage.name[len(TURN_PREFIX) :])
             intents = turn_ops.turn_intents(doc, self._characters(doc), n)
             direction = turn_ops.turn_direction(doc, n)
-            scene_complete = bool(direction.get("scene_complete"))
-            continuity = list(direction.get("continuity") or [])
         return StageView(
             stage=stage.name,
             label=stage.label,
@@ -160,8 +158,7 @@ class DMSession:
             error=error,
             kind=stage.kind,
             intents=intents,
-            scene_complete=scene_complete,
-            continuity=continuity,
+            direction=direction,
         )
 
     def _turn_intents(self, doc: dict, n: int) -> list[dict]:

@@ -406,3 +406,92 @@ def test_key_scene_binds_to_roster_names(client, tmp_path):
     scene_names = set(re.findall(r"\b[A-Z][a-z]+\b", scene))
     assert "Naru" not in scene
     assert scene_names <= roster_names
+
+
+# ── FR-481: Director card & arc integrity ───────────────────────────────────
+
+
+def _phase_execute_prompt(phases):
+    """An ``execute_prompt`` mock that drives ``turn_direct.phase`` per turn.
+
+    ``phases[n-1]`` is the phase the director "returns" for turn ``n``; every
+    other prompt delegates to the default deterministic mock. Lets a test force a
+    phase regression and prove the clamp (FR-481 B2).
+    """
+
+    def _inner(prompt_name, variables=None, **kwargs):
+        variables = variables or {}
+        draft = variables.get("draft") or ""
+        if prompt_name == "turn_direct" and not draft.strip():
+            turn_n = variables.get("turn_n")
+            n = int(turn_n) if str(turn_n).isdigit() else 1
+            phase = phases[n - 1] if 1 <= n <= len(phases) else "rising"
+            return {
+                "phase": phase,
+                "establishing": ESTABLISHING_TEXT if phase == "opening" else "",
+                "beats_satisfied": [] if phase == "opening" else ["Kara corners Tarek"],
+                "scene_complete": False,
+                "steer": "",
+                "continuity": [],
+            }
+        return _mock_execute_prompt(prompt_name, variables, **kwargs)
+
+    return _inner
+
+
+# ── 13. The director's judgement is always visible as a card on a turn (A) ───
+
+
+def test_director_card_always_visible_on_turn(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1 (opening)
+    # The opening turn already shows the Director card with its phase badge.
+    resp1 = _nav(client, session_id, "turn:1")
+    assert "director-card" in resp1.text
+    assert "director-phase-opening" in resp1.text
+    # Advancing to a rising turn surfaces the phase badge and the satisfied beat.
+    resp2 = _accept(client, session_id)  # → turn:2 (rising, one beat)
+    body = resp2.text
+    assert "director-card" in body
+    assert "director-phase-rising" in body
+    assert "Kara corners Tarek" in body
+
+
+# ── 14. Phase never runs backwards — a regress is clamped up (B2) ───────────
+
+
+def test_phase_is_clamped_monotonic(client, tmp_path):
+    session_id = _new_session(client)
+    seq = ["opening", "climax", "rising"]  # turn 3 regresses; must be clamped
+    with (
+        patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt",
+            side_effect=_phase_execute_prompt(seq),
+        ),
+        patch(
+            "yamlgraph.executor.execute_prompt",
+            side_effect=_phase_execute_prompt(seq),
+        ),
+    ):
+        _reach_play(client, tmp_path, session_id)  # turn 1: opening
+        _accept(client, session_id)  # turn 2: climax
+        _accept(client, session_id)  # turn 3: model "rising" → clamped to climax
+        doc = _doc(tmp_path, session_id)
+    phases = [t["direction"]["phase"] for t in doc["turns"]]
+    assert phases == ["opening", "climax", "climax"]
+
+
+def test_clamp_phase_floors_at_prior_but_allows_advance():
+    from examples.dungeon_master.api import turn_ops
+
+    regressed = {"phase": "rising"}
+    turn_ops._clamp_phase(regressed, {"phase": "climax"})
+    assert regressed["phase"] == "climax"  # floored up
+
+    advanced = {"phase": "resolved"}
+    turn_ops._clamp_phase(advanced, {"phase": "climax"})
+    assert advanced["phase"] == "resolved"  # forward advance untouched
+
+    opening = {"phase": "opening"}
+    turn_ops._clamp_phase(opening, {})  # no prior turn
+    assert opening["phase"] == "opening"

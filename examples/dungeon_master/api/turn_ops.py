@@ -139,8 +139,32 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
         cid: {"thinking": field(item, "thinking"), "intent": field(item, "intent")}
         for cid, item in zip(roster, items, strict=False)
     }
-    record["direction"] = _direction_dict(result.get("direction"))
+    direction = _direction_dict(result.get("direction"))
+    _clamp_phase(direction, turn_direction(doc, n - 1))
+    record["direction"] = direction
     return clean_text(result.get("recap"))
+
+
+_PHASE_ORDER = {"opening": 0, "rising": 1, "climax": 2, "resolved": 3}
+
+
+def _clamp_phase(direction: dict, prior: dict) -> None:
+    """Floor this turn's ``phase`` at the prior turn's — the arc never runs backwards.
+
+    ``phase`` is "where the arc stands"; once a scene reaches a higher phase it
+    cannot un-reach it (FR-481 B2). A model that regresses (e.g. climax → rising
+    on a later beat) is clamped up to the phase already declared, deterministically,
+    so the recorded arc is monotonic regardless of what the model returns. A
+    forward advance is left untouched; an unknown phase string is left as-is.
+    """
+    prior_phase = prior.get("phase", "") if prior else ""
+    cur = direction.get("phase", "")
+    if (
+        prior_phase in _PHASE_ORDER
+        and cur in _PHASE_ORDER
+        and _PHASE_ORDER[cur] < _PHASE_ORDER[prior_phase]
+    ):
+        direction["phase"] = prior_phase
 
 
 def _direction_dict(raw: object) -> dict:

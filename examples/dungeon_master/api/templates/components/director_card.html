@@ -1,0 +1,37 @@
+{# Director card (FR-481): the director's structured judgement, always shown on a
+   turn — phase, the satisfied beats, any narrator steer, the scene-complete
+   signal, and the continuity flags folded in. A read-only signal surfaced to the
+   DM; never auto-applied (FR-479 J2). #}
+{% set d = stage.direction or {} %}
+<div class="director-card" role="status" aria-label="Director judgement">
+  <div class="director-title">🎬 Director</div>
+  {% if d.phase %}
+  <span class="director-phase director-phase-{{ d.phase }}">{{ d.phase }}</span>
+  {% endif %}
+  {% if d.beats_satisfied %}
+  <div class="director-beats">
+    <span class="director-label">Beats{% if d.beats_total %} {{ d.beats_satisfied | length }} / {{ d.beats_total }}{% endif %}</span>
+    <ul>
+      {% for beat in d.beats_satisfied %}
+      <li>{{ beat }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <p class="card-hint">No beats satisfied yet.</p>
+  {% endif %}
+  {% if d.steer %}
+  <div class="director-steer"><span class="director-label">Steer</span>{{ d.steer }}</div>
+  {% endif %}
+  {% if d.scene_complete %}
+  <div class="director-complete">🏁 Scene complete</div>
+  {% endif %}
+  {% if d.continuity %}
+  <div class="continuity-flags">
+    <div class="continuity-title">⚠ Continuity</div>
+    {% for flag in d.continuity %}
+    <div class="continuity-flag">{{ flag }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
