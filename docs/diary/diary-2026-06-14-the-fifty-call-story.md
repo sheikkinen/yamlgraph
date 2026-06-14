@@ -82,3 +82,68 @@ seam — so the architecture can finally report which of its fifty calls a human
 would have paid for? A seam with a near-zero intervention rate is a single-shot
 prompt with extra steps, and only the telemetry would tell us which seams those
 are.
+
+## Correction (same day): the verdict was true only at short length
+
+The user read this entry and answered it from the run I never made: a *long* story,
+*human in the loop*, where the payoff was **a consistent arc held over length**.
+That single observation overturns the verdict above — not by adding a fourth
+justification, but by revealing that I measured the system where its central value
+is structurally invisible.
+
+The fifty-call indictment compared the pipeline to single-shot on a one-cave,
+unattended run and found all three justifications false. But every one of those
+justifications is a function of *length*, and I tested at length ≈ 1. The plot was
+in synopsis #1 — true — but the pipeline's product was never plot *generation*. It
+is plot *maintenance*: holding a coherent arc together across more turns than any
+single context or single generation can keep straight. That work costs nothing to
+perform in one cave and is the entire product over a hundred turns.
+
+So the seams I had filed as authoring conveniences are actually **consistency
+anchors**, and each one's value is monotonic in length:
+
+- the director's monotonic **phase** is the spine that stops a long arc sagging or
+  looping, because each new turn is told where it sits in a shape already committed;
+- **roster binding** (0 phantoms) is trivial in one scene and decisive over a long
+  one, where character drift is the defining failure of long-form generation;
+- the whole-arc **Final Cut** earns its calls exactly when the arc is too long to
+  hold in one head — the only condition under which "state each standing fact once"
+  is actually hard.
+
+## The deeper trap, named
+
+My fifty-call entry congratulated itself for escaping `working_system_inertia`
+("completion mistaken for justification"). It then walked straight into the trap one
+turn deeper: **absence-of-need at short length mistaken for absence-of-value at any
+length.** A guarantee that is free to keep when the task is small is not worthless —
+it is the whole product when the task is large. I measured a flat-line property
+(consistency) on the one input size where flatness is indistinguishable from
+nothing, and called the property absent. The honest test of a consistency mechanism
+is a *curve*, never a point.
+
+This also retires my "length proxies for craft" worry as the *wrong* worry. The
+question was never "how good is the climax." It is **does the arc stay consistent as
+it grows** — contradiction rate, character-drift rate, standing-fact repetition, all
+as functions of story length. That is a curve a single-shot prompt provably cannot
+hold flat, because its failure is monotonic in length while the pipeline's anchors
+are engineered to be flat. The crossover point — the length at which the pipeline's
+fifty calls start buying something single-shot cannot — is the one number that would
+have settled the whole debate, and I never plotted it.
+
+## Heuristic (graduated from the correction)
+
+To evaluate a mechanism whose job is to *hold something invariant* (consistency,
+alignment, non-drift), never measure it at a single scale — measure the **curve
+against scale**. The mechanism's value is the *gap between its curve and the
+baseline's*, and that gap is zero at small scale by construction. Judging such a
+mechanism at small scale will always acquit the baseline and convict the mechanism,
+both wrongly.
+
+## Seed (revised)
+
+The decisive instrument is not intervention rate — it is a **consistency-vs-length
+curve**: pipeline against single-shot, the same premise driven to 5, 20, 50, 100
+turns, scored on contradiction / character-drift / fact-repetition rates. The
+crossover length is the architecture's true justification, stated as a number.
+Should the next FR build that harness — a long-arc consistency eval — and let the
+crossover decide which seams survive, rather than arguing it from a single cave?
