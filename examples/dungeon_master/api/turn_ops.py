@@ -11,6 +11,9 @@ stage uses — which is what lets the generic weave/edit/accept act on a turn (J
 
 from __future__ import annotations
 
+import re
+from difflib import SequenceMatcher
+
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
 from examples.dungeon_master.api.tree import TURN_GRAPH
 
@@ -140,7 +143,9 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
         for cid, item in zip(roster, items, strict=False)
     }
     direction = _direction_dict(result.get("direction"))
-    _clamp_phase(direction, turn_direction(doc, n - 1))
+    prior = turn_direction(doc, n - 1)
+    _clamp_phase(direction, prior)
+    _canonicalize_beats(direction, prior, doc.get("key_scene", {}).get("text", ""))
     record["direction"] = direction
     return clean_text(result.get("recap"))
 
@@ -165,6 +170,90 @@ def _clamp_phase(direction: dict, prior: dict) -> None:
         and _PHASE_ORDER[cur] < _PHASE_ORDER[prior_phase]
     ):
         direction["phase"] = prior_phase
+
+
+_SECTION_RE = re.compile(r"^[A-Z][A-Z/ ]*:")
+_BEAT_FLOOR = 0.6
+_BEAT_MARGIN = 0.1
+
+
+def parse_beats(key_scene_text: str) -> list[str]:
+    """The canonical ``BEATS`` bullets from a frozen key-scene card (FR-482).
+
+    The key scene lists ``BEATS:`` as ``- `` bullets between that label and the
+    next uppercase section label (e.g. ``END:``). Returns the beat phrases in
+    scene order; empty when the card has no parseable BEATS block.
+    """
+    beats: list[str] = []
+    in_beats = False
+    for line in key_scene_text.splitlines():
+        stripped = line.strip()
+        if _SECTION_RE.match(stripped):
+            in_beats = stripped.upper().startswith("BEATS:")
+            continue
+        if in_beats and stripped.startswith("- "):
+            beats.append(stripped[2:].strip())
+    return beats
+
+
+def _norm(s: str) -> str:
+    """Lowercase, strip punctuation, collapse whitespace — for fuzzy beat matching."""
+    return " ".join(re.sub(r"[^a-z0-9 ]+", " ", s.lower()).split())
+
+
+def _match_beat(phrase: str, canonical: list[str]) -> int | None:
+    """Index of the canonical beat ``phrase`` satisfies, or ``None`` (FR-482 M1).
+
+    Ranks every canonical beat by ``difflib`` ratio on normalised text and
+    accepts the best **only if** it clears an absolute floor AND beats the
+    runner-up by a margin (so a phrase equally close to two beats is dropped, not
+    mis-assigned). A phrase that clears nothing is dropped, never invented
+    (Commandment 6).
+    """
+    p = _norm(phrase)
+    scored = sorted(
+        (
+            (SequenceMatcher(None, p, _norm(b)).ratio(), i)
+            for i, b in enumerate(canonical)
+        ),
+        reverse=True,
+    )
+    if not scored or scored[0][0] < _BEAT_FLOOR:
+        return None
+    if len(scored) > 1 and scored[0][0] - scored[1][0] < _BEAT_MARGIN:
+        return None
+    return scored[0][1]
+
+
+def _canonicalize_beats(direction: dict, prior: dict, key_scene_text: str) -> None:
+    """Bind ``beats_satisfied`` to the scene's canonical BEATS, cumulatively (FR-482).
+
+    Matches each phrase the director reported this turn onto the frozen scene's
+    BEATS vocabulary, unions it with the prior turn's satisfied set, and records
+    the cumulative subset **in scene order** with a ``beats_total`` count. When
+    the scene has no parseable BEATS block, there is nothing to bind to: the raw
+    phrases are kept (still cumulative and de-duplicated) and ``beats_total`` is 0
+    so the card shows no misleading ``k / 0`` (J4).
+    """
+    canonical = parse_beats(key_scene_text)
+    prior_beats = list((prior or {}).get("beats_satisfied") or [])
+    raw = list(direction.get("beats_satisfied") or [])
+    if not canonical:
+        merged: list[str] = []
+        for b in prior_beats + raw:
+            if b not in merged:
+                merged.append(b)
+        direction["beats_satisfied"] = merged
+        direction["beats_total"] = 0
+        return
+    index_of = {b: i for i, b in enumerate(canonical)}
+    satisfied: set[int] = {index_of[b] for b in prior_beats if b in index_of}
+    for phrase in raw:
+        i = _match_beat(phrase, canonical)
+        if i is not None:
+            satisfied.add(i)
+    direction["beats_satisfied"] = [canonical[i] for i in sorted(satisfied)]
+    direction["beats_total"] = len(canonical)
 
 
 def _direction_dict(raw: object) -> dict:

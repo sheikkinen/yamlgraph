@@ -79,9 +79,17 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         names = [n.strip() for n in re.split(r"[\n,]+", roster) if n.strip()]
         if names:
             cast = "\n".join(f"- {n} — drives the scene" for n in names)
+            a, b = (names + names)[:2]
+            # FR-482: a parseable BEATS block gives the director a canonical beat
+            # vocabulary to bind its free-text `beats_satisfied` phrases onto.
             return (
-                f"SUMMARY: {names[0]} confronts the others on the last dry ledge.\n"
-                f"CHARACTERS:\n{cast}"
+                f"SUMMARY: {a} confronts the others on the last dry ledge.\n"
+                f"CHARACTERS:\n{cast}\n"
+                f"BEATS:\n"
+                f"- {a} corners {b} on the ledge\n"
+                f"- {b} frees the herd\n"
+                f"END:\n"
+                f"- {a} holds the ledge\n"
             )
         return KEY_SCENE_TEXT
     if prompt_name == "character_roster":
@@ -495,3 +503,144 @@ def test_clamp_phase_floors_at_prior_but_allows_advance():
     opening = {"phase": "opening"}
     turn_ops._clamp_phase(opening, {})  # no prior turn
     assert opening["phase"] == "opening"
+
+
+# ── FR-482: cumulative beats_satisfied via canonical BEATS matching ──────────
+
+
+def _beats_execute_prompt(beats_by_turn):
+    """An ``execute_prompt`` mock driving ``turn_direct.beats_satisfied`` per turn.
+
+    ``beats_by_turn[n-1]`` is the list of free-text beat phrases the director
+    "returns" for turn ``n``; the mock binds them onto the canonical scene BEATS
+    downstream. Every other prompt delegates to the default deterministic mock.
+    """
+
+    def _inner(prompt_name, variables=None, **kwargs):
+        variables = variables or {}
+        draft = variables.get("draft") or ""
+        if prompt_name == "turn_direct" and not draft.strip():
+            turn_n = variables.get("turn_n")
+            n = int(turn_n) if str(turn_n).isdigit() else 1
+            phrases = beats_by_turn[n - 1] if 1 <= n <= len(beats_by_turn) else []
+            return {
+                "phase": "rising",
+                "establishing": "",
+                "beats_satisfied": list(phrases),
+                "scene_complete": False,
+                "steer": "",
+                "continuity": [],
+            }
+        return _mock_execute_prompt(prompt_name, variables, **kwargs)
+
+    return _inner
+
+
+def _canonical_beats(tmp_path, session_id):
+    from examples.dungeon_master.api import turn_ops
+
+    scene = _doc(tmp_path, session_id)["key_scene"]["text"]
+    return turn_ops.parse_beats(scene)
+
+
+# ── 15. beats_satisfied is cumulative and bound to the canonical scene BEATS ──
+
+
+def test_beats_satisfied_is_cumulative_and_canonical(client, tmp_path):
+    session_id = _new_session(client)
+    # Turn 1 satisfies beat 0; turn 2 reports only beat 1 (incremental), yet the
+    # recorded set must be the cumulative union, expressed in canonical terms.
+    seq = [["Kara corners Tarek on the ledge"], ["Tarek frees the herd"]]
+    with (
+        patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt",
+            side_effect=_beats_execute_prompt(seq),
+        ),
+        patch(
+            "yamlgraph.executor.execute_prompt",
+            side_effect=_beats_execute_prompt(seq),
+        ),
+    ):
+        _reach_play(client, tmp_path, session_id)  # turn 1
+        _accept(client, session_id)  # → turn 2
+        doc = _doc(tmp_path, session_id)
+        canonical = set(_canonical_beats(tmp_path, session_id))
+    t1 = set(doc["turns"][0]["direction"]["beats_satisfied"])
+    t2 = set(doc["turns"][1]["direction"]["beats_satisfied"])
+    # Cumulative: turn 2 ⊇ turn 1, and the new beat was added.
+    assert t1 <= t2
+    assert len(t2) == len(t1) + 1
+    # Every recorded beat is one of the canonical scene BEATS (no paraphrase leak).
+    assert t2 <= canonical
+    # The card carries a k / N count once the field is canonical.
+    assert doc["turns"][1]["direction"]["beats_total"] == len(canonical)
+
+
+# ── 16. Two paraphrases of one beat count once, not twice ───────────────────
+
+
+def test_paraphrases_of_one_beat_dedupe_to_one(client, tmp_path):
+    session_id = _new_session(client)
+    # Both phrases are wordings of the SAME canonical beat ("… corners … on the
+    # ledge"); the satisfied set must grow by exactly one, not two.
+    seq = [["Kara corners Tarek on the ledge", "Kara corners Tarek on the dry ledge"]]
+    with (
+        patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt",
+            side_effect=_beats_execute_prompt(seq),
+        ),
+        patch(
+            "yamlgraph.executor.execute_prompt",
+            side_effect=_beats_execute_prompt(seq),
+        ),
+    ):
+        _reach_play(client, tmp_path, session_id)  # turn 1
+        doc = _doc(tmp_path, session_id)
+    beats = doc["turns"][0]["direction"]["beats_satisfied"]
+    assert len(beats) == 1
+
+
+# ── 17. The Director card shows the k / N beat count (FR-481 A × FR-482) ─────
+
+
+def test_director_card_shows_beat_count(client, tmp_path):
+    session_id = _new_session(client)
+    seq = [["Kara corners Tarek on the ledge"]]
+    with (
+        patch(
+            "yamlgraph.node_factory.llm_nodes.execute_prompt",
+            side_effect=_beats_execute_prompt(seq),
+        ),
+        patch(
+            "yamlgraph.executor.execute_prompt",
+            side_effect=_beats_execute_prompt(seq),
+        ),
+    ):
+        resp = _reach_play(client, tmp_path, session_id)  # turn 1, 1 of 2 beats
+    # 1 satisfied of 2 canonical beats → the card renders "1 / 2".
+    assert "1 / 2" in resp.text
+
+
+# ── 18. parse_beats reads the BEATS bullets between BEATS: and the next label ─
+
+
+def test_parse_beats_extracts_bullets_between_labels():
+    from examples.dungeon_master.api import turn_ops
+
+    scene = (
+        "SUMMARY: a turn.\nINT/EXT: EXT\nLOCATION: a ledge\n"
+        "BEATS:\n- first beat\n- second beat\nEND:\n- the result\n"
+    )
+    assert turn_ops.parse_beats(scene) == ["first beat", "second beat"]
+    # A card with no BEATS block yields no canonical vocabulary.
+    assert turn_ops.parse_beats("SUMMARY: nothing structured here") == []
+
+
+def test_match_beat_drops_phrase_that_clears_nothing():
+    from examples.dungeon_master.api import turn_ops
+
+    canonical = ["Kara corners Tarek on the ledge", "Tarek frees the herd"]
+    # A clear paraphrase resolves to its beat…
+    assert turn_ops._match_beat("Kara corners Tarek on the dry ledge", canonical) == 0
+    # …but an unrelated phrase is dropped, never invented (Commandment 6).
+    assert turn_ops._match_beat("the weather turned cold overnight", canonical) is None
