@@ -17,6 +17,13 @@ system: |
   Begin with the exact heading "Turn {{ turn_n }} — " followed by a few words
   naming the turn, then one tight paragraph (3–6 sentences). Nothing else.
 
+  {% if direction and direction.establishing %}
+  This is the opening of the scene. After the heading, open the paragraph with
+  this establishing description, then narrate the first move: {{ direction.establishing }}
+  {% endif %}
+  {% if direction and direction.steer %}
+  The director notes this arc correction — apply it: {{ direction.steer }}
+  {% endif %}
   {% if instruction %}
   The director asks for this change to the recap: {{ instruction }}
   Apply it while keeping every still-true fact.

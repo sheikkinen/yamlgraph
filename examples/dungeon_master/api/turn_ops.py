@@ -27,6 +27,19 @@ def turn_record(doc: dict, n: int) -> dict:
     return rec
 
 
+def turn_direction(doc: dict, n: int) -> dict:
+    """The director's ``direction`` side-channel for turn ``n`` (empty if absent).
+
+    A structured ``{phase, establishing, beats_satisfied, scene_complete, steer,
+    continuity}`` judgement produced alongside the turn's intents (FR-479 J4);
+    the recap entry shape stays ``{text, reviewed}`` (FR-477 J3).
+    """
+    turns = doc.get("turns", [])
+    if n < 1 or len(turns) < n:
+        return {}
+    return turns[n - 1].get("direction") or {}
+
+
 def turn_intents(doc: dict, chars: dict, n: int) -> list[dict]:
     """The turn's intents as ordered ``[{name, thinking, intent}]`` cards."""
     turns = doc.get("turns", [])
@@ -87,13 +100,15 @@ def running_scene(doc: dict, n: int) -> str:
 
 
 async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> str:
-    """Run the turn graph for turn ``n``: write its intents, return its recap.
+    """Run the turn graph for turn ``n``: write its intents + direction, return its recap.
 
     Builds one ``{name, sheet, previous}`` bundle per reviewed character (J1),
     the bounded running scene (key scene + last-3 recaps, J4) and each
-    character's prior intent, runs ``turn.yaml`` once, records ``turns[n].intents``
-    keyed by character id, and returns the recap text. The stage interface stays a
-    pure ``str -> str``; this turn path owns the structured side-channel (J3).
+    character's prior intent, runs ``turn.yaml`` once (map → direct → recap), records
+    ``turns[n].intents`` keyed by character id and the director's
+    ``turns[n].direction`` side-channel (FR-479 J4), and returns the recap text.
+    The stage interface stays a pure ``str -> str``; this turn path owns both
+    structured side-channels (J3).
     """
     roster = [
         cid for cid in chars["roster"] if chars["cards"].get(cid, {}).get("reviewed")
@@ -114,6 +129,7 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
             "turn_n": str(n),
             "instruction": instruction,
             "intents": [],
+            "direction": {},
             "recap": "",
         }
     )
@@ -123,4 +139,32 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
         cid: {"thinking": field(item, "thinking"), "intent": field(item, "intent")}
         for cid, item in zip(roster, items, strict=False)
     }
+    record["direction"] = _direction_dict(result.get("direction"))
     return clean_text(result.get("recap"))
+
+
+def _direction_dict(raw: object) -> dict:
+    """Normalise the director's output (dict or pydantic) to a typed dict (J4).
+
+    Unlike ``field`` (which coerces to ``str``), this preserves ``scene_complete``
+    as a bool and the list fields as lists, since the session and UI branch on them.
+    """
+    if not raw:
+        return {}
+
+    def _get(key: str, default: object) -> object:
+        val = (
+            raw.get(key, default)
+            if isinstance(raw, dict)
+            else getattr(raw, key, default)
+        )
+        return default if val is None else val
+
+    return {
+        "phase": str(_get("phase", "")),
+        "establishing": str(_get("establishing", "")),
+        "beats_satisfied": list(_get("beats_satisfied", []) or []),
+        "scene_complete": bool(_get("scene_complete", False)),
+        "steer": str(_get("steer", "")),
+        "continuity": list(_get("continuity", []) or []),
+    }

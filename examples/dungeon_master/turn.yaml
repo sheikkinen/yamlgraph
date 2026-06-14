@@ -1,17 +1,20 @@
-# Dungeon Master v2 — Turn graph (FR-477).
+# Dungeon Master v2 — Turn graph (FR-477, FR-479).
 #
 # One round of play: every principal is prompted privately for THINKING + INTENT
-# (a map over the cast), then those intents are consolidated into one dry
-# "Turn N — …" recap. A single graph returns BOTH the per-character intents and
-# the recap (J1), mirroring the purgatory weave-beat shape (map → consolidate).
+# (a map over the cast), then a structured DIRECTOR judges the scene state
+# (phase, establishing description, scene_complete, steer, continuity) before a
+# render-only NARRATOR consolidates the intents into one dry "Turn N — …" recap.
+# A single graph returns the per-character intents, the director's direction, and
+# the recap (J1): map → direct → recap.
 #
-# Inputs (set by the session's _invoke_turn, J3):
+# Inputs (set by the session's invoke_turn, J3):
 #   cast    — list of {name, sheet, previous} bundles, one per reviewed character
 #   scene   — key scene + a bounded digest of prior turn recaps (J4)
 #   turn_n  — the 1-based turn number
 #   instruction — optional DM steer applied to the recap on Iterate (else "")
 #
-# Outputs: intents (list of {thinking, intent}, cast order) + recap (str).
+# Outputs: intents (list of {thinking, intent}, cast order), direction (dict),
+#          recap (str).
 #
 # Usage:
 #   yamlgraph graph run examples/dungeon_master/turn.yaml \
@@ -35,6 +38,7 @@ state:
   turn_n: str
   instruction: str
   intents: list
+  direction: dict
   recap: str
 
 nodes:
@@ -54,6 +58,17 @@ nodes:
         turn_n: "{state.turn_n}"
     collect: intents
 
+  direct:
+    type: llm
+    prompt: turn_direct
+    state_key: direction
+    parse_json: true
+    variables:
+      scene: "{state.scene}"
+      cast: "{state.cast}"
+      intents: "{state.intents}"
+      turn_n: "{state.turn_n}"
+
   recap:
     type: llm
     prompt: turn_recap
@@ -63,6 +78,7 @@ nodes:
       scene: "{state.scene}"
       cast: "{state.cast}"
       intents: "{state.intents}"
+      direction: "{state.direction}"
       turn_n: "{state.turn_n}"
       instruction: "{state.instruction}"
 
@@ -70,6 +86,8 @@ edges:
   - from: START
     to: intents
   - from: intents
+    to: direct
+  - from: direct
     to: recap
   - from: recap
     to: END

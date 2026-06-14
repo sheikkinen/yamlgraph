@@ -16,9 +16,11 @@ Run directly:
 
 from __future__ import annotations
 
+import re
 from unittest.mock import patch
 
 import pytest
+import yaml
 from fastapi.testclient import TestClient
 
 from examples.dungeon_master.api import session as dm_session
@@ -28,10 +30,39 @@ from examples.dungeon_master.api.app import app
 SYNOPSIS_TEXT = "Kara leads the band against a rival raider as the floodwaters rise."
 KEY_SCENE_TEXT = "Kara corners Tarek on the last dry ledge while Naru frees the herd."
 ROSTER_TEXT = "Kara\nTarek"
+ESTABLISHING_TEXT = (
+    "A flooded valley at dusk; the last dry ledge stands slick above the water."
+)
+
+
+def _mock_direction(variables: dict) -> dict:
+    """Deterministic director output mirroring the structured turn_direct schema.
+
+    ``opening`` is read from the running-scene marker; ``scene_complete`` flips at
+    turn 3; a *phantom* is any title-cased name in the scene that no rostered
+    character owns (``Naru`` here — the Vane case), surfaced as a continuity flag
+    and deliberately NOT folded into ``steer`` (FR-479 J2).
+    """
+    scene = variables.get("scene") or ""
+    cast = variables.get("cast") or []
+    turn_n = variables.get("turn_n")
+    n = int(turn_n) if str(turn_n).isdigit() else 0
+    opening = "Nothing has happened yet" in scene
+    cast_names = {c.get("name") for c in cast}
+    titlecased = set(re.findall(r"\b[A-Z][a-z]+\b", scene))
+    phantoms = sorted(titlecased - cast_names - {"Nothing", "Only", "Turn"})
+    return {
+        "phase": "opening" if opening else ("resolved" if n >= 3 else "rising"),
+        "establishing": ESTABLISHING_TEXT if opening else "",
+        "beats_satisfied": [] if opening else ["Kara corners Tarek"],
+        "scene_complete": n >= 3,
+        "steer": "",
+        "continuity": [f"{p} acts but is not a rostered character" for p in phantoms],
+    }
 
 
 def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
-    """Deterministic stand-in for every DM prompt, including the two turn prompts."""
+    """Deterministic stand-in for every DM prompt, including the three turn prompts."""
     variables = variables or {}
     draft = variables.get("draft") or ""
     instruction = variables.get("instruction")
@@ -55,12 +86,19 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
             "thinking": f"{name} reads the ledge",
             "intent": f"{name} lunges (after: {prev or 'nothing'})",
         }
+    if prompt_name == "turn_direct":
+        return _mock_direction(variables)
     if prompt_name == "turn_recap":
         cast = variables.get("cast") or []
         turn_n = variables.get("turn_n")
         names = ", ".join(c.get("name", "?") for c in cast)
         tag = f" [{instruction}]" if instruction else ""
-        return f"Turn {turn_n} — {names} collide on the ledge.{tag}"
+        # The render-only recap consumes the director's establishing description
+        # on the opening turn (FR-479 J6).
+        direction = variables.get("direction") or {}
+        establishing = direction.get("establishing") or ""
+        est = f" {establishing}" if establishing else ""
+        return f"Turn {turn_n} — {names} collide on the ledge.{est}{tag}"
     raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
 
@@ -257,3 +295,80 @@ def test_busy_overlay_wires_every_slow_press(client, tmp_path):
     nav_count = body.count('hx-post="/story/nav"')
     assert nav_count >= 1, "expected clickable breadcrumb nav links on a turn page"
     assert body.count('hx-indicator="#busy"') == nav_count + 2
+
+
+# ── 8. The turn graph runs a director between the intents map and the recap ──
+
+
+def test_turn_graph_has_director_between_intents_and_recap():
+    with open("examples/dungeon_master/turn.yaml") as fh:
+        cfg = yaml.safe_load(fh)
+    assert {"intents", "direct", "recap"} <= set(cfg["nodes"])
+    # The director is structured; the final node still emits `recap` (FR-479 J3).
+    assert cfg["nodes"]["direct"]["state_key"] == "direction"
+    assert cfg["nodes"]["recap"]["state_key"] == "recap"
+    edges = {(e["from"], e["to"]) for e in cfg["edges"]}
+    assert ("intents", "direct") in edges
+    assert ("direct", "recap") in edges
+
+
+# ── 9. The opening turn carries an establishing description (FR-479 J6) ──────
+
+
+def test_opening_turn_carries_establishing_description(client, tmp_path):
+    session_id = _new_session(client)
+    resp = _reach_play(client, tmp_path, session_id)  # lands on turn:1
+    doc = _doc(tmp_path, session_id)
+    direction = doc["turns"][0]["direction"]
+    assert direction["phase"] == "opening"
+    assert direction["establishing"].strip()
+    # The director's establishing description is rendered into the opening recap…
+    assert direction["establishing"] in doc["turns"][0]["recap"]["text"]
+    # …and is visible on the page.
+    assert direction["establishing"] in resp.text
+
+
+# ── 10. Reaching the END flips scene_complete, which stops plain advance (J5) ─
+
+
+def test_scene_complete_stops_advance_and_surfaces(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1 drafted
+    _accept(client, session_id)  # → turn:2
+    resp = _accept(client, session_id)  # → turn:3 (director reports scene_complete)
+    doc = _doc(tmp_path, session_id)
+    assert doc["stage"] == "turn:3"
+    assert doc["turns"][2]["direction"]["scene_complete"] is True
+    # The completed state is surfaced on the turn page.
+    assert "scene-complete" in resp.text
+    # Accepting a completed turn does NOT spawn turn:4 (J5).
+    _accept(client, session_id)
+    doc2 = _doc(tmp_path, session_id)
+    assert doc2["stage"] == "turn:3"
+    assert len(doc2["turns"]) == 3
+
+
+# ── 11. A non-roster name acting raises a continuity flag, surfaced not steered ─
+
+
+def test_phantom_actor_raises_continuity_flag(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)
+    # FR-480 binds the *generator* to the roster, so a phantom can no longer be
+    # minted into the scene. The director's detection is now defense in depth:
+    # inject a stray non-roster name straight into the frozen scene and prove the
+    # director still catches it on the next read.
+    doc = _doc(tmp_path, session_id)
+    doc["key_scene"]["text"] = KEY_SCENE_TEXT  # names "Naru", absent from roster
+    story_doc.write(tmp_path / session_id, doc)
+    resp = client.post(
+        "/story/synopsis/weave",
+        data={"session_id": session_id, "text": "Turn 1 — x", "prompt": "re-read"},
+    )
+    doc = _doc(tmp_path, session_id)
+    direction = doc["turns"][0]["direction"]
+    # "Naru" is named in the scene but absent from the roster (the Vane case).
+    assert any("Naru" in f for f in direction["continuity"])
+    # The flag is surfaced to the DM, and NOT silently applied as a steer (J2).
+    assert "Naru" in resp.text
+    assert direction["steer"] == ""
