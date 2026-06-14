@@ -33,6 +33,14 @@ TURN_GRAPH = f"{GRAPH_DIR}/turn.yaml"
 TURN_PREFIX = "turn:"
 TURN_SEED = "Play this turn."
 
+# Final Cut (FR-484): a terminal leaf that composes one continuous scene from the
+# whole played arc once the director reports the scene complete. A single static
+# stage (not a per-item prefix), gated on ``scene_is_complete`` rather than a
+# parent being reviewed.
+FINAL_CUT = "final_cut"
+FINAL_CUT_GRAPH = f"{GRAPH_DIR}/final_cut.yaml"
+FINAL_CUT_SEED = "Compose the final cut of the whole played scene."
+
 
 @dataclass(frozen=True)
 class Stage:
@@ -81,6 +89,13 @@ STAGES: tuple[Stage, ...] = (
         kind="roster",
         seed="Name the characters the synopsis requires (names only).",
         output_key="roster",
+    ),
+    Stage(
+        FINAL_CUT,
+        "Final Cut",
+        FINAL_CUT_GRAPH,
+        seed=FINAL_CUT_SEED,
+        output_key="final_cut",
     ),
 )
 STAGE_BY_NAME = {s.name: s for s in STAGES}
@@ -164,6 +179,19 @@ def preplan_complete(doc: dict) -> bool:
     roster = chars.get("roster", [])
     cards = chars.get("cards", {})
     return bool(roster) and all(cards.get(cid, {}).get("reviewed") for cid in roster)
+
+
+def scene_is_complete(doc: dict) -> bool:
+    """Whether any played turn's director reported the scene complete (FR-484).
+
+    The unlock gate for the terminal Final Cut leaf, mirroring ``preplan_complete``
+    for the Play branch: once the director declares the scene's END reached on any
+    turn (FR-479 J5), the whole arc exists and can be composed into one cut. Pure
+    dict access — no turn_ops import, so ``tree`` stays free of cycles.
+    """
+    return any(
+        (t.get("direction") or {}).get("scene_complete") for t in doc.get("turns", [])
+    )
 
 
 def breadcrumb(doc: dict) -> list[dict]:
@@ -253,4 +281,16 @@ def breadcrumb(doc: dict) -> list[dict]:
                         "member": True,
                     }
                 )
+    # Final Cut (FR-484): a terminal peer after Play, present once the director
+    # has reported the scene complete on any turn.
+    if scene_is_complete(doc):
+        fc = doc.get("final_cut", {})
+        crumbs.append(
+            {
+                "label": "Final Cut",
+                "stage": FINAL_CUT,
+                "current": current == FINAL_CUT,
+                "reviewed": bool(fc.get("reviewed")),
+            }
+        )
     return crumbs

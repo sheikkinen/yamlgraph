@@ -15,7 +15,7 @@ import re
 from difflib import SequenceMatcher
 
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
-from examples.dungeon_master.api.tree import TURN_GRAPH
+from examples.dungeon_master.api.tree import FINAL_CUT_GRAPH, TURN_GRAPH
 
 
 def turn_record(doc: dict, n: int) -> dict:
@@ -346,3 +346,71 @@ def _direction_dict(raw: object) -> dict:
         "steer": str(_get("steer", "")),
         "continuity": list(_get("continuity", []) or []),
     }
+
+
+def climax_turn(doc: dict) -> int:
+    """The 1-based turn index the scene turns on, derived from the phases (FR-484).
+
+    The director's ``phase`` is monotonic (FR-481), so the first turn to reach
+    ``"climax"`` is the pivotal beat. When no turn ever recorded a climax phase,
+    fall back to the turn that reported ``scene_complete``; failing even that, the
+    last turn. Pure code — the Final Cut hands this marker to the model rather than
+    asking it to recompute what the recorded arc already knows (FR-482 law).
+    """
+    turns = doc.get("turns", [])
+    for t in turns:
+        if (t.get("direction") or {}).get("phase") == "climax":
+            return int(t.get("n", turns.index(t) + 1))
+    for t in turns:
+        if (t.get("direction") or {}).get("scene_complete"):
+            return int(t.get("n", turns.index(t) + 1))
+    return int(turns[-1].get("n", len(turns))) if turns else 0
+
+
+def final_cut_context(doc: dict) -> dict:
+    """Assemble the WHOLE finished arc as Final Cut graph variables (FR-484).
+
+    A pure function over the story ``doc``: the frozen scene plan, **every** turn
+    recap in order (not the 3-turn window the live recap writer sees), each turn's
+    director ``phase`` with the pivotal turn marked, the canonical scene BEATS,
+    and a derived ``climax`` marker. This is the deterministic seam — the model is
+    handed the assembled context and asked only for prose, never to recompute the
+    arc's structure.
+    """
+    key_scene = doc.get("key_scene", {}).get("text", "")
+    turns = doc.get("turns", [])
+    climax_n = climax_turn(doc)
+    lines: list[str] = []
+    for t in turns:
+        n = t.get("n")
+        recap = (t.get("recap") or {}).get("text", "")
+        phase = (t.get("direction") or {}).get("phase", "")
+        tag = f" [{phase}]" if phase else ""
+        mark = "  ← THE CLIMAX" if n == climax_n else ""
+        lines.append(f"Turn {n}{tag}{mark}: {recap}")
+    beats = parse_beats(key_scene)
+    return {
+        "key_scene": key_scene,
+        "arc": "\n\n".join(lines),
+        "beats": "\n".join(f"- {b}" for b in beats),
+        "climax": f"Turn {climax_n}" if turns else "",
+    }
+
+
+async def invoke_final_cut(doc: dict, instruction: str = "", draft: str = "") -> str:
+    """Compose one continuous scene from the whole arc; never touch the turns (FR-484).
+
+    Runs ``final_cut.yaml`` once over :func:`final_cut_context` plus the current
+    draft and a writer's instruction, and returns the cleaned narration. Reads the
+    played turns; writes none of them — the Final Cut is a separate ``{text,
+    reviewed}`` artifact, so the play-by-play accept contract is preserved.
+    """
+    result = await get_app(FINAL_CUT_GRAPH).ainvoke(
+        {
+            **final_cut_context(doc),
+            "draft": draft,
+            "instruction": instruction,
+            "final_cut": "",
+        }
+    )
+    return clean_text(result.get("final_cut"))

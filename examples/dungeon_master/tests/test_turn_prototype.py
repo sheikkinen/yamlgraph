@@ -119,6 +119,12 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         establishing = direction.get("establishing") or ""
         est = f" {establishing}" if establishing else ""
         return f"Turn {turn_n} — {names} collide on the ledge.{est}{tag}"
+    if prompt_name == "final_cut":
+        # The Final Cut composes one scene from the whole arc; the mock echoes the
+        # assembled arc + climax marker so a test can see what context it received.
+        arc = variables.get("arc") or ""
+        climax = variables.get("climax") or ""
+        return f"FINAL CUT ({climax}):\n{arc}"
     raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
 
@@ -361,10 +367,11 @@ def test_scene_complete_stops_advance_and_surfaces(client, tmp_path):
     assert doc["turns"][2]["direction"]["scene_complete"] is True
     # The completed state is surfaced on the turn page.
     assert "scene-complete" in resp.text
-    # Accepting a completed turn does NOT spawn turn:4 (J5).
+    # Accepting a completed turn does NOT spawn turn:4 (J5); it lands on the
+    # terminal Final Cut leaf instead (FR-484).
     _accept(client, session_id)
     doc2 = _doc(tmp_path, session_id)
-    assert doc2["stage"] == "turn:3"
+    assert doc2["stage"] == "final_cut"
     assert len(doc2["turns"]) == 3
 
 
@@ -767,3 +774,153 @@ def test_filter_continuity_drops_scene_actor_keeps_phantom():
         prose, ["Kara", "Tarek"], "Kara corners Tarek while Naru frees the herd."
     )
     assert prose["continuity"] == ["Naru frees the herd"]
+
+
+# ── FR-484: post-play Final Cut leaf (de-repeat + elaborate the whole arc) ───
+
+
+def _reach_scene_complete(client, tmp_path, session_id):
+    """Drive a session through play until the director reports ``scene_complete``.
+
+    The default mock flips ``scene_complete`` at turn 3, so the session lands on an
+    auto-drafted turn:3 whose direction completes the scene — the point the Final
+    Cut leaf unlocks (FR-484).
+    """
+    _reach_play(client, tmp_path, session_id)  # turn:1
+    _accept(client, session_id)  # → turn:2
+    return _accept(client, session_id)  # → turn:3 (scene_complete)
+
+
+# ── 22. final_cut_context assembles the WHOLE arc, beats, and a climax marker ─
+
+
+def test_final_cut_context_consumes_whole_arc_and_marks_climax():
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "key_scene": {
+            "text": (
+                "SUMMARY: Kara corners Tarek.\n"
+                "BEATS:\n- Kara corners Tarek on the ledge\n- Tarek yields the claim\n"
+                "END:\n- Kara holds the ledge\n"
+            )
+        },
+        "turns": [
+            {
+                "n": 1,
+                "recap": {"text": "FIRSTFACT the floodwaters rise."},
+                "direction": {"phase": "opening"},
+            },
+            {
+                "n": 2,
+                "recap": {"text": "they grapple on the ledge."},
+                "direction": {"phase": "climax"},
+            },
+            {
+                "n": 3,
+                "recap": {"text": "LASTFACT Tarek yields and Kara holds."},
+                "direction": {"phase": "resolved", "scene_complete": True},
+            },
+        ],
+    }
+    ctx = turn_ops.final_cut_context(doc)
+    # The whole arc is present — a fact from the first turn AND from the last (not
+    # the 3-turn window the live recap writer sees).
+    assert "FIRSTFACT" in ctx["arc"]
+    assert "LASTFACT" in ctx["arc"]
+    # The canonical BEATS travel with the context so the pass knows what matters.
+    assert "Kara corners Tarek on the ledge" in ctx["beats"]
+    assert "Tarek yields the claim" in ctx["beats"]
+    # The climax marker is derived (turn 2 first reached phase "climax").
+    assert ctx["climax"] == "Turn 2"
+    assert "Turn 2" in ctx["arc"]
+
+
+# ── 23. climax_turn derives from the phase sequence, with a defined fallback ──
+
+
+def test_climax_turn_uses_phase_then_scene_complete_fallback():
+    from examples.dungeon_master.api import turn_ops
+
+    # Primary: the first turn whose phase reaches "climax".
+    by_phase = {
+        "turns": [
+            {"n": 1, "direction": {"phase": "opening"}},
+            {"n": 2, "direction": {"phase": "rising"}},
+            {"n": 3, "direction": {"phase": "climax"}},
+        ]
+    }
+    assert turn_ops.climax_turn(by_phase) == 3
+
+    # Fallback: no climax phase recorded → the scene_complete turn.
+    by_complete = {
+        "turns": [
+            {"n": 1, "direction": {"phase": "rising"}},
+            {"n": 2, "direction": {"phase": "rising", "scene_complete": True}},
+        ]
+    }
+    assert turn_ops.climax_turn(by_complete) == 2
+
+    # Last resort: neither marker → the final turn.
+    neither = {"turns": [{"n": 1, "direction": {"phase": "rising"}}]}
+    assert turn_ops.climax_turn(neither) == 1
+
+
+# ── 24. Final Cut is locked until scene_complete, then navigable (J5 unlock) ──
+
+
+def test_final_cut_locked_until_scene_complete(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1, scene NOT complete
+    # Locked: not in the breadcrumb and a nav to it is refused.
+    resp = _nav(client, session_id, "final_cut")
+    assert _doc(tmp_path, session_id)["stage"] != "final_cut"
+    assert "Final Cut" not in resp.text
+
+    # Play on to completion → the Final Cut peer appears and is reachable.
+    resp2 = _reach_scene_complete(client, tmp_path, session_id)
+    assert "Final Cut" in resp2.text
+    resp3 = _nav(client, session_id, "final_cut")
+    assert _doc(tmp_path, session_id)["stage"] == "final_cut"
+    assert resp3.status_code == 200
+
+
+# ── 25. The Final Cut is additive: the played turns are left untouched ───────
+
+
+def test_final_cut_is_additive_turns_untouched(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # turn:3, scene complete
+    before = _doc(tmp_path, session_id)
+    recaps_before = [t["recap"]["text"] for t in before["turns"]]
+    reviewed_before = [t["recap"]["reviewed"] for t in before["turns"]]
+
+    # Compose the Final Cut (auto-draft on entry) and accept it.
+    _nav(client, session_id, "final_cut")
+    client.post(
+        "/story/synopsis/accept",
+        data={"session_id": session_id, "text": ""},
+    )
+    after = _doc(tmp_path, session_id)
+    # The Final Cut is its own reviewed artifact…
+    assert after["final_cut"]["reviewed"] is True
+    assert after["final_cut"]["text"].strip()
+    # …and every played turn recap is byte-for-byte unchanged and still reviewed.
+    assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
+    assert [t["recap"]["reviewed"] for t in after["turns"]] == reviewed_before
+
+
+# ── 26. Entering the Final Cut auto-drafts a populated, not-yet-reviewed leaf ─
+
+
+def test_final_cut_autodrafts_on_entry(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)
+    resp = _nav(client, session_id, "final_cut")
+    doc = _doc(tmp_path, session_id)
+    fc = doc["final_cut"]
+    # Landed on a populated draft, not a blank splash (J5), not yet accepted.
+    assert fc["text"].strip()
+    assert fc["reviewed"] is False
+    # The composed draft is rendered on the page with the generic Accept control.
+    assert "Accept" in resp.text

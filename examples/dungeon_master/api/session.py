@@ -45,6 +45,7 @@ from examples.dungeon_master.api.graph_app import (
 )
 from examples.dungeon_master.api.tree import (
     CHAR_PREFIX,
+    FINAL_CUT,
     FIRST_STAGE,
     STAGE_BY_NAME,
     TURN_PREFIX,
@@ -52,6 +53,7 @@ from examples.dungeon_master.api.tree import (
     breadcrumb,
     preplan_complete,
     resolve_stage,
+    scene_is_complete,
     split_roster,
     unique_slug,
 )
@@ -64,7 +66,7 @@ PROMPTS_DIR = Path("examples/dungeon_master/prompts")
 STORY_ROOT = Path("outputs/dungeon-master")
 
 # A sensible default so the first card lands seeded, not empty (FR-474 J1).
-DEFAULT_TAGLINE = "10,000 B.C. in heat. Adult story."
+DEFAULT_TAGLINE = "10,000 B.C. in Heat. Adult story. Explicit. Germanic Names. Lolita."
 
 # Re-exported so tests can reset the shared graph cache via this module.
 __all__ = ["DMSession", "StageView", "_reset_caches"]
@@ -245,6 +247,12 @@ class DMSession:
                 entry["text"] = await turn_ops.invoke_turn(
                     doc, self._characters(doc), n, instruction=prompt
                 )
+            elif stage.name == FINAL_CUT:
+                # Iterate re-composes the whole-arc cut; the prompt steers it and
+                # the current draft is the cut to revise (FR-484).
+                entry["text"] = await turn_ops.invoke_final_cut(
+                    doc, instruction=prompt, draft=text
+                )
             else:
                 entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
             entry["reviewed"] = False
@@ -340,6 +348,9 @@ class DMSession:
             if not suffix.isdigit():
                 return False
             return 1 <= int(suffix) <= len(doc.get("turns", [])) + 1
+        if target == FINAL_CUT:
+            # The terminal Final Cut leaf unlocks only once the scene is complete.
+            return scene_is_complete(doc)
         stage = STAGE_BY_NAME.get(target)
         if stage is None or stage.kind == "roster":
             # Unknown stage, or the non-visitable Characters group.
@@ -370,8 +381,9 @@ class DMSession:
             n = int(stage.name[len(TURN_PREFIX) :])
             # Once the director reports the scene's END reached, stop offering a
             # plain next-turn advance — the scene is done, not replayed (FR-479 J5).
+            # Land on the terminal Final Cut leaf to compose the whole arc (FR-484).
             if turn_ops.turn_direction(doc, n).get("scene_complete"):
-                return None
+                return FINAL_CUT
             return f"{TURN_PREFIX}{n + 1}"
         return None
 
@@ -412,6 +424,8 @@ class DMSession:
                 entry["text"] = await turn_ops.invoke_turn(
                     doc, self._characters(doc), int(stage.name[len(TURN_PREFIX) :])
                 )
+            elif stage.name == FINAL_CUT:
+                entry["text"] = await turn_ops.invoke_final_cut(doc)
             else:
                 entry["text"] = await self._invoke_stage(doc, stage, "", stage.seed)
             entry["reviewed"] = False
