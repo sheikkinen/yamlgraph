@@ -48,7 +48,15 @@ def turn_direction(doc: dict, n: int) -> dict:
 
 
 def turn_intents(doc: dict, chars: dict, n: int) -> list[dict]:
-    """The turn's intents as ordered ``[{name, thinking, intent}]`` cards."""
+    """The turn's intents as ordered performance cards (cast order).
+
+    Each card is ``{name, thinking, intent, dialogue, expression}`` (FR-486): the
+    private ``thinking`` and the decisive ``intent`` the arc reads, plus the
+    outward performance layer — the spoken ``dialogue`` and the visible
+    ``expression`` that projects the thinking. A turn played before FR-486 carries
+    only the first two keys; the new keys default to ``""`` (a silent character is
+    legitimate, not a defect — an additive side-channel, never a raise).
+    """
     turns = doc.get("turns", [])
     if n < 1 or len(turns) < n:
         return []
@@ -56,11 +64,14 @@ def turn_intents(doc: dict, chars: dict, n: int) -> list[dict]:
     out: list[dict] = []
     for cid in chars["roster"]:
         if cid in intents:
+            perf = intents[cid]
             out.append(
                 {
                     "name": chars["cards"].get(cid, {}).get("name") or cid,
-                    "thinking": intents[cid].get("thinking", ""),
-                    "intent": intents[cid].get("intent", ""),
+                    "thinking": perf.get("thinking", ""),
+                    "intent": perf.get("intent", ""),
+                    "dialogue": perf.get("dialogue", ""),
+                    "expression": perf.get("expression", ""),
                 }
             )
     return out
@@ -143,7 +154,12 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
     items = result.get("intents") or []
     record = turn_record(doc, n)
     record["intents"] = {
-        cid: {"thinking": field(item, "thinking"), "intent": field(item, "intent")}
+        cid: {
+            "thinking": field(item, "thinking"),
+            "intent": field(item, "intent"),
+            "dialogue": field(item, "dialogue"),
+            "expression": field(item, "expression"),
+        }
         for cid, item in zip(roster, items, strict=False)
     }
     direction = _direction_dict(result.get("direction"))

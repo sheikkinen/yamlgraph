@@ -7,6 +7,12 @@
       <div class="intent-name">{{ it.name }}</div>
       <div class="intent-thinking"><span class="intent-label">Thinking</span>{{ it.thinking }}</div>
       <div class="intent-intent"><span class="intent-label">Intent</span>{{ it.intent }}</div>
+      {% if it.dialogue %}
+      <div class="intent-dialogue"><span class="intent-label">Says</span>{{ it.dialogue }}</div>
+      {% endif %}
+      {% if it.expression %}
+      <div class="intent-expression"><span class="intent-label">Shows</span>{{ it.expression }}</div>
+      {% endif %}
     </div>
     {% else %}
     <p class="card-hint">Intents will appear here once the turn is drafted.</p>

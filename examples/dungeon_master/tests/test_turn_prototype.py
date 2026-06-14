@@ -17,6 +17,7 @@ Run directly:
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -101,10 +102,15 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         name = char.get("name", "?")
         prev = char.get("previous", "")
         # The DM instruction steers only the recap (frozen spec); intents re-roll
-        # fresh each pass from the cast + scene + their prior intent.
+        # fresh each pass from the cast + scene + their prior intent. FR-486 widens
+        # the bundle: the single decisive `intent` stays, plus the outward layer —
+        # the spoken `dialogue` and the visible `expression` that projects the
+        # private `thinking`.
         return {
             "thinking": f"{name} reads the ledge",
             "intent": f"{name} lunges (after: {prev or 'nothing'})",
+            "dialogue": f"{name}: 'Hold the ledge.'",
+            "expression": f"{name}'s jaw sets, eyes flicking to the water",
         }
     if prompt_name == "turn_direct":
         return _mock_direction(variables)
@@ -1057,3 +1063,87 @@ def test_final_cut_turns_is_additive_to_recaps_and_continuous_cut(client, tmp_pa
     # …nor any played turn recap (byte-for-byte, still reviewed).
     assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
     assert [t["recap"]["reviewed"] for t in after["turns"]] == reviewed_before
+
+
+# ── 31. A turn captures the wider per-character performance bundle (FR-486) ───
+
+
+def test_turn_captures_wider_performance(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1 drafted
+    doc = _doc(tmp_path, session_id)
+    intents = doc["turns"][0]["intents"]
+    assert intents, "the turn must persist per-character intents"
+    for cid, perf in intents.items():
+        # The decision layer stays (the arc reads `intent`)…
+        assert perf["thinking"].strip()
+        assert perf["intent"].strip()
+        # …and the new outward performance layer is captured additively.
+        assert perf["dialogue"].strip(), f"{cid} should carry a spoken line"
+        assert perf["expression"].strip(), f"{cid} should carry a visible tell"
+
+
+# ── 32. Old turns (and silent characters) default missing performance to "" ───
+
+
+def test_turn_intents_defaults_missing_performance_to_empty():
+    from examples.dungeon_master.api import turn_ops
+
+    # A turn played before FR-486: its intent bundle carries only the old two
+    # keys. It must still resolve — a missing performance key is a benign empty
+    # (an additive side-channel), never a raise (contrast the FR-485 alignment
+    # validator, where a missing turn IS a defect).
+    doc = {
+        "turns": [
+            {
+                "n": 1,
+                "intents": {"kara": {"thinking": "reads it", "intent": "lunges"}},
+                "recap": {"text": "Turn 1 — Kara lunges.", "reviewed": True},
+            }
+        ]
+    }
+    chars = {"roster": ["kara"], "cards": {"kara": {"name": "Kara"}}}
+    cards = turn_ops.turn_intents(doc, chars, 1)
+    assert len(cards) == 1
+    card = cards[0]
+    assert card["name"] == "Kara"
+    assert card["thinking"] == "reads it"
+    assert card["intent"] == "lunges"
+    # The new keys are present and default to "" — a silent character is legitimate.
+    assert card["dialogue"] == ""
+    assert card["expression"] == ""
+
+
+# ── 33. The arc seam is frozen: director and recap ignore the new fields ─────
+
+
+def test_arc_seam_ignores_wider_performance():
+    """The director and dry recap must read ONLY ``intent`` per character (FR-486).
+
+    The whole approval rests on the wider performance being a *side-channel* the
+    arc never sees: FR-481/482/483 judge the arc on ``intent``, and the FR-484/485
+    cuts consume the dry recaps. If ``dialogue``/``expression`` leaked into the
+    director's judgement or the recap, the cut inputs would shift. This proves
+    mechanically that they cannot: neither prompt template references them.
+    """
+    prompts = Path(__file__).resolve().parent.parent / "prompts"
+    for name in ("turn_direct", "turn_recap"):
+        text = (prompts / f"{name}.yaml").read_text()
+        lowered = text.lower()
+        # The arc still reads each character's committed intent…
+        assert "intent" in lowered, f"{name} must read the committed intent"
+        # …but never the outward performance layer (it stays a side-channel).
+        assert "dialogue" not in lowered, f"{name} must not read dialogue"
+        assert "expression" not in lowered, f"{name} must not read expression"
+
+
+# ── 34. The turn card surfaces the spoken/acted performance to the DM ────────
+
+
+def test_turn_card_surfaces_dialogue_and_expression(client, tmp_path):
+    session_id = _new_session(client)
+    resp = _reach_play(client, tmp_path, session_id)  # lands on turn:1
+    # The captured dialogue and expression are rendered beside the recap so the
+    # DM can read each character's spoken line and visible tell.
+    assert "Hold the ledge" in resp.text
+    assert "jaw sets" in resp.text

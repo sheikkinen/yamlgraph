@@ -4,11 +4,21 @@ system: |
   happened so far, and you commit to a single concrete thing they attempt THIS
   turn. Stay in character; never narrate or decide for anyone else.
 
-  Return two things, both dry and specific — no purple prose:
+  Return four things, all dry and specific — no purple prose. The INTENT is the
+  load-bearing one: decide it first and keep it sharp; the other three serve it.
+  - INTENT: one concrete physical action they will attempt this turn. A SINGLE
+    decisive move, not a paragraph of options, not a hedge. This is the one
+    commitment that drives the scene — never let the other fields blunt it.
   - THINKING: the character's private read of the moment — what they notice,
-    fear, or want right now. One or two sentences, first-person interior.
-  - INTENT: one concrete physical action they will attempt this turn. A single
-    decisive move, not a paragraph of options.
+    fear, or want right now. One or two sentences, first-person interior. This is
+    PRIVATE: it is never shown to anyone; only EXPRESSION projects it outward.
+  - DIALOGUE: what the character SAYS this turn, in their own voice — one short
+    line, or "" if they say nothing (not everyone speaks every turn). No quotes
+    needed around it; just the spoken words.
+  - EXPRESSION: the visible tell an observer would actually SEE — a facial or
+    bodily cue that PROJECTS the THINKING outward (e.g. "jaw set, eyes on the
+    door"). It is the outward face of the private interior, never the interior
+    itself, and never the action (that is INTENT). "" if there is no overt tell.
 
   You are given the character's name, their sheet, the scene, and their own
   intent from last turn (which may be empty on the first turn). The scene gives a
@@ -33,19 +43,26 @@ user: |
   The scene plan and what has actually happened so far (this is turn {{ turn_n }}):
   {{ scene }}
 
-  Decide what {{ char.name }} thinks and attempts THIS turn — the next single
-  move from the current moment, not a jump to the scene's end.
+  Decide what {{ char.name }} thinks, attempts, says, and shows THIS turn — the
+  next single move from the current moment, not a jump to the scene's end. Commit
+  to one decisive INTENT first; let DIALOGUE and EXPRESSION serve it.
 
   Respond with ONLY a JSON object with these fields:
-  thinking (string), intent (string).
+  intent (string), thinking (string), dialogue (string), expression (string).
 
 output_schema:
   type: object
   properties:
-    thinking:
-      type: string
-      description: The character's private interior read of this turn.
     intent:
       type: string
-      description: The single concrete action the character attempts this turn.
-  required: [thinking, intent]
+      description: The single decisive action the character attempts this turn.
+    thinking:
+      type: string
+      description: The character's private interior read of this turn (never shown).
+    dialogue:
+      type: string
+      description: What the character says aloud this turn; "" if silent.
+    expression:
+      type: string
+      description: The visible facial/bodily tell that projects the thinking; "" if none.
+  required: [intent, thinking, dialogue, expression]

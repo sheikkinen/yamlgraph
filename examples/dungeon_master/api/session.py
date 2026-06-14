@@ -91,7 +91,8 @@ class StageView:
     error: str | None = None
     # "" for an ordinary card, "turn" for a play turn (selects the two-column view).
     kind: str = ""
-    # Read-only per-character intents for a turn (``[{name, thinking, intent}]``).
+    # Read-only per-character performance for a turn: each card is
+    # ``{name, thinking, intent, dialogue, expression}`` (FR-486).
     intents: list[dict] = field(default_factory=list)
     # The director's full structured judgement for a turn (FR-479/FR-481): one
     # dict (``phase, establishing, beats_satisfied, scene_complete, steer,
@@ -163,25 +164,6 @@ class DMSession:
             intents=intents,
             direction=direction,
         )
-
-    def _turn_intents(self, doc: dict, n: int) -> list[dict]:
-        """The current turn's intents as ordered ``[{name, thinking, intent}]`` cards."""
-        turns = doc.get("turns", [])
-        if n < 1 or len(turns) < n:
-            return []
-        intents = turns[n - 1].get("intents", {})
-        chars = self._characters(doc)
-        out: list[dict] = []
-        for cid in chars["roster"]:
-            if cid in intents:
-                out.append(
-                    {
-                        "name": chars["cards"].get(cid, {}).get("name") or cid,
-                        "thinking": intents[cid].get("thinking", ""),
-                        "intent": intents[cid].get("intent", ""),
-                    }
-                )
-        return out
 
     def view(self) -> StageView:
         """The current stage's view (no LLM); used by the landing page."""
