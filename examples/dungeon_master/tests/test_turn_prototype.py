@@ -1345,3 +1345,42 @@ def test_walkthrough_is_additive(client, tmp_path):
     assert [s["text"] for s in after["final_cut_turns"]["turns"]] == cut_before
     assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
     assert [t["intents"] for t in after["turns"]] == intents_before
+
+
+# ── 40. Accepting the finishes chains Final Cut → Turns → Walkthrough ─────────
+
+
+def test_finishes_chain_through_accept_to_walkthrough(client, tmp_path):
+    """Accepting each finish lands on the next, ending on the Walkthrough.
+
+    The three closing artifacts are terminal leaves, but Accept must walk the DM
+    through all of them rather than stranding the page on the first (the reported
+    "Final Cut shown, then the page closed"). The chain also drafts the FR-485 cut
+    spine, so the Walkthrough — which renders it — is reachable without a manual
+    detour through the breadcrumb.
+    """
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # → turn:3 (scene complete)
+
+    # Accepting the scene-complete turn lands on the continuous Final Cut.
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    assert _doc(tmp_path, session_id)["stage"] == "final_cut"
+
+    # Accept Final Cut → Final Cut (Turns) (which drafts the cut spine).
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    doc = _doc(tmp_path, session_id)
+    assert doc["stage"] == "final_cut_turns"
+    assert doc["final_cut_turns"]["turns"], "the cut spine must be drafted on entry"
+
+    # Accept Final Cut (Turns) → the Walkthrough, the true terminal leaf.
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    doc = _doc(tmp_path, session_id)
+    assert doc["stage"] == "walkthrough"
+    assert doc["walkthrough"]["turns"], "the walkthrough must be drafted on entry"
+
+    # Accepting the Walkthrough stays put — it is the end of the chain.
+    resp = client.post(
+        "/story/synopsis/accept", data={"session_id": session_id, "text": ""}
+    )
+    assert _doc(tmp_path, session_id)["stage"] == "walkthrough"
+    assert resp.status_code == 200

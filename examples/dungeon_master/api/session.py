@@ -396,6 +396,15 @@ class DMSession:
             if turn_ops.turn_direction(doc, n).get("scene_complete"):
                 return FINAL_CUT
             return f"{TURN_PREFIX}{n + 1}"
+        # The three finishes chain so accepting one leads to the next, walking the
+        # DM through every closing artifact (FR-487): the continuous Final Cut
+        # (FR-484) → the turn-structured Final Cut (FR-485, which also drafts the
+        # cut spine the walkthrough needs) → the full-text Walkthrough (FR-487),
+        # which is the true terminal leaf.
+        if stage.name == FINAL_CUT:
+            return FINAL_CUT_TURNS
+        if stage.name == FINAL_CUT_TURNS:
+            return WALKTHROUGH
         return None
 
     async def _expand_roster(self, doc: dict, story_dir: Path) -> None:
