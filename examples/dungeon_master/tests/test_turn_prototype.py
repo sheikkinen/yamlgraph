@@ -142,6 +142,37 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         return {
             "turns": [{"n": n, "text": f"polished turn {n} ({climax})"} for n in ns]
         }
+    if prompt_name == "staging":
+        # The whole-arc director-staging pass (FR-487): one curtain-up `setting`
+        # plus a per-turn `staging` delta keyed by the played turn numbers. The
+        # mock reads the turn numbers from the assembled arc, so staging aligns
+        # to the played turns exactly like the cut spine.
+        arc = variables.get("arc") or ""
+        ns = [int(m) for m in re.findall(r"^Turn (\d+)", arc, re.M)]
+        return {
+            "setting": "A flooded valley at dusk; the last dry ledge above the water.",
+            "staging": [{"n": n, "text": f"staging delta {n}"} for n in ns],
+        }
+    if prompt_name == "walkthrough":
+        # The per-turn full-text render (FR-487): one playable passage per turn,
+        # composed from the authored layers — the cut spine, the FR-486
+        # performance (dialogue/expression/acted intent), and the staging. The
+        # mock echoes each layer so a test can prove the render composed, not
+        # invented, and that `thinking` never reaches this seam.
+        turn = variables.get("turn") or {}
+        n = turn.get("n")
+        setting = turn.get("setting", "")
+        staging = turn.get("staging", "")
+        cut_text = turn.get("cut_text", "")
+        cast = turn.get("cast") or []
+        played = " ".join(
+            f'{c["name"]} says "{c["dialogue"]}" — {c["expression"]}; {c["intent"]}.'
+            for c in cast
+        )
+        return (
+            f"[setting: {setting}] [staging: {staging}] "
+            f"Turn {n}: {cut_text} {played}".strip()
+        )
     raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
 
@@ -1147,3 +1178,170 @@ def test_turn_card_surfaces_dialogue_and_expression(client, tmp_path):
     # DM can read each character's spoken line and visible tell.
     assert "Hold the ledge" in resp.text
     assert "jaw sets" in resp.text
+
+
+# ── FR-487: the full-text walkthrough (the rendered finish) ──────────────────
+
+
+def _reach_cut(client, tmp_path, session_id):
+    """Drive to scene-complete and draft the FR-485 cut spine the walkthrough needs.
+
+    The walkthrough renders the FR-485 ``final_cut_turns`` cut as its structural
+    spine, so it stays locked until that cut is *present* (FR-487 OQ1). Navigating
+    to ``final_cut_turns`` auto-drafts it; this leaves the session with the spine
+    available but the walkthrough not yet composed.
+    """
+    _reach_scene_complete(client, tmp_path, session_id)  # 3 played turns
+    return _nav(client, session_id, "final_cut_turns")  # auto-drafts the cut spine
+
+
+# ── 35. walkthrough_render_inputs composes the authored layers, hides thinking ─
+
+
+def test_walkthrough_render_inputs_compose_authored_layers():
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "turns": [
+            {
+                "n": 1,
+                "intents": {
+                    "kara": {
+                        "thinking": "kara reads the ledge",
+                        "intent": "Kara lunges",
+                        "dialogue": "Hold the ledge.",
+                        "expression": "jaw sets",
+                    }
+                },
+                "recap": {"text": "Turn 1 — they collide.", "reviewed": True},
+            },
+            {
+                "n": 2,
+                "intents": {
+                    "kara": {
+                        "thinking": "kara presses",
+                        "intent": "Kara drives forward",
+                        "dialogue": "Yield.",
+                        "expression": "eyes narrow",
+                    }
+                },
+                "recap": {"text": "Turn 2 — she presses.", "reviewed": True},
+            },
+        ],
+        "final_cut_turns": {
+            "turns": [
+                {"n": 1, "text": "polished turn 1"},
+                {"n": 2, "text": "polished turn 2"},
+            ]
+        },
+    }
+    chars = {"roster": ["kara"], "cards": {"kara": {"name": "Kara"}}}
+    setting = "A flooded valley at dusk."
+    staging_by_n = {1: "on the ledge", 2: "water rising"}
+    bundles = turn_ops.walkthrough_render_inputs(doc, chars, setting, staging_by_n)
+
+    # One bundle per played turn, in order, carrying the cut spine + staging.
+    assert [b["n"] for b in bundles] == [1, 2]
+    assert bundles[0]["cut_text"] == "polished turn 1"
+    assert bundles[0]["setting"] == setting
+    assert bundles[0]["staging"] == "on the ledge"
+    # The cast carries the FR-486 outward performance — but NEVER the private
+    # thinking (it is the one layer the page must not render, FR-487 OQ5).
+    card = bundles[0]["cast"][0]
+    assert card == {
+        "name": "Kara",
+        "dialogue": "Hold the ledge.",
+        "expression": "jaw sets",
+        "intent": "Kara lunges",
+    }
+    assert "thinking" not in card
+
+
+# ── 36. The walkthrough is locked until the FR-485 cut spine is present ───────
+
+
+def test_walkthrough_locked_until_cut_present(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # scene complete, NO cut yet
+    # Locked: the cut spine the walkthrough renders does not exist yet.
+    resp = _nav(client, session_id, "walkthrough")
+    assert _doc(tmp_path, session_id)["stage"] != "walkthrough"
+    assert "Walkthrough" not in resp.text
+
+    # Draft the FR-485 cut spine → the Walkthrough peer appears and is reachable.
+    _nav(client, session_id, "final_cut_turns")  # auto-drafts the cut
+    resp2 = _nav(client, session_id, "final_cut_turns")
+    assert "Walkthrough" in resp2.text
+    resp3 = _nav(client, session_id, "walkthrough")
+    assert _doc(tmp_path, session_id)["stage"] == "walkthrough"
+    assert resp3.status_code == 200
+
+
+# ── 37. The walkthrough auto-drafts one full-text passage per played turn ─────
+
+
+def test_walkthrough_autodrafts_aligned_full_text(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_cut(client, tmp_path, session_id)  # 3 played turns + cut spine
+    _nav(client, session_id, "walkthrough")
+    doc = _doc(tmp_path, session_id)
+    wt = doc["walkthrough"]
+    # A curtain-up setting header plus exactly one passage per played turn.
+    assert wt["setting"].strip()
+    assert [s["n"] for s in wt["turns"]] == [1, 2, 3]
+    assert all(s["text"].strip() for s in wt["turns"])
+    # A rendered text view for the generic edit control, not yet accepted.
+    assert wt["text"].strip()
+    assert wt["reviewed"] is False
+
+
+# ── 38. The full text renders the authored dialogue, expression, and staging ──
+
+
+def test_walkthrough_renders_authored_layers(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_cut(client, tmp_path, session_id)
+    resp = _nav(client, session_id, "walkthrough")
+    # The full text contains a character's actual spoken line (FR-486 dialogue),
+    # an expression-derived gesture (FR-486 expression), and the director's
+    # staging cue (FR-487) — every layer authored upstream, none invented.
+    assert "Hold the ledge" in resp.text
+    assert "jaw sets" in resp.text
+    assert "staging delta" in resp.text
+    # The private thinking is never put on the page.
+    assert "reads the ledge" not in resp.text
+    # The map reducer's per-branch bookkeeping must never leak into the prose —
+    # the page shows the rendered passage, not the {_map_index, value} wrapper.
+    assert "_map_index" not in resp.text
+
+
+# ── 39. The walkthrough is additive: every prior artifact stays immutable ─────
+
+
+def test_walkthrough_is_additive(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_cut(client, tmp_path, session_id)
+
+    # Compose and accept the FR-484 continuous cut and the FR-485 turn cut first.
+    _nav(client, session_id, "final_cut")
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    _nav(client, session_id, "final_cut_turns")
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    mid = _doc(tmp_path, session_id)
+    continuous_before = mid["final_cut"]["text"]
+    cut_before = [s["text"] for s in mid["final_cut_turns"]["turns"]]
+    recaps_before = [t["recap"]["text"] for t in mid["turns"]]
+    intents_before = [t["intents"] for t in mid["turns"]]
+
+    # Compose and accept the walkthrough.
+    _nav(client, session_id, "walkthrough")
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    after = _doc(tmp_path, session_id)
+    # The walkthrough is its own reviewed artifact…
+    assert after["walkthrough"]["reviewed"] is True
+    assert after["walkthrough"]["turns"]
+    # …and it clobbers neither the two cuts, the recaps, nor the performance.
+    assert after["final_cut"]["text"] == continuous_before
+    assert [s["text"] for s in after["final_cut_turns"]["turns"]] == cut_before
+    assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
+    assert [t["intents"] for t in after["turns"]] == intents_before

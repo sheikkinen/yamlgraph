@@ -52,6 +52,18 @@ FINAL_CUT_TURNS_SEED = (
     "Compose the turn-structured final cut of the whole played scene."
 )
 
+# Full-text walkthrough (FR-487): the rendered finish. Where the two Final Cuts
+# are *summaries* (tight prose over the recaps), the walkthrough renders the full
+# text of each played turn from three already-authored layers — the FR-485 cut
+# spine, the FR-486 per-character performance, and a new whole-arc director-
+# staging pass — validated 1:1 by the reused ``validate_cut_turns``. A separate
+# ``doc["walkthrough"]`` artifact, gated on the scene being complete AND the
+# FR-485 cut being present (its spine).
+WALKTHROUGH = "walkthrough"
+WALKTHROUGH_GRAPH = f"{GRAPH_DIR}/walkthrough.yaml"
+STAGING_GRAPH = f"{GRAPH_DIR}/staging.yaml"
+WALKTHROUGH_SEED = "Render the full-text walkthrough of the whole played scene."
+
 
 @dataclass(frozen=True)
 class Stage:
@@ -114,6 +126,13 @@ STAGES: tuple[Stage, ...] = (
         FINAL_CUT_TURNS_GRAPH,
         seed=FINAL_CUT_TURNS_SEED,
         output_key="cut",
+    ),
+    Stage(
+        WALKTHROUGH,
+        "Walkthrough",
+        WALKTHROUGH_GRAPH,
+        seed=WALKTHROUGH_SEED,
+        output_key="walkthrough",
     ),
 )
 STAGE_BY_NAME = {s.name: s for s in STAGES}
@@ -210,6 +229,16 @@ def scene_is_complete(doc: dict) -> bool:
     return any(
         (t.get("direction") or {}).get("scene_complete") for t in doc.get("turns", [])
     )
+
+
+def cut_present(doc: dict) -> bool:
+    """Whether the FR-485 turn-structured cut spine exists yet (FR-487 OQ1).
+
+    The walkthrough renders that cut as its structural spine, so it stays locked
+    until the cut is *present* (its ``turns`` segments exist) — not necessarily
+    reviewed. Pure dict access, mirroring :func:`scene_is_complete`.
+    """
+    return bool((doc.get("final_cut_turns") or {}).get("turns"))
 
 
 def breadcrumb(doc: dict) -> list[dict]:
@@ -321,4 +350,17 @@ def breadcrumb(doc: dict) -> list[dict]:
                 "reviewed": bool(fct.get("reviewed")),
             }
         )
+        # Walkthrough (FR-487): the rendered finish, a peer after the two cuts.
+        # It renders the FR-485 cut as its spine, so it appears only once that
+        # cut is present (its segments exist) — not merely once the scene ends.
+        if cut_present(doc):
+            wt = doc.get("walkthrough", {})
+            crumbs.append(
+                {
+                    "label": "Walkthrough",
+                    "stage": WALKTHROUGH,
+                    "current": current == WALKTHROUGH,
+                    "reviewed": bool(wt.get("reviewed")),
+                }
+            )
     return crumbs

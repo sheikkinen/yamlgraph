@@ -50,8 +50,10 @@ from examples.dungeon_master.api.tree import (
     FIRST_STAGE,
     STAGE_BY_NAME,
     TURN_PREFIX,
+    WALKTHROUGH,
     Stage,
     breadcrumb,
+    cut_present,
     preplan_complete,
     resolve_stage,
     scene_is_complete,
@@ -245,6 +247,17 @@ class DMSession:
                 )
                 entry["turns"] = segments
                 entry["text"] = turn_ops.render_cut_turns(segments)
+            elif stage.name == WALKTHROUGH:
+                # Iterate re-renders the full-text walkthrough from the authored
+                # layers — the FR-485 cut spine, the FR-486 performance, and the
+                # whole-arc staging pass (FR-487). The structured {setting, turns}
+                # carries the 1:1 alignment guarantee; text is the rendered view.
+                wt = await turn_ops.invoke_walkthrough(
+                    doc, self._characters(doc), instruction=prompt, draft=text
+                )
+                entry["setting"] = wt["setting"]
+                entry["turns"] = wt["turns"]
+                entry["text"] = turn_ops.render_walkthrough(wt["setting"], wt["turns"])
             else:
                 entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
             entry["reviewed"] = False
@@ -344,6 +357,11 @@ class DMSession:
             # The terminal Final Cut leaves (continuous FR-484 + turn-structured
             # FR-485) both unlock only once the scene is complete.
             return scene_is_complete(doc)
+        if target == WALKTHROUGH:
+            # The full-text walkthrough renders the FR-485 cut as its spine, so it
+            # unlocks only once the scene is complete AND that cut is present
+            # (FR-487 OQ1) — otherwise it would have to invent the structure.
+            return scene_is_complete(doc) and cut_present(doc)
         stage = STAGE_BY_NAME.get(target)
         if stage is None or stage.kind == "roster":
             # Unknown stage, or the non-visitable Characters group.
@@ -423,6 +441,11 @@ class DMSession:
                 segments = await turn_ops.invoke_final_cut_turns(doc)
                 entry["turns"] = segments
                 entry["text"] = turn_ops.render_cut_turns(segments)
+            elif stage.name == WALKTHROUGH:
+                wt = await turn_ops.invoke_walkthrough(doc, self._characters(doc))
+                entry["setting"] = wt["setting"]
+                entry["turns"] = wt["turns"]
+                entry["text"] = turn_ops.render_walkthrough(wt["setting"], wt["turns"])
             else:
                 entry["text"] = await self._invoke_stage(doc, stage, "", stage.seed)
             entry["reviewed"] = False

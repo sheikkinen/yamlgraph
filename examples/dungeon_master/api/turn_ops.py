@@ -18,7 +18,9 @@ from examples.dungeon_master.api.graph_app import clean_text, field, get_app
 from examples.dungeon_master.api.tree import (
     FINAL_CUT_GRAPH,
     FINAL_CUT_TURNS_GRAPH,
+    STAGING_GRAPH,
     TURN_GRAPH,
+    WALKTHROUGH_GRAPH,
 )
 
 
@@ -512,3 +514,173 @@ async def invoke_final_cut_turns(
     else:
         segments = getattr(raw, "turns", None) or []
     return validate_cut_turns(doc.get("turns", []), segments)
+
+
+def _cut_spine(doc: dict) -> list[dict]:
+    """The FR-485 turn-structured cut as ``[{n, text}]`` — the walkthrough spine.
+
+    The walkthrough renders this cut, so it is required to be *present* (FR-487
+    OQ1). Raises when the cut has never been composed — a walkthrough without its
+    spine would have to invent the structural order, the forbidden path
+    (Commandment 6; the FR-487 dependency made mechanical).
+    """
+    spine = (doc.get("final_cut_turns") or {}).get("turns") or []
+    if not spine:
+        raise ValueError(
+            "Walkthrough requires the FR-485 final cut (turns) to be composed first"
+        )
+    return [{"n": int(s["n"]), "text": str(s.get("text", ""))} for s in spine]
+
+
+def walkthrough_render_inputs(
+    doc: dict, chars: dict, setting: str, staging_by_n: dict
+) -> list[dict]:
+    """Assemble one full-text render bundle per played turn (FR-487 deterministic seam).
+
+    A pure function over already-authored structures — the FR-485 cut spine
+    (``final_cut_turns``), the FR-486 performance (:func:`turn_intents`), the
+    scene ``setting`` and the per-turn ``staging`` from the director-staging pass.
+    Each bundle is ``{n, cut_text, setting, staging, cast}`` where ``cast`` carries
+    only the *outward* performance — ``name``/``dialogue``/``expression``/``intent``.
+    The private ``thinking`` is deliberately dropped: it is the one layer the page
+    must never render (FR-487 OQ5), so it is removed at the assembly boundary, not
+    trusted to be omitted downstream. No LLM — the renderer is handed the composed
+    inputs and asked only for prose.
+    """
+    climax_n = climax_turn(doc)
+    bundles: list[dict] = []
+    for seg in _cut_spine(doc):
+        n = seg["n"]
+        cast = [
+            {
+                "name": c["name"],
+                "dialogue": c["dialogue"],
+                "expression": c["expression"],
+                "intent": c["intent"],
+            }
+            for c in turn_intents(doc, chars, n)
+        ]
+        bundles.append(
+            {
+                "n": n,
+                "cut_text": seg["text"],
+                "setting": setting,
+                "staging": staging_by_n.get(n, ""),
+                "climax": n == climax_n,
+                "cast": cast,
+            }
+        )
+    return bundles
+
+
+def walkthrough_staging_context(doc: dict) -> dict:
+    """Staging-pass variables: the whole arc plus the rendered cut spine (FR-487).
+
+    Reuses :func:`final_cut_context` (scene plan, played arc, beats, climax) and
+    adds the rendered FR-485 cut as ``cut`` so the whole-arc director-staging pass
+    sees the polished spine it is staging.
+    """
+    return {**final_cut_context(doc), "cut": render_cut_turns(_cut_spine(doc))}
+
+
+async def invoke_walkthrough_staging(
+    doc: dict, instruction: str = "", draft: str = ""
+) -> tuple[str, dict]:
+    """Run the whole-arc director-staging pass: scene ``setting`` + per-turn deltas.
+
+    Returns ``(setting, staging_by_n)`` where ``staging_by_n`` maps each played
+    turn number to its location/blocking delta. The staging pass is **whole-arc**
+    (FR-487 OQ4): it sees the full sequence, so its per-turn deltas are the seams
+    that carry cross-turn continuity between the otherwise-locally-rendered
+    passages. A staging note for a turn the pass omits defaults to ``""`` at the
+    render boundary (additive; the hard 1:1 gate is on the render, not staging).
+    """
+    result = await get_app(STAGING_GRAPH).ainvoke(
+        {
+            **walkthrough_staging_context(doc),
+            "draft": draft,
+            "instruction": instruction,
+            "staging": {},
+        }
+    )
+    raw = result.get("staging")
+    if isinstance(raw, dict):
+        setting = str(raw.get("setting", ""))
+        deltas = raw.get("staging") or []
+    else:
+        setting = str(getattr(raw, "setting", ""))
+        deltas = getattr(raw, "staging", None) or []
+    staging_by_n: dict[int, str] = {}
+    for d in deltas:
+        dn = d.get("n") if isinstance(d, dict) else getattr(d, "n", None)
+        dt = d.get("text") if isinstance(d, dict) else getattr(d, "text", "")
+        if dn is not None:
+            staging_by_n[int(dn)] = str(dt or "")
+    return setting, staging_by_n
+
+
+def render_walkthrough(setting: str, segments: list[dict]) -> str:
+    """Join a validated walkthrough into readable full text for the edit control.
+
+    A scene-level ``setting`` header (curtain-up) followed by one full passage per
+    played turn. The structured ``segments`` carry the 1:1 alignment guarantee;
+    this is only the human-readable rendering for the generic weave/edit control.
+    """
+    body = "\n\n".join(f"Turn {s['n']}\n{s['text']}" for s in segments)
+    header = f"{setting}\n\n" if setting.strip() else ""
+    return f"{header}{body}"
+
+
+def _ordered_render_texts(renders: list, count: int) -> list[str]:
+    """Order the map's collected render passages and unwrap them to plain strings.
+
+    A ``map`` node collecting a ``parse_json: false`` (string) sub-result wraps
+    each item as ``{"_map_index": i, "value": <text>}`` (``map_compiler``), and the
+    collected list order is not guaranteed. This normalizes the boundary: sort by
+    the emitted ``_map_index`` and unwrap ``value``, so the renderer's prose — not
+    the reducer's bookkeeping — is what reaches the page. A bare string (no
+    wrapper) is passed through; the result is truncated/padded to ``count`` so the
+    1:1 alignment validator sees exactly one passage per played turn.
+    """
+    indexed: list[tuple[int, str]] = []
+    for i, r in enumerate(renders):
+        if isinstance(r, dict):
+            idx = int(r.get("_map_index", i))
+            val = r.get("value", "")
+        else:
+            idx = i
+            val = r
+        indexed.append((idx, clean_text(val)))
+    indexed.sort(key=lambda pair: pair[0])
+    return [text for _, text in indexed][:count]
+
+
+async def invoke_walkthrough(
+    doc: dict, chars: dict, instruction: str = "", draft: str = ""
+) -> dict:
+    """Render the full text of each played turn from the authored layers (FR-487).
+
+    The convergence point of the finish arc: runs the whole-arc director-staging
+    pass, assembles one render bundle per played turn from the FR-485 cut spine +
+    FR-486 performance + staging (:func:`walkthrough_render_inputs`), maps the
+    per-turn full-text render over them (``walkthrough.yaml``), and validates the
+    result aligns 1:1 with the played turns via the **reused**
+    :func:`validate_cut_turns` (no new alignment validator — alignment composes,
+    since the cut spine is already 1:1 to the played arc). Returns
+    ``{setting, turns: [{n, text}]}``; reads the played turns and the two cuts,
+    writes none of them — the walkthrough is a separate ``doc["walkthrough"]``
+    artifact (additive).
+    """
+    setting, staging_by_n = await invoke_walkthrough_staging(
+        doc, instruction=instruction, draft=draft
+    )
+    bundles = walkthrough_render_inputs(doc, chars, setting, staging_by_n)
+    result = await get_app(WALKTHROUGH_GRAPH).ainvoke(
+        {"bundles": bundles, "renders": []}
+    )
+    texts = _ordered_render_texts(result.get("renders") or [], len(bundles))
+    segments = [
+        {"n": b["n"], "text": text} for b, text in zip(bundles, texts, strict=False)
+    ]
+    validated = validate_cut_turns(doc.get("turns", []), segments)
+    return {"setting": setting, "turns": validated}
