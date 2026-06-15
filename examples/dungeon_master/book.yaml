@@ -1,0 +1,55 @@
+# Dungeon Master v2 — The Book compose graph (FR-491 E).
+#
+# The single whole-book finish, retiring the three single-scene finishes
+# (final_cut / final_cut_turns / walkthrough). Where the play loop produced each
+# chapter's prose and forward-carried world_state, this terminal leaf composes
+# the finished manuscript from EVERY played chapter at once — the synopsis as the
+# book in outline, then each chapter's played prose and its end-of-chapter world
+# state laid end to end. One llm node, plain prose out (parse_json: false), the
+# same shape as the retired final_cut.
+#
+# Inputs are assembled by chapter_ops.compose_book(doc): synopsis + the played
+# chapters block. draft + instruction carry an Iterate's current manuscript and
+# steer. Empty draft => first compose; non-empty draft => apply the change.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/book.yaml \
+#     --var synopsis="..." --var chapters="## Chapter 1: ...\n\n..." \
+#     --var draft="" --var instruction="" --full
+version: "1.0"
+name: dm-book
+description: Compose the finished book from every played chapter
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # The whole book goes in and a full polished manuscript comes out; reserve
+  # generous headroom for both a reasoning model's hidden tokens and long prose.
+  max_tokens: 4000
+
+state:
+  synopsis: str
+  chapters: str
+  draft: str
+  instruction: str
+  book: str
+
+nodes:
+  book:
+    type: llm
+    prompt: book
+    state_key: book
+    parse_json: false
+    variables:
+      synopsis: "{state.synopsis}"
+      chapters: "{state.chapters}"
+      draft: "{state.draft}"
+      instruction: "{state.instruction}"
+
+edges:
+  - from: START
+    to: book
+  - from: book
+    to: END

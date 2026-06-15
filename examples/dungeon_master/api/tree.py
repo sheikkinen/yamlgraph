@@ -46,36 +46,16 @@ TURN_GRAPH = f"{GRAPH_DIR}/turn.yaml"
 TURN_PREFIX = "turn:"
 TURN_SEED = "Play this turn."
 
-# Final Cut (FR-484): a terminal leaf that composes one continuous scene from the
-# whole played arc once the director reports the scene complete. A single static
-# stage (not a per-item prefix), gated on ``scene_is_complete`` rather than a
-# parent being reviewed.
-FINAL_CUT = "final_cut"
-FINAL_CUT_GRAPH = f"{GRAPH_DIR}/final_cut.yaml"
-FINAL_CUT_SEED = "Compose the final cut of the whole played scene."
-
-# Turn-structured Final Cut (FR-485): a sibling terminal leaf that, instead of
-# dissolving the turns into one flowing scene (FR-484), keeps the turn skeleton —
-# one polished segment per played turn, aligned 1:1 to the play-by-play, with the
-# whole-arc knowledge spent on de-repetition and climax emphasis. A separate
-# ``doc["final_cut_turns"]`` artifact, gated identically on ``scene_is_complete``.
-FINAL_CUT_TURNS = "final_cut_turns"
-FINAL_CUT_TURNS_GRAPH = f"{GRAPH_DIR}/final_cut_turns.yaml"
-FINAL_CUT_TURNS_SEED = (
-    "Compose the turn-structured final cut of the whole played scene."
-)
-
-# Full-text walkthrough (FR-487): the rendered finish. Where the two Final Cuts
-# are *summaries* (tight prose over the recaps), the walkthrough renders the full
-# text of each played turn from three already-authored layers — the FR-485 cut
-# spine, the FR-486 per-character performance, and a new whole-arc director-
-# staging pass — validated 1:1 by the reused ``validate_cut_turns``. A separate
-# ``doc["walkthrough"]`` artifact, gated on the scene being complete AND the
-# FR-485 cut being present (its spine).
-WALKTHROUGH = "walkthrough"
-WALKTHROUGH_GRAPH = f"{GRAPH_DIR}/walkthrough.yaml"
-STAGING_GRAPH = f"{GRAPH_DIR}/staging.yaml"
-WALKTHROUGH_SEED = "Render the full-text walkthrough of the whole played scene."
+# The Book (FR-491 E): the single whole-book finish. Where the play loop produces
+# each chapter's prose and end-of-chapter ``world_state`` (FR-491 B), the Book
+# composes the finished manuscript from every PLAYED chapter once they are all
+# played. A single static terminal stage (not a per-item prefix), gated on
+# ``all_chapters_played`` rather than a parent being reviewed. This retires the
+# three turn-based single-scene finishes (final_cut / final_cut_turns /
+# walkthrough) wholesale (Amendment E).
+BOOK = "book"
+BOOK_GRAPH = f"{GRAPH_DIR}/book.yaml"
+BOOK_SEED = "Compose the finished book from every played chapter."
 
 
 @dataclass(frozen=True)
@@ -129,25 +109,11 @@ STAGES: tuple[Stage, ...] = (
         output_key="outline",
     ),
     Stage(
-        FINAL_CUT,
-        "Final Cut",
-        FINAL_CUT_GRAPH,
-        seed=FINAL_CUT_SEED,
-        output_key="final_cut",
-    ),
-    Stage(
-        FINAL_CUT_TURNS,
-        "Final Cut (Turns)",
-        FINAL_CUT_TURNS_GRAPH,
-        seed=FINAL_CUT_TURNS_SEED,
-        output_key="cut",
-    ),
-    Stage(
-        WALKTHROUGH,
-        "Walkthrough",
-        WALKTHROUGH_GRAPH,
-        seed=WALKTHROUGH_SEED,
-        output_key="walkthrough",
+        BOOK,
+        "The Book",
+        BOOK_GRAPH,
+        seed=BOOK_SEED,
+        output_key="book",
     ),
 )
 STAGE_BY_NAME = {s.name: s for s in STAGES}
@@ -265,27 +231,19 @@ def cast_complete(doc: dict) -> bool:
     return bool(roster) and all(cards.get(cid, {}).get("reviewed") for cid in roster)
 
 
-def scene_is_complete(doc: dict) -> bool:
-    """Whether any played turn's director reported the scene complete (FR-484).
+def all_chapters_played(doc: dict) -> bool:
+    """Whether every derived chapter has been played to its end (FR-491 E).
 
-    The unlock gate for the terminal Final Cut leaf, mirroring ``preplan_complete``
-    for the Play branch: once the director declares the scene's END reached on any
-    turn (FR-479 J5), the whole arc exists and can be composed into one cut. Pure
-    dict access — no turn_ops import, so ``tree`` stays free of cycles.
+    The unlock gate for the terminal Book finish: the chapter outline exists and
+    every chapter in it has been closed (its last turn reported ``scene_complete``,
+    which ran the chapter-close world_state derivation and marked the card
+    ``reviewed``). Pure dict access — no turn_ops import, so ``tree`` stays free of
+    cycles. An empty outline is not "all played" — there is nothing to bind.
     """
-    return any(
-        (t.get("direction") or {}).get("scene_complete") for t in doc.get("turns", [])
-    )
-
-
-def cut_present(doc: dict) -> bool:
-    """Whether the FR-485 turn-structured cut spine exists yet (FR-487 OQ1).
-
-    The walkthrough renders that cut as its structural spine, so it stays locked
-    until the cut is *present* (its ``turns`` segments exist) — not necessarily
-    reviewed. Pure dict access, mirroring :func:`scene_is_complete`.
-    """
-    return bool((doc.get("final_cut_turns") or {}).get("turns"))
+    chapters = doc.get("chapters", {})
+    order = chapters.get("order", [])
+    cards = chapters.get("cards", {})
+    return bool(order) and all(cards.get(cid, {}).get("reviewed") for cid in order)
 
 
 def breadcrumb(doc: dict) -> list[dict]:
@@ -394,37 +352,17 @@ def breadcrumb(doc: dict) -> list[dict]:
 
     # Play is no longer a flat global branch (FR-491): each chapter is played in
     # place, its turns listed under the chapter crumb above.
-    # Final Cut (FR-484): a terminal peer once the director has reported the scene
-    if scene_is_complete(doc):
-        fc = doc.get("final_cut", {})
+    # The Book (FR-491 E): the single terminal peer, appearing once every chapter
+    # has been played. It composes the finished manuscript from the played
+    # chapters, retiring the three turn-based finishes.
+    if all_chapters_played(doc):
+        bk = doc.get("book", {})
         crumbs.append(
             {
-                "label": "Final Cut",
-                "stage": FINAL_CUT,
-                "current": current == FINAL_CUT,
-                "reviewed": bool(fc.get("reviewed")),
+                "label": "The Book",
+                "stage": BOOK,
+                "current": current == BOOK,
+                "reviewed": bool(bk.get("reviewed")),
             }
         )
-        fct = doc.get("final_cut_turns", {})
-        crumbs.append(
-            {
-                "label": "Final Cut (Turns)",
-                "stage": FINAL_CUT_TURNS,
-                "current": current == FINAL_CUT_TURNS,
-                "reviewed": bool(fct.get("reviewed")),
-            }
-        )
-        # Walkthrough (FR-487): the rendered finish, a peer after the two cuts.
-        # It renders the FR-485 cut as its spine, so it appears only once that
-        # cut is present (its segments exist) — not merely once the scene ends.
-        if cut_present(doc):
-            wt = doc.get("walkthrough", {})
-            crumbs.append(
-                {
-                    "label": "Walkthrough",
-                    "stage": WALKTHROUGH,
-                    "current": current == WALKTHROUGH,
-                    "reviewed": bool(wt.get("reviewed")),
-                }
-            )
     return crumbs

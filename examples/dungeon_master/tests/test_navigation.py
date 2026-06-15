@@ -175,12 +175,27 @@ def test_last_character_lands_on_chapters_overview():
     assert navigation.accept_target(doc, resolve_stage(doc, "char:kara")) == "chapters"
 
 
-def test_finishes_chain_walks_to_walkthrough():
-    assert navigation.accept_target({}, STAGE_BY_NAME["final_cut"]) == "final_cut_turns"
-    assert (
-        navigation.accept_target({}, STAGE_BY_NAME["final_cut_turns"]) == "walkthrough"
-    )
-    assert navigation.accept_target({}, STAGE_BY_NAME["walkthrough"]) is None
+def test_book_locked_until_all_chapters_played():
+    # FR-491 E: the terminal Book finish unlocks only once EVERY chapter has been
+    # played to its end (its card reviewed). A half-played outline keeps it locked.
+    from examples.dungeon_master.api.tree import BOOK
+
+    doc = _chapters_doc()  # order ["1", "2"], neither reviewed
+    assert navigation.can_visit(doc, BOOK) is False
+    doc["chapters"]["cards"]["1"]["reviewed"] = True
+    assert navigation.can_visit(doc, BOOK) is False  # chapter 2 still open
+    doc["chapters"]["cards"]["2"]["reviewed"] = True
+    assert navigation.can_visit(doc, BOOK) is True
+
+
+def test_accept_book_dead_ends():
+    # FR-491 E: the Book is the terminal finish — accepting it lands nowhere.
+    from examples.dungeon_master.api.tree import resolve_stage
+
+    doc = _chapters_doc()
+    doc["chapters"]["cards"]["1"]["reviewed"] = True
+    doc["chapters"]["cards"]["2"]["reviewed"] = True
+    assert navigation.accept_target(doc, resolve_stage(doc, "book")) is None
 
 
 # ── purity (FR-489 J3) ───────────────────────────────────────────────────────

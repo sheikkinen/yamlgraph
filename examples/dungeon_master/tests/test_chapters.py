@@ -240,6 +240,101 @@ def test_chapters_do_not_affect_preplan_complete():
     assert tree.cast_complete(doc) is True
 
 
+# ── FR-491 E: the Book composes from every played chapter ────────────────────
+
+
+def _book_mock(captured: list[dict]):
+    """A mock execute_prompt that records the book graph's variables (FR-491 E)."""
+
+    def _mock(prompt_name, variables=None, **kwargs):
+        variables = variables or {}
+        if prompt_name == "book":
+            captured.append(dict(variables))
+            return f"THE BOOK:\n{variables.get('chapters', '')}"
+        raise AssertionError(f"unexpected prompt {prompt_name!r}")
+
+    return _mock
+
+
+def _played_book_doc() -> dict:
+    """A doc whose two chapters have both been played and closed (all reviewed)."""
+    return {
+        "synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True},
+        "chapters": {
+            "reviewed": False,
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "Chapter 1 — The Water Rises",
+                    "summary": "Kara musters the band.",
+                    "text": "CH1-PLAYED-PROSE the band gathers.",
+                    "world_state": "WS-AFTER-ONE the band is mustered.",
+                    "reviewed": True,
+                },
+                "2": {
+                    "title": "Chapter 2 — The Last Ledge",
+                    "summary": "Kara corners the raider.",
+                    "text": "CH2-PLAYED-PROSE the raider falls.",
+                    "world_state": "WS-AFTER-TWO the raider is beaten.",
+                    "reviewed": True,
+                },
+            },
+        },
+    }
+
+
+def test_played_chapters_text_lays_every_chapter_end_to_end():
+    # The raw material the Book renders: each played chapter's title, its played
+    # prose, and its end-of-chapter world_state, in order.
+    material = chapter_ops.played_chapters_text(_played_book_doc())
+    assert "Chapter 1 — The Water Rises" in material
+    assert "CH1-PLAYED-PROSE" in material
+    assert "WS-AFTER-ONE" in material
+    assert "Chapter 2 — The Last Ledge" in material
+    assert "CH2-PLAYED-PROSE" in material
+    assert "WS-AFTER-TWO" in material
+    # Order is preserved: chapter 1 precedes chapter 2.
+    assert material.index("CH1-PLAYED-PROSE") < material.index("CH2-PLAYED-PROSE")
+
+
+def test_played_chapters_text_raises_when_no_chapter_played():
+    # Commandment 6: no silent fallback — composing from nothing must raise, not
+    # return an empty book. (The Book stage is gated on all_chapters_played, so
+    # this is a contract check, not a user path.)
+    import pytest
+
+    doc = {"chapters": {"order": [], "cards": {}}}
+    with pytest.raises(ValueError):
+        chapter_ops.played_chapters_text(doc)
+
+
+def test_compose_book_composes_from_every_played_chapter():
+    doc = _played_book_doc()
+    captured: list[dict] = []
+    mock = _book_mock(captured)
+    m1, m2 = _patched(mock)
+    with m1, m2:
+        result = _run(chapter_ops.compose_book(doc))
+    assert len(captured) == 1
+    # The book graph received the synopsis and every played chapter's material.
+    assert captured[0]["synopsis"] == SYNOPSIS_TEXT
+    assert "CH1-PLAYED-PROSE" in captured[0]["chapters"]
+    assert "CH2-PLAYED-PROSE" in captured[0]["chapters"]
+    # The composed manuscript is built from the played chapters, not invented.
+    assert "CH1-PLAYED-PROSE" in result
+    assert "CH2-PLAYED-PROSE" in result
+
+
+def test_compose_book_does_not_mutate_doc():
+    doc = _played_book_doc()
+    before = copy.deepcopy(doc)
+    mock = _book_mock([])
+    m1, m2 = _patched(mock)
+    with m1, m2:
+        _run(chapter_ops.compose_book(doc))
+    assert doc == before
+
+
 def test_chapters_appear_as_breadcrumb_peer_of_characters():
     from examples.dungeon_master.api import tree
 

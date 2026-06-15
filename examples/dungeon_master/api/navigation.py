@@ -16,18 +16,15 @@ from __future__ import annotations
 
 from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.tree import (
+    BOOK,
     CHAPTER_PREFIX,
     CHAR_PREFIX,
-    FINAL_CUT,
-    FINAL_CUT_TURNS,
     STAGE_BY_NAME,
     TURN_PREFIX,
-    WALKTHROUGH,
     Stage,
+    all_chapters_played,
     cast_complete,
-    cut_present,
     parse_turn,
-    scene_is_complete,
 )
 
 
@@ -77,15 +74,10 @@ def can_visit(doc: dict, target: str) -> bool:
         if not cid or cid not in _chapter_order(doc):
             return False
         return 1 <= n <= len(turn_ops.chapter_turns(doc, cid)) + 1
-    if target in (FINAL_CUT, FINAL_CUT_TURNS):
-        # The terminal Final Cut leaves (continuous FR-484 + turn-structured
-        # FR-485) both unlock only once the scene is complete.
-        return scene_is_complete(doc)
-    if target == WALKTHROUGH:
-        # The full-text walkthrough renders the FR-485 cut as its spine, so it
-        # unlocks only once the scene is complete AND that cut is present
-        # (FR-487 OQ1) — otherwise it would have to invent the structure.
-        return scene_is_complete(doc) and cut_present(doc)
+    if target == BOOK:
+        # The terminal Book finish (FR-491 E) unlocks once every chapter has been
+        # played to its end — it composes the finished manuscript from them.
+        return all_chapters_played(doc)
     stage = STAGE_BY_NAME.get(target)
     if stage is None or stage.kind == "roster":
         # Unknown stage, or the non-visitable Characters group.
@@ -148,13 +140,6 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
                     return f"{TURN_PREFIX}{order[i + 1]}:1"
             return None
         return f"{TURN_PREFIX}{cid}:{n + 1}"
-    # The three finishes chain so accepting one leads to the next, walking the
-    # DM through every closing artifact (FR-487): the continuous Final Cut
-    # (FR-484) → the turn-structured Final Cut (FR-485, which also drafts the
-    # cut spine the walkthrough needs) → the full-text Walkthrough (FR-487),
-    # which is the true terminal leaf.
-    if stage.name == FINAL_CUT:
-        return FINAL_CUT_TURNS
-    if stage.name == FINAL_CUT_TURNS:
-        return WALKTHROUGH
+    # The Book is the terminal finish (FR-491 E): accepting it lands nowhere — the
+    # story is done.
     return None
