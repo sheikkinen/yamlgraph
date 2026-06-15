@@ -26,62 +26,55 @@ and never more than one click from accepting it.**
 ## 2. What is built
 
 The app started as a single loop around the **synopsis** and has grown — one
-judged feature request at a time — into a **preplan tree** that feeds a **play
-loop** and three **finish** passes. Every visitable node is the same iterable
-card; what changes is the graph behind it and the prior context it reads.
+judged feature request at a time — into a **book**: the synopsis derives a cast,
+the cast derives a chapter outline, **each chapter is played** turn by turn, and
+the played chapters compose into **The Book**. Every visitable node is the same
+iterable card; what changes is the graph behind it and the prior context it reads.
 
 ```
 Synopsis (root — gates everything)
-├── Key Scene              FR-475 · the single pivotal scene (reads synopsis + roster)
-├── Characters (roster)    FR-475 · one char:<id> card per named principal
-├── Chapters (overview)    FR-488/490 · the book split into an ordered chapter set
-│     └── chapter:<n>      each expanded, carrying world_state forward (FR-488 J7)
-└── Play                   FR-477 · unlocks once the whole preplan is reviewed
-      └── turn:<n>         map(cast → intents) → director → recap (FR-477/479/481)
-            └── Final Cut             FR-484 · one continuous scene from the whole arc
-                  └── Final Cut (Turns)   FR-485 · one polished segment per played turn
-                        └── Walkthrough     FR-487 · full-text render of every turn
+├── Characters (roster)    FR-475/491 · one char:<id> card per named principal
+└── Chapters (overview)    FR-488/490/491 · the book split into an ordered chapter set
+      └── chapter:<cid>    FR-491 · PLAYED in place, carrying world_state forward
+            └── turn:<cid>:<n>   map(cast → intents) → director → recap (FR-477/479/481)
+      The Book             FR-491 E · composed from every played chapter
 ```
 
 1. **Synopsis** — the DM opens the app to a **tagline** prompt seeded into the
    synopsis card (no splash). The machine drafts a plain, reveal-all synopsis;
    the DM edits in place or describes a change and **Iterates**, then **Accepts**.
    Accepting the synopsis is the gate that reveals its children, and the act that
-   derives both the character roster and the chapter set (FR-474/489).
-2. **Key Scene** (FR-475) — reads the accepted synopsis (and the derived roster,
-   FR-480) and drafts the single pivotal scene as a structured plan
-   (`CHARACTERS:` / `SUMMARY:` / `BEATS:` / `END:`). Same weave → edit → accept.
-3. **Characters** (FR-475) — accepting the synopsis derives a **roster** of
+   derives the character roster (FR-474/489/491).
+2. **Characters** (FR-475/491) — accepting the synopsis derives a **roster** of
    names; each becomes a dynamic `char:<id>` card drafted from the shared
-   `character.yaml` graph. The DM reviews each in turn.
-4. **Chapters** (FR-488/490) — accepting the synopsis also splits it into a fixed,
-   ordered set of one-paragraph chapter summaries. The **Chapters** crumb lands on
-   a read-only **overview** (table of contents); each `chapter:<n>` card expands
-   its summary into prose, threading the previous chapter's **world state**
-   forward (FR-488 J7) so the book stays continuous. An *independent* branch — not
-   part of the play gate.
-5. **Play / Turns** (FR-477) — the moment synopsis ✓, key scene ✓, and *every*
-   character card ✓, a **Play** branch appears and **Turn 1 auto-drafts**. Each
-   turn runs the cast through private **intents** (a `map`: THINKING + INTENT,
-   plus the outward DIALOGUE + EXPRESSION, FR-486), a **director** judges the
-   arc (phase, beats satisfied, continuity, scene-complete — FR-479/481), and a
-   **recap** consolidates it into one authoritative paragraph. Accepting a turn
-   seeds the next, threading history forward.
-6. **The three finishes** — once the director reports the scene **complete** on
-   any turn, three terminal passes unlock and chain on accept:
-   - **Final Cut** (FR-484) — dissolves the whole arc into *one continuous scene*.
-   - **Final Cut (Turns)** (FR-485) — keeps the turn skeleton: one polished
-     segment per played turn, validated 1:1 against the play-by-play.
-   - **Walkthrough** (FR-487) — renders the *full text* of each turn from three
-     authored layers (the FR-485 cut spine, the FR-486 performance, and a
-     whole-arc director-staging pass).
+   `character.yaml` graph. The DM reviews each in turn. Accepting the **last**
+   character derives the chapter outline — the cast is settled before the arc
+   they will play is split out (FR-491 J1).
+3. **Chapters** (FR-488/490/491) — the synopsis is split into a fixed, ordered
+   set of one-paragraph chapter summaries. The **Chapters** crumb lands on a
+   read-only **overview** (table of contents); each `chapter:<cid>` card is not
+   *expanded* in one shot — it is **played** turn by turn (below), threading the
+   previous chapter's **world state** forward (FR-491 B, preserving FR-488 J7) so
+   the book stays continuous.
+4. **Play / Turns** (FR-477/491) — visiting a chapter opens its **first turn**.
+   Each turn runs the cast through private **intents** (a `map`: THINKING +
+   INTENT, plus the outward DIALOGUE + EXPRESSION, FR-486), a **director** judges
+   the arc against the chapter summary (phase, beats satisfied, continuity,
+   scene-complete — FR-479/481), and a **recap** consolidates it into one
+   authoritative paragraph. Accepting a turn seeds the next; when the director
+   reports the chapter's scene **complete**, the chapter closes — its
+   end-of-chapter `world_state` is derived and carried into the next chapter —
+   and play moves on.
+5. **The Book** (FR-491 E) — once **every** chapter has been played to its end,
+   the terminal **Book** finish unlocks and composes the played chapters — their
+   prose and forward-carried world states — into one continuous manuscript.
 
 ### Still deferred (out of scope, by design)
 - Asking for character or chapter counts up front (the roster and the chapter set
   both emerge from the synopsis instead).
 - Hand-editable intents and any rules/dice engine (turns are narrative only).
 - CAP/REQ/CI gates — this prototype lives under the FR-474 J3 regime; its
-  walkthrough tests in [`tests/`](tests/) are a visibility harness, not a gate.
+  end-to-end tests in [`tests/`](tests/) are a visibility harness, not a gate.
 
 ---
 
@@ -124,7 +117,7 @@ takes the current draft (possibly empty) plus an instruction and returns the ful
 prose. Empty draft means the instruction is the premise; non-empty means apply
 the change. This is the engine behind Iterate and it is the only generation path —
 ordinary cards run it through `session._invoke_stage`; the structured stages
-(turns, chapters, the three finishes) run a *composed* variant
+(turns, chapters, the Book) run a *composed* variant
 (`session._compose_special`) that wraps the same weave contract around their
 multi-node graphs and deterministic post-conditions (see
 [`docs/architecture.md`](docs/architecture.md)).
@@ -133,8 +126,8 @@ multi-node graphs and deterministic post-conditions (see
 
 ## 4. The Card Loop (one operation, every stage)
 
-Every node — synopsis, key scene, each character, each chapter, each turn, and
-each of the three finishes — is the identical `{text, reviewed}` card driven by
+Every node — synopsis, each character, the chapters overview, each chapter, each
+turn, and the Book — is the identical `{text, reviewed}` card driven by
 the same three URLs (`weave` / `edit` / `accept`) plus `/story/nav` for
 breadcrumb jumps. The tree only decides *which graph* runs and *what prior
 context* it reads.
@@ -150,27 +143,31 @@ flowchart LR
 ```
 
 The synopsis itself is a **plain, reveal-all** summary — concrete nouns and
-verbs, the actual ending included — not an atmospheric teaser, and the key-scene
+verbs, the actual ending included — not an atmospheric teaser, and the chapter
 and turn-recap voices inherit that dry, factual register.
 
-### The Play loop (FR-477)
+### The Play loop (FR-477/491)
 
-A turn is the same card with a structured side-channel. `turn.yaml` is two
+A turn is the same card with a structured side-channel, played **inside the
+chapter that owns it** (`turn:<cid>:<n>`). `turn.yaml` is two
 nodes: a **map** over the cast where each principal privately reasons
 (`THINKING`) and commits one action (`INTENT`), then a **recap** node that
 consolidates all intents into one authoritative "Turn N —" paragraph naming
 every character. Intents render in a left aside; the recap is the editable card.
 **Iterate** re-rolls the whole turn (intents + recap co-generated, so they can't
-drift; a DM instruction steers only the recap). **Accept** seeds Turn N+1 with
-the last three recaps as scene context and each character's prior intent.
+drift; a DM instruction steers only the recap). **Accept** seeds the next turn
+with the last recaps as scene context and each character's prior intent — and
+when the director reports the chapter complete, closes the chapter (deriving its
+`world_state`) and moves play to the next chapter.
 
 ```mermaid
 flowchart LR
-    P[preplan complete] --> T1[Turn 1 auto-drafts]
+    P[chapter opened] --> T1[Turn 1 auto-drafts]
     T1 --> I[map · per-character intents]
     I --> R[recap · consolidate + name cast]
     R -->|Iterate re-rolls whole turn| I
-    R -->|Accept| T2[Turn 2 · history threaded]
+    R -->|Accept| T2[next turn · history threaded]
+    R -->|Accept on scene_complete| C[chapter closes · world_state carried forward]
 ```
 
 ---
@@ -191,25 +188,22 @@ which makes every loop testable in isolation. The graphs are:
 | Graph | Stage | Shape |
 |---|---|---|
 | `synopsis.yaml` | Synopsis | weave (draft + instruction → prose) |
-| `key_scene.yaml` | Key Scene | weave, reads synopsis + roster |
 | `character_roster.yaml` | Characters | derives the cast names from the synopsis |
 | `character.yaml` | each `char:<id>` | weave, parameterised by the character name |
 | `chapter_outline.yaml` | Chapters | splits the synopsis into `{title, summary}[]` |
-| `chapter.yaml` | each `chapter:<n>` | expands a summary, threading `world_state` forward |
-| `turn.yaml` | each `turn:<n>` | `map`(cast → intents) → director → recap |
-| `final_cut.yaml` | Final Cut | one continuous scene from the whole arc |
-| `final_cut_turns.yaml` | Final Cut (Turns) | one segment per played turn |
-| `staging.yaml` + `walkthrough.yaml` | Walkthrough | whole-arc staging → per-turn full-text render |
+| `turn.yaml` | each `turn:<cid>:<n>` | `map`(cast → intents) → director → recap |
+| `chapter_close.yaml` | chapter close | inherited ledger + played recaps → end-of-chapter `world_state` |
+| `book.yaml` | The Book | synopsis + every played chapter → one manuscript |
 
 The **shared card interface stays a pure `str → str`** (FR-477 J3). The structured
 stages keep their side-channels (turn intents + director judgement; chapter
-`world_state`; the cut/walkthrough `turns` track) out of that interface, isolated
-in `turn_ops.py` / `chapter_ops.py`. Those modules also own the **deterministic
-seams** — pure code the model is *not* trusted to do: the monotonic phase clamp,
-beat canonicalisation against the frozen scene, the climax derivation, and the 1:1
-alignment validator that **raises** on a misaligned finish (Commandment 6). See
-[`docs/architecture.md`](docs/architecture.md) for the full module map and the
-deterministic-vs-generative seam split.
+`summary` / `world_state`) out of that interface, isolated in `turn_ops.py` /
+`chapter_ops.py`. Those modules also own the **deterministic seams** — pure code
+the model is *not* trusted to do: the monotonic phase clamp, the cumulative beat
+canonicalisation, the `world_state` forward-carry across chapters, and the
+played-chapters assembly that **raises** rather than composing The Book from
+nothing (Commandment 6). See [`docs/architecture.md`](docs/architecture.md) for
+the full module map and the deterministic-vs-generative seam split.
 
 ---
 
