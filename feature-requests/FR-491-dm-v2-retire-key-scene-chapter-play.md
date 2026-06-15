@@ -316,3 +316,19 @@ threaded across two played chapters). Diary with a Seed.
   - **Target shape reached:** Synopsis → Characters → Chapters (overview) →
     chapter:&lt;cid&gt; (each PLAYED via the turn loop) → **The Book** (composed from
     all played chapters). The single-scene-finish era is fully retired.
+
+- **Live vertex witness + book config fix** ✓ `2abb8483`. Drove `DMSession` end
+  to end against real `vertex/gemini-3.5-flash` (`tmp/witness_fr491_book.py`):
+  synopsis → 3 characters → outline derived 2 chapters → both chapters played to
+  the director's `scene_complete` judgement (chapter 1 at turn 5, chapter 2 at
+  turn 8) → `world_state` forward-carried across both → navigate to **The Book**.
+  This proved both generative seams (director-judged chapter completion; world
+  state threaded chapter-to-chapter). The witness also exposed a config-boundary
+  defect: the `book` node returned `""` because on Gemini hidden thinking tokens
+  share the `max_tokens` budget with visible prose, and unbounded thinking at
+  `max_tokens=4000` consumed it all (LangSmith: `completion_tokens=3996,
+  book=""`). Fixed by bounding thinking (`thinking_budget=4096`) and widening the
+  budget (`max_tokens=16000`); re-verified against real vertex
+  (`completion_tokens=2232`, a 2711-char manuscript composed from both played
+  chapters). The book node is the codebase's one long-form composer, so it alone
+  needs a different token regime from the short-artifact nodes.
