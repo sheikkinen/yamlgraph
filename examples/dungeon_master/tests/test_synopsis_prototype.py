@@ -33,6 +33,21 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
     variables = variables or {}
     draft = variables.get("draft") or ""
     instruction = variables.get("instruction")
+    # Book-scope chapters (FR-488) are parse_json dicts; answer before the plain
+    # refine early-return. The outline spawns on every synopsis-accept.
+    if prompt_name == "chapter_outline":
+        return {
+            "chapters": [
+                {"title": "Chapter 1 — The Water Rises", "summary": "Kara musters."},
+                {"title": "Chapter 2 — The Last Ledge", "summary": "Kara corners."},
+            ]
+        }
+    if prompt_name == "chapter":
+        prev = variables.get("previous_world_state") or "none"
+        return {
+            "text": f"Chapter {variables.get('index', '?')} full text.",
+            "world_state": f"WS@{variables.get('index', '?')} (prev={prev})",
+        }
     if draft.strip():
         return f"[refined: {instruction}] {draft}"
     if prompt_name == "synopsis":

@@ -27,6 +27,18 @@ CHARACTER_GRAPH = f"{GRAPH_DIR}/character.yaml"
 CHARACTER_SEED = "Draft this one character from the synopsis."
 CHAR_PREFIX = "char:"
 
+# Book-scope chapters (FR-488): an INDEPENDENT branch off the synopsis (a peer of
+# Key Scene and Characters, NOT part of the preplan/play gate — J3). The synopsis
+# is the whole book in outline; ``chapter_outline.yaml`` splits it into a fixed
+# ordered set of one-paragraph chapter summaries, and each ``chapter:<n>`` card is
+# expanded by the shared ``chapter.yaml`` graph, carrying the previous chapter's
+# world_state forward (J7). Numeric 1-based string ids — the set is FIXED at
+# derivation (no idempotent slug-append; J6).
+CHAPTER_OUTLINE_GRAPH = f"{GRAPH_DIR}/chapter_outline.yaml"
+CHAPTER_GRAPH = f"{GRAPH_DIR}/chapter.yaml"
+CHAPTER_PREFIX = "chapter:"
+CHAPTER_SEED = "Expand this chapter from its summary."
+
 # Play loop (FR-477): turns are dynamic stages addressed by ``turn:<n>``, run by
 # the shared turn graph, and resolved at runtime like character cards.
 TURN_GRAPH = f"{GRAPH_DIR}/turn.yaml"
@@ -114,6 +126,16 @@ STAGES: tuple[Stage, ...] = (
         output_key="roster",
     ),
     Stage(
+        "chapters",
+        "Chapters",
+        CHAPTER_OUTLINE_GRAPH,
+        context=("synopsis",),
+        parent="synopsis",
+        kind="roster",
+        seed="Split the synopsis into one-paragraph chapter summaries.",
+        output_key="outline",
+    ),
+    Stage(
         FINAL_CUT,
         "Final Cut",
         FINAL_CUT_GRAPH,
@@ -183,6 +205,23 @@ def resolve_stage(doc: dict, name: str) -> Stage:
             parent="characters",
             var_name=label,
             output_key="character",
+        )
+    if name.startswith(CHAPTER_PREFIX):
+        # A book chapter (FR-488). Like a character card, a composed stage run
+        # through _compose_special (not _invoke_stage), since it needs the
+        # forward-carried world_state the bare graph variables cannot supply.
+        cid = name[len(CHAPTER_PREFIX) :]
+        card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
+        label = card.get("title") or f"Chapter {cid}"
+        return Stage(
+            name=name,
+            label=label,
+            graph=CHAPTER_GRAPH,
+            context=("synopsis",),
+            seed=CHAPTER_SEED,
+            parent="chapters",
+            kind="chapter",
+            output_key="chapter",
         )
     if name.startswith(TURN_PREFIX):
         # A play turn (FR-477). The turn graph is not run through _invoke_stage;
@@ -272,6 +311,38 @@ def breadcrumb(doc: dict) -> list[dict]:
             "reviewed": bool(key_scene.get("reviewed")),
         }
     )
+
+    # Chapters (FR-488): an independent branch off the synopsis, peer of Key Scene
+    # and Characters. A fixed ordered set of chapter cards; inside the branch each
+    # chapter is a member peer. Not part of the preplan/play gate (J3).
+    chapters = doc.get("chapters", {})
+    ch_order = chapters.get("order", [])
+    ch_cards = chapters.get("cards", {})
+    in_chapters = current.startswith(CHAPTER_PREFIX)
+    ch_all_reviewed = bool(ch_order) and all(
+        ch_cards.get(cid, {}).get("reviewed") for cid in ch_order
+    )
+    crumbs.append(
+        {
+            "label": "Chapters",
+            "stage": (CHAPTER_PREFIX + ch_order[0]) if ch_order else None,
+            "current": False,
+            "reviewed": ch_all_reviewed,
+            "group": True,
+        }
+    )
+    if in_chapters:
+        for cid in ch_order:
+            card = ch_cards.get(cid, {})
+            crumbs.append(
+                {
+                    "label": card.get("title") or f"Chapter {cid}",
+                    "stage": CHAPTER_PREFIX + cid,
+                    "current": current == CHAPTER_PREFIX + cid,
+                    "reviewed": bool(card.get("reviewed")),
+                    "member": True,
+                }
+            )
 
     chars = doc.get("characters", {})
     cards = chars.get("cards", {})

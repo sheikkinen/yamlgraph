@@ -35,7 +35,7 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from examples.dungeon_master.api import navigation, story_doc, turn_ops
+from examples.dungeon_master.api import chapter_ops, navigation, story_doc, turn_ops
 from examples.dungeon_master.api.graph_app import (
     clean_text,
     get_app,
@@ -44,6 +44,7 @@ from examples.dungeon_master.api.graph_app import (
     reset_caches as _reset_caches,
 )
 from examples.dungeon_master.api.tree import (
+    CHAPTER_PREFIX,
     CHAR_PREFIX,
     FINAL_CUT,
     FINAL_CUT_TURNS,
@@ -137,6 +138,21 @@ class DMSession:
         chars.setdefault("cards", {})
         return chars
 
+    def _chapters(self, doc: dict) -> dict:
+        """The chapters sub-document ``{reviewed, order, cards}`` (created if absent).
+
+        A fixed ordered set of book chapters (FR-488): ``order`` is the 1-based
+        string ids in story sequence, ``cards`` maps each id to
+        ``{title, summary, text, world_state, reviewed}``. Independent of the
+        characters roster and of the preplan/play gate (J3).
+        """
+        chapters = doc.setdefault(
+            "chapters", {"reviewed": False, "order": [], "cards": {}}
+        )
+        chapters.setdefault("order", [])
+        chapters.setdefault("cards", {})
+        return chapters
+
     def _entry(self, doc: dict, name: str) -> dict:
         """The per-stage sub-document ``{"text", "reviewed"}`` (created if absent).
 
@@ -148,6 +164,19 @@ class DMSession:
             cid = name[len(CHAR_PREFIX) :]
             cards = self._characters(doc)["cards"]
             return cards.setdefault(cid, {"name": cid, "text": "", "reviewed": False})
+        if name.startswith(CHAPTER_PREFIX):
+            cid = name[len(CHAPTER_PREFIX) :]
+            cards = self._chapters(doc)["cards"]
+            return cards.setdefault(
+                cid,
+                {
+                    "title": f"Chapter {cid}",
+                    "summary": "",
+                    "text": "",
+                    "world_state": "",
+                    "reviewed": False,
+                },
+            )
         if name.startswith(TURN_PREFIX):
             return turn_ops.turn_record(doc, int(name[len(TURN_PREFIX) :]))["recap"]
         return doc.setdefault(name, {"text": "", "reviewed": False})
@@ -294,6 +323,7 @@ class DMSession:
             # (FR-489 J1): navigation is pure, so this side-effect lives here.
             if stage.name == "synopsis":
                 await self._expand_roster(doc, story_dir)
+                await self._expand_chapters(doc, story_dir)
             target = navigation.accept_target(doc, stage)
             if target is not None:
                 doc["stage"] = target
@@ -343,6 +373,31 @@ class DMSession:
                 chars["roster"].append(cid)
         story_doc.write(story_dir, doc)
 
+    async def _expand_chapters(self, doc: dict, story_dir: Path) -> None:
+        """Split the synopsis into a fixed chapter set, one card per chapter (FR-488).
+
+        Idempotent (J6): the chapter set is FIXED at derivation — numeric ids
+        cannot idempotently append like character slugs — so once ``order`` is
+        populated this is a no-op. Otherwise it outlines the synopsis into
+        ``{title, summary}`` chunks and spawns ``cards["1"]…["N"]`` with empty
+        ``text``/``world_state`` for later per-chapter expansion.
+        """
+        chapters = self._chapters(doc)
+        if chapters["order"]:
+            return  # already derived; the set is fixed
+        outline = await chapter_ops.outline_chapters(doc)
+        for i, chunk in enumerate(outline, start=1):
+            cid = str(i)
+            chapters["cards"][cid] = {
+                "title": chunk.get("title") or f"Chapter {cid}",
+                "summary": chunk.get("summary", ""),
+                "text": "",
+                "world_state": "",
+                "reviewed": False,
+            }
+            chapters["order"].append(cid)
+        story_doc.write(story_dir, doc)
+
     async def _compose_special(
         self, doc: dict, entry: dict, stage: Stage, *, instruction: str, draft: str
     ) -> bool:
@@ -363,6 +418,17 @@ class DMSession:
             entry["text"] = await turn_ops.invoke_turn(
                 doc, self._characters(doc), n, instruction=instruction
             )
+        elif stage.kind == "chapter":
+            # A book chapter (FR-488): composed because it needs the previous
+            # chapter's world_state threaded in (J7), which a bare _invoke_stage
+            # cannot supply. invoke_chapter is pure; the world_state ledger is
+            # recorded beside the rendered text for the next chapter to carry.
+            n = int(stage.name[len(CHAPTER_PREFIX) :])
+            chapter = await chapter_ops.invoke_chapter(
+                doc, n, instruction=instruction, draft=draft
+            )
+            entry["text"] = chapter["text"]
+            entry["world_state"] = chapter["world_state"]
         elif stage.name == FINAL_CUT:
             entry["text"] = await turn_ops.invoke_final_cut(
                 doc, instruction=instruction, draft=draft

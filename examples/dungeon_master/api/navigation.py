@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.tree import (
+    CHAPTER_PREFIX,
     CHAR_PREFIX,
     FINAL_CUT,
     FINAL_CUT_TURNS,
@@ -39,6 +40,16 @@ def _roster(doc: dict) -> list:
     return doc.get("characters", {}).get("roster", [])
 
 
+def _chapter_cards(doc: dict) -> dict:
+    """Read-only view of the book-chapter cards (FR-488)."""
+    return doc.get("chapters", {}).get("cards", {})
+
+
+def _chapter_order(doc: dict) -> list:
+    """Read-only view of the ordered chapter ids (FR-488)."""
+    return doc.get("chapters", {}).get("order", [])
+
+
 def can_visit(doc: dict, target: str) -> bool:
     """Whether ``target`` is currently reachable (parent-reviewed / roster gates)."""
     if target == "synopsis":
@@ -46,6 +57,15 @@ def can_visit(doc: dict, target: str) -> bool:
     if target.startswith(CHAR_PREFIX):
         cid = target[len(CHAR_PREFIX) :]
         return bool(doc.get("synopsis", {}).get("reviewed")) and (cid in _cards(doc))
+    if target.startswith(CHAPTER_PREFIX):
+        # A book chapter (FR-488): an independent branch off the synopsis. It
+        # unlocks once the synopsis is reviewed (the act that derives the chapter
+        # set) and the id is in the derived set — never gated on the preplan or
+        # play (J3).
+        cid = target[len(CHAPTER_PREFIX) :]
+        return bool(doc.get("synopsis", {}).get("reviewed")) and (
+            cid in _chapter_cards(doc)
+        )
     if target.startswith(TURN_PREFIX):
         # Play turns unlock only once the whole preplan is reviewed; a player
         # may revisit any existing turn or open the next one.
@@ -106,6 +126,17 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
             return nxt
         # Last character reviewed: open Play if the rest of the preplan is too.
         return f"{TURN_PREFIX}1" if preplan_complete(doc) else None
+    if stage.name.startswith(CHAPTER_PREFIX):
+        # Accepting a chapter lands on the next chapter in order; the last
+        # chapter dead-ends (J5) — the chapter branch is a planning artifact, not
+        # a chain into play or a finish.
+        order = _chapter_order(doc)
+        cid = stage.name[len(CHAPTER_PREFIX) :]
+        if cid in order:
+            i = order.index(cid)
+            if i + 1 < len(order):
+                return CHAPTER_PREFIX + order[i + 1]
+        return None
     if stage.name.startswith(TURN_PREFIX):
         n = int(stage.name[len(TURN_PREFIX) :])
         # Once the director reports the scene's END reached, stop offering a

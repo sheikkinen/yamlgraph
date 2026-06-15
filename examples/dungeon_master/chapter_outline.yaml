@@ -1,0 +1,46 @@
+# Dungeon Master v2 — Chapter outline graph (FR-488).
+#
+# A non-visitable side-effect graph mirroring character_roster.yaml, one level
+# up: given the accepted synopsis (the "book outline"), split it into chapter-
+# size chunks — a one-paragraph summary per chapter. The session splits the
+# structured output into a chapter set and spawns one card per chunk (each
+# expanded by chapter.yaml). There is no card screen for this graph.
+#
+# Output is STRUCTURED (parse_json: true): a {chapters: [{title, summary}]}
+# object. Unlike the roster (names one-per-line, line-split), a chapter carries
+# a title AND a paragraph — structure a plain line-split cannot hold (FR-488 J1).
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/chapter_outline.yaml \
+#     --var synopsis="..." --full
+version: "1.0"
+name: dm-chapter-outline
+description: Split a synopsis into one-paragraph chapter summaries (title + summary)
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # The whole synopsis goes in and a titled paragraph per chapter comes out;
+  # reserve headroom for a reasoning model's hidden tokens plus the summaries.
+  max_tokens: 4000
+
+state:
+  synopsis: str
+  outline: dict
+
+nodes:
+  outline:
+    type: llm
+    prompt: chapter_outline
+    state_key: outline
+    parse_json: true
+    variables:
+      synopsis: "{state.synopsis}"
+
+edges:
+  - from: START
+    to: outline
+  - from: outline
+    to: END

@@ -63,6 +63,52 @@ def test_turns_unlock_only_when_preplan_complete():
     assert navigation.can_visit(doc, "turn:2") is False  # one past the next
 
 
+# ── chapters (FR-488, J3/J5) ─────────────────────────────────────────────────
+
+
+def _chapters_doc() -> dict:
+    """A document whose synopsis is reviewed and chapter set derived (no preplan)."""
+    return {
+        "synopsis": {"text": "s", "reviewed": True},
+        "chapters": {
+            "reviewed": False,
+            "order": ["1", "2"],
+            "cards": {
+                "1": {"title": "One", "summary": "a", "reviewed": False},
+                "2": {"title": "Two", "summary": "b", "reviewed": False},
+            },
+        },
+    }
+
+
+def test_chapter_card_needs_synopsis_reviewed_and_membership():
+    doc = _chapters_doc()
+    assert navigation.can_visit(doc, "chapter:1") is True
+    assert navigation.can_visit(doc, "chapter:9") is False  # not in the derived set
+    doc["synopsis"]["reviewed"] = False
+    assert navigation.can_visit(doc, "chapter:1") is False  # synopsis not done
+
+
+def test_chapter_unlocks_without_preplan_or_play():
+    # J3: chapters are an INDEPENDENT branch off the synopsis — reachable with no
+    # key scene, no cast, no completed preplan. A reviewed synopsis is enough.
+    doc = {
+        "synopsis": {"reviewed": True},
+        "chapters": {"order": ["1"], "cards": {"1": {}}},
+    }
+    assert navigation.can_visit(doc, "chapter:1") is True
+
+
+def test_accept_chapter_lands_on_next_chapter_then_dead_ends():
+    doc = _chapters_doc()
+    from examples.dungeon_master.api.tree import resolve_stage
+
+    assert navigation.accept_target(doc, resolve_stage(doc, "chapter:1")) == "chapter:2"
+    # The last chapter dead-ends (J5): the chapter branch is a planning artifact,
+    # not a chain into play or a finish.
+    assert navigation.accept_target(doc, resolve_stage(doc, "chapter:2")) is None
+
+
 # ── next_unreviewed_char ─────────────────────────────────────────────────────
 
 
