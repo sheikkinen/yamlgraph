@@ -239,3 +239,29 @@ derived world_state.
 minimal change, separate commit. One live `vertex` witness at the end exercising
 both generative seams (chapter completion judged from a summary; world_state
 threaded across two played chapters). Diary with a Seed.
+
+---
+
+## Implementation Status
+
+- **Slice 1 — Reorder + cast gate** ✓ `aaa841b0` (FR-491 plan frozen at `ffa6a43a`).
+  `preplan_complete` → `cast_complete`; synopsis-accept lands on the first character;
+  last-character-accept derives the outline → Chapters overview. 84 tests pass.
+  *Note:* `git add -u <dir>` swept a stale `README.md` into the commit — it is rewritten
+  in the docs step.
+- **Slice 2 — Retire Key Scene** ✓ `2b1ccb1e` (+156/−549). Deleted the `key_scene`
+  Stage, graph, and both prompt files; `running_scene` now reads `_chapter_plan(doc)`;
+  `_canonicalize_beats` keeps free-text phrases cumulatively (`beats_total=0`); amended
+  `turn_direct` / `character_intent` / `turn_recap` to the "chapter plan" framing
+  (Amendment A / G1). Removed `_norm`, `_match_beat`, `_BEAT_FLOOR`, `_BEAT_MARGIN`,
+  `_NAME_SPLIT_RE`, `_parse_scene_characters`, `_filter_continuity`, and the
+  `SequenceMatcher` import. 79 tests pass; ruff + lint-imports + vulture clean.
+  - **Deviation:** Amendment D's continuity-source switch (roster is the authoritative
+    cast; drop the `_filter_continuity` post-filter) landed in this slice rather than
+    Slice 3, because `_filter_continuity` read `doc["key_scene"]` and could not survive
+    the stage's deletion. Accepted residual per D: a synopsis-supported non-roster actor
+    over-flags (named, acceptable).
+  - **Kept until Slice 4:** `parse_beats`, `_SECTION_RE`, and the finishes machinery
+    (`final_cut_context` still reads `key_scene` → `""`).
+- **Slice 3 — Per-chapter play** — pending.
+- **Slice 4 — The Book finish** — pending.
