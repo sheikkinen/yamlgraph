@@ -162,41 +162,46 @@ def test_iterate_applies_prompt(client, tmp_path):
     assert f"[refined: make grim] {SYNOPSIS_TEXT}" in resp.text
 
 
-# ── 5. Accept synopsis: derive roster + land on auto-drafted Key Scene ──────
+# ── 5. Accept synopsis: derive roster + land on the auto-drafted first card ──
 
 
-def test_accept_synopsis_derives_roster_and_drafts_key_scene(client, tmp_path):
+def test_accept_synopsis_derives_roster_and_lands_on_first_character(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)
     resp = _accept(client, session_id)
     doc = _doc(tmp_path, session_id)
-    # Synopsis frozen; cursor lands on the Key Scene leaf, auto-drafted (A4 + FR-474).
+    # Synopsis frozen; the cast is derived before chapters (FR-491 J1), so the
+    # cursor lands on the first character card, auto-drafted (A4 + FR-474).
     assert doc["synopsis"]["reviewed"] is True
-    assert doc["stage"] == "key_scene"
-    assert doc["key_scene"]["text"] == KEY_SCENE_TEXT
-    assert doc["key_scene"]["reviewed"] is False
-    # Roster expanded into one card per character (names only → ids).
+    assert doc["stage"] == "char:elara"
     assert doc["characters"]["roster"] == ["elara", "coil"]
     assert doc["characters"]["cards"]["elara"]["name"] == "Elara"
-    assert doc["characters"]["cards"]["elara"]["text"] == ""
-    # The breadcrumb now offers Key Scene and Characters as branch peers.
-    assert "Key Scene" in resp.text
+    assert doc["characters"]["cards"]["elara"]["text"] == "Elara wants the wind-key."
+    # The chapter outline is NOT derived yet — the cast is still incomplete.
+    assert doc.get("chapters", {}).get("order", []) == []
+    # The breadcrumb now offers Characters as a branch peer.
     assert "Characters" in resp.text
 
 
-# ── 6. Key Scene iterates from the accepted synopsis ────────────────────────
+# ── 6. A character card iterates from the accepted synopsis ─────────────────
 
 
-def test_key_scene_iterates(client, tmp_path):
+def test_character_card_iterates(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)
-    _accept(client, session_id)  # lands on key_scene, auto-drafted
+    _accept(client, session_id)  # lands on char:elara, auto-drafted
     resp = client.post(
         "/story/synopsis/weave",
-        data={"session_id": session_id, "text": KEY_SCENE_TEXT, "prompt": "grimmer"},
+        data={
+            "session_id": session_id,
+            "text": "Elara wants the wind-key.",
+            "prompt": "grimmer",
+        },
     )
-    assert f"[refined: grimmer] {KEY_SCENE_TEXT}" in resp.text
-    assert _doc(tmp_path, session_id)["key_scene"]["text"].startswith("[refined:")
+    assert "[refined: grimmer] Elara wants the wind-key." in resp.text
+    assert _doc(tmp_path, session_id)["characters"]["cards"]["elara"][
+        "text"
+    ].startswith("[refined:")
 
 
 # ── 7. Navigate into a character card; it auto-drafts from synopsis + name ───
@@ -253,9 +258,9 @@ def test_nav_to_child_before_synopsis_reviewed_is_rejected(client, tmp_path):
 def test_nav_to_unknown_character_is_rejected(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)
-    _accept(client, session_id)  # roster has elara, coil
+    _accept(client, session_id)  # roster has elara, coil; lands on char:elara
     _nav(client, session_id, "char:ghost")
-    assert _doc(tmp_path, session_id)["stage"] == "key_scene"
+    assert _doc(tmp_path, session_id)["stage"] == "char:elara"
 
 
 # ── 10. No plot stage is reachable; the old generate endpoint is gone ───────
@@ -266,5 +271,5 @@ def test_no_plot_stage_reachable(client, tmp_path):
     _generate(client, session_id)
     _accept(client, session_id)
     _nav(client, session_id, "plot")
-    assert _doc(tmp_path, session_id)["stage"] == "key_scene"
+    assert _doc(tmp_path, session_id)["stage"] == "char:elara"
     assert client.post("/story/synopsis/generate", data={}).status_code == 404

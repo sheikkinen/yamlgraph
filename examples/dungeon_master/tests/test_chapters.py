@@ -176,14 +176,14 @@ def test_chapters_do_not_affect_preplan_complete():
             },
         },
     }
-    assert tree.preplan_complete(doc) is False
+    assert tree.cast_complete(doc) is False
     # And a complete preplan stays complete regardless of chapter state.
     doc["key_scene"] = {"reviewed": True}
     doc["characters"] = {
         "roster": ["kara"],
         "cards": {"kara": {"reviewed": True}},
     }
-    assert tree.preplan_complete(doc) is True
+    assert tree.cast_complete(doc) is True
 
 
 def test_chapters_appear_as_breadcrumb_peer_of_key_scene():

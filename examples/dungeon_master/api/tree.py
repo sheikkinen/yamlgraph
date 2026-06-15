@@ -244,16 +244,14 @@ def resolve_stage(doc: dict, name: str) -> Stage:
     return STAGE_BY_NAME.get(name, FIRST_STAGE)
 
 
-def preplan_complete(doc: dict) -> bool:
-    """Whether the whole preplan is reviewed (synopsis ✓, key scene ✓, all cards ✓).
+def cast_complete(doc: dict) -> bool:
+    """Whether the cast is fully reviewed (synopsis ✓ + every character ✓; FR-491).
 
-    This is the gate that unlocks the Play branch (FR-477 J5): play cannot begin
-    until there is a frozen synopsis, a frozen key scene, and a fully reviewed
-    cast to act it out.
+    The gate that derives the chapter outline and (FR-477) unlocks play: the cast
+    must exist before the chapters can reference it (J1). The key scene is retired,
+    so it is no longer part of the gate.
     """
     if not doc.get("synopsis", {}).get("reviewed"):
-        return False
-    if not doc.get("key_scene", {}).get("reviewed"):
         return False
     chars = doc.get("characters", {})
     roster = chars.get("roster", [])
@@ -383,7 +381,7 @@ def breadcrumb(doc: dict) -> list[dict]:
 
     # Play branch (FR-477): a peer after Characters, present only once the whole
     # preplan is reviewed. Inside it, each turn is listed as a member peer.
-    if preplan_complete(doc):
+    if cast_complete(doc):
         turns = doc.get("turns", [])
         in_play = current.startswith(TURN_PREFIX)
         crumbs.append(

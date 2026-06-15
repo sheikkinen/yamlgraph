@@ -15,11 +15,14 @@ from examples.dungeon_master.api import navigation
 from examples.dungeon_master.api.tree import STAGE_BY_NAME
 
 
-def _preplan_doc() -> dict:
-    """A document with a reviewed preplan (synopsis + key scene + one card)."""
+def _cast_doc() -> dict:
+    """A document with a complete cast (synopsis + one reviewed character; FR-491).
+
+    The cast gate (``cast_complete``) is synopsis ✓ + all characters ✓ — the key
+    scene is retired, so it is no longer part of the gate.
+    """
     return {
         "synopsis": {"text": "s", "reviewed": True},
-        "key_scene": {"text": "k", "reviewed": True},
         "characters": {
             "reviewed": True,
             "roster": ["kara"],
@@ -55,10 +58,10 @@ def test_unknown_stage_is_not_visitable():
     assert navigation.can_visit({}, "no_such_stage") is False
 
 
-def test_turns_unlock_only_when_preplan_complete():
-    incomplete = {"synopsis": {"reviewed": True}, "key_scene": {"reviewed": False}}
+def test_turns_unlock_only_when_cast_complete():
+    incomplete = {"synopsis": {"reviewed": True}}  # no cast yet
     assert navigation.can_visit(incomplete, "turn:1") is False
-    doc = _preplan_doc()
+    doc = _cast_doc()
     assert navigation.can_visit(doc, "turn:1") is True  # next turn opens
     assert navigation.can_visit(doc, "turn:2") is False  # one past the next
 
@@ -140,21 +143,27 @@ def test_next_unreviewed_char_finds_first_pending():
 
 
 def test_next_unreviewed_char_none_when_cast_complete():
-    doc = _preplan_doc()
+    doc = _cast_doc()
     assert navigation.next_unreviewed_char(doc) is None
 
 
 # ── accept_target (pure landing) ─────────────────────────────────────────────
 
 
-def test_synopsis_lands_on_key_scene():
-    assert navigation.accept_target({}, STAGE_BY_NAME["synopsis"]) == "key_scene"
+def test_synopsis_lands_on_first_character():
+    # FR-491 J1: the cast is derived before chapters, so accepting the synopsis
+    # lands on the first character — the key scene is retired from the flow.
+    doc = {"characters": {"roster": ["elara", "coil"], "cards": {"elara": {}}}}
+    assert navigation.accept_target(doc, STAGE_BY_NAME["synopsis"]) == "char:elara"
 
 
-def test_key_scene_lands_on_play_when_preplan_complete():
-    assert (
-        navigation.accept_target(_preplan_doc(), STAGE_BY_NAME["key_scene"]) == "turn:1"
-    )
+def test_last_character_lands_on_chapters_overview():
+    # FR-491 J1: accepting the last character completes the cast, which derives the
+    # chapter outline; navigation lands on the Chapters overview.
+    from examples.dungeon_master.api.tree import resolve_stage
+
+    doc = _cast_doc()
+    assert navigation.accept_target(doc, resolve_stage(doc, "char:kara")) == "chapters"
 
 
 def test_finishes_chain_walks_to_walkthrough():

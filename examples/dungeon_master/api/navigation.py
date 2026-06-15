@@ -24,8 +24,8 @@ from examples.dungeon_master.api.tree import (
     TURN_PREFIX,
     WALKTHROUGH,
     Stage,
+    cast_complete,
     cut_present,
-    preplan_complete,
     scene_is_complete,
 )
 
@@ -69,7 +69,7 @@ def can_visit(doc: dict, target: str) -> bool:
     if target.startswith(TURN_PREFIX):
         # Play turns unlock only once the whole preplan is reviewed; a player
         # may revisit any existing turn or open the next one.
-        if not preplan_complete(doc):
+        if not cast_complete(doc):
             return False
         suffix = target[len(TURN_PREFIX) :]
         if not suffix.isdigit():
@@ -114,18 +114,17 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
     (FR-489 J1) and is assumed already done by the time this is asked.
     """
     if stage.name == "synopsis":
-        return "key_scene"
-    if stage.name == "key_scene":
-        # Accepting the key scene may be the act that completes the preplan.
-        if preplan_complete(doc):
-            return f"{TURN_PREFIX}1"
+        # FR-491 J1: the cast is derived before chapters, so accepting the synopsis
+        # lands on the first character. The adapter has already expanded the roster
+        # (FR-489 J1) by the time this is asked.
         return next_unreviewed_char(doc)
     if stage.name.startswith(CHAR_PREFIX):
         nxt = next_unreviewed_char(doc, after=stage.name[len(CHAR_PREFIX) :])
         if nxt is not None:
             return nxt
-        # Last character reviewed: open Play if the rest of the preplan is too.
-        return f"{TURN_PREFIX}1" if preplan_complete(doc) else None
+        # Last character reviewed: the cast is complete, so the chapter outline has
+        # been derived — land on the Chapters overview (FR-491 J1).
+        return "chapters" if cast_complete(doc) else None
     if stage.name.startswith(CHAPTER_PREFIX):
         # Accepting a chapter lands on the next chapter in order; the last
         # chapter dead-ends (J5) — the chapter branch is a planning artifact, not

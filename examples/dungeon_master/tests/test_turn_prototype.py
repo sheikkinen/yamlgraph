@@ -236,15 +236,23 @@ def _doc(tmp_path, session_id):
 
 
 def _reach_play(client, tmp_path, session_id):
-    """Drive a session through the whole preplan so the Play branch unlocks."""
+    """Drive a session through the whole preplan so the Play branch unlocks.
+
+    FR-491 reorders the preplan to cast-before-chapters: accepting the synopsis
+    lands on the first character, and accepting the last character completes the
+    cast (deriving the chapter outline) and lands on the Chapters overview. The
+    flat turn loop still reads the key scene plan in this slice, so it is drafted
+    by navigating to it before opening Play.
+    """
     client.post(
         "/story/synopsis/weave",
         data={"session_id": session_id, "text": "", "prompt": "a flooded valley"},
     )
-    _accept(client, session_id)  # synopsis → key_scene (drafted), roster [kara, tarek]
-    _accept(client, session_id)  # key_scene → char:kara (drafted)
+    _accept(client, session_id)  # synopsis → char:kara (roster [kara, tarek] derived)
     _accept(client, session_id, text="Kara sheet")  # kara → char:tarek
-    return _accept(client, session_id, text="Tarek sheet")  # tarek → turn:1
+    _accept(client, session_id, text="Tarek sheet")  # tarek → chapters (cast complete)
+    _nav(client, session_id, "key_scene")  # draft the scene plan the turn loop reads
+    return _nav(client, session_id, "turn:1")  # open Play
 
 
 # ── 1. Play is gated: no turn stage before the whole preplan is reviewed ─────
@@ -476,7 +484,8 @@ def test_key_scene_binds_to_roster_names(client, tmp_path):
         "/story/synopsis/weave",
         data={"session_id": session_id, "text": "", "prompt": "a flooded valley"},
     )
-    _accept(client, session_id)  # synopsis → roster derived → key_scene drafted
+    _accept(client, session_id)  # synopsis → roster derived → lands on char:kara
+    _nav(client, session_id, "key_scene")  # draft the roster-bound key scene
     doc = _doc(tmp_path, session_id)
     assert doc["stage"] == "key_scene"
     cards = doc["characters"]["cards"]

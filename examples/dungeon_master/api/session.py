@@ -54,6 +54,7 @@ from examples.dungeon_master.api.tree import (
     WALKTHROUGH,
     Stage,
     breadcrumb,
+    cast_complete,
     resolve_stage,
     split_roster,
     unique_slug,
@@ -368,8 +369,12 @@ class DMSession:
 
             # The synopsis-accept derives the cast before we ask where to land
             # (FR-489 J1): navigation is pure, so this side-effect lives here.
+            # The chapter outline derives only once the cast is complete (FR-491
+            # J1) — accepting the last character — so the outline can reference the
+            # reviewed cast it will be played by.
             if stage.name == "synopsis":
                 await self._expand_roster(doc, story_dir)
+            elif stage.name.startswith(CHAR_PREFIX) and cast_complete(doc):
                 await self._expand_chapters(doc, story_dir)
             target = navigation.accept_target(doc, stage)
             if target is not None:
