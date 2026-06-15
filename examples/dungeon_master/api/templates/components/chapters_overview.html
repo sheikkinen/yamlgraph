@@ -1,0 +1,23 @@
+<section id="chapters-overview" class="story-card">
+  <h2 class="card-title">📚 {{ stage.label }}</h2>
+  <p class="card-hint">The book in outline — every chapter the synopsis was split
+    into. Open a chapter to read its summary, its inherited world state, and to
+    expand or revise its prose.</p>
+
+  {% if stage.chapters %}
+    <ol class="chapters-list">
+      {% for ch in stage.chapters %}
+      <li class="chapter-row">
+        <a class="chapter-link" href="#"
+           hx-post="/story/nav"
+           hx-vals='{"session_id": "{{ session_id }}", "stage": "chapter:{{ ch.id }}"}'
+           hx-target="#app-body" hx-swap="innerHTML"
+           hx-indicator="#busy">{{ ch.title }}{% if ch.reviewed %} ✓{% endif %}</a>
+        {% if ch.summary %}<p class="chapter-summary">{{ ch.summary }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="card-hint">No chapters yet — accept the synopsis to derive the outline.</p>
+  {% endif %}
+</section>

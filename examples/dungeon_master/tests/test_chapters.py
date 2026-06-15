@@ -232,3 +232,131 @@ def test_expand_chapters_is_idempotent(tmp_path, monkeypatch):
         _run(sess._expand_chapters(doc, story_dir))
     assert calls["outline"] == 1
     assert doc["chapters"]["order"] == order_first == ["1", "2"]
+
+
+# ── FR-490: the chapter outline needs a face (overview card + navigation) ─────
+#
+# The outline is the load-bearing view of book scope, yet FR-488 gave it no
+# surface (J1). These pin the presentation/navigation seam: the repurposed
+# (formerly dead) ``chapters`` stage is a read-only overview the group crumb
+# lands on; ``StageView`` carries the outline projection and per-chapter
+# ``summary``/``world_state``; member peers are discoverable from the overview.
+
+
+def _view_doc_with_chapters() -> dict:
+    """A reviewed-synopsis doc with a derived two-chapter set (chapter 1 expanded)."""
+    return {
+        "synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True},
+        "chapters": {
+            "reviewed": False,
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "Chapter 1 — The Water Rises",
+                    "summary": "Kara musters the band.",
+                    "text": "Chapter 1 full text.",
+                    "world_state": "WS1-CARRIED-FORWARD",
+                    "reviewed": True,
+                },
+                "2": {
+                    "title": "Chapter 2 — The Last Ledge",
+                    "summary": "Kara corners the raider.",
+                    "text": "",
+                    "world_state": "",
+                    "reviewed": False,
+                },
+            },
+        },
+    }
+
+
+# ── J5: StageView carries the outline + per-chapter context ───────────────────
+
+
+def test_view_populates_summary_and_world_state_for_chapter_card():
+    from examples.dungeon_master.api import session as session_mod
+
+    sess = session_mod.DMSession("v490")
+    doc = _view_doc_with_chapters()
+    doc["stage"] = "chapter:1"
+    view = sess._view(doc)
+    assert view.kind == "chapter"
+    # The card's summary (what this chapter is) and inherited world_state (the
+    # J7 forward-carry) are surfaced on the view, above the prose.
+    assert view.summary == "Kara musters the band."
+    assert view.world_state == "WS1-CARRIED-FORWARD"
+
+
+def test_view_populates_chapters_list_for_overview():
+    from examples.dungeon_master.api import session as session_mod
+
+    sess = session_mod.DMSession("v490")
+    doc = _view_doc_with_chapters()
+    doc["stage"] = "chapters"
+    view = sess._view(doc)
+    assert view.kind == "chapters"
+    # The overview projects the ordered set as {id, title, summary, reviewed}.
+    assert [c["id"] for c in view.chapters] == ["1", "2"]
+    assert [c["title"] for c in view.chapters] == [
+        "Chapter 1 — The Water Rises",
+        "Chapter 2 — The Last Ledge",
+    ]
+    assert [c["summary"] for c in view.chapters] == [
+        "Kara musters the band.",
+        "Kara corners the raider.",
+    ]
+    assert [c["reviewed"] for c in view.chapters] == [True, False]
+
+
+def test_view_leaves_chapter_fields_empty_for_non_chapter_stage():
+    from examples.dungeon_master.api import session as session_mod
+
+    sess = session_mod.DMSession("v490")
+    doc = _view_doc_with_chapters()
+    doc["stage"] = "synopsis"
+    view = sess._view(doc)
+    # Additive: every non-chapter stage leaves the new fields at their defaults.
+    assert view.summary == ""
+    assert view.world_state == ""
+    assert view.chapters == []
+
+
+# ── J4: the overview reads the chapter group dict without mutating it ─────────
+
+
+def test_view_on_overview_does_not_mutate_chapter_group():
+    from examples.dungeon_master.api import session as session_mod
+
+    sess = session_mod.DMSession("v490")
+    doc = _view_doc_with_chapters()
+    doc["stage"] = "chapters"
+    before = copy.deepcopy(doc["chapters"])
+    sess._view(doc)
+    # ``_entry("chapters")`` aliases the {reviewed, order, cards} group dict; the
+    # generic setdefault must be a harmless no-op (J4) — never corrupting it.
+    assert doc["chapters"] == before
+
+
+# ── J6: the group crumb lands on the overview; peers visible from it ──────────
+
+
+def test_chapters_group_crumb_lands_on_overview():
+    from examples.dungeon_master.api import tree
+
+    doc = _view_doc_with_chapters()
+    doc["stage"] = "key_scene"
+    crumbs = tree.breadcrumb(doc)
+    group = next(c for c in crumbs if c["label"] == "Chapters")
+    # The group crumb opens the table of contents, not blind into chapter 1.
+    assert group["stage"] == "chapters"
+
+
+def test_chapter_member_peers_visible_from_overview():
+    from examples.dungeon_master.api import tree
+
+    doc = _view_doc_with_chapters()
+    doc["stage"] = "chapters"
+    labels = [c["label"] for c in tree.breadcrumb(doc)]
+    # Standing on the overview, every chapter is a discoverable member peer.
+    assert "Chapter 1 — The Water Rises" in labels
+    assert "Chapter 2 — The Last Ledge" in labels

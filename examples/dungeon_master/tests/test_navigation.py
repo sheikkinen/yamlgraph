@@ -109,6 +109,18 @@ def test_accept_chapter_lands_on_next_chapter_then_dead_ends():
     assert navigation.accept_target(doc, resolve_stage(doc, "chapter:2")) is None
 
 
+# ── FR-490: the chapters overview is visitable (the repurposed dead stage) ────
+
+
+def test_chapters_overview_visitable_once_synopsis_reviewed():
+    # J6: the overview is a read-only directory gated identically to its cards —
+    # reachable via the generic parent gate, no special-case branch in can_visit.
+    doc = _chapters_doc()
+    assert navigation.can_visit(doc, "chapters") is True
+    doc["synopsis"]["reviewed"] = False
+    assert navigation.can_visit(doc, "chapters") is False
+
+
 # ── next_unreviewed_char ─────────────────────────────────────────────────────
 
 

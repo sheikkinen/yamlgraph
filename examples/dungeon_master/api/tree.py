@@ -126,13 +126,17 @@ STAGES: tuple[Stage, ...] = (
         output_key="roster",
     ),
     Stage(
+        # The Chapters overview (FR-490): a visitable, read-only table of contents
+        # the group crumb lands on. NOT a roster (which is non-visitable) and NOT
+        # auto-drafted (no seed) — the chapter set is derived by _expand_chapters
+        # via chapter_ops directly, never through this stage. ``kind="chapters"``
+        # routes app_body.html to the overview template, not the weave card.
         "chapters",
         "Chapters",
         CHAPTER_OUTLINE_GRAPH,
         context=("synopsis",),
         parent="synopsis",
-        kind="roster",
-        seed="Split the synopsis into one-paragraph chapter summaries.",
+        kind="chapters",
         output_key="outline",
     ),
     Stage(
@@ -319,19 +323,23 @@ def breadcrumb(doc: dict) -> list[dict]:
     ch_order = chapters.get("order", [])
     ch_cards = chapters.get("cards", {})
     in_chapters = current.startswith(CHAPTER_PREFIX)
+    # The group crumb lands on the overview (FR-490), and the member peers are
+    # visible both from inside a chapter AND while standing on the overview, so the
+    # chapter set is discoverable before diving into any one chapter.
+    on_chapters = in_chapters or current == "chapters"
     ch_all_reviewed = bool(ch_order) and all(
         ch_cards.get(cid, {}).get("reviewed") for cid in ch_order
     )
     crumbs.append(
         {
             "label": "Chapters",
-            "stage": (CHAPTER_PREFIX + ch_order[0]) if ch_order else None,
-            "current": False,
+            "stage": "chapters" if ch_order else None,
+            "current": current == "chapters",
             "reviewed": ch_all_reviewed,
             "group": True,
         }
     )
-    if in_chapters:
+    if on_chapters:
         for cid in ch_order:
             card = ch_cards.get(cid, {})
             crumbs.append(

@@ -7,6 +7,8 @@
     {% if mode == "stage" %}
       {% if stage.kind == "turn" %}
         {% include "components/turn_card.html" %}
+      {% elif stage.kind == "chapters" %}
+        {% include "components/chapters_overview.html" %}
       {% else %}
         {% include "components/stage_card.html" %}
       {% endif %}

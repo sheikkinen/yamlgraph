@@ -157,6 +157,24 @@
 
     .error { color: #e06c6c; }
 
+    /* Chapters overview (FR-490): the book's table of contents, and the per-
+       chapter planning context shown above a chapter card's prose. */
+    .chapters-list { margin: 0; padding-left: 1.5rem; }
+    .chapter-row { margin-bottom: 1rem; }
+    .chapter-link { color: var(--accent); font-weight: 700; text-decoration: none; }
+    .chapter-link:hover { color: var(--accent-hover); text-decoration: underline; }
+    .chapter-summary { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
+    .chapter-context {
+      margin-bottom: 1rem; padding: 0.75rem;
+      background: var(--bg-card); border-radius: 6px;
+      border: 1px solid rgba(194,135,63,0.35);
+    }
+    .chapter-context-label {
+      display: block; font-size: 0.7rem; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem;
+    }
+    .chapter-context-text { margin: 0; color: var(--parchment); }
+
     /* Non-destructive failure banner (denials, provider errors): shown above the
        card so the breadcrumb and the DM's draft survive and they can retry. */
     .error-banner {

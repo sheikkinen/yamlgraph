@@ -125,6 +125,14 @@ class StageView:
     # continuity``) so the always-visible Director card owns its presentation and
     # a new director field needs no dataclass change.
     direction: dict = field(default_factory=dict)
+    # Book-chapter presentation (FR-490). On a ``chapter:<n>`` card, ``summary``
+    # (what this chapter is) and ``world_state`` (what it inherited — the FR-488
+    # J7 forward-carry) are shown above the prose. On the ``chapters`` overview,
+    # ``chapters`` is the ordered ``[{id, title, summary, reviewed}]`` table of
+    # contents. Empty for every other stage (additive).
+    summary: str = ""
+    world_state: str = ""
+    chapters: list[dict] = field(default_factory=list)
 
 
 class DMSession:
@@ -202,10 +210,30 @@ class DMSession:
         entry = self._entry(doc, stage.name)
         intents: list[dict] = []
         direction: dict = {}
+        summary = ""
+        world_state = ""
+        chapters: list[dict] = []
         if stage.kind == "turn":
             n = int(stage.name[len(TURN_PREFIX) :])
             intents = turn_ops.turn_intents(doc, self._characters(doc), n)
             direction = turn_ops.turn_direction(doc, n)
+        elif stage.kind == "chapter":
+            # Surface the card's planning context above its prose (FR-490).
+            summary = entry.get("summary", "")
+            world_state = entry.get("world_state", "")
+        elif stage.kind == "chapters":
+            # Project the ordered chapter set as a read-only table of contents.
+            ch = self._chapters(doc)
+            cards = ch["cards"]
+            chapters = [
+                {
+                    "id": cid,
+                    "title": cards.get(cid, {}).get("title") or f"Chapter {cid}",
+                    "summary": cards.get(cid, {}).get("summary", ""),
+                    "reviewed": bool(cards.get(cid, {}).get("reviewed")),
+                }
+                for cid in ch["order"]
+            ]
         return StageView(
             stage=stage.name,
             label=stage.label,
@@ -217,6 +245,9 @@ class DMSession:
             kind=stage.kind,
             intents=intents,
             direction=direction,
+            summary=summary,
+            world_state=world_state,
+            chapters=chapters,
         )
 
     def view(self) -> StageView:

@@ -1,6 +1,23 @@
 <section id="stage-card" class="story-card">
   <h2 class="card-title">📜 {{ stage.label }}</h2>
 
+  {% if stage.kind == "chapter" %}
+    {# ── Chapter planning context (FR-490): what this chapter is, and the world #}
+    {# state it inherited from the previous chapter (FR-488 J7), above the prose. #}
+    {% if stage.summary %}
+    <div class="chapter-context">
+      <span class="chapter-context-label">Summary</span>
+      <p class="chapter-context-text">{{ stage.summary }}</p>
+    </div>
+    {% endif %}
+    {% if stage.world_state %}
+    <div class="chapter-context">
+      <span class="chapter-context-label">Inherited world state</span>
+      <p class="chapter-context-text">{{ stage.world_state }}</p>
+    </div>
+    {% endif %}
+  {% endif %}
+
   {% if stage.reviewed %}
     {# ── Accepted: read-only prose ─────────────────────────────────────── #}
     <p class="card-hint">This {{ stage.label|lower }} is accepted.</p>
