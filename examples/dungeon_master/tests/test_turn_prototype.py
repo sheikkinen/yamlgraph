@@ -29,7 +29,6 @@ from examples.dungeon_master.api import story_doc
 from examples.dungeon_master.api.app import app
 
 SYNOPSIS_TEXT = "Kara leads the band against a rival raider as the floodwaters rise."
-KEY_SCENE_TEXT = "Kara corners Tarek on the last dry ledge while Naru frees the herd."
 ROSTER_TEXT = "Kara\nTarek"
 ESTABLISHING_TEXT = (
     "A flooded valley at dusk; the last dry ledge stands slick above the water."
@@ -89,28 +88,6 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         return f"[refined: {instruction}] {draft}"
     if prompt_name == "synopsis":
         return SYNOPSIS_TEXT
-    if prompt_name == "key_scene":
-        # FR-480: a roster-bound key scene uses EXACTLY the rostered names. When
-        # the binding threads the roster through, the scene is built from those
-        # names; without it the generator drifts (KEY_SCENE_TEXT names "Naru",
-        # a character the roster never sanctioned).
-        roster = variables.get("roster") or ""
-        names = [n.strip() for n in re.split(r"[\n,]+", roster) if n.strip()]
-        if names:
-            cast = "\n".join(f"- {n} — drives the scene" for n in names)
-            a, b = (names + names)[:2]
-            # FR-482: a parseable BEATS block gives the director a canonical beat
-            # vocabulary to bind its free-text `beats_satisfied` phrases onto.
-            return (
-                f"SUMMARY: {a} confronts the others on the last dry ledge.\n"
-                f"CHARACTERS:\n{cast}\n"
-                f"BEATS:\n"
-                f"- {a} corners {b} on the ledge\n"
-                f"- {b} frees the herd\n"
-                f"END:\n"
-                f"- {a} holds the ledge\n"
-            )
-        return KEY_SCENE_TEXT
     if prompt_name == "character_roster":
         return ROSTER_TEXT
     if prompt_name == "character":
@@ -241,8 +218,8 @@ def _reach_play(client, tmp_path, session_id):
     FR-491 reorders the preplan to cast-before-chapters: accepting the synopsis
     lands on the first character, and accepting the last character completes the
     cast (deriving the chapter outline) and lands on the Chapters overview. The
-    flat turn loop still reads the key scene plan in this slice, so it is drafted
-    by navigating to it before opening Play.
+    turn loop reads the derived chapter plan, so play opens by navigating to the
+    first turn.
     """
     client.post(
         "/story/synopsis/weave",
@@ -251,7 +228,6 @@ def _reach_play(client, tmp_path, session_id):
     _accept(client, session_id)  # synopsis → char:kara (roster [kara, tarek] derived)
     _accept(client, session_id, text="Kara sheet")  # kara → char:tarek
     _accept(client, session_id, text="Tarek sheet")  # tarek → chapters (cast complete)
-    _nav(client, session_id, "key_scene")  # draft the scene plan the turn loop reads
     return _nav(client, session_id, "turn:1")  # open Play
 
 
@@ -455,12 +431,14 @@ def test_scene_complete_stops_advance_and_surfaces(client, tmp_path):
 def test_phantom_actor_raises_continuity_flag(client, tmp_path):
     session_id = _new_session(client)
     _reach_play(client, tmp_path, session_id)
-    # FR-480 binds the *generator* to the roster, so a phantom can no longer be
-    # minted into the scene. The director's detection is now defense in depth:
-    # inject a stray non-roster name straight into the frozen scene and prove the
-    # director still catches it on the next read.
+    # The roster is the authoritative cast (FR-491 D): a name in the chapter plan
+    # that no rostered character owns must surface as a continuity flag. Inject a
+    # stray non-roster name into the chapter plan and prove the director catches
+    # it on the next read (defense in depth — the breach is reported, not silenced).
     doc = _doc(tmp_path, session_id)
-    doc["key_scene"]["text"] = KEY_SCENE_TEXT  # names "Naru", absent from roster
+    doc["chapters"]["cards"]["1"]["summary"] = (
+        "Kara musters the band while Naru frees the herd."  # "Naru" absent from roster
+    )
     story_doc.write(tmp_path / session_id, doc)
     resp = client.post(
         "/story/synopsis/weave",
@@ -468,34 +446,11 @@ def test_phantom_actor_raises_continuity_flag(client, tmp_path):
     )
     doc = _doc(tmp_path, session_id)
     direction = doc["turns"][0]["direction"]
-    # "Naru" is named in the scene but absent from the roster (the Vane case).
+    # "Naru" is named in the chapter plan but absent from the roster (the Vane case).
     assert any("Naru" in f for f in direction["continuity"])
     # The flag is surfaced to the DM, and NOT silently applied as a steer (J2).
     assert "Naru" in resp.text
     assert direction["steer"] == ""
-
-
-# ── 12. The key scene is generated bound to the roster's names (FR-480) ──────
-
-
-def test_key_scene_binds_to_roster_names(client, tmp_path):
-    session_id = _new_session(client)
-    client.post(
-        "/story/synopsis/weave",
-        data={"session_id": session_id, "text": "", "prompt": "a flooded valley"},
-    )
-    _accept(client, session_id)  # synopsis → roster derived → lands on char:kara
-    _nav(client, session_id, "key_scene")  # draft the roster-bound key scene
-    doc = _doc(tmp_path, session_id)
-    assert doc["stage"] == "key_scene"
-    cards = doc["characters"]["cards"]
-    roster_names = {cards[cid]["name"] for cid in doc["characters"]["roster"]}
-    scene = doc["key_scene"]["text"]
-    # Every proper name in the generated scene is one the roster sanctioned: the
-    # unbound generator's drift name "Naru" cannot appear once the roster is bound.
-    scene_names = set(re.findall(r"\b[A-Z][a-z]+\b", scene))
-    assert "Naru" not in scene
-    assert scene_names <= roster_names
 
 
 # ── FR-481: Director card & arc integrity ───────────────────────────────────
@@ -618,20 +573,13 @@ def _beats_execute_prompt(beats_by_turn):
     return _inner
 
 
-def _canonical_beats(tmp_path, session_id):
-    from examples.dungeon_master.api import turn_ops
-
-    scene = _doc(tmp_path, session_id)["key_scene"]["text"]
-    return turn_ops.parse_beats(scene)
-
-
-# ── 15. beats_satisfied is cumulative and bound to the canonical scene BEATS ──
+# ── 15. beats_satisfied accumulates as free-text phrases, cumulatively ───────
 
 
 def test_beats_satisfied_is_cumulative_and_canonical(client, tmp_path):
     session_id = _new_session(client)
-    # Turn 1 satisfies beat 0; turn 2 reports only beat 1 (incremental), yet the
-    # recorded set must be the cumulative union, expressed in canonical terms.
+    # Turn 1 reports beat 0; turn 2 reports only beat 1 (incremental), yet the
+    # recorded set must be the cumulative union (FR-491: free-text, not canonical).
     seq = [["Kara corners Tarek on the ledge"], ["Tarek frees the herd"]]
     with (
         patch(
@@ -646,26 +594,23 @@ def test_beats_satisfied_is_cumulative_and_canonical(client, tmp_path):
         _reach_play(client, tmp_path, session_id)  # turn 1
         _accept(client, session_id)  # → turn 2
         doc = _doc(tmp_path, session_id)
-        canonical = set(_canonical_beats(tmp_path, session_id))
     t1 = set(doc["turns"][0]["direction"]["beats_satisfied"])
     t2 = set(doc["turns"][1]["direction"]["beats_satisfied"])
-    # Cumulative: turn 2 ⊇ turn 1, and the new beat was added.
+    # Cumulative: turn 2 ⊇ turn 1, and the new phrase was added.
     assert t1 <= t2
     assert len(t2) == len(t1) + 1
-    # Every recorded beat is one of the canonical scene BEATS (no paraphrase leak).
-    assert t2 <= canonical
-    # The card carries a k / N count once the field is canonical.
-    assert doc["turns"][1]["direction"]["beats_total"] == len(canonical)
+    # The chapter plan is free text, so there is no canonical k / N count (J4).
+    assert doc["turns"][1]["direction"]["beats_total"] == 0
 
 
-# ── 16. Two paraphrases of one beat count once, not twice ───────────────────
+# ── 16. An exact-duplicate phrase counts once, not twice ────────────────────
 
 
 def test_paraphrases_of_one_beat_dedupe_to_one(client, tmp_path):
     session_id = _new_session(client)
-    # Both phrases are wordings of the SAME canonical beat ("… corners … on the
-    # ledge"); the satisfied set must grow by exactly one, not two.
-    seq = [["Kara corners Tarek on the ledge", "Kara corners Tarek on the dry ledge"]]
+    # The same phrase reported twice in one turn de-duplicates to a single entry
+    # (FR-491: exact dedup; the fuzzy canonical match is retired with the BEATS).
+    seq = [["Kara corners Tarek on the ledge", "Kara corners Tarek on the ledge"]]
     with (
         patch(
             "yamlgraph.node_factory.llm_nodes.execute_prompt",
@@ -682,7 +627,7 @@ def test_paraphrases_of_one_beat_dedupe_to_one(client, tmp_path):
     assert len(beats) == 1
 
 
-# ── 17. The Director card shows the k / N beat count (FR-481 A × FR-482) ─────
+# ── 17. The Director card lists the satisfied beats (no k / N for free text) ──
 
 
 def test_director_card_shows_beat_count(client, tmp_path):
@@ -698,9 +643,11 @@ def test_director_card_shows_beat_count(client, tmp_path):
             side_effect=_beats_execute_prompt(seq),
         ),
     ):
-        resp = _reach_play(client, tmp_path, session_id)  # turn 1, 1 of 2 beats
-    # 1 satisfied of 2 canonical beats → the card renders "1 / 2".
-    assert "1 / 2" in resp.text
+        resp = _reach_play(client, tmp_path, session_id)  # turn 1
+    # The satisfied beat phrase is rendered; with free-text beats there is no
+    # misleading "k / 0" count on the card (FR-491 J4).
+    assert "Kara corners Tarek on the ledge" in resp.text
+    assert "/ 0" not in resp.text
 
 
 # ── 18. parse_beats reads the BEATS bullets between BEATS: and the next label ─
@@ -718,25 +665,15 @@ def test_parse_beats_extracts_bullets_between_labels():
     assert turn_ops.parse_beats("SUMMARY: nothing structured here") == []
 
 
-def test_match_beat_drops_phrase_that_clears_nothing():
-    from examples.dungeon_master.api import turn_ops
-
-    canonical = ["Kara corners Tarek on the ledge", "Tarek frees the herd"]
-    # A clear paraphrase resolves to its beat…
-    assert turn_ops._match_beat("Kara corners Tarek on the dry ledge", canonical) == 0
-    # …but an unrelated phrase is dropped, never invented (Commandment 6).
-    assert turn_ops._match_beat("the weather turned cold overnight", canonical) is None
-
-
-# ── FR-483: scene-pivotal non-roster actors (casting + continuity) ───────────
+# ── FR-483: non-roster actors surface as continuity flags (roster-authoritative) ─
 
 
 def _continuity_execute_prompt(flags):
     """An ``execute_prompt`` mock driving ``turn_direct.continuity`` for a turn.
 
     Returns ``flags`` verbatim as the director's continuity list so a test can
-    prove the code-side filter (FR-483 B) suppresses a scene-declared actor while
-    keeping a no-provenance phantom. Every other prompt delegates to the default.
+    prove the code keeps every non-roster flag the director raises (FR-491 D: the
+    roster is the authoritative cast). Every other prompt delegates to the default.
     """
 
     def _inner(prompt_name, variables=None, **kwargs):
@@ -756,43 +693,17 @@ def _continuity_execute_prompt(flags):
     return _inner
 
 
-# ── 19. The key-scene prompt permits a pivotal non-roster actor (A) ──────────
-
-
-def test_key_scene_prompt_permits_non_roster_actor():
-    import pathlib
-
-    from jinja2 import Template
-
-    prompt_path = pathlib.Path("examples/dungeon_master/prompts/key_scene.yaml")
-    content = yaml.safe_load(prompt_path.read_text())
-    system = content["system"]
-    # The scoped permission is gated under {% if roster %}: present once a roster
-    # is bound, absent when it is not (so the lone-pass path is unchanged).
-    bound = Template(system).render(roster="Kara\nTarek")
-    unbound = Template(system).render(roster="")
-    assert "pivotal non-roster actor" in bound
-    assert "pivotal non-roster actor" not in unbound
-
-
-# ── 20. A scene-declared non-roster actor is not a continuity breach (B) ─────
+# ── 19. A non-roster actor surfaces as a continuity flag (roster-authoritative) ─
 
 
 def test_scene_declared_actor_not_flagged_but_phantom_kept(client, tmp_path):
     session_id = _new_session(client)
     _reach_play(client, tmp_path, session_id)  # turn:1, roster {kara, tarek}
-    # Freeze a scene that CASTS a non-roster actor (Krog) in its CHARACTERS block.
-    doc = _doc(tmp_path, session_id)
-    doc["key_scene"]["text"] = (
-        "SUMMARY: Kara corners Tarek as the cave bear Krog attacks.\n"
-        "CHARACTERS:\n"
-        "- Kara — hunter\n"
-        "- Tarek — rival hunter\n"
-        "- Krog — a cave bear that kills Tarek\n"
-        "BEATS:\n- Kara corners Tarek on the ledge\nEND:\n- Kara holds the ledge\n"
-    )
-    story_doc.write(tmp_path / session_id, doc)
-    # The director flags BOTH the scene-cast actor and a no-provenance phantom.
+    # FR-491 D: the roster is the authoritative cast — there is no separate
+    # "scene-declared CHARACTERS" provenance any more. Every name acting at the
+    # turn that the roster does not own is surfaced as a continuity flag; the
+    # director prompt owns the judgement and the code keeps the flags verbatim.
+    # Accepted residual: a synopsis-supported non-roster actor over-flags.
     flags = ["Krog mauls Tarek at the turn", "Zalor strikes from nowhere"]
     with (
         patch(
@@ -809,46 +720,9 @@ def test_scene_declared_actor_not_flagged_but_phantom_kept(client, tmp_path):
             data={"session_id": session_id, "text": "Turn 1 — x", "prompt": "re-read"},
         )
     continuity = _doc(tmp_path, session_id)["turns"][0]["direction"]["continuity"]
-    # Krog is declared in the scene's CHARACTERS — acting at the turn is expected.
-    assert not any("Krog" in f for f in continuity)
-    # Zalor is in NEITHER roster nor scene — the breach flag is KEPT (narrow, not
-    # silence): the filter must not swallow a genuinely-invented name.
+    # Both non-roster names are kept verbatim — the code never silences a flag.
+    assert any("Krog" in f for f in continuity)
     assert any("Zalor" in f for f in continuity)
-
-
-# ── 21. parse_scene_characters reads the CHARACTERS bullets' names ──────────
-
-
-def test_parse_scene_characters_reads_names_before_the_dash():
-    from examples.dungeon_master.api import turn_ops
-
-    scene = (
-        "SUMMARY: a turn.\nCHARACTERS:\n- Tarka — hunter tracking Krog\n"
-        "- Krog — a cave bear\nSTART:\n- they stand on the ledge\n"
-    )
-    assert turn_ops._parse_scene_characters(scene) == ["Tarka", "Krog"]
-    # A card with no CHARACTERS block declares no cast.
-    assert turn_ops._parse_scene_characters("SUMMARY: nothing structured") == []
-
-
-def test_filter_continuity_drops_scene_actor_keeps_phantom():
-    from examples.dungeon_master.api import turn_ops
-
-    scene = "CHARACTERS:\n- Tarka — hunter\n- Krog — a cave bear\nBEATS:\n- a beat\n"
-    direction = {"continuity": ["Krog kills Vane at the turn", "Zalor from nowhere"]}
-    turn_ops._filter_continuity(direction, ["Tarka", "Vane"], scene)
-    # Krog is scene-declared but non-roster → its flag is suppressed.
-    assert not any("Krog" in f for f in direction["continuity"])
-    # Zalor is in neither roster nor scene → kept (filter narrows, not silences).
-    assert any("Zalor" in f for f in direction["continuity"])
-
-    # No CHARACTERS block → no declared actor → nothing suppressed (the Vane case
-    # in prose, FR-479 test 11, stays a real breach).
-    prose = {"continuity": ["Naru frees the herd"]}
-    turn_ops._filter_continuity(
-        prose, ["Kara", "Tarek"], "Kara corners Tarek while Naru frees the herd."
-    )
-    assert prose["continuity"] == ["Naru frees the herd"]
 
 
 # ── FR-484: post-play Final Cut leaf (de-repeat + elaborate the whole arc) ───

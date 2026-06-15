@@ -12,7 +12,6 @@ stage uses — which is what lets the generic weave/edit/accept act on a turn (J
 from __future__ import annotations
 
 import re
-from difflib import SequenceMatcher
 
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
 from examples.dungeon_master.api.tree import (
@@ -88,16 +87,36 @@ def prior_intents(doc: dict, n: int) -> dict:
     return {cid: v.get("intent", "") for cid, v in prev.items()}
 
 
-def running_scene(doc: dict, n: int) -> str:
-    """The play context for turn ``n``: the scene plan + what has actually happened.
+def _chapter_plan(doc: dict) -> str:
+    """The book's chapter plan: each chapter's title + summary, in order.
 
-    The key scene is a *plan* (SUMMARY/BEATS/END describe the intended arc the
-    scene drives toward, not events that have already happened); the accumulated
-    recaps are the real history. Labelling them apart stops the model from
-    reading the scene's ending as established fact and replaying the aftermath —
-    on turn 1 nothing has happened yet, so play must begin at the START (J4).
+    The key scene is retired (FR-491): the play loop's intended arc now comes from
+    the derived chapter outline. Until per-chapter play lands (slice 3) the whole
+    book outline stands as the global plan; slice 3 narrows it to the chapter being
+    played plus its inherited world_state.
     """
-    plan = doc.get("key_scene", {}).get("text", "")
+    chapters = doc.get("chapters", {})
+    order = chapters.get("order", [])
+    cards = chapters.get("cards", {})
+    lines = []
+    for cid in order:
+        card = cards.get(cid, {})
+        title = card.get("title") or f"Chapter {cid}"
+        summary = card.get("summary", "")
+        lines.append(f"{title}: {summary}".strip())
+    return "\n".join(lines)
+
+
+def running_scene(doc: dict, n: int) -> str:
+    """The play context for turn ``n``: the chapter plan + what has actually happened.
+
+    The chapter plan is a *plan* (its summaries describe the intended arc the play
+    drives toward, not events that have already happened); the accumulated recaps
+    are the real history. Labelling them apart stops the model from reading the
+    plan's destination as established fact and replaying the aftermath — on turn 1
+    nothing has happened yet, so play must begin at the start (J4).
+    """
+    plan = _chapter_plan(doc)
     turns = doc.get("turns", [])
     prior = [t.get("recap", {}).get("text", "") for t in turns[: n - 1]]
     prior = [p for p in prior if p.strip()][-3:]
@@ -105,14 +124,14 @@ def running_scene(doc: dict, n: int) -> str:
         "\n\n".join(prior)
         if prior
         else (
-            "Nothing has happened yet — the scene is just beginning. Only the "
-            "START state is true; none of the BEATS and not the END have occurred."
+            "Nothing has happened yet — the chapter is just beginning. Only the "
+            "starting world state is true; none of the chapter's key events have "
+            "occurred."
         )
     )
     return (
-        "THE SCENE (the planned arc — its SUMMARY, BEATS, and END are the "
-        "intended destination the scene drives toward, NOT events that have "
-        "already happened):\n"
+        "THE CHAPTER PLAN (the intended arc — the key events the chapter drives "
+        "toward, NOT events that have already happened):\n"
         f"{plan}\n\n"
         "WHAT HAS HAPPENED SO FAR:\n"
         f"{so_far}"
@@ -123,7 +142,7 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
     """Run the turn graph for turn ``n``: write its intents + direction, return its recap.
 
     Builds one ``{name, sheet, previous}`` bundle per reviewed character (J1),
-    the bounded running scene (key scene + last-3 recaps, J4) and each
+    the bounded running scene (chapter plan + last-3 recaps, J4) and each
     character's prior intent, runs ``turn.yaml`` once (map → direct → recap), records
     ``turns[n].intents`` keyed by character id and the director's
     ``turns[n].direction`` side-channel (FR-479 J4), and returns the recap text.
@@ -167,12 +186,7 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
     direction = _direction_dict(result.get("direction"))
     prior = turn_direction(doc, n - 1)
     _clamp_phase(direction, prior)
-    _canonicalize_beats(direction, prior, doc.get("key_scene", {}).get("text", ""))
-    _filter_continuity(
-        direction,
-        [c["name"] for c in cast],
-        doc.get("key_scene", {}).get("text", ""),
-    )
+    _canonicalize_beats(direction, prior)
     record["direction"] = direction
     return clean_text(result.get("recap"))
 
@@ -200,8 +214,6 @@ def _clamp_phase(direction: dict, prior: dict) -> None:
 
 
 _SECTION_RE = re.compile(r"^[A-Z][A-Z/ ]*:")
-_BEAT_FLOOR = 0.6
-_BEAT_MARGIN = 0.1
 
 
 def parse_beats(key_scene_text: str) -> list[str]:
@@ -223,124 +235,22 @@ def parse_beats(key_scene_text: str) -> list[str]:
     return beats
 
 
-def _norm(s: str) -> str:
-    """Lowercase, strip punctuation, collapse whitespace — for fuzzy beat matching."""
-    return " ".join(re.sub(r"[^a-z0-9 ]+", " ", s.lower()).split())
+def _canonicalize_beats(direction: dict, prior: dict) -> None:
+    """Accumulate ``beats_satisfied`` as free-text phrases, cumulatively (FR-491).
 
-
-def _match_beat(phrase: str, canonical: list[str]) -> int | None:
-    """Index of the canonical beat ``phrase`` satisfies, or ``None`` (FR-482 M1).
-
-    Ranks every canonical beat by ``difflib`` ratio on normalised text and
-    accepts the best **only if** it clears an absolute floor AND beats the
-    runner-up by a margin (so a phrase equally close to two beats is dropped, not
-    mis-assigned). A phrase that clears nothing is dropped, never invented
-    (Commandment 6).
+    The chapter plan is a free-text summary, not a parseable BEATS block, so the
+    director's reported phrases are the vocabulary. Union this turn's phrases with
+    the prior turn's satisfied set, de-duplicated and order-preserving, and record
+    ``beats_total`` as 0 so the card shows no misleading ``k / 0`` (J4).
     """
-    p = _norm(phrase)
-    scored = sorted(
-        (
-            (SequenceMatcher(None, p, _norm(b)).ratio(), i)
-            for i, b in enumerate(canonical)
-        ),
-        reverse=True,
-    )
-    if not scored or scored[0][0] < _BEAT_FLOOR:
-        return None
-    if len(scored) > 1 and scored[0][0] - scored[1][0] < _BEAT_MARGIN:
-        return None
-    return scored[0][1]
-
-
-def _canonicalize_beats(direction: dict, prior: dict, key_scene_text: str) -> None:
-    """Bind ``beats_satisfied`` to the scene's canonical BEATS, cumulatively (FR-482).
-
-    Matches each phrase the director reported this turn onto the frozen scene's
-    BEATS vocabulary, unions it with the prior turn's satisfied set, and records
-    the cumulative subset **in scene order** with a ``beats_total`` count. When
-    the scene has no parseable BEATS block, there is nothing to bind to: the raw
-    phrases are kept (still cumulative and de-duplicated) and ``beats_total`` is 0
-    so the card shows no misleading ``k / 0`` (J4).
-    """
-    canonical = parse_beats(key_scene_text)
     prior_beats = list((prior or {}).get("beats_satisfied") or [])
     raw = list(direction.get("beats_satisfied") or [])
-    if not canonical:
-        merged: list[str] = []
-        for b in prior_beats + raw:
-            if b not in merged:
-                merged.append(b)
-        direction["beats_satisfied"] = merged
-        direction["beats_total"] = 0
-        return
-    index_of = {b: i for i, b in enumerate(canonical)}
-    satisfied: set[int] = {index_of[b] for b in prior_beats if b in index_of}
-    for phrase in raw:
-        i = _match_beat(phrase, canonical)
-        if i is not None:
-            satisfied.add(i)
-    direction["beats_satisfied"] = [canonical[i] for i in sorted(satisfied)]
-    direction["beats_total"] = len(canonical)
-
-
-_NAME_SPLIT_RE = re.compile(r"\s+[—–-]\s+")
-
-
-def _parse_scene_characters(key_scene_text: str) -> list[str]:
-    """The names declared in a frozen key-scene's ``CHARACTERS`` block (FR-483).
-
-    The scene lists ``CHARACTERS:`` as ``- Name — clause`` bullets between that
-    label and the next uppercase section label. Returns each bullet's name (the
-    text before the dash) in scene order; empty when the card has no CHARACTERS
-    block. Mirrors :func:`parse_beats`, reading names instead of beat phrases.
-    """
-    names: list[str] = []
-    in_chars = False
-    for line in key_scene_text.splitlines():
-        stripped = line.strip()
-        if _SECTION_RE.match(stripped):
-            in_chars = stripped.upper().startswith("CHARACTERS:")
-            continue
-        if in_chars and stripped.startswith("- "):
-            name = _NAME_SPLIT_RE.split(stripped[2:].strip(), maxsplit=1)[0].strip()
-            if name:
-                names.append(name)
-    return names
-
-
-def _filter_continuity(
-    direction: dict, roster_names: list[str], key_scene_text: str
-) -> None:
-    """Drop continuity flags about a scene-declared non-roster actor (FR-483 B).
-
-    A breach the DM should see is a name taking decisive action with **no
-    provenance** — neither a rostered character nor an actor the frozen scene
-    cast. A non-roster actor the scene's CHARACTERS block already names (a beast,
-    a third party the synopsis introduced) acting at the turn is *expected*, so
-    its flag is noise, not signal. Suppress flags that mention such a
-    scene-declared name; keep every other flag — the filter narrows the breach
-    definition, it does not silence it.
-
-    Exact-name containment (case-insensitive, word-boundary), not fuzzy. Accepted
-    residual (J4): a flag mentioning the scene actor for an unrelated legitimate
-    reason is over-suppressed; acceptable in the prototype.
-    """
-    roster_lower = {n.lower() for n in roster_names}
-    declared = [
-        n
-        for n in _parse_scene_characters(key_scene_text)
-        if n.lower() not in roster_lower
-    ]
-    if not declared:
-        return
-    flags = direction.get("continuity") or []
-    direction["continuity"] = [
-        f
-        for f in flags
-        if not any(
-            re.search(rf"\b{re.escape(n.lower())}\b", f.lower()) for n in declared
-        )
-    ]
+    merged: list[str] = []
+    for b in prior_beats + raw:
+        if b not in merged:
+            merged.append(b)
+    direction["beats_satisfied"] = merged
+    direction["beats_total"] = 0
 
 
 def _direction_dict(raw: object) -> dict:

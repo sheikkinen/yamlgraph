@@ -163,8 +163,8 @@ def test_invoke_chapter_does_not_mutate_doc():
 def test_chapters_do_not_affect_preplan_complete():
     from examples.dungeon_master.api import tree
 
-    # A doc with a fully derived chapter set but NO key scene and NO cast: the
-    # preplan gate must stay closed — chapters are a separate branch (J3).
+    # A doc with a fully derived chapter set but NO cast: the cast gate must stay
+    # closed — chapters are a separate branch (J3).
     doc = {
         "synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True},
         "chapters": {
@@ -177,8 +177,7 @@ def test_chapters_do_not_affect_preplan_complete():
         },
     }
     assert tree.cast_complete(doc) is False
-    # And a complete preplan stays complete regardless of chapter state.
-    doc["key_scene"] = {"reviewed": True}
+    # And a complete cast stays complete regardless of chapter state.
     doc["characters"] = {
         "roster": ["kara"],
         "cards": {"kara": {"reviewed": True}},
@@ -186,19 +185,20 @@ def test_chapters_do_not_affect_preplan_complete():
     assert tree.cast_complete(doc) is True
 
 
-def test_chapters_appear_as_breadcrumb_peer_of_key_scene():
+def test_chapters_appear_as_breadcrumb_peer_of_characters():
     from examples.dungeon_master.api import tree
 
     doc = {
         "synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True},
-        "key_scene": {"reviewed": False},
         "chapters": {"order": ["1"], "cards": {"1": {"title": "One"}}},
-        "stage": "key_scene",
+        "characters": {"roster": ["kara"], "cards": {"kara": {"name": "Kara"}}},
+        "stage": "chapters",
     }
     labels = [c["label"] for c in tree.breadcrumb(doc)]
     assert "Chapters" in labels
-    # Chapters sits after Key Scene and before Characters (independent branch).
-    assert labels.index("Key Scene") < labels.index("Chapters")
+    # Chapters sits after Synopsis and before Characters (independent branch).
+    assert labels.index("Synopsis") < labels.index("Chapters")
+    assert labels.index("Chapters") < labels.index("Characters")
 
 
 # ── J6: the chapter set is FIXED at derivation (idempotent expansion) ─────────
@@ -344,7 +344,7 @@ def test_chapters_group_crumb_lands_on_overview():
     from examples.dungeon_master.api import tree
 
     doc = _view_doc_with_chapters()
-    doc["stage"] = "key_scene"
+    doc["stage"] = "synopsis"
     crumbs = tree.breadcrumb(doc)
     group = next(c for c in crumbs if c["label"] == "Chapters")
     # The group crumb opens the table of contents, not blind into chapter 1.

@@ -20,15 +20,15 @@ system: |
     door"). It is the outward face of the private interior, never the interior
     itself, and never the action (that is INTENT). "" if there is no overt tell.
 
-  You are given the character's name, their sheet, the scene, and their own
-  intent from last turn (which may be empty on the first turn). The scene gives a
-  planned arc with a START, BEATS, and an END: the BEATS and END are the intended
-  destination the scene drives toward — they have NOT happened yet. Act from the
-  CURRENT moment (on turn 1 that is the START state, before anyone has acted) and
-  attempt only the single next thing your character would do right now. Never
-  assume the scene's ending has already occurred or that any later beat is done.
-  Let the scene and your last intent inform the choice, but decide fresh for this
-  turn.
+  You are given the character's name, their sheet, the chapter plan, and their own
+  intent from last turn (which may be empty on the first turn). The chapter plan
+  gives the chapter's SUMMARY (the intended arc — the key events it drives toward,
+  which have NOT all happened yet) and the established STARTING WORLD STATE (what
+  is already true as the chapter opens). Act from the CURRENT moment (on turn 1
+  that is the starting state, before anyone has acted) and attempt only the single
+  next thing your character would do right now. Never assume the chapter's events
+  have already occurred or that a later event is done. Let the chapter plan and
+  your last intent inform the choice, but decide fresh for this turn.
 
 user: |
   You are **{{ char.name }}**.
@@ -40,11 +40,11 @@ user: |
   Last turn you intended: {{ char.previous }}
   {% endif %}
 
-  The scene plan and what has actually happened so far (this is turn {{ turn_n }}):
+  The chapter plan and what has actually happened so far (this is turn {{ turn_n }}):
   {{ scene }}
 
   Decide what {{ char.name }} thinks, attempts, says, and shows THIS turn — the
-  next single move from the current moment, not a jump to the scene's end. Commit
+  next single move from the current moment, not a jump to the chapter's end. Commit
   to one decisive INTENT first; let DIALOGUE and EXPRESSION serve it.
 
   Respond with ONLY a JSON object with these fields:

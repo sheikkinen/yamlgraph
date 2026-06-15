@@ -1,9 +1,9 @@
 """Stateless, tree-driven session adapter for DM v2 (FR-474 → FR-475).
 
 The preplan is a tree (FR-475), not a linear chain. The synopsis is the root; it
-gates a Key Scene leaf and a Characters roster that spawns one ``char:<id>`` card
-per character. Every visitable node — synopsis, key scene, each character — is the
-same card with one generation mode:
+gates a Characters roster that spawns one ``char:<id>`` card per character, and a
+Chapters branch derived once the cast is complete. Every visitable node — synopsis,
+each character, each chapter — is the same card with one generation mode:
 
     weave (generate / iterate) → edit (autosave) → accept
 
@@ -20,7 +20,6 @@ The per-session ``story.json`` is the single source of truth::
       "tagline": "...",
       "stage": "char:elara",                 # static name or char:<id>
       "synopsis":  {"text": "...", "reviewed": true},
-      "key_scene": {"text": "...", "reviewed": false},
       "characters": {
         "reviewed": false,
         "roster": ["elara", "coil"],
@@ -272,16 +271,6 @@ class DMSession:
             variables[ctx] = doc.get(ctx, {}).get("text", "")
         if stage.var_name:
             variables["name"] = stage.var_name
-        if stage.include_roster:
-            # Bind generation to the cast: the rostered display names are the
-            # authoritative character names (FR-480), so the scene cannot mint a
-            # name the roster never sanctioned.
-            chars = doc.get("characters", {})
-            cards = chars.get("cards", {})
-            names = [
-                cards.get(cid, {}).get("name") or cid for cid in chars.get("roster", [])
-            ]
-            variables["roster"] = "\n".join(names)
         result = await get_app(stage.graph).ainvoke(variables)
         errors = result.get("errors") or []
         if errors:
@@ -353,9 +342,10 @@ class DMSession:
 
         Acceptance is persisted first. Then the landing target is chosen by the
         tree, not a linear cursor: accepting the synopsis derives the character
-        roster (A4) and lands on the Key Scene; accepting the Key Scene or a
-        character lands on the next unreviewed character, or stays read-only when
-        the cast is complete. The landing node auto-drafts on entry (FR-474).
+        roster (A4) and lands on the first character; accepting a character lands
+        on the next unreviewed character, and accepting the last character derives
+        the chapter outline and lands on the Chapters overview. The landing node
+        auto-drafts on entry (FR-474).
         """
         story_dir = _story_dir(self._session_id)
         try:

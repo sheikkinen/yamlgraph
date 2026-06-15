@@ -6,8 +6,9 @@ rendered HTML and persisted document it cannot otherwise inspect. The deliverabl
 is a keep/kill/reshape decision, not a green CI pipeline.
 
 FR-475 reshapes the preplan from a linear ``synopsis → plot`` chain into a tree:
-``synopsis`` (root) gates ``key_scene`` (leaf) and ``characters`` (a roster that
-spawns one ``char:<id>`` card per character). Navigation is the breadcrumb.
+``synopsis`` (root) gates ``characters`` (a roster that spawns one ``char:<id>``
+card per character) and ``chapters`` (derived once the cast is complete).
+Navigation is the breadcrumb.
 
 Run directly:
     pytest examples/dungeon_master/tests/test_synopsis_prototype.py --no-cov
@@ -25,7 +26,6 @@ from examples.dungeon_master.api import story_doc
 from examples.dungeon_master.api.app import app
 
 SYNOPSIS_TEXT = "Elara the clockmaker finds the city core and rewinds it; she wins."
-KEY_SCENE_TEXT = "Elara climbs the seized tower as the gears grind to their last tooth."
 ROSTER_TEXT = "Elara\nCoil"
 
 
@@ -52,8 +52,6 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         return f"[refined: {instruction}] {draft}"
     if prompt_name == "synopsis":
         return SYNOPSIS_TEXT
-    if prompt_name == "key_scene":
-        return KEY_SCENE_TEXT
     if prompt_name == "character_roster":
         return ROSTER_TEXT
     if prompt_name == "character":
@@ -251,7 +249,7 @@ def test_character_card_weave_and_accept(client, tmp_path):
 def test_nav_to_child_before_synopsis_reviewed_is_rejected(client, tmp_path):
     session_id = _new_session(client)
     _generate(client, session_id)  # synopsis drafted but NOT accepted
-    _nav(client, session_id, "key_scene")
+    _nav(client, session_id, "chapters")
     assert _doc(tmp_path, session_id)["stage"] == "synopsis"
 
 

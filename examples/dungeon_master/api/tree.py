@@ -3,10 +3,10 @@
 The preplan is a tree, not a linear chain:
 
     Synopsis (root, gates children)
-    ├── Key Scene          (static leaf)
-    └── Characters         (roster — non-visitable; spawns one card per name)
-        ├── char:elara     (dynamic leaf)
-        └── char:coil      (dynamic leaf)
+    ├── Characters         (roster — non-visitable; spawns one card per name)
+    │   ├── char:elara     (dynamic leaf)
+    │   └── char:coil      (dynamic leaf)
+    └── Chapters           (derived once the cast is complete)
 
 Static stages live in ``STAGES``. Per-character cards are *not* in ``STAGES``:
 they are addressed by id (``char:<slug>``) and resolved at runtime from the
@@ -97,24 +97,12 @@ class Stage:
     var_name: str = ""
     # The graph's output state_key, when it differs from ``name`` (e.g. roster, char).
     output_key: str = ""
-    # When True, the rostered character display names are threaded into the graph
-    # as a ``roster`` variable so generation binds to the cast (FR-480).
-    include_roster: bool = False
 
 
 # The static stage tree. Adding a static stage extends the app; per-character
 # cards are built at runtime (see ``resolve_stage``).
 STAGES: tuple[Stage, ...] = (
     Stage("synopsis", "Synopsis", f"{GRAPH_DIR}/synopsis.yaml"),
-    Stage(
-        "key_scene",
-        "Key Scene",
-        f"{GRAPH_DIR}/key_scene.yaml",
-        context=("synopsis",),
-        parent="synopsis",
-        seed="Write the single pivotal key scene implied by the synopsis.",
-        include_roster=True,
-    ),
     Stage(
         "characters",
         "Characters",
@@ -235,7 +223,7 @@ def resolve_stage(doc: dict, name: str) -> Stage:
             name=name,
             label=f"Turn {n}",
             graph=TURN_GRAPH,
-            context=("key_scene",),
+            context=(),
             seed=TURN_SEED,
             parent="play",
             kind="turn",
@@ -286,7 +274,7 @@ def breadcrumb(doc: dict) -> list[dict]:
     """The breadcrumb control model (FR-475): Story / Synopsis / branch peers.
 
     Each crumb is ``{label, stage, current, reviewed, group?, member?}``. ``stage``
-    is the nav target (``None`` => not clickable). Branch peers (Key Scene,
+    is the nav target (``None`` => not clickable). Branch peers (Chapters,
     Characters) appear only once the synopsis is reviewed; inside the Characters
     branch the cast is listed inline as member peers.
     """
@@ -304,18 +292,8 @@ def breadcrumb(doc: dict) -> list[dict]:
     if not syn.get("reviewed"):
         return crumbs
 
-    key_scene = doc.get("key_scene", {})
-    crumbs.append(
-        {
-            "label": "Key Scene",
-            "stage": "key_scene",
-            "current": current == "key_scene",
-            "reviewed": bool(key_scene.get("reviewed")),
-        }
-    )
-
-    # Chapters (FR-488): an independent branch off the synopsis, peer of Key Scene
-    # and Characters. A fixed ordered set of chapter cards; inside the branch each
+    # Chapters (FR-488): an independent branch off the synopsis, peer of
+    # Characters. A fixed ordered set of chapter cards; inside the branch each
     # chapter is a member peer. Not part of the preplan/play gate (J3).
     chapters = doc.get("chapters", {})
     ch_order = chapters.get("order", [])
