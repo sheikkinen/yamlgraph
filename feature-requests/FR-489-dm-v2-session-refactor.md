@@ -2,12 +2,11 @@
 
 **Priority:** LOW
 **Type:** Refactor (DM v2 prototype; inherits FR-474 J3/J4 regime)
-**Status:** Judged (2026-06-15). **Phase 1 done & frozen.** **Phase 2 approved**
-with scope refined to remove the open question: `accept_target` becomes pure
-(roster expansion lifted into the adapter), all three navigation functions move in
-one commit to a new `api/navigation.py`, and they must not mutate `doc`. See
-*Judgement*.
-**Effort:** Phase 1 ~0.1 day (done); Phase 2 ~0.3 day
+**Status:** Done (2026-06-15). **Both phases shipped.** Phase 1 deduped the
+composed-stage dispatch; Phase 2 extracted pure navigation to `api/navigation.py`
+(roster expansion lifted into `accept()`), dropping `session.py` to 397 lines.
+Witnessed below.
+**Effort:** Phase 1 ~0.1 day (done); Phase 2 ~0.3 day (done)
 **Requested:** 2026-06-15
 **Continues:** FR-475 (the stage tree + roster pattern), FR-477/484/485/487 (the
 composed turn + finish stages). Same J3 rules: **no CAP/REQ, no CI gate, no
@@ -151,14 +150,16 @@ Scope frozen to the above. The OQ paragraph below is superseded.
 - [x] Phase 1: `_compose_special` extracted; `weave` and `_autodraft` share it.
 - [x] Phase 1: 45 prototype tests green; ruff check + format clean.
 - [x] Phase 1: decline guard and auto-draft persist semantics unchanged.
-- [ ] Phase 2: `can_visit`, `accept_target`, `next_unreviewed_char` moved to
+- [x] Phase 2: `can_visit`, `accept_target`, `next_unreviewed_char` moved to
       `api/navigation.py` as pure functions of `doc` (no mutation) (J1–J4).
-- [ ] Phase 2: `_accept_target`'s synopsis roster expansion lifted into `accept()`;
+- [x] Phase 2: `_accept_target`'s synopsis roster expansion lifted into `accept()`;
       no side-effect threaded through navigation (J1).
-- [ ] Phase 2: `session.py` < 400 lines.
-- [ ] Phase 2: 45 prototype tests green; ruff + import-linter clean.
-- [ ] Phase 2: all three navigation functions covered by a direct unit test that
-      needs no `DMSession` (J5).
+- [x] Phase 2: `session.py` < 400 lines (397).
+- [x] Phase 2: 56 prototype tests green (45 + 11 navigation); ruff + import-linter
+      clean.
+- [x] Phase 2: all three navigation functions covered by direct unit tests that
+      need no `DMSession` (`tests/test_navigation.py`, J5), incl. a purity guard
+      asserting `doc` is never mutated (J3).
 
 ## Alternatives Considered
 

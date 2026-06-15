@@ -35,7 +35,7 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from examples.dungeon_master.api import story_doc, turn_ops
+from examples.dungeon_master.api import navigation, story_doc, turn_ops
 from examples.dungeon_master.api.graph_app import (
     clean_text,
     get_app,
@@ -53,10 +53,7 @@ from examples.dungeon_master.api.tree import (
     WALKTHROUGH,
     Stage,
     breadcrumb,
-    cut_present,
-    preplan_complete,
     resolve_stage,
-    scene_is_complete,
     split_roster,
     unique_slug,
 )
@@ -293,7 +290,11 @@ class DMSession:
             entry["reviewed"] = True
             story_doc.write(story_dir, doc)  # persist acceptance before drafting
 
-            target = await self._accept_target(doc, story_dir, stage)
+            # The synopsis-accept derives the cast before we ask where to land
+            # (FR-489 J1): navigation is pure, so this side-effect lives here.
+            if stage.name == "synopsis":
+                await self._expand_roster(doc, story_dir)
+            target = navigation.accept_target(doc, stage)
             if target is not None:
                 doc["stage"] = target
                 self._entry(doc, target)  # ensure the target sub-document exists
@@ -315,7 +316,7 @@ class DMSession:
         story_dir = _story_dir(self._session_id)
         try:
             doc = self._load(story_dir)
-            if not self._can_visit(doc, target):
+            if not navigation.can_visit(doc, target):
                 return self._view(doc, error="That part of the story isn't ready yet.")
             doc["stage"] = target
             self._entry(doc, target)
@@ -326,79 +327,7 @@ class DMSession:
             logger.exception("navigate failed for session %s", self._session_id)
             return self._view(self._load(story_dir), error=str(e))
 
-    # ── tree navigation helpers ─────────────────────────────────────────────
-
-    def _can_visit(self, doc: dict, target: str) -> bool:
-        """Whether ``target`` is currently reachable (parent-reviewed / roster gates)."""
-        if target == "synopsis":
-            return True
-        if target.startswith(CHAR_PREFIX):
-            cid = target[len(CHAR_PREFIX) :]
-            return bool(doc.get("synopsis", {}).get("reviewed")) and (
-                cid in self._characters(doc)["cards"]
-            )
-        if target.startswith(TURN_PREFIX):
-            # Play turns unlock only once the whole preplan is reviewed; a player
-            # may revisit any existing turn or open the next one.
-            if not preplan_complete(doc):
-                return False
-            suffix = target[len(TURN_PREFIX) :]
-            if not suffix.isdigit():
-                return False
-            return 1 <= int(suffix) <= len(doc.get("turns", [])) + 1
-        if target in (FINAL_CUT, FINAL_CUT_TURNS):
-            # The terminal Final Cut leaves (continuous FR-484 + turn-structured
-            # FR-485) both unlock only once the scene is complete.
-            return scene_is_complete(doc)
-        if target == WALKTHROUGH:
-            # The full-text walkthrough renders the FR-485 cut as its spine, so it
-            # unlocks only once the scene is complete AND that cut is present
-            # (FR-487 OQ1) — otherwise it would have to invent the structure.
-            return scene_is_complete(doc) and cut_present(doc)
-        stage = STAGE_BY_NAME.get(target)
-        if stage is None or stage.kind == "roster":
-            # Unknown stage, or the non-visitable Characters group.
-            return False
-        if stage.parent:
-            return bool(doc.get(stage.parent, {}).get("reviewed"))
-        return True
-
-    async def _accept_target(
-        self, doc: dict, story_dir: Path, stage: Stage
-    ) -> str | None:
-        """The node to land on after accepting ``stage`` (FR-475 / FR-477)."""
-        if stage.name == "synopsis":
-            await self._expand_roster(doc, story_dir)
-            return "key_scene"
-        if stage.name == "key_scene":
-            # Accepting the key scene may be the act that completes the preplan.
-            if preplan_complete(doc):
-                return f"{TURN_PREFIX}1"
-            return self._next_unreviewed_char(doc)
-        if stage.name.startswith(CHAR_PREFIX):
-            nxt = self._next_unreviewed_char(doc, after=stage.name[len(CHAR_PREFIX) :])
-            if nxt is not None:
-                return nxt
-            # Last character reviewed: open Play if the rest of the preplan is too.
-            return f"{TURN_PREFIX}1" if preplan_complete(doc) else None
-        if stage.name.startswith(TURN_PREFIX):
-            n = int(stage.name[len(TURN_PREFIX) :])
-            # Once the director reports the scene's END reached, stop offering a
-            # plain next-turn advance — the scene is done, not replayed (FR-479 J5).
-            # Land on the terminal Final Cut leaf to compose the whole arc (FR-484).
-            if turn_ops.turn_direction(doc, n).get("scene_complete"):
-                return FINAL_CUT
-            return f"{TURN_PREFIX}{n + 1}"
-        # The three finishes chain so accepting one leads to the next, walking the
-        # DM through every closing artifact (FR-487): the continuous Final Cut
-        # (FR-484) → the turn-structured Final Cut (FR-485, which also drafts the
-        # cut spine the walkthrough needs) → the full-text Walkthrough (FR-487),
-        # which is the true terminal leaf.
-        if stage.name == FINAL_CUT:
-            return FINAL_CUT_TURNS
-        if stage.name == FINAL_CUT_TURNS:
-            return WALKTHROUGH
-        return None
+    # ── roster expansion (side-effecting; navigation stays pure) ─────────────
 
     async def _expand_roster(self, doc: dict, story_dir: Path) -> None:
         """Derive the cast from the synopsis and spawn one card per new name (A4)."""
@@ -413,20 +342,6 @@ class DMSession:
                 chars["cards"][cid] = {"name": name, "text": "", "reviewed": False}
                 chars["roster"].append(cid)
         story_doc.write(story_dir, doc)
-
-    def _next_unreviewed_char(self, doc: dict, after: str | None = None) -> str | None:
-        """The next unreviewed character id (searching after ``after``, wrapping)."""
-        chars = self._characters(doc)
-        roster = chars["roster"]
-        cards = chars["cards"]
-        order = roster
-        if after and after in roster:
-            i = roster.index(after)
-            order = roster[i + 1 :] + roster[: i + 1]
-        for cid in order:
-            if not cards.get(cid, {}).get("reviewed"):
-                return CHAR_PREFIX + cid
-        return None
 
     async def _compose_special(
         self, doc: dict, entry: dict, stage: Stage, *, instruction: str, draft: str
