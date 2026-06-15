@@ -67,7 +67,23 @@ PROMPTS_DIR = Path("examples/dungeon_master/prompts")
 STORY_ROOT = Path("outputs/dungeon-master")
 
 # A sensible default so the first card lands seeded, not empty (FR-474 J1).
-DEFAULT_TAGLINE = "10,000 B.C. in Heat. Adult story. Explicit. Germanic Names. Lolita."
+DEFAULT_TAGLINE = (
+    "Themes of Romance, Adventure, Erotica."
+    "10,000 BC, the great thaw — The Floodmark Saga. The glaciers are bleeding "
+    "into the lowlands and three loosed rivers are drowning the valley; every "
+    "clan must climb or die. Kara, war-leader of the Ash-Wolf band, raids the "
+    "rival Bear-Skulls at dawn just as the river breaks its banks, and is "
+    "stranded on a shrinking ledge beside Tarek, the man she came to kill — the "
+    "survival truce between them hardening, against both clans' will, into "
+    "something closer and far more dangerous, while in the same surge her "
+    "brother Jaren is swept downriver and mourned as drowned. A mature, "
+    "explicit story of what people will break to stay alive — old laws, old "
+    "loyalties, the line between enemy and lover — as a salt-road stranger named "
+    "Vey steers the survivors toward the one high valley still standing by "
+    "autumn, and the keeper of the old rites reads the truce itself as the "
+    "judgment that called the flood. Romance, blood-feud, faith, and a returning "
+    "ghost all converge on the same too-small patch of dry ground."
+)
 
 # Shown when a generation comes back empty with no recorded error — the shape a
 # provider content-policy block usually takes (an empty completion, not a raise).
