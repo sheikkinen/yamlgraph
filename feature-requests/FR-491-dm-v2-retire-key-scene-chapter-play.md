@@ -263,5 +263,30 @@ threaded across two played chapters). Diary with a Seed.
     over-flags (named, acceptable).
   - **Kept until Slice 4:** `parse_beats`, `_SECTION_RE`, and the finishes machinery
     (`final_cut_context` still reads `key_scene` → `""`).
-- **Slice 3 — Per-chapter play** — pending.
+- **Slice 3 — Per-chapter play** ✓ `52bfbb0c` (+557/−386). Each chapter is now PLAYED
+  turn by turn instead of expanded from its summary in one shot. Turns moved to
+  chapter scope (`chapters.cards[cid]["turns"]`) addressed as `turn:<cid>:<n>`
+  (Amendment C); `chapter.yaml`/`prompts/chapter.yaml` retired in favour of
+  `chapter_close.yaml` + prompt deriving the end-of-chapter `world_state` from the
+  inherited ledger + this chapter's played recaps (Amendment B / G2). `turn_ops`
+  rewritten to chapter scope (`chapter_turns`, `turn_record`, `turn_direction`,
+  `turn_intents(doc, chars, cid, n)`, `prior_intents`, `inherited_world_state`,
+  `chapter_recaps_text`, `chapter_scene_complete`, `running_scene` threading the
+  previous chapter's `world_state`, `invoke_turn`); `chapter_ops.invoke_chapter` →
+  `close_chapter` via `dm-chapter-close`; `tree.parse_turn` + chapter/turn stage
+  resolution + breadcrumb listing the playing chapter's turns; `navigation` turn gate
+  chapter-scoped, `accept(chapter)→turn:<cid>:1`, `accept(turn)` advances within the
+  chapter then crosses into the next chapter on `scene_complete`, dead-ending at the
+  last; `session._close_chapter` records the closed card's `text`/`world_state` on the
+  last turn's accept. 68 tests pass, 12 skipped; ruff + lint-imports + vulture clean.
+  - **Load-bearing seam (J7):** `test_chapter_two_play_sees_chapter_one_world_state_not_its_turns`
+    pins that chapter 2's `running_scene` inherits chapter 1's end-of-chapter
+    `world_state` (the carry) and reads its own summary, but never sees chapter 1's
+    played turns (private to chapter 1's loop).
+  - **Kept until Slice 4:** the single-scene finishes (`final_cut`, `final_cut_turns`,
+    `walkthrough`, `staging`) are no longer reachable via the play loop. Their
+    play-loop routing tests and the `walkthrough_render_inputs` unit test (coupled to
+    the pre-FR-491 `turn_intents` arity) are `@_FINISH_RETIRED`-skipped pending Slice 4
+    deletion; the pure finish unit tests (`final_cut_context`, `climax_turn`,
+    `validate_cut_turns`) stay green by constructing flat docs directly.
 - **Slice 4 — The Book finish** — pending.
