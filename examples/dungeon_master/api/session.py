@@ -54,6 +54,7 @@ from examples.dungeon_master.api.tree import (
     Stage,
     breadcrumb,
     cast_complete,
+    parse_turn,
     resolve_stage,
     split_roster,
     unique_slug,
@@ -181,8 +182,8 @@ class DMSession:
         """The per-stage sub-document ``{"text", "reviewed"}`` (created if absent).
 
         Static stages live at the top level; ``char:<id>`` stages are nested under
-        ``characters.cards`` (A2); ``turn:<n>`` stages reuse the turn's ``recap``
-        entry so weave/edit/accept operate on it unchanged (FR-477 J3).
+        ``characters.cards`` (A2); ``turn:<cid>:<n>`` stages reuse the chapter's
+        turn ``recap`` entry so weave/edit/accept operate on it unchanged (FR-491 C).
         """
         if name.startswith(CHAR_PREFIX):
             cid = name[len(CHAR_PREFIX) :]
@@ -202,7 +203,8 @@ class DMSession:
                 },
             )
         if name.startswith(TURN_PREFIX):
-            return turn_ops.turn_record(doc, int(name[len(TURN_PREFIX) :]))["recap"]
+            cid, n = parse_turn(name)
+            return turn_ops.turn_record(doc, cid, n)["recap"]
         return doc.setdefault(name, {"text": "", "reviewed": False})
 
     def _view(self, doc: dict, *, error: str | None = None) -> StageView:
@@ -214,9 +216,9 @@ class DMSession:
         world_state = ""
         chapters: list[dict] = []
         if stage.kind == "turn":
-            n = int(stage.name[len(TURN_PREFIX) :])
-            intents = turn_ops.turn_intents(doc, self._characters(doc), n)
-            direction = turn_ops.turn_direction(doc, n)
+            cid, n = parse_turn(stage.name)
+            intents = turn_ops.turn_intents(doc, self._characters(doc), cid, n)
+            direction = turn_ops.turn_direction(doc, cid, n)
         elif stage.kind == "chapter":
             # Surface the card's planning context above its prose (FR-490).
             summary = entry.get("summary", "")
@@ -366,6 +368,14 @@ class DMSession:
                 await self._expand_roster(doc, story_dir)
             elif stage.name.startswith(CHAR_PREFIX) and cast_complete(doc):
                 await self._expand_chapters(doc, story_dir)
+            elif stage.kind == "turn":
+                # Accepting a turn whose director reported the chapter's scene
+                # complete closes the chapter (FR-491 B): derive its end-of-chapter
+                # world_state from the inherited ledger + the played recaps, so the
+                # NEXT chapter is played from where this one left off (J7).
+                cid, n = parse_turn(stage.name)
+                if turn_ops.turn_direction(doc, cid, n).get("scene_complete"):
+                    await self._close_chapter(doc, story_dir, cid)
             target = navigation.accept_target(doc, stage)
             if target is not None:
                 doc["stage"] = target
@@ -390,6 +400,11 @@ class DMSession:
             doc = self._load(story_dir)
             if not navigation.can_visit(doc, target):
                 return self._view(doc, error="That part of the story isn't ready yet.")
+            if target.startswith(CHAPTER_PREFIX):
+                # A chapter is PLAYED (FR-491): visiting it opens its first turn so
+                # the play loop begins; its turns are reachable from the breadcrumb.
+                cid = target[len(CHAPTER_PREFIX) :]
+                target = f"{TURN_PREFIX}{cid}:1"
             doc["stage"] = target
             self._entry(doc, target)
             story_doc.write(story_dir, doc)
@@ -440,6 +455,23 @@ class DMSession:
             chapters["order"].append(cid)
         story_doc.write(story_dir, doc)
 
+    async def _close_chapter(self, doc: dict, story_dir: Path, cid: str) -> None:
+        """Record played chapter ``cid``'s end-of-chapter ledger (FR-491 B; J7).
+
+        The forward-carry write: when a chapter's scene completes,
+        ``chapter_ops.close_chapter`` (a pure read) derives its end-of-chapter
+        ``world_state`` from the inherited ledger + the played recaps; this records
+        it onto the card so the NEXT chapter inherits it, and marks the chapter
+        reviewed. Idempotent enough to re-run on a re-accept.
+        """
+        closed = await chapter_ops.close_chapter(doc, cid)
+        card = self._chapters(doc)["cards"].get(cid)
+        if card is not None:
+            card["text"] = closed["text"]
+            card["world_state"] = closed["world_state"]
+            card["reviewed"] = True
+            story_doc.write(story_dir, doc)
+
     async def _compose_special(
         self, doc: dict, entry: dict, stage: Stage, *, instruction: str, draft: str
     ) -> bool:
@@ -456,21 +488,10 @@ class DMSession:
         back to ``_invoke_stage`` for an ordinary card when it was not.
         """
         if stage.kind == "turn":
-            n = int(stage.name[len(TURN_PREFIX) :])
+            cid, n = parse_turn(stage.name)
             entry["text"] = await turn_ops.invoke_turn(
-                doc, self._characters(doc), n, instruction=instruction
+                doc, self._characters(doc), cid, n, instruction=instruction
             )
-        elif stage.kind == "chapter":
-            # A book chapter (FR-488): composed because it needs the previous
-            # chapter's world_state threaded in (J7), which a bare _invoke_stage
-            # cannot supply. invoke_chapter is pure; the world_state ledger is
-            # recorded beside the rendered text for the next chapter to carry.
-            n = int(stage.name[len(CHAPTER_PREFIX) :])
-            chapter = await chapter_ops.invoke_chapter(
-                doc, n, instruction=instruction, draft=draft
-            )
-            entry["text"] = chapter["text"]
-            entry["world_state"] = chapter["world_state"]
         elif stage.name == FINAL_CUT:
             entry["text"] = await turn_ops.invoke_final_cut(
                 doc, instruction=instruction, draft=draft

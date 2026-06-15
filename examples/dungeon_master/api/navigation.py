@@ -26,6 +26,7 @@ from examples.dungeon_master.api.tree import (
     Stage,
     cast_complete,
     cut_present,
+    parse_turn,
     scene_is_complete,
 )
 
@@ -67,14 +68,15 @@ def can_visit(doc: dict, target: str) -> bool:
             cid in _chapter_cards(doc)
         )
     if target.startswith(TURN_PREFIX):
-        # Play turns unlock only once the whole preplan is reviewed; a player
-        # may revisit any existing turn or open the next one.
+        # Play turns unlock once the cast is complete; a turn is scoped to a
+        # chapter (FR-491 C, ``turn:<cid>:<n>``), so the chapter id must be in the
+        # derived order and the index a revisit or the chapter's next turn.
         if not cast_complete(doc):
             return False
-        suffix = target[len(TURN_PREFIX) :]
-        if not suffix.isdigit():
+        cid, n = parse_turn(target)
+        if not cid or cid not in _chapter_order(doc):
             return False
-        return 1 <= int(suffix) <= len(doc.get("turns", [])) + 1
+        return 1 <= n <= len(turn_ops.chapter_turns(doc, cid)) + 1
     if target in (FINAL_CUT, FINAL_CUT_TURNS):
         # The terminal Final Cut leaves (continuous FR-484 + turn-structured
         # FR-485) both unlock only once the scene is complete.
@@ -126,24 +128,26 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
         # been derived — land on the Chapters overview (FR-491 J1).
         return "chapters" if cast_complete(doc) else None
     if stage.name.startswith(CHAPTER_PREFIX):
-        # Accepting a chapter lands on the next chapter in order; the last
-        # chapter dead-ends (J5) — the chapter branch is a planning artifact, not
-        # a chain into play or a finish.
-        order = _chapter_order(doc)
+        # A chapter is PLAYED (FR-491): visiting it lands on its first turn so the
+        # play loop begins. Chapter completion happens via its last turn's
+        # scene_complete, not by accepting the chapter itself.
         cid = stage.name[len(CHAPTER_PREFIX) :]
-        if cid in order:
-            i = order.index(cid)
-            if i + 1 < len(order):
-                return CHAPTER_PREFIX + order[i + 1]
-        return None
+        return f"{TURN_PREFIX}{cid}:1"
     if stage.name.startswith(TURN_PREFIX):
-        n = int(stage.name[len(TURN_PREFIX) :])
-        # Once the director reports the scene's END reached, stop offering a
-        # plain next-turn advance — the scene is done, not replayed (FR-479 J5).
-        # Land on the terminal Final Cut leaf to compose the whole arc (FR-484).
-        if turn_ops.turn_direction(doc, n).get("scene_complete"):
-            return FINAL_CUT
-        return f"{TURN_PREFIX}{n + 1}"
+        cid, n = parse_turn(stage.name)
+        # Once the director reports the chapter's scene complete, stop advancing
+        # turns (FR-479 J5): the adapter closes the chapter (deriving its
+        # end-of-chapter world_state) and play moves to the NEXT chapter's first
+        # turn, carrying that ledger forward (FR-491). The last chapter dead-ends
+        # (the Book finish lands here in slice 4).
+        if turn_ops.turn_direction(doc, cid, n).get("scene_complete"):
+            order = _chapter_order(doc)
+            if cid in order:
+                i = order.index(cid)
+                if i + 1 < len(order):
+                    return f"{TURN_PREFIX}{order[i + 1]}:1"
+            return None
+        return f"{TURN_PREFIX}{cid}:{n + 1}"
     # The three finishes chain so accepting one leads to the next, walking the
     # DM through every closing artifact (FR-487): the continuous Final Cut
     # (FR-484) → the turn-structured Final Cut (FR-485, which also drafts the

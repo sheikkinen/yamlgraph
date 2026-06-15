@@ -27,20 +27,21 @@ CHARACTER_GRAPH = f"{GRAPH_DIR}/character.yaml"
 CHARACTER_SEED = "Draft this one character from the synopsis."
 CHAR_PREFIX = "char:"
 
-# Book-scope chapters (FR-488): an INDEPENDENT branch off the synopsis (a peer of
-# Key Scene and Characters, NOT part of the preplan/play gate — J3). The synopsis
-# is the whole book in outline; ``chapter_outline.yaml`` splits it into a fixed
-# ordered set of one-paragraph chapter summaries, and each ``chapter:<n>`` card is
-# expanded by the shared ``chapter.yaml`` graph, carrying the previous chapter's
-# world_state forward (J7). Numeric 1-based string ids — the set is FIXED at
-# derivation (no idempotent slug-append; J6).
+# Book-scope chapters (FR-488 / FR-491): an INDEPENDENT branch off the synopsis
+# (a peer of Characters, NOT part of the cast gate — J3). The synopsis is the
+# whole book in outline; ``chapter_outline.yaml`` splits it into a fixed ordered
+# set of one-paragraph chapter summaries, and each ``chapter:<n>`` is PLAYED turn
+# by turn (FR-491). When a chapter's scene completes, ``chapter_close.yaml``
+# derives its end-of-chapter world_state from the inherited ledger + the played
+# recaps, carrying it forward (J7). Numeric 1-based string ids — the set is FIXED
+# at derivation (no idempotent slug-append; J6).
 CHAPTER_OUTLINE_GRAPH = f"{GRAPH_DIR}/chapter_outline.yaml"
-CHAPTER_GRAPH = f"{GRAPH_DIR}/chapter.yaml"
+CHAPTER_CLOSE_GRAPH = f"{GRAPH_DIR}/chapter_close.yaml"
 CHAPTER_PREFIX = "chapter:"
-CHAPTER_SEED = "Expand this chapter from its summary."
 
-# Play loop (FR-477): turns are dynamic stages addressed by ``turn:<n>``, run by
-# the shared turn graph, and resolved at runtime like character cards.
+# Play loop (FR-477 / FR-491 C): turns are dynamic stages scoped to a chapter and
+# addressed by ``turn:<cid>:<n>``, run by the shared turn graph, stored under
+# ``chapters.cards[<cid>].turns``, and resolved at runtime like character cards.
 TURN_GRAPH = f"{GRAPH_DIR}/turn.yaml"
 TURN_PREFIX = "turn:"
 TURN_SEED = "Play this turn."
@@ -199,29 +200,31 @@ def resolve_stage(doc: dict, name: str) -> Stage:
             output_key="character",
         )
     if name.startswith(CHAPTER_PREFIX):
-        # A book chapter (FR-488). Like a character card, a composed stage run
-        # through _compose_special (not _invoke_stage), since it needs the
-        # forward-carried world_state the bare graph variables cannot supply.
+        # A book chapter (FR-491). No longer a composed prose card — it is the
+        # landing for a chapter that is PLAYED turn by turn. Not auto-drafted (no
+        # seed); _view shows its summary + inherited world_state + played turns.
         cid = name[len(CHAPTER_PREFIX) :]
         card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
         label = card.get("title") or f"Chapter {cid}"
         return Stage(
             name=name,
             label=label,
-            graph=CHAPTER_GRAPH,
+            graph=CHAPTER_CLOSE_GRAPH,
             context=("synopsis",),
-            seed=CHAPTER_SEED,
             parent="chapters",
             kind="chapter",
-            output_key="chapter",
+            output_key="chapter_close",
         )
     if name.startswith(TURN_PREFIX):
-        # A play turn (FR-477). The turn graph is not run through _invoke_stage;
-        # the synthetic stage exists so _view/_entry/breadcrumb can address it.
-        n = name[len(TURN_PREFIX) :]
+        # A play turn (FR-477 / FR-491 C): scoped to a chapter, addressed
+        # ``turn:<cid>:<n>``. The synthetic stage exists so _view/_entry/breadcrumb
+        # can address it; the turn graph is run through _compose_special.
+        cid, n = parse_turn(name)
+        chapter = doc.get("chapters", {}).get("cards", {}).get(cid, {})
+        chapter_label = chapter.get("title") or f"Chapter {cid}"
         return Stage(
             name=name,
-            label=f"Turn {n}",
+            label=f"{chapter_label} · Turn {n}",
             graph=TURN_GRAPH,
             context=(),
             seed=TURN_SEED,
@@ -230,6 +233,21 @@ def resolve_stage(doc: dict, name: str) -> Stage:
             output_key="recap",
         )
     return STAGE_BY_NAME.get(name, FIRST_STAGE)
+
+
+def parse_turn(name: str) -> tuple[str, int]:
+    """Split a ``turn:<cid>:<n>`` stage name into its chapter id and 1-based index.
+
+    Falls back to ``("", 0)`` for a malformed name so callers can reject it rather
+    than raise mid-render (FR-491 C).
+    """
+    if not name.startswith(TURN_PREFIX):
+        return "", 0
+    rest = name[len(TURN_PREFIX) :]
+    cid, _, suffix = rest.rpartition(":")
+    if not cid or not suffix.isdigit():
+        return "", 0
+    return cid, int(suffix)
 
 
 def cast_complete(doc: dict) -> bool:
@@ -292,17 +310,19 @@ def breadcrumb(doc: dict) -> list[dict]:
     if not syn.get("reviewed"):
         return crumbs
 
-    # Chapters (FR-488): an independent branch off the synopsis, peer of
-    # Characters. A fixed ordered set of chapter cards; inside the branch each
-    # chapter is a member peer. Not part of the preplan/play gate (J3).
+    # Chapters (FR-488 / FR-491): an independent branch off the synopsis, peer of
+    # Characters. A fixed ordered set of chapters; each is PLAYED turn by turn, so
+    # inside a chapter its turns are listed as deeper member peers. Not part of the
+    # cast gate (J3).
     chapters = doc.get("chapters", {})
     ch_order = chapters.get("order", [])
     ch_cards = chapters.get("cards", {})
     in_chapters = current.startswith(CHAPTER_PREFIX)
+    playing_cid, _playing_n = parse_turn(current)
     # The group crumb lands on the overview (FR-490), and the member peers are
-    # visible both from inside a chapter AND while standing on the overview, so the
-    # chapter set is discoverable before diving into any one chapter.
-    on_chapters = in_chapters or current == "chapters"
+    # visible both from inside a chapter AND while playing one of its turns, so the
+    # chapter set stays discoverable while a chapter is being played.
+    on_chapters = in_chapters or current == "chapters" or bool(playing_cid)
     ch_all_reviewed = bool(ch_order) and all(
         ch_cards.get(cid, {}).get("reviewed") for cid in ch_order
     )
@@ -322,11 +342,26 @@ def breadcrumb(doc: dict) -> list[dict]:
                 {
                     "label": card.get("title") or f"Chapter {cid}",
                     "stage": CHAPTER_PREFIX + cid,
-                    "current": current == CHAPTER_PREFIX + cid,
+                    "current": current == CHAPTER_PREFIX + cid or cid == playing_cid,
                     "reviewed": bool(card.get("reviewed")),
                     "member": True,
                 }
             )
+            # The chapter being played lists its turns as deeper member peers
+            # (FR-491 C): play is scoped to the chapter, not a flat global loop.
+            if cid == playing_cid:
+                for t in card.get("turns") or []:
+                    n = t.get("n")
+                    crumbs.append(
+                        {
+                            "label": f"Turn {n}",
+                            "stage": f"{TURN_PREFIX}{cid}:{n}",
+                            "current": current == f"{TURN_PREFIX}{cid}:{n}",
+                            "reviewed": bool(t.get("recap", {}).get("reviewed")),
+                            "member": True,
+                            "deep": True,
+                        }
+                    )
 
     chars = doc.get("characters", {})
     cards = chars.get("cards", {})
@@ -357,35 +392,9 @@ def breadcrumb(doc: dict) -> list[dict]:
                 }
             )
 
-    # Play branch (FR-477): a peer after Characters, present only once the whole
-    # preplan is reviewed. Inside it, each turn is listed as a member peer.
-    if cast_complete(doc):
-        turns = doc.get("turns", [])
-        in_play = current.startswith(TURN_PREFIX)
-        crumbs.append(
-            {
-                "label": "Play",
-                "stage": TURN_PREFIX + "1",
-                "current": False,
-                "reviewed": False,
-                "group": True,
-            }
-        )
-        if in_play:
-            for t in turns:
-                n = t.get("n")
-                crumbs.append(
-                    {
-                        "label": f"Turn {n}",
-                        "stage": f"{TURN_PREFIX}{n}",
-                        "current": current == f"{TURN_PREFIX}{n}",
-                        "reviewed": bool(t.get("recap", {}).get("reviewed")),
-                        "member": True,
-                    }
-                )
-    # Final Cut (FR-484): a terminal peer after Play, present once the director
-    # has reported the scene complete on any turn. The turn-structured cut
-    # (FR-485) is a sibling peer gated identically — the two finishes coexist.
+    # Play is no longer a flat global branch (FR-491): each chapter is played in
+    # place, its turns listed under the chapter crumb above.
+    # Final Cut (FR-484): a terminal peer once the director has reported the scene
     if scene_is_complete(doc):
         fc = doc.get("final_cut", {})
         crumbs.append(

@@ -19,7 +19,9 @@ def _cast_doc() -> dict:
     """A document with a complete cast (synopsis + one reviewed character; FR-491).
 
     The cast gate (``cast_complete``) is synopsis ✓ + all characters ✓ — the key
-    scene is retired, so it is no longer part of the gate.
+    scene is retired, so it is no longer part of the gate. A derived chapter set is
+    included because play turns are chapter-scoped (FR-491 C): a turn unlocks only
+    when its chapter id is in the order.
     """
     return {
         "synopsis": {"text": "s", "reviewed": True},
@@ -27,6 +29,11 @@ def _cast_doc() -> dict:
             "reviewed": True,
             "roster": ["kara"],
             "cards": {"kara": {"name": "Kara", "text": "c", "reviewed": True}},
+        },
+        "chapters": {
+            "reviewed": False,
+            "order": ["1"],
+            "cards": {"1": {"title": "One", "summary": "a", "reviewed": False}},
         },
     }
 
@@ -60,10 +67,11 @@ def test_unknown_stage_is_not_visitable():
 
 def test_turns_unlock_only_when_cast_complete():
     incomplete = {"synopsis": {"reviewed": True}}  # no cast yet
-    assert navigation.can_visit(incomplete, "turn:1") is False
+    assert navigation.can_visit(incomplete, "turn:1:1") is False
     doc = _cast_doc()
-    assert navigation.can_visit(doc, "turn:1") is True  # next turn opens
-    assert navigation.can_visit(doc, "turn:2") is False  # one past the next
+    # A turn is chapter-scoped (FR-491 C): ``turn:<cid>:<n>``.
+    assert navigation.can_visit(doc, "turn:1:1") is True  # next turn opens
+    assert navigation.can_visit(doc, "turn:1:2") is False  # one past the next
 
 
 # ── chapters (FR-488, J3/J5) ─────────────────────────────────────────────────
@@ -102,14 +110,15 @@ def test_chapter_unlocks_without_preplan_or_play():
     assert navigation.can_visit(doc, "chapter:1") is True
 
 
-def test_accept_chapter_lands_on_next_chapter_then_dead_ends():
+def test_accept_chapter_lands_on_first_turn():
     doc = _chapters_doc()
     from examples.dungeon_master.api.tree import resolve_stage
 
-    assert navigation.accept_target(doc, resolve_stage(doc, "chapter:1")) == "chapter:2"
-    # The last chapter dead-ends (J5): the chapter branch is a planning artifact,
-    # not a chain into play or a finish.
-    assert navigation.accept_target(doc, resolve_stage(doc, "chapter:2")) is None
+    # FR-491: a chapter is PLAYED — accepting it (visiting) lands on its first
+    # turn so the play loop begins. Chapter completion happens via the last turn's
+    # scene_complete, not by accepting the chapter itself.
+    assert navigation.accept_target(doc, resolve_stage(doc, "chapter:1")) == "turn:1:1"
+    assert navigation.accept_target(doc, resolve_stage(doc, "chapter:2")) == "turn:2:1"
 
 
 # ── FR-490: the chapters overview is visitable (the repurposed dead stage) ────

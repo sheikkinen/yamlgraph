@@ -1,0 +1,54 @@
+# Dungeon Master v2 — Chapter-close world_state derivation graph (FR-491 G2/B).
+#
+# A chapter is no longer expanded from its summary in one shot (chapter.yaml is
+# retired); it is PLAYED, turn by turn. When its scene completes, this graph runs
+# once to derive the WORLD STATE at the end of the chapter from the inherited
+# world_state (where the previous chapter left off) plus THIS chapter's played
+# recaps. That end-of-chapter ledger is the forward-carry seed the next chapter
+# inherits (the load-bearing FR-488 J7 seam, preserved through play).
+#
+# Output is STRUCTURED (parse_json: true): a {world_state} object. The chapter's
+# prose is the played recaps themselves — this graph derives only the ledger.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/chapter_close.yaml \
+#     --var synopsis="..." --var summary="..." --var index="2" \
+#     --var previous_world_state="..." --var recaps="..." --full
+version: "1.0"
+name: dm-chapter-close
+description: Derive the end-of-chapter world state from the played recaps
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.5
+  # The ledger is terse; reserve headroom for reasoning-model hidden tokens.
+  max_tokens: 2000
+
+state:
+  synopsis: str
+  summary: str
+  index: str
+  previous_world_state: str
+  recaps: str
+  chapter_close: dict
+
+nodes:
+  chapter_close:
+    type: llm
+    prompt: chapter_close
+    state_key: chapter_close
+    parse_json: true
+    variables:
+      synopsis: "{state.synopsis}"
+      summary: "{state.summary}"
+      index: "{state.index}"
+      previous_world_state: "{state.previous_world_state}"
+      recaps: "{state.recaps}"
+
+edges:
+  - from: START
+    to: chapter_close
+  - from: chapter_close
+    to: END

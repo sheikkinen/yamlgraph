@@ -23,9 +23,25 @@ from examples.dungeon_master.api.tree import (
 )
 
 
-def turn_record(doc: dict, n: int) -> dict:
-    """The ``turns[n-1]`` record ``{n, intents, recap}`` (created if absent)."""
-    turns = doc.setdefault("turns", [])
+def _chapter_card(doc: dict, cid: str) -> dict:
+    """Read-only view of chapter ``cid``'s card (empty if absent)."""
+    return doc.get("chapters", {}).get("cards", {}).get(cid, {})
+
+
+def chapter_turns(doc: dict, cid: str) -> list[dict]:
+    """Read-only view of chapter ``cid``'s played turns (FR-491 C; empty if none)."""
+    return _chapter_card(doc, cid).get("turns") or []
+
+
+def turn_record(doc: dict, cid: str, n: int) -> dict:
+    """Chapter ``cid``'s ``turns[n-1]`` record ``{n, intents, recap}`` (created if absent).
+
+    Turns are stored per chapter under ``chapters.cards[<cid>]["turns"]`` (FR-491
+    Amendment C), never the flat ``doc["turns"]``: each chapter plays its own loop.
+    """
+    cards = doc.setdefault("chapters", {}).setdefault("cards", {})
+    card = cards.setdefault(cid, {})
+    turns = card.setdefault("turns", [])
     while len(turns) < n:
         m = len(turns) + 1
         turns.append({"n": m, "intents": {}, "recap": {"text": "", "reviewed": False}})
@@ -35,21 +51,21 @@ def turn_record(doc: dict, n: int) -> dict:
     return rec
 
 
-def turn_direction(doc: dict, n: int) -> dict:
-    """The director's ``direction`` side-channel for turn ``n`` (empty if absent).
+def turn_direction(doc: dict, cid: str, n: int) -> dict:
+    """The director's ``direction`` side-channel for chapter ``cid``'s turn ``n``.
 
     A structured ``{phase, establishing, beats_satisfied, scene_complete, steer,
     continuity}`` judgement produced alongside the turn's intents (FR-479 J4);
-    the recap entry shape stays ``{text, reviewed}`` (FR-477 J3).
+    the recap entry shape stays ``{text, reviewed}`` (FR-477 J3). Empty if absent.
     """
-    turns = doc.get("turns", [])
+    turns = chapter_turns(doc, cid)
     if n < 1 or len(turns) < n:
         return {}
     return turns[n - 1].get("direction") or {}
 
 
-def turn_intents(doc: dict, chars: dict, n: int) -> list[dict]:
-    """The turn's intents as ordered performance cards (cast order).
+def turn_intents(doc: dict, chars: dict, cid: str, n: int) -> list[dict]:
+    """Chapter ``cid``'s turn ``n`` intents as ordered performance cards (cast order).
 
     Each card is ``{name, thinking, intent, dialogue, expression}`` (FR-486): the
     private ``thinking`` and the decisive ``intent`` the arc reads, plus the
@@ -58,17 +74,17 @@ def turn_intents(doc: dict, chars: dict, n: int) -> list[dict]:
     only the first two keys; the new keys default to ``""`` (a silent character is
     legitimate, not a defect — an additive side-channel, never a raise).
     """
-    turns = doc.get("turns", [])
+    turns = chapter_turns(doc, cid)
     if n < 1 or len(turns) < n:
         return []
     intents = turns[n - 1].get("intents", {})
     out: list[dict] = []
-    for cid in chars["roster"]:
-        if cid in intents:
-            perf = intents[cid]
+    for char_id in chars["roster"]:
+        if char_id in intents:
+            perf = intents[char_id]
             out.append(
                 {
-                    "name": chars["cards"].get(cid, {}).get("name") or cid,
+                    "name": chars["cards"].get(char_id, {}).get("name") or char_id,
                     "thinking": perf.get("thinking", ""),
                     "intent": perf.get("intent", ""),
                     "dialogue": perf.get("dialogue", ""),
@@ -78,46 +94,70 @@ def turn_intents(doc: dict, chars: dict, n: int) -> list[dict]:
     return out
 
 
-def prior_intents(doc: dict, n: int) -> dict:
-    """Each character's intent from turn ``n-1`` (empty before turn 2, J4)."""
-    turns = doc.get("turns", [])
+def prior_intents(doc: dict, cid: str, n: int) -> dict:
+    """Each character's intent from chapter ``cid``'s turn ``n-1`` (empty before turn 2)."""
+    turns = chapter_turns(doc, cid)
     if n < 2 or len(turns) < n - 1:
         return {}
     prev = turns[n - 2].get("intents", {})
-    return {cid: v.get("intent", "") for cid, v in prev.items()}
+    return {char_id: v.get("intent", "") for char_id, v in prev.items()}
 
 
-def _chapter_plan(doc: dict) -> str:
-    """The book's chapter plan: each chapter's title + summary, in order.
+def inherited_world_state(doc: dict, cid: str) -> str:
+    """The world_state chapter ``cid`` inherits — the PREVIOUS chapter's ledger.
 
-    The key scene is retired (FR-491): the play loop's intended arc now comes from
-    the derived chapter outline. Until per-chapter play lands (slice 3) the whole
-    book outline stands as the global plan; slice 3 narrows it to the chapter being
-    played plus its inherited world_state.
+    The load-bearing forward-carry (FR-488 J7, preserved through play): each
+    chapter is played from where the last one left off. Empty for the first
+    chapter, or when the chapter id is not in the derived order.
     """
     chapters = doc.get("chapters", {})
     order = chapters.get("order", [])
     cards = chapters.get("cards", {})
+    if cid not in order:
+        return ""
+    i = order.index(cid)
+    if i == 0:
+        return ""
+    return cards.get(order[i - 1], {}).get("world_state", "") or ""
+
+
+def chapter_recaps_text(doc: dict, cid: str) -> str:
+    """Chapter ``cid``'s played recaps, in order, as one labelled block (FR-491 B)."""
     lines = []
-    for cid in order:
-        card = cards.get(cid, {})
-        title = card.get("title") or f"Chapter {cid}"
-        summary = card.get("summary", "")
-        lines.append(f"{title}: {summary}".strip())
-    return "\n".join(lines)
+    for t in chapter_turns(doc, cid):
+        txt = (t.get("recap") or {}).get("text", "")
+        if txt.strip():
+            lines.append(f"Turn {t.get('n')}: {txt}")
+    return "\n\n".join(lines)
 
 
-def running_scene(doc: dict, n: int) -> str:
-    """The play context for turn ``n``: the chapter plan + what has actually happened.
+def chapter_scene_complete(doc: dict, cid: str) -> bool:
+    """Whether any of chapter ``cid``'s played turns reported the scene complete."""
+    return any(
+        (t.get("direction") or {}).get("scene_complete")
+        for t in chapter_turns(doc, cid)
+    )
 
-    The chapter plan is a *plan* (its summaries describe the intended arc the play
-    drives toward, not events that have already happened); the accumulated recaps
-    are the real history. Labelling them apart stops the model from reading the
-    plan's destination as established fact and replaying the aftermath — on turn 1
-    nothing has happened yet, so play must begin at the start (J4).
+
+def running_scene(doc: dict, cid: str, n: int) -> str:
+    """Chapter ``cid``'s play context for turn ``n`` (FR-491): its own plan + history.
+
+    The scene is built from *this chapter's* summary (the intended arc — the key
+    events it drives toward, not events already past), the *inherited* world_state
+    (the established START, carried from the previous chapter), and *this
+    chapter's* own prior recaps (the real history). Labelling them apart stops the
+    model from reading the plan's destination as established fact and replaying the
+    aftermath — on turn 1 nothing has happened yet, so play begins at the start (J4).
     """
-    plan = _chapter_plan(doc)
-    turns = doc.get("turns", [])
+    card = _chapter_card(doc, cid)
+    title = card.get("title") or f"Chapter {cid}"
+    summary = card.get("summary", "")
+    inherited = inherited_world_state(doc, cid).strip()
+    start = inherited or (
+        "This is the opening chapter — there is no prior world state. Establish "
+        "the world from the synopsis and this chapter's summary."
+    )
+    turns = chapter_turns(doc, cid)
     prior = [t.get("recap", {}).get("text", "") for t in turns[: n - 1]]
     prior = [p for p in prior if p.strip()][-3:]
     so_far = (
@@ -130,41 +170,48 @@ def running_scene(doc: dict, n: int) -> str:
         )
     )
     return (
-        "THE CHAPTER PLAN (the intended arc — the key events the chapter drives "
+        f"THIS CHAPTER — {title} — its intended arc (the key events it drives "
         "toward, NOT events that have already happened):\n"
-        f"{plan}\n\n"
-        "WHAT HAS HAPPENED SO FAR:\n"
+        f"{summary}\n\n"
+        "STARTING WORLD STATE (established before this chapter begins — true at "
+        "the START):\n"
+        f"{start}\n\n"
+        "WHAT HAS HAPPENED SO FAR IN THIS CHAPTER:\n"
         f"{so_far}"
     )
 
 
-async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> str:
-    """Run the turn graph for turn ``n``: write its intents + direction, return its recap.
+async def invoke_turn(
+    doc: dict, chars: dict, cid: str, n: int, instruction: str = ""
+) -> str:
+    """Run the turn graph for chapter ``cid``'s turn ``n``: write intents + direction, return its recap.
 
-    Builds one ``{name, sheet, previous}`` bundle per reviewed character (J1),
-    the bounded running scene (chapter plan + last-3 recaps, J4) and each
-    character's prior intent, runs ``turn.yaml`` once (map → direct → recap), records
-    ``turns[n].intents`` keyed by character id and the director's
-    ``turns[n].direction`` side-channel (FR-479 J4), and returns the recap text.
-    The stage interface stays a pure ``str -> str``; this turn path owns both
-    structured side-channels (J3).
+    Builds one ``{name, sheet, previous}`` bundle per reviewed character (J1), the
+    bounded running scene (this chapter's plan + inherited world_state + last-3
+    recaps, J4) and each character's prior intent, runs ``turn.yaml`` once (map →
+    direct → recap), records ``chapters.cards[cid].turns[n].intents`` keyed by
+    character id and the director's ``direction`` side-channel (FR-479 J4), and
+    returns the recap text. The stage interface stays a pure ``str -> str``; this
+    turn path owns both structured side-channels (J3).
     """
     roster = [
-        cid for cid in chars["roster"] if chars["cards"].get(cid, {}).get("reviewed")
+        char_id
+        for char_id in chars["roster"]
+        if chars["cards"].get(char_id, {}).get("reviewed")
     ]
-    prev = prior_intents(doc, n)
+    prev = prior_intents(doc, cid, n)
     cast = [
         {
-            "name": chars["cards"][cid].get("name") or cid,
-            "sheet": chars["cards"][cid].get("text", ""),
-            "previous": prev.get(cid, ""),
+            "name": chars["cards"][char_id].get("name") or char_id,
+            "sheet": chars["cards"][char_id].get("text", ""),
+            "previous": prev.get(char_id, ""),
         }
-        for cid in roster
+        for char_id in roster
     ]
     result = await get_app(TURN_GRAPH).ainvoke(
         {
             "cast": cast,
-            "scene": running_scene(doc, n),
+            "scene": running_scene(doc, cid, n),
             "turn_n": str(n),
             "instruction": instruction,
             "intents": [],
@@ -173,18 +220,18 @@ async def invoke_turn(doc: dict, chars: dict, n: int, instruction: str = "") -> 
         }
     )
     items = result.get("intents") or []
-    record = turn_record(doc, n)
+    record = turn_record(doc, cid, n)
     record["intents"] = {
-        cid: {
+        char_id: {
             "thinking": field(item, "thinking"),
             "intent": field(item, "intent"),
             "dialogue": field(item, "dialogue"),
             "expression": field(item, "expression"),
         }
-        for cid, item in zip(roster, items, strict=False)
+        for char_id, item in zip(roster, items, strict=False)
     }
     direction = _direction_dict(result.get("direction"))
-    prior = turn_direction(doc, n - 1)
+    prior = turn_direction(doc, cid, n - 1)
     _clamp_phase(direction, prior)
     _canonicalize_beats(direction, prior)
     record["direction"] = direction

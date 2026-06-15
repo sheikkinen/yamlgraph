@@ -34,6 +34,17 @@ ESTABLISHING_TEXT = (
     "A flooded valley at dusk; the last dry ledge stands slick above the water."
 )
 
+# FR-491 retires the single-scene finishes: a chapter now dead-ends into the Book
+# (slice 4), so the play → Final Cut / Walkthrough route no longer exists, and the
+# finish composition helpers (which still read the flat ``doc["turns"]`` and call
+# the pre-FR-491 ``turn_intents`` arity) are dead pending slice 4's deletion. The
+# directly-constructed unit tests for the still-pure helpers (final_cut_context,
+# climax_turn, validate_cut_turns) stay green; the routing tests and the helpers
+# coupled to the old turn shape are skipped until slice 4 deletes them.
+_FINISH_RETIRED = pytest.mark.skip(
+    reason="FR-491 slice 4: the single-scene finishes are being retired"
+)
+
 
 def _mock_direction(variables: dict) -> dict:
     """Deterministic director output mirroring the structured turn_direct schema.
@@ -78,10 +89,9 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
                 {"title": "Chapter 2 — The Last Ledge", "summary": "Kara corners."},
             ]
         }
-    if prompt_name == "chapter":
+    if prompt_name == "chapter_close":
         prev = variables.get("previous_world_state") or "none"
         return {
-            "text": f"Chapter {variables.get('index', '?')} full text.",
             "world_state": f"WS@{variables.get('index', '?')} (prev={prev})",
         }
     if draft.strip():
@@ -212,14 +222,22 @@ def _doc(tmp_path, session_id):
     return story_doc.read(tmp_path / session_id)
 
 
-def _reach_play(client, tmp_path, session_id):
-    """Drive a session through the whole preplan so the Play branch unlocks.
+CID = "1"  # tests play through the first chapter by default
 
-    FR-491 reorders the preplan to cast-before-chapters: accepting the synopsis
-    lands on the first character, and accepting the last character completes the
-    cast (deriving the chapter outline) and lands on the Chapters overview. The
-    turn loop reads the derived chapter plan, so play opens by navigating to the
-    first turn.
+
+def _turns(doc, cid: str = CID):
+    """Chapter ``cid``'s played turns (FR-491 C: stored per chapter, not flat)."""
+    return doc.get("chapters", {}).get("cards", {}).get(cid, {}).get("turns", [])
+
+
+def _reach_play(client, tmp_path, session_id):
+    """Drive a session through the whole preplan and open the first chapter's play.
+
+    FR-491 reorders the preplan to cast-before-chapters and plays each chapter in
+    place: accepting the synopsis lands on the first character, and accepting the
+    last character completes the cast (deriving the chapter outline) and lands on
+    the Chapters overview. Navigating to the first chapter opens its turn loop
+    (``chapter:1`` redirects to ``turn:1:1``).
     """
     client.post(
         "/story/synopsis/weave",
@@ -228,7 +246,7 @@ def _reach_play(client, tmp_path, session_id):
     _accept(client, session_id)  # synopsis → char:kara (roster [kara, tarek] derived)
     _accept(client, session_id, text="Kara sheet")  # kara → char:tarek
     _accept(client, session_id, text="Tarek sheet")  # tarek → chapters (cast complete)
-    return _nav(client, session_id, "turn:1")  # open Play
+    return _nav(client, session_id, "chapter:1")  # open chapter 1's play (→ turn:1:1)
 
 
 # ── 1. Play is gated: no turn stage before the whole preplan is reviewed ─────
@@ -242,9 +260,9 @@ def test_play_locked_until_preplan_complete(client, tmp_path):
     )
     _accept(client, session_id)  # only synopsis reviewed so far
     # The Play peer is absent and a turn cannot be navigated to.
-    resp = _nav(client, session_id, "turn:1")
+    resp = _nav(client, session_id, "turn:1:1")
     doc = _doc(tmp_path, session_id)
-    assert doc["stage"] != "turn:1"
+    assert doc["stage"] != "turn:1:1"
     assert "Play" not in resp.text
 
 
@@ -256,8 +274,8 @@ def test_completing_preplan_lands_on_drafted_turn_1(client, tmp_path):
     resp = _reach_play(client, tmp_path, session_id)
     doc = _doc(tmp_path, session_id)
     # Landed on an auto-drafted Turn 1 (J5: never a blank splash).
-    assert doc["stage"] == "turn:1"
-    turn = doc["turns"][0]
+    assert doc["stage"] == "turn:1:1"
+    turn = _turns(doc)[0]
     assert turn["n"] == 1
     # One intent per principal, each with non-empty THINKING + INTENT (J6).
     assert set(turn["intents"]) == {"kara", "tarek"}
@@ -267,8 +285,8 @@ def test_completing_preplan_lands_on_drafted_turn_1(client, tmp_path):
     # A non-empty recap, not yet accepted, in the recap entry.
     assert turn["recap"]["text"].startswith("Turn 1 —")
     assert turn["recap"]["reviewed"] is False
-    # The breadcrumb now offers Play.
-    assert "Play" in resp.text
+    # The breadcrumb now lists the chapter's first turn.
+    assert "Turn 1" in resp.text
 
 
 # ── 3. The turn renders two columns: intents aside + recap main ─────────────
@@ -298,12 +316,12 @@ def test_accept_turn_seeds_next_with_history_and_previous(client, tmp_path):
     # Accept Turn 1 → land on an auto-drafted Turn 2.
     _accept(client, session_id)
     doc = _doc(tmp_path, session_id)
-    assert doc["stage"] == "turn:2"
-    assert doc["turns"][0]["recap"]["reviewed"] is True
-    assert len(doc["turns"]) == 2
+    assert doc["stage"] == "turn:1:2"
+    assert _turns(doc)[0]["recap"]["reviewed"] is True
+    assert len(_turns(doc)) == 2
     # Turn 2's intents received each character's Turn 1 intent as `previous`.
-    t1_kara = doc["turns"][0]["intents"]["kara"]["intent"]
-    t2_kara = doc["turns"][1]["intents"]["kara"]["intent"]
+    t1_kara = _turns(doc)[0]["intents"]["kara"]["intent"]
+    t2_kara = _turns(doc)[1]["intents"]["kara"]["intent"]
     assert "after:" in t2_kara
     assert t1_kara.split(" (after:")[0] in t2_kara
 
@@ -323,7 +341,7 @@ def test_iterate_rerolls_intents_and_recap(client, tmp_path):
         },
     )
     doc = _doc(tmp_path, session_id)
-    turn = doc["turns"][0]
+    turn = _turns(doc)[0]
     # The DM steer lands on the recap, the one authoritative outcome.
     assert "[make it grim]" in turn["recap"]["text"]
     assert "[make it grim]" in resp.text
@@ -341,10 +359,10 @@ def test_iterate_rerolls_intents_and_recap(client, tmp_path):
 def test_breadcrumb_lists_turn_members(client, tmp_path):
     session_id = _new_session(client)
     _reach_play(client, tmp_path, session_id)
-    _accept(client, session_id)  # now on turn:2, turns 1 & 2 exist
-    resp = _nav(client, session_id, "turn:1")
+    _accept(client, session_id)  # now on turn:1:2, turns 1 & 2 exist
+    resp = _nav(client, session_id, "turn:1:1")
     body = resp.text
-    assert _doc(tmp_path, session_id)["stage"] == "turn:1"
+    assert _doc(tmp_path, session_id)["stage"] == "turn:1:1"
     assert "Turn 1" in body and "Turn 2" in body
 
 
@@ -393,13 +411,13 @@ def test_turn_graph_has_director_between_intents_and_recap():
 
 def test_opening_turn_carries_establishing_description(client, tmp_path):
     session_id = _new_session(client)
-    resp = _reach_play(client, tmp_path, session_id)  # lands on turn:1
+    resp = _reach_play(client, tmp_path, session_id)  # lands on turn:1:1
     doc = _doc(tmp_path, session_id)
-    direction = doc["turns"][0]["direction"]
+    direction = _turns(doc)[0]["direction"]
     assert direction["phase"] == "opening"
     assert direction["establishing"].strip()
     # The director's establishing description is rendered into the opening recap…
-    assert direction["establishing"] in doc["turns"][0]["recap"]["text"]
+    assert direction["establishing"] in _turns(doc)[0]["recap"]["text"]
     # …and is visible on the page.
     assert direction["establishing"] in resp.text
 
@@ -409,20 +427,25 @@ def test_opening_turn_carries_establishing_description(client, tmp_path):
 
 def test_scene_complete_stops_advance_and_surfaces(client, tmp_path):
     session_id = _new_session(client)
-    _reach_play(client, tmp_path, session_id)  # turn:1 drafted
-    _accept(client, session_id)  # → turn:2
-    resp = _accept(client, session_id)  # → turn:3 (director reports scene_complete)
+    _reach_play(client, tmp_path, session_id)  # turn:1:1 drafted
+    _accept(client, session_id)  # → turn:1:2
+    resp = _accept(client, session_id)  # → turn:1:3 (director reports scene_complete)
     doc = _doc(tmp_path, session_id)
-    assert doc["stage"] == "turn:3"
-    assert doc["turns"][2]["direction"]["scene_complete"] is True
+    assert doc["stage"] == "turn:1:3"
+    assert _turns(doc)[2]["direction"]["scene_complete"] is True
     # The completed state is surfaced on the turn page.
     assert "scene-complete" in resp.text
-    # Accepting a completed turn does NOT spawn turn:4 (J5); it lands on the
-    # terminal Final Cut leaf instead (FR-484).
+    # Accepting a completed turn does NOT spawn turn:1:4 (J5); it closes the
+    # chapter (recording its end-of-chapter world_state) and lands on the NEXT
+    # chapter's first turn (FR-491) — the single-scene Final Cut is retired from
+    # the play loop.
     _accept(client, session_id)
     doc2 = _doc(tmp_path, session_id)
-    assert doc2["stage"] == "final_cut"
-    assert len(doc2["turns"]) == 3
+    assert doc2["stage"] == "turn:2:1"
+    assert len(_turns(doc2, "1")) == 3
+    ch1 = doc2["chapters"]["cards"]["1"]
+    assert ch1["reviewed"] is True
+    assert ch1["world_state"].strip()
 
 
 # ── 11. A non-roster name acting raises a continuity flag, surfaced not steered ─
@@ -445,7 +468,7 @@ def test_phantom_actor_raises_continuity_flag(client, tmp_path):
         data={"session_id": session_id, "text": "Turn 1 — x", "prompt": "re-read"},
     )
     doc = _doc(tmp_path, session_id)
-    direction = doc["turns"][0]["direction"]
+    direction = _turns(doc)[0]["direction"]
     # "Naru" is named in the chapter plan but absent from the roster (the Vane case).
     assert any("Naru" in f for f in direction["continuity"])
     # The flag is surfaced to the DM, and NOT silently applied as a steer (J2).
@@ -491,7 +514,7 @@ def test_director_card_always_visible_on_turn(client, tmp_path):
     session_id = _new_session(client)
     _reach_play(client, tmp_path, session_id)  # turn:1 (opening)
     # The opening turn already shows the Director card with its phase badge.
-    resp1 = _nav(client, session_id, "turn:1")
+    resp1 = _nav(client, session_id, "turn:1:1")
     assert "director-card" in resp1.text
     assert "director-phase-opening" in resp1.text
     # Advancing to a rising turn surfaces the phase badge and the satisfied beat.
@@ -522,7 +545,7 @@ def test_phase_is_clamped_monotonic(client, tmp_path):
         _accept(client, session_id)  # turn 2: climax
         _accept(client, session_id)  # turn 3: model "rising" → clamped to climax
         doc = _doc(tmp_path, session_id)
-    phases = [t["direction"]["phase"] for t in doc["turns"]]
+    phases = [t["direction"]["phase"] for t in _turns(doc)]
     assert phases == ["opening", "climax", "climax"]
 
 
@@ -594,13 +617,13 @@ def test_beats_satisfied_is_cumulative_and_canonical(client, tmp_path):
         _reach_play(client, tmp_path, session_id)  # turn 1
         _accept(client, session_id)  # → turn 2
         doc = _doc(tmp_path, session_id)
-    t1 = set(doc["turns"][0]["direction"]["beats_satisfied"])
-    t2 = set(doc["turns"][1]["direction"]["beats_satisfied"])
+    t1 = set(_turns(doc)[0]["direction"]["beats_satisfied"])
+    t2 = set(_turns(doc)[1]["direction"]["beats_satisfied"])
     # Cumulative: turn 2 ⊇ turn 1, and the new phrase was added.
     assert t1 <= t2
     assert len(t2) == len(t1) + 1
     # The chapter plan is free text, so there is no canonical k / N count (J4).
-    assert doc["turns"][1]["direction"]["beats_total"] == 0
+    assert _turns(doc)[1]["direction"]["beats_total"] == 0
 
 
 # ── 16. An exact-duplicate phrase counts once, not twice ────────────────────
@@ -623,7 +646,7 @@ def test_paraphrases_of_one_beat_dedupe_to_one(client, tmp_path):
     ):
         _reach_play(client, tmp_path, session_id)  # turn 1
         doc = _doc(tmp_path, session_id)
-    beats = doc["turns"][0]["direction"]["beats_satisfied"]
+    beats = _turns(doc)[0]["direction"]["beats_satisfied"]
     assert len(beats) == 1
 
 
@@ -719,7 +742,7 @@ def test_scene_declared_actor_not_flagged_but_phantom_kept(client, tmp_path):
             "/story/synopsis/weave",
             data={"session_id": session_id, "text": "Turn 1 — x", "prompt": "re-read"},
         )
-    continuity = _doc(tmp_path, session_id)["turns"][0]["direction"]["continuity"]
+    continuity = _turns(_doc(tmp_path, session_id))[0]["direction"]["continuity"]
     # Both non-roster names are kept verbatim — the code never silences a flag.
     assert any("Krog" in f for f in continuity)
     assert any("Zalor" in f for f in continuity)
@@ -818,6 +841,7 @@ def test_climax_turn_uses_phase_then_scene_complete_fallback():
 # ── 24. Final Cut is locked until scene_complete, then navigable (J5 unlock) ──
 
 
+@_FINISH_RETIRED
 def test_final_cut_locked_until_scene_complete(client, tmp_path):
     session_id = _new_session(client)
     _reach_play(client, tmp_path, session_id)  # turn:1, scene NOT complete
@@ -837,6 +861,7 @@ def test_final_cut_locked_until_scene_complete(client, tmp_path):
 # ── 25. The Final Cut is additive: the played turns are left untouched ───────
 
 
+@_FINISH_RETIRED
 def test_final_cut_is_additive_turns_untouched(client, tmp_path):
     session_id = _new_session(client)
     _reach_scene_complete(client, tmp_path, session_id)  # turn:3, scene complete
@@ -862,6 +887,7 @@ def test_final_cut_is_additive_turns_untouched(client, tmp_path):
 # ── 26. Entering the Final Cut auto-drafts a populated, not-yet-reviewed leaf ─
 
 
+@_FINISH_RETIRED
 def test_final_cut_autodrafts_on_entry(client, tmp_path):
     session_id = _new_session(client)
     _reach_scene_complete(client, tmp_path, session_id)
@@ -928,6 +954,7 @@ def test_validate_cut_turns_aligns_and_raises_on_divergence():
 # ── 28. The turn-structured cut is gated on scene_complete, like Final Cut ────
 
 
+@_FINISH_RETIRED
 def test_final_cut_turns_locked_until_scene_complete(client, tmp_path):
     session_id = _new_session(client)
     _reach_play(client, tmp_path, session_id)  # turn:1, scene NOT complete
@@ -947,6 +974,7 @@ def test_final_cut_turns_locked_until_scene_complete(client, tmp_path):
 # ── 29. The cut auto-drafts one polished segment per played turn (aligned) ────
 
 
+@_FINISH_RETIRED
 def test_final_cut_turns_autodrafts_aligned_track(client, tmp_path):
     session_id = _new_session(client)
     _reach_scene_complete(client, tmp_path, session_id)  # 3 played turns
@@ -964,6 +992,7 @@ def test_final_cut_turns_autodrafts_aligned_track(client, tmp_path):
 # ── 30. Additive: composing the turn-cut leaves recaps AND the FR-484 cut alone ─
 
 
+@_FINISH_RETIRED
 def test_final_cut_turns_is_additive_to_recaps_and_continuous_cut(client, tmp_path):
     session_id = _new_session(client)
     _reach_scene_complete(client, tmp_path, session_id)
@@ -1004,7 +1033,7 @@ def test_turn_captures_wider_performance(client, tmp_path):
     session_id = _new_session(client)
     _reach_play(client, tmp_path, session_id)  # turn:1 drafted
     doc = _doc(tmp_path, session_id)
-    intents = doc["turns"][0]["intents"]
+    intents = _turns(doc)[0]["intents"]
     assert intents, "the turn must persist per-character intents"
     for cid, perf in intents.items():
         # The decision layer stays (the arc reads `intent`)…
@@ -1026,16 +1055,27 @@ def test_turn_intents_defaults_missing_performance_to_empty():
     # (an additive side-channel), never a raise (contrast the FR-485 alignment
     # validator, where a missing turn IS a defect).
     doc = {
-        "turns": [
-            {
-                "n": 1,
-                "intents": {"kara": {"thinking": "reads it", "intent": "lunges"}},
-                "recap": {"text": "Turn 1 — Kara lunges.", "reviewed": True},
+        "chapters": {
+            "cards": {
+                "1": {
+                    "turns": [
+                        {
+                            "n": 1,
+                            "intents": {
+                                "kara": {"thinking": "reads it", "intent": "lunges"}
+                            },
+                            "recap": {
+                                "text": "Turn 1 — Kara lunges.",
+                                "reviewed": True,
+                            },
+                        }
+                    ]
+                }
             }
-        ]
+        }
     }
     chars = {"roster": ["kara"], "cards": {"kara": {"name": "Kara"}}}
-    cards = turn_ops.turn_intents(doc, chars, 1)
+    cards = turn_ops.turn_intents(doc, chars, "1", 1)
     assert len(cards) == 1
     card = cards[0]
     assert card["name"] == "Kara"
@@ -1099,6 +1139,7 @@ def _reach_cut(client, tmp_path, session_id):
 # ── 35. walkthrough_render_inputs composes the authored layers, hides thinking ─
 
 
+@_FINISH_RETIRED
 def test_walkthrough_render_inputs_compose_authored_layers():
     from examples.dungeon_master.api import turn_ops
 
@@ -1161,6 +1202,7 @@ def test_walkthrough_render_inputs_compose_authored_layers():
 # ── 36. The walkthrough is locked until the FR-485 cut spine is present ───────
 
 
+@_FINISH_RETIRED
 def test_walkthrough_locked_until_cut_present(client, tmp_path):
     session_id = _new_session(client)
     _reach_scene_complete(client, tmp_path, session_id)  # scene complete, NO cut yet
@@ -1181,6 +1223,7 @@ def test_walkthrough_locked_until_cut_present(client, tmp_path):
 # ── 37. The walkthrough auto-drafts one full-text passage per played turn ─────
 
 
+@_FINISH_RETIRED
 def test_walkthrough_autodrafts_aligned_full_text(client, tmp_path):
     session_id = _new_session(client)
     _reach_cut(client, tmp_path, session_id)  # 3 played turns + cut spine
@@ -1199,6 +1242,7 @@ def test_walkthrough_autodrafts_aligned_full_text(client, tmp_path):
 # ── 38. The full text renders the authored dialogue, expression, and staging ──
 
 
+@_FINISH_RETIRED
 def test_walkthrough_renders_authored_layers(client, tmp_path):
     session_id = _new_session(client)
     _reach_cut(client, tmp_path, session_id)
@@ -1219,6 +1263,7 @@ def test_walkthrough_renders_authored_layers(client, tmp_path):
 # ── 39. The walkthrough is additive: every prior artifact stays immutable ─────
 
 
+@_FINISH_RETIRED
 def test_walkthrough_is_additive(client, tmp_path):
     session_id = _new_session(client)
     _reach_cut(client, tmp_path, session_id)
@@ -1251,6 +1296,7 @@ def test_walkthrough_is_additive(client, tmp_path):
 # ── 40. Accepting the finishes chains Final Cut → Turns → Walkthrough ─────────
 
 
+@_FINISH_RETIRED
 def test_finishes_chain_through_accept_to_walkthrough(client, tmp_path):
     """Accepting each finish lands on the next, ending on the Walkthrough.
 

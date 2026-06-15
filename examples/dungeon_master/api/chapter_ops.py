@@ -1,4 +1,4 @@
-"""Book-chapter operations for DM v2 (FR-488).
+"""Book-chapter operations for DM v2 (FR-488 / FR-491).
 
 The synopsis is the whole book in outline. This module owns the two chapter
 graph invocations, kept apart from the stage adapter (mirroring ``turn_ops`` for
@@ -9,14 +9,17 @@ gate.
 Both functions are PURE reads of the story ``doc`` — they invoke a graph and
 return its normalized output, never mutating ``doc``. The adapter owns the writes
 (spawning cards, recording text). The load-bearing seam is the forward-carry
-(J7): expanding ``chapter:n`` threads ``chapter:n-1``'s ``world_state`` into the
-graph so each chapter is written consistently from where the last left off.
+(J7): each chapter is PLAYED turn by turn (FR-491), and when its scene completes
+:func:`close_chapter` derives the end-of-chapter ``world_state`` from the
+inherited ledger + this chapter's played recaps so the NEXT chapter is played
+from where this one left off.
 """
 
 from __future__ import annotations
 
+from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.graph_app import field, get_app
-from examples.dungeon_master.api.tree import CHAPTER_GRAPH, CHAPTER_OUTLINE_GRAPH
+from examples.dungeon_master.api.tree import CHAPTER_CLOSE_GRAPH, CHAPTER_OUTLINE_GRAPH
 
 
 async def outline_chapters(doc: dict) -> list[dict]:
@@ -42,35 +45,31 @@ async def outline_chapters(doc: dict) -> list[dict]:
     return chapters
 
 
-async def invoke_chapter(
-    doc: dict, n: int, *, instruction: str = "", draft: str = ""
-) -> dict:
-    """Expand chapter ``n``: return its ``{text, world_state}``.
+async def close_chapter(doc: dict, cid: str) -> dict:
+    """Close played chapter ``cid``: derive its end-of-chapter ``{text, world_state}``.
 
-    Reads chapter ``n``'s summary and — the forward-carry seam (J7) — chapter
-    ``n-1``'s ``world_state`` (empty for the first chapter), runs ``chapter.yaml``
-    once, and returns the expanded prose plus the world-state ledger at the end of
-    this chapter. Empty ``draft`` => first expansion; non-empty => apply
-    ``instruction`` to the existing text. A pure read: the adapter records the
-    result onto the card.
+    The forward-carry seam (FR-491 G2/B, preserving FR-488 J7 through play): a
+    chapter is no longer expanded from its summary in one shot — it is PLAYED, and
+    when its scene completes this runs ``chapter_close.yaml`` once over the
+    inherited ``world_state`` (where the previous chapter left off) + this
+    chapter's played recaps, returning the end-of-chapter ledger the NEXT chapter
+    inherits. ``text`` is the chapter's prose — the played recaps themselves. A
+    pure read: the adapter records the result onto the card.
     """
-    cards = doc.get("chapters", {}).get("cards", {})
-    card = cards.get(str(n), {})
-    prev = cards.get(str(n - 1), {})
-    previous_world_state = prev.get("world_state", "") if n > 1 else ""
-    result = await get_app(CHAPTER_GRAPH).ainvoke(
+    card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
+    recaps = turn_ops.chapter_recaps_text(doc, cid)
+    result = await get_app(CHAPTER_CLOSE_GRAPH).ainvoke(
         {
             "synopsis": doc.get("synopsis", {}).get("text", ""),
             "summary": card.get("summary", ""),
-            "index": str(n),
-            "previous_world_state": previous_world_state,
-            "draft": draft,
-            "instruction": instruction,
-            "chapter": {},
+            "index": cid,
+            "previous_world_state": turn_ops.inherited_world_state(doc, cid),
+            "recaps": recaps,
+            "chapter_close": {},
         }
     )
-    chapter = result.get("chapter") or {}
+    closed = result.get("chapter_close") or {}
     return {
-        "text": field(chapter, "text"),
-        "world_state": field(chapter, "world_state"),
+        "text": recaps,
+        "world_state": field(closed, "world_state"),
     }

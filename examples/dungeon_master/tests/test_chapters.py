@@ -6,10 +6,12 @@ synopsis — the chapter outline (synopsis split into one-paragraph chapter
 summaries) and the per-chapter expansion that carries an explicit ``world_state``
 forward from the previous chapter.
 
-The load-bearing test is the **forward-carry seam** (J7): expanding ``chapter:2``
-must thread ``chapter:1``'s ``world_state`` into the chapter graph variables. That
-is a deterministic-plumbing assertion — the mock supplies the world-state content;
-the test proves the wiring delivers it.
+The load-bearing test is the **forward-carry seam** (J7), preserved through play
+(FR-491): closing played ``chapter:2`` must thread ``chapter:1``'s ``world_state``
+into the chapter-close graph variables, and a chapter's play (``running_scene``)
+must see the previous chapter's world_state — never its turns. That is a
+deterministic-plumbing assertion — the mock supplies the world-state content; the
+test proves the wiring delivers it.
 
 Run directly:
     pytest examples/dungeon_master/tests/test_chapters.py --no-cov
@@ -36,16 +38,15 @@ OUTLINE = {
 
 
 def _capturing_mock(captured: list[dict]):
-    """A mock execute_prompt that records the chapter graph's variables (J7)."""
+    """A mock execute_prompt that records the chapter-close graph's variables (J7)."""
 
     def _mock(prompt_name, variables=None, **kwargs):
         variables = variables or {}
         if prompt_name == "chapter_outline":
             return OUTLINE
-        if prompt_name == "chapter":
+        if prompt_name == "chapter_close":
             captured.append(dict(variables))
             return {
-                "text": f"Chapter {variables.get('index', '?')} full text.",
                 "world_state": (
                     f"WS@{variables.get('index', '?')} "
                     f"(prev={variables.get('previous_world_state') or 'none'})"
@@ -100,32 +101,83 @@ def _doc_with_chapters() -> dict:
 # ── J7: the forward-carry seam ───────────────────────────────────────────────
 
 
-def test_chapter_two_expansion_threads_chapter_one_world_state():
+def test_close_chapter_threads_previous_chapter_world_state():
     doc = _doc_with_chapters()
+    # Chapter 2 has been played: closing it derives its end-of-chapter world_state
+    # from the inherited ledger + the played recaps (FR-491 B).
+    doc["chapters"]["cards"]["2"]["turns"] = [
+        {"n": 1, "recap": {"text": "Kara corners the raider on the ledge."}}
+    ]
     captured: list[dict] = []
     mock = _capturing_mock(captured)
     m1, m2 = _patched(mock)
     with m1, m2:
-        result = _run(chapter_ops.invoke_chapter(doc, 2))
+        result = _run(chapter_ops.close_chapter(doc, "2"))
     assert len(captured) == 1
-    # The plumbing delivered chapter 1's world_state to chapter 2's expansion.
+    # The plumbing delivered chapter 1's world_state to chapter 2's close.
     assert "WS1-CARRIED-FORWARD" in captured[0]["previous_world_state"]
     # And chapter 2 read its own summary, not chapter 1's.
     assert "corners the raider" in captured[0]["summary"]
-    # The expansion returns both the prose and the new world-state ledger.
-    assert result["text"]
+    # The played recaps are delivered to the close graph and become the prose.
+    assert "on the ledge" in captured[0]["recaps"]
+    assert "on the ledge" in result["text"]
+    # The close returns the new world-state ledger the next chapter inherits.
     assert result["world_state"]
 
 
-def test_chapter_one_expansion_has_no_previous_world_state():
+def test_close_chapter_one_has_no_previous_world_state():
     doc = _doc_with_chapters()
+    doc["chapters"]["cards"]["1"]["turns"] = [
+        {"n": 1, "recap": {"text": "Kara musters the band at dawn."}}
+    ]
     captured: list[dict] = []
     mock = _capturing_mock(captured)
     m1, m2 = _patched(mock)
     with m1, m2:
-        _run(chapter_ops.invoke_chapter(doc, 1))
+        _run(chapter_ops.close_chapter(doc, "1"))
     # Chapter 1 is the first: there is no prior world state to carry.
     assert captured[0]["previous_world_state"] == ""
+
+
+def test_chapter_two_play_sees_chapter_one_world_state_not_its_turns():
+    """A chapter's play reads the PREVIOUS chapter's world_state, never its turns.
+
+    The slice-3 load-bearing seam (FR-491): each chapter is played from where the
+    last left off. ``running_scene`` for chapter 2 must inherit chapter 1's
+    end-of-chapter ``world_state`` (the established START) and read chapter 2's own
+    summary — but it must NOT see chapter 1's played turns, which are private to
+    chapter 1's loop.
+    """
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "Chapter 1 — The Water Rises",
+                    "summary": "Kara musters the band.",
+                    "world_state": "WS1-AFTER-CHAPTER-ONE",
+                    "turns": [
+                        {"n": 1, "recap": {"text": "CH1-TURN-RECAP private to ch 1."}}
+                    ],
+                },
+                "2": {
+                    "title": "Chapter 2 — The Last Ledge",
+                    "summary": "Kara corners the raider.",
+                    "world_state": "",
+                    "turns": [],
+                },
+            },
+        },
+    }
+    scene = turn_ops.running_scene(doc, "2", 1)
+    # Chapter 2's play inherits chapter 1's end-of-chapter world_state (the carry)…
+    assert "WS1-AFTER-CHAPTER-ONE" in scene
+    # …and reads its own summary…
+    assert "Kara corners the raider" in scene
+    # …but NOT chapter 1's played turns (private to chapter 1's loop).
+    assert "CH1-TURN-RECAP" not in scene
 
 
 # ── J1: the outline is a structured parse, not a split_roster mirror ─────────
@@ -147,13 +199,16 @@ def test_outline_chapters_parses_structured_title_summary():
 # ── purity: chapter_ops must not mutate the doc it reads ──────────────────────
 
 
-def test_invoke_chapter_does_not_mutate_doc():
+def test_close_chapter_does_not_mutate_doc():
     doc = _doc_with_chapters()
+    doc["chapters"]["cards"]["2"]["turns"] = [
+        {"n": 1, "recap": {"text": "Kara corners the raider on the ledge."}}
+    ]
     before = copy.deepcopy(doc)
     mock = _capturing_mock([])
     m1, m2 = _patched(mock)
     with m1, m2:
-        _run(chapter_ops.invoke_chapter(doc, 2))
+        _run(chapter_ops.close_chapter(doc, "2"))
     assert doc == before
 
 
