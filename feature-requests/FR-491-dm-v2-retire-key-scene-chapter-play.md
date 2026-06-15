@@ -289,4 +289,30 @@ threaded across two played chapters). Diary with a Seed.
     the pre-FR-491 `turn_intents` arity) are `@_FINISH_RETIRED`-skipped pending Slice 4
     deletion; the pure finish unit tests (`final_cut_context`, `climax_turn`,
     `validate_cut_turns`) stay green by constructing flat docs directly.
-- **Slice 4 — The Book finish** — pending.
+- **Slice 4 — The Book finish** ✓ `4040fac0` (+355/−1611). Retired the three
+  turn-based single-scene finishes (`final_cut`, `final_cut_turns`, `walkthrough`,
+  plus the `staging` layer) wholesale and replaced them with one whole-book finish
+  (Amendment E). Deleted the four graphs + four prompts, the `turn_ops` finishes
+  machinery (`parse_beats`/`_SECTION_RE`, `climax_turn`, `final_cut_context`,
+  `invoke_final_cut`, `validate_cut_turns`, `render_cut_turns`,
+  `invoke_final_cut_turns`, `_cut_spine`, `walkthrough_render_inputs`,
+  `walkthrough_staging_context`, `invoke_walkthrough_staging`, `render_walkthrough`,
+  `_ordered_render_texts`, `invoke_walkthrough`, and the now-unused `import re`),
+  `tree.scene_is_complete` + `cut_present` + the three finish `Stage`s/constants,
+  the `navigation` finish accept-chain, and the three `session._compose_special`
+  finish branches. Added `book.yaml` + `prompts/book.yaml` (plain prose,
+  `parse_json: false`) composing one continuous manuscript from the synopsis +
+  every played chapter's prose and forward-carried `world_state`;
+  `chapter_ops.played_chapters_text` + `compose_book` (pure reads, raising rather
+  than composing from nothing per Commandment 6); `tree.all_chapters_played` gate +
+  terminal Book `Stage` + Book breadcrumb crumb; `navigation` Book gate (unlock on
+  `all_chapters_played`, accept → terminal `None`); `session._compose_special` Book
+  branch. Test surgery: deleted the finish tests, mock branches, `_FINISH_RETIRED`
+  marker, and `_reach_*` helpers; added Book gate/landing tests
+  (`test_book_locked_until_all_chapters_played`, `test_accept_book_dead_ends`) and
+  `played_chapters_text`/`compose_book` unit tests (compose-from-played-chapters,
+  raise-on-empty, no-mutation). **69 tests pass, 0 skipped**; ruff + lint-imports +
+  vulture clean; `yamlgraph graph lint book.yaml` clean.
+  - **Target shape reached:** Synopsis → Characters → Chapters (overview) →
+    chapter:&lt;cid&gt; (each PLAYED via the turn loop) → **The Book** (composed from
+    all played chapters). The single-scene-finish era is fully retired.
