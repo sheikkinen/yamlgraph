@@ -244,40 +244,9 @@ class DMSession:
             if stage is FIRST_STAGE and not text.strip():
                 doc["tagline"] = prompt
 
-            if stage.kind == "turn":
-                # Iterate re-rolls the whole turn (intents + recap together, J2);
-                # the prompt steers the recap.
-                n = int(stage.name[len(TURN_PREFIX) :])
-                entry["text"] = await turn_ops.invoke_turn(
-                    doc, self._characters(doc), n, instruction=prompt
-                )
-            elif stage.name == FINAL_CUT:
-                # Iterate re-composes the whole-arc cut; the prompt steers it and
-                # the current draft is the cut to revise (FR-484).
-                entry["text"] = await turn_ops.invoke_final_cut(
-                    doc, instruction=prompt, draft=text
-                )
-            elif stage.name == FINAL_CUT_TURNS:
-                # Iterate re-composes the turn-structured cut: one validated
-                # {n, text} segment per played turn (FR-485). The structured track
-                # carries the alignment guarantee; text is the rendered view.
-                segments = await turn_ops.invoke_final_cut_turns(
-                    doc, instruction=prompt, draft=text
-                )
-                entry["turns"] = segments
-                entry["text"] = turn_ops.render_cut_turns(segments)
-            elif stage.name == WALKTHROUGH:
-                # Iterate re-renders the full-text walkthrough from the authored
-                # layers — the FR-485 cut spine, the FR-486 performance, and the
-                # whole-arc staging pass (FR-487). The structured {setting, turns}
-                # carries the 1:1 alignment guarantee; text is the rendered view.
-                wt = await turn_ops.invoke_walkthrough(
-                    doc, self._characters(doc), instruction=prompt, draft=text
-                )
-                entry["setting"] = wt["setting"]
-                entry["turns"] = wt["turns"]
-                entry["text"] = turn_ops.render_walkthrough(wt["setting"], wt["turns"])
-            else:
+            if not await self._compose_special(
+                doc, entry, stage, instruction=prompt, draft=text
+            ):
                 entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
             if not entry.get("text", "").strip():
                 # An empty generation with no recorded error is the silent shape of
@@ -459,27 +428,55 @@ class DMSession:
                 return CHAR_PREFIX + cid
         return None
 
+    async def _compose_special(
+        self, doc: dict, entry: dict, stage: Stage, *, instruction: str, draft: str
+    ) -> bool:
+        """Draft a composed multi-layer stage (a turn or one of the three finishes).
+
+        These stages are not a single ``_invoke_stage`` call: a turn re-rolls its
+        intents + recap together (FR-477 J2); the two Final Cuts and the
+        Walkthrough compose from the whole played arc and carry a structured track
+        (``turns`` / ``setting``) beside the rendered ``text``. ``weave`` and
+        ``_autodraft`` share this exact dispatch — the only difference is whether a
+        writer's ``instruction``/``draft`` steers the composition (weave) or it is
+        a fresh draft (auto-draft, empty args). Mutates ``entry`` in place; returns
+        whether the stage was one of these composed stages, so the caller can fall
+        back to ``_invoke_stage`` for an ordinary card when it was not.
+        """
+        if stage.kind == "turn":
+            n = int(stage.name[len(TURN_PREFIX) :])
+            entry["text"] = await turn_ops.invoke_turn(
+                doc, self._characters(doc), n, instruction=instruction
+            )
+        elif stage.name == FINAL_CUT:
+            entry["text"] = await turn_ops.invoke_final_cut(
+                doc, instruction=instruction, draft=draft
+            )
+        elif stage.name == FINAL_CUT_TURNS:
+            segments = await turn_ops.invoke_final_cut_turns(
+                doc, instruction=instruction, draft=draft
+            )
+            entry["turns"] = segments
+            entry["text"] = turn_ops.render_cut_turns(segments)
+        elif stage.name == WALKTHROUGH:
+            wt = await turn_ops.invoke_walkthrough(
+                doc, self._characters(doc), instruction=instruction, draft=draft
+            )
+            entry["setting"] = wt["setting"]
+            entry["turns"] = wt["turns"]
+            entry["text"] = turn_ops.render_walkthrough(wt["setting"], wt["turns"])
+        else:
+            return False
+        return True
+
     async def _autodraft(self, doc: dict, story_dir: Path, target: str) -> None:
         """Auto-draft ``target`` on entry: land on a populated card, not a blank one."""
         stage = resolve_stage(doc, target)
         entry = self._entry(doc, target)
         if stage.seed and not entry.get("text", "").strip():
-            if stage.kind == "turn":
-                entry["text"] = await turn_ops.invoke_turn(
-                    doc, self._characters(doc), int(stage.name[len(TURN_PREFIX) :])
-                )
-            elif stage.name == FINAL_CUT:
-                entry["text"] = await turn_ops.invoke_final_cut(doc)
-            elif stage.name == FINAL_CUT_TURNS:
-                segments = await turn_ops.invoke_final_cut_turns(doc)
-                entry["turns"] = segments
-                entry["text"] = turn_ops.render_cut_turns(segments)
-            elif stage.name == WALKTHROUGH:
-                wt = await turn_ops.invoke_walkthrough(doc, self._characters(doc))
-                entry["setting"] = wt["setting"]
-                entry["turns"] = wt["turns"]
-                entry["text"] = turn_ops.render_walkthrough(wt["setting"], wt["turns"])
-            else:
+            if not await self._compose_special(
+                doc, entry, stage, instruction="", draft=""
+            ):
                 entry["text"] = await self._invoke_stage(doc, stage, "", stage.seed)
             entry["reviewed"] = False
             story_doc.write(story_dir, doc)
