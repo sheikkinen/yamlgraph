@@ -25,9 +25,16 @@ prompts_dir: prompts
 
 defaults:
   temperature: 0.7
-  # The whole book goes in and a full polished manuscript comes out; reserve
-  # generous headroom for both a reasoning model's hidden tokens and long prose.
-  max_tokens: 4000
+  # The whole book goes in and a full polished manuscript comes out. Unlike every
+  # other node (which emits one short artifact), this composes EVERY played
+  # chapter into one manuscript — the visible prose alone runs to thousands of
+  # tokens. On Gemini, hidden thinking tokens count against the SAME output
+  # budget as visible prose, so with unbounded (auto) thinking at max_tokens=4000
+  # the reasoning consumed the entire budget and the node hit MAX_TOKENS with zero
+  # visible prose (FR-491 live witness: completion_tokens=3996, book=""). Bound
+  # the thinking explicitly and give the visible manuscript real headroom on top.
+  max_tokens: 16000
+  thinking_budget: 4096
 
 state:
   synopsis: str
