@@ -267,6 +267,7 @@ def test_chapters_appear_as_breadcrumb_peer_of_characters():
 
 
 def test_expand_chapters_is_idempotent(tmp_path, monkeypatch):
+    from examples.dungeon_master.api import doc_ops
     from examples.dungeon_master.api import session as session_mod
 
     monkeypatch.setattr(session_mod, "STORY_ROOT", tmp_path)
@@ -282,16 +283,15 @@ def test_expand_chapters_is_idempotent(tmp_path, monkeypatch):
         raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
     m1, m2 = _patched(_counting_mock)
-    sess = session_mod.DMSession("ch-idem")
     doc = {"synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True}}
     story_dir = tmp_path / "ch-idem"
     story_dir.mkdir(parents=True, exist_ok=True)
     with m1, m2:
-        _run(sess._expand_chapters(doc, story_dir))
+        _run(doc_ops.expand_chapters(doc, story_dir))
         order_first = list(doc["chapters"]["order"])
         # A second derivation must be a no-op: numeric ids cannot append like
         # slugs, so the set is fixed (J6) and the outline graph is not re-run.
-        _run(sess._expand_chapters(doc, story_dir))
+        _run(doc_ops.expand_chapters(doc, story_dir))
     assert calls["outline"] == 1
     assert doc["chapters"]["order"] == order_first == ["1", "2"]
 

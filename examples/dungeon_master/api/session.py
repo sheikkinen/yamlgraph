@@ -34,10 +34,12 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from examples.dungeon_master.api import chapter_ops, navigation, story_doc, turn_ops
-from examples.dungeon_master.api.graph_app import (
-    clean_text,
-    get_app,
+from examples.dungeon_master.api import (
+    chapter_ops,
+    doc_ops,
+    navigation,
+    story_doc,
+    turn_ops,
 )
 from examples.dungeon_master.api.graph_app import (
     reset_caches as _reset_caches,
@@ -46,15 +48,12 @@ from examples.dungeon_master.api.tree import (
     CHAPTER_PREFIX,
     CHAR_PREFIX,
     FIRST_STAGE,
-    STAGE_BY_NAME,
     TURN_PREFIX,
     Stage,
     breadcrumb,
     cast_complete,
     parse_turn,
     resolve_stage,
-    split_roster,
-    unique_slug,
 )
 
 logger = logging.getLogger(__name__)
@@ -151,62 +150,9 @@ class DMSession:
     def _stage(self, doc: dict) -> Stage:
         return resolve_stage(doc, doc.get("stage", FIRST_STAGE.name))
 
-    def _characters(self, doc: dict) -> dict:
-        """The characters sub-document ``{reviewed, roster, cards}`` (created if absent)."""
-        chars = doc.setdefault(
-            "characters", {"reviewed": False, "roster": [], "cards": {}}
-        )
-        chars.setdefault("roster", [])
-        chars.setdefault("cards", {})
-        return chars
-
-    def _chapters(self, doc: dict) -> dict:
-        """The chapters sub-document ``{reviewed, order, cards}`` (created if absent).
-
-        A fixed ordered set of book chapters (FR-488): ``order`` is the 1-based
-        string ids in story sequence, ``cards`` maps each id to
-        ``{title, summary, text, world_state, reviewed}``. Independent of the
-        characters roster and of the preplan/play gate (J3).
-        """
-        chapters = doc.setdefault(
-            "chapters", {"reviewed": False, "order": [], "cards": {}}
-        )
-        chapters.setdefault("order", [])
-        chapters.setdefault("cards", {})
-        return chapters
-
-    def _entry(self, doc: dict, name: str) -> dict:
-        """The per-stage sub-document ``{"text", "reviewed"}`` (created if absent).
-
-        Static stages live at the top level; ``char:<id>`` stages are nested under
-        ``characters.cards`` (A2); ``turn:<cid>:<n>`` stages reuse the chapter's
-        turn ``recap`` entry so weave/edit/accept operate on it unchanged (FR-491 C).
-        """
-        if name.startswith(CHAR_PREFIX):
-            cid = name[len(CHAR_PREFIX) :]
-            cards = self._characters(doc)["cards"]
-            return cards.setdefault(cid, {"name": cid, "text": "", "reviewed": False})
-        if name.startswith(CHAPTER_PREFIX):
-            cid = name[len(CHAPTER_PREFIX) :]
-            cards = self._chapters(doc)["cards"]
-            return cards.setdefault(
-                cid,
-                {
-                    "title": f"Chapter {cid}",
-                    "summary": "",
-                    "text": "",
-                    "world_state": "",
-                    "reviewed": False,
-                },
-            )
-        if name.startswith(TURN_PREFIX):
-            cid, n = parse_turn(name)
-            return turn_ops.turn_record(doc, cid, n)["recap"]
-        return doc.setdefault(name, {"text": "", "reviewed": False})
-
     def _view(self, doc: dict, *, error: str | None = None) -> StageView:
         stage = self._stage(doc)
-        entry = self._entry(doc, stage.name)
+        entry = doc_ops.entry(doc, stage.name)
         intents: list[dict] = []
         direction: dict = {}
         summary = ""
@@ -215,7 +161,7 @@ class DMSession:
         text = entry.get("text", "")
         if stage.kind == "turn":
             cid, n = parse_turn(stage.name)
-            intents = turn_ops.turn_intents(doc, self._characters(doc), cid, n)
+            intents = turn_ops.turn_intents(doc, doc_ops.characters(doc), cid, n)
             direction = turn_ops.turn_direction(doc, cid, n)
         elif stage.kind == "chapter":
             # Surface the card's planning context above its prose (FR-490).
@@ -223,7 +169,7 @@ class DMSession:
             world_state = entry.get("world_state", "")
         elif stage.kind == "chapters":
             # Project the ordered chapter set as a read-only table of contents.
-            ch = self._chapters(doc)
+            ch = doc_ops.chapters(doc)
             cards = ch["cards"]
             chapters = [
                 {
@@ -259,35 +205,6 @@ class DMSession:
         """The current stage's view (no LLM); used by the landing page."""
         return self._view(self._load(_story_dir(self._session_id)))
 
-    # ── graph invocation ────────────────────────────────────────────────────
-
-    async def _invoke_stage(
-        self, doc: dict, stage: Stage, draft: str, instruction: str
-    ) -> str:
-        """Run a stage's graph and return its cleaned output text.
-
-        Builds the graph variables from the draft, the writer's instruction, each
-        upstream context stage's accepted text, and — for character cards — the
-        character's ``name`` (A3). Shared by ``weave``, roster expansion, and
-        auto-draft on entry.
-        """
-        variables = {"draft": draft, "instruction": instruction}
-        for ctx in stage.context:
-            variables[ctx] = doc.get(ctx, {}).get("text", "")
-        if stage.var_name:
-            variables["name"] = stage.var_name
-        result = await get_app(stage.graph).ainvoke(variables)
-        errors = result.get("errors") or []
-        if errors:
-            # The graph swallowed a node failure into its errors list (e.g. a
-            # provider content-policy block on an explicit scene). Surface the real
-            # reason instead of returning the empty output it left behind
-            # (Commandment 6: expose the fault, never hide it behind a blank card).
-            last = errors[-1]
-            reason = getattr(last, "message", None) or str(last)
-            raise RuntimeError(reason)
-        return clean_text(result.get(stage.output_key or stage.name))
-
     # ── actions (operate on the current stage) ──────────────────────────────
 
     async def weave(self, text: str, prompt: str) -> StageView:
@@ -301,7 +218,7 @@ class DMSession:
         try:
             doc = self._load(story_dir)
             stage = self._stage(doc)
-            entry = self._entry(doc, stage.name)
+            entry = doc_ops.entry(doc, stage.name)
             if not prompt.strip():
                 entry["text"] = text
                 entry["reviewed"] = False
@@ -312,8 +229,8 @@ class DMSession:
             if stage is FIRST_STAGE and not text.strip():
                 doc["tagline"] = prompt
 
-            if not await self._compose_special(doc, entry, stage, instruction=prompt):
-                entry["text"] = await self._invoke_stage(doc, stage, text, prompt)
+            if not await doc_ops.compose_stage(doc, entry, stage, instruction=prompt):
+                entry["text"] = await doc_ops.invoke_stage(doc, stage, text, prompt)
             if not entry.get("text", "").strip():
                 # An empty generation with no recorded error is the silent shape of
                 # a content-policy decline. Raise so the DM sees feedback and the
@@ -325,7 +242,7 @@ class DMSession:
         except Exception as e:
             logger.exception("weave failed for session %s", self._session_id)
             doc = self._load(story_dir)
-            self._entry(doc, self._stage(doc).name)["text"] = text
+            doc_ops.entry(doc, self._stage(doc).name)["text"] = text
             return self._view(doc, error=str(e))
 
     def edit(self, text: str) -> StageView:
@@ -333,7 +250,7 @@ class DMSession:
         story_dir = _story_dir(self._session_id)
         try:
             doc = self._load(story_dir)
-            self._entry(doc, self._stage(doc).name)["text"] = text
+            doc_ops.entry(doc, self._stage(doc).name)["text"] = text
             story_doc.write(story_dir, doc)
             return self._view(doc)
         except Exception as e:
@@ -354,7 +271,7 @@ class DMSession:
         try:
             doc = self._load(story_dir)
             stage = self._stage(doc)
-            entry = self._entry(doc, stage.name)
+            entry = doc_ops.entry(doc, stage.name)
             if text.strip():
                 entry["text"] = text
             entry["reviewed"] = True
@@ -366,9 +283,9 @@ class DMSession:
             # J1) — accepting the last character — so the outline can reference the
             # reviewed cast it will be played by.
             if stage.name == "synopsis":
-                await self._expand_roster(doc, story_dir)
+                await doc_ops.expand_roster(doc, story_dir)
             elif stage.name.startswith(CHAR_PREFIX) and cast_complete(doc):
-                await self._expand_chapters(doc, story_dir)
+                await doc_ops.expand_chapters(doc, story_dir)
             elif stage.kind == "turn":
                 # Accepting a turn whose director reported the chapter's scene
                 # complete closes the chapter (FR-491 B): derive its end-of-chapter
@@ -376,13 +293,13 @@ class DMSession:
                 # NEXT chapter is played from where this one left off (J7).
                 cid, n = parse_turn(stage.name)
                 if turn_ops.turn_direction(doc, cid, n).get("scene_complete"):
-                    await self._close_chapter(doc, story_dir, cid)
+                    await doc_ops.apply_chapter_close(doc, story_dir, cid)
             target = navigation.accept_target(doc, stage)
             if target is not None:
                 doc["stage"] = target
-                self._entry(doc, target)  # ensure the target sub-document exists
+                doc_ops.entry(doc, target)  # ensure the target sub-document exists
                 story_doc.write(story_dir, doc)
-                await self._autodraft(doc, story_dir, target)
+                await doc_ops.autodraft(doc, story_dir, target)
             return self._view(doc)
         except Exception as e:
             logger.exception("accept failed for session %s", self._session_id)
@@ -407,101 +324,10 @@ class DMSession:
                 cid = target[len(CHAPTER_PREFIX) :]
                 target = f"{TURN_PREFIX}{cid}:1"
             doc["stage"] = target
-            self._entry(doc, target)
+            doc_ops.entry(doc, target)
             story_doc.write(story_dir, doc)
-            await self._autodraft(doc, story_dir, target)
+            await doc_ops.autodraft(doc, story_dir, target)
             return self._view(doc)
         except Exception as e:
             logger.exception("navigate failed for session %s", self._session_id)
             return self._view(self._load(story_dir), error=str(e))
-
-    # ── roster expansion (side-effecting; navigation stays pure) ─────────────
-
-    async def _expand_roster(self, doc: dict, story_dir: Path) -> None:
-        """Derive the cast from the synopsis and spawn one card per new name (A4)."""
-        chars = self._characters(doc)
-        roster_stage = STAGE_BY_NAME["characters"]
-        raw = await self._invoke_stage(doc, roster_stage, "", roster_stage.seed)
-        seen = set(chars["cards"].keys())
-        for name in split_roster(raw):
-            cid = unique_slug(name, seen)
-            seen.add(cid)
-            if cid not in chars["cards"]:
-                chars["cards"][cid] = {"name": name, "text": "", "reviewed": False}
-                chars["roster"].append(cid)
-        story_doc.write(story_dir, doc)
-
-    async def _expand_chapters(self, doc: dict, story_dir: Path) -> None:
-        """Split the synopsis into a fixed chapter set, one card per chapter (FR-488).
-
-        Idempotent (J6): the chapter set is FIXED at derivation — numeric ids
-        cannot idempotently append like character slugs — so once ``order`` is
-        populated this is a no-op. Otherwise it outlines the synopsis into
-        ``{title, summary}`` chunks and spawns ``cards["1"]…["N"]`` with empty
-        ``text``/``world_state`` for later per-chapter expansion.
-        """
-        chapters = self._chapters(doc)
-        if chapters["order"]:
-            return  # already derived; the set is fixed
-        outline = await chapter_ops.outline_chapters(doc)
-        for i, chunk in enumerate(outline, start=1):
-            cid = str(i)
-            chapters["cards"][cid] = {
-                "title": chunk.get("title") or f"Chapter {cid}",
-                "summary": chunk.get("summary", ""),
-                "text": "",
-                "world_state": "",
-                "reviewed": False,
-            }
-            chapters["order"].append(cid)
-        story_doc.write(story_dir, doc)
-
-    async def _close_chapter(self, doc: dict, story_dir: Path, cid: str) -> None:
-        """Record played chapter ``cid``'s end-of-chapter ledger (FR-491 B; J7).
-
-        The forward-carry write: when a chapter's scene completes,
-        ``chapter_ops.close_chapter`` (a pure read) derives its end-of-chapter
-        ``world_state`` from the inherited ledger + the played recaps; this records
-        it onto the card so the NEXT chapter inherits it, and marks the chapter
-        reviewed. Idempotent enough to re-run on a re-accept.
-        """
-        closed = await chapter_ops.close_chapter(doc, cid)
-        card = self._chapters(doc)["cards"].get(cid)
-        if card is not None:
-            card["text"] = closed["text"]
-            card["world_state"] = closed["world_state"]
-            card["reviewed"] = True
-            story_doc.write(story_dir, doc)
-
-    async def _compose_special(
-        self, doc: dict, entry: dict, stage: Stage, *, instruction: str
-    ) -> bool:
-        """Draft a composed multi-layer stage (currently only a turn).
-
-        A turn is not a single ``_invoke_stage`` call: it re-rolls its intents +
-        recap together (FR-477 J2). The finishes are no longer navigable stages
-        (FR-492): each chapter's final text is composed by ``close_chapter``.
-        ``weave`` and ``_autodraft`` share this exact dispatch — the only
-        difference is whether a writer's ``instruction`` steers the composition
-        (weave) or it is a fresh draft (auto-draft, empty arg). Mutates ``entry``
-        in place; returns whether the stage was a composed stage, so the caller
-        can fall back to ``_invoke_stage`` for an ordinary card when it was not.
-        """
-        if stage.kind == "turn":
-            cid, n = parse_turn(stage.name)
-            entry["text"] = await turn_ops.invoke_turn(
-                doc, self._characters(doc), cid, n, instruction=instruction
-            )
-        else:
-            return False
-        return True
-
-    async def _autodraft(self, doc: dict, story_dir: Path, target: str) -> None:
-        """Auto-draft ``target`` on entry: land on a populated card, not a blank one."""
-        stage = resolve_stage(doc, target)
-        entry = self._entry(doc, target)
-        if stage.seed and not entry.get("text", "").strip():
-            if not await self._compose_special(doc, entry, stage, instruction=""):
-                entry["text"] = await self._invoke_stage(doc, stage, "", stage.seed)
-            entry["reviewed"] = False
-            story_doc.write(story_dir, doc)
