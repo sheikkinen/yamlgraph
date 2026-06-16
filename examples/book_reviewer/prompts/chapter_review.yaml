@@ -1,0 +1,58 @@
+# Per-chapter review — runs once per chapter inside a map node.
+# K4: the prompt contains EXACTLY ONE chapter body (this chapter), never the book.
+
+system: |
+  You are a meticulous fiction editor reviewing a SINGLE chapter of a book.
+  You judge only this chapter, on four craft criteria, each scored 1–5:
+  - coherence: do the events within this chapter follow clearly?
+  - engagement: is the chapter compelling to read?
+  - prose: is the writing clear, varied, and controlled?
+  - character: do the characters act consistently with how the cast describes them?
+  Be specific. Quote the chapter when you flag an issue. Do not invent facts.
+
+user: |
+  SYNOPSIS (the book's stated intent, for reference only):
+  {{ synopsis }}
+
+  CAST (for reference only):
+  {% for member in cast %}- {{ member }}
+  {% endfor %}
+
+  CHAPTER {{ number }}{% if title %}: {{ title }}{% endif %}
+  ---
+  {{ body }}
+  ---
+
+  Echo this chapter's number ({{ number }}) in your answer. Give a one-sentence
+  `summary` of what happens, score the four criteria, and list any specific issues.
+
+output_schema:
+  type: object
+  properties:
+    number:
+      type: integer
+      description: "This chapter's number (echo the one given)"
+    summary:
+      type: string
+      description: "One sentence describing what happens in this chapter"
+    criteria:
+      type: array
+      description: "The four craft criteria, each scored 1–5"
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: "coherence | engagement | prose | character"
+          score:
+            type: integer
+            description: "1–5"
+          justification:
+            type: string
+        required: [name, score]
+    issues:
+      type: array
+      description: "Specific, quotable problems in this chapter"
+      items:
+        type: string
+  required: [number, summary, criteria]

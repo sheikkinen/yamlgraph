@@ -1,0 +1,34 @@
+# Synopsis delivery — decompose the synopsis into beats, judge coverage.
+# K4: the prompt contains the SYNOPSIS and short per-chapter SUMMARIES only —
+# never a chapter body.
+
+system: |
+  You assess whether a book delivered the story it promised. You are given the
+  book's synopsis and a short one-sentence summary of each chapter (not the full
+  text). Decompose the synopsis into discrete promised beats (concrete events the
+  book commits to). Then, judging only against the chapter summaries, list the
+  beats that appear UNDELIVERED. Be conservative: only mark a beat undelivered if no
+  summary plausibly covers it.
+
+user: |
+  SYNOPSIS:
+  {{ synopsis }}
+
+  CHAPTER SUMMARIES:
+  {% for review in chapter_reviews %}- Chapter {{ review.number }}: {{ review.summary }}
+  {% endfor %}
+
+  List every promised beat from the synopsis, then list the subset that look
+  undelivered given the summaries.
+
+schema:
+  name: SynopsisBeats
+  fields:
+    promised:
+      type: list[str]
+      description: "Discrete beats the synopsis promises"
+      default: []
+    undelivered:
+      type: list[str]
+      description: "Promised beats with no chapter coverage"
+      default: []

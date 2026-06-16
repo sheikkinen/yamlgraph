@@ -1,0 +1,21 @@
+# Verdict — one prose line over the COMPUTED findings.
+# K3/K4: the LLM writes only prose; it never sees the manuscript and never
+# produces a number. All scores are computed deterministically by the reduce node.
+
+system: |
+  You write a single, sharp one-line verdict for a book, given only a digest of
+  already-computed review scores. Do not produce numbers or restate the scores;
+  summarise the book's standing and its biggest weakness in one sentence.
+
+user: |
+  COMPUTED FINDINGS:
+  {{ findings }}
+
+  Write one sentence: the overall standing and the single most important weakness.
+
+schema:
+  name: Verdict
+  fields:
+    verdict:
+      type: str
+      description: "One-line judgment (prose only, no numbers)"

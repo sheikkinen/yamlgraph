@@ -1,0 +1,38 @@
+# Pairwise continuity — runs once per adjacent chapter seam inside a map node.
+# K4: the prompt contains EXACTLY TWO chapter bodies (this seam), never the book.
+
+system: |
+  You are a continuity editor. You are given two ADJACENT chapters of a book.
+  Find only CONTINUITY BREAKS: a fact, location, object, or character state that
+  chapter N+1 contradicts relative to the end of chapter N (e.g. an item lost in N
+  reappears in N+1, a character is in two places, a wound vanishes). Report nothing
+  if the chapters are consistent. Do not judge quality — only contradictions.
+
+user: |
+  CHAPTER {{ between[0] }} (earlier):
+  ---
+  {{ body_n }}
+  ---
+
+  CHAPTER {{ between[1] }} (later):
+  ---
+  {{ body_n1 }}
+  ---
+
+  Echo the pair ({{ between[0] }}, {{ between[1] }}) and list any continuity breaks,
+  quoting both sides of each contradiction. An empty list means consistent.
+
+output_schema:
+  type: object
+  properties:
+    between:
+      type: array
+      description: "The chapter pair, e.g. [1, 2]"
+      items:
+        type: integer
+    breaks:
+      type: array
+      description: "Continuity contradictions across this seam (empty if consistent)"
+      items:
+        type: string
+  required: [between, breaks]

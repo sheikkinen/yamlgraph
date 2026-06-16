@@ -576,3 +576,54 @@ directly (computed `overall`/scores from synthetic per-chapter inputs — no LLM
 live end-to-end run against the DM `sample-courier/story.md` (2 chapters → 2
 chapter-review calls + 1 continuity call + 2 synopsis calls + 1 verdict) is captured
 to a log. The example ships with a changelog fragment and a diary reflection.
+
+---
+
+## Implementation Status — Enforced
+
+**Delivered** under the frozen judgment (J1/J3/J4/J5/J6 + K1–K6).
+
+Files (all under `examples/book_reviewer/`, no CAP, no `@pytest.mark.req`):
+
+- `models.py` — Pydantic models for the parsed book, per-stage LLM outputs, and the
+  computed `BookReview`.
+- `nodes/tools.py` — pure functions (`parse_manuscript`, `lint_manuscript`,
+  `make_chapter_pairs`, `compute_review`, `findings_summary`, `render_review_md`)
+  and the python-node wrappers. `parse_node` raises on zero chapters (**J5**).
+- `prompts/{chapter_review,continuity,synopsis_beats,verdict}.yaml` — nested
+  outputs use JSON-Schema `output_schema`; flat outputs use native `schema`.
+- `graph.yaml` — `load → parse → lint → chapter_review (map) → make_pairs →
+  continuity (map) → synopsis_beats → compute → verdict → finalize`. Lints clean.
+- `sample_book.md` — bundled sample manuscript (copied from a DM render; the
+  example has **no** DM import — verified by `test_example_imports_only_framework`).
+- `tests/` — 30 passing: pure parse/lint/reduce, a fully mocked map→reduce graph
+  run, the **K4 prompt-scope gate** (`test_review.py`), import purity, and a
+  boundary regression.
+
+### Decisions / deviations
+
+- **K3 honoured beyond the letter:** the LLM scores each *chapter* (1–5 per
+  criterion), but every *book-level* number is computed by `compute_review`. The
+  only book-level LLM output is the one-line verdict.
+- **Continuity `breaks` are `list[str]`, not objects (deviation, FR-059):** the
+  first live run failed because the provider returned `{issue: ...}` for a schema
+  field named `detail`. Collapsing to a flat string list removed the key-naming
+  boundary entirely. `ContinuityBreak` was deleted.
+- **Boundary normalization added (FR-059):** a plain `llm` node stores the
+  executor's *dynamically built* schema instance, a class distinct from ours
+  despite the shared name. `compute_node._as_dict` coerces model-or-dict to a dict
+  before validation; a witness test (`test_compute_node_normalizes_model_instances`)
+  guards the regression.
+- **No `--no-llm` flag (J4):** enforced by the absence of any such code path; the
+  pipeline always runs the decomposed LLM stages.
+
+### Verification
+
+- `yamlgraph graph lint examples/book_reviewer/graph.yaml` → clean.
+- `pytest examples/book_reviewer/tests/ -q --no-cov` → **30 passed**.
+- Live end-to-end run against the 2-chapter sample → 2 chapter-review + 1
+  continuity + 1 synopsis-beats + 1 verdict calls; produced a `review.md` with
+  computed scores and three genuine continuity contradictions detected across the
+  chapter seam.
+
+**Status: Enforced.**

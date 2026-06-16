@@ -34,6 +34,7 @@ After the learning path, explore production examples below.
 | [agent-sdk-planner/](agent-sdk-planner/) | Standalone FR planner spike | Anthropic Agent SDK, custom tools, PostToolUse audit hooks |
 | [beautify/](beautify/) | Graph → HTML infographic | LLM analysis, Mermaid diagrams, Tailwind CSS |
 | [book_translator/](book_translator/) | Translate books & documents | Map nodes, parallel translation, glossary, checkpointing |
+| [book_reviewer/](book_reviewer/) | Critique a manuscript (decomposed map→reduce) | Map nodes, computed scores, anti-"almighty-prompt" K4 gate |
 | [booking/](booking/) | Appointment booking assistant | Interrupt nodes, tool nodes, multi-turn conversation |
 | [bugfix/](bugfix/) | Bug-fix pipeline with condemning test | Copilot nodes, 4-phase workflow, TDD enforcement (FR-173) |
 | [codegen/](codegen/) | Implementation agent | Tool nodes, code analysis, 24 Python tools |
@@ -175,6 +176,7 @@ yamlgraph graph run examples/npc/npc-creation.yaml \
 
 ### Map Nodes (Parallel Processing)
 - **book_translator/** - Parallel chapter translation and proofreading
+- **book_reviewer/** - Decomposed map→reduce manuscript critique with computed scores
 - **npc/** - Multiple NPC encounters processed simultaneously
 - **ocr_cleanup/** - Parallel page cleanup with LLM
 

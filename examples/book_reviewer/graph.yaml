@@ -1,0 +1,186 @@
+# Book Reviewer Pipeline (FR-497)
+#
+# Decomposed map -> reduce critique of a book-shaped Markdown manuscript.
+# Anti-"almighty-prompt" (K3/K4): no single LLM call sees the whole book and no
+# LLM emits a number. Each chapter is judged in isolation, each adjacent seam is
+# checked for continuity in isolation, the synopsis is judged against compact
+# chapter summaries, and a deterministic Python reduce COMPUTES every score.
+# The only generative LLM number-free task left at book level is a one-line verdict.
+
+version: "1.0"
+name: book-reviewer
+description: |
+  Review a book-shaped Markdown manuscript:
+  - Pure parse + deterministic lint (render invariants)
+  - Per-chapter craft scoring (map, one body per prompt)
+  - Pairwise continuity check (map, two bodies per prompt)
+  - Synopsis-delivery check (summaries only, no bodies)
+  - Deterministic reduce: every score COMPUTED, not asked
+  - One-line LLM verdict over the computed findings only
+
+defaults:
+  provider: anthropic
+  temperature: 0.2
+  prompts_relative: true
+  prompts_dir: prompts
+
+state:
+  manuscript_path: str
+  manuscript: str
+  parsed: dict
+  chapters: list
+  synopsis: str
+  cast: list
+  review_draft: dict
+  findings: str
+  review: dict
+  report_path: str
+
+tools:
+  load_manuscript:
+    type: python
+    module: examples.book_reviewer.nodes.tools
+    function: load_manuscript
+    description: "Read the manuscript file (or story.md in a directory)"
+
+  parse_node:
+    type: python
+    module: examples.book_reviewer.nodes.tools
+    function: parse_node
+    description: "Recover book structure; raise on zero chapters"
+
+  lint_node:
+    type: python
+    module: examples.book_reviewer.nodes.tools
+    function: lint_node
+    description: "Deterministic render-invariant lint"
+
+  pairs_node:
+    type: python
+    module: examples.book_reviewer.nodes.tools
+    function: pairs_node
+    description: "Build self-contained adjacent-chapter seam items"
+
+  compute_node:
+    type: python
+    module: examples.book_reviewer.nodes.tools
+    function: compute_node
+    description: "Deterministic reduce: compute every numeric score"
+
+  finalize_node:
+    type: python
+    module: examples.book_reviewer.nodes.tools
+    function: finalize_node
+    description: "Attach verdict, write review.md"
+
+nodes:
+  # Stage 0a — read manuscript from disk
+  load:
+    type: python
+    tool: load_manuscript
+    state_key: manuscript
+
+  # Stage 0b — parse structure (raises on zero chapters, J5)
+  parse:
+    type: python
+    tool: parse_node
+    state_key: parsed
+
+  # Stage 1 — deterministic lint of render invariants
+  lint:
+    type: python
+    tool: lint_node
+    state_key: lint
+
+  # Stage 2 — per-chapter craft review (K4: exactly ONE chapter body per prompt)
+  chapter_review:
+    type: map
+    over: "{state.chapters}"
+    as: chapter
+    max_items: 200
+    node:
+      type: llm
+      prompt: chapter_review
+      state_key: chapter_review
+      variables:
+        number: "{state.chapter.number}"
+        title: "{state.chapter.title}"
+        body: "{state.chapter.body}"
+        synopsis: "{state.synopsis}"
+        cast: "{state.cast}"
+    collect: chapter_reviews
+
+  # Stage 3a — build adjacent self-contained seams
+  make_pairs:
+    type: python
+    tool: pairs_node
+    state_key: chapter_pairs
+
+  # Stage 3b — pairwise continuity (K4: exactly TWO chapter bodies per prompt)
+  continuity:
+    type: map
+    over: "{state.chapter_pairs}"
+    as: pair
+    max_items: 200
+    node:
+      type: llm
+      prompt: continuity
+      state_key: pair_continuity
+      variables:
+        between: "{state.pair.between}"
+        body_n: "{state.pair.body_n}"
+        body_n1: "{state.pair.body_n1}"
+    collect: pair_continuities
+
+  # Stage 4 — synopsis delivery (K4: summaries only, no chapter body)
+  synopsis_beats:
+    type: llm
+    prompt: synopsis_beats
+    state_key: synopsis_beats
+    variables:
+      synopsis: "{state.synopsis}"
+      chapter_reviews: "{state.chapter_reviews}"
+
+  # Stage 5a — deterministic reduce: every score COMPUTED (K3)
+  compute:
+    type: python
+    tool: compute_node
+    state_key: review_draft
+
+  # Stage 5b — one-line verdict over computed findings only (K4: no manuscript)
+  verdict:
+    type: llm
+    prompt: verdict
+    state_key: verdict
+    variables:
+      findings: "{state.findings}"
+
+  # Stage 5c — attach verdict, write review.md
+  finalize:
+    type: python
+    tool: finalize_node
+    state_key: review
+
+edges:
+  - from: START
+    to: load
+  - from: load
+    to: parse
+  - from: parse
+    to: lint
+  - from: lint
+    to: chapter_review
+  - from: chapter_review
+    to: make_pairs
+  - from: make_pairs
+    to: continuity
+  - from: continuity
+    to: synopsis_beats
+  - from: synopsis_beats
+    to: compute
+  - from: compute
+    to: verdict
+  - from: verdict
+    to: finalize
+  - from: finalize
+    to: END
