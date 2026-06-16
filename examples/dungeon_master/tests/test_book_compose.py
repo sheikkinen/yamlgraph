@@ -20,11 +20,12 @@ Run directly:
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import patch
 
 import pytest
 
-from examples.dungeon_master.api import chapter_ops
+from examples.dungeon_master.api import chapter_ops, navigation, tree
 
 
 def _played_book() -> dict:
@@ -94,3 +95,89 @@ def test_compose_raises_when_no_chapter_played():
     doc["chapters"]["cards"]["2"]["text"] = ""
     with _no_llm_guard(), pytest.raises(ValueError):
         chapter_ops.compose_book_deterministic(doc)
+
+
+# ── The Book stage: the terminal leaf that renders the deterministic compose ──
+
+
+def _played_reviewed_book() -> dict:
+    """A whole story whose chapters are all PLAYED to a reviewed final text.
+
+    ``all_chapters_played`` is the Book gate: the chapter order is non-empty and
+    every chapter card is reviewed (played to its director-judged end).
+    """
+    return {
+        "synopsis": {"text": "s", "reviewed": True},
+        "characters": {
+            "reviewed": True,
+            "roster": ["kara"],
+            "cards": {"kara": {"name": "Kara", "text": "c", "reviewed": True}},
+        },
+        "chapters": {
+            "reviewed": False,
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "The Water Rises",
+                    "text": "Kara musters the band at the failing dam.",
+                    "world_state": "WS1",
+                    "reviewed": True,
+                },
+                "2": {
+                    "title": "The Last Ledge",
+                    "text": "Kara corners the raider on the ledge.",
+                    "world_state": "WS2",
+                    "reviewed": True,
+                },
+            },
+        },
+    }
+
+
+def test_all_chapters_played_gate():
+    doc = _played_reviewed_book()
+    assert tree.all_chapters_played(doc) is True
+    # An unplayed chapter closes the gate.
+    doc["chapters"]["cards"]["2"]["reviewed"] = False
+    assert tree.all_chapters_played(doc) is False
+    # And an empty chapter set is not "all played".
+    assert tree.all_chapters_played({"chapters": {"order": [], "cards": {}}}) is False
+
+
+def test_book_reachable_only_when_all_chapters_played():
+    doc = _played_reviewed_book()
+    assert navigation.can_visit(doc, "book") is True
+    doc["chapters"]["cards"]["2"]["reviewed"] = False
+    assert navigation.can_visit(doc, "book") is False
+
+
+def test_book_crumb_appears_only_when_all_chapters_played():
+    doc = _played_reviewed_book()
+    labels = [c["label"] for c in tree.breadcrumb(doc)]
+    assert "The Book" in labels
+    # The Book is the terminal leaf, after Characters.
+    assert labels.index("Characters") < labels.index("The Book")
+    # Close the gate: the crumb disappears.
+    doc["chapters"]["cards"]["2"]["reviewed"] = False
+    assert "The Book" not in [c["label"] for c in tree.breadcrumb(doc)]
+
+
+def test_book_stage_first_render_composes_manuscript(tmp_path, monkeypatch):
+    from examples.dungeon_master.api import session as session_mod
+    from examples.dungeon_master.api import story_doc
+
+    monkeypatch.setattr(session_mod, "STORY_ROOT", tmp_path)
+    session_mod._reset_caches()
+
+    story_dir = tmp_path / "book-render"
+    story_dir.mkdir(parents=True, exist_ok=True)
+    story_doc.write(story_dir, _played_reviewed_book())
+
+    sess = session_mod.DMSession("book-render")
+    # No LLM mock: the Book stage has no seed, so navigating to it must NOT invoke
+    # any graph — its first render is the pure deterministic compose.
+    view = asyncio.run(sess.navigate("book"))
+    assert view.kind == "book"
+    assert "# Chapter 1: The Water Rises" in view.text
+    assert "# Chapter 2: The Last Ledge" in view.text
+    assert "WS1" not in view.text  # the world_state ledger stays out of the book
