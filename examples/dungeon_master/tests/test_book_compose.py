@@ -97,6 +97,74 @@ def test_compose_raises_when_no_chapter_played():
         chapter_ops.compose_book_deterministic(doc)
 
 
+# ── FR-495: the composer owns the ordinal; a self-asserted "Chapter N —" prefix
+# in the LLM-authored title must not double the heading. ──
+
+
+def _titled_book(title_1: str, title_2: str = "The Last Ledge") -> dict:
+    return {
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {"title": title_1, "text": "Kara musters the band."},
+                "2": {"title": title_2, "text": "Kara corners the raider."},
+            },
+        }
+    }
+
+
+def test_compose_strips_self_asserted_chapter_label():
+    # The outline title self-asserts its own ordinal; the composer's n is the
+    # authority, so the heading must read once — not "Chapter 1: Chapter 1 —".
+    doc = _titled_book("Chapter 1 — The Frozen Crossing")
+    with _no_llm_guard():
+        book = chapter_ops.compose_book_deterministic(doc)
+    assert "# Chapter 1: The Frozen Crossing" in book
+    assert "Chapter 1: Chapter 1" not in book
+
+
+def test_compose_keeps_clean_title_untouched():
+    doc = _titled_book("The Frozen Crossing")
+    with _no_llm_guard():
+        book = chapter_ops.compose_book_deterministic(doc)
+    assert "# Chapter 1: The Frozen Crossing" in book
+
+
+def test_compose_label_only_title_collapses_without_dangling_separator():
+    # J2: a label-only title (or an empty title) yields "# Chapter {n}" with NO
+    # trailing ": " — the ordinal appears once, no dangling colon.
+    doc = _titled_book("Chapter 1", title_2="")
+    with _no_llm_guard():
+        book = chapter_ops.compose_book_deterministic(doc)
+    assert "# Chapter 1\n\n" in book
+    assert "# Chapter 1:" not in book
+    assert "# Chapter 2\n\n" in book
+    assert "# Chapter 2:" not in book
+
+
+def test_compose_real_title_beginning_with_ch_word_is_untouched():
+    # J3: the required \s+ guard — a real title that merely begins with "Ch…" or
+    # "Chapter <word>" with no separator must NOT be eaten.
+    doc = _titled_book("Children of the Thaw", title_2="Chapter Endings")
+    with _no_llm_guard():
+        book = chapter_ops.compose_book_deterministic(doc)
+    assert "# Chapter 1: Children of the Thaw" in book
+    assert "# Chapter 2: Chapter Endings" in book
+
+
+def test_compose_strips_varied_chapter_label_separators():
+    # Colon, en-dash, and a spelled ordinal all count as the self-asserted prefix.
+    for raw, want in (
+        ("Chapter 2: The Fort Defended", "# Chapter 1: The Fort Defended"),
+        ("Chapter Three – The Crossing", "# Chapter 1: The Crossing"),
+        ("Ch. 4 - The Thaw", "# Chapter 1: The Thaw"),
+    ):
+        doc = _titled_book(raw)
+        with _no_llm_guard():
+            book = chapter_ops.compose_book_deterministic(doc)
+        assert want in book
+
+
 # ── The Book stage: the terminal leaf that renders the deterministic compose ──
 
 
