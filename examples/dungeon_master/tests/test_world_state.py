@@ -23,6 +23,7 @@ from examples.dungeon_master.api import render, turn_ops, world_state
 from yamlgraph.executor_base import format_prompt
 
 PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
+GRAPHS = Path(__file__).resolve().parent.parent
 
 
 def _structured() -> dict:
@@ -202,3 +203,22 @@ def test_chapter_close_prompt_messages_render_without_keyerror():
         template = str(data.get(key, ""))
         # Must not raise KeyError on literal JSON braces.
         format_prompt(template, variables)
+
+
+def test_chapter_close_reasoning_budget_cannot_starve_the_ledger():
+    # FR-499A regression: gemini-3.5-flash spends hidden reasoning tokens from the
+    # same completion budget BEFORE emitting JSON. A 2000-token cap was consumed
+    # entirely by reasoning (~1921 tok observed), leaving "text": "" → an empty
+    # ledger that parse_world_state() silently rendered as no characters/objects.
+    # Two guards must hold: a bounded reasoning threshold AND a large output budget
+    # so the visible JSON always has room after thinking completes.
+    defaults = yaml.safe_load((GRAPHS / "chapter_close.yaml").read_text())["defaults"]
+    budget = defaults["thinking_budget"]
+    max_tokens = defaults["max_tokens"]
+    assert budget is not None, "reasoning must be capped, not unbounded"
+    # Must stay under 1024: create_llm() raises on thinking_budget >= 1024 for
+    # non-thinking providers (inception/mercury for fast test runs). Below the
+    # threshold it bounds Gemini reasoning on vertex yet is ignored elsewhere.
+    assert budget < 1024, "thinking_budget >= 1024 breaks non-thinking providers"
+    # Output budget must dwarf the reasoning cap so the JSON ledger survives.
+    assert max_tokens - budget >= 4000, "insufficient headroom for the ledger JSON"

@@ -96,6 +96,40 @@ template to the executor. The cheapest version of the live failure was a
 two-second test that calls `format_prompt` on each message. I had it after the
 crash; I should have had it before.
 
+## The third boundary: the reasoning that ate its own output
+
+The prompt rendered, the graph ran, and the ledger came back *empty* —
+`{characters: [], objects: [], facts: []}` for a chapter that clearly had four
+named survivors. A direct `execute_prompt` returned a perfect 1161-char ledger;
+only the graph node yielded nothing. LangSmith told the truth the state could not:
+completion **1996 tokens at the 2000 cap**, `output_token_details.reasoning:
+1921`, `text: ""`. gemini-3.5-flash is a reasoning model — it spends hidden
+thinking tokens from the *same completion budget* before emitting a single visible
+character. A `max_tokens: 2000` cap sized for "the JSON is terse" was devoured
+whole by reasoning, and `parse_world_state("")` did exactly what it was built to
+do at the boundary: tolerate the empty string and return an empty ledger. The
+defensive parse turned a starvation crash into a *plausible wrong answer* — the
+worst kind, because nothing raised.
+
+The fix is two guards at the config boundary: raise `max_tokens` to 8000 so output
+has room *after* thinking, and set a `thinking_budget` so reasoning can never
+expand to fill the whole budget again. But the threshold carries a second lesson —
+`provider` portability. The obvious value, Anthropic's 1024 floor, is a landmine:
+`create_llm()` *raises* on `thinking_budget >= 1024` for any provider not in
+`{anthropic, google, vertex}`. The moment testing switched to inception/mercury (a
+diffusion model, fast and cheap for iteration), a 1024 threshold would crash every
+`chapter_close` before dispatch. So the threshold is **512** — deliberately under
+the guard: it bounds Gemini reasoning on vertex, yet `dispatch_provider` silently
+drops it for non-thinking providers and the validation never trips. One value,
+portable across the production model and the fast test model.
+
+The trap here is `downstream_fix` wearing a new coat: the symptom was an empty
+list in graph state, and the tempting patch was to make `parse_world_state` raise
+on empty instead of tolerating it. But the empty string was *correct* given a
+starved completion — the bug was upstream, at the token budget, not at the parse.
+The trace was the changelog: `output_token_details.reasoning` named the cause in
+one number that no amount of staring at state could reveal.
+
 ## Heuristic
 
 When a defect manifests as a contradiction across two units (chapters, requests,
@@ -108,6 +142,12 @@ And: a prompt is rendered per-message; a message without Jinja markers is a
 `str.format()` template where literal `{…}` is a field. Describe JSON shapes in
 prose, and pin every message through the real renderer in a unit test — the
 cheapest reproduction of a live render crash is a two-second `format_prompt` call.
+
+And: a reasoning model's hidden thinking spends the *visible* completion budget.
+Size `max_tokens` for reasoning *plus* output, and cap reasoning with
+`thinking_budget` — but keep that threshold portable. A value chosen for one
+provider's floor can be another provider's hard error; pick the value that works
+across the production model *and* the fast test model, and pin it in a config test.
 
 **Seed:** The ledger is now typed but no gate reads it. What is the cheapest
 enforcement that turns a detected faction-flip into a *blocked* chapter — a

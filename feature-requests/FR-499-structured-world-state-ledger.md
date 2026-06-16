@@ -218,3 +218,29 @@ contradicting a standing ledger fact; acceptance includes a false-positive witne
 
 **Status: Phase A Enforced** (AC5 live-witness: see combined Floodmark-v2 regen +
 review). Phase B remains Proposed/gated.
+
+## Implementation Status — Phase A live-run hardening (2026-06-16)
+
+Two boundary defects surfaced only under real generation (the green unit suite
+proved plumbing but not *render* or *budget*):
+
+- **Prompt-brace KeyError.** `format_prompt` renders each message independently and
+  falls to `str.format()` when a message has no Jinja markers; the rewritten
+  `chapter_close` prompt's literal `{"world_state": …}` JSON braces were read as
+  format fields → `KeyError('"world_state"')`. Fixed by describing the JSON shape in
+  **prose** (matching `chapter_outline.yaml` house style). Pinned by
+  `test_chapter_close_prompt_messages_render_without_keyerror` (RED→GREEN), which
+  renders every prompt message through the real `format_prompt` with real vars.
+- **Reasoning starves the ledger.** gemini-3.5-flash spends hidden thinking tokens
+  from the *completion* budget before emitting JSON; a `max_tokens: 2000` cap was
+  consumed entirely by reasoning (~1921 tok observed in LangSmith), leaving
+  `text: ""` → an empty ledger silently rendered as no characters/objects. Fixed at
+  the config boundary in `chapter_close.yaml` defaults: `max_tokens` 2000→8000 **and**
+  `thinking_budget: 512` to bound reasoning so the JSON always has room. The
+  threshold is kept **below 1024** deliberately — `create_llm()` rejects
+  `thinking_budget >= 1024` on non-thinking providers, so a sub-threshold value
+  bounds Gemini reasoning on vertex yet is silently ignored on inception/mercury
+  (used for fast test runs), keeping the graph provider-portable. Pinned by
+  `test_chapter_close_reasoning_budget_cannot_starve_the_ledger`. Live witness:
+  ledger populates (Hilde/Gunnar/Arnulf/Torstein, Gunnar's axe, 4 facts); completion
+  bounded 1996→1351 tok. Full DM suite: **109 passed**.

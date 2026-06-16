@@ -23,8 +23,17 @@ prompts_dir: prompts
 
 defaults:
   temperature: 0.5
-  # The ledger is terse; reserve headroom for reasoning-model hidden tokens.
-  max_tokens: 2000
+  # gemini-3.5-flash is a REASONING model: it spends hidden thinking tokens from
+  # the completion budget BEFORE emitting JSON. A 2000 cap was exhausted entirely
+  # by reasoning (~1921 tok observed in LangSmith), leaving "text": "" → empty
+  # ledger. Two guards: a large output budget AND a bounded reasoning threshold so
+  # thinking can never starve the structured ledger that must follow it.
+  # Kept below 1024 deliberately: create_llm() rejects thinking_budget >= 1024 on
+  # non-thinking providers (e.g. inception/mercury used for fast test runs); under
+  # the threshold it bounds Gemini reasoning on vertex yet is silently ignored
+  # elsewhere, so the graph stays provider-portable.
+  max_tokens: 8000
+  thinking_budget: 512
 
 state:
   synopsis: str
