@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor + small feature)
-**Status:** Proposed
+**Status:** Judged — scope frozen (2026-06-16)
 **Effort:** 1 day
 **Requested:** 2026-06-16
 **Regime:** FR-474 J3 (DM prototype) — no CAP/REQ/CI-gates/changelog; diary required.
@@ -64,20 +64,21 @@ J3 regime). Proposed location: a new `examples/dungeon_master/api/render.py`
 (Adapter layer, pure reads) so `chapter_ops` is not bloated with presentation.
 
 Shape (reuses `compose_book_deterministic` for the body — does **not**
-reimplement chapter assembly):
+reimplement chapter assembly). There is **no invented title** (the doc has no
+title field; the tagline is a whole paragraph — see J1): the manuscript opens
+with the tagline as a blockquote lead and renders all top-level sections at the
+same H1 level the Book body already uses.
 
 ```markdown
-# <title from tagline, or "Untitled">
-
 > <tagline>
 
-## Synopsis
+# Synopsis
 
 <synopsis text>
 
-## Cast            <!-- optional: omitted when the roster is empty -->
+# Cast            <!-- optional: omitted when the roster is empty -->
 
-- **<name>** — <one-line or first paragraph of the character card>
+- **<name>** — <first paragraph of the character card>
 
 ---
 
@@ -126,10 +127,11 @@ The driver sequences the **same adapter methods the HTTP routes call**
 condition is `tree.all_chapters_played(doc)`, the existing public gate, not a
 hand-rolled per-turn `scene_complete` walk.
 
-A thin CLI wrapper writes **both** serializations to an output dir:
+A thin CLI wrapper writes **both** serializations to an output dir, invoked the
+same way the witness is (direct script path, not `-m` — see J4):
 
 ```bash
-python -m examples.dungeon_master.scripts.generate \
+PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
     --premise "A lone courier crosses a frozen river…" \
     --out outputs/dungeon-master/courier \
     --turn-cap 24
@@ -153,22 +155,31 @@ the drive loop and the `doc["chapters"]["cards"]…` walk.
 ## Acceptance Criteria
 
 - [ ] `render_story_markdown(doc)` exists, is **pure** (no LLM, no I/O), and
-      renders title/tagline + synopsis + (optional) cast + the Book body, where
-      the Book body is `compose_book_deterministic(doc)` reused verbatim.
-- [ ] `render_story_markdown` **raises** (not `""`) when no chapter is played, and
+      renders the tagline (blockquote lead, **no invented title** — J1) +
+      `# Synopsis` + optional `# Cast` + the Book body, where the Book body is
+      `compose_book_deterministic(doc)` reused verbatim and all top-level
+      sections sit at H1 (J1).
+- [ ] `render_story_markdown` lets the `compose_book_deterministic` raise
+      propagate when no chapter is played (J3 — no second guard, no `""`), and
       never emits the `world_state` ledger.
+- [ ] Each cast line is `**name** — <first \n\n-split paragraph of the card
+      text>`; a character with empty card text is omitted, and the whole `# Cast`
+      section is omitted when the roster is empty (J2). Deterministic, no LLM.
 - [ ] A deterministic unit test renders a fixture doc and asserts the front
       matter + chapter headings + the absence of `world_state` (no live LLM).
 - [ ] `generate_story(premise, *, story_root, session_id, turn_cap)` exists,
       drives synopsis → cast → play → Book gate **through the adapter only**, and
       uses `tree.all_chapters_played` as its stop condition (no duplicated
       per-turn `scene_complete` walk).
-- [ ] `generate_story` raises when the Book gate does not open within `turn_cap`.
-- [ ] A CLI entry point (`python -m …scripts.generate --premise … --out …`)
-      writes both `story.json` and `story.md` to the `--out` dir.
+- [ ] `generate_story` raises when the Book gate does not open within `turn_cap`
+      (no partial doc returned — J5).
+- [ ] A CLI entry point — `PYTHONPATH="$PWD" python
+      examples/dungeon_master/scripts/generate.py --premise … --out …` (direct
+      script path, not `-m`; `load_dotenv()` inside `main()` — J4) — writes both
+      `story.json` and `story.md` to the `--out` dir. No new `__init__.py`.
 - [ ] `witness_book_compose.py` calls `generate_story` and contains **no**
       `doc["chapters"]["cards"]…` drive-loop walk; it keeps its substance asserts
-      and `sys.exit(1)`-on-FAIL.
+      and `sys.exit(1)`-on-FAIL (J5).
 - [ ] Docs updated: architecture module map gains a `render.py` row and names the
       generator; README mentions the stand-alone generation command.
 - [ ] Diary reflection + **Seed**.
@@ -199,6 +210,75 @@ the drive loop and the `doc["chapters"]["cards"]…` walk.
   **derived on demand**, exactly like the Book (FR-492: no stored book).
 - PDF/EPUB or other export formats; per-chapter file splitting.
 - Parameterising character/chapter counts at generation time (still emergent).
+
+## Judgment (2026-06-16) — scope frozen
+
+The plan is sound and minimal; three ambiguities and one factual defect are
+resolved below. Scope is frozen to Parts 1–3.
+
+### J1 — No invented title; flat H1 hierarchy (kills a deterministic title heuristic)
+
+The doc has **no title field**, and `doc["tagline"]` *is* the premise — a whole
+paragraph ([session.py L228–L230](../examples/dungeon_master/api/session.py#L228-L230)).
+Deterministically "deriving a title from the tagline" means extracting a title
+from prose with no LLM — a `plausible_wrong_answer` heuristic that will look right
+and read wrong. **Ruling:** render no `# <title>`. The manuscript opens with the
+tagline as a blockquote lead (no heading), then `# Synopsis`, optional `# Cast`,
+a `---` rule, then the Book body. All top-level sections sit at **H1** — the same
+level `compose_book_deterministic` already emits for chapters — so the body is
+reused verbatim (J3) without demoting its headings. The plan's original
+`# title` + `## Synopsis` example (H2 synopsis above H1 chapters) was an inverted
+hierarchy and is struck.
+
+### J2 — Cast line is the first paragraph; empty cards and empty rosters drop out
+
+Each cast entry is `**<name>** — <first \n\n-split paragraph of the card text,
+stripped>`. A character whose card `text` is empty is omitted (not a dangling
+bullet); the whole `# Cast` section is omitted when the roster is empty. Pure,
+deterministic — no LLM summarisation of the card.
+
+### J3 — Reuse, don't reimplement; inherit the raise
+
+The Book body is `compose_book_deterministic(doc)` **verbatim**;
+`render_story_markdown` only prepends the front matter. The renderer adds **no**
+second "no chapter played" guard — it lets the existing `ValueError` propagate
+(Commandment 6, one source of truth). The front matter alone is not a story.
+
+### J4 — CLI matches the witness invocation, not `-m` (factual defect fixed)
+
+`examples/dungeon_master/` and `scripts/` are **not packages** (no `__init__.py`);
+the witness runs as a direct script path under `PYTHONPATH="$PWD"`. **Ruling:** the
+generator CLI is invoked the same way —
+`PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py …` — **not**
+`python -m …`. No new `__init__.py` or package layout is introduced. `load_dotenv()`
+is called **inside `main()`** (not at module top) so imports stay top-level and no
+E402 noqa-confession is needed (the witness already dodges this the same way).
+
+### J5 — One drive loop, owned by the generator; raise on cap, never a partial doc
+
+`generate_story` is the **single** owner of the synopsis→cast→play→Book sequence.
+Its stop condition is the public `tree.all_chapters_played`; when `turn_cap` is
+reached before the gate opens it **raises** (it does not return a half-played doc
+that a caller might mistake for finished). `witness_book_compose.py` is rewritten
+to call `generate_story` and retain **only** its substance asserts +
+`sys.exit(1)`; no `doc["chapters"]["cards"]…` walk survives in the witness.
+
+### J6 — Markdown is derived, never stored
+
+No new `story.json` field. `story.md` is written by the CLI from
+`render_story_markdown` on demand and is regenerable — mirroring FR-492's
+no-stored-book rule. The JSON stays the single source of truth.
+
+### J7 — Pure render is unit-tested; live generation stays witness-only
+
+`test_render.py` is the J3-regime visibility test for the pure renderer (no
+markers, no req). The live end-to-end generation is exercised by the **witness**,
+not a mocked unit test — a mocked end-to-end would be the `mock_escape_hatch`
+(a unit test wearing an E2E costume). The generator's wiring is proven live.
+
+**Authority granted.** Proceed RED→GREEN: the pure `render.py` + `test_render.py`
+first (deterministic, fast), then the `generate.py` extraction, then thin the
+witness, then docs + diary.
 
 ## Affected Files
 
