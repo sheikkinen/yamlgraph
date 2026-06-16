@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed — **replanned** (decomposed map/reduce review); supersedes the 2026-06-16 freeze, needs re-judge
+**Status:** Judged — scope frozen against the decomposed map/reduce architecture (2026-06-16, re-judge)
 **Effort:** 1–2 days
 **Requested:** 2026-06-16
 **Replanned:** 2026-06-16 (1) a new stand-alone **example** (`examples/book_reviewer/`), not a pipeline step; (2) **decomposed** evaluation — map per-chapter + pairwise continuity + reduce — *not* one almighty prompt over the whole book
@@ -247,13 +247,20 @@ isolation. Adjacent-pair scope keeps every call small.
 
 ```python
 class ContinuityBreak(BaseModel):
-    between: tuple[int, int]   # (N, N+1)
     detail: str                # the contradicted fact, quoted from both sides
 
-class ContinuityReport(BaseModel):
-    score: int                 # 1–5, derived from break count/severity
+class PairContinuity(BaseModel):     # one map item's output (per seam)
+    between: tuple[int, int]   # (N, N+1)
+    breaks: list[ContinuityBreak]
+
+class ContinuityReport(BaseModel):   # the reduce of all PairContinuity
+    score: int                 # 1–5, computed from break count/severity
     breaks: list[ContinuityBreak]
 ```
+
+The `map` collects a `list[PairContinuity]` (one per seam); the reduce stage
+flattens their `breaks` and **computes** the `ContinuityReport.score` from the count
+(see K3 — score is computed, not LLM-invented).
 
 (A running-state ledger — BooookScore's *incremental-update* workflow, carrying
 standing facts forward chapter by chapter — is the richer variant; adjacent-pair is
@@ -434,16 +441,12 @@ DM prototype), so its commits carry **no** `FR-474 J3` trailer and use honest
 
 ## Judgment (2026-06-16)
 
-> **SUPERSEDED by the 2026-06-16 decomposition replan — needs re-judge.** The
-> rulings below were made against the *single-prompt* plan. The procedural rulings
-> still hold and carry forward: **J1** (gate regime — first-class example, no
-> CAP/REQ, not under FR-474 J3), **J3** (manuscript-only ground truth — no
-> beat-list / no-invention checks), **J4** (no `--no-llm` CLI flag), **J5** (raise
-> on zero parsed chapters), **J6** (configurable `leaked-label` set). What changed
-> is **J2/the review architecture**: the single `BookReview` LLM node is replaced by
-> a decomposed **map (per-chapter) → map (pairwise continuity) → synopsis-beats →
-> reduce** pipeline (see Research). The Judge must re-freeze against the new
-> architecture.
+> **SUPERSEDED by the re-judgment at the end of this file.** The rulings below were
+> made against the *single-prompt* plan. The procedural rulings carry forward
+> unchanged (**J1** gate regime, **J3** manuscript-only ground truth, **J4** no
+> `--no-llm` flag, **J5** raise on zero chapters, **J6** configurable `leaked-label`
+> set); **J2/the review architecture** is replaced by the decomposed map/reduce
+> design. See *Judgment (re-judge)* below for the binding ruling.
 
 Scope **frozen**. The plan is internally consistent and minimal except for one
 substance error in the rubric, corrected below. Enforce against these rulings.
@@ -502,3 +505,74 @@ line-walker parse stays until a fourth section shape actually appears.
 fixtures and the golden-sample `ok is True`), and the mock-LLM review graph, before
 GREEN. The live end-to-end run is captured to a log; the example ships with a
 changelog fragment and a diary reflection.
+
+## Judgment (re-judge) — decomposed map/reduce architecture (2026-06-16)
+
+Scope **re-frozen** against the decomposed plan. The "almighty prompt" critique is
+correct and the research basis is sound; the map/reduce architecture is the right
+shape and is a strictly better example (it dogfoods the `map` node). The procedural
+rulings **J1, J3, J4, J5, J6 carry forward unchanged**. The following rulings settle
+the new architecture; **J2 is replaced** by K1–K6.
+
+**K1 — The `map` primitive is verified; build on it as-is.** I confirmed
+`reference/graph-yaml.md` defines `type: map` with `over` / `as` / `node` /
+`collect`: it fans out each list item via `Send()`, injects `{state.<as>}` plus
+parent state into the sub-node, and collects results with an `operator.add` list
+reducer. Stages 2 and 3 are therefore buildable exactly as planned — no new
+framework primitive is needed (and none may be invented — Purge). The default
+`max_map_items` (100) comfortably covers a book's chapter count.
+
+**K2 — Pairwise items must be self-contained (boundary ruling).** The `map`
+sub-node sees only the injected item + parent state, so a pair item must carry
+**both** sides of the seam, not an index. The `chapter_pairs` tool emits a list of
+self-contained objects `{between: (N, N+1), body_n, body_n1}`; the per-seam LLM
+returns a `PairContinuity` (its own breaks); the **reduce** flattens all
+`PairContinuity.breaks` into the book-level `ContinuityReport`. The model in Stage 3
+was conflated (per-pair vs book-level) and is now corrected in the plan. Same rule
+for the per-chapter map: the item is the whole `ChapterSection`, with synopsis/cast
+read from parent state for reference.
+
+**K3 — Every numeric score is COMPUTED, never LLM-invented (Commandment 6).** The
+LLM stages emit *local* judgments only — per-chapter `CriterionScore`s, per-seam
+`breaks`, per-beat coverage. The reduce stage is a **deterministic Python node** that
+computes the book-level numbers: each criterion's book score is the mean of its
+per-chapter scores **with the minimum flagged**; `ContinuityReport.score` is computed
+from the break count; `SynopsisDelivery.score` is `covered / promised`; and
+`BookReview.overall` is a fixed, documented function of those (not a free LLM
+number). An LLM may write **only** the one-line prose `verdict`, and only over the
+compact aggregated findings. This is BooookScore's *computed metric* and forecloses
+the plausible-wrong failure mode where a summary LLM overrides the arithmetic.
+
+**K4 — The anti-almighty-prompt invariant is a hard, tested gate.** No LLM node may
+receive the whole concatenated book. The enforcing tests assert: the rendered
+chapter-review prompt contains **exactly one** chapter's body; the continuity prompt
+contains **exactly two** chapter bodies; the synopsis-beats prompt contains the
+synopsis but **no** chapter body; and the verdict prompt contains the aggregated
+findings but **not** the full manuscript. These assertions are acceptance criteria,
+not nice-to-haves — they are what makes this example *teach* the pattern.
+
+**K5 — Criteria set frozen to the manuscript-judgeable HANNA subset.** To avoid
+over-claiming, the rubric is: per-chapter **Coherence, Engagement, Prose craft,
+Character consistency**; book-level **Relevance** (= synopsis delivery) and
+**Continuity** (its own axis). HANNA's **Empathy, Surprise, Complexity** are
+**deferred** — they are real criteria but hard to ground reliably from a short
+manuscript without subjective drift, and shipping them now would reintroduce the
+"plausible number" risk K3 guards against. The README names them as a documented
+extension. (This is the J3 spirit applied to the criteria set: claim only what the
+input supports.)
+
+**K6 — Minimal scope: adjacent-pair only, no running-state ledger.** BooookScore's
+incremental running-state workflow is the richer continuity variant, but adjacent
+pairs are sufficient to demonstrate the pattern and to catch seam breaks in the
+sample. The ledger stays a **documented extension**, not implemented (Purge
+speculative scope). Likewise no revision/feedback loop (already rejected).
+
+**Authority granted** under J1/J3/J4/J5/J6 + K1–K6. TDD order: RED unit tests for
+`parse_manuscript`, `lint_manuscript` (defective fixtures + golden-sample
+`ok is True`), and `chapter_pairs` (pure); then the **mock-LLM** map/reduce graph
+test asserting (a) a typed `BookReview` with computed scores and (b) the four K4
+prompt-scope assertions; then GREEN. The deterministic reduce is unit-tested
+directly (computed `overall`/scores from synthetic per-chapter inputs — no LLM). A
+live end-to-end run against the DM `sample-courier/story.md` (2 chapters → 2
+chapter-review calls + 1 continuity call + 2 synopsis calls + 1 verdict) is captured
+to a log. The example ships with a changelog fragment and a diary reflection.
