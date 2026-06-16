@@ -87,6 +87,10 @@ PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
   --out outputs/dungeon-master/courier
 # → outputs/dungeon-master/courier/story.json  (machine)
 # → outputs/dungeon-master/courier/story.md    (reader)
+
+PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
+  --premise "10,000 BC, the great thaw — The Floodmark Saga. The glaciers are bleeding into the lowlands and three loosed rivers are drowning the valley; every clan must climb or die. Hilde, war-leader of the Aschenwulf band, raids the rival Bärenschädel clan at dawn just as the river breaks its banks, and is stranded on a shrinking ledge beside Gunnar, the man she came to kill — the survival truce between them hardening, against both clans' will, into something closer and far more dangerous, while in the same surge her brother Arnulf is swept downriver and mourned as drowned. A mature, explicit story of what people will break to stay alive — old laws, old loyalties, the line between enemy and lover — as a salt-road stranger named Reinmar steers the survivors toward the one high valley still standing by autumn, and the keeper of the old rites reads the truce itself as the judgment that called the flood. Romance, blood-feud, faith, and a returning ghost all converge on the same too-small patch of dry ground." \
+  --out outputs/dungeon-master/10000-BC
 ```
 
 The live witness [`scripts/witness_book_compose.py`](scripts/witness_book_compose.py)
