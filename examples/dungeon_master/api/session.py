@@ -43,12 +43,14 @@ from examples.dungeon_master.api.graph_app import (
     reset_caches as _reset_caches,
 )
 from examples.dungeon_master.api.tree import (
-    BOOK,
     CHAPTER_PREFIX,
     CHAR_PREFIX,
+    FINAL_CUT,
+    FINAL_CUT_TURNS,
     FIRST_STAGE,
     STAGE_BY_NAME,
     TURN_PREFIX,
+    WALKTHROUGH,
     Stage,
     breadcrumb,
     cast_complete,
@@ -473,27 +475,40 @@ class DMSession:
     async def _compose_special(
         self, doc: dict, entry: dict, stage: Stage, *, instruction: str, draft: str
     ) -> bool:
-        """Draft a composed multi-layer stage (a turn or the Book finish).
+        """Draft a composed multi-layer stage (a turn or one of the three finishes).
 
         These stages are not a single ``_invoke_stage`` call: a turn re-rolls its
-        intents + recap together (FR-477 J2); the Book composes the finished
-        manuscript from every played chapter's prose and world_state (FR-491 E).
-        ``weave`` and ``_autodraft`` share this exact dispatch — the only
-        difference is whether a writer's ``instruction``/``draft`` steers the
-        composition (weave) or it is a fresh draft (auto-draft, empty args).
-        Mutates ``entry`` in place; returns whether the stage was one of these
-        composed stages, so the caller can fall back to ``_invoke_stage`` for an
-        ordinary card when it was not.
+        intents + recap together (FR-477 J2); the two Final Cuts and the
+        Walkthrough compose from the whole played arc and carry a structured track
+        (``turns`` / ``setting``) beside the rendered ``text``. ``weave`` and
+        ``_autodraft`` share this exact dispatch — the only difference is whether a
+        writer's ``instruction``/``draft`` steers the composition (weave) or it is
+        a fresh draft (auto-draft, empty args). Mutates ``entry`` in place; returns
+        whether the stage was one of these composed stages, so the caller can fall
+        back to ``_invoke_stage`` for an ordinary card when it was not.
         """
         if stage.kind == "turn":
             cid, n = parse_turn(stage.name)
             entry["text"] = await turn_ops.invoke_turn(
                 doc, self._characters(doc), cid, n, instruction=instruction
             )
-        elif stage.name == BOOK:
-            entry["text"] = await chapter_ops.compose_book(
+        elif stage.name == FINAL_CUT:
+            entry["text"] = await turn_ops.invoke_final_cut(
                 doc, instruction=instruction, draft=draft
             )
+        elif stage.name == FINAL_CUT_TURNS:
+            segments = await turn_ops.invoke_final_cut_turns(
+                doc, instruction=instruction, draft=draft
+            )
+            entry["turns"] = segments
+            entry["text"] = turn_ops.render_cut_turns(segments)
+        elif stage.name == WALKTHROUGH:
+            wt = await turn_ops.invoke_walkthrough(
+                doc, self._characters(doc), instruction=instruction, draft=draft
+            )
+            entry["setting"] = wt["setting"]
+            entry["turns"] = wt["turns"]
+            entry["text"] = turn_ops.render_walkthrough(wt["setting"], wt["turns"])
         else:
             return False
         return True

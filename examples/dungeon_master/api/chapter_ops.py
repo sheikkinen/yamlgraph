@@ -18,12 +18,8 @@ from where this one left off.
 from __future__ import annotations
 
 from examples.dungeon_master.api import turn_ops
-from examples.dungeon_master.api.graph_app import clean_text, field, get_app
-from examples.dungeon_master.api.tree import (
-    BOOK_GRAPH,
-    CHAPTER_CLOSE_GRAPH,
-    CHAPTER_OUTLINE_GRAPH,
-)
+from examples.dungeon_master.api.graph_app import field, get_app
+from examples.dungeon_master.api.tree import CHAPTER_CLOSE_GRAPH, CHAPTER_OUTLINE_GRAPH
 
 
 async def outline_chapters(doc: dict) -> list[dict]:
@@ -77,53 +73,3 @@ async def close_chapter(doc: dict, cid: str) -> dict:
         "text": recaps,
         "world_state": field(closed, "world_state"),
     }
-
-
-def played_chapters_text(doc: dict) -> str:
-    """The played material the Book composes from: every chapter in order (FR-491 E).
-
-    A pure read over the closed chapter cards — each contributes its title, its
-    played prose (``text``, the woven recaps), and the end-of-chapter
-    ``world_state`` that the next chapter inherited. This is the whole played book
-    laid end to end, the raw material the Book graph renders into one manuscript.
-    Raises rather than composing from nothing when no chapter is played
-    (Commandment 6: no silent fallback) — the Book stage is gated on
-    ``all_chapters_played`` so this is a contract check, not a user path.
-    """
-    chapters = doc.get("chapters", {})
-    cards = chapters.get("cards", {})
-    blocks: list[str] = []
-    for cid in chapters.get("order", []):
-        card = cards.get(cid, {})
-        title = card.get("title", "").strip()
-        prose = (card.get("text") or "").strip()
-        world_state = (card.get("world_state") or "").strip()
-        block = f"## Chapter {cid}: {title}\n\n{prose}"
-        if world_state:
-            block += f"\n\nWORLD STATE AT CHAPTER END:\n{world_state}"
-        blocks.append(block)
-    if not blocks:
-        raise ValueError("compose_book called with no played chapters")
-    return "\n\n".join(blocks)
-
-
-async def compose_book(doc: dict, *, instruction: str = "", draft: str = "") -> str:
-    """Compose the finished manuscript from every played chapter (FR-491 E).
-
-    The single whole-book finish, retiring the three single-scene finishes: where
-    the play loop produced each chapter's prose and forward-carried world_state,
-    this renders them into one continuous book. Runs ``book.yaml`` (plain prose,
-    ``parse_json: false``) over the synopsis + the played chapters, optionally
-    steered by a writer's ``instruction``/``draft``. A pure read; the adapter
-    records the returned text onto the Book card.
-    """
-    result = await get_app(BOOK_GRAPH).ainvoke(
-        {
-            "synopsis": doc.get("synopsis", {}).get("text", ""),
-            "chapters": played_chapters_text(doc),
-            "instruction": instruction,
-            "draft": draft,
-            "book": "",
-        }
-    )
-    return clean_text(result.get("book"))

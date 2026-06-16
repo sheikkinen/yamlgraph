@@ -34,6 +34,17 @@ ESTABLISHING_TEXT = (
     "A flooded valley at dusk; the last dry ledge stands slick above the water."
 )
 
+# FR-491 retires the single-scene finishes: a chapter now dead-ends into the Book
+# (slice 4), so the play → Final Cut / Walkthrough route no longer exists, and the
+# finish composition helpers (which still read the flat ``doc["turns"]`` and call
+# the pre-FR-491 ``turn_intents`` arity) are dead pending slice 4's deletion. The
+# directly-constructed unit tests for the still-pure helpers (final_cut_context,
+# climax_turn, validate_cut_turns) stay green; the routing tests and the helpers
+# coupled to the old turn shape are skipped until slice 4 deletes them.
+_FINISH_RETIRED = pytest.mark.skip(
+    reason="FR-491 slice 4: the single-scene finishes are being retired"
+)
+
 
 def _mock_direction(variables: dict) -> dict:
     """Deterministic director output mirroring the structured turn_direct schema.
@@ -119,13 +130,54 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
         establishing = direction.get("establishing") or ""
         est = f" {establishing}" if establishing else ""
         return f"Turn {turn_n} — {names} collide on the ledge.{est}{tag}"
-    if prompt_name == "book":
-        # The Book composes one manuscript from every played chapter (FR-491 E);
-        # the mock echoes the assembled chapters block so a test can see what
-        # context it received (that it composed from the played chapters, with
-        # their forward-carried world states, not from nothing).
-        chapters = variables.get("chapters") or ""
-        return f"THE BOOK:\n{chapters}"
+    if prompt_name == "final_cut":
+        # The Final Cut composes one scene from the whole arc; the mock echoes the
+        # assembled arc + climax marker so a test can see what context it received.
+        arc = variables.get("arc") or ""
+        climax = variables.get("climax") or ""
+        return f"FINAL CUT ({climax}):\n{arc}"
+    if prompt_name == "final_cut_turns":
+        # The turn-structured cut returns one {n, text} segment per played turn
+        # (FR-485). The mock reads the turn numbers from the assembled arc and
+        # emits one aligned segment each, so the alignment validator sees a 1:1
+        # mapping onto the played turns.
+        arc = variables.get("arc") or ""
+        climax = variables.get("climax") or ""
+        ns = [int(m) for m in re.findall(r"^Turn (\d+)", arc, re.M)]
+        return {
+            "turns": [{"n": n, "text": f"polished turn {n} ({climax})"} for n in ns]
+        }
+    if prompt_name == "staging":
+        # The whole-arc director-staging pass (FR-487): one curtain-up `setting`
+        # plus a per-turn `staging` delta keyed by the played turn numbers. The
+        # mock reads the turn numbers from the assembled arc, so staging aligns
+        # to the played turns exactly like the cut spine.
+        arc = variables.get("arc") or ""
+        ns = [int(m) for m in re.findall(r"^Turn (\d+)", arc, re.M)]
+        return {
+            "setting": "A flooded valley at dusk; the last dry ledge above the water.",
+            "staging": [{"n": n, "text": f"staging delta {n}"} for n in ns],
+        }
+    if prompt_name == "walkthrough":
+        # The per-turn full-text render (FR-487): one playable passage per turn,
+        # composed from the authored layers — the cut spine, the FR-486
+        # performance (dialogue/expression/acted intent), and the staging. The
+        # mock echoes each layer so a test can prove the render composed, not
+        # invented, and that `thinking` never reaches this seam.
+        turn = variables.get("turn") or {}
+        n = turn.get("n")
+        setting = turn.get("setting", "")
+        staging = turn.get("staging", "")
+        cut_text = turn.get("cut_text", "")
+        cast = turn.get("cast") or []
+        played = " ".join(
+            f'{c["name"]} says "{c["dialogue"]}" — {c["expression"]}; {c["intent"]}.'
+            for c in cast
+        )
+        return (
+            f"[setting: {setting}] [staging: {staging}] "
+            f"Turn {n}: {cut_text} {played}".strip()
+        )
     raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
 
@@ -621,6 +673,21 @@ def test_director_card_shows_beat_count(client, tmp_path):
     assert "/ 0" not in resp.text
 
 
+# ── 18. parse_beats reads the BEATS bullets between BEATS: and the next label ─
+
+
+def test_parse_beats_extracts_bullets_between_labels():
+    from examples.dungeon_master.api import turn_ops
+
+    scene = (
+        "SUMMARY: a turn.\nINT/EXT: EXT\nLOCATION: a ledge\n"
+        "BEATS:\n- first beat\n- second beat\nEND:\n- the result\n"
+    )
+    assert turn_ops.parse_beats(scene) == ["first beat", "second beat"]
+    # A card with no BEATS block yields no canonical vocabulary.
+    assert turn_ops.parse_beats("SUMMARY: nothing structured here") == []
+
+
 # ── FR-483: non-roster actors surface as continuity flags (roster-authoritative) ─
 
 
@@ -679,6 +746,284 @@ def test_scene_declared_actor_not_flagged_but_phantom_kept(client, tmp_path):
     # Both non-roster names are kept verbatim — the code never silences a flag.
     assert any("Krog" in f for f in continuity)
     assert any("Zalor" in f for f in continuity)
+
+
+# ── FR-484: post-play Final Cut leaf (de-repeat + elaborate the whole arc) ───
+
+
+def _reach_scene_complete(client, tmp_path, session_id):
+    """Drive a session through play until the director reports ``scene_complete``.
+
+    The default mock flips ``scene_complete`` at turn 3, so the session lands on an
+    auto-drafted turn:3 whose direction completes the scene — the point the Final
+    Cut leaf unlocks (FR-484).
+    """
+    _reach_play(client, tmp_path, session_id)  # turn:1
+    _accept(client, session_id)  # → turn:2
+    return _accept(client, session_id)  # → turn:3 (scene_complete)
+
+
+# ── 22. final_cut_context assembles the WHOLE arc, beats, and a climax marker ─
+
+
+def test_final_cut_context_consumes_whole_arc_and_marks_climax():
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "key_scene": {
+            "text": (
+                "SUMMARY: Kara corners Tarek.\n"
+                "BEATS:\n- Kara corners Tarek on the ledge\n- Tarek yields the claim\n"
+                "END:\n- Kara holds the ledge\n"
+            )
+        },
+        "turns": [
+            {
+                "n": 1,
+                "recap": {"text": "FIRSTFACT the floodwaters rise."},
+                "direction": {"phase": "opening"},
+            },
+            {
+                "n": 2,
+                "recap": {"text": "they grapple on the ledge."},
+                "direction": {"phase": "climax"},
+            },
+            {
+                "n": 3,
+                "recap": {"text": "LASTFACT Tarek yields and Kara holds."},
+                "direction": {"phase": "resolved", "scene_complete": True},
+            },
+        ],
+    }
+    ctx = turn_ops.final_cut_context(doc)
+    # The whole arc is present — a fact from the first turn AND from the last (not
+    # the 3-turn window the live recap writer sees).
+    assert "FIRSTFACT" in ctx["arc"]
+    assert "LASTFACT" in ctx["arc"]
+    # The canonical BEATS travel with the context so the pass knows what matters.
+    assert "Kara corners Tarek on the ledge" in ctx["beats"]
+    assert "Tarek yields the claim" in ctx["beats"]
+    # The climax marker is derived (turn 2 first reached phase "climax").
+    assert ctx["climax"] == "Turn 2"
+    assert "Turn 2" in ctx["arc"]
+
+
+# ── 23. climax_turn derives from the phase sequence, with a defined fallback ──
+
+
+def test_climax_turn_uses_phase_then_scene_complete_fallback():
+    from examples.dungeon_master.api import turn_ops
+
+    # Primary: the first turn whose phase reaches "climax".
+    by_phase = {
+        "turns": [
+            {"n": 1, "direction": {"phase": "opening"}},
+            {"n": 2, "direction": {"phase": "rising"}},
+            {"n": 3, "direction": {"phase": "climax"}},
+        ]
+    }
+    assert turn_ops.climax_turn(by_phase) == 3
+
+    # Fallback: no climax phase recorded → the scene_complete turn.
+    by_complete = {
+        "turns": [
+            {"n": 1, "direction": {"phase": "rising"}},
+            {"n": 2, "direction": {"phase": "rising", "scene_complete": True}},
+        ]
+    }
+    assert turn_ops.climax_turn(by_complete) == 2
+
+    # Last resort: neither marker → the final turn.
+    neither = {"turns": [{"n": 1, "direction": {"phase": "rising"}}]}
+    assert turn_ops.climax_turn(neither) == 1
+
+
+# ── 24. Final Cut is locked until scene_complete, then navigable (J5 unlock) ──
+
+
+@_FINISH_RETIRED
+def test_final_cut_locked_until_scene_complete(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1, scene NOT complete
+    # Locked: not in the breadcrumb and a nav to it is refused.
+    resp = _nav(client, session_id, "final_cut")
+    assert _doc(tmp_path, session_id)["stage"] != "final_cut"
+    assert "Final Cut" not in resp.text
+
+    # Play on to completion → the Final Cut peer appears and is reachable.
+    resp2 = _reach_scene_complete(client, tmp_path, session_id)
+    assert "Final Cut" in resp2.text
+    resp3 = _nav(client, session_id, "final_cut")
+    assert _doc(tmp_path, session_id)["stage"] == "final_cut"
+    assert resp3.status_code == 200
+
+
+# ── 25. The Final Cut is additive: the played turns are left untouched ───────
+
+
+@_FINISH_RETIRED
+def test_final_cut_is_additive_turns_untouched(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # turn:3, scene complete
+    before = _doc(tmp_path, session_id)
+    recaps_before = [t["recap"]["text"] for t in before["turns"]]
+    reviewed_before = [t["recap"]["reviewed"] for t in before["turns"]]
+
+    # Compose the Final Cut (auto-draft on entry) and accept it.
+    _nav(client, session_id, "final_cut")
+    client.post(
+        "/story/synopsis/accept",
+        data={"session_id": session_id, "text": ""},
+    )
+    after = _doc(tmp_path, session_id)
+    # The Final Cut is its own reviewed artifact…
+    assert after["final_cut"]["reviewed"] is True
+    assert after["final_cut"]["text"].strip()
+    # …and every played turn recap is byte-for-byte unchanged and still reviewed.
+    assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
+    assert [t["recap"]["reviewed"] for t in after["turns"]] == reviewed_before
+
+
+# ── 26. Entering the Final Cut auto-drafts a populated, not-yet-reviewed leaf ─
+
+
+@_FINISH_RETIRED
+def test_final_cut_autodrafts_on_entry(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)
+    resp = _nav(client, session_id, "final_cut")
+    doc = _doc(tmp_path, session_id)
+    fc = doc["final_cut"]
+    # Landed on a populated draft, not a blank splash (J5), not yet accepted.
+    assert fc["text"].strip()
+    assert fc["reviewed"] is False
+    # The composed draft is rendered on the page with the generic Accept control.
+    assert "Accept" in resp.text
+
+
+# ── 27. validate_cut_turns: 1:1 alignment, raises on any divergence (FR-485) ──
+
+
+def test_validate_cut_turns_aligns_and_raises_on_divergence():
+    from examples.dungeon_master.api import turn_ops
+
+    played = [{"n": 1}, {"n": 2}, {"n": 3}]
+
+    # Happy path: exactly one segment per played turn, returned in played order.
+    aligned = turn_ops.validate_cut_turns(
+        played,
+        [
+            {"n": 2, "text": "two"},
+            {"n": 1, "text": "one"},
+            {"n": 3, "text": "three"},
+        ],
+    )
+    assert [s["n"] for s in aligned] == [1, 2, 3]
+    assert [s["text"] for s in aligned] == ["one", "two", "three"]
+
+    # A dropped turn is a defect — surfaced, never silently padded.
+    with pytest.raises(ValueError, match="missing"):
+        turn_ops.validate_cut_turns(
+            played, [{"n": 1, "text": "a"}, {"n": 2, "text": "b"}]
+        )
+
+    # A duplicated turn is a defect — never silently re-keyed by position.
+    with pytest.raises(ValueError, match="duplicat"):
+        turn_ops.validate_cut_turns(
+            played,
+            [
+                {"n": 1, "text": "a"},
+                {"n": 1, "text": "a2"},
+                {"n": 2, "text": "b"},
+                {"n": 3, "text": "c"},
+            ],
+        )
+
+    # An invented turn label (4, never played) is a defect.
+    with pytest.raises(ValueError, match="invented"):
+        turn_ops.validate_cut_turns(
+            played,
+            [
+                {"n": 1, "text": "a"},
+                {"n": 2, "text": "b"},
+                {"n": 4, "text": "d"},
+            ],
+        )
+
+
+# ── 28. The turn-structured cut is gated on scene_complete, like Final Cut ────
+
+
+@_FINISH_RETIRED
+def test_final_cut_turns_locked_until_scene_complete(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_play(client, tmp_path, session_id)  # turn:1, scene NOT complete
+    # Locked: not in the breadcrumb and a nav to it is refused.
+    resp = _nav(client, session_id, "final_cut_turns")
+    assert _doc(tmp_path, session_id)["stage"] != "final_cut_turns"
+    assert "Final Cut (Turns)" not in resp.text
+
+    # Play on to completion → the peer appears and is reachable.
+    resp2 = _reach_scene_complete(client, tmp_path, session_id)
+    assert "Final Cut (Turns)" in resp2.text
+    resp3 = _nav(client, session_id, "final_cut_turns")
+    assert _doc(tmp_path, session_id)["stage"] == "final_cut_turns"
+    assert resp3.status_code == 200
+
+
+# ── 29. The cut auto-drafts one polished segment per played turn (aligned) ────
+
+
+@_FINISH_RETIRED
+def test_final_cut_turns_autodrafts_aligned_track(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # 3 played turns
+    _nav(client, session_id, "final_cut_turns")
+    doc = _doc(tmp_path, session_id)
+    fct = doc["final_cut_turns"]
+    # The validated structure: exactly one segment per played turn, contiguous n.
+    assert [s["n"] for s in fct["turns"]] == [1, 2, 3]
+    assert all(s["text"].strip() for s in fct["turns"])
+    # A rendered text view exists for the generic edit control, not yet accepted.
+    assert fct["text"].strip()
+    assert fct["reviewed"] is False
+
+
+# ── 30. Additive: composing the turn-cut leaves recaps AND the FR-484 cut alone ─
+
+
+@_FINISH_RETIRED
+def test_final_cut_turns_is_additive_to_recaps_and_continuous_cut(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)
+
+    # Compose AND accept the FR-484 continuous Final Cut first…
+    _nav(client, session_id, "final_cut")
+    client.post(
+        "/story/synopsis/accept",
+        data={"session_id": session_id, "text": ""},
+    )
+    mid = _doc(tmp_path, session_id)
+    continuous_before = mid["final_cut"]["text"]
+    recaps_before = [t["recap"]["text"] for t in mid["turns"]]
+    reviewed_before = [t["recap"]["reviewed"] for t in mid["turns"]]
+
+    # …then compose and accept the turn-structured cut.
+    _nav(client, session_id, "final_cut_turns")
+    client.post(
+        "/story/synopsis/accept",
+        data={"session_id": session_id, "text": ""},
+    )
+    after = _doc(tmp_path, session_id)
+    # The turn-structured cut is its own reviewed artifact under a distinct key…
+    assert after["final_cut_turns"]["reviewed"] is True
+    assert after["final_cut_turns"]["turns"]
+    # …and it clobbers neither the continuous Final Cut…
+    assert after["final_cut"]["text"] == continuous_before
+    assert after["final_cut"]["reviewed"] is True
+    # …nor any played turn recap (byte-for-byte, still reviewed).
+    assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
+    assert [t["recap"]["reviewed"] for t in after["turns"]] == reviewed_before
 
 
 # ── 31. A turn captures the wider per-character performance bundle (FR-486) ───
@@ -774,6 +1119,218 @@ def test_turn_card_surfaces_dialogue_and_expression(client, tmp_path):
     # DM can read each character's spoken line and visible tell.
     assert "Hold the ledge" in resp.text
     assert "jaw sets" in resp.text
+
+
+# ── FR-487: the full-text walkthrough (the rendered finish) ──────────────────
+
+
+def _reach_cut(client, tmp_path, session_id):
+    """Drive to scene-complete and draft the FR-485 cut spine the walkthrough needs.
+
+    The walkthrough renders the FR-485 ``final_cut_turns`` cut as its structural
+    spine, so it stays locked until that cut is *present* (FR-487 OQ1). Navigating
+    to ``final_cut_turns`` auto-drafts it; this leaves the session with the spine
+    available but the walkthrough not yet composed.
+    """
+    _reach_scene_complete(client, tmp_path, session_id)  # 3 played turns
+    return _nav(client, session_id, "final_cut_turns")  # auto-drafts the cut spine
+
+
+# ── 35. walkthrough_render_inputs composes the authored layers, hides thinking ─
+
+
+@_FINISH_RETIRED
+def test_walkthrough_render_inputs_compose_authored_layers():
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "turns": [
+            {
+                "n": 1,
+                "intents": {
+                    "kara": {
+                        "thinking": "kara reads the ledge",
+                        "intent": "Kara lunges",
+                        "dialogue": "Hold the ledge.",
+                        "expression": "jaw sets",
+                    }
+                },
+                "recap": {"text": "Turn 1 — they collide.", "reviewed": True},
+            },
+            {
+                "n": 2,
+                "intents": {
+                    "kara": {
+                        "thinking": "kara presses",
+                        "intent": "Kara drives forward",
+                        "dialogue": "Yield.",
+                        "expression": "eyes narrow",
+                    }
+                },
+                "recap": {"text": "Turn 2 — she presses.", "reviewed": True},
+            },
+        ],
+        "final_cut_turns": {
+            "turns": [
+                {"n": 1, "text": "polished turn 1"},
+                {"n": 2, "text": "polished turn 2"},
+            ]
+        },
+    }
+    chars = {"roster": ["kara"], "cards": {"kara": {"name": "Kara"}}}
+    setting = "A flooded valley at dusk."
+    staging_by_n = {1: "on the ledge", 2: "water rising"}
+    bundles = turn_ops.walkthrough_render_inputs(doc, chars, setting, staging_by_n)
+
+    # One bundle per played turn, in order, carrying the cut spine + staging.
+    assert [b["n"] for b in bundles] == [1, 2]
+    assert bundles[0]["cut_text"] == "polished turn 1"
+    assert bundles[0]["setting"] == setting
+    assert bundles[0]["staging"] == "on the ledge"
+    # The cast carries the FR-486 outward performance — but NEVER the private
+    # thinking (it is the one layer the page must not render, FR-487 OQ5).
+    card = bundles[0]["cast"][0]
+    assert card == {
+        "name": "Kara",
+        "dialogue": "Hold the ledge.",
+        "expression": "jaw sets",
+        "intent": "Kara lunges",
+    }
+    assert "thinking" not in card
+
+
+# ── 36. The walkthrough is locked until the FR-485 cut spine is present ───────
+
+
+@_FINISH_RETIRED
+def test_walkthrough_locked_until_cut_present(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # scene complete, NO cut yet
+    # Locked: the cut spine the walkthrough renders does not exist yet.
+    resp = _nav(client, session_id, "walkthrough")
+    assert _doc(tmp_path, session_id)["stage"] != "walkthrough"
+    assert "Walkthrough" not in resp.text
+
+    # Draft the FR-485 cut spine → the Walkthrough peer appears and is reachable.
+    _nav(client, session_id, "final_cut_turns")  # auto-drafts the cut
+    resp2 = _nav(client, session_id, "final_cut_turns")
+    assert "Walkthrough" in resp2.text
+    resp3 = _nav(client, session_id, "walkthrough")
+    assert _doc(tmp_path, session_id)["stage"] == "walkthrough"
+    assert resp3.status_code == 200
+
+
+# ── 37. The walkthrough auto-drafts one full-text passage per played turn ─────
+
+
+@_FINISH_RETIRED
+def test_walkthrough_autodrafts_aligned_full_text(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_cut(client, tmp_path, session_id)  # 3 played turns + cut spine
+    _nav(client, session_id, "walkthrough")
+    doc = _doc(tmp_path, session_id)
+    wt = doc["walkthrough"]
+    # A curtain-up setting header plus exactly one passage per played turn.
+    assert wt["setting"].strip()
+    assert [s["n"] for s in wt["turns"]] == [1, 2, 3]
+    assert all(s["text"].strip() for s in wt["turns"])
+    # A rendered text view for the generic edit control, not yet accepted.
+    assert wt["text"].strip()
+    assert wt["reviewed"] is False
+
+
+# ── 38. The full text renders the authored dialogue, expression, and staging ──
+
+
+@_FINISH_RETIRED
+def test_walkthrough_renders_authored_layers(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_cut(client, tmp_path, session_id)
+    resp = _nav(client, session_id, "walkthrough")
+    # The full text contains a character's actual spoken line (FR-486 dialogue),
+    # an expression-derived gesture (FR-486 expression), and the director's
+    # staging cue (FR-487) — every layer authored upstream, none invented.
+    assert "Hold the ledge" in resp.text
+    assert "jaw sets" in resp.text
+    assert "staging delta" in resp.text
+    # The private thinking is never put on the page.
+    assert "reads the ledge" not in resp.text
+    # The map reducer's per-branch bookkeeping must never leak into the prose —
+    # the page shows the rendered passage, not the {_map_index, value} wrapper.
+    assert "_map_index" not in resp.text
+
+
+# ── 39. The walkthrough is additive: every prior artifact stays immutable ─────
+
+
+@_FINISH_RETIRED
+def test_walkthrough_is_additive(client, tmp_path):
+    session_id = _new_session(client)
+    _reach_cut(client, tmp_path, session_id)
+
+    # Compose and accept the FR-484 continuous cut and the FR-485 turn cut first.
+    _nav(client, session_id, "final_cut")
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    _nav(client, session_id, "final_cut_turns")
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    mid = _doc(tmp_path, session_id)
+    continuous_before = mid["final_cut"]["text"]
+    cut_before = [s["text"] for s in mid["final_cut_turns"]["turns"]]
+    recaps_before = [t["recap"]["text"] for t in mid["turns"]]
+    intents_before = [t["intents"] for t in mid["turns"]]
+
+    # Compose and accept the walkthrough.
+    _nav(client, session_id, "walkthrough")
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    after = _doc(tmp_path, session_id)
+    # The walkthrough is its own reviewed artifact…
+    assert after["walkthrough"]["reviewed"] is True
+    assert after["walkthrough"]["turns"]
+    # …and it clobbers neither the two cuts, the recaps, nor the performance.
+    assert after["final_cut"]["text"] == continuous_before
+    assert [s["text"] for s in after["final_cut_turns"]["turns"]] == cut_before
+    assert [t["recap"]["text"] for t in after["turns"]] == recaps_before
+    assert [t["intents"] for t in after["turns"]] == intents_before
+
+
+# ── 40. Accepting the finishes chains Final Cut → Turns → Walkthrough ─────────
+
+
+@_FINISH_RETIRED
+def test_finishes_chain_through_accept_to_walkthrough(client, tmp_path):
+    """Accepting each finish lands on the next, ending on the Walkthrough.
+
+    The three closing artifacts are terminal leaves, but Accept must walk the DM
+    through all of them rather than stranding the page on the first (the reported
+    "Final Cut shown, then the page closed"). The chain also drafts the FR-485 cut
+    spine, so the Walkthrough — which renders it — is reachable without a manual
+    detour through the breadcrumb.
+    """
+    session_id = _new_session(client)
+    _reach_scene_complete(client, tmp_path, session_id)  # → turn:3 (scene complete)
+
+    # Accepting the scene-complete turn lands on the continuous Final Cut.
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    assert _doc(tmp_path, session_id)["stage"] == "final_cut"
+
+    # Accept Final Cut → Final Cut (Turns) (which drafts the cut spine).
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    doc = _doc(tmp_path, session_id)
+    assert doc["stage"] == "final_cut_turns"
+    assert doc["final_cut_turns"]["turns"], "the cut spine must be drafted on entry"
+
+    # Accept Final Cut (Turns) → the Walkthrough, the true terminal leaf.
+    client.post("/story/synopsis/accept", data={"session_id": session_id, "text": ""})
+    doc = _doc(tmp_path, session_id)
+    assert doc["stage"] == "walkthrough"
+    assert doc["walkthrough"]["turns"], "the walkthrough must be drafted on entry"
+
+    # Accepting the Walkthrough stays put — it is the end of the chain.
+    resp = client.post(
+        "/story/synopsis/accept", data={"session_id": session_id, "text": ""}
+    )
+    assert _doc(tmp_path, session_id)["stage"] == "walkthrough"
+    assert resp.status_code == 200
 
 
 # ── 41. A declined (empty) generation surfaces, never silently blanks ─────────
