@@ -2,8 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Draft — awaiting judgement
-**Effort:** ~1 day
+**Status:** Judged — authority **WITHHELD** pending B1–B4 (2026-06-16)
+**Effort:** ~1 day → revised **~1.5 days** (metric harness + grouping rule)
 **Requested:** 2026-06-16
 
 ## Summary
@@ -111,6 +111,94 @@ add the anti-round-robin prose constraint as reinforcement.
       chapter notes — recorded in this FR on enforce.
 - [ ] DM unit suite green; the Final Cut still preserves every canonical beat
       (no beat dropped by the re-keying); a test pins beat-preservation.
+
+## Judgement (2026-06-16) — authority WITHHELD
+
+The root cause is **validated, not asserted**: I confirmed against the code that
+`final_cut_context` (turn_ops.py) feeds the composer a flat `Turn N [phase]:
+recap` list (`arc`) plus a *separate* flat `beats` list, and that `final_cut.yaml`
+*already* carries both "state each standing fact once" and "weight the climax" —
+so the advisory levers the FR says are insufficient are indeed already spent. The
+diagnosis (grid in → grid out) and the FR-503 lesson it invokes are sound, and the
+sequencing (after FR-503/FR-504, both landed) is correct. **But the spec is not
+yet executable.** Four blockers must be closed before authority is granted; the
+cheapest bug is the one killed here.
+
+### B1 — The "deterministic" structural metric is under-specified.
+
+AC3 measures "the fraction of body paragraphs whose **clause-subjects** are the
+full cast in fixed order." Extracting clause subjects from prose is **not
+deterministic** without a parser — the word "deterministic" hides real NLP
+difficulty, and an unpinned metric means *enforce* cannot objectively pass/fail.
+Required before enforce:
+- Define the **exact proxy** computation (e.g. take each body paragraph's leading
+  proper noun restricted to the chapter's reviewed cast; count runs of ≥ k
+  consecutive paragraphs whose leading cast-names cycle through the same fixed
+  order; report `round_robin_paragraph_fraction`). Name it a proxy, not
+  "clause-subjects."
+- Commit the measurement as a small `scripts/`-level pure function **first**, and
+  record the **baseline** on *both* `10005-BC` and the just-generated `10004-BC`
+  before any fix lands.
+- State the target as a **relative drop** (e.g. round-robin-paragraph fraction at
+  least halved vs. baseline), never an absolute number chosen after seeing the
+  result. The witness must not be retrofittable.
+
+### B2 — Connective / zero-beat turns are unaccounted for in beat-keyed grouping.
+
+`beats_satisfied` is **cumulative** per turn (FR-503 ledger): a turn may advance
+zero new beats (pure connective turns) or several at once. "One passage per beat,
+fed the turn recaps grouped under the beat they advanced" silently has no home for
+a turn that advanced **no new beat** — its recap content would be **dropped**,
+violating the composer's own "compose, do not invent **or omit**" law and risking
+lost continuity. Required: specify the grouping rule explicitly (e.g. a turn
+attaches to the latest beat whose first-appearance it triggered; a zero-new-beat
+turn attaches to the most-recently-advanced beat, or an explicit `between-beats`
+bucket rendered as connective tissue) and pin it with the AC1 pure test. No turn's
+recap may be orphaned.
+
+### B3 — Approach (1) attacks the *macro* axis; the named root cause is *micro*.
+
+The reviewer's actual complaint is micro: *every body paragraph opens*
+`Hilde→Gunnar→Reinmar→Oda`. Re-keying 16 turns → 3–6 beat passages changes the
+organizing axis and the **count**, but the recaps grouped **under each beat are
+still round-robin-shaped** — so without more, each of the 3–6 passages still opens
+Hilde→Gunnar→Reinmar→Oda and the reviewer's exact finding survives at lower count.
+By the FR's **own thesis** (structure beats advice), the lever that addresses the
+named cause is collapsing the grid *in the input*. Resolve the tension explicitly:
+the beat-keyed re-key must hand the composer each beat's grouped recaps **with the
+instruction to synthesize them into a single varied passage** (a lightweight
+approach-(2) compression performed *by* the beat grouping), not to concatenate
+per-turn recaps. State plainly that (3)'s anti-round-robin clause is the
+**load-bearing** lever for the metric in B1, and that B1 measures exactly that
+micro pattern. (This also retires the FR's dismissal of approach (2) as merely
+"weaker" — per-beat synthesis *is* the structural input change the root cause
+demands.)
+
+### B4 — The reviewer witness is a *secondary, directional* signal, not a gate.
+
+AC4's hard `engagement > 2.00` gates the FR on a single azure regen scored by a
+noisy LLM oracle — FR-503 moved this metric only `1.83 → 2.00` for an entire plot
+fix, so reviewer variance alone could pass or fail it. Make the **deterministic**
+metric (B1) the **primary** gate; downgrade AC4 to a directional secondary witness:
+"engagement does not regress vs. the 2.00 baseline, and the located
+'nearly-identical paragraphs / parallel construction' findings no longer dominate
+the per-chapter notes," recorded on enforce. Do not block enforce on an LLM score
+crossing a hard threshold.
+
+### Correction (not a blocker)
+
+The Summary's "FR-503 already gives each chapter a finite, ordered `beats` list
+**with which turns satisfied each**" overstates: the ordered beat list exists
+(`chapter_beats`), but the **beat→turns mapping is not assembled** — it must be
+derived as a new pure function from the per-turn cumulative `beats_satisfied`
+(first-appearance diff). AC1 already implies this; state it as an explicit work
+item so the effort estimate is honest.
+
+### Verdict
+
+Diagnosis sound, sequencing correct, scope honest. **Return to Plan:** close
+B1–B4 (and the correction) in this FR, then resubmit for judgement. The path to
+GRANT is short — these are spec sharpenings, not redesigns.
 
 ## Notes / Scope
 
