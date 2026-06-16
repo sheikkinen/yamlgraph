@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — scope frozen (2026-06-16)
 **Effort:** 1 day
 **Requested:** 2026-06-16
 **Replanned:** 2026-06-16 — a new stand-alone **example** (`examples/book_reviewer/`), not a step in any pipeline
@@ -189,34 +189,45 @@ schema:
 # Dimension: {name: str, score: int(1–5), justification: str, issues: list[str]}
 ```
 
-Dimensions (generic book-review craft, with the DM contract that inspired each):
+Dimensions (frozen set — each judges **only** what the manuscript itself supplies;
+see Judgment J3):
 
-| Dimension | Origin |
-|-----------|--------|
-| Synopsis coherence | the parsed `# Synopsis` — chapters deliver the stated outline |
-| Plot/beat completeness | `final_cut.yaml` "preserve every canonical BEAT" |
-| Internal consistency (no contradiction) | `final_cut.yaml` "COMPOSE, do not invent" |
-| Character consistency | the parsed `# Cast` glosses — characters act as introduced |
-| Cross-chapter continuity | no fact contradicted between chapter bodies |
-| Climax & pacing | `final_cut.yaml` "give each beat weight proportionate" |
-| Prose craft | `final_cut.yaml` continuous prose, standing facts stated once |
-| Ending | the final chapter resolves the synopsis' promise |
+| Dimension | Manuscript ground truth |
+|-----------|-------------------------|
+| Synopsis delivery | the parsed `# Synopsis` — do the chapters deliver its outline? |
+| Plot coherence | the chapter bodies — complete arc, no dangling thread |
+| Internal consistency | the chapter bodies — no self-contradiction across the text |
+| Character consistency | the `# Cast` glosses — characters act as introduced and stay themselves |
+| Cross-chapter continuity | adjacent chapter bodies — no fact contradicted chapter to chapter |
+| Pacing & climax | the chapter bodies — proportionate weight, a discernible peak |
+| Prose craft | the prose — continuous narration, standing facts not over-repeated |
+| Ending | the final chapter — does it resolve the synopsis' promise? |
+
+> **Not in scope (J3):** "preserve every canonical BEAT" and "COMPOSE, do not
+> invent" are generation contracts checkable only against the hidden beat list and
+> played arc in `story.json` — which this example deliberately never reads. A
+> manuscript-only reviewer has no ground truth for them, so they are **not** rubric
+> dimensions. They remain distant *inspiration* for "plot coherence" and "internal
+> consistency", not claimed checks.
 
 ### How to run
 
 The example is run through the framework CLI like any other graph, with the
-manuscript path as a variable:
+manuscript path as a variable. A `load_manuscript` Python tool reads the file
+(Layer-3 side effect), then `parse_manuscript` → `lint_manuscript` → the review
+node → a `write_report` tool that writes `review.md` beside the manuscript:
 
 ```bash
 yamlgraph graph run examples/book_reviewer/graph.yaml \
     --var manuscript_path=outputs/dungeon-master/sample-courier/story.md --full
 ```
 
-A thin `--no-llm` mode (or a separate `lint`-only invocation) runs parse + lint
-alone for the cheap regression check. The typed `BookReview` plus the `LintReport`
-are the graph's final state; the example writes a human `review.md` beside the
-manuscript. The example is a **sibling** of `book_translator`/`dungeon_master`,
-sharing no code with the generator beyond YAMLGraph itself.
+The typed `BookReview` and the `LintReport` are the graph's final state (shown by
+`--full`); `review.md` is the human sidecar. The deterministic regression check
+(parse + lint with no LLM) lives in the **unit tests**, which call the pure tools
+directly — there is no `--no-llm` CLI flag (J4). The example is a **sibling** of
+`book_translator`/`dungeon_master`, sharing no code with the generator beyond
+YAMLGraph itself.
 
 ## Acceptance Criteria
 
@@ -237,14 +248,18 @@ sharing no code with the generator beyond YAMLGraph itself.
       prompt/render drift that reintroduces an FR-495/FR-496 leak fails a check (the
       diary Seed, realised).
 - [ ] `prompts/review.yaml` defines an **inline Pydantic schema** (`BookReview`
-      with `overall`, `verdict`, `dimensions[]`); the rubric dimensions are the
-      eight above.
-- [ ] `graph.yaml` runs parse → lint → review and the review node returns the typed
-      `BookReview` over the parsed synopsis + cast + chapter bodies (verified with a
-      **mock-LLM** unit test — no live key).
+      with `overall`, `verdict`, `dimensions[]`); the rubric is the **eight
+      manuscript-grounded dimensions** of the frozen table (J3) — no beat-list or
+      no-invention checks.
+- [ ] `graph.yaml` runs load → parse → lint → review → write_report and the review
+      node returns the typed `BookReview` over the parsed synopsis + cast + chapter
+      bodies (verified with a **mock-LLM** unit test — no live key). A parse that
+      recovers **zero chapters** raises rather than emitting an empty review
+      (Commandment 6).
 - [ ] `yamlgraph graph run examples/book_reviewer/graph.yaml --var manuscript_path=…`
-      produces a `BookReview` and writes a `review.md`; a `--no-llm` (lint-only) mode
-      runs parse + lint alone. A live end-to-end run against the DM
+      produces a `BookReview` and writes a `review.md` beside the manuscript. The
+      deterministic parse + lint regression check lives in the unit tests (no
+      `--no-llm` CLI flag). A live end-to-end run against the DM
       `sample-courier/story.md` is captured to a log.
 - [ ] The example imports **only** YAMLGraph framework code — no
       `dungeon_master`/`session`/`render`/`story_doc` import and no `story.json`
@@ -255,22 +270,12 @@ sharing no code with the generator beyond YAMLGraph itself.
 
 ## Open Question (for the Judge) — gate regime
 
-`examples/dungeon_master/` is exempt from CAP/REQ/CI gates under **FR-474 J3**.
-This FR creates a **new** example *outside* that exemption, so by default
-`book_reviewer` would be subject to the normal regime: a `CAP-XXX` capability file,
-`@pytest.mark.req("REQ-YG-XXX")` on its tests, a changelog fragment, and a diary
-reflection — and `feat`/`fix` commit types would be allowed (and required to
-reference this FR). The Judge should decide one of:
-
-1. **Full regime** — treat `book_reviewer` as a first-class example: add a `CAP`,
-   REQ-tag its tests, write a changelog fragment, use `feat(book-reviewer): FR-497
-   …` commits. (Most consistent with "examples are real"; most ceremony.)
-2. **Extend the J3 exemption** — explicitly fold `book_reviewer` under the same
-   prototype exemption as `dungeon_master` (it shares the sample and the lineage),
-   keeping `docs`/`test`/`refactor`/`chore` commits and no CAP/REQ. (Least ceremony;
-   requires an explicit judgment amending FR-474's scope.)
-
-This is left **open for judgment**, not decided here.
+**Resolved — see Judgment J1 below.** `book_reviewer` follows the `book_translator`
+precedent: a first-class example with **no CAP file and no `@pytest.mark.req`
+markers** (the req-coverage script scopes to the framework's own `tests/`, not
+`examples/`). It is **not** folded under the FR-474 J3 DM exemption (it is not the
+DM prototype), so its commits carry **no** `FR-474 J3` trailer and use honest
+`feat(book-reviewer): FR-497 …` types with a changelog fragment + diary reflection.
 
 ## Alternatives Considered
 
@@ -307,3 +312,63 @@ This is left **open for judgment**, not decided here.
 - FR-494 (full-story render), FR-495 (heading dedupe), FR-496 (cast gloss) — the invariants the lint re-asserts from the manuscript side
 - [docs/diary/diary-2026-06-16-the-sample-that-named-its-own-bugs.md](docs/diary/diary-2026-06-16-the-sample-that-named-its-own-bugs.md) — the **Seed** (golden-sample regression test) this example realises
 - Sample input: `outputs/dungeon-master/sample-courier/story.md` (gitignored; copied into the example as `sample_book.md`)
+
+## Judgment (2026-06-16)
+
+Scope **frozen**. The plan is internally consistent and minimal except for one
+substance error in the rubric, corrected below. Enforce against these rulings.
+
+**J1 — Gate regime: first-class example, no CAP/REQ ceremony.** The premise of the
+"Open Question" was wrong on the facts. The sibling `examples/book_translator/` has
+**no CAP file and no `@pytest.mark.req` markers**, and `scripts/req_coverage.py`
+scopes requirement traceability to the framework's own `tests/`, not `examples/`.
+So neither offered option is the precedent. Ruling: `book_reviewer` is a first-class
+example carrying **no CAP and no REQ markers** (matching every example except the
+self-contained `rtm-hello`, which demos the RTM feature itself). It is **not** the
+DM prototype, so it is **not** under the FR-474 J3 exemption and its commits carry
+**no** `FR-474 J3` trailer. Commits use honest `feat(book-reviewer): FR-497 …`
+types accompanied by a `changelog/unreleased/` fragment and a diary reflection
+(the FR-179 / diary gates apply to the *commit type*, not the directory). This
+keeps the example "real" without inventing a capability for a demo.
+
+**J2 — Manuscript in, sidecar out, via tools (no bespoke script).** The graph is
+pure YAML orchestration over Layer-3 tools: `load_manuscript` (reads the `.md`
+path; if a directory, looks for `story.md` inside) → `parse_manuscript` →
+`lint_manuscript` → review node → `write_report` (writes `review.md` beside the
+manuscript). No `scripts/` wrapper. `BookReview` + `LintReport` are the final
+state; `--full` shows them.
+
+**J3 — Rubric must only claim what the manuscript supplies (substance fix).** Two
+proposed dimensions — "Plot/beat completeness" (`preserve every canonical BEAT`)
+and "Internal consistency" (`COMPOSE, do not invent`) — claimed to verify
+generation contracts whose ground truth lives **only in `story.json`** (the hidden
+beat list and the played arc), which this example deliberately never reads. A
+manuscript-only reviewer has **no ground truth** for "every canonical beat" or "did
+not invent". Asserting them is the FR-496-J1 error class: a check the inputs cannot
+support, producing a plausible-but-baseless score. The frozen dimension table now
+judges **only** manuscript-recoverable properties (synopsis delivery, plot
+*coherence*, *internal* consistency, character consistency, cross-chapter
+continuity, pacing & climax, prose craft, ending). The dropped contracts survive as
+distant inspiration, not claimed checks.
+
+**J4 — No `--no-llm` CLI flag.** `yamlgraph graph run` has no such flag and inventing
+one is out of scope (speculative interface — Purge). The deterministic parse + lint
+regression check — the realised diary Seed — lives where a regression gate belongs:
+the **unit tests**, calling the pure tools directly. The live graph always runs the
+full parse → lint → review.
+
+**J5 — Lint is advisory; empty review is forbidden.** Lint never gates the review
+(linear graph, issues reported alongside). But a parse recovering **zero chapters**
+must **raise**, not emit an empty `BookReview` (Commandment 6 — no plausible-wrong
+fallback). A hand-written manuscript missing a tagline/synopsis/cast degrades
+gracefully (those fields parse empty); only zero chapters is fatal.
+
+**J6 — `leaked-label` keeps a configurable, explicit label set.** Endorsed as
+planned — no generic `^[A-Z]+:` stripper (`regex_fourth_exclusion`), and the
+line-walker parse stays until a fourth section shape actually appears.
+
+**Authority granted** to implement under these six rulings. TDD: RED tests for
+`parse_manuscript`, `lint_manuscript` (including the deliberately-defective
+fixtures and the golden-sample `ok is True`), and the mock-LLM review graph, before
+GREEN. The live end-to-end run is captured to a log; the example ships with a
+changelog fragment and a diary reflection.
