@@ -48,6 +48,12 @@ async def outline_chapters(doc: dict) -> list[dict]:
 async def close_chapter(doc: dict, cid: str) -> dict:
     """Close played chapter ``cid``: derive its end-of-chapter ``{text, world_state}``.
 
+    The adapter-facing entry to the **Scene lifecycle** (FR-493 J5, hosted in
+    :mod:`turn_ops`): the terminal step that derives ``world_state_out`` + final
+    text once a chapter's scene completes. Invoked from
+    :func:`doc_ops.apply_chapter_close`; stays here (not in ``turn_ops``) as the
+    chapter-level seam, distinct from the write-wrapper that records its result.
+
     The forward-carry seam (FR-491 G2/B, preserving FR-488 J7 through play): a
     chapter is no longer expanded from its summary in one shot — it is PLAYED, and
     when its scene completes this derives two artifacts. ``world_state`` runs

@@ -134,6 +134,30 @@ def chapter_scene_complete(doc: dict, cid: str) -> bool:
     )
 
 
+# ── Scene lifecycle (FR-493 J5) ──────────────────────────────────────────────
+#
+# The chapter-play phase, named as one unit. It answers the reader's question
+# "how does a planned chapter become final text?" with a single contract:
+#
+#     {plan, cast, world_state_in} → play turns (map → director → recap)
+#                                  → {final_text, world_state_out}
+#
+# The four load-bearing functions below run in that order:
+#
+#   running_scene     build the play context — this chapter's plan + the
+#                     inherited world_state + its own prior recaps (the START).
+#   invoke_turn       play ONE turn: map → director → recap, re-rolled together.
+#   final_cut_context assemble the finished arc — beats, climax, recaps.
+#   invoke_final_cut  compose the chapter's final prose from that arc.
+#
+# The fifth function, ``chapter_ops.close_chapter``, is the adapter-facing entry
+# that derives ``world_state_out`` + final text by calling ``invoke_final_cut``;
+# it stays in ``chapter_ops`` (it is invoked from ``doc_ops.apply_chapter_close``)
+# but belongs to this same lifecycle. The two generative seams the live witness
+# exists to prove — chapter completion judged from the summary, and world_state
+# threaded across chapters — both live here.
+
+
 def running_scene(doc: dict, cid: str, n: int) -> str:
     """Chapter ``cid``'s play context for turn ``n`` (FR-491): its own plan + history.
 
