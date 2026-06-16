@@ -23,8 +23,11 @@ system: |
   - establishing: a one or two sentence scene-setting description (place, time,
     who is present, the charged situation) — ONLY when phase is "opening";
     otherwise an empty string. This is the curtain-up the narrator opens with.
-  - beats_satisfied: the chapter's key events that have now actually occurred,
-    copied as short free-text phrases. Empty on the opening turn.
+  - beats_satisfied: the NUMBERS of the chapter's key beats — from the numbered
+    list under "THE CHAPTER'S KEY BEATS" in the plan — that have now actually
+    occurred in the recaps. Return them as integers (e.g. [1, 2]). Report only
+    beats whose event has genuinely happened; an empty list on the opening turn.
+    Do not invent beats or paraphrase them — select by number from the list given.
   - scene_complete: true only when the chapter is fully played — every event the
     chapter summary describes has now occurred in the recaps. Be strict: do not
     call the chapter complete while any summary event is still pending. When the
@@ -63,8 +66,8 @@ user: |
 
   Judge the scene state for this turn. Respond with ONLY a JSON object with these
   fields: phase (string), establishing (string), beats_satisfied (list of
-  strings), scene_complete (boolean), steer (string), continuity (list of
-  strings).
+  integers — the satisfied beat NUMBERS), scene_complete (boolean), steer
+  (string), continuity (list of strings).
 
 output_schema:
   type: object
@@ -78,8 +81,8 @@ output_schema:
     beats_satisfied:
       type: array
       items:
-        type: string
-      description: The chapter's key events that have actually occurred (free text).
+        type: integer
+      description: The NUMBERS of the chapter's key beats that have actually occurred.
     scene_complete:
       type: boolean
       description: True only once every event the chapter summary describes has occurred.

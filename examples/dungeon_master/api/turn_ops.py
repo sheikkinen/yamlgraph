@@ -29,6 +29,16 @@ def chapter_turns(doc: dict, cid: str) -> list[dict]:
     return _chapter_card(doc, cid).get("turns") or []
 
 
+def chapter_beat_list(doc: dict, cid: str) -> list[str]:
+    """Chapter ``cid``'s enumerated key-event beats (FR-503; empty if none).
+
+    The finite contract the director selects from and the play loop drives toward.
+    Empty for a chapter outlined before FR-503 (or a malformed outline), which
+    routes the ledger through the FR-491 free-text fallback.
+    """
+    return list(_chapter_card(doc, cid).get("beats") or [])
+
+
 def turn_record(doc: dict, cid: str, n: int) -> dict:
     """Chapter ``cid``'s ``turns[n-1]`` record ``{n, intents, recap}`` (created if absent).
 
@@ -222,6 +232,40 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
         f"{start}\n\n"
         "WHAT HAS HAPPENED SO FAR IN THIS CHAPTER:\n"
         f"{so_far}"
+        f"{_beats_block(doc, cid, n)}"
+    )
+
+
+def _beats_block(doc: dict, cid: str, n: int) -> str:
+    """The chapter's finite beat ledger as scene context (FR-503; empty if none).
+
+    Surfaces the enumerated beats as a 1-based numbered list (so the director can
+    return the numbers it judges satisfied) and a separate "beats still to portray"
+    block — the forward pull both the characters and the director read, derived
+    from the prior turn's cumulative satisfied set. Empty for a chapter with no
+    enumerated beats, leaving the pre-FR-503 scene unchanged.
+    """
+    beats = chapter_beat_list(doc, cid)
+    if not beats:
+        return ""
+    satisfied = set(turn_direction(doc, cid, n - 1).get("beats_satisfied") or [])
+    numbered = "\n".join(f"{i + 1}. {b}" for i, b in enumerate(beats))
+    pending = [b for b in beats if b not in satisfied]
+    if pending:
+        pending_lines = "\n".join(f"- {b}" for b in pending)
+        pending_block = (
+            "\n\nBEATS STILL TO PORTRAY — drive toward the FIRST of these next; do "
+            "not skip past it, and do not replay a beat already portrayed:\n"
+            f"{pending_lines}"
+        )
+    else:
+        pending_block = (
+            "\n\nBEATS STILL TO PORTRAY — none remain; every key beat has been "
+            "portrayed. Bring the chapter to its close rather than prolonging it."
+        )
+    return (
+        "\n\nTHE CHAPTER'S KEY BEATS (numbered) — the finite events this chapter "
+        f"must portray, in order:\n{numbered}{pending_block}"
     )
 
 
@@ -276,8 +320,7 @@ async def invoke_turn(
     }
     direction = _direction_dict(result.get("direction"))
     prior = turn_direction(doc, cid, n - 1)
-    _clamp_phase(direction, prior)
-    _canonicalize_beats(direction, prior)
+    _apply_beat_ledger(direction, chapter_beat_list(doc, cid), prior)
     record["direction"] = direction
     return clean_text(result.get("recap"))
 
@@ -320,6 +363,89 @@ def _canonicalize_beats(direction: dict, prior: dict) -> None:
             merged.append(b)
     direction["beats_satisfied"] = merged
     direction["beats_total"] = 0
+
+
+def _phase_for_count(satisfied: int, total: int) -> str:
+    """Map a satisfied-beat count to the arc phase (FR-503 J3 truth table).
+
+    ``opening`` at zero, ``resolved`` only once every beat is satisfied, ``climax``
+    on the final beat, ``rising`` while partway. Because the satisfied set is
+    accumulated monotonically (``_apply_beat_ledger`` unions with the prior turn),
+    the computed phase is monotonic by construction — subsuming the FR-481 clamp.
+    """
+    if total >= 1 and satisfied >= total:
+        return "resolved"
+    if satisfied <= 0:
+        return "opening"
+    if satisfied >= total - 1:
+        return "climax"
+    return "rising"
+
+
+def _satisfied_indices(raw: object, beats: list[str]) -> set[int]:
+    """Parse the director's satisfied-beat selection into 0-based indices (FR-503).
+
+    The scene presents the beats as a 1-based numbered list, so the director
+    returns those numbers; this maps them to 0-based indices, ignoring anything
+    out of range or unparseable (boundary: trust no provider's type). A model that
+    echoes the beat TEXT instead of its number still resolves via a match against
+    the enumerated list, so a disobedient provider does not silently drop a beat.
+    """
+    n = len(beats)
+    lowered = [b.lower() for b in beats]
+    out: set[int] = set()
+    for v in raw or []:
+        if isinstance(v, bool):
+            continue
+        if isinstance(v, int):
+            i = v - 1
+            if 0 <= i < n:
+                out.add(i)
+            continue
+        s = str(v).strip()
+        if not s:
+            continue
+        token = s.lstrip("Bb#").strip()
+        if token.isdigit():
+            i = int(token) - 1
+            if 0 <= i < n:
+                out.add(i)
+            continue
+        sl = s.lower()
+        for i, b in enumerate(lowered):
+            if sl == b or sl in b or b in sl:
+                out.add(i)
+                break
+    return out
+
+
+def _apply_beat_ledger(direction: dict, beats: list[str], prior: dict) -> None:
+    """Resolve satisfied-beat indices to text, accumulate, and compute phase (FR-503).
+
+    The director selects from a finite, enumerated beat list rather than inventing
+    free-text phrases, so the satisfied set is bounded and ``beats_satisfied`` can
+    no longer inflate past ``len(beats)``. The returned indices are unioned with
+    the prior turn's satisfied set (cumulative), resolved back to canonical beat
+    TEXT so every downstream consumer reads the same ``list[str]`` shape (J1), and
+    ``phase`` / ``scene_complete`` are COMPUTED from k / N (J3) — the rails are
+    code, the model judges only WHICH enumerated beats are now true. When the
+    chapter carries no enumerated beats (``N == 0``) the FR-491 free-text path is
+    kept as the fallback (never a divide-by-zero).
+    """
+    n = len(beats)
+    if n == 0:
+        _clamp_phase(direction, prior)
+        _canonicalize_beats(direction, prior)
+        return
+    cur = _satisfied_indices(direction.get("beats_satisfied"), beats)
+    prior_text = (prior or {}).get("beats_satisfied") or []
+    prior_idx = {beats.index(t) for t in prior_text if t in beats}
+    satisfied = sorted(prior_idx | cur)
+    k = len(satisfied)
+    direction["beats_satisfied"] = [beats[i] for i in satisfied]
+    direction["beats_total"] = n
+    direction["phase"] = _phase_for_count(k, n)
+    direction["scene_complete"] = k == n
 
 
 def _direction_dict(raw: object) -> dict:

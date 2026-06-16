@@ -149,6 +149,7 @@ async def expand_chapters(doc: dict, story_dir: Path) -> None:
         chs["cards"][cid] = {
             "title": chunk.get("title") or f"Chapter {cid}",
             "summary": chunk.get("summary", ""),
+            "beats": list(chunk.get("beats") or []),
             "text": "",
             "world_state": "",
             "reviewed": False,

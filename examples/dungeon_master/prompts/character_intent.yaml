@@ -27,8 +27,11 @@ system: |
   is already true as the chapter opens). Act from the CURRENT moment (on turn 1
   that is the starting state, before anyone has acted) and attempt only the single
   next thing your character would do right now. Never assume the chapter's events
-  have already occurred or that a later event is done. Let the chapter plan and
-  your last intent inform the choice, but decide fresh for this turn.
+  have already occurred or that a later event is done. The plan also lists the
+  chapter's KEY BEATS and which remain "STILL TO PORTRAY"; drive THIS move toward
+  the FIRST beat still to portray — do not skip past it, and do not stall by
+  repeating a beat already portrayed. Let the chapter plan and your last intent
+  inform the choice, but decide fresh for this turn.
 
 user: |
   You are **{{ char.name }}**.

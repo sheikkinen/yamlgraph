@@ -45,6 +45,20 @@ def _clean_chapter_title(title: str) -> str:
     return _LEADING_CHAPTER_LABEL.sub("", title or "").strip()
 
 
+def _beat_list(item: object) -> list[str]:
+    """The ordered key-event beats from an outline entry (FR-503; ``[]`` if absent).
+
+    The director selects satisfied beats by number from this finite list, so the
+    phrases are kept verbatim (not coerced through ``field``, which flattens to a
+    single string). Blank entries are dropped; a missing/non-list ``beats`` yields
+    an empty list, which routes the chapter through the FR-491 free-text fallback.
+    """
+    raw = item.get("beats") if isinstance(item, dict) else getattr(item, "beats", None)
+    if not isinstance(raw, list):
+        return []
+    return [str(b).strip() for b in raw if str(b).strip()]
+
+
 async def outline_chapters(doc: dict) -> list[dict]:
     """Split the accepted synopsis into an ordered list of ``{title, summary}``.
 
@@ -60,7 +74,11 @@ async def outline_chapters(doc: dict) -> list[dict]:
     outline = result.get("outline") or {}
     raw = outline.get("chapters") if isinstance(outline, dict) else None
     chapters = [
-        {"title": field(item, "title"), "summary": field(item, "summary")}
+        {
+            "title": field(item, "title"),
+            "summary": field(item, "summary"),
+            "beats": _beat_list(item),
+        }
         for item in (raw or [])
     ]
     if not chapters:
