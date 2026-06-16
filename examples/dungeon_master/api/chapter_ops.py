@@ -76,3 +76,33 @@ async def close_chapter(doc: dict, cid: str) -> dict:
         "text": text,
         "world_state": field(closed, "world_state"),
     }
+
+
+def compose_book_deterministic(doc: dict) -> str:
+    """Assemble the played chapters into one reader manuscript — pure, no LLM.
+
+    The book seam (FR-492 Phase 3): a deterministic read over the chapters'
+    already-final texts, so the model is off the path to a *first* book —
+    composition is free, reproducible, and never empty when a chapter is played.
+    Walks ``chapters.order`` and heads each PLAYED chapter (one whose per-chapter
+    Final Cut produced a non-empty ``text``) as ``# Chapter {n}: {title}``
+    followed by its beat-faithful prose; sections are joined by a blank line. The
+    number ``n`` is the chapter's position in ``order`` so it stays stable when an
+    earlier chapter is not yet played. The forward-carry ``world_state`` ledger is
+    plumbing for the next chapter's play, not manuscript, so it never appears.
+    Raises rather than returning "" when no chapter has been played (Commandment
+    6: no silent fallback). LLM voice/continuity passes are a later revision seam
+    (FR-492 Phase 4), not this first composition.
+    """
+    chapters = doc.get("chapters", {})
+    cards = chapters.get("cards", {})
+    sections: list[str] = []
+    for n, cid in enumerate(chapters.get("order", []), start=1):
+        card = cards.get(cid, {})
+        text = (card.get("text") or "").strip()
+        if not text:
+            continue
+        sections.append(f"# Chapter {n}: {card.get('title', '')}\n\n{text}")
+    if not sections:
+        raise ValueError("book composition has no played chapter")
+    return "\n\n".join(sections)
