@@ -136,6 +136,29 @@ def chapter_scene_complete(doc: dict, cid: str) -> bool:
     )
 
 
+# A chapter's only natural exit is its director emitting ``scene_complete``. A
+# director that never resolves (observed live: a diffusion provider stuck in the
+# "rising" phase for 91 turns) would consume the entire book turn_cap on a single
+# chapter. This per-chapter turn budget is the deterministic backstop that bounds
+# any provider: a chapter force-closes once it has played this many turns without
+# resolving. Generous above the natural chapter length (~6 turns observed) so it
+# rarely triggers on a well-behaved director, yet caps a runaway (FR-501).
+CHAPTER_TURN_CAP = 16
+
+
+def chapter_should_close(doc: dict, cid: str, n: int) -> bool:
+    """Whether chapter ``cid`` should close after its turn ``n`` (FR-501).
+
+    True when the director reported ``scene_complete`` for the turn, OR the chapter
+    has played its full per-chapter turn budget (``CHAPTER_TURN_CAP``) without ever
+    resolving — the safety valve that stops a director which never declares the
+    scene complete from running the chapter away with the whole book budget.
+    """
+    if turn_direction(doc, cid, n).get("scene_complete"):
+        return True
+    return n >= CHAPTER_TURN_CAP
+
+
 # ── Scene lifecycle (FR-493 J5) ──────────────────────────────────────────────
 #
 # The chapter-play phase, named as one unit. It answers the reader's question

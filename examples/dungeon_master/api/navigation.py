@@ -126,14 +126,15 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
         return f"{TURN_PREFIX}{cid}:1"
     if stage.name.startswith(TURN_PREFIX):
         cid, n = parse_turn(stage.name)
-        # Once the director reports the chapter's scene complete, stop advancing
-        # turns (FR-479 J5): the adapter closes the chapter (deriving its
-        # end-of-chapter world_state and its beat-faithful final text via the
-        # per-chapter Final Cut, FR-492) and play moves to the NEXT chapter's
-        # first turn, carrying that ledger forward (FR-491). The last chapter
-        # dead-ends — the deterministic Book compose is the whole-book finish
-        # (FR-492 Phase 3), not a navigable leaf.
-        if turn_ops.turn_direction(doc, cid, n).get("scene_complete"):
+        # Once the director reports the chapter's scene complete — or the chapter
+        # exhausts its per-chapter turn budget (FR-501) — stop advancing turns
+        # (FR-479 J5): the adapter closes the chapter (deriving its end-of-chapter
+        # world_state and its beat-faithful final text via the per-chapter Final
+        # Cut, FR-492) and play moves to the NEXT chapter's first turn, carrying
+        # that ledger forward (FR-491). The last chapter dead-ends — the
+        # deterministic Book compose is the whole-book finish (FR-492 Phase 3), not
+        # a navigable leaf.
+        if turn_ops.chapter_should_close(doc, cid, n):
             order = _chapter_order(doc)
             if cid in order:
                 i = order.index(cid)

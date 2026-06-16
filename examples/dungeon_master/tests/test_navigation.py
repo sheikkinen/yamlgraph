@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import copy
 
-from examples.dungeon_master.api import navigation
-from examples.dungeon_master.api.tree import STAGE_BY_NAME
+from examples.dungeon_master.api import navigation, turn_ops
+from examples.dungeon_master.api.tree import STAGE_BY_NAME, resolve_stage
 
 
 def _cast_doc() -> dict:
@@ -189,3 +189,79 @@ def test_navigation_never_mutates_doc():
     navigation.accept_target(doc, STAGE_BY_NAME["synopsis"])
     assert doc == before
     assert "characters" not in doc  # no phantom sub-doc seeded
+
+
+# ── FR-501: per-chapter turn budget (the runaway-chapter safety valve) ────────
+#
+# The play loop's only exit for a chapter is the director emitting
+# ``scene_complete``. A director that never resolves (observed live: a diffusion
+# provider stuck in "rising" for 91 turns) would otherwise consume the whole book
+# turn_cap on one chapter. ``chapter_should_close`` adds a deterministic backstop
+# so every chapter — under any provider — closes within its own budget.
+
+
+def _played_turns(n: int, *, scene_complete_at: int | None = None) -> list[dict]:
+    """``n`` played turn records; ``scene_complete`` set only at ``scene_complete_at``."""
+    return [
+        {
+            "n": i,
+            "recap": {"text": f"Turn {i}", "reviewed": True},
+            "direction": {"scene_complete": i == scene_complete_at},
+        }
+        for i in range(1, n + 1)
+    ]
+
+
+def _playing_doc(turns: list[dict]) -> dict:
+    """A two-chapter doc whose chapter 1 has the given played turns."""
+    return {
+        "synopsis": {"text": "s", "reviewed": True},
+        "chapters": {
+            "reviewed": False,
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "One",
+                    "summary": "a",
+                    "reviewed": False,
+                    "turns": turns,
+                },
+                "2": {"title": "Two", "summary": "b", "reviewed": False},
+            },
+        },
+    }
+
+
+def test_chapter_should_close_on_scene_complete():
+    doc = _playing_doc(_played_turns(3, scene_complete_at=3))
+    assert turn_ops.chapter_should_close(doc, "1", 3) is True
+
+
+def test_chapter_should_close_at_turn_budget_without_scene_complete():
+    # The runaway case: no turn ever reported scene_complete, but the chapter has
+    # spent its full per-chapter budget — the backstop forces closure.
+    cap = turn_ops.CHAPTER_TURN_CAP
+    doc = _playing_doc(_played_turns(cap))
+    assert turn_ops.chapter_should_close(doc, "1", cap) is True
+
+
+def test_chapter_should_not_close_below_budget_without_scene_complete():
+    cap = turn_ops.CHAPTER_TURN_CAP
+    doc = _playing_doc(_played_turns(cap - 1))
+    assert turn_ops.chapter_should_close(doc, "1", cap - 1) is False
+
+
+def test_accept_target_force_closes_chapter_at_budget():
+    # At the per-chapter cap with no scene_complete, landing advances to the NEXT
+    # chapter's first turn (force-close), not turn cap+1 in the same chapter.
+    cap = turn_ops.CHAPTER_TURN_CAP
+    doc = _playing_doc(_played_turns(cap))
+    stage = resolve_stage(doc, f"turn:1:{cap}")
+    assert navigation.accept_target(doc, stage) == "turn:2:1"
+
+
+def test_accept_target_keeps_advancing_below_budget():
+    cap = turn_ops.CHAPTER_TURN_CAP
+    doc = _playing_doc(_played_turns(cap - 1))
+    stage = resolve_stage(doc, f"turn:1:{cap - 1}")
+    assert navigation.accept_target(doc, stage) == f"turn:1:{cap}"

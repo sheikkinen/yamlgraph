@@ -290,11 +290,14 @@ class DMSession:
                 await doc_ops.expand_chapters(doc, story_dir)
             elif stage.kind == "turn":
                 # Accepting a turn whose director reported the chapter's scene
-                # complete closes the chapter (FR-491 B): derive its end-of-chapter
-                # world_state from the inherited ledger + the played recaps, so the
-                # NEXT chapter is played from where this one left off (J7).
+                # complete — or whose chapter exhausted its per-chapter turn budget
+                # (FR-501) — closes the chapter (FR-491 B): derive its
+                # end-of-chapter world_state from the inherited ledger + the played
+                # recaps, so the NEXT chapter is played from where this one left off
+                # (J7). The budget backstop stops a director that never resolves
+                # from running the chapter away with the whole book turn_cap.
                 cid, n = parse_turn(stage.name)
-                if turn_ops.turn_direction(doc, cid, n).get("scene_complete"):
+                if turn_ops.chapter_should_close(doc, cid, n):
                     await doc_ops.apply_chapter_close(doc, story_dir, cid)
             target = navigation.accept_target(doc, stage)
             if target is not None:
