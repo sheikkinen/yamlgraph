@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor + small feature)
-**Status:** Judged — scope frozen (2026-06-16)
+**Status:** Implemented (2026-06-16)
 **Effort:** 1 day
 **Requested:** 2026-06-16
 **Regime:** FR-474 J3 (DM prototype) — no CAP/REQ/CI-gates/changelog; diary required.
@@ -154,35 +154,35 @@ the drive loop and the `doc["chapters"]["cards"]…` walk.
 
 ## Acceptance Criteria
 
-- [ ] `render_story_markdown(doc)` exists, is **pure** (no LLM, no I/O), and
+- [x] `render_story_markdown(doc)` exists, is **pure** (no LLM, no I/O), and
       renders the tagline (blockquote lead, **no invented title** — J1) +
       `# Synopsis` + optional `# Cast` + the Book body, where the Book body is
       `compose_book_deterministic(doc)` reused verbatim and all top-level
       sections sit at H1 (J1).
-- [ ] `render_story_markdown` lets the `compose_book_deterministic` raise
+- [x] `render_story_markdown` lets the `compose_book_deterministic` raise
       propagate when no chapter is played (J3 — no second guard, no `""`), and
       never emits the `world_state` ledger.
-- [ ] Each cast line is `**name** — <first \n\n-split paragraph of the card
+- [x] Each cast line is `**name** — <first \n\n-split paragraph of the card
       text>`; a character with empty card text is omitted, and the whole `# Cast`
       section is omitted when the roster is empty (J2). Deterministic, no LLM.
-- [ ] A deterministic unit test renders a fixture doc and asserts the front
+- [x] A deterministic unit test renders a fixture doc and asserts the front
       matter + chapter headings + the absence of `world_state` (no live LLM).
-- [ ] `generate_story(premise, *, story_root, session_id, turn_cap)` exists,
+- [x] `generate_story(premise, *, story_root, session_id, turn_cap)` exists,
       drives synopsis → cast → play → Book gate **through the adapter only**, and
       uses `tree.all_chapters_played` as its stop condition (no duplicated
       per-turn `scene_complete` walk).
-- [ ] `generate_story` raises when the Book gate does not open within `turn_cap`
+- [x] `generate_story` raises when the Book gate does not open within `turn_cap`
       (no partial doc returned — J5).
-- [ ] A CLI entry point — `PYTHONPATH="$PWD" python
+- [x] A CLI entry point — `PYTHONPATH="$PWD" python
       examples/dungeon_master/scripts/generate.py --premise … --out …` (direct
       script path, not `-m`; `load_dotenv()` inside `main()` — J4) — writes both
       `story.json` and `story.md` to the `--out` dir. No new `__init__.py`.
-- [ ] `witness_book_compose.py` calls `generate_story` and contains **no**
+- [x] `witness_book_compose.py` calls `generate_story` and contains **no**
       `doc["chapters"]["cards"]…` drive-loop walk; it keeps its substance asserts
       and `sys.exit(1)`-on-FAIL (J5).
-- [ ] Docs updated: architecture module map gains a `render.py` row and names the
+- [x] Docs updated: architecture module map gains a `render.py` row and names the
       generator; README mentions the stand-alone generation command.
-- [ ] Diary reflection + **Seed**.
+- [x] Diary reflection + **Seed**.
 
 ## Alternatives Considered
 
