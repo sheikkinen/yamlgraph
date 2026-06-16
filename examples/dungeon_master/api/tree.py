@@ -105,6 +105,20 @@ STAGES: tuple[Stage, ...] = (
         kind="chapters",
         output_key="outline",
     ),
+    Stage(
+        # The Book (FR-492 Phase 3): the terminal leaf. Not graph-backed — its
+        # first render is the deterministic compose over the played chapters'
+        # final texts (``chapter_ops.compose_book_deterministic``), so ``graph``
+        # is empty and ``seed`` is empty (never auto-drafted, never an LLM call).
+        # ``kind="book"`` routes session._view to the compose and the UI to the
+        # plain stage card. Reachability is gated on ``all_chapters_played``, not
+        # the ordinary parent-reviewed rule, so it carries no static ``parent``.
+        "book",
+        "The Book",
+        "",
+        context=("chapters",),
+        kind="book",
+    ),
 )
 STAGE_BY_NAME = {s.name: s for s in STAGES}
 FIRST_STAGE = STAGES[0]
@@ -221,6 +235,20 @@ def cast_complete(doc: dict) -> bool:
     return bool(roster) and all(cards.get(cid, {}).get("reviewed") for cid in roster)
 
 
+def all_chapters_played(doc: dict) -> bool:
+    """Whether every chapter has been played to its reviewed end (FR-492 Phase 3).
+
+    The Book gate: the chapter order is non-empty AND every chapter card is
+    reviewed (played to its director-judged end, its beat-faithful final ``text``
+    composed by ``close_chapter``). The terminal Book leaf — the deterministic
+    whole-book compose — unlocks only here.
+    """
+    chapters = doc.get("chapters", {})
+    order = chapters.get("order", [])
+    cards = chapters.get("cards", {})
+    return bool(order) and all(cards.get(cid, {}).get("reviewed") for cid in order)
+
+
 def breadcrumb(doc: dict) -> list[dict]:
     """The breadcrumb control model (FR-475): Story / Synopsis / branch peers.
 
@@ -329,4 +357,17 @@ def breadcrumb(doc: dict) -> list[dict]:
     # place, its turns listed under the chapter crumb above. The finish is no
     # longer a navigable terminal leaf either (FR-492): each chapter's final text
     # is composed by ``close_chapter``, and the whole-book compose is deterministic.
+    # The terminal leaf is now The Book (FR-492 Phase 3): a peer after Characters
+    # that unlocks only once every chapter is played, and renders the
+    # deterministic compose of the played chapters' final texts.
+    if all_chapters_played(doc):
+        crumbs.append(
+            {
+                "label": "The Book",
+                "stage": "book",
+                "current": current == "book",
+                "reviewed": False,
+                "group": True,
+            }
+        )
     return crumbs

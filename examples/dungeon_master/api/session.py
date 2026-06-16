@@ -212,6 +212,7 @@ class DMSession:
         summary = ""
         world_state = ""
         chapters: list[dict] = []
+        text = entry.get("text", "")
         if stage.kind == "turn":
             cid, n = parse_turn(stage.name)
             intents = turn_ops.turn_intents(doc, self._characters(doc), cid, n)
@@ -233,10 +234,15 @@ class DMSession:
                 }
                 for cid in ch["order"]
             ]
+        elif stage.kind == "book":
+            # The terminal manuscript (FR-492 Phase 3): a deterministic compose
+            # over the played chapters' final texts — no graph, no LLM. Reachable
+            # only when every chapter is played, so the compose never raises here.
+            text = chapter_ops.compose_book_deterministic(doc)
         return StageView(
             stage=stage.name,
             label=stage.label,
-            text=entry.get("text", ""),
+            text=text,
             reviewed=bool(entry.get("reviewed")),
             tagline=doc.get("tagline", DEFAULT_TAGLINE),
             crumbs=breadcrumb(doc),

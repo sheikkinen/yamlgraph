@@ -21,6 +21,7 @@ from examples.dungeon_master.api.tree import (
     STAGE_BY_NAME,
     TURN_PREFIX,
     Stage,
+    all_chapters_played,
     cast_complete,
     parse_turn,
 )
@@ -72,6 +73,10 @@ def can_visit(doc: dict, target: str) -> bool:
         if not cid or cid not in _chapter_order(doc):
             return False
         return 1 <= n <= len(turn_ops.chapter_turns(doc, cid)) + 1
+    if target == "book":
+        # The terminal Book leaf (FR-492 Phase 3): unlocks only once every chapter
+        # is played, not by the ordinary parent-reviewed rule.
+        return all_chapters_played(doc)
     stage = STAGE_BY_NAME.get(target)
     if stage is None or stage.kind == "roster":
         # Unknown stage, or the non-visitable Characters group.
