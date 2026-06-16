@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor)
-**Status:** Judged — scope frozen (2026-06-16)
+**Status:** Implemented (2026-06-16) — session.py 508 → 333 lines; doc_ops.py extracted; Scene lifecycle banner added; 76 tests pass.
 **Effort:** 1 day
 **Requested:** 2026-06-16
 **Regime:** FR-474 J3 (DM prototype) — no CAP/REQ/CI-gates/changelog; diary required.
@@ -104,21 +104,21 @@ adapter-facing entry but its docstring cross-references the Scene lifecycle.)
 
 ## Acceptance Criteria
 
-- [ ] `session.py` is **< 400 lines** (`wc -l`) — target, not just the 450 max
+- [x] `session.py` is **< 400 lines** (`wc -l`) — target, not just the 450 max
       (J1) — with the nine-function closed set moved to `doc_ops.py`.
-- [ ] `doc_ops.py` (J2) contains module-level `entry`, `characters`, `chapters`,
+- [x] `doc_ops.py` (J2) contains module-level `entry`, `characters`, `chapters`,
       `invoke_stage`, `expand_roster`, `expand_chapters`, `apply_chapter_close`
       (J3), `compose_stage` (J3), `autodraft` (J3); each a pure `(doc, …)`
       function, no `self`; `session.py` delegates to them.
-- [ ] No `doc_ops.close_chapter` (J3): the moved write-wrapper is
+- [x] No `doc_ops.close_chapter` (J3): the moved write-wrapper is
       `apply_chapter_close`, distinct from `chapter_ops.close_chapter`.
-- [ ] `test_session_module_under_size_gate` added (J4): RED at 507, GREEN after,
+- [x] `test_session_module_under_size_gate` added (J4): RED at 507, GREEN after,
       committed RED (`SKIP=pytest`) then GREEN, separately.
-- [ ] `test_expand_chapters_is_idempotent` call site updated to
+- [x] `test_expand_chapters_is_idempotent` call site updated to
       `doc_ops.expand_chapters` (J4) — the only test touching a moved private.
-- [ ] The five Scene-lifecycle functions in `turn_ops` are grouped under a named
+- [x] The five Scene-lifecycle functions in `turn_ops` are grouped under a named
       banner with a phase-contract docstring (J5); **no function moves modules**.
-- [ ] **No behaviour change**: `pytest examples/dungeon_master/tests/ --no-cov`
+- [x] **No behaviour change**: `pytest examples/dungeon_master/tests/ --no-cov`
       passes unchanged — same count, same assertions (only the two J4 edits).
 - [ ] `ruff check` + `ruff format` clean; `lint-imports` clean (no new
       cross-layer import); `noqa_coverage --strict` clean.

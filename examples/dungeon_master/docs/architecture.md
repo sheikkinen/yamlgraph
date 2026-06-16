@@ -22,7 +22,7 @@ YAMLGraph's strict separation holds throughout the app:
 | **Presentation** | `api/app.py`, `api/routes/synopsis.py`, `api/templates/` | FastAPI routes, HTMX `#app-body` swaps, the session id, all rendering |
 | **Logic (YAML)** | `*.yaml` graphs + `prompts/*.yaml` | One self-contained graph per stage; all LLM calls and structured outputs |
 | **Side effects** | `api/story_doc.py`, `api/graph_app.py` | Per-session `story.json` read/write; the compiled-graph cache |
-| **Adapter** | `api/session.py`, `api/tree.py`, `api/navigation.py`, `api/turn_ops.py`, `api/chapter_ops.py` | Glue HTTP ↔ graph ↔ doc; the stage tree, breadcrumb, pure navigation, and the structured side-channels |
+| **Adapter** | `api/session.py`, `api/doc_ops.py`, `api/tree.py`, `api/navigation.py`, `api/turn_ops.py`, `api/chapter_ops.py` | Glue HTTP ↔ graph ↔ doc; the stage tree, breadcrumb, pure navigation, and the structured side-channels |
 
 ### Module map
 
@@ -30,11 +30,12 @@ YAMLGraph's strict separation holds throughout the app:
 |--------|------|
 | `app.py` | FastAPI app; `GET /` lands on the seeded synopsis card, sets `x-session-id`. |
 | `routes/synopsis.py` | The four stage-agnostic endpoints (below); renders `#app-body`. |
-| `session.py` | `DMSession` — `weave` / `edit` / `accept` / `navigate`, `StageView`, roster + chapter expansion, the per-chapter close, the `_compose_special` dispatch. |
+| `session.py` | `DMSession` — `weave` / `edit` / `accept` / `navigate`, `StageView`, and the `_view` projection. The adapter's HTTP-facing surface; delegates the derived-doc work to `doc_ops`. |
+| `doc_ops.py` | Derived operations over the loaded `doc` (FR-493): the doc accessors (`entry`, `characters`, `chapters`), the single stage-graph `invoke_stage`, and the side-effecting expansions (`expand_roster`, `expand_chapters`, `apply_chapter_close`, `compose_stage`, `autodraft`). Nine pure `(doc, …)` functions, no `self`; imports nothing from `session` (acyclic). |
 | `tree.py` | `STAGES`, `Stage`, `resolve_stage`, `breadcrumb`, and the gate predicates (`cast_complete`, `all_chapters_played`). Pure. |
 | `navigation.py` | Pure reachability (`can_visit`) and landing (`accept_target`, `next_unreviewed_char`). Reads the doc; never mutates or invokes a graph. |
-| `turn_ops.py` | The play loop (chapter-scoped): turn invocation, the per-character intent side-channel, the director post-processing (phase clamp, beat canonicalisation), and the per-chapter `running_scene` that threads the inherited `world_state`. |
-| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the `world_state` forward-carry + the per-chapter Final Cut final text), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
+| `turn_ops.py` | The **Scene lifecycle** (FR-493 J5) — `{plan, world_state_in} → play turns → {final_text, world_state_out}`: `running_scene` (threads the inherited `world_state`), `invoke_turn` (map → director → recap), `final_cut_context`, `invoke_final_cut`; plus the per-character intent side-channel and director post-processing (phase clamp, beat canonicalisation). |
+| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the Scene-lifecycle entry — the `world_state` forward-carry + the per-chapter Final Cut final text), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
 | `story_doc.py` | Per-session `story.json` read/write. |
 | `graph_app.py` | Compiled-graph cache (`get_app`) + output normalisers (`clean_text`, `field`). Dependency-free to avoid import cycles. |
 
