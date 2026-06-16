@@ -2,8 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Judged — authority **WITHHELD** pending B1–B4 (2026-06-16)
-**Effort:** ~1 day → revised **~1.5 days** (metric harness + grouping rule)
+**Status:** Redrafted — B1–B4 resolved; awaiting re-judgement (2026-06-16)
+**Effort:** ~1.5 days (metric harness + beat grouping + per-beat synthesis)
 **Requested:** 2026-06-16
 
 ## Summary
@@ -49,12 +49,14 @@ grounded in the text. The defect it names is real and is in the Final Cut prose.
 Each *turn* of the play loop emits exactly one intent per character, and the
 turn's `recap` is itself a fixed-cast-order round-robin (FR-486: every reviewed
 character acts every turn). `final_cut_context` (turn_ops.py, FR-492) feeds the
-Final Cut **every played turn recap in order** as `arc`. The
-`final_cut.yaml` prompt *already* instructs the composer to "STATE EACH STANDING
-FACT ONCE" and let "the turn boundaries dissolve into one flowing scene" — but
-the model, handed N recaps that are each a `Hilde→Gunnar→Reinmar→Oda` quadruple,
-**reproduces that quadruple N times.** The advisory instruction is not enough:
-the input shape is a grid, and the composer transcribes the grid.
+Final Cut **every played turn recap in order** as `arc`, plus a *separate* flat
+`beats` list (the ordered beat TEXT from `chapter_beats`) — but **no beat→turns
+mapping**; that must be derived (see Proposed Solution §1). The `final_cut.yaml`
+prompt *already* instructs the composer to "STATE EACH STANDING FACT ONCE" and let
+"the turn boundaries dissolve into one flowing scene" — but the model, handed N
+recaps that are each a `Hilde→Gunnar→Reinmar→Oda` quadruple, **reproduces that
+quadruple N times.** The advisory instruction is not enough: the input shape is a
+grid, and the composer transcribes the grid.
 
 This is the **same lesson FR-503 taught one layer up** (Scripture:
 `composition_bug`, "the bottleneck that moved"): an advisory prompt instruction
@@ -62,55 +64,114 @@ This is the **same lesson FR-503 taught one layer up** (Scripture:
 pressure. FR-503 fixed it with a *computed* anchor (the finite beat ledger); the
 Final Cut needs an equivalent *structural* lever, not a stronger adjective.
 
-## Proposed Solution (candidate approaches — Judge to select)
+## Proposed Solution
 
 The goal: Final Cut prose where (a) each standing fact is stated once, (b) the
-fixed cast round-robin is broken — characters drop out of paragraphs, actions
-merge, sentence subjects vary — and (c) the climax carries disproportionate
-weight. Three candidate levers, in increasing structural strength:
+fixed-cast round-robin is broken — sentence subjects vary, inactive characters
+drop out of a passage, actions merge — and (c) the climax carries disproportionate
+weight. The judgement (B3) established that the *macro* re-key alone leaves the
+*micro* round-robin intact, so the chosen path is **structural input change +
+per-beat synthesis + advisory reinforcement**, applied together:
 
-1. **Beat-keyed composition (recommended).** FR-503 already gives each chapter a
-   finite, ordered `beats` list with which turns satisfied each. Re-key the Final
-   Cut from *one paragraph per turn* to *one passage per beat*: feed the composer
-   the beats as the spine, and the turn recaps grouped under the beat they
-   advanced, with the climax beat marked. The prose is then organized by *what
-   happened* (3–6 beats), not by *the turn grid* (16 round-robins). This reuses
-   the FR-503 ledger as the de-gridding structure — the same "compute the rails"
-   doctrine, applied to prose layout.
+### 1. Derive the beat→turns grouping (new pure function)
 
-2. **Recap pre-compression.** Insert a pure or LLM step that collapses the
-   per-turn round-robin recaps into a smaller set of varied event beats *before*
-   the Final Cut sees them, so the composer never receives the grid. Weaker than
-   (1) because it adds a stage rather than reusing existing structure.
+The FR-503 ledger records, per turn, the **cumulative** `beats_satisfied` (beat
+TEXT). It does **not** already carry a beat→turns map — that must be computed.
+Add a pure function in `turn_ops.py` (e.g. `beat_turn_groups(doc, cid)`) that:
 
-3. **Prompt-only hardening.** Strengthen `final_cut.yaml` with an explicit
-   anti-round-robin constraint ("do NOT open every paragraph with the same
-   character; vary the sentence subject; let characters who did nothing
-   significant drop out of a paragraph entirely"). Cheapest, but it is the
-   *advisory* lever FR-503 proved insufficient — likely necessary but not
-   sufficient on its own; pair it with (1).
+- walks the chapter's turns in order, diffing each turn's cumulative
+  `beats_satisfied` against the prior turn's to find the **beats first satisfied
+  on this turn** (first-appearance diff);
+- assigns each turn to the beat(s) it first advanced; **a turn that advances no
+  new beat (connective/zero-beat turn) attaches to the most-recently-advanced
+  beat** so its recap is never orphaned (resolves B2 — "compose, do not omit");
+- returns an **ordered** list of `{beat, turns: [recaps], is_climax}` groups
+  covering **every** turn exactly once (a pure test asserts the partition is total
+  and order-preserving).
 
-The recommended path is **(1) + (3)**: re-key composition to the beat spine and
-add the anti-round-robin prose constraint as reinforcement.
+The climax beat is the group containing `climax_turn(doc, cid)`.
+
+### 2. Re-key the Final Cut to one *synthesized passage* per beat (B3)
+
+`final_cut_context` feeds the composer the **beat groups** as the spine — not the
+flat `Turn N: recap` grid. Crucially, each group's per-turn recaps are handed to
+the composer **to be synthesized into a single varied passage**, not concatenated:
+the prompt directs "for each beat, compose ONE passage from its turns — do not
+write one paragraph per turn." This performs the approach-(2) compression *through*
+the beat grouping (the structural input change the root cause demands), so the
+composer never receives the N× quadruple it was transcribing. The climax beat is
+marked for disproportionate weight (preserving the existing FR-492 instruction).
+
+### 3. Add the anti-round-robin constraint to `final_cut.yaml` (the B1 lever)
+
+The existing prompt already says "state each fact once" and "weight the climax";
+those are spent. Add the **load-bearing** micro constraint that the B1 metric
+measures: "Do NOT open consecutive passages — or consecutive sentences — with the
+same character in the same fixed order. Vary the sentence subject. Let a character
+who did nothing significant in a beat drop out of that passage entirely." This is
+the advisory reinforcement of the structural change in (2), and it targets exactly
+the pattern the structural metric (B1) counts.
+
+> **Why all three, not (1) alone:** per the FR's own thesis (structure beats
+> advice), (1)+(2) collapse the grid in the *input* so the composer cannot mirror
+> it; (3) names the residual micro pattern the metric scores. (1) alone changes
+> only the passage *count*, leaving each passage round-robin-shaped (B3).
 
 ## Acceptance Criteria
 
-- [ ] Final Cut composition is organized by the chapter's finite beats (FR-503),
-      not one paragraph per turn; a pure test pins the beat→turns grouping handed
-      to the composer.
-- [ ] `final_cut.yaml` carries an explicit anti-round-robin constraint (vary the
-      sentence subject; do not open consecutive paragraphs with the same
-      character; let inactive characters drop out of a paragraph).
-- [ ] **Structural witness (deterministic):** a regenerated Floodmark book on
-      **azure** shows the round-robin rate drop — e.g. the fraction of body
-      paragraphs whose clause-subjects are the full cast in fixed order falls
-      below a stated threshold (measure on the 10005-BC baseline first to set it).
-- [ ] **Reviewer witness (live):** the `book_reviewer` engagement mean rises above
-      the 10005-BC baseline of `2.00`, and the located "nearly identical
-      paragraphs / parallel construction" findings no longer dominate the per-
-      chapter notes — recorded in this FR on enforce.
-- [ ] DM unit suite green; the Final Cut still preserves every canonical beat
-      (no beat dropped by the re-keying); a test pins beat-preservation.
+**Primary (deterministic) gate — must pass to enforce:**
+
+- [ ] **A1 — Beat grouping is total and ordered.** A pure test pins
+      `beat_turn_groups(doc, cid)`: every chapter turn appears in exactly one
+      group, groups are beat-order-preserving, zero-new-beat turns attach to the
+      most-recently-advanced beat, and the climax group is flagged. No turn recap
+      is orphaned (B2).
+- [ ] **A2 — The round-robin proxy metric exists and is pinned.** Commit a pure
+      function (e.g. `scripts/round_robin_metric.py` or under the example) that,
+      given a chapter's prose, computes `round_robin_paragraph_fraction`: split on
+      blank-line paragraphs; for each paragraph take the **leading proper noun
+      restricted to the chapter's reviewed cast** (the first cast name to appear);
+      find maximal runs of ≥ 3 consecutive paragraphs whose leading cast-names
+      cycle through the same fixed order; report `covered_paragraphs / body_
+      paragraphs`. It is a **named proxy**, not a clause-subject parser. A unit
+      test pins it on a hand-built round-robin sample (≈ 1.0) and a varied sample
+      (≈ 0.0).
+- [ ] **A3 — Baseline recorded before any fix.** Run A2 on the existing
+      `10005-BC` **and** `10004-BC` books and record both fractions **in this FR**
+      before the composition change lands. The target is a **relative drop**: the
+      mean `round_robin_paragraph_fraction` on a post-fix azure regen is **at
+      least halved** vs. the pre-fix baseline mean. No absolute threshold chosen
+      after seeing results (B1).
+- [ ] **A4 — Beat preservation.** Every canonical beat (`chapter_beats`) is still
+      recognisable in the re-keyed cut — the re-keying drops no beat; a test pins
+      that each beat group contributes to the composed prose.
+- [ ] **A5 — DM unit suite green.**
+
+**Secondary (directional) witness — recorded, does not gate (B4):**
+
+- [ ] **A6 — Reviewer does not regress.** On the post-fix azure regen, the
+      `book_reviewer` engagement mean **does not fall below** the `10005-BC`
+      baseline of `2.00`, and the located "nearly-identical paragraphs / parallel
+      construction" findings **no longer dominate** the per-chapter notes.
+      Recorded in this FR on enforce as a directional signal — enforce is **not**
+      blocked on an LLM score crossing a hard threshold.
+
+## Judgement response (2026-06-16) — B1–B4 resolved
+
+- **B1 (metric under-specified)** → A2 defines the exact `round_robin_paragraph_
+  fraction` proxy (leading cast-name, runs ≥ 3, fixed-order cycle), names it a
+  proxy not a parser, commits it as a pure function **first**, and A3 fixes the
+  target as a **relative halving** vs. a baseline recorded before the fix.
+- **B2 (orphaned connective turns)** → Solution §1 + A1: zero-new-beat turns
+  attach to the most-recently-advanced beat; the partition is total and tested.
+- **B3 (macro vs. micro)** → Solution §2–§3: each beat group is **synthesized into
+  one varied passage** (input-level grid collapse), and the anti-round-robin
+  clause is the load-bearing micro lever that A2 measures — not a count change
+  alone. Approach (2) is no longer "weaker"; per-beat synthesis *is* it.
+- **B4 (reviewer as gate)** → A2–A4 are the **primary deterministic gate**; the
+  reviewer (A6) is a **directional, non-blocking** witness.
+- **Correction (overstated mapping)** → Solution §1 now states plainly the
+  beat→turns map is **derived** by a new pure function, not pre-existing.
 
 ## Judgement (2026-06-16) — authority WITHHELD
 
