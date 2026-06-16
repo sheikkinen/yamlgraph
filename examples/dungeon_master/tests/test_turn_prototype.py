@@ -92,7 +92,19 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
     if prompt_name == "chapter_close":
         prev = variables.get("previous_world_state") or "none"
         return {
-            "world_state": f"WS@{variables.get('index', '?')} (prev={prev})",
+            "world_state": {
+                "characters": [
+                    {
+                        "name": "Kara",
+                        "faction": "Aschenwulf",
+                        "status": "alive",
+                        "location": "the ledge",
+                        "inventory": ["flint spear"],
+                    },
+                ],
+                "objects": [],
+                "facts": [f"WS@{variables.get('index', '?')} (prev={prev})"],
+            },
         }
     if draft.strip():
         return f"[refined: {instruction}] {draft}"
@@ -403,7 +415,7 @@ def test_scene_complete_stops_advance_and_surfaces(client, tmp_path):
     assert len(_turns(doc2, "1")) == 3
     ch1 = doc2["chapters"]["cards"]["1"]
     assert ch1["reviewed"] is True
-    assert ch1["world_state"].strip()
+    assert ch1["world_state"]["characters"]
 
 
 # ── 11. A non-roster name acting raises a continuity flag, surfaced not steered ─

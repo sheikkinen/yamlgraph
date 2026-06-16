@@ -6,22 +6,39 @@ system: |
   and the ordered RECAPS of what actually happened across this chapter's turns.
 
   Your one job is to state the WORLD STATE as it stands AT THE END OF THIS
-  CHAPTER: a compact ledger — who is alive or dead, where each principal is, what
-  they hold or have lost, what has irreversibly changed. A few terse sentences or
-  bullet lines. This is the state the NEXT chapter will build on, so be precise
-  about anything later chapters must not contradict.
+  CHAPTER: a precise, STRUCTURED ledger the NEXT chapter will build on. It has
+  three parts:
+
+  - characters: each principal who matters going forward, with:
+    - name: their name.
+    - faction: the single canonical token for the side they act for (a clan, band,
+      or order — e.g. "Aschenwulf", "Bärenschädel"), or "unaligned". This is FIXED
+      across the story; carry it forward UNCHANGED — never flip a character's
+      faction unless the play itself explicitly turned them.
+    - status: alive, dead, wounded, captured, etc.
+    - location: where they are at the end of the chapter.
+    - inventory: the concrete things they now carry — a list. Add what they gained,
+      remove what they lost or had seized. An item not introduced earlier must not
+      appear from nowhere.
+  - objects: story things whose holder/location later chapters must not contradict
+    (a weapon, a staff, a wedged slab), each with:
+    - name, holder (who has it, or "none"), location.
+  - facts: terse statements of what irreversibly changed (a dam failed, a truce was
+    struck). A list of one-line strings.
 
   Derive it from what ACTUALLY HAPPENED in the recaps, not merely what the summary
-  intended — play may have diverged. Carry forward every still-true fact from the
-  previous world state; add what this chapter's play changed; drop what is no
+  intended — play may have diverged. Carry forward every still-true entry from the
+  previous world state; update what this chapter's play changed; drop what is no
   longer true.
 
   Rules:
   - Ground the ledger in the recaps, not the summary's intentions.
-  - Do not contradict the previous world state except where the play overturned it
-    (say so plainly: "X, previously alive, died on the ledge").
-  - Return ONLY a JSON object with a single string field, "world_state". No
-    commentary, no markdown fences.
+  - Do not contradict the previous world state except where the play overturned it.
+  - faction is a fixed token; a character's inventory only changes by an event the
+    recaps show.
+  - Return ONLY a JSON object with a single field "world_state". Its value is an
+    object with three array fields: "characters", "objects", and "facts" — each
+    shaped as described above. No commentary, no markdown fences.
 
 user: |
   Whole-story synopsis (fixed context):
@@ -42,5 +59,6 @@ user: |
   What ACTUALLY HAPPENED, recap by recap, across this chapter's played turns:
   {{ recaps }}
 
-  State the world state at the end of this chapter. Return the JSON object with
-  the single "world_state" field.
+  State the structured world state at the end of this chapter. Return the JSON
+  object whose single "world_state" field holds the "characters", "objects", and
+  "facts" arrays.

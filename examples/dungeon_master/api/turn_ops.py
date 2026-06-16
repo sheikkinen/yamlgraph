@@ -16,6 +16,7 @@ from examples.dungeon_master.api.tree import (
     FINAL_CUT_GRAPH,
     TURN_GRAPH,
 )
+from examples.dungeon_master.api.world_state import format_world_state
 
 
 def _chapter_card(doc: dict, cid: str) -> dict:
@@ -98,22 +99,23 @@ def prior_intents(doc: dict, cid: str, n: int) -> dict:
     return {char_id: v.get("intent", "") for char_id, v in prev.items()}
 
 
-def inherited_world_state(doc: dict, cid: str) -> str:
-    """The world_state chapter ``cid`` inherits — the PREVIOUS chapter's ledger.
+def inherited_world_state(doc: dict, cid: str) -> dict:
+    """The structured world_state chapter ``cid`` inherits — the PREVIOUS ledger.
 
     The load-bearing forward-carry (FR-488 J7, preserved through play): each
-    chapter is played from where the last one left off. Empty for the first
-    chapter, or when the chapter id is not in the derived order.
+    chapter is played from where the last one left off. The carried value is the
+    typed ledger (FR-499A) the previous chapter closed with. Empty (``{}``) for the
+    first chapter, or when the chapter id is not in the derived order.
     """
     chapters = doc.get("chapters", {})
     order = chapters.get("order", [])
     cards = chapters.get("cards", {})
     if cid not in order:
-        return ""
+        return {}
     i = order.index(cid)
     if i == 0:
-        return ""
-    return cards.get(order[i - 1], {}).get("world_state", "") or ""
+        return {}
+    return cards.get(order[i - 1], {}).get("world_state", {}) or {}
 
 
 def chapter_recaps_text(doc: dict, cid: str) -> str:
@@ -171,7 +173,7 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
     card = _chapter_card(doc, cid)
     title = card.get("title") or f"Chapter {cid}"
     summary = card.get("summary", "")
-    inherited = inherited_world_state(doc, cid).strip()
+    inherited = format_world_state(inherited_world_state(doc, cid)).strip()
     start = inherited or (
         "This is the opening chapter — there is no prior world state. Establish "
         "the world from the synopsis and this chapter's summary."

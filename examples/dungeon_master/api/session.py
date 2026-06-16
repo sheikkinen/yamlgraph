@@ -55,6 +55,7 @@ from examples.dungeon_master.api.tree import (
     parse_turn,
     resolve_stage,
 )
+from examples.dungeon_master.api.world_state import format_world_state
 
 logger = logging.getLogger(__name__)
 
@@ -164,9 +165,10 @@ class DMSession:
             intents = turn_ops.turn_intents(doc, doc_ops.characters(doc), cid, n)
             direction = turn_ops.turn_direction(doc, cid, n)
         elif stage.kind == "chapter":
-            # Surface the card's planning context above its prose (FR-490).
+            # Surface the card's planning context above its prose (FR-490). The
+            # forward-carry ledger is structured (FR-499A) — render it to text.
             summary = entry.get("summary", "")
-            world_state = entry.get("world_state", "")
+            world_state = format_world_state(entry.get("world_state", {}))
         elif stage.kind == "chapters":
             # Project the ordered chapter set as a read-only table of contents.
             ch = doc_ops.chapters(doc)

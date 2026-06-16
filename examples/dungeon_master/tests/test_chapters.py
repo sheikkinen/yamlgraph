@@ -47,10 +47,14 @@ def _capturing_mock(captured: list[dict]):
         if prompt_name == "chapter_close":
             captured.append(dict(variables))
             return {
-                "world_state": (
-                    f"WS@{variables.get('index', '?')} "
-                    f"(prev={variables.get('previous_world_state') or 'none'})"
-                ),
+                "world_state": {
+                    "characters": [],
+                    "objects": [],
+                    "facts": [
+                        f"WS@{variables.get('index', '?')} "
+                        f"(prev={variables.get('previous_world_state') or 'none'})"
+                    ],
+                },
             }
         if prompt_name == "final_cut":
             # The per-chapter finish (FR-492): compose the chapter's final text
@@ -88,7 +92,11 @@ def _doc_with_chapters() -> dict:
                     "title": "Chapter 1 — The Water Rises",
                     "summary": "Kara musters the band.",
                     "text": "Chapter 1 full text.",
-                    "world_state": "WS1-CARRIED-FORWARD",
+                    "world_state": {
+                        "characters": [],
+                        "objects": [],
+                        "facts": ["WS1-CARRIED-FORWARD: the band reached the ledge."],
+                    },
                     "reviewed": True,
                 },
                 "2": {
@@ -164,7 +172,11 @@ def test_chapter_two_play_sees_chapter_one_world_state_not_its_turns():
                 "1": {
                     "title": "Chapter 1 — The Water Rises",
                     "summary": "Kara musters the band.",
-                    "world_state": "WS1-AFTER-CHAPTER-ONE",
+                    "world_state": {
+                        "characters": [],
+                        "objects": [],
+                        "facts": ["WS1-AFTER-CHAPTER-ONE: the band holds the ledge."],
+                    },
                     "turns": [
                         {"n": 1, "recap": {"text": "CH1-TURN-RECAP private to ch 1."}}
                     ],
@@ -317,7 +329,11 @@ def _view_doc_with_chapters() -> dict:
                     "title": "Chapter 1 — The Water Rises",
                     "summary": "Kara musters the band.",
                     "text": "Chapter 1 full text.",
-                    "world_state": "WS1-CARRIED-FORWARD",
+                    "world_state": {
+                        "characters": [],
+                        "objects": [],
+                        "facts": ["WS1-CARRIED-FORWARD: the band reached the ledge."],
+                    },
                     "reviewed": True,
                 },
                 "2": {
@@ -346,7 +362,7 @@ def test_view_populates_summary_and_world_state_for_chapter_card():
     # The card's summary (what this chapter is) and inherited world_state (the
     # J7 forward-carry) are surfaced on the view, above the prose.
     assert view.summary == "Kara musters the band."
-    assert view.world_state == "WS1-CARRIED-FORWARD"
+    assert "WS1-CARRIED-FORWARD" in view.world_state
 
 
 def test_view_populates_chapters_list_for_overview():

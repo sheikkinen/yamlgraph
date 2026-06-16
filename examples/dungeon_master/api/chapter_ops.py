@@ -22,6 +22,10 @@ import re
 from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.graph_app import field, get_app
 from examples.dungeon_master.api.tree import CHAPTER_CLOSE_GRAPH, CHAPTER_OUTLINE_GRAPH
+from examples.dungeon_master.api.world_state import (
+    format_world_state,
+    parse_world_state,
+)
 
 # FR-495: the LLM-authored chapter title tends to self-assert its own ordinal
 # ("Chapter 1 — …", "Chapter 2:", "Ch. 3 -"). The composer's positional ``n`` is
@@ -90,7 +94,9 @@ async def close_chapter(doc: dict, cid: str) -> dict:
             "synopsis": doc.get("synopsis", {}).get("text", ""),
             "summary": card.get("summary", ""),
             "index": cid,
-            "previous_world_state": turn_ops.inherited_world_state(doc, cid),
+            "previous_world_state": format_world_state(
+                turn_ops.inherited_world_state(doc, cid)
+            ),
             "recaps": recaps,
             "chapter_close": {},
         }
@@ -99,7 +105,7 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     text = await turn_ops.invoke_final_cut(doc, cid)
     return {
         "text": text,
-        "world_state": field(closed, "world_state"),
+        "world_state": parse_world_state(closed.get("world_state")),
     }
 
 
