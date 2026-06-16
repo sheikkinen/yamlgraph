@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Enforcing — code GREEN (120 DM tests), live witness pending (2026-06-16)
+**Status:** Enforced — code GREEN (120 DM tests), J4 live witness PASS (2026-06-16)
 **Effort:** ~1 day
 **Requested:** 2026-06-16
 
@@ -34,6 +34,32 @@ len(beats)`, so `chapter_beats`/`final_cut_context`/`director_card.html` are
 untouched. The `N == 0` fallback keeps every pre-FR-503 test green (mock outlines
 carry no beats), including the FR-481 `_clamp_phase` and FR-491 `beats_total == 0`
 tests. `_clamp_phase` removal is deferred to FR-504.
+
+## J4 live witness (2026-06-16) — PASS
+
+Floodmark regen on **azure** (`aaa-gpt-5.4-mini`), same premise, `10005-BC`,
+scored by `examples/book_reviewer` (anthropic `claude-haiku-4-5`). Baseline =
+`10004-BC` (pre-FR-503 azure, 4/6 capped, engagement 1.83).
+
+| Metric | Baseline 10004-BC | Witness 10005-BC | Target | Result |
+|---|---|---|---|---|
+| FR-501 cap firing | 4 / 6 (67% majority) | **2 / 8 (25% minority)** | minority | ✓ PASS |
+| Engagement mean | 1.83 | **2.00** | > 1.83 | ✓ PASS |
+| Chapters `resolved` naturally | 2 | **6 of 8** | — | ✓ |
+| Every chapter carries beats | (n/a) | **8/8, 4–6 each** | non-empty | ✓ |
+
+Per-chapter (10005-BC): ch1–6 all `resolved` / `scene_complete=True` with full
+beats (4/4, 6/6, 5/5, 5/5, 5/5, 6/6); ch7 capped (16 turns, `rising`, 4/6); ch8
+capped (16 turns, `rising`, 3/6). Both acceptance criteria met: the cap is a
+minority backstop again and engagement rose above baseline.
+
+**Independent prose audit (the bottleneck moved).** Reading `10005-BC/story.md`
+directly confirmed the `book_reviewer` findings are *accurate, not hallucinated*:
+the surviving 2/5 overall + 1/5 continuity now condemns **Final Cut prose**
+repetition (every paragraph transcribes the turn grid one-to-one — `Hilde →
+Gunnar → Reinmar → Oda`, one clause each, repeated ~6× per chapter), not the
+phase stall FR-503 fixed. The reviewer is validated as a trustworthy oracle; the
+next lever is the Final Cut composer (FR-505), out of this FR's scope.
 
 ## Summary
 
@@ -144,31 +170,31 @@ fires rarely again (the natural ≈6-turn close), not on the majority of chapter
 
 ## Acceptance Criteria
 
-- [ ] `chapter_outline.yaml` returns an ordered `beats` list per chapter; the
+- [x] `chapter_outline.yaml` returns an ordered `beats` list per chapter; the
       schema and a pure parse test pin it.
-- [ ] The chapter card persists the enumerated `beats` for the chapter.
-- [ ] `turn_direct` returns satisfied-beat **indices over the enumerated list**,
+- [x] The chapter card persists the enumerated `beats` for the chapter.
+- [x] `turn_direct` returns satisfied-beat **indices over the enumerated list**,
       not free-text phrases; a near-duplicate recap can no longer inflate the
       satisfied count beyond `|beats|`.
-- [ ] **J1:** `_direction_dict` resolves the returned indices back to canonical
+- [x] **J1:** `_direction_dict` resolves the returned indices back to canonical
       beat **text**, so the persisted `beats_satisfied` stays `list[str]` and
       `beats_total = len(beats)`; `chapter_beats`, `final_cut_context`, and
       `director_card.html` need no change. A unit test pins index→text resolution
       (including out-of-range indices ignored).
-- [ ] **J3:** `scene_complete` and `phase` are **computed** from the satisfied set
+- [x] **J3:** `scene_complete` and `phase` are **computed** from the satisfied set
       in Python per the frozen truth table (pure function, unit-tested), not read
       from the LLM. `N == 0` falls back to the FR-491 free-text path (no
       divide-by-zero); a unit test covers the `N == 0` chapter.
-- [ ] `running_scene` includes the remaining (unsatisfied) beats with an explicit
+- [x] `running_scene` includes the remaining (unsatisfied) beats with an explicit
       "drive toward the first of these" instruction; a unit test asserts the
       remaining-beats section is present and excludes satisfied beats.
-- [ ] **J4 (live witness):** a regenerated Floodmark book on **azure** (same
-      premise) shows the FR-501 cap firing on a **minority** of chapters (down from
-      4/6), and the `book_reviewer` engagement mean improves vs the 1.83 azure
-      baseline — recorded in this FR on enforce.
-- [ ] DM unit suite green; FR-501 cap behaviour unchanged (still the backstop).
+- [x] **J4 (live witness):** a regenerated Floodmark book on **azure** (same
+      premise) shows the FR-501 cap firing on a **minority** of chapters (2/8, down
+      from 4/6), and the `book_reviewer` engagement mean improves (2.00 vs the 1.83
+      azure baseline) — recorded above.
+- [x] DM unit suite green; FR-501 cap behaviour unchanged (still the backstop).
 - [ ] `_clamp_phase` (FR-481) is removed or proven subsumed by the computed
-      monotonic phase; no orphaned helper remains.
+      monotonic phase; no orphaned helper remains. **→ deferred to FR-504.**
 
 ## Notes / Scope
 
