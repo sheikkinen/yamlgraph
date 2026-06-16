@@ -260,7 +260,8 @@ stands. This note records the tradeoff so the churn is a decision, not a surpris
       lint-imports + vulture clean.
 - [x] Live vertex witness: chapters carry beat-faithful final text; the book
       assembles deterministically and is non-empty without any whole-book LLM call.
-      Run `tmp/witness_fr492_book.py` against vertex/`gemini-3.5-flash`: a
+      Run `examples/dungeon_master/scripts/witness_book_compose.py` against
+      vertex/`gemini-3.5-flash`: a
       two-chapter courier story played to completion — chapter 1 closed at turn 8
       (`opening→rising→climax→resolved`, director `scene_complete`), chapter 2 at
       turn 6; both stored a per-chapter Final Cut final text; `navigate("book")`
