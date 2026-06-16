@@ -103,6 +103,53 @@ def test_render_cast_uses_first_paragraph_only():
     assert "**Gunnar** — The man she came to kill." in md
 
 
+def test_render_cast_extracts_summary_value_from_labeled_sheet():
+    # FR-496: the character card is a labeled SHEET (SUMMARY:/ROLE:/ORIGIN:…)
+    # joined by single newlines, so split("\n\n")[0] would leak the WHOLE sheet.
+    # The cast gloss must be the SUMMARY value alone — none of the other labels.
+    doc = _full_story()
+    doc["characters"]["cards"]["hilde"]["text"] = (
+        "SUMMARY: A war-leader who came to kill and stayed to survive.\n"
+        "ROLE: Band leader of the Aschenwulf.\n"
+        "ORIGIN: The drowned northern valleys.\n"
+        "APPEARANCE: Scarred, river-soaked, unbowed.\n"
+        "PERSONALITY: Fierce, loyal, unyielding.\n"
+        "DRIVE: Vengeance, then mercy.\n"
+        "BOND: Gunnar.\n"
+        "FLAW: Cannot forgive herself."
+    )
+    md = render.render_story_markdown(doc)
+    assert "**Hilde** — A war-leader who came to kill and stayed to survive." in md
+    # None of the sheet scaffolding leaks into the cast line.
+    assert "SUMMARY:" not in md
+    assert "ROLE:" not in md
+    assert "ORIGIN:" not in md
+    assert "APPEARANCE:" not in md
+    assert "FLAW:" not in md
+
+
+def test_render_cast_summary_match_is_case_and_whitespace_tolerant():
+    # J3: match only SUMMARY:, but tolerate leading whitespace and any case.
+    doc = _full_story()
+    doc["characters"]["cards"]["gunnar"]["text"] = (
+        "  summary:   The man she came to kill.\nROLE: The hunted."
+    )
+    md = render.render_story_markdown(doc)
+    assert "**Gunnar** — The man she came to kill." in md
+    assert "ROLE:" not in md
+
+
+def test_render_cast_plain_prose_without_summary_falls_back():
+    # J4: a card with no SUMMARY: label keeps the FR-494 first-paragraph behaviour.
+    doc = _full_story()
+    doc["characters"]["cards"]["hilde"]["text"] = (
+        "War-leader of the Aschenwulf band.\n\nFierce, loyal."
+    )
+    md = render.render_story_markdown(doc)
+    assert "**Hilde** — War-leader of the Aschenwulf band." in md
+    assert "Fierce, loyal." not in md
+
+
 def test_render_drops_empty_character_cards():
     doc = _full_story()
     doc["characters"]["cards"]["gunnar"]["text"] = "   "
