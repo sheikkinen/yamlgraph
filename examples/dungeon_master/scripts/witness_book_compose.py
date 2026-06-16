@@ -18,6 +18,7 @@ Run:  PYTHONPATH="$PWD" python examples/dungeon_master/scripts/witness_book_comp
 from __future__ import annotations
 
 import asyncio
+import sys
 import tempfile
 from pathlib import Path
 
@@ -104,7 +105,8 @@ async def main() -> None:
             "   chapters:",
             [(c, doc["chapters"]["cards"][c].get("reviewed")) for c in order],
         )
-        return
+        print("\n=== WITNESS FAIL (chapters did not complete within cap) ===")
+        sys.exit(1)
     assert tree.all_chapters_played(doc), "book gate must be open"
     view = await session.navigate("book")
     book = view.text
@@ -129,7 +131,10 @@ async def main() -> None:
             ok = False
     print("\n--- BOOK (first 1800 chars) ---\n")
     print(book[:1800])
-    print("\n=== WITNESS", "PASS" if ok and book else "FAIL", "===")
+    passed = bool(ok and book)
+    print("\n=== WITNESS", "PASS" if passed else "FAIL", "===")
+    if not passed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
