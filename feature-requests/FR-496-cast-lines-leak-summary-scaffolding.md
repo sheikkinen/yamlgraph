@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — scope frozen (2026-06-16)
 **Effort:** 0.5 days
 **Requested:** 2026-06-16
 
@@ -108,3 +108,42 @@ paragraph. A labeled card contributes only the summary *value*.
 - FR-494 J2 (cast line = first paragraph; this refines it for labeled sheets)
 - Sample: `outputs/dungeon-master/sample-courier/story.md` (gitignored)
 - FR-474 J3: DM prototype exempt from CAP/REQ/CI gates.
+
+## Judgment (2026-06-16) — scope frozen
+
+The cure is correct, but the **diagnosis understates the leak** — the Judge
+resolves the factual error before freezing.
+
+- **J1 — Factual correction: the whole sheet leaks, not just the `SUMMARY:` line.**
+  The FR says "that first paragraph *is* the SUMMARY line." In the live sample the
+  cast bullet carried `SUMMARY:` **and** `ROLE:`, `ORIGIN:`, `APPEARANCE:`, … —
+  the *entire* sheet. Cause: the character sheet is **single-`\n`-separated** (no
+  blank-line paragraph break), so `text.split("\n\n", 1)[0]` returns the whole
+  sheet, not a one-line paragraph. The proposed `_summary_gloss` (extract the
+  `SUMMARY:` field value) is the correct cure either way, and the existing AC
+  "with **no** `SUMMARY:` label and none of the other fields" already encodes the
+  true requirement. No change to the cure; the problem statement is corrected.
+- **J2 — `SUMMARY` is a single-line value; stop at end-of-line.** `character.yaml`
+  contracts `SUMMARY: one sentence`. Extract the `SUMMARY:` line's remainder to
+  end-of-line. A multi-line/wrapped `SUMMARY` is not in the contract; do not build
+  a field-spanning parser for a hypothetical shape (`regex_fourth_exclusion`).
+- **J3 — One field, not a generic label stripper.** Match only `SUMMARY:`
+  (case-insensitive, leading-whitespace tolerant). Do **not** add a general
+  `^[A-Z]+:` stripper — that is the regex-special-case slide the FR already
+  rejected, and it would silently mangle a plain-prose card that happens to start
+  with an uppercase clause.
+- **J4 — Plain-prose fallback preserves FR-494 J2.** When no `SUMMARY:` line is
+  present, fall back to the first `\n\n` paragraph unchanged, so the existing
+  FR-494 render tests (prose-card cast lines) stay green. The frozen test set adds
+  the labeled-sheet case and a label-absent (plain-prose) case asserting the
+  fallback.
+- **J5 — Render adapts to the card; the sheet stays a sheet.** No change to
+  `character.yaml`. The labeled sheet is the deliberate, reusable contract; the
+  render extracts the gloss it needs.
+
+**Frozen acceptance** = the FR's five criteria as written (they already require
+"none of the other fields", which J1 confirms is the real target). The problem
+statement is corrected per J1: the leak is the whole sheet because the sheet has
+no `\n\n` break.
+
+Status: Proposed → Judged (scope frozen).

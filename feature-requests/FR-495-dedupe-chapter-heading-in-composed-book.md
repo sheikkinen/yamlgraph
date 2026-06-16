@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — scope frozen (2026-06-16)
 **Effort:** 0.5 days
 **Requested:** 2026-06-16
 
@@ -122,3 +122,42 @@ bare `# Chapter {n}:` — acceptable; the ordinal is still present once.
 - FR-492 (deterministic Book), FR-494 (stand-alone render that surfaced this)
 - Sample: `outputs/dungeon-master/sample-courier/story.md` (gitignored)
 - FR-474 J3: DM prototype exempt from CAP/REQ/CI gates.
+
+## Judgment (2026-06-16) — scope frozen
+
+The diagnosis is correct and minimal: two sources assert the chapter ordinal, the
+composer's positional `n` is the authority, the title's self-asserted prefix is
+the redundant one. Normalising at the single composition seam is the right place
+(`render.py` inherits it — FR-494 J3). Rulings:
+
+- **J1 — One seam, module-level regex.** `_clean_chapter_title` lives in
+  `chapter_ops.py` and is applied only inside `compose_book_deterministic`. The
+  `re.compile` is **module-level** (compiled once), not rebuilt per call. No
+  normalisation is added to `render.py`.
+- **J2 — No dangling separator when the title collapses.** The AC's
+  `Chapter 1` → `# Chapter 1:` is amended: when the cleaned title is empty (a
+  label-only title, or an empty `title`), emit `# Chapter {n}` with **no** trailing
+  `": "`. A non-empty clean title keeps the `# Chapter {n}: {clean}` form. This
+  also fixes the pre-existing empty-`title` trailing-colon case at no extra cost —
+  it is the same code path, not new scope.
+- **J3 — The required `\s+` is the safety guard; prove it with a test.** The
+  short-form `ch` cannot eat a real word because `ch(?:apter|\.)?\s+` demands
+  whitespace (or `apter`/`.`) immediately after `ch` — `Children of the Thaw` does
+  not match. The frozen test set **must** include a title that begins with
+  `Ch…`/`Chapter <word>` but is a *real title with no separator* (e.g.
+  `Children of the Thaw`, `Chapter Endings`) and assert it is **untouched**. This
+  pins the guard against future regex drift (`regex_fourth_exclusion`).
+- **J4 — Composer fix is the contract; prompt nudge is optional and out of scope.**
+  A `chapter_outline.yaml` tweak discouraging the `"Chapter N — "` prefix may be
+  made alongside but does not count toward acceptance — the composer must be robust
+  to a re-prefixed title regardless of prompt drift (untrusted LLM boundary). Do
+  not add prompt changes to this FR's required scope.
+- **J5 — Stop at the first special case.** The regex normalises exactly one
+  well-bounded prefix shape. If a future title shape needs a *fourth* exclusion,
+  that is a separate escalation to a parser — not an in-place regex extension here.
+
+**Frozen acceptance** = the FR's six criteria, with the third amended per J2
+(`# Chapter {n}`, no trailing `": "`, when the clean title is empty) and the fifth
+extended per J3 (add the real-title-beginning-with-`Ch…` untouched case).
+
+Status: Proposed → Judged (scope frozen).
