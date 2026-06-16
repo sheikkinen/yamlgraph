@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Judged — scope frozen (2026-06-16)
+**Status:** Implemented (2026-06-16)
 **Effort:** 0.5 days
 **Requested:** 2026-06-16
 
@@ -88,18 +88,21 @@ bare `# Chapter {n}:` — acceptable; the ordinal is still present once.
 
 ## Acceptance Criteria
 
-- [ ] `compose_book_deterministic` strips a leading `Chapter <ordinal><sep>`
+- [x] `compose_book_deterministic` strips a leading `Chapter <ordinal><sep>`
       label from each chapter `title` so the heading reads `# Chapter {n}: {clean}`
       with the ordinal appearing exactly once.
-- [ ] A title with no self-asserted prefix is unchanged (`The Frozen Crossing` →
+- [x] A title with no self-asserted prefix is unchanged (`The Frozen Crossing` →
       `# Chapter 1: The Frozen Crossing`).
-- [ ] A title that is *only* a label collapses without error (`Chapter 1` →
-      `# Chapter 1:` — single ordinal, no trailing junk).
-- [ ] `render_story_markdown` inherits the fix automatically (it reuses the
+- [x] (J2) A title that cleans to empty — a label plus trailing separator
+      (`Chapter 1 —`) or an empty title — collapses to `# Chapter {n}` with **no**
+      trailing `: `. (A bare `Chapter 1` without a separator is left to the `\s+`
+      safety guard, J3, and is not stripped.)
+- [x] `render_story_markdown` inherits the fix automatically (it reuses the
       composer verbatim — FR-494 J3); no second normalisation in `render.py`.
-- [ ] Deterministic unit test in `examples/dungeon_master/tests/` covering the
-      doubled-label, clean-title, and label-only cases (no live LLM).
-- [ ] No change to numbering authority: `n` is still the position in
+- [x] Deterministic unit test in `examples/dungeon_master/tests/test_book_compose.py`
+      covering the doubled-label, clean-title, label-only, varied-separator, and
+      (J3) no-separator-untouched cases (no live LLM).
+- [x] No change to numbering authority: `n` is still the position in
       `chapters.order`; an unplayed earlier chapter does not shift later numbers.
 
 ## Alternatives Considered

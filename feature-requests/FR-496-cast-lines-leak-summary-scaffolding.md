@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Judged — scope frozen (2026-06-16)
+**Status:** Implemented (2026-06-16)
 **Effort:** 0.5 days
 **Requested:** 2026-06-16
 
@@ -76,16 +76,16 @@ paragraph. A labeled card contributes only the summary *value*.
 
 ## Acceptance Criteria
 
-- [ ] A character card whose `text` is a labeled sheet (`SUMMARY: …\nROLE: …`)
+- [x] A character card whose `text` is a labeled sheet (`SUMMARY: …\nROLE: …`)
       renders as `- **Name** — <summary value>` with **no** `SUMMARY:` label and
       none of the other fields (`ROLE:`, `APPEARANCE:`, …).
-- [ ] A character card whose `text` is plain prose (no `SUMMARY:` label) is
+- [x] A character card whose `text` is plain prose (no `SUMMARY:` label) is
       unchanged — still its first `\n\n` paragraph (FR-494 J2 preserved).
-- [ ] Empty-card and empty-roster behaviour is unchanged (cards/sections still
+- [x] Empty-card and empty-roster behaviour is unchanged (cards/sections still
       drop — FR-494 J2).
-- [ ] The match is case-insensitive on the `SUMMARY:` label and tolerant of
+- [x] The match is case-insensitive on the `SUMMARY:` label and tolerant of
       leading whitespace.
-- [ ] Deterministic unit test in `examples/dungeon_master/tests/test_render.py`
+- [x] Deterministic unit test in `examples/dungeon_master/tests/test_render.py`
       covering the labeled-sheet, plain-prose, and label-absent cases (no live LLM).
 
 ## Alternatives Considered
