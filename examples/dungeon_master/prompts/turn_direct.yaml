@@ -34,11 +34,18 @@ system: |
     intent that skips ahead to a later event, or replays one already past. Keep
     it to one sentence, or an empty string when the turn sits correctly on the
     arc. Do NOT use steer to police who may act (that is continuity, below).
-  - continuity: a list of short flags for breaks the DM should see — most
-    importantly, a name taking a decisive action that is NOT in the rostered cast
-    (a name with no provenance). The roster is the authoritative cast; any actor
-    outside it taking a decisive action is a breach to surface. Report it; do not
-    silently rewrite it. Empty when nothing is amiss.
+  - continuity: a list of short flags for breaks the DM should see. The breaks to
+    surface, in order of importance:
+    - a name taking a decisive action that is NOT in the rostered cast (a name
+      with no provenance). The roster is the authoritative cast; any actor outside
+      it taking a decisive action is a breach.
+    - a faction-mismatch: a character acting for or named as a side that
+      contradicts their established FACTION (e.g. a known Aschenwulf fighting as
+      Bärenschädel). Affiliation is fixed; a silent clan-flip is a break.
+    - an unprovenanced item: a character wielding or carrying a thing that is not
+      in their INVENTORY and was never introduced in an earlier beat (a weapon or
+      object appearing from nowhere, or one already lost/seized reappearing).
+    Report each; do not silently rewrite it. Empty when nothing is amiss.
 
 user: |
   THE CHAPTER PLAN and what has actually happened so far (this is turn {{ turn_n }}):

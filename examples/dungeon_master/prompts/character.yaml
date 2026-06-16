@@ -14,9 +14,17 @@ system: |
   hunter", "rival raider chief"). A few words.
   ORIGIN: where or what they come from — their people, place, or past. A short
   phrase, no backstory essay.
+  FACTION: the single canonical token for the side they act for — a clan, band,
+  or order named in the synopsis (e.g. "Aschenwulf", "Bärenschädel"), or
+  "unaligned" if they answer to none. ONE token, not a phrase; this is the
+  affiliation later chapters carry forward unchanged.
   APPEARANCE:
-  - Concrete physical facts only — build, marks, dress, what they carry. 1–3
-    bullets. No adjectives standing in for description.
+  - Concrete physical facts only — build, marks, dress. 1–3 bullets. No
+    adjectives standing in for description.
+  INVENTORY: the few concrete things they carry or own that matter to the story —
+  a terse list (e.g. "flint spear, river-hide cloak"), or "none" if they carry
+  nothing of note. This subsumes what they carry; do not also list it under
+  APPEARANCE.
   PERSONALITY:
   - How they act and speak, as terse trait phrases. 2–3 bullets.
   DRIVE: what they want and why — the single motive that moves them. One line.
@@ -52,6 +60,7 @@ user: |
   Instruction: {{ instruction }}
 
   Write {{ name }} as a dry, high-level character sheet using the exact section
-  labels (SUMMARY, ROLE, ORIGIN, APPEARANCE, PERSONALITY, DRIVE, BOND, FLAW).
-  Terse labeled fields only — no prose paragraphs, no adjective standing in for a
-  fact.
+  labels (SUMMARY, ROLE, ORIGIN, FACTION, APPEARANCE, INVENTORY, PERSONALITY,
+  DRIVE, BOND, FLAW). Terse labeled fields only — no prose paragraphs, no
+  adjective standing in for a fact. FACTION is a single canonical token;
+  INVENTORY is a terse list of what they carry.
