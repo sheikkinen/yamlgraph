@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor)
-**Status:** Proposed
+**Status:** Judged — scope frozen (2026-06-16)
 **Effort:** 1 day
 **Requested:** 2026-06-16
 **Regime:** FR-474 J3 (DM prototype) — no CAP/REQ/CI-gates/changelog; diary required.
@@ -104,21 +104,101 @@ adapter-facing entry but its docstring cross-references the Scene lifecycle.)
 
 ## Acceptance Criteria
 
-- [ ] `session.py` is **≤ 450 lines** (`wc -l`), with the expansion cluster moved
-      to `expansion.py`.
-- [ ] `expansion.py` contains `expand_roster`, `expand_chapters`, `close_chapter`,
-      `compose_special`, `autodraft` (or equivalently named), each a module-level
-      function; `session.py` delegates to them.
+- [ ] `session.py` is **< 400 lines** (`wc -l`) — target, not just the 450 max
+      (J1) — with the nine-function closed set moved to `doc_ops.py`.
+- [ ] `doc_ops.py` (J2) contains module-level `entry`, `characters`, `chapters`,
+      `invoke_stage`, `expand_roster`, `expand_chapters`, `apply_chapter_close`
+      (J3), `compose_stage` (J3), `autodraft` (J3); each a pure `(doc, …)`
+      function, no `self`; `session.py` delegates to them.
+- [ ] No `doc_ops.close_chapter` (J3): the moved write-wrapper is
+      `apply_chapter_close`, distinct from `chapter_ops.close_chapter`.
+- [ ] `test_session_module_under_size_gate` added (J4): RED at 507, GREEN after,
+      committed RED (`SKIP=pytest`) then GREEN, separately.
+- [ ] `test_expand_chapters_is_idempotent` call site updated to
+      `doc_ops.expand_chapters` (J4) — the only test touching a moved private.
 - [ ] The five Scene-lifecycle functions in `turn_ops` are grouped under a named
-      banner with a phase-contract docstring; no logic changed.
-- [ ] **No behaviour change**: the DM test suite (`pytest
-      examples/dungeon_master/tests/ --no-cov`) passes unchanged — same count,
-      same assertions (tests may update import paths only).
+      banner with a phase-contract docstring (J5); **no function moves modules**.
+- [ ] **No behaviour change**: `pytest examples/dungeon_master/tests/ --no-cov`
+      passes unchanged — same count, same assertions (only the two J4 edits).
 - [ ] `ruff check` + `ruff format` clean; `lint-imports` clean (no new
       cross-layer import); `noqa_coverage --strict` clean.
-- [ ] README/architecture updated only if a module name they cite changes
-      (the module map in `docs/architecture.md` gains the `expansion.py` row).
+- [ ] `docs/architecture.md` module map gains the `doc_ops.py` row.
 - [ ] Diary reflection + Seed.
+
+## Judgement (2026-06-16) — scope frozen
+
+Verified against the code before granting authority. The plan is sound; one
+ambiguity it flagged itself ("…or a small `SessionDoc` accessor") is resolved
+here, and one latent collision is pinned. Five binding rulings:
+
+### J1 — The shared helpers move *with* the cluster; the seam is acyclic
+
+The plan's "(or a small `SessionDoc` accessor)" is unsound as written: the five
+expansion methods call four sibling helpers — `_invoke_stage`, `_entry`,
+`_characters`, `_chapters`. Reading each body confirms **all four are
+`self`-free** (they use only `doc`, `stage`, `get_app`, `clean_text`, `tree`
+constants, and each other). Two consequences:
+
+- Passing `self` into module-level expansion functions would be **Feature Envy**
+  (a function taking a session just to reach its private doc helpers) and would
+  contradict the cited `*_ops.py` precedent, which uses pure `(doc, …)` args and
+  no `self`. **Rejected.**
+- Since the helpers are `self`-free, the *minimal change with no new wart* is to
+  lift the **closed set of nine functions** to module level together:
+  `entry`, `characters`, `chapters`, `invoke_stage` (the doc/graph core) +
+  `expand_roster`, `expand_chapters`, `apply_chapter_close`, `compose_stage`,
+  `autodraft` (the cluster). `session` imports them; they import nothing from
+  `session` → **acyclic** (`session → doc_ops`, one direction).
+
+This leaves `session.py` a genuinely thin adapter with **zero doc-shape logic**,
+and overshoots the size *target* (< 400, est. ~345 lines) rather than merely the
+450 max — satisfying the gate the FR cites, not just clearing it.
+
+### J2 — Module name is `doc_ops.py`, not `expansion.py`
+
+`expansion.py` is a misnomer once it holds `entry`/`invoke_stage`. Freeze the
+name **`doc_ops.py`** — it mirrors the exact `*_ops.py` precedent the FR honors
+(sibling to `turn_ops.py`, `chapter_ops.py`) and reads as a peer to `story_doc.py`
+(raw file I/O) vs `doc_ops.py` (derived operations over the in-memory doc).
+
+### J3 — Rename on move to kill the `close_chapter` collision
+
+`chapter_ops.close_chapter` (the pure derive) already exists; `session._close_chapter`
+(the adapter write-wrapper that calls it) must **not** move as `doc_ops.close_chapter`
+— two `close_chapter`s in two modules is a reader trap (`false_duplicate`). Freeze
+the moved name as **`doc_ops.apply_chapter_close`** (it records the derived close
+onto the card + marks reviewed). `compose_special` → `compose_stage`, `_autodraft`
+→ `autodraft` (drop the leading underscore; they are public module functions now).
+
+### J4 — Part 1 gets a real RED→GREEN witness (the size gate as a test)
+
+A pure relocation has no behaviour branch to condemn, so the regression guard is
+the unchanged suite. But the *constraint* this FR enforces can itself be a failing
+test first (Commandment 10 — codify the lesson so it cannot recur):
+
+- Add `test_session_module_under_size_gate` asserting `session.py` line count
+  ≤ 450. It is **RED now (507)** and goes **GREEN** after the extraction — the
+  failing-test-first witness this refactor would otherwise lack, and a durable
+  guard against re-drift. Commit RED (SKIP=pytest) and GREEN separately.
+- Update the one direct-call site: `test_expand_chapters_is_idempotent` calls
+  `sess._expand_chapters(doc, story_dir)` → `doc_ops.expand_chapters(doc, story_dir)`.
+  This is the *only* test touching a moved private (grep-confirmed); it is a
+  call-site change, allowed under "no behaviour change."
+
+### J5 — Part 2 is cosmetic and sequenced after Part 1; the Scene primitive stays deferred
+
+Part 2 (the Scene-lifecycle banner) moves **no function between modules** — only
+ordering + a banner + a header docstring in `turn_ops`, with `close_chapter`
+remaining in `chapter_ops` cross-referencing it. It lands **after** Part 1 so the
+two diffs do not interleave. The generic `Scene` primitive remains **deferred**
+(confirmed `framework_costume`: a chapter is the sole Scene instance today).
+
+**Authority granted.** Scope is frozen to: one new module `doc_ops.py` (nine
+relocated functions, two renamed per J3), a thinned `session.py` (< 450, target
+< 400), the size-gate guard test (J4), the one updated call site (J4), and the
+`turn_ops` Scene banner (J5). No new capability, no behaviour change. Anything
+beyond this — a `Scene` dataclass, a `scene_ops.py`, a `StageView` split — is out
+of scope and returns to Plan.
 
 ## Alternatives Considered
 
