@@ -71,6 +71,27 @@ Synopsis (root — gates everything)
    assembly is pure code — there is **no whole-book LLM call** (FR-492); each
    chapter's prose was already generated at its own close.
 
+### Stand-alone generation — headless, no UI (FR-494)
+
+The same drive — synopsis → cast → play every chapter → Book — runs without the
+HTTP surface. [`scripts/generate.py`](scripts/generate.py) owns the single
+end-to-end loop (`generate_story`, adapter-only: `weave`/`accept`/`navigate`),
+stopping on `tree.all_chapters_played` and **raising** rather than emitting a
+partial story if the turn cap is hit. It writes two artifacts side by side: the
+machine `story.json` and a reader **`story.md`** — the pure, no-LLM full-story
+render (`api/render.py`: tagline lead, `# Synopsis`, `# Cast`, then the Book).
+
+```bash
+PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
+  --premise "A lone courier carries a sealed warning across a frozen river." \
+  --out outputs/dungeon-master/courier
+# → outputs/dungeon-master/courier/story.json  (machine)
+# → outputs/dungeon-master/courier/story.md    (reader)
+```
+
+The live witness [`scripts/witness_book_compose.py`](scripts/witness_book_compose.py)
+is a thin caller over `generate_story` that keeps only the substance asserts.
+
 ### Still deferred (out of scope, by design)
 - Asking for character or chapter counts up front (the roster and the chapter set
   both emerge from the synopsis instead).

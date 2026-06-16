@@ -22,7 +22,7 @@ YAMLGraph's strict separation holds throughout the app:
 | **Presentation** | `api/app.py`, `api/routes/synopsis.py`, `api/templates/` | FastAPI routes, HTMX `#app-body` swaps, the session id, all rendering |
 | **Logic (YAML)** | `*.yaml` graphs + `prompts/*.yaml` | One self-contained graph per stage; all LLM calls and structured outputs |
 | **Side effects** | `api/story_doc.py`, `api/graph_app.py` | Per-session `story.json` read/write; the compiled-graph cache |
-| **Adapter** | `api/session.py`, `api/doc_ops.py`, `api/tree.py`, `api/navigation.py`, `api/turn_ops.py`, `api/chapter_ops.py` | Glue HTTP ↔ graph ↔ doc; the stage tree, breadcrumb, pure navigation, and the structured side-channels |
+| **Adapter** | `api/session.py`, `api/doc_ops.py`, `api/tree.py`, `api/navigation.py`, `api/turn_ops.py`, `api/chapter_ops.py`, `api/render.py` | Glue HTTP ↔ graph ↔ doc; the stage tree, breadcrumb, pure navigation, the structured side-channels, and the full-story Markdown render |
 
 ### Module map
 
@@ -36,6 +36,7 @@ YAMLGraph's strict separation holds throughout the app:
 | `navigation.py` | Pure reachability (`can_visit`) and landing (`accept_target`, `next_unreviewed_char`). Reads the doc; never mutates or invokes a graph. |
 | `turn_ops.py` | The **Scene lifecycle** (FR-493 J5) — `{plan, world_state_in} → play turns → {final_text, world_state_out}`: `running_scene` (threads the inherited `world_state`), `invoke_turn` (map → director → recap), `final_cut_context`, `invoke_final_cut`; plus the per-character intent side-channel and director post-processing (phase clamp, beat canonicalisation). |
 | `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the Scene-lifecycle entry — the `world_state` forward-carry + the per-chapter Final Cut final text), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
+| `render.py` | The pure, no-LLM **full-story Markdown render** (FR-494): `render_story_markdown(doc)` frames `compose_book_deterministic`'s Book with the tagline lead, `# Synopsis`, and an optional `# Cast` (first paragraph per non-empty character card); suppresses the `world_state` ledger and invents no title. Inherits the Book's *raise-on-empty* (no played chapter → `ValueError`). The reader serialization beside the machine `story.json`. |
 | `story_doc.py` | Per-session `story.json` read/write. |
 | `graph_app.py` | Compiled-graph cache (`get_app`) + output normalisers (`clean_text`, `field`). Dependency-free to avoid import cycles. |
 
