@@ -258,8 +258,14 @@ stands. This note records the tradeoff so the churn is a decision, not a surpris
       patched to raise, and the seedless stage is never auto-drafted).
 - [x] `yamlgraph graph lint` clean; DM suite green (75 passed); ruff +
       lint-imports + vulture clean.
-- [ ] Live vertex witness: chapters carry beat-faithful final text; the book
+- [x] Live vertex witness: chapters carry beat-faithful final text; the book
       assembles deterministically and is non-empty without any whole-book LLM call.
+      Run `tmp/witness_fr492_book.py` against vertex/`gemini-3.5-flash`: a
+      two-chapter courier story played to completion — chapter 1 closed at turn 8
+      (`opening→rising→climax→resolved`, director `scene_complete`), chapter 2 at
+      turn 6; both stored a per-chapter Final Cut final text; `navigate("book")`
+      composed a 5609-char manuscript (`kind=book`) carrying both chapter headings
+      + their final prose with no `world_state` leak — **WITNESS PASS**.
 - [ ] Diary reflection + Seed (the `prune_overshoot` heuristic).
 - [ ] FR-491 doc cross-referenced (the capability this restores).
 
