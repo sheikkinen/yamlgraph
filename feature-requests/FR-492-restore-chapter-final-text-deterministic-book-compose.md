@@ -246,14 +246,18 @@ stands. This note records the tradeoff so the churn is a decision, not a surpris
 - [x] **Phase 2 re-prune:** `final_cut_turns`, `walkthrough`, `staging` removed
       again, with the commit naming where each one's capability now lives
       (`prune_overshoot` discipline).
-- [ ] **Phase 3:** `chapter_ops.compose_book_deterministic(doc)` — pure, no LLM;
+- [x] **Phase 3:** `chapter_ops.compose_book_deterministic(doc)` — pure, no LLM;
       orders chapters by `chapters.order`; raises on no played chapter
       (Commandment 6); unit-tested with a fixture doc (no model). Book stage's
-      first render uses it.
-- [ ] A book is produced with **zero** LLM calls given played chapters (proven by
-      a test asserting no graph invocation on the compose path).
-- [ ] `yamlgraph graph lint` clean; DM suite green; ruff + lint-imports + vulture
-      clean.
+      first render uses it. Wired as a seedless, graph-less terminal stage
+      (`tree.all_chapters_played` gate + `kind="book"`), reachable via
+      `navigation.can_visit` + a "The Book" breadcrumb crumb; `session._view`
+      renders the compose on first navigate.
+- [x] A book is produced with **zero** LLM calls given played chapters (proven by
+      a test asserting no graph invocation on the compose path — `get_app`
+      patched to raise, and the seedless stage is never auto-drafted).
+- [x] `yamlgraph graph lint` clean; DM suite green (75 passed); ruff +
+      lint-imports + vulture clean.
 - [ ] Live vertex witness: chapters carry beat-faithful final text; the book
       assembles deterministically and is non-empty without any whole-book LLM call.
 - [ ] Diary reflection + Seed (the `prune_overshoot` heuristic).

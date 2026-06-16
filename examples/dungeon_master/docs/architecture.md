@@ -34,7 +34,7 @@ YAMLGraph's strict separation holds throughout the app:
 | `tree.py` | `STAGES`, `Stage`, `resolve_stage`, `breadcrumb`, and the gate predicates (`cast_complete`, `all_chapters_played`). Pure. |
 | `navigation.py` | Pure reachability (`can_visit`) and landing (`accept_target`, `next_unreviewed_char`). Reads the doc; never mutates or invokes a graph. |
 | `turn_ops.py` | The play loop (chapter-scoped): turn invocation, the per-character intent side-channel, the director post-processing (phase clamp, beat canonicalisation), and the per-chapter `running_scene` that threads the inherited `world_state`. |
-| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the `world_state` forward-carry), and `played_chapters_text` + `compose_book` (the whole-book finish). Pure reads. |
+| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the `world_state` forward-carry + the per-chapter Final Cut final text), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
 | `story_doc.py` | Per-session `story.json` read/write. |
 | `graph_app.py` | Compiled-graph cache (`get_app`) + output normalisers (`clean_text`, `field`). Dependency-free to avoid import cycles. |
 
@@ -191,7 +191,7 @@ draft (Commandment 6).
 |-------|-----------------|--------------------------------|
 | `turn:<cid>:<n>` | `turn.yaml` `map`(intents) → director → recap | `_clamp_phase` (monotonic arc — phase never regresses), `_canonicalize_beats` (accumulate the director's reported beat phrases cumulatively, `beats_total = 0` for the free-text chapter plan) |
 | `chapter:<cid>` close | `chapter_close.yaml` (inherited ledger + played recaps → end-of-chapter `world_state`) | the **forward-carry**: `chapter:n-1`'s `world_state` is threaded into `chapter:n`'s `running_scene` as the established START, and into its close as `previous_world_state` (FR-491 B; preserving FR-488 J7) |
-| **The Book** | `book.yaml` (synopsis + every played chapter → one manuscript) | `played_chapters_text` lays every played chapter's title + prose + end-of-chapter `world_state` end to end, in order; `compose_book` **raises** rather than composing from nothing (Commandment 6) |
+| **The Book** | _none — composition is assembly, not generation (FR-492)_ | `compose_book_deterministic` walks `chapters.order`, heads each played chapter's title + its per-chapter Final Cut final text, suppresses the `world_state` ledger from the manuscript, and **raises** rather than composing from nothing (Commandment 6). No LLM on the path to a *first* book. |
 
 The director's judgement is **read-only signal** surfaced to the DM (phase, beats,
 steer, continuity, scene-complete) — never auto-applied (FR-479 J2). Iterate on a
@@ -220,6 +220,7 @@ breadcrumb above it. `app_body.html` branches on `stage.kind`:
 |--------|----------|---------------|
 | `turn` | `turn_card.html` | Two columns: the per-character **intents** aside + the always-on **director card** (`director_card.html`), and the editable **recap** card. A 🏁 banner when the chapter's scene is complete. |
 | `chapters` | `chapters_overview.html` | A read-only **table of contents** — every chapter `title` + `summary`, each a nav link to its `chapter:<cid>` card, ✓ when played. |
+| `book` | `stage_card.html` (else) | **The Book** — the deterministic compose of the played chapters' final texts (`compose_book_deterministic`), rendered as the terminal manuscript. Reachable only when `all_chapters_played`. |
 | else | `stage_card.html` | The iterable prose card (textarea autosave + prompt box + Iterate / Accept). On a `chapter` card it shows the **Summary** and **Inherited world state** above the prose (FR-490). |
 
 Accepted stages render read-only with an `Accepted ✓` badge. Errors render as a
