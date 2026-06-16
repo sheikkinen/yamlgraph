@@ -52,6 +52,11 @@ def _capturing_mock(captured: list[dict]):
                     f"(prev={variables.get('previous_world_state') or 'none'})"
                 ),
             }
+        if prompt_name == "final_cut":
+            # The per-chapter finish (FR-492): compose the chapter's final text
+            # from its played arc. The mock echoes the assembled arc so a test can
+            # see the recaps flowed into the composed prose.
+            return f"FINAL CUT: {variables.get('arc', '')}"
         raise AssertionError(f"unexpected prompt {prompt_name!r}")
 
     return _mock
@@ -118,8 +123,10 @@ def test_close_chapter_threads_previous_chapter_world_state():
     assert "WS1-CARRIED-FORWARD" in captured[0]["previous_world_state"]
     # And chapter 2 read its own summary, not chapter 1's.
     assert "corners the raider" in captured[0]["summary"]
-    # The played recaps are delivered to the close graph and become the prose.
+    # The played recaps are delivered to the close graph for the world_state.
     assert "on the ledge" in captured[0]["recaps"]
+    # The chapter's final text is the per-chapter Final Cut composed over its arc
+    # (FR-492), so the played recap flows through into the prose.
     assert "on the ledge" in result["text"]
     # The close returns the new world-state ledger the next chapter inherits.
     assert result["world_state"]

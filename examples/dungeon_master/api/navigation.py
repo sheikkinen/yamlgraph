@@ -18,16 +18,11 @@ from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.tree import (
     CHAPTER_PREFIX,
     CHAR_PREFIX,
-    FINAL_CUT,
-    FINAL_CUT_TURNS,
     STAGE_BY_NAME,
     TURN_PREFIX,
-    WALKTHROUGH,
     Stage,
     cast_complete,
-    cut_present,
     parse_turn,
-    scene_is_complete,
 )
 
 
@@ -77,15 +72,6 @@ def can_visit(doc: dict, target: str) -> bool:
         if not cid or cid not in _chapter_order(doc):
             return False
         return 1 <= n <= len(turn_ops.chapter_turns(doc, cid)) + 1
-    if target in (FINAL_CUT, FINAL_CUT_TURNS):
-        # The terminal Final Cut leaves (continuous FR-484 + turn-structured
-        # FR-485) both unlock only once the scene is complete.
-        return scene_is_complete(doc)
-    if target == WALKTHROUGH:
-        # The full-text walkthrough renders the FR-485 cut as its spine, so it
-        # unlocks only once the scene is complete AND that cut is present
-        # (FR-487 OQ1) — otherwise it would have to invent the structure.
-        return scene_is_complete(doc) and cut_present(doc)
     stage = STAGE_BY_NAME.get(target)
     if stage is None or stage.kind == "roster":
         # Unknown stage, or the non-visitable Characters group.
@@ -137,9 +123,11 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
         cid, n = parse_turn(stage.name)
         # Once the director reports the chapter's scene complete, stop advancing
         # turns (FR-479 J5): the adapter closes the chapter (deriving its
-        # end-of-chapter world_state) and play moves to the NEXT chapter's first
-        # turn, carrying that ledger forward (FR-491). The last chapter dead-ends
-        # (the Book finish lands here in slice 4).
+        # end-of-chapter world_state and its beat-faithful final text via the
+        # per-chapter Final Cut, FR-492) and play moves to the NEXT chapter's
+        # first turn, carrying that ledger forward (FR-491). The last chapter
+        # dead-ends — the deterministic Book compose is the whole-book finish
+        # (FR-492 Phase 3), not a navigable leaf.
         if turn_ops.turn_direction(doc, cid, n).get("scene_complete"):
             order = _chapter_order(doc)
             if cid in order:
@@ -148,13 +136,4 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
                     return f"{TURN_PREFIX}{order[i + 1]}:1"
             return None
         return f"{TURN_PREFIX}{cid}:{n + 1}"
-    # The three finishes chain so accepting one leads to the next, walking the
-    # DM through every closing artifact (FR-487): the continuous Final Cut
-    # (FR-484) → the turn-structured Final Cut (FR-485, which also drafts the
-    # cut spine the walkthrough needs) → the full-text Walkthrough (FR-487),
-    # which is the true terminal leaf.
-    if stage.name == FINAL_CUT:
-        return FINAL_CUT_TURNS
-    if stage.name == FINAL_CUT_TURNS:
-        return WALKTHROUGH
     return None

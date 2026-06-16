@@ -175,14 +175,6 @@ def test_last_character_lands_on_chapters_overview():
     assert navigation.accept_target(doc, resolve_stage(doc, "char:kara")) == "chapters"
 
 
-def test_finishes_chain_walks_to_walkthrough():
-    assert navigation.accept_target({}, STAGE_BY_NAME["final_cut"]) == "final_cut_turns"
-    assert (
-        navigation.accept_target({}, STAGE_BY_NAME["final_cut_turns"]) == "walkthrough"
-    )
-    assert navigation.accept_target({}, STAGE_BY_NAME["walkthrough"]) is None
-
-
 # ── purity (FR-489 J3) ───────────────────────────────────────────────────────
 
 

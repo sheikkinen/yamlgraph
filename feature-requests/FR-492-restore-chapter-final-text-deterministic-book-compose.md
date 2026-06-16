@@ -114,8 +114,19 @@ each deleted thing's capability goes (the diary's `prune_overshoot` discipline):
 
 - `final_cut_context(doc)` → `final_cut_context(doc, cid)`: read
   `chapters.cards[cid].turns` (not flat `doc["turns"]`); the **chapter summary**
-  stands in for `key_scene` as the scene plan / beat source; `climax_turn` and
-  `parse_beats` operate within the chapter.
+  stands in for `key_scene` as the scene plan; `climax_turn` operates within the
+  chapter.
+- **Beats are re-sourced, not re-parsed (reflection amendment).** The restored
+  fidelity path `parse_beats(key_scene)` is **inert on chapters**: it extracts a
+  `BEATS:` block from a frozen key-scene card, and a chapter has only a free-text
+  `summary` (turn_ops.py L288 already concedes this). A mechanical re-scope would
+  restore the prose but silently drop the fidelity — the exact `plausible_wrong_answer`
+  the diary warns of. Instead, harvest the **`beats_satisfied`** the director
+  already accumulates per turn (`_canonicalize_beats`, L285): the play loop
+  records what the finish needs. `final_cut_context` unions the chapter's turns'
+  `beats_satisfied` (cumulative, order-preserving) as the `beats` variable.
+  `parse_beats` is then dead with `key_scene` gone — **retire it** (vulture will
+  flag it otherwise).
 - `close_chapter()` runs the re-scoped final_cut and stores the returned
   beat-faithful prose as the chapter card's `text` (replacing `text: recaps`);
   `world_state` derivation unchanged.
@@ -124,6 +135,17 @@ each deleted thing's capability goes (the diary's `prune_overshoot` discipline):
   their capability: the single re-scoped `final_cut` (turn-aligned segmentation
   and staging notes are not needed when the chapter's whole arc composes at
   once). Record this destination in the commit, per the diary Seed.
+
+**Why not a turn-scope finish (reflection).** A per-turn finish was considered and
+rejected: a turn already becomes `recap.text` prose via `invoke_turn`, so a
+per-turn finish re-creates the recap writer (`false_duplicate`), and it destroys
+the finish's only reason to exist — `final_cut` exists to "do two things the
+turn-by-turn writer could not": weight the climax and de-repeat standing facts,
+both of which require seeing the **whole arc at once**. The finish must operate
+*above* the turn or it is redundant. Chapter is the right floor: small enough to
+verify one arc's beats, large enough to weight a climax. Determinism belongs at
+the **book** seam (Phase 3, already-final inputs); generation belongs at the
+**chapter** seam.
 
 ### Phase 3 — Deterministic book composition (no LLM)
 
@@ -194,29 +216,34 @@ stands. This note records the tradeoff so the churn is a decision, not a surpris
 
 ## Acceptance Criteria
 
-- [ ] **Phase 0:** current implementation archived at tag
+- [x] **Phase 0:** current implementation archived at tag
       `archive/dm-slice4-book-compose` (`04238f32`); recovery commands recorded.
-- [ ] **Phase 1:** `4040fac0` reverted (book.yaml modify/delete resolved by
+- [x] **Phase 1:** `4040fac0` reverted (book.yaml modify/delete resolved by
       deletion); finish subsystem restored intact (graphs, prompts, `turn_ops`
       helpers incl. `climax_turn`/`parse_beats`, `tree` stages, navigation chain,
       session branch); committed as an explicit baseline. **Phase 1 is NOT gated
       on a green suite** (the restored finish tests are false-green: self-built
       old-shape fixtures + fixed-output mocks). Gate Phase 1 only on the revert
       applying and the archive tag existing.
-- [ ] **Phase 2 (witness test FIRST):** add a test that drives the finish from a
+- [x] **Phase 2 (witness test FIRST):** add a test that drives the finish from a
       **real chapter-play doc** (`chapters.cards[cid].turns`, no `key_scene`) —
       committed RED before the re-scope, green after. This is the test the
       rollback's restored suite does not provide; it is the true verification the
-      finish is in place.
-- [ ] **Phase 2:** `final_cut_context` re-scoped to `(doc, cid)` over
+      finish is in place. The witness must assert **all four** assembled inputs:
+      the arc (every played recap in order), the chapter summary as plan, the
+      chapter climax marker, **and non-empty `beats`** (so the restored fidelity
+      is condemned-if-missing, not assumed).
+- [x] **Phase 2:** `final_cut_context` re-scoped to `(doc, cid)` over
       `chapters.cards[cid].turns`, chapter summary standing in for `key_scene`;
-      `close_chapter()` stores beat-faithful final prose as the chapter card
-      `text` (not raw recaps); `world_state` derivation unchanged. Token regime
-      for the final_cut node is long-form (bounded `thinking_budget`, generous
-      `max_tokens`), not the uniform 4000 default. The restored old-shape finish
-      tests are migrated to the chapter shape or deleted — none left asserting
-      against `doc["turns"]`/`key_scene`.
-- [ ] **Phase 2 re-prune:** `final_cut_turns`, `walkthrough`, `staging` removed
+      **`beats` sourced from the director's accumulated `beats_satisfied`**, not
+      `parse_beats` (which is inert on free-text chapter summaries); `parse_beats`
+      retired. `close_chapter()` stores beat-faithful final prose as the chapter
+      card `text` (not raw recaps); `world_state` derivation unchanged. Token
+      regime for the final_cut node is long-form (bounded `thinking_budget`,
+      generous `max_tokens`), not the uniform 4000 default. The restored old-shape
+      finish tests are migrated to the chapter shape or deleted — none left
+      asserting against `doc["turns"]`/`key_scene`.
+- [x] **Phase 2 re-prune:** `final_cut_turns`, `walkthrough`, `staging` removed
       again, with the commit naming where each one's capability now lives
       (`prune_overshoot` discipline).
 - [ ] **Phase 3:** `chapter_ops.compose_book_deterministic(doc)` — pure, no LLM;

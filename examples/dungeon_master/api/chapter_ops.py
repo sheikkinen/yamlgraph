@@ -50,11 +50,13 @@ async def close_chapter(doc: dict, cid: str) -> dict:
 
     The forward-carry seam (FR-491 G2/B, preserving FR-488 J7 through play): a
     chapter is no longer expanded from its summary in one shot — it is PLAYED, and
-    when its scene completes this runs ``chapter_close.yaml`` once over the
-    inherited ``world_state`` (where the previous chapter left off) + this
-    chapter's played recaps, returning the end-of-chapter ledger the NEXT chapter
-    inherits. ``text`` is the chapter's prose — the played recaps themselves. A
-    pure read: the adapter records the result onto the card.
+    when its scene completes this derives two artifacts. ``world_state`` runs
+    ``chapter_close.yaml`` once over the inherited ledger (where the previous
+    chapter left off) + this chapter's played recaps, returning the end-of-chapter
+    ledger the NEXT chapter inherits. ``text`` is the chapter's *final text*: the
+    per-chapter Final Cut (FR-492), one continuous beat-faithful passage composed
+    over the whole played arc (:func:`turn_ops.invoke_final_cut`) rather than the
+    raw recaps. A pure read: the adapter records the result onto the card.
     """
     card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
     recaps = turn_ops.chapter_recaps_text(doc, cid)
@@ -69,7 +71,8 @@ async def close_chapter(doc: dict, cid: str) -> dict:
         }
     )
     closed = result.get("chapter_close") or {}
+    text = await turn_ops.invoke_final_cut(doc, cid)
     return {
-        "text": recaps,
+        "text": text,
         "world_state": field(closed, "world_state"),
     }

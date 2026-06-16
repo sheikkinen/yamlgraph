@@ -42,17 +42,34 @@ def _played_chapter_doc() -> dict:
                         {
                             "n": 1,
                             "recap": {"text": "Kara musters the band at dawn."},
-                            "direction": {"phase": "rising"},
+                            "direction": {
+                                "phase": "rising",
+                                "beats_satisfied": ["the band is mustered"],
+                            },
                         },
                         {
                             "n": 2,
                             "recap": {"text": "Kara corners the raider on the ledge."},
-                            "direction": {"phase": "climax"},
+                            "direction": {
+                                "phase": "climax",
+                                "beats_satisfied": [
+                                    "the band is mustered",
+                                    "the raider is cornered",
+                                ],
+                            },
                         },
                         {
                             "n": 3,
                             "recap": {"text": "The raider yields as the flood crests."},
-                            "direction": {"phase": "falling", "scene_complete": True},
+                            "direction": {
+                                "phase": "falling",
+                                "scene_complete": True,
+                                "beats_satisfied": [
+                                    "the band is mustered",
+                                    "the raider is cornered",
+                                    "the raider yields",
+                                ],
+                            },
                         },
                     ],
                 },
@@ -96,3 +113,22 @@ def test_final_cut_context_marks_the_chapter_climax():
     ctx = turn_ops.final_cut_context(doc, "1")
     assert ctx["climax"] == "Turn 2"
     assert "THE CLIMAX" in ctx["arc"]
+
+
+def test_final_cut_context_sources_beats_from_director_not_parse_beats():
+    """The fidelity beats come from the director's ``beats_satisfied`` (FR-492).
+
+    The restored ``parse_beats`` reads a ``BEATS:`` block from a frozen key-scene
+    card; a chapter has only a free-text ``summary``, so re-parsing yields an
+    EMPTY beats list — restoring the prose but silently dropping the fidelity the
+    finish exists to preserve. This condemns that ``plausible_wrong_answer``: the
+    assembled ``beats`` must carry the beats the director accumulated across the
+    chapter's turns, not be empty.
+    """
+    doc = _played_chapter_doc()
+    ctx = turn_ops.final_cut_context(doc, "1")
+    beats = ctx["beats"]
+    assert beats.strip(), "beats must not be empty — the fidelity signal was dropped"
+    assert "the band is mustered" in beats
+    assert "the raider is cornered" in beats
+    assert "the raider yields" in beats
