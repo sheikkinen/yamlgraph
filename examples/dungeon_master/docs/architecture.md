@@ -194,7 +194,7 @@ draft (Commandment 6).
 
 | Stage | Generative seam | Deterministic seam (pure code) |
 |-------|-----------------|--------------------------------|
-| `turn:<cid>:<n>` | `turn.yaml` `map`(intents) → director → recap | `_clamp_phase` (monotonic arc — phase never regresses), `_canonicalize_beats` (accumulate the director's reported beat phrases cumulatively, `beats_total = 0` for the free-text chapter plan) |
+| `turn:<cid>:<n>` | `turn.yaml` `map`(intents) → director → recap | `_apply_beat_ledger` (resolve the director's satisfied-beat NUMBERS over the chapter's finite `beats` list back to canonical text, accumulate cumulatively, and COMPUTE `phase`/`scene_complete` from k / N — monotonic by construction, FR-503/FR-504) |
 | `chapter:<cid>` close | `chapter_close.yaml` (inherited ledger + played recaps → end-of-chapter `world_state`) | the **forward-carry**: `chapter:n-1`'s `world_state` is threaded into `chapter:n`'s `running_scene` as the established START, and into its close as `previous_world_state` (FR-491 B; preserving FR-488 J7) |
 | **The Book** | _none — composition is assembly, not generation (FR-492)_ | `compose_book_deterministic` walks `chapters.order`, heads each played chapter's title + its per-chapter Final Cut final text, suppresses the `world_state` ledger from the manuscript, and **raises** rather than composing from nothing (Commandment 6). No LLM on the path to a *first* book. |
 

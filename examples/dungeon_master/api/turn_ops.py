@@ -33,8 +33,8 @@ def chapter_beat_list(doc: dict, cid: str) -> list[str]:
     """Chapter ``cid``'s enumerated key-event beats (FR-503; empty if none).
 
     The finite contract the director selects from and the play loop drives toward.
-    Empty for a chapter outlined before FR-503 (or a malformed outline), which
-    routes the ledger through the FR-491 free-text fallback.
+    Non-empty by the FR-504 boundary contract (``chapter_ops._require_beats``); a
+    chapter persisted before that contract — or one with no card — yields ``[]``.
     """
     return list(_chapter_card(doc, cid).get("beats") or [])
 
@@ -325,53 +325,14 @@ async def invoke_turn(
     return clean_text(result.get("recap"))
 
 
-_PHASE_ORDER = {"opening": 0, "rising": 1, "climax": 2, "resolved": 3}
-
-
-def _clamp_phase(direction: dict, prior: dict) -> None:
-    """Floor this turn's ``phase`` at the prior turn's — the arc never runs backwards.
-
-    ``phase`` is "where the arc stands"; once a scene reaches a higher phase it
-    cannot un-reach it (FR-481 B2). A model that regresses (e.g. climax → rising
-    on a later beat) is clamped up to the phase already declared, deterministically,
-    so the recorded arc is monotonic regardless of what the model returns. A
-    forward advance is left untouched; an unknown phase string is left as-is.
-    """
-    prior_phase = prior.get("phase", "") if prior else ""
-    cur = direction.get("phase", "")
-    if (
-        prior_phase in _PHASE_ORDER
-        and cur in _PHASE_ORDER
-        and _PHASE_ORDER[cur] < _PHASE_ORDER[prior_phase]
-    ):
-        direction["phase"] = prior_phase
-
-
-def _canonicalize_beats(direction: dict, prior: dict) -> None:
-    """Accumulate ``beats_satisfied`` as free-text phrases, cumulatively (FR-491).
-
-    The chapter plan is a free-text summary, not a parseable BEATS block, so the
-    director's reported phrases are the vocabulary. Union this turn's phrases with
-    the prior turn's satisfied set, de-duplicated and order-preserving, and record
-    ``beats_total`` as 0 so the card shows no misleading ``k / 0`` (J4).
-    """
-    prior_beats = list((prior or {}).get("beats_satisfied") or [])
-    raw = list(direction.get("beats_satisfied") or [])
-    merged: list[str] = []
-    for b in prior_beats + raw:
-        if b not in merged:
-            merged.append(b)
-    direction["beats_satisfied"] = merged
-    direction["beats_total"] = 0
-
-
 def _phase_for_count(satisfied: int, total: int) -> str:
     """Map a satisfied-beat count to the arc phase (FR-503 J3 truth table).
 
     ``opening`` at zero, ``resolved`` only once every beat is satisfied, ``climax``
     on the final beat, ``rising`` while partway. Because the satisfied set is
     accumulated monotonically (``_apply_beat_ledger`` unions with the prior turn),
-    the computed phase is monotonic by construction — subsuming the FR-481 clamp.
+    the computed phase is monotonic by construction — subsuming the retired FR-481
+    ``_clamp_phase`` (FR-504).
     """
     if total >= 1 and satisfied >= total:
         return "resolved"
@@ -428,15 +389,11 @@ def _apply_beat_ledger(direction: dict, beats: list[str], prior: dict) -> None:
     the prior turn's satisfied set (cumulative), resolved back to canonical beat
     TEXT so every downstream consumer reads the same ``list[str]`` shape (J1), and
     ``phase`` / ``scene_complete`` are COMPUTED from k / N (J3) — the rails are
-    code, the model judges only WHICH enumerated beats are now true. When the
-    chapter carries no enumerated beats (``N == 0``) the FR-491 free-text path is
-    kept as the fallback (never a divide-by-zero).
+    code, the model judges only WHICH enumerated beats are now true. ``beats`` is a
+    non-empty boundary contract (FR-504 ``_require_beats``); the FR-491 free-text
+    ``N == 0`` fallback has been retired.
     """
     n = len(beats)
-    if n == 0:
-        _clamp_phase(direction, prior)
-        _canonicalize_beats(direction, prior)
-        return
     cur = _satisfied_indices(direction.get("beats_satisfied"), beats)
     prior_text = (prior or {}).get("beats_satisfied") or []
     prior_idx = {beats.index(t) for t in prior_text if t in beats}
@@ -498,12 +455,12 @@ def climax_turn(doc: dict, cid: str) -> int:
 def chapter_beats(doc: dict, cid: str) -> list[str]:
     """The beats chapter ``cid`` satisfied, accumulated across its turns (FR-492).
 
-    The fidelity signal the Final Cut must preserve. A chapter plan is a free-text
-    ``summary``, not a parseable ``BEATS:`` block, so there is nothing to parse —
-    the director already records ``beats_satisfied`` cumulatively per turn
-    (``_canonicalize_beats``). This unions the chapter's turns' phrases,
-    de-duplicated and order-preserving, so the finish is handed the canonical
-    beats the play loop confirmed rather than re-deriving them.
+    The fidelity signal the Final Cut must preserve. The director records
+    ``beats_satisfied`` cumulatively per turn as canonical beat TEXT resolved from
+    the finite enumerated list (``_apply_beat_ledger``, FR-503/FR-504). This unions
+    the chapter's turns' beats, de-duplicated and order-preserving, so the finish
+    is handed the canonical beats the play loop confirmed rather than re-deriving
+    them.
     """
     beats: list[str] = []
     for t in chapter_turns(doc, cid):

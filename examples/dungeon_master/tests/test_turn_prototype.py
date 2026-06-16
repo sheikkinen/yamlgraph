@@ -49,10 +49,14 @@ _FINISH_RETIRED = pytest.mark.skip(
 def _mock_direction(variables: dict) -> dict:
     """Deterministic director output mirroring the structured turn_direct schema.
 
-    ``opening`` is read from the running-scene marker; ``scene_complete`` flips at
-    turn 3; a *phantom* is any title-cased name in the scene that no rostered
-    character owns (``Naru`` here — the Vane case), surfaced as a continuity flag
-    and deliberately NOT folded into ``steer`` (FR-479 J2).
+    ``opening`` is read from the running-scene marker; the director reports
+    satisfied beats as 1-based NUMBERS over the chapter's finite beat list (FR-503),
+    progressing to the full set by turn 3 so the COMPUTED ``phase`` /
+    ``scene_complete`` (``_apply_beat_ledger``) reproduce the old opening → rising →
+    resolved timeline. Beat 2 is "Kara corners Tarek", so it resolves to that
+    canonical text downstream. A *phantom* is any title-cased name in the scene
+    that no rostered character owns (``Naru`` here — the Vane case), surfaced as a
+    continuity flag and deliberately NOT folded into ``steer`` (FR-479 J2).
     """
     scene = variables.get("scene") or ""
     cast = variables.get("cast") or []
@@ -62,10 +66,16 @@ def _mock_direction(variables: dict) -> dict:
     cast_names = {c.get("name") for c in cast}
     titlecased = set(re.findall(r"\b[A-Z][a-z]+\b", scene))
     phantoms = sorted(titlecased - cast_names - {"Nothing", "Only", "Turn"})
+    if opening:
+        satisfied: list[int] = []
+    elif n >= 3:
+        satisfied = [1, 2, 3, 4]  # every beat → resolved + scene_complete (computed)
+    else:
+        satisfied = [2]  # "Kara corners Tarek" → rising (computed)
     return {
         "phase": "opening" if opening else ("resolved" if n >= 3 else "rising"),
         "establishing": ESTABLISHING_TEXT if opening else "",
-        "beats_satisfied": [] if opening else ["Kara corners Tarek"],
+        "beats_satisfied": satisfied,
         "scene_complete": n >= 3,
         "steer": "",
         "continuity": [f"{p} acts but is not a rostered character" for p in phantoms],
@@ -83,10 +93,32 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
     # spawns on every synopsis-accept, so this branch keeps the existing suite
     # green now that synopsis-accept derives chapters as well as the roster.
     if prompt_name == "chapter_outline":
+        # FR-504: every chapter carries a non-empty, ordered ``beats`` list (the
+        # boundary contract). Beat 2 is "Kara corners Tarek" so the default
+        # director mock's satisfied beat resolves to canonical text downstream;
+        # only Kara/Tarek are capitalized so the scene introduces no phantoms.
         return {
             "chapters": [
-                {"title": "Chapter 1 — The Water Rises", "summary": "Kara musters."},
-                {"title": "Chapter 2 — The Last Ledge", "summary": "Kara corners."},
+                {
+                    "title": "Chapter 1 — The Water Rises",
+                    "summary": "Kara musters.",
+                    "beats": [
+                        "Kara musters the band",
+                        "Kara corners Tarek",
+                        "the floodwaters rise",
+                        "Tarek frees the herd",
+                    ],
+                },
+                {
+                    "title": "Chapter 2 — The Last Ledge",
+                    "summary": "Kara corners.",
+                    "beats": [
+                        "Kara reaches the ledge",
+                        "Kara corners Tarek",
+                        "the ledge floods",
+                        "Tarek yields",
+                    ],
+                },
             ]
         }
     if prompt_name == "chapter_close":
@@ -449,34 +481,6 @@ def test_phantom_actor_raises_continuity_flag(client, tmp_path):
 # ── FR-481: Director card & arc integrity ───────────────────────────────────
 
 
-def _phase_execute_prompt(phases):
-    """An ``execute_prompt`` mock that drives ``turn_direct.phase`` per turn.
-
-    ``phases[n-1]`` is the phase the director "returns" for turn ``n``; every
-    other prompt delegates to the default deterministic mock. Lets a test force a
-    phase regression and prove the clamp (FR-481 B2).
-    """
-
-    def _inner(prompt_name, variables=None, **kwargs):
-        variables = variables or {}
-        draft = variables.get("draft") or ""
-        if prompt_name == "turn_direct" and not draft.strip():
-            turn_n = variables.get("turn_n")
-            n = int(turn_n) if str(turn_n).isdigit() else 1
-            phase = phases[n - 1] if 1 <= n <= len(phases) else "rising"
-            return {
-                "phase": phase,
-                "establishing": ESTABLISHING_TEXT if phase == "opening" else "",
-                "beats_satisfied": [] if phase == "opening" else ["Kara corners Tarek"],
-                "scene_complete": False,
-                "steer": "",
-                "continuity": [],
-            }
-        return _mock_execute_prompt(prompt_name, variables, **kwargs)
-
-    return _inner
-
-
 # ── 13. The director's judgement is always visible as a card on a turn (A) ───
 
 
@@ -493,154 +497,6 @@ def test_director_card_always_visible_on_turn(client, tmp_path):
     assert "director-card" in body
     assert "director-phase-rising" in body
     assert "Kara corners Tarek" in body
-
-
-# ── 14. Phase never runs backwards — a regress is clamped up (B2) ───────────
-
-
-def test_phase_is_clamped_monotonic(client, tmp_path):
-    session_id = _new_session(client)
-    seq = ["opening", "climax", "rising"]  # turn 3 regresses; must be clamped
-    with (
-        patch(
-            "yamlgraph.node_factory.llm_nodes.execute_prompt",
-            side_effect=_phase_execute_prompt(seq),
-        ),
-        patch(
-            "yamlgraph.executor.execute_prompt",
-            side_effect=_phase_execute_prompt(seq),
-        ),
-    ):
-        _reach_play(client, tmp_path, session_id)  # turn 1: opening
-        _accept(client, session_id)  # turn 2: climax
-        _accept(client, session_id)  # turn 3: model "rising" → clamped to climax
-        doc = _doc(tmp_path, session_id)
-    phases = [t["direction"]["phase"] for t in _turns(doc)]
-    assert phases == ["opening", "climax", "climax"]
-
-
-def test_clamp_phase_floors_at_prior_but_allows_advance():
-    from examples.dungeon_master.api import turn_ops
-
-    regressed = {"phase": "rising"}
-    turn_ops._clamp_phase(regressed, {"phase": "climax"})
-    assert regressed["phase"] == "climax"  # floored up
-
-    advanced = {"phase": "resolved"}
-    turn_ops._clamp_phase(advanced, {"phase": "climax"})
-    assert advanced["phase"] == "resolved"  # forward advance untouched
-
-    opening = {"phase": "opening"}
-    turn_ops._clamp_phase(opening, {})  # no prior turn
-    assert opening["phase"] == "opening"
-
-
-# ── FR-482: cumulative beats_satisfied via canonical BEATS matching ──────────
-
-
-def _beats_execute_prompt(beats_by_turn):
-    """An ``execute_prompt`` mock driving ``turn_direct.beats_satisfied`` per turn.
-
-    ``beats_by_turn[n-1]`` is the list of free-text beat phrases the director
-    "returns" for turn ``n``; the mock binds them onto the canonical scene BEATS
-    downstream. Every other prompt delegates to the default deterministic mock.
-    """
-
-    def _inner(prompt_name, variables=None, **kwargs):
-        variables = variables or {}
-        draft = variables.get("draft") or ""
-        if prompt_name == "turn_direct" and not draft.strip():
-            turn_n = variables.get("turn_n")
-            n = int(turn_n) if str(turn_n).isdigit() else 1
-            phrases = beats_by_turn[n - 1] if 1 <= n <= len(beats_by_turn) else []
-            return {
-                "phase": "rising",
-                "establishing": "",
-                "beats_satisfied": list(phrases),
-                "scene_complete": False,
-                "steer": "",
-                "continuity": [],
-            }
-        return _mock_execute_prompt(prompt_name, variables, **kwargs)
-
-    return _inner
-
-
-# ── 15. beats_satisfied accumulates as free-text phrases, cumulatively ───────
-
-
-def test_beats_satisfied_is_cumulative_and_canonical(client, tmp_path):
-    session_id = _new_session(client)
-    # Turn 1 reports beat 0; turn 2 reports only beat 1 (incremental), yet the
-    # recorded set must be the cumulative union (FR-491: free-text, not canonical).
-    seq = [["Kara corners Tarek on the ledge"], ["Tarek frees the herd"]]
-    with (
-        patch(
-            "yamlgraph.node_factory.llm_nodes.execute_prompt",
-            side_effect=_beats_execute_prompt(seq),
-        ),
-        patch(
-            "yamlgraph.executor.execute_prompt",
-            side_effect=_beats_execute_prompt(seq),
-        ),
-    ):
-        _reach_play(client, tmp_path, session_id)  # turn 1
-        _accept(client, session_id)  # → turn 2
-        doc = _doc(tmp_path, session_id)
-    t1 = set(_turns(doc)[0]["direction"]["beats_satisfied"])
-    t2 = set(_turns(doc)[1]["direction"]["beats_satisfied"])
-    # Cumulative: turn 2 ⊇ turn 1, and the new phrase was added.
-    assert t1 <= t2
-    assert len(t2) == len(t1) + 1
-    # The chapter plan is free text, so there is no canonical k / N count (J4).
-    assert _turns(doc)[1]["direction"]["beats_total"] == 0
-
-
-# ── 16. An exact-duplicate phrase counts once, not twice ────────────────────
-
-
-def test_paraphrases_of_one_beat_dedupe_to_one(client, tmp_path):
-    session_id = _new_session(client)
-    # The same phrase reported twice in one turn de-duplicates to a single entry
-    # (FR-491: exact dedup; the fuzzy canonical match is retired with the BEATS).
-    seq = [["Kara corners Tarek on the ledge", "Kara corners Tarek on the ledge"]]
-    with (
-        patch(
-            "yamlgraph.node_factory.llm_nodes.execute_prompt",
-            side_effect=_beats_execute_prompt(seq),
-        ),
-        patch(
-            "yamlgraph.executor.execute_prompt",
-            side_effect=_beats_execute_prompt(seq),
-        ),
-    ):
-        _reach_play(client, tmp_path, session_id)  # turn 1
-        doc = _doc(tmp_path, session_id)
-    beats = _turns(doc)[0]["direction"]["beats_satisfied"]
-    assert len(beats) == 1
-
-
-# ── 17. The Director card lists the satisfied beats (no k / N for free text) ──
-
-
-def test_director_card_shows_beat_count(client, tmp_path):
-    session_id = _new_session(client)
-    seq = [["Kara corners Tarek on the ledge"]]
-    with (
-        patch(
-            "yamlgraph.node_factory.llm_nodes.execute_prompt",
-            side_effect=_beats_execute_prompt(seq),
-        ),
-        patch(
-            "yamlgraph.executor.execute_prompt",
-            side_effect=_beats_execute_prompt(seq),
-        ),
-    ):
-        resp = _reach_play(client, tmp_path, session_id)  # turn 1
-    # The satisfied beat phrase is rendered; with free-text beats there is no
-    # misleading "k / 0" count on the card (FR-491 J4).
-    assert "Kara corners Tarek on the ledge" in resp.text
-    assert "/ 0" not in resp.text
 
 
 # ── FR-483: non-roster actors surface as continuity flags (roster-authoritative) ─
@@ -874,8 +730,8 @@ def test_weave_provider_error_surfaces_without_losing_place(client, tmp_path):
 # Python (J3 truth table), not guessed by the model. ``_direction_dict`` resolves
 # the returned indices back to canonical beat TEXT so every downstream consumer
 # (Final Cut, the card, ``chapter_beats``) reads the same shape as before (J1).
-# When a chapter carries no enumerated beats (N == 0) the FR-491 free-text path
-# is kept as the fallback — never a divide-by-zero (J3).
+# ``beats`` is a non-empty boundary contract (FR-504 ``_require_beats``); the
+# FR-491 free-text ``N == 0`` fallback has been retired.
 
 
 def test_phase_for_count_truth_table():
@@ -943,19 +799,30 @@ def test_apply_beat_ledger_accumulates_with_prior_and_resolves():
     assert direction["scene_complete"] is True
 
 
-def test_apply_beat_ledger_n_zero_falls_back_to_freetext(monkeypatch):
+def test_apply_beat_ledger_phase_is_monotonic_under_accumulation():
+    """The computed phase never runs backwards as beats accumulate (FR-504).
+
+    Re-homes the retired FR-481 ``_clamp_phase`` guarantee onto the computed
+    ledger: because the satisfied set only grows (union with the prior turn) and
+    ``_phase_for_count`` is monotonic in k, the recorded phase is monotonic by
+    construction — even when the model "reports" fewer beats on a later turn.
+    """
     from examples.dungeon_master.api import turn_ops
 
-    # No enumerated beats → the FR-491 free-text path is preserved (J3): the
-    # phrases union cumulatively, beats_total stays 0, no divide-by-zero.
-    direction = {"phase": "rising", "beats_satisfied": ["a phantom phrase"]}
-    prior = {"beats_satisfied": ["an earlier phrase"]}
-    turn_ops._apply_beat_ledger(direction, beats=[], prior=prior)
-    assert set(direction["beats_satisfied"]) == {
-        "an earlier phrase",
-        "a phantom phrase",
-    }
-    assert direction["beats_total"] == 0
+    beats = ["a", "b", "c", "d"]
+    order = {"opening": 0, "rising": 1, "climax": 2, "resolved": 3}
+    prior: dict = {}
+    phases: list[str] = []
+    # Turn-by-turn the model reports a shrinking selection, yet accumulation wins.
+    for reported in ([], [1], [2], [1], [1, 2, 3, 4]):
+        direction = {"beats_satisfied": list(reported)}
+        turn_ops._apply_beat_ledger(direction, beats, prior=prior)
+        phases.append(direction["phase"])
+        prior = direction
+    assert phases == ["opening", "rising", "rising", "rising", "resolved"]
+    # Monotonic: each phase rank ≥ the previous (never regresses).
+    ranks = [order[p] for p in phases]
+    assert ranks == sorted(ranks)
 
 
 def test_running_scene_surfaces_pending_beats(tmp_path):

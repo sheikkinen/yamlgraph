@@ -27,12 +27,22 @@ from examples.dungeon_master.api import chapter_ops
 
 SYNOPSIS_TEXT = "Kara leads the band against a rival raider as the floodwaters rise."
 
-# A structured two-chapter outline (J1): {chapters: [{title, summary}]} — the
-# shape split_roster cannot carry, so the outline is parsed as JSON, not lines.
+# A structured two-chapter outline (J1): {chapters: [{title, summary, beats}]} —
+# the shape split_roster cannot carry, so the outline is parsed as JSON, not
+# lines. FR-504: every chapter carries a non-empty ``beats`` list (the boundary
+# contract enforced by ``_require_beats``).
 OUTLINE = {
     "chapters": [
-        {"title": "Chapter 1 — The Water Rises", "summary": "Kara musters the band."},
-        {"title": "Chapter 2 — The Last Ledge", "summary": "Kara corners the raider."},
+        {
+            "title": "Chapter 1 — The Water Rises",
+            "summary": "Kara musters the band.",
+            "beats": ["Kara musters the band", "the floodwaters rise"],
+        },
+        {
+            "title": "Chapter 2 — The Last Ledge",
+            "summary": "Kara corners the raider.",
+            "beats": ["Kara reaches the ledge", "Kara corners the raider"],
+        },
     ]
 }
 

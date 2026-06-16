@@ -51,7 +51,7 @@ def _beat_list(item: object) -> list[str]:
     The director selects satisfied beats by number from this finite list, so the
     phrases are kept verbatim (not coerced through ``field``, which flattens to a
     single string). Blank entries are dropped; a missing/non-list ``beats`` yields
-    an empty list, which routes the chapter through the FR-491 free-text fallback.
+    an empty list, which :func:`_require_beats` then rejects at the boundary.
     """
     raw = item.get("beats") if isinstance(item, dict) else getattr(item, "beats", None)
     if not isinstance(raw, list):
@@ -59,13 +59,35 @@ def _beat_list(item: object) -> list[str]:
     return [str(b).strip() for b in raw if str(b).strip()]
 
 
+def _require_beats(chapters: list[dict]) -> list[dict]:
+    """Reject any chapter that carries no enumerated ``beats`` (FR-504 contract).
+
+    FR-503 replaced the director's unbounded free-text beat judgement with a
+    finite, enumerated beat ledger but kept the FR-491 free-text path alive as the
+    ``N == 0`` fallback. FR-504 retires that fallback: a non-empty ``beats`` list
+    is now a validated boundary contract, normalized where the outline enters
+    (``the_one_law``), so there is exactly one beat-judgement regime downstream and
+    no chapter can silently fall back. Returns ``chapters`` unchanged when every
+    one carries beats; raises otherwise (Commandment 6: no silent fallback).
+    """
+    for i, ch in enumerate(chapters, start=1):
+        if not ch.get("beats"):
+            raise ValueError(
+                f"chapter {i} ({ch.get('title') or '?'!r}) outline carries no beats; "
+                "every chapter must enumerate its key-event beats (FR-504)"
+            )
+    return chapters
+
+
 async def outline_chapters(doc: dict) -> list[dict]:
-    """Split the accepted synopsis into an ordered list of ``{title, summary}``.
+    """Split the accepted synopsis into an ordered list of ``{title, summary, beats}``.
 
     Runs ``chapter_outline.yaml`` once over the synopsis and returns the structured
     chapter list (J1: a titled paragraph per chapter — a shape a plain line-split
     cannot hold). Raises rather than substituting an empty book when the model
-    returns no chapters (Commandment 6: no silent fallback).
+    returns no chapters, and rejects any chapter without enumerated ``beats``
+    (:func:`_require_beats`, FR-504 contract) — both per Commandment 6: no silent
+    fallback.
     """
     synopsis = doc.get("synopsis", {}).get("text", "")
     result = await get_app(CHAPTER_OUTLINE_GRAPH).ainvoke(
@@ -83,7 +105,7 @@ async def outline_chapters(doc: dict) -> list[dict]:
     ]
     if not chapters:
         raise ValueError("chapter outline returned no chapters")
-    return chapters
+    return _require_beats(chapters)
 
 
 async def close_chapter(doc: dict, cid: str) -> dict:
