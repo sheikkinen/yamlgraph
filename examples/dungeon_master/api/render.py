@@ -22,12 +22,29 @@ from __future__ import annotations
 from examples.dungeon_master.api import chapter_ops
 
 
+def _summary_gloss(text: str) -> str:
+    """The one-line cast gloss for a character card.
+
+    The card is a labeled SHEET (``SUMMARY:`` / ``ROLE:`` / ``ORIGIN:`` …) joined
+    by single newlines (FR-496 J1), so the FR-494 ``split("\\n\\n")[0]`` would leak
+    the whole sheet. When a ``SUMMARY:`` line is present, return its value alone
+    (the label is case- and leading-whitespace tolerant, J3); otherwise fall back
+    to the first ``\\n\\n``-split paragraph — plain-prose cards keep the FR-494
+    behaviour (J4).
+    """
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.upper().startswith("SUMMARY:"):
+            return stripped[len("SUMMARY:") :].strip()
+    return text.split("\n\n", 1)[0].strip()
+
+
 def _cast_lines(doc: dict) -> list[str]:
-    """One ``**name** — <first paragraph>`` bullet per non-empty character card.
+    """One ``**name** — <summary gloss>`` bullet per non-empty character card.
 
     A character whose card ``text`` is empty is dropped (no dangling bullet, J2);
-    only the first ``\\n\\n``-split paragraph of the card is used — the rest is
-    the character's working detail, not manuscript front matter.
+    the gloss is the card's ``SUMMARY:`` value when the sheet has one, else its
+    first ``\\n\\n``-split paragraph (FR-496) — never the whole labeled sheet.
     """
     chars = doc.get("characters", {})
     cards = chars.get("cards", {})
@@ -38,8 +55,8 @@ def _cast_lines(doc: dict) -> list[str]:
         if not text:
             continue
         name = card.get("name") or cid
-        first_para = text.split("\n\n", 1)[0].strip()
-        lines.append(f"- **{name}** — {first_para}")
+        gloss = _summary_gloss(text)
+        lines.append(f"- **{name}** — {gloss}")
     return lines
 
 
