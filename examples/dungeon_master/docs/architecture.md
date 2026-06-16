@@ -165,9 +165,10 @@ Accept is **not** a linear cursor — the tree chooses the next node:
 - **The Book** → terminal (`None`).
 
 The side-effects accept performs before asking where to land — the synopsis
-roster expansion (`_expand_roster`), the last-character chapter-outline expansion
-(`_expand_chapters`), and the scene-complete chapter close (`_close_chapter`) —
-all live in `session`; `navigation` itself stays pure (FR-489 J1).
+roster expansion (`doc_ops.expand_roster`), the last-character chapter-outline
+expansion (`doc_ops.expand_chapters`), and the scene-complete chapter close
+(`doc_ops.apply_chapter_close`) — all live in `doc_ops` (FR-493), invoked from
+`session`; `navigation` itself stays pure (FR-489 J1).
 
 ---
 
@@ -181,14 +182,14 @@ what the recorded arc already knows.
 
 ### Ordinary cards — one weave
 
-`session._invoke_stage` builds `{draft, instruction, <context stages>, name?}`,
+`doc_ops.invoke_stage` builds `{draft, instruction, <context stages>, name?}`,
 runs the stage graph, and returns the cleaned output. Empty draft ⇒ the
 instruction is the premise; non-empty ⇒ apply the change; empty instruction ⇒ pure
 save (no model call). An empty completion with no recorded error is treated as the
 silent shape of a content-policy decline and **raised**, never written over the
 draft (Commandment 6).
 
-### Composed stages — `session._compose_special`
+### Composed stages — `doc_ops.compose_stage`
 
 | Stage | Generative seam | Deterministic seam (pure code) |
 |-------|-----------------|--------------------------------|

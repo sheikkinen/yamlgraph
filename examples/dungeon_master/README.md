@@ -118,9 +118,9 @@ The prototype originally split a `synopsis` prompt (premise → prose) from a ge
 takes the current draft (possibly empty) plus an instruction and returns the full
 prose. Empty draft means the instruction is the premise; non-empty means apply
 the change. This is the engine behind Iterate and it is the only generation path —
-ordinary cards run it through `session._invoke_stage`; the structured stages
+ordinary cards run it through `doc_ops.invoke_stage`; the structured stages
 (turns, chapters, the Book) run a *composed* variant
-(`session._compose_special`) that wraps the same weave contract around their
+(`doc_ops.compose_stage`) that wraps the same weave contract around their
 multi-node graphs and deterministic post-conditions (see
 [`docs/architecture.md`](docs/architecture.md)).
 
