@@ -865,3 +865,143 @@ def test_weave_provider_error_surfaces_without_losing_place(client, tmp_path):
     assert 'id="app-shell"' in resp.text  # breadcrumb preserved
     assert "blocked by content policy" in resp.text  # the error reaches the DM
     assert "my draft" in resp.text  # the draft is kept so the DM can rephrase
+
+
+# ── FR-503: finite, computed beat ledger (the unanchored-phase stall cure) ───
+#
+# The director stops inventing free-text beats and instead selects from a finite,
+# enumerated list. ``phase`` and ``scene_complete`` are COMPUTED from k / N in
+# Python (J3 truth table), not guessed by the model. ``_direction_dict`` resolves
+# the returned indices back to canonical beat TEXT so every downstream consumer
+# (Final Cut, the card, ``chapter_beats``) reads the same shape as before (J1).
+# When a chapter carries no enumerated beats (N == 0) the FR-491 free-text path
+# is kept as the fallback — never a divide-by-zero (J3).
+
+
+def test_phase_for_count_truth_table():
+    from examples.dungeon_master.api import turn_ops
+
+    # N == 5: opening at 0, rising while partial, climax on the last beat,
+    # resolved only when every beat is satisfied (J3).
+    assert turn_ops._phase_for_count(0, 5) == "opening"
+    assert turn_ops._phase_for_count(1, 5) == "rising"
+    assert turn_ops._phase_for_count(3, 5) == "rising"
+    assert turn_ops._phase_for_count(4, 5) == "climax"
+    assert turn_ops._phase_for_count(5, 5) == "resolved"
+    # N == 1 collapses to opening → resolved (no rising/climax room).
+    assert turn_ops._phase_for_count(0, 1) == "opening"
+    assert turn_ops._phase_for_count(1, 1) == "resolved"
+    # N == 2 jumps opening → climax → resolved (no rising room).
+    assert turn_ops._phase_for_count(0, 2) == "opening"
+    assert turn_ops._phase_for_count(1, 2) == "climax"
+    assert turn_ops._phase_for_count(2, 2) == "resolved"
+
+
+def test_satisfied_indices_parses_numbers_and_ignores_out_of_range():
+    from examples.dungeon_master.api import turn_ops
+
+    beats = ["alpha event", "beta event", "gamma event", "delta event"]
+    # 1-based numbers as the scene presents them → 0-based index set.
+    assert turn_ops._satisfied_indices([1, 3], beats) == {0, 2}
+    # Numeric strings are accepted too.
+    assert turn_ops._satisfied_indices(["2"], beats) == {1}
+    # Out-of-range / non-numeric junk is ignored, never crashes (boundary).
+    assert turn_ops._satisfied_indices([0, 99, "x", None], beats) == set()
+    # A model that echoes the beat text instead of its number still resolves.
+    assert turn_ops._satisfied_indices(["gamma event"], beats) == {2}
+
+
+def test_apply_beat_ledger_resolves_indices_to_text_and_computes_phase():
+    from examples.dungeon_master.api import turn_ops
+
+    beats = ["a", "b", "c", "d", "e"]
+    direction = {
+        "phase": "resolved",  # a wrong model guess — must be overwritten
+        "beats_satisfied": [1, 2],  # 1-based → indices 0,1
+        "scene_complete": True,  # wrong model guess — must be recomputed
+    }
+    turn_ops._apply_beat_ledger(direction, beats, prior={})
+    # Indices resolved back to canonical TEXT so consumers read list[str] (J1).
+    assert direction["beats_satisfied"] == ["a", "b"]
+    assert direction["beats_total"] == 5
+    # phase + completion COMPUTED from k / N, not read from the model (J3).
+    assert direction["phase"] == "rising"
+    assert direction["scene_complete"] is False
+
+
+def test_apply_beat_ledger_accumulates_with_prior_and_resolves():
+    from examples.dungeon_master.api import turn_ops
+
+    beats = ["a", "b", "c"]
+    prior = {"beats_satisfied": ["a", "b"]}  # already-text from a past turn
+    direction = {"phase": "rising", "beats_satisfied": [3], "scene_complete": False}
+    turn_ops._apply_beat_ledger(direction, beats, prior=prior)
+    # Cumulative union of prior text + this turn's index → every beat satisfied.
+    assert direction["beats_satisfied"] == ["a", "b", "c"]
+    assert direction["beats_total"] == 3
+    assert direction["phase"] == "resolved"
+    assert direction["scene_complete"] is True
+
+
+def test_apply_beat_ledger_n_zero_falls_back_to_freetext(monkeypatch):
+    from examples.dungeon_master.api import turn_ops
+
+    # No enumerated beats → the FR-491 free-text path is preserved (J3): the
+    # phrases union cumulatively, beats_total stays 0, no divide-by-zero.
+    direction = {"phase": "rising", "beats_satisfied": ["a phantom phrase"]}
+    prior = {"beats_satisfied": ["an earlier phrase"]}
+    turn_ops._apply_beat_ledger(direction, beats=[], prior=prior)
+    assert set(direction["beats_satisfied"]) == {
+        "an earlier phrase",
+        "a phantom phrase",
+    }
+    assert direction["beats_total"] == 0
+
+
+def test_running_scene_surfaces_pending_beats(tmp_path):
+    from examples.dungeon_master.api import turn_ops
+
+    beats = [
+        "Hilde raids at dawn",
+        "The river breaks its banks",
+        "Arnulf is swept downriver",
+    ]
+    doc = {
+        "chapters": {
+            "order": ["1"],
+            "cards": {
+                "1": {
+                    "title": "The Water Rises",
+                    "summary": "Hilde raids; the flood strands her.",
+                    "beats": beats,
+                    "turns": [
+                        {
+                            "n": 1,
+                            "intents": {},
+                            "recap": {
+                                "text": "Hilde charges the camp.",
+                                "reviewed": True,
+                            },
+                            "direction": {
+                                "phase": "rising",
+                                "beats_satisfied": ["Hilde raids at dawn"],
+                                "beats_total": 3,
+                            },
+                        }
+                    ],
+                }
+            },
+        }
+    }
+    scene = turn_ops.running_scene(doc, "1", 2)
+    # The finite, numbered beat list is shown so the director can return indices.
+    assert "Hilde raids at dawn" in scene
+    # There is an explicit "drive toward the first pending beat" block.
+    marker = "BEATS STILL TO PORTRAY"
+    assert marker in scene
+    pending_block = scene.split(marker, 1)[1]
+    # The unsatisfied beats appear in the pending block…
+    assert "The river breaks its banks" in pending_block
+    assert "Arnulf is swept downriver" in pending_block
+    # …and the already-satisfied beat is NOT re-listed as still-to-portray.
+    assert "Hilde raids at dawn" not in pending_block
