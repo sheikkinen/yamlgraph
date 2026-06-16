@@ -99,8 +99,9 @@ single source of truth. It grows additively as stages are reached:
       "2": { "title": "...", "summary": "...", "world_state": "",
              "text": "", "reviewed": false, "turns": [] }
     }
-  },
-  "book": { "text": "...", "reviewed": false }  // FR-491 E — the whole-book finish
+  }
+  // No persisted "book" entry (FR-492): The Book is composed on the fly from the
+  // played chapters' final texts by compose_book_deterministic, never stored.
 }
 ```
 
@@ -120,7 +121,7 @@ Synopsis (root — gates everything)
 └── Chapters (overview)    FR-488/490/491 · read-only TOC → one chapter:<cid> card each
       └── chapter:<cid>     FR-491 · PLAYED in place via the turn loop
             └── turn:<cid>:<n>   map(cast → intents) → director → recap
-      The Book              FR-491 E · terminal finish, once every chapter is played
+      The Book              FR-491/492 · terminal finish — deterministically composed (no graph)
 ```
 
 Static stages live in `tree.STAGES` (`synopsis`, `characters`, `chapters`,
@@ -128,7 +129,8 @@ Static stages live in `tree.STAGES` (`synopsis`, `characters`, `chapters`,
 **synthesised at runtime** by `resolve_stage`. Each `Stage` carries its graph, its
 upstream `context` stages, an optional auto-draft `seed`, its `parent` gate, and a
 `kind` that routes the UI (`""` ordinary, `roster`, `chapters`, `chapter`,
-`turn`).
+`turn`, `book`). The `book` stage is **seedless** and graph-less — its `kind`
+routes `session._view` to `compose_book_deterministic` instead of any graph.
 
 The flow is **book-first**: accepting the synopsis derives the cast (the characters
 who will play it); accepting the **last** character derives the chapter outline (the

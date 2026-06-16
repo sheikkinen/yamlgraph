@@ -37,7 +37,7 @@ Synopsis (root — gates everything)
 └── Chapters (overview)    FR-488/490/491 · the book split into an ordered chapter set
       └── chapter:<cid>    FR-491 · PLAYED in place, carrying world_state forward
             └── turn:<cid>:<n>   map(cast → intents) → director → recap (FR-477/479/481)
-      The Book             FR-491 E · composed from every played chapter
+      The Book             FR-491/492 · deterministically composed from every played chapter (no LLM)
 ```
 
 1. **Synopsis** — the DM opens the app to a **tagline** prompt seeded into the
@@ -65,9 +65,11 @@ Synopsis (root — gates everything)
    reports the chapter's scene **complete**, the chapter closes — its
    end-of-chapter `world_state` is derived and carried into the next chapter —
    and play moves on.
-5. **The Book** (FR-491 E) — once **every** chapter has been played to its end,
-   the terminal **Book** finish unlocks and composes the played chapters — their
-   prose and forward-carried world states — into one continuous manuscript.
+5. **The Book** (FR-491/492) — once **every** chapter has been played to its end,
+   the terminal **Book** finish unlocks and **deterministically composes** the
+   played chapters' per-chapter final texts into one continuous manuscript. The
+   assembly is pure code — there is **no whole-book LLM call** (FR-492); each
+   chapter's prose was already generated at its own close.
 
 ### Still deferred (out of scope, by design)
 - Asking for character or chapter counts up front (the roster and the chapter set
@@ -193,7 +195,10 @@ which makes every loop testable in isolation. The graphs are:
 | `chapter_outline.yaml` | Chapters | splits the synopsis into `{title, summary}[]` |
 | `turn.yaml` | each `turn:<cid>:<n>` | `map`(cast → intents) → director → recap |
 | `chapter_close.yaml` | chapter close | inherited ledger + played recaps → end-of-chapter `world_state` |
-| `book.yaml` | The Book | synopsis + every played chapter → one manuscript |
+
+The Book has **no graph** (FR-492): once every chapter is played, its terminal
+stage is rendered by `chapter_ops.compose_book_deterministic` — pure code that
+assembles the already-generated per-chapter final texts, never an LLM call.
 
 The **shared card interface stays a pure `str → str`** (FR-477 J3). The structured
 stages keep their side-channels (turn intents + director judgement; chapter
