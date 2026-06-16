@@ -2,10 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — scope frozen (2026-06-16)
-**Effort:** 1 day
+**Status:** Proposed — **replanned** (decomposed map/reduce review); supersedes the 2026-06-16 freeze, needs re-judge
+**Effort:** 1–2 days
 **Requested:** 2026-06-16
-**Replanned:** 2026-06-16 — a new stand-alone **example** (`examples/book_reviewer/`), not a step in any pipeline
+**Replanned:** 2026-06-16 (1) a new stand-alone **example** (`examples/book_reviewer/`), not a pipeline step; (2) **decomposed** evaluation — map per-chapter + pairwise continuity + reduce — *not* one almighty prompt over the whole book
 
 ## Summary
 
@@ -82,6 +82,47 @@ structured access to the author's intermediate state and judge its own work from
 the inside. A separate example that parses the *rendered manuscript* reads exactly
 what a reader reads, recovering the structure from the prose.
 
+## Research — how a book is actually evaluated
+
+The first plan smuggled in a hidden assumption: that one LLM call, handed the whole
+book, can reliably score it on eight dimensions. The literature condemns that
+"almighty prompt" and points uniformly to **decomposition + aggregation**:
+
+1. **Lost in the Middle** (Liu et al., TACL 2023, arXiv:2307.03172). LLMs do **not**
+   robustly use information in the *middle* of a long context; accuracy is highest
+   when the relevant material is at the very start or end and degrades sharply in
+   the middle — *even for models advertised as long-context*. A reviewer that pastes
+   the entire book into one prompt therefore **systematically under-weights the
+   middle chapters** — exactly where continuity breaks hide. The almighty prompt is
+   not just costly, it is positionally biased.
+2. **BooookScore** (Chang et al., ICLR 2024, arXiv:2310.00785). The first systematic
+   study of book-length (>100K-token) processing. Because the book exceeds the
+   window you must **chunk**, then either (a) hierarchically merge chunk-level
+   results or (b) incrementally update a running summary/state. They catalogue
+   **eight recurring coherence-error types** and define the metric as the
+   *proportion of sentences free of any error* — a decomposed, countable score, not a
+   holistic 1–5 guess.
+3. **FActScore** (Min et al., EMNLP 2023, arXiv:2305.14251). Binary/holistic
+   judgments of long text are inadequate because a passage mixes supported and
+   unsupported claims. Their fix: break the text into **atomic facts** and score the
+   fraction verified against a source. *Decompose-then-verify* beats "is this
+   consistent? (y/n)".
+4. **HANNA / Of Human Criteria** (Chhun et al., COLING 2022, arXiv:2208.11646).
+   Proposes **six orthogonal human criteria** for story evaluation — *Relevance,
+   Coherence, Empathy, Surprise, Engagement, Complexity* — grounded in social-science
+   theory, and shows automatic metrics **correlate poorly** with human judgment.
+   Lesson: use an established orthogonal criteria set, and distrust any single
+   automatic number.
+
+**Design implication.** Evaluation must be **decomposed and aggregated (map →
+reduce), never one prompt over the whole book.** Each LLM call sees a *small,
+focused* slice — one chapter, one chapter-pair, or the synopsis alone — so the
+relevant text lands in the high-attention head/tail region; the book-level verdict
+is **computed** from those slices, not hallucinated over thousands of chars of
+middle-of-context prose. This is also a strictly better YAMLGraph example: it
+dogfoods the **`map` node** (per-chapter fan-out) and a reduce node, mirroring
+BooookScore's chunk-then-merge.
+
 ## Proposed Solution
 
 A new example directory `examples/book_reviewer/`, structured like
@@ -90,22 +131,28 @@ A new example directory `examples/book_reviewer/`, structured like
 ```
 examples/book_reviewer/
   README.md            # what it does, how to run
-  graph.yaml           # parse → lint → review (LLM) orchestration
-  models.py            # ParsedBook, ChapterSection, LintReport, BookReview (Pydantic)
+  graph.yaml           # parse → lint → map(chapter) → map(pair) → synopsis → reduce
+  models.py            # ParsedBook, ChapterSection, LintReport,
+                       #   ChapterReview, ContinuityReport, SynopsisDelivery, BookReview
   nodes/
-    tools.py           # parse_manuscript + lint_manuscript (pure, no LLM)
+    tools.py           # parse_manuscript, lint_manuscript, chapter_pairs (pure, no LLM)
   prompts/
-    review.yaml        # LLM-judge prompt with inline BookReview schema
+    chapter_review.yaml  # per-chapter LLM review (inline ChapterReview schema)
+    continuity.yaml      # per-pair continuity check (inline ContinuityReport schema)
+    synopsis_beats.yaml  # synopsis → beats + coverage (inline SynopsisDelivery schema)
+    verdict.yaml         # reduce: overall/verdict over aggregated findings
   tests/
     test_parse.py      # parse recovers structure from Markdown
     test_lint.py       # lint flags leaks / numbering gaps / empty chapters
-    test_review.py     # mock-LLM: graph returns typed BookReview
+    test_review.py     # mock-LLM: map+reduce graph returns typed BookReview
   sample_book.md       # a captured story.md, the worked example input
 ```
 
-The graph takes the manuscript text as input state and runs three stages, cheapest
-first; nothing mutates the input. The example imports **only** YAMLGraph framework
-code — no `dungeon_master` import, no `story.json`.
+The graph takes the manuscript path as input and runs a **decomposed map → reduce**
+evaluation, cheapest stages first; nothing mutates the input. Every LLM call sees a
+*single chapter, a single chapter-pair, or the synopsis alone* — never the whole
+book. The example imports **only** YAMLGraph framework code — no `dungeon_master`
+import, no `story.json`.
 
 ### Stage 0 — Parse the manuscript into structure (Python tool, no LLM)
 
@@ -166,56 +213,117 @@ Checks (each operates on the parsed structure — pure text, no DM import, no JS
   J1/J2).
 - **`empty-chapter-body`** — every parsed chapter has non-empty `body` prose.
 
-### Stage 2 — Narrative review (LLM-as-judge node)
+### Stage 2 — Per-chapter review (LLM **map** over chapters)
 
-The `graph.yaml` review node uses `prompts/review.yaml` with an **inline Pydantic
-schema** (Commandment 5 — typed output, no untyped dicts). The judge is given the
-**parsed** structure — the synopsis (the book's own stated intent), the cast list,
-and the ordered chapter bodies — and scores each dimension 1–5 with a justification
-and specific issues. The synopsis section stands in for an external premise: it is
-the destination the manuscript itself declares, and the rubric asks whether the
-chapters deliver it.
+A `map` node fans out over `parsed.chapters`. **Each chapter gets its own LLM
+call** with a *small* context — that chapter's body plus the cast glosses and the
+synopsis for reference — and scores the *local* craft criteria that are judgeable
+within a chapter: **Coherence**, **Engagement**, **Prose craft**, and **Character
+consistency** (do the cast act as introduced). It returns a typed `ChapterReview`.
+Because every call sees exactly one chapter, no chapter is ever buried "in the
+middle" of a long context (Lost-in-the-Middle), and the per-chapter scores are the
+countable, decomposed signal BooookScore argues for.
 
-```yaml
-# prompts/review.yaml (inline schema sketch)
-schema:
-  name: BookReview
-  fields:
-    overall: {type: int, description: "1–5 holistic score"}
-    verdict: {type: str, description: "one-line summary judgment"}
-    dimensions:
-      type: list[Dimension]
-      description: "per-dimension scores"
-# Dimension: {name: str, score: int(1–5), justification: str, issues: list[str]}
+```python
+class CriterionScore(BaseModel):
+    name: str              # "coherence" | "engagement" | "prose" | "character"
+    score: int             # 1–5
+    justification: str
+
+class ChapterReview(BaseModel):
+    number: int
+    criteria: list[CriterionScore]
+    issues: list[str]      # specific, quotable problems in this chapter
 ```
 
-Dimensions (frozen set — each judges **only** what the manuscript itself supplies;
-see Judgment J3):
+### Stage 3 — Pairwise continuity (LLM over adjacent chapter **pairs**)
 
-| Dimension | Manuscript ground truth |
-|-----------|-------------------------|
-| Synopsis delivery | the parsed `# Synopsis` — do the chapters deliver its outline? |
-| Plot coherence | the chapter bodies — complete arc, no dangling thread |
-| Internal consistency | the chapter bodies — no self-contradiction across the text |
-| Character consistency | the `# Cast` glosses — characters act as introduced and stay themselves |
-| Cross-chapter continuity | adjacent chapter bodies — no fact contradicted chapter to chapter |
-| Pacing & climax | the chapter bodies — proportionate weight, a discernible peak |
-| Prose craft | the prose — continuous narration, standing facts not over-repeated |
-| Ending | the final chapter — does it resolve the synopsis' promise? |
+A windowed pass: a `chapter_pairs` tool builds the list of adjacent windows
+`(N, N+1)`, and a `map` node runs one LLM call per pair asking a single question —
+does chapter *N+1* contradict a fact, location, or character state established at
+the **end of chapter N**? This is FActScore's *decompose-then-verify* applied to
+continuity: instead of "is the whole book continuous?", verify **each seam** in
+isolation. Adjacent-pair scope keeps every call small.
 
-> **Not in scope (J3):** "preserve every canonical BEAT" and "COMPOSE, do not
-> invent" are generation contracts checkable only against the hidden beat list and
-> played arc in `story.json` — which this example deliberately never reads. A
+```python
+class ContinuityBreak(BaseModel):
+    between: tuple[int, int]   # (N, N+1)
+    detail: str                # the contradicted fact, quoted from both sides
+
+class ContinuityReport(BaseModel):
+    score: int                 # 1–5, derived from break count/severity
+    breaks: list[ContinuityBreak]
+```
+
+(A running-state ledger — BooookScore's *incremental-update* workflow, carrying
+standing facts forward chapter by chapter — is the richer variant; adjacent-pair is
+the minimal version and the example notes the ledger as a documented extension.)
+
+### Stage 4 — Synopsis delivery (LLM, decomposed into **beats**)
+
+The synopsis is the book's own declared destination, so it is the natural
+reference. One small LLM call **decomposes the synopsis into discrete promised
+beats** (input: the synopsis text alone); a second pass checks **coverage** — for
+each beat, is it delivered in the chapter bodies/reviews? This is FActScore
+inverted: *recall* of promised beats rather than precision of asserted facts. It
+never asks one prompt "did the book deliver its synopsis?" over the whole text.
+
+```python
+class SynopsisDelivery(BaseModel):
+    score: int                 # 1–5, = covered / promised
+    promised: list[str]        # beats extracted from the synopsis
+    undelivered: list[str]     # beats with no chapter coverage
+```
+
+### Stage 5 — Reduce: assemble the `BookReview` from structured evidence
+
+A reduce node aggregates the slices into the final typed `BookReview`: per-chapter
+`CriterionScore`s roll up into book-level criterion scores (mean, with the **min**
+flagged), the `ContinuityReport` and `SynopsisDelivery` contribute their scores and
+issue lists, and an `overall` + one-line `verdict` summarise. If a final LLM call
+writes the verdict, it reads **only the compact aggregated findings** (a few hundred
+tokens of scores + flagged issues) — **never** the raw manuscript — so even the
+summary judge sits in the high-attention regime. No node in the graph ever receives
+the whole concatenated book as its prompt context (the anti-almighty-prompt
+invariant).
+
+```yaml
+# prompts/*.yaml each carry an inline Pydantic schema (Commandment 5)
+#   chapter_review.yaml  -> ChapterReview
+#   continuity.yaml      -> ContinuityReport (per pair)
+#   synopsis_beats.yaml  -> SynopsisDelivery
+#   verdict.yaml         -> the overall/verdict over aggregated findings
+```
+
+```python
+class BookReview(BaseModel):
+    overall: int                       # 1–5 holistic, computed + summarised
+    verdict: str                       # one-line judgment
+    criteria: list[CriterionScore]     # book-level, HANNA-derived
+    continuity: ContinuityReport
+    synopsis_delivery: SynopsisDelivery
+    chapters: list[ChapterReview]      # the per-chapter detail, retained
+```
+
+Criteria are drawn from the **six HANNA criteria** (Relevance → synopsis delivery;
+Coherence; Engagement; plus Prose craft and Character consistency as craft
+sub-criteria) rather than an ad-hoc invented set — and each lands on the slice that
+can actually judge it.
+
+> **Not in scope:** "preserve every canonical BEAT" and "COMPOSE, do not invent"
+> are generation contracts checkable only against the hidden beat list and played
+> arc in `story.json` — which this example deliberately never reads. A
 > manuscript-only reviewer has no ground truth for them, so they are **not** rubric
-> dimensions. They remain distant *inspiration* for "plot coherence" and "internal
-> consistency", not claimed checks.
+> criteria; they survive as distant inspiration for coherence/continuity, not
+> claimed checks.
 
 ### How to run
 
 The example is run through the framework CLI like any other graph, with the
-manuscript path as a variable. A `load_manuscript` Python tool reads the file
-(Layer-3 side effect), then `parse_manuscript` → `lint_manuscript` → the review
-node → a `write_report` tool that writes `review.md` beside the manuscript:
+manuscript path as a variable. A `load_manuscript` tool reads the file (Layer-3
+side effect), then `parse_manuscript` → `lint_manuscript` → the **map** of
+per-chapter reviews → the **map** of pairwise continuity checks → synopsis-delivery
+→ the **reduce** that assembles the `BookReview` → `write_report`:
 
 ```bash
 yamlgraph graph run examples/book_reviewer/graph.yaml \
@@ -223,9 +331,9 @@ yamlgraph graph run examples/book_reviewer/graph.yaml \
 ```
 
 The typed `BookReview` and the `LintReport` are the graph's final state (shown by
-`--full`); `review.md` is the human sidecar. The deterministic regression check
-(parse + lint with no LLM) lives in the **unit tests**, which call the pure tools
-directly — there is no `--no-llm` CLI flag (J4). The example is a **sibling** of
+`--full`); `review.md` is the human sidecar. The deterministic parse + lint
+regression check lives in the **unit tests**, which call the pure tools directly —
+there is no `--no-llm` CLI flag. The example is a **sibling** of
 `book_translator`/`dungeon_master`, sharing no code with the generator beyond
 YAMLGraph itself.
 
@@ -247,20 +355,25 @@ YAMLGraph itself.
       asserts `lint_manuscript(parse_manuscript(md)).ok is True` — so a future
       prompt/render drift that reintroduces an FR-495/FR-496 leak fails a check (the
       diary Seed, realised).
-- [ ] `prompts/review.yaml` defines an **inline Pydantic schema** (`BookReview`
-      with `overall`, `verdict`, `dimensions[]`); the rubric is the **eight
-      manuscript-grounded dimensions** of the frozen table (J3) — no beat-list or
-      no-invention checks.
-- [ ] `graph.yaml` runs load → parse → lint → review → write_report and the review
-      node returns the typed `BookReview` over the parsed synopsis + cast + chapter
-      bodies (verified with a **mock-LLM** unit test — no live key). A parse that
-      recovers **zero chapters** raises rather than emitting an empty review
-      (Commandment 6).
+- [ ] Each LLM stage prompt defines an **inline Pydantic schema** (Commandment 5):
+      `chapter_review.yaml`→`ChapterReview`, `continuity.yaml`→`ContinuityReport`,
+      `synopsis_beats.yaml`→`SynopsisDelivery`, `verdict.yaml`→the overall/verdict.
+      Criteria are drawn from the **six HANNA criteria**, not an ad-hoc set, and
+      no criterion claims a `story.json`-only ground truth (no beat-list / no
+      no-invention check).
+- [ ] `graph.yaml` runs load → parse → lint → **map** per-chapter review → **map**
+      pairwise continuity → synopsis-delivery → **reduce** → write_report, and the
+      reduce node returns the typed `BookReview` (verified with a **mock-LLM** unit
+      test — no live key). A parse recovering **zero chapters** raises rather than
+      emitting an empty review (Commandment 6).
+- [ ] **Anti-almighty-prompt invariant:** no LLM node receives the whole
+      concatenated book as its context — each call sees one chapter, one chapter
+      pair, or the synopsis alone. A test asserts the rendered chapter-review prompt
+      contains exactly one chapter's body (per-chapter fan-out), and the verdict
+      prompt contains the aggregated findings but **not** the full manuscript.
 - [ ] `yamlgraph graph run examples/book_reviewer/graph.yaml --var manuscript_path=…`
-      produces a `BookReview` and writes a `review.md` beside the manuscript. The
-      deterministic parse + lint regression check lives in the unit tests (no
-      `--no-llm` CLI flag). A live end-to-end run against the DM
-      `sample-courier/story.md` is captured to a log.
+      produces a `BookReview` and writes a `review.md` beside the manuscript. A live
+      end-to-end run against the DM `sample-courier/story.md` is captured to a log.
 - [ ] The example imports **only** YAMLGraph framework code — no
       `dungeon_master`/`session`/`render`/`story_doc` import and no `story.json`
       read (enforced by a test asserting the module's import set, or by the
@@ -283,10 +396,15 @@ DM prototype), so its commits carry **no** `FR-474 J3` trailer and use honest
   target: a stand-alone *example* makes the decoupling structural, not just a
   convention — a separate directory cannot import DM internals by accident, and the
   example reads as a reusable "review any book" reference rather than a DM appendage.
-- **Single LLM holistic score only.** Rejected: an opaque "7/10" is not actionable
-  and cannot catch a mechanical regression (a leaked label) the LLM might gloss
-  over. The cheap deterministic parse+lint must run always; the LLM stage adds the
-  narrative judgment it cannot.
+- **Single LLM holistic score over the whole book (the "almighty prompt").**
+  Rejected — this was the first plan's flaw. (1) Lost-in-the-Middle: a whole-book
+  prompt positionally under-weights the middle chapters where continuity breaks
+  hide. (2) FActScore: a holistic "is it consistent? (7/10)" is not actionable and
+  cannot be verified. (3) HANNA: single automatic numbers correlate poorly with
+  human judgment. The replan decomposes into per-chapter map + pairwise continuity +
+  synopsis beats and **computes** the book-level score (BooookScore's chunk-then-
+  merge). The deterministic parse+lint still runs always and catches mechanical
+  regressions (a leaked label) an LLM would gloss over.
 - **Read `story.json` for reference fields.** Rejected: that couples the example to
   the DM doc shape and lets it judge the author's intermediate state rather than the
   reader's artifact. Recover everything from the **parsed manuscript**; the synopsis
@@ -310,10 +428,22 @@ DM prototype), so its commits carry **no** `FR-474 J3` trailer and use honest
 - [api/render.py](examples/dungeon_master/api/render.py) — defines the Markdown shape the parser recovers
 - [prompts/final_cut.yaml](examples/dungeon_master/prompts/final_cut.yaml) / [prompts/synopsis.yaml](examples/dungeon_master/prompts/synopsis.yaml) / [prompts/character.yaml](examples/dungeon_master/prompts/character.yaml) — the craft contracts the rubric dimensions are inspired by
 - FR-494 (full-story render), FR-495 (heading dedupe), FR-496 (cast gloss) — the invariants the lint re-asserts from the manuscript side
+- **Research:** Lost in the Middle (arXiv:2307.03172), BooookScore (arXiv:2310.00785), FActScore (arXiv:2305.14251), HANNA / Of Human Criteria (arXiv:2208.11646) — the basis for the decomposed map/reduce design
 - [docs/diary/diary-2026-06-16-the-sample-that-named-its-own-bugs.md](docs/diary/diary-2026-06-16-the-sample-that-named-its-own-bugs.md) — the **Seed** (golden-sample regression test) this example realises
 - Sample input: `outputs/dungeon-master/sample-courier/story.md` (gitignored; copied into the example as `sample_book.md`)
 
 ## Judgment (2026-06-16)
+
+> **SUPERSEDED by the 2026-06-16 decomposition replan — needs re-judge.** The
+> rulings below were made against the *single-prompt* plan. The procedural rulings
+> still hold and carry forward: **J1** (gate regime — first-class example, no
+> CAP/REQ, not under FR-474 J3), **J3** (manuscript-only ground truth — no
+> beat-list / no-invention checks), **J4** (no `--no-llm` CLI flag), **J5** (raise
+> on zero parsed chapters), **J6** (configurable `leaked-label` set). What changed
+> is **J2/the review architecture**: the single `BookReview` LLM node is replaced by
+> a decomposed **map (per-chapter) → map (pairwise continuity) → synopsis-beats →
+> reduce** pipeline (see Research). The Judge must re-freeze against the new
+> architecture.
 
 Scope **frozen**. The plan is internally consistent and minimal except for one
 substance error in the rubric, corrected below. Enforce against these rulings.
