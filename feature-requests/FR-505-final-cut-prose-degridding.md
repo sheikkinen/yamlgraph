@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Redrafted — B1–B4 resolved; awaiting re-judgement (2026-06-16)
+**Status:** Judged — authority **GRANTED** (2026-06-16); ready to enforce
 **Effort:** ~1.5 days (metric harness + beat grouping + per-beat synthesis)
 **Requested:** 2026-06-16
 
@@ -172,6 +172,63 @@ the pattern the structural metric (B1) counts.
   reviewer (A6) is a **directional, non-blocking** witness.
 - **Correction (overstated mapping)** → Solution §1 now states plainly the
   beat→turns map is **derived** by a new pure function, not pre-existing.
+
+## Re-judgement (2026-06-16) — authority GRANTED
+
+The four blockers are genuinely closed, and the new load-bearing claims are
+**verified against the code**, not asserted:
+
+- **B1 → closed.** A2 defines `round_robin_paragraph_fraction` as a named proxy
+  (leading cast-name per paragraph, runs ≥ 3 cycling in fixed order), not a
+  clause-subject parser. The "reviewed cast" it keys on is real and accessible:
+  `doc["characters"]["roster"]` (navigation.py:37). A3 fixes the target as a
+  **relative halving** vs. a baseline measured **first** on `10005-BC` +
+  `10004-BC` (both books exist), so the witness cannot be retrofitted. Committing
+  the metric as a pure function before the fix is the correct scientific order —
+  if the baseline is *not* high, that surfaces before any prose change lands.
+- **B2 → closed.** The first-appearance diff over cumulative `beats_satisfied`
+  (verified: `chapter_beats` unions per-turn cumulative text) is well-defined, and
+  zero-new-beat turns attach to the most-recently-advanced beat — a **total,
+  ordered** partition, pinned by A1. No recap orphaned.
+- **B3 → closed.** Per-beat **synthesis** (not concatenation) collapses the grid
+  in the *input*; the anti-round-robin clause is named the load-bearing micro
+  lever that A2 measures. The macro/micro tension is resolved explicitly, and
+  approach (2) is correctly folded into the beat grouping rather than dismissed.
+- **B4 → closed.** A2–A4 are the primary deterministic gate; the reviewer (A6) is
+  a directional, non-blocking witness ("does not regress below 2.00").
+- **Correction → closed.** Solution §1 states the beat→turns map is derived by a
+  new pure function, matching the code.
+
+### Refinement (fold into the A2 test, not a re-block)
+
+Pin two edge cases in the A2 unit test so the proxy is unambiguous at enforce:
+(a) the **denominator** is body paragraphs that contain at least one cast name (a
+paragraph naming no cast member participates in no run and is excluded from both
+numerator and denominator); (b) a "leading cast name" is the **first** roster name
+to appear in the paragraph by character offset. State these in the docstring of
+the metric function. This is a test-precision note, not a spec gap.
+
+### Verdict
+
+Diagnosis verified, spec executable, witnesses objective and non-retrofittable,
+scope honest, sequencing correct (FR-503/FR-504 landed). **Authority GRANTED.**
+Scope is frozen as written — no new levers beyond Solution §1–§3.
+
+### Enforce sequence (TDD)
+
+1. **RED a:** `beat_turn_groups(doc, cid)` test (A1 — total ordered partition,
+   connective-turn attachment, climax flag) against a hand-built `doc`.
+2. **RED b:** `round_robin_paragraph_fraction` test (A2 — ≈ 1.0 on a round-robin
+   sample, ≈ 0.0 on a varied sample, plus the two refinement edge cases).
+3. **Baseline (A3):** run the committed metric on `10005-BC` + `10004-BC`; record
+   both fractions in this FR **before** touching composition.
+4. **GREEN:** implement `beat_turn_groups`, re-key `final_cut_context` to feed beat
+   groups, add the per-beat-synthesis + anti-round-robin directives to
+   `final_cut.yaml`; update the FR-492 `final_cut_context` witness tests to the
+   new shape (expected blast radius, A5).
+5. **Witness:** regen Floodmark on azure; record the post-fix metric mean (A3 —
+   must be ≤ half baseline) and the reviewer's directional read (A6).
+6. Changelog fragment (`fix`, scope `examples`) + diary reflection.
 
 ## Judgement (2026-06-16) — authority WITHHELD
 
