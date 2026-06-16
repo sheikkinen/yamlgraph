@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — scope frozen (2026-06-16)
 **Effort:** 3 days
 **Requested:** 2026-06-16
 **Regime:** FR-474 J3 (DM prototype) — no CAP/REQ/CI-gates/changelog; diary required.
@@ -172,6 +172,26 @@ git rm examples/dungeon_master/book.yaml      # resolve modify/delete: take the 
 #   refactor(dm): FR-492 phase 1 roll back slice 4 finish subsystem (RED baseline)
 ```
 
+**What "RED" means here (false-green warning).** The revert re-adds 564 lines of
+finish tests to `test_turn_prototype.py`. These build their **own old-shape**
+fixtures inline (`doc["turns"]`, `key_scene`) and use **mock LLMs that return
+fixed text regardless of input**, so they pass against the reverted helpers while
+proving nothing about the live chapter-play doc (`chapters.cards[cid].turns`, no
+`key_scene`). The honest RED is therefore *the absence of a test that drives the
+finish from a real chapter-play doc* — not a red suite. **Pytest green after
+Phase 1 is not evidence the rollback is correctly in place** (`plausible_wrong_answer`).
+Phase 2 must add that missing test FIRST (RED against the re-scoped helper), then
+make it pass — the suite-green AC alone is insufficient and must not be trusted as
+the Phase 1 gate.
+
+**Churn the user accepted.** A full revert restores `final_cut_turns`,
+`walkthrough`, `staging` and their tests, only for Phase 2 to re-prune most of
+them — ~560 test lines restored then largely deleted. The cheaper path is a
+cherry-pick restore of only `final_cut` + `climax_turn` + `parse_beats` +
+`final_cut_context` (+ their 3 pure tests). The user explicitly chose the **full
+rollback** as a self-consistent, internally-wired recovery baseline; that intent
+stands. This note records the tradeoff so the churn is a decision, not a surprise.
+
 ## Acceptance Criteria
 
 - [ ] **Phase 0:** current implementation archived at tag
@@ -179,13 +199,23 @@ git rm examples/dungeon_master/book.yaml      # resolve modify/delete: take the 
 - [ ] **Phase 1:** `4040fac0` reverted (book.yaml modify/delete resolved by
       deletion); finish subsystem restored intact (graphs, prompts, `turn_ops`
       helpers incl. `climax_turn`/`parse_beats`, `tree` stages, navigation chain,
-      session branch); committed as an explicit RED baseline.
+      session branch); committed as an explicit baseline. **Phase 1 is NOT gated
+      on a green suite** (the restored finish tests are false-green: self-built
+      old-shape fixtures + fixed-output mocks). Gate Phase 1 only on the revert
+      applying and the archive tag existing.
+- [ ] **Phase 2 (witness test FIRST):** add a test that drives the finish from a
+      **real chapter-play doc** (`chapters.cards[cid].turns`, no `key_scene`) —
+      committed RED before the re-scope, green after. This is the test the
+      rollback's restored suite does not provide; it is the true verification the
+      finish is in place.
 - [ ] **Phase 2:** `final_cut_context` re-scoped to `(doc, cid)` over
       `chapters.cards[cid].turns`, chapter summary standing in for `key_scene`;
       `close_chapter()` stores beat-faithful final prose as the chapter card
       `text` (not raw recaps); `world_state` derivation unchanged. Token regime
       for the final_cut node is long-form (bounded `thinking_budget`, generous
-      `max_tokens`), not the uniform 4000 default.
+      `max_tokens`), not the uniform 4000 default. The restored old-shape finish
+      tests are migrated to the chapter shape or deleted — none left asserting
+      against `doc["turns"]`/`key_scene`.
 - [ ] **Phase 2 re-prune:** `final_cut_turns`, `walkthrough`, `staging` removed
       again, with the commit naming where each one's capability now lives
       (`prune_overshoot` discipline).
@@ -215,6 +245,32 @@ git rm examples/dungeon_master/book.yaml      # resolve modify/delete: take the 
 - **One big LLM pass that also does per-chapter fidelity.** Rejected: that is the
   current overload. Fidelity belongs where it is locally checkable (chapter), not
   globally entangled with arc-stitching.
+
+## Judgement (2026-06-16)
+
+**Verdict: strategy approved, scope frozen with three required refinements (now
+folded in).** The full-rollback baseline is the correct choice over the original
+surgical restore — it recovers the finish subsystem as an internally-consistent
+unit instead of hand-reconstructing the deleted `climax_turn` / `parse_beats` /
+`final_cut_context` helpers, and the archive tag makes it reversible. Issues
+resolved during judgement:
+
+1. **False-green gate (load-bearing).** The revert re-adds 564 lines of finish
+   tests that build their own old-shape fixtures and use fixed-output mock LLMs;
+   they pass against the reverted helpers while proving nothing about the live
+   chapter-play doc. Phase 1 must therefore **not** be gated on a green suite, and
+   Phase 2 must add a witness test driving the finish from a real chapter-play doc
+   **first** (RED), then make it pass. AC amended accordingly. Without this, a
+   green pytest would be a `plausible_wrong_answer`.
+2. **"RED baseline" was imprecise.** Clarified: the honest RED is the *absence* of
+   a chapter-shape finish test, not a red suite. Recorded in the Rollback note.
+3. **Restore-then-delete churn.** The full revert restores `final_cut_turns` /
+   `walkthrough` / `staging` only for Phase 2 to re-prune them. The cheaper
+   cherry-pick path is noted; the user's explicit choice of a full, self-consistent
+   rollback baseline stands. Documented as a decision, not a surprise.
+
+Scope is minimal and internally consistent. Authority granted to enforce Phases
+0–3; Phase 4 (LLM voice/continuity passes) remains a separate FR.
 
 ## Related
 
