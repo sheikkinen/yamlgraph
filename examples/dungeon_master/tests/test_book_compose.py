@@ -131,9 +131,11 @@ def test_compose_keeps_clean_title_untouched():
 
 
 def test_compose_label_only_title_collapses_without_dangling_separator():
-    # J2: a label-only title (or an empty title) yields "# Chapter {n}" with NO
-    # trailing ": " — the ordinal appears once, no dangling colon.
-    doc = _titled_book("Chapter 1", title_2="")
+    # J2: a title that cleans to empty (a label + trailing separator, or an empty
+    # title) yields "# Chapter {n}" with NO trailing ": " — the ordinal appears
+    # once, no dangling colon. (A bare "Chapter 1" with no separator is left to
+    # the \s+ guard, J3, and is not this case.)
+    doc = _titled_book("Chapter 1 —", title_2="")
     with _no_llm_guard():
         book = chapter_ops.compose_book_deterministic(doc)
     assert "# Chapter 1\n\n" in book

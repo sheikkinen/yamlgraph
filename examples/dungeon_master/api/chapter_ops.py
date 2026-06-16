@@ -17,9 +17,28 @@ from where this one left off.
 
 from __future__ import annotations
 
+import re
+
 from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.graph_app import field, get_app
 from examples.dungeon_master.api.tree import CHAPTER_CLOSE_GRAPH, CHAPTER_OUTLINE_GRAPH
+
+# FR-495: the LLM-authored chapter title tends to self-assert its own ordinal
+# ("Chapter 1 — …", "Chapter 2:", "Ch. 3 -"). The composer's positional ``n`` is
+# the authority, so strip a single leading "Chapter <ordinal><separator>" prefix
+# before the title enters the heading — otherwise the ordinal doubles. The
+# ``\s+`` after the label is the safety guard: a real title that merely begins
+# with "Ch…" / "Chapter <word>" without a separator is left untouched (e.g.
+# "Children of the Thaw", "Chapter Endings").
+_LEADING_CHAPTER_LABEL = re.compile(
+    r"^\s*ch(?:apter|\.)?\s+[\w-]+\s*[—–:\-.]\s*",
+    re.IGNORECASE,
+)
+
+
+def _clean_chapter_title(title: str) -> str:
+    """Drop a self-asserted 'Chapter N —' prefix; the composer owns the ordinal."""
+    return _LEADING_CHAPTER_LABEL.sub("", title or "").strip()
 
 
 async def outline_chapters(doc: dict) -> list[dict]:
@@ -108,7 +127,9 @@ def compose_book_deterministic(doc: dict) -> str:
         text = (card.get("text") or "").strip()
         if not text:
             continue
-        sections.append(f"# Chapter {n}: {card.get('title', '')}\n\n{text}")
+        title = _clean_chapter_title(card.get("title", ""))
+        heading = f"# Chapter {n}: {title}" if title else f"# Chapter {n}"
+        sections.append(f"{heading}\n\n{text}")
     if not sections:
         raise ValueError("book composition has no played chapter")
     return "\n\n".join(sections)
