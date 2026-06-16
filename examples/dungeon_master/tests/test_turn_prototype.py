@@ -1005,3 +1005,22 @@ def test_running_scene_surfaces_pending_beats(tmp_path):
     assert "Arnulf is swept downriver" in pending_block
     # …and the already-satisfied beat is NOT re-listed as still-to-portray.
     assert "Hilde raids at dawn" not in pending_block
+
+
+# ── FR-504: beats are a required, non-empty boundary contract ────────────────
+
+
+def test_outline_requires_nonempty_beats():
+    """Every chapter must carry a non-empty ``beats`` list (FR-504 boundary contract).
+
+    FR-503 kept the FR-491 free-text path alive as the ``N == 0`` fallback. FR-504
+    retires it: a chapter outline that emits no beats is rejected at the parse
+    boundary (``the_one_law`` — normalize where the outline enters), never silently
+    fallen back, so there is exactly one beat-judgement regime downstream.
+    """
+    from examples.dungeon_master.api import chapter_ops
+
+    ok = [{"title": "C1", "summary": "s", "beats": ["b1", "b2"]}]
+    assert chapter_ops._require_beats(ok) == ok
+    with pytest.raises(ValueError):
+        chapter_ops._require_beats([{"title": "C1", "summary": "s", "beats": []}])
