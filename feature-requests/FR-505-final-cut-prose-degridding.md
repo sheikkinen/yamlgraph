@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Redrafted — C1/C2 closed; awaiting re-judgement (2026-06-17)
+**Status:** Re-judged — authority **GRANTED** (2026-06-17); ready to enforce
 **Effort:** ~2 days (metric harness + beat grouping + per-beat synthesis + cue threading)
 **Requested:** 2026-06-16
 
@@ -283,6 +283,24 @@ these are contract and witness-tightening edits.
   unit tests and recorded baseline/post evidence.
 
 This redraft keeps architecture unchanged and resolves the two withheld blockers.
+
+## Re-judgement (2026-06-17) — authority GRANTED
+
+The redraft closes both blocked items at the spec boundary:
+
+- **C1 closed (contract):** grouped performance cards now have one stable schema
+  `{name, intent, dialogue, expression}` with empty-string defaults and no key
+  deletion; payload bounding is by value truncation.
+- **C2 closed (witness):** A7 now specifies an exact deterministic cue-uptake
+  proxy (normalization, tokenization, match thresholds, combined score), with
+  required positive/negative fixture tests and baseline/post evidence capture.
+
+No additional architecture change is required beyond the planned seam work in
+`turn_ops.py` + `final_cut.yaml` + tests/metric helper. Scope is enforce-ready.
+
+### Verdict
+
+Authority is granted for enforce under the current FR text.
 
 - **B1 (metric under-specified)** → A2 defines the exact `round_robin_paragraph_
   fraction` proxy (leading cast-name, runs ≥ 3, fixed-order cycle), names it a
