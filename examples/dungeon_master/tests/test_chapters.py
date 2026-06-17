@@ -101,6 +101,7 @@ def _doc_with_chapters() -> dict:
                 "1": {
                     "title": "Chapter 1 — The Water Rises",
                     "summary": "Kara musters the band.",
+                    "beats": ["Kara musters the band", "the floodwaters rise"],
                     "text": "Chapter 1 full text.",
                     "world_state": {
                         "characters": [],
@@ -112,6 +113,7 @@ def _doc_with_chapters() -> dict:
                 "2": {
                     "title": "Chapter 2 — The Last Ledge",
                     "summary": "Kara corners the raider.",
+                    "beats": ["Kara reaches the ledge", "Kara corners the raider"],
                     "text": "",
                     "world_state": "",
                     "reviewed": False,

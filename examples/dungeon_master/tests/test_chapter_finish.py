@@ -41,6 +41,18 @@ def _played_chapter_doc() -> dict:
                     "turns": [
                         {
                             "n": 1,
+                            "intents": {
+                                "hilde": {
+                                    "intent": "muster the band",
+                                    "dialogue": "Up the slope. Now.",
+                                    "expression": "jaw set, hand raised",
+                                },
+                                "gunnar": {
+                                    "intent": "push the line uphill",
+                                    "dialogue": "Move.",
+                                    "expression": "eyes fixed on the ridge",
+                                },
+                            },
                             "recap": {"text": "Kara musters the band at dawn."},
                             "direction": {
                                 "phase": "rising",
@@ -49,6 +61,18 @@ def _played_chapter_doc() -> dict:
                         },
                         {
                             "n": 2,
+                            "intents": {
+                                "hilde": {
+                                    "intent": "corner the raider",
+                                    "dialogue": "No path left for you.",
+                                    "expression": "teeth bared, stance lowered",
+                                },
+                                "gunnar": {
+                                    "intent": "seal the ledge exit",
+                                    "dialogue": "Hold the edge.",
+                                    "expression": "shoulders square, blade up",
+                                },
+                            },
                             "recap": {"text": "Kara corners the raider on the ledge."},
                             "direction": {
                                 "phase": "climax",
@@ -60,6 +84,18 @@ def _played_chapter_doc() -> dict:
                         },
                         {
                             "n": 3,
+                            "intents": {
+                                "hilde": {
+                                    "intent": "accept surrender",
+                                    "dialogue": "Drop it and live.",
+                                    "expression": "chin lifted, breath hard",
+                                },
+                                "gunnar": {
+                                    "intent": "hold the line",
+                                    "dialogue": "Yield now.",
+                                    "expression": "jaw tight, feet planted",
+                                },
+                            },
                             "recap": {"text": "The raider yields as the flood crests."},
                             "direction": {
                                 "phase": "falling",
@@ -73,6 +109,13 @@ def _played_chapter_doc() -> dict:
                         },
                     ],
                 },
+            },
+        },
+        "characters": {
+            "roster": ["hilde", "gunnar"],
+            "cards": {
+                "hilde": {"name": "Hilde"},
+                "gunnar": {"name": "Gunnar"},
             },
         },
     }
@@ -94,6 +137,8 @@ def test_final_cut_context_reads_chapter_turns_not_flat_doc_turns():
     assert "corners the raider on the ledge" in arc
     assert "yields as the flood crests" in arc
     assert arc.index("musters") < arc.index("corners") < arc.index("yields")
+    assert "dialogue:" in arc
+    assert "expression:" in arc
 
 
 def test_final_cut_context_uses_chapter_summary_as_the_plan():
@@ -112,7 +157,7 @@ def test_final_cut_context_marks_the_chapter_climax():
     doc = _played_chapter_doc()
     ctx = turn_ops.final_cut_context(doc, "1")
     assert ctx["climax"] == "Turn 2"
-    assert "THE CLIMAX" in ctx["arc"]
+    assert "CLIMAX BEAT" in ctx["arc"]
 
 
 def test_final_cut_context_sources_beats_from_director_not_parse_beats():
@@ -132,3 +177,48 @@ def test_final_cut_context_sources_beats_from_director_not_parse_beats():
     assert "the band is mustered" in beats
     assert "the raider is cornered" in beats
     assert "the raider yields" in beats
+
+
+def test_final_cut_context_emits_beat_groups_key():
+    """FR-505: final_cut_context must include ``beat_groups`` for the graph state.
+
+    The ``final_cut.yaml`` graph state schema and node variable map require a
+    ``beat_groups`` key. Before FR-505, this key was absent — every chapter
+    close failed with "Missing required variable(s) for prompt 'final_cut':
+    beat_groups". This condemns that gap: the assembled context must contain
+    ``beat_groups``, and it must be a non-empty string when turns are present.
+    """
+    doc = _played_chapter_doc()
+    ctx = turn_ops.final_cut_context(doc, "1")
+    assert (
+        "beat_groups" in ctx
+    ), "beat_groups key missing — final_cut graph invocation would fail"
+    assert isinstance(ctx["beat_groups"], str)
+    assert ctx[
+        "beat_groups"
+    ].strip(), "beat_groups must be non-empty for a chapter with turns"
+
+
+def test_beat_turn_groups_are_total_ordered_and_cue_carrying():
+    """FR-505 A1: grouped turns are total, ordered, and carry stable cue schema."""
+    doc = _played_chapter_doc()
+    groups = turn_ops.beat_turn_groups(doc, "1")
+
+    assert [g["beat"] for g in groups] == [
+        "the band is mustered",
+        "the raider is cornered",
+        "the raider yields",
+    ]
+
+    all_turn_ns = [t["n"] for g in groups for t in g["turns"]]
+    assert all_turn_ns == [1, 2, 3]
+    assert len(set(all_turn_ns)) == 3
+
+    climax_groups = [g for g in groups if g["is_climax"]]
+    assert len(climax_groups) == 1
+    assert climax_groups[0]["beat"] == "the raider is cornered"
+
+    for g in groups:
+        for t in g["turns"]:
+            for perf in t["intents"]:
+                assert set(perf.keys()) == {"name", "intent", "dialogue", "expression"}

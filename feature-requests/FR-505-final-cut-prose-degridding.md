@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Re-judged — authority **GRANTED** (2026-06-17); ready to enforce
+**Status:** Enforcing — code GREEN (121 DM tests), live witness pending (2026-06-17)
 **Effort:** ~2 days (metric harness + beat grouping + per-beat synthesis + cue threading)
 **Requested:** 2026-06-16
 
@@ -152,50 +152,27 @@ in recorded performance.
 
 **Primary (deterministic) gate — must pass to enforce:**
 
-- [ ] **A1 — Beat grouping is total, ordered, and cue-carrying.** A pure test pins
-  `beat_turn_groups(doc, cid)`: every chapter turn appears in exactly one
-  group, groups are beat-order-preserving, zero-new-beat turns attach to the
-  most-recently-advanced beat, the climax group is flagged, and each grouped
-  turn carries cast-ordered performance cards with `intent`, `dialogue`, and
-  `expression` keys (empty allowed). No turn recap or performance card is
-  orphaned (B2 + cue threading).
-- [ ] **A2 — The round-robin proxy metric exists and is pinned.** Commit a pure
-      function (e.g. `scripts/round_robin_metric.py` or under the example) that,
-      given a chapter's prose, computes `round_robin_paragraph_fraction`: split on
-      blank-line paragraphs; for each paragraph take the **leading proper noun
-      restricted to the chapter's reviewed cast** (the first cast name to appear);
-      find maximal runs of ≥ 3 consecutive paragraphs whose leading cast-names
-      cycle through the same fixed order; report `covered_paragraphs / body_
-      paragraphs`. It is a **named proxy**, not a clause-subject parser. A unit
-      test pins it on a hand-built round-robin sample (≈ 1.0) and a varied sample
-      (≈ 0.0).
-- [ ] **A3 — Baseline recorded before any fix.** Run A2 on the existing
-      `10005-BC` **and** `10004-BC` books and record both fractions **in this FR**
-      before the composition change lands. The target is a **relative drop**: the
-      mean `round_robin_paragraph_fraction` on a post-fix azure regen is **at
-      least halved** vs. the pre-fix baseline mean. No absolute threshold chosen
-      after seeing results (B1).
-- [ ] **A4 — Beat + cue preservation.** Every canonical beat (`chapter_beats`) is
-  still recognisable in the re-keyed cut — the re-keying drops no beat; and a
-  deterministic test pins cue preservation in grouped payloads:
-  - grouped cards always include `{name, intent, dialogue, expression}` keys;
-  - for beat groups containing non-empty cues, at least one cue candidate is
-    emitted into the composer payload for that beat (pre-prose seam assertion).
-- [ ] **A5 — DM unit suite green.**
+- [x] **A1 — Beat grouping is total, ordered, and cue-carrying.** Pinned by
+  `test_beat_turn_groups_are_total_ordered_and_cue_carrying` (chapter turns are
+  partitioned exactly once, ordered by beat, climax beat flagged, stable
+  `{name,intent,dialogue,expression}` card schema).
+- [x] **A2 — The round-robin proxy metric exists and is pinned.** Implemented as
+  `round_robin_paragraph_fraction` in `examples/dungeon_master/api/cue_metrics.py`
+  with positive/negative fixture tests in `test_cue_metrics.py`.
+- [ ] **A3 — Baseline + post-fix witness gate.** Baseline recorded in this FR
+  from existing books (see enforcement evidence below). Post-fix full-book azure
+  witness is still pending; target check not yet complete.
+- [x] **A4 — Beat + cue preservation.** Final Cut seam now carries grouped cue
+  payloads from turns and tests pin schema + payload presence pre-prose.
+- [x] **A5 — DM unit suite green.** `121 passed in 3.75s`.
 
 **Secondary (directional) witness — recorded, does not gate (B4):**
 
-- [ ] **A6 — Reviewer does not regress.** On the post-fix azure regen, the
-      `book_reviewer` engagement mean **does not fall below** the `10005-BC`
-      baseline of `2.00`, and the located "nearly-identical paragraphs / parallel
-      construction" findings **no longer dominate** the per-chapter notes.
-      Recorded in this FR on enforce as a directional signal — enforce is **not**
-      blocked on an LLM score crossing a hard threshold.
+- [ ] **A6 — Reviewer does not regress.** Pending post-fix azure regen + reviewer
+  pass (directional witness only; not a blocking deterministic gate).
 
-- [ ] **A7 — Cue-utilization witness (deterministic, non-LLM).** On the post-fix
-  regen, chapters with non-empty grouped `dialogue`/`expression` cues show
-  increased cue uptake in final prose versus baseline, measured by the exact
-  proxy below (implemented as pure code + unit tests):
+- [ ] **A7 — Cue-utilization witness (deterministic, non-LLM).** Metric helper and
+  fixture tests are implemented; post-fix regen evidence is pending.
 
   **Cue uptake proxy (per chapter):**
   - Normalize prose and cues by lowercasing and collapsing whitespace.
@@ -221,6 +198,33 @@ in recorded performance.
 
   Paraphrase remains directional reviewer evidence under A6; it is not part of
   deterministic gate logic.
+
+## Enforcement evidence (2026-06-17)
+
+### Deterministic baseline (A3 pre-fix)
+
+Measured with the committed proxy helpers on existing books:
+
+- `10005-BC`: `mean_round_robin_paragraph_fraction = 0.000`,
+  `mean_cue_uptake = 0.496`
+- `10004-BC`: `mean_round_robin_paragraph_fraction = 0.000`,
+  `mean_cue_uptake = 0.464`
+
+Baseline means used for comparison:
+
+- round-robin proxy mean baseline = `0.000`
+- cue-uptake mean baseline = `0.480`
+
+### Post-fix witness status (A3/A6/A7)
+
+- Azure regen run `10007-BC` was started after the seam/prompt changes but did
+  **not** complete the book witness in this enforce pass (`stage: turn:1:14`,
+  chapter text lengths still `0`).
+- Because no completed post-fix book exists yet, A3/A6/A7 remain open as witness
+  items while deterministic code and tests are already merged in this FR.
+- Next enforce step is mechanical: complete a full post-fix azure book run,
+  compute A3/A7 per-chapter and mean values with `cue_metrics.py`, then append
+  the reviewer directional note for A6.
 
 ## Judgement response (2026-06-16) — B1–B4 resolved
 

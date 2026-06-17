@@ -18,6 +18,16 @@ from examples.dungeon_master.api.tree import (
 )
 from examples.dungeon_master.api.world_state import format_world_state
 
+_MAX_CUE_FIELD_CHARS = 240
+
+
+def _trim_value(value: object, *, max_chars: int = _MAX_CUE_FIELD_CHARS) -> str:
+    """Stringify and bound payload fields without dropping schema keys."""
+    text = str(value or "")
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "…"
+
 
 def _chapter_card(doc: dict, cid: str) -> dict:
     """Read-only view of chapter ``cid``'s card (empty if absent)."""
@@ -470,6 +480,104 @@ def chapter_beats(doc: dict, cid: str) -> list[str]:
     return beats
 
 
+def _cast_order(doc: dict) -> list[tuple[str, str]]:
+    """Return cast order as ``[(char_id, display_name), ...]``."""
+    chars = doc.get("characters", {})
+    roster = list(chars.get("roster") or [])
+    cards = chars.get("cards") or {}
+    return [
+        (char_id, (cards.get(char_id, {}).get("name") or char_id)) for char_id in roster
+    ]
+
+
+def _turn_performance_cards(doc: dict, turn: dict) -> list[dict]:
+    """Stable-schema performance cards for one turn in cast order (FR-505 C1)."""
+    intents = (turn.get("intents") or {}) if isinstance(turn, dict) else {}
+    cards: list[dict] = []
+    for char_id, name in _cast_order(doc):
+        perf = intents.get(char_id) or {}
+        cards.append(
+            {
+                "name": name,
+                "intent": _trim_value(perf.get("intent", "")),
+                "dialogue": _trim_value(perf.get("dialogue", "")),
+                "expression": _trim_value(perf.get("expression", "")),
+            }
+        )
+    return cards
+
+
+def beat_turn_groups(doc: dict, cid: str) -> list[dict]:
+    """Group chapter turns by first-advanced beat with connective carryover.
+
+    Each turn is assigned to exactly one beat group. A turn that advances no new
+    beats attaches to the most-recently-advanced beat (or the first beat when no
+    beat has advanced yet), so no recap/performance card is orphaned.
+    """
+    turns = chapter_turns(doc, cid)
+    beats = chapter_beat_list(doc, cid) or chapter_beats(doc, cid)
+    if not beats:
+        return []
+
+    # Preserve beat order while admitting any unexpected director beat text.
+    ordered = list(
+        dict.fromkeys(beats + [b for b in chapter_beats(doc, cid) if b not in beats])
+    )
+    groups = {beat: {"beat": beat, "turns": [], "is_climax": False} for beat in ordered}
+
+    seen: set[str] = set()
+    owner = ordered[0]
+    climax_n = climax_turn(doc, cid)
+
+    for t in turns:
+        n = int(t.get("n", len(groups) + 1))
+        rec = (t.get("direction") or {}).get("beats_satisfied") or []
+        current = [b for b in rec if isinstance(b, str) and b in groups]
+        advanced = [b for b in current if b not in seen]
+        seen.update(current)
+        if advanced:
+            owner = advanced[-1]
+
+        groups[owner]["turns"].append(
+            {
+                "n": n,
+                "recap": _trim_value(
+                    (t.get("recap") or {}).get("text", ""), max_chars=600
+                ),
+                "intents": _turn_performance_cards(doc, t),
+                "advanced_beats": advanced,
+            }
+        )
+
+        if n == climax_n:
+            groups[owner]["is_climax"] = True
+
+    return [groups[b] for b in ordered]
+
+
+def _format_beat_groups(groups: list[dict]) -> str:
+    """Render beat groups for prompt consumption."""
+    blocks: list[str] = []
+    for i, group in enumerate(groups, start=1):
+        beat = group.get("beat", "")
+        climax = "  <-- CLIMAX BEAT" if group.get("is_climax") else ""
+        lines = [f"Beat {i}: {beat}{climax}"]
+        for turn in group.get("turns") or []:
+            lines.append(f"  Turn {turn.get('n')}: {turn.get('recap', '')}")
+            for perf in turn.get("intents") or []:
+                name = perf.get("name", "")
+                intent = perf.get("intent", "")
+                dialogue = perf.get("dialogue", "")
+                expression = perf.get("expression", "")
+                lines.append(f"    - {name} intent: {intent}")
+                if dialogue:
+                    lines.append(f"      dialogue: {dialogue}")
+                if expression:
+                    lines.append(f"      expression: {expression}")
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)
+
+
 def final_cut_context(doc: dict, cid: str) -> dict:
     """Assemble chapter ``cid``'s finished arc as Final Cut graph variables (FR-492).
 
@@ -486,20 +594,14 @@ def final_cut_context(doc: dict, cid: str) -> dict:
     summary = card.get("summary", "")
     turns = chapter_turns(doc, cid)
     climax_n = climax_turn(doc, cid)
-    lines: list[str] = []
-    for t in turns:
-        n = t.get("n")
-        recap = (t.get("recap") or {}).get("text", "")
-        phase = (t.get("direction") or {}).get("phase", "")
-        tag = f" [{phase}]" if phase else ""
-        mark = "  ← THE CLIMAX" if n == climax_n else ""
-        lines.append(f"Turn {n}{tag}{mark}: {recap}")
+    groups = beat_turn_groups(doc, cid)
     beats = chapter_beats(doc, cid)
     return {
         "key_scene": summary,
-        "arc": "\n\n".join(lines),
+        "arc": _format_beat_groups(groups),
         "beats": "\n".join(f"- {b}" for b in beats),
         "climax": f"Turn {climax_n}" if turns else "",
+        "beat_groups": _format_beat_groups(groups),
     }
 
 
