@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Replanned — include performance cues (`dialogue`/`expression`); awaiting re-judgement (2026-06-17)
+**Status:** Re-judged — authority **WITHHELD** pending C1–C2 (2026-06-17)
 **Effort:** ~2 days (metric harness + beat grouping + per-beat synthesis + cue threading)
 **Requested:** 2026-06-16
 
@@ -202,6 +202,48 @@ This replan extends the previously granted scope by adding explicit
 dialogue/expression cue threading into Final Cut context and prompt constraints.
 Because this introduces a new load-bearing lever (cue-use), this FR status is set
 to "awaiting re-judgement" for confirmation of the added acceptance gates (A1/A4/A7).
+
+## Re-judgement (2026-06-17) — authority WITHHELD
+
+The cue-threading direction is correct and aligned with the root cause (lossy
+composition seam), and code reality supports the premise: turn intents do carry
+`dialogue`/`expression`, while `final_cut_context` currently feeds only recap +
+beats + climax. However, two new spec gaps keep the replan non-executable.
+
+### C1 — Cue payload contract is internally inconsistent.
+
+Solution §2 says: "trim empty `dialogue`/`expression` fields, but never drop the
+character card." A1 simultaneously requires grouped cards to carry keys
+`intent`, `dialogue`, `expression` with empty allowed. These conflict.
+
+Required:
+- Freeze one schema: grouped performance cards are always
+  `{name, intent, dialogue, expression}` with empty-string defaults.
+- If payload reduction is needed, trim by dropping **trailing fully-empty cards
+  only when absent from cast order is explicitly allowed** (it currently is not),
+  or by truncating long values — not by deleting keys.
+
+### C2 — A4/A7 cue-usage witnesses are not mechanically pinned.
+
+A4 requires a "cue-derived element" (including paraphrase), and A7 proposes
+"expression-lexeme matches" without exact normalization/token rules. As written,
+pass/fail depends on reviewer interpretation, not deterministic checks.
+
+Required:
+- Define one deterministic cue-uptake proxy with exact algorithm:
+  - dialogue uptake: count exact normalized substring hits from grouped dialogue
+    snippets in final prose;
+  - expression uptake: count normalized unigram/bigram overlap from grouped
+    expression phrases above a fixed threshold per chapter.
+- Reframe "paraphrase" as directional reviewer evidence (A6), not deterministic
+  gate logic.
+- Pin this proxy with unit tests (positive/negative fixtures) and record baseline
+  + post-fix deltas in FR evidence.
+
+### Verdict
+
+Return to Plan: close C1–C2, then resubmit. No architecture change is needed;
+these are contract and witness-tightening edits.
 
 - **B1 (metric under-specified)** → A2 defines the exact `round_robin_paragraph_
   fraction` proxy (leading cast-name, runs ≥ 3, fixed-order cycle), names it a
