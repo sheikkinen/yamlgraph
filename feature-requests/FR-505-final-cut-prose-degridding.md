@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Re-judged — authority **WITHHELD** pending C1–C2 (2026-06-17)
+**Status:** Redrafted — C1/C2 closed; awaiting re-judgement (2026-06-17)
 **Effort:** ~2 days (metric harness + beat grouping + per-beat synthesis + cue threading)
 **Requested:** 2026-06-16
 
@@ -104,7 +104,10 @@ payload bounded while preserving evidence:
 
 - include per-turn performance cards in cast order as
   `{name, intent, dialogue, expression}`;
-- trim empty `dialogue`/`expression` fields, but never drop the character card;
+- keep this schema stable for every grouped card, with empty-string defaults for
+  missing values; never delete keys;
+- if payload reduction is needed, truncate long field values (bounded chars per
+  field) rather than dropping cards or keys;
 - include only the turns assigned to that beat group (no global flattening).
 
 This closes the lossy seam where expressive cues are generated and reviewed but
@@ -174,9 +177,10 @@ in recorded performance.
       after seeing results (B1).
 - [ ] **A4 — Beat + cue preservation.** Every canonical beat (`chapter_beats`) is
   still recognisable in the re-keyed cut — the re-keying drops no beat; and a
-  test pins that each beat group contributes at least one concrete cue-derived
-  element (dialogue fragment/utterance paraphrase/visible tell) when such cues
-  exist in that group.
+  deterministic test pins cue preservation in grouped payloads:
+  - grouped cards always include `{name, intent, dialogue, expression}` keys;
+  - for beat groups containing non-empty cues, at least one cue candidate is
+    emitted into the composer payload for that beat (pre-prose seam assertion).
 - [ ] **A5 — DM unit suite green.**
 
 **Secondary (directional) witness — recorded, does not gate (B4):**
@@ -190,9 +194,33 @@ in recorded performance.
 
 - [ ] **A7 — Cue-utilization witness (deterministic, non-LLM).** On the post-fix
   regen, chapters with non-empty grouped `dialogue`/`expression` cues show
-  increased cue uptake in final prose versus baseline (simple proxy:
-  per-chapter count of quoted lines + expression-lexeme matches against the
-  grouped cue set). Record baseline and post-fix deltas in this FR.
+  increased cue uptake in final prose versus baseline, measured by the exact
+  proxy below (implemented as pure code + unit tests):
+
+  **Cue uptake proxy (per chapter):**
+  - Normalize prose and cues by lowercasing and collapsing whitespace.
+  - Dialogue uptake:
+    - collect non-empty grouped dialogue snippets with length >= 8 chars;
+    - count snippets that appear as exact normalized substrings in final prose;
+    - `dialogue_uptake = matched_dialogue / total_dialogue_snippets`.
+  - Expression uptake:
+    - tokenize each non-empty expression into alphanumeric unigrams and bigrams
+      (drop stopwords, min token len 3);
+    - a cue is matched when chapter prose contains at least one bigram or at
+      least 2 unigrams from that cue token set;
+    - `expression_uptake = matched_expression / total_expression_cues`.
+  - Combined score:
+    - `cue_uptake = 0.5 * dialogue_uptake + 0.5 * expression_uptake`.
+
+  **Gate/evidence requirements:**
+  - unit tests pin positive and negative fixtures for both dialogue and
+    expression matching;
+  - record baseline and post-fix per-chapter values + mean in this FR;
+  - enforce target: post-fix mean `cue_uptake` is strictly greater than baseline
+    mean.
+
+  Paraphrase remains directional reviewer evidence under A6; it is not part of
+  deterministic gate logic.
 
 ## Judgement response (2026-06-16) — B1–B4 resolved
 
@@ -244,6 +272,17 @@ Required:
 
 Return to Plan: close C1–C2, then resubmit. No architecture change is needed;
 these are contract and witness-tightening edits.
+
+## Redraft response (2026-06-17) — C1/C2 closure
+
+- **C1 closed:** grouped performance cards now have one stable schema
+  `{name, intent, dialogue, expression}` with empty-string defaults; payload
+  bounding is by value truncation, never key/card deletion.
+- **C2 closed:** A7 now defines an exact deterministic cue-uptake proxy
+  (normalization, token rules, match thresholds, combined score), plus required
+  unit tests and recorded baseline/post evidence.
+
+This redraft keeps architecture unchanged and resolves the two withheld blockers.
 
 - **B1 (metric under-specified)** → A2 defines the exact `round_robin_paragraph_
   fraction` proxy (leading cast-name, runs ≥ 3, fixed-order cycle), names it a
