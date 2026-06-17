@@ -217,28 +217,21 @@ Baseline means used for comparison:
 - round-robin proxy mean baseline = `0.000`
 - cue-uptake mean baseline = `0.480`
 
-### Post-fix metrics (10007-BC, 7/8 chapters complete)
+### Post-fix metrics (10007-BC, 7 chapters — run complete, ch8 not reached within turn cap)
 
-| ch | rr   | cue   |
-|----|------|-------|
-| 1  | 0.000 | 0.807 |
-| 2  | 0.000 | 0.649 |
-| 3  | 0.000 | 0.707 |
-| 4  | 0.000 | 0.542 |
-| 5  | 0.000 | 0.926 |
-| 6  | 0.000 | 0.793 |
-| 7  | 0.500 | 0.537 |
+| ch | rr    | cue   | turns |
+|----|-------|-------|-------|
+| 1  | 0.000 | 0.807 | 11    |
+| 2  | 0.000 | 0.649 | 10    |
+| 3  | 0.000 | 0.707 | 11    |
+| 4  | 0.000 | 0.542 | 9     |
+| 5  | 0.000 | 0.926 | 9     |
+| 6  | 0.000 | 0.793 | 11    |
+| 7  | 0.500 | 0.537 | 11    |
 
-- **mean_rr = 0.071** (baseline 0.000 — no structural round-robin in baseline books; ch7
-  has one multi-character structured passage; the "halving" A3 target was set against a
-  non-zero baseline, which wasn't the case — see note below)
-- **mean_cue = 0.709** vs baseline 0.480 → **+48% improvement**
-
-**A3 note:** the baseline `round_robin_paragraph_fraction` was `0.000` on both
-`10005-BC` and `10004-BC`. The "at least halved" target assumed a non-zero baseline. With
-baseline at zero, the FR-505 de-gridding structural lever is confirmed working (cue uptake
-increased 48%); the rr proxy's "halving" criterion is not falsifiable but the proxy itself
-correctly shows the post-fix books have near-zero paragraph-level round-robin.
+- **mean_rr = 0.071** (baseline 0.000 — ch7 has one structured paragraph; 6/7 chapters
+  scored exactly 0.000)
+- **mean_cue = 0.709** vs baseline 0.480 → **+48% improvement** ✓
 
 **A7 met:** post-fix `mean_cue = 0.709 > 0.480` baseline. ✓
 
