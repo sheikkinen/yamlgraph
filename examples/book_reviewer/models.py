@@ -12,7 +12,7 @@ Two tiers, per FR-497 Judgment K2/K3:
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # ---------------------------------------------------------------------------
 # Stage 0 — parsed structure
@@ -83,6 +83,11 @@ class ChapterReview(BaseModel):
     issues: list[str] = Field(
         default_factory=list, description="Specific, quotable problems in this chapter"
     )
+
+    @field_validator("issues", mode="before")
+    @classmethod
+    def _coerce_issues(cls, v: object) -> list[str]:
+        return v if isinstance(v, list) else []
 
 
 # ---------------------------------------------------------------------------
