@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug fix (generation quality)
-**Status:** Enforced — code GREEN, A1–A5/A7 met, A6 pending reviewer pass (2026-06-17)
+**Status:** Enforced — all gates met (2026-06-17)
 **Effort:** ~2 days (metric harness + beat grouping + per-beat synthesis + cue threading)
 **Requested:** 2026-06-16
 
@@ -169,8 +169,12 @@ in recorded performance.
 
 **Secondary (directional) witness — recorded, does not gate (B4):**
 
-- [ ] **A6 — Reviewer does not regress.** Pending post-fix azure regen + reviewer
-  pass (directional witness only; not a blocking deterministic gate).
+- [x] **A6 — Reviewer does not regress.** 10007-BC review: overall **3/5** (baseline
+  2/5), engagement mean **3.43** (baseline 2.00), prose mean **3.29** (baseline 2.12).
+  The "nearly identical paragraphs / parallel construction" and fixed-cast round-robin
+  findings from 10005-BC are **absent** from 10007-BC's chapter notes. Remaining issues
+  are continuity seam breaks and isolated verb repetition — distinct from the grid
+  defect this FR addressed. ✓
 
 - [x] **A7 — Cue-utilization witness (deterministic, non-LLM).** Metric helper and
   fixture tests implemented; post-fix mean `cue_uptake = 0.709 > 0.480` baseline.
@@ -234,6 +238,23 @@ Baseline means used for comparison:
 - **mean_cue = 0.709** vs baseline 0.480 → **+48% improvement** ✓
 
 **A7 met:** post-fix `mean_cue = 0.709 > 0.480` baseline. ✓
+
+### Reviewer scores A6 (10007-BC vs 10005-BC baseline)
+
+| criterion  | baseline 10005-BC | post-fix 10007-BC |
+|------------|-------------------|-------------------|
+| overall    | 2/5               | **3/5**           |
+| coherence  | 2.25              | 3.29              |
+| engagement | 2.00              | **3.43**          |
+| prose      | 2.12              | 3.29              |
+| character  | 3.25              | 3.71              |
+
+The fixed-cast round-robin / "nearly identical paragraphs" / "parallel construction
+without variation" findings that dominated 10005-BC chapter reviews are **absent**
+from 10007-BC. Remaining findings are continuity seam breaks and isolated verb
+repetition — separate defects, not the grid pattern this FR addressed.
+
+**A6 met.** ✓
 
 ### Bug found and fixed during enforcement (commit 83ac6fde)
 
