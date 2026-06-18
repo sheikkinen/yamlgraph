@@ -212,6 +212,41 @@ _REPOSITION_TOKENS = (
 )
 
 
+# Terminal lifecycle states a closed chapter's committed ``world_state`` records
+# for an actor the play removed (dead/missing/lost). When a chapter's OWN beats
+# also promise that actor's return/presence, the play could not have fulfilled
+# both within its turn budget — the phantom-promise the FR-501 cap leaves behind.
+_TERMINAL_STATUS_TOKENS = (
+    "dead",
+    "deceased",
+    "missing",
+    "presumed",
+    "drowned",
+    "lost",
+    "swept",
+    "gone",
+)
+
+# Tokens a beat uses to assert an actor is alive / returns / is present again —
+# the claim a terminal committed status contradicts.
+_RETURN_PRESENCE_TOKENS = (
+    "reappear",
+    "returns",
+    "return of",
+    "comes back",
+    "back from",
+    "back among",
+    "alive",
+    "survives",
+    "survived",
+    "rejoin",
+    "found alive",
+    "is found",
+    "resurfaces",
+    "washes up",
+)
+
+
 def _text_has_token(text: str, tokens: tuple[str, ...]) -> bool:
     """Whether ``text`` contains any token (case-insensitive substring)."""
     low = (text or "").lower()
@@ -314,6 +349,65 @@ def seam_precondition_gap(story_doc: dict, cid: str) -> dict:
         "chapter": cid,
         "gap_count": len(gaps),
         "carried_count": len(carried),
+        "gaps": gaps,
+    }
+
+
+def beat_coverage_gap(story_doc: dict, cid: str) -> dict:
+    """Detect phantom-promise beats in a CLOSED chapter ``cid`` (FR-501 cap fallout).
+
+    A chapter's ``beats`` are the finite checklist the chapter promises to portray,
+    but the play loop closes a chapter at ``CHAPTER_TURN_CAP`` turns whether or not
+    every beat was reached (FR-501). When the outliner packs a *reversal* into one
+    capped chapter — an actor is removed AND returns — the play typically realizes
+    only the removal; the cap force-closes; ``close_chapter`` then *faithfully*
+    commits the actor as terminal (dead/missing). The return beat becomes a phantom
+    promise rendered into ``story.md`` that later chapters correctly ignore — read
+    by a reviewer as a continuity break.
+
+    This pure witness flags exactly that contradiction: for each actor the chapter's
+    OWN committed ``world_state`` records in a terminal state, any beat of the SAME
+    chapter that names them with a return/presence claim. No LLM, no recap parsing,
+    no ``turn_ops``. Naturally a no-op on chapters not yet closed (empty/legacy
+    ``world_state`` normalizes to no terminal characters).
+
+    Returns ``{chapter, beat_count, gap_count, terminal_count, gaps:[{actor,
+    ledger_status, beat, beat_index, reason}]}`` where ``reason`` is always
+    ``"ledger_contradicts_beat"``.
+    """
+    cards = (story_doc.get("chapters") or {}).get("cards") or {}
+    card = cards.get(cid) or {}
+    beats = [str(b) for b in (card.get("beats") or [])]
+    # Normalize at the boundary: legacy prose-string ledgers yield no characters.
+    ws = parse_world_state(card.get("world_state"))
+
+    terminal: dict[str, str] = {}
+    for c in ws.get("characters") or []:
+        name = str((c or {}).get("name") or "").strip()
+        status = str((c or {}).get("status") or "").lower()
+        if name and _text_has_token(status, _TERMINAL_STATUS_TOKENS):
+            terminal[name] = status
+
+    gaps: list[dict] = []
+    for i, beat in enumerate(beats):
+        for name, status in terminal.items():
+            if _beat_names_actor(beat, name) and _text_has_token(
+                beat, _RETURN_PRESENCE_TOKENS
+            ):
+                gaps.append(
+                    {
+                        "actor": name,
+                        "ledger_status": status,
+                        "beat": beat,
+                        "beat_index": i,
+                        "reason": "ledger_contradicts_beat",
+                    }
+                )
+    return {
+        "chapter": cid,
+        "beat_count": len(beats),
+        "gap_count": len(gaps),
+        "terminal_count": len(terminal),
         "gaps": gaps,
     }
 
