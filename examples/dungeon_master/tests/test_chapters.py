@@ -228,7 +228,79 @@ def test_close_chapter_clamps_lifecycle_reappearance_to_planned_return_chapter()
     assert lifecycle[0]["allowed_reappearance_from_chapter"] == 5
 
 
-def test_close_chapter_derives_structured_chapter_memory_from_seam_packet():
+def test_close_chapter_softens_confirmed_dead_with_planned_return(monkeypatch):
+    # FR-526 (J6 integration): a close seam that commits an actor confirmed_dead
+    # while the plan grants a reappearance is reconciled AT THE CLOSE SEAM to
+    # missing_presumed_dead (the coherent record the 10024-BC Ch3 row lacked), and
+    # the reconciled state does NOT introduce a spurious memory-precedence conflict.
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True},
+        # The live synopsis tracks Arnulf as presumed dead (the plan brings him
+        # back). Before the coherence fix the seam committed confirmed_dead, which
+        # would mismatch this and trip the memory-precedence gate; after the fix the
+        # seam reads missing_presumed_dead and aligns -- so the gate stays silent.
+        "live_synopsis": {"character_states": {"Arnulf": "missing_presumed_dead"}},
+        "chapters": {
+            "order": ["1", "2", "3", "4", "5"],
+            "cards": {
+                "1": {"summary": "setup", "beats": ["a"]},
+                "2": {
+                    "summary": "Arnulf presumed dead",
+                    "beats": ["a"],
+                    "turns": [{"n": 1, "recap": {"text": "The flood takes Arnulf."}}],
+                },
+                "3": {"summary": "travel", "beats": ["a"]},
+                "4": {"summary": "feud", "beats": ["a"]},
+                "5": {
+                    "title": "Chapter 5 - Arnulf Returns",
+                    "summary": "Arnulf returns alive and is verified",
+                    "beats": ["Arnulf reappears alive"],
+                },
+            },
+        },
+    }
+
+    def _mock(prompt_name, variables=None, **kwargs):
+        if prompt_name == "chapter_close":
+            return {
+                "world_state": {"characters": [], "objects": [], "facts": []},
+                "seam_packet": {
+                    # The close LLM derives confirmed_dead from the loss -- the
+                    # incoherent half. The plan (Ch5) grants the return.
+                    "character_lifecycle": [
+                        {
+                            "name": "Arnulf",
+                            "existence_state": "confirmed_dead",
+                            "visibility_mode": "absent",
+                            "allowed_reappearance_from_chapter": 5,
+                            "source_chapter": 2,
+                        }
+                    ]
+                },
+            }
+        if prompt_name == "final_cut":
+            return "final"
+        raise AssertionError(f"unexpected prompt {prompt_name!r}")
+
+    m1, m2 = _patched(_mock)
+    with m1, m2:
+        result = _run(chapter_ops.close_chapter(doc, "2"))
+
+    row = result["seam_packet"]["character_lifecycle"][0]
+    assert row["name"] == "Arnulf"
+    # The incoherent confirmed_dead is softened; the return intent is preserved.
+    assert row["existence_state"] == "missing_presumed_dead"
+    assert row["allowed_reappearance_from_chapter"] == 5
+
+    # J6: the reconciled seam state, fed to the next chapter's open, raises no
+    # spurious memory-precedence conflict (the gate compares seam vs synopsis vs
+    # chapter_memory state for equality and raises on mismatch).
+    doc["chapters"]["cards"]["2"]["seam_packet"] = result["seam_packet"]
+    doc["chapters"]["cards"]["2"]["world_state"] = result["world_state"]
+    turn_ops._enforce_memory_precedence_gate(doc, "3", 1)
+
     doc = _doc_with_chapters()
     doc["chapters"]["cards"]["2"]["turns"] = [
         {"n": 1, "recap": {"text": "Kara corners the raider on the ledge."}}

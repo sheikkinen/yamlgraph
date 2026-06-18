@@ -495,6 +495,39 @@ def _clamp_lifecycle_reappearance_to_plan(doc: dict, packet: dict) -> dict:
     return out
 
 
+def _enforce_reappearance_state_coherence(packet: dict) -> dict:
+    """Reconcile a lifecycle row that is *confirmed* dead yet *allowed* to return.
+
+    FR-526 (behind FR-525) — a close seam committed records like Arnulf's in
+    ``10024-BC`` Ch3: ``existence_state=confirmed_dead`` together with a non-null
+    ``allowed_reappearance_from_chapter``. The two are contradictory — a character
+    the plan intends to bring back is *presumed* dead, not *confirmed* dead. The
+    close LLM derives the death from the loss; ``_clamp_lifecycle_reappearance_to_plan``
+    sets the reappearance index from the plan but reconciles only the index, never
+    the state, and nothing else rejects the pairing.
+
+    This is a PURE, packet-only invariant (no ``doc`` — coherence depends on the row
+    alone) normalized at the close seam where the record is committed
+    (``the_one_law``): when a row carries a non-null reappearance allowance, soften
+    ``confirmed_dead`` to ``missing_presumed_dead``, PRESERVING the allowance (the
+    authored return intent — the opposite fix of clearing it, J4). Rows without a
+    reappearance allowance are left untouched, so a genuine confirmed death stays
+    confirmed (J4 negative control). Scope is ``existence_state`` only; the
+    same-chapter index incoherence is FR-525's to prevent at the partitioner (J5).
+    """
+    lifecycle = list(packet.get("character_lifecycle") or [])
+    out = dict(packet)
+    out_lifecycle: list[dict] = []
+    for item in lifecycle:
+        rec = dict(item)
+        allowed = rec.get("allowed_reappearance_from_chapter")
+        if allowed is not None and rec.get("existence_state") == "confirmed_dead":
+            rec["existence_state"] = "missing_presumed_dead"
+        out_lifecycle.append(rec)
+    out["character_lifecycle"] = out_lifecycle
+    return out
+
+
 def _beat_list(item: object) -> list[str]:
     """The ordered key-event beats from an outline entry (FR-503; ``[]`` if absent).
 
@@ -714,6 +747,7 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     text = await turn_ops.invoke_final_cut(doc, cid, closed=closed)
     seam_packet = parse_seam_packet(closed.get("seam_packet"))
     seam_packet = _clamp_lifecycle_reappearance_to_plan(doc, seam_packet)
+    seam_packet = _enforce_reappearance_state_coherence(seam_packet)
     # FR-510 + FR-511: validate final prose against confirmed-dead characters from
     # prior seam and run one constrained revise cycle if needed. Scope is the
     # before-open class only: a within-chapter-dead character acts legitimately up

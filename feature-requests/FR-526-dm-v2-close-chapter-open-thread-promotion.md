@@ -1,19 +1,39 @@
-# Feature Request: FR-526 — DM v2: Close-Chapter Open-Thread Promotion (Forward the Unmet Return, Don't Drop It)
+# Feature Request: FR-526 — DM v2: Close-Seam Lifecycle Coherence Invariant (a Planned Return Implies Presumed, Not Confirmed, Death)
 
 **Priority:** MEDIUM
 **Type:** Bug (continuity defect, defense-in-depth)
-**Status:** **SENT BACK TO PLAN (2026-06-18).** The proposed mechanism (a dict in
-`seam_packet.open_threads`) **contradicts the live schema** — `open_threads` is
-`list[str]` and the boundary normalizer drops non-string entries (J1). The correct
-forward channel already exists and is load-bearing: `CharacterLifecycle`
-(`existence_state=missing_presumed_dead`, `allowed_reappearance_from_chapter`) +
-`_clamp_lifecycle_reappearance_to_plan` (J2). Residual value over FR-525 is unproven
-and requires a close-seam probe FIRST (J3/J4, `investigation_before_fix`). See
-Judgement below. Re-open only after the probe and with the typed channel.
-**Effort:** ~1 day
+**Status:** **ENFORCED (2026-06-18), behind FR-525.** Re-scoped after the J4
+close-seam probe: the original `open_threads`-dict mechanism is **rejected** (schema-
+invalid — `open_threads` is `list[str]`), but the probe found a real defect the
+original FR missed — `10024-BC` Ch3 committed a self-contradictory `CharacterLifecycle`
+row (`existence_state=confirmed_dead` AND `allowed_reappearance_from_chapter=3`). The
+enforced fix is a pure, packet-only close-seam coherence invariant on the typed
+channel: a non-null reappearance allowance softens `confirmed_dead` to
+`missing_presumed_dead`, preserving the authored return intent. See the re-scoped
+Judgement and Implementation Status below. The original draft is preserved below the
+line as rejected history.
+**Effort:** ~0.5 day
 **Requested:** 2026-06-18
 
-## Summary
+## Summary (re-scoped)
+
+A close seam can commit a `CharacterLifecycle` row that is *confirmed* dead yet
+*allowed* to reappear — the two are contradictory. The close LLM derives the death
+from the loss; `_clamp_lifecycle_reappearance_to_plan` sets the reappearance index
+from the plan but reconciles only the index, never the state, and nothing else rejects
+the pairing. The fix is a pure, packet-only invariant
+(`_enforce_reappearance_state_coherence`) normalized at the close seam where the record
+is committed (`the_one_law`): when a row carries a non-null
+`allowed_reappearance_from_chapter`, soften `confirmed_dead` to `missing_presumed_dead`
+(preserving the allowance — the authored return intent). Genuine deaths with no
+reappearance allowance are untouched. This is defense-in-depth behind FR-525: FR-525
+prevents the same-chapter pack at the partitioner; FR-526 guarantees the loss-chapter
+seam commits a *coherent* lifecycle row even in the post-split cross-chapter case.
+
+<details>
+<summary>Original proposal (REJECTED — open_threads dict, schema-invalid). Preserved as history.</summary>
+
+## Summary (original, rejected)
 
 When a chapter force-closes under the 16-turn cap (FR-501) having played only the
 removal half of a death-and-return reversal, `close_chapter` *correctly* commits the
@@ -220,6 +240,8 @@ forward is already emitted, FR-526 is closed as redundant with FR-525 + the exis
 machinery. The draft below is preserved as the original proposal; it is **not**
 authorized for enforce.
 
+</details>
+
 ---
 
 ## Probe Outcome (J4 close-seam investigation) — RE-SCOPED, not redundant
@@ -372,3 +394,50 @@ close writes `confirmed_dead` while a planned return sets a non-null reappearanc
 required negative control; J5 state-only scope; J6 required integration assertion; J8
 retitle). Scope frozen — authorized for enforce, BEHIND FR-525.** Enforce against this
 frozen scope; deviations return here. The `open_threads`-dict draft remains rejected.
+
+---
+
+## Implementation Status — ENFORCED (2026-06-18)
+
+Built against the frozen re-scoped Judgement; no deviations.
+
+- **RED (`21f473b8`)** — `tests/test_lifecycle_coherence.py` (5 tests) condemns the
+  real `10024-BC` Ch3 shape (`confirmed_dead` + `allowed_reappearance_from_chapter=3`)
+  against the not-yet-existing pure invariant, with the J4 non-vacuous negative control
+  (a genuine `confirmed_dead` + `None` allowance stays confirmed), living/already-presumed
+  rows untouched, empty/missing lifecycle no-op, and input purity. RED: 5 failed
+  (AttributeError).
+
+- **GREEN (this commit)** —
+  - **J3 pure packet-only function**: `_enforce_reappearance_state_coherence(packet)`
+    in `chapter_ops.py` — depends on the row alone (no `doc`); when a row carries a
+    non-null `allowed_reappearance_from_chapter` and `existence_state == confirmed_dead`,
+    softens to `missing_presumed_dead`, preserving the allowance (J4 direction). Returns
+    a new packet (purity); rows without an allowance untouched (J4 negative control).
+  - **Wiring**: applied at the close seam in `close_chapter` immediately AFTER
+    `_clamp_lifecycle_reappearance_to_plan` (single responsibility — clamp owns the
+    index, coherence owns the state). `existence_state`-only; the same-chapter index
+    incoherence stays FR-525's (J5).
+  - **J6 integration** (`tests/test_chapters.py`, +1): an end-to-end `close_chapter`
+    test mocks a `confirmed_dead` + planned-return seam and asserts the committed row
+    is reconciled to `missing_presumed_dead` (allowance preserved), THEN feeds the
+    reconciled seam to `_enforce_memory_precedence_gate(doc, "3", 1)` and asserts no
+    spurious `ContinuityMemoryConflictError` — non-vacuous because a synopsis state of
+    `missing_presumed_dead` would mismatch (and raise on) a `confirmed_dead` seam; the
+    fix makes them align.
+  - Full DM suite **244 passed** (+5: 5 unit + the e2e replaces nothing); `lint-imports`
+    KEPT (the invariant is pure layer-3); ruff clean.
+
+- **J8 regime + retitle** — FR head retitled to *Close-Seam Lifecycle Coherence
+  Invariant*; the rejected `open_threads`-dict draft preserved under a collapsed
+  `<details>`. Example tests REQ-exempt (FR-474 J3); no CAP/REQ minted; changelog
+  fragment `type: fix, scope: examples`, no `req:`; commit subject carries `FR-526`;
+  diary entry accompanies GREEN (diary-gate).
+
+- **Corroboration (FR-522 instrument posture, NOT a gate)** — after a post-FR-525
+  regen, scan that no committed `character_lifecycle` row pairs `confirmed_dead` with a
+  non-null `allowed_reappearance_from_chapter`. Pending a fresh book generation.
+
+**Status: ENFORCED behind FR-525.** Prevention (FR-525 split at the partitioner) +
+record coherence (this invariant at the close seam) together guarantee a loss-chapter
+commits a coherent lifecycle row even in the post-split cross-chapter case.
