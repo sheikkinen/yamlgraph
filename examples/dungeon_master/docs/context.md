@@ -32,6 +32,24 @@ knows.
   chapter from its inherited start (every prior chapter held constant) and compare
   director-flag vs intent-map acting counts against the recorded baseline. The
   instrument that drove FR-521's falsification and S2 acceptance.
+- **FR-525** — enforced. **Outliner split-gate**: the whole-book partitioner
+  (`outline_chapters` + `chapter_outline.yaml`) must not pack a death-AND-return
+  reversal for one actor into a single capped chapter. A pure `reversal_pack_gap`
+  detector re-rolls the outline (bounded) with the named violation, then RAISES.
+  Kills the phantom-promise beat in the spec (`spec_kill`, `the_one_law`).
+- **FR-526** — enforced. **Close-seam lifecycle coherence invariant**: a committed
+  `CharacterLifecycle` row may never pair `confirmed_dead` with a non-null
+  `allowed_reappearance_from_chapter`; the close softens it to
+  `missing_presumed_dead`, preserving the allowance. Pure packet-only, applied after
+  the index clamp.
+- **FR-527** — **proposed** (judgement pending). **Beat-progress early close**: the
+  play loop closes a chapter only on `scene_complete` or the FR-501 16-turn cap,
+  never on `beats_satisfied`. A director that covers its playable beats then freezes
+  rides the cap, replaying the resolved scene. Witness `scan_turn_waste.py` sized it
+  at **208 wasted turns over 127 chapters (14/18 books)**. Fix: a deterministic
+  `_beats_stalled` guard (close on a 3-turn beat-progress stall; cap stays backstop)
+  + a director nudge to flip `scene_complete` on satisfiable-beat coverage. The
+  under-use dual of FR-501 (runaway) and FR-525 (over-commit).
 
 The lesson threaded through this arc: **for a stochastic generator, enforcement is
 removing the option (drop the actor from the cast), never discouraging the choice
@@ -43,6 +61,13 @@ injected into that same generator's input.
 - `scripts/replay_chapter_continuity.py` — single-chapter A/B replay (FR-522);
   driver in `api/chapter_replay.py`, pure metric in
   `witness_metrics.chapter_actor_flag_metrics`.
+- `scripts/scan_beat_gaps.py` — phantom-promise reversal beats (FR-524 witness, the
+  FR-525 condemning instrument): a chapter's own `world_state` contradicts a beat
+  that promises a terminal actor's return.
+- `scripts/scan_turn_waste.py` — no-progress-tail turn waste (FR-527 witness): for a
+  force-capped chapter that never emitted `scene_complete`, the turns played after
+  `beats_satisfied` last grew. (Honest signal is the STALL, not 100% beat coverage —
+  the closing/resolution beat is never reported satisfied.)
 - `scripts/witness_continuity_metrics.py` — FR-508 A5 book-level continuity counters
   from a generation log + `story.json`.
 - `scripts/generate_and_review.sh` — full generation + `book_reviewer` critique.
