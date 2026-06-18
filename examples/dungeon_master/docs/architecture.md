@@ -34,8 +34,10 @@ YAMLGraph's strict separation holds throughout the app:
 | `doc_ops.py` | Derived operations over the loaded `doc` (FR-493): the doc accessors (`entry`, `characters`, `chapters`), the single stage-graph `invoke_stage`, and the side-effecting expansions (`expand_roster`, `expand_chapters`, `apply_chapter_close`, `compose_stage`, `autodraft`). Nine pure `(doc, …)` functions, no `self`; imports nothing from `session` (acyclic). |
 | `tree.py` | `STAGES`, `Stage`, `resolve_stage`, `breadcrumb`, and the gate predicates (`cast_complete`, `all_chapters_played`). Pure. |
 | `navigation.py` | Pure reachability (`can_visit`) and landing (`accept_target`, `next_unreviewed_char`). Reads the doc; never mutates or invokes a graph. |
-| `turn_ops.py` | The **Scene lifecycle** (FR-493 J5) — `{plan, world_state_in} → play turns → {final_text, world_state_out}`: `running_scene` (threads the inherited `world_state` plus turn-1 `seam_packet`), `invoke_turn` (map → director → recap), `final_cut_context`, `invoke_final_cut`; plus deterministic lifecycle turn-1 gating (`LifecycleGateError`) and the per-character intent side-channel with director post-processing (phase clamp, beat canonicalisation). |
-| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the Scene-lifecycle entry — the `world_state` forward-carry + typed `seam_packet` handoff + per-chapter Final Cut final text), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
+| `turn_ops.py` | The **Scene lifecycle** (FR-493 J5) — `{plan, world_state_in} → play turns → {final_text, world_state_out}`: `running_scene` (threads the inherited `world_state` plus turn-1 `seam_packet`), `_retrieve_turn_ledger` (ranks the inherited relationships to the top-K cast-relevant for turn context, FR-516), `invoke_turn` (map → director → recap), `final_cut_context`, `invoke_final_cut`; plus deterministic lifecycle turn-1 gating (`LifecycleGateError`) and the per-character intent side-channel with director post-processing (phase clamp, beat canonicalisation). |
+| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the Scene-lifecycle entry — applies the close's relationship **delta** to the inherited ledger via `apply_ledger_delta`, floors the other lanes via `apply_lane_floor`, threads the typed `seam_packet` handoff, runs per-chapter Final Cut), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
+| `world_state.py` | The **typed ledger-as-memory** (FR-499/513–518). Pydantic models (`Character`, `WorldObject`, `Relationship`, `WorldState`); `parse_world_state` (boundary validation + relationship grounding gate); `format_world_state` (deterministic render to prompt text, `relationships="all"`/`"active"`/`"none"`); and the deterministic memory operators: `apply_ledger_delta` (apply add/reaffirm/update/invalidate ops + bi-temporal reconciliation + mechanical decay), `apply_lane_floor` (carry-forward floor for the non-relationship lanes), `rank_relationships` (top-K cast-relevant retrieval), `apply_merges` (grounded consolidation). Pure: no LLM, no I/O. |
+| `seam_packet.py` | The typed chapter-seam handoff (FR-506/507): `parse_seam_packet` / `format_seam_packet` and the `character_lifecycle` gate state — the resolved-events / open-threads / must-carry-facts / opening-constraints contract injected into the next chapter's turn 1. |
 | `render.py` | The pure, no-LLM **full-story Markdown render** (FR-494): `render_story_markdown(doc)` frames `compose_book_deterministic`'s Book with the tagline lead, `# Synopsis`, and an optional `# Cast` (first paragraph per non-empty character card); suppresses the `world_state` ledger and invents no title. Inherits the Book's *raise-on-empty* (no played chapter → `ValueError`). The reader serialization beside the machine `story.json`. |
 | `story_doc.py` | Per-session `story.json` read/write. |
 | `graph_app.py` | Compiled-graph cache (`get_app`) + output normalisers (`clean_text`, `field`). Dependency-free to avoid import cycles. |
@@ -83,7 +85,22 @@ single source of truth. It grows additively as stages are reached:
     "cards": {
       "1": {
         "title": "...", "summary": "...",     // what the chapter is (the arc)
-        "world_state": "...",                 // end-of-chapter ledger (FR-491 B)
+        "world_state": {                       // typed end-of-chapter ledger (FR-499/513)
+          "characters": [ { "name": "Hilde", "faction": "Aschenwulf",
+                            "status": "alive", "location": "the ledge",
+                            "inventory": ["hand-axe"] } ],
+          "objects":    [ { "name": "oath-stone", "holder": "Reinmar",
+                            "location": "high valley" } ],
+          "facts":      ["the river breached at dawn"],
+          "relationships": [                   // FR-513–517 emotional/alliance memory
+            { "between": ["Hilde", "Gunnar"], "type": "romantic_bond",
+              "status": "active", "tensions": ["clan_feud"],
+              "last_interaction": "the truce on the ledge",
+              "recap_citations": ["Turn 4 — ..."],
+              "valid_from": 0, "valid_to": null,   // bi-temporal (FR-515)
+              "last_reaffirmed": 1 }                // decay clock (FR-517)
+          ]
+        },
         "seam_packet": {                       // FR-506/507 chapter seam handoff
           "resolved_events": ["..."],
           "open_threads": ["..."],
@@ -113,12 +130,15 @@ single source of truth. It grows additively as stages are reached:
           }
         ]
       },
-      "2": { "title": "...", "summary": "...", "world_state": "",
+      "2": { "title": "...", "summary": "...", "world_state": {},
              "text": "", "reviewed": false, "turns": [] }
     }
   }
   // No persisted "book" entry (FR-492): The Book is composed on the fly from the
   // played chapters' final texts by compose_book_deterministic, never stored.
+  // The close LLM emits a "world_state.operations" relationship DELTA (FR-514);
+  // code applies it to the inherited ledger, so the stored "world_state" is the
+  // already-resolved typed ledger above, never the raw operations list.
 }
 ```
 
@@ -210,7 +230,7 @@ draft (Commandment 6).
 | Stage | Generative seam | Deterministic seam (pure code) |
 |-------|-----------------|--------------------------------|
 | `turn:<cid>:<n>` | `turn.yaml` `map`(intents) → director → recap | `_apply_beat_ledger` (resolve the director's satisfied-beat NUMBERS over the chapter's finite `beats` list back to canonical text, accumulate cumulatively, and COMPUTE `phase`/`scene_complete` from k / N — monotonic by construction, FR-503/FR-504) |
-| `chapter:<cid>` close | `chapter_close.yaml` (inherited ledger + played recaps → end-of-chapter `{world_state, seam_packet}`) | the **forward-carry**: `chapter:n-1`'s `world_state` is threaded into `chapter:n`'s `running_scene` as the established START, and into its close as `previous_world_state` (FR-491 B; preserving FR-488 J7); the prior chapter's `seam_packet` is injected into turn-1 `running_scene` as the chapter-open continuity contract (FR-506), and lifecycle constraints can hard-block turn-1 fanout (`LifecycleGateError`, FR-507) |
+| `chapter:<cid>` close | `chapter_close.yaml` (inherited ledger + played recaps → the three full lanes + a relationship **`operations`** delta) | the **memory apply** (§5a): `apply_lane_floor` carries the non-relationship lanes forward (an emptied lane never zeroes state), `apply_ledger_delta` applies the close's add/reaffirm/update/invalidate ops to the inherited relationship edges with bi-temporal reconciliation + mechanical decay; the resolved typed ledger is threaded into `chapter:n+1`'s `running_scene` as the established START and into its close as `previous_world_state` (FR-514/515/517; preserving FR-488 J7). The prior chapter's `seam_packet` is injected into turn-1 `running_scene` as the chapter-open continuity contract (FR-506), and lifecycle constraints can hard-block turn-1 fanout (`LifecycleGateError`, FR-507) |
 | **The Book** | _none — composition is assembly, not generation (FR-492)_ | `compose_book_deterministic` walks `chapters.order`, heads each played chapter's title + its per-chapter Final Cut final text, suppresses the `world_state` ledger from the manuscript, and **raises** rather than composing from nothing (Commandment 6). No LLM on the path to a *first* book. |
 
 The director's judgement is **read-only signal** surfaced to the DM (phase, beats,
@@ -224,10 +244,33 @@ because the mocked tests can only prove their wiring):
 1. **Chapter completion is judged from the summary.** Each chapter is played until
    the director — reading the chapter summary as the arc — sets `scene_complete`.
    No fixed turn count; the model decides when the chapter's events have happened.
-2. **`world_state` threads across played chapters.** A chapter's close derives its
-   end-of-chapter ledger from the inherited ledger + its played recaps; the next
-   chapter is played from there, and The Book renders the whole carry into one
-   continuous arc.
+2. **The ledger threads across played chapters as memory.** A chapter's close
+   emits a relationship *delta* (not a regenerated web); deterministic code applies
+   it to the inherited ledger (§5a), the next chapter is played from the resolved
+   ledger, and The Book renders the whole carry into one continuous arc.
+
+### 5a. The ledger as agent memory (FR-513–518)
+
+The forward-carry `world_state` began as a free-prose `str`, which let each close
+silently contradict an earlier chapter (a clan-flip, a phantom hand-axe, lovers
+re-met as strangers) or — worse — zero the relationship web when one close forgot
+to re-list it. It is now a **typed ledger the model never regenerates whole**;
+the LLM authors meaning, deterministic code authors persistence. All operators
+live in `world_state.py` and are pure (no LLM, no I/O).
+
+| Concern | Mechanism (pure code) |
+|---------|-----------------------|
+| **Boundary grounding** | `parse_world_state` validates the close payload into the typed shape and **drops** any relationship lacking ≥2 named parties or ≥1 `recap_citation` — a hallucinated bond never enters the ledger (FR-513). |
+| **Delta, not regeneration** | The close emits relationship `operations` (`add` / `reaffirm` / `update` / `invalidate`); `apply_ledger_delta` applies them to the inherited edges. **Zero ops carry the inherited set forward unchanged** — a forgetful close can no longer reset the bonds (FR-514). The non-relationship lanes use `apply_lane_floor`: an emptied lane carries forward, never zeroes (FR-514 J4). |
+| **Bi-temporal reconciliation** | Edge identity is the participant set, type-independent, so a contradiction (`enmity` → `romantic_bond`) lands on the *same* edge: the old version is **closed** (`valid_to` = closing ordinal), a new one opened (`valid_from`). History is retained, not overwritten; only `valid_to is None` edges reach turn context (FR-515). |
+| **Mechanical decay** | After the ops, an active edge unrefreshed for more than `DECAY_AFTER` (2) chapters is demoted to `dormant` by arithmetic on the `last_reaffirmed` ordinal — not by the LLM's recollection. Ordinals are integers so decay and recency are arithmetic, never string parsing (FR-517). |
+| **Top-K retrieval** | `_retrieve_turn_ledger` ranks the inherited relationships by cast-relevance × salience (tension count) × recency and keeps `RETRIEVAL_TOPK` (6) for turn context, so a long saga does not drag every bond into every turn; empty cast falls back to the full ledger rather than blanking it (FR-516). |
+| **Consolidation** | `apply_merges` folds grounded overlapping edges into one, closing the merged-out sources with `valid_to` (no-op on a clean ledger). Primitive shipped; cadence/LLM-wiring deferred (FR-518). |
+
+`format_world_state(…, relationships=…)` is the single render: `"active"` (turn
+context — only currently-valid, non-dormant/archived edges), `"all"` (close
+carry-forward, status-labelled), or `"none"`. The ledger is never rendered into the
+reader manuscript (`render.py` suppresses it).
 
 ---
 

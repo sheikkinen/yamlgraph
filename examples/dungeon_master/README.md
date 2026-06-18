@@ -98,6 +98,43 @@ PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
 The live witness [`scripts/witness_book_compose.py`](scripts/witness_book_compose.py)
 is a thin caller over `generate_story` that keeps only the substance asserts.
 
+### Auto-reviewing the generated book (examples/book_reviewer)
+
+The reader `story.md` is a book-shaped Markdown manuscript (`# Synopsis`, `# Cast`,
+then `# Chapter` headings), so it drops straight into the stand-alone
+[`book_reviewer`](../book_reviewer/README.md) example — a decomposed
+**map → reduce** critic where no single LLM call ever sees the whole book and every
+score is computed by deterministic Python (only a one-line verdict is generative).
+
+Point its `manuscript_path` at the generation `--out` directory (it accepts a
+directory containing `story.md`, or the file directly) and it writes a
+human-readable `review.md` **next to** the manuscript:
+
+```bash
+# 1. Generate the book (writes <out>/story.md)
+PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
+  --premise "A lone courier carries a sealed warning across a frozen river." \
+  --out outputs/dungeon-master/courier
+
+# 2. Review it — pass the directory (resolves <dir>/story.md) …
+PYTHONPATH="$PWD" python -m yamlgraph.cli graph run \
+  examples/book_reviewer/graph.yaml \
+  --var manuscript_path=outputs/dungeon-master/courier \
+  --full
+
+# … or the file directly:
+#   --var manuscript_path=outputs/dungeon-master/courier/story.md
+
+# 3. Read the scored critique (per-chapter axes + book-level continuity)
+cat outputs/dungeon-master/courier/review.md
+```
+
+The reviewer scores Coherence, Engagement, Prose, and Character **per chapter**,
+plus book-level **Continuity** (pairwise chapter-seam checks) and **Relevance**
+(synopsis-delivery) — the same cross-chapter continuity the
+[ledger-as-memory](docs/architecture.md#5a-the-ledger-as-agent-memory-fr-513518)
+forward-carry exists to hold, now independently witnessed by a separate critic.
+
 ### Still deferred (out of scope, by design)
 - Asking for character or chapter counts up front (the roster and the chapter set
   both emerge from the synopsis instead).
