@@ -156,6 +156,163 @@ def chapter_actor_flag_metrics(story_doc: dict, cid: str, actor: str) -> dict:
     }
 
 
+# ── seam precondition gap (state-blind outliner witness) ─────────────────────
+#
+# Heuristic instrument (not a gate): the chapter outliner writes each chapter's
+# beats from the synopsis ALONE, blind to the physical end-state the prior chapter
+# carried forward. When a beat kills/loses an actor by an environmental hazard but
+# the carried world_state places that actor at a non-hazard position and no beat
+# moves them into reach first, the generator must silently teleport the actor to
+# satisfy the beat — the "Arnulf safe on the higher bank → swept away by the flood"
+# seam contradiction. This metric measures that *unbridged lethal seam* structurally
+# over beats + carried state, so the defect is visible before any prose is read.
+
+# Lethal/loss verbs an outline beat uses to remove an actor from the chapter.
+_LIFECYCLE_EXIT_TOKENS = (
+    "swept away",
+    "swept down",
+    "swept off",
+    "drowned",
+    "drowns",
+    "drown",
+    "lost to the",
+    "carried downstream",
+    "carried off",
+    "taken by the",
+    "pulled under",
+    "killed",
+    "slain",
+    "dies",
+    "death of",
+)
+
+# Verbs a beat uses to MOVE an actor from a carried safe position toward the
+# hazard — the bridge the planner must author (in a preceding beat or inside the
+# lethal beat itself) before a lethal exit is physically plausible.
+_REPOSITION_TOKENS = (
+    "edge",
+    "back for",
+    "goes back",
+    "returns to",
+    "slips",
+    "loses footing",
+    "loses his footing",
+    "loses her footing",
+    "pulled toward",
+    "falls into",
+    "reaches the water",
+    "to the water",
+    "into the water",
+    "into the current",
+    "down the bank",
+    "off the bank",
+    "off the ledge",
+)
+
+
+def _text_has_token(text: str, tokens: tuple[str, ...]) -> bool:
+    """Whether ``text`` contains any token (case-insensitive substring)."""
+    low = (text or "").lower()
+    return any(tok in low for tok in tokens)
+
+
+def _beat_names_actor(beat: str, actor: str) -> bool:
+    """Whether a beat string names ``actor`` (case-insensitive substring)."""
+    a = (actor or "").lower()
+    return bool(a) and a in (beat or "").lower()
+
+
+def _previous_chapter_id(story_doc: dict, cid: str) -> str | None:
+    """The chapter id immediately before ``cid`` in play order, or None."""
+    order = list(((story_doc.get("chapters") or {}).get("order")) or [])
+    try:
+        i = order.index(cid)
+    except ValueError:
+        return None
+    return order[i - 1] if i > 0 else None
+
+
+def _carried_living_characters(story_doc: dict, cid: str) -> list[dict]:
+    """Characters the prior chapter carried forward as alive AND located.
+
+    These are exactly the actors whose physical position the next chapter inherits
+    as a hard fact — and therefore the actors a state-blind lethal beat can
+    contradict.
+    """
+    prev = _previous_chapter_id(story_doc, cid)
+    if prev is None:
+        return []
+    cards = (story_doc.get("chapters") or {}).get("cards") or {}
+    ws = (cards.get(prev) or {}).get("world_state") or {}
+    out: list[dict] = []
+    for c in ws.get("characters") or []:
+        status = str((c or {}).get("status") or "").lower()
+        location = str((c or {}).get("location") or "").strip()
+        if "alive" in status and location:
+            out.append(
+                {
+                    "name": str((c or {}).get("name") or "").strip(),
+                    "status": status,
+                    "location": location,
+                }
+            )
+    return out
+
+
+def seam_precondition_gap(story_doc: dict, cid: str) -> dict:
+    """Detect unbridged lethal seams in chapter ``cid`` (state-blind-outliner bug).
+
+    For each actor the prior chapter carried forward as alive-and-located, find the
+    first beat of ``cid`` that kills/loses them by hazard. The seam is *bridged* when
+    a reposition beat moves the actor toward the hazard before (or within) that
+    lethal beat, and *unbridged* — a gap — when no such movement exists, meaning the
+    carried position and the death are physically incompatible with nothing in
+    between. Pure: reads only beats + carried world_state, no LLM, no turn_ops.
+
+    Returns ``{chapter, gap_count, carried_count, gaps:[{actor, carried_status,
+    carried_location, exit_beat, exit_beat_index, bridged}]}``.
+    """
+    cards = (story_doc.get("chapters") or {}).get("cards") or {}
+    beats = [str(b) for b in ((cards.get(cid) or {}).get("beats") or [])]
+    carried = _carried_living_characters(story_doc, cid)
+
+    gaps: list[dict] = []
+    for actor_info in carried:
+        actor = actor_info["name"]
+        exit_idxs = [
+            i
+            for i, b in enumerate(beats)
+            if _beat_names_actor(b, actor)
+            and _text_has_token(b, _LIFECYCLE_EXIT_TOKENS)
+        ]
+        if not exit_idxs:
+            continue
+        first_exit = min(exit_idxs)
+        bridged_before = any(
+            _beat_names_actor(b, actor) and _text_has_token(b, _REPOSITION_TOKENS)
+            for b in beats[:first_exit]
+        )
+        bridged_in_exit = _text_has_token(beats[first_exit], _REPOSITION_TOKENS)
+        bridged = bool(bridged_before or bridged_in_exit)
+        if not bridged:
+            gaps.append(
+                {
+                    "actor": actor,
+                    "carried_status": actor_info["status"],
+                    "carried_location": actor_info["location"],
+                    "exit_beat": beats[first_exit],
+                    "exit_beat_index": first_exit,
+                    "bridged": False,
+                }
+            )
+    return {
+        "chapter": cid,
+        "gap_count": len(gaps),
+        "carried_count": len(carried),
+        "gaps": gaps,
+    }
+
+
 def evaluate_fr508_a5(log_metrics: dict, story_metrics: dict) -> dict:
     """Evaluate FR-508 A5 pass/fail thresholds."""
     completed_equals_planned = int(
