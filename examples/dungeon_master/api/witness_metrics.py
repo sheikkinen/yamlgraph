@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 import re
 
+from examples.dungeon_master.api.world_state import parse_world_state
+
 _LOG_LINE_LIFECYCLE = re.compile(r"Lifecycle gate violation:")
 _LOG_LINE_MEMORY = re.compile(r"Continuity memory conflict:")
 _LOG_LINE_DEAD_PROSE = re.compile(r"Dead character prose violation:")
@@ -243,7 +245,10 @@ def _carried_living_characters(story_doc: dict, cid: str) -> list[dict]:
     if prev is None:
         return []
     cards = (story_doc.get("chapters") or {}).get("cards") or {}
-    ws = (cards.get(prev) or {}).get("world_state") or {}
+    # Normalize at the boundary (the_one_law): older books (pre-FR-499A) store
+    # ``world_state`` as a free-prose string, not a typed ledger; parse_world_state
+    # yields the empty typed ledger for those rather than crashing on ``str.get``.
+    ws = parse_world_state((cards.get(prev) or {}).get("world_state"))
     out: list[dict] = []
     for c in ws.get("characters") or []:
         status = str((c or {}).get("status") or "").lower()

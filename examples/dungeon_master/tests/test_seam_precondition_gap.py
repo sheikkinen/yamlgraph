@@ -155,3 +155,19 @@ def test_first_chapter_has_no_carried_state_so_no_gap():
     result = witness_metrics.seam_precondition_gap(doc, "1")
     assert result["carried_count"] == 0
     assert result["gap_count"] == 0
+
+
+def test_legacy_prose_string_world_state_does_not_crash():
+    """Older books (pre-FR-499A) store world_state as a free-prose string.
+
+    The witness must normalize that at the boundary (parse_world_state) rather than
+    crash on ``str.get`` — a prose ledger carries no structured positions, so it
+    contributes no carried characters and no gap.
+    """
+    doc = _floodmark_seam_doc(["Arnulf is swept away by the flood"])
+    doc["chapters"]["cards"]["1"]["world_state"] = (
+        "Arnulf stands on the higher bank with the retreating line."
+    )
+    result = witness_metrics.seam_precondition_gap(doc, "2")
+    assert result["carried_count"] == 0
+    assert result["gap_count"] == 0
