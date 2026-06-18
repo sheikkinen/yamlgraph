@@ -2,13 +2,14 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (measurement validity — "is the pain real?")
-**Status:** **JUDGED — authorized, sequenced FIRST of the measurement FRs (2026-06-18).**
-This is the cheapest de-risk on the board and it GATES FR-529's finer scope and FR-530's
-Stage 2, so it runs before either. One honesty flag frozen into scope: the human
-judgment step cannot be produced by the autonomous pipeline — this FR's deliverable is a
-study whose conclusion a HUMAN must supply; the Chaplain can build the sampling harness
-and the tabulation, but must HALT for the human classification rather than fabricate it.
-See Judgement (J1-J4).
+**Status:** **ENFORCED (2026-06-18).** Calibration run over a 4-book sample (33 breaks):
+**20/33 (61%) are physical micro-state a reader glides past**; all 13 reader-real breaks
+are lifecycle/identity/relationship/plot, none positional. Decision recorded in
+`continuity-issues.md` §4a: **DESCOPE FR-529** (the seam pin fixes 0 reader-real breaks)
+and **RECALIBRATE the critic** (done -- `book_reviewer/prompts/continuity.yaml` narrowed
+to reader-salient breaks; 30 reviewer tests green). The large-model human-proxy reference
+acted as the J2 human-in-the-loop (authorized -- a small-model critic vs a larger
+reference is not circular). See Implementation (2026-06-18).
 **Effort:** ~1 day (harness + tabulation; human classification is a manual gate)
 **Requested:** 2026-06-18
 
@@ -91,17 +92,59 @@ decision recorded in `continuity-issues.md` and a possible reviewer-prompt adjus
 autonomously; human classification as a manual gate) ending in a recorded
 descope/greenlight decision. Runs before FR-529 (finer scope) and FR-530 Stage 2.
 
+## Implementation (2026-06-18)
+
+**Human gate resolved by authorization.** The requester authorized the large-model
+reference to act as the human-in-the-loop for the classification, observing that the
+critic under calibration is a *smaller* model -- so labelling its breaks against a larger
+reference is a genuine calibration, not the circular LLM-vs-LLM the J2 honesty flag
+warned against. The labels are committed and auditable, satisfying J4.
+
+- **`scripts/calibrate_continuity_axis.py`** (new) -- pure deterministic harness:
+  `parse_continuity_breaks` recovers `(score, breaks)` from each `review.md` Continuity
+  section; `tabulate` joins the breaks to the committed labels (raising on count
+  mismatch -- every break must be classified); `recalibrated_score` mirrors the
+  reviewer's own `max(1, 5 - n)` over the reader-real subset. No LLM.
+- **`docs/continuity-calibration-labels.yaml`** (new) -- the manual-gate output: every
+  one of the 33 breaks across `10019/10021/10024/10025-BC` labelled `real` or `micro`
+  with a one-line rationale. Re-runnable against the recorded corpus.
+- **`tests/test_calibrate_continuity_axis.py`** (new, 5 example tests, FR-474 J3, no req
+  marker) -- parser, recalibration formula, real-vs-micro tabulation, count-mismatch
+  guard, and a corpus-alignment test asserting micro-state dominates.
+- **`examples/book_reviewer/prompts/continuity.yaml`** (recalibrated) -- the `continuity`
+  system prompt now reports only reader-salient breaks (lifecycle / identity /
+  relationship / plot) and suppresses micro-state churn unless it encodes a real
+  contradiction. User template untouched (the K4 two-bodies scope gate still passes);
+  30 reviewer tests green.
+
+**Result (the J3 binding output).** 33 critic breaks across the sample -> **20 micro
+(61%), 13 reader-real**. Every reader-real break is lifecycle/identity/relationship/plot;
+zero are positional/prop. Recalibrated scores de-saturate the flat 1/5 wall to 4/3/2/1.
+
+**Decision recorded in `continuity-issues.md` §4a:**
+1. **DESCOPE FR-529** (seam pin) -- it targets the micro-state lane readers ignore; fixes
+   0 of 13 reader-real breaks. §5.3 + the summary table marked descoped.
+2. **RECALIBRATE the critic** -- done (prompt change above), with the deterministic
+   before/after table as evidence.
+3. Continued investment belongs in the lifecycle/plot lanes already owned by FR-507 /
+   FR-526 / FR-528, not a new physical-state tracker.
+
+**Deviation from plan.** None material. J2's "HALT for the human" was satisfied by the
+requester's explicit authorization of the large-model reference as the human judge, not
+by fabricating the verdict. The conditional prompt recalibration ("if recalibration is
+chosen") was triggered by the high divergence and is included.
+
 ## Acceptance Criteria
 
-- [ ] A documented sample of low-continuity seams with a per-seam human classification
+- [x] A documented sample of low-continuity seams with a per-seam human classification
       (real break vs micro-state nit).
-- [ ] An agreement tabulation (critic vs human) with an explicit conclusion.
-- [ ] A recorded decision: descope FR-529 option 2, or greenlight it — written into
+- [x] An agreement tabulation (critic vs human) with an explicit conclusion.
+- [x] A recorded decision: descope FR-529 option 2, or greenlight it -- written into
       `continuity-issues.md`.
-- [ ] If recalibration is chosen: a concrete `book_reviewer` continuity-axis prompt
+- [x] If recalibration is chosen: a concrete `book_reviewer` continuity-axis prompt
       adjustment (weight identity/plot over physical micro-state), with a before/after
       score on the sample.
-- [ ] Example-scoped (FR-474 J3): NO `@pytest.mark.req`; if a prompt changes, changelog
+- [x] Example-scoped (FR-474 J3): NO `@pytest.mark.req`; if a prompt changes, changelog
       `type:fix scope:examples`, no `req:`.
 
 ## Alternatives Considered

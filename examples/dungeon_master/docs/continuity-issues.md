@@ -297,7 +297,10 @@ outliner → synopsis). The machinery is now strong on **identity state** (lifec
 faction, relationships) — the state that has a *typed lane in the ledger*. It is weak
 on **physical state** (position, props, phase) — the state that has *no typed lane* and
 is left to the prose. The reviewer's complaints are almost entirely in that untracked
-lane. **The next boundary to normalize is positional/prop micro-state.**
+lane. ~~**The next boundary to normalize is positional/prop micro-state.**~~ **FR-532
+(below) OVERTURNS this conclusion:** the calibration shows that untracked lane is
+largely a seam-differ artifact a reader glides past — the *reader-real* residual is
+identity/lifecycle/plot, lanes already hardened. See §4a.
 
 The FR-527 falsification sharpened the same march once more: a defect that *manifests*
 as pacing at the play boundary could not be cured there, because the only deterministic
@@ -305,6 +308,59 @@ as pacing at the play boundary could not be cured there, because the only determ
 plateau is precisely its absence. The cure had to retreat one boundary upstream to the
 outliner that authored the unreachable beat. *Where a symptom can be measured is rarely
 where it can be fixed.*
+
+---
+
+## 4a. The continuity-axis calibration (FR-532) — is the pain real?
+
+Before building a positional/prop tracker (§5.3) to satisfy the continuity 1/5, FR-532
+asked the Scripture's Red-Hat question: **does that score measure a defect a *reader*
+notices, or a sensitivity unique to an LLM that diffs across seams?** The `book_reviewer`
+critic is a *smaller* model that reads exactly two adjacent chapters and reports every
+fact that differs; it is hypersensitive to micro-state a human reader never tracks.
+
+**Method (reproducible).** The harness
+[`scripts/calibrate_continuity_axis.py`](../scripts/calibrate_continuity_axis.py) extracts
+every continuity break the critic recorded across a 4-book sample
+(`10019/10021/10024/10025-BC`) and joins it to a committed per-seam human classification
+([`docs/continuity-calibration-labels.yaml`](continuity-calibration-labels.yaml)) — each
+break labelled `real` (reader-salient: lifecycle / identity / relationship / plot) or
+`micro` (physical micro-state: rope/staff/weapon/bundle/pouch config, grip, above/below,
+coarse time gap). The human labels here are supplied by a large-model human-proxy
+reference (authorized to act as the human-in-the-loop, since calibrating a small-model
+critic against a larger reference is not circular).
+
+**Result.**
+
+| Book | critic breaks | real | micro | critic score | recalibrated |
+| --- | --- | --- | --- | --- | --- |
+| 10019-BC | 3 | 2 | 1 | 2/5 | 3/5 |
+| 10021-BC | 4 | 1 | 3 | 1/5 | 4/5 |
+| 10024-BC | 15 | 7 | 8 | 1/5 | 1/5 |
+| 10025-BC | 11 | 3 | 8 | 1/5 | 2/5 |
+| **total** | **33** | **13** | **20** | — | — |
+
+**20 of 33 breaks (61%) are physical micro-state a reader glides past.** Every one of the
+13 reader-real breaks is lifecycle (a dead character acting/reappearing: 10021 Hagan,
+10024/10025 Arnulf), relationship reset (10019 bond), or plot (resolved conflict restarts,
+a present character or an on-screen fall vanishes) — **none is a positional/prop break a
+coarse seam pin would fix.** The recalibrated score (counting only reader-real breaks via
+the reviewer's own `max(1, 5 - n)`) also *de-saturates*: the flat 1/5 wall spreads to
+4/3/2/1, recovering discrimination the saturated metric had lost.
+
+**Decision (the binding output).**
+
+1. **DESCOPE FR-529** — both option 2 (already out) *and* option 1 (the coarse seam pin).
+   The positional/prop lane it targets is precisely the lane the calibration shows readers
+   ignore; it would fix 0 of the 13 reader-real breaks. Re-open only if a future
+   recalibrated run shows a *reader-real* positional residual.
+2. **RECALIBRATE the critic** — narrow `book_reviewer`'s `continuity` system prompt to
+   report only reader-salient breaks (lifecycle / identity / relationship / plot) and to
+   suppress micro-state churn unless it encodes a real contradiction. Done; 30 reviewer
+   tests still green. Deterministic before/after on the sample is the table above.
+3. The reader-real residual lives in lanes the upstream march already owns (FR-507
+   lifecycle/bond, FR-526 confirmed-dead, FR-528 no-progress tail) — continued investment
+   belongs there, not in a new physical-state tracker.
 
 ---
 
@@ -334,7 +390,12 @@ prompt constraint: the final beat of a chapter must be *playable inside the scen
 a narrated time-jump. Kills the plateau at its source (the seam), so FR-527's guard
 becomes a backstop rather than the primary cure.
 
-### 5.3 New FR — a positional/prop micro-state lane (*the biggest structural gap*)
+### 5.3 ~~New FR — a positional/prop micro-state lane~~ — DESCOPED by FR-532
+
+> **DESCOPED (2026-06-18).** FR-532's calibration (§4a) shows this lane is 61%
+> seam-differ artifact: 0 of 13 reader-real breaks are positional/prop. FR-529 (the
+> seam pin) is descoped; the critic was recalibrated instead. The analysis below is
+> retained as the original rationale, now superseded.
 
 Gap 1 is the bulk of the residual continuity score and has **no typed home today**.
 Two viable shapes, in increasing cost:
@@ -384,7 +445,7 @@ hides between instruments.
 |------|------|--------|--------|
 | 5.1 FR-527 stall guard | FALSIFIED at enforce | — | dead end; cure → 5.2 |
 | 5.2 Outliner playable-beat gate (FR-528) | New FR | ~1d | Gap 2 root cause |
-| 5.3 Positional/prop state lane | New FR | 1–3d | Gap 1 + Gap 3 (the bulk) |
+| ~~5.3 Positional/prop state lane (FR-529)~~ | DESCOPED by FR-532 | — | 61% reader-invisible (§4a) |
 | 5.4 Reviewer continuity as in-loop signal | New FR | 1–2d | Visibility → correction |
 | 5.5 Unify the instrument shelf | Chore | ~0.5d | Regression visibility |
 

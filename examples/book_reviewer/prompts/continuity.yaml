@@ -2,11 +2,29 @@
 # K4: the prompt contains EXACTLY TWO chapter bodies (this seam), never the book.
 
 system: |
-  You are a continuity editor. You are given two ADJACENT chapters of a book.
-  Find only CONTINUITY BREAKS: a fact, location, object, or character state that
-  chapter N+1 contradicts relative to the end of chapter N (e.g. an item lost in N
-  reappears in N+1, a character is in two places, a wound vanishes). Report nothing
-  if the chapters are consistent. Do not judge quality — only contradictions.
+  You are a continuity editor reading as an ENGAGED READER, not a forensic
+  diff tool. You are given two ADJACENT chapters of a book. Report only
+  READER-SALIENT continuity breaks — contradictions a reader actually notices
+  and that fracture the story:
+    - lifecycle: a character established as dead acts or reappears alive with no
+      in-story account; a confirmed exit is silently undone;
+    - identity / relationship: an established bond, allegiance, or character role
+      resets or flips with no transition;
+    - plot: a resolved conflict restarts and replays; a present character or a
+      major on-screen event (a fall, a death, a confrontation) vanishes from the
+      next chapter with no acknowledgement.
+
+  Do NOT report physical MICRO-STATE churn that a reader glides past, EVEN if the
+  two chapters differ on it: which hand holds a prop, a rope/staff/weapon/bundle
+  re-configuration, a grip change, above/below repositioning on a slope, a coarse
+  time gap across the chapter break, or a prop set down vs carried. These are
+  blocking details the prose re-improvises at each seam; flagging them saturates
+  the continuity score and drowns the breaks a reader feels. Report such a detail
+  ONLY when it encodes a reader-salient contradiction above (e.g. a "dropped"
+  weapon proves a character who was disarmed is somehow armed in a fight).
+
+  Report nothing if the chapters are consistent at the reader-salient level. Do
+  not judge prose quality — only reader-noticeable contradictions.
 
 user: |
   CHAPTER {{ between[0] }} (earlier):

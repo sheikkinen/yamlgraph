@@ -2,14 +2,26 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (continuity — the untracked physical lane)
-**Status:** **JUDGED — scope tightened, authorized for enforce AFTER FR-532 (2026-06-18).**
-The seam pin is a pure projection of fields that already exist (`Character.location`,
-`WorldObject.holder/location` — verified). Scope frozen to **project existing coarse
-world_state fields only**; the FR's own examples (rope knot-count, which hand holds the
-pouch) are FINE-GRAINED facts NOT in world_state and are struck from claim — the pin
-closes Gap 3 (coarse seam jumps) and the coarse half of Gap 1, nothing finer. Sequenced
-after FR-532 (calibration decides whether finer tracking is even reader-real). See
-Judgement (J1-J5).
+**Status:** **DESCOPED (2026-06-18) by FR-532's calibration verdict.** The seam pin
+targets the positional/prop micro-state lane; FR-532's 4-book calibration (33 breaks)
+showed that lane is 61% seam-differ artifact and that **0 of 13 reader-real continuity
+breaks are positional/prop** -- they are all lifecycle/identity/relationship/plot. The
+pin would fix nothing a reader notices, so it is not built. The judgement below is
+retained as the (sound) mechanism analysis; it was the *worth* that failed the Red-Hat
+test, not the mechanism. Re-open only if a future recalibrated run surfaces a reader-real
+positional residual. See `continuity-issues.md` §4a and FR-532 Implementation.
+
+## Resolution (2026-06-18) -- DESCOPED
+
+FR-532 was sequenced ahead of this FR precisely to answer "is the pain real?" before
+paying to build the tracker. It answered no for the positional lane: every reader-real
+break in the sample is lifecycle (dead character acting/reappearing), relationship (bond
+reset), or plot (resolved conflict restarts, a present character or on-screen event
+vanishes) -- none is the rope/pouch/position micro-state this pin would carry. Per
+FR-532's outcome rule (high micro-state divergence -> descope FR-529, recalibrate the
+critic), the critic was narrowed instead and this FR is closed unbuilt. The cheapest bug
+is the one killed in the spec.
+
 **Effort:** ~1 day
 **Requested:** 2026-06-18
 

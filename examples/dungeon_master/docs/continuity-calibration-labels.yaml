@@ -1,0 +1,100 @@
+# FR-532 -- Reviewer continuity-axis human calibration: per-seam labels
+#
+# Human-in-the-loop classification of every continuity break the smaller-model
+# `book_reviewer` critic flagged, across a 4-book cross-corpus sample. The labels
+# are supplied by a large-model human-proxy reference (authorized 2026-06-18 to
+# act as the human-in-the-loop, dissolving the LLM-vs-LLM circularity since the
+# critic under calibration is a *smaller* model than the reference judge).
+#
+# label values:
+#   real  -- a continuity break a READER notices: identity / lifecycle / plot /
+#            relationship contradiction (dead character acts or reappears, a
+#            resolved conflict restarts, a present character vanishes, an
+#            established bond resets, a major on-screen event is erased).
+#   micro -- a seam-differ-only nit: physical micro-state churn (rope/staff/
+#            weapon/bundle/pouch configuration, which hand holds a prop, grip
+#            changes, above/below repositioning, coarse time-gap) that a reader
+#            glides past.
+#
+# Ordering matches the `- ` bullets under "## Continuity" in each book's
+# review.md (1-indexed). The harness validates count alignment.
+
+books:
+  10019-BC:
+    critic_score: 2
+    breaks:
+      - label: real
+        note: "Ch2->3 the established bond ('the shape of it was already love') is treated as purely functional/separate -- a relationship reset a reader notices (FR-507 bond lane)."
+      - label: micro
+        note: "Ch2->3 'no reference to the tension' -- an OMISSION the seam-differ flags, not a contradiction a reader registers."
+      - label: real
+        note: "Ch5->6 Arnulf held at the truce line, then suddenly standing peacefully among the survivors with no transition -- an unexplained arc jump (lifecycle/plot)."
+  10021-BC:
+    critic_score: 1
+    breaks:
+      - label: micro
+        note: "Hilde's weapon driven into the mud and never retrieved -- prop micro-state; a reader does not track the dropped weapon."
+      - label: micro
+        note: "Hagan's staff positioning (higher route -> same level) -- coarse repositioning across a seam."
+      - label: real
+        note: "Hagan killed mid-Ch6 yet keeps acting ('already dead, dragged a bloodied hand') -- a corpse still fighting is a hard lifecycle contradiction a reader cannot miss (FR-526 confirmed_dead lane)."
+      - label: micro
+        note: "Hagan's staff kicked away yet still wielded -- prop-control micro-state on the same already-dead figure."
+  10024-BC:
+    critic_score: 1
+    breaks:
+      - label: real
+        note: "Ch1->2 Arnulf flips from shielding Hilde to attacking Gunnar -- a feud-allegiance shift a reader tracks (character/plot)."
+      - label: micro
+        note: "Svala 'between the clans' -> 'on the broken edge' yet interacting directly -- positional micro-state."
+      - label: micro
+        note: "Supply bundle shoulder -> ledge -> shelf, hand position unclear -- prop micro-state."
+      - label: real
+        note: "Ch2->3 Arnulf declared dead by flood-law and grieved, then reappears alive -- dead/alive lifecycle contradiction (the headline reader-real break)."
+      - label: micro
+        note: "Svala's position re-flagged (broken edge vs 'between them') -- duplicate positional micro-state."
+      - label: real
+        note: "Ch3->4 Arnulf's dramatic return + feud confrontation vanish entirely from Ch4 -- a present character/plot thread dropped, reader-noticeable."
+      - label: real
+        note: "Ch3->4 active crisis ('the feud lived') jumps to Reinmar offering guide services with no resolution -- a dropped plot crisis."
+      - label: micro
+        note: "Ch4->5 hand-in-hand -> separated with no hand contact -- a relationship GESTURE micro-state; people stop holding hands to do work, a reader glides past."
+      - label: micro
+        note: "Spear grip 'low and ready' -> 'tight in both hands' -- grip micro-state."
+      - label: micro
+        note: "Ch5->6 bundle on shoulder -> set down at side -- prop micro-state."
+      - label: real
+        note: "Ch5->6 a third combatant materializes from an explicitly 'empty space' and is thrown off the cliff -- an unintroduced character in a lethal fight, reader-noticeable."
+      - label: micro
+        note: "Ch5->6 grievance shifts from separating the couple to food distribution -- a soft topic drift a reader tolerates."
+      - label: real
+        note: "Ch6->7 a man (Arnulf) driven off the camp edge and falls, then Ch7 has no fall at all -- a major on-screen violent event erased (plot)."
+      - label: real
+        note: "Ch6->7 the violent struggle/someone-goes-over reframed as a peaceful refusal -- same erased-violence seam (plot), counted by the critic as a separate break."
+      - label: micro
+        note: "Ch6->7 Svala's staff 'driven down in violent confrontation' -> 'raises the staff, people stay with the work' -- the staff-action lens on the same seam; micro-state framing."
+  10025-BC:
+    critic_score: 1
+    breaks:
+      - label: micro
+        note: "Rope configuration: single line -> 'second handline knot' -- rope-setup micro-state."
+      - label: micro
+        note: "Arnulf's body phrasing: single drowning -> plural 'rivers', body recovered/lost ambiguity -- phrasing nit (the real water-vs-ridge break is #9/#10)."
+      - label: micro
+        note: "Immediate timeline: water's edge with rope -> 'between mud and stone' with pouches, unexplained gap -- coarse time/position seam jump."
+      - label: micro
+        note: "Character positioning: Reinmar above / pair climbing -> Hilde 'planted her feet beside him' -- above/below micro-state."
+      - label: micro
+        note: "Rope function: hauling pair up -> climb 'already begun', testing next stretch -- rope-phase micro-state."
+      - label: micro
+        note: "Climb compression: active climbing -> 'the climb had already begun', Hilde already on ridge -- coarse transition micro-state."
+      - label: micro
+        note: "Food pouch possession churn (each holds own -> Gunnar holds Hilde's -> Hilde holds both) -- which-hand-holds-the-prop, the canonical seam-differ nit."
+      - label: micro
+        note: "Rope leadership: Reinmar in control -> 'Hilde took the rope from him', unforeshadowed handoff -- prop-control micro-state."
+      - label: real
+        note: "Ch6->7 Arnulf on the ridge arguing -> 'pushed up from the water, half starved' for the first time -- the ghost-vs-alive seam, a hard reader-real contradiction (lifecycle/plot)."
+      - label: real
+        note: "Ch7->8 Arnulf integrated on the ridge (ghost talk broken) -> still being convinced to 'take the line' -- the scene un-resolves, reader-noticeable (FR-528 no-progress tail)."
+      - label: real
+        note: "Ch7->8 the resolved Arnulf conflict restarts and the whole persuasion repeats -- the resolution contradiction that scored Ch8 engagement 1/5 (FR-528 lane)."
