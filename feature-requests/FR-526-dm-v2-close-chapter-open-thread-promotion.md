@@ -278,3 +278,97 @@ state). Optionally add a close-seam assertion that `confirmed_dead` implies
 **Status: returned to Plan with a concrete, schema-valid scope.** The original
 `open_threads`-dict draft below remains rejected. Re-open as the coherence-invariant
 fix above, condemned first by a witness over the 10024-BC record (RED), behind FR-525.
+
+---
+
+## Judgement — Re-scoped (2026-06-18)
+
+Examined the re-scoped proposal (close-seam lifecycle coherence invariant) against
+the live `_clamp_lifecycle_reappearance_to_plan` (`chapter_ops.py:475`, called at
+`:716`), the `CharacterLifecycle` schema (`seam_packet.py:52` — the
+`Literal["alive","missing_presumed_dead","confirmed_dead"]` enum already admits the
+target value), the `confirmed_dead` prose-violation filter (`chapter_ops.py:726`),
+and the cross-source equality gate `_enforce_memory_precedence_gate` (`turn_ops.py`).
+
+**The re-scope is sound.** The probe converted the original J3/J4 *assumption* into
+*evidence*: a real committed record (`10024-BC` Ch3) carries
+`existence_state=confirmed_dead` AND `allowed_reappearance_from_chapter=3` — a
+self-contradiction. Residual value over FR-525 is therefore **proven**, not assumed:
+FR-525 splits the pack but does not reconcile `existence_state` when a loss-chapter
+close writes `confirmed_dead` while a planned return sets a non-null reappearance.
+
+- **J1 — Premise approved; supersedes original J3/J4.** A genuinely incoherent
+  lifecycle record exists in a committed artifact. The defect is incoherence, not the
+  original FR's imagined *absence* of a forward. The `open_threads`-dict mechanism
+  stays dead (schema-invalid, list[str]).
+
+- **J2 — Invariant is semantically sound AND schema-valid.** "A character allowed to
+  reappear is not *confirmed* dead, only *presumed* dead" is correct, and
+  `missing_presumed_dead` is already a legal enum value — the downgrade stays inside
+  the typed channel. No schema change.
+
+- **J3 — Enforce as a PURE, packet-only function; do NOT fold it into the clamp.**
+  The coherence rule depends on the packet alone (`allowed is not None` =>
+  `existence_state != confirmed_dead`); it does NOT need `doc`. The clamp
+  (`_clamp_lifecycle_reappearance_to_plan`) needs `doc` to find the planned index —
+  a different concern. Add a separate pure
+  `_enforce_reappearance_state_coherence(packet) -> packet` applied at the close seam
+  immediately AFTER the clamp (`chapter_ops.py:716`). Single responsibility,
+  trivially testable without a doc, normalized where the record enters
+  (`the_one_law`).
+
+- **J4 — Direction-of-fix is correct here and coherent with downstream consumers, but
+  inherits upstream precision.** Downgrading (keep the reappearance, soften the death)
+  is right because the synopsis intends Arnulf's return; clearing the reappearance
+  instead would erase authored intent. Beneficial side effect confirming the
+  direction: a `missing_presumed_dead` actor drops out of the `confirmed_dead`
+  prose-violation filter (`chapter_ops.py:726`), so prose that references the
+  returning character is correctly no longer a violation. **BUT** the invariant fires
+  on `allowed_reappearance_from_chapter is not None`, and that field can be set by
+  `_planned_reappearance_chapter` — a loose name + `_RETURN_SIGNAL` co-occurrence scan,
+  the same imprecision class FR-525's witness had to cure with subject-proximity. A
+  spurious reappearance allowance would therefore spuriously soften a real death.
+  **REQUIRED:** a non-vacuous negative control — a genuinely `confirmed_dead`
+  character with `allowed_reappearance_from_chapter = None` stays `confirmed_dead`
+  (the downgrade fires ONLY on a non-null allowance). **DEFERRED (not in scope):**
+  hardening `_planned_reappearance_chapter` precision — open a follow-up only if
+  corroboration shows a spurious downgrade.
+
+- **J5 — `existence_state` coherence ONLY; the same-chapter index incoherence is
+  FR-525's.** The probed record is doubly broken: incoherent state (this FR) AND
+  `allowed=3, source=3` (reappear in the chapter you vanished — nonsensical under the
+  turn budget). The latter is a *packing* artifact that FR-525 prevents at the
+  partitioner; do NOT re-litigate the index here. Scope this FR to the state invariant,
+  which leaves a coherent record in the post-FR-525 cross-chapter case (loss in K,
+  return in M>K). Index reconciliation is explicitly out of scope.
+
+- **J6 — Integration risk: `existence_state` participates in a cross-source equality
+  gate.** `_enforce_memory_precedence_gate` (`turn_ops.py`) RAISES
+  `ContinuityMemoryConflictError` on seam-vs-synopsis-vs-memory state mismatch. The
+  downgrade changes the seam state and could newly trip or newly silence that gate.
+  **REQUIRED:** full DM suite green PLUS a targeted assertion that downgrading a
+  swept-away-but-returning actor does not introduce a spurious memory-precedence
+  conflict (the synopsis-derived state for a presumed-dead returner should align with
+  `missing_presumed_dead`, reducing conflicts — verify, don't assume).
+
+- **J7 — Build order (RED first, condemn a REAL record).** RED: a witness/fixture
+  mirroring the `10024-BC` Ch3 record (`confirmed_dead` + `allowed_reappearance=3`)
+  asserts the incoherence, plus the J4 negative control (allowed=None stays
+  confirmed_dead). GREEN: the pure `_enforce_reappearance_state_coherence` reconciles
+  it. Corroborate (FR-522 instrument posture, NOT a gate): regenerate a post-FR-525
+  book and scan that no committed `character_lifecycle` row carries `confirmed_dead`
+  together with a non-null `allowed_reappearance_from_chapter`.
+
+- **J8 — Regime + retitle.** Example tests REQ-exempt (FR-474 J3); no CAP/REQ minted;
+  changelog fragment `type: fix, scope: examples`, no `req:`; commit subject carries
+  `FR-526`; diary entry accompanies GREEN (diary-gate); `lint-imports` clean (the
+  coherence fn is pure layer-3). **RETITLE REQUIRED:** "Close-Chapter Open-Thread
+  Promotion" names the dead mechanism. Rewrite the FR head (title, Type, Status,
+  Summary, Proposed Solution) to the active scope — *Close-Seam Lifecycle Coherence
+  Invariant* — so the document no longer describes the rejected `open_threads` dict as
+  its solution. The original draft stays preserved below the line as rejected history.
+
+**Verdict: APPROVED with the corrections above (J3 pure packet-only function; J4
+required negative control; J5 state-only scope; J6 required integration assertion; J8
+retitle). Scope frozen — authorized for enforce, BEHIND FR-525.** Enforce against this
+frozen scope; deviations return here. The `open_threads`-dict draft remains rejected.
