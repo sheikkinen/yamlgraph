@@ -8,9 +8,11 @@ from __future__ import annotations
 
 from examples.dungeon_master.api.chapter_ops import (
     detect_dead_character_prose_violations,
+    detect_object_use_after_loss,
 )
 from examples.dungeon_master.api.turn_ops import (
     build_allowed_scene_cast,
+    dead_character_names,
     final_cut_context,
 )
 
@@ -101,19 +103,127 @@ def _doc_with_confirmed_dead_seam() -> dict:
     }
 
 
-def test_final_cut_context_includes_dead_characters_from_seam():
+def test_final_cut_context_includes_dead_before_open_from_seam():
     doc = _doc_with_confirmed_dead_seam()
     ctx = final_cut_context(doc, "2")
-    assert "dead_characters" in ctx
-    assert "Alwina" in ctx["dead_characters"]
+    assert "dead_before_open" in ctx
+    assert "Alwina" in ctx["dead_before_open"]
+    # FR-510 regression: prior-seam dead does NOT leak into the within block.
+    assert ctx["dead_within_chapter"] == ""
 
 
-def test_final_cut_context_no_prior_seam_yields_empty_dead_characters():
-    # Chapter 1 has no prior chapter — empty seam, empty dead_characters.
+def test_final_cut_context_no_prior_seam_yields_empty_dead_before_open():
+    # Chapter 1 has no prior chapter — empty seam, empty dead_before_open.
     doc = _doc_with_confirmed_dead_seam()
     ctx = final_cut_context(doc, "1")
-    assert "dead_characters" in ctx
-    assert ctx["dead_characters"] == ""
+    assert "dead_before_open" in ctx
+    assert ctx["dead_before_open"] == ""
+    assert ctx["dead_within_chapter"] == ""
+    assert ctx["possession_facts"] == ""
+
+
+# ── FR-519: intra-chapter prose-vs-state enforcement ─────────────────────────
+
+
+def _closed_with_within_chapter_death() -> dict:
+    """The close-graph output for a chapter where Hagan dies DURING the chapter."""
+    return {
+        "world_state": {
+            "characters": [
+                {"name": "Hilde", "status": "alive", "inventory": ["weapon"]},
+                {"name": "Hagan", "status": "dead"},
+            ],
+            "objects": [{"name": "ritual staff", "holder": "Hagan"}],
+        },
+        "seam_packet": {
+            "character_lifecycle": [
+                {
+                    "name": "Hagan",
+                    "existence_state": "confirmed_dead",
+                    "source_chapter": 6,
+                }
+            ]
+        },
+    }
+
+
+def test_within_chapter_death_routes_to_dead_within_not_before_open():
+    doc = _doc_with_confirmed_dead_seam()
+    closed = _closed_with_within_chapter_death()
+    before, within = dead_character_names(doc, "2", closed)
+    assert "Hagan" in within
+    assert "Hagan" not in before
+    # Prior-seam death stays in before_open, never duplicated into within.
+    assert "Alwina" in before
+    assert "Alwina" not in within
+
+
+def test_final_cut_context_threads_within_chapter_death_from_closed():
+    doc = _doc_with_confirmed_dead_seam()
+    closed = _closed_with_within_chapter_death()
+    ctx = final_cut_context(doc, "2", closed)
+    assert "Hagan" in ctx["dead_within_chapter"]
+    assert "Alwina" in ctx["dead_before_open"]
+
+
+def test_dead_within_empty_without_closed():
+    # No closed payload at context time → no within-chapter death signal.
+    doc = _doc_with_confirmed_dead_seam()
+    before, within = dead_character_names(doc, "2", None)
+    assert within == []
+    assert "Alwina" in before
+
+
+def _doc_with_inherited_possession() -> dict:
+    return {
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "summary": "ch1",
+                    "beats": ["a"],
+                    "turns": [],
+                    "world_state": {
+                        "characters": [
+                            {"name": "Hilde", "inventory": ["weapon"]},
+                        ],
+                        "objects": [{"name": "ritual staff", "holder": "Hagan"}],
+                    },
+                },
+                "2": {"summary": "ch2", "beats": ["b"], "turns": []},
+            },
+        }
+    }
+
+
+def test_possession_facts_from_inherited_ledger():
+    doc = _doc_with_inherited_possession()
+    ctx = final_cut_context(doc, "2")
+    pf = ctx["possession_facts"]
+    assert "Hilde holds: weapon" in pf
+    assert "ritual staff is held by Hagan" in pf
+
+
+def test_possession_facts_empty_for_first_chapter():
+    doc = _doc_with_inherited_possession()
+    ctx = final_cut_context(doc, "1")
+    assert ctx["possession_facts"] == ""
+
+
+def test_detect_object_use_after_loss_flags_use_after_drop():
+    text = (
+        "Hilde drove her weapon into the mud, freeing both hands. "
+        "Later she raised the weapon high and struck."
+    )
+    hits = detect_object_use_after_loss("weapon", "Hilde", text)
+    assert hits
+    assert hits[0]["object"] == "weapon"
+
+
+def test_detect_object_use_after_loss_no_loss_no_hit():
+    text = "Hilde raised the weapon high and struck the rival down."
+    hits = detect_object_use_after_loss("weapon", "Hilde", text)
+    assert hits == []
 
 
 def test_build_allowed_scene_cast_filters_reviewed_and_lifecycle_forbidden():

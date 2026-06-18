@@ -72,7 +72,7 @@ def test_close_chapter_raises_after_one_revise_attempt_when_still_violating(
 ):
     calls = []
 
-    async def _fake_final_cut(doc, cid, instruction="", draft=""):
+    async def _fake_final_cut(doc, cid, instruction="", draft="", closed=None):
         calls.append((instruction, draft))
         if len(calls) == 1:
             return "Hilde kept watch.\nAlwina came forward with her staff."
@@ -90,7 +90,7 @@ def test_close_chapter_raises_after_one_revise_attempt_when_still_violating(
 def test_close_chapter_raises_when_revise_breaks_invariants(monkeypatch):
     calls = []
 
-    async def _fake_final_cut(doc, cid, instruction="", draft=""):
+    async def _fake_final_cut(doc, cid, instruction="", draft="", closed=None):
         calls.append((instruction, draft))
         if len(calls) == 1:
             return "Hilde kept watch over the ledge.\nAlwina came forward."
@@ -108,7 +108,7 @@ def test_close_chapter_raises_when_revise_breaks_invariants(monkeypatch):
 def test_close_chapter_accepts_revised_text_when_clean_and_invariants_hold(monkeypatch):
     calls = []
 
-    async def _fake_final_cut(doc, cid, instruction="", draft=""):
+    async def _fake_final_cut(doc, cid, instruction="", draft="", closed=None):
         calls.append((instruction, draft))
         if len(calls) == 1:
             return "Hilde kept watch over the ledge.\nAlwina came forward."

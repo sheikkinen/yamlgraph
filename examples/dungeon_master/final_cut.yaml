@@ -37,7 +37,9 @@ state:
   climax: str
   beat_groups: str
   allowed_cast: str
-  dead_characters: str
+  dead_before_open: str
+  dead_within_chapter: str
+  possession_facts: str
   draft: str
   instruction: str
   final_cut: str
@@ -55,7 +57,9 @@ nodes:
       climax: "{state.climax}"
       beat_groups: "{state.beat_groups}"
       allowed_cast: "{state.allowed_cast}"
-      dead_characters: "{state.dead_characters}"
+      dead_before_open: "{state.dead_before_open}"
+      dead_within_chapter: "{state.dead_within_chapter}"
+      possession_facts: "{state.possession_facts}"
       draft: "{state.draft}"
       instruction: "{state.instruction}"
 

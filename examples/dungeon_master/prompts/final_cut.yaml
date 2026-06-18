@@ -53,12 +53,25 @@ system: |
   {{ allowed_cast }}
   Do not introduce any additional acting character outside this set.{% endif %}
 
-  {% if dead_characters %}DEAD CHARACTERS — these characters died in a prior chapter
+  {% if dead_before_open %}DEAD CHARACTERS — these characters died in a prior chapter
   and must NOT appear, speak, or act in any way in the narration:
-  {{ dead_characters }}
+  {{ dead_before_open }}
   Write as if they do not exist. Their objects or legacy may be referenced
   passively (e.g. "the fallen staff"), but the character themselves must not
   be present, named as acting, or given dialogue.{% endif %}
+
+  {% if dead_within_chapter %}CHARACTERS WHO DIE DURING THIS CHAPTER:
+  {{ dead_within_chapter }}
+  These characters may appear, speak, and act up to the moment they are killed.
+  After their death they must NOT speak, move, or act in any way — once dead they
+  stay dead for the rest of the chapter. Their body, objects, or legacy may be
+  referenced passively (e.g. "the fallen staff"), but never as an acting figure.{% endif %}
+
+  {% if possession_facts %}POSSESSION FACTS — who holds what as this chapter opens:
+  {{ possession_facts }}
+  An object changes hands only if the narration shows the handover AND the new
+  holder keeps it. Never let a character use an object the prose has just shown
+  them lose (dropped, thrown, kicked away, knocked from their grip).{% endif %}
 
 user: |
   THE SCENE PLAN (the intended arc — its BEATS and END are the destination):
