@@ -265,3 +265,100 @@ def test_accept_target_keeps_advancing_below_budget():
     doc = _playing_doc(_played_turns(cap - 1))
     stage = resolve_stage(doc, f"turn:1:{cap - 1}")
     assert navigation.accept_target(doc, stage) == f"turn:1:{cap}"
+
+
+# ── FR-527: beat-progress early close (stop the no-progress tail) ─────────────
+#
+# A chapter whose director satisfies the beats it CAN satisfy but never reaches
+# ``scene_complete`` (k == n) plateaus at k < n and rides the FR-501 cap, replaying
+# the resolved scene. The deterministic ``_beats_stalled`` guard closes such a
+# chapter once its ``beats_satisfied`` count has not grown across the last
+# ``BEAT_STALL_LIMIT`` turns. The hard cap stays the ultimate backstop; an opening
+# that has established nothing (count == 0) is never early-closed.
+
+
+def _beat_count_turns(
+    counts: list[int], *, scene_complete_at: int | None = None
+) -> list[dict]:
+    """Played turns whose ``beats_satisfied`` has the given per-turn lengths."""
+    return [
+        {
+            "n": i,
+            "recap": {"text": f"Turn {i}", "reviewed": True},
+            "direction": {
+                "beats_satisfied": [f"b{j}" for j in range(c)],
+                "scene_complete": i == scene_complete_at,
+            },
+        }
+        for i, c in enumerate(counts, 1)
+    ]
+
+
+def test_chapter_should_close_on_beat_progress_stall():
+    # The recorded 10025-BC CH8 plateau: counts climb to 4 by t6, then freeze.
+    # count(9) == count(9 - 3) == 4 and count(9) >= 1 -> stalled at t9, seven turns
+    # before the 16-turn cap. Pre-fix this is False (no scene_complete, n < cap).
+    doc = _playing_doc(_beat_count_turns([0, 1, 2, 2, 3, 4, 4, 4, 4]))
+    assert turn_ops.chapter_should_close(doc, "1", 9) is True
+
+
+def test_beats_stalled_exact_semantics():
+    # n > limit AND count(n) == count(n - limit) AND count(n) >= 1.
+    doc = _playing_doc(_beat_count_turns([0, 1, 2, 2, 3, 4, 4, 4, 4]))
+    assert turn_ops._beats_stalled(doc, "1", 9, turn_ops.BEAT_STALL_LIMIT) is True
+    # First stall turn is exactly t9, not t8 (count(8)=4 vs count(5)=3 -> grew).
+    assert turn_ops._beats_stalled(doc, "1", 8, turn_ops.BEAT_STALL_LIMIT) is False
+
+
+def test_beats_not_stalled_when_count_still_growing():
+    # count grew between t3 (3) and t6 (4) -> within the last 3 turns -> not stalled.
+    doc = _playing_doc(_beat_count_turns([3, 3, 3, 4, 4, 4]))
+    assert turn_ops.chapter_should_close(doc, "1", 6) is False
+
+
+def test_beats_not_stalled_on_empty_opening():
+    # A flat run of zero satisfied beats (count == 0) is an un-established opening,
+    # not a stall: the count >= 1 clause forbids closing it early.
+    doc = _playing_doc(_beat_count_turns([0, 0, 0, 0]))
+    assert turn_ops.chapter_should_close(doc, "1", 4) is False
+
+
+def test_beats_stalled_needs_more_turns_than_limit():
+    # n <= limit can never be a stall (no full window to compare against).
+    doc = _playing_doc(_beat_count_turns([4, 4, 4]))
+    assert turn_ops._beats_stalled(doc, "1", 3, turn_ops.BEAT_STALL_LIMIT) is False
+
+
+def test_recorded_corpus_guard_never_preempts_natural_close():
+    # J6 deterministic safety check: over every recorded book, the stall guard must
+    # NEVER fire strictly before a chapter's existing scene_complete turn -- proving
+    # it cannot shorten a chapter that closes naturally today. Pure, no live LLM.
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
+    stories = sorted((root / "outputs" / "dungeon-master").glob("100*-BC/story.json"))
+    if not stories:
+        return  # corpus absent in this checkout -- nothing to assert
+    limit = turn_ops.BEAT_STALL_LIMIT
+    for story in stories:
+        doc = json.loads(story.read_text())
+        chapters = doc.get("chapters") or {}
+        for cid in chapters.get("order") or []:
+            card = (chapters.get("cards") or {}).get(cid) or {}
+            turns = card.get("turns") or []
+            complete_turn = next(
+                (
+                    i
+                    for i, t in enumerate(turns, 1)
+                    if (t.get("direction") or {}).get("scene_complete")
+                ),
+                None,
+            )
+            if complete_turn is None:
+                continue
+            for n in range(1, complete_turn):
+                assert not turn_ops._beats_stalled(doc, cid, n, limit), (
+                    f"{story.name} CH{cid}: stall guard preempted natural close "
+                    f"at t{n} (scene_complete @t{complete_turn})"
+                )

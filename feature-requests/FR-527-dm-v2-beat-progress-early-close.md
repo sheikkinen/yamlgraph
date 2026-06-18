@@ -2,8 +2,16 @@
 
 **Priority:** HIGH
 **Type:** Bug (engagement defect, authored at play time)
-**Status:** Proposed
-**Effort:** ~1 day
+**Status:** **JUDGED — scope frozen, authorized for enforce (2026-06-18).** Boundary
+confirmed: the play-loop close decision (`turn_ops.chapter_should_close`), a single
+predicate three runtime call sites inherit (J1). Scope frozen to **Fix A only** — the
+deterministic beat-progress stall guard (J5). **Fix B REJECTED**: `scene_complete` is
+COMPUTED `k == n` in `_apply_beat_ledger`, not director-authored — a prompt cannot
+"flip" it (J2). The "close when all beats satisfied" alternative is not rejected — it
+IS the existing `scene_complete`; the disease is the plateau at `k < n` (J3). The
+plateau's frequent cause (an un-satisfiable-in-scene epilogue beat) is an OUTLINER
+boundary issue, OUT OF SCOPE, recorded as a seed (J4). See Judgement below.
+**Effort:** ~0.5 day (Fix B dropped)
 **Requested:** 2026-06-18
 
 ## Summary
@@ -112,9 +120,14 @@ hard cap as the ultimate backstop and never fires before a real denouement windo
 
 ### B. Director prompt: flip `scene_complete` when satisfiable beats are covered
 
-Tighten the director prompt so that once `beats_satisfied` covers the playable beats
-(all but a never-satisfiable closing beat), it reports `scene_complete = true` rather
-than looping in `climax`. Best-effort — the guard in (A) is the deterministic floor.
+**REJECTED at judgement (J2) — retained for the record.** `scene_complete` is not a
+field the director writes; `_apply_beat_ledger` COMPUTES `direction["scene_complete"]
+= (k == n)` from the satisfied-beat count. The director only selects WHICH enumerated
+beats are now true. There is no prompt lever that "flips" a computed field. The honest
+lever would be to get the director to mark the *terminal* beat satisfied — futile for
+a genuine time-skip/epilogue beat (CH8 beat 5 "By autumn…") that the scene never
+reaches, and risky (premature beat-marking) otherwise. The deterministic stall guard
+(A) subsumes this case without touching the prompt.
 
 ### Bound choice
 
@@ -123,37 +136,126 @@ than looping in `climax`. Best-effort — the guard in (A) is the deterministic 
 its last beat before the loop closes it. Tunable; the instrument re-sizes the effect
 of any change.
 
+## Judgement (2026-06-18 — scope frozen, authorized for enforce)
+
+The FR's diagnosis (a no-progress tail rides the cap, measured at 208 turns over 127
+chapters) is real and well-witnessed. But reading the actual mechanism
+(`turn_ops._apply_beat_ledger`) overturns the proposed *cure's* framing in two
+load-bearing places. The judgement keeps the deterministic guard, rejects the prompt
+lever, and replaces the fuzzy corroboration AC with a deterministic counterfactual.
+
+- **J1 — Boundary confirmed.** The cure belongs in `turn_ops.chapter_should_close`,
+  the single close predicate that `session.py`, `navigation.py`, and the FR-522
+  `chapter_replay.py` witness all inherit. One edit, three call sites covered, no
+  duplication. Correct boundary (`the_one_law`).
+
+- **J2 — Fix B REJECTED (factually impossible as written).** `scene_complete` is
+  COMPUTED, not authored: `_apply_beat_ledger` sets
+  `direction["scene_complete"] = (k == n)` where `k = len(beats_satisfied)` and
+  `n = len(beats)`. The director chooses only WHICH enumerated beats are now true
+  (`_satisfied_indices`); the rails are code (FR-503 J3). No prompt can "flip" a
+  derived field. Fix B is struck from scope.
+
+- **J3 — The "all beats satisfied" alternative is not an alternative — it is the
+  status quo.** `scene_complete = (k == n)` already closes a chapter the instant
+  every beat is satisfied. CH8 never closed because its count plateaued at **k=4,
+  n=5** — beat 5 never marked. So the disease is precisely *the plateau at k<n*, and
+  the cure is a guard on the plateau, NOT a change to how `scene_complete` is
+  computed. Changing the `k == n` rule would ripple into `climax_turn` and the Final
+  Cut (`climax_turn` falls back to the `scene_complete` turn) — OUT OF SCOPE. The
+  `k == n` natural-close path is left exactly as-is.
+
+- **J4 — The plateau's root cause is an OUTLINER concern, recorded as a seed.** CH8
+  beat 5 ("By autumn… a settlement that ends the blood-feud") is a time-skip/epilogue
+  beat the ridge scene can never reach, so `k` can never equal `n`. This is a cousin
+  of FR-525 (the outliner authoring a beat the capped scene cannot play). Fixing the
+  outliner to not author un-satisfiable-in-scene resolution beats is a **separate FR
+  (seed: FR-528?)**, OUT OF SCOPE here. FR-527 cures the *symptom* deterministically
+  regardless of why the plateau formed — which is the right division: the play loop
+  must be robust to any stall, whatever its cause.
+
+- **J5 — Stall semantics frozen (exact, to kill ambiguity).** Add a pure helper
+  `_beats_stalled(doc, cid, n, limit)` over `chapter_turns(doc, cid)`. Let
+  `count(t) = len(turn_direction(doc, cid, t)["beats_satisfied"])`. The chapter is
+  stalled at turn `n` iff:
+  `n > limit` **and** `count(n) == count(n - limit)` **and** `count(n) >= 1`.
+  `chapter_should_close` becomes `scene_complete OR _beats_stalled(…, BEAT_STALL_LIMIT)
+  OR n >= CHAPTER_TURN_CAP`, with `BEAT_STALL_LIMIT = 3`. The hard cap stays the
+  ultimate backstop; the `count >= 1` clause forbids closing an opening that has
+  established nothing. On the recorded CH8 trace (counts …t5=3, t6=4, t7=4, t8=4,
+  t9=4) this first fires at **n=9** (`count(9)=count(6)=4`), closing the chapter
+  seven turns before the cap.
+
+- **J6 — Deterministic counterfactual replaces the fuzzy engagement AC as the
+  load-bearing safety check.** The risk of an early-close guard is cutting a
+  chapter that would still have made progress. This is checkable WITHOUT a live LLM:
+  a pure scan over every recorded chapter in `outputs/dungeon-master/100*-BC` must
+  assert that `_beats_stalled` never fires *strictly before* an existing
+  `scene_complete` turn — proving the guard cannot shorten a chapter that closes
+  naturally today. (Spot-checked in judgement: CH1's counts 0,1,2,2,3,3,5 never
+  satisfy `count(n)==count(n-3)` before its t7 natural close.) The "engagement floor
+  rises above 1/5" regen stays, but as **corroboration only (FR-522 posture, never a
+  CI gate)** — an LLM property, not a deterministic guarantee.
+
+- **J7 — Test/commit regime.** Example-scoped: NO `@pytest.mark.req`, no CAP/REQ
+  minting (match FR-525/FR-526 under FR-474 J3). Tests are pure dict-in/bool-out over
+  synthetic traces + the recorded CH8 plateau, in `tests/test_navigation.py` beside
+  the existing `chapter_should_close` tests. Commit RED (the CH8 plateau condemned:
+  `chapter_should_close(...,9)` expected True, fails pre-fix) then GREEN separately.
+  Enforce commit is `fix(dungeon_master): FR-527 …` with a changelog fragment
+  (`type:fix scope:examples`, no `req:`) and a diary entry (FR-XXX gate).
+
+- **J8 — `scan_turn_waste.py` is already committed (`bbb8ea12`) as the witness; do
+  not re-commit it.** Effort revised to ~0.5 day with Fix B dropped.
+
+**Scope frozen:** Fix A (the `_beats_stalled` guard in `chapter_should_close`,
+`BEAT_STALL_LIMIT = 3`) plus the J6 deterministic corpus safety check. Fix B and any
+change to the `scene_complete = (k == n)` computation are OUT. **Build order:** RED
+(condemn the CH8 plateau + the corpus counterfactual) → GREEN (add `_beats_stalled`,
+wire the predicate) → corroborate (regen floodmark, re-run `scan_turn_waste.py`).
+
 ## Acceptance Criteria
 
-- [ ] `_beats_stalled` pure helper added to `turn_ops.py` with `@pytest.mark.req`
-      (exempt under FR-474 J3 if example-scoped — match siblings).
-- [ ] `chapter_should_close` closes on a 3-turn beat-progress stall, still closes on
-      `scene_complete`, still backstops at `CHAPTER_TURN_CAP`.
-- [ ] Negative control: a chapter still adding beats at turn 15 is NOT early-closed
-      (only stalled chapters close early).
-- [ ] Negative control: an opening chapter with zero satisfied beats is NOT
-      early-closed (no premature close before anything is established).
-- [ ] RED test condemns the 10025-BC Ch8 trace (stall @t6 → would close ~t9, not t16)
-      before the fix; GREEN after.
-- [ ] Director prompt updated to flip `scene_complete` on satisfiable-beat coverage.
-- [ ] Corroboration: regenerate a book from the floodmark premise; `scan_turn_waste.py`
-      reports materially fewer wasted turns than the pre-fix corpus baseline (208/127),
-      and the book reviewer's per-chapter engagement floor rises above 1/5.
-- [ ] `scan_turn_waste.py` committed as the FR-527 witness instrument.
+- [ ] `_beats_stalled(doc, cid, n, limit)` pure helper added to `turn_ops.py` with
+      the J5 semantics (`n > limit AND count(n) == count(n - limit) AND count(n) >= 1`).
+      Example-scoped: NO `@pytest.mark.req`, no CAP/REQ minting (J7).
+- [ ] `chapter_should_close` = `scene_complete OR _beats_stalled(…, BEAT_STALL_LIMIT)
+      OR n >= CHAPTER_TURN_CAP`, with `BEAT_STALL_LIMIT = 3`. The `k == n`
+      `scene_complete` computation is UNCHANGED (J3).
+- [ ] RED test condemns the recorded 10025-BC CH8 plateau (counts …t6=4,t7=4,t8=4,
+      t9=4): `chapter_should_close(doc, "8", 9)` expected True, fails pre-fix; GREEN
+      after (J5, J7).
+- [ ] Negative control: a chapter whose `beats_satisfied` count still grows within the
+      last 3 turns is NOT early-closed.
+- [ ] Negative control: an opening with `count == 0` is NOT early-closed (the
+      `count >= 1` clause).
+- [ ] Negative control: `scene_complete` still closes at its turn; `CHAPTER_TURN_CAP`
+      still backstops.
+- [ ] **Deterministic corpus safety check (J6, load-bearing):** a pure scan over
+      every recorded chapter in `outputs/dungeon-master/100*-BC` asserts `_beats_stalled`
+      never fires strictly before that chapter's existing `scene_complete` turn — the
+      guard cannot shorten a naturally-closing chapter.
+- [ ] **Corroboration (FR-522 posture, NOT a gate):** regenerate a book from the
+      floodmark premise; `scan_turn_waste.py` reports materially fewer wasted turns
+      than the 208/127 baseline, and the reviewer's per-chapter engagement floor rises
+      above 1/5. Never wired into CI.
+- [ ] `scan_turn_waste.py` already committed (`bbb8ea12`) as the witness — no
+      re-commit (J8).
 
 ## Alternatives Considered
 
+- **Fix B — prompt the director to set `scene_complete`** — impossible; the field is
+  computed `k == n`, not authored (J2).
+- **Change `scene_complete` to close at `k >= n-1` (treat the last beat as optional)**
+  — ripples into `climax_turn` / Final Cut and silently drops a beat that is sometimes
+  genuinely playable; the stall guard achieves the close without changing the
+  natural-close contract (J3).
 - **Raise `CHAPTER_TURN_CAP`** — wrong direction; lengthens the no-progress tail and
   re-opens the FR-501 runaway.
 - **Per-chapter prose review/revise** — treats the symptom after the turns are spent;
-  cannot see the over-long-scene cause; wrong boundary (rejected above).
-- **Prompt-only (B without A)** — leaves a non-deterministic floor; a director that
-  ignores the nudge keeps riding the cap. The guard must be deterministic (Commandment
-  6: no silent reliance on the model behaving).
-- **Hard "close when all beats satisfied"** — under-counts: the closing beat is often
-  never reported satisfied, so 100% coverage never triggers (empirically validated:
-  the first cut of `scan_turn_waste.py` using this rule reported 0 waste while Ch8
-  visibly wasted 10 turns). The stall signal is the honest one.
+  cannot see the over-long-scene cause; wrong boundary.
+- **Hard "close when all beats satisfied"** — that is already `scene_complete`; it
+  cannot fire on a `k < n` plateau, which is exactly the failure (J3).
 
 ## Related
 
