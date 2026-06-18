@@ -221,3 +221,60 @@ machinery. The draft below is preserved as the original proposal; it is **not**
 authorized for enforce.
 
 ---
+
+## Probe Outcome (J4 close-seam investigation) — RE-SCOPED, not redundant
+
+Pure read-only probe over the real `outputs/dungeon-master/10024-BC/story.json`
+(the packed Floodmark book). Committed `seam_packet.character_lifecycle` per chapter:
+
+| Chapter | title | Arnulf lifecycle record (committed) |
+|--------|-------|-------------------------------------|
+| 3 | "Arnulf Lost and Returned" | `existence_state=confirmed_dead`, `allowed_reappearance_from_chapter=3`, `source_chapter=3` |
+| 4-6 | (carry) | `confirmed_dead`, `allowed_reappearance_from_chapter=3` |
+
+**The premise of FR-526 is FALSE.** A lifecycle forward IS emitted — Arnulf carries
+`allowed_reappearance_from_chapter=3`. FR-526 assumed *no* forward existed and tried
+to manufacture one through `open_threads`; that channel is both schema-invalid (J1:
+`open_threads` is `list[str]`) and unnecessary.
+
+**The real defect is an INCOHERENT record, not a missing one.**
+`existence_state=confirmed_dead` together with `allowed_reappearance_from_chapter=3`
+is self-contradictory: a confirmed-dead actor cannot be allowed to reappear, and a
+reappearance "from chapter 3" when the death is *also* committed in chapter 3 is
+nonsensical under the turn budget.
+
+**Mechanism, fully traced:**
+1. Ch3 packs the loss AND the return into one chapter (the FR-525 root cause).
+2. The close LLM derives `existence_state=confirmed_dead` from the loss.
+3. `_planned_reappearance_chapter` scans ALL chapters *including the current one*,
+   finds Arnulf + a return signal in Ch3's own card, and returns `3`.
+4. `_clamp_lifecycle_reappearance_to_plan` writes `allowed_reappearance_from_chapter=3`
+   but only clamps the *index* — it never reconciles `existence_state`.
+5. No invariant rejects `confirmed_dead` + a non-null reappearance allowance, so the
+   incoherent record is committed and carried forward (Ch4-6).
+
+**FR-525 is the correct root-cause cure** (split the pack so loss and return live in
+DIFFERENT chapters), but it does NOT by itself guarantee a coherent lifecycle record:
+even split, the loss chapter's close LLM may still write `confirmed_dead` while a
+*later* planned return sets `allowed_reappearance_from_chapter=<later>` — the same
+`confirmed_dead` + reappearance contradiction, merely across chapters.
+
+### Re-scoped FR-526 (defense-in-depth, schema-valid)
+
+A close-seam **coherence invariant** on the typed `CharacterLifecycle` channel
+(`the_one_law` — normalize where the record is committed):
+
+> When a planned reappearance exists for a character (`allowed_reappearance_from_chapter`
+> is not None), the committed `existence_state` MUST be `missing_presumed_dead`, never
+> `confirmed_dead`. A character the plan intends to return is *presumed* dead, not
+> *confirmed* dead.
+
+Smallest sufficient change: in `_clamp_lifecycle_reappearance_to_plan`, when `planned`
+is not None and `existence_state == confirmed_dead`, downgrade to `missing_presumed_dead`
+(the function already holds the planned index; it just stops short of reconciling the
+state). Optionally add a close-seam assertion that `confirmed_dead` implies
+`allowed_reappearance_from_chapter is None` as a standing invariant.
+
+**Status: returned to Plan with a concrete, schema-valid scope.** The original
+`open_threads`-dict draft below remains rejected. Re-open as the coherence-invariant
+fix above, condemned first by a witness over the 10024-BC record (RED), behind FR-525.
