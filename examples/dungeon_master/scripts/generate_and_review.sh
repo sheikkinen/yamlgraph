@@ -20,14 +20,30 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$ROOT"
 export PYTHONPATH="$ROOT"
 
+# Resolve a Python interpreter without requiring the venv to be pre-activated.
+# Priority: $PYTHON override > repo-local .venv > python3 > python.
+if [[ -n "${PYTHON:-}" ]]; then
+  PY="$PYTHON"
+elif [[ -x "$ROOT/.venv/bin/python" ]]; then
+  PY="$ROOT/.venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+  PY="python3"
+elif command -v python >/dev/null 2>&1; then
+  PY="python"
+else
+  echo "error: no Python interpreter found (set \$PYTHON or create .venv)" >&2
+  exit 1
+fi
+echo "🐍 Using interpreter: $PY"
+
 echo "📖 Generating book → $OUT (turn-cap $TURN_CAP)"
-python examples/dungeon_master/scripts/generate.py \
+"$PY" examples/dungeon_master/scripts/generate.py \
   --premise "$PREMISE" \
   --out "$OUT" \
   --turn-cap "$TURN_CAP"
 
 echo "🔍 Reviewing $OUT/story.md"
-python -m yamlgraph.cli graph run examples/book_reviewer/graph.yaml \
+"$PY" -m yamlgraph.cli graph run examples/book_reviewer/graph.yaml \
   --var manuscript_path="$OUT" \
   --full
 
