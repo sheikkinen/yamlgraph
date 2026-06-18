@@ -253,6 +253,72 @@ def _text_has_token(text: str, tokens: tuple[str, ...]) -> bool:
     return any(tok in low for tok in tokens)
 
 
+# Proper-name candidates in authored chapter text (summary/beats), used by the
+# OUTLINE-time reversal detector where no committed ledger roster exists yet. A
+# name is only counted when it co-occurs in a removal-bearing AND a return-bearing
+# unit (see :func:`reversal_pack_gap`), so sentence-initial noise that lands in only
+# one context is filtered by the intersection; the stopword set drops the most common
+# capitalized non-names to keep the positive signal exact.
+_PROPER_NAME_RE = re.compile(r"\b[A-Z][a-z]{2,}\b")
+_NAME_STOPWORDS = frozenset(
+    {
+        "The",
+        "Then",
+        "When",
+        "While",
+        "And",
+        "But",
+        "Her",
+        "His",
+        "Their",
+        "They",
+        "She",
+        "Him",
+        "That",
+        "This",
+        "With",
+        "From",
+        "Into",
+        "Over",
+        "After",
+        "Before",
+        "Meanwhile",
+    }
+)
+
+
+def _subjects_near(text: str, tokens: tuple[str, ...], window: int = 40) -> set[str]:
+    """Names that are the likely SUBJECT of any ``tokens`` occurrence in ``text``.
+
+    For each occurrence of a token, the nearest proper name in the ``window``
+    characters immediately BEFORE it is taken as the subject (e.g. "Arnulf is swept"
+    → Arnulf; "presumed dead by the Aschenwulf" attributes nothing to Aschenwulf,
+    which follows the token). This proximity rule is what makes the outline-time
+    reversal detector precise: a summary paragraph naming several characters around
+    a single death/return word no longer tars them all — only the grammatical
+    subject of the removal/return is counted (FR-525, validated against 10024-BC
+    where whole-unit co-occurrence over-fired on Hilde/Gunnar/Aschenwulf).
+    """
+    low = (text or "").lower()
+    out: set[str] = set()
+    for tok in tokens:
+        start = 0
+        while True:
+            i = low.find(tok, start)
+            if i == -1:
+                break
+            pre = text[max(0, i - window) : i]
+            names = [
+                m.group(0)
+                for m in _PROPER_NAME_RE.finditer(pre)
+                if m.group(0) not in _NAME_STOPWORDS
+            ]
+            if names:
+                out.add(names[-1])  # nearest name before the token = the subject
+            start = i + len(tok)
+    return out
+
+
 def _beat_names_actor(beat: str, actor: str) -> bool:
     """Whether a beat string names ``actor`` (case-insensitive substring)."""
     a = (actor or "").lower()
@@ -408,6 +474,59 @@ def beat_coverage_gap(story_doc: dict, cid: str) -> dict:
         "beat_count": len(beats),
         "gap_count": len(gaps),
         "terminal_count": len(terminal),
+        "gaps": gaps,
+    }
+
+
+def reversal_pack_gap(card: dict) -> dict:
+    """Detect a chapter that packs an actor's removal AND return into ONE chapter.
+
+    The OUTLINE-time dual of :func:`beat_coverage_gap` (FR-525). Where
+    ``beat_coverage_gap`` reads a CLOSED chapter's committed ``world_state`` — which
+    does not exist until the chapter is played — this reads only the chapter's
+    AUTHORED text (``summary`` + ``beats``), so it runs at outline time, before any
+    turn, where the fix belongs (``the_one_law``: normalize at the partitioner, not
+    downstream).
+
+    A chapter is an *over-pack* for an actor when the actor is the SUBJECT of a
+    removal (``_TERMINAL_STATUS_TOKENS``) AND the SUBJECT of a return
+    (``_RETURN_PRESENCE_TOKENS``) across the union ``[summary, *beats]`` — "subject"
+    meaning the nearest proper name immediately before the token (:func:`_subjects_near`),
+    not merely a name somewhere in the same paragraph (which over-fires on the many
+    characters a summary names around one death/return word). The 16-turn cap (FR-501)
+    cannot play both halves of such a reversal: the play realizes the removal, the cap
+    force-closes, ``close_chapter`` commits the actor terminal, and the return becomes
+    the phantom promise ``beat_coverage_gap`` later flags. Splitting the removal and
+    the return into DIFFERENT chapters is the cure (FR-525).
+
+    Pure: reads only ``card``; no committed ledger, no LLM, no ``turn_ops``. Returns
+    ``{gap_count, packed_actors, gaps:[{actor, removal_unit, return_unit,
+    reason}]}`` where ``reason`` is always ``"removal_and_return_same_chapter"``.
+    """
+    units = [str(card.get("summary") or "")]
+    units.extend(str(b) for b in (card.get("beats") or []))
+
+    removal_unit: dict[str, str] = {}
+    return_unit: dict[str, str] = {}
+    for unit in units:
+        for name in _subjects_near(unit, _TERMINAL_STATUS_TOKENS):
+            removal_unit.setdefault(name, unit)
+        for name in _subjects_near(unit, _RETURN_PRESENCE_TOKENS):
+            return_unit.setdefault(name, unit)
+
+    packed = sorted(set(removal_unit) & set(return_unit))
+    gaps = [
+        {
+            "actor": name,
+            "removal_unit": removal_unit[name],
+            "return_unit": return_unit[name],
+            "reason": "removal_and_return_same_chapter",
+        }
+        for name in packed
+    ]
+    return {
+        "gap_count": len(gaps),
+        "packed_actors": packed,
         "gaps": gaps,
     }
 
