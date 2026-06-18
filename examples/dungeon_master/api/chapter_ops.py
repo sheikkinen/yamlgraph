@@ -17,15 +17,22 @@ from where this one left off.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import logging
 import re
 
 from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.graph_app import field, get_app
+from examples.dungeon_master.api.seam_packet import parse_seam_packet
 from examples.dungeon_master.api.tree import CHAPTER_CLOSE_GRAPH, CHAPTER_OUTLINE_GRAPH
 from examples.dungeon_master.api.world_state import (
+    apply_lane_floor,
+    apply_ledger_delta,
     format_world_state,
-    parse_world_state,
 )
+
+_LOG = logging.getLogger(__name__)
 
 # FR-495: the LLM-authored chapter title tends to self-assert its own ordinal
 # ("Chapter 1 — …", "Chapter 2:", "Ch. 3 -"). The composer's positional ``n`` is
@@ -38,11 +45,345 @@ _LEADING_CHAPTER_LABEL = re.compile(
     r"^\s*ch(?:apter|\.)?\s+[\w-]+\s*[—–:\-.]\s*",
     re.IGNORECASE,
 )
+_RETURN_SIGNAL = re.compile(r"\b(return|returns|returned|reappear|reappears)\b")
+_MEMORY_MAX_ITEMS = 12
+
+# FR-510: active-role detection for confirmed-dead character prose validation.
+# Match: name immediately followed by an active verb within 8 word-tokens.
+# Exclude: possessives (<name>'s) and locative-past patterns.
+_DEAD_CHAR_ACTIVE_VERB = re.compile(
+    r"\b(?:came|drove|thrust|jabbed|lifted|demanded|called|stepped|moved"
+    r"|said|planted|struck|pressed|held|answered|snapped|ordered|pushed"
+    r"|walked|turned|stood|kept|raised|reached|pointed|pulled|shoved"
+    r"|forced|took|told|placed|stayed|brought|led|used|barred|pinned|seized|set)\b"
+)
+_DEAD_CHAR_LOCATIVE = re.compile(
+    r"\b(?:where|when|as)\b",
+    re.IGNORECASE,
+)
+
+
+class FinalCutReviseError(RuntimeError):
+    """Typed chapter-close failure when one-pass revise cannot produce safe prose."""
+
+    def __init__(self, payload: dict):
+        self.payload = payload
+        super().__init__(f"FINAL_CUT_REVISE_FAILED: {payload}")
+
+
+def detect_dead_character_prose_violations(name: str, text: str) -> list[dict]:
+    """Detect active-role appearances of a confirmed-dead character in prose.
+
+    Returns typed violation dicts with keys ``type``, ``name``, ``excerpt``.
+    Passive/possessive/locative patterns are excluded (FR-510 A6).
+    An empty name always returns no violations.
+    """
+    name = (name or "").strip()
+    if not name:
+        return []
+
+    pattern = re.compile(r"\b" + re.escape(name) + r"\b", re.IGNORECASE)
+    violations: list[dict] = []
+
+    for m in pattern.finditer(text):
+        start = m.start()
+        # Exclude possessives: name immediately followed by '
+        if text[m.end() : m.end() + 2] in ("'s", "\u2019s"):
+            continue
+        # Exclude locative-past: preceded by where/when/as within 4 tokens
+        prefix = text[max(0, start - 30) : start]
+        if _DEAD_CHAR_LOCATIVE.search(prefix.split()[-1] if prefix.split() else ""):
+            continue
+        # Check for active verb within 8 word-tokens after the name
+        suffix = text[m.end() : m.end() + 60]
+        words_after = suffix.split()
+        window = " ".join(words_after[:8])
+        if _DEAD_CHAR_ACTIVE_VERB.search(window):
+            excerpt_end = m.end() + min(60, len(suffix))
+            excerpt = text[max(0, start - 5) : excerpt_end].strip()
+            violations.append(
+                {
+                    "type": "active_presence",
+                    "name": name,
+                    "excerpt": excerpt[:120],
+                }
+            )
+    return violations
+
+
+def _collect_dead_character_prose_violations(
+    dead_names: list[str], text: str, cid: str
+) -> list[dict]:
+    """Collect typed dead-character prose violations for all forbidden names."""
+    out: list[dict] = []
+    for dead_name in dead_names:
+        for v in detect_dead_character_prose_violations(dead_name, text):
+            out.append(
+                {
+                    "code": "DEAD_CHARACTER_PROSE_VIOLATION",
+                    "chapter_id": str(cid),
+                    "name": v["name"],
+                    "pattern": v["type"],
+                    "excerpt": v["excerpt"],
+                }
+            )
+    return out
+
+
+def _build_source_pointer(doc: dict, cid: str) -> dict:
+    """Build deterministic seam source pointer for chapter-close diagnostics."""
+    order = list((doc.get("chapters") or {}).get("order") or [])
+    prev = ""
+    if cid in order:
+        idx = order.index(cid)
+        if idx > 0:
+            prev = str(order[idx - 1])
+    seam = parse_seam_packet(turn_ops.inherited_seam_packet(doc, cid))
+    seam_hash = hashlib.sha256(
+        json.dumps(seam, sort_keys=True, ensure_ascii=True).encode("utf-8")
+    ).hexdigest()[:16]
+    return {"chapter_id": prev, "seam_hash": seam_hash}
+
+
+def _norm_name(name: str) -> str:
+    return " ".join(str(name or "").lower().split())
+
+
+def _mentioned_non_possessive(name: str, text: str) -> bool:
+    pattern = re.compile(r"\b" + re.escape(name) + r"\b(?!['\u2019]s)", re.IGNORECASE)
+    return bool(pattern.search(text or ""))
+
+
+def _safe_lines_preserved_ratio(
+    original: str, revised: str, violations: list[dict]
+) -> float:
+    markers: list[str] = []
+    for v in violations:
+        name = str(v.get("name") or "").strip()
+        if name:
+            markers.append(name)
+        excerpt = str(v.get("excerpt") or "").strip()
+        for part in excerpt.splitlines():
+            part = part.strip()
+            if len(part) >= 12:
+                markers.append(part)
+    safe = []
+    for line in (original or "").splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        lowered = line.lower()
+        if any(marker.lower() in lowered for marker in markers if marker):
+            continue
+        safe.append(line)
+    if not safe:
+        return 1.0
+    kept = sum(1 for line in safe if line in (revised or ""))
+    return kept / max(1, len(safe))
+
+
+def _post_revise_invariant_failures(
+    doc: dict,
+    cid: str,
+    original: str,
+    revised: str,
+    allowed_cast: list[str],
+    violations: list[dict],
+) -> list[str]:
+    """Return invariant failures for one-pass revise acceptance."""
+    failures: list[str] = []
+
+    # Invariant 1: preserve beats as substrings when they were present in original.
+    for beat in turn_ops.chapter_beats(doc, cid):
+        beat_text = str(beat or "").strip()
+        if not beat_text:
+            continue
+        if (
+            beat_text.lower() in (original or "").lower()
+            and beat_text.lower() not in (revised or "").lower()
+        ):
+            failures.append(f"beat_lost:{beat_text}")
+
+    # Invariant 2: no newly introduced disallowed known character names.
+    chars = dict(doc.get("characters") or {})
+    cards = dict(chars.get("cards") or {})
+    roster = list(chars.get("roster") or [])
+    known_names = {
+        _norm_name(
+            str(dict(cards.get(char_id) or {}).get("name") or char_id).strip()
+        ): str(dict(cards.get(char_id) or {}).get("name") or char_id).strip()
+        for char_id in roster
+    }
+    allowed_norm = {_norm_name(n) for n in allowed_cast if str(n).strip()}
+    for norm, display in known_names.items():
+        if not display or norm in allowed_norm:
+            continue
+        if _mentioned_non_possessive(
+            display, revised
+        ) and not _mentioned_non_possessive(display, original):
+            failures.append(f"new_disallowed_name:{display}")
+
+    # Invariant 3: bounded length delta (<= 20%).
+    original_len = max(1, len(original or ""))
+    delta = abs(len(revised or "") - len(original or "")) / original_len
+    if delta > 0.20:
+        failures.append(f"length_delta_exceeds_20pct:{delta:.3f}")
+
+    # Invariant 4: safe-line preservation ratio >= 0.90.
+    ratio = _safe_lines_preserved_ratio(original, revised, violations)
+    if ratio < 0.90:
+        failures.append(f"safe_line_ratio_below_threshold:{ratio:.3f}")
+
+    return failures
+
+
+async def _revise_final_cut_once(
+    doc: dict,
+    cid: str,
+    original_text: str,
+    violations: list[dict],
+    allowed_cast: list[str],
+    dead_names: list[str],
+) -> str:
+    """Run exactly one constrained revise pass over final cut prose."""
+    violation_lines = "\n".join(
+        f"- {v.get('name')}: {v.get('excerpt')}" for v in violations
+    )
+    instruction = (
+        "Revise ONLY the violating lines below. Keep all non-violating text unchanged. "
+        "Do not add new characters, beats, or outcomes. Keep chronology and tone. "
+        "Allowed cast: "
+        + ", ".join(allowed_cast)
+        + ". Forbidden dead characters: "
+        + ", ".join(dead_names)
+        + ". Violations:\n"
+        + violation_lines
+    )
+    return await turn_ops.invoke_final_cut(
+        doc,
+        cid,
+        instruction=instruction,
+        draft=original_text,
+    )
+
+
+def _empty_chapter_memory() -> dict:
+    """Canonical empty chapter memory payload (FR-508 A1)."""
+    return {
+        "resolved_events": [],
+        "irreversible_facts": [],
+        "character_state_deltas": [],
+        "open_threads": [],
+        "forbidden_regressions": [],
+    }
+
+
+def _bounded_lines(raw: object) -> list[str]:
+    """Normalize provider/authored list fields to stable bounded string lists."""
+    if not isinstance(raw, list):
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in raw:
+        text = str(item or "").strip()
+        if not text:
+            continue
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(text)
+        if len(out) >= _MEMORY_MAX_ITEMS:
+            break
+    return out
+
+
+def _derive_chapter_memory(packet: dict) -> dict:
+    """Derive deterministic chapter memory from seam packet artifacts."""
+    memory = _empty_chapter_memory()
+    memory["resolved_events"] = _bounded_lines(packet.get("resolved_events"))
+    memory["open_threads"] = _bounded_lines(packet.get("open_threads"))
+    memory["irreversible_facts"] = _bounded_lines(packet.get("must_carry_facts"))
+    memory["forbidden_regressions"] = _bounded_lines(packet.get("opening_constraints"))
+
+    deltas: list[dict] = []
+    for item in list(packet.get("character_lifecycle") or []):
+        name = str(item.get("name") or "").strip()
+        to_state = str(item.get("existence_state") or "").strip()
+        if not name or not to_state:
+            continue
+        source_chapter = item.get("source_chapter")
+        evidence = (
+            f"seam_lifecycle(source_chapter={source_chapter})"
+            if isinstance(source_chapter, int)
+            else "seam_lifecycle"
+        )
+        deltas.append(
+            {
+                "name": name,
+                "from_state": None,
+                "to_state": to_state,
+                "evidence": evidence,
+            }
+        )
+        if len(deltas) >= _MEMORY_MAX_ITEMS:
+            break
+    memory["character_state_deltas"] = deltas
+    return memory
 
 
 def _clean_chapter_title(title: str) -> str:
     """Drop a self-asserted 'Chapter N —' prefix; the composer owns the ordinal."""
     return _LEADING_CHAPTER_LABEL.sub("", title or "").strip()
+
+
+def _planned_reappearance_chapter(doc: dict, name: str) -> int | None:
+    """Find first planned chapter index where ``name`` is marked as returning.
+
+    Uses chapter metadata only (title/summary/beats) to keep this deterministic.
+    Returns a 1-based chapter index over ``chapters.order`` when a return signal
+    is present; otherwise ``None``.
+    """
+    if not name.strip():
+        return None
+    target = name.lower().strip()
+    chapters = doc.get("chapters", {})
+    order = chapters.get("order", [])
+    cards = chapters.get("cards", {})
+    for i, cid in enumerate(order, start=1):
+        card = cards.get(cid, {})
+        text_parts = [
+            str(card.get("title") or ""),
+            str(card.get("summary") or ""),
+            " ".join(str(b or "") for b in (card.get("beats") or [])),
+        ]
+        hay = "\n".join(text_parts).lower()
+        if target in hay and _RETURN_SIGNAL.search(hay):
+            return i
+    return None
+
+
+def _clamp_lifecycle_reappearance_to_plan(doc: dict, packet: dict) -> dict:
+    """Clamp lifecycle reappearance chapter to chapter-plan return metadata.
+
+    If a lifecycle record proposes an earlier reappearance than the plan's first
+    return signal for that character, raise it to the planned chapter index.
+    """
+    lifecycle = list(packet.get("character_lifecycle") or [])
+    if not lifecycle:
+        return packet
+    out = dict(packet)
+    out_lifecycle: list[dict] = []
+    for item in lifecycle:
+        rec = dict(item)
+        name = str(rec.get("name") or "").strip()
+        planned = _planned_reappearance_chapter(doc, name)
+        allowed = rec.get("allowed_reappearance_from_chapter")
+        if planned is not None and (not isinstance(allowed, int) or allowed < planned):
+            rec["allowed_reappearance_from_chapter"] = planned
+        out_lifecycle.append(rec)
+    out["character_lifecycle"] = out_lifecycle
+    return out
 
 
 def _beat_list(item: object) -> list[str]:
@@ -109,7 +450,7 @@ async def outline_chapters(doc: dict) -> list[dict]:
 
 
 async def close_chapter(doc: dict, cid: str) -> dict:
-    """Close played chapter ``cid``: derive its end-of-chapter ``{text, world_state}``.
+    """Close played chapter ``cid``: derive ``{text, world_state, seam_packet}``.
 
     The adapter-facing entry to the **Scene lifecycle** (FR-493 J5, hosted in
     :mod:`turn_ops`): the terminal step that derives ``world_state_out`` + final
@@ -119,10 +460,11 @@ async def close_chapter(doc: dict, cid: str) -> dict:
 
     The forward-carry seam (FR-491 G2/B, preserving FR-488 J7 through play): a
     chapter is no longer expanded from its summary in one shot — it is PLAYED, and
-    when its scene completes this derives two artifacts. ``world_state`` runs
+    when its scene completes this derives continuity artifacts. ``world_state`` runs
     ``chapter_close.yaml`` once over the inherited ledger (where the previous
     chapter left off) + this chapter's played recaps, returning the end-of-chapter
-    ledger the NEXT chapter inherits. ``text`` is the chapter's *final text*: the
+    ledger the NEXT chapter inherits. ``seam_packet`` is the explicit chapter seam
+    handoff contract for turn-1 of chapter N+1. ``text`` is the chapter's *final text*: the
     per-chapter Final Cut (FR-492), one continuous beat-faithful passage composed
     over the whole played arc (:func:`turn_ops.invoke_final_cut`) rather than the
     raw recaps. A pure read: the adapter records the result onto the card.
@@ -143,9 +485,97 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     )
     closed = result.get("chapter_close") or {}
     text = await turn_ops.invoke_final_cut(doc, cid)
+    seam_packet = parse_seam_packet(closed.get("seam_packet"))
+    seam_packet = _clamp_lifecycle_reappearance_to_plan(doc, seam_packet)
+    # FR-510 + FR-511: validate final prose against confirmed-dead characters from
+    # prior seam and run one constrained revise cycle if needed.
+    prior_seam = parse_seam_packet(turn_ops.inherited_seam_packet(doc, cid))
+    dead_names = [
+        str(item.get("name") or "").strip()
+        for item in list(prior_seam.get("character_lifecycle") or [])
+        if str(item.get("existence_state") or "").strip() == "confirmed_dead"
+        and str(item.get("name") or "").strip()
+    ]
+    violations = _collect_dead_character_prose_violations(dead_names, text, cid)
+    for payload in violations:
+        _LOG.warning("Dead character prose violation: %s", payload)
+
+    revised = False
+    attempt_count = 0
+    if violations:
+        attempt_count = 1
+        revised = True
+        allowed_cast = turn_ops.build_allowed_scene_cast(doc, cid)
+        revised_text = await _revise_final_cut_once(
+            doc,
+            cid,
+            original_text=text,
+            violations=violations,
+            allowed_cast=allowed_cast,
+            dead_names=dead_names,
+        )
+        invariant_failures = _post_revise_invariant_failures(
+            doc,
+            cid,
+            original=text,
+            revised=revised_text,
+            allowed_cast=allowed_cast,
+            violations=violations,
+        )
+        if invariant_failures:
+            payload = {
+                "code": "FINAL_CUT_REVISE_FAILED",
+                "chapter_id": str(cid),
+                "attempt_count": attempt_count,
+                "violations": violations,
+                "invariant_failures": invariant_failures,
+                "revised": revised,
+                "source_pointer": _build_source_pointer(doc, cid),
+            }
+            _LOG.error("Final cut revise failed: %s", payload)
+            raise FinalCutReviseError(payload)
+
+        text = revised_text
+        violations = _collect_dead_character_prose_violations(dead_names, text, cid)
+        if violations:
+            payload = {
+                "code": "FINAL_CUT_REVISE_FAILED",
+                "chapter_id": str(cid),
+                "attempt_count": attempt_count,
+                "violations": violations,
+                "invariant_failures": [],
+                "revised": revised,
+                "source_pointer": _build_source_pointer(doc, cid),
+            }
+            _LOG.error("Final cut revise failed: %s", payload)
+            raise FinalCutReviseError(payload)
+        _LOG.info(
+            "Final cut revise applied: %s",
+            {
+                "chapter_id": str(cid),
+                "attempt_count": attempt_count,
+                "revised": revised,
+            },
+        )
+
+    chapter_memory = _derive_chapter_memory(seam_packet)
+    inherited_ledger = turn_ops.inherited_world_state(doc, cid)
+    order = doc.get("chapters", {}).get("order", [])
+    current_index = order.index(cid) if cid in order else 0
+    emitted = closed.get("world_state")
+    operations = emitted.get("operations") if isinstance(emitted, dict) else None
+    # FR-514 J4: the three non-relationship lanes keep full-ledger emission but are
+    # floored (an emptied lane carries forward, never zeroes state); the
+    # relationship lane is the update-delta path applied by code (FR-514/515/517),
+    # so a forgetful close can no longer reset the bonds (10020-BC Ch5 dropout).
+    world_ledger = apply_lane_floor(emitted, inherited_ledger)
+    delta = apply_ledger_delta(inherited_ledger, operations, current_index)
+    world_ledger["relationships"] = delta["relationships"]
     return {
         "text": text,
-        "world_state": parse_world_state(closed.get("world_state")),
+        "world_state": world_ledger,
+        "seam_packet": seam_packet,
+        "chapter_memory": chapter_memory,
     }
 
 

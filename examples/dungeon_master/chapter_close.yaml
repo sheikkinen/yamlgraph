@@ -7,8 +7,9 @@
 # recaps. That end-of-chapter ledger is the forward-carry seed the next chapter
 # inherits (the load-bearing FR-488 J7 seam, preserved through play).
 #
-# Output is STRUCTURED (parse_json: true): a {world_state} object. The chapter's
-# prose is the played recaps themselves — this graph derives only the ledger.
+# Output is STRUCTURED (parse_json: true): a {world_state, seam_packet} object.
+# The chapter's prose is composed separately from played recaps; this graph
+# derives the chapter-close continuity artifacts.
 #
 # Usage:
 #   yamlgraph graph run examples/dungeon_master/chapter_close.yaml \

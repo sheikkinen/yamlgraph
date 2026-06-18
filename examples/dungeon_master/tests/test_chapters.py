@@ -65,6 +65,12 @@ def _capturing_mock(captured: list[dict]):
                         f"(prev={variables.get('previous_world_state') or 'none'})"
                     ],
                 },
+                "seam_packet": {
+                    "resolved_events": ["The ledge is secured."],
+                    "open_threads": ["Hilde distrusts Gunnar"],
+                    "must_carry_facts": ["Arnulf is believed dead."],
+                    "opening_constraints": ["FORBID: Arnulf returns alive"],
+                },
             }
         if prompt_name == "final_cut":
             # The per-chapter finish (FR-492): compose the chapter's final text
@@ -150,6 +156,7 @@ def test_close_chapter_threads_previous_chapter_world_state():
     assert "on the ledge" in result["text"]
     # The close returns the new world-state ledger the next chapter inherits.
     assert result["world_state"]
+    assert result["seam_packet"]["must_carry_facts"] == ["Arnulf is believed dead."]
 
 
 def test_close_chapter_one_has_no_previous_world_state():
@@ -164,6 +171,297 @@ def test_close_chapter_one_has_no_previous_world_state():
         _run(chapter_ops.close_chapter(doc, "1"))
     # Chapter 1 is the first: there is no prior world state to carry.
     assert captured[0]["previous_world_state"] == ""
+
+
+def test_close_chapter_clamps_lifecycle_reappearance_to_planned_return_chapter():
+    doc = {
+        "synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True},
+        "chapters": {
+            "order": ["1", "2", "3", "4", "5"],
+            "cards": {
+                "1": {"summary": "setup", "beats": ["a"]},
+                "2": {
+                    "summary": "Arnulf presumed dead",
+                    "beats": ["a"],
+                    "turns": [{"n": 1, "recap": {"text": "The flood takes Arnulf."}}],
+                },
+                "3": {"summary": "travel", "beats": ["a"]},
+                "4": {"summary": "feud", "beats": ["a"]},
+                "5": {
+                    "title": "Chapter 5 - Arnulf Returns",
+                    "summary": "Arnulf returns alive and is verified",
+                    "beats": ["Arnulf reappears alive"],
+                },
+            },
+        },
+    }
+
+    def _mock(prompt_name, variables=None, **kwargs):
+        if prompt_name == "chapter_close":
+            return {
+                "world_state": {"characters": [], "objects": [], "facts": []},
+                "seam_packet": {
+                    "character_lifecycle": [
+                        {
+                            "name": "Arnulf",
+                            "existence_state": "missing_presumed_dead",
+                            "visibility_mode": "absent",
+                            "allowed_reappearance_from_chapter": 3,
+                            "source_chapter": 2,
+                        }
+                    ]
+                },
+            }
+        if prompt_name == "final_cut":
+            return "final"
+        raise AssertionError(f"unexpected prompt {prompt_name!r}")
+
+    m1, m2 = _patched(_mock)
+    with m1, m2:
+        result = _run(chapter_ops.close_chapter(doc, "2"))
+
+    lifecycle = result["seam_packet"]["character_lifecycle"]
+    assert lifecycle[0]["name"] == "Arnulf"
+    assert lifecycle[0]["allowed_reappearance_from_chapter"] == 5
+
+
+def test_close_chapter_derives_structured_chapter_memory_from_seam_packet():
+    doc = _doc_with_chapters()
+    doc["chapters"]["cards"]["2"]["turns"] = [
+        {"n": 1, "recap": {"text": "Kara corners the raider on the ledge."}}
+    ]
+
+    def _mock(prompt_name, variables=None, **kwargs):
+        if prompt_name == "chapter_close":
+            return {
+                "world_state": {"characters": [], "objects": [], "facts": []},
+                "seam_packet": {
+                    "resolved_events": ["The ledge is secured."],
+                    "open_threads": ["Can the truce hold?"],
+                    "must_carry_facts": ["Arnulf is believed dead."],
+                    "opening_constraints": ["FORBID: Arnulf returns alive"],
+                    "character_lifecycle": [
+                        {
+                            "name": "Arnulf",
+                            "existence_state": "missing_presumed_dead",
+                            "visibility_mode": "absent",
+                            "allowed_reappearance_from_chapter": 5,
+                            "source_chapter": 2,
+                        }
+                    ],
+                },
+            }
+        if prompt_name == "final_cut":
+            return "final"
+        raise AssertionError(f"unexpected prompt {prompt_name!r}")
+
+    m1, m2 = _patched(_mock)
+    with m1, m2:
+        result = _run(chapter_ops.close_chapter(doc, "2"))
+
+    memory = result["chapter_memory"]
+    assert memory["resolved_events"] == ["The ledge is secured."]
+    assert memory["irreversible_facts"] == ["Arnulf is believed dead."]
+    assert memory["forbidden_regressions"] == ["FORBID: Arnulf returns alive"]
+    assert memory["character_state_deltas"][0]["name"] == "Arnulf"
+    assert memory["character_state_deltas"][0]["to_state"] == "missing_presumed_dead"
+
+
+def test_apply_chapter_close_updates_live_synopsis_and_chapter_memory(tmp_path):
+    from examples.dungeon_master.api import doc_ops
+
+    doc = _doc_with_chapters()
+    doc["chapters"]["cards"]["2"]["turns"] = [
+        {"n": 1, "recap": {"text": "Kara corners the raider on the ledge."}}
+    ]
+
+    def _mock(prompt_name, variables=None, **kwargs):
+        if prompt_name == "chapter_close":
+            return {
+                "world_state": {"characters": [], "objects": [], "facts": []},
+                "seam_packet": {
+                    "resolved_events": ["The ledge is secured."],
+                    "open_threads": ["Can the truce hold?"],
+                    "must_carry_facts": ["Arnulf is believed dead."],
+                    "opening_constraints": ["FORBID: Arnulf returns alive"],
+                },
+            }
+        if prompt_name == "final_cut":
+            return "final"
+        raise AssertionError(f"unexpected prompt {prompt_name!r}")
+
+    story_dir = tmp_path / "story"
+    story_dir.mkdir(parents=True, exist_ok=True)
+
+    m1, m2 = _patched(_mock)
+    with m1, m2:
+        _run(doc_ops.apply_chapter_close(doc, story_dir, "2"))
+
+    card = doc["chapters"]["cards"]["2"]
+    assert card["chapter_memory"]["irreversible_facts"] == ["Arnulf is believed dead."]
+    assert doc["live_synopsis"]["last_chapter_id"] == "2"
+    assert "After chapter 2:" in doc["live_synopsis"]["summary"]
+    assert "Arnulf is believed dead." in doc["live_synopsis"]["immutable_ledger"]
+
+
+def test_running_scene_turn_one_includes_opening_onepager_contract():
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "Chapter 1",
+                    "summary": "chapter one",
+                    "world_state": {"characters": [], "objects": [], "facts": []},
+                    "seam_packet": {
+                        "must_carry_facts": ["Arnulf is believed dead."],
+                        "opening_constraints": ["FORBID: Arnulf returns alive"],
+                        "character_lifecycle": [
+                            {
+                                "name": "Arnulf",
+                                "existence_state": "missing_presumed_dead",
+                                "visibility_mode": "absent",
+                                "allowed_reappearance_from_chapter": 7,
+                                "source_chapter": 1,
+                            }
+                        ],
+                    },
+                    "chapter_memory": {
+                        "resolved_events": ["The flood took Arnulf."],
+                        "irreversible_facts": ["Arnulf is believed dead."],
+                        "character_state_deltas": [
+                            {
+                                "name": "Arnulf",
+                                "from_state": "alive",
+                                "to_state": "missing_presumed_dead",
+                                "evidence": "seam_lifecycle(source_chapter=1)",
+                            }
+                        ],
+                        "open_threads": [],
+                        "forbidden_regressions": ["FORBID: Arnulf returns alive"],
+                    },
+                },
+                "2": {
+                    "title": "Chapter 2",
+                    "summary": "chapter two",
+                    "beats": ["b"],
+                    "turns": [],
+                },
+            },
+        },
+        "live_synopsis": {
+            "summary": "After chapter 1: The flood took Arnulf.",
+            "immutable_ledger": ["Arnulf is believed dead."],
+            "character_states": {"Arnulf": "missing_presumed_dead"},
+            "last_chapter_id": "1",
+        },
+    }
+
+    scene = turn_ops.running_scene(doc, "2", 1)
+    assert "OPENING ONEPAGER CONTRACT" in scene
+    assert "Must Include:" in scene
+    assert "Arnulf is believed dead." in scene
+    assert "Must Exclude:" in scene
+    assert "FORBID: Arnulf returns alive" in scene
+
+
+def test_running_scene_turn_one_does_not_reintroduce_synopsis_framing():
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "synopsis": {"text": "A broad book outline.", "reviewed": True},
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "Chapter 1",
+                    "summary": "chapter one",
+                    "world_state": {"characters": [], "objects": [], "facts": []},
+                    "seam_packet": {
+                        "must_carry_facts": ["Keep the ledge intact."],
+                        "opening_constraints": ["FORBID: the river is calm"],
+                        "character_lifecycle": [],
+                    },
+                },
+                "2": {
+                    "title": "Chapter 2",
+                    "summary": "chapter two",
+                    "beats": ["b"],
+                    "turns": [],
+                },
+            },
+        },
+    }
+
+    scene = turn_ops.running_scene(doc, "2", 1)
+    lowered = scene.lower()
+    assert "synopsis" not in lowered
+    assert "live_synopsis" not in lowered
+    assert "chapter two" in scene
+    assert "Keep the ledge intact." in scene
+    assert "FORBID: the river is calm" in scene
+
+
+def test_invoke_turn_raises_continuity_memory_conflict_on_state_precedence_mismatch():
+    from examples.dungeon_master.api import turn_ops
+
+    doc = {
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "title": "Chapter 1",
+                    "summary": "chapter one",
+                    "seam_packet": {
+                        "character_lifecycle": [
+                            {
+                                "name": "Arnulf",
+                                "existence_state": "confirmed_dead",
+                                "visibility_mode": "absent",
+                                "allowed_reappearance_from_chapter": 7,
+                                "source_chapter": 1,
+                            }
+                        ]
+                    },
+                    "chapter_memory": {
+                        "resolved_events": [],
+                        "irreversible_facts": ["Arnulf is alive."],
+                        "character_state_deltas": [
+                            {
+                                "name": "Arnulf",
+                                "from_state": "missing_presumed_dead",
+                                "to_state": "alive",
+                                "evidence": "witness",
+                            }
+                        ],
+                        "open_threads": [],
+                        "forbidden_regressions": [],
+                    },
+                    "world_state": {"characters": [], "objects": [], "facts": []},
+                },
+                "2": {"title": "Chapter 2", "summary": "chapter two", "beats": ["b"]},
+            },
+        },
+        "live_synopsis": {
+            "summary": "After chapter 1.",
+            "immutable_ledger": ["Arnulf is alive."],
+            "character_states": {"Arnulf": "alive"},
+            "last_chapter_id": "1",
+        },
+    }
+
+    chars = {"roster": [], "cards": {}}
+    try:
+        _run(turn_ops.invoke_turn(doc, chars, "2", 1, instruction=""))
+    except turn_ops.ContinuityMemoryConflictError as exc:
+        assert exc.payload["code"] == "CONTINUITY_MEMORY_CONFLICT"
+        assert exc.payload["chapter_id"] == "2"
+        assert exc.payload["source_pointer"]["chapter_id"] == "1"
+        assert exc.payload["source_pointer"]["seam_hash"]
+    else:
+        raise AssertionError("expected ContinuityMemoryConflictError")
 
 
 def test_chapter_two_play_sees_chapter_one_world_state_not_its_turns():

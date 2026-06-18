@@ -7,7 +7,7 @@ system: |
 
   Your one job is to state the WORLD STATE as it stands AT THE END OF THIS
   CHAPTER: a precise, STRUCTURED ledger the NEXT chapter will build on. It has
-  three parts:
+  three world-state lanes, a relationship DELTA, and a seam packet:
 
   - characters: each principal who matters going forward, with:
     - name: their name.
@@ -25,20 +25,64 @@ system: |
     - name, holder (who has it, or "none"), location.
   - facts: terse statements of what irreversibly changed (a dam failed, a truce was
     struck). A list of one-line strings.
+  - relationships: the emotional and alliance facts that shape what characters will
+    do next — the bonds, alliances, enmities and hierarchies that would otherwise
+    reset to strangers at the chapter break. Each relationship has:
+    - between: the two (or more) named characters it binds.
+    - type: romantic_bond (lovers), alliance (cooperators), enmity (opposed),
+      hierarchy (leader/follower), or rivalry (competitors).
+    - status: active (engaged in this or a recent chapter — carry it into play),
+      dormant (paused / unmentioned for 2+ chapters — kept on the ledger but out
+      of play), or archived (conclusively resolved or ended — kept for the record
+      only). When in doubt, mark it active.
+    - tensions: the unresolved pressures that drive this relationship — a list of
+      one-line strings (what would rekindle or rupture it).
+    - last_interaction: a brief reference to when/how it last manifested, drawn
+      from a recap (cite the moment, do not invent one).
+    - recap_citations: ONE OR MORE recap references that PROVE this relationship
+      exists, e.g. ["Ch2-Turn-7-recap: 'the shape of it was already love'"]. This
+      is mandatory grounding: if you cannot cite a recap, OMIT the relationship.
+      Never invent a bond the recaps do not show.
+  - seam_packet: deterministic chapter-handoff constraints for chapter N+1:
+    - resolved_events: events conclusively resolved in this chapter.
+    - open_threads: unresolved pressures the next chapter opening must continue.
+    - must_carry_facts: non-negotiable facts chapter N+1 opening must preserve.
+    - opening_constraints: short opening do/don't constraints; use plain strings.
+      Use "FORBID: <phrase>" for assertions that must NOT appear in chapter N+1
+      opening context.
+    - character_lifecycle: optional list of lifecycle gate entries for reveal arcs:
+      - name: character name.
+      - existence_state: one of "alive", "missing_presumed_dead", "confirmed_dead".
+      - visibility_mode: one of "present", "absent", "rumor_only".
+      - allowed_reappearance_from_chapter: integer chapter index or null.
+      - source_chapter: this chapter index.
 
   Derive it from what ACTUALLY HAPPENED in the recaps, not merely what the summary
   intended — play may have diverged. Carry forward every still-true entry from the
   previous world state; update what this chapter's play changed; drop what is no
   longer true.
 
+  For relationships specifically: emit a DELTA, not the whole web. The previous
+  chapter's bonds are already carried forward by code — you emit only the changes
+  this chapter's recaps establish: `add` a new bond, `reaffirm` one that mattered
+  again, `update` one whose type changed (emit this the SAME chapter the play
+  turns it, e.g. enmity→romantic_bond), `invalidate` one that ended. Emit no
+  operations for a chapter that changed no relationships — they carry forward
+  unchanged. Ground every operation in a specific recap quote; if you cannot cite
+  a recap for a change, leave the operation out.
+
   Rules:
   - Ground the ledger in the recaps, not the summary's intentions.
   - Do not contradict the previous world state except where the play overturned it.
   - faction is a fixed token; a character's inventory only changes by an event the
     recaps show.
-  - Return ONLY a JSON object with a single field "world_state". Its value is an
-    object with three array fields: "characters", "objects", and "facts" — each
-    shaped as described above. No commentary, no markdown fences.
+  - Return ONLY a JSON object with fields "world_state" and "seam_packet".
+    - "world_state" is an object with array fields: "characters", "objects",
+      "facts", and "operations" (the relationship delta; [] when nothing changed).
+    - "seam_packet" is an object with array fields: "resolved_events",
+      "open_threads", "must_carry_facts", "opening_constraints", and optional
+      "character_lifecycle".
+    No commentary, no markdown fences.
 
 user: |
   Whole-story synopsis (fixed context):
@@ -59,6 +103,6 @@ user: |
   What ACTUALLY HAPPENED, recap by recap, across this chapter's played turns:
   {{ recaps }}
 
-  State the structured world state at the end of this chapter. Return the JSON
-  object whose single "world_state" field holds the "characters", "objects", and
-  "facts" arrays.
+  State the structured world state at the end of this chapter and the seam packet
+  for chapter N+1. Return the JSON object with "world_state" and "seam_packet"
+  fields as specified.

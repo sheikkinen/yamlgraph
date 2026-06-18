@@ -10,6 +10,7 @@
 # Inputs are assembled by turn_ops.final_cut_context(doc); draft + instruction
 # carry an Iterate's current cut and steer. Empty draft => first compose;
 # non-empty draft => apply the change.
+# FR-511 added continuity constraints (allowed/dead cast) to the prompt contract.
 #
 # Usage:
 #   yamlgraph graph run examples/dungeon_master/final_cut.yaml \
@@ -35,6 +36,8 @@ state:
   beats: str
   climax: str
   beat_groups: str
+  allowed_cast: str
+  dead_characters: str
   draft: str
   instruction: str
   final_cut: str
@@ -51,6 +54,8 @@ nodes:
       beats: "{state.beats}"
       climax: "{state.climax}"
       beat_groups: "{state.beat_groups}"
+      allowed_cast: "{state.allowed_cast}"
+      dead_characters: "{state.dead_characters}"
       draft: "{state.draft}"
       instruction: "{state.instruction}"
 

@@ -34,8 +34,8 @@ YAMLGraph's strict separation holds throughout the app:
 | `doc_ops.py` | Derived operations over the loaded `doc` (FR-493): the doc accessors (`entry`, `characters`, `chapters`), the single stage-graph `invoke_stage`, and the side-effecting expansions (`expand_roster`, `expand_chapters`, `apply_chapter_close`, `compose_stage`, `autodraft`). Nine pure `(doc, …)` functions, no `self`; imports nothing from `session` (acyclic). |
 | `tree.py` | `STAGES`, `Stage`, `resolve_stage`, `breadcrumb`, and the gate predicates (`cast_complete`, `all_chapters_played`). Pure. |
 | `navigation.py` | Pure reachability (`can_visit`) and landing (`accept_target`, `next_unreviewed_char`). Reads the doc; never mutates or invokes a graph. |
-| `turn_ops.py` | The **Scene lifecycle** (FR-493 J5) — `{plan, world_state_in} → play turns → {final_text, world_state_out}`: `running_scene` (threads the inherited `world_state`), `invoke_turn` (map → director → recap), `final_cut_context`, `invoke_final_cut`; plus the per-character intent side-channel and director post-processing (phase clamp, beat canonicalisation). |
-| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the Scene-lifecycle entry — the `world_state` forward-carry + the per-chapter Final Cut final text), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
+| `turn_ops.py` | The **Scene lifecycle** (FR-493 J5) — `{plan, world_state_in} → play turns → {final_text, world_state_out}`: `running_scene` (threads the inherited `world_state` plus turn-1 `seam_packet`), `invoke_turn` (map → director → recap), `final_cut_context`, `invoke_final_cut`; plus deterministic lifecycle turn-1 gating (`LifecycleGateError`) and the per-character intent side-channel with director post-processing (phase clamp, beat canonicalisation). |
+| `chapter_ops.py` | The book-chapter graph calls: `outline_chapters` (synopsis → chapter list), `close_chapter` (the Scene-lifecycle entry — the `world_state` forward-carry + typed `seam_packet` handoff + per-chapter Final Cut final text), and `compose_book_deterministic` (the pure, no-LLM whole-book assembly over the played chapters' final texts). Pure reads. |
 | `render.py` | The pure, no-LLM **full-story Markdown render** (FR-494): `render_story_markdown(doc)` frames `compose_book_deterministic`'s Book with the tagline lead, `# Synopsis`, and an optional `# Cast` (first paragraph per non-empty character card); suppresses the `world_state` ledger and invents no title. Inherits the Book's *raise-on-empty* (no played chapter → `ValueError`). The reader serialization beside the machine `story.json`. |
 | `story_doc.py` | Per-session `story.json` read/write. |
 | `graph_app.py` | Compiled-graph cache (`get_app`) + output normalisers (`clean_text`, `field`). Dependency-free to avoid import cycles. |
@@ -84,6 +84,21 @@ single source of truth. It grows additively as stages are reached:
       "1": {
         "title": "...", "summary": "...",     // what the chapter is (the arc)
         "world_state": "...",                 // end-of-chapter ledger (FR-491 B)
+        "seam_packet": {                       // FR-506/507 chapter seam handoff
+          "resolved_events": ["..."],
+          "open_threads": ["..."],
+          "must_carry_facts": ["..."],
+          "opening_constraints": ["..."],
+          "character_lifecycle": [
+            {
+              "name": "Arnulf",
+              "existence_state": "missing_presumed_dead",
+              "visibility_mode": "absent",
+              "allowed_reappearance_from_chapter": 5,
+              "source_chapter": 2
+            }
+          ]
+        },
         "text": "...",                        // the played prose (the recaps)
         "reviewed": true,                     // true once the chapter is played out
         "turns": [                            // FR-491 — turns are CHAPTER-SCOPED
@@ -109,9 +124,9 @@ single source of truth. It grows additively as stages are reached:
 
 Every visitable stage exposes the same `{text, reviewed}` entry to the card; the
 structured fields (per-turn `intents`, `direction`, chapter `summary` /
-`world_state`) are **side-channels** that never enter the shared `str → str` weave
-interface (FR-477 J3). There is no flat top-level `turns` list — turns live inside
-the chapter that owns them.
+`world_state` / `seam_packet`) are **side-channels** that never enter the shared
+`str → str` weave interface (FR-477 J3). There is no flat top-level `turns` list
+— turns live inside the chapter that owns them.
 
 ---
 
@@ -195,7 +210,7 @@ draft (Commandment 6).
 | Stage | Generative seam | Deterministic seam (pure code) |
 |-------|-----------------|--------------------------------|
 | `turn:<cid>:<n>` | `turn.yaml` `map`(intents) → director → recap | `_apply_beat_ledger` (resolve the director's satisfied-beat NUMBERS over the chapter's finite `beats` list back to canonical text, accumulate cumulatively, and COMPUTE `phase`/`scene_complete` from k / N — monotonic by construction, FR-503/FR-504) |
-| `chapter:<cid>` close | `chapter_close.yaml` (inherited ledger + played recaps → end-of-chapter `world_state`) | the **forward-carry**: `chapter:n-1`'s `world_state` is threaded into `chapter:n`'s `running_scene` as the established START, and into its close as `previous_world_state` (FR-491 B; preserving FR-488 J7) |
+| `chapter:<cid>` close | `chapter_close.yaml` (inherited ledger + played recaps → end-of-chapter `{world_state, seam_packet}`) | the **forward-carry**: `chapter:n-1`'s `world_state` is threaded into `chapter:n`'s `running_scene` as the established START, and into its close as `previous_world_state` (FR-491 B; preserving FR-488 J7); the prior chapter's `seam_packet` is injected into turn-1 `running_scene` as the chapter-open continuity contract (FR-506), and lifecycle constraints can hard-block turn-1 fanout (`LifecycleGateError`, FR-507) |
 | **The Book** | _none — composition is assembly, not generation (FR-492)_ | `compose_book_deterministic` walks `chapters.order`, heads each played chapter's title + its per-chapter Final Cut final text, suppresses the `world_state` ledger from the manuscript, and **raises** rather than composing from nothing (Commandment 6). No LLM on the path to a *first* book. |
 
 The director's judgement is **read-only signal** surfaced to the DM (phase, beats,

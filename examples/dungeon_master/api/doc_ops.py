@@ -35,6 +35,64 @@ from examples.dungeon_master.api.tree import (
 # ── doc accessors (the shared core) ─────────────────────────────────────────
 
 
+def _empty_chapter_memory() -> dict:
+    """Canonical empty chapter memory payload (FR-508 migration-safe default)."""
+    return {
+        "resolved_events": [],
+        "irreversible_facts": [],
+        "character_state_deltas": [],
+        "open_threads": [],
+        "forbidden_regressions": [],
+    }
+
+
+def _ensure_live_synopsis(doc: dict) -> dict:
+    """Get or create deterministic rolling synopsis container."""
+    syn = doc.setdefault("live_synopsis", {})
+    syn.setdefault("summary", "")
+    syn.setdefault("immutable_ledger", [])
+    syn.setdefault("character_states", {})
+    syn.setdefault("last_chapter_id", "")
+    return syn
+
+
+def _update_live_synopsis(doc: dict, cid: str, chapter_memory: dict) -> None:
+    """Update rolling synopsis deterministically from chapter memory."""
+    syn = _ensure_live_synopsis(doc)
+    ledger = [str(x).strip() for x in list(syn.get("immutable_ledger") or [])]
+    existing = {x.lower() for x in ledger if x}
+    for fact in list(chapter_memory.get("irreversible_facts") or []):
+        text = str(fact).strip()
+        if not text:
+            continue
+        key = text.lower()
+        if key in existing:
+            continue
+        existing.add(key)
+        ledger.append(text)
+
+    highlights = list(chapter_memory.get("resolved_events") or [])
+    if not highlights:
+        highlights = list(chapter_memory.get("open_threads") or [])
+    snippet = "; ".join(str(x).strip() for x in highlights if str(x).strip())
+    snippet = snippet[:480].rstrip()
+
+    syn["immutable_ledger"] = ledger
+    states = dict(syn.get("character_states") or {})
+    for item in list(chapter_memory.get("character_state_deltas") or []):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        to_state = str(item.get("to_state") or "").strip()
+        if name and to_state:
+            states[name] = to_state
+    syn["character_states"] = states
+    syn["summary"] = (
+        f"After chapter {cid}: {snippet}" if snippet else f"After chapter {cid}."
+    )
+    syn["last_chapter_id"] = str(cid)
+
+
 def characters(doc: dict) -> dict:
     """The characters sub-document ``{reviewed, roster, cards}`` (created if absent)."""
     chars = doc.setdefault("characters", {"reviewed": False, "roster": [], "cards": {}})
@@ -48,8 +106,8 @@ def chapters(doc: dict) -> dict:
 
     A fixed ordered set of book chapters (FR-488): ``order`` is the 1-based string
     ids in story sequence, ``cards`` maps each id to
-    ``{title, summary, text, world_state, reviewed}``. Independent of the
-    characters roster and of the preplan/play gate (J3).
+    ``{title, summary, text, world_state, seam_packet, reviewed}``. Independent
+    of the characters roster and of the preplan/play gate (J3).
     """
     chs = doc.setdefault("chapters", {"reviewed": False, "order": [], "cards": {}})
     chs.setdefault("order", [])
@@ -78,6 +136,14 @@ def entry(doc: dict, name: str) -> dict:
                 "summary": "",
                 "text": "",
                 "world_state": "",
+                "seam_packet": {
+                    "resolved_events": [],
+                    "open_threads": [],
+                    "must_carry_facts": [],
+                    "opening_constraints": [],
+                    "character_lifecycle": [],
+                },
+                "chapter_memory": _empty_chapter_memory(),
                 "reviewed": False,
             },
         )
@@ -152,6 +218,14 @@ async def expand_chapters(doc: dict, story_dir: Path) -> None:
             "beats": list(chunk.get("beats") or []),
             "text": "",
             "world_state": "",
+            "seam_packet": {
+                "resolved_events": [],
+                "open_threads": [],
+                "must_carry_facts": [],
+                "opening_constraints": [],
+                "character_lifecycle": [],
+            },
+            "chapter_memory": _empty_chapter_memory(),
             "reviewed": False,
         }
         chs["order"].append(cid)
@@ -174,7 +248,10 @@ async def apply_chapter_close(doc: dict, story_dir: Path, cid: str) -> None:
     if card is not None:
         card["text"] = closed["text"]
         card["world_state"] = closed["world_state"]
+        card["seam_packet"] = closed["seam_packet"]
+        card["chapter_memory"] = closed.get("chapter_memory") or _empty_chapter_memory()
         card["reviewed"] = True
+        _update_live_synopsis(doc, cid, card["chapter_memory"])
         story_doc.write(story_dir, doc)
 
 

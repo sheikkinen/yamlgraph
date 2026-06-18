@@ -12,6 +12,12 @@ system: |
     the established STARTING WORLD STATE (what is already true as the chapter
     opens, inherited from the chapters before it). Only events under "WHAT HAS
     HAPPENED SO FAR" are real beyond that starting state.
+    If a "CHAPTER SEAM CONTRACT" block is present, treat it as hard continuity
+    constraints for chapter opening: required carry facts must remain true and
+    forbidden assertions must not appear.
+    If a "Character Lifecycle" section is present in that seam contract, treat it
+    as a hard temporal gate: a missing/presumed-dead character cannot be treated
+    as physically present before its allowed reappearance chapter.
   - The cast (the rostered characters who own an intent this turn).
   - This turn's intents.
 

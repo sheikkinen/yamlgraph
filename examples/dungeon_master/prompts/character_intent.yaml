@@ -33,6 +33,14 @@ system: |
   repeating a beat already portrayed. Let the chapter plan and your last intent
   inform the choice, but decide fresh for this turn.
 
+  If the scene includes a "CHAPTER SEAM CONTRACT" block, treat it as hard opening
+  continuity constraints for chapter N+1: keep must-carry facts true and do not
+  assert forbidden claims.
+
+  If the seam contract includes "Character Lifecycle", obey it as hard temporal
+  continuity: do not act as physically present when marked missing/presumed dead
+  before the allowed reappearance chapter.
+
 user: |
   You are **{{ char.name }}**.
 

@@ -11,14 +11,47 @@ stage uses — which is what lets the generic weave/edit/accept act on a turn (J
 
 from __future__ import annotations
 
+import hashlib
+import json
+import logging
+from datetime import UTC, datetime
+
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
+from examples.dungeon_master.api.seam_packet import (
+    format_seam_packet,
+    parse_seam_packet,
+    validate_character_lifecycle,
+)
 from examples.dungeon_master.api.tree import (
     FINAL_CUT_GRAPH,
     TURN_GRAPH,
 )
-from examples.dungeon_master.api.world_state import format_world_state
+from examples.dungeon_master.api.world_state import (
+    RETRIEVAL_TOPK,
+    format_world_state,
+    parse_world_state,
+    rank_relationships,
+)
 
 _MAX_CUE_FIELD_CHARS = 240
+_LOG = logging.getLogger(__name__)
+
+
+class LifecycleGateError(RuntimeError):
+    """Deterministic chapter-open lifecycle violation gate failure."""
+
+    def __init__(self, payload: dict):
+        self.payload = payload
+        super().__init__(f"LIFECYCLE_GATE_VIOLATION: {payload}")
+
+
+class ContinuityMemoryConflictError(LifecycleGateError):
+    """Deterministic chapter-open memory-precedence conflict gate failure."""
+
+    def __init__(self, payload: dict):
+        self.payload = payload
+        super(LifecycleGateError, self).__init__()
+        RuntimeError.__init__(self, f"CONTINUITY_MEMORY_CONFLICT: {payload}")
 
 
 def _trim_value(value: object, *, max_chars: int = _MAX_CUE_FIELD_CHARS) -> str:
@@ -138,6 +171,355 @@ def inherited_world_state(doc: dict, cid: str) -> dict:
     return cards.get(order[i - 1], {}).get("world_state", {}) or {}
 
 
+def inherited_seam_packet(doc: dict, cid: str) -> dict:
+    """The seam packet chapter ``cid`` inherits from the previous chapter (FR-506)."""
+    chapters = doc.get("chapters", {})
+    order = chapters.get("order", [])
+    cards = chapters.get("cards", {})
+    if cid not in order:
+        return {}
+    i = order.index(cid)
+    if i == 0:
+        return {}
+    return cards.get(order[i - 1], {}).get("seam_packet", {}) or {}
+
+
+def _previous_chapter_id(doc: dict, cid: str) -> str:
+    """Resolve the previous chapter id for chapter ``cid``; ``""`` when none."""
+    order = doc.get("chapters", {}).get("order", [])
+    if cid not in order:
+        return ""
+    i = order.index(cid)
+    if i == 0:
+        return ""
+    return str(order[i - 1])
+
+
+def _opening_source_pointer(doc: dict, cid: str) -> dict:
+    """Deterministic source pointer for chapter-open seam memory resolution."""
+    prev_cid = _previous_chapter_id(doc, cid)
+    seam = parse_seam_packet(inherited_seam_packet(doc, cid))
+    digest = hashlib.sha256(
+        json.dumps(seam, sort_keys=True, ensure_ascii=True).encode("utf-8")
+    ).hexdigest()[:16]
+    return {
+        "chapter_id": prev_cid,
+        "seam_hash": digest,
+        "resolved_at": datetime.now(UTC).isoformat(),
+    }
+
+
+def _norm_name(name: object) -> str:
+    return " ".join(str(name or "").lower().split())
+
+
+def _state_map_from_memory(memory: dict) -> dict[str, str]:
+    states: dict[str, str] = {}
+    for item in list(memory.get("character_state_deltas") or []):
+        if not isinstance(item, dict):
+            continue
+        key = _norm_name(item.get("name"))
+        state = str(item.get("to_state") or "").strip()
+        if key and state:
+            states[key] = state
+    return states
+
+
+def _state_map_from_synopsis(doc: dict) -> dict[str, str]:
+    states = dict(doc.get("live_synopsis", {}).get("character_states") or {})
+    out: dict[str, str] = {}
+    for name, state in states.items():
+        key = _norm_name(name)
+        val = str(state or "").strip()
+        if key and val:
+            out[key] = val
+    return out
+
+
+def _state_map_from_seam(packet: dict) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for item in list(packet.get("character_lifecycle") or []):
+        if not isinstance(item, dict):
+            continue
+        key = _norm_name(item.get("name"))
+        state = str(item.get("existence_state") or "").strip()
+        if key and state:
+            out[key] = state
+    return out
+
+
+def _enforce_memory_precedence_gate(doc: dict, cid: str, n: int) -> None:
+    """Block chapter turn-1 execution on deterministic memory source conflicts."""
+    if n != 1:
+        return
+    prev_cid = _previous_chapter_id(doc, cid)
+    if not prev_cid:
+        return
+
+    prev_card = _chapter_card(doc, prev_cid)
+    chapter_memory = dict(prev_card.get("chapter_memory") or {})
+    seam = parse_seam_packet(inherited_seam_packet(doc, cid))
+    mem_states = _state_map_from_memory(chapter_memory)
+    syn_states = _state_map_from_synopsis(doc)
+    seam_states = _state_map_from_seam(seam)
+
+    violations: list[dict[str, str]] = []
+
+    for name, mem_state in mem_states.items():
+        syn_state = syn_states.get(name)
+        if syn_state and syn_state != mem_state:
+            violations.append(
+                {
+                    "type": "state_conflict",
+                    "name": name,
+                    "higher_source": "chapter_memory",
+                    "lower_source": "live_synopsis",
+                    "detail": f"{mem_state} conflicts with {syn_state}",
+                }
+            )
+        seam_state = seam_states.get(name)
+        if seam_state and seam_state != mem_state:
+            violations.append(
+                {
+                    "type": "state_conflict",
+                    "name": name,
+                    "higher_source": "chapter_memory",
+                    "lower_source": "seam_packet",
+                    "detail": f"{mem_state} conflicts with {seam_state}",
+                }
+            )
+
+    for name, syn_state in syn_states.items():
+        if name in mem_states:
+            continue
+        seam_state = seam_states.get(name)
+        if seam_state and seam_state != syn_state:
+            violations.append(
+                {
+                    "type": "state_conflict",
+                    "name": name,
+                    "higher_source": "live_synopsis",
+                    "lower_source": "seam_packet",
+                    "detail": f"{syn_state} conflicts with {seam_state}",
+                }
+            )
+
+    if not violations:
+        return
+    payload = {
+        "code": "CONTINUITY_MEMORY_CONFLICT",
+        "chapter_id": str(cid),
+        "turn_n": n,
+        "violations": violations,
+        "source_pointer": _opening_source_pointer(doc, cid),
+    }
+    _LOG.warning("Continuity memory conflict: %s", payload)
+    raise ContinuityMemoryConflictError(payload)
+
+
+def _compile_opening_onepager(doc: dict, cid: str) -> dict:
+    """Compile deterministic chapter-open onepager from structured memory layers."""
+    prev_cid = _previous_chapter_id(doc, cid)
+    prev_card = _chapter_card(doc, prev_cid) if prev_cid else {}
+    chapter_memory = dict(prev_card.get("chapter_memory") or {})
+    seam = parse_seam_packet(inherited_seam_packet(doc, cid))
+
+    must_include = list(seam.get("must_carry_facts") or [])
+    for fact in list(chapter_memory.get("irreversible_facts") or []):
+        if fact not in must_include:
+            must_include.append(fact)
+
+    must_exclude = list(seam.get("opening_constraints") or [])
+    for item in list(chapter_memory.get("forbidden_regressions") or []):
+        if item not in must_exclude:
+            must_exclude.append(item)
+
+    active_cast_constraints: list[str] = []
+    for item in list(seam.get("character_lifecycle") or []):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        state = str(item.get("existence_state") or "").strip()
+        visibility = str(item.get("visibility_mode") or "").strip()
+        allowed = item.get("allowed_reappearance_from_chapter")
+        if not name:
+            continue
+        extra = (
+            f", allowed_reappearance_from_chapter={allowed}"
+            if isinstance(allowed, int)
+            else ""
+        )
+        active_cast_constraints.append(
+            f"{name}: existence_state={state}, visibility_mode={visibility}{extra}"
+        )
+
+    checks = [
+        f"source_pointer.chapter_id={_opening_source_pointer(doc, cid).get('chapter_id')}",
+        "respect must_exclude constraints",
+    ]
+    return {
+        "opening_truths": must_include[:12],
+        "must_include": must_include[:12],
+        "must_exclude": must_exclude[:12],
+        "active_cast_constraints": active_cast_constraints[:12],
+        "continuity_checks": checks,
+    }
+
+
+def _format_opening_onepager(onepager: dict) -> str:
+    """Render opening onepager to deterministic prompt text."""
+    lines: list[str] = ["OPENING ONEPAGER CONTRACT:"]
+    labels = (
+        ("opening_truths", "Opening Truths"),
+        ("must_include", "Must Include"),
+        ("must_exclude", "Must Exclude"),
+        ("active_cast_constraints", "Active Cast Constraints"),
+        ("continuity_checks", "Continuity Checks"),
+    )
+    wrote = False
+    for key, label in labels:
+        values = list(onepager.get(key) or [])
+        if not values:
+            continue
+        wrote = True
+        lines.append(f"{label}:")
+        lines.extend(f"- {v}" for v in values)
+    return "\n".join(lines) if wrote else ""
+
+
+def _chapter_index(doc: dict, cid: str) -> int:
+    """Resolve chapter id to 1-based chapter index for lifecycle gates."""
+    order = doc.get("chapters", {}).get("order", [])
+    if cid in order:
+        return order.index(cid) + 1
+    if str(cid).isdigit():
+        n = int(cid)
+        return n if n >= 1 else 1
+    return 1
+
+
+def _enforce_lifecycle_gate(doc: dict, cid: str, n: int, cast: list[dict]) -> None:
+    """Block chapter turn-1 execution when lifecycle seam constraints are violated."""
+    if n != 1:
+        return
+    packet = inherited_seam_packet(doc, cid)
+    active_cast_names = [str(c.get("name") or "").strip() for c in cast]
+    violations = validate_character_lifecycle(
+        packet,
+        chapter_id=_chapter_index(doc, cid),
+        active_cast_names=active_cast_names,
+    )
+    if not violations:
+        return
+
+    payload = {
+        "code": "LIFECYCLE_GATE_VIOLATION",
+        "chapter_id": str(cid),
+        "turn_n": n,
+        "violations": violations,
+    }
+    _LOG.warning("Lifecycle gate violation: %s", payload)
+    raise LifecycleGateError(payload)
+
+
+def _filter_roster_for_lifecycle(
+    doc: dict, chars: dict, cid: str, n: int, roster: list[str]
+) -> list[str]:
+    """Apply deterministic chapter-open lifecycle filtering to reviewed roster ids.
+
+    Boundary rule: chapter turn-1 cast admission uses the previous chapter's
+    committed seam packet as lifecycle authority. The hard lifecycle gate remains
+    in place after this filter; this is a source-side leak reduction, not a gate
+    relaxation.
+    """
+    if n != 1:
+        return roster
+
+    packet = inherited_seam_packet(doc, cid)
+    chapter_idx = _chapter_index(doc, cid)
+    names_by_id = {
+        char_id: str(chars["cards"].get(char_id, {}).get("name") or char_id).strip()
+        for char_id in roster
+    }
+    candidate_names = [name for name in names_by_id.values() if name]
+    violations = validate_character_lifecycle(
+        packet,
+        chapter_id=chapter_idx,
+        active_cast_names=candidate_names,
+    )
+    if not violations:
+        return roster
+
+    blocked = {_norm_name(v.get("name")) for v in violations}
+    filtered = [
+        char_id
+        for char_id in roster
+        if _norm_name(names_by_id.get(char_id)) not in blocked
+    ]
+    if filtered:
+        return filtered
+
+    payload = {
+        "code": "LIFECYCLE_GATE_VIOLATION",
+        "chapter_id": str(cid),
+        "turn_n": n,
+        "violations": violations,
+    }
+    _LOG.warning("Lifecycle gate violation: %s", payload)
+    raise LifecycleGateError(payload)
+
+
+def build_allowed_scene_cast(doc: dict, cid: str) -> list[str]:
+    """Build deterministic allowed cast names for chapter-close prose control.
+
+    Source-of-truth contract:
+    1) iterate ``characters.roster`` in roster order,
+    2) keep reviewed cards only,
+    3) apply lifecycle exclusions against inherited seam packet for chapter-open,
+    4) normalize names by lowercased/whitespace-collapsed matching keys.
+
+    Returned values are display names in stable roster order.
+    """
+    chars = dict(doc.get("characters") or {})
+    cards = dict(chars.get("cards") or {})
+    roster = list(chars.get("roster") or [])
+
+    reviewed_ids = [
+        char_id
+        for char_id in roster
+        if bool(dict(cards.get(char_id) or {}).get("reviewed"))
+    ]
+    if not reviewed_ids:
+        return []
+
+    name_by_id = {
+        char_id: str(dict(cards.get(char_id) or {}).get("name") or char_id).strip()
+        for char_id in reviewed_ids
+    }
+    candidate_names = [name for name in name_by_id.values() if name]
+    if not candidate_names:
+        return []
+
+    violations = validate_character_lifecycle(
+        inherited_seam_packet(doc, cid),
+        chapter_id=_chapter_index(doc, cid),
+        active_cast_names=candidate_names,
+    )
+    blocked = {_norm_name(v.get("name")) for v in violations}
+    out: list[str] = []
+    seen: set[str] = set()
+    for char_id in reviewed_ids:
+        name = name_by_id.get(char_id, "")
+        if not name:
+            continue
+        key = _norm_name(name)
+        if key in blocked or key in seen:
+            continue
+        seen.add(key)
+        out.append(name)
+    return out
+
+
 def chapter_recaps_text(doc: dict, cid: str) -> str:
     """Chapter ``cid``'s played recaps, in order, as one labelled block (FR-491 B)."""
     lines = []
@@ -203,6 +585,27 @@ def chapter_should_close(doc: dict, cid: str, n: int) -> bool:
 # threaded across chapters — both live here.
 
 
+def _retrieve_turn_ledger(doc: dict, cid: str) -> dict:
+    """The inherited ledger pruned to top-K cast-relevant relationships (FR-516).
+
+    Turn context must not drag every bond from a long saga into every turn; rank
+    the inherited active relationships by cast relevance × salience × recency and
+    keep at most ``RETRIEVAL_TOPK``. When the allowed cast is empty (no reviewed
+    roster yet) ranking would drop everything, so fall back to the full inherited
+    ledger — FR-516 bounds context, it never blanks it.
+    """
+    inherited = parse_world_state(inherited_world_state(doc, cid))
+    cast_names = build_allowed_scene_cast(doc, cid)
+    if not cast_names:
+        return inherited
+    ranked = rank_relationships(
+        inherited["relationships"], cast_names=cast_names, k=RETRIEVAL_TOPK
+    )
+    pruned = dict(inherited)
+    pruned["relationships"] = ranked
+    return pruned
+
+
 def running_scene(doc: dict, cid: str, n: int) -> str:
     """Chapter ``cid``'s play context for turn ``n`` (FR-491): its own plan + history.
 
@@ -216,10 +619,13 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
     card = _chapter_card(doc, cid)
     title = card.get("title") or f"Chapter {cid}"
     summary = card.get("summary", "")
-    inherited = format_world_state(inherited_world_state(doc, cid)).strip()
+    inherited = format_world_state(
+        _retrieve_turn_ledger(doc, cid), relationships="active"
+    ).strip()
+    seam = format_seam_packet(inherited_seam_packet(doc, cid)).strip()
     start = inherited or (
         "This is the opening chapter — there is no prior world state. Establish "
-        "the world from the synopsis and this chapter's summary."
+        "the chapter from this chapter's summary alone."
     )
     turns = chapter_turns(doc, cid)
     prior = [t.get("recap", {}).get("text", "") for t in turns[: n - 1]]
@@ -233,7 +639,7 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
             "occurred."
         )
     )
-    return (
+    scene = (
         f"THIS CHAPTER — {title} — its intended arc (the key events it drives "
         "toward, NOT events that have already happened):\n"
         f"{summary}\n\n"
@@ -244,6 +650,15 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
         f"{so_far}"
         f"{_beats_block(doc, cid, n)}"
     )
+    if n == 1 and seam:
+        scene += (
+            "\n\nCHAPTER SEAM CONTRACT (must honor at chapter opening):\n" f"{seam}"
+        )
+    if n == 1:
+        onepager = _format_opening_onepager(_compile_opening_onepager(doc, cid))
+        if onepager:
+            scene += f"\n\n{onepager}"
+    return scene
 
 
 def _beats_block(doc: dict, cid: str, n: int) -> str:
@@ -297,6 +712,7 @@ async def invoke_turn(
         for char_id in chars["roster"]
         if chars["cards"].get(char_id, {}).get("reviewed")
     ]
+    roster = _filter_roster_for_lifecycle(doc, chars, cid, n, roster)
     prev = prior_intents(doc, cid, n)
     cast = [
         {
@@ -306,6 +722,8 @@ async def invoke_turn(
         }
         for char_id in roster
     ]
+    _enforce_memory_precedence_gate(doc, cid, n)
+    _enforce_lifecycle_gate(doc, cid, n, cast)
     result = await get_app(TURN_GRAPH).ainvoke(
         {
             "cast": cast,
@@ -596,12 +1014,24 @@ def final_cut_context(doc: dict, cid: str) -> dict:
     climax_n = climax_turn(doc, cid)
     groups = beat_turn_groups(doc, cid)
     beats = chapter_beats(doc, cid)
+    # FR-510: inject confirmed-dead character names from prior seam so the
+    # final-cut LLM is told explicitly who cannot appear in narration.
+    prior_seam = parse_seam_packet(inherited_seam_packet(doc, cid))
+    dead = [
+        str(item.get("name") or "").strip()
+        for item in (prior_seam.get("character_lifecycle") or [])
+        if str(item.get("existence_state") or "").strip() == "confirmed_dead"
+        and str(item.get("name") or "").strip()
+    ]
+    allowed_cast = build_allowed_scene_cast(doc, cid)
     return {
         "key_scene": summary,
         "arc": _format_beat_groups(groups),
         "beats": "\n".join(f"- {b}" for b in beats),
         "climax": f"Turn {climax_n}" if turns else "",
         "beat_groups": _format_beat_groups(groups),
+        "dead_characters": ", ".join(dead),
+        "allowed_cast": ", ".join(allowed_cast),
     }
 
 

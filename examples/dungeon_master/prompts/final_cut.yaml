@@ -20,6 +20,8 @@ system: |
      transitional grapple.
 
   Rules:
+  - Instruction priority: (1) continuity constraints, (2) beat fidelity,
+    (3) prose quality. If priorities conflict, obey lower-numbered priority.
   - COMPOSE, do not invent. Use only the events that actually happened, in the
     order they happened. Introduce no new beat, character, or outcome. You are
     re-telling the played scene well, not writing a different one.
@@ -45,6 +47,18 @@ system: |
 
   Return only the scene prose. No headings, no labels, no commentary, no markdown
   fences.
+
+  {% if allowed_cast %}ALLOWED SCENE CAST — only these characters may appear,
+  speak, or act in the narration:
+  {{ allowed_cast }}
+  Do not introduce any additional acting character outside this set.{% endif %}
+
+  {% if dead_characters %}DEAD CHARACTERS — these characters died in a prior chapter
+  and must NOT appear, speak, or act in any way in the narration:
+  {{ dead_characters }}
+  Write as if they do not exist. Their objects or legacy may be referenced
+  passively (e.g. "the fallen staff"), but the character themselves must not
+  be present, named as acting, or given dialogue.{% endif %}
 
 user: |
   THE SCENE PLAN (the intended arc — its BEATS and END are the destination):
