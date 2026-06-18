@@ -253,6 +253,38 @@ async def apply_chapter_close(doc: dict, story_dir: Path, cid: str) -> None:
         card["reviewed"] = True
         _update_live_synopsis(doc, cid, card["chapter_memory"])
         story_doc.write(story_dir, doc)
+    await reoutline_next_chapter(doc, story_dir, cid)
+
+
+async def reoutline_next_chapter(doc: dict, story_dir: Path, cid: str) -> None:
+    """Re-author the NEXT chapter's beats from chapter ``cid``'s committed state (FR-523).
+
+    The state-aware re-outline write (J3): once ``cid`` has closed and committed its
+    ``world_state``/``seam_packet``, the chapter that inherits that state has its
+    beats re-derived (``chapter_ops.reoutline_chapter_beats``, a pure read) so a
+    lethal/exit beat is physically continuous with where the story left each actor —
+    closing the seam-teleport :func:`witness_metrics.seam_precondition_gap` measures.
+
+    Guarded (J7): a no-op unless a next chapter exists AND it has not been played
+    (no committed turns) AND it is not ``reviewed`` — a partially-played chapter must
+    not have its beats yanked out from under it. Only ``beats`` is rewritten; title
+    and summary stay frozen (J4). The up-front ``expand_chapters`` draft is untouched.
+    """
+    chs = chapters(doc)
+    order = chs.get("order", [])
+    if cid not in order:
+        return
+    i = order.index(cid)
+    if i + 1 >= len(order):
+        return  # no next chapter
+    next_cid = order[i + 1]
+    next_card = chs["cards"].get(next_cid)
+    if next_card is None:
+        return
+    if next_card.get("reviewed") or next_card.get("turns"):
+        return  # already played / reviewed — do not disturb
+    next_card["beats"] = await chapter_ops.reoutline_chapter_beats(doc, next_cid)
+    story_doc.write(story_dir, doc)
 
 
 async def compose_stage(

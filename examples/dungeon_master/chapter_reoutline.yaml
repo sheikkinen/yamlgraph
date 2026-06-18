@@ -1,0 +1,58 @@
+# Dungeon Master v2 — Chapter RE-outline graph (FR-523).
+#
+# State-aware single-chapter beat re-authoring. Unlike chapter_outline.yaml — the
+# whole-book partitioner that splits the synopsis into the fixed chapter set up
+# front, blind to play — this re-authors the BEATS of ONE chapter that has not yet
+# been played, given the PRIOR chapter's committed world_state + seam_packet. The
+# title and summary are frozen (they fix the whole-book partition and the planned-
+# reappearance clamp); only the beats are re-derived so a lethal/exit beat is made
+# physically continuous with the position the story actually left each actor in.
+#
+# This kills the seam-teleport in the spec (the One Law: normalize at the outliner
+# boundary, not downstream in the director/prose). See FR-523 and the condemning
+# witness witness_metrics.seam_precondition_gap.
+#
+# Output is STRUCTURED (parse_json: true): a {beats: [...]} object reusing the same
+# _beat_list / _require_beats parse as chapter_outline.
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/chapter_reoutline.yaml \
+#     --var synopsis="..." --var chapter_title="..." --var chapter_summary="..." \
+#     --var prior_world_state="..." --var prior_seam_packet="..." --full
+version: "1.0"
+name: dm-chapter-reoutline
+description: Re-author one unplayed chapter's beats from the prior chapter's state
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  max_tokens: 2000
+
+state:
+  synopsis: str
+  chapter_title: str
+  chapter_summary: str
+  prior_world_state: str
+  prior_seam_packet: str
+  reoutline: dict
+
+nodes:
+  reoutline:
+    type: llm
+    prompt: chapter_reoutline
+    state_key: reoutline
+    parse_json: true
+    variables:
+      synopsis: "{state.synopsis}"
+      chapter_title: "{state.chapter_title}"
+      chapter_summary: "{state.chapter_summary}"
+      prior_world_state: "{state.prior_world_state}"
+      prior_seam_packet: "{state.prior_seam_packet}"
+
+edges:
+  - from: START
+    to: reoutline
+  - from: reoutline
+    to: END

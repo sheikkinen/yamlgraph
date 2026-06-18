@@ -36,6 +36,14 @@ CHAR_PREFIX = "char:"
 # recaps, carrying it forward (J7). Numeric 1-based string ids — the set is FIXED
 # at derivation (no idempotent slug-append; J6).
 CHAPTER_OUTLINE_GRAPH = f"{GRAPH_DIR}/chapter_outline.yaml"
+# FR-523: state-aware single-chapter beat re-outline. After a chapter closes and
+# commits its world_state/seam_packet, the NEXT unplayed chapter's beats are
+# re-authored from that carried physical state so a lethal/exit beat is physically
+# continuous with where the story left each actor (kills the seam-teleport in the
+# spec — the One Law). A distinct graph from CHAPTER_OUTLINE_GRAPH, which is the
+# whole-book partitioner whose "no gap, no overlap" contract cannot author one
+# chapter; this re-authors BEATS ONLY (title/summary stay frozen).
+CHAPTER_REOUTLINE_GRAPH = f"{GRAPH_DIR}/chapter_reoutline.yaml"
 CHAPTER_CLOSE_GRAPH = f"{GRAPH_DIR}/chapter_close.yaml"
 CHAPTER_PREFIX = "chapter:"
 

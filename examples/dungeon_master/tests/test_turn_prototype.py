@@ -121,6 +121,18 @@ def _mock_execute_prompt(prompt_name, variables=None, **kwargs):
                 },
             ]
         }
+    if prompt_name == "chapter_reoutline":
+        # FR-523: after chapter 1 closes, chapter 2's beats are re-authored from the
+        # carried state. The harness echoes chapter 2's existing beats so the play
+        # path stays behavior-preserving (the real graph would bridge a lethal seam).
+        return {
+            "beats": [
+                "Kara reaches the ledge",
+                "Kara corners Tarek",
+                "the ledge floods",
+                "Tarek yields",
+            ]
+        }
     if prompt_name == "chapter_close":
         prev = variables.get("previous_world_state") or "none"
         return {

@@ -24,8 +24,15 @@ import re
 
 from examples.dungeon_master.api import turn_ops
 from examples.dungeon_master.api.graph_app import field, get_app
-from examples.dungeon_master.api.seam_packet import parse_seam_packet
-from examples.dungeon_master.api.tree import CHAPTER_CLOSE_GRAPH, CHAPTER_OUTLINE_GRAPH
+from examples.dungeon_master.api.seam_packet import (
+    format_seam_packet,
+    parse_seam_packet,
+)
+from examples.dungeon_master.api.tree import (
+    CHAPTER_CLOSE_GRAPH,
+    CHAPTER_OUTLINE_GRAPH,
+    CHAPTER_REOUTLINE_GRAPH,
+)
 from examples.dungeon_master.api.world_state import (
     apply_lane_floor,
     apply_ledger_delta,
@@ -548,6 +555,48 @@ async def outline_chapters(doc: dict) -> list[dict]:
     if not chapters:
         raise ValueError("chapter outline returned no chapters")
     return _require_beats(chapters)
+
+
+async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
+    """Re-author chapter ``cid``'s beats from the prior chapter's carried state (FR-523).
+
+    The chapter outliner is state-blind: it writes every chapter's beats from the
+    synopsis alone (``outline_chapters``), so a lethal/exit beat can land on an actor
+    the prior chapter left safe, with no beat bridging the two — the seam-teleport
+    condemned by :func:`witness_metrics.seam_precondition_gap`. This re-derives the
+    BEATS of one not-yet-played chapter from the synopsis + this chapter's FROZEN
+    title/summary + the PRIOR chapter's committed ``world_state``/``seam_packet``, so
+    the planner can author the bridging reposition beat the death requires — killing
+    the contradiction in the spec (``the_one_law``: normalize at the outliner
+    boundary, not downstream in the director/prose).
+
+    Pure (J2): invokes ``CHAPTER_REOUTLINE_GRAPH`` and returns the parsed,
+    ``_require_beats``-validated list; NEVER mutates ``doc`` and NEVER re-authors the
+    title or summary (J4). Raises rather than substituting an empty beat list
+    (Commandment 6: no silent fallback).
+    """
+    card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
+    result = await get_app(CHAPTER_REOUTLINE_GRAPH).ainvoke(
+        {
+            "synopsis": doc.get("synopsis", {}).get("text", ""),
+            "chapter_title": card.get("title", ""),
+            "chapter_summary": card.get("summary", ""),
+            "prior_world_state": format_world_state(
+                turn_ops.inherited_world_state(doc, cid)
+            ),
+            "prior_seam_packet": format_seam_packet(
+                turn_ops.inherited_seam_packet(doc, cid)
+            ),
+            "reoutline": {},
+        }
+    )
+    beats = _beat_list(result.get("reoutline") or {})
+    if not beats:
+        raise ValueError(
+            f"chapter {cid} re-outline returned no beats (FR-523); every chapter "
+            "must enumerate its key-event beats"
+        )
+    return beats
 
 
 async def close_chapter(doc: dict, cid: str) -> dict:
