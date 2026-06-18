@@ -283,3 +283,47 @@ the outliner so the unit gate (AC-1) passes; (3) corroborate — regenerate a Fl
 book and confirm `scan_beat_gaps.py → 0` (AC-2) with Arnulf's loss and return in
 DIFFERENT chapters. The committed `beat_coverage_gap` witness (`c6f197a3`) remains the
 standing corpus regression. Enforce against THIS frozen scope; deviations return here.
+
+---
+
+## Implementation Status — ENFORCED (GREEN)
+
+Built against the frozen scope above; no deviations.
+
+- **RED (`b42ff067`)** — `witness_metrics.reversal_pack_gap(card)` + 5 fixtures
+  (`tests/test_reversal_pack_gap.py`): fires on an over-packed card (Arnulf swept +
+  presumed drowned AND reappears alive → `gap_count==1`, `packed_actors==["Arnulf"]`),
+  clean on removal-only, return-only, and split-across-two-chapters controls, and
+  does not crash on an empty card. Precision hardened against the real 10024-BC
+  corpus: `_subjects_near(text, tokens, window=40)` attributes each removal/return
+  token to the nearest proper name BEFORE it (subject proximity), so the witness
+  fires on 10024-BC Ch3 = [Arnulf] ALONE and stays clean across all sixteen older
+  books — the same precision signature as `beat_coverage_gap`, its committed-artifact
+  dual. (First co-occurrence impl was a `plausible_wrong_answer`: fixtures passed,
+  real corpus over-fired on CH2 idiom and named Hilde/Gunnar/Aschenwulf in CH3.)
+
+- **GREEN (this commit)** —
+  - **A1 prompt rule** (`prompts/chapter_outline.yaml`): a character removed within a
+    chapter MUST NOT also return within that SAME chapter; the loss and the return
+    belong to DIFFERENT chapters (author the return as a beat of a LATER chapter).
+  - **Bounded-retry/raise resolution** (`chapter_ops.outline_chapters`): after each
+    outline, `_packed_chapters` runs `reversal_pack_gap` over every authored chapter;
+    on a pack the outline is re-invoked with `_reversal_feedback` (the named violation)
+    appended to the synopsis, up to `_OUTLINE_MAX_ATTEMPTS = 3` (first roll + two
+    corrected re-rolls); if the pack survives, RAISES `ValueError` (Commandment 6: no
+    silent fallback). Kept pure (layer-3 import of `reversal_pack_gap`; `lint-imports`
+    KEPT, 1 contract).
+  - **AC-1 unit gate** (`tests/test_chapters.py`, +3): packed-first-roll re-rolled to a
+    clean split is accepted; non-vacuous negative control — a removal-only outline
+    passes untouched with no spurious re-invoke; an always-packed outline RAISES after
+    exactly 3 attempts. Full DM suite 239 passed (+3); `lint-imports` KEPT; ruff clean.
+
+- **Corroboration (AC-2/AC-6)** — `scan_beat_gaps.py` regen pending (FR-522 instrument
+  posture: corroboration, not gate). The committed `beat_coverage_gap` witness
+  (`c6f197a3`) remains the standing corpus regression on the committed artifact.
+
+**Status: ENFORCED.** Prevention (this gate, at the partitioner boundary) +
+detection (`beat_coverage_gap`, at the committed artifact) are duals reading the same
+reversal from opposite ends of the pipeline. FR-526 remains return-to-plan pending the
+close-seam probe (J5: the split is sufficient — reappearance is honored by existing
+`CharacterLifecycle.allowed_reappearance_from_chapter` machinery).

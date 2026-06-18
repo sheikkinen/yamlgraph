@@ -23,7 +23,10 @@ import asyncio
 import copy
 from unittest.mock import patch
 
+import pytest
+
 from examples.dungeon_master.api import chapter_ops
+from examples.dungeon_master.api.witness_metrics import reversal_pack_gap
 
 SYNOPSIS_TEXT = "Kara leads the band against a rival raider as the floodwaters rise."
 
@@ -523,6 +526,112 @@ def test_outline_chapters_parses_structured_title_summary():
         "Chapter 2 — The Last Ledge",
     ]
     assert all(c["summary"] for c in chapters)
+
+
+# ── FR-525: the outliner split-gate (no chapter packs a removal AND return) ───
+
+# A single chapter that both removes Arnulf (swept away, presumed drowned) AND
+# returns him alive — the un-playable reversal the 16-turn cap (FR-501) would
+# force-close mid-arc. ``reversal_pack_gap`` fires on this card.
+_OVERPACKED_OUTLINE = {
+    "chapters": [
+        {
+            "title": "Chapter 1 — The Flood Takes Arnulf",
+            "summary": (
+                "Arnulf is swept away by the floodwaters and presumed drowned, "
+                "then Arnulf reappears alive on the far bank."
+            ),
+            "beats": ["Arnulf is swept away", "Arnulf reappears alive"],
+        }
+    ]
+}
+
+# The same reversal split across two chapters — each chapter clean on its own.
+_SPLIT_OUTLINE = {
+    "chapters": [
+        {
+            "title": "Chapter 1 — The Flood Takes Arnulf",
+            "summary": "Arnulf is swept away by the floodwaters and presumed drowned.",
+            "beats": ["Arnulf is swept away", "the band mourns him"],
+        },
+        {
+            "title": "Chapter 2 — The Return",
+            "summary": "Arnulf reappears alive on the far bank and rejoins the band.",
+            "beats": ["Arnulf reappears alive", "Arnulf rejoins the band"],
+        },
+    ]
+}
+
+# A loss with no return — clean on the first roll (negative control).
+_REMOVAL_ONLY_OUTLINE = {
+    "chapters": [
+        {
+            "title": "Chapter 1 — The Flood Takes Arnulf",
+            "summary": "Arnulf is swept away by the floodwaters and presumed drowned.",
+            "beats": ["Arnulf is swept away", "the band mourns him"],
+        }
+    ]
+}
+
+
+def _sequence_outline_mock(outlines: list[dict], calls: list[int]):
+    """A mock ``execute_prompt`` that yields each outline in turn (FR-525 retry)."""
+
+    seq = iter(outlines)
+
+    def _mock(prompt_name, variables=None, **kwargs):
+        if prompt_name == "chapter_outline":
+            calls.append(1)
+            try:
+                return next(seq)
+            except StopIteration as exc:  # pragma: no cover - guards over-invocation
+                raise AssertionError(
+                    "outline graph invoked more than expected"
+                ) from exc
+        raise AssertionError(f"unexpected prompt {prompt_name!r}")
+
+    return _mock
+
+
+def test_outline_chapters_retries_until_reversal_pack_clears():
+    # A packed first roll is re-rolled; the corrected split is accepted (FR-525).
+    doc = {"synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True}}
+    calls: list[int] = []
+    mock = _sequence_outline_mock([_OVERPACKED_OUTLINE, _SPLIT_OUTLINE], calls)
+    m1, m2 = _patched(mock)
+    with m1, m2:
+        chapters = _run(chapter_ops.outline_chapters(doc))
+    assert len(calls) == 2  # first packed → re-rolled once
+    assert all(reversal_pack_gap(c)["gap_count"] == 0 for c in chapters)
+    assert [c["title"] for c in chapters] == [
+        "Chapter 1 — The Flood Takes Arnulf",
+        "Chapter 2 — The Return",
+    ]
+
+
+def test_outline_chapters_clean_outline_is_not_re_rolled():
+    # Non-vacuous negative control: a removal-only outline passes untouched, with
+    # no spurious re-invoke (the gate fires only on an actual pack).
+    doc = {"synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True}}
+    calls: list[int] = []
+    mock = _sequence_outline_mock([_REMOVAL_ONLY_OUTLINE], calls)
+    m1, m2 = _patched(mock)
+    with m1, m2:
+        chapters = _run(chapter_ops.outline_chapters(doc))
+    assert len(calls) == 1  # clean → no retry
+    assert all(reversal_pack_gap(c)["gap_count"] == 0 for c in chapters)
+
+
+def test_outline_chapters_raises_when_pack_persists():
+    # Commandment 6: a pack that survives every bounded re-roll RAISES — the
+    # outliner never emits a packed outline downstream via silent fallback.
+    doc = {"synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True}}
+    calls: list[int] = []
+    mock = _sequence_outline_mock([_OVERPACKED_OUTLINE] * 3, calls)
+    m1, m2 = _patched(mock)
+    with m1, m2, pytest.raises(ValueError, match="packs a removal-and-return"):
+        _run(chapter_ops.outline_chapters(doc))
+    assert len(calls) == 3  # bounded: first roll + two corrected re-rolls
 
 
 # ── purity: chapter_ops must not mutate the doc it reads ──────────────────────

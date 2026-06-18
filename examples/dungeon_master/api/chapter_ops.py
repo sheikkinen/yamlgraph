@@ -33,6 +33,7 @@ from examples.dungeon_master.api.tree import (
     CHAPTER_OUTLINE_GRAPH,
     CHAPTER_REOUTLINE_GRAPH,
 )
+from examples.dungeon_master.api.witness_metrics import reversal_pack_gap
 from examples.dungeon_master.api.world_state import (
     apply_lane_floor,
     apply_ledger_delta,
@@ -528,6 +529,56 @@ def _require_beats(chapters: list[dict]) -> list[dict]:
     return chapters
 
 
+# FR-525: how many times the outliner re-rolls when a chapter packs a removal AND
+# return for one actor before raising (Commandment 6: no silent fallback). Three
+# attempts = the first roll plus two corrected re-rolls.
+_OUTLINE_MAX_ATTEMPTS = 3
+
+
+def _packed_chapters(chapters: list[dict]) -> list[dict]:
+    """Chapters that pack a same-actor removal-and-return (FR-525 over-pack).
+
+    Pure: applies :func:`witness_metrics.reversal_pack_gap` to each authored chapter
+    card and returns ``[{index, title, actors}]`` for every chapter that packs at
+    least one actor's loss and return — the un-playable reversals the 16-turn cap
+    (FR-501) would force-close mid-arc.
+    """
+    out: list[dict] = []
+    for i, ch in enumerate(chapters, start=1):
+        gap = reversal_pack_gap(ch)
+        if gap["gap_count"]:
+            out.append(
+                {
+                    "index": i,
+                    "title": str(ch.get("title") or ""),
+                    "actors": gap["packed_actors"],
+                }
+            )
+    return out
+
+
+def _reversal_feedback(packed: list[dict]) -> str:
+    """The correction block appended to the synopsis on an outline re-roll (FR-525).
+
+    Names each offending chapter and the actor(s) it both removes and returns, and
+    restates the hard rule, so the re-invoked outliner moves the return to a later
+    chapter rather than repeating the pack.
+    """
+    lines = [
+        f'- Chapter {p["index"]} ("{p["title"]}") removes AND returns: '
+        f"{', '.join(p['actors'])}"
+        for p in packed
+    ]
+    return (
+        "\n\nCORRECTION — your previous outline VIOLATED a hard rule: a character "
+        "removed within a chapter must not also return within that same chapter. "
+        "A chapter is played under a fixed turn budget and cannot portray both a "
+        "loss and the return that reverses it. Re-author so each of these losses "
+        "and its return are in DIFFERENT chapters (author the return as a beat of a "
+        "LATER chapter):\n" + "\n".join(lines)
+    )
+
+
 async def outline_chapters(doc: dict) -> list[dict]:
     """Split the accepted synopsis into an ordered list of ``{title, summary, beats}``.
 
@@ -537,24 +588,46 @@ async def outline_chapters(doc: dict) -> list[dict]:
     returns no chapters, and rejects any chapter without enumerated ``beats``
     (:func:`_require_beats`, FR-504 contract) — both per Commandment 6: no silent
     fallback.
+
+    FR-525 — split-gate: the partitioner can pack a death-and-return *reversal* into
+    one chapter, but the play loop closes a chapter at ``CHAPTER_TURN_CAP`` turns
+    (FR-501) and cannot portray both a loss and its reversing return. A chapter that
+    removes AND returns the same actor therefore force-closes mid-reversal, leaving
+    the return a phantom (``witness_metrics.beat_coverage_gap``). The cure normalizes
+    at the partitioner boundary (``the_one_law``): after each outline the
+    deterministic :func:`witness_metrics.reversal_pack_gap` checks every chapter; on a
+    pack the outline is re-invoked with the violation fed back (bounded retry), then
+    raises (no silent fallback) — never emitting a packed outline downstream.
     """
     synopsis = doc.get("synopsis", {}).get("text", "")
-    result = await get_app(CHAPTER_OUTLINE_GRAPH).ainvoke(
-        {"synopsis": synopsis, "outline": {}}
+    feedback = ""
+    packed: list[dict] = []
+    for _ in range(_OUTLINE_MAX_ATTEMPTS):
+        result = await get_app(CHAPTER_OUTLINE_GRAPH).ainvoke(
+            {"synopsis": synopsis + feedback, "outline": {}}
+        )
+        outline = result.get("outline") or {}
+        raw = outline.get("chapters") if isinstance(outline, dict) else None
+        chapters = [
+            {
+                "title": field(item, "title"),
+                "summary": field(item, "summary"),
+                "beats": _beat_list(item),
+            }
+            for item in (raw or [])
+        ]
+        if not chapters:
+            raise ValueError("chapter outline returned no chapters")
+        chapters = _require_beats(chapters)
+        packed = _packed_chapters(chapters)
+        if not packed:
+            return chapters
+        feedback = _reversal_feedback(packed)
+    raise ValueError(
+        "chapter outline packs a removal-and-return reversal into one chapter after "
+        f"{_OUTLINE_MAX_ATTEMPTS} attempts (FR-525); a character lost within a chapter "
+        f"must return in a LATER chapter: {packed}"
     )
-    outline = result.get("outline") or {}
-    raw = outline.get("chapters") if isinstance(outline, dict) else None
-    chapters = [
-        {
-            "title": field(item, "title"),
-            "summary": field(item, "summary"),
-            "beats": _beat_list(item),
-        }
-        for item in (raw or [])
-    ]
-    if not chapters:
-        raise ValueError("chapter outline returned no chapters")
-    return _require_beats(chapters)
 
 
 async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
