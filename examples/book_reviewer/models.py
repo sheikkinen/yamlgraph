@@ -84,6 +84,18 @@ class ChapterReview(BaseModel):
         default_factory=list, description="Specific, quotable problems in this chapter"
     )
 
+    @field_validator("criteria", mode="before")
+    @classmethod
+    def _coerce_criteria(cls, v: object) -> list:
+        """Coerce criteria to a list; if LLM returns a non-list, return empty.
+
+        Accepts both dicts and CriterionScore objects; Pydantic will convert as needed.
+        """
+        if not isinstance(v, list):
+            return []
+        # Return the list as-is; Pydantic will convert items to CriterionScore
+        return v
+
     @field_validator("issues", mode="before")
     @classmethod
     def _coerce_issues(cls, v: object) -> list[str]:
@@ -104,6 +116,15 @@ class PairContinuity(BaseModel):
 
     between: tuple[int, int] = Field(description="(N, N+1)")
     breaks: list[str] = Field(default_factory=list)
+
+    @field_validator("breaks", mode="before")
+    @classmethod
+    def _coerce_breaks(cls, v: object) -> list[str]:
+        """Coerce breaks to a list of strings; if LLM returns non-list, return empty."""
+        if not isinstance(v, list):
+            return []
+        # Convert items to strings, skip empty ones
+        return [str(item).strip() for item in v if item and str(item).strip()]
 
 
 class ContinuityReport(BaseModel):
@@ -127,6 +148,14 @@ class SynopsisBeats(BaseModel):
     undelivered: list[str] = Field(
         default_factory=list, description="Promised beats with no chapter coverage"
     )
+
+    @field_validator("promised", "undelivered", mode="before")
+    @classmethod
+    def _coerce_beat_lists(cls, v: object) -> list[str]:
+        """Coerce beat lists to strings; if non-list, return empty."""
+        if not isinstance(v, list):
+            return []
+        return [str(item).strip() for item in v if item and str(item).strip()]
 
 
 class SynopsisDelivery(BaseModel):

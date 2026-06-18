@@ -430,14 +430,20 @@ def _as_dict(value: object) -> dict:
 
 
 def compute_node(state: dict) -> dict:
-    """Deterministic reduce: compute every numeric score (verdict left empty)."""
+    """Deterministic reduce: compute every numeric score (verdict left empty).
+
+    Filters out error dicts from map collection (items with _error key) before validation.
+    """
+    # Filter out error markers from failed map items; only validate good dicts
     reviews = [
         ChapterReview.model_validate(_as_dict(r))
         for r in state.get("chapter_reviews", [])
+        if not isinstance(r, dict) or "_error" not in r
     ]
     pairs = [
         PairContinuity.model_validate(_as_dict(p))
         for p in state.get("pair_continuities", [])
+        if not isinstance(p, dict) or "_error" not in p
     ]
     beats = SynopsisBeats.model_validate(_as_dict(state.get("synopsis_beats", {})))
     review = compute_review(reviews, pairs, beats)
