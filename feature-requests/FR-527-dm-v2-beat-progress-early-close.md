@@ -2,16 +2,17 @@
 
 **Priority:** HIGH
 **Type:** Bug (engagement defect, authored at play time)
-**Status:** **JUDGED — scope frozen, authorized for enforce (2026-06-18).** Boundary
-confirmed: the play-loop close decision (`turn_ops.chapter_should_close`), a single
-predicate three runtime call sites inherit (J1). Scope frozen to **Fix A only** — the
-deterministic beat-progress stall guard (J5). **Fix B REJECTED**: `scene_complete` is
-COMPUTED `k == n` in `_apply_beat_ledger`, not director-authored — a prompt cannot
-"flip" it (J2). The "close when all beats satisfied" alternative is not rejected — it
-IS the existing `scene_complete`; the disease is the plateau at `k < n` (J3). The
-plateau's frequent cause (an un-satisfiable-in-scene epilogue beat) is an OUTLINER
-boundary issue, OUT OF SCOPE, recorded as a seed (J4). See Judgement below.
-**Effort:** ~0.5 day (Fix B dropped)
+**Status:** **FALSIFIED AT ENFORCE — Fix A abandoned, re-scoped to FR-528 (2026-06-18).**
+The judged Fix A (deterministic beat-progress stall guard) was implemented under TDD,
+and its own load-bearing J6 corpus safety check **falsified it**: natural directors
+routinely pause beat-marking mid-scene for up to **9 turns** and resume, so the
+count-plateau signal cannot separate a *finished* director from a *pausing* one. Any
+stall window small enough to cut the waste tail also preempts natural pauses; any
+window large enough to spare them (> 9) shrinks to the cap (saving ~0 turns). The
+production guard was reverted; the real cure is the OUTLINER refusing to author an
+un-satisfiable-in-scene final beat (J4 seed → **FR-528**). See *Enforcement Outcome*
+below. (Prior status: JUDGED — scope frozen, authorized for enforce, 2026-06-18.)
+**Effort:** Fix A dead-ended; cure deferred to FR-528
 **Requested:** 2026-06-18
 
 ## Summary
@@ -213,6 +214,53 @@ lever, and replaces the fuzzy corroboration AC with a deterministic counterfactu
 change to the `scene_complete = (k == n)` computation are OUT. **Build order:** RED
 (condemn the CH8 plateau + the corpus counterfactual) → GREEN (add `_beats_stalled`,
 wire the predicate) → corroborate (regen floodmark, re-run `scan_turn_waste.py`).
+
+## Enforcement Outcome (2026-06-18 — Fix A falsified by its own J6 gate)
+
+Fix A was implemented exactly as judged (RED committed `a2a92f4f`: the CH8 plateau
+condemned + the J6 corpus counterfactual; GREEN added `_beats_stalled` /
+`BEAT_STALL_LIMIT = 3` / wired `chapter_should_close`). The GREEN run then **failed
+the J6 corpus safety check** — the one the judgement made load-bearing precisely to
+catch this:
+
+```
+10003-BC CH5: stall guard preempted natural close at t9 (scene_complete @t14)
+```
+
+A full corpus scan (`outputs/dungeon-master/100*-BC`, 18 books) proved the failure is
+structural, not a tuning miss:
+
+- **Natural directors pause and resume.** A count-plateau (no `beats_satisfied`
+  growth) is NOT a "scene over" signal — it is routine mid-scene. The longest plateau
+  *preceding a natural `scene_complete`* is **9 turns**: `10013-BC CH1`,
+  `counts=[0,2,2,2,2,2,2,2,2,2,3,3,5]` — frozen at 2 for t2..t10, then resumes and
+  closes at t13. ~24 naturally-closing chapters contain a >=3-turn pre-close plateau.
+- **No useful separation exists.** To never preempt a natural close, `BEAT_STALL_LIMIT`
+  must exceed 9. But of the 27 force-capped waste chapters, **18 have a frozen tail
+  shorter than 9 turns** — at any safe limit they get zero benefit. The few long-tail
+  cases fire essentially at the cap: the motivating `10025-BC CH8` froze at k=4 for 11
+  turns (t6..t16); at limit 9 the guard fires at t15, saving **one** turn before the
+  16-turn cap. The benefit the FR promised (close ~t9, save 7) evaporates entirely.
+- **The discriminators the judgement assumed do not discriminate.** `k == total-1`
+  (only the final beat missing) does not separate either: `10005-BC CH3` plateaus at
+  exactly 4/5 for 4 turns, then resumes to 5/5 and closes naturally. And `beats_total`
+  is `0` in older books (pre-FR-503 recording), so it is not even a readable signal.
+
+**Why the judgement missed it.** J6 spot-checked a single easy trace (CH1's
+`0,1,2,2,3,3,5`, which happens to never plateau for 3) and generalized. The
+worst-case corpus member (`10013-BC CH1`'s 9-turn plateau) was never enumerated. The
+gate's *design* was correct — running it over the **whole** corpus, not one trace, is
+what exposed the flaw. The witness won (`Respect the RED — the witness wins`).
+
+**Resolution.** The production guard was reverted to the FR-501 form
+(`scene_complete OR n >= CHAPTER_TURN_CAP`). The RED-era unit tests asserting "close
+on stall" encoded a now-falsified requirement and were replaced by a single corpus
+test, `test_beat_plateau_signal_is_non_separable`, which pins the overlap (longest
+natural plateau >= 9 turns AND waste tails shorter than it) so the dead end is never
+retried. The cure moves to the boundary J4 already named: the **outliner** must not
+author a final beat the capped scene can never reach (**FR-528**). FR-527 stands as
+the recorded falsification — the cheapest bug is the one killed at the gate before it
+ships.
 
 ## Acceptance Criteria
 

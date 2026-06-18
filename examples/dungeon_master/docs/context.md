@@ -42,14 +42,17 @@ knows.
   `allowed_reappearance_from_chapter`; the close softens it to
   `missing_presumed_dead`, preserving the allowance. Pure packet-only, applied after
   the index clamp.
-- **FR-527** — **proposed** (judgement pending). **Beat-progress early close**: the
-  play loop closes a chapter only on `scene_complete` or the FR-501 16-turn cap,
-  never on `beats_satisfied`. A director that covers its playable beats then freezes
-  rides the cap, replaying the resolved scene. Witness `scan_turn_waste.py` sized it
-  at **208 wasted turns over 127 chapters (14/18 books)**. Fix: a deterministic
-  `_beats_stalled` guard (close on a 3-turn beat-progress stall; cap stays backstop)
-  + a director nudge to flip `scene_complete` on satisfiable-beat coverage. The
-  under-use dual of FR-501 (runaway) and FR-525 (over-commit).
+- **FR-527** — **FALSIFIED at enforce → re-scoped to FR-528**. **Beat-progress early
+  close**: the play loop closes a chapter only on `scene_complete` or the FR-501
+  16-turn cap, never on `beats_satisfied`. A director that covers its playable beats
+  then freezes rides the cap, replaying the resolved scene. Witness
+  `scan_turn_waste.py` sized it at **208 wasted turns over 127 chapters (14/18
+  books)**. The proposed `_beats_stalled` guard (close on a 3-turn beat-progress
+  stall) was implemented under TDD and **falsified by its own J6 corpus safety
+  check**: natural directors pause beat-marking mid-scene for up to **9 turns** then
+  resume, so a count plateau is mid-scene noise, not a scene-end signal — no stall
+  window both spares natural pauses and cuts the waste tail. Guard reverted; the cure
+  is the OUTLINER refusing to author an un-satisfiable-in-scene final beat (FR-528).
 
 The lesson threaded through this arc: **for a stochastic generator, enforcement is
 removing the option (drop the actor from the cast), never discouraging the choice

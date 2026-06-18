@@ -267,72 +267,30 @@ def test_accept_target_keeps_advancing_below_budget():
     assert navigation.accept_target(doc, stage) == f"turn:1:{cap}"
 
 
-# ── FR-527: beat-progress early close (stop the no-progress tail) ─────────────
+# ── FR-527: beat-progress early close -- FALSIFIED at enforce ─────────────────
 #
-# A chapter whose director satisfies the beats it CAN satisfy but never reaches
-# ``scene_complete`` (k == n) plateaus at k < n and rides the FR-501 cap, replaying
-# the resolved scene. The deterministic ``_beats_stalled`` guard closes such a
-# chapter once its ``beats_satisfied`` count has not grown across the last
-# ``BEAT_STALL_LIMIT`` turns. The hard cap stays the ultimate backstop; an opening
-# that has established nothing (count == 0) is never early-closed.
+# Premise: a chapter whose director satisfies the beats it CAN satisfy but never
+# reaches ``scene_complete`` (k == n) plateaus at k < n and rides the FR-501 cap,
+# replaying the resolved scene (the no-progress tail, ~208 turns over 127 chapters).
+# Proposed cure (Fix A): close such a chapter once its ``beats_satisfied`` count has
+# not grown for ``BEAT_STALL_LIMIT`` turns.
+#
+# The judgement's own load-bearing J6 corpus safety check FALSIFIED Fix A during
+# enforce: natural directors routinely PAUSE beat-marking mid-scene and RESUME.
+# The longest such pause in a naturally-closing chapter is 9 turns (10013-BC CH1:
+# count freezes at 2 for t2..t10, then resumes and closes at t13). Any stall limit
+# small enough to cut a waste tail also preempts these natural pauses, and any limit
+# large enough to spare them (> 9) shrinks to the cap (the CH8 waste tail of 11
+# turns fires at t16 == the cap, saving zero turns). The count-plateau signal cannot
+# separate a *finished* director from a *pausing* one. Fix A is abandoned; the real
+# cure is the outliner refusing to author a final beat the capped scene can never
+# reach (FR-528). This test pins the non-separability so the dead end is not retried.
 
 
-def _beat_count_turns(
-    counts: list[int], *, scene_complete_at: int | None = None
-) -> list[dict]:
-    """Played turns whose ``beats_satisfied`` has the given per-turn lengths."""
-    return [
-        {
-            "n": i,
-            "recap": {"text": f"Turn {i}", "reviewed": True},
-            "direction": {
-                "beats_satisfied": [f"b{j}" for j in range(c)],
-                "scene_complete": i == scene_complete_at,
-            },
-        }
-        for i, c in enumerate(counts, 1)
-    ]
-
-
-def test_chapter_should_close_on_beat_progress_stall():
-    # The recorded 10025-BC CH8 plateau: counts climb to 4 by t6, then freeze.
-    # count(9) == count(9 - 3) == 4 and count(9) >= 1 -> stalled at t9, seven turns
-    # before the 16-turn cap. Pre-fix this is False (no scene_complete, n < cap).
-    doc = _playing_doc(_beat_count_turns([0, 1, 2, 2, 3, 4, 4, 4, 4]))
-    assert turn_ops.chapter_should_close(doc, "1", 9) is True
-
-
-def test_beats_stalled_exact_semantics():
-    # n > limit AND count(n) == count(n - limit) AND count(n) >= 1.
-    doc = _playing_doc(_beat_count_turns([0, 1, 2, 2, 3, 4, 4, 4, 4]))
-    assert turn_ops._beats_stalled(doc, "1", 9, turn_ops.BEAT_STALL_LIMIT) is True
-    # First stall turn is exactly t9, not t8 (count(8)=4 vs count(5)=3 -> grew).
-    assert turn_ops._beats_stalled(doc, "1", 8, turn_ops.BEAT_STALL_LIMIT) is False
-
-
-def test_beats_not_stalled_when_count_still_growing():
-    # count grew between t3 (3) and t6 (4) -> within the last 3 turns -> not stalled.
-    doc = _playing_doc(_beat_count_turns([3, 3, 3, 4, 4, 4]))
-    assert turn_ops.chapter_should_close(doc, "1", 6) is False
-
-
-def test_beats_not_stalled_on_empty_opening():
-    # A flat run of zero satisfied beats (count == 0) is an un-established opening,
-    # not a stall: the count >= 1 clause forbids closing it early.
-    doc = _playing_doc(_beat_count_turns([0, 0, 0, 0]))
-    assert turn_ops.chapter_should_close(doc, "1", 4) is False
-
-
-def test_beats_stalled_needs_more_turns_than_limit():
-    # n <= limit can never be a stall (no full window to compare against).
-    doc = _playing_doc(_beat_count_turns([4, 4, 4]))
-    assert turn_ops._beats_stalled(doc, "1", 3, turn_ops.BEAT_STALL_LIMIT) is False
-
-
-def test_recorded_corpus_guard_never_preempts_natural_close():
-    # J6 deterministic safety check: over every recorded book, the stall guard must
-    # NEVER fire strictly before a chapter's existing scene_complete turn -- proving
-    # it cannot shorten a chapter that closes naturally today. Pure, no live LLM.
+def test_beat_plateau_signal_is_non_separable():
+    # Over every recorded book, the longest count-plateau (>=1) that PRECEDES a
+    # natural scene_complete must be >= the shorter waste-case tails -- proving no
+    # single stall window both spares natural pauses and cuts the waste tail.
     import json
     from pathlib import Path
 
@@ -340,13 +298,19 @@ def test_recorded_corpus_guard_never_preempts_natural_close():
     stories = sorted((root / "outputs" / "dungeon-master").glob("100*-BC/story.json"))
     if not stories:
         return  # corpus absent in this checkout -- nothing to assert
-    limit = turn_ops.BEAT_STALL_LIMIT
+
+    max_natural_plateau = 0
+    waste_tails: list[int] = []
     for story in stories:
         doc = json.loads(story.read_text())
         chapters = doc.get("chapters") or {}
         for cid in chapters.get("order") or []:
             card = (chapters.get("cards") or {}).get(cid) or {}
             turns = card.get("turns") or []
+            counts = [
+                len((t.get("direction") or {}).get("beats_satisfied") or [])
+                for t in turns
+            ]
             complete_turn = next(
                 (
                     i
@@ -355,10 +319,32 @@ def test_recorded_corpus_guard_never_preempts_natural_close():
                 ),
                 None,
             )
-            if complete_turn is None:
-                continue
-            for n in range(1, complete_turn):
-                assert not turn_ops._beats_stalled(doc, cid, n, limit), (
-                    f"{story.name} CH{cid}: stall guard preempted natural close "
-                    f"at t{n} (scene_complete @t{complete_turn})"
-                )
+            if complete_turn is not None:
+                run = 1
+                for i in range(1, complete_turn):
+                    if counts[i - 1] >= 1 and counts[i - 1] == counts[i]:
+                        run += 1
+                        max_natural_plateau = max(max_natural_plateau, run)
+                    else:
+                        run = 1
+            elif counts:
+                last, tail = counts[-1], 0
+                for c in reversed(counts):
+                    if c == last and c >= 1:
+                        tail += 1
+                    else:
+                        break
+                waste_tails.append(tail)
+
+    # Natural directors pause beat-marking for many turns then resume: the signal is
+    # noisy. A safe limit must exceed the longest natural plateau, yet most waste
+    # tails are shorter than it -- so a count-plateau guard cannot both spare natural
+    # closes and meaningfully cut the waste. This is why Fix A was abandoned.
+    assert (
+        max_natural_plateau >= 9
+    ), f"expected a long natural plateau in the corpus, got {max_natural_plateau}"
+    spared_waste = sum(1 for t in waste_tails if t <= max_natural_plateau)
+    assert spared_waste > 0, (
+        "expected waste tails shorter than the longest natural plateau -- the "
+        "overlap that makes the count-plateau signal non-separable"
+    )
