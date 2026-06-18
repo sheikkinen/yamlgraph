@@ -609,6 +609,84 @@ def unplayable_beat_gap(card: dict) -> dict:
     }
 
 
+# FR-527/FR-531: the no-progress turn-cap tail. A chapter's only natural exit is its
+# director emitting ``scene_complete``; absent that the FR-501 cap force-closes it.
+# ``book_turn_waste`` measures the run of end-of-chapter turns during which the
+# director's ``beats_satisfied`` set never grew -- the planner had covered every beat
+# it ever would, yet kept the chapter open replaying the same material. Extracted here
+# (from scan_turn_waste.py) so both the hand-run instrument and the FR-531 unified
+# report reuse one measurement (no duplication). CHAPTER_TURN_CAP mirrors
+# turn_ops.CHAPTER_TURN_CAP (FR-501); kept local to keep this module import-light.
+CHAPTER_TURN_CAP = 16
+# A short denouement after the last beat lands is normal; only a longer stall counts.
+TURN_WASTE_STALL_THRESHOLD = 3
+
+
+def _turn_direction(turn: dict) -> dict:
+    return turn.get("direction") or {}
+
+
+def _turn_satisfied_count(turn: dict) -> int:
+    return len(
+        {
+            s.strip()
+            for s in (_turn_direction(turn).get("beats_satisfied") or [])
+            if isinstance(s, str) and s.strip()
+        }
+    )
+
+
+def _last_progress_turn(turns: list[dict]) -> int:
+    """1-based index of the last turn whose ``beats_satisfied`` count grew."""
+    last = 0
+    high = 0
+    for i, turn in enumerate(turns, 1):
+        count = _turn_satisfied_count(turn)
+        if count > high:
+            high = count
+            last = i
+    return last
+
+
+def _scene_complete_turn(turns: list[dict]) -> int | None:
+    for i, turn in enumerate(turns, 1):
+        if _turn_direction(turn).get("scene_complete"):
+            return i
+    return None
+
+
+def book_turn_waste(story_doc: dict) -> dict:
+    """No-progress turn-cap waste across a whole book (FR-527 instrument, FR-531 reuse).
+
+    Pure: reads each chapter's committed ``turns`` side-channel and sums the
+    end-of-chapter run during which ``beats_satisfied`` never grew, counting only
+    chapters that rode the hard cap (``scene_complete`` never fired) AND stalled
+    longer than the denouement threshold. Returns ``{wasted_turns, capped_chapters,
+    chapters}``.
+    """
+    chapters = story_doc.get("chapters") or {}
+    order = list(chapters.get("order") or [])
+    cards = chapters.get("cards") or {}
+    wasted = 0
+    capped_chapters = 0
+    for cid in order:
+        card = cards.get(cid) or {}
+        turns = card.get("turns") or []
+        played = len(turns)
+        capped = played >= CHAPTER_TURN_CAP and _scene_complete_turn(turns) is None
+        if not capped:
+            continue
+        stall = played - _last_progress_turn(turns)
+        if stall > TURN_WASTE_STALL_THRESHOLD:
+            wasted += stall
+            capped_chapters += 1
+    return {
+        "wasted_turns": wasted,
+        "capped_chapters": capped_chapters,
+        "chapters": len(order),
+    }
+
+
 def evaluate_fr508_a5(log_metrics: dict, story_metrics: dict) -> dict:
     """Evaluate FR-508 A5 pass/fail thresholds."""
     completed_equals_planned = int(
