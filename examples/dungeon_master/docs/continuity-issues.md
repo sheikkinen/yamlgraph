@@ -75,8 +75,8 @@ flowchart TD
         D3[FR-525 outliner split-gate<br/>forbid un-playable reversal in one capped chapter]
         D4[FR-526 close-seam lifecycle coherence<br/>confirmed_dead + reappearance → presumed_dead]
     end
-    subgraph W5["Wave 5 · Pacing-as-continuity (FR-527)"]
-        E1[FR-527 beat-progress early close — JUDGED, not yet enforced<br/>stop the no-progress tail that replays a resolved scene]
+    subgraph W5["Wave 5 · Pacing-as-continuity (FR-527 → FR-528)"]
+        E1[FR-527 beat-progress stall guard — FALSIFIED at enforce<br/>a count plateau is mid-scene noise, not a scene-end signal<br/>cure moves upstream to the outliner: FR-528]
     end
     W1 --> W2 --> W3 --> W4 --> W5
 ```
@@ -147,7 +147,7 @@ the physical end-state the prior chapter carried:
   yet carries a reappearance allowance is self-contradictory; soften it to
   `missing_presumed_dead`, preserving the authored return intent.
 
-### Wave 5 — pacing that reads as continuity (FR-527, judged, not yet enforced)
+### Wave 5 — pacing that reads as continuity (FR-527 FALSIFIED → FR-528)
 
 A chapter's only natural exit is the director computing `scene_complete` (`k == n`
 beats). When a chapter plateaus at `k < n` (e.g. an epilogue/time-skip beat the ridge
@@ -155,10 +155,22 @@ scene can never reach), `beats_satisfied` freezes but turns keep playing to the 
 cap, **replaying the resolved confrontation**. Across the corpus the
 `scan_turn_waste.py` witness measured **208 wasted turns over 127 chapters**.
 `10025-BC` Ch8 is the worst single instance (4 of 5 beats reached at turn 6, frozen
-through turn 16) and scored **engagement 1/5**. FR-527 adds a deterministic
-**no-progress stall guard** to `chapter_should_close`; the prompt-lever half was
-rejected because `scene_complete` is *computed*, not authored. **Status: judged,
-authorized for enforce — the guard is not yet in `turn_ops.chapter_should_close`.**
+through turn 16) and scored **engagement 1/5**.
+
+FR-527 proposed a deterministic **no-progress stall guard** in `chapter_should_close`
+(close once `beats_satisfied` has not grown for K turns). It was implemented under TDD
+and **falsified by its own load-bearing J6 corpus safety check**: natural directors
+routinely *pause* beat-marking mid-scene and resume — the longest such pause before a
+natural `scene_complete` is **9 turns** (`10013-BC CH1`). A count plateau therefore
+cannot distinguish a *finished* director from a *pausing* one; any stall window safe
+for natural pauses (> 9) shrinks to the cap and saves ~0 turns, while 18 of 27 waste
+chapters freeze for fewer than 9 turns and get no benefit at all. The guard was
+reverted (production unchanged), the dead end pinned by
+`test_beat_plateau_signal_is_non_separable`, and the cure moved **upstream to the
+outliner (FR-528)**: stop authoring a final beat the capped scene can never reach, so
+the plateau never forms. This is the same lesson as FR-521 S1 / FR-524 — *the symptom's
+boundary is rarely the cure's boundary* — and it joins the falsified-cure record
+deliberately. **Status: FALSIFIED at enforce; cure re-scoped to FR-528.**
 
 ---
 
@@ -185,7 +197,7 @@ flowchart TD
             MAP["map(cast → intents)<br/>cast filtered by lifecycle + cast_exits (FR-521 S2)"]
             MAP --> DIR["director: phase, beats_satisfied,<br/>continuity, cast_exits, scene_complete"]
             DIR --> RECAP[recap paragraph]
-            RECAP --> CLOSE_Q{"chapter_should_close?<br/>scene_complete OR n≥16<br/>(+ beat-stall guard — FR-527 PENDING)"}
+            RECAP --> CLOSE_Q{"chapter_should_close?<br/>scene_complete OR n≥16<br/>(beat-stall guard FR-527 FALSIFIED — reverted)"}
             CLOSE_Q -->|no| MAP
         end
         CLOSE_Q -->|yes| CC["close_chapter<br/>final_cut prose constrained by ledger (FR-519)"]
@@ -264,9 +276,12 @@ contradict it — and the independent reviewer, which *does* read across seams, 
 the drift the generation pipeline cannot see.
 
 **Gap 2 — the no-progress tail is a continuity defect in disguise.** Ch8's 1/5 is the
-FR-527 stall: the chapter replays Ch7's already-resolved Arnulf conflict ~15 times. The
-repetition itself reads as the story "un-resolving." FR-527 is judged but **not yet
-enforced** — landing it is the single highest-leverage open item.
+no-progress tail: the chapter replays Ch7's already-resolved Arnulf conflict ~15 times.
+The repetition itself reads as the story "un-resolving." FR-527 tried to cut the tail at
+the play boundary with a beat-stall guard but was **falsified at enforce** — a count
+plateau is indistinguishable from a routine mid-scene pause (up to 9 turns in the
+corpus). The cure moves upstream to the outliner (**FR-528**): stop authoring a final
+beat the capped scene can never reach, so the plateau never forms.
 
 **Gap 3 — seam state jumps at the chapter boundary.** Arnulf on the ridge in Ch6 then
 "emerging from the water" in Ch7; integrated in Ch7 then re-convinced in Ch8. These are
@@ -283,6 +298,13 @@ faction, relationships) — the state that has a *typed lane in the ledger*. It 
 on **physical state** (position, props, phase) — the state that has *no typed lane* and
 is left to the prose. The reviewer's complaints are almost entirely in that untracked
 lane. **The next boundary to normalize is positional/prop micro-state.**
+
+The FR-527 falsification sharpened the same march once more: a defect that *manifests*
+as pacing at the play boundary could not be cured there, because the only deterministic
+"scene is over" signal at that boundary is `scene_complete` (`k == n`) — and the
+plateau is precisely its absence. The cure had to retreat one boundary upstream to the
+outliner that authored the unreachable beat. *Where a symptom can be measured is rarely
+where it can be fixed.*
 
 ---
 
@@ -360,7 +382,7 @@ hides between instruments.
 
 | Step | Type | Effort | Closes |
 |------|------|--------|--------|
-| 5.1 Land FR-527 stall guard | Enforce (scoped) | ~0.5d | Gap 2 (no-progress tail) |
+| 5.1 FR-527 stall guard | FALSIFIED at enforce | — | dead end; cure → 5.2 |
 | 5.2 Outliner playable-beat gate (FR-528) | New FR | ~1d | Gap 2 root cause |
 | 5.3 Positional/prop state lane | New FR | 1–3d | Gap 1 + Gap 3 (the bulk) |
 | 5.4 Reviewer continuity as in-loop signal | New FR | 1–2d | Visibility → correction |
@@ -381,5 +403,6 @@ hides between instruments.
 - **Diary:** `docs/diary/diary-2026-06-16-the-ledger-that-was-a-string.md`,
   `diary-2026-06-17-the-ledger-was-a-memory-system.md`,
   `diary-2026-06-16-the-chapter-that-would-not-end.md`,
-  `diary-2026-06-17-the-bond-that-reset-at-every-chapter-break.md`
+  `diary-2026-06-17-the-bond-that-reset-at-every-chapter-break.md`,
+  `diary-2026-06-18-the-gate-that-failed-its-own-cure.md` (FR-527 falsification)
 - **Architecture:** [`architecture.md` §5a — the ledger as agent memory](architecture.md#5a-the-ledger-as-agent-memory-fr-513518)
