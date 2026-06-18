@@ -33,7 +33,10 @@ from examples.dungeon_master.api.tree import (
     CHAPTER_OUTLINE_GRAPH,
     CHAPTER_REOUTLINE_GRAPH,
 )
-from examples.dungeon_master.api.witness_metrics import reversal_pack_gap
+from examples.dungeon_master.api.witness_metrics import (
+    reversal_pack_gap,
+    unplayable_beat_gap,
+)
 from examples.dungeon_master.api.world_state import (
     apply_lane_floor,
     apply_ledger_delta,
@@ -612,6 +615,57 @@ def _reversal_feedback(packed: list[dict]) -> str:
     )
 
 
+def _unplayable_chapters(chapters: list[dict]) -> list[dict]:
+    """Chapters whose FINAL beat is an unplayable time-skip epilogue (FR-528).
+
+    Pure: applies :func:`witness_metrics.unplayable_beat_gap` to each authored
+    chapter card and returns ``[{index, title, beat, marker}]`` for every chapter
+    whose last beat LEADS with a future-time-skip ("By autumn, …"). A bounded scene
+    (FR-501) can never enact such a beat, so ``scene_complete = (k == n)`` never fires
+    and the chapter rides the cap (the no-progress tail FR-527 mis-treated as a play
+    symptom). The cure normalizes at the partitioner boundary (``the_one_law``).
+    """
+    out: list[dict] = []
+    for i, ch in enumerate(chapters, start=1):
+        gap = unplayable_beat_gap(ch)
+        if gap["gap_count"]:
+            g = gap["gaps"][0]
+            out.append(
+                {
+                    "index": i,
+                    "title": str(ch.get("title") or ""),
+                    "beat": g["beat"],
+                    "marker": g["marker"],
+                }
+            )
+    return out
+
+
+def _unplayable_feedback(unplayable: list[dict]) -> str:
+    """The correction block appended to the synopsis on an outline re-roll (FR-528).
+
+    Names each offending chapter and its time-skip final beat, and restates the hard
+    rule, so the re-invoked outliner either re-authors the final beat as a
+    present-tense in-scene resolution OR folds the epilogue into the chapter
+    ``summary`` (narration), never leaving it as a beat the bounded scene cannot
+    enact.
+    """
+    lines = [
+        f'- Chapter {p["index"]} ("{p["title"]}") final beat leads with '
+        f'"{p["marker"]}": {p["beat"]}'
+        for p in unplayable
+    ]
+    return (
+        "\n\nCORRECTION — your previous outline VIOLATED a hard rule: a chapter's "
+        "FINAL beat must be a present-tense event the scene can enact within its "
+        "turn budget. A beat that resolves only after a time-skip ('By autumn, …', "
+        "'Years later, …') can never be played, so the chapter never completes. "
+        "Re-author each of these final beats as an in-scene, present-tense "
+        "resolution, OR move the time-skip aftermath into that chapter's SUMMARY "
+        "as closing narration (not a beat):\n" + "\n".join(lines)
+    )
+
+
 async def outline_chapters(doc: dict) -> list[dict]:
     """Split the accepted synopsis into an ordered list of ``{title, summary, beats}``.
 
@@ -631,10 +685,21 @@ async def outline_chapters(doc: dict) -> list[dict]:
     deterministic :func:`witness_metrics.reversal_pack_gap` checks every chapter; on a
     pack the outline is re-invoked with the violation fed back (bounded retry), then
     raises (no silent fallback) — never emitting a packed outline downstream.
+
+    FR-528 — epilogue-gate: the partitioner can also author a chapter's FINAL beat as
+    a time-skip epilogue ("By autumn, … a settlement that ends the feud"). A chapter
+    resolves only when its director computes ``scene_complete = (k == n)`` over
+    ``n = len(beats)``; a beat that resolves only after a season passes can never be
+    enacted in the 16-turn cap, so ``scene_complete`` never fires and the chapter
+    rides the cap (the no-progress tail FR-527 mis-treated downstream). The same
+    boundary cure: :func:`witness_metrics.unplayable_beat_gap` checks every chapter;
+    on a hit the outline is re-invoked instructing an in-scene resolution or a summary
+    fold (bounded retry), then raises — never emitting a cap-riding chapter.
     """
     synopsis = doc.get("synopsis", {}).get("text", "")
     feedback = ""
     packed: list[dict] = []
+    unplayable: list[dict] = []
     for _ in range(_OUTLINE_MAX_ATTEMPTS):
         result = await get_app(CHAPTER_OUTLINE_GRAPH).ainvoke(
             {"synopsis": synopsis + feedback, "outline": {}}
@@ -653,13 +718,25 @@ async def outline_chapters(doc: dict) -> list[dict]:
             raise ValueError("chapter outline returned no chapters")
         chapters = _require_beats(chapters)
         packed = _packed_chapters(chapters)
-        if not packed:
+        unplayable = _unplayable_chapters(chapters)
+        if not packed and not unplayable:
             return chapters
-        feedback = _reversal_feedback(packed)
+        feedback = ""
+        if packed:
+            feedback += _reversal_feedback(packed)
+        if unplayable:
+            feedback += _unplayable_feedback(unplayable)
+    if packed:
+        raise ValueError(
+            "chapter outline packs a removal-and-return reversal into one chapter "
+            f"after {_OUTLINE_MAX_ATTEMPTS} attempts (FR-525); a character lost within "
+            f"a chapter must return in a LATER chapter: {packed}"
+        )
     raise ValueError(
-        "chapter outline packs a removal-and-return reversal into one chapter after "
-        f"{_OUTLINE_MAX_ATTEMPTS} attempts (FR-525); a character lost within a chapter "
-        f"must return in a LATER chapter: {packed}"
+        "chapter outline authors an unplayable time-skip epilogue as a chapter's "
+        f"final beat after {_OUTLINE_MAX_ATTEMPTS} attempts (FR-528); a final beat "
+        "must be an in-scene present-tense resolution, not a post-time-skip aftermath: "
+        f"{unplayable}"
     )
 
 

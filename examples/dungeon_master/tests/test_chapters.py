@@ -26,7 +26,10 @@ from unittest.mock import patch
 import pytest
 
 from examples.dungeon_master.api import chapter_ops
-from examples.dungeon_master.api.witness_metrics import reversal_pack_gap
+from examples.dungeon_master.api.witness_metrics import (
+    reversal_pack_gap,
+    unplayable_beat_gap,
+)
 
 SYNOPSIS_TEXT = "Kara leads the band against a rival raider as the floodwaters rise."
 
@@ -702,6 +705,72 @@ def test_outline_chapters_raises_when_pack_persists():
     mock = _sequence_outline_mock([_OVERPACKED_OUTLINE] * 3, calls)
     m1, m2 = _patched(mock)
     with m1, m2, pytest.raises(ValueError, match="packs a removal-and-return"):
+        _run(chapter_ops.outline_chapters(doc))
+    assert len(calls) == 3  # bounded: first roll + two corrected re-rolls
+
+
+# ── FR-528: the outliner unplayable-epilogue gate (no final time-skip beat) ───
+
+# A chapter whose FINAL beat LEADS with a future-time-skip ("By autumn, …") — the
+# 10025-BC CH8 shape. The bounded 16-turn scene (FR-501) can never enact a beat that
+# resolves only after a season passes, so ``scene_complete = (k == n)`` never fires
+# and the chapter rides the cap (the no-progress tail FR-527 mis-treated downstream).
+# ``unplayable_beat_gap`` fires on this card.
+_EPILOGUE_OUTLINE = {
+    "chapters": [
+        {
+            "title": "Chapter 1 — The Settlement",
+            "summary": "The clans reach the high valley and end the feud.",
+            "beats": [
+                "The clans reel as the living Arnulf shatters the divine verdict",
+                "By autumn, Hilde and Gunnar force a settlement that ends the "
+                "blood-feud and joins the clans into one camp",
+            ],
+        }
+    ]
+}
+
+# The corrected outline: the resolution is re-authored as a present-tense, in-scene
+# final beat the chapter can actually play (the epilogue folded into ``summary``).
+_IN_SCENE_FIXED_OUTLINE = {
+    "chapters": [
+        {
+            "title": "Chapter 1 — The Settlement",
+            "summary": (
+                "The clans reach the high valley and end the feud; by autumn the "
+                "shared camp holds."
+            ),
+            "beats": [
+                "The clans reel as the living Arnulf shatters the divine verdict",
+                "Hilde and Gunnar force the settlement that ends the blood-feud here",
+            ],
+        }
+    ]
+}
+
+
+def test_outline_chapters_retries_until_unplayable_beat_clears():
+    # A first roll whose final beat is an unplayable time-skip epilogue is re-rolled;
+    # the corrected in-scene resolution is accepted (FR-528).
+    doc = {"synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True}}
+    calls: list[int] = []
+    mock = _sequence_outline_mock([_EPILOGUE_OUTLINE, _IN_SCENE_FIXED_OUTLINE], calls)
+    m1, m2 = _patched(mock)
+    with m1, m2:
+        chapters = _run(chapter_ops.outline_chapters(doc))
+    assert len(calls) == 2  # first epilogue → re-rolled once
+    assert all(unplayable_beat_gap(c)["gap_count"] == 0 for c in chapters)
+    assert chapters[0]["beats"][-1].lower().startswith("hilde and gunnar force")
+
+
+def test_outline_chapters_raises_when_unplayable_beat_persists():
+    # Commandment 6: an unplayable final beat that survives every bounded re-roll
+    # RAISES — the outliner never emits a cap-riding chapter via silent fallback.
+    doc = {"synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True}}
+    calls: list[int] = []
+    mock = _sequence_outline_mock([_EPILOGUE_OUTLINE] * 3, calls)
+    m1, m2 = _patched(mock)
+    with m1, m2, pytest.raises(ValueError, match="unplayable time-skip epilogue"):
         _run(chapter_ops.outline_chapters(doc))
     assert len(calls) == 3  # bounded: first roll + two corrected re-rolls
 

@@ -531,6 +531,84 @@ def reversal_pack_gap(card: dict) -> dict:
     }
 
 
+# FR-528: future-time-skip markers an EPILOGUE beat leads with. A chapter resolves
+# only when its director marks every beat satisfied (``scene_complete = k == n``,
+# turn_ops._apply_beat_ledger); a beat that happens after a season passes can never
+# be enacted inside the FR-501 16-turn cap, so it pins the chapter open. An epilogue
+# OPENS with the jump ("By autumn, ..."), whereas a present-tense in-scene resolution
+# does not -- so the leading anchor (not mere co-occurrence of "settlement"/"feud")
+# is the precise discriminator, validated against 10025-BC CH8 (the only flagged
+# final beat across the whole 1002x-BC corpus) versus the present-tense resolutions
+# of 10020/10022/10023/10024-BC (all clean).
+_TIME_SKIP_LEAD_TOKENS: tuple[str, ...] = (
+    "by autumn",
+    "by winter",
+    "by spring",
+    "by summer",
+    "by the next",
+    "by the following",
+    "years later",
+    "seasons later",
+    "winters later",
+    "moons later",
+    "a year later",
+    "a season later",
+    "years after",
+    "in the years",
+    "in the seasons",
+    "in the months",
+    "generations later",
+)
+
+
+def unplayable_beat_gap(card: dict) -> dict:
+    """Detect a chapter whose FINAL beat is an unplayable time-skip epilogue (FR-528).
+
+    The OUTLINE-time cure for the no-progress tail FR-527 only treated as a symptom.
+    A chapter's only natural exit is its director computing ``scene_complete =
+    (k == n)`` over ``n = len(beats)`` (``turn_ops._apply_beat_ledger``). When the
+    outliner authors the FINAL beat as a time-skip epilogue -- one whose resolution
+    arrives only after a season passes ("By autumn, ... a settlement that ends the
+    blood-feud") -- the bounded 16-turn scene (FR-501) can never enact it, ``k`` is
+    pinned at ``n-1``, ``scene_complete`` never fires, and the chapter rides the cap
+    replaying its resolved confrontation. Normalize at the partitioner boundary
+    (``the_one_law``): catch the epilogue at outline time and re-author it in-scene
+    or fold it into ``summary``, never downstream.
+
+    The signal is precise by leading-anchor: the final beat (case-insensitively,
+    after stripping leading quotes/dashes) STARTS with a future-time-skip marker
+    (:data:`_TIME_SKIP_LEAD_TOKENS`). An epilogue opens with the jump; a present-tense
+    in-scene resolution does not -- so a beat that merely NAMES a settlement or the
+    feud's end (a thing the scene CAN play) is not flagged, avoiding the
+    ``plausible_wrong_answer`` over-fire a "settlement"/"feud" co-occurrence detector
+    would hit. Only the FINAL beat is checked: a time-skip earlier in the list does
+    not pin the chapter open when its closing beat is reachable.
+
+    Pure: reads only ``card['beats']``; no committed ledger, no LLM, no ``turn_ops``.
+    Returns ``{gap_count, gaps:[{beat_index, beat, marker, reason}]}`` where ``reason``
+    is always ``"final_beat_time_skip_epilogue"``.
+    """
+    beats = [str(b).strip() for b in (card.get("beats") or []) if str(b).strip()]
+    if not beats:
+        return {"gap_count": 0, "gaps": []}
+    final = beats[-1]
+    low = final.lower().lstrip("\"'\u2014\u2013- \t")
+    marker = next((tok for tok in _TIME_SKIP_LEAD_TOKENS if low.startswith(tok)), None)
+    if marker is None:
+        return {"gap_count": 0, "gaps": []}
+    return {
+        "gap_count": 1,
+        "gaps": [
+            {
+                "beat_index": len(beats) - 1,
+                "beat": final,
+                "marker": marker,
+                "reason": "final_beat_time_skip_epilogue",
+            }
+        ],
+    }
+
+
 def evaluate_fr508_a5(log_metrics: dict, story_metrics: dict) -> dict:
     """Evaluate FR-508 A5 pass/fail thresholds."""
     completed_equals_planned = int(
