@@ -2,12 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (observability → correction)
-**Status:** **JUDGED — Stage 1 ONLY authorized; Stage 2 frozen OUT (2026-06-18).** Stage 1
-(post-generation continuity witness, visibility-not-gate) matches the FR-522 posture and
-is clean. Stage 2 (per-seam corrective re-roll) is REMOVED from this FR entirely — not
-just deferred — because a corrective loop driven by an un-calibrated, un-trended LLM
-score optimizes a possible artifact (gated behind FR-531 trend + FR-532 calibration). It
-becomes its own FR only after both land. See Judgement (J1-J3).
+**Status:** **ENFORCED — Stage 1 (2026-06-18).** Post-generation continuity witness shipped
+as a non-blocking, machine-readable per-run emit. Stage 2 (per-seam corrective re-roll)
+remains REMOVED from this FR (its own future FR, gated behind FR-531 trend + FR-532
+calibration). See Implementation (2026-06-18) and Judgement (J1-J3).
 **Effort:** ~0.5 day (Stage 1 alone)
 **Requested:** 2026-06-18
 
@@ -78,13 +76,34 @@ machine-readable. Stage 2 is OUT.
 
 ## Acceptance Criteria
 
-- [ ] Stage 1: `generate_and_review.sh` emits a per-run continuity score (reviewer
+- [x] Stage 1: `generate_and_review.sh` emits a per-run continuity score (reviewer
       `Continuity` axis) into the run output; documented as visibility, not a gate.
-- [ ] The witness is non-blocking: a low score never fails the run or CI (FR-522 posture).
-- [ ] Example-scoped (FR-474 J3): NO `@pytest.mark.req`; changelog `type:feat
+- [x] The witness is non-blocking: a low score never fails the run or CI (FR-522 posture).
+- [x] Example-scoped (FR-474 J3): NO `@pytest.mark.req`; changelog `type:feat
       scope:examples`, no `req:`.
-- [ ] Stage 2 is explicitly OUT OF SCOPE here (recorded as a sketch, gated behind
+- [x] Stage 2 is explicitly OUT OF SCOPE here (recorded as a sketch, gated behind
       Stage 1 evidence + FR-532).
+
+## Implementation (2026-06-18)
+
+- **`examples/dungeon_master/scripts/emit_continuity_witness.py`** (new): reads the
+  reviewer's just-written `<out>/review.md`, projects its `## Continuity` axis into a
+  small machine-readable record, and writes `<out>/continuity_witness.json`:
+  `{book, continuity_score, break_count, posture: "visibility-not-gate"}`. Reuses
+  `parse_continuity_breaks` from FR-532's calibration harness (no duplicate parser).
+  `write_witness` returns `None` when no `review.md` exists yet — a missing review is a
+  skipped, non-fatal step, not an error.
+- **`generate_and_review.sh`**: appended a "📊 Emitting continuity witness" step after the
+  review, invoked as `... emit_continuity_witness --out "$OUT" || echo "skipped"`. The
+  `|| echo` makes it strictly non-blocking — a missing review or any emit error never
+  fails the run (FR-522 posture).
+- **J3 machine-readable:** the JSON is the join key for FR-531's `continuity_report.py`
+  (the report can later read `continuity_witness.json` to attach the LLM score to its
+  deterministic witness shelf). Not wired into FR-531 here — that join is its own work.
+- **Tests** (`test_emit_continuity_witness.py`, 3, example-scoped, no `@pytest.mark.req`):
+  score/break-count projection + posture stamp; JSON round-trip equality; non-blocking
+  skip when `review.md` is absent. Full DM + reviewer suite: 297 passed. Smoke: emitted
+  `10025-BC` continuity=1/5 (11 breaks) from its real review.
 
 ## Alternatives Considered
 

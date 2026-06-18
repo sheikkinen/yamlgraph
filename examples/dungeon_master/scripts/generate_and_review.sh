@@ -47,4 +47,11 @@ echo "🔍 Reviewing $OUT/story.md"
   --var manuscript_path="$OUT" \
   --full
 
+# FR-530 Stage 1: emit the reviewer's continuity axis as a per-run, machine-readable
+# witness (visibility, NOT a gate -- FR-522 posture). Non-blocking: a missing review or
+# a low score never fails the run.
+echo "📊 Emitting continuity witness (visibility, not a gate)"
+"$PY" -m examples.dungeon_master.scripts.emit_continuity_witness --out "$OUT" \
+  || echo "⚠️  continuity witness skipped (non-blocking)"
+
 echo "✓ Done: $OUT/story.md  ·  $OUT/review.md"
