@@ -89,9 +89,10 @@ PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
 # → outputs/dungeon-master/courier/story.md    (reader)
 
 # A larger, multi-chapter premise derives more chapters, so raise --turn-cap
-# above the default 24 (the gate raises rather than emit a partial book):
+# above the default 24 (the gate raises rather than emit a partial book).
+# Longer premises are kept in premises/*.txt — pass them with $(cat ...):
 PYTHONPATH="$PWD" python examples/dungeon_master/scripts/generate.py \
-  --premise "Romance, Adventure, Erotica. 10,000 BC, the great thaw — The Floodmark Saga. The glaciers are bleeding into the lowlands and three loosed rivers are drowning the valley; every clan must climb or die. Hilde, war-leader of the Aschenwulf band, raids the rival Bärenschädel clan at dawn just as the river breaks its banks, and is stranded on a shrinking ledge beside Gunnar, the man she came to kill — the survival truce between them hardening, against both clans' will, into something closer and far more dangerous, while in the same surge her brother Arnulf is swept downriver and mourned as drowned. A mature, explicit story of what people will break to stay alive — old laws, old loyalties, the line between enemy and lover — as a salt-road stranger named Reinmar steers the survivors toward the one high valley still standing by autumn, and the keeper of the old rites reads the truce itself as the judgment that called the flood. Romance, blood-feud, faith, and a returning ghost all converge on the same too-small patch of dry ground." \
+  --premise "$(cat examples/dungeon_master/premises/floodmark-saga.txt)" \
   --out outputs/dungeon-master/10000-BC --turn-cap 96
 ```
 
