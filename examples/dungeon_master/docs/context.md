@@ -1,66 +1,79 @@
 # Dungeon Master v2 Context (Concurrent Sessions)
 
 Purpose: shared starting context for running multiple coding sessions in parallel
-without stepping on each other.
+without stepping on each other. The design doctrine is [`README.md`](../README.md);
+the module map and seam split are in [`docs/architecture.md`](architecture.md).
+This file is the **live status + working-agreement** layer on top of those.
 
-## Current State
+## Current State (2026-06-18)
 
-- FR-503: enforced and witnessed (finite beat ledger; cap minority in witness run).
-- FR-504: enforced (free-text beat fallback removed; non-empty beats contract).
-- FR-505: re-judged and currently WITHHELD pending closure of:
-  - C1: cue payload contract consistency.
-  - C2: deterministic cue-uptake witness specification.
+The example is a complete book pipeline (synopsis → cast → play every chapter →
+deterministic Book). The active work seam is **continuity** — keeping a played
+chapter's prose faithful to the physical/lifecycle state the recorded arc already
+knows.
 
-Primary active seam is Final Cut composition at chapter close.
+- **FR-513–518** — enforced. The forward-carry `world_state` is a typed,
+  Pydantic-validated **ledger threaded as agent memory** (relationship deltas,
+  bi-temporal reconciliation, top-K retrieval). The LLM authors meaning;
+  deterministic code authors persistence.
+- **FR-519** — enforced. **Intra-chapter prose-vs-state enforcement (Phase 1)** at
+  the per-chapter Final Cut: confirmed-dead split into `dead_before_open` /
+  `dead_within_chapter`, plus a `possession_facts` block. Warn-only diagnostics
+  measure the residual.
+- **FR-521** — enforced **via S2 roster-drop**. The director already flags an
+  intra-chapter break every turn; **S1** (feed that advisory forward into the
+  scene) was implemented, **witness-falsified** (Arnulf re-flags 8/16 → 13/16 — an
+  instruction in the scene is not a gate), and **reverted**. **J2** stands:
+  `missing_presumed_dead` is a chapter-scoped death-point in the warn-only lane.
+  **S2** is the fix: a director-exited actor (structured `cast_exits`) is **dropped
+  from the running cast** — Ch3 witness dropped Arnulf re-flags **8/16 → 0/16**
+  (acting legitimately through his exit turn, then benched).
+- **FR-522** — enforced. **Scripted single-chapter replay witness**: re-play one
+  chapter from its inherited start (every prior chapter held constant) and compare
+  director-flag vs intent-map acting counts against the recorded baseline. The
+  instrument that drove FR-521's falsification and S2 acceptance.
 
-## Scope Boundaries
+The lesson threaded through this arc: **for a stochastic generator, enforcement is
+removing the option (drop the actor from the cast), never discouraging the choice
+(advisory text).** And: never measure a generator's output with a signal you have
+injected into that same generator's input.
 
-In scope for FR-505 work:
-- `examples/dungeon_master/api/turn_ops.py`
-- `examples/dungeon_master/prompts/final_cut.yaml`
-- `examples/dungeon_master/tests/` (new/updated unit tests)
-- small deterministic metric helper under `scripts/` or example-local module
-- `feature-requests/FR-505-final-cut-prose-degridding.md`
+## Continuity Tooling (the witness layer)
 
-Out of scope unless explicitly re-planned:
-- synopsis/characters/chapter planning phases
-- per-turn participation policy from FR-486
-- book-level revision passes
+- `scripts/replay_chapter_continuity.py` — single-chapter A/B replay (FR-522);
+  driver in `api/chapter_replay.py`, pure metric in
+  `witness_metrics.chapter_actor_flag_metrics`.
+- `scripts/witness_continuity_metrics.py` — FR-508 A5 book-level continuity counters
+  from a generation log + `story.json`.
+- `scripts/generate_and_review.sh` — full generation + `book_reviewer` critique.
+
+These are **instruments, not gates** — efficacy is a non-deterministic, live-LLM
+property and must never be wired into CI. Their *measurement* functions are
+unit-tested; their *live runs* are by hand.
+
+## Key Seams (where continuity is enforced)
+
+- `api/turn_ops.py` — `running_scene` (turn context), `invoke_turn` (map → director
+  → recap), `_filter_roster_for_lifecycle` + `cast_exits` (the S2 roster-drop),
+  `dead_character_names` (the J2 within-chapter death-point),
+  `reset_chapter_for_replay` (FR-522 replay surgery), Final Cut composition.
+- `api/chapter_ops.py` — chapter close, the `world_state` ledger apply, the
+  deterministic Book assembly.
+- `prompts/turn_direct.yaml` — the director's per-turn `continuity` / `cast_exits`
+  side-channel.
 
 ## Non-Negotiable Contracts
 
-- Turns already store performance cards per character:
+- Turns store performance cards per character:
   `{name, thinking, intent, dialogue, expression}`.
-- Current Final Cut input is recap/beats/climax only; no explicit cue payload.
-- `beats_satisfied` is cumulative per turn.
-- Beat grouping must be total and order-preserving; no orphaned turns.
-
-## C1 and C2 Closure Targets
-
-C1 (schema consistency):
-- Choose one grouped card schema and keep it stable:
-  `{name, intent, dialogue, expression}` with empty-string defaults.
-- Do not delete required keys during payload trimming.
-
-C2 (deterministic witness):
-- Define exact cue-uptake proxy algorithm with normalization rules.
-- Add unit tests with positive and negative fixtures.
-- Record baseline and post-fix deltas in FR evidence.
-
-## Recommended Parallel Session Split
-
-Session A (Contracts + Tests)
-- Implement/lock grouped payload schema.
-- Write RED tests for beat grouping + cue-carrying invariants.
-- Write RED tests for deterministic cue-uptake proxy.
-
-Session B (Composition Seam)
-- Implement `beat_turn_groups` and final-cut context re-key.
-- Thread grouped `dialogue`/`expression` cues into Final Cut payload.
-
-Session C (Prompt + Witness)
-- Update `final_cut.yaml` for anti-round-robin and cue-use directives.
-- Run witness generation + metric collection and update FR evidence.
+- `beats_satisfied` is cumulative per turn; `phase` / `scene_complete` are COMPUTED
+  from k/N, not free-text.
+- The shared card interface stays a pure `str → str`; structured side-channels live
+  in `turn_ops.py` / `chapter_ops.py`, never in the interface.
+- `world_state` is a typed ledger the model never regenerates whole; deterministic
+  code authors persistence.
+- Enforcement of a generator is **option removal** (roster drop, schema, computed
+  rails), not advisory prompt text.
 
 ## Safe Run Commands
 
@@ -72,14 +85,24 @@ Use explicit interpreter paths; do not assume shell PATH inheritance.
 - Full example generation (logs streamed safely):
   `PYTHONPATH="$PWD" .venv/bin/python examples/dungeon_master/scripts/generate.py --premise "..." --out outputs/dungeon-master/<run-id> --turn-cap 96 2>&1 | tee logs/gen-<run-id>.log >/dev/null`
 
-- If inspecting long command output, write to logs first and read logs separately.
+- Single-chapter continuity replay (witness, live LLM):
+  `PYTHONPATH="$PWD" .venv/bin/python examples/dungeon_master/scripts/replay_chapter_continuity.py --story outputs/dungeon-master/<run-id>/story.json --cid <n> --actor <Name> > logs/replay-<run-id>.log 2>/dev/null`
+
+- If inspecting long command output, write to logs first and read logs separately
+  (never pipe pytest to `head`/`tail` — `tee` to a logfile).
 
 ## Coordination Rules
 
 - Keep one concern per commit.
-- Record FR updates in the same commit as the corresponding code/test state.
+- Record FR updates in the same commit as the corresponding code/test state — the
+  FR is the source of truth for the change.
+- TDD: commit RED (failing test) and GREEN (fix) separately.
+- A `feat`/`fix` change needs a changelog fragment in `changelog/unreleased/` and a
+  diary reflection in `docs/diary/` (the CI gates require both).
+- Example tests are REQ-exempt (FR-474 J3 regime) — no `@pytest.mark.req`, no
+  CAP/REQ minting, changelog fragment omits `req:`.
 - If pre-commit modifies files, re-add and recommit with the same message file.
-- Preserve unrelated working tree changes; do not revert out-of-scope edits.
+- Preserve unrelated working-tree changes; do not revert out-of-scope edits.
 
 ## Handoff Note Template
 
@@ -88,6 +111,6 @@ Use this short block in session handoffs:
 - Objective:
 - Files touched:
 - Tests run:
-- Evidence gathered:
+- Evidence gathered (witness/replay deltas):
 - Open blockers:
 - Next smallest step:

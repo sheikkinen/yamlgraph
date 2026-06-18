@@ -135,6 +135,32 @@ plus book-level **Continuity** (pairwise chapter-seam checks) and **Relevance**
 [ledger-as-memory](docs/architecture.md#5a-the-ledger-as-agent-memory-fr-513518)
 forward-carry exists to hold, now independently witnessed by a separate critic.
 
+### Continuity hardening — keeping the prose faithful to the recorded arc (FR-519/521/522)
+
+A played chapter can drift from what the arc already knows — a character the river
+swept away keeps climbing out turn after turn. Continuity is held at two scopes:
+
+- **Cross-chapter**, by the typed
+  [ledger-as-memory](docs/architecture.md#5a-the-ledger-as-agent-memory-fr-513518)
+  forward-carry (FR-513–518) and the Final Cut's dead/possession constraints
+  (FR-519).
+- **Intra-chapter**, by **option removal, not advice** (FR-521): the director emits
+  a structured `cast_exits` each turn; an actor it reports gone (swept away, killed)
+  is **dropped from the running cast** for the rest of the chapter, so the intent
+  map can no longer animate them. An earlier attempt to instead *feed the director's
+  warning forward into the scene* was **witness-falsified** (re-flags rose 8/16 →
+  13/16 — an instruction to a generator is not a gate) and reverted; the roster-drop
+  took the same chapter to **0/16**.
+
+That falsification was possible because of the **single-chapter replay witness**
+(FR-522): [`scripts/replay_chapter_continuity.py`](scripts/replay_chapter_continuity.py)
+re-plays one chapter from its inherited start (every prior chapter held constant)
+and reports the director-flag count beside the independent intent-map acting count,
+so a continuity change is measured as a controlled experiment instead of a
+confounded full-book re-generation. It is an **instrument, not a gate** — never
+wired into CI; its measurement is unit-tested, its live replay run by hand. See
+[`docs/architecture.md`](docs/architecture.md#single-chapter-replay--the-controlled-continuity-witness-fr-522).
+
 ### Still deferred (out of scope, by design)
 - Asking for character or chapter counts up front (the roster and the chapter set
   both emerge from the synopsis instead).

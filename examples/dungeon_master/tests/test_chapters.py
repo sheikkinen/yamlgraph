@@ -748,3 +748,93 @@ def test_chapter_member_peers_visible_from_overview():
     # Standing on the overview, every chapter is a discoverable member peer.
     assert "Chapter 1 — The Water Rises" in labels
     assert "Chapter 2 — The Last Ledge" in labels
+
+
+# ── FR-521 S2: drop a within-chapter exited actor from the running cast ──────
+#
+# The director benches a roster member who has left the scene this chapter (died,
+# swept away) via the structured `cast_exits` field. `_filter_roster_for_lifecycle`
+# accumulates those exits across the chapter's prior turns and drops the actor from
+# the cast for every later turn — turning detection into enforcement (the witnessed
+# fix: advisory text was ignored; only removing the actor from the cast works).
+
+
+def _chars(roster_with_names: dict[str, str]) -> dict:
+    return {
+        "roster": list(roster_with_names),
+        "cards": {
+            cid: {"name": name, "text": "sheet", "reviewed": True}
+            for cid, name in roster_with_names.items()
+        },
+    }
+
+
+def _doc_chapter_turns_with_directions(directions: list[dict]) -> dict:
+    """A single-chapter doc whose chapter ``1`` turns carry the given directions."""
+    turns = [
+        {"n": i + 1, "recap": {"text": f"turn {i + 1}"}, "direction": d}
+        for i, d in enumerate(directions)
+    ]
+    return {
+        "chapters": {
+            "order": ["1"],
+            "cards": {"1": {"summary": "ch1", "beats": ["a"], "turns": turns}},
+        }
+    }
+
+
+def test_roster_filter_drops_actor_the_director_exited_this_chapter():
+    from examples.dungeon_master.api import turn_ops
+
+    chars = _chars({"hilde": "Hilde", "arnulf": "Arnulf"})
+    doc = _doc_chapter_turns_with_directions([{"cast_exits": ["Arnulf"]}])
+    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["hilde", "arnulf"])
+    assert out == ["hilde"]
+
+
+def test_roster_filter_exit_persists_across_a_later_clean_turn():
+    # Accumulation: exit on turn 1, no exit on turn 2 → still dropped on turn 3.
+    from examples.dungeon_master.api import turn_ops
+
+    chars = _chars({"hilde": "Hilde", "arnulf": "Arnulf"})
+    doc = _doc_chapter_turns_with_directions(
+        [{"cast_exits": ["Arnulf"]}, {"cast_exits": []}]
+    )
+    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 3, ["hilde", "arnulf"])
+    assert out == ["hilde"]
+
+
+def test_roster_filter_no_exits_leaves_roster_unchanged():
+    from examples.dungeon_master.api import turn_ops
+
+    chars = _chars({"hilde": "Hilde", "arnulf": "Arnulf"})
+    doc = _doc_chapter_turns_with_directions([{"cast_exits": []}])
+    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["hilde", "arnulf"])
+    assert out == ["hilde", "arnulf"]
+
+
+def test_roster_filter_never_empties_the_cast():
+    # If every roster member has exited, do not hand the turn an empty cast —
+    # keep the unfiltered roster (the chapter's turn cap will close it instead).
+    from examples.dungeon_master.api import turn_ops
+
+    chars = _chars({"arnulf": "Arnulf"})
+    doc = _doc_chapter_turns_with_directions([{"cast_exits": ["Arnulf"]}])
+    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["arnulf"])
+    assert out == ["arnulf"]
+
+
+def test_roster_filter_exit_match_is_case_insensitive():
+    from examples.dungeon_master.api import turn_ops
+
+    chars = _chars({"hilde": "Hilde", "arnulf": "  ARnUlf  "})
+    doc = _doc_chapter_turns_with_directions([{"cast_exits": ["arnulf"]}])
+    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["hilde", "arnulf"])
+    assert out == ["hilde"]
+
+
+def test_direction_dict_preserves_cast_exits():
+    from examples.dungeon_master.api import turn_ops
+
+    direction = turn_ops._direction_dict({"cast_exits": ["Arnulf"]})
+    assert direction["cast_exits"] == ["Arnulf"]

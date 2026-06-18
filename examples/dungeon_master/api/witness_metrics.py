@@ -75,6 +75,87 @@ def parse_story_progress_metrics(story_doc: dict) -> dict:
     }
 
 
+def _actor_continuity_flags(direction: dict, actor: str) -> list[str]:
+    """The director ``continuity`` strings that name ``actor`` (FR-522, J3/J4).
+
+    Case-insensitive substring match on each flag string — the single per-turn
+    extraction reused for both the baseline and the replayed doc, so the two
+    measurements cannot drift apart.
+    """
+    a = (actor or "").lower()
+    return [
+        str(f)
+        for f in (direction or {}).get("continuity") or []
+        if a and a in str(f).lower()
+    ]
+
+
+def _actor_is_acting(intents: dict, actor: str) -> bool:
+    """Whether ``actor`` takes an action this turn (FR-522 J4 definition).
+
+    The actor is *acting* when a key in the turn's ``intents`` matches the actor
+    (case-insensitive substring) and that intent carries a non-empty ``intent`` OR
+    a non-empty ``dialogue``. This is the deterministic counterpart to the
+    director's flag, so a reader can separate "the actor really acted" (an
+    intent-map fact) from "the director echoed an injected warning" (FR-521's
+    metric-pollution confound).
+    """
+    a = (actor or "").lower()
+    if not a:
+        return False
+    for char_id, item in (intents or {}).items():
+        if a not in str(char_id).lower():
+            continue
+        intent_txt = str((item or {}).get("intent") or "").strip()
+        dialogue_txt = str((item or {}).get("dialogue") or "").strip()
+        if intent_txt or dialogue_txt:
+            return True
+    return False
+
+
+def chapter_actor_flag_metrics(story_doc: dict, cid: str, actor: str) -> dict:
+    """Per-turn continuity signal for ``actor`` within chapter ``cid`` (FR-522).
+
+    Returns ``{chapter, actor, total, flag_turns, acting_turns, per_turn}`` where
+    ``flag_turns`` counts turns whose director ``continuity`` names the actor and
+    ``acting_turns`` counts turns where the actor takes an action (J4). The two are
+    reported side by side so a continuity change that injects text into the scene
+    (which ``running_scene`` feeds to all three turn nodes) cannot silently inflate
+    the director-flag count without the independent intent-map acting count
+    revealing it. Pure: reads only the doc shape, no LLM, no turn_ops import.
+    """
+    turns = list(
+        ((story_doc.get("chapters") or {}).get("cards") or {}).get(cid, {}).get("turns")
+        or []
+    )
+    per_turn: list[dict] = []
+    flag_turns = 0
+    acting_turns = 0
+    for t in turns:
+        flags = _actor_continuity_flags(t.get("direction") or {}, actor)
+        acting = _actor_is_acting(t.get("intents") or {}, actor)
+        if flags:
+            flag_turns += 1
+        if acting:
+            acting_turns += 1
+        per_turn.append(
+            {
+                "n": t.get("n"),
+                "flags": flags,
+                "flagged": bool(flags),
+                "acting": acting,
+            }
+        )
+    return {
+        "chapter": cid,
+        "actor": actor,
+        "total": len(turns),
+        "flag_turns": flag_turns,
+        "acting_turns": acting_turns,
+        "per_turn": per_turn,
+    }
+
+
 def evaluate_fr508_a5(log_metrics: dict, story_metrics: dict) -> dict:
     """Evaluate FR-508 A5 pass/fail thresholds."""
     completed_equals_planned = int(

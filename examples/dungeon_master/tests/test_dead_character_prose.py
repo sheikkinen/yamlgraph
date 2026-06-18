@@ -299,3 +299,63 @@ def test_final_cut_context_includes_allowed_cast_field():
     ctx = final_cut_context(doc, "2")
     assert "allowed_cast" in ctx
     assert ctx["allowed_cast"] == "Hilde"
+
+
+# ── FR-521 J2: missing_presumed_dead is a chapter-scoped death-point ──────────
+#
+# The synopsis "presumed dead → returns" arc rides exactly the lifecycle state the
+# confirmed-only death-token filter excluded. Within a chapter, a presumed-dead
+# character must be treated as a death-point; across chapters, the before-open bar
+# stays confirmed-dead only, so a legitimate return is not barred.
+
+
+def _closed_with_presumed_dead(name: str = "Arnulf") -> dict:
+    """Close-graph output for a chapter where a character is swept to presumed dead."""
+    return {
+        "world_state": {
+            "characters": [
+                {"name": "Hilde", "status": "alive", "inventory": ["weapon"]},
+                {"name": name, "status": "missing_presumed_dead"},
+            ],
+            "objects": [],
+        },
+        "seam_packet": {"character_lifecycle": []},
+    }
+
+
+def test_missing_presumed_dead_routes_to_dead_within_chapter():
+    doc = _doc_with_confirmed_dead_seam()
+    closed = _closed_with_presumed_dead("Arnulf")
+    _before, within = dead_character_names(doc, "2", closed)
+    assert "Arnulf" in within
+
+
+def test_presumed_dead_inherited_seam_does_not_bar_before_open():
+    # A character missing_presumed_dead at chapter open (NOT confirmed_dead) must
+    # not be barred — the synopsis can return them (Arnulf ch6).
+    doc = {
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "summary": "ch1",
+                    "beats": ["a"],
+                    "turns": [],
+                    "seam_packet": {
+                        "character_lifecycle": [
+                            {
+                                "name": "Arnulf",
+                                "existence_state": "missing_presumed_dead",
+                                "visibility_mode": "absent",
+                                "allowed_reappearance_from_chapter": 6,
+                                "source_chapter": 1,
+                            }
+                        ]
+                    },
+                },
+                "2": {"summary": "ch2", "beats": ["b"], "turns": []},
+            },
+        }
+    }
+    before, _within = dead_character_names(doc, "2", None)
+    assert "Arnulf" not in before

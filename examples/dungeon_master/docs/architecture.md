@@ -236,7 +236,16 @@ draft (Commandment 6).
 The director's judgement is **read-only signal** surfaced to the DM (phase, beats,
 steer, continuity, scene-complete) — never auto-applied (FR-479 J2). Iterate on a
 turn re-rolls intents + recap **together** so they cannot drift; a DM instruction
-steers only the recap.
+steers only the recap. One director field is **not** advisory: `cast_exits` names
+rostered characters who have left the scene this chapter (killed, drowned, swept
+away). A character may act up to and including the turn it exits; from the next turn
+the roster filter accumulates the chapter's `cast_exits` and **drops** the actor
+from the cast, so the intent map can no longer animate a swept-away brother climbing
+back up the bank (FR-521 S2 — the enforced fix; the earlier advisory feed-forward
+was reverted after a witness showed an instruction in the scene is not a gate).
+Within a chapter `missing_presumed_dead` is a death-point too (the warn-only
+`dead_character_names` within-lane), while the cross-chapter before-open bar stays
+`confirmed_dead` so a synopsis return is never barred (FR-521 J2).
 
 **The two load-bearing generative seams** (the ones the live witness exercises,
 because the mocked tests can only prove their wiring):
@@ -248,6 +257,28 @@ because the mocked tests can only prove their wiring):
    emits a relationship *delta* (not a regenerated web); deterministic code applies
    it to the inherited ledger (§5a), the next chapter is played from the resolved
    ledger, and The Book renders the whole carry into one continuous arc.
+
+### Single-chapter replay — the controlled continuity witness (FR-522)
+
+Because efficacy is a non-deterministic, live-LLM property, a continuity change
+cannot be proven by a unit test (which can only assert *wiring*) — it needs a live
+witness. `scripts/replay_chapter_continuity.py` re-plays **one** chapter from its
+inherited start, holding every prior chapter constant, so the only changed variable
+is the code under test (one changed variable, same inherited state — an experiment,
+not an anecdote). The doc-shape reset is one named, tested site
+(`turn_ops.reset_chapter_for_replay`); the impure driver lives in
+`api/chapter_replay.py` (deep-copies the doc, then drives the real
+`turn_ops.invoke_turn` loop, so a test can monkeypatch the LLM and prove a prior
+chapter is byte-identical); the deterministic measurement lives in
+`witness_metrics.chapter_actor_flag_metrics` and reports the **director-flag** count
+alongside the **intent-map acting** count per turn — so a change that injects text
+into the scene (which `running_scene` feeds to all three turn nodes) cannot inflate
+the director's flag count without the independent acting count revealing it
+(FR-521's metric-pollution lesson). This is an **instrument, not a gate**: it is
+never wired into CI; its measurement functions are unit-tested, its live replay is
+run by hand. (It already falsified FR-521's S1 feed-forward — see §5's note that the
+advisory was reverted after a witness showed an instruction in the scene is not a
+gate.)
 
 ### 5a. The ledger as agent memory (FR-513–518)
 

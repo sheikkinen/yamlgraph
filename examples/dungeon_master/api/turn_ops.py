@@ -82,6 +82,25 @@ def chapter_beat_list(doc: dict, cid: str) -> list[str]:
     return list(_chapter_card(doc, cid).get("beats") or [])
 
 
+def reset_chapter_for_replay(doc: dict, cid: str) -> None:
+    """Wipe chapter ``cid``'s played state so it can be re-played from its inherited start.
+
+    Single named site for the doc-shape surgery a chapter replay requires (FR-522
+    J1): drop this chapter's played ``turns``, clear its ``reviewed`` flag, and pop
+    its own committed ``world_state``/``seam_packet`` (the close-graph emissions),
+    so the next play derives them afresh. It touches ONLY ``cid``'s card — the
+    inherited start (every prior chapter's committed state) is never read here and
+    never mutated, which is what makes a replay a controlled experiment.
+    """
+    card = doc.get("chapters", {}).get("cards", {}).get(cid)
+    if not isinstance(card, dict):
+        return
+    card["turns"] = []
+    card["reviewed"] = False
+    card.pop("world_state", None)
+    card.pop("seam_packet", None)
+
+
 def turn_record(doc: dict, cid: str, n: int) -> dict:
     """Chapter ``cid``'s ``turns[n-1]`` record ``{n, intents, recap}`` (created if absent).
 
@@ -422,16 +441,39 @@ def _enforce_lifecycle_gate(doc: dict, cid: str, n: int, cast: list[dict]) -> No
     raise LifecycleGateError(payload)
 
 
+def _chapter_cast_exits(doc: dict, cid: str, n: int) -> list[str]:
+    """Names the director benched in chapter ``cid``'s turns *before* ``n`` (FR-521 S2).
+
+    The director's structured ``cast_exits`` field names roster members who have
+    left the scene this chapter — died, been swept away — and must not act again.
+    Accumulated (union) across every prior turn so a single later clean turn cannot
+    resurrect a benched actor, and chapter-scoped (read only from this chapter's
+    own turns) so a legitimate cross-chapter return is never barred here. De-duped,
+    first-seen order.
+    """
+    exits: list[str] = []
+    for k in range(1, n):
+        d = turn_direction(doc, cid, k)
+        exits.extend(str(x) for x in (d.get("cast_exits") or []) if str(x).strip())
+    return list(dict.fromkeys(exits))
+
+
 def _filter_roster_for_lifecycle(
     doc: dict, chars: dict, cid: str, n: int, roster: list[str]
 ) -> list[str]:
     """Apply deterministic chapter-open lifecycle filtering to reviewed roster ids.
 
-    Boundary rule: chapter turn-1 cast admission uses the previous chapter's
-    committed seam packet as lifecycle authority. The hard lifecycle gate remains
-    in place after this filter; this is a source-side leak reduction, not a gate
-    relaxation.
+    Two layers, both source-side leak reductions (the hard lifecycle gate remains):
+
+    - **Within-chapter exits (FR-521 S2):** drop any roster member the director has
+      benched on an earlier turn of *this* chapter (its structured ``cast_exits``).
+      The witnessed fix — a swept-away actor kept full agency because an advisory
+      in the scene was ignored; only removing it from the cast stops the break.
+      Never empties the cast (a chapter with everyone gone closes on its turn cap).
+    - **Chapter-open seam gate:** at turn 1, admission uses the previous chapter's
+      committed seam packet as lifecycle authority.
     """
+    roster = _drop_within_chapter_exits(doc, chars, cid, n, roster)
     if n != 1:
         return roster
 
@@ -467,6 +509,28 @@ def _filter_roster_for_lifecycle(
     }
     _LOG.warning("Lifecycle gate violation: %s", payload)
     raise LifecycleGateError(payload)
+
+
+def _drop_within_chapter_exits(
+    doc: dict, chars: dict, cid: str, n: int, roster: list[str]
+) -> list[str]:
+    """Drop roster ids the director benched earlier this chapter (FR-521 S2).
+
+    Reads the accumulated ``cast_exits`` for chapter ``cid`` before turn ``n`` and
+    removes any roster id whose display name matches (case-insensitive). Guards
+    against handing the turn an empty cast: if every member has exited, the
+    unfiltered roster is kept (the chapter's turn cap closes it instead).
+    """
+    exits = {_norm_name(name) for name in _chapter_cast_exits(doc, cid, n)}
+    if not exits:
+        return roster
+    filtered = [
+        char_id
+        for char_id in roster
+        if _norm_name(str(chars["cards"].get(char_id, {}).get("name") or char_id))
+        not in exits
+    ]
+    return filtered or roster
 
 
 def build_allowed_scene_cast(doc: dict, cid: str) -> list[str]:
@@ -857,6 +921,7 @@ def _direction_dict(raw: object) -> dict:
         "scene_complete": bool(_get("scene_complete", False)),
         "steer": str(_get("steer", "")),
         "continuity": list(_get("continuity", []) or []),
+        "cast_exits": list(_get("cast_exits", []) or []),
     }
 
 
@@ -1000,6 +1065,15 @@ def _format_beat_groups(groups: list[dict]) -> str:
 # signal from the close-graph world_state lane).
 _DEAD_STATUS_TOKENS = {"dead", "slain", "killed", "deceased", "fallen"}
 
+# FR-521 J2: within a chapter, "presumed dead / swept away" is a death-point too —
+# the character must not keep acting after it. The widening is chapter-scoped: it
+# feeds ONLY the within-chapter lane (read from this chapter's ``closed``). The
+# before-open bar stays confirmed_dead only, so a legitimate synopsis return
+# (presumed-dead → reappears) is never barred at the next chapter's open.
+_PRESUMED_DEAD_TOKENS = {"missing_presumed_dead", "presumed_dead"}
+_WITHIN_DEATH_STATUS_TOKENS = _DEAD_STATUS_TOKENS | _PRESUMED_DEAD_TOKENS
+_WITHIN_DEATH_EXISTENCE_STATES = {"confirmed_dead"} | _PRESUMED_DEAD_TOKENS
+
 
 def dead_character_names(
     doc: dict, cid: str, closed: dict | None = None
@@ -1034,13 +1108,19 @@ def dead_character_names(
     if isinstance(closed, dict):
         ws = parse_world_state(closed.get("world_state"))
         for c in ws.get("characters", []):
-            if str(c.get("status") or "").strip().lower() in _DEAD_STATUS_TOKENS:
+            if (
+                str(c.get("status") or "").strip().lower()
+                in _WITHIN_DEATH_STATUS_TOKENS
+            ):
                 name = str(c.get("name") or "").strip()
                 if name:
                     within.setdefault(_norm_name(name), name)
         close_seam = parse_seam_packet(closed.get("seam_packet"))
         for item in close_seam.get("character_lifecycle") or []:
-            if str(item.get("existence_state") or "").strip() != "confirmed_dead":
+            if (
+                str(item.get("existence_state") or "").strip()
+                not in _WITHIN_DEATH_EXISTENCE_STATES
+            ):
                 continue
             name = str(item.get("name") or "").strip()
             if name:

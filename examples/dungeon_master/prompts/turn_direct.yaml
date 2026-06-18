@@ -56,6 +56,15 @@ system: |
       object appearing from nowhere, or one already lost/seized reappearing).
     Report each; do not silently rewrite it. Empty when nothing is amiss.
 
+  - cast_exits: a list of the NAMES of rostered characters who have LEFT THE SCENE
+    this chapter as of this turn — killed, drowned, swept away, or otherwise gone —
+    and therefore must NOT act again for the rest of the chapter. A character may
+    act right up to and including the turn they exit (their final struggle is
+    legitimate); name them once that turn so the play loop drops them from the cast
+    afterwards. Use the exact rostered name. Empty when no one has exited. This is
+    the structured authority that removes an actor from the cast — distinct from
+    continuity, which only flags a break after it has already happened.
+
 user: |
   THE CHAPTER PLAN and what has actually happened so far (this is turn {{ turn_n }}):
   {{ scene }}
@@ -73,7 +82,9 @@ user: |
   Judge the scene state for this turn. Respond with ONLY a JSON object with these
   fields: phase (string), establishing (string), beats_satisfied (list of
   integers — the satisfied beat NUMBERS), scene_complete (boolean), steer
-  (string), continuity (list of strings).
+  (string), continuity (list of strings), cast_exits (list of strings — the names
+  of rostered characters who have left the scene this chapter and must not act
+  again).
 
 output_schema:
   type: object
@@ -100,4 +111,10 @@ output_schema:
       items:
         type: string
       description: Flags for the DM, e.g. a non-roster name taking decisive action.
-  required: [phase, establishing, beats_satisfied, scene_complete, steer, continuity]
+    cast_exits:
+      type: array
+      items:
+        type: string
+      description: Names of rostered characters who have left the scene this chapter
+        (died, swept away) and must not act again. Empty when no one has exited.
+  required: [phase, establishing, beats_satisfied, scene_complete, steer, continuity, cast_exits]
