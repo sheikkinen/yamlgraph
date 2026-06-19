@@ -19,7 +19,7 @@ from pathlib import Path
 
 import yaml
 
-from examples.dungeon_master.api import render, turn_ops, world_state
+from examples.dungeon_master.api import chapter_nav, render, turn_ops, world_state
 from yamlgraph.executor_base import format_prompt
 
 PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
@@ -128,7 +128,7 @@ def test_inherited_world_state_returns_previous_structured_ledger():
             },
         }
     }
-    inherited = turn_ops.inherited_world_state(doc, "2")
+    inherited = chapter_nav.inherited_world_state(doc, "2")
     assert inherited["characters"][0]["name"] == "Hilde"
     assert inherited["characters"][0]["inventory"] == [
         "flint spear",
@@ -138,7 +138,7 @@ def test_inherited_world_state_returns_previous_structured_ledger():
 
 def test_inherited_world_state_empty_for_first_chapter():
     doc = {"chapters": {"order": ["1"], "cards": {"1": {"world_state": _structured()}}}}
-    assert turn_ops.inherited_world_state(doc, "1") == {}
+    assert chapter_nav.inherited_world_state(doc, "1") == {}
 
 
 def test_running_scene_formats_structured_ledger_into_prompt_text():
@@ -176,7 +176,7 @@ def test_inherited_seam_packet_returns_previous_chapter_packet():
             },
         }
     }
-    packet = turn_ops.inherited_seam_packet(doc, "2")
+    packet = chapter_nav.inherited_seam_packet(doc, "2")
     assert packet["must_carry_facts"] == ["Arnulf is believed dead."]
 
 

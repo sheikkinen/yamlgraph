@@ -16,6 +16,7 @@ import json
 import logging
 from datetime import UTC, datetime
 
+from examples.dungeon_master.api import chapter_nav
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
 from examples.dungeon_master.api.lifecycle_resolver import (
     _norm_name,
@@ -76,14 +77,9 @@ def _trim_value(value: object, *, max_chars: int = _MAX_CUE_FIELD_CHARS) -> str:
     return text[: max_chars - 1].rstrip() + "…"
 
 
-def _chapter_card(doc: dict, cid: str) -> dict:
-    """Read-only view of chapter ``cid``'s card (empty if absent)."""
-    return doc.get("chapters", {}).get("cards", {}).get(cid, {})
-
-
 def chapter_turns(doc: dict, cid: str) -> list[dict]:
     """Read-only view of chapter ``cid``'s played turns (FR-491 C; empty if none)."""
-    return _chapter_card(doc, cid).get("turns") or []
+    return chapter_nav.chapter_card(doc, cid).get("turns") or []
 
 
 def chapter_beat_list(doc: dict, cid: str) -> list[str]:
@@ -93,7 +89,7 @@ def chapter_beat_list(doc: dict, cid: str) -> list[str]:
     Non-empty by the FR-504 boundary contract (``chapter_ops._require_beats``); a
     chapter persisted before that contract — or one with no card — yields ``[]``.
     """
-    return list(_chapter_card(doc, cid).get("beats") or [])
+    return list(chapter_nav.chapter_card(doc, cid).get("beats") or [])
 
 
 def reset_chapter_for_replay(doc: dict, cid: str) -> None:
@@ -185,53 +181,10 @@ def prior_intents(doc: dict, cid: str, n: int) -> dict:
     return {char_id: v.get("intent", "") for char_id, v in prev.items()}
 
 
-def inherited_world_state(doc: dict, cid: str) -> dict:
-    """The structured world_state chapter ``cid`` inherits — the PREVIOUS ledger.
-
-    The load-bearing forward-carry (FR-488 J7, preserved through play): each
-    chapter is played from where the last one left off. The carried value is the
-    typed ledger (FR-499A) the previous chapter closed with. Empty (``{}``) for the
-    first chapter, or when the chapter id is not in the derived order.
-    """
-    chapters = doc.get("chapters", {})
-    order = chapters.get("order", [])
-    cards = chapters.get("cards", {})
-    if cid not in order:
-        return {}
-    i = order.index(cid)
-    if i == 0:
-        return {}
-    return cards.get(order[i - 1], {}).get("world_state", {}) or {}
-
-
-def inherited_seam_packet(doc: dict, cid: str) -> dict:
-    """The seam packet chapter ``cid`` inherits from the previous chapter (FR-506)."""
-    chapters = doc.get("chapters", {})
-    order = chapters.get("order", [])
-    cards = chapters.get("cards", {})
-    if cid not in order:
-        return {}
-    i = order.index(cid)
-    if i == 0:
-        return {}
-    return cards.get(order[i - 1], {}).get("seam_packet", {}) or {}
-
-
-def _previous_chapter_id(doc: dict, cid: str) -> str:
-    """Resolve the previous chapter id for chapter ``cid``; ``""`` when none."""
-    order = doc.get("chapters", {}).get("order", [])
-    if cid not in order:
-        return ""
-    i = order.index(cid)
-    if i == 0:
-        return ""
-    return str(order[i - 1])
-
-
 def _opening_source_pointer(doc: dict, cid: str) -> dict:
     """Deterministic source pointer for chapter-open seam memory resolution."""
-    prev_cid = _previous_chapter_id(doc, cid)
-    seam = parse_seam_packet(inherited_seam_packet(doc, cid))
+    prev_cid = chapter_nav.previous_chapter_id(doc, cid) or ""
+    seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     digest = hashlib.sha256(
         json.dumps(seam, sort_keys=True, ensure_ascii=True).encode("utf-8")
     ).hexdigest()[:16]
@@ -251,7 +204,7 @@ def _enforce_memory_precedence_gate(doc: dict, cid: str, n: int) -> None:
     """
     if n != 1:
         return
-    if not _previous_chapter_id(doc, cid):
+    if not chapter_nav.previous_chapter_id(doc, cid):
         return
 
     violations = state_conflict_violations(doc, cid)
@@ -270,10 +223,10 @@ def _enforce_memory_precedence_gate(doc: dict, cid: str, n: int) -> None:
 
 def _compile_opening_onepager(doc: dict, cid: str) -> dict:
     """Compile deterministic chapter-open onepager from structured memory layers."""
-    prev_cid = _previous_chapter_id(doc, cid)
-    prev_card = _chapter_card(doc, prev_cid) if prev_cid else {}
+    prev_cid = chapter_nav.previous_chapter_id(doc, cid)
+    prev_card = chapter_nav.chapter_card(doc, prev_cid) if prev_cid else {}
     chapter_memory = dict(prev_card.get("chapter_memory") or {})
-    seam = parse_seam_packet(inherited_seam_packet(doc, cid))
+    seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
 
     must_include = list(seam.get("must_carry_facts") or [])
     for fact in list(chapter_memory.get("irreversible_facts") or []):
@@ -353,7 +306,7 @@ def _enforce_lifecycle_gate(doc: dict, cid: str, n: int, cast: list[dict]) -> No
     """Block chapter turn-1 execution when lifecycle seam constraints are violated."""
     if n != 1:
         return
-    packet = inherited_seam_packet(doc, cid)
+    packet = chapter_nav.inherited_seam_packet(doc, cid)
     active_cast_names = [str(c.get("name") or "").strip() for c in cast]
     violations = validate_character_lifecycle(
         packet,
@@ -409,7 +362,7 @@ def _filter_roster_for_lifecycle(
     if n != 1:
         return roster
 
-    packet = inherited_seam_packet(doc, cid)
+    packet = chapter_nav.inherited_seam_packet(doc, cid)
     chapter_idx = _chapter_index(doc, cid)
     names_by_id = {
         char_id: str(chars["cards"].get(char_id, {}).get("name") or char_id).strip()
@@ -497,7 +450,7 @@ def build_allowed_scene_cast(doc: dict, cid: str) -> list[str]:
         return []
 
     violations = validate_character_lifecycle(
-        inherited_seam_packet(doc, cid),
+        chapter_nav.inherited_seam_packet(doc, cid),
         chapter_id=_chapter_index(doc, cid),
         active_cast_names=candidate_names,
     )
@@ -590,7 +543,7 @@ def _retrieve_turn_ledger(doc: dict, cid: str) -> dict:
     roster yet) ranking would drop everything, so fall back to the full inherited
     ledger — FR-516 bounds context, it never blanks it.
     """
-    inherited = parse_world_state(inherited_world_state(doc, cid))
+    inherited = parse_world_state(chapter_nav.inherited_world_state(doc, cid))
     cast_names = build_allowed_scene_cast(doc, cid)
     if not cast_names:
         return inherited
@@ -612,13 +565,13 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
     model from reading the plan's destination as established fact and replaying the
     aftermath — on turn 1 nothing has happened yet, so play begins at the start (J4).
     """
-    card = _chapter_card(doc, cid)
+    card = chapter_nav.chapter_card(doc, cid)
     title = card.get("title") or f"Chapter {cid}"
     summary = card.get("summary", "")
     inherited = format_world_state(
         _retrieve_turn_ledger(doc, cid), relationships="active"
     ).strip()
-    seam = format_seam_packet(inherited_seam_packet(doc, cid)).strip()
+    seam = format_seam_packet(chapter_nav.inherited_seam_packet(doc, cid)).strip()
     start = inherited or (
         "This is the opening chapter — there is no prior world state. Establish "
         "the chapter from this chapter's summary alone."
@@ -1028,7 +981,7 @@ def dead_character_names(
     ``invoke_final_cut`` returns), so reading the doc card would see the stale
     prior state (FR-519 B1). A character dead at open is never re-listed as within.
     """
-    prior_seam = parse_seam_packet(inherited_seam_packet(doc, cid))
+    prior_seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     before: dict[str, str] = {}
     for item in prior_seam.get("character_lifecycle") or []:
         if str(item.get("existence_state") or "").strip() != "confirmed_dead":
@@ -1092,7 +1045,7 @@ def _possession_facts(doc: dict, cid: str, closed: dict | None = None) -> str:
             if name and holder:
                 obj_holder[_norm_name(name)] = (name, holder)
 
-    _absorb(parse_world_state(inherited_world_state(doc, cid)))
+    _absorb(parse_world_state(chapter_nav.inherited_world_state(doc, cid)))
     if isinstance(closed, dict):
         _absorb(parse_world_state(closed.get("world_state")))
 
@@ -1120,7 +1073,7 @@ def final_cut_context(doc: dict, cid: str, closed: dict | None = None) -> dict:
     from the inherited ledger). Each is an empty string when nothing applies, so a
     chapter with no deaths or tracked objects renders an unchanged prompt.
     """
-    card = _chapter_card(doc, cid)
+    card = chapter_nav.chapter_card(doc, cid)
     summary = card.get("summary", "")
     turns = chapter_turns(doc, cid)
     climax_n = climax_turn(doc, cid)

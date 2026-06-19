@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 
+from examples.dungeon_master.api import chapter_nav
 from examples.dungeon_master.api.world_state import parse_world_state
 
 _LOG_LINE_LIFECYCLE = re.compile(r"Lifecycle gate violation:")
@@ -325,16 +326,6 @@ def _beat_names_actor(beat: str, actor: str) -> bool:
     return bool(a) and a in (beat or "").lower()
 
 
-def _previous_chapter_id(story_doc: dict, cid: str) -> str | None:
-    """The chapter id immediately before ``cid`` in play order, or None."""
-    order = list(((story_doc.get("chapters") or {}).get("order")) or [])
-    try:
-        i = order.index(cid)
-    except ValueError:
-        return None
-    return order[i - 1] if i > 0 else None
-
-
 def _carried_living_characters(story_doc: dict, cid: str) -> list[dict]:
     """Characters the prior chapter carried forward as alive AND located.
 
@@ -342,7 +333,7 @@ def _carried_living_characters(story_doc: dict, cid: str) -> list[dict]:
     as a hard fact — and therefore the actors a state-blind lethal beat can
     contradict.
     """
-    prev = _previous_chapter_id(story_doc, cid)
+    prev = chapter_nav.previous_chapter_id(story_doc, cid)
     if prev is None:
         return []
     cards = (story_doc.get("chapters") or {}).get("cards") or {}

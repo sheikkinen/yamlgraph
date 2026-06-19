@@ -13,13 +13,17 @@ but never fed it to *generation*, so the turn engine could narrate the death of 
 plan-protected character the ledger then refused to record (the ch7 Witta
 resurrection). ``protected_characters`` closes that gap.
 
-This module is a *low-level* dependency: it imports ``seam_packet`` at module load
-but only reaches ``turn_ops``'s doc-walk primitives lazily (inside functions), so
-``turn_ops`` can import the extractors here at module load without a cycle.
+This module is a *low-level* dependency: it imports ``seam_packet`` and
+``chapter_nav`` at module load — both leaves — so it never reaches into
+``turn_ops``. FR-536 dissolved the former lazy ``turn_ops`` doc-walk import: the
+nav primitives now live in ``chapter_nav``, which this module imports directly
+(J4), leaving ``turn_ops`` free to import the extractors here at load with no
+cycle.
 """
 
 from __future__ import annotations
 
+from examples.dungeon_master.api import chapter_nav
 from examples.dungeon_master.api.seam_packet import parse_seam_packet
 
 # State precedence order: highest authority first.
@@ -69,16 +73,11 @@ def _state_map_from_seam(packet: dict) -> dict[str, str]:
 
 
 def _resolve_inputs(doc: dict, cid: str) -> tuple[dict, dict, dict, dict]:
-    """``(chapter_memory, mem_states, syn_states, seam_states)`` for chapter ``cid``.
-
-    Lazily imports ``turn_ops`` so this module stays a load-time leaf (no cycle).
-    """
-    from examples.dungeon_master.api import turn_ops
-
-    prev_cid = turn_ops._previous_chapter_id(doc, cid)
-    prev_card = turn_ops._chapter_card(doc, prev_cid) if prev_cid else {}
+    """``(chapter_memory, mem_states, syn_states, seam_states)`` for chapter ``cid``."""
+    prev_cid = chapter_nav.previous_chapter_id(doc, cid) or ""
+    prev_card = chapter_nav.chapter_card(doc, prev_cid) if prev_cid else {}
     chapter_memory = dict(prev_card.get("chapter_memory") or {})
-    seam = parse_seam_packet(turn_ops.inherited_seam_packet(doc, cid))
+    seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     return (
         chapter_memory,
         _state_map_from_memory(chapter_memory),
@@ -223,9 +222,7 @@ def protected_characters(doc: dict, cid: str) -> dict[str, dict]:
     guard is NOT protected, so legitimate deaths remain possible.
     """
     chapter_memory, mem, syn, seam_states = _resolve_inputs(doc, cid)
-    from examples.dungeon_master.api import turn_ops
-
-    seam = parse_seam_packet(turn_ops.inherited_seam_packet(doc, cid))
+    seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     display = _display_names(chapter_memory, doc, seam)
     floors = _floor_map(seam)
 

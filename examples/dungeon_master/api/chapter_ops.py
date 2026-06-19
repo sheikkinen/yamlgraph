@@ -22,7 +22,7 @@ import json
 import logging
 import re
 
-from examples.dungeon_master.api import turn_ops
+from examples.dungeon_master.api import chapter_nav, turn_ops
 from examples.dungeon_master.api.graph_app import field, get_app
 from examples.dungeon_master.api.seam_packet import (
     format_seam_packet,
@@ -205,7 +205,7 @@ def _log_intra_chapter_continuity(
             )
 
     tracked: dict[str, str] = {}
-    sources = [parse_world_state(turn_ops.inherited_world_state(doc, cid))]
+    sources = [parse_world_state(chapter_nav.inherited_world_state(doc, cid))]
     if isinstance(closed, dict):
         sources.append(parse_world_state(closed.get("world_state")))
     for ws in sources:
@@ -248,7 +248,7 @@ def _build_source_pointer(doc: dict, cid: str) -> dict:
         idx = order.index(cid)
         if idx > 0:
             prev = str(order[idx - 1])
-    seam = parse_seam_packet(turn_ops.inherited_seam_packet(doc, cid))
+    seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     seam_hash = hashlib.sha256(
         json.dumps(seam, sort_keys=True, ensure_ascii=True).encode("utf-8")
     ).hexdigest()[:16]
@@ -765,10 +765,10 @@ async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
             "chapter_title": card.get("title", ""),
             "chapter_summary": card.get("summary", ""),
             "prior_world_state": format_world_state(
-                turn_ops.inherited_world_state(doc, cid)
+                chapter_nav.inherited_world_state(doc, cid)
             ),
             "prior_seam_packet": format_seam_packet(
-                turn_ops.inherited_seam_packet(doc, cid)
+                chapter_nav.inherited_seam_packet(doc, cid)
             ),
             "reoutline": {},
         }
@@ -810,7 +810,7 @@ async def close_chapter(doc: dict, cid: str) -> dict:
             "summary": card.get("summary", ""),
             "index": cid,
             "previous_world_state": format_world_state(
-                turn_ops.inherited_world_state(doc, cid)
+                chapter_nav.inherited_world_state(doc, cid)
             ),
             "recaps": recaps,
             "chapter_close": {},
@@ -830,7 +830,7 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     # before-open class only: a within-chapter-dead character acts legitimately up
     # to their death, so the blanket active-role detector must not raise on them
     # (FR-519 B3); their residual is measured warn-only below.
-    prior_seam = parse_seam_packet(turn_ops.inherited_seam_packet(doc, cid))
+    prior_seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     dead_names = [
         str(item.get("name") or "").strip()
         for item in list(prior_seam.get("character_lifecycle") or [])
@@ -903,7 +903,7 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     _log_intra_chapter_continuity(doc, cid, text, closed)
 
     chapter_memory = _derive_chapter_memory(seam_packet)
-    inherited_ledger = turn_ops.inherited_world_state(doc, cid)
+    inherited_ledger = chapter_nav.inherited_world_state(doc, cid)
     order = doc.get("chapters", {}).get("order", [])
     current_index = order.index(cid) if cid in order else 0
     emitted = closed.get("world_state")
