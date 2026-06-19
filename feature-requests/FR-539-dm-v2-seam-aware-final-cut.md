@@ -229,17 +229,30 @@ entrant absent from the chapter's own prose is still a candidate.
 **Tests.** `test_cast_entrances.py` (7, S0: taxonomy, char-bounded ledger slice,
 first-chapter exclusion, candidate-vs-prose lens distinction) +
 `test_final_cut_seam_context.py` (3, S1: manifest + prior tail reach the context,
-continuing-entrant inherited-row surfacing is char-bounded, first chapter empty).
-Full dungeon_master suite: 329 passed.
+continuing-entrant inherited-row surfacing is char-bounded, first chapter empty) +
+`test_final_cut_seam_e2e.py` (2, the generative acceptance — see below).
+Full dungeon_master suite: 330 passed + 1 integration deselected.
 
-**Generative establishment — integration-deferred.** The acceptance criterion that
-the composed Ch2 *prose* stages the arrival (so FR-538's gap drops to zero) is a
-generative behavior of the now-seam-aware prompt; it requires a real LLM compose
-and is validated by the integration suite + a fresh-book witness run, not the
-deterministic unit suite (matching the FR's integration-marked note). The
-deterministic spine proves the manifest and prior prose reach the narrator; the
-prompt instructs establishment; the outcome is measured by FR-538's witness on a
-real book.
+**Generative establishment — covered by an E2E integration test.** The acceptance
+criterion that the composed Ch2 *prose* stages the arrival (so FR-538's gap drops to
+zero) is a generative behavior of the seam-aware prompt, so it is exercised against a
+real compose, not a mock (`mock_escape_hatch`). `test_final_cut_seam_e2e.py` builds a
+two-chapter played doc whose Ch2 brings in roster member Arnulf, never named in Ch1:
+
+- `test_unbridged_recap_is_flagged_without_llm` (deterministic, always runs): the raw
+  Ch2 turn-recap as the chapter text reports `seam_entrance_gap` `gap_count == 1`
+  (Arnulf, `new`, unbridged) with no LLM call — pinning that the harness discriminates,
+  and that the manifest + prior-prose tail the narrator receives name Arnulf.
+- `test_seam_aware_compose_closes_the_entrance_gap` (`@pytest.mark.integration` +
+  `slow`, skipped without a provider key): the SAME doc composed by the real
+  seam-aware Final Cut drops the gap to `0` — measured over the composed prose; the
+  detector never reads `cast_entrances` (paired B1).
+
+Verified run (Azure GPT-5-mini): baseline `gap_count = 1` → seam-aware `gap_count = 0`.
+The seam-aware narrator opened by bridging from Ch1's closing image and staged the
+entrance in prose ("Then Arnulf came up to her…") before he acted, where the
+seam-blind baseline carried the raw "Hilde and Arnulf drove the assault…" with no
+arrival. The gap closed because of the prose, not the manifest.
 
 **Example tests are requirement-exempt (FR-474 J3):** no `@pytest.mark.req`, no
 capability entry (mirrors FR-537/FR-538).
