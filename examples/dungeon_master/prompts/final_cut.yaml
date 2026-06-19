@@ -81,6 +81,15 @@ system: |
   holder keeps it. Never let a character use an object the prose has just shown
   them lose (dropped, thrown, kicked away, knocked from their grip).{% endif %}
 
+  {% if cast_entrances %}ENTERING THIS CHAPTER — these characters are present this
+  chapter but were NOT on the page when the previous chapter ended:
+  {{ cast_entrances }}
+  Before any of them acts or speaks, OPEN by establishing how each one comes to be
+  present — arriving, rejoining, returning to the scene — bridging from where the
+  previous chapter left them (see PREVIOUS CHAPTER below). Do not let an entrant
+  simply appear mid-scene already acting; stage the arrival first, then proceed.
+  A 'new' entrant has not been seen before — introduce them.{% endif %}
+
 user: |
   THE SCENE PLAN (the intended arc — its BEATS and END are the destination):
   {{ key_scene }}
@@ -92,7 +101,11 @@ user: |
   cues; one prose passage per beat, not one paragraph per turn):
   {{ beat_groups }}
 
-  {% if draft %}THE CURRENT CUT (revise this):
+  {% if prior_tail %}PREVIOUS CHAPTER — HOW IT ENDED (the prose the reader just
+  finished; bridge any entrance from here, do not contradict it):
+  {{ prior_tail }}
+
+  {% endif %}{% if draft %}THE CURRENT CUT (revise this):
   {{ draft }}
 
   INSTRUCTION: {{ instruction }}{% else %}{% if instruction %}ADDED DIRECTION: {{ instruction }}

@@ -41,6 +41,8 @@ state:
   dead_within_chapter: str
   protected_cast: str
   possession_facts: str
+  cast_entrances: str
+  prior_tail: str
   draft: str
   instruction: str
   final_cut: str
@@ -62,6 +64,8 @@ nodes:
       dead_within_chapter: "{state.dead_within_chapter}"
       protected_cast: "{state.protected_cast}"
       possession_facts: "{state.possession_facts}"
+      cast_entrances: "{state.cast_entrances}"
+      prior_tail: "{state.prior_tail}"
       draft: "{state.draft}"
       instruction: "{state.instruction}"
 

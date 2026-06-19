@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (closes the seam-entrance gap FR-537 exposed, FR-538 measures)
 **Type:** Feature
-**Status:** Proposed (depends on FR-538 landing first)
+**Status:** Implemented (deterministic spine; generative establishment integration-deferred)
 **Effort:** ~1.5 days
 **Requested:** 2026-06-19
 
@@ -194,3 +194,52 @@ ENTERING THIS CHAPTER — establish how each arrives before they act:
   subsumed by S0)
 - Distinct from the status/resurrection rail (FR-507/509/510) and the unmodeled
   identity/allegiance rail (10027 Gunnar flip) — both still fire after this lands.
+
+## Implementation (2026-06-19)
+
+**S0 — `derive_cast_entrances` (deterministic, landed).** New deriver leaf
+`examples/dungeon_master/api/cast_entrances.py` (120 lines). It reuses the single
+cast resolver `chapter_open.resolve_chapter_cast` and that module's word-bounded
+name matcher (no parallel cast notion). `entering = resolve_chapter_cast(cid) −
+on_page(prev)` in roster order; `kind` from prior on-page history + inherited
+`character_lifecycle`; `last_status`/`last_location` from the entrant's OWN row in
+`inherited_world_state` only (char-bounded, R2). First chapter / empty cast → `[]`.
+It lives *above* `chapter_open` (imports it) — no cycle, since `chapter_open` does
+not import it. RED `27aa3b61`.
+
+**S1 — seam context into the Final Cut (deterministic wiring, landed).**
+`final_cut.final_cut_context` now emits two new prompt variables: `cast_entrances`
+(`_format_cast_entrances` renders the manifest as narrator-facing lines; `new`
+entrants are marked for introduction, others carry their last-seen chapter + the
+char-bounded status/location) and `prior_tail` (`_prior_chapter_tail` reads the
+previous chapter's *committed* `text` — R3, committed because chapters close in
+order — and returns a paragraph-aligned 800-char tail). Both are threaded through
+`final_cut.yaml` state + node variables. The `final_cut.yaml` prompt gains an
+`ENTERING THIS CHAPTER` manifest block instructing the narrator to open by
+establishing each entrant, bridging from a new `PREVIOUS CHAPTER — HOW IT ENDED`
+block. Both blocks are `{% if %}`-guarded, so chapter 1 / no-entrance composes are
+byte-identical (additive). `final_cut.py` 312 → 375 lines (under the warn line).
+
+**Paired B1 held:** the manifest is narrator INPUT only. It is rendered into the
+prompt; it is never subtracted from FR-538's `seam_entrance_gap`. The candidate
+lens (`derive_cast_entrances`) and the prose-outcome lens (`seam_entrance_gap`)
+stay separate — `test_candidate_includes_entrant_with_no_prose` pins that a scoped
+entrant absent from the chapter's own prose is still a candidate.
+
+**Tests.** `test_cast_entrances.py` (7, S0: taxonomy, char-bounded ledger slice,
+first-chapter exclusion, candidate-vs-prose lens distinction) +
+`test_final_cut_seam_context.py` (3, S1: manifest + prior tail reach the context,
+continuing-entrant inherited-row surfacing is char-bounded, first chapter empty).
+Full dungeon_master suite: 329 passed.
+
+**Generative establishment — integration-deferred.** The acceptance criterion that
+the composed Ch2 *prose* stages the arrival (so FR-538's gap drops to zero) is a
+generative behavior of the now-seam-aware prompt; it requires a real LLM compose
+and is validated by the integration suite + a fresh-book witness run, not the
+deterministic unit suite (matching the FR's integration-marked note). The
+deterministic spine proves the manifest and prior prose reach the narrator; the
+prompt instructs establishment; the outcome is measured by FR-538's witness on a
+real book.
+
+**Example tests are requirement-exempt (FR-474 J3):** no `@pytest.mark.req`, no
+capability entry (mirrors FR-537/FR-538).

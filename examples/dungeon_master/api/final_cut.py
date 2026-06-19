@@ -12,6 +12,7 @@ from :mod:`chapter_open`.
 from __future__ import annotations
 
 from examples.dungeon_master.api import chapter_nav
+from examples.dungeon_master.api.cast_entrances import derive_cast_entrances
 from examples.dungeon_master.api.chapter_open import build_allowed_scene_cast
 from examples.dungeon_master.api.graph_app import clean_text, get_app
 from examples.dungeon_master.api.lifecycle_resolver import (
@@ -29,6 +30,11 @@ from examples.dungeon_master.api.turn_state import (
 from examples.dungeon_master.api.world_state import parse_world_state
 
 _MAX_CUE_FIELD_CHARS = 240
+
+# The prior chapter's closing prose is fed to the next chapter's Final Cut as the
+# bridge source (FR-539 S1). Bound the tail like the seam-packet fields: enough to
+# carry the closing image, never the whole chapter.
+_PRIOR_TAIL_MAX_CHARS = 800
 
 
 def _trim_value(value: object, *, max_chars: int = _MAX_CUE_FIELD_CHARS) -> str:
@@ -244,6 +250,67 @@ def _possession_facts(doc: dict, cid: str, closed: dict | None = None) -> str:
     return "\n".join(lines)
 
 
+def _format_cast_entrances(entrances: list[dict]) -> str:
+    """Render the FR-539 entrance manifest as narrator-facing lines.
+
+    Each entrant becomes ``- Name (kind) — last seen: …`` so the Final Cut has the
+    material to stage the arrival *from*. A ``new`` entrant carries no prior, so it
+    is marked for introduction; the others surface the entrant's own last-seen
+    chapter plus the char-bounded status/location slice (R2). Empty in/empty out so
+    a chapter with no entrances renders the prompt unchanged (additive).
+    """
+    lines: list[str] = []
+    for e in entrances:
+        name = str(e.get("name") or "").strip()
+        if not name:
+            continue
+        kind = str(e.get("kind") or "").strip()
+        if kind == "new":
+            lines.append(f"- {name} (new) — not seen before; introduce them")
+            continue
+        where = str(e.get("last_seen_chapter") or "").strip()
+        status = str(e.get("last_status") or "").strip()
+        location = str(e.get("last_location") or "").strip()
+        detail = ", ".join(
+            part
+            for part in (
+                f"Ch{where}" if where else "",
+                status,
+                f"at {location}" if location else "",
+            )
+            if part
+        )
+        lines.append(
+            f"- {name} ({kind}) — last seen: {detail}"
+            if detail
+            else f"- {name} ({kind})"
+        )
+    return "\n".join(lines)
+
+
+def _prior_chapter_tail(
+    doc: dict, cid: str, *, max_chars: int = _PRIOR_TAIL_MAX_CHARS
+) -> str:
+    """The bounded closing tail of the previous chapter's committed prose (FR-539 S1).
+
+    Reads ``previous_chapter_card(doc, cid)["text"]`` — committed before ``cid``'s
+    Final Cut runs because chapters close in order (R3: passed-from-committed, never
+    read back uncommitted). Returns the trailing ``max_chars`` (whole-paragraph
+    aligned where possible), empty for the first chapter so its compose is
+    unchanged.
+    """
+    prior = str(chapter_nav.previous_chapter_card(doc, cid).get("text") or "").strip()
+    if not prior or len(prior) <= max_chars:
+        return prior
+    tail = prior[-max_chars:]
+    # Align to a paragraph or sentence boundary so the tail starts cleanly.
+    for sep in ("\n\n", ". "):
+        idx = tail.find(sep)
+        if idx != -1:
+            return tail[idx + len(sep) :].strip()
+    return tail.strip()
+
+
 def final_cut_context(doc: dict, cid: str, closed: dict | None = None) -> dict:
     """Assemble chapter ``cid``'s finished arc as Final Cut graph variables (FR-492).
 
@@ -282,6 +349,8 @@ def final_cut_context(doc: dict, cid: str, closed: dict | None = None) -> dict:
         "possession_facts": _possession_facts(doc, cid, closed),
         "allowed_cast": ", ".join(allowed_cast),
         "protected_cast": ", ".join(protected_cast_names(doc, cid)),
+        "cast_entrances": _format_cast_entrances(derive_cast_entrances(doc, cid)),
+        "prior_tail": _prior_chapter_tail(doc, cid),
     }
 
 

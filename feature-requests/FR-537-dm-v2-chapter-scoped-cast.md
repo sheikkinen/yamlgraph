@@ -309,7 +309,7 @@ closes a degenerate chapter). This keeps the feature strictly additive: a story.
 
 ## Implementation (2026-06-19, enforced)
 
-**Status:** Implemented. RED `dbf182e7`, GREEN to follow. DM suite 307 passed; ruff,
+**Status:** Implemented. RED `dbf182e7`, GREEN `6202388b`. DM suite 307 passed; ruff,
 import-linter (1 kept / 0 broken), vulture clean.
 
 ### What was built
@@ -345,3 +345,44 @@ import-linter (1 kept / 0 broken), vulture clean.
   The FR's "Related" line cited the wrong accessor: `chapter_beats` is the *satisfied* beat
   accumulator (empty at turn 1), while `chapter_beat_list` returns the authored beats present
   from turn 1 — the correct floor for a turn-1 cast scope.
+
+## Post-implementation validation (2026-06-19, 10028-BC)
+
+First fresh book generated after GREEN, same `floodmark-saga` premise / 256 turn-cap, so it
+is a like-for-like witness against the pre-537 runs.
+
+| Book | FR-537 | Continuity breaks | Notes |
+|------|--------|-------------------|-------|
+| floodmark | pre | 5 | resume of 10026 spine |
+| 10026-BC | pre | 6 | original review |
+| 10027-BC | pre | 9 | fresh; off-cast filler-looping dominant |
+| **10028-BC** | **post** | **5** | fresh; filler-looping gone |
+
+**The targeted defect is gone.** The off-stage filler-animation that dominated 10027
+(reviewer: *"Arnulf [stepped/kept/lifted] the bundle… Svala [drove/planted/jabbed] her staff
+… this pattern repeats approximately 20+ times, creating a numbing, template-like effect"*)
+does **not** recur in 10028. The two naturally-tight chapters score straight 5s
+(Ch2 5/5/5/5, Ch3 5/5/5/5) — the chapters are no longer padded with characters who have
+nothing to do. This is the measured win FR-537 set out to capture.
+
+**A new seam artifact surfaced (the flip side of scoping).** 10028 Ch3 break #1:
+*"Arnulf appears in Chapter 3 … but is never mentioned, named, or present in Chapter 2 …
+a major named character and a significant death event appear with no prior establishment."*
+Tighter scoping made Ch2 a clean Hilde+Gunnar two-hander, but a character correctly **absent**
+from chapter N's scoped cast now **enters** chapter N+1 with no on-page handoff. This is
+exactly the deferred-step territory (ledger-render / seam-introduction): scoping who *acts*
+is solved; announcing an *incoming* cast member at the chapter seam is not. Candidate for the
+ledger-render follow-up FR or a dedicated seam-introduction packet.
+
+**The other 4 breaks are orthogonal classes FR-537 never claimed:**
+- *Status* — Eirik returns alive, "counted among the dead," with no prior missing/presumed-dead
+  establishment (FR-507/509/510 resurrection class).
+- *Identity* — Hilde flips passive-observer (Ch6) → leads both clans (Ch7) with no transition
+  (the unmodeled allegiance/role rail seen in 10027's Gunnar flip).
+- *Plot* — Ch5→Ch6 feud-resolution replay; Ch6→Ch7 resolution-mechanism shift.
+
+**Verdict:** FR-537 delivered its scoped win (filler-looping removed, tight chapters now
+flawless) and held break-count flat at the premise's pre-537 floor (5). It did **not** move
+the headline continuity score off 1/5 — three independent rails (status, identity, seam
+handoff) still fire, as the judgement anticipated. Net positive; the seam-introduction gap it
+exposed is the highest-value next FR.
