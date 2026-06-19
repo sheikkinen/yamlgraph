@@ -14,7 +14,7 @@ responsible for any expansion that must happen before it asks.
 
 from __future__ import annotations
 
-from examples.dungeon_master.api import turn_ops
+from examples.dungeon_master.api import turn_state
 from examples.dungeon_master.api.tree import (
     CHAPTER_PREFIX,
     CHAR_PREFIX,
@@ -72,7 +72,7 @@ def can_visit(doc: dict, target: str) -> bool:
         cid, n = parse_turn(target)
         if not cid or cid not in _chapter_order(doc):
             return False
-        return 1 <= n <= len(turn_ops.chapter_turns(doc, cid)) + 1
+        return 1 <= n <= len(turn_state.chapter_turns(doc, cid)) + 1
     if target == "book":
         # The terminal Book leaf (FR-492 Phase 3): unlocks only once every chapter
         # is played, not by the ordinary parent-reviewed rule.
@@ -134,7 +134,7 @@ def accept_target(doc: dict, stage: Stage) -> str | None:
         # that ledger forward (FR-491). The last chapter dead-ends — the
         # deterministic Book compose is the whole-book finish (FR-492 Phase 3), not
         # a navigable leaf.
-        if turn_ops.chapter_should_close(doc, cid, n):
+        if turn_state.chapter_should_close(doc, cid, n):
             order = _chapter_order(doc)
             if cid in order:
                 i = order.index(cid)

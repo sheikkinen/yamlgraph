@@ -39,7 +39,7 @@ from examples.dungeon_master.api import (
     doc_ops,
     navigation,
     story_doc,
-    turn_ops,
+    turn_state,
 )
 from examples.dungeon_master.api.graph_app import (
     reset_caches as _reset_caches,
@@ -162,8 +162,8 @@ class DMSession:
         text = entry.get("text", "")
         if stage.kind == "turn":
             cid, n = parse_turn(stage.name)
-            intents = turn_ops.turn_intents(doc, doc_ops.characters(doc), cid, n)
-            direction = turn_ops.turn_direction(doc, cid, n)
+            intents = turn_state.turn_intents(doc, doc_ops.characters(doc), cid, n)
+            direction = turn_state.turn_direction(doc, cid, n)
         elif stage.kind == "chapter":
             # Surface the card's planning context above its prose (FR-490). The
             # forward-carry ledger is structured (FR-499A) — render it to text.
@@ -297,7 +297,7 @@ class DMSession:
                 # (J7). The budget backstop stops a director that never resolves
                 # from running the chapter away with the whole book turn_cap.
                 cid, n = parse_turn(stage.name)
-                if turn_ops.chapter_should_close(doc, cid, n):
+                if turn_state.chapter_should_close(doc, cid, n):
                     await doc_ops.apply_chapter_close(doc, story_dir, cid)
             target = navigation.accept_target(doc, stage)
             if target is not None:

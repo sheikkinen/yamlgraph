@@ -18,7 +18,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from examples.dungeon_master.api import chapter_ops, outline_ops, story_doc, turn_ops
+from examples.dungeon_master.api import (
+    chapter_ops,
+    outline_ops,
+    story_doc,
+    turn_ops,
+    turn_state,
+)
 from examples.dungeon_master.api.graph_app import clean_text, get_app
 from examples.dungeon_master.api.tree import (
     CHAPTER_PREFIX,
@@ -149,7 +155,7 @@ def entry(doc: dict, name: str) -> dict:
         )
     if name.startswith(TURN_PREFIX):
         cid, n = parse_turn(name)
-        return turn_ops.turn_record(doc, cid, n)["recap"]
+        return turn_state.turn_record(doc, cid, n)["recap"]
     return doc.setdefault(name, {"text": "", "reviewed": False})
 
 

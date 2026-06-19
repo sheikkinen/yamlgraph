@@ -6,14 +6,14 @@ field, and witness metric extraction.
 
 from __future__ import annotations
 
+from examples.dungeon_master.api.chapter_open import build_allowed_scene_cast
+from examples.dungeon_master.api.final_cut import (
+    dead_character_names,
+    final_cut_context,
+)
 from examples.dungeon_master.api.prose_continuity import (
     detect_dead_character_prose_violations,
     detect_object_use_after_loss,
-)
-from examples.dungeon_master.api.turn_ops import (
-    build_allowed_scene_cast,
-    dead_character_names,
-    final_cut_context,
 )
 
 # ── Active-role validator tests ──────────────────────────────────────────────

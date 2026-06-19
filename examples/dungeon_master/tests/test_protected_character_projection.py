@@ -18,7 +18,7 @@ Membership rule under test (Judgement J4 — the conjunction):
 
 from __future__ import annotations
 
-from examples.dungeon_master.api.turn_ops import final_cut_context
+from examples.dungeon_master.api.final_cut import final_cut_context
 
 
 def _doc_protected_witta() -> dict:

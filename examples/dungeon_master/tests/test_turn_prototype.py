@@ -593,7 +593,7 @@ def test_turn_captures_wider_performance(client, tmp_path):
 
 
 def test_turn_intents_defaults_missing_performance_to_empty():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import turn_state
 
     # A turn played before FR-486: its intent bundle carries only the old two
     # keys. It must still resolve — a missing performance key is a benign empty
@@ -620,7 +620,7 @@ def test_turn_intents_defaults_missing_performance_to_empty():
         }
     }
     chars = {"roster": ["kara"], "cards": {"kara": {"name": "Kara"}}}
-    cards = turn_ops.turn_intents(doc, chars, "1", 1)
+    cards = turn_state.turn_intents(doc, chars, "1", 1)
     assert len(cards) == 1
     card = cards[0]
     assert card["name"] == "Kara"

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import copy
 
-from examples.dungeon_master.api import navigation, turn_ops
+from examples.dungeon_master.api import navigation, turn_state
 from examples.dungeon_master.api.tree import STAGE_BY_NAME, resolve_stage
 
 
@@ -234,34 +234,34 @@ def _playing_doc(turns: list[dict]) -> dict:
 
 def test_chapter_should_close_on_scene_complete():
     doc = _playing_doc(_played_turns(3, scene_complete_at=3))
-    assert turn_ops.chapter_should_close(doc, "1", 3) is True
+    assert turn_state.chapter_should_close(doc, "1", 3) is True
 
 
 def test_chapter_should_close_at_turn_budget_without_scene_complete():
     # The runaway case: no turn ever reported scene_complete, but the chapter has
     # spent its full per-chapter budget — the backstop forces closure.
-    cap = turn_ops.CHAPTER_TURN_CAP
+    cap = turn_state.CHAPTER_TURN_CAP
     doc = _playing_doc(_played_turns(cap))
-    assert turn_ops.chapter_should_close(doc, "1", cap) is True
+    assert turn_state.chapter_should_close(doc, "1", cap) is True
 
 
 def test_chapter_should_not_close_below_budget_without_scene_complete():
-    cap = turn_ops.CHAPTER_TURN_CAP
+    cap = turn_state.CHAPTER_TURN_CAP
     doc = _playing_doc(_played_turns(cap - 1))
-    assert turn_ops.chapter_should_close(doc, "1", cap - 1) is False
+    assert turn_state.chapter_should_close(doc, "1", cap - 1) is False
 
 
 def test_accept_target_force_closes_chapter_at_budget():
     # At the per-chapter cap with no scene_complete, landing advances to the NEXT
     # chapter's first turn (force-close), not turn cap+1 in the same chapter.
-    cap = turn_ops.CHAPTER_TURN_CAP
+    cap = turn_state.CHAPTER_TURN_CAP
     doc = _playing_doc(_played_turns(cap))
     stage = resolve_stage(doc, f"turn:1:{cap}")
     assert navigation.accept_target(doc, stage) == "turn:2:1"
 
 
 def test_accept_target_keeps_advancing_below_budget():
-    cap = turn_ops.CHAPTER_TURN_CAP
+    cap = turn_state.CHAPTER_TURN_CAP
     doc = _playing_doc(_played_turns(cap - 1))
     stage = resolve_stage(doc, f"turn:1:{cap - 1}")
     assert navigation.accept_target(doc, stage) == f"turn:1:{cap}"

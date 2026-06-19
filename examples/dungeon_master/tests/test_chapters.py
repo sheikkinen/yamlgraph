@@ -236,7 +236,7 @@ def test_close_chapter_softens_confirmed_dead_with_planned_return(monkeypatch):
     # while the plan grants a reappearance is reconciled AT THE CLOSE SEAM to
     # missing_presumed_dead (the coherent record the 10024-BC Ch3 row lacked), and
     # the reconciled state does NOT introduce a spurious memory-precedence conflict.
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import chapter_open
 
     doc = {
         "synopsis": {"text": SYNOPSIS_TEXT, "reviewed": True},
@@ -302,7 +302,7 @@ def test_close_chapter_softens_confirmed_dead_with_planned_return(monkeypatch):
     # chapter_memory state for equality and raises on mismatch).
     doc["chapters"]["cards"]["2"]["seam_packet"] = result["seam_packet"]
     doc["chapters"]["cards"]["2"]["world_state"] = result["world_state"]
-    turn_ops._enforce_memory_precedence_gate(doc, "3", 1)
+    chapter_open.enforce_memory_precedence_gate(doc, "3", 1)
 
     doc = _doc_with_chapters()
     doc["chapters"]["cards"]["2"]["turns"] = [
@@ -483,7 +483,7 @@ def test_running_scene_turn_one_does_not_reintroduce_synopsis_framing():
 
 
 def test_invoke_turn_raises_continuity_memory_conflict_on_state_precedence_mismatch():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import chapter_open, turn_ops
 
     doc = {
         "chapters": {
@@ -533,7 +533,7 @@ def test_invoke_turn_raises_continuity_memory_conflict_on_state_precedence_misma
     chars = {"roster": [], "cards": {}}
     try:
         _run(turn_ops.invoke_turn(doc, chars, "2", 1, instruction=""))
-    except turn_ops.ContinuityMemoryConflictError as exc:
+    except chapter_open.ContinuityMemoryConflictError as exc:
         assert exc.payload["code"] == "CONTINUITY_MEMORY_CONFLICT"
         assert exc.payload["chapter_id"] == "2"
         assert exc.payload["source_pointer"]["chapter_id"] == "1"
@@ -1034,52 +1034,60 @@ def _doc_chapter_turns_with_directions(directions: list[dict]) -> dict:
 
 
 def test_roster_filter_drops_actor_the_director_exited_this_chapter():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import chapter_open
 
     chars = _chars({"hilde": "Hilde", "arnulf": "Arnulf"})
     doc = _doc_chapter_turns_with_directions([{"cast_exits": ["Arnulf"]}])
-    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["hilde", "arnulf"])
+    out = chapter_open.filter_roster_for_lifecycle(
+        doc, chars, "1", 2, ["hilde", "arnulf"]
+    )
     assert out == ["hilde"]
 
 
 def test_roster_filter_exit_persists_across_a_later_clean_turn():
     # Accumulation: exit on turn 1, no exit on turn 2 → still dropped on turn 3.
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import chapter_open
 
     chars = _chars({"hilde": "Hilde", "arnulf": "Arnulf"})
     doc = _doc_chapter_turns_with_directions(
         [{"cast_exits": ["Arnulf"]}, {"cast_exits": []}]
     )
-    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 3, ["hilde", "arnulf"])
+    out = chapter_open.filter_roster_for_lifecycle(
+        doc, chars, "1", 3, ["hilde", "arnulf"]
+    )
     assert out == ["hilde"]
 
 
 def test_roster_filter_no_exits_leaves_roster_unchanged():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import chapter_open
 
     chars = _chars({"hilde": "Hilde", "arnulf": "Arnulf"})
     doc = _doc_chapter_turns_with_directions([{"cast_exits": []}])
-    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["hilde", "arnulf"])
+    out = chapter_open.filter_roster_for_lifecycle(
+        doc, chars, "1", 2, ["hilde", "arnulf"]
+    )
     assert out == ["hilde", "arnulf"]
 
 
 def test_roster_filter_never_empties_the_cast():
     # If every roster member has exited, do not hand the turn an empty cast —
     # keep the unfiltered roster (the chapter's turn cap will close it instead).
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import chapter_open
 
     chars = _chars({"arnulf": "Arnulf"})
     doc = _doc_chapter_turns_with_directions([{"cast_exits": ["Arnulf"]}])
-    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["arnulf"])
+    out = chapter_open.filter_roster_for_lifecycle(doc, chars, "1", 2, ["arnulf"])
     assert out == ["arnulf"]
 
 
 def test_roster_filter_exit_match_is_case_insensitive():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import chapter_open
 
     chars = _chars({"hilde": "Hilde", "arnulf": "  ARnUlf  "})
     doc = _doc_chapter_turns_with_directions([{"cast_exits": ["arnulf"]}])
-    out = turn_ops._filter_roster_for_lifecycle(doc, chars, "1", 2, ["hilde", "arnulf"])
+    out = chapter_open.filter_roster_for_lifecycle(
+        doc, chars, "1", 2, ["hilde", "arnulf"]
+    )
     assert out == ["hilde"]
 
 

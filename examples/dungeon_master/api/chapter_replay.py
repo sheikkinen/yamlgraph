@@ -20,28 +20,28 @@ import copy
 import json
 from pathlib import Path
 
-from examples.dungeon_master.api import doc_ops, turn_ops
+from examples.dungeon_master.api import doc_ops, turn_ops, turn_state
 
 
 async def replay_chapter(doc: dict, cid: str, *, turn_cap: int | None = None) -> dict:
     """Return a fresh doc with chapter ``cid`` re-played from its inherited start.
 
     Deep-copies ``doc`` (the caller's doc is never mutated), wipes only chapter
-    ``cid`` via :func:`turn_ops.reset_chapter_for_replay`, then drives the real
+    ``cid`` via :func:`turn_state.reset_chapter_for_replay`, then drives the real
     ``turn_ops.invoke_turn`` (map → direct → recap) turn by turn until the
     director reports ``scene_complete`` or the per-chapter cap is hit — the exact
     loop the live play uses. ``turn_cap`` defaults to
-    :data:`turn_ops.CHAPTER_TURN_CAP`.
+    :data:`turn_state.CHAPTER_TURN_CAP`.
     """
     replay = copy.deepcopy(doc)
     chars = doc_ops.characters(replay)
-    turn_ops.reset_chapter_for_replay(replay, cid)
-    cap = turn_cap if turn_cap is not None else turn_ops.CHAPTER_TURN_CAP
+    turn_state.reset_chapter_for_replay(replay, cid)
+    cap = turn_cap if turn_cap is not None else turn_state.CHAPTER_TURN_CAP
     for n in range(1, cap + 1):
         recap = await turn_ops.invoke_turn(replay, chars, cid, n)
-        rec = turn_ops.turn_record(replay, cid, n)
+        rec = turn_state.turn_record(replay, cid, n)
         rec["recap"] = {"text": recap, "reviewed": False}
-        if turn_ops.chapter_should_close(replay, cid, n):
+        if turn_state.chapter_should_close(replay, cid, n):
             break
     return replay
 

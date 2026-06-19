@@ -20,7 +20,7 @@ import json
 import logging
 import re
 
-from examples.dungeon_master.api import chapter_nav, turn_ops
+from examples.dungeon_master.api import chapter_nav, final_cut, turn_state
 from examples.dungeon_master.api.seam_packet import parse_seam_packet
 from examples.dungeon_master.api.world_state import parse_world_state
 
@@ -157,7 +157,7 @@ def log_intra_chapter_continuity(
     - ``OBJECT_USED_AFTER_LOSS``: a tracked object used after the prose showed it
       lost (the lane floor can manufacture false positives, so warn-only per B4).
     """
-    _, within_dead = turn_ops.dead_character_names(doc, cid, closed)
+    _, within_dead = final_cut.dead_character_names(doc, cid, closed)
     for name in within_dead:
         for v in detect_dead_character_prose_violations(name, text):
             _LOG.warning(
@@ -270,7 +270,7 @@ def post_revise_invariant_failures(
     failures: list[str] = []
 
     # Invariant 1: preserve beats as substrings when they were present in original.
-    for beat in turn_ops.chapter_beats(doc, cid):
+    for beat in turn_state.chapter_beats(doc, cid):
         beat_text = str(beat or "").strip()
         if not beat_text:
             continue
@@ -336,7 +336,7 @@ async def revise_final_cut_once(
         + ". Violations:\n"
         + violation_lines
     )
-    return await turn_ops.invoke_final_cut(
+    return await final_cut.invoke_final_cut(
         doc,
         cid,
         instruction=instruction,

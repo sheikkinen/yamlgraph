@@ -6,7 +6,7 @@ import asyncio
 
 import pytest
 
-from examples.dungeon_master.api import chapter_ops, turn_ops
+from examples.dungeon_master.api import chapter_ops, final_cut
 
 
 class _MockCloseApp:
@@ -79,7 +79,7 @@ def test_close_chapter_raises_after_one_revise_attempt_when_still_violating(
         return "Hilde kept watch.\nAlwina demanded judgment."
 
     monkeypatch.setattr(chapter_ops, "get_app", lambda _name: _MockCloseApp())
-    monkeypatch.setattr(turn_ops, "invoke_final_cut", _fake_final_cut)
+    monkeypatch.setattr(final_cut, "invoke_final_cut", _fake_final_cut)
 
     with pytest.raises(chapter_ops.FinalCutReviseError):
         _run(chapter_ops.close_chapter(_doc(), "2"))
@@ -97,7 +97,7 @@ def test_close_chapter_raises_when_revise_breaks_invariants(monkeypatch):
         return "ok"
 
     monkeypatch.setattr(chapter_ops, "get_app", lambda _name: _MockCloseApp())
-    monkeypatch.setattr(turn_ops, "invoke_final_cut", _fake_final_cut)
+    monkeypatch.setattr(final_cut, "invoke_final_cut", _fake_final_cut)
 
     with pytest.raises(chapter_ops.FinalCutReviseError):
         _run(chapter_ops.close_chapter(_doc(), "2"))
@@ -115,7 +115,7 @@ def test_close_chapter_accepts_revised_text_when_clean_and_invariants_hold(monke
         return "Hilde kept watch over the ledge.\nThe fallen staff lay still."
 
     monkeypatch.setattr(chapter_ops, "get_app", lambda _name: _MockCloseApp())
-    monkeypatch.setattr(turn_ops, "invoke_final_cut", _fake_final_cut)
+    monkeypatch.setattr(final_cut, "invoke_final_cut", _fake_final_cut)
 
     result = _run(chapter_ops.close_chapter(_doc(), "2"))
     assert "Alwina came forward" not in result["text"]

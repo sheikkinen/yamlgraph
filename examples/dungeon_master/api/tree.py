@@ -56,7 +56,7 @@ TURN_SEED = "Play this turn."
 
 # Final Cut (FR-492): the per-chapter finish graph. No longer a navigable terminal
 # stage — ``close_chapter`` runs it over each played chapter's arc to compose the
-# chapter's beat-faithful final text (turn_ops.invoke_final_cut). The whole-book
+# chapter's beat-faithful final text (final_cut.invoke_final_cut). The whole-book
 # finish is the deterministic Book compose (FR-492 Phase 3), not a single-scene
 # cut. The FR-485 turn-structured cut, FR-487 walkthrough, and staging siblings
 # were retired with their capability folded into this single per-chapter finish.

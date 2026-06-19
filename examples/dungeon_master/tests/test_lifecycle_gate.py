@@ -10,7 +10,7 @@ import asyncio
 
 import pytest
 
-from examples.dungeon_master.api import turn_ops
+from examples.dungeon_master.api import chapter_open, turn_ops
 
 
 class _UnexpectedGraphCall:
@@ -105,7 +105,7 @@ def test_invoke_turn_raises_lifecycle_gate_error_before_graph(monkeypatch):
     chars = _chars_with_arnulf()
     monkeypatch.setattr(turn_ops, "get_app", lambda name: _UnexpectedGraphCall())
 
-    with pytest.raises(turn_ops.LifecycleGateError) as err:
+    with pytest.raises(chapter_open.LifecycleGateError) as err:
         asyncio.run(turn_ops.invoke_turn(doc, chars, "3", 1))
 
     payload = err.value.payload
@@ -142,8 +142,8 @@ def test_cast_filter_identity_matching_is_case_insensitive() -> None:
         },
     }
 
-    with pytest.raises(turn_ops.LifecycleGateError) as err:
-        turn_ops._filter_roster_for_lifecycle(doc, chars, "3", 1, ["arnulf"])
+    with pytest.raises(chapter_open.LifecycleGateError) as err:
+        chapter_open.filter_roster_for_lifecycle(doc, chars, "3", 1, ["arnulf"])
 
     payload = err.value.payload
     assert payload["code"] == "LIFECYCLE_GATE_VIOLATION"

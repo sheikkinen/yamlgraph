@@ -18,7 +18,7 @@ Run directly:
 
 from __future__ import annotations
 
-from examples.dungeon_master.api import turn_ops
+from examples.dungeon_master.api import final_cut
 
 
 def _played_chapter_doc() -> dict:
@@ -129,7 +129,7 @@ def test_final_cut_context_reads_chapter_turns_not_flat_doc_turns():
     re-scopes it to the chapter. The arc must carry every played recap in order.
     """
     doc = _played_chapter_doc()
-    ctx = turn_ops.final_cut_context(doc, "1")
+    ctx = final_cut.final_cut_context(doc, "1")
 
     arc = ctx["arc"]
     # Every played recap, in order — the proof the chapter's turns were read.
@@ -144,7 +144,7 @@ def test_final_cut_context_reads_chapter_turns_not_flat_doc_turns():
 def test_final_cut_context_uses_chapter_summary_as_the_plan():
     """The chapter summary stands in for the retired ``key_scene`` plan (FR-492)."""
     doc = _played_chapter_doc()
-    ctx = turn_ops.final_cut_context(doc, "1")
+    ctx = final_cut.final_cut_context(doc, "1")
     assert "corners the raider on the ledge" in ctx["key_scene"]
 
 
@@ -155,7 +155,7 @@ def test_final_cut_context_marks_the_chapter_climax():
     chapter's own turns rather than the absent flat ``doc["turns"]``.
     """
     doc = _played_chapter_doc()
-    ctx = turn_ops.final_cut_context(doc, "1")
+    ctx = final_cut.final_cut_context(doc, "1")
     assert ctx["climax"] == "Turn 2"
     assert "CLIMAX BEAT" in ctx["arc"]
 
@@ -171,7 +171,7 @@ def test_final_cut_context_sources_beats_from_director_not_parse_beats():
     chapter's turns, not be empty.
     """
     doc = _played_chapter_doc()
-    ctx = turn_ops.final_cut_context(doc, "1")
+    ctx = final_cut.final_cut_context(doc, "1")
     beats = ctx["beats"]
     assert beats.strip(), "beats must not be empty — the fidelity signal was dropped"
     assert "the band is mustered" in beats
@@ -189,7 +189,7 @@ def test_final_cut_context_emits_beat_groups_key():
     ``beat_groups``, and it must be a non-empty string when turns are present.
     """
     doc = _played_chapter_doc()
-    ctx = turn_ops.final_cut_context(doc, "1")
+    ctx = final_cut.final_cut_context(doc, "1")
     assert (
         "beat_groups" in ctx
     ), "beat_groups key missing — final_cut graph invocation would fail"
@@ -202,7 +202,7 @@ def test_final_cut_context_emits_beat_groups_key():
 def test_beat_turn_groups_are_total_ordered_and_cue_carrying():
     """FR-505 A1: grouped turns are total, ordered, and carry stable cue schema."""
     doc = _played_chapter_doc()
-    groups = turn_ops.beat_turn_groups(doc, "1")
+    groups = final_cut.beat_turn_groups(doc, "1")
 
     assert [g["beat"] for g in groups] == [
         "the band is mustered",

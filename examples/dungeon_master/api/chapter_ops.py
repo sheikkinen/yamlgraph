@@ -20,7 +20,12 @@ from __future__ import annotations
 import logging
 import re
 
-from examples.dungeon_master.api import chapter_nav, turn_ops
+from examples.dungeon_master.api import (
+    chapter_nav,
+    chapter_open,
+    final_cut,
+    turn_state,
+)
 from examples.dungeon_master.api.graph_app import get_app
 from examples.dungeon_master.api.prose_continuity import (
     FinalCutReviseError,
@@ -224,11 +229,11 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     ledger the NEXT chapter inherits. ``seam_packet`` is the explicit chapter seam
     handoff contract for turn-1 of chapter N+1. ``text`` is the chapter's *final text*: the
     per-chapter Final Cut (FR-492), one continuous beat-faithful passage composed
-    over the whole played arc (:func:`turn_ops.invoke_final_cut`) rather than the
+    over the whole played arc (:func:`final_cut.invoke_final_cut`) rather than the
     raw recaps. A pure read: the adapter records the result onto the card.
     """
     card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
-    recaps = turn_ops.chapter_recaps_text(doc, cid)
+    recaps = turn_state.chapter_recaps_text(doc, cid)
     result = await get_app(CHAPTER_CLOSE_GRAPH).ainvoke(
         {
             "synopsis": doc.get("synopsis", {}).get("text", ""),
@@ -246,7 +251,7 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     # death + possession constraints reach the prompt. The chapter's own world_state
     # is not committed to the doc until this function returns, so it must be passed,
     # not read back (B1).
-    text = await turn_ops.invoke_final_cut(doc, cid, closed=closed)
+    text = await final_cut.invoke_final_cut(doc, cid, closed=closed)
     seam_packet = parse_seam_packet(closed.get("seam_packet"))
     seam_packet = _clamp_lifecycle_reappearance_to_plan(doc, seam_packet)
     seam_packet = _enforce_reappearance_state_coherence(seam_packet)
@@ -271,7 +276,7 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     if violations:
         attempt_count = 1
         revised = True
-        allowed_cast = turn_ops.build_allowed_scene_cast(doc, cid)
+        allowed_cast = chapter_open.build_allowed_scene_cast(doc, cid)
         revised_text = await revise_final_cut_once(
             doc,
             cid,

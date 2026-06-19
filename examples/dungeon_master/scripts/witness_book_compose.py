@@ -6,7 +6,7 @@ generative/assembly seams the deterministic tests can only mock:
   1. PER-CHAPTER FINAL CUT (generation at the chapter seam) — each chapter is
      played turn by turn until the director declares the scene complete; on close
      the chapter stores a beat-faithful final ``text`` composed over its whole
-     played arc (turn_ops.invoke_final_cut), not concatenated recaps.
+     played arc (final_cut.invoke_final_cut), not concatenated recaps.
   2. DETERMINISTIC BOOK (assembly at the book seam) — compose_book_deterministic
      over the played chapters' final texts with NO whole-book LLM call. The book
      must be non-empty and contain each chapter's heading + its final prose; the

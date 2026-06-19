@@ -14,7 +14,12 @@ import json
 
 import pytest
 
-from examples.dungeon_master.api import chapter_replay, turn_ops, witness_metrics
+from examples.dungeon_master.api import (
+    chapter_replay,
+    turn_ops,
+    turn_state,
+    witness_metrics,
+)
 
 
 def _two_chapter_doc() -> dict:
@@ -81,7 +86,7 @@ def _two_chapter_doc() -> dict:
 
 def test_reset_chapter_for_replay_wipes_only_target_chapter():
     doc = _two_chapter_doc()
-    turn_ops.reset_chapter_for_replay(doc, "2")
+    turn_state.reset_chapter_for_replay(doc, "2")
     card2 = doc["chapters"]["cards"]["2"]
     assert card2["turns"] == []
     assert card2["reviewed"] is False
@@ -199,7 +204,7 @@ async def test_replay_chapter_isolates_prior_chapters(monkeypatch):
     original = copy.deepcopy(doc)
 
     async def _stub_invoke_turn(d, chars, cid, n, instruction=""):
-        rec = turn_ops.turn_record(d, cid, n)
+        rec = turn_state.turn_record(d, cid, n)
         rec["intents"] = {"arnulf": {"intent": f"replayed intent {n}", "dialogue": ""}}
         rec["direction"] = {
             "continuity": ["Arnulf acts after being swept away."],
@@ -226,7 +231,7 @@ async def test_replay_chapter_honors_turn_cap(monkeypatch):
     doc = _two_chapter_doc()
 
     async def _never_complete(d, chars, cid, n, instruction=""):
-        rec = turn_ops.turn_record(d, cid, n)
+        rec = turn_state.turn_record(d, cid, n)
         rec["intents"] = {}
         rec["direction"] = {"continuity": [], "scene_complete": False}
         return f"recap {n}"

@@ -163,7 +163,7 @@ def chapter_actor_flag_metrics(story_doc: dict, cid: str, actor: str) -> dict:
 # it ever would, yet kept the chapter open replaying the same material. Extracted here
 # (from scan_turn_waste.py) so both the hand-run instrument and the FR-531 unified
 # report reuse one measurement (no duplication). CHAPTER_TURN_CAP mirrors
-# turn_ops.CHAPTER_TURN_CAP (FR-501); kept local to keep this module import-light.
+# turn_state.CHAPTER_TURN_CAP (FR-501); kept local to keep this module import-light.
 CHAPTER_TURN_CAP = 16
 # A short denouement after the last beat lands is normal; only a longer stall counts.
 TURN_WASTE_STALL_THRESHOLD = 3

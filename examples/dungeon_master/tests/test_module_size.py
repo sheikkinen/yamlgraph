@@ -26,12 +26,10 @@ _API_DIR = Path(__file__).resolve().parents[1] / "api"
 _MAX_LINES = 450
 
 # Modules known to be over the ceiling that need a *split* (Workstream C). Each is
-# strict-xfail: removing the entry is mandatory the moment its split lands.
-_NEEDS_SPLIT = frozenset(
-    {
-        "turn_ops.py",
-    }
-)
+# strict-xfail: removing the entry is mandatory the moment its split lands. Empty
+# now that FR-536 Workstream C has landed every split (turn_ops -> turn_state +
+# chapter_open + final_cut was the last).
+_NEEDS_SPLIT: frozenset[str] = frozenset()
 
 
 def _api_modules() -> list[Path]:

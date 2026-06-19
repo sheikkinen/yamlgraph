@@ -2,7 +2,7 @@
 
 The single source of truth for "what is a character's authoritative state, and is
 the plan sworn to keep them alive?" Both the chapter-open precedence gate
-(``turn_ops._enforce_memory_precedence_gate``) and prose generation (the turn
+(``chapter_open.enforce_memory_precedence_gate``) and prose generation (the turn
 director + final cut) consult this module, so plan-over-prose precedence reaches
 the boundary where the prose is *born*, not only the boundary where it is *read*.
 
