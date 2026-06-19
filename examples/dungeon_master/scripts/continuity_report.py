@@ -29,7 +29,7 @@ import json
 import sys
 from pathlib import Path
 
-from examples.dungeon_master.api import witness_metrics
+from examples.dungeon_master.api import gap_detectors, witness_metrics
 
 # The deterministic continuity metrics, in display order. Each is summed across the
 # book from one importable witness -- the single shelf this report assembles.
@@ -72,17 +72,17 @@ def book_metrics(doc: dict) -> dict:
     cards = chapters.get("cards") or {}
 
     seam_gaps = sum(
-        witness_metrics.seam_precondition_gap(doc, cid)["gap_count"] for cid in order
+        gap_detectors.seam_precondition_gap(doc, cid)["gap_count"] for cid in order
     )
     beat_gaps = sum(
-        witness_metrics.beat_coverage_gap(doc, cid)["gap_count"] for cid in order
+        gap_detectors.beat_coverage_gap(doc, cid)["gap_count"] for cid in order
     )
     reversal_packs = sum(
-        witness_metrics.reversal_pack_gap(cards.get(cid) or {})["gap_count"]
+        gap_detectors.reversal_pack_gap(cards.get(cid) or {})["gap_count"]
         for cid in order
     )
     unplayable_beats = sum(
-        witness_metrics.unplayable_beat_gap(cards.get(cid) or {})["gap_count"]
+        gap_detectors.unplayable_beat_gap(cards.get(cid) or {})["gap_count"]
         for cid in order
     )
     wasted_turns = witness_metrics.book_turn_waste(doc)["wasted_turns"]

@@ -28,7 +28,7 @@ Example tests are requirement-exempt (FR-474 J3): no ``@pytest.mark.req``.
 
 from __future__ import annotations
 
-from examples.dungeon_master.api import witness_metrics
+from examples.dungeon_master.api import gap_detectors
 
 
 def _reversal_chapter_doc(ch_beats: list[str], arnulf_status: str) -> dict:
@@ -93,7 +93,7 @@ _REMOVAL_ONLY_BEATS = [
 def test_phantom_return_beat_is_flagged():
     """A 'reappears alive' beat in a chapter whose ledger commits Arnulf dead fires."""
     doc = _reversal_chapter_doc(_REVERSAL_BEATS, arnulf_status="dead")
-    result = witness_metrics.beat_coverage_gap(doc, "3")
+    result = gap_detectors.beat_coverage_gap(doc, "3")
     assert result["terminal_count"] == 1
     assert result["gap_count"] == 1
     gap = result["gaps"][0]
@@ -110,7 +110,7 @@ def test_removal_only_chapter_is_clean_negative_control():
     presence of a dead character or a removal beat.
     """
     doc = _reversal_chapter_doc(_REMOVAL_ONLY_BEATS, arnulf_status="dead")
-    result = witness_metrics.beat_coverage_gap(doc, "3")
+    result = gap_detectors.beat_coverage_gap(doc, "3")
     assert result["terminal_count"] == 1
     assert result["gap_count"] == 0
 
@@ -118,7 +118,7 @@ def test_removal_only_chapter_is_clean_negative_control():
 def test_living_ledger_with_return_beat_is_clean():
     """If the chapter committed Arnulf alive, a 'reappears alive' beat is consistent."""
     doc = _reversal_chapter_doc(_REVERSAL_BEATS, arnulf_status="alive")
-    result = witness_metrics.beat_coverage_gap(doc, "3")
+    result = gap_detectors.beat_coverage_gap(doc, "3")
     assert result["terminal_count"] == 0
     assert result["gap_count"] == 0
 
@@ -127,6 +127,6 @@ def test_unclosed_chapter_with_prose_world_state_does_not_crash():
     """A not-yet-closed chapter (legacy prose world_state) normalizes to no terminal."""
     doc = _reversal_chapter_doc(_REVERSAL_BEATS, arnulf_status="dead")
     doc["chapters"]["cards"]["3"]["world_state"] = "Arnulf was swept away by the flood."
-    result = witness_metrics.beat_coverage_gap(doc, "3")
+    result = gap_detectors.beat_coverage_gap(doc, "3")
     assert result["terminal_count"] == 0
     assert result["gap_count"] == 0

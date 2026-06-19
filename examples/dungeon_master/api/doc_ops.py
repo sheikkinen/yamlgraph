@@ -263,7 +263,7 @@ async def reoutline_next_chapter(doc: dict, story_dir: Path, cid: str) -> None:
     ``world_state``/``seam_packet``, the chapter that inherits that state has its
     beats re-derived (``chapter_ops.reoutline_chapter_beats``, a pure read) so a
     lethal/exit beat is physically continuous with where the story left each actor —
-    closing the seam-teleport :func:`witness_metrics.seam_precondition_gap` measures.
+    closing the seam-teleport :func:`gap_detectors.seam_precondition_gap` measures.
 
     Guarded (J7): a no-op unless a next chapter exists AND it has not been played
     (no committed turns) AND it is not ``reviewed`` — a partially-played chapter must

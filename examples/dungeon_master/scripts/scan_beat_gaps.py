@@ -1,6 +1,6 @@
 """Scan DM story.json artifacts for phantom-promise beats (FR-524 Judgement witness).
 
-Runs ``witness_metrics.beat_coverage_gap`` over every chapter of each story doc
+Runs ``gap_detectors.beat_coverage_gap`` over every chapter of each story doc
 passed on argv and prints a per-book report. A phantom-promise beat is one a
 chapter's OWN committed ``world_state`` contradicts: the ledger records an actor
 terminal (dead/missing/lost) yet a beat of the same chapter promises their return
@@ -14,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-from examples.dungeon_master.api import witness_metrics as wm
+from examples.dungeon_master.api import gap_detectors as wm
 
 grand = 0
 for path in sys.argv[1:]:

@@ -22,7 +22,7 @@ import pytest
 from examples.dungeon_master.api import (
     chapter_ops,
     doc_ops,
-    witness_metrics,
+    gap_detectors,
 )
 
 
@@ -100,14 +100,14 @@ _NO_BRIDGE_BEATS = [
 async def test_reoutline_writes_bridge_beats_and_clears_gap(tmp_path, monkeypatch):
     doc = _seam_doc()
     # Precondition: the unbridged seam IS present before re-outline (the bug).
-    assert witness_metrics.seam_precondition_gap(doc, "2")["gap_count"] == 1
+    assert gap_detectors.seam_precondition_gap(doc, "2")["gap_count"] == 1
 
     monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
 
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "1")
 
     assert doc["chapters"]["cards"]["2"]["beats"] == _BRIDGE_BEATS
-    assert witness_metrics.seam_precondition_gap(doc, "2")["gap_count"] == 0
+    assert gap_detectors.seam_precondition_gap(doc, "2")["gap_count"] == 0
 
 
 @pytest.mark.asyncio
@@ -122,7 +122,7 @@ async def test_negative_control_no_bridge_leaves_gap(tmp_path, monkeypatch):
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "1")
 
     assert doc["chapters"]["cards"]["2"]["beats"] == _NO_BRIDGE_BEATS
-    assert witness_metrics.seam_precondition_gap(doc, "2")["gap_count"] == 1
+    assert gap_detectors.seam_precondition_gap(doc, "2")["gap_count"] == 1
 
 
 # ── AC-2: purity — the pure fn never mutates doc; raises on empty ─────────────

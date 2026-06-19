@@ -1,6 +1,6 @@
 """Scan DM story.json artifacts for unbridged lethal seams (FR-523 witness).
 
-Runs ``witness_metrics.seam_precondition_gap`` over every chapter of each story
+Runs ``gap_detectors.seam_precondition_gap`` over every chapter of each story
 doc passed on argv and prints a per-book gap report. Heuristic instrument, not a
 gate (FR-522 posture): a gap is corroborating evidence of the state-blind-outliner
 seam-teleport, to be read alongside the prose, not a pass/fail.
@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from examples.dungeon_master.api import witness_metrics as wm
+from examples.dungeon_master.api import gap_detectors as wm
 
 grand = 0
 for path in sys.argv[1:]:

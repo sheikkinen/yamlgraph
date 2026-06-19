@@ -23,6 +23,10 @@ import logging
 import re
 
 from examples.dungeon_master.api import chapter_nav, turn_ops
+from examples.dungeon_master.api.gap_detectors import (
+    reversal_pack_gap,
+    unplayable_beat_gap,
+)
 from examples.dungeon_master.api.graph_app import field, get_app
 from examples.dungeon_master.api.seam_packet import (
     format_seam_packet,
@@ -32,10 +36,6 @@ from examples.dungeon_master.api.tree import (
     CHAPTER_CLOSE_GRAPH,
     CHAPTER_OUTLINE_GRAPH,
     CHAPTER_REOUTLINE_GRAPH,
-)
-from examples.dungeon_master.api.witness_metrics import (
-    reversal_pack_gap,
-    unplayable_beat_gap,
 )
 from examples.dungeon_master.api.world_state import (
     apply_lane_floor,
@@ -574,7 +574,7 @@ _OUTLINE_MAX_ATTEMPTS = 3
 def _packed_chapters(chapters: list[dict]) -> list[dict]:
     """Chapters that pack a same-actor removal-and-return (FR-525 over-pack).
 
-    Pure: applies :func:`witness_metrics.reversal_pack_gap` to each authored chapter
+    Pure: applies :func:`gap_detectors.reversal_pack_gap` to each authored chapter
     card and returns ``[{index, title, actors}]`` for every chapter that packs at
     least one actor's loss and return — the un-playable reversals the 16-turn cap
     (FR-501) would force-close mid-arc.
@@ -618,7 +618,7 @@ def _reversal_feedback(packed: list[dict]) -> str:
 def _unplayable_chapters(chapters: list[dict]) -> list[dict]:
     """Chapters whose FINAL beat is an unplayable time-skip epilogue (FR-528).
 
-    Pure: applies :func:`witness_metrics.unplayable_beat_gap` to each authored
+    Pure: applies :func:`gap_detectors.unplayable_beat_gap` to each authored
     chapter card and returns ``[{index, title, beat, marker}]`` for every chapter
     whose last beat LEADS with a future-time-skip ("By autumn, …"). A bounded scene
     (FR-501) can never enact such a beat, so ``scene_complete = (k == n)`` never fires
@@ -680,9 +680,9 @@ async def outline_chapters(doc: dict) -> list[dict]:
     one chapter, but the play loop closes a chapter at ``CHAPTER_TURN_CAP`` turns
     (FR-501) and cannot portray both a loss and its reversing return. A chapter that
     removes AND returns the same actor therefore force-closes mid-reversal, leaving
-    the return a phantom (``witness_metrics.beat_coverage_gap``). The cure normalizes
+    the return a phantom (``gap_detectors.beat_coverage_gap``). The cure normalizes
     at the partitioner boundary (``the_one_law``): after each outline the
-    deterministic :func:`witness_metrics.reversal_pack_gap` checks every chapter; on a
+    deterministic :func:`gap_detectors.reversal_pack_gap` checks every chapter; on a
     pack the outline is re-invoked with the violation fed back (bounded retry), then
     raises (no silent fallback) — never emitting a packed outline downstream.
 
@@ -692,7 +692,7 @@ async def outline_chapters(doc: dict) -> list[dict]:
     ``n = len(beats)``; a beat that resolves only after a season passes can never be
     enacted in the 16-turn cap, so ``scene_complete`` never fires and the chapter
     rides the cap (the no-progress tail FR-527 mis-treated downstream). The same
-    boundary cure: :func:`witness_metrics.unplayable_beat_gap` checks every chapter;
+    boundary cure: :func:`gap_detectors.unplayable_beat_gap` checks every chapter;
     on a hit the outline is re-invoked instructing an in-scene resolution or a summary
     fold (bounded retry), then raises — never emitting a cap-riding chapter.
     """
@@ -746,7 +746,7 @@ async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
     The chapter outliner is state-blind: it writes every chapter's beats from the
     synopsis alone (``outline_chapters``), so a lethal/exit beat can land on an actor
     the prior chapter left safe, with no beat bridging the two — the seam-teleport
-    condemned by :func:`witness_metrics.seam_precondition_gap`. This re-derives the
+    condemned by :func:`gap_detectors.seam_precondition_gap`. This re-derives the
     BEATS of one not-yet-played chapter from the synopsis + this chapter's FROZEN
     title/summary + the PRIOR chapter's committed ``world_state``/``seam_packet``, so
     the planner can author the bridging reposition beat the death requires — killing

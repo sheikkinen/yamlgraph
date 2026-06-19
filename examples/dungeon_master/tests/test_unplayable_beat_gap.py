@@ -33,7 +33,7 @@ Example tests are requirement-exempt (FR-474 J3): no ``@pytest.mark.req``.
 
 from __future__ import annotations
 
-from examples.dungeon_master.api import witness_metrics
+from examples.dungeon_master.api import gap_detectors
 
 # The exact 10025-BC CH8 shape: a final beat that LEADS with a time-skip ("By
 # autumn,") describing a settlement reached after a season -- unplayable in 16 turns.
@@ -82,7 +82,7 @@ _MIDDLE_TIME_SKIP_CARD = {
 
 def test_final_time_skip_epilogue_beat_is_flagged():
     """The real 10025-BC CH8 epilogue ("By autumn,...") fires once -- the bug."""
-    result = witness_metrics.unplayable_beat_gap(_EPILOGUE_CARD)
+    result = gap_detectors.unplayable_beat_gap(_EPILOGUE_CARD)
     assert result["gap_count"] == 1
     gap = result["gaps"][0]
     assert gap["beat_index"] == 2
@@ -93,7 +93,7 @@ def test_final_time_skip_epilogue_beat_is_flagged():
 
 def test_in_scene_resolution_final_beat_is_clean():
     """A present-tense in-scene resolution is playable within the cap -> no gap."""
-    result = witness_metrics.unplayable_beat_gap(_IN_SCENE_RESOLUTION_CARD)
+    result = gap_detectors.unplayable_beat_gap(_IN_SCENE_RESOLUTION_CARD)
     assert result["gap_count"] == 0
     assert result["gaps"] == []
 
@@ -102,7 +102,7 @@ def test_present_tense_settlement_is_clean_plausible_wrong_answer_guard():
     """A final beat that NAMES a settlement/feud-end but does NOT lead with a
     time-skip is in-scene -> not flagged. Proves the witness keys on the leading
     time jump, not the mere presence of "settlement"/"feud" (the over-fire trap)."""
-    result = witness_metrics.unplayable_beat_gap(_PRESENT_TENSE_SETTLEMENT_CARD)
+    result = gap_detectors.unplayable_beat_gap(_PRESENT_TENSE_SETTLEMENT_CARD)
     assert result["gap_count"] == 0
     assert result["gaps"] == []
 
@@ -110,13 +110,13 @@ def test_present_tense_settlement_is_clean_plausible_wrong_answer_guard():
 def test_time_skip_in_non_final_beat_is_clean():
     """Only the FINAL beat pins the chapter open; a time-skip earlier in the list
     with an in-scene closing beat is clean (non-vacuous negative control)."""
-    result = witness_metrics.unplayable_beat_gap(_MIDDLE_TIME_SKIP_CARD)
+    result = gap_detectors.unplayable_beat_gap(_MIDDLE_TIME_SKIP_CARD)
     assert result["gap_count"] == 0
     assert result["gaps"] == []
 
 
 def test_empty_card_does_not_crash():
     """A card with no beats normalizes to no gap (boundary safety)."""
-    result = witness_metrics.unplayable_beat_gap({})
+    result = gap_detectors.unplayable_beat_gap({})
     assert result["gap_count"] == 0
     assert result["gaps"] == []

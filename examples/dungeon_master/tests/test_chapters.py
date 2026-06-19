@@ -26,7 +26,7 @@ from unittest.mock import patch
 import pytest
 
 from examples.dungeon_master.api import chapter_ops
-from examples.dungeon_master.api.witness_metrics import (
+from examples.dungeon_master.api.gap_detectors import (
     reversal_pack_gap,
     unplayable_beat_gap,
 )

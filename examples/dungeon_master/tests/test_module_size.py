@@ -31,7 +31,6 @@ _NEEDS_SPLIT = frozenset(
     {
         "turn_ops.py",
         "chapter_ops.py",
-        "witness_metrics.py",
     }
 )
 

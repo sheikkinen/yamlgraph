@@ -19,7 +19,7 @@ Example tests are requirement-exempt (FR-474 J3): no ``@pytest.mark.req``.
 
 from __future__ import annotations
 
-from examples.dungeon_master.api import witness_metrics
+from examples.dungeon_master.api import gap_detectors
 
 
 def _floodmark_seam_doc(ch2_beats: list[str]) -> dict:
@@ -92,7 +92,7 @@ def test_unbridged_lethal_seam_is_flagged():
             "the others assume Arnulf has drowned",
         ]
     )
-    result = witness_metrics.seam_precondition_gap(doc, "2")
+    result = gap_detectors.seam_precondition_gap(doc, "2")
 
     assert result["gap_count"] == 1, result
     gap = result["gaps"][0]
@@ -119,7 +119,7 @@ def test_bridge_beat_before_death_clears_the_gap():
             "the others assume Arnulf has drowned",
         ]
     )
-    result = witness_metrics.seam_precondition_gap(doc, "2")
+    result = gap_detectors.seam_precondition_gap(doc, "2")
     assert result["gap_count"] == 0, result
 
 
@@ -130,7 +130,7 @@ def test_self_bridging_lethal_beat_clears_the_gap():
             "Arnulf loses his footing at the edge and is swept away by the flood",
         ]
     )
-    result = witness_metrics.seam_precondition_gap(doc, "2")
+    result = gap_detectors.seam_precondition_gap(doc, "2")
     assert result["gap_count"] == 0, result
 
 
@@ -145,14 +145,14 @@ def test_no_lethal_beat_means_no_gap():
             "Arnulf scouts the treeline",
         ]
     )
-    result = witness_metrics.seam_precondition_gap(doc, "2")
+    result = gap_detectors.seam_precondition_gap(doc, "2")
     assert result["gap_count"] == 0, result
 
 
 def test_first_chapter_has_no_carried_state_so_no_gap():
     """Chapter 1 inherits nothing, so it cannot have a carried-position gap."""
     doc = _floodmark_seam_doc(["Arnulf is swept away by the flood"])
-    result = witness_metrics.seam_precondition_gap(doc, "1")
+    result = gap_detectors.seam_precondition_gap(doc, "1")
     assert result["carried_count"] == 0
     assert result["gap_count"] == 0
 
@@ -168,6 +168,6 @@ def test_legacy_prose_string_world_state_does_not_crash():
     doc["chapters"]["cards"]["1"]["world_state"] = (
         "Arnulf stands on the higher bank with the retreating line."
     )
-    result = witness_metrics.seam_precondition_gap(doc, "2")
+    result = gap_detectors.seam_precondition_gap(doc, "2")
     assert result["carried_count"] == 0
     assert result["gap_count"] == 0

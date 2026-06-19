@@ -24,7 +24,7 @@ Example tests are requirement-exempt (FR-474 J3): no ``@pytest.mark.req``.
 
 from __future__ import annotations
 
-from examples.dungeon_master.api import witness_metrics
+from examples.dungeon_master.api import gap_detectors
 
 # One chapter that packs BOTH halves of Arnulf's reversal — the summary alone
 # carries removal (swept/presumed/drowned) and return (reappears/alive), and the
@@ -74,17 +74,17 @@ _RETURN_ONLY_CARD = {
 
 def test_overpacked_reversal_chapter_is_flagged():
     """A chapter whose authored text removes AND returns Arnulf fires once for him."""
-    result = witness_metrics.reversal_pack_gap(_OVERPACK_CARD)
+    result = gap_detectors.reversal_pack_gap(_OVERPACK_CARD)
     assert result["gap_count"] == 1
     assert result["packed_actors"] == ["Arnulf"]
     gap = result["gaps"][0]
     assert gap["actor"] == "Arnulf"
     assert gap["reason"] == "removal_and_return_same_chapter"
-    assert witness_metrics._text_has_token(
-        gap["removal_unit"], witness_metrics._TERMINAL_STATUS_TOKENS
+    assert gap_detectors._text_has_token(
+        gap["removal_unit"], gap_detectors._TERMINAL_STATUS_TOKENS
     )
-    assert witness_metrics._text_has_token(
-        gap["return_unit"], witness_metrics._RETURN_PRESENCE_TOKENS
+    assert gap_detectors._text_has_token(
+        gap["return_unit"], gap_detectors._RETURN_PRESENCE_TOKENS
     )
 
 
@@ -94,14 +94,14 @@ def test_removal_only_chapter_is_clean_negative_control():
     Proves the witness measures the removal+return pack, not the mere presence of a
     death or a removed character.
     """
-    result = witness_metrics.reversal_pack_gap(_REMOVAL_ONLY_CARD)
+    result = gap_detectors.reversal_pack_gap(_REMOVAL_ONLY_CARD)
     assert result["gap_count"] == 0
     assert result["packed_actors"] == []
 
 
 def test_return_only_chapter_is_clean_negative_control():
     """A return authored as its own chapter (the cure) carries no removal → no pack."""
-    result = witness_metrics.reversal_pack_gap(_RETURN_ONLY_CARD)
+    result = gap_detectors.reversal_pack_gap(_RETURN_ONLY_CARD)
     assert result["gap_count"] == 0
     assert result["packed_actors"] == []
 
@@ -112,12 +112,12 @@ def test_reversal_split_across_two_chapters_is_clean():
     The deterministic shape the outliner must produce. Neither card, read on its own,
     packs both halves, so ``reversal_pack_gap`` is clean for both — the GREEN target.
     """
-    assert witness_metrics.reversal_pack_gap(_REMOVAL_ONLY_CARD)["gap_count"] == 0
-    assert witness_metrics.reversal_pack_gap(_RETURN_ONLY_CARD)["gap_count"] == 0
+    assert gap_detectors.reversal_pack_gap(_REMOVAL_ONLY_CARD)["gap_count"] == 0
+    assert gap_detectors.reversal_pack_gap(_RETURN_ONLY_CARD)["gap_count"] == 0
 
 
 def test_empty_card_does_not_crash():
     """A card with no summary/beats normalizes to no pack (boundary safety)."""
-    result = witness_metrics.reversal_pack_gap({})
+    result = gap_detectors.reversal_pack_gap({})
     assert result["gap_count"] == 0
     assert result["packed_actors"] == []
