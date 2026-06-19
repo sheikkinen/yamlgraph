@@ -286,3 +286,67 @@ Each extraction is its own commit.
 (generalized gate, incl. world_state trim) -> B (nav consolidation + cycle
 dissolution) -> C (the three splits, each its own commit).** Workstream D ->
 FR-537.
+
+## Implementation (2026-06-19 — COMPLETE, A+B+C)
+
+**Status: DONE.** All three authorized workstreams landed; DM suite green
+(294 tests, zero xfail); ruff/lint-imports/vulture/jscpd clean. Workstream D
+remains deferred to FR-537 (untracked draft present, not committed under this FR).
+
+### Commit trail (one concern per commit)
+
+| Workstream | Commit | What |
+|------------|--------|------|
+| A (RED) | `1fc33301` | Generalize size gate to sweep all `api/**/*.py` at <= 450; trio xfail-listed |
+| A (GREEN) | `4020fa21` | Trim `world_state.py` (454) under the ceiling |
+| B | `c3bf6051` | Consolidate nav primitives into leaf `chapter_nav.py`; dissolve FR-534 lazy cycle |
+| C-1 | `3ee87229` | Split `witness_metrics.py` -> `gap_detectors.py` |
+| C-2 | `bb71e6ce` | Split `chapter_ops.py` -> `prose_continuity.py` + `outline_ops.py` |
+| C-3 | `b822b936` | Split `turn_ops.py` -> `turn_state.py` + `chapter_open.py` + `final_cut.py` |
+
+### Decisions and deviations
+
+- **Four-way `turn_ops` split, not the three-way the plan sketched.** The plan's
+  Workstream C listed `turn_ops` -> `{turn_ops, chapter_open, scene_cast,
+  final_cut_ops}`. During enforcement the cast/lifecycle helpers
+  (`build_allowed_scene_cast`, `filter_roster_for_lifecycle`,
+  `_drop_within_chapter_exits`, `_chapter_cast_exits`) proved to be opening-gate
+  concerns, so they merged into `chapter_open.py` rather than a standalone
+  `scene_cast.py`; `dead_character_names`/`_possession_facts` moved to `final_cut`
+  (their only callers). Net modules: `turn_ops` (play loop), `chapter_open`
+  (gate + opening + cast admission), `final_cut` (assembly), and a new **leaf
+  `turn_state.py`** (see next). Final names differ from the indicative plan names
+  (`final_cut.py` not `final_cut_ops.py`), which J5 explicitly permitted.
+- **New leaf `turn_state.py` to break a fresh cycle (J4 generalized).** Play
+  (`turn_ops`) imports `chapter_open` for the gate helpers; `chapter_open` needs
+  `turn_direction` and other turn/chapter accessors. Had those primitives stayed
+  in play, `chapter_open` -> `turn_ops` -> `chapter_open` would cycle. Extracting
+  the primitives (chapter/turn accessors, `reset_chapter_for_replay`,
+  `CHAPTER_TURN_CAP`, `chapter_should_close`, `climax_turn`, `chapter_beats`) into
+  a leaf that imports none of the split trio dissolves it. Verified acyclic:
+  `turn_state` (leaf) <- `chapter_open` <- {`turn_ops`, `final_cut`}.
+- **Five gate helpers promoted to public (J3 decoupling).** Production play code
+  (`invoke_turn`, `running_scene`) imports the gate helpers across the new module
+  boundary; private cross-module production imports are a smell, so
+  `enforce_memory_precedence_gate`, `compile_opening_onepager`,
+  `format_opening_onepager`, `enforce_lifecycle_gate`, and
+  `filter_roster_for_lifecycle` dropped their leading underscore.
+- **No facade re-exports (J3 honored).** All API + test consumers were migrated to
+  the new module homes — `git grep` confirms zero `turn_ops.<moved-symbol>` and
+  zero `from ...turn_ops import <moved-symbol>` remain. The sole exception is the
+  deliberate `_state_map_*` identity re-exports kept in `turn_ops`, which
+  `test_protected_character_projection.py` asserts on by object identity (the same
+  FR-534 test-contract exemption J3 named).
+- **Test-double retarget.** `test_final_cut_revise_cycle.py` monkeypatched
+  `turn_ops.invoke_final_cut`; since `chapter_ops.close_chapter` now calls
+  `final_cut.invoke_final_cut` (module-attribute lookup), the patch was retargeted
+  to the `final_cut` module so the stub still intercepts.
+
+### Final state
+
+- Module sizes: `turn_state.py` 195, `chapter_open.py` 335, `final_cut.py` 312,
+  `turn_ops.py` 332 — all under the 450 ceiling. The `test_module_size.py`
+  `_NEEDS_SPLIT` xfail set is now **empty**.
+- Gates: `ruff check` clean (one auto-fixed import-order on `turn_ops`);
+  `lint-imports` 1 kept / 0 broken; `vulture --min-confidence 80` no findings;
+  `jscpd --min-lines 8` 0 clones across the four modules.
