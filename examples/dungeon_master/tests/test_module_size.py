@@ -30,7 +30,6 @@ _MAX_LINES = 450
 _NEEDS_SPLIT = frozenset(
     {
         "turn_ops.py",
-        "chapter_ops.py",
     }
 )
 

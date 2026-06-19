@@ -20,9 +20,9 @@ import copy
 import pytest
 
 from examples.dungeon_master.api import (
-    chapter_ops,
     doc_ops,
     gap_detectors,
+    outline_ops,
 )
 
 
@@ -102,7 +102,7 @@ async def test_reoutline_writes_bridge_beats_and_clears_gap(tmp_path, monkeypatc
     # Precondition: the unbridged seam IS present before re-outline (the bug).
     assert gap_detectors.seam_precondition_gap(doc, "2")["gap_count"] == 1
 
-    monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
 
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "1")
 
@@ -116,7 +116,7 @@ async def test_negative_control_no_bridge_leaves_gap(tmp_path, monkeypatch):
     assertion measures the bridge, not the plumbing (J5 non-vacuity)."""
     doc = _seam_doc()
     monkeypatch.setattr(
-        chapter_ops, "get_app", lambda graph: _StubApp(_NO_BRIDGE_BEATS)
+        outline_ops, "get_app", lambda graph: _StubApp(_NO_BRIDGE_BEATS)
     )
 
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "1")
@@ -132,9 +132,9 @@ async def test_negative_control_no_bridge_leaves_gap(tmp_path, monkeypatch):
 async def test_reoutline_chapter_beats_is_pure(monkeypatch):
     doc = _seam_doc()
     original = copy.deepcopy(doc)
-    monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
 
-    beats = await chapter_ops.reoutline_chapter_beats(doc, "2")
+    beats = await outline_ops.reoutline_chapter_beats(doc, "2")
 
     assert beats == _BRIDGE_BEATS
     assert doc == original  # pure read, no mutation
@@ -143,9 +143,9 @@ async def test_reoutline_chapter_beats_is_pure(monkeypatch):
 @pytest.mark.asyncio
 async def test_reoutline_chapter_beats_raises_on_empty(monkeypatch):
     doc = _seam_doc()
-    monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp([]))
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: _StubApp([]))
     with pytest.raises(ValueError):
-        await chapter_ops.reoutline_chapter_beats(doc, "2")
+        await outline_ops.reoutline_chapter_beats(doc, "2")
 
 
 # ── AC-3: frozen title/summary — only beats change ───────────────────────────
@@ -156,7 +156,7 @@ async def test_reoutline_freezes_title_and_summary(tmp_path, monkeypatch):
     doc = _seam_doc()
     title_before = doc["chapters"]["cards"]["2"]["title"]
     summary_before = doc["chapters"]["cards"]["2"]["summary"]
-    monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
 
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "1")
 
@@ -170,7 +170,7 @@ async def test_reoutline_freezes_title_and_summary(tmp_path, monkeypatch):
 @pytest.mark.asyncio
 async def test_reoutline_noop_when_no_next_chapter(tmp_path, monkeypatch):
     doc = _seam_doc()
-    monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
     original = copy.deepcopy(doc)
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "2")  # "2" is the last chapter
     assert doc == original
@@ -180,7 +180,7 @@ async def test_reoutline_noop_when_no_next_chapter(tmp_path, monkeypatch):
 async def test_reoutline_noop_when_next_reviewed(tmp_path, monkeypatch):
     doc = _seam_doc()
     doc["chapters"]["cards"]["2"]["reviewed"] = True
-    monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
     original = copy.deepcopy(doc)
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "1")
     assert doc == original
@@ -190,7 +190,7 @@ async def test_reoutline_noop_when_next_reviewed(tmp_path, monkeypatch):
 async def test_reoutline_noop_when_next_has_played_turns(tmp_path, monkeypatch):
     doc = _seam_doc()
     doc["chapters"]["cards"]["2"]["turns"] = [{"n": 1}]
-    monkeypatch.setattr(chapter_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: _StubApp(_BRIDGE_BEATS))
     original = copy.deepcopy(doc)
     await doc_ops.reoutline_next_chapter(doc, tmp_path, "1")
     assert doc == original

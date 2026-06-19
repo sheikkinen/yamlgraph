@@ -897,9 +897,9 @@ def test_outline_requires_nonempty_beats():
     boundary (``the_one_law`` — normalize where the outline enters), never silently
     fallen back, so there is exactly one beat-judgement regime downstream.
     """
-    from examples.dungeon_master.api import chapter_ops
+    from examples.dungeon_master.api import outline_ops
 
     ok = [{"title": "C1", "summary": "s", "beats": ["b1", "b2"]}]
-    assert chapter_ops._require_beats(ok) == ok
+    assert outline_ops._require_beats(ok) == ok
     with pytest.raises(ValueError):
-        chapter_ops._require_beats([{"title": "C1", "summary": "s", "beats": []}])
+        outline_ops._require_beats([{"title": "C1", "summary": "s", "beats": []}])

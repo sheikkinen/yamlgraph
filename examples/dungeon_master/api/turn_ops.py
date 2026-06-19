@@ -86,7 +86,7 @@ def chapter_beat_list(doc: dict, cid: str) -> list[str]:
     """Chapter ``cid``'s enumerated key-event beats (FR-503; empty if none).
 
     The finite contract the director selects from and the play loop drives toward.
-    Non-empty by the FR-504 boundary contract (``chapter_ops._require_beats``); a
+    Non-empty by the FR-504 boundary contract (``outline_ops._require_beats``); a
     chapter persisted before that contract — or one with no card — yields ``[]``.
     """
     return list(chapter_nav.chapter_card(doc, cid).get("beats") or [])

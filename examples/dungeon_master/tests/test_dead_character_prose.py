@@ -6,7 +6,7 @@ field, and witness metric extraction.
 
 from __future__ import annotations
 
-from examples.dungeon_master.api.chapter_ops import (
+from examples.dungeon_master.api.prose_continuity import (
     detect_dead_character_prose_violations,
     detect_object_use_after_loss,
 )

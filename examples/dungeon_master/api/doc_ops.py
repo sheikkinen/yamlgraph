@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from examples.dungeon_master.api import chapter_ops, story_doc, turn_ops
+from examples.dungeon_master.api import chapter_ops, outline_ops, story_doc, turn_ops
 from examples.dungeon_master.api.graph_app import clean_text, get_app
 from examples.dungeon_master.api.tree import (
     CHAPTER_PREFIX,
@@ -209,7 +209,7 @@ async def expand_chapters(doc: dict, story_dir: Path) -> None:
     chs = chapters(doc)
     if chs["order"]:
         return  # already derived; the set is fixed
-    outline = await chapter_ops.outline_chapters(doc)
+    outline = await outline_ops.outline_chapters(doc)
     for i, chunk in enumerate(outline, start=1):
         cid = str(i)
         chs["cards"][cid] = {
@@ -261,7 +261,7 @@ async def reoutline_next_chapter(doc: dict, story_dir: Path, cid: str) -> None:
 
     The state-aware re-outline write (J3): once ``cid`` has closed and committed its
     ``world_state``/``seam_packet``, the chapter that inherits that state has its
-    beats re-derived (``chapter_ops.reoutline_chapter_beats``, a pure read) so a
+    beats re-derived (``outline_ops.reoutline_chapter_beats``, a pure read) so a
     lethal/exit beat is physically continuous with where the story left each actor —
     closing the seam-teleport :func:`gap_detectors.seam_precondition_gap` measures.
 
@@ -283,7 +283,7 @@ async def reoutline_next_chapter(doc: dict, story_dir: Path, cid: str) -> None:
         return
     if next_card.get("reviewed") or next_card.get("turns"):
         return  # already played / reviewed — do not disturb
-    next_card["beats"] = await chapter_ops.reoutline_chapter_beats(doc, next_cid)
+    next_card["beats"] = await outline_ops.reoutline_chapter_beats(doc, next_cid)
     story_doc.write(story_dir, doc)
 
 

@@ -25,7 +25,7 @@ from unittest.mock import patch
 
 import pytest
 
-from examples.dungeon_master.api import chapter_ops
+from examples.dungeon_master.api import chapter_ops, outline_ops
 from examples.dungeon_master.api.gap_detectors import (
     reversal_pack_gap,
     unplayable_beat_gap,
@@ -595,7 +595,7 @@ def test_outline_chapters_parses_structured_title_summary():
     mock = _capturing_mock([])
     m1, m2 = _patched(mock)
     with m1, m2:
-        chapters = _run(chapter_ops.outline_chapters(doc))
+        chapters = _run(outline_ops.outline_chapters(doc))
     assert [c["title"] for c in chapters] == [
         "Chapter 1 — The Water Rises",
         "Chapter 2 — The Last Ledge",
@@ -675,7 +675,7 @@ def test_outline_chapters_retries_until_reversal_pack_clears():
     mock = _sequence_outline_mock([_OVERPACKED_OUTLINE, _SPLIT_OUTLINE], calls)
     m1, m2 = _patched(mock)
     with m1, m2:
-        chapters = _run(chapter_ops.outline_chapters(doc))
+        chapters = _run(outline_ops.outline_chapters(doc))
     assert len(calls) == 2  # first packed → re-rolled once
     assert all(reversal_pack_gap(c)["gap_count"] == 0 for c in chapters)
     assert [c["title"] for c in chapters] == [
@@ -692,7 +692,7 @@ def test_outline_chapters_clean_outline_is_not_re_rolled():
     mock = _sequence_outline_mock([_REMOVAL_ONLY_OUTLINE], calls)
     m1, m2 = _patched(mock)
     with m1, m2:
-        chapters = _run(chapter_ops.outline_chapters(doc))
+        chapters = _run(outline_ops.outline_chapters(doc))
     assert len(calls) == 1  # clean → no retry
     assert all(reversal_pack_gap(c)["gap_count"] == 0 for c in chapters)
 
@@ -705,7 +705,7 @@ def test_outline_chapters_raises_when_pack_persists():
     mock = _sequence_outline_mock([_OVERPACKED_OUTLINE] * 3, calls)
     m1, m2 = _patched(mock)
     with m1, m2, pytest.raises(ValueError, match="packs a removal-and-return"):
-        _run(chapter_ops.outline_chapters(doc))
+        _run(outline_ops.outline_chapters(doc))
     assert len(calls) == 3  # bounded: first roll + two corrected re-rolls
 
 
@@ -757,7 +757,7 @@ def test_outline_chapters_retries_until_unplayable_beat_clears():
     mock = _sequence_outline_mock([_EPILOGUE_OUTLINE, _IN_SCENE_FIXED_OUTLINE], calls)
     m1, m2 = _patched(mock)
     with m1, m2:
-        chapters = _run(chapter_ops.outline_chapters(doc))
+        chapters = _run(outline_ops.outline_chapters(doc))
     assert len(calls) == 2  # first epilogue → re-rolled once
     assert all(unplayable_beat_gap(c)["gap_count"] == 0 for c in chapters)
     assert chapters[0]["beats"][-1].lower().startswith("hilde and gunnar force")
@@ -771,7 +771,7 @@ def test_outline_chapters_raises_when_unplayable_beat_persists():
     mock = _sequence_outline_mock([_EPILOGUE_OUTLINE] * 3, calls)
     m1, m2 = _patched(mock)
     with m1, m2, pytest.raises(ValueError, match="unplayable time-skip epilogue"):
-        _run(chapter_ops.outline_chapters(doc))
+        _run(outline_ops.outline_chapters(doc))
     assert len(calls) == 3  # bounded: first roll + two corrected re-rolls
 
 
