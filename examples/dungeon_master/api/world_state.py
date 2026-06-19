@@ -6,15 +6,9 @@ a phantom hand-axe, a seized staff wielded again). This module replaces it with 
 **typed** ledger validated at the boundary and a deterministic formatter that
 renders it back into the play/close prompts.
 
-The shape (the canonical state the next chapter inherits):
-
-    {
-      "characters":    [{name, faction, status, location, inventory: [str]}],
-      "objects":       [{name, holder, location}],
-      "facts":         [str],
-      "relationships": [{between: [str], type, status, tensions: [str],
-                         last_interaction, recap_citations: [str]}],  # FR-513
-    }
+The canonical shape the next chapter inherits is declared by the Pydantic models
+below (``Character``, ``WorldObject``, ``Relationship``) wrapped in a top-level
+``{characters, objects, facts, relationships}`` dict.
 
 The model emits this as JSON (``parse_json`` in ``chapter_close.yaml``);
 :func:`parse_world_state` validates + normalizes it at the close boundary, and the
