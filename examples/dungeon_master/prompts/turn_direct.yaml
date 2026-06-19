@@ -65,10 +65,20 @@ system: |
     the structured authority that removes an actor from the cast — distinct from
     continuity, which only flags a break after it has already happened.
 
+  PLAN-PROTECTED CHARACTERS (hard constraint): if a "PROTECTED CHARACTERS" line is
+  present, those characters are required by the story plan to SURVIVE this chapter.
+  You may imperil, wound, corner, or remove them from the immediate scene, but you
+  must NOT treat them as dead and must NOT list them in cast_exits. If an intent or
+  recap narrates a protected character's death, surface it as a continuity flag
+  (e.g. "PROTECTED <name> must not die this chapter") and steer the narrator away
+  from the death — never confirm it.
+
 user: |
   THE CHAPTER PLAN and what has actually happened so far (this is turn {{ turn_n }}):
   {{ scene }}
 
+  {% if protected %}PROTECTED CHARACTERS (plan requires them alive this chapter; must not die, must not appear in cast_exits): {{ protected }}
+  {% endif %}
   The rostered cast this turn:
   {% for c in cast %}
   - {{ c.name }}

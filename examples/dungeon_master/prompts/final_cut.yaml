@@ -67,6 +67,14 @@ system: |
   stay dead for the rest of the chapter. Their body, objects, or legacy may be
   referenced passively (e.g. "the fallen staff"), but never as an acting figure.{% endif %}
 
+  {% if protected_cast %}PROTECTED CHARACTERS — the story plan requires these
+  characters to SURVIVE this chapter:
+  {{ protected_cast }}
+  They may be imperiled, wounded, cornered, swept toward danger, or removed from
+  the immediate scene, but you must NOT narrate their death or imply they have
+  died. Do not write them being killed, drowned, or swallowed by the disaster.
+  Leave them alive at the chapter's end.{% endif %}
+
   {% if possession_facts %}POSSESSION FACTS — who holds what as this chapter opens:
   {{ possession_facts }}
   An object changes hands only if the narration shows the handover AND the new

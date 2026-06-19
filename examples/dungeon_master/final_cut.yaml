@@ -39,6 +39,7 @@ state:
   allowed_cast: str
   dead_before_open: str
   dead_within_chapter: str
+  protected_cast: str
   possession_facts: str
   draft: str
   instruction: str
@@ -59,6 +60,7 @@ nodes:
       allowed_cast: "{state.allowed_cast}"
       dead_before_open: "{state.dead_before_open}"
       dead_within_chapter: "{state.dead_within_chapter}"
+      protected_cast: "{state.protected_cast}"
       possession_facts: "{state.possession_facts}"
       draft: "{state.draft}"
       instruction: "{state.instruction}"

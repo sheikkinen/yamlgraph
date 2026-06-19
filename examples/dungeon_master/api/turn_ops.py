@@ -17,6 +17,20 @@ import logging
 from datetime import UTC, datetime
 
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
+from examples.dungeon_master.api.lifecycle_resolver import (
+    _norm_name,
+    protected_cast_names,
+    state_conflict_violations,
+)
+from examples.dungeon_master.api.lifecycle_resolver import (
+    _state_map_from_memory as _state_map_from_memory,
+)
+from examples.dungeon_master.api.lifecycle_resolver import (
+    _state_map_from_seam as _state_map_from_seam,
+)
+from examples.dungeon_master.api.lifecycle_resolver import (
+    _state_map_from_synopsis as _state_map_from_synopsis,
+)
 from examples.dungeon_master.api.seam_packet import (
     format_seam_packet,
     parse_seam_packet,
@@ -228,101 +242,19 @@ def _opening_source_pointer(doc: dict, cid: str) -> dict:
     }
 
 
-def _norm_name(name: object) -> str:
-    return " ".join(str(name or "").lower().split())
-
-
-def _state_map_from_memory(memory: dict) -> dict[str, str]:
-    states: dict[str, str] = {}
-    for item in list(memory.get("character_state_deltas") or []):
-        if not isinstance(item, dict):
-            continue
-        key = _norm_name(item.get("name"))
-        state = str(item.get("to_state") or "").strip()
-        if key and state:
-            states[key] = state
-    return states
-
-
-def _state_map_from_synopsis(doc: dict) -> dict[str, str]:
-    states = dict(doc.get("live_synopsis", {}).get("character_states") or {})
-    out: dict[str, str] = {}
-    for name, state in states.items():
-        key = _norm_name(name)
-        val = str(state or "").strip()
-        if key and val:
-            out[key] = val
-    return out
-
-
-def _state_map_from_seam(packet: dict) -> dict[str, str]:
-    out: dict[str, str] = {}
-    for item in list(packet.get("character_lifecycle") or []):
-        if not isinstance(item, dict):
-            continue
-        key = _norm_name(item.get("name"))
-        state = str(item.get("existence_state") or "").strip()
-        if key and state:
-            out[key] = state
-    return out
-
-
 def _enforce_memory_precedence_gate(doc: dict, cid: str, n: int) -> None:
-    """Block chapter turn-1 execution on deterministic memory source conflicts."""
+    """Block chapter turn-1 execution on deterministic memory source conflicts.
+
+    Precedence logic lives in :mod:`lifecycle_resolver` (FR-534) so the gate and
+    prose-side ``protected_characters`` share one ordering; the gate owns only the
+    turn-1 guard, payload assembly, and the raise.
+    """
     if n != 1:
         return
-    prev_cid = _previous_chapter_id(doc, cid)
-    if not prev_cid:
+    if not _previous_chapter_id(doc, cid):
         return
 
-    prev_card = _chapter_card(doc, prev_cid)
-    chapter_memory = dict(prev_card.get("chapter_memory") or {})
-    seam = parse_seam_packet(inherited_seam_packet(doc, cid))
-    mem_states = _state_map_from_memory(chapter_memory)
-    syn_states = _state_map_from_synopsis(doc)
-    seam_states = _state_map_from_seam(seam)
-
-    violations: list[dict[str, str]] = []
-
-    for name, mem_state in mem_states.items():
-        syn_state = syn_states.get(name)
-        if syn_state and syn_state != mem_state:
-            violations.append(
-                {
-                    "type": "state_conflict",
-                    "name": name,
-                    "higher_source": "chapter_memory",
-                    "lower_source": "live_synopsis",
-                    "detail": f"{mem_state} conflicts with {syn_state}",
-                }
-            )
-        seam_state = seam_states.get(name)
-        if seam_state and seam_state != mem_state:
-            violations.append(
-                {
-                    "type": "state_conflict",
-                    "name": name,
-                    "higher_source": "chapter_memory",
-                    "lower_source": "seam_packet",
-                    "detail": f"{mem_state} conflicts with {seam_state}",
-                }
-            )
-
-    for name, syn_state in syn_states.items():
-        if name in mem_states:
-            continue
-        seam_state = seam_states.get(name)
-        if seam_state and seam_state != syn_state:
-            violations.append(
-                {
-                    "type": "state_conflict",
-                    "name": name,
-                    "higher_source": "live_synopsis",
-                    "lower_source": "seam_packet",
-                    "detail": f"{syn_state} conflicts with {seam_state}",
-                }
-            )
-
+    violations = state_conflict_violations(doc, cid)
     if not violations:
         return
     payload = {
@@ -794,6 +726,7 @@ async def invoke_turn(
             "scene": running_scene(doc, cid, n),
             "turn_n": str(n),
             "instruction": instruction,
+            "protected": ", ".join(protected_cast_names(doc, cid)),
             "intents": [],
             "direction": {},
             "recap": "",
@@ -1205,6 +1138,7 @@ def final_cut_context(doc: dict, cid: str, closed: dict | None = None) -> dict:
         "dead_within_chapter": ", ".join(within_chapter),
         "possession_facts": _possession_facts(doc, cid, closed),
         "allowed_cast": ", ".join(allowed_cast),
+        "protected_cast": ", ".join(protected_cast_names(doc, cid)),
     }
 
 

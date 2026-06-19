@@ -3,8 +3,9 @@
 **Priority:** HIGH (closes the lifecycle-resurrection root cause the FR-506→533 arc has been
 patching at the wrong boundary)
 **Type:** Feature (refactor — one additive edge, no engine rewrite)
-**Status:** Judged 2026-06-19 — authority granted for **Phase 1 only**; scope frozen (see
-Judgement). Phase 2 (deterministic post-compose check) split to follow-up **FR-535**.
+**Status:** Enforced 2026-06-19 — Phase 1 landed (witness green, 271 DM tests pass). Judged
+2026-06-19, authority granted for **Phase 1 only**; scope frozen (see Judgement). Phase 2
+(deterministic post-compose check) split to follow-up **FR-535**.
 **Effort:** ~1 day
 **Requested:** 2026-06-19
 
@@ -280,3 +281,50 @@ gated on evidence Phase 1's prompt constraint is insufficient, detector to be LL
   the gate and the director)
 - FR-519 (dead-within-chapter prose constraint — the existing asymmetric half), FR-510
   (`confirmed_dead`-only exclusion gap), FR-501 (no-progress tail in ch7's turns)
+
+## Implementation (2026-06-19, GREEN)
+
+Enforced per the frozen Phase-1 scope. RED witness committed first (`0140677b`,
+`test(dungeon_master): FR-534 RED witness for protected-character projection`),
+then this GREEN change.
+
+**What landed:**
+
+1. **`api/lifecycle_resolver.py` (NEW, 252 lines)** — single source of truth for
+   lifecycle precedence (`chapter_memory > live_synopsis > seam_packet`). Owns the
+   three extractors (`_state_map_from_memory`, `_state_map_from_synopsis`,
+   `_state_map_from_seam`), `_norm_name`, `state_conflict_violations(doc, cid)`
+   (the gate's precedence logic, extracted verbatim), and `protected_characters` /
+   `protected_cast_names` implementing the J4 conjunction rule (highest-precedence
+   state is alive AND the character is named by a plan guard:
+   `irreversible_facts` / `forbidden_regressions` / `live_synopsis`). `floor` is
+   returned but not bound (J7).
+2. **`api/turn_ops.py` (1235 -> 1163 lines)** — `_enforce_memory_precedence_gate`
+   now calls `state_conflict_violations(doc, cid)` instead of re-deriving the maps
+   inline (one source of truth, J2). The three extractors are re-exported from
+   `turn_ops` (redundant-alias form) so the open-gate and the prose side share the
+   exact same functions — asserted by identity in the witness.
+3. **`final_cut_context` -> `final_cut.yaml` graph + `prompts/final_cut.yaml`** —
+   emits `protected_cast`; the final-cut composer now carries a may-not-die
+   constraint symmetric to `dead_within_chapter`.
+4. **`invoke_turn` -> `turn.yaml` `direct` node + `prompts/turn_direct.yaml`** —
+   threads `protected`; the turn director must not list a protected character in
+   `cast_exits` and must flag/steer away from a narrated protected death.
+
+**Circular import:** `turn_ops` imports the extractors from `lifecycle_resolver`
+at module load; `lifecycle_resolver` imports `turn_ops` lazily inside functions to
+break the cycle.
+
+**Deviation from J3 (recorded):** J3 said "extract a minimal committed fixture
+under `examples/dungeon_master/tests/fixtures/`". The established DM test
+convention is inline Python dict builders (e.g. `_doc_with_confirmed_dead_seam()`
+in `test_dead_character_prose.py`), so the witness uses an inline
+`_doc_protected_witta()` builder instead. This honors J3's intent (committed, not
+gitignored like `10026-BC`) and Commandment 4 (honor existing patterns).
+
+**Verification:** witness 4/4 green; full DM suite 271 passed; `ruff` clean;
+`graph lint` clean for `turn.yaml` (the pre-existing W023 on `final_cut.yaml`
+concerns unrelated `arc`/`climax` vars).
+
+**Phase 2 (-> FR-535):** the deterministic post-compose death-marker backstop is
+NOT in this change; it is gated on evidence the prompt constraint is insufficient.

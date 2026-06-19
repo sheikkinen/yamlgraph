@@ -37,6 +37,7 @@ state:
   scene: str
   turn_n: str
   instruction: str
+  protected: str
   intents: list
   direction: dict
   recap: str
@@ -68,6 +69,7 @@ nodes:
       cast: "{state.cast}"
       intents: "{state.intents}"
       turn_n: "{state.turn_n}"
+      protected: "{state.protected}"
 
   recap:
     type: llm
