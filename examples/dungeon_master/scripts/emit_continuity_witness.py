@@ -26,11 +26,12 @@ import json
 import sys
 from pathlib import Path
 
+from examples.dungeon_master.api.seam_entrance import seam_entrance_gap
 from examples.dungeon_master.scripts.calibrate_continuity_axis import (
     parse_continuity_breaks,
 )
 
-__all__ = ["build_witness", "write_witness", "main"]
+__all__ = ["build_witness", "seam_entrance_summary", "write_witness", "main"]
 
 WITNESS_FILENAME = "continuity_witness.json"
 
@@ -46,16 +47,65 @@ def build_witness(book: str, review_md: str) -> dict:
     }
 
 
+def seam_entrance_summary(story_doc: dict) -> dict:
+    """Aggregate the deterministic seam-entrance witness over a story doc (FR-538).
+
+    Walks ``chapters.order`` and runs :func:`seam_entrance_gap` per chapter, summing
+    the roster-lens entrance gaps and tallying them by ``kind``. Roster lens only:
+    non-roster named NPCs are out of scope (see FR-538 Scope). Purely additive to
+    the witness; never gates the run.
+    """
+    order = list((story_doc.get("chapters") or {}).get("order") or [])
+    total = 0
+    by_kind: dict[str, int] = {}
+    by_chapter: list[dict] = []
+    for cid in order:
+        result = seam_entrance_gap(story_doc, cid)
+        gap_count = result["gap_count"]
+        if not gap_count:
+            continue
+        total += gap_count
+        by_chapter.append(
+            {
+                "chapter": result["chapter"],
+                "gap_count": gap_count,
+                "gaps": [
+                    {"name": g["name"], "kind": g["kind"]} for g in result["gaps"]
+                ],
+            }
+        )
+        for gap in result["gaps"]:
+            by_kind[gap["kind"]] = by_kind.get(gap["kind"], 0) + 1
+    return {"gap_count": total, "by_kind": by_kind, "by_chapter": by_chapter}
+
+
+def _load_story_doc(out_dir: Path) -> dict | None:
+    """Load the session source-of-truth story doc, or ``None`` if absent.
+
+    Prefers ``<out>/story/story.json`` (the per-session committed state) over the
+    top-level export ``<out>/story.json``; returns ``None`` when neither exists so
+    the seam-entrance block is simply omitted (non-fatal).
+    """
+    for candidate in (out_dir / "story" / "story.json", out_dir / "story.json"):
+        if candidate.exists():
+            return json.loads(candidate.read_text(encoding="utf-8"))
+    return None
+
+
 def write_witness(out_dir: Path) -> dict | None:
     """Read ``<out_dir>/review.md`` and write ``<out_dir>/continuity_witness.json``.
 
     Returns the witness dict, or ``None`` if no review exists yet (the caller treats a
-    missing review as a skipped, non-fatal step).
+    missing review as a skipped, non-fatal step). When the session story doc is
+    present, an additive ``seam_entrance`` block (FR-538) is included.
     """
     review = out_dir / "review.md"
     if not review.exists():
         return None
     witness = build_witness(out_dir.name, review.read_text(encoding="utf-8"))
+    story_doc = _load_story_doc(out_dir)
+    if story_doc is not None:
+        witness["seam_entrance"] = seam_entrance_summary(story_doc)
     (out_dir / WITNESS_FILENAME).write_text(
         json.dumps(witness, indent=2) + "\n", encoding="utf-8"
     )
@@ -73,10 +123,16 @@ def main(argv: list[str] | None = None) -> int:
     if witness is None:
         print("continuity witness: no review.md found (skipped, non-blocking)")
         return 0
+    seam = witness.get("seam_entrance") or {}
+    seam_note = (
+        f" seam_entrance={seam.get('gap_count', 0)} gaps"
+        if "seam_entrance" in witness
+        else ""
+    )
     print(
         f"continuity witness: {witness['book']} "
         f"continuity={witness['continuity_score']}/5 "
-        f"({witness['break_count']} breaks) [visibility, not a gate]"
+        f"({witness['break_count']} breaks){seam_note} [visibility, not a gate]"
     )
     return 0
 

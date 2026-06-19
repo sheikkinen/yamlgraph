@@ -61,3 +61,72 @@ def test_write_witness_is_non_blocking_when_review_absent(tmp_path: Path) -> Non
     # No review.md: the witness must skip, not raise (FR-522 non-blocking posture).
     assert ew.write_witness(out) is None
     assert not (out / ew.WITNESS_FILENAME).exists()
+
+
+# ── FR-538: additive seam-entrance block (roster lens, non-gating) ────────────
+
+
+def _entrance_story_doc() -> dict:
+    """A two-chapter doc whose Ch2 has a roster entrant acting with no arrival.
+
+    Hilde is on-page in both; Arnulf acts in Ch2, was absent from Ch1 prose, and no
+    arrival is staged — exactly one roster seam-entrance gap.
+    """
+    return {
+        "chapters": {
+            "order": ["1", "2"],
+            "cards": {
+                "1": {
+                    "text": "Hilde held the line on the ridge while the clan retreated.",
+                    "turns": [{"n": 1, "intents": {"hilde": {"intent": "holds"}}}],
+                },
+                "2": {
+                    "text": (
+                        "Arnulf cut down the raider at the gate. "
+                        "Hilde rallied the survivors behind him."
+                    ),
+                    "turns": [
+                        {
+                            "n": 1,
+                            "intents": {
+                                "arnulf": {"intent": "fights"},
+                                "hilde": {"intent": "rallies"},
+                            },
+                        }
+                    ],
+                },
+            },
+        },
+        "characters": {
+            "roster": ["hilde", "arnulf"],
+            "cards": {"hilde": {"name": "Hilde"}, "arnulf": {"name": "Arnulf"}},
+        },
+    }
+
+
+def test_seam_entrance_summary_aggregates_roster_gaps() -> None:
+    summary = ew.seam_entrance_summary(_entrance_story_doc())
+    assert summary["gap_count"] == 1
+    assert summary["by_kind"] == {"new": 1}
+    assert summary["by_chapter"] == [
+        {"chapter": "2", "gap_count": 1, "gaps": [{"name": "Arnulf", "kind": "new"}]}
+    ]
+
+
+def test_write_witness_includes_seam_entrance_block_when_story_present(
+    tmp_path: Path,
+) -> None:
+    out = tmp_path / "10100-BC"
+    (out / "story").mkdir(parents=True)
+    (out / "review.md").write_text(_REVIEW_MD, encoding="utf-8")
+    (out / "story" / "story.json").write_text(
+        json.dumps(_entrance_story_doc()), encoding="utf-8"
+    )
+
+    witness = ew.write_witness(out)
+    assert witness is not None
+    assert witness["seam_entrance"]["gap_count"] == 1
+    assert witness["seam_entrance"]["by_kind"] == {"new": 1}
+    # The base record is unchanged; the block is purely additive (FR-538).
+    assert witness["continuity_score"] == 2
+    assert witness["posture"] == "visibility-not-gate"

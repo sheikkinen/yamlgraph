@@ -24,7 +24,7 @@ Example tests are requirement-exempt (FR-474 J3): no ``@pytest.mark.req``.
 
 from __future__ import annotations
 
-from examples.dungeon_master.api import gap_detectors
+from examples.dungeon_master.api import seam_entrance as gap_detectors
 
 
 def _doc(chapters: list[dict]) -> dict:
