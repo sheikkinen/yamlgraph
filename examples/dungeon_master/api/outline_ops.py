@@ -38,6 +38,20 @@ def _beat_list(item: object) -> list[str]:
     return [str(b).strip() for b in raw if str(b).strip()]
 
 
+def _cast_list(item: object) -> list[str]:
+    """The focal cast names from an outline entry (FR-537; ``[]`` if absent).
+
+    The principals the chapter is *about* — the scope the play loop narrows the
+    animated roster to. Kept as verbatim display strings (not coerced through
+    ``field``); blank entries dropped; a missing/non-list ``cast`` yields ``[]``,
+    which the ``expand_chapters`` boundary then normalizes against the roster.
+    """
+    raw = item.get("cast") if isinstance(item, dict) else getattr(item, "cast", None)
+    if not isinstance(raw, list):
+        return []
+    return [str(c).strip() for c in raw if str(c).strip()]
+
+
 def _require_beats(chapters: list[dict]) -> list[dict]:
     """Reject any chapter that carries no enumerated ``beats`` (FR-504 contract).
 
@@ -204,6 +218,7 @@ async def outline_chapters(doc: dict) -> list[dict]:
                 "title": field(item, "title"),
                 "summary": field(item, "summary"),
                 "beats": _beat_list(item),
+                "cast": _cast_list(item),
             }
             for item in (raw or [])
         ]

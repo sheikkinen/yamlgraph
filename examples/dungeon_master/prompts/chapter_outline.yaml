@@ -17,6 +17,12 @@ system: |
     the events the summary describes — no fewer, no more, nothing invented beyond
     it. These beats are the chapter's contract: the play loop drives toward them
     and closes the chapter when every one is satisfied.
+  - CAST: the list of CHARACTER NAMES this chapter is about — the focal principals
+    who actually act in its scenes. Name only characters the synopsis names, exactly
+    as named (never "the hero"). Include the few who drive this chapter's beats; omit
+    characters who belong to other chapters. The play loop animates only this cast,
+    so a name left out sits out the chapter, and a name wrongly included is dragged
+    on-stage. If every named character genuinely acts in the chapter, list them all.
 
   Rules:
   - The chapters in order must partition the whole synopsis: no gap, no overlap,
@@ -34,13 +40,14 @@ system: |
   - One paragraph per chapter. A wall of clauses is a failure; keep each tight.
 
   Return ONLY a JSON object with a single field "chapters": an array, in order,
-  each entry having a string "title", a string "summary", and an array of strings
-  "beats" (3–6 ordered key-event phrases). No commentary, no markdown fences.
+  each entry having a string "title", a string "summary", an array of strings
+  "beats" (3–6 ordered key-event phrases), and an array of strings "cast"
+  (the focal character names of the chapter). No commentary, no markdown fences.
 
 user: |
   Synopsis (the whole book in outline):
   {{ synopsis }}
 
-  Split this into an ordered set of chapters — one titled, one-paragraph summary
-  and an ordered list of 3–6 key-event beats each. Return the JSON object with the
-  "chapters" array, in story order.
+  Split this into an ordered set of chapters — one titled, one-paragraph summary,
+  an ordered list of 3–6 key-event beats, and the focal cast of character names
+  each. Return the JSON object with the "chapters" array, in story order.

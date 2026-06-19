@@ -16,6 +16,7 @@ are the side-effecting cluster navigation deliberately stays out of (FR-489 J1).
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from examples.dungeon_master.api import (
@@ -26,6 +27,7 @@ from examples.dungeon_master.api import (
     turn_state,
 )
 from examples.dungeon_master.api.graph_app import clean_text, get_app
+from examples.dungeon_master.api.lifecycle_resolver import _norm_name
 from examples.dungeon_master.api.tree import (
     CHAPTER_PREFIX,
     CHAR_PREFIX,
@@ -40,6 +42,8 @@ from examples.dungeon_master.api.tree import (
 
 # ── doc accessors (the shared core) ─────────────────────────────────────────
 
+_LOG = logging.getLogger(__name__)
+
 
 def _empty_chapter_memory() -> dict:
     """Canonical empty chapter memory payload (FR-508 migration-safe default)."""
@@ -50,6 +54,40 @@ def _empty_chapter_memory() -> dict:
         "open_threads": [],
         "forbidden_regressions": [],
     }
+
+
+def _normalize_chapter_cast(doc: dict, authored: object) -> list[str]:
+    """Map authored chapter cast names to roster display names; drop unknowns (FR-537).
+
+    The boundary normalization (``the_one_law``): the outline names a chapter's
+    focal cast in free text, but the play loop scopes the animated roster by roster
+    identity. Keep only names that match a roster character (case-insensitive), emit
+    the roster's canonical display name, and warn on every dropped unknown so a
+    typo'd cast name is visible — never silently widened back to the full roster.
+    """
+    names = [str(c).strip() for c in (authored or []) if str(c).strip()]
+    if not names:
+        return []
+    chars = doc.get("characters") or {}
+    cards = chars.get("cards") or {}
+    by_norm: dict[str, str] = {}
+    for char_id in chars.get("roster") or []:
+        display = str((cards.get(char_id) or {}).get("name") or char_id).strip()
+        if display:
+            by_norm.setdefault(_norm_name(display), display)
+    out: list[str] = []
+    seen: set[str] = set()
+    for name in names:
+        key = _norm_name(name)
+        display = by_norm.get(key)
+        if display is None:
+            _LOG.warning("expand_chapters: dropping unknown chapter cast name %r", name)
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(display)
+    return out
 
 
 def _ensure_live_synopsis(doc: dict) -> dict:
@@ -222,6 +260,7 @@ async def expand_chapters(doc: dict, story_dir: Path) -> None:
             "title": chunk.get("title") or f"Chapter {cid}",
             "summary": chunk.get("summary", ""),
             "beats": list(chunk.get("beats") or []),
+            "cast": _normalize_chapter_cast(doc, chunk.get("cast")),
             "text": "",
             "world_state": "",
             "seam_packet": {

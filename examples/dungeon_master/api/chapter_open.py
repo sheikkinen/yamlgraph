@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 from datetime import UTC, datetime
 
 from examples.dungeon_master.api import chapter_nav
@@ -25,7 +26,7 @@ from examples.dungeon_master.api.seam_packet import (
     parse_seam_packet,
     validate_character_lifecycle,
 )
-from examples.dungeon_master.api.turn_state import turn_direction
+from examples.dungeon_master.api.turn_state import chapter_beat_list, turn_direction
 
 _LOG = logging.getLogger(__name__)
 
@@ -284,6 +285,109 @@ def _drop_within_chapter_exits(
     return filtered or roster
 
 
+_NAME_TOKEN_RE = re.compile(r"[a-z0-9]+")
+
+
+def _name_tokens(text: str) -> list[str]:
+    """Lowercased alphanumeric word tokens of ``text`` (for word-bounded matching)."""
+    return _NAME_TOKEN_RE.findall(str(text or "").lower())
+
+
+def _contains_token_run(haystack: list[str], needle: list[str]) -> bool:
+    """True when ``needle`` appears as a contiguous run of tokens in ``haystack``.
+
+    Word-bounded so a roster name is matched only as whole words (``Ron`` does not
+    match inside ``around``); multi-word names match an exact contiguous run.
+    """
+    if not needle or len(needle) > len(haystack):
+        return False
+    span = len(needle)
+    return any(
+        haystack[i : i + span] == needle for i in range(len(haystack) - span + 1)
+    )
+
+
+def resolve_chapter_cast(doc: dict, cid: str) -> set[str]:
+    """The chapter's focal cast: authored ``cast`` ∪ roster names in its beats (FR-537).
+
+    The single source of "who is in this chapter" — a SCOPE narrowing distinct from
+    the lifecycle STATUS gates (a present, alive, reviewed character can still be
+    off-stage for a chapter). Two normalized inputs, unioned:
+
+    - **authored cast:** the chapter card's ``cast`` field (focal principals the
+      outline named), restricted to the roster — a defensive second guard over the
+      ``expand_chapters`` boundary normalization (``the_one_law``).
+    - **beats-floor:** every roster character word-named in the chapter's authored
+      ``beats`` (``turn_state.chapter_beat_list``). Beats are the load-bearing
+      contract; a character the chapter must portray is in its cast by construction.
+
+    Returns normalized (lowercased/whitespace-collapsed) names. Empty when the
+    chapter declares no cast and no roster name appears in its beats — the callers
+    then fall back to the full reviewed roster (this is an additive feature, never a
+    silent narrowing of a cast-less story).
+    """
+    chars = dict(doc.get("characters") or {})
+    cards = dict(chars.get("cards") or {})
+    roster_names = [
+        str(dict(cards.get(char_id) or {}).get("name") or char_id).strip()
+        for char_id in (chars.get("roster") or [])
+    ]
+    roster_names = [name for name in roster_names if name]
+    roster_norm = {_norm_name(name) for name in roster_names}
+
+    card = chapter_nav.chapter_card(doc, cid)
+    authored = {_norm_name(n) for n in (card.get("cast") or []) if _norm_name(n)}
+    authored &= roster_norm
+
+    beat_token_runs = [_name_tokens(beat) for beat in chapter_beat_list(doc, cid)]
+    floor = {
+        _norm_name(name)
+        for name in roster_names
+        if any(_contains_token_run(run, _name_tokens(name)) for run in beat_token_runs)
+    }
+    return authored | floor
+
+
+def _scope_names_to_chapter_cast(doc: dict, cid: str, names: list[str]) -> list[str]:
+    """Narrow display ``names`` to the chapter's focal cast, in input order (FR-537).
+
+    Returns ``names`` unchanged when the chapter declares no resolvable cast, or when
+    the intersection would empty the list (never hand a chapter an empty cast — the
+    per-chapter turn cap closes a degenerate chapter, matching the lifecycle filters'
+    posture). The single narrowing applied at the prose-control site.
+    """
+    cast = resolve_chapter_cast(doc, cid)
+    if not cast:
+        return names
+    scoped = [name for name in names if _norm_name(name) in cast]
+    return scoped or names
+
+
+def scope_roster_to_chapter_cast(
+    doc: dict, chars: dict, cid: str, roster: list[str]
+) -> list[str]:
+    """Narrow reviewed roster ids to the chapter's focal cast, in roster order (FR-537).
+
+    The id-shape twin of :func:`_scope_names_to_chapter_cast` for the per-turn intents
+    roster built inline in :func:`turn_ops.invoke_turn` (the measured defect: that path
+    never resolved the chapter cast, so off-chapter characters were animated every
+    turn). Returns ``roster`` unchanged when the chapter has no resolvable cast or when
+    the intersection would empty it (same empty-cast fallback as the prose-control
+    site, single-sourced through :func:`resolve_chapter_cast`).
+    """
+    cast = resolve_chapter_cast(doc, cid)
+    if not cast:
+        return roster
+    cards = dict(chars.get("cards") or {})
+    scoped = [
+        char_id
+        for char_id in roster
+        if _norm_name(str(dict(cards.get(char_id) or {}).get("name") or char_id))
+        in cast
+    ]
+    return scoped or roster
+
+
 def build_allowed_scene_cast(doc: dict, cid: str) -> list[str]:
     """Build deterministic allowed cast names for chapter-close prose control.
 
@@ -332,4 +436,4 @@ def build_allowed_scene_cast(doc: dict, cid: str) -> list[str]:
             continue
         seen.add(key)
         out.append(name)
-    return out
+    return _scope_names_to_chapter_cast(doc, cid, out)

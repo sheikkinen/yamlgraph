@@ -141,6 +141,58 @@ Key patterns demonstrated:
 
 See [examples/npc/architecture.md](examples/npc/architecture.md) for full documentation.
 
+### Module Organization: Concern Seams and Leaf Modules
+
+The three-layer pattern governs *which layer* code belongs in. A second principle
+governs how a single layer's package is split once it grows: **partition by concern
+seam, and sink shared primitives into a leaf module so the dependency graph stays a
+tree, not a cycle.**
+
+When a module accretes several concerns and crosses the size ceiling (450 lines;
+target <400), split it along the seams the code already reveals — not by mechanical
+halving. Two failure modes recur when splitting:
+
+1. **The sibling cycle.** Two new modules each need a shared substrate (accessors,
+   constants, small pure helpers). Placing those primitives with their *busiest
+   caller* makes the two siblings import each other. The fix is never to pick a
+   winner: extract the substrate into a **leaf module** that imports neither sibling
+   and is imported *by* both. The dependency graph becomes acyclic by construction.
+2. **The facade hub.** Leaving re-exports in the emptied module so old call paths
+   keep resolving creates a second source of truth and keeps the "split-out" symbols
+   referenced from the original (defeating the decoupling). Migrate every call site
+   to the new home instead — no compat shims (Commandment 8). The only re-exports
+   that survive are those a *test identity contract* requires (`import x as x`).
+
+The `examples/dungeon_master` package is the proving ground. `lifecycle_resolver`
+(FR-534) and `turn_state` (FR-536) are leaf modules extracted precisely to dissolve
+import cycles: the play loop and the opening gate both depend on turn/chapter
+accessors, so those accessors sink below both. A generalized `test_module_size.py`
+sweep enforces the ceiling across the whole package, so the drift cannot recur
+silently.
+
+A leaf module single-sources a *policy*, but the policy is only honored where it is
+*applied*. When a derived value (a filtered roster, an allowed cast) is recomputed at
+more than one site, sinking the resolution into one function is necessary but not
+sufficient — every site that narrows the value must call it. FR-537's chapter-scoped
+cast is the cautionary case: a `resolve_chapter_cast` leaf computes a chapter's focal
+cast once, but two roster paths narrow it — the prose-control cast and the per-turn
+intents roster built inline in the play loop. Wiring only the first leaves the
+measured defect (off-chapter characters animated every turn) untouched, because the
+defect lives on the *other* path. This is a SCOPE narrowing (who is in this chapter)
+and is deliberately distinct from the lifecycle STATUS gates (is this character
+alive/present): a present, reviewed character can still sit out a chapter, so the two
+filters compose rather than subsume. Single-source the resolution; apply it at every
+narrowing site; let an empty resolution fall back to the prior behavior so the
+feature is additive.
+
+| Smell | Cure |
+|-------|------|
+| Module > 450 lines mixing N concerns | Split along concern seams (use complexity/clone data to find them) |
+| Two split siblings import each other | Sink the shared primitives into a leaf module both import |
+| Old call paths kept alive by re-exports | Migrate call sites; delete the facade (keep only test-identity aliases) |
+| A monkeypatch sets an attribute the call no longer reads | A patch is bound to the symbol's *module home* — retarget when the symbol moves |
+| One narrowing point single-sourced but the defect rides another path | Apply the single-sourced policy at *every* site that derives the value, not just the busiest one |
+
 ### projects/ vs examples/
 
 | Aspect | `examples/` | `projects/` |

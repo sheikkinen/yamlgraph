@@ -26,6 +26,7 @@ from examples.dungeon_master.api.chapter_open import (
     enforce_memory_precedence_gate,
     filter_roster_for_lifecycle,
     format_opening_onepager,
+    scope_roster_to_chapter_cast,
 )
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
 from examples.dungeon_master.api.lifecycle_resolver import (
@@ -121,9 +122,7 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
         f"{_beats_block(doc, cid, n)}"
     )
     if n == 1 and seam:
-        scene += (
-            "\n\nCHAPTER SEAM CONTRACT (must honor at chapter opening):\n" f"{seam}"
-        )
+        scene += f"\n\nCHAPTER SEAM CONTRACT (must honor at chapter opening):\n{seam}"
     if n == 1:
         onepager = format_opening_onepager(compile_opening_onepager(doc, cid))
         if onepager:
@@ -182,6 +181,7 @@ async def invoke_turn(
         for char_id in chars["roster"]
         if chars["cards"].get(char_id, {}).get("reviewed")
     ]
+    roster = scope_roster_to_chapter_cast(doc, chars, cid, roster)
     roster = filter_roster_for_lifecycle(doc, chars, cid, n, roster)
     prev = prior_intents(doc, cid, n)
     cast = [
