@@ -26,12 +26,19 @@ import json
 import sys
 from pathlib import Path
 
+from examples.dungeon_master.api.fact_reversal import fact_reversal_gap
 from examples.dungeon_master.api.seam_entrance import seam_entrance_gap
 from examples.dungeon_master.scripts.calibrate_continuity_axis import (
     parse_continuity_breaks,
 )
 
-__all__ = ["build_witness", "seam_entrance_summary", "write_witness", "main"]
+__all__ = [
+    "build_witness",
+    "seam_entrance_summary",
+    "fact_reversal_summary",
+    "write_witness",
+    "main",
+]
 
 WITNESS_FILENAME = "continuity_witness.json"
 
@@ -79,6 +86,53 @@ def seam_entrance_summary(story_doc: dict) -> dict:
     return {"gap_count": total, "by_kind": by_kind, "by_chapter": by_chapter}
 
 
+def fact_reversal_summary(story_doc: dict) -> dict:
+    """Aggregate the deterministic fact-reversal witness over a story doc (FR-542 B).
+
+    Walks adjacent chapter pairs in ``chapters.order`` and runs
+    :func:`fact_reversal_gap` over each, summing resolved-fact reversals and
+    forbidden-regression violations and tallying them by ``reason``. Purely additive
+    to the witness, measurement-first (FR-538 posture): a reversal is reported, never
+    gates the run in Phase 1 (gate promotion is the FR-542 Phase-2 follow-up).
+    """
+    chapters = story_doc.get("chapters") or {}
+    order = list(chapters.get("order") or [])
+    cards = chapters.get("cards") or {}
+    total = 0
+    by_reason: dict[str, int] = {}
+    by_chapter: list[dict] = []
+    for prev_cid, cid in zip(order, order[1:], strict=False):
+        result = fact_reversal_gap(cards.get(prev_cid) or {}, cards.get(cid) or {})
+        gap_count = result["gap_count"]
+        if not gap_count:
+            continue
+        total += gap_count
+        by_chapter.append(
+            {
+                "from_chapter": prev_cid,
+                "to_chapter": cid,
+                "gap_count": gap_count,
+                "gaps": [
+                    {
+                        "subject": g["subject"],
+                        "reason": g["reason"],
+                        "prior_fact": g["prior_fact"],
+                        "reversed_fact": g["reversed_fact"],
+                    }
+                    for g in result["gaps"]
+                ],
+            }
+        )
+        for gap in result["gaps"]:
+            by_reason[gap["reason"]] = by_reason.get(gap["reason"], 0) + 1
+    return {
+        "gap_count": total,
+        "by_reason": by_reason,
+        "by_chapter": by_chapter,
+        "posture": "visibility-not-gate",
+    }
+
+
 def _load_story_doc(out_dir: Path) -> dict | None:
     """Load the session source-of-truth story doc, or ``None`` if absent.
 
@@ -106,6 +160,7 @@ def write_witness(out_dir: Path) -> dict | None:
     story_doc = _load_story_doc(out_dir)
     if story_doc is not None:
         witness["seam_entrance"] = seam_entrance_summary(story_doc)
+        witness["fact_reversal"] = fact_reversal_summary(story_doc)
     (out_dir / WITNESS_FILENAME).write_text(
         json.dumps(witness, indent=2) + "\n", encoding="utf-8"
     )

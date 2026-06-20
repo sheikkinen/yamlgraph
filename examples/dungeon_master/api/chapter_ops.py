@@ -27,6 +27,7 @@ from examples.dungeon_master.api import (
     turn_state,
 )
 from examples.dungeon_master.api.graph_app import get_app
+from examples.dungeon_master.api.ledger_reconcile import reconcile_ledger_exits
 from examples.dungeon_master.api.prose_continuity import (
     FinalCutReviseError,
     build_source_pointer,
@@ -345,6 +346,15 @@ async def close_chapter(doc: dict, cid: str) -> dict:
     world_ledger = apply_lane_floor(emitted, inherited_ledger)
     delta = apply_ledger_delta(inherited_ledger, operations, current_index)
     world_ledger["relationships"] = delta["relationships"]
+    # FR-542 A: the close graph derives world_state from prose and can miss a
+    # director-reported cast_exit, leaving a swept-away actor logged present (the
+    # Arnulf resurrection). Reconcile the emitted ledger against this chapter's
+    # reported exits at the boundary the contradiction enters, before the next
+    # chapter inherits it. Interim fix (continuity-projection-plan.md step 2),
+    # superseded by the write-once projected lifecycle ledger (step 3).
+    world_ledger = reconcile_ledger_exits(
+        world_ledger, turn_state.chapter_cast_exits(doc, cid)
+    )
     return {
         "text": text,
         "world_state": world_ledger,

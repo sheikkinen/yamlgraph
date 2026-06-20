@@ -26,7 +26,10 @@ from examples.dungeon_master.api.seam_packet import (
     parse_seam_packet,
     validate_character_lifecycle,
 )
-from examples.dungeon_master.api.turn_state import chapter_beat_list, turn_direction
+from examples.dungeon_master.api.turn_state import (
+    _chapter_cast_exits,
+    chapter_beat_list,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -191,23 +194,6 @@ def enforce_lifecycle_gate(doc: dict, cid: str, n: int, cast: list[dict]) -> Non
     }
     _LOG.warning("Lifecycle gate violation: %s", payload)
     raise LifecycleGateError(payload)
-
-
-def _chapter_cast_exits(doc: dict, cid: str, n: int) -> list[str]:
-    """Names the director benched in chapter ``cid``'s turns *before* ``n`` (FR-521 S2).
-
-    The director's structured ``cast_exits`` field names roster members who have
-    left the scene this chapter — died, been swept away — and must not act again.
-    Accumulated (union) across every prior turn so a single later clean turn cannot
-    resurrect a benched actor, and chapter-scoped (read only from this chapter's
-    own turns) so a legitimate cross-chapter return is never barred here. De-duped,
-    first-seen order.
-    """
-    exits: list[str] = []
-    for k in range(1, n):
-        d = turn_direction(doc, cid, k)
-        exits.extend(str(x) for x in (d.get("cast_exits") or []) if str(x).strip())
-    return list(dict.fromkeys(exits))
 
 
 def filter_roster_for_lifecycle(

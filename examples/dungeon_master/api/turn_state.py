@@ -193,3 +193,31 @@ def chapter_beats(doc: dict, cid: str) -> list[str]:
             if b not in beats:
                 beats.append(b)
     return beats
+
+
+def _chapter_cast_exits(doc: dict, cid: str, n: int) -> list[str]:
+    """Names the director benched in chapter ``cid``'s turns *before* ``n`` (FR-521 S2).
+
+    The director's structured ``cast_exits`` field names roster members who have
+    left the scene this chapter — died, been swept away — and must not act again.
+    Accumulated (union) across every prior turn so a single later clean turn cannot
+    resurrect a benched actor, and chapter-scoped (read only from this chapter's
+    own turns) so a legitimate cross-chapter return is never barred here. De-duped,
+    first-seen order.
+    """
+    exits: list[str] = []
+    for k in range(1, n):
+        d = turn_direction(doc, cid, k)
+        exits.extend(str(x) for x in (d.get("cast_exits") or []) if str(x).strip())
+    return list(dict.fromkeys(exits))
+
+
+def chapter_cast_exits(doc: dict, cid: str) -> list[str]:
+    """All roster members the director benched across chapter ``cid`` (FR-542 A).
+
+    The chapter-wide union of :func:`_chapter_cast_exits` over *every* played turn
+    (not just those before a given turn ``n``), so :func:`chapter_ops.close_chapter`
+    can reconcile the emitted end-of-chapter ledger against the exits the director
+    actually reported. De-duped, first-seen order; empty when no turn is played.
+    """
+    return _chapter_cast_exits(doc, cid, len(chapter_turns(doc, cid)) + 1)
