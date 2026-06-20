@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from examples.dungeon_master.api.fact_reversal import fact_reversal_gap
 from examples.dungeon_master.scripts.emit_continuity_witness import (
+    _proper_noun_entities,
     fact_reversal_summary,
 )
 
@@ -126,14 +127,60 @@ def test_summary_zero_when_no_reversal() -> None:
     assert fact_reversal_summary(doc)["gap_count"] == 0
 
 
-# ── FR-547: roster-disagreement suppression (the locative false positive) ─────
+# ── FR-547: entity-disagreement suppression (the locative false positive) ─────
 
 
-def _story_with_roster(
-    cards_in_order: list[dict], roster_names: dict[str, str]
+def test_distinct_entity_subjects_suppress_locative_collision() -> None:
+    """10032-BC: two facts about DIFFERENT named entities sharing only 'flood zone'."""
+    prev = _card(resolved=["Reinmar arrived at the flood zone by the salt road."])
+    card = _card(
+        open_threads=["Arnulf is still missing in the flood zone and unconfirmed dead."]
+    )
+    entities = {"reinmar", "arnulf"}
+    # Both lines name a DISTINCT entity -> disjoint -> suppressed.
+    assert fact_reversal_gap(prev, card, entities=entities)["gap_count"] == 0
+    # Absent an entity set, the detector keeps today's (over-eager) behavior.
+    assert fact_reversal_gap(prev, card)["gap_count"] == 1
+
+
+def test_ford_reversal_without_entities_still_flagged() -> None:
+    """Ford guard: a place reversal naming no entity must NOT be suppressed."""
+    prev = _card(forbidden=["The ford was sealed against the clan"])
+    card = _card(resolved=["The ford was reopened and the clan crossed"])
+    entities = {"reinmar", "arnulf"}
+    # Neither line names Reinmar or Arnulf -> the closed<->reopened reversal stands.
+    assert fact_reversal_gap(prev, card, entities=entities)["gap_count"] == 1
+
+
+def test_same_entity_reversal_not_suppressed() -> None:
+    """A present->absent reversal about the SAME entity is still a reversal."""
+    prev = _card(resolved=["Arnulf arrived at the ridge"])
+    card = _card(open_threads=["Arnulf is missing in the flood"])
+    entities = {"arnulf"}
+    # Same named entity on both sides -> not disjoint -> kept.
+    assert fact_reversal_gap(prev, card, entities=entities)["gap_count"] == 1
+
+
+def test_capitalized_common_noun_absent_from_lexicon_not_an_entity() -> None:
+    """The new boundary: a capitalized common noun NOT in the lexicon is no entity."""
+    prev = _card(resolved=["Floodwater secured the ledge supply"])
+    card = _card(open_threads=["Floodwater left the ledge supply unclaimed"])
+    # 'floodwater' is not a proper-noun entity -> named() empty on both -> a genuine
+    # same-subject reversal about it is still flagged, not suppressed.
+    entities = {"reinmar", "arnulf"}
+    assert fact_reversal_gap(prev, card, entities=entities)["gap_count"] == 1
+
+
+# ── FR-547: the corpus proper-noun lexicon builder ───────────────────────────
+
+
+def _story_with_prose(
+    cards_in_order: list[dict], texts: list[str], roster_names: dict[str, str]
 ) -> dict:
-    """A story doc carrying a roster (char_id -> display name) for entity anchoring."""
+    """A story doc whose chapter cards carry committed prose and a roster."""
     doc = _story(cards_in_order)
+    for cid, text in zip(doc["chapters"]["order"], texts, strict=True):
+        doc["chapters"]["cards"][cid]["text"] = text
     doc["characters"] = {
         "roster": list(roster_names),
         "cards": {cid: {"name": name} for cid, name in roster_names.items()},
@@ -141,55 +188,55 @@ def _story_with_roster(
     return doc
 
 
-def test_distinct_roster_subjects_suppress_locative_collision() -> None:
-    """10032-BC: two facts about DIFFERENT people sharing only 'flood zone' is no reversal."""
-    prev = _card(resolved=["Reinmar arrived at the flood zone by the salt road."])
-    card = _card(
-        open_threads=["Arnulf is still missing in the flood zone and unconfirmed dead."]
-    )
-    roster = {"reinmar": "c1", "arnulf": "c2"}
-    # The roster names two DISTINCT characters across the pair -> suppressed.
-    assert fact_reversal_gap(prev, card, roster=roster)["gap_count"] == 0
-    # Absent a roster, the detector keeps today's (over-eager) behavior.
-    assert fact_reversal_gap(prev, card)["gap_count"] == 1
-
-
-def test_ford_reversal_without_roster_chars_still_flagged() -> None:
-    """Ford guard: a place reversal naming no roster character must NOT be suppressed."""
-    prev = _card(forbidden=["The ford was sealed against the clan"])
-    card = _card(resolved=["The ford was reopened and the clan crossed"])
-    roster = {"reinmar": "c1", "arnulf": "c2"}
-    # Neither line names Reinmar or Arnulf -> the closed<->reopened reversal stands.
-    assert fact_reversal_gap(prev, card, roster=roster)["gap_count"] == 1
-
-
-def test_same_roster_character_reversal_not_suppressed() -> None:
-    """A present->absent reversal about the SAME character is still a reversal."""
-    prev = _card(resolved=["Arnulf arrived at the ridge"])
-    card = _card(open_threads=["Arnulf is missing in the flood"])
-    roster = {"arnulf": "c1"}
-    # Same named character on both sides -> not distinct -> kept.
-    assert fact_reversal_gap(prev, card, roster=roster)["gap_count"] == 1
-
-
-def test_summary_suppresses_distinct_roster_locative_collision() -> None:
-    """End-to-end (C1): a multi-token roster name still anchors the suppression."""
-    doc = _story_with_roster(
+def test_proper_noun_lexicon_includes_offroster_excludes_locative() -> None:
+    """The lexicon recovers an off-roster name (cap mid-sentence >=2) but no locative."""
+    doc = _story_with_prose(
+        [_card(), _card()],
         [
-            _card(resolved=["Old Reinmar arrived at the flood zone by the salt road."]),
+            "The clan fled. Then Arnulf reached the flood zone and Arnulf called out.",
+            "Later Arnulf was gone, and the flood rose over the salt road.",
+        ],
+        {"c1": "Reinmar"},
+    )
+    lexicon = _proper_noun_entities(doc)
+    # Off-roster Arnulf (capitalized mid-sentence 3x) is recovered ...
+    assert "arnulf" in lexicon
+    # ... the roster name is unioned in ...
+    assert "reinmar" in lexicon
+    # ... and no locative (always lowercase mid-sentence) poisons the lexicon.
+    assert "flood" not in lexicon
+    assert "zone" not in lexicon
+    assert "road" not in lexicon
+
+
+def test_summary_suppresses_offroster_locative_collision() -> None:
+    """End-to-end (D4): an OFF-roster name in prose anchors the suppression.
+
+    This pins the live 10032-BC AC: Arnulf is absent from the roster yet named in
+    the prose, so the entity set recovers him and the flood-zone collision is no
+    longer a false reversal -- proven by a committed synthetic fixture (outputs/ is
+    gitignored).
+    """
+    doc = _story_with_prose(
+        [
+            _card(resolved=["Reinmar arrived at the flood zone by the salt road."]),
             _card(
                 open_threads=[
                     "Arnulf is still missing in the flood zone and unconfirmed dead."
                 ]
             ),
         ],
-        {"c1": "Old Reinmar", "c2": "Arnulf"},
+        [
+            "Reinmar pressed on while Arnulf lagged. Arnulf would not reach the ford.",
+            "No one found Arnulf. Even Arnulf's pack was gone from the ledge.",
+        ],
+        {"c1": "Reinmar"},  # Arnulf deliberately NOT in the roster.
     )
     assert fact_reversal_summary(doc)["gap_count"] == 0
 
 
-def test_summary_without_roster_still_flags_collision() -> None:
-    """Absent a characters block (empty roster) the witness keeps today's behavior."""
+def test_summary_without_entities_still_flags_collision() -> None:
+    """Absent prose/characters (empty lexicon) the witness keeps today's behavior."""
     doc = _story(
         [
             _card(resolved=["Reinmar arrived at the flood zone by the salt road."]),
