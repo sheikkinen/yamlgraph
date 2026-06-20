@@ -26,6 +26,7 @@ import json
 import sys
 from pathlib import Path
 
+from examples.dungeon_master.api.character_overlay import derive_overlay
 from examples.dungeon_master.api.fact_reversal import fact_reversal_gap
 from examples.dungeon_master.api.seam_entrance import seam_entrance_gap
 from examples.dungeon_master.scripts.calibrate_continuity_axis import (
@@ -36,6 +37,7 @@ __all__ = [
     "build_witness",
     "seam_entrance_summary",
     "fact_reversal_summary",
+    "overlay_trail_summary",
     "write_witness",
     "main",
 ]
@@ -133,6 +135,49 @@ def fact_reversal_summary(story_doc: dict) -> dict:
     }
 
 
+def overlay_trail_summary(story_doc: dict) -> dict:
+    """Aggregate the FR-541 derived character overlay into a review trail (FR-544).
+
+    Walks ``chapters.order`` and, for each roster character, REUSES
+    :func:`character_overlay.derive_overlay` to recompute the CURRENT STATE the
+    intent node saw entering that chapter -- never re-deriving accrual logic. Pure:
+    never mutates ``story_doc``. Characters whose overlay is ``{}`` (no prior
+    committed delta) are omitted, so an empty trail reproduces today's silence.
+
+    The trail is expected to be SPARSE (FR-544 J1, sparse-is-truth): it carries only
+    characters with committed ``character_state_deltas``, so a thin trail is a true
+    measurement of thin deltas, not a bug. Visibility-not-gate: never fails the run.
+    """
+    chars = story_doc.get("characters") or {}
+    cards = chars.get("cards") or {}
+    roster = list(chars.get("roster") or [])
+    order = list((story_doc.get("chapters") or {}).get("order") or [])
+    total = 0
+    by_chapter: list[dict] = []
+    for cid in order:
+        characters: list[dict] = []
+        for char_id in roster:
+            name = str((cards.get(char_id) or {}).get("name") or char_id).strip()
+            overlay = derive_overlay(story_doc, cid, name)
+            if not overlay:
+                continue
+            characters.append(
+                {
+                    "name": name,
+                    "status": overlay["status"],
+                    "history": overlay["history"],
+                }
+            )
+        if characters:
+            total += len(characters)
+            by_chapter.append({"chapter": cid, "characters": characters})
+    return {
+        "transition_count": total,
+        "by_chapter": by_chapter,
+        "posture": "visibility-not-gate",
+    }
+
+
 def _load_story_doc(out_dir: Path) -> dict | None:
     """Load the session source-of-truth story doc, or ``None`` if absent.
 
@@ -161,6 +206,7 @@ def write_witness(out_dir: Path) -> dict | None:
     if story_doc is not None:
         witness["seam_entrance"] = seam_entrance_summary(story_doc)
         witness["fact_reversal"] = fact_reversal_summary(story_doc)
+        witness["overlay_trail"] = overlay_trail_summary(story_doc)
     (out_dir / WITNESS_FILENAME).write_text(
         json.dumps(witness, indent=2) + "\n", encoding="utf-8"
     )
