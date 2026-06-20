@@ -23,12 +23,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
 from examples.dungeon_master.api.allegiance_ledger import allegiance_transitions
 from examples.dungeon_master.api.character_overlay import derive_overlay
-from examples.dungeon_master.api.fact_reversal import fact_reversal_gap
+from examples.dungeon_master.api.fact_reversal import fact_reversal_gap, name_tokens
 from examples.dungeon_master.api.seam_entrance import seam_entrance_gap
 from examples.dungeon_master.scripts.calibrate_continuity_axis import (
     parse_continuity_breaks,
@@ -89,6 +90,49 @@ def seam_entrance_summary(story_doc: dict) -> dict:
     return {"gap_count": total, "by_kind": by_kind, "by_chapter": by_chapter}
 
 
+# FR-547: a token is treated as a proper noun (named entity) only if it appears
+# capitalized in a NON-sentence-initial position at least this many times across the
+# committed prose. >=2 drops one-off dialogue-capitalized common words (the 10032-BC
+# residual was {keep:3, this:2, mark:1, here:1}; the threshold drops mark/here, and
+# `_subject_tokens` reuse drops `this`). Tunable; the irreducible residual escalates
+# to the deferred Phase-2 LLM same-fact-identity tier (visibility-not-gate posture).
+_PROPER_NOUN_MIN_CAPS = 2
+
+_WORD_RE = re.compile(r"[A-Za-z][A-Za-z0-9]*")
+
+
+def _proper_noun_entities(story_doc: dict) -> set[str]:
+    """Corpus proper-noun lexicon for entity-disagreement suppression (FR-547).
+
+    Reads committed chapter prose (``chapters.cards[*].text``) and collects tokens
+    that appear capitalized in a non-sentence-initial position at least
+    ``_PROPER_NOUN_MIN_CAPS`` times (length >= 4, lowercased). This recovers off-roster
+    named characters (Arnulf, Aschenwulf) the roster omits, without depending on roster
+    completeness, while locatives -- never capitalized mid-sentence -- stay out so the
+    discriminator is not poisoned. The roster's own name-tokens are unioned in as a
+    belt-and-suspenders for a rostered member rarely present in prose.
+    """
+    chapters = story_doc.get("chapters") or {}
+    cards = chapters.get("cards") or {}
+    counts: dict[str, int] = {}
+    for cid in chapters.get("order") or []:
+        text = (cards.get(cid) or {}).get("text") or ""
+        for sentence in re.split(r"[.!?]+", str(text)):
+            for index, match in enumerate(_WORD_RE.finditer(sentence)):
+                token = match.group(0)
+                if index > 0 and token[:1].isupper() and len(token) >= 4:
+                    key = token.lower()
+                    counts[key] = counts.get(key, 0) + 1
+    entities = {t for t, n in counts.items() if n >= _PROPER_NOUN_MIN_CAPS}
+
+    chars = story_doc.get("characters") or {}
+    name_cards = chars.get("cards") or {}
+    for char_id in chars.get("roster") or []:
+        name = (name_cards.get(char_id) or {}).get("name") or char_id
+        entities |= name_tokens(name)
+    return entities
+
+
 def fact_reversal_summary(story_doc: dict) -> dict:
     """Aggregate the deterministic fact-reversal witness over a story doc (FR-542 B).
 
@@ -97,15 +141,22 @@ def fact_reversal_summary(story_doc: dict) -> dict:
     forbidden-regression violations and tallying them by ``reason``. Purely additive
     to the witness, measurement-first (FR-538 posture): a reversal is reported, never
     gates the run in Phase 1 (gate promotion is the FR-542 Phase-2 follow-up).
+
+    A corpus proper-noun entity set is built once from the prose and threaded into
+    each pair, so a reversal whose two lines name DISJOINT entities -- sharing only an
+    incidental locative token -- is suppressed (FR-547).
     """
     chapters = story_doc.get("chapters") or {}
     order = list(chapters.get("order") or [])
     cards = chapters.get("cards") or {}
+    entities = _proper_noun_entities(story_doc)
     total = 0
     by_reason: dict[str, int] = {}
     by_chapter: list[dict] = []
     for prev_cid, cid in zip(order, order[1:], strict=False):
-        result = fact_reversal_gap(cards.get(prev_cid) or {}, cards.get(cid) or {})
+        result = fact_reversal_gap(
+            cards.get(prev_cid) or {}, cards.get(cid) or {}, entities
+        )
         gap_count = result["gap_count"]
         if not gap_count:
             continue

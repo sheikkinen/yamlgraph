@@ -86,6 +86,17 @@ _SUBJECT_STOPWORDS: frozenset[str] = frozenset(
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 
 
+def name_tokens(name: str) -> set[str]:
+    """Lowercased >=4-char tokens of a character name (the entity-matching grain).
+
+    Shared single source of tokenization with the line matcher (``_TOKEN_RE``) so
+    ``fact_reversal_summary`` can fold roster names into the proper-noun entity set
+    with the same grain ledger lines are tokenized (FR-547). The >=4 floor drops
+    name connectives (``the``, ``of``) and matches ``_subject_tokens``.
+    """
+    return {t for t in _TOKEN_RE.findall(str(name or "").lower()) if len(t) >= 4}
+
+
 def _subject_tokens(line: str) -> set[str]:
     """Significant subject words of a ledger line (>=4 chars, not antonym/stopword)."""
     return {
@@ -95,6 +106,18 @@ def _subject_tokens(line: str) -> set[str]:
         and token not in _SUBJECT_STOPWORDS
         and token not in _ANTONYM_TOKENS
     }
+
+
+def _named_entities(line: str, entities: set[str] | None) -> set[str]:
+    """Entity tokens the line names: its subject tokens intersected with ``entities``.
+
+    Reuses ``_subject_tokens`` (D2) so the entity match inherits the same
+    stopword/antonym/length discipline the subject match already applies -- a
+    function word capitalized in dialogue never enters here.
+    """
+    if not entities:
+        return set()
+    return _subject_tokens(line) & entities
 
 
 def _asserted_side(line: str) -> tuple[int, int] | None:
@@ -109,7 +132,10 @@ def _asserted_side(line: str) -> tuple[int, int] | None:
 
 
 def _antonym_reversals(
-    prior_lines: list[str], later_lines: list[str], reason: str
+    prior_lines: list[str],
+    later_lines: list[str],
+    reason: str,
+    entities: set[str] | None = None,
 ) -> list[dict]:
     """Lines where ``later`` asserts the opposite antonym side of ``prior``, same subject.
 
@@ -118,6 +144,13 @@ def _antonym_reversals(
     (c) the two lines share at least one subject token -- so opposite sides about
     different subjects (a secured gate vs an unclaimed boat) never compose a false
     reversal.
+
+    When an ``entities`` set (proper-noun lexicon) is supplied, a reversal is
+    *suppressed* when both lines name an entity and they name DISJOINT entities: two
+    facts about different people sharing only an incidental locative token (Reinmar
+    at the flood zone vs Arnulf missing in the flood zone) are not the same fact
+    (FR-547). The guard is a pure veto -- it never strips a subject, so reversals
+    about places that name no entity (a sealed ford reopened) still fire.
     """
     gaps: list[dict] = []
     for prior in prior_lines:
@@ -127,6 +160,7 @@ def _antonym_reversals(
         prior_subjects = _subject_tokens(prior)
         if not prior_subjects:
             continue
+        prior_entities = _named_entities(prior, entities)
         for later in later_lines:
             later_side = _asserted_side(later)
             if later_side is None:
@@ -135,6 +169,13 @@ def _antonym_reversals(
                 continue
             shared = prior_subjects & _subject_tokens(later)
             if not shared:
+                continue
+            later_entities = _named_entities(later, entities)
+            if (
+                prior_entities
+                and later_entities
+                and prior_entities.isdisjoint(later_entities)
+            ):
                 continue
             gaps.append(
                 {
@@ -166,7 +207,9 @@ def _delta_texts(raw: object) -> list[str]:
     return out
 
 
-def fact_reversal_gap(prev_card: dict, card: dict) -> dict:
+def fact_reversal_gap(
+    prev_card: dict, card: dict, entities: set[str] | None = None
+) -> dict:
     """Flag a resolved-fact reversal / forbidden-regression violation across a pair.
 
     Diffs the committed ``chapter_memory`` of two consecutive chapters: a
@@ -175,6 +218,11 @@ def fact_reversal_gap(prev_card: dict, card: dict) -> dict:
     ``forbidden_regression`` from ``prev_card`` the successor's ledger or character
     deltas contradicts. Pure, deterministic, closed-set; returns
     ``{gap_count, gaps:[{subject, prior_fact, reversed_fact, antonym_pair, reason}]}``.
+
+    ``entities`` (a proper-noun lexicon of lowercased name tokens) is optional and
+    defaults to ``None`` -- an empty set suppresses nothing, preserving the
+    two-argument call contract. When supplied it vetoes reversals whose two lines
+    name DISJOINT entities (FR-547 locative false positive).
     """
     prev_mem = (prev_card or {}).get("chapter_memory") or {}
     mem = (card or {}).get("chapter_memory") or {}
@@ -184,10 +232,12 @@ def fact_reversal_gap(prev_card: dict, card: dict) -> dict:
         _lines(prev_mem.get("resolved_events")),
         later_facts,
         "resolved_event_reversal",
+        entities,
     )
     gaps += _antonym_reversals(
         _lines(prev_mem.get("forbidden_regressions")),
         later_facts + _delta_texts(mem.get("character_state_deltas")),
         "forbidden_regression_violation",
+        entities,
     )
     return {"gap_count": len(gaps), "gaps": gaps}
