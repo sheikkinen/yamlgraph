@@ -71,6 +71,16 @@ system: |
   unchanged. Ground every operation in a specific recap quote; if you cannot cite
   a recap for a change, leave the operation out.
 
+  STANCE CHANGES are the easiest to forget and the most damaging to omit. Whenever
+  a tracked pair's STANCE turns this chapter — not only its bare type — you MUST
+  emit an `update` (or `invalidate` if the bond ended), grounded in a recap quote:
+  - a SIDE SWITCH: a character moves from allied-with to opposed-to the same party
+    (alliance↔enmity) — emit the `update` the chapter the recaps show the switch.
+  - a COOLING: a warm bond turns cold (romantic_bond→estranged, alliance→estranged)
+    — emit the `update` even though it "feels" like the same people.
+  If the prose flipped who-stands-with-whom and you emit no op, the ledger goes
+  stale and the next chapter inherits a contradiction. Record the flip.
+
   Rules:
   - Ground the ledger in the recaps, not the summary's intentions.
   - Do not contradict the previous world state except where the play overturned it.

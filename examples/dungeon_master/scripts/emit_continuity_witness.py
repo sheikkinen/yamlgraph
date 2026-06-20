@@ -26,6 +26,7 @@ import json
 import sys
 from pathlib import Path
 
+from examples.dungeon_master.api.allegiance_ledger import allegiance_transitions
 from examples.dungeon_master.api.character_overlay import derive_overlay
 from examples.dungeon_master.api.fact_reversal import fact_reversal_gap
 from examples.dungeon_master.api.seam_entrance import seam_entrance_gap
@@ -207,6 +208,7 @@ def write_witness(out_dir: Path) -> dict | None:
         witness["seam_entrance"] = seam_entrance_summary(story_doc)
         witness["fact_reversal"] = fact_reversal_summary(story_doc)
         witness["overlay_trail"] = overlay_trail_summary(story_doc)
+        witness["allegiance_transitions"] = allegiance_transitions(story_doc)
     (out_dir / WITNESS_FILENAME).write_text(
         json.dumps(witness, indent=2) + "\n", encoding="utf-8"
     )
