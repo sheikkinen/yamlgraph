@@ -124,3 +124,80 @@ def test_summary_zero_when_no_reversal() -> None:
         ]
     )
     assert fact_reversal_summary(doc)["gap_count"] == 0
+
+
+# ── FR-547: roster-disagreement suppression (the locative false positive) ─────
+
+
+def _story_with_roster(
+    cards_in_order: list[dict], roster_names: dict[str, str]
+) -> dict:
+    """A story doc carrying a roster (char_id -> display name) for entity anchoring."""
+    doc = _story(cards_in_order)
+    doc["characters"] = {
+        "roster": list(roster_names),
+        "cards": {cid: {"name": name} for cid, name in roster_names.items()},
+    }
+    return doc
+
+
+def test_distinct_roster_subjects_suppress_locative_collision() -> None:
+    """10032-BC: two facts about DIFFERENT people sharing only 'flood zone' is no reversal."""
+    prev = _card(resolved=["Reinmar arrived at the flood zone by the salt road."])
+    card = _card(
+        open_threads=["Arnulf is still missing in the flood zone and unconfirmed dead."]
+    )
+    roster = {"reinmar": "c1", "arnulf": "c2"}
+    # The roster names two DISTINCT characters across the pair -> suppressed.
+    assert fact_reversal_gap(prev, card, roster=roster)["gap_count"] == 0
+    # Absent a roster, the detector keeps today's (over-eager) behavior.
+    assert fact_reversal_gap(prev, card)["gap_count"] == 1
+
+
+def test_ford_reversal_without_roster_chars_still_flagged() -> None:
+    """Ford guard: a place reversal naming no roster character must NOT be suppressed."""
+    prev = _card(forbidden=["The ford was sealed against the clan"])
+    card = _card(resolved=["The ford was reopened and the clan crossed"])
+    roster = {"reinmar": "c1", "arnulf": "c2"}
+    # Neither line names Reinmar or Arnulf -> the closed<->reopened reversal stands.
+    assert fact_reversal_gap(prev, card, roster=roster)["gap_count"] == 1
+
+
+def test_same_roster_character_reversal_not_suppressed() -> None:
+    """A present->absent reversal about the SAME character is still a reversal."""
+    prev = _card(resolved=["Arnulf arrived at the ridge"])
+    card = _card(open_threads=["Arnulf is missing in the flood"])
+    roster = {"arnulf": "c1"}
+    # Same named character on both sides -> not distinct -> kept.
+    assert fact_reversal_gap(prev, card, roster=roster)["gap_count"] == 1
+
+
+def test_summary_suppresses_distinct_roster_locative_collision() -> None:
+    """End-to-end (C1): a multi-token roster name still anchors the suppression."""
+    doc = _story_with_roster(
+        [
+            _card(resolved=["Old Reinmar arrived at the flood zone by the salt road."]),
+            _card(
+                open_threads=[
+                    "Arnulf is still missing in the flood zone and unconfirmed dead."
+                ]
+            ),
+        ],
+        {"c1": "Old Reinmar", "c2": "Arnulf"},
+    )
+    assert fact_reversal_summary(doc)["gap_count"] == 0
+
+
+def test_summary_without_roster_still_flags_collision() -> None:
+    """Absent a characters block (empty roster) the witness keeps today's behavior."""
+    doc = _story(
+        [
+            _card(resolved=["Reinmar arrived at the flood zone by the salt road."]),
+            _card(
+                open_threads=[
+                    "Arnulf is still missing in the flood zone and unconfirmed dead."
+                ]
+            ),
+        ]
+    )
+    assert fact_reversal_summary(doc)["gap_count"] == 1
