@@ -26,13 +26,14 @@ from examples.dungeon_master.api import (
     turn_ops,
     turn_state,
 )
-from examples.dungeon_master.api.graph_app import clean_text, get_app
+from examples.dungeon_master.api.graph_app import clean_text, field, get_app
 from examples.dungeon_master.api.lifecycle_resolver import _norm_name
 from examples.dungeon_master.api.tree import (
     CHAPTER_PREFIX,
     CHAR_PREFIX,
     STAGE_BY_NAME,
     TURN_PREFIX,
+    WORLD_CODEX_GRAPH,
     Stage,
     parse_turn,
     resolve_stage,
@@ -238,6 +239,60 @@ async def expand_roster(doc: dict, story_dir: Path) -> None:
         if cid not in chars["cards"]:
             chars["cards"][cid] = {"name": name, "text": "", "reviewed": False}
             chars["roster"].append(cid)
+    story_doc.write(story_dir, doc)
+
+
+_CODEX_FACTION_FIELDS = ("name", "identity", "history", "stance")
+_CODEX_LOCATION_FIELDS = ("name", "description", "significance")
+
+
+def _codex_entries(raw: object, keys: tuple[str, ...]) -> list[dict]:
+    """Normalize a parsed codex array to fixed-schema entries (the boundary, FR-548).
+
+    Coerces every entry to exactly ``keys`` via :func:`field` (missing string fields
+    default to ``""``, unknown keys dropped); a non-list ``raw`` yields ``[]``; an
+    entry with no ``name`` is noise and is dropped. The same boundary discipline
+    ``outline_ops`` applies to chapter chunks (``the_one_law``: normalize where the
+    model's output enters, not downstream).
+    """
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        entry = {key: field(item, key) for key in keys}
+        if entry["name"]:
+            out.append(entry)
+    return out
+
+
+def _normalize_codex(raw: object) -> dict:
+    """The parsed ``{factions, locations}`` object, normalized to fixed schema (FR-548)."""
+    data = raw if isinstance(raw, dict) else {}
+    return {
+        "factions": _codex_entries(data.get("factions"), _CODEX_FACTION_FIELDS),
+        "locations": _codex_entries(data.get("locations"), _CODEX_LOCATION_FIELDS),
+    }
+
+
+async def expand_codex(doc: dict, story_dir: Path) -> None:
+    """Derive faction + location backstory from the accepted synopsis (FR-548).
+
+    Runs ``world_codex.yaml`` once over the synopsis and persists the normalized
+    ``{factions, locations}`` object as immutable reference under ``doc["codex"]``
+    (no ``reviewed`` gate — it is non-visitable, authored once). Idempotent: a
+    populated codex is a no-op, so a synopsis re-accept never re-derives it. Mirrors
+    the ``parse_json`` output-shape of ``expand_chapters``/``outline_ops``, not the
+    line-split roster (FR-548 C1/C2). Sequenced on synopsis-accept after
+    ``expand_roster`` — both read the same accepted synopsis (C4).
+    """
+    existing = doc.get("codex") or {}
+    if existing.get("factions") or existing.get("locations"):
+        return  # already derived; immutable reference
+    synopsis = doc.get("synopsis", {}).get("text", "")
+    result = await get_app(WORLD_CODEX_GRAPH).ainvoke(
+        {"synopsis": synopsis, "codex": {}}
+    )
+    doc["codex"] = _normalize_codex(result.get("codex"))
     story_doc.write(story_dir, doc)
 
 

@@ -286,6 +286,11 @@ class DMSession:
             # reviewed cast it will be played by.
             if stage.name == "synopsis":
                 await doc_ops.expand_roster(doc, story_dir)
+                # The codex reads only the accepted synopsis, like the roster, so it
+                # is authored on the same synopsis-accept (FR-548 C4): immutable
+                # faction/location backstory the outline and final_cut read as
+                # grounding texture. Idempotent — a re-accept is a no-op.
+                await doc_ops.expand_codex(doc, story_dir)
             elif stage.name.startswith(CHAR_PREFIX) and cast_complete(doc):
                 await doc_ops.expand_chapters(doc, story_dir)
             elif stage.kind == "turn":

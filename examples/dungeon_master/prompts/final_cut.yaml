@@ -105,6 +105,11 @@ user: |
   finished; bridge any entrance from here, do not contradict it):
   {{ prior_tail }}
 
+  {% endif %}{% if world_codex %}WORLD CODEX (background reference — the factions and
+  places of this world; weave only what grounds THIS chapter, as standing texture.
+  COMPOSE from it, do not narrate new events or contradict it):
+  {{ world_codex }}
+
   {% endif %}{% if draft %}THE CURRENT CUT (revise this):
   {{ draft }}
 

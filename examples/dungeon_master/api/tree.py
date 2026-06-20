@@ -62,6 +62,14 @@ TURN_SEED = "Play this turn."
 # were retired with their capability folded into this single per-chapter finish.
 FINAL_CUT_GRAPH = f"{GRAPH_DIR}/final_cut.yaml"
 
+# World Codex (FR-548): a non-visitable side-effect graph deriving faction +
+# location backstory from the accepted synopsis. Mirrors chapter_outline's
+# parse_json OUTPUT shape (a structured {factions, locations} object), not the
+# line-split roster. Persisted as immutable reference under doc["codex"] by
+# doc_ops.expand_codex; woven into final_cut as grounding texture. Authored once,
+# never mutated by chapter close — zero cross-seam reversible state.
+WORLD_CODEX_GRAPH = f"{GRAPH_DIR}/world_codex.yaml"
+
 
 @dataclass(frozen=True)
 class Stage:
