@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (witness false-positive; erodes trust in the fact_reversal number)
 **Type:** Bug (fix-by-redesign)
-**Status:** Enforced (RED 6c92e9b1 roster -> re-aimed RED 3278deb3 entities -> GREEN) -- live 10032-BC gap 1 -> 0
+**Status:** Enforced (RED 6c92e9b1 roster -> re-aimed RED 3278deb3 entities -> GREEN 5f004a25) -- live 10032-BC gap 1 -> 0
 **Effort:** ~0.5 day
 **Requested:** 2026-06-20
 
