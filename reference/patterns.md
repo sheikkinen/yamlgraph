@@ -1481,3 +1481,74 @@ For scheduled pipelines using launchd:
 
 - [FR-051: Output Shape Contracts](../feature-requests/051-output-shape-contracts.md) — In-graph validation (complementary)
 - [reference/scheduling-agents.md](scheduling-agents.md) — launchd setup guide
+
+---
+
+## Pattern 14: Boundary Coercion (Trust No Provider's Type)
+
+Normalize structured values **at the boundary where they enter your code**, not
+downstream where the mismatch manifests (FR-059, "the one law").
+
+### Problem
+
+An `llm` node stores the executor's *dynamically built* schema instance — a class
+distinct from your own model despite sharing a name. So a downstream reducer that
+calls `MyModel.model_validate(that_instance)` rejects it. The same boundary appears
+wherever a value might arrive as **either** a Pydantic instance **or** a plain dict
+(map collection, guard rules, FSM state, serialization).
+
+### The family of coercions (name the seam, don't unify it)
+
+There is no single "coerce" helper, because the correct behavior depends on the
+seam. Pick the variant deliberately:
+
+| Variant | Junk / scalar handling | Use when |
+|---------|------------------------|----------|
+| **dict-or-empty** | non-dict → `{}` | A reducer needs a dict to validate; junk should vanish |
+| **dict-or-None** | non-dict → `None`, guarded by `if d is not None` | Absence is meaningful (skip vs. empty) |
+| **scalar-preserving** | scalar wrapped as `{"value": x}` or original kept | Map collection must not lose non-dict sub-node returns |
+| **recursive serialize** | primitives pass through, recurse into lists/dicts | Making a whole tree JSON-safe (`to_serializable`, `json_safe`) |
+| **exclude-none rule dict** | `model_dump(exclude_none=True)` | Optional fields must not appear as `null` keys |
+
+### Example: dict-or-empty (the reducer boundary)
+
+```python
+def _as_dict(value: object) -> dict:
+    """Collapse an LLM-node output to a plain dict before validating (FR-059).
+
+    The executor's dynamically built schema instance is a foreign class; collapse
+    to a dict first so MyModel.model_validate() accepts it. Map nodes already emit
+    dicts, so they pass through unchanged.
+    """
+    if isinstance(value, dict):
+        return value
+    if hasattr(value, "model_dump"):
+        return value.model_dump()
+    return {}  # junk swallowed at the boundary
+```
+
+### Key Points
+
+| Aspect | Recommendation |
+|--------|----------------|
+| **Where** | At the entry boundary (reducer input, state read), not at the symptom |
+| **Detection signal** | `hasattr(x, "model_dump")` — a Pydantic-or-dict seam |
+| **Do not over-unify** | The variants above have *different* contracts; a single shared helper silently corrupts one caller to serve another (scalar→`{}` loses data; `str`→`{}` breaks recursion) |
+| **Keep example-local** | Until ≥3 examples reinvent the *exact same* variant, keep the helper local — it is application glue, not framework infrastructure |
+
+### Why Not a Core `as_dict()` Utility?
+
+This was evaluated (FR-549, **rejected**). Auditing the `hasattr(x, "model_dump")`
+callsites in core showed they are **not** semantic duplicates — `map_compiler`
+preserves scalars, `fsm/helpers` returns `None`, `guard_runtime` uses
+`exclude_none`, `json_safe` recurses. Collapsing them into one function would
+introduce bugs, not remove duplication. The reusable artifact is **this pattern
+note**, not a shared function. (Compare `to_serializable()` in
+[contrib/utils.py](../yamlgraph/contrib/utils.py) — the recursive-serialize variant,
+already provided for that specific seam.)
+
+### Related
+
+- FR-059 (Trust No Provider's Type) — the boundary law
+- `the_one_law` / `false_duplicate` in `.github/copilot-instructions.md`
+- [contrib/utils.py](../yamlgraph/contrib/utils.py) `to_serializable()` — recursive variant
