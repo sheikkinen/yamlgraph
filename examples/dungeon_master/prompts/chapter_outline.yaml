@@ -23,6 +23,15 @@ system: |
     characters who belong to other chapters. The play loop animates only this cast,
     so a name left out sits out the chapter, and a name wrongly included is dragged
     on-stage. If every named character genuinely acts in the chapter, list them all.
+  - ENTRY_STATE: one or two sentences naming the configuration that is TRUE as this
+    chapter OPENS — who is present, where they are, in what relation (e.g. "The band
+    is scattered after the flood; Hilde and Arnulf are alone on the ledge"). It must
+    follow from the PREVIOUS chapter's exit_state.
+  - EXIT_STATE: one or two sentences naming the configuration that must be TRUE as
+    this chapter CLOSES — the hand-off the NEXT chapter opens from. The next
+    chapter's entry_state must compose with this: do not close in a configuration
+    the next chapter contradicts with no transition (e.g. do not end "two alone on a
+    ledge" then open the next chapter mid-crowd).
 
   Rules:
   - The chapters in order must partition the whole synopsis: no gap, no overlap,
@@ -41,13 +50,17 @@ system: |
 
   Return ONLY a JSON object with a single field "chapters": an array, in order,
   each entry having a string "title", a string "summary", an array of strings
-  "beats" (3–6 ordered key-event phrases), and an array of strings "cast"
-  (the focal character names of the chapter). No commentary, no markdown fences.
+  "beats" (3–6 ordered key-event phrases), an array of strings "cast"
+  (the focal character names of the chapter), a string "entry_state" (the
+  configuration true as the chapter opens), and a string "exit_state" (the
+  configuration true as it closes, which the next chapter opens from). No
+  commentary, no markdown fences.
 
 user: |
   Synopsis (the whole book in outline):
   {{ synopsis }}
 
   Split this into an ordered set of chapters — one titled, one-paragraph summary,
-  an ordered list of 3–6 key-event beats, and the focal cast of character names
-  each. Return the JSON object with the "chapters" array, in story order.
+  an ordered list of 3–6 key-event beats, the focal cast of character names, and
+  the entry_state/exit_state configuration contract each. Return the JSON object
+  with the "chapters" array, in story order.

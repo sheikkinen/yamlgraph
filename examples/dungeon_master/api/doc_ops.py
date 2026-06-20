@@ -261,6 +261,8 @@ async def expand_chapters(doc: dict, story_dir: Path) -> None:
             "summary": chunk.get("summary", ""),
             "beats": list(chunk.get("beats") or []),
             "cast": _normalize_chapter_cast(doc, chunk.get("cast")),
+            "entry_state": chunk.get("entry_state", ""),
+            "exit_state": chunk.get("exit_state", ""),
             "text": "",
             "world_state": "",
             "seam_packet": {

@@ -125,6 +125,13 @@ def running_scene(doc: dict, cid: str, n: int) -> str:
     if n == 1 and seam:
         scene += f"\n\nCHAPTER SEAM CONTRACT (must honor at chapter opening):\n{seam}"
     if n == 1:
+        entry_state = str(card.get("entry_state") or "").strip()
+        if entry_state:
+            scene += (
+                "\n\nCHAPTER ENTRY STATE (the configuration that is TRUE as this "
+                "chapter opens — play turn 1 FROM this):\n"
+                f"{entry_state}"
+            )
         onepager = format_opening_onepager(compile_opening_onepager(doc, cid))
         if onepager:
             scene += f"\n\n{onepager}"

@@ -11,6 +11,7 @@ normalized output, never mutating ``doc`` (the adapter owns the writes).
 from __future__ import annotations
 
 from examples.dungeon_master.api import chapter_nav
+from examples.dungeon_master.api.composition_gap import composition_gap
 from examples.dungeon_master.api.gap_detectors import (
     reversal_pack_gap,
     unplayable_beat_gap,
@@ -50,6 +51,19 @@ def _cast_list(item: object) -> list[str]:
     if not isinstance(raw, list):
         return []
     return [str(c).strip() for c in raw if str(c).strip()]
+
+
+def _state_field(item: object, key: str) -> str:
+    """An authored entry/exit state contract from an outline entry (FR-540; ``""`` if absent).
+
+    The 1-2 sentence configuration true at a chapter's open (``entry_state``) or
+    close (``exit_state``) -- the outline-time *state* seam the composition gate
+    validates. A missing or non-string value yields ``""`` so a pre-FR-540 outline
+    (no contracts) degrades additively to today's behavior (``the_one_law``: the
+    absent contract is normalized at the outline boundary, not downstream).
+    """
+    raw = item.get(key) if isinstance(item, dict) else getattr(item, key, None)
+    return str(raw).strip() if isinstance(raw, str) else ""
 
 
 def _require_beats(chapters: list[dict]) -> list[dict]:
@@ -173,6 +187,30 @@ def _unplayable_feedback(unplayable: list[dict]) -> str:
     )
 
 
+def _composition_feedback(gaps: list[dict]) -> str:
+    """The correction block appended to the synopsis on an outline re-roll (FR-540).
+
+    Names each non-composing adjacent pair and the configuration it contradicts, and
+    restates the hard rule, so the re-invoked outliner authors chapter N+1 to open
+    FROM chapter N's close (or inserts a bridging chapter) rather than jumping the
+    seam.
+    """
+    lines = [
+        f'- Chapter {g["from_chapter"]} closes "{g["exit_state"]}" but '
+        f'chapter {g["to_chapter"]} opens "{g["entry_state"]}" '
+        f"({g['concept']} contradiction)"
+        for g in gaps
+    ]
+    return (
+        "\n\nCORRECTION — your previous outline VIOLATED a hard rule: each chapter "
+        "must OPEN from the configuration the previous chapter LEFT. The following "
+        "adjacent chapters do not compose — one ends in a configuration the next "
+        "contradicts with no transition. Re-author so each chapter's entry_state "
+        "follows from the prior chapter's exit_state, or insert a bridging chapter "
+        "that carries the change:\n" + "\n".join(lines)
+    )
+
+
 async def outline_chapters(doc: dict) -> list[dict]:
     """Split the accepted synopsis into an ordered list of ``{title, summary, beats}``.
 
@@ -207,6 +245,7 @@ async def outline_chapters(doc: dict) -> list[dict]:
     feedback = ""
     packed: list[dict] = []
     unplayable: list[dict] = []
+    composition: list[dict] = []
     for _ in range(_OUTLINE_MAX_ATTEMPTS):
         result = await get_app(CHAPTER_OUTLINE_GRAPH).ainvoke(
             {"synopsis": synopsis + feedback, "outline": {}}
@@ -219,6 +258,8 @@ async def outline_chapters(doc: dict) -> list[dict]:
                 "summary": field(item, "summary"),
                 "beats": _beat_list(item),
                 "cast": _cast_list(item),
+                "entry_state": _state_field(item, "entry_state"),
+                "exit_state": _state_field(item, "exit_state"),
             }
             for item in (raw or [])
         ]
@@ -227,24 +268,33 @@ async def outline_chapters(doc: dict) -> list[dict]:
         chapters = _require_beats(chapters)
         packed = _packed_chapters(chapters)
         unplayable = _unplayable_chapters(chapters)
-        if not packed and not unplayable:
+        composition = composition_gap(chapters)["gaps"]
+        if not packed and not unplayable and not composition:
             return chapters
         feedback = ""
         if packed:
             feedback += _reversal_feedback(packed)
         if unplayable:
             feedback += _unplayable_feedback(unplayable)
+        if composition:
+            feedback += _composition_feedback(composition)
     if packed:
         raise ValueError(
             "chapter outline packs a removal-and-return reversal into one chapter "
             f"after {_OUTLINE_MAX_ATTEMPTS} attempts (FR-525); a character lost within "
             f"a chapter must return in a LATER chapter: {packed}"
         )
+    if unplayable:
+        raise ValueError(
+            "chapter outline authors an unplayable time-skip epilogue as a chapter's "
+            f"final beat after {_OUTLINE_MAX_ATTEMPTS} attempts (FR-528); a final beat "
+            "must be an in-scene present-tense resolution, not a post-time-skip aftermath: "
+            f"{unplayable}"
+        )
     raise ValueError(
-        "chapter outline authors an unplayable time-skip epilogue as a chapter's "
-        f"final beat after {_OUTLINE_MAX_ATTEMPTS} attempts (FR-528); a final beat "
-        "must be an in-scene present-tense resolution, not a post-time-skip aftermath: "
-        f"{unplayable}"
+        "chapter outline authors non-composing adjacent chapters after "
+        f"{_OUTLINE_MAX_ATTEMPTS} attempts (FR-540); each chapter must open from the "
+        f"configuration the previous chapter left: {composition}"
     )
 
 
