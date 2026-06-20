@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (length + grounding elaboration; lowest continuity-cost vector)
 **Type:** Feature
-**Status:** Enforced (RED 7aeba5c0 -> GREEN) — 5 deterministic tests; 390 DM tests green; world_codex.yaml lints clean
+**Status:** Enforced (RED 7aeba5c0 -> GREEN 5334a7f5) — 5 deterministic tests; 390 DM tests green; world_codex.yaml lints clean
 **Effort:** ~1.5 days
 **Requested:** 2026-06-20
 
@@ -260,7 +260,7 @@ discipline. No re-judge required if the amendment honors the five conditions.
 
 ## Implementation (2026-06-20) — Enforced
 
-**Commits (local):** RED `7aeba5c0` (test, `SKIP=pytest`) -> GREEN `<this commit>` (feat).
+**Commits (local):** RED `7aeba5c0` (test, `SKIP=pytest`) -> GREEN `5334a7f5` (feat).
 
 **Mechanism (per amended C1–C5):**
 - [examples/dungeon_master/world_codex.yaml](examples/dungeon_master/world_codex.yaml) — new
