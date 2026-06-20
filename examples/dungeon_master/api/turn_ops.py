@@ -28,6 +28,7 @@ from examples.dungeon_master.api.chapter_open import (
     format_opening_onepager,
     scope_roster_to_chapter_cast,
 )
+from examples.dungeon_master.api.character_overlay import derive_overlay
 from examples.dungeon_master.api.graph_app import clean_text, field, get_app
 from examples.dungeon_master.api.lifecycle_resolver import (
     _state_map_from_memory as _state_map_from_memory,
@@ -189,6 +190,9 @@ async def invoke_turn(
             "name": chars["cards"][char_id].get("name") or char_id,
             "sheet": chars["cards"][char_id].get("text", ""),
             "previous": prev.get(char_id, ""),
+            "overlay": derive_overlay(
+                doc, cid, chars["cards"][char_id].get("name") or char_id
+            ),
         }
         for char_id in roster
     ]

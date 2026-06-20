@@ -44,8 +44,16 @@ system: |
 user: |
   You are **{{ char.name }}**.
 
-  Your character sheet:
+  Your ORIGIN SHEET (immutable: voice, backstory, who you were at the story's start):
   {{ char.sheet }}
+
+  {% if char.overlay %}
+  Your CURRENT STATE as this chapter opens (what prior chapters have made true of
+  you NOW -- this OVERRIDES any past-tense detail in the origin sheet; act from
+  this, not from who you were at the start):
+  - status: {{ char.overlay.status }}
+  {% if char.overlay.history %}- how you got here: {{ char.overlay.history | join("; ") }}{% endif %}
+  {% endif %}
 
   {% if char.previous %}
   Last turn you intended: {{ char.previous }}
