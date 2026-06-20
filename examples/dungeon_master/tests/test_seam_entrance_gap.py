@@ -270,3 +270,47 @@ def test_continuing_entrant_scoped_out_then_back():
     assert gap["name"] == "Arnulf"
     assert gap["kind"] == "continuing"
     assert gap["last_on_page_chapter"] == "1"
+
+
+# ── FR-543: a later death-fall sentence must not clear an unbridged entrance ───
+
+
+def test_exit_fall_sentence_does_not_clear_unbridged_entrance():
+    """10030-BC Ch3: Arnulf enters unbridged, then later FALLS -- still a gap.
+
+    Forensic (outputs/dungeon-master/10030-BC, review break #2): Arnulf is absent
+    from the prose of Ch1 and Ch2, then first appears in Ch3 as "was already with
+    them" -- the literal opposite of a narrated arrival. A LATER sentence narrates
+    his death-fall "into the water" (an EXIT). The FR-538 witness borrowed the
+    exit-edge lexicon, so the fall token wrongly cleared the entrance and reported
+    ``gap_count == 0``.
+
+    The establish lexicon must contain ONLY arrival verbs: a fall/exit sentence is
+    not an arrival, so the unbridged entrance MUST still be flagged.
+    """
+    doc = _doc(
+        [
+            {
+                "text": "Hilde held the line on the ridge while the clan retreated.",
+                "acting_ids": ["hilde"],
+            },
+            {
+                "text": "Hilde mustered the survivors and waited for the flood to crest.",
+                "acting_ids": ["hilde"],
+            },
+            {
+                "text": (
+                    "Arnulf was already with them on the higher stone, shoulders "
+                    "squared against the wind, when Hilde turned. Later, as the water "
+                    "rose, Arnulf slid off the ledge and dropped into the water below."
+                ),
+                "acting_ids": ["arnulf", "hilde"],
+            },
+        ]
+    )
+    result = gap_detectors.seam_entrance_gap(doc, "3")
+    assert result["gap_count"] == 1, result
+    gap = result["gaps"][0]
+    assert gap["name"] == "Arnulf"
+    assert gap["kind"] == "new"
+    assert gap["established"] is False
