@@ -43,7 +43,6 @@ state:
   possession_facts: str
   cast_entrances: str
   prior_tail: str
-  world_codex: str
   draft: str
   instruction: str
   final_cut: str
@@ -67,7 +66,6 @@ nodes:
       possession_facts: "{state.possession_facts}"
       cast_entrances: "{state.cast_entrances}"
       prior_tail: "{state.prior_tail}"
-      world_codex: "{state.world_codex}"
       draft: "{state.draft}"
       instruction: "{state.instruction}"
 

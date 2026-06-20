@@ -311,38 +311,6 @@ def _prior_chapter_tail(
     return tail.strip()
 
 
-def _format_world_codex(doc: dict) -> str:
-    """The world codex as grounding-texture lines for the Final Cut prompt (FR-548).
-
-    Reads the immutable ``doc["codex"]`` (``{factions, locations}``) authored at
-    synopsis-accept by ``doc_ops.expand_codex`` and renders one line per faction and
-    location. Empty string when no codex exists, so the ``{% if world_codex %}``
-    guard in the prompt renders a byte-identical compose for a doc without one — the
-    additive invariant (the codex states a world, it never reverses one).
-    """
-    codex = doc.get("codex") or {}
-    lines: list[str] = []
-    for fac in codex.get("factions") or []:
-        name = str(fac.get("name") or "").strip()
-        if not name:
-            continue
-        identity = str(fac.get("identity") or "").strip()
-        history = str(fac.get("history") or "").strip()
-        stance = str(fac.get("stance") or "").strip()
-        detail = " ".join(p for p in (identity, history) if p)
-        suffix = f" (stance: {stance})" if stance else ""
-        lines.append(f"FACTION — {name}: {detail}{suffix}".rstrip())
-    for loc in codex.get("locations") or []:
-        name = str(loc.get("name") or "").strip()
-        if not name:
-            continue
-        description = str(loc.get("description") or "").strip()
-        significance = str(loc.get("significance") or "").strip()
-        suffix = f" ({significance})" if significance else ""
-        lines.append(f"LOCATION — {name}: {description}{suffix}".rstrip())
-    return "\n".join(lines)
-
-
 def final_cut_context(doc: dict, cid: str, closed: dict | None = None) -> dict:
     """Assemble chapter ``cid``'s finished arc as Final Cut graph variables (FR-492).
 
@@ -383,7 +351,6 @@ def final_cut_context(doc: dict, cid: str, closed: dict | None = None) -> dict:
         "protected_cast": ", ".join(protected_cast_names(doc, cid)),
         "cast_entrances": _format_cast_entrances(derive_cast_entrances(doc, cid)),
         "prior_tail": _prior_chapter_tail(doc, cid),
-        "world_codex": _format_world_codex(doc),
     }
 
 

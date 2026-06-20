@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM (length + grounding elaboration; lowest continuity-cost vector)
 **Type:** Feature
-**Status:** Enforced (RED 7aeba5c0 -> GREEN 5334a7f5) — 5 deterministic tests; 390 DM tests green; world_codex.yaml lints clean
+**Status:** Reverted (superseded by FR-550) — the synopsis-derived codex authored prose *before the action existed, from a plot synopsis*, a placement defect that leaked non-roster characters and plot-derived "factions" into immutable world texture (verified live in 10034-BC story.json). Rolled back by FR-550; its length/depth goal is re-earned soundly by FR-551 (supporting-cast tier) and FR-552 (world bible).
 **Effort:** ~1.5 days
 **Requested:** 2026-06-20
 

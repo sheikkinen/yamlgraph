@@ -2,7 +2,7 @@
 
 **Priority:** HIGH (active multi-source-drift hazard; remove before the `doc["codex"]` schema ossifies into saved stories)
 **Type:** Removal
-**Status:** Approved (authority to enforce) — evidence verified live in 10034-BC story.json
+**Status:** Enforced (RED 91eda6fe condemns the live symbols -> GREEN this commit) — `tests/test_no_world_codex.py` is the permanent guard; codex grep returns zero; final_cut.yaml lints clean; 388 DM tests green
 **Effort:** ~0.5 day
 **Requested:** 2026-06-20
 
