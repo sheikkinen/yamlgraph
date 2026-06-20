@@ -314,3 +314,21 @@ def test_exit_fall_sentence_does_not_clear_unbridged_entrance():
     assert gap["name"] == "Arnulf"
     assert gap["kind"] == "new"
     assert gap["established"] is False
+
+
+def test_establish_lexicon_is_disjoint_from_exit_reposition_lexicon():
+    """The arrival lexicon must never re-borrow the exit-edge reposition vocabulary.
+
+    Mechanical enforcement of the FR-543 lexicon-hygiene rule: ``_ESTABLISH_TOKENS``
+    (arrival) and ``gap_detectors._REPOSITION_TOKENS`` (movement-toward-hazard, the
+    exit edge of ``seam_precondition_gap``) describe OPPOSITE directions across the
+    same seam. A shared token (e.g. ``into the water``) inverts sense across the edge
+    and lets a death-fall clear an entrance. Keep the sets disjoint so the next
+    copy-paste is caught here, not by a human reviewer.
+    """
+    from examples.dungeon_master.api import gap_detectors as exit_detectors
+
+    shared = set(gap_detectors._ESTABLISH_TOKENS) & set(
+        exit_detectors._REPOSITION_TOKENS
+    )
+    assert not shared, f"arrival lexicon re-borrowed exit-edge tokens: {sorted(shared)}"

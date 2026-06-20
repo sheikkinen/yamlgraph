@@ -28,10 +28,17 @@ from examples.dungeon_master.api import chapter_nav
 from examples.dungeon_master.api.lifecycle_resolver import _norm_name
 from examples.dungeon_master.api.turn_state import chapter_turns
 
-# Arrival / reposition tokens that stage an entrant's on-page appearance — the
-# prose bridge an introduced character needs (mirrors the reposition check in
-# seam_precondition_gap, the exit-edge sibling). When one occurs near the
-# entrant's name in the chapter's own text, the entrance is ESTABLISHED (not a gap).
+# Arrival tokens that stage an entrant's on-page appearance — the prose bridge an
+# introduced character needs. When one occurs near the entrant's name in the
+# chapter's own text, the entrance is ESTABLISHED (not a gap).
+#
+# LEXICON HYGIENE (FR-543): this set must contain ONLY unambiguous ARRIVAL verbs.
+# It must NEVER re-borrow gap_detectors._REPOSITION_TOKENS — the EXIT-edge,
+# movement-toward-hazard vocabulary (slips, loses footing, into the water, down the
+# bank, goes back, back for). Those describe an actor moving toward death/departure;
+# enlisting them as arrival signals let a later death-fall sentence ("Arnulf slid
+# off the ledge and dropped into the water") clear an unbridged entrance (10030-BC
+# Ch3 false negative). A fall/exit is not an arrival.
 _ESTABLISH_TOKENS = (
     "arrives",
     "arrived",
@@ -66,8 +73,6 @@ _ESTABLISH_TOKENS = (
     "joined",
     "climbs",
     "climbed",
-    "descends",
-    "descended",
     "rushes in",
     "marches in",
     "marched",
@@ -75,12 +80,6 @@ _ESTABLISH_TOKENS = (
     "came up",
     "made his way",
     "made her way",
-    "down the bank",
-    "into the water",
-    "loses footing",
-    "slips",
-    "goes back",
-    "back for",
 )
 
 _NAME_TOKEN_RE = re.compile(r"[a-z0-9]+")
