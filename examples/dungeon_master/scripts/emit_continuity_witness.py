@@ -30,6 +30,11 @@ from pathlib import Path
 from examples.dungeon_master.api.allegiance_ledger import allegiance_transitions
 from examples.dungeon_master.api.character_overlay import derive_overlay
 from examples.dungeon_master.api.fact_reversal import fact_reversal_gap, name_tokens
+from examples.dungeon_master.api.prompt_salience import (
+    format_prompt_salience_report,
+    presence_correlation,
+    prompt_mass_summary,
+)
 from examples.dungeon_master.api.seam_entrance import seam_entrance_gap
 from examples.dungeon_master.scripts.calibrate_continuity_axis import (
     parse_continuity_breaks,
@@ -260,6 +265,15 @@ def write_witness(out_dir: Path) -> dict | None:
         witness["fact_reversal"] = fact_reversal_summary(story_doc)
         witness["overlay_trail"] = overlay_trail_summary(story_doc)
         witness["allegiance_transitions"] = allegiance_transitions(story_doc)
+        # FR-553: deterministic turn-director prompt mass (the director's ACTUAL
+        # scene size, recomputed offline -- never the 12k turn-graph total) and the
+        # presence-at-failing-turn cross-reference (was the break's subject in the
+        # opening scene?). Mass is omitted when tiktoken is absent; both are pure
+        # visibility (never gate). presence_correlation reads the blocks set above.
+        mass = prompt_mass_summary(story_doc)
+        if mass is not None:
+            witness["prompt_mass"] = mass
+        witness["presence_correlation"] = presence_correlation(story_doc, witness)
     (out_dir / WITNESS_FILENAME).write_text(
         json.dumps(witness, indent=2) + "\n", encoding="utf-8"
     )
@@ -288,6 +302,8 @@ def main(argv: list[str] | None = None) -> int:
         f"continuity={witness['continuity_score']}/5 "
         f"({witness['break_count']} breaks){seam_note} [visibility, not a gate]"
     )
+    if "presence_correlation" in witness:
+        print(format_prompt_salience_report(witness))
     return 0
 
 
