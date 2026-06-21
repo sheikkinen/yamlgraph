@@ -244,7 +244,7 @@ not "enforcing."
 
 ## Enforcement (2026-06-21)
 
-**Status: Enforced.** RED `8883b3f5` → GREEN `<this commit>`. 450 DM tests green (was 444; +6 affect).
+**Status: Enforced.** RED `8883b3f5` → GREEN `109d369d`. 450 DM tests green (was 444; +6 affect).
 
 What landed, against the frozen scope:
 
