@@ -112,11 +112,8 @@ async def test_reoutline_retries_then_returns_clean_beats(monkeypatch):
     """A packed first roll is re-rolled with feedback; a clean second roll is
     accepted and returned (bounded-retry discipline mirrors outline_chapters)."""
     doc = _reveal_doc()
-    monkeypatch.setattr(
-        outline_ops,
-        "get_app",
-        lambda graph: _SeqStubApp([_PACKED_BEATS, _CLEAN_BEATS]),
-    )
+    stub = _SeqStubApp([_PACKED_BEATS, _CLEAN_BEATS])
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: stub)
 
     beats = await outline_ops.reoutline_chapter_beats(doc, "2")
 
@@ -144,11 +141,8 @@ async def test_reoutline_freezes_summary_across_retry(monkeypatch):
     doc = _reveal_doc()
     title_before = doc["chapters"]["cards"]["2"]["title"]
     summary_before = doc["chapters"]["cards"]["2"]["summary"]
-    monkeypatch.setattr(
-        outline_ops,
-        "get_app",
-        lambda graph: _SeqStubApp([_PACKED_BEATS, _CLEAN_BEATS]),
-    )
+    stub = _SeqStubApp([_PACKED_BEATS, _CLEAN_BEATS])
+    monkeypatch.setattr(outline_ops, "get_app", lambda graph: stub)
 
     await outline_ops.reoutline_chapter_beats(doc, "2")
 

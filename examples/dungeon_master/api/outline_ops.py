@@ -315,26 +315,53 @@ async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
     ``_require_beats``-validated list; NEVER mutates ``doc`` and NEVER re-authors the
     title or summary (J4). Raises rather than substituting an empty beat list
     (Commandment 6: no silent fallback).
+
+    FR-555 — reversal-gate the second authoring boundary: the partitioner gates its
+    output with :func:`gap_detectors.reversal_pack_gap` (FR-525), but this re-outline
+    re-authors beats from the FULL synopsis and previously committed them validating
+    only ``_require_beats``. A synopsis that states an actor's loss AND later revival
+    can therefore re-pack the removal-and-return reversal into one chapter through
+    this ungated boundary (the 10036-BC Ch3 early-reveal: frozen summary "presumed
+    dead" + a beat asserting the actor is "alive"). The cure mirrors
+    ``outline_chapters``: after each re-outline build the candidate card from the
+    FROZEN title/summary + the NEW beats, run the SAME detector, re-invoke with the
+    SAME ``_reversal_feedback`` correction (bounded by ``_OUTLINE_MAX_ATTEMPTS``),
+    then raise (no silent fallback) — never returning a packed beat list.
     """
     card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
-    result = await get_app(CHAPTER_REOUTLINE_GRAPH).ainvoke(
-        {
-            "synopsis": doc.get("synopsis", {}).get("text", ""),
-            "chapter_title": card.get("title", ""),
-            "chapter_summary": card.get("summary", ""),
-            "prior_world_state": format_world_state(
-                chapter_nav.inherited_world_state(doc, cid)
-            ),
-            "prior_seam_packet": format_seam_packet(
-                chapter_nav.inherited_seam_packet(doc, cid)
-            ),
-            "reoutline": {},
-        }
-    )
-    beats = _beat_list(result.get("reoutline") or {})
-    if not beats:
-        raise ValueError(
-            f"chapter {cid} re-outline returned no beats (FR-523); every chapter "
-            "must enumerate its key-event beats"
+    title = card.get("title", "")
+    summary = card.get("summary", "")
+    synopsis = doc.get("synopsis", {}).get("text", "")
+    prior_world_state = format_world_state(chapter_nav.inherited_world_state(doc, cid))
+    prior_seam_packet = format_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
+    feedback = ""
+    packed: list[dict] = []
+    for _ in range(_OUTLINE_MAX_ATTEMPTS):
+        result = await get_app(CHAPTER_REOUTLINE_GRAPH).ainvoke(
+            {
+                "synopsis": synopsis + feedback,
+                "chapter_title": title,
+                "chapter_summary": summary,
+                "prior_world_state": prior_world_state,
+                "prior_seam_packet": prior_seam_packet,
+                "reoutline": {},
+            }
         )
-    return beats
+        beats = _beat_list(result.get("reoutline") or {})
+        if not beats:
+            raise ValueError(
+                f"chapter {cid} re-outline returned no beats (FR-523); every chapter "
+                "must enumerate its key-event beats"
+            )
+        candidate = {"title": title, "summary": summary, "beats": beats}
+        gap = reversal_pack_gap(candidate)
+        if not gap["gap_count"]:
+            return beats
+        packed = [{"index": cid, "title": title, "actors": gap["packed_actors"]}]
+        feedback = _reversal_feedback(packed)
+    raise ValueError(
+        f"chapter {cid} re-outline packs a removal-and-return reversal after "
+        f"{_OUTLINE_MAX_ATTEMPTS} attempts (FR-555); the frozen summary removes an "
+        "actor the re-authored beats then return within the same chapter -- author "
+        f"the return as a beat of a LATER chapter: {packed}"
+    )
