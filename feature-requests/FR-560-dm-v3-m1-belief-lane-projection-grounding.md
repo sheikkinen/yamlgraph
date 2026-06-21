@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged (2026-06-21)
+**Status:** Enforced (2026-06-21)
 **Effort:** 3–4 days
 **Requested:** 2026-06-21
 
@@ -310,3 +310,33 @@ commit first (`SKIP=pytest`): `test_plot_projection.py` + `test_belief_grounding
 `test_plot_exclusion_seam.py` (incl. the no-plan characterization) + re-homed M0 assertions,
 committed failing before `project.py`/`_check_belief_grounding`/the seam exist. Changelog fragment +
 diary required.
+
+## Enforcement (2026-06-21)
+
+Enforced per the judgement. RED→GREEN, both commits local.
+
+- **RED** (`2dd3f55e`, `SKIP=pytest`): `test_plot_projection.py`, `test_belief_grounding.py`,
+  `test_plot_exclusion_seam.py` (incl. the no-plan byte-identical characterization),
+  `test_plot_causal.py` (re-homed M0), `test_plot_report.py` — all failing at collection
+  (`No module named examples.dungeon_master.api.plot`). J1–J4 folded into the FR text in the same
+  commit.
+- **GREEN**: graduated `examples/dungeon_master/api/plot/` — `schema.py` (real contract; `FlawCode`
+  Literal carries only `lifecycle_violation` + `ungrounded_reveal`, J4b), `up_model.py` (unchanged
+  encoding; UP import isolated to the causal lane), `validate.py` (lazy `unified-planning` import so
+  the pure checks run without it; `_check_belief_grounding` ungrounded-reveal-only emitting
+  `ungrounded_reveal`, J1/J2), `project.py` (the three §5 signatures + the pinned non-circular
+  `exclusion_set` rule with inclusive `<= c`), `report.py`, `__init__.py`.
+- **Seam**: `chapter_nav.attached_plot_plan` (sole typed read, leaf-pure via `TYPE_CHECKING`) +
+  the additive union in `compile_opening_onepager` — `exclusion_set(plan, _chapter_index(doc, cid))`
+  (cid→ordinal bridge J3a) unioned BEFORE `[:12]` (J3b), bare id string (`id == display_name` scope
+  J3b), byte-identical when no plan attached.
+- **Deleted** `spikes/floodmark_up/` and `tests/test_floodmark_spike.py`; M0 assertions re-homed
+  onto `api/plot/` (J4d).
+- **Verification**: 18 new tests pass; full DM suite **437 passed**; `report floodmark` renders the
+  guard (Arnulf excluded ch1–5, released at ch6); all plot files ≤152 lines (≤450 gate); `ruff`
+  clean. `api/plot/` is a leaf (`chapter_open → api.plot`, never reverse); it sits outside
+  import-linter's `root_package = yamlgraph` (J4a) so the direction is review-enforced.
+
+**Deviation from plan:** none material. One refinement: `world_revival_variant` now also clears its
+reveal's `eff_belief` so it remains a *pure* lifecycle witness and does not additionally trip the
+new grounding check (keeping each regression fixture single-axis).

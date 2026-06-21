@@ -108,6 +108,20 @@ def compile_opening_onepager(doc: dict, cid: str) -> dict:
         if item not in must_exclude:
             must_exclude.append(item)
 
+    # FR-560 M1 strangler-fig seam: when a validated PlotPlan is attached, union its
+    # exclusion_set (presumed-dead-before-reveal characters) into must_exclude BEFORE the [:12]
+    # truncation, so a late-added exclusion is never silently dropped. Additive only -- it can add
+    # an exclusion the reconstruction missed, never remove a v2 constraint -- and byte-for-byte
+    # unchanged when no plan is attached. cid -> integer ordinal via _chapter_index (J3a); M1 is
+    # scoped to id == display_name, so the bare character id string is unioned in (J3b).
+    plan = chapter_nav.attached_plot_plan(doc)
+    if plan is not None:
+        from examples.dungeon_master.api.plot.project import exclusion_set
+
+        for char_id in sorted(exclusion_set(plan, _chapter_index(doc, cid))):
+            if char_id not in must_exclude:
+                must_exclude.append(char_id)
+
     active_cast_constraints: list[str] = []
     for item in list(seam.get("character_lifecycle") or []):
         if not isinstance(item, dict):

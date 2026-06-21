@@ -1,14 +1,17 @@
-"""Throwaway Pydantic subset of the v3 plot schema -- FR-559 spike ONLY.
+"""Typed plot-model contract for DM v3 -- the graduated belief lane (FR-560 M1).
 
-THIS IS NOT THE PRODUCTION CONTRACT (J4). The real typed island is the eventual
-``api/plot/schema.py`` (design-v3-plot-model-implementation.md S2). This module is a minimal
-subset built to make the M0 falsification spike runnable; it is **not imported by DM v2** and
-must not be treated as the API. Adding fields here proves nothing about the production schema.
+Graduated from the FR-559 floodmark spike. This is now **THE contract** the projection,
+grounding, and live exclusion seam import (design-v3-plot-model-implementation.md S2), not a
+throwaway subset. The schema grows per milestone: M1 carries only the fields and flaw codes the
+belief lane needs (lifecycle + ungrounded-reveal). Affect-closure, capped reachability, and the
+full six-code ``PlanFlaw`` Literal are M3/M4.
 
-Subset scope: just enough of ``PlotPlan`` / ``Function`` / ``Fluent`` / ``Belief`` /
-``AffectDelta`` to (a) compile belief-as-fluent into a ``unified-planning`` problem and (b) run
-the hand-written monotonic-lifecycle check. Affect / belief-grounding / capped-reachability are
-production M1+ concerns, intentionally absent.
+A1 architecture note (FR-560 J4): this package is a **leaf**. It may be imported *by* the v2
+chapter-open seam (``chapter_open -> api.plot``), but must never import ``chapter_open``,
+``turn_ops``, or ``seam_entrance`` -- that reverse edge would couple the typed contract to v2 and
+break the island. ``api/plot/`` is outside import-linter's ``root_package = yamlgraph`` scope, so
+the leaf direction is doctrine enforced by review + the file-size and ``ruff`` gates, not by
+``lint-imports``.
 """
 
 from __future__ import annotations
@@ -29,6 +32,10 @@ FunctionKind = Literal[
 WorldPred = Literal["alive", "at", "faction", "rel", "holds"]
 AffectKind = Literal["loss", "guilt"]
 Grain = Literal["book", "chapter", "turn"]
+
+# M1 carries only the flaw codes its checks emit (FR-560 J4b): the monotonic-lifecycle invariant
+# and the ungrounded-reveal grounding check. The full design S2 six-code Literal grows per milestone.
+FlawCode = Literal["lifecycle_violation", "ungrounded_reveal"]
 
 
 class Fluent(BaseModel):
@@ -51,7 +58,7 @@ class Belief(BaseModel):
 
 
 class AffectDelta(BaseModel):
-    """Open or close one affect unit (Lehnert Plot Units). Carried but not checked in M0."""
+    """Open or close one affect unit (Lehnert Plot Units). Carried; closure is an M3 check."""
 
     op: Literal["open", "close"]
     char: CharacterId
@@ -90,7 +97,9 @@ class PlotPlan(BaseModel):
 
 
 class PlanFlaw(BaseModel):
-    code: Literal["lifecycle_violation"]
+    """One narrative-invariant violation. ``code`` is the M1 closed set (lifecycle/ungrounded)."""
+
+    code: FlawCode
     function_id: str
     detail: str
 

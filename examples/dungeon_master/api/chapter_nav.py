@@ -16,7 +16,12 @@ Pure reads: no LLM, no I/O. The setter validates structure but performs no I/O.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from examples.dungeon_master.api import story_doc
+
+if TYPE_CHECKING:
+    from examples.dungeon_master.api.plot.schema import PlotPlan
 
 
 def chapter_order(doc: dict) -> list:
@@ -107,3 +112,15 @@ def inherited_world_state(doc: dict, cid: str) -> dict:
 def inherited_seam_packet(doc: dict, cid: str) -> dict:
     """The seam packet chapter ``cid`` inherits from the previous chapter (FR-506)."""
     return previous_chapter_card(doc, cid).get("seam_packet", {}) or {}
+
+
+def attached_plot_plan(doc: dict) -> PlotPlan | None:
+    """The validated ``PlotPlan`` attached to ``doc`` under ``plot_plan``, or ``None`` (FR-560).
+
+    The sole typed read for the optional plot plan that drives the live exclusion seam (FR-556
+    discipline). Most books carry no plan, so this returns ``None`` and the chapter-open onepager
+    is byte-for-byte unchanged. Leaf-pure: the ``PlotPlan`` import is type-only, so reading a
+    plan-less doc never pulls in ``api.plot``.
+    """
+    plan = doc.get("plot_plan")
+    return plan if plan is not None else None

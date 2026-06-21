@@ -1,23 +1,27 @@
-"""Compile a (throwaway) ``PlotPlan`` into a ``unified-planning`` problem -- FR-559 spike ONLY.
+"""Compile a ``PlotPlan`` into a ``unified-planning`` problem -- the causal lane (FR-560 M1).
 
-Three load-bearing encoding rules from the FR judgement:
+Three load-bearing encoding rules (graduated from the FR-559 judgement):
 
 * **Belief-as-fluent.** ``Belief(observer, fluent, held)`` becomes a plain boolean fluent
   ``bel_<obs>_<pred>_<args>``, independent of the world fluent ``w_<pred>_<args>``. F1 can flip
   ``bel_clan_alive_arnulf := False`` while leaving ``w_alive_arnulf := True`` -- the floodmark
   distinction, carried by a *classical* planner with no epistemic model.
 
-* **Mandatory goal-required steps (J2).** A classical planner does not *fail* on an action with
-  an unsatisfiable precondition -- it simply skips it. So every ``Function`` compiles to an action
+* **Mandatory goal-required steps.** A classical planner does not *fail* on an action with an
+  unsatisfiable precondition -- it simply skips it. So every ``Function`` compiles to an action
   with a unique ``done_<id>`` effect, and the goal ``G`` conjoins every ``done_<id>``. An
   unschedulable beat then makes the *goal* unreachable -> proven unsolvable, instead of
   solved-by-skipping.
 
-* **Chapter ordinal as a strict sequencing chain (J3).** STRIPS has no clock. Chapters become
+* **Chapter ordinal as a strict sequencing chain.** STRIPS has no clock. Chapters become
   mutually-exclusive ``at_chapter_<n>`` markers advanced by ``advance_<ci>_<cj>`` actions whose
   preconditions require *every* chapter-``ci`` beat done. A beat at chapter ``c`` requires
   ``at_chapter_<c>``, so you cannot fire a Ch3 beat after advancing to Ch6 -- which is exactly
   what makes the early-reveal variant provably unsolvable.
+
+``unified-planning`` is an **optional** dependency: only the causal lane (this module + the
+``solve_status`` half of ``validate``) imports it. Projection, grounding, the seam, and the report
+run pure.
 """
 
 from __future__ import annotations
@@ -52,14 +56,14 @@ def _ensure(problem: Problem, fluents: dict[str, UpFluent], name: str) -> UpFlue
 def _require_bool(f: Fluent) -> bool:
     if not isinstance(f.value, bool):
         raise NotImplementedError(
-            f"spike supports only boolean world fluents; got {f.pred}={f.value!r}"
+            f"belief lane supports only boolean world fluents; got {f.pred}={f.value!r}"
         )
     return f.value
 
 
 def build_problem(plan: PlotPlan) -> Problem:
     """``PlotPlan`` -> ``up.Problem`` with belief reified and mandatory ``done_<id>`` steps."""
-    problem = Problem("floodmark_spike")
+    problem = Problem("floodmark_plot")
     fluents: dict[str, UpFluent] = {}
 
     # --- declare + initialise world / belief fluents ---------------------------------------
@@ -70,7 +74,7 @@ def build_problem(plan: PlotPlan) -> Problem:
         f = _ensure(problem, fluents, _belief_name(bf))
         problem.set_initial_value(f(), bool(bf.held))
 
-    # --- chapter sequencing chain (J3) -----------------------------------------------------
+    # --- chapter sequencing chain ----------------------------------------------------------
     chapters = sorted({fn.chapter for fn in plan.functions})
     chapter_markers: dict[int, UpFluent] = {
         c: _ensure(problem, fluents, _slug("at_chapter", str(c))) for c in chapters
@@ -78,7 +82,7 @@ def build_problem(plan: PlotPlan) -> Problem:
     if chapters:
         problem.set_initial_value(chapter_markers[chapters[0]](), True)
 
-    # --- per-function ``done`` markers (J2) ------------------------------------------------
+    # --- per-function ``done`` markers -----------------------------------------------------
     done: dict[str, UpFluent] = {
         fn.id: _ensure(problem, fluents, _slug("done", fn.id)) for fn in plan.functions
     }
@@ -121,7 +125,7 @@ def build_problem(plan: PlotPlan) -> Problem:
         adv.add_effect(chapter_markers[cj](), True)
         problem.add_action(adv)
 
-    # --- goal: every beat fired (J2) + authored world invariants ---------------------------
+    # --- goal: every beat fired + authored world invariants --------------------------------
     for fn in plan.functions:
         problem.add_goal(done[fn.id]())
     for gf in plan.goals:

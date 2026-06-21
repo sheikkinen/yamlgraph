@@ -1,16 +1,21 @@
-"""The floodmark ``PlotPlan`` literal + two falsification variants -- FR-559 spike fixtures.
+"""The floodmark ``PlotPlan`` literal + falsification variants -- the belief-lane fixtures (FR-560).
 
-Mirrors design-v3-plot-model-implementation.md S4. Three plans:
+Mirrors design-v3-plot-model-implementation.md S4. Four plans:
 
 * ``floodmark`` -- the canonical presumed-dead arc. World-truth ``alive(Arnulf)`` stays True; only
-  the clan's *belief* flips to dead at F1 and is corrected at the Ch6 reveal. Solvable.
+  the clan's *belief* flips to dead at F1 and is corrected at the Ch6 reveal. Solvable; grounded.
 * ``early_reveal_variant`` -- adds a Ch3 beat that needs the clan to already believe Arnulf alive.
   The reveal that establishes that belief is at Ch6, so the Ch3 beat can never fire -> with the
-  mandatory-step encoding (J2) the goal is unreachable -> provably unsolvable.
+  mandatory-step encoding the goal is unreachable -> provably unsolvable.
 * ``world_revival_variant`` -- the 'death that un-happens' bug: F1 kills Arnulf in *world-truth*
   and the reveal revives him in *world-truth* (instead of correcting belief). The planner cannot
-  see the contradiction; the hand-written monotonic-lifecycle check flags one
-  ``lifecycle_violation``.
+  see the contradiction; the monotonic-lifecycle check flags one ``lifecycle_violation``.
+* ``ungrounded_reveal_variant`` -- F1 no longer opens the secret (its ``eff_belief`` is empty), yet
+  Fr still reveals the clan's belief to alive. There is nothing to un-tell -> the grounding check
+  flags one ``ungrounded_reveal``.
+
+Both ``api/plot`` (report) and the test tree import these fixtures from here, so the canonical plan
+has a single typed home (FR-560).
 """
 
 from __future__ import annotations
@@ -28,7 +33,7 @@ def _clan_believes_alive(held: bool) -> Belief:
     return Belief(observer=CLAN, fluent=Fluent(pred="alive", args=(ARNULF,)), held=held)
 
 
-# --- the canonical presumed-dead arc (solvable) --------------------------------------------
+# --- the canonical presumed-dead arc (solvable, grounded) ----------------------------------
 floodmark = PlotPlan(
     agents=[ARNULF, HILDE],
     initial_world=[_alive(True)],
@@ -92,10 +97,24 @@ early_reveal_variant.order = [("F1", "Fonstage"), ("Fonstage", "Fr"), ("Fr", "Ff
 
 # --- world-revival variant (one lifecycle_violation) ---------------------------------------
 # F1 kills Arnulf in world-truth; Fr revives him in world-truth instead of correcting belief.
+# Fr's belief effect is cleared so this stays a pure lifecycle case (no reveal to ground).
 world_revival_variant = floodmark.model_copy(deep=True)
 world_revival_variant.functions[0].eff_world = [_alive(False)]
 world_revival_variant.functions[0].eff_belief = []
 world_revival_variant.functions[1].eff_world = [_alive(True)]
+world_revival_variant.functions[1].eff_belief = []
 
 
-__all__ = ["early_reveal_variant", "floodmark", "world_revival_variant"]
+# --- ungrounded-reveal variant (one ungrounded_reveal) -------------------------------------
+# F1 never opens the secret (no belief flip), yet Fr still reveals the clan's belief to alive.
+# Nothing was told, so nothing can be un-told -- the grounding check flags it.
+ungrounded_reveal_variant = floodmark.model_copy(deep=True)
+ungrounded_reveal_variant.functions[0].eff_belief = []
+
+
+__all__ = [
+    "early_reveal_variant",
+    "floodmark",
+    "ungrounded_reveal_variant",
+    "world_revival_variant",
+]
