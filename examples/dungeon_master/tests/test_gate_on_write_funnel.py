@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import pytest
 
-from examples.dungeon_master.api import chapter_nav, gap_detectors, outline_ops
+from examples.dungeon_master.api import card_gate, chapter_nav, outline_ops
 
 # A card whose authored summary+beats pack Arnulf's removal AND return into one
 # chapter -- the un-playable reversal the 16-turn cap (FR-501) force-closes.
@@ -77,7 +77,7 @@ def test_setter_funnels_reversal_pack_to_gate_error():
     """Writing a removal-and-return card through the ONE setter RAISES -- the gate
     rides the write, not the writer. The test never calls a detector to decide."""
     doc: dict = {"chapters": {"order": [], "cards": {}}}
-    with pytest.raises(gap_detectors.ChapterGateError):
+    with pytest.raises(card_gate.ChapterGateError):
         chapter_nav.write_chapter_card(doc, "1", _PACKED_CARD)
     assert chapter_nav.chapter_card(doc, "1") == {}  # never committed
 
@@ -85,7 +85,7 @@ def test_setter_funnels_reversal_pack_to_gate_error():
 def test_setter_funnels_unplayable_epilogue_to_gate_error():
     """The same seam catches a time-skip-epilogue final beat (FR-528)."""
     doc: dict = {"chapters": {"order": [], "cards": {}}}
-    with pytest.raises(gap_detectors.ChapterGateError):
+    with pytest.raises(card_gate.ChapterGateError):
         chapter_nav.write_chapter_card(doc, "1", _EPILOGUE_CARD)
     assert chapter_nav.chapter_card(doc, "1") == {}
 
@@ -106,7 +106,7 @@ def test_gate_chapter_card_tags_both_detectors():
 
 
 def gate_chapter_card_kinds(card: dict) -> set:
-    return {g["kind"] for g in gap_detectors.gate_chapter_card(card)}
+    return {g["kind"] for g in card_gate.gate_chapter_card(card)}
 
 
 class _SeqStubApp:

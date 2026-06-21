@@ -47,13 +47,27 @@ def chapter_turns(doc: dict, cid: str) -> list:
 def write_chapter_card(doc: dict, cid: str, card: dict) -> None:
     """Write chapter ``cid``'s card through the one validated write seam (FR-556 J4).
 
-    Validates the card's structure via :func:`story_doc.validate_chapter_card` and
-    raises :class:`story_doc.InvalidChapterCard` BEFORE committing, so a
-    structurally-broken card never reaches the doc. The funnel every card-authoring
-    path routes through; FR-558 (Contract C) binds the playability gate battery here
-    too, so no writer can bypass either check.
+    Two checks ride the write, in order: structural validation via
+    :func:`story_doc.validate_chapter_card` (raising :class:`story_doc.InvalidChapterCard`),
+    then the per-card playability gate via :func:`card_gate.gate_chapter_card`
+    (raising :class:`card_gate.ChapterGateError`, FR-558 Contract C). Both raise
+    BEFORE committing, so neither a structurally-broken nor an un-playable card ever
+    reaches the doc. The funnel every card-authoring path routes through; binding the
+    gate to the WRITE -- not the writer -- is what makes the guarantee un-bypassable.
+
+    ``card_gate`` is imported lazily: it composes ``gap_detectors``, which imports this
+    module, so a top-level import would close a cycle. The gate touches only this cold
+    write path; the read getters stay leaf-pure.
     """
+    from examples.dungeon_master.api.card_gate import (
+        ChapterGateError,
+        gate_chapter_card,
+    )
+
     story_doc.validate_chapter_card(card)
+    gaps = gate_chapter_card(card)
+    if gaps:
+        raise ChapterGateError(cid, gaps)
     chapters = doc.setdefault("chapters", {})
     cards = chapters.setdefault("cards", {})
     cards[cid] = card

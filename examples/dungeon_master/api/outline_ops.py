@@ -11,11 +11,8 @@ normalized output, never mutating ``doc`` (the adapter owns the writes).
 from __future__ import annotations
 
 from examples.dungeon_master.api import chapter_nav
+from examples.dungeon_master.api.card_gate import gate_chapter_card
 from examples.dungeon_master.api.composition_gap import composition_gap
-from examples.dungeon_master.api.gap_detectors import (
-    reversal_pack_gap,
-    unplayable_beat_gap,
-)
 from examples.dungeon_master.api.graph_app import field, get_app
 from examples.dungeon_master.api.seam_packet import format_seam_packet
 from examples.dungeon_master.api.tree import (
@@ -95,20 +92,22 @@ _OUTLINE_MAX_ATTEMPTS = 3
 def _packed_chapters(chapters: list[dict]) -> list[dict]:
     """Chapters that pack a same-actor removal-and-return (FR-525 over-pack).
 
-    Pure: applies :func:`gap_detectors.reversal_pack_gap` to each authored chapter
-    card and returns ``[{index, title, actors}]`` for every chapter that packs at
-    least one actor's loss and return — the un-playable reversals the 16-turn cap
-    (FR-501) would force-close mid-arc.
+    Pure: routes each authored chapter card through the shared per-card battery
+    (:func:`card_gate.gate_chapter_card`) and returns ``[{index, title, actors}]``
+    for every chapter with a ``reversal`` gap -- the un-playable reversals the
+    16-turn cap (FR-501) would force-close mid-arc.
     """
     out: list[dict] = []
     for i, ch in enumerate(chapters, start=1):
-        gap = reversal_pack_gap(ch)
-        if gap["gap_count"]:
+        actors = sorted(
+            {g["actor"] for g in gate_chapter_card(ch) if g["kind"] == "reversal"}
+        )
+        if actors:
             out.append(
                 {
                     "index": i,
                     "title": str(ch.get("title") or ""),
-                    "actors": gap["packed_actors"],
+                    "actors": actors,
                 }
             )
     return out
@@ -139,18 +138,19 @@ def _reversal_feedback(packed: list[dict]) -> str:
 def _unplayable_chapters(chapters: list[dict]) -> list[dict]:
     """Chapters whose FINAL beat is an unplayable time-skip epilogue (FR-528).
 
-    Pure: applies :func:`gap_detectors.unplayable_beat_gap` to each authored
-    chapter card and returns ``[{index, title, beat, marker}]`` for every chapter
-    whose last beat LEADS with a future-time-skip ("By autumn, …"). A bounded scene
-    (FR-501) can never enact such a beat, so ``scene_complete = (k == n)`` never fires
-    and the chapter rides the cap (the no-progress tail FR-527 mis-treated as a play
-    symptom). The cure normalizes at the partitioner boundary (``the_one_law``).
+    Pure: routes each authored chapter card through the shared per-card battery
+    (:func:`card_gate.gate_chapter_card`) and returns ``[{index, title, beat,
+    marker}]`` for every chapter with an ``unplayable`` gap (last beat LEADS with a
+    future-time-skip, "By autumn, …"). A bounded scene (FR-501) can never enact such
+    a beat, so ``scene_complete = (k == n)`` never fires and the chapter rides the cap
+    (the no-progress tail FR-527 mis-treated as a play symptom). The cure normalizes
+    at the partitioner boundary (``the_one_law``).
     """
     out: list[dict] = []
     for i, ch in enumerate(chapters, start=1):
-        gap = unplayable_beat_gap(ch)
-        if gap["gap_count"]:
-            g = gap["gaps"][0]
+        unplayable = [g for g in gate_chapter_card(ch) if g["kind"] == "unplayable"]
+        if unplayable:
+            g = unplayable[0]
             out.append(
                 {
                     "index": i,
@@ -324,9 +324,15 @@ async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
     this ungated boundary (the 10036-BC Ch3 early-reveal: frozen summary "presumed
     dead" + a beat asserting the actor is "alive"). The cure mirrors
     ``outline_chapters``: after each re-outline build the candidate card from the
-    FROZEN title/summary + the NEW beats, run the SAME detector, re-invoke with the
-    SAME ``_reversal_feedback`` correction (bounded by ``_OUTLINE_MAX_ATTEMPTS``),
-    then raise (no silent fallback) — never returning a packed beat list.
+    FROZEN title/summary + the NEW beats, run the SAME per-card battery
+    (``card_gate.gate_chapter_card``), re-invoke with the matching correction
+    feedback (bounded by ``_OUTLINE_MAX_ATTEMPTS``), then raise (no silent fallback)
+    -- never returning an un-playable beat list.
+
+    FR-558 -- the battery generalized: this boundary routes through the SAME
+    ``gate_chapter_card`` the typed setter and ``outline_chapters`` use, so it now
+    also rejects an unplayable time-skip-epilogue final beat (FR-528), not only the
+    removal-and-return reversal (FR-555) -- one gate, every authoring path.
     """
     card = doc.get("chapters", {}).get("cards", {}).get(cid, {})
     title = card.get("title", "")
@@ -336,6 +342,7 @@ async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
     prior_seam_packet = format_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     feedback = ""
     packed: list[dict] = []
+    unplayable: list[dict] = []
     for _ in range(_OUTLINE_MAX_ATTEMPTS):
         result = await get_app(CHAPTER_REOUTLINE_GRAPH).ainvoke(
             {
@@ -354,14 +361,31 @@ async def reoutline_chapter_beats(doc: dict, cid: str) -> list[str]:
                 "must enumerate its key-event beats"
             )
         candidate = {"title": title, "summary": summary, "beats": beats}
-        gap = reversal_pack_gap(candidate)
-        if not gap["gap_count"]:
+        gaps = gate_chapter_card(candidate)
+        if not gaps:
             return beats
-        packed = [{"index": cid, "title": title, "actors": gap["packed_actors"]}]
-        feedback = _reversal_feedback(packed)
+        actors = sorted({g["actor"] for g in gaps if g["kind"] == "reversal"})
+        packed = [{"index": cid, "title": title, "actors": actors}] if actors else []
+        unplayable = [
+            {"index": cid, "title": title, "beat": g["beat"], "marker": g["marker"]}
+            for g in gaps
+            if g["kind"] == "unplayable"
+        ]
+        feedback = ""
+        if packed:
+            feedback += _reversal_feedback(packed)
+        if unplayable:
+            feedback += _unplayable_feedback(unplayable)
+    if packed:
+        raise ValueError(
+            f"chapter {cid} re-outline packs a removal-and-return reversal after "
+            f"{_OUTLINE_MAX_ATTEMPTS} attempts (FR-555); the frozen summary removes an "
+            "actor the re-authored beats then return within the same chapter -- author "
+            f"the return as a beat of a LATER chapter: {packed}"
+        )
     raise ValueError(
-        f"chapter {cid} re-outline packs a removal-and-return reversal after "
-        f"{_OUTLINE_MAX_ATTEMPTS} attempts (FR-555); the frozen summary removes an "
-        "actor the re-authored beats then return within the same chapter -- author "
-        f"the return as a beat of a LATER chapter: {packed}"
+        f"chapter {cid} re-outline authors an unplayable time-skip epilogue as its "
+        f"final beat after {_OUTLINE_MAX_ATTEMPTS} attempts (FR-558); a final beat must "
+        "be an in-scene present-tense resolution, not a post-time-skip aftermath: "
+        f"{unplayable}"
     )
