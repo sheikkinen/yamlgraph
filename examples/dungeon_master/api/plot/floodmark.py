@@ -199,12 +199,47 @@ threat_variant = PlotPlan(
 )
 
 
+# --- dropped-confrontation variant (one unclosed_affect, FR-562 M3) -------------------------
+# The canonical floodmark with the reconciliation beat's guilt-close removed, so the guilt opened
+# at the reveal (Fr) is never discharged -> one unclosed_affect localized to Fr.
+dropped_confrontation_variant = floodmark.model_copy(deep=True)
+dropped_confrontation_variant.functions[2].eff_affect = []
+
+
+# --- reopened-affect variant (J3 witness: ordered pop-walk, not Counter balance) -----------
+# An early beat CLOSES loss(Hilde) (a harmless unmatched close) and a later beat REOPENS it. A
+# net-zero +1/-1 count would wrongly pass; the ordered walk leaves the late open as residual debt
+# localized to the reopening beat (Yopen).
+reopened_affect_variant = PlotPlan(
+    agents=[HILDE],
+    functions=[
+        Function(
+            id="Xclose",
+            kind="reconciliation",
+            subject=HILDE,
+            chapter=1,
+            eff_affect=[AffectDelta(op="close", char=HILDE, kind="loss")],
+        ),
+        Function(
+            id="Yopen",
+            kind="villainy",
+            subject=HILDE,
+            chapter=2,
+            eff_affect=[AffectDelta(op="open", char=HILDE, kind="loss")],
+        ),
+    ],
+    order=[("Xclose", "Yopen")],
+)
+
+
 __all__ = [
     "budget_ok_variant",
+    "dropped_confrontation_variant",
     "early_reveal_variant",
     "floodmark",
     "overbudget_variant",
     "phantom_return_variant",
+    "reopened_affect_variant",
     "threat_variant",
     "ungrounded_reveal_variant",
     "world_revival_variant",
