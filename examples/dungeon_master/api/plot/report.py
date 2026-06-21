@@ -39,7 +39,8 @@ def render_report(plan: PlotPlan) -> str:
         excluded = ", ".join(sorted(project.exclusion_set(plan, ch))) or "(none)"
         lines.append(f"  {ch:>2} | {cast:<{_CAST_WIDTH}} | {excluded}")
 
-    flaws = [f for f in validate_plan(plan).flaws if f.code == "ungrounded_reveal"]
+    result = validate_plan(plan)
+    flaws = [f for f in result.flaws if f.code == "ungrounded_reveal"]
     if flaws:
         verdict = "; ".join(f"{f.function_id}: {f.detail}" for f in flaws)
         lines.append(f"belief-grounding: FLAW -- {verdict}")
@@ -47,6 +48,21 @@ def render_report(plan: PlotPlan) -> str:
         lines.append(
             "belief-grounding: OK (every reveal un-tells a secret an earlier beat told)"
         )
+
+    # causal-health: cumulative cost_turns vs the global budget + any phantom antecedents (FR-561).
+    total_turns = sum(fn.cost_turns for fn in plan.functions)
+    budget = plan.turn_budget
+    budget_str = str(budget) if budget is not None else "unbounded"
+    bound = (
+        "" if budget is None else (" OK" if total_turns <= budget else " OVER-BUDGET")
+    )
+    lines.append(f"causal-health: turns {total_turns}/{budget_str}{bound}")
+    open_flaws = [f for f in result.flaws if f.code == "open_condition"]
+    if open_flaws:
+        opens = "; ".join(f"{f.function_id}: {f.detail}" for f in open_flaws)
+        lines.append(f"open-conditions: FLAW -- {opens}")
+    else:
+        lines.append("open-conditions: OK (every precondition has an authored cause)")
     return "\n".join(lines)
 
 
@@ -57,7 +73,8 @@ def main(argv: list[str] | None = None) -> int:
     if not isinstance(plan, PlotPlan):
         print(
             f"unknown plan {name!r}; available: floodmark, early_reveal_variant, "
-            f"world_revival_variant, ungrounded_reveal_variant"
+            f"world_revival_variant, ungrounded_reveal_variant, phantom_return_variant, "
+            f"overbudget_variant, budget_ok_variant, threat_variant"
         )
         return 2
     print(render_report(plan))

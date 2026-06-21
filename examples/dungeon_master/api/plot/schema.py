@@ -33,9 +33,10 @@ WorldPred = Literal["alive", "at", "faction", "rel", "holds"]
 AffectKind = Literal["loss", "guilt"]
 Grain = Literal["book", "chapter", "turn"]
 
-# M1 carries only the flaw codes its checks emit (FR-560 J4b): the monotonic-lifecycle invariant
-# and the ungrounded-reveal grounding check. The full design S2 six-code Literal grows per milestone.
-FlawCode = Literal["lifecycle_violation", "ungrounded_reveal"]
+# Flaw codes grow per milestone, one per emitting check (FR-560 J4b: no code without an emitter).
+# M1: monotonic-lifecycle + ungrounded-reveal. M2 (FR-561) adds open_condition -- the pure
+# antecedent pre-check. The full design S2 six-code Literal is reached as later checks land.
+FlawCode = Literal["open_condition", "lifecycle_violation", "ungrounded_reveal"]
 
 
 class Fluent(BaseModel):
@@ -100,7 +101,7 @@ class PlotPlan(BaseModel):
 
 
 class PlanFlaw(BaseModel):
-    """One narrative-invariant violation. ``code`` is the M1 closed set (lifecycle/ungrounded)."""
+    """One narrative-invariant violation. ``code`` is the closed set (open_condition/lifecycle/ungrounded)."""
 
     code: FlawCode
     function_id: str

@@ -134,11 +134,66 @@ def _check_belief_grounding(plan: PlotPlan, order: list[Function]) -> list[PlanF
     return flaws
 
 
+def _check_causal_antecedent(plan: PlotPlan, order: list[Function]) -> list[PlanFlaw]:
+    """Every precondition atom must be in ``I`` or produced by an earlier-ordered beat (FR-561 M2).
+
+    The cheap, engine-free half of causal coherence (check 1): it localizes the phantom-reversal
+    class -- a ``return``/``reveal`` whose precondition has no authored cause -- to the exact
+    function, which the planner's global "no plan" cannot name. The check is *existence-based*: it
+    asks only whether some producer exists, not whether the value still holds at that point. A
+    precondition that IS in ``I`` but is later flipped (e.g. early-reveal's belief) is therefore
+    structurally grounded here; that temporal contradiction stays the planner's proof (J5).
+    """
+    flaws: list[PlanFlaw] = []
+    world: set[tuple[str, tuple[str, ...], object]] = {
+        (f.pred, f.args, f.value) for f in plan.initial_world
+    }
+    belief: set[tuple[str, str, tuple[str, ...], bool]] = {
+        (b.observer, b.fluent.pred, b.fluent.args, b.held) for b in plan.initial_belief
+    }
+    for fn in order:
+        for wf in fn.pre_world:
+            if (wf.pred, wf.args, wf.value) not in world:
+                args = ", ".join(wf.args)
+                flaws.append(
+                    PlanFlaw(
+                        code="open_condition",
+                        function_id=fn.id,
+                        detail=(
+                            f"{fn.id} requires world-truth {wf.pred}({args})={wf.value!r} "
+                            f"that no earlier beat produces and is not in the initial world."
+                        ),
+                    )
+                )
+        for b in fn.pre_belief:
+            key = (b.observer, b.fluent.pred, b.fluent.args, b.held)
+            if key not in belief:
+                args = ", ".join(b.fluent.args)
+                flaws.append(
+                    PlanFlaw(
+                        code="open_condition",
+                        function_id=fn.id,
+                        detail=(
+                            f"{fn.id} requires believes({b.observer}, "
+                            f"{b.fluent.pred}({args}))={b.held} that no earlier beat opens "
+                            f"and is not in the initial belief -- a phantom antecedent."
+                        ),
+                    )
+                )
+        for wf in fn.eff_world:
+            world.add((wf.pred, wf.args, wf.value))
+        for b in fn.eff_belief:
+            belief.add((b.observer, b.fluent.pred, b.fluent.args, b.held))
+    return flaws
+
+
 def validate_plan(plan: PlotPlan) -> ValidationResult:
     """Run the pure narrative invariants (monotonic lifecycle + ungrounded reveal) over ``plan``."""
     order = ordered_functions(plan)
-    flaws = _check_monotonic_lifecycle(plan, order) + _check_belief_grounding(
-        plan, order
+    flaws = (
+        _check_monotonic_lifecycle(plan, order)
+        + _check_belief_grounding(plan, order)
+        + _check_causal_antecedent(plan, order)
     )
     return ValidationResult(ok=not flaws, flaws=flaws)
 

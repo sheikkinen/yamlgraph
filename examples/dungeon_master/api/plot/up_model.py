@@ -22,6 +22,15 @@ Three load-bearing encoding rules (graduated from the FR-559 judgement):
 ``unified-planning`` is an **optional** dependency: only the causal lane (this module + the
 ``solve_status`` half of ``validate``) imports it. Projection, grounding, the seam, and the report
 run pure.
+
+**Turn budget = unary counter, not numeric fluents (FR-561 check 5, J4).** The pinned engine is
+Fast Downward with ``astar(blind())`` -- a *classical* planner that does not admit ``Int`` (numeric)
+fluents. So ``cost_turns`` cannot be summed against a numeric bound directly. Instead the budget is a
+unary counter: a chain of mutually-exclusive ``rem_<k>`` boolean markers (remaining turns), and each
+beat steps the counter down by its ``cost_turns``. When the cumulative cost exceeds ``turn_budget``
+the chain runs out before the last beat, whose mandatory ``done_`` goal is then unreachable -- proven
+unsolvable. The counter is emitted only when ``turn_budget is not None``, so the canonical floodmark
+plan (unbudgeted) is byte-for-byte the M1 encoding.
 """
 
 from __future__ import annotations
@@ -30,7 +39,7 @@ from unified_planning.model import Fluent as UpFluent
 from unified_planning.model import InstantaneousAction, Problem
 from unified_planning.shortcuts import BoolType, Not
 
-from .schema import Belief, Fluent, PlotPlan
+from .schema import Belief, Fluent, Function, PlotPlan
 
 
 def _slug(*parts: str) -> str:
@@ -92,8 +101,23 @@ def build_problem(plan: PlotPlan) -> Problem:
     for before, after in plan.order:
         predecessors.setdefault(after, []).append(before)
 
-    for fn in plan.functions:
-        act = InstantaneousAction(_slug("do", fn.id))
+    # --- global turn budget: a unary counter (no numeric fluents, see module docstring) ----
+    # ``rem_<k>`` markers, exactly one true, count remaining turns. ``rem_<budget>`` starts true.
+    # A beat costing ``c`` fires only from a ``rem_<r>`` with ``r >= c`` and steps to ``rem_<r-c>``.
+    # If the cumulative cost exceeds the budget the counter runs out before the last beat, whose
+    # mandatory ``done_`` goal then becomes unreachable -> PROVEN_UNSOLVABLE (FR-561 check 5, J4).
+    budget = plan.turn_budget
+    rem: dict[int, UpFluent] = {}
+    if budget is not None:
+        rem = {
+            k: _ensure(problem, fluents, _slug("rem", str(k)))
+            for k in range(budget + 1)
+        }
+        problem.set_initial_value(rem[budget](), True)
+
+    def _emit_beat(fn: Function, rem_from: int | None) -> None:
+        suffix = () if rem_from is None else ("rem", str(rem_from))
+        act = InstantaneousAction(_slug("do", fn.id, *suffix))
         act.add_precondition(chapter_markers[fn.chapter]())
         act.add_precondition(Not(done[fn.id]()))
         for pred_id in predecessors.get(fn.id, []):
@@ -104,6 +128,10 @@ def build_problem(plan: PlotPlan) -> Problem:
         for bf in fn.pre_belief:
             f = _ensure(problem, fluents, _belief_name(bf))
             act.add_precondition(f() if bf.held else Not(f()))
+        if rem_from is not None:
+            act.add_precondition(rem[rem_from]())
+            act.add_effect(rem[rem_from](), False)
+            act.add_effect(rem[rem_from - fn.cost_turns](), True)
 
         act.add_effect(done[fn.id](), True)
         for wf in fn.eff_world:
@@ -113,6 +141,14 @@ def build_problem(plan: PlotPlan) -> Problem:
             f = _ensure(problem, fluents, _belief_name(bf))
             act.add_effect(f(), bool(bf.held))
         problem.add_action(act)
+
+    for fn in plan.functions:
+        if budget is None:
+            _emit_beat(fn, None)
+        else:
+            # one action variant per feasible starting remaining level (r >= cost_turns)
+            for r in range(fn.cost_turns, budget + 1):
+                _emit_beat(fn, r)
 
     # --- advance actions: no chapter may be left with an unfired beat ----------------------
     for ci, cj in zip(chapters, chapters[1:], strict=False):
