@@ -34,6 +34,7 @@ from examples.dungeon_master.api.prompt_salience import (
     format_prompt_salience_report,
     presence_correlation,
     prompt_mass_summary,
+    revived_actors,
 )
 from examples.dungeon_master.api.seam_entrance import seam_entrance_gap
 from examples.dungeon_master.scripts.calibrate_continuity_axis import (
@@ -274,6 +275,11 @@ def write_witness(out_dir: Path) -> dict | None:
         if mass is not None:
             witness["prompt_mass"] = mass
         witness["presence_correlation"] = presence_correlation(story_doc, witness)
+        # FR-554: exited actors (per-turn cast_exits) narrated on stage again in a
+        # strictly-later recap -- the deterministic regression gauge the recap-salience
+        # wording change drives toward zero. Possessive-only mentions are excluded as
+        # aftermath (C1); visibility-not-gate.
+        witness["revived_actor"] = revived_actors(story_doc)
     (out_dir / WITNESS_FILENAME).write_text(
         json.dumps(witness, indent=2) + "\n", encoding="utf-8"
     )

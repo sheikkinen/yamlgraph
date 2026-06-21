@@ -43,6 +43,7 @@ from examples.dungeon_master.api.lifecycle_resolver import protected_cast_names
 from examples.dungeon_master.api.seam_packet import format_seam_packet
 from examples.dungeon_master.api.tree import TURN_GRAPH
 from examples.dungeon_master.api.turn_state import (
+    _chapter_cast_exits,
     chapter_beat_list,
     chapter_turns,
     prior_intents,
@@ -212,6 +213,7 @@ async def invoke_turn(
             "turn_n": str(n),
             "instruction": instruction,
             "protected": ", ".join(protected_cast_names(doc, cid)),
+            "gone_this_chapter": ", ".join(_chapter_cast_exits(doc, cid, n)),
             "intents": [],
             "direction": {},
             "recap": "",

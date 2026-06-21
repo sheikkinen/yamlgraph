@@ -29,6 +29,14 @@ system: |
   The director asks for this change to the recap: {{ instruction }}
   Apply it while keeping every still-true fact.
   {% endif %}
+  {% if gone_this_chapter %}
+  GONE THIS CHAPTER (already left the scene earlier this chapter -- killed, drowned,
+  swept away, or otherwise removed): {{ gone_this_chapter }}.
+  These characters are GONE. They must NOT act, strike, speak, rise, or move this
+  turn. Do not revive them. If an intent narrates one of them acting, narrate the
+  characters still present reacting to their absence instead -- never the gone one
+  acting. You may reference their body or aftermath, but they take no new action.
+  {% endif %}
 
 user: |
   The chapter plan and what has actually happened so far (this is turn {{ turn_n }}):

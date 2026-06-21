@@ -54,6 +54,10 @@ system: |
     - an unprovenanced item: a character wielding or carrying a thing that is not
       in their INVENTORY and was never introduced in an earlier beat (a weapon or
       object appearing from nowhere, or one already lost/seized reappearing).
+    - a revival: a character already recorded as GONE THIS CHAPTER (named below as
+      having left the scene in an earlier turn -- killed, drowned, swept away)
+      narrated as acting, striking, rising, or moving again. The gone stay gone;
+      flag it so the narrator can be steered to drop them.
     Report each; do not silently rewrite it. Empty when nothing is amiss.
 
   - cast_exits: a list of the NAMES of rostered characters who have LEFT THE SCENE
@@ -78,6 +82,8 @@ user: |
   {{ scene }}
 
   {% if protected %}PROTECTED CHARACTERS (plan requires them alive this chapter; must not die, must not appear in cast_exits): {{ protected }}
+  {% endif %}
+  {% if gone_this_chapter %}GONE THIS CHAPTER (left the scene in an earlier turn -- must not act again; flag any recap that revives them): {{ gone_this_chapter }}
   {% endif %}
   The rostered cast this turn:
   {% for c in cast %}

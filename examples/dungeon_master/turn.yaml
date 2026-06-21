@@ -38,6 +38,7 @@ state:
   turn_n: str
   instruction: str
   protected: str
+  gone_this_chapter: str
   intents: list
   direction: dict
   recap: str
@@ -70,6 +71,7 @@ nodes:
       intents: "{state.intents}"
       turn_n: "{state.turn_n}"
       protected: "{state.protected}"
+      gone_this_chapter: "{state.gone_this_chapter}"
 
   recap:
     type: llm
@@ -83,6 +85,7 @@ nodes:
       direction: "{state.direction}"
       turn_n: "{state.turn_n}"
       instruction: "{state.instruction}"
+      gone_this_chapter: "{state.gone_this_chapter}"
 
 edges:
   - from: START

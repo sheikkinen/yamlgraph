@@ -17,6 +17,8 @@ degrades the mass block to omission -- never a char/4 proxy, never a gate (FR-55
 
 from __future__ import annotations
 
+import re
+
 from examples.dungeon_master.api.turn_ops import running_scene
 
 _POSTURE = "visibility-not-gate"
@@ -157,6 +159,72 @@ def presence_correlation(story_doc: dict, witness: dict) -> dict:
     }
 
 
+def _revives_in_recap(text: str, name: str) -> bool:
+    """Whether ``name`` appears in ``text`` other than as a possessive (FR-554 C1).
+
+    The honest substring proxy: an exited name in a strictly-later recap is a revival
+    UNLESS its only occurrences are possessive (``Name's`` / ``Name\u2019s`` -- e.g.
+    "Arnulf's fallen body", "Arnulf's weapon arm": aftermath the narrator may legitimately
+    describe). The single frozen exclusion is possessive-only -- no verb lexicon, no
+    subject/actor-position parser (the ``regex_fourth_exclusion`` trap). It is a flag to
+    look, not a verdict: it still fires on legitimate non-possessive mentions (grief:
+    "they wept for Arnulf"), an over-count accepted under visibility-not-gate.
+    """
+    if not text or not name:
+        return False
+    for m in re.finditer(rf"\b{re.escape(name)}\b(['\u2019]s)?", text, re.IGNORECASE):
+        if not m.group(1):  # this occurrence is not a possessive Name's
+            return True
+    return False
+
+
+def revived_actors(story_doc: dict) -> dict:
+    """Exited actors narrated on stage again in a strictly-later recap (FR-554, C1).
+
+    For each chapter, the director's per-turn ``cast_exits`` names the roster members who
+    have left the scene -- killed, drowned, swept away -- and must not act again. The exit
+    is legitimate up to and including the turn it is first declared; a *revival* is the same
+    name appearing (non-possessively, :func:`_revives_in_recap`) in the recap of a turn
+    STRICTLY AFTER its first-exit turn. Returns ``{posture, count, incidents}`` where each
+    incident is ``{chapter, name, exit_turn, revival_turn}``; empty when no exits are
+    recorded. Pure (reads only the doc), deterministic, visibility-not-gate -- the
+    regression gauge the recap-salience wording change must drive toward zero.
+    """
+    chapters = story_doc.get("chapters") or {}
+    order = list(chapters.get("order") or [])
+    cards = chapters.get("cards") or {}
+    incidents: list[dict] = []
+    for cid in order:
+        turns = list((cards.get(cid) or {}).get("turns") or [])
+        first_exit: dict[str, int] = {}
+        for t in turns:
+            n = t.get("n")
+            if n is None:
+                continue
+            for raw in (t.get("direction") or {}).get("cast_exits") or []:
+                name = str(raw).strip()
+                if name:
+                    first_exit.setdefault(name, n)
+        if not first_exit:
+            continue
+        for t in turns:
+            n = t.get("n")
+            text = (t.get("recap") or {}).get("text") or ""
+            for name, exit_turn in first_exit.items():
+                if n is None or n <= exit_turn:
+                    continue
+                if _revives_in_recap(text, name):
+                    incidents.append(
+                        {
+                            "chapter": cid,
+                            "name": name,
+                            "exit_turn": exit_turn,
+                            "revival_turn": n,
+                        }
+                    )
+    return {"posture": _POSTURE, "count": len(incidents), "incidents": incidents}
+
+
 def format_prompt_salience_report(witness: dict) -> str:
     """A terse per-chapter mass + presence-verdict report (FR-553 deliverable 2).
 
@@ -186,4 +254,15 @@ def format_prompt_salience_report(witness: dict) -> str:
         f"{presence.get('presence_gap_count', 0)} presence-gap (subject absent), "
         f"{presence.get('present_but_ignored_count', 0)} present-but-ignored"
     )
+    revived = witness.get("revived_actor") or {}
+    if "count" in revived:
+        lines.append(
+            "  revived actors (exited, then on stage again -- FR-554): "
+            f"{revived.get('count', 0)}"
+        )
+        for inc in revived.get("incidents") or []:
+            lines.append(
+                f"    ch{inc['chapter']} {inc['name']}: "
+                f"exited t{inc['exit_turn']}, on stage again t{inc['revival_turn']}"
+            )
     return "\n".join(lines)
