@@ -1,6 +1,6 @@
 """The floodmark ``PlotPlan`` literal + falsification variants -- the belief-lane fixtures (FR-560).
 
-Mirrors design-v3-plot-model-implementation.md S4. Four plans:
+Mirrors design-v3-plot-model-implementation.md S4. Belief-lane plans (FR-560):
 
 * ``floodmark`` -- the canonical presumed-dead arc. World-truth ``alive(Arnulf)`` stays True; only
   the clan's *belief* flips to dead at F1 and is corrected at the Ch6 reveal. Solvable; grounded.
@@ -16,6 +16,10 @@ Mirrors design-v3-plot-model-implementation.md S4. Four plans:
 
 Both ``api/plot`` (report) and the test tree import these fixtures from here, so the canonical plan
 has a single typed home (FR-560).
+
+The causal-trio variants (FR-561 M2) live beside the canon: ``phantom_return_variant``
+(open_condition, pure), ``overbudget_variant`` / ``budget_ok_variant`` (capped reachability via the
+unary-counter), and ``threat_variant`` (forced-window threat, proven against the current encoding).
 """
 
 from __future__ import annotations
@@ -112,9 +116,96 @@ ungrounded_reveal_variant = floodmark.model_copy(deep=True)
 ungrounded_reveal_variant.functions[0].eff_belief = []
 
 
+# --- phantom-return variant (one open_condition, FR-561 M2) --------------------------------
+# A Ch3 "return" beat needs Hilde to believe Arnulf alive -- but nobody ever opens that belief
+# (initial_belief carries only the clan; F1 flips only the clan). The precondition has no producer
+# and is not in I, so the pure antecedent check flags one open_condition. (Distinct from
+# early-reveal, whose precondition IS in I -- that stays a temporal engine proof, J5.)
+phantom_return_variant = floodmark.model_copy(deep=True)
+phantom_return_variant.functions.append(
+    Function(
+        id="Fphantom",
+        kind="return",
+        subject=ARNULF,
+        chapter=3,
+        observers=[HILDE],
+        pre_belief=[
+            Belief(
+                observer=HILDE, fluent=Fluent(pred="alive", args=(ARNULF,)), held=True
+            )
+        ],
+    )
+)
+phantom_return_variant.order = [
+    ("F1", "Fphantom"),
+    ("Fphantom", "Fr"),
+    ("Fr", "Ff"),
+]
+
+
+# --- budget variants (FR-561 M2 check 5) ---------------------------------------------------
+# floodmark's three beats cost 1 turn each (sum = 3). With turn_budget=2 the unary-counter runs
+# out before the last beat -> the mandatory done_ goal is unreachable -> PROVEN_UNSOLVABLE. With a
+# sufficient turn_budget=3 the same plan still solves -- the counter only bites when exceeded.
+overbudget_variant = floodmark.model_copy(deep=True)
+overbudget_variant.turn_budget = 2
+
+budget_ok_variant = floodmark.model_copy(deep=True)
+budget_ok_variant.turn_budget = 3
+
+
+# --- threat variant (forced-window, FR-561 M2 check 6) -------------------------------------
+# Producer A (Ch1) sets holds(Ledger); threat B (Ch2) clears it; consumer C (Ch3) needs it. The
+# chapter chain forces A->B->C, so by Ch3 the precondition is gone with no later producer and C's
+# done_ goal is mandatory -> PROVEN_UNSOLVABLE against the *current* encoding (no build_problem
+# change, J1). The pure antecedent check does NOT flag C: A is a producer (existence holds); the
+# later clearing is a temporal fact only the planner owns.
+LEDGER = "Ledger"
+
+
+def _holds_ledger(value: bool) -> Fluent:
+    return Fluent(pred="holds", args=(LEDGER,), value=value)
+
+
+threat_variant = PlotPlan(
+    agents=[ARNULF],
+    initial_world=[_holds_ledger(False)],
+    initial_belief=[],
+    goals=[],
+    functions=[
+        Function(
+            id="A",
+            kind="villainy",
+            subject=ARNULF,
+            chapter=1,
+            eff_world=[_holds_ledger(True)],
+        ),
+        Function(
+            id="B",
+            kind="villainy",
+            subject=ARNULF,
+            chapter=2,
+            eff_world=[_holds_ledger(False)],
+        ),
+        Function(
+            id="C",
+            kind="return",
+            subject=ARNULF,
+            chapter=3,
+            pre_world=[_holds_ledger(True)],
+        ),
+    ],
+    order=[("A", "B"), ("B", "C")],
+)
+
+
 __all__ = [
+    "budget_ok_variant",
     "early_reveal_variant",
     "floodmark",
+    "overbudget_variant",
+    "phantom_return_variant",
+    "threat_variant",
     "ungrounded_reveal_variant",
     "world_revival_variant",
 ]

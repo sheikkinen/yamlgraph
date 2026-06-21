@@ -94,6 +94,9 @@ class PlotPlan(BaseModel):
     goals: list[Fluent] = Field(default_factory=list)
     functions: list[Function] = Field(default_factory=list)
     order: list[tuple[str, str]] = Field(default_factory=list)
+    # Global plan-length bound (sum of beat ``cost_turns``). ``None`` = unbounded, so the canonical
+    # floodmark plan is untouched; set it to make capped reachability biteable (FR-561 check 5, J2).
+    turn_budget: int | None = None
 
 
 class PlanFlaw(BaseModel):
