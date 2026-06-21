@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 import re
 
+from examples.dungeon_master.api import chapter_nav
+
 _LOG_LINE_LIFECYCLE = re.compile(r"Lifecycle gate violation:")
 _LOG_LINE_MEMORY = re.compile(r"Continuity memory conflict:")
 _LOG_LINE_DEAD_PROSE = re.compile(r"Dead character prose violation:")
@@ -55,18 +57,16 @@ def parse_generation_log_metrics(log_text: str) -> dict:
 
 def parse_story_progress_metrics(story_doc: dict) -> dict:
     """Extract chapter progression counters from story artifact dict."""
-    chapters = dict(story_doc.get("chapters") or {})
-    order = list(chapters.get("order") or [])
-    cards = dict(chapters.get("cards") or {})
+    order = chapter_nav.chapter_order(story_doc)
 
     completed = 0
     total_turns = 0
     for cid in order:
-        card = dict(cards.get(cid) or {})
+        card = chapter_nav.chapter_card(story_doc, cid)
         text = str(card.get("text") or "").strip()
         if bool(card.get("reviewed")) and bool(text):
             completed += 1
-        total_turns += len(list(card.get("turns") or []))
+        total_turns += len(chapter_nav.chapter_turns(story_doc, cid))
 
     return {
         "planned_chapter_count": len(order),
@@ -124,10 +124,7 @@ def chapter_actor_flag_metrics(story_doc: dict, cid: str, actor: str) -> dict:
     the director-flag count without the independent intent-map acting count
     revealing it. Pure: reads only the doc shape, no LLM, no turn_ops import.
     """
-    turns = list(
-        ((story_doc.get("chapters") or {}).get("cards") or {}).get(cid, {}).get("turns")
-        or []
-    )
+    turns = chapter_nav.chapter_turns(story_doc, cid)
     per_turn: list[dict] = []
     flag_turns = 0
     acting_turns = 0
@@ -211,14 +208,11 @@ def book_turn_waste(story_doc: dict) -> dict:
     longer than the denouement threshold. Returns ``{wasted_turns, capped_chapters,
     chapters}``.
     """
-    chapters = story_doc.get("chapters") or {}
-    order = list(chapters.get("order") or [])
-    cards = chapters.get("cards") or {}
+    order = chapter_nav.chapter_order(story_doc)
     wasted = 0
     capped_chapters = 0
     for cid in order:
-        card = cards.get(cid) or {}
-        turns = card.get("turns") or []
+        turns = chapter_nav.chapter_turns(story_doc, cid)
         played = len(turns)
         capped = played >= CHAPTER_TURN_CAP and _scene_complete_turn(turns) is None
         if not capped:

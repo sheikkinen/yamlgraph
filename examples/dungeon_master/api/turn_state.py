@@ -14,7 +14,7 @@ from examples.dungeon_master.api import chapter_nav
 
 def chapter_turns(doc: dict, cid: str) -> list[dict]:
     """Read-only view of chapter ``cid``'s played turns (FR-491 C; empty if none)."""
-    return chapter_nav.chapter_card(doc, cid).get("turns") or []
+    return chapter_nav.chapter_turns(doc, cid)
 
 
 def chapter_beat_list(doc: dict, cid: str) -> list[str]:

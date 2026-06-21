@@ -208,12 +208,7 @@ def collect_dead_character_prose_violations(
 
 def build_source_pointer(doc: dict, cid: str) -> dict:
     """Build deterministic seam source pointer for chapter-close diagnostics."""
-    order = list((doc.get("chapters") or {}).get("order") or [])
-    prev = ""
-    if cid in order:
-        idx = order.index(cid)
-        if idx > 0:
-            prev = str(order[idx - 1])
+    prev = chapter_nav.previous_chapter_id(doc, cid) or ""
     seam = parse_seam_packet(chapter_nav.inherited_seam_packet(doc, cid))
     seam_hash = hashlib.sha256(
         json.dumps(seam, sort_keys=True, ensure_ascii=True).encode("utf-8")

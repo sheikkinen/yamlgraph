@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 
+from examples.dungeon_master.api import chapter_nav
 from examples.dungeon_master.api.turn_ops import running_scene
 
 _POSTURE = "visibility-not-gate"
@@ -58,13 +59,11 @@ def prompt_mass_summary(story_doc: dict) -> dict | None:
     enc = _encoder()
     if enc is None:
         return None
-    chapters = story_doc.get("chapters") or {}
-    order = list(chapters.get("order") or [])
-    cards = chapters.get("cards") or {}
+    order = chapter_nav.chapter_order(story_doc)
     by_chapter: list[dict] = []
     peak = 0
     for cid in order:
-        turns = list((cards.get(cid) or {}).get("turns") or [])
+        turns = chapter_nav.chapter_turns(story_doc, cid)
         if not turns:
             continue
         per_turn: list[dict] = []
@@ -190,12 +189,10 @@ def revived_actors(story_doc: dict) -> dict:
     recorded. Pure (reads only the doc), deterministic, visibility-not-gate -- the
     regression gauge the recap-salience wording change must drive toward zero.
     """
-    chapters = story_doc.get("chapters") or {}
-    order = list(chapters.get("order") or [])
-    cards = chapters.get("cards") or {}
+    order = chapter_nav.chapter_order(story_doc)
     incidents: list[dict] = []
     for cid in order:
-        turns = list((cards.get(cid) or {}).get("turns") or [])
+        turns = chapter_nav.chapter_turns(story_doc, cid)
         first_exit: dict[str, int] = {}
         for t in turns:
             n = t.get("n")

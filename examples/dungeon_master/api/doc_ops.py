@@ -20,6 +20,7 @@ import logging
 from pathlib import Path
 
 from examples.dungeon_master.api import (
+    chapter_nav,
     chapter_ops,
     outline_ops,
     story_doc,
@@ -256,7 +257,7 @@ async def expand_chapters(doc: dict, story_dir: Path) -> None:
     outline = await outline_ops.outline_chapters(doc)
     for i, chunk in enumerate(outline, start=1):
         cid = str(i)
-        chs["cards"][cid] = {
+        card = {
             "title": chunk.get("title") or f"Chapter {cid}",
             "summary": chunk.get("summary", ""),
             "beats": list(chunk.get("beats") or []),
@@ -275,6 +276,7 @@ async def expand_chapters(doc: dict, story_dir: Path) -> None:
             "chapter_memory": _empty_chapter_memory(),
             "reviewed": False,
         }
+        chapter_nav.write_chapter_card(doc, cid, card)
         chs["order"].append(cid)
     story_doc.write(story_dir, doc)
 
