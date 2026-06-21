@@ -20,7 +20,7 @@ The ADR enumerated alternatives. Here they are resolved — no "either/or" survi
 |---|---|---|
 | Build vs. embed a planner | **Embed [`unified-planning`](https://github.com/aiplan4eu/unified-planning) (Apache-2.0) as the causal solver; hand-write only the narrative checks.** Sabre stays a separate-process *oracle* for the M0 belief spike. | UP's `OneshotPlanner.solve()` *is* checks 1/5/6 (causal coherence, reachability, threat) — "no plan found" returns the open-condition flaw for free. We only hand-write the narrative-specific checks 2/3/4. A from-scratch POCL solver is wasted work. |
 | Belief representation | **Belief-as-fluent.** `believes(Clan, alive(Arnulf))` is reified as an ordinary boolean fluent `bel_clan_alive_arnulf`, independent of the world fluent `alive_arnulf`. | Classical planners model no epistemics natively, but a reified belief atom needs none — the planner keeps world-truth and belief consistent automatically, and the floodmark distinction (world `alive`, belief `not alive`) is just two fluents. No belief-native planner (Sabre/Java) required in production. |
-| Solver engine | **`aries` (MIT, partial-order/temporal) preferred; `fast-downward` fallback**, both via `unified-planning[engines]` extras. | `aries` returns a partial-order plan directly — the POCL ordering §1 needs. Engines ship as separate wheels/processes, so their GPL (fast-downward) does not bleed into our Apache/our-license code. |
+| Solver engine | **`fast-downward` with `astar(blind())` (complete search), pinned.** ~~`aries` preferred~~ — corrected as-built (FR-559 J3): `aries` *hangs* on untimed classical problems and no installed engine emits `UNSOLVABLE_PROVEN` (FD exits 12 → `UNSOLVABLE_INCOMPLETELY` even on a complete proof). A complete blind-A* exhaustion of the finite chapter-chain encoding *is* the proof. | A complete search proves unsolvability (the load-bearing negative); `aries`' partial-order output is moot when it never returns. Engines ship as separate wheels, so FD's GPL does not bleed into our code. The `PROVEN_UNSOLVABLE`/`GAVE_UP` discriminator preserves proof-vs-give-up. |
 | Who authors `F`/`G` | **LLM up-front pass** (`synopsis → typed plan`), then deterministic SAT check with **bounded retry** (≤3), mirroring the v2 outline gate. | Reuses the v2 author-gate-retry pattern; keeps humans out of the inner loop. |
 | First lane to ship | **Belief + monotonic-lifecycle**, strangler-fig onto the v2 `world_state` ledger. | Retires the reveal-timing class (the active floodmark defect) with the least surface area. |
 | Plan representation | **Pydantic `PlotPlan`** (this doc §2), authored as JSON, parsed tolerantly at the boundary (like `parse_world_state`); compiled to a UP `Problem` by `api/plot/up_model.py`. | House style: typed island validated at entry, plain dict in storage. UP is an internal compile target, never the authoring surface. |
@@ -39,12 +39,13 @@ examples/dungeon_master/
   api/
     plot/                      # NEW — the v3 plot model (typed island)
       __init__.py
-      schema.py                # PlotPlan + Function + Fluent + Belief + AffectDelta  (Pydantic)
-      author.py                # boundary parse: LLM JSON → PlotPlan  (tolerant, like parse_world_state)
-      up_model.py              # PlotPlan → unified_planning.Problem  (belief reified as fluents)
-      validate.py              # 6 checks: 1/5/6 via unified-planning, 2/3/4 hand-written → ValidationResult
-      project.py               # plan → chapter_cast / exclusion_set / protected_set  (replaces reconstruction)
-      realize.py               # Function → TurnRequest  (binds to FR-557 turn_engine)
+      schema.py                # PlotPlan + Function + Fluent + Belief + AffectDelta  (Pydantic)   [M1 ✓]
+      up_model.py              # PlotPlan → unified_planning.Problem  (belief reified as fluents)   [M0 ✓]
+      validate.py              # 1/5/6 via unified-planning, 2/3 hand-written → ValidationResult     [M0/M1 ✓; 4 = M3]
+      project.py               # plan → chapter_cast / exclusion_set / protected_set                [M1 ✓]
+      report.py                # human-inspectable table: protected / per-ch cast / exclusion / grounding  [M1 ✓]
+      author.py                # boundary parse: LLM JSON → PlotPlan  (tolerant, like parse_world_state)  [M4]
+      realize.py               # Function → TurnRequest  (binds to FR-557 turn_engine)              [M4]
     world_state.py             # v2 ledger — EXTENDED, not replaced (belief lane added)
     turn_engine.py             # FR-557 doc-free engine — the realizer
     chapter_nav.py             # FR-556 typed StoryDoc accessor — projection lands here
@@ -74,7 +75,12 @@ beat). It **never reads plot state back out of prose** — that inverse problem 
 ## 2. The schema (`api/plot/schema.py`)
 
 Concrete Pydantic, house style (`from __future__`, `BaseModel`, `Field`, `Literal`, integer
-ordinals for time). This is the whole vocabulary — nothing speculative.
+ordinals for time). This is the **M4-target** vocabulary; the closed alphabets grow per milestone.
+As-built (FR-560) the shipped `FunctionKind` is the 4-kind floodmark subset (`villainy`, `reveal`,
+`reconciliation`, `return`), `AffectKind` is `loss`/`guilt`, and `FlawCode` is
+`lifecycle_violation`/`ungrounded_reveal` — each widened only when a milestone's checks need it
+(`regex_fourth_exclusion` discipline). The full alphabets below are the destination, not the
+current state.
 
 ```python
 """Typed plot model for DM v3 (the generative spine).
@@ -191,7 +197,7 @@ planner discharges the causal trio, hand-written passes own the narrative trio.
 
 | Check | Owner | Mechanism |
 |---|---|---|
-| 1 causal coherence | **`unified-planning`** | `OneshotPlanner.solve()` returns a plan ⇔ every precondition is establishable; `UNSOLVABLE` *is* the open-condition flaw |
+| 1 causal coherence | **`unified-planning`** | `OneshotPlanner.solve()` returns a plan ⇔ every precondition is establishable; a complete-search exhaustion (`PROVEN_UNSOLVABLE`, see §0 engine note) *is* the open-condition flaw |
 | 5 capped reachability | **`unified-planning`** | action `cost_turns` → plan length bound; no plan within bound ⇒ `unreachable` |
 | 6 causal-threat resolution | **`unified-planning`** | the solver's threat resolution (promotion/demotion) is native POCL |
 | 2 monotonic lifecycle | **hand-written** | a narrative invariant the planner won't enforce — the floodmark keystone (below) |
@@ -235,11 +241,19 @@ def validate_plan(plan: PlotPlan) -> ValidationResult:
 
 
 def _check_causal_solvable(plan: PlotPlan) -> list[PlanFlaw]:
-    """Checks 1/5/6 via the embedded planner. UNSOLVABLE ⇒ an open-condition /
-    unreachable / unresolved-threat flaw — the planner does not distinguish, so we
-    report a single causal flaw and let the lifecycle/grounding passes localize it."""
+    """Checks 1/5/6 via the embedded planner. A complete-search exhaustion ⇒ an
+    open-condition / unreachable / unresolved-threat flaw — the planner does not
+    distinguish, so we report a single causal flaw and let the lifecycle/grounding
+    passes localize it.
+
+    As-built (FR-559 J3): pin a COMPLETE config (`fast-downward` `astar(blind())`),
+    NOT `aries` (it hangs on untimed classical problems). No installed engine emits
+    `UNSOLVABLE_PROVEN` — FD exits 12 → `UNSOLVABLE_INCOMPLETELY` even on a proof — so
+    `PROVEN_UNSOLVABLE = (UNSOLVABLE_PROVEN, UNSOLVABLE_INCOMPLETELY)` and the distinct
+    `GAVE_UP = (TIMEOUT, MEMOUT, INTERNAL_ERROR)` set must FAIL (proves nothing)."""
     problem = build_problem(plan)                     # reifies belief as fluents
-    with OneshotPlanner(problem_kind=problem.kind) as planner:   # prefers aries
+    with OneshotPlanner(name="fast-downward",
+                        params={"fast_downward_search_config": "astar(blind())"}) as planner:
         result = planner.solve(problem)
     if result.status in up.engines.results.POSITIVE_OUTCOMES:
         return []
@@ -285,10 +299,12 @@ def _check_belief_grounding(plan: PlotPlan, order: list[Function]) -> list[PlanF
     ...  # M1 deliverable
 
 
-def _check_affect_closure(plan: PlotPlan) -> list[PlanFlaw]:
-    """Every opened AffectDelta has a later 'close' of the same (char, kind), unless the
-    plan is flagged intentional-open-ending."""
-    ...  # M3 deliverable
+def _check_affect_closure(plan: PlotPlan, order: list[Function]) -> list[PlanFlaw]:
+    """Every opened AffectDelta has a later 'close' of the same (char, kind), unless that
+    (char, kind) is listed in plan.intentional_open (a per-unit allowlist, NOT a plan-level
+    flag -- a single boolean would exempt every open affect and gut the check; FR-562 J1).
+    Ordered pop-walk over `order`, not a symmetric count (close-then-reopen is debt, J3)."""
+    ...  # M3 deliverable (FR-562, Enforced)
 
 
 def _topological_order(plan: PlotPlan) -> list[Function]:
@@ -463,18 +479,19 @@ def to_turn_request(fn: Function, plan: PlotPlan) -> "TurnRequest":
 Falsification-gated. Each milestone is a separately-judged FR; none merges without a RED test
 proving the targeted break class is now caught.
 
-| M | Deliverable | Acceptance test (RED first) | Depends on |
-|---|---|---|---|
-| **M0** | `schema.py` + `up_model.build_problem` (belief reified) + `_check_causal_solvable` + `_check_monotonic_lifecycle` + floodmark fixture | `validate_plan(floodmark).ok` is True; world-truth-revival variant yields `lifecycle_violation`; **early-reveal variant yields `open_condition` from the planner** (Arnulf-onstage-Ch3 is unsolvable) | `unified-planning[engines]` |
-| **M0-spike (optional)** | Sabre oracle cross-check: floodmark as `.txt`, run JAR subprocess | Sabre independently confirms early-reveal unspellable, presumed-dead arc solves | Sabre (separate process) |
-| **M1** | Belief lane on `world_state` ledger (strangler-fig) + `exclusion_set` + `_check_belief_grounding` | a Ch3 "Arnulf onstage" plan is excluded by `exclusion_set`; ungrounded reveal flagged | M0, FR-556 |
-| **M2** | Causal trio hardened: `cost_turns` → plan-length bound, threat scenarios proven via the planner | phantom-reversal plan yields `open_condition`; threat plan is `UNSOLVABLE` | M1 |
-| **M3** | `_check_affect_closure` (hand-written) | dropped-confrontation plan yields `unclosed_affect` | M2 |
-| **M4** | `realize.to_turn_request` + `plot_plan.yaml` graph wired end-to-end | floodmark renders 6 chapters with no continuity break in the witness metrics | M3, FR-557 |
+| M | Status | Deliverable | Acceptance test (RED first) | Depends on |
+|---|---|---|---|---|
+| **M0** | ✅ **FR-559** | `schema.py` + `up_model.build_problem` (belief reified) + `solve_status` + `_check_monotonic_lifecycle` + floodmark fixture | `solve_status(floodmark) in POSITIVE_OUTCOMES`; world-truth-revival variant yields `lifecycle_violation`; **early-reveal variant `PROVEN_UNSOLVABLE`** (complete blind-A* exhaustion; Arnulf-onstage-Ch3 unspellable) | `unified-planning[fast-downward]` |
+| **M0-spike (optional)** | deferred | Sabre oracle cross-check: floodmark as `.txt`, run JAR subprocess | Sabre independently confirms early-reveal unspellable, presumed-dead arc solves | Sabre (separate process) |
+| **M1** | ✅ **FR-560** | Graduate `api/plot/` + `exclusion_set`/`chapter_cast`/`protected_set` + `_check_belief_grounding` + `report.py` + **live additive exclusion seam** in `chapter_open` | `exclusion_set(floodmark, 3)` excludes Arnulf, released at 6; ungrounded reveal flagged; seam unions into `must_exclude`; no-plan docs byte-identical | M0, **FR-556 (Enforced)** |
+| **M2** | proposed **FR-561** | Causal trio hardened: `cost_turns` → per-chapter budget bound, phantom-reversal pure pre-check, threat scenarios proven via the planner | phantom-reversal plan yields `open_condition`; over-budget + threat plans `PROVEN_UNSOLVABLE` | M1 |
+| **M3** | future | `_check_affect_closure` (hand-written) | dropped-confrontation plan yields `unclosed_affect` | M2 |
+| **M4** | future | `realize.to_turn_request` + `author.py` + `plot_plan.yaml` graph wired end-to-end | floodmark renders 6 chapters with no continuity break in the witness metrics | M3, FR-557 |
 
-M0+M1 alone retire the active floodmark defect — that is the shippable strangler-fig increment.
-M0 is the **runnable spike** (FR-559): it proves an off-the-shelf planner can tell floodmark
-before any DM code commits to the approach.
+M0+M1 (FR-559 + FR-560, both Enforced) retire the active floodmark defect — that is the shipped
+strangler-fig increment. M0 is the **runnable spike** (FR-559): it proved an off-the-shelf planner
+can tell floodmark before any DM code committed to the approach; M1 graduated it into the live
+chapter-open director.
 
 ---
 

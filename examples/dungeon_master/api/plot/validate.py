@@ -187,13 +187,53 @@ def _check_causal_antecedent(plan: PlotPlan, order: list[Function]) -> list[Plan
     return flaws
 
 
+def _check_affect_closure(plan: PlotPlan, order: list[Function]) -> list[PlanFlaw]:
+    """Every opened affect unit must have a later ``close`` of the same ``(char, kind)`` (FR-562 M3).
+
+    Affect debt is narrative bookkeeping, not a precondition, so the planner cannot own it. This is
+    an **ordered pop-walk**, not a symmetric ``+1/-1`` count: an ``open`` records the opening beat's
+    id, a ``close`` discharges it (``pop``). A ``close`` with no prior ``open`` is harmless slack (not
+    a flaw -- a debt check, not a symmetry check); a re-open of an already-open unit overwrites the
+    opener id. After the walk, every residual ``(char, kind)`` is ``unclosed_affect`` localized to the
+    opening beat -- *unless* the author lists it in ``plan.intentional_open`` (a tragic / deliberately
+    unresolved ending). A ``collections.Counter`` net-zero would wrongly pass a close-then-reopen of
+    the same unit; the ordered walk leaves the late open as residual debt (FR-562 J3).
+    """
+    exempt = {(char, kind) for char, kind in plan.intentional_open}
+    open_units: dict[tuple[str, str], str] = {}
+    for fn in order:
+        for delta in fn.eff_affect:
+            key = (delta.char, delta.kind)
+            if delta.op == "open":
+                open_units[key] = fn.id
+            else:  # close
+                open_units.pop(key, None)
+    flaws: list[PlanFlaw] = []
+    for (char, kind), opener_id in open_units.items():
+        if (char, kind) in exempt:
+            continue
+        flaws.append(
+            PlanFlaw(
+                code="unclosed_affect",
+                function_id=opener_id,
+                detail=(
+                    f"{opener_id} opens affect {kind}({char}) that no later beat closes -- "
+                    f"a dangling emotional thread. Close it or list ({char}, {kind}) in "
+                    f"intentional_open for a deliberately unresolved ending."
+                ),
+            )
+        )
+    return flaws
+
+
 def validate_plan(plan: PlotPlan) -> ValidationResult:
-    """Run the pure narrative invariants (monotonic lifecycle + ungrounded reveal) over ``plan``."""
+    """Run the pure narrative invariants (lifecycle, grounding, antecedent, affect closure)."""
     order = ordered_functions(plan)
     flaws = (
         _check_monotonic_lifecycle(plan, order)
         + _check_belief_grounding(plan, order)
         + _check_causal_antecedent(plan, order)
+        + _check_affect_closure(plan, order)
     )
     return ValidationResult(ok=not flaws, flaws=flaws)
 

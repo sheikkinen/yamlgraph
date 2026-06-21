@@ -63,6 +63,36 @@ def render_report(plan: PlotPlan) -> str:
         lines.append(f"open-conditions: FLAW -- {opens}")
     else:
         lines.append("open-conditions: OK (every precondition has an authored cause)")
+
+    # affect ledger: opened-at / closed-at per unit + any unclosed debt (FR-562 M3).
+    opened_at: dict[tuple[str, str], str] = {}
+    closed_at: dict[tuple[str, str], str] = {}
+    for fn in project.ordered_functions(plan):
+        for delta in fn.eff_affect:
+            key = (delta.char, delta.kind)
+            if delta.op == "open":
+                opened_at[key] = fn.id
+            else:
+                closed_at[key] = fn.id
+    units = sorted(set(opened_at) | set(closed_at))
+    debt = {
+        (f.function_id, f.detail) for f in result.flaws if f.code == "unclosed_affect"
+    }
+    if units:
+        lines.append("affect-ledger:")
+        for char, kind in units:
+            o = opened_at.get((char, kind), "-")
+            c = closed_at.get((char, kind), "-")
+            unclosed = (char, kind) in opened_at and (char, kind) not in closed_at
+            status = "DEBT" if unclosed else "closed"
+            lines.append(f"  {kind}({char}): opened@{o} closed@{c} -- {status}")
+    if debt:
+        lines.append(
+            f"affect-closure: FLAW -- {len(debt)} unclosed unit(s) "
+            f"({', '.join(sorted(f'{fid}' for fid, _ in debt))})"
+        )
+    else:
+        lines.append("affect-closure: OK (every opened affect unit is later closed)")
     return "\n".join(lines)
 
 
@@ -74,7 +104,8 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"unknown plan {name!r}; available: floodmark, early_reveal_variant, "
             f"world_revival_variant, ungrounded_reveal_variant, phantom_return_variant, "
-            f"overbudget_variant, budget_ok_variant, threat_variant"
+            f"overbudget_variant, budget_ok_variant, threat_variant, "
+            f"dropped_confrontation_variant, reopened_affect_variant"
         )
         return 2
     print(render_report(plan))

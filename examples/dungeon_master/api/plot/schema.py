@@ -35,8 +35,14 @@ Grain = Literal["book", "chapter", "turn"]
 
 # Flaw codes grow per milestone, one per emitting check (FR-560 J4b: no code without an emitter).
 # M1: monotonic-lifecycle + ungrounded-reveal. M2 (FR-561) adds open_condition -- the pure
-# antecedent pre-check. The full design S2 six-code Literal is reached as later checks land.
-FlawCode = Literal["open_condition", "lifecycle_violation", "ungrounded_reveal"]
+# antecedent pre-check. M3 (FR-562) adds unclosed_affect -- the affect-closure debt check. The
+# design S2 six-code set then lacks only unreachable/causal_threat, which stay planner-owned.
+FlawCode = Literal[
+    "open_condition",
+    "lifecycle_violation",
+    "ungrounded_reveal",
+    "unclosed_affect",
+]
 
 
 class Fluent(BaseModel):
@@ -59,7 +65,7 @@ class Belief(BaseModel):
 
 
 class AffectDelta(BaseModel):
-    """Open or close one affect unit (Lehnert Plot Units). Carried; closure is an M3 check."""
+    """Open or close one affect unit (Lehnert Plot Units). Closure is the M3 check (FR-562)."""
 
     op: Literal["open", "close"]
     char: CharacterId
@@ -98,10 +104,14 @@ class PlotPlan(BaseModel):
     # Global plan-length bound (sum of beat ``cost_turns``). ``None`` = unbounded, so the canonical
     # floodmark plan is untouched; set it to make capped reachability biteable (FR-561 check 5, J2).
     turn_budget: int | None = None
+    # Affect units the author deliberately leaves open (tragic / unresolved endings). Default empty,
+    # so a fully-resolved plan like floodmark is unaffected. Per-(char, kind), not a global flag: a
+    # single boolean would exempt every open affect and gut the check (FR-562 M3, J1).
+    intentional_open: list[tuple[CharacterId, AffectKind]] = Field(default_factory=list)
 
 
 class PlanFlaw(BaseModel):
-    """One narrative-invariant violation. ``code`` is the closed set (open_condition/lifecycle/ungrounded)."""
+    """One narrative-invariant violation. ``code`` is the closed set (open_condition/lifecycle/ungrounded/unclosed_affect)."""
 
     code: FlawCode
     function_id: str
