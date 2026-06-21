@@ -316,7 +316,7 @@ diary required.
 
 ## Enforcement (2026-06-21)
 
-**Status: Enforced.** RED `db11a65c` → GREEN `<this commit>`. 444 DM tests green (was 437; +7 trio).
+**Status: Enforced.** RED `db11a65c` → GREEN `ae5deff6`. 444 DM tests green (was 437; +7 trio).
 
 What landed, against the frozen scope:
 
