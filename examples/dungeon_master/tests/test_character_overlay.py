@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import asyncio
 
-from examples.dungeon_master.api import turn_ops
+from examples.dungeon_master.api import turn_engine, turn_ops
 from examples.dungeon_master.api.character_overlay import derive_overlay
 from examples.dungeon_master.api.lifecycle_resolver import _state_map_from_memory
 
@@ -125,7 +125,7 @@ def test_invoke_turn_passes_overlay_when_prior_delta_exists(monkeypatch) -> None
         {"1": [_delta("Arnulf", "alive, returned after the flood")]},
     )
     capture = _GraphCapture()
-    monkeypatch.setattr(turn_ops, "get_app", lambda name: capture)
+    monkeypatch.setattr(turn_engine, "get_app", lambda name: capture)
 
     _run(turn_ops.invoke_turn(doc, _chars(), "2", 1))
 
@@ -138,7 +138,7 @@ def test_invoke_turn_chapter_one_overlay_is_empty(monkeypatch) -> None:
     """FR-541 J3: chapter 1 (no prior delta) carries an empty overlay (additive)."""
     doc = _turn_doc(["1"], {})
     capture = _GraphCapture()
-    monkeypatch.setattr(turn_ops, "get_app", lambda name: capture)
+    monkeypatch.setattr(turn_engine, "get_app", lambda name: capture)
 
     _run(turn_ops.invoke_turn(doc, _chars(), "1", 1))
 

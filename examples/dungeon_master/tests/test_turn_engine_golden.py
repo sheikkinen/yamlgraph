@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import asyncio
 
-from examples.dungeon_master.api import turn_ops
+from examples.dungeon_master.api import turn_engine, turn_ops
 
 
 def _run(coro):
@@ -89,7 +89,7 @@ def _doc() -> dict:
 def test_invoke_turn_golden_record_and_recap(monkeypatch):
     """The turn record (intents + computed direction) and recap are byte-stable."""
     doc = _doc()
-    monkeypatch.setattr(turn_ops, "get_app", lambda name: _StubGraph())
+    monkeypatch.setattr(turn_engine, "get_app", lambda name: _StubGraph())
 
     recap = _run(turn_ops.invoke_turn(doc, _chars(), "1", 1))
 

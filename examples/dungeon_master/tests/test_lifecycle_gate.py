@@ -10,7 +10,7 @@ import asyncio
 
 import pytest
 
-from examples.dungeon_master.api import chapter_open, turn_ops
+from examples.dungeon_master.api import chapter_open, turn_engine, turn_ops
 
 
 class _UnexpectedGraphCall:
@@ -103,7 +103,7 @@ def _doc_with_mixed_cast_lifecycle_gate() -> dict:
 def test_invoke_turn_raises_lifecycle_gate_error_before_graph(monkeypatch):
     doc = _doc_with_lifecycle_gate()
     chars = _chars_with_arnulf()
-    monkeypatch.setattr(turn_ops, "get_app", lambda name: _UnexpectedGraphCall())
+    monkeypatch.setattr(turn_engine, "get_app", lambda name: _UnexpectedGraphCall())
 
     with pytest.raises(chapter_open.LifecycleGateError) as err:
         asyncio.run(turn_ops.invoke_turn(doc, chars, "3", 1))
@@ -119,7 +119,7 @@ def test_invoke_turn_filters_invalid_character_from_cast_at_chapter_open(monkeyp
     doc = _doc_with_mixed_cast_lifecycle_gate()
     chars = _chars_with_hilde_and_arnulf()
     capture = _GraphCapture()
-    monkeypatch.setattr(turn_ops, "get_app", lambda name: capture)
+    monkeypatch.setattr(turn_engine, "get_app", lambda name: capture)
 
     text = asyncio.run(turn_ops.invoke_turn(doc, chars, "3", 1))
 

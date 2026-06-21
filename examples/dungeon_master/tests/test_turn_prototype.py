@@ -747,40 +747,40 @@ def test_weave_provider_error_surfaces_without_losing_place(client, tmp_path):
 
 
 def test_phase_for_count_truth_table():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import turn_engine
 
     # N == 5: opening at 0, rising while partial, climax on the last beat,
     # resolved only when every beat is satisfied (J3).
-    assert turn_ops._phase_for_count(0, 5) == "opening"
-    assert turn_ops._phase_for_count(1, 5) == "rising"
-    assert turn_ops._phase_for_count(3, 5) == "rising"
-    assert turn_ops._phase_for_count(4, 5) == "climax"
-    assert turn_ops._phase_for_count(5, 5) == "resolved"
+    assert turn_engine._phase_for_count(0, 5) == "opening"
+    assert turn_engine._phase_for_count(1, 5) == "rising"
+    assert turn_engine._phase_for_count(3, 5) == "rising"
+    assert turn_engine._phase_for_count(4, 5) == "climax"
+    assert turn_engine._phase_for_count(5, 5) == "resolved"
     # N == 1 collapses to opening → resolved (no rising/climax room).
-    assert turn_ops._phase_for_count(0, 1) == "opening"
-    assert turn_ops._phase_for_count(1, 1) == "resolved"
+    assert turn_engine._phase_for_count(0, 1) == "opening"
+    assert turn_engine._phase_for_count(1, 1) == "resolved"
     # N == 2 jumps opening → climax → resolved (no rising room).
-    assert turn_ops._phase_for_count(0, 2) == "opening"
-    assert turn_ops._phase_for_count(1, 2) == "climax"
-    assert turn_ops._phase_for_count(2, 2) == "resolved"
+    assert turn_engine._phase_for_count(0, 2) == "opening"
+    assert turn_engine._phase_for_count(1, 2) == "climax"
+    assert turn_engine._phase_for_count(2, 2) == "resolved"
 
 
 def test_satisfied_indices_parses_numbers_and_ignores_out_of_range():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import turn_engine
 
     beats = ["alpha event", "beta event", "gamma event", "delta event"]
     # 1-based numbers as the scene presents them → 0-based index set.
-    assert turn_ops._satisfied_indices([1, 3], beats) == {0, 2}
+    assert turn_engine._satisfied_indices([1, 3], beats) == {0, 2}
     # Numeric strings are accepted too.
-    assert turn_ops._satisfied_indices(["2"], beats) == {1}
+    assert turn_engine._satisfied_indices(["2"], beats) == {1}
     # Out-of-range / non-numeric junk is ignored, never crashes (boundary).
-    assert turn_ops._satisfied_indices([0, 99, "x", None], beats) == set()
+    assert turn_engine._satisfied_indices([0, 99, "x", None], beats) == set()
     # A model that echoes the beat text instead of its number still resolves.
-    assert turn_ops._satisfied_indices(["gamma event"], beats) == {2}
+    assert turn_engine._satisfied_indices(["gamma event"], beats) == {2}
 
 
 def test_apply_beat_ledger_resolves_indices_to_text_and_computes_phase():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import turn_engine
 
     beats = ["a", "b", "c", "d", "e"]
     direction = {
@@ -788,7 +788,7 @@ def test_apply_beat_ledger_resolves_indices_to_text_and_computes_phase():
         "beats_satisfied": [1, 2],  # 1-based → indices 0,1
         "scene_complete": True,  # wrong model guess — must be recomputed
     }
-    turn_ops._apply_beat_ledger(direction, beats, prior={})
+    turn_engine._apply_beat_ledger(direction, beats, prior={})
     # Indices resolved back to canonical TEXT so consumers read list[str] (J1).
     assert direction["beats_satisfied"] == ["a", "b"]
     assert direction["beats_total"] == 5
@@ -798,12 +798,12 @@ def test_apply_beat_ledger_resolves_indices_to_text_and_computes_phase():
 
 
 def test_apply_beat_ledger_accumulates_with_prior_and_resolves():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import turn_engine
 
     beats = ["a", "b", "c"]
     prior = {"beats_satisfied": ["a", "b"]}  # already-text from a past turn
     direction = {"phase": "rising", "beats_satisfied": [3], "scene_complete": False}
-    turn_ops._apply_beat_ledger(direction, beats, prior=prior)
+    turn_engine._apply_beat_ledger(direction, beats, prior=prior)
     # Cumulative union of prior text + this turn's index → every beat satisfied.
     assert direction["beats_satisfied"] == ["a", "b", "c"]
     assert direction["beats_total"] == 3
@@ -819,7 +819,7 @@ def test_apply_beat_ledger_phase_is_monotonic_under_accumulation():
     ``_phase_for_count`` is monotonic in k, the recorded phase is monotonic by
     construction — even when the model "reports" fewer beats on a later turn.
     """
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import turn_engine
 
     beats = ["a", "b", "c", "d"]
     order = {"opening": 0, "rising": 1, "climax": 2, "resolved": 3}
@@ -828,7 +828,7 @@ def test_apply_beat_ledger_phase_is_monotonic_under_accumulation():
     # Turn-by-turn the model reports a shrinking selection, yet accumulation wins.
     for reported in ([], [1], [2], [1], [1, 2, 3, 4]):
         direction = {"beats_satisfied": list(reported)}
-        turn_ops._apply_beat_ledger(direction, beats, prior=prior)
+        turn_engine._apply_beat_ledger(direction, beats, prior=prior)
         phases.append(direction["phase"])
         prior = direction
     assert phases == ["opening", "rising", "rising", "rising", "resolved"]

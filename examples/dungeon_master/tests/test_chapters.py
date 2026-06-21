@@ -1092,7 +1092,7 @@ def test_roster_filter_exit_match_is_case_insensitive():
 
 
 def test_direction_dict_preserves_cast_exits():
-    from examples.dungeon_master.api import turn_ops
+    from examples.dungeon_master.api import turn_engine
 
-    direction = turn_ops._direction_dict({"cast_exits": ["Arnulf"]})
+    direction = turn_engine._direction_dict({"cast_exits": ["Arnulf"]})
     assert direction["cast_exits"] == ["Arnulf"]

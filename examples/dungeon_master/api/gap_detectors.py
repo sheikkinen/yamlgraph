@@ -381,7 +381,7 @@ def reversal_pack_gap(card: dict) -> dict:
 
 # FR-528: future-time-skip markers an EPILOGUE beat leads with. A chapter resolves
 # only when its director marks every beat satisfied (``scene_complete = k == n``,
-# turn_ops._apply_beat_ledger); a beat after a season passes can never be enacted
+# turn_engine._apply_beat_ledger); a beat after a season passes can never be enacted
 # inside the FR-501 16-turn cap, so it pins the chapter open. An epilogue OPENS with
 # the jump ("By autumn, ..."), so the leading anchor (not mere co-occurrence of
 # "settlement"/"feud") is the precise discriminator (validated against the 1002x-BC
@@ -412,7 +412,7 @@ def unplayable_beat_gap(card: dict) -> dict:
 
     The OUTLINE-time cure for the no-progress tail FR-527 only treated as a symptom.
     A chapter's only natural exit is its director computing ``scene_complete =
-    (k == n)`` (``turn_ops._apply_beat_ledger``). A FINAL beat authored as a time-skip
+    (k == n)`` (``turn_engine._apply_beat_ledger``). A FINAL beat authored as a time-skip
     epilogue (resolution arrives only after a season passes) can never be enacted in
     the bounded 16-turn scene (FR-501), so ``scene_complete`` never fires and the
     chapter rides the cap. Normalize at the partitioner boundary (``the_one_law``):

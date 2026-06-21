@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import patch
 
-from examples.dungeon_master.api import doc_ops, outline_ops, turn_ops
+from examples.dungeon_master.api import doc_ops, outline_ops, turn_engine, turn_ops
 from examples.dungeon_master.api.chapter_open import (
     build_allowed_scene_cast,
     resolve_chapter_cast,
@@ -186,7 +186,7 @@ def test_invoke_turn_intents_roster_scoped_to_chapter_cast(monkeypatch):
     doc = _doc_for_turn({"cast": ["Hilde"], "beats": ["Hilde acts"], "turns": []})
     chars = _three_char_chars()
     capture = _GraphCapture()
-    monkeypatch.setattr(turn_ops, "get_app", lambda name: capture)
+    monkeypatch.setattr(turn_engine, "get_app", lambda name: capture)
 
     text = _run(turn_ops.invoke_turn(doc, chars, "3", 1))
 
@@ -200,7 +200,7 @@ def test_invoke_turn_full_roster_when_chapter_declares_no_cast(monkeypatch):
     doc = _doc_for_turn({"cast": [], "beats": ["the band marches"], "turns": []})
     chars = _three_char_chars()
     capture = _GraphCapture()
-    monkeypatch.setattr(turn_ops, "get_app", lambda name: capture)
+    monkeypatch.setattr(turn_engine, "get_app", lambda name: capture)
 
     _run(turn_ops.invoke_turn(doc, chars, "3", 1))
 
