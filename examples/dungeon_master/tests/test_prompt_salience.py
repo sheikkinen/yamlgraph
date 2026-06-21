@@ -144,3 +144,73 @@ def test_format_report_is_terse_and_mentions_presence():
     report = prompt_salience.format_prompt_salience_report(witness)
     assert "presence" in report.lower()
     assert "chapter" in report.lower()
+
+
+def _exit_doc(later_recap: str) -> dict:
+    """A one-chapter doc where the director benches Arnulf at turn 1.
+
+    Turn 1 declares ``cast_exits=["Arnulf"]`` (his legitimate final action and exit);
+    turn 2's recap is ``later_recap`` -- the strictly-later text the witness scans.
+    """
+    return {
+        "chapters": {
+            "order": ["1"],
+            "cards": {
+                "1": {
+                    "title": "Ch1",
+                    "summary": "The salt-road confrontation.",
+                    "beats": ["Arnulf falls"],
+                    "turns": [
+                        {
+                            "n": 1,
+                            "direction": {"cast_exits": ["Arnulf"]},
+                            "recap": {"text": "Arnulf went down and did not rise."},
+                        },
+                        {
+                            "n": 2,
+                            "direction": {"cast_exits": []},
+                            "recap": {"text": later_recap},
+                        },
+                    ],
+                }
+            },
+        }
+    }
+
+
+def test_revived_actors_flags_exited_then_onstage():
+    """C1 true-positive: an exited name acting in a strictly-later recap is a revival."""
+    doc = _exit_doc("Arnulf surges up once more, weapon raised.")
+    result = prompt_salience.revived_actors(doc)
+    assert result["posture"] == "visibility-not-gate"
+    assert result["count"] == 1
+    incident = result["incidents"][0]
+    assert incident["chapter"] == "1"
+    assert incident["name"] == "Arnulf"
+    assert incident["exit_turn"] == 1
+    assert incident["revival_turn"] == 2
+
+
+def test_revived_actors_ignores_possessive_only():
+    """C1 true-negative: a possessive-only later mention is aftermath, NOT a revival."""
+    doc = _exit_doc("Hilde stepped over Arnulf's fallen body and held the line.")
+    result = prompt_salience.revived_actors(doc)
+    assert result["count"] == 0
+    assert result["incidents"] == []
+
+
+def test_revived_actors_empty_without_exits():
+    """No recorded cast_exits anywhere -> nothing to revive (empty, never a gate)."""
+    doc = _two_chapter_doc()
+    result = prompt_salience.revived_actors(doc)
+    assert result["count"] == 0
+    assert result["incidents"] == []
+
+
+def test_revived_actor_appears_in_report():
+    """The terse report surfaces the revived-actor count when the block is present."""
+    doc = _exit_doc("Arnulf surges up once more, weapon raised.")
+    witness = {"revived_actor": prompt_salience.revived_actors(doc)}
+    report = prompt_salience.format_prompt_salience_report(witness)
+    assert "revived" in report.lower()
+    assert "Arnulf" in report
