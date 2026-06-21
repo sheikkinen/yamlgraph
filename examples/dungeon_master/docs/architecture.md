@@ -2,8 +2,9 @@
 
 The current technical reference for the DM v2 app. The design vision lives in the
 [README](../README.md); this document is the *how* — the module map, the story
-document shape, the stage tree, and the deterministic-vs-generative seam split.
-
+document shape, the stage tree, and the deterministic-vs-generative seam split. The
+component map and the v2-shippable contract program live in
+[`refactoring-plan.md`](refactoring-plan.md).
 > The app is a **stage tree** grown over FR-474 → FR-491, where every visitable
 > node is the same iterable card. FR-491 made the book the spine: the synopsis
 > derives a cast, the cast derives a chapter outline, **each chapter is played
@@ -39,7 +40,9 @@ YAMLGraph's strict separation holds throughout the app:
 | `world_state.py` | The **typed ledger-as-memory** (FR-499/513–518). Pydantic models (`Character`, `WorldObject`, `Relationship`, `WorldState`); `parse_world_state` (boundary validation + relationship grounding gate); `format_world_state` (deterministic render to prompt text, `relationships="all"`/`"active"`/`"none"`); and the deterministic memory operators: `apply_ledger_delta` (apply add/reaffirm/update/invalidate ops + bi-temporal reconciliation + mechanical decay), `apply_lane_floor` (carry-forward floor for the non-relationship lanes), `rank_relationships` (top-K cast-relevant retrieval), `apply_merges` (grounded consolidation). Pure: no LLM, no I/O. |
 | `seam_packet.py` | The typed chapter-seam handoff (FR-506/507): `parse_seam_packet` / `format_seam_packet` and the `character_lifecycle` gate state — the resolved-events / open-threads / must-carry-facts / opening-constraints contract injected into the next chapter's turn 1. |
 | `render.py` | The pure, no-LLM **full-story Markdown render** (FR-494): `render_story_markdown(doc)` frames `compose_book_deterministic`'s Book with the tagline lead, `# Synopsis`, and an optional `# Cast` (first paragraph per non-empty character card); suppresses the `world_state` ledger and invents no title. Inherits the Book's *raise-on-empty* (no played chapter → `ValueError`). The reader serialization beside the machine `story.json`. |
-| `story_doc.py` | Per-session `story.json` read/write. |
+| `story_doc.py` | Per-session `story.json` read/write **and the typed boundary** (FR-556): `StoryDoc`/`Chapters`/`ChapterCard` Pydantic models (`extra="allow"`, so legacy fields survive), `parse(doc)` for boundary validation, and `validate_chapter_card(card)` which raises `InvalidChapterCard` on a structurally malformed card. The typing is bound to **writes**, not reads, so a legacy doc degrading mid-run is never re-validated into a raise. |
+| `chapter_nav.py` | The **sole accessor** for chapter-card state (FR-556) — `chapter_order`, `chapter_card`, `chapter_cards`, `chapter_turns`, `previous_chapter_id`/`_card`, `inherited_world_state`/`_seam_packet`. The read getters are leaf-pure (import only `story_doc`); every reach-in into `doc["chapters"]["cards"]` across the instruments (`witness_metrics`, `prose_continuity`, `prompt_salience`, `turn_state`) and `doc_ops.expand_chapters` now goes through here. `write_chapter_card(doc, cid, card)` is the **one gated write seam** (FR-558): it runs `story_doc.validate_chapter_card` then the per-card playability battery (`card_gate.gate_chapter_card`, lazily imported to keep the static graph acyclic) and raises before committing, so no authoring path can persist an un-playable card. |
+| `card_gate.py` | The per-card **gate** that composes the pure detectors and raises (kept distinct from `gap_detectors`, which only measures): `gate_chapter_card(card)` runs `reversal_pack_gap` + `unplayable_beat_gap`, tagging each gap by `kind`; `ChapterGateError` carries the `cid` and tagged gaps. The sequence-level `composition_gap` is deliberately NOT here (it is an adjacent-pair check; see §5b). |
 | `graph_app.py` | Compiled-graph cache (`get_app`) + output normalisers (`clean_text`, `field`). Dependency-free to avoid import cycles. |
 
 ---
@@ -303,6 +306,48 @@ context — only currently-valid, non-dormant/archived edges), `"all"` (close
 carry-forward, status-labelled), or `"none"`. The ledger is never rendered into the
 reader manuscript (`render.py` suppresses it).
 
+### 5b. Continuity gates and the *authoring boundaries* (FR-525/528/540/555/558)
+
+The continuity program is an **upstream march**: every wave hardened a seam and the
+residual defect moved one boundary earlier (turn → chapter close → chapter open →
+outliner → synopsis). *Where a symptom can be measured is rarely where it can be
+fixed* — the cure belongs at the boundary where the bad data is **born**
+(`the_one_law`), not where it manifests. The deterministic gates split by **arity**:
+the per-card detectors live in `gap_detectors.py`, are composed by `card_gate.py`, and
+bind to the **one write seam** (`chapter_nav.write_chapter_card`); the sequence-level
+gate stays at the outline:
+
+| Gate | Arity | Catches | Bound to |
+|------|-------|---------|----------|
+| `reversal_pack_gap` | per-card | a chapter that packs an actor's **removal AND return** into one capped scene (FR-525) | every card write, via `card_gate.gate_chapter_card` |
+| `unplayable_beat_gap` | per-card | a final beat authored as a **time-skip epilogue** the 16-turn cap can never reach (FR-528) | every card write, via `card_gate.gate_chapter_card` |
+| `composition_gap` | sequence | adjacent chapters whose authored `exit_state`/`entry_state` **do not compose** (FR-540) | `outline_chapters` (the chapter *set*, not a single card) |
+
+Each caller keeps the same enforcement discipline: detect → re-invoke the outline graph
+with a feedback correction block → bounded retry (`_OUTLINE_MAX_ATTEMPTS`) → **raise** (no
+silent fallback, Commandment 6). `card_gate` returns gaps; it does not own the retry loop.
+
+> **The load-bearing lesson — bind the gate to the *write*, not the *writer* (FR-558).**
+> DM v2 has **two** chapter-authoring boundaries: the initial partition
+> (`outline_chapters`) and the FR-523 **state-aware reoutline** (`reoutline_chapter_beats`,
+> invoked from `doc_ops.reoutline_next_chapter` after every chapter close). For three FRs
+> the *same* `reversal_pack_gap` was re-bound at each new write site — whack-a-mole — and
+> the reoutline boundary stayed ungated: in `10036-BC`, Arnulf — correctly
+> `missing_presumed_dead` at Ch1 — was re-authored "still alive downstream" in a Ch3 beat
+> four chapters before his planned Ch6 return (a double return; reviewer continuity 1/5).
+> The detector was right; it was simply never on that path. **FR-558 ends the march by
+> binding the per-card battery to the single typed setter** (`chapter_nav.write_chapter_card`,
+> the only way a card reaches the doc after FR-556): both authoring paths now funnel through
+> `card_gate.gate_chapter_card`, and routing the reoutline through it generalized that
+> boundary to also reject an unplayable time-skip epilogue, not only a packed reversal.
+> **When a detector earns a gate, bind it to the seam every author must cross, not to each
+> author in turn** (`detection_without_enforcement` cured at the write boundary).
+
+A second class of *dead-letter* state compounds this: `allowed_reappearance_from_chapter`
+(the seam-packet return floor) is carried in every chapter but **enforced on no prose
+generator** — a character can be placed on stage before the floor that says when they may
+return. A constraint that is recorded but never consulted is not a constraint.
+
 ---
 
 ## 6. The UI
@@ -349,3 +394,12 @@ pytest examples/dungeon_master/tests/ --no-cov
   persistence is the JSON file, not LangGraph state.
 - **CAP/REQ/CI-exempt.** Under the FR-474 J3 regime: no capability registry, no
   requirement tags, no CI gate; the tests are a harness.
+- **Continuity has a structural ceiling, not a gate gap.** Identity state
+  (lifecycle, faction, relationships) is strong because it has a *typed lane* in the
+  ledger. Physical/positional micro-state (rope config, who is above/below, prop
+  hand-offs, climb phase) has **no typed lane** and is improvised in prose every turn,
+  so the independent `book_reviewer` — which reads across seams — catches drift the
+  generation pipeline cannot see. The deterministic witnesses read the *committed
+  ledger*; the reviewer reads the *prose*; the two disagree precisely where state lives
+  only in prose. See `continuity-issues.md` for the full gap analysis and
+  `v3-rewrite-guidance.md` for the architectural response.
