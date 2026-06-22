@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged (2026-06-22)
+**Status:** Enforced (2026-06-22)
 **Effort:** 1–2 days
 **Requested:** 2026-06-22
 
