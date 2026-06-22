@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from examples.dungeon_master.api import chapter_nav, turn_engine
 from examples.dungeon_master.api.chapter_open import (
+    _chapter_index,
     build_allowed_scene_cast,
     compile_opening_onepager,
     enforce_lifecycle_gate,
@@ -204,6 +205,16 @@ async def invoke_turn(
     ]
     enforce_memory_precedence_gate(doc, cid, n)
     enforce_lifecycle_gate(doc, cid, n, cast)
+    # FR-564 M4b: additive beat instruction merge, gated on attached plan (J6).
+    plan = chapter_nav.attached_plot_plan(doc)
+    if plan is not None:
+        from examples.dungeon_master.api.plot.realize import (
+            beat_instruction,
+            merge_beat_instruction,
+        )
+
+        beat = beat_instruction(plan, _chapter_index(doc, cid))
+        instruction = merge_beat_instruction(instruction, beat)
     req = turn_engine.TurnRequest(
         cast=cast,
         scene=running_scene(doc, cid, n),

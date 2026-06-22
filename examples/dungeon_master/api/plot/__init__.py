@@ -8,7 +8,14 @@ regression) need it; projection, grounding, the seam, and the report run pure.
 
 from __future__ import annotations
 
-from .project import chapter_cast, exclusion_set, ordered_functions, protected_set
+from .project import (
+    belief_at,
+    chapter_cast,
+    exclusion_set,
+    ordered_functions,
+    protected_set,
+)
+from .realize import beat_instruction, merge_beat_instruction
 from .report import render_report
 from .schema import (
     AffectDelta,
@@ -29,8 +36,11 @@ __all__ = [
     "PlanFlaw",
     "PlotPlan",
     "ValidationResult",
+    "beat_instruction",
+    "belief_at",
     "chapter_cast",
     "exclusion_set",
+    "merge_beat_instruction",
     "ordered_functions",
     "protected_set",
     "render_report",

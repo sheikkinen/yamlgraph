@@ -77,6 +77,27 @@ def exclusion_set(plan: PlotPlan, chapter: int) -> set[str]:
     return {char for (_obs, char), held in latest.items() if held is False}
 
 
+def belief_at(plan: PlotPlan, chapter: int) -> dict[tuple[str, str], bool]:
+    """The latest ``(observer, char) -> held`` belief about ``alive`` at chapter <= ``chapter``.
+
+    The same belief-timeline walk ``exclusion_set`` does (``initial_belief``, then
+    ``ordered_functions`` whose chapter <= c), but KEEPING the observer dimension instead of
+    collapsing to a set.  Pure, leaf, engine-free.  ``beat_instruction`` reads this so grief
+    renders from ``believes(clan, not alive(Arnulf))``, never from world-truth (FR-564 J5a).
+    """
+    latest: dict[tuple[str, str], bool] = {}
+    for b in plan.initial_belief:
+        if b.fluent.pred == "alive" and b.fluent.args:
+            latest[(b.observer, b.fluent.args[0])] = b.held
+    for fn in ordered_functions(plan):
+        if fn.chapter > chapter:
+            continue
+        for b in fn.eff_belief:
+            if b.fluent.pred == "alive" and b.fluent.args:
+                latest[(b.observer, b.fluent.args[0])] = b.held
+    return latest
+
+
 def protected_set(plan: PlotPlan) -> list[str]:
     """The author invariants G -- the goal fluents' subject characters (ordered, de-duped)."""
     protected: list[str] = []
@@ -88,4 +109,10 @@ def protected_set(plan: PlotPlan) -> list[str]:
     return protected
 
 
-__all__ = ["chapter_cast", "exclusion_set", "ordered_functions", "protected_set"]
+__all__ = [
+    "belief_at",
+    "chapter_cast",
+    "exclusion_set",
+    "ordered_functions",
+    "protected_set",
+]
