@@ -421,34 +421,53 @@ owner, not 21 reach-ins.
 
 ### 6a. Author (`prompts/author_plot_plan.yaml` + `plot_plan.yaml` graph)
 
-The LLM turns a synopsis into a typed plan via `output_schema` (the `PlotPlan` JSON shape),
-then the graph routes on the validator:
+The LLM turns a premise into a typed plan (prompt-instructed JSON + `parse_json: true`, the DM
+house style -- no `output_schema` block), then the graph routes DETERMINISTICALLY on the validator.
+Routing is the load-bearing as-built decision (FR-563 J1): a `type: tool` node wraps its output as
+`{task_id, tool, success, result, ...}`, so `validation.ok` would live at `validation.result.ok`
+and the route would silently miss. Instead the validate node is `type: python`, and its function
+returns `{"validation": {"ok", "flaws"}}` -- a dict the python node merges at the state TOP level --
+so plain conditional edges resolve `validation.ok == true / == false`. Deterministic routing is a
+conditional EDGE, not a `router` node (a router is an LLM classifier keyed on a schema field); the
+repair cycle is bounded by `loop_limits` + `loop_exits` (the five-whys / reflexion pattern), not a
+v2 retry wrapper. This is the NEW DM v3 author -> validate -> repair pattern.
 
 ```yaml
-# plot_plan.yaml  (new graph)
+# plot_plan.yaml  (FR-563 M4a, as built)
+tools:
+  plot_validate_plan:
+    type: python
+    module: examples.dungeon_master.api.plot.author
+    function: plot_validate_plan        # runs ONLY the four pure checks (engine-free, J4)
 nodes:
   author_plan:
     type: llm
-    prompt: author_plot_plan        # output_schema = PlotPlan JSON
-    state_key: plan_json
+    prompt: author_plot_plan
+    state_key: plan_raw
+    parse_json: true
   validate_plan:
-    type: tool
-    tool: plot.validate_plan        # wraps api/plot/validate.py
-    state_key: validation
-  route_validity:
-    type: router
-    condition: "validation.ok"
-    routes:
-      "true": done
-      "false": repair_plan          # bounded retry (max_loops: 3)
+    type: python                        # NOT tool: merges {validation: {...}} at state top level
+    tool: plot_validate_plan
+    variables: {raw: "{state.plan_raw}"}
   repair_plan:
     type: llm
-    prompt: author_plot_plan        # re-prompt with validation.flaws in context
-    state_key: plan_json
+    prompt: author_plot_plan            # re-prompt with validation.flaws in context
+    state_key: plan_raw
+    parse_json: true
+edges:
+  - {from: validate_plan, to: END, condition: validation.ok == true}
+  - {from: validate_plan, to: repair_plan, condition: validation.ok == false}
+  - {from: repair_plan, to: validate_plan}
+loop_limits: {validate_plan: 3, repair_plan: 3}
+loop_exits: {validate_plan: END}        # repair budget spent -> emit best-effort, stop
 ```
 
-`author.py` is the tolerant boundary parse (mirrors `parse_world_state`): unknown fields
-dropped, invalid predicates normalized, never trusting the provider's JSON shape blindly.
+`author.py` is the tolerant boundary parse (mirrors `parse_world_state`): unknown fields dropped,
+off-alphabet functions/atoms dropped, never raising on the provider's JSON. Attaching a validated
+plan to a book is the GATED write seam `chapter_nav.write_plot_plan` owns (raises `InvalidPlotPlan`
+before committing, FR-558 doctrine); this graph PRODUCES a plan, it does not attach it -- production
+driver wiring is M4b (FR-564).
+
 
 ### 6b. Realize (`api/plot/realize.py` → FR-557 turn engine)
 
@@ -485,8 +504,9 @@ proving the targeted break class is now caught.
 | **M0-spike (optional)** | deferred | Sabre oracle cross-check: floodmark as `.txt`, run JAR subprocess | Sabre independently confirms early-reveal unspellable, presumed-dead arc solves | Sabre (separate process) |
 | **M1** | ✅ **FR-560** | Graduate `api/plot/` + `exclusion_set`/`chapter_cast`/`protected_set` + `_check_belief_grounding` + `report.py` + **live additive exclusion seam** in `chapter_open` | `exclusion_set(floodmark, 3)` excludes Arnulf, released at 6; ungrounded reveal flagged; seam unions into `must_exclude`; no-plan docs byte-identical | M0, **FR-556 (Enforced)** |
 | **M2** | proposed **FR-561** | Causal trio hardened: `cost_turns` → per-chapter budget bound, phantom-reversal pure pre-check, threat scenarios proven via the planner | phantom-reversal plan yields `open_condition`; over-budget + threat plans `PROVEN_UNSOLVABLE` | M1 |
-| **M3** | future | `_check_affect_closure` (hand-written) | dropped-confrontation plan yields `unclosed_affect` | M2 |
-| **M4** | future | `realize.to_turn_request` + `author.py` + `plot_plan.yaml` graph wired end-to-end | floodmark renders 6 chapters with no continuity break in the witness metrics | M3, FR-557 |
+| **M3** | ✅ **FR-562** | `_check_affect_closure` (hand-written) | dropped-confrontation plan yields `unclosed_affect` | M2 |
+| **M4a** | ✅ **FR-563** | `author.parse_plot_plan` + `plot_validate_plan` python node + `plot_plan.yaml` graph + `author_plot_plan.yaml` prompt + gated `chapter_nav.write_plot_plan` | tolerant parse drops junk; floodmark_json round-trips & validates; attach activates the exclusion seam; setter is sole gated owner (raises `InvalidPlotPlan`); graph lints & routes deterministically | M3 |
+| **M4b** | future **FR-564** | `realize.to_turn_request` + production driver wiring end-to-end | floodmark renders 6 chapters with no continuity break in the witness metrics | M4a, FR-557 |
 
 M0+M1 (FR-559 + FR-560, both Enforced) retire the active floodmark defect — that is the shipped
 strangler-fig increment. M0 is the **runnable spike** (FR-559): it proved an off-the-shelf planner

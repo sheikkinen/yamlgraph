@@ -124,3 +124,32 @@ def attached_plot_plan(doc: dict) -> PlotPlan | None:
     """
     plan = doc.get("plot_plan")
     return plan if plan is not None else None
+
+
+class InvalidPlotPlan(Exception):
+    """A plan offered to :func:`write_plot_plan` failed :func:`validate_plan` (FR-563 J3)."""
+
+    def __init__(self, flaws: list) -> None:
+        self.flaws = flaws
+        codes = [getattr(f, "code", "?") for f in flaws]
+        super().__init__(f"PlotPlan has {len(flaws)} validation flaw(s): {codes}")
+
+
+def write_plot_plan(doc: dict, plan: PlotPlan) -> None:
+    """Attach ``plan`` to ``doc`` under ``plot_plan`` through the one validated write seam (FR-563).
+
+    The gate rides the write: :func:`validate_plan` runs first and a flawed plan raises
+    :class:`InvalidPlotPlan` BEFORE committing, so a plan that violates a narrative invariant never
+    reaches the doc and :func:`attached_plot_plan`'s "validated PlotPlan" contract is un-bypassable
+    (FR-558 doctrine: bind the gate to the WRITE, not the writer). The sole owner of the
+    ``plot_plan`` field.
+
+    ``validate_plan`` is imported lazily so the read getters stay leaf-pure: a plan-less doc never
+    pulls in ``api.plot`` (mirrors the lazy ``card_gate`` import in :func:`write_chapter_card`).
+    """
+    from examples.dungeon_master.api.plot.validate import validate_plan
+
+    result = validate_plan(plan)
+    if not result.ok:
+        raise InvalidPlotPlan(result.flaws)
+    doc["plot_plan"] = plan

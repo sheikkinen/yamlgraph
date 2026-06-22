@@ -1,0 +1,100 @@
+# Dungeon Master v3 -- Plot-plan authoring graph (FR-563 M4a).
+#
+# Activates the v3 plot lane: an LLM authors a structured PlotPlan (the typed
+# <I, A, G, F, E> contract), a deterministic python node validates it against the
+# four pure narrative invariants, and a bounded repair loop re-prompts the author
+# with the concrete flaws until the plan is sound (or the loop budget is spent).
+#
+# Routing is DETERMINISTIC, not an LLM classifier (FR-563 J1): the validate node
+# returns {validation: {ok, flaws}} -- a dict the python node merges at the state
+# top level -- so the conditional edges route on `validation.ok == true/false`.
+# This is the NEW DM v3 author->validate->repair pattern, not a v2 retry wrapper.
+#
+# Authoring is ENGINE-FREE (J4): plot_validate_plan runs only the four pure checks
+# (lifecycle, grounding, antecedent, affect-closure), never the optional UP solve.
+# Attaching a validated plan to a book is the GATED write seam chapter_nav owns
+# (write_plot_plan raises InvalidPlotPlan before committing); this graph produces
+# the plan, it does not attach it -- production driver wiring is M4b (FR-564).
+#
+# Usage:
+#   yamlgraph graph run examples/dungeon_master/plot_plan.yaml \
+#     --var premise="A presumed-dead patriarch returns at the flood's crest" --full
+version: "1.0"
+name: dm-plot-plan
+description: Author and validate a v3 PlotPlan with a bounded repair loop
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  temperature: 0.7
+  # The whole plot model -- functions with pre/effects -- comes back as JSON;
+  # reserve headroom for a reasoning model's hidden tokens plus the plan.
+  max_tokens: 6000
+
+state:
+  premise: str
+  plan_raw: dict
+  validation: dict
+
+tools:
+  plot_validate_plan:
+    type: python
+    module: examples.dungeon_master.api.plot.author
+    function: plot_validate_plan
+    description: "Parse plan_raw and run the four pure narrative-invariant checks"
+
+nodes:
+  author_plan:
+    type: llm
+    prompt: author_plot_plan
+    state_key: plan_raw
+    parse_json: true
+    variables:
+      premise: "{state.premise}"
+      flaws: ""
+
+  validate_plan:
+    type: python
+    tool: plot_validate_plan
+    variables:
+      raw: "{state.plan_raw}"
+
+  repair_plan:
+    type: llm
+    prompt: author_plot_plan
+    state_key: plan_raw
+    parse_json: true
+    variables:
+      premise: "{state.premise}"
+      flaws: "{state.validation.flaws}"
+
+edges:
+  - from: START
+    to: author_plan
+
+  - from: author_plan
+    to: validate_plan
+
+  - from: validate_plan
+    to: END
+    condition: validation.ok == true
+
+  - from: validate_plan
+    to: repair_plan
+    condition: validation.ok == false
+
+  - from: repair_plan
+    to: validate_plan
+
+loop_limits:
+  validate_plan: 3
+  repair_plan: 3
+
+loop_exits:
+  validate_plan: END  # Repair budget spent: emit the best-effort plan and stop.
+
+exports:
+  plan_raw:
+    format: json
+    filename: plot_plan.json
