@@ -43,7 +43,7 @@ async def generate_story(
     story_root: Path,
     session_id: str = "story",
     turn_cap: int = DEFAULT_TURN_CAP,
-    enable_plot_plan: bool = False,
+    enable_plot_plan: bool = True,
 ) -> dict:
     """Drive a ``DMSession`` to a complete book and return the finished doc.
 
@@ -122,7 +122,7 @@ async def _amain(args: argparse.Namespace) -> None:
         story_root=out_dir,
         session_id=args.session_id,
         turn_cap=args.turn_cap,
-        enable_plot_plan=args.plot_plan,
+        enable_plot_plan=not args.no_plot_plan,
     )
     json_path, md_path = _write_outputs(doc, out_dir)
     print(f"✓ story.json → {json_path}")
@@ -145,9 +145,10 @@ def main() -> None:
         help="Max total turn-accepts before the book gate must open.",
     )
     parser.add_argument(
-        "--plot-plan",
+        "--no-plot-plan",
         action="store_true",
-        help="Author a v3 plot plan after cast derivation (activates belief exclusion + beat steering).",
+        dest="no_plot_plan",
+        help="Disable v3 plot plan authoring (reverts to v2 generation).",
     )
     asyncio.run(_amain(parser.parse_args()))
 

@@ -41,7 +41,7 @@ echo "📖 Generating book → $OUT (turn-cap $TURN_CAP)"
   --premise "$PREMISE" \
   --out "$OUT" \
   --turn-cap "$TURN_CAP" \
-  ${PLOT_PLAN:+--plot-plan}
+  ${NO_PLOT_PLAN:+--no-plot-plan}
 
 echo "🔍 Reviewing $OUT/story.md"
 "$PY" -m yamlgraph.cli graph run examples/book_reviewer/graph.yaml \
