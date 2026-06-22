@@ -471,25 +471,28 @@ driver wiring is M4b (FR-564).
 
 ### 6b. Realize (`api/plot/realize.py` → FR-557 turn engine)
 
-Each `Function` becomes a `TurnRequest` (refactoring-plan Contract B). The realizer renders the
-beat against the **focalized** belief state — it cannot author world-truth.
+The realizer renders authored beat(s) into the **existing** `TurnRequest.instruction` field —
+the one caller-intent string the engine already exposes. It never writes back to the plan;
+Arnulf's grief in ch1–5 renders BECAUSE `believes(clan, not alive(Arnulf))` while world-truth
+`alive(Arnulf)` is untouched. (FR-564 M4b, corrected from the stale `to_turn_request` sketch.)
 
 ```python
-def to_turn_request(fn: Function, plan: PlotPlan) -> "TurnRequest":
-    """Bind one authored beat to the doc-free turn engine.
+def beat_instruction(plan: PlotPlan, chapter: int) -> str:
+    """Render the authored beat(s) scheduled at ``chapter`` as a turn instruction.
 
-    The realizer renders fn.eff_* as already-decided; it never writes back to the plan.
-    Arnulf's grief in ch1-5 renders BECAUSE believes(clan, not alive(Arnulf)) — while
-    world-truth alive(Arnulf) is untouched.
+    Selects the Function(s) whose ``chapter`` matches, in ``ordered_functions`` order.
+    A chapter may carry more than one beat (floodmark ch6 has Fr + Ff); directives are
+    concatenated in order. Returns '' when no beat maps to ``chapter``.
+    Belief is focalized via ``belief_at(plan, chapter)`` from ``project.py``.
     """
-    return TurnRequest(
-        cast=chapter_cast(plan, fn.chapter),
-        protected=protected_set(plan),
-        instruction=_beat_instruction(fn),          # from fn.kind + effects
-        belief_context=_focalize(fn, plan),         # what THIS beat's observers believe
-        extras={"function_id": fn.id, "grain": fn.grain},   # opaque DM semantics
-    )
 ```
+
+The wiring is **additive inside `invoke_turn`** (turn_ops.py), gated on
+`chapter_nav.attached_plot_plan(doc)`: when a plan is attached, the beat directive is
+appended to (never replaces) the stage instruction; when absent, `instruction` passes
+through byte-for-byte (FR-560/563 dormancy invariant). `TurnRequest`, `TurnExtras`,
+`cast`, `scene`, `beats`, and `extras` stay doc-assembled — realize feeds only
+`instruction`.
 
 ---
 
@@ -506,7 +509,7 @@ proving the targeted break class is now caught.
 | **M2** | proposed **FR-561** | Causal trio hardened: `cost_turns` → per-chapter budget bound, phantom-reversal pure pre-check, threat scenarios proven via the planner | phantom-reversal plan yields `open_condition`; over-budget + threat plans `PROVEN_UNSOLVABLE` | M1 |
 | **M3** | ✅ **FR-562** | `_check_affect_closure` (hand-written) | dropped-confrontation plan yields `unclosed_affect` | M2 |
 | **M4a** | ✅ **FR-563** | `author.parse_plot_plan` + `plot_validate_plan` python node + `plot_plan.yaml` graph + `author_plot_plan.yaml` prompt + gated `chapter_nav.write_plot_plan` | tolerant parse drops junk; floodmark_json round-trips & validates; attach activates the exclusion seam; setter is sole gated owner (raises `InvalidPlotPlan`); graph lints & routes deterministically | M3 |
-| **M4b** | future **FR-564** | `realize.to_turn_request` + production driver wiring end-to-end | floodmark renders 6 chapters with no continuity break in the witness metrics | M4a, FR-557 |
+| **M4b** | ✅ **FR-564** | `realize.beat_instruction(plan, chapter) -> str` + `project.belief_at` + additive wiring in `invoke_turn` + design §6b correction | beat renders ch1 villainy + ch6 reveal/reconciliation; un-planned chapter returns ''; wiring additive+gated; belief focalized, not world-truth; end-to-end demo witness | M4a, FR-557 |
 
 M0+M1 (FR-559 + FR-560, both Enforced) retire the active floodmark defect — that is the shipped
 strangler-fig increment. M0 is the **runnable spike** (FR-559): it proved an off-the-shelf planner
