@@ -232,11 +232,89 @@ reopened_affect_variant = PlotPlan(
 )
 
 
+# --- authoring-shaped JSON of the canon (FR-563 M4a) ---------------------------------------
+# The dict literal an LLM emits for the floodmark plan: JSON lists (not tuples), explicit nested
+# fluents/affects. Parsing it through ``author.parse_plot_plan`` reconstructs ``floodmark`` and
+# validates ok -- the round-trip witness that the authoring boundary is faithful. Kept beside the
+# typed canon so the JSON shape and the model shape drift together.
+floodmark_json: dict = {
+    "agents": ["Arnulf", "Hilde"],
+    "initial_world": [{"pred": "alive", "args": ["Arnulf"], "value": True}],
+    "initial_belief": [
+        {
+            "observer": "Clan",
+            "fluent": {"pred": "alive", "args": ["Arnulf"]},
+            "held": True,
+        }
+    ],
+    "goals": [{"pred": "alive", "args": ["Arnulf"], "value": True}],
+    "functions": [
+        {
+            "id": "F1",
+            "kind": "villainy",
+            "subject": "Arnulf",
+            "chapter": 1,
+            "grain": "turn",
+            "eff_world": [],
+            "eff_belief": [
+                {
+                    "observer": "Clan",
+                    "fluent": {"pred": "alive", "args": ["Arnulf"]},
+                    "held": False,
+                }
+            ],
+            "eff_affect": [{"op": "open", "char": "Hilde", "kind": "loss"}],
+        },
+        {
+            "id": "Fr",
+            "kind": "reveal",
+            "subject": "Arnulf",
+            "chapter": 6,
+            "observers": ["Clan"],
+            "pre_belief": [
+                {
+                    "observer": "Clan",
+                    "fluent": {"pred": "alive", "args": ["Arnulf"]},
+                    "held": False,
+                }
+            ],
+            "eff_belief": [
+                {
+                    "observer": "Clan",
+                    "fluent": {"pred": "alive", "args": ["Arnulf"]},
+                    "held": True,
+                }
+            ],
+            "eff_affect": [
+                {"op": "close", "char": "Hilde", "kind": "loss"},
+                {"op": "open", "char": "Hilde", "kind": "guilt"},
+            ],
+        },
+        {
+            "id": "Ff",
+            "kind": "reconciliation",
+            "subject": "Hilde",
+            "chapter": 6,
+            "pre_belief": [
+                {
+                    "observer": "Clan",
+                    "fluent": {"pred": "alive", "args": ["Arnulf"]},
+                    "held": True,
+                }
+            ],
+            "eff_affect": [{"op": "close", "char": "Hilde", "kind": "guilt"}],
+        },
+    ],
+    "order": [["F1", "Fr"], ["Fr", "Ff"]],
+}
+
+
 __all__ = [
     "budget_ok_variant",
     "dropped_confrontation_variant",
     "early_reveal_variant",
     "floodmark",
+    "floodmark_json",
     "overbudget_variant",
     "phantom_return_variant",
     "reopened_affect_variant",
