@@ -40,7 +40,8 @@ echo "📖 Generating book → $OUT (turn-cap $TURN_CAP)"
 "$PY" examples/dungeon_master/scripts/generate.py \
   --premise "$PREMISE" \
   --out "$OUT" \
-  --turn-cap "$TURN_CAP"
+  --turn-cap "$TURN_CAP" \
+  ${PLOT_PLAN:+--plot-plan}
 
 echo "🔍 Reviewing $OUT/story.md"
 "$PY" -m yamlgraph.cli graph run examples/book_reviewer/graph.yaml \

@@ -119,11 +119,18 @@ def attached_plot_plan(doc: dict) -> PlotPlan | None:
 
     The sole typed read for the optional plot plan that drives the live exclusion seam (FR-556
     discipline). Most books carry no plan, so this returns ``None`` and the chapter-open onepager
-    is byte-for-byte unchanged. Leaf-pure: the ``PlotPlan`` import is type-only, so reading a
-    plan-less doc never pulls in ``api.plot``.
+    is byte-for-byte unchanged. Accepts both a ``PlotPlan`` instance (in-memory attach via
+    ``write_plot_plan``) and a dict (after JSON round-trip via ``story_doc.read``) — the boundary
+    normalizes to the typed model so consumers never see the storage form (FR-565).
     """
-    plan = doc.get("plot_plan")
-    return plan if plan is not None else None
+    raw = doc.get("plot_plan")
+    if raw is None:
+        return None
+    from examples.dungeon_master.api.plot.schema import PlotPlan
+
+    if isinstance(raw, PlotPlan):
+        return raw
+    return PlotPlan.model_validate(raw)
 
 
 class InvalidPlotPlan(Exception):
@@ -152,4 +159,4 @@ def write_plot_plan(doc: dict, plan: PlotPlan) -> None:
     result = validate_plan(plan)
     if not result.ok:
         raise InvalidPlotPlan(result.flaws)
-    doc["plot_plan"] = plan
+    doc["plot_plan"] = plan.model_dump()

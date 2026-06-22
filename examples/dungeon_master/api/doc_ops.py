@@ -227,6 +227,38 @@ async def invoke_stage(doc: dict, stage: Stage, draft: str, instruction: str) ->
 # ── side-effecting expansions (navigation stays pure; FR-489 J1) ────────────
 
 
+async def author_plot_plan(doc: dict, story_dir: Path) -> None:
+    """Author a v3 PlotPlan from the synopsis and attach it to the doc (FR-565).
+
+    Runs ``plot_plan.yaml`` (author → validate → bounded repair), parses the graph
+    output through the tolerant boundary (``parse_plot_plan``), and writes the
+    validated plan through the gated ``write_plot_plan`` seam. Persists to
+    ``story_dir`` on success.
+
+    The plan is validated **three times** by design (J1): (1) inside the graph's
+    repair loop (the LLM's feedback channel), (2) by ``write_plot_plan``'s gate
+    (the un-bypassable FR-558 contract), and (3) implicitly by ``parse_plot_plan``
+    dropping off-alphabet atoms. The ``plan_raw`` returned by the graph is the
+    **last authored attempt** (J2), which may still have flaws if the repair budget
+    was spent — the ``write_plot_plan`` gate catches this and raises
+    ``InvalidPlotPlan`` before the plan reaches the doc.
+    """
+    synopsis = doc.get("synopsis", {}).get("text", "")
+    if not synopsis.strip():
+        return
+    result = await get_app("examples/dungeon_master/plot_plan.yaml").ainvoke(
+        {"premise": synopsis}
+    )
+    plan_raw = result.get("plan_raw")
+    if plan_raw is None:
+        return
+    from examples.dungeon_master.api.plot.author import parse_plot_plan
+
+    plan = parse_plot_plan(plan_raw)
+    chapter_nav.write_plot_plan(doc, plan)
+    story_doc.write(story_dir, doc)
+
+
 async def expand_roster(doc: dict, story_dir: Path) -> None:
     """Derive the cast from the synopsis and spawn one card per new name (A4)."""
     chars = characters(doc)

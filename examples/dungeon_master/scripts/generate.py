@@ -28,9 +28,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 from pathlib import Path
 
-from examples.dungeon_master.api import render, story_doc, tree
+from examples.dungeon_master.api import chapter_nav, doc_ops, render, story_doc, tree
 from examples.dungeon_master.api import session as dm_session
 
 DEFAULT_TURN_CAP = 24  # safety bound on total turn-accepts across all chapters
@@ -42,6 +43,7 @@ async def generate_story(
     story_root: Path,
     session_id: str = "story",
     turn_cap: int = DEFAULT_TURN_CAP,
+    enable_plot_plan: bool = False,
 ) -> dict:
     """Drive a ``DMSession`` to a complete book and return the finished doc.
 
@@ -68,6 +70,11 @@ async def generate_story(
     order = doc.get("chapters", {}).get("order", [])
     if not order:
         raise RuntimeError("no chapters were derived from the synopsis")
+
+    # 2b. Plot plan (FR-565): author and attach a v3 plan (opt-in).
+    if enable_plot_plan:
+        with contextlib.suppress(chapter_nav.InvalidPlotPlan):
+            await doc_ops.author_plot_plan(doc, story_dir)
 
     # 3. Play: open the first chapter and keep accepting turns. The adapter closes
     #    each chapter when its director reports the scene complete and advances to
@@ -115,6 +122,7 @@ async def _amain(args: argparse.Namespace) -> None:
         story_root=out_dir,
         session_id=args.session_id,
         turn_cap=args.turn_cap,
+        enable_plot_plan=args.plot_plan,
     )
     json_path, md_path = _write_outputs(doc, out_dir)
     print(f"✓ story.json → {json_path}")
@@ -135,6 +143,11 @@ def main() -> None:
         type=int,
         default=DEFAULT_TURN_CAP,
         help="Max total turn-accepts before the book gate must open.",
+    )
+    parser.add_argument(
+        "--plot-plan",
+        action="store_true",
+        help="Author a v3 plot plan after cast derivation (activates belief exclusion + beat steering).",
     )
     asyncio.run(_amain(parser.parse_args()))
 

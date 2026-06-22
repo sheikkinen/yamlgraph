@@ -95,7 +95,8 @@ def test_setter_round_trips_through_the_getter():
     doc: dict = {}
     plan = author.parse_plot_plan(copy.deepcopy(fm.floodmark_json))
     chapter_nav.write_plot_plan(doc, plan)
-    assert chapter_nav.attached_plot_plan(doc) is plan
+    got = chapter_nav.attached_plot_plan(doc)
+    assert got == plan
 
 
 def test_setter_is_the_sole_api_writer_of_plot_plan():
