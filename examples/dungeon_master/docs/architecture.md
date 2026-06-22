@@ -41,7 +41,8 @@ YAMLGraph's strict separation holds throughout the app:
 | `seam_packet.py` | The typed chapter-seam handoff (FR-506/507): `parse_seam_packet` / `format_seam_packet` and the `character_lifecycle` gate state — the resolved-events / open-threads / must-carry-facts / opening-constraints contract injected into the next chapter's turn 1. |
 | `render.py` | The pure, no-LLM **full-story Markdown render** (FR-494): `render_story_markdown(doc)` frames `compose_book_deterministic`'s Book with the tagline lead, `# Synopsis`, and an optional `# Cast` (first paragraph per non-empty character card); suppresses the `world_state` ledger and invents no title. Inherits the Book's *raise-on-empty* (no played chapter → `ValueError`). The reader serialization beside the machine `story.json`. |
 | `story_doc.py` | Per-session `story.json` read/write **and the typed boundary** (FR-556): `StoryDoc`/`Chapters`/`ChapterCard` Pydantic models (`extra="allow"`, so legacy fields survive), `parse(doc)` for boundary validation, and `validate_chapter_card(card)` which raises `InvalidChapterCard` on a structurally malformed card. The typing is bound to **writes**, not reads, so a legacy doc degrading mid-run is never re-validated into a raise. |
-| `chapter_nav.py` | The **sole accessor** for chapter-card state (FR-556) — `chapter_order`, `chapter_card`, `chapter_cards`, `chapter_turns`, `previous_chapter_id`/`_card`, `inherited_world_state`/`_seam_packet`. The read getters are leaf-pure (import only `story_doc`); every reach-in into `doc["chapters"]["cards"]` across the instruments (`witness_metrics`, `prose_continuity`, `prompt_salience`, `turn_state`) and `doc_ops.expand_chapters` now goes through here. `write_chapter_card(doc, cid, card)` is the **one gated write seam** (FR-558): it runs `story_doc.validate_chapter_card` then the per-card playability battery (`card_gate.gate_chapter_card`, lazily imported to keep the static graph acyclic) and raises before committing, so no authoring path can persist an un-playable card. |
+| `chapter_nav.py` | The **sole accessor** for chapter-card state (FR-556) — `chapter_order`, `chapter_card`, `chapter_cards`, `chapter_turns`, `previous_chapter_id`/`_card`, `inherited_world_state`/`_seam_packet`. The read getters are leaf-pure (import only `story_doc`); every reach-in into `doc["chapters"]["cards"]` across the instruments (`witness_metrics`, `prose_continuity`, `prompt_salience`, `turn_state`) and `doc_ops.expand_chapters` now goes through here. `write_chapter_card(doc, cid, card)` is the **one gated write seam** (FR-558): it runs `story_doc.validate_chapter_card` then the per-card playability battery (`card_gate.gate_chapter_card`, lazily imported to keep the static graph acyclic) and raises before committing, so no authoring path can persist an un-playable card. Also owns the plot-plan serialisation boundary: `write_plot_plan` (gated write, `model_dump()`) and `attached_plot_plan` (typed read, `model_validate()`). |
+| `api/plot/` | The v3 **typed belief lane** (FR-559–565, leaf package): `schema.py` (PlotPlan, Function, Fluent, Belief, AffectDelta), `project.py` (pure projections: `ordered_functions`, `exclusion_set`, `belief_at`, `protected_set`), `validate.py` (four narrative invariant checks), `author.py` (`parse_plot_plan` tolerant boundary), `realize.py` (`beat_instruction` + `merge_beat_instruction`), `floodmark.py` (canonical fixture + 9 named variants). |
 | `card_gate.py` | The per-card **gate** that composes the pure detectors and raises (kept distinct from `gap_detectors`, which only measures): `gate_chapter_card(card)` runs `reversal_pack_gap` + `unplayable_beat_gap`, tagging each gap by `kind`; `ChapterGateError` carries the `cid` and tagged gaps. The sequence-level `composition_gap` is deliberately NOT here (it is an adjacent-pair check; see §5b). |
 | `graph_app.py` | Compiled-graph cache (`get_app`) + output normalisers (`clean_text`, `field`). Dependency-free to avoid import cycles. |
 
@@ -347,6 +348,56 @@ A second class of *dead-letter* state compounds this: `allowed_reappearance_from
 (the seam-packet return floor) is carried in every chapter but **enforced on no prose
 generator** — a character can be placed on stage before the floor that says when they may
 return. A constraint that is recorded but never consulted is not a constraint.
+
+### 5c. The v3 plot plan — typed belief lane (FR-559–565)
+
+The continuity program (§5b) hardened the deterministic seams; the plot plan adds
+a **typed narrative layer** above them. An optional `PlotPlan` — authored before
+prose, validated against four invariants — steers generation through two additive
+runtime seams. When no plan is attached, every seam passes through unchanged (the
+dormancy invariant). Full reference: [`plot-plan.md`](plot-plan.md).
+
+**The formal model** is `<I, A, G, F, E>` (schema in `api/plot/schema.py`):
+initial world-truth + beliefs, agents, goals, an ordered set of typed `Function`
+beats (villainy / reveal / reconciliation / return), and pairwise ordering edges.
+The core insight is the **world-truth vs belief split**: a "presumed dead" arc
+never sets `alive(c)=False` in world-truth — only in belief — so the character
+can be excluded from the stage without being killed.
+
+**Authoring pipeline** (`doc_ops.author_plot_plan`):
+
+1. The `plot_plan.yaml` graph authors the plan from the synopsis (LLM → validate
+   → bounded repair, max 3 iterations).
+2. `parse_plot_plan` normalises the LLM's JSON through a tolerant boundary
+   (off-alphabet atoms dropped, never raised mid-pipeline).
+3. `write_plot_plan` validates against four pure invariant checks before
+   committing — a flawed plan never reaches the doc.
+
+**Four validation checks** (pure, no LLM — `api/plot/validate.py`):
+
+| Check | Flaw code | What it catches |
+|-------|-----------|-----------------|
+| Monotonic lifecycle | `lifecycle_violation` | World-truth revival (`alive=False` then `True`) |
+| Grounded reveal | `ungrounded_reveal` | Revealing a truth that was never concealed |
+| Causal antecedent | `open_condition` | A precondition no prior beat or initial state satisfies |
+| Affect closure | `unclosed_affect` | An emotional arc opened but never closed (unless `intentional_open`) |
+
+**Two runtime seams** (additive, gated on `attached_plot_plan(doc) is not None`):
+
+| Seam | Where | What it does |
+|------|-------|--------------|
+| **Exclusion** (M1) | `chapter_open.compile_opening_onepager` | `exclusion_set(plan, chapter)` unions presumed-dead characters into `must_exclude` — they cannot appear onstage until the reveal |
+| **Realize** (M4b) | `turn_ops.invoke_turn` | `beat_instruction(plan, chapter)` renders the authored beat as a prose directive, focalized on belief (never world-truth), and merges it additively into the turn `instruction` |
+
+**Activation**: on by default in `generate_story` and the shell wrapper; opt out
+with `--no-plot-plan` or `NO_PLOT_PLAN=1`. The plan is persisted as
+`doc["plot_plan"]` in `story.json` (via `model_dump()` on write,
+`PlotPlan.model_validate()` on read).
+
+**Graceful degradation**: `InvalidPlotPlan` is caught in `generate_story`;
+generation continues without a plan. A book with no `plot_plan` key in
+`story.json` was either generated with the flag off or the plan failed
+validation.
 
 ---
 
