@@ -42,17 +42,27 @@ def validate_kinds(state: dict) -> dict:
     leaving ``kinds`` absent.
     """
     raw = state.get("kinds_raw", "")
-    items = yaml.safe_load(raw)
+    try:
+        items = yaml.safe_load(raw)
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    # yaml.safe_load("") returns None; a scalar is also not a list (J1 crash guard).
+    if not isinstance(items, list):
+        return {"validation": {"ok": False, "flaws": ["expected a YAML list of items"]}}
 
     flaws: list[str] = []
     for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
         if item.get("kind") not in VALID_KINDS:
             flaws.append(f"{item.get('id', '?')}: unknown kind '{item.get('kind')}'")
         if not item.get("subject"):
             flaws.append(f"{item.get('id', '?')}: missing subject")
 
     expected = {g["id"] for g in state.get("glosses", [])}
-    got = {item.get("id") for item in items}
+    got = {item.get("id") for item in items if isinstance(item, dict)}
     missing = expected - got
     if missing:
         flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")

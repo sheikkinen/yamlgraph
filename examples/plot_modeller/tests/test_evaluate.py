@@ -6,6 +6,7 @@ evaluator scoring of absent/unparseable output (AC#6, J6).
 
 from __future__ import annotations
 
+from evaluate import compare, score_genre, summarise
 from nodes.tools import validate_kinds
 
 GLOSSES = [
@@ -73,3 +74,70 @@ class TestValidateKinds:
         )
         assert out["validation"]["ok"] is False
         assert "kinds" not in out
+
+
+TRUTH = [
+    {"id": "F1", "kind": "villainy", "subject": "Hagen"},
+    {"id": "F2", "kind": "lack", "subject": "Marren"},
+]
+
+
+class TestEvaluate:
+    """AC#6 / J6 — evaluator scoring of absent/unparseable predictions."""
+
+    def test_golden_all_correct(self):
+        """Perfect prediction → full marks, valid YAML true."""
+        predicted = [
+            {"id": "F1", "kind": "villainy", "subject": "Hagen"},
+            {"id": "F2", "kind": "lack", "subject": "Marren"},
+        ]
+        ev = score_genre("detective", predicted, TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["kind_correct"] == 2
+        assert ev["summary"]["kind_accuracy"] == "2/2 (1.00)"
+        assert ev["summary"]["subject_correct"] == 2
+        assert ev["summary"]["produced_valid_yaml"] is True
+        assert ev["confusions"] == []
+        assert ev["meta"]["corpus"] == "self-derived (upper-bound)"  # J2
+
+    def test_absent_prediction_scores_all_wrong(self):
+        """J6: predicted=None → every function wrong, no crash."""
+        ev = score_genre("horror", None, TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["kind_correct"] == 0
+        assert ev["summary"]["kind_accuracy"] == "0/2 (0.00)"
+        assert ev["summary"]["produced_valid_yaml"] is False
+        assert len(ev["confusions"]) == 2
+
+    def test_non_list_prediction_scores_all_wrong(self):
+        """J6: a scalar prediction is treated as all-wrong, never crashes."""
+        ev = score_genre("scifi", "garbage", TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["kind_correct"] == 0
+        assert ev["summary"]["produced_valid_yaml"] is False
+
+    def test_confusion_recorded(self):
+        """A misclassification is recorded as expected-vs-predicted."""
+        predicted = [
+            {"id": "F1", "kind": "villainy", "subject": "Hagen"},
+            {"id": "F2", "kind": "pursuit", "subject": "Marren"},  # wrong kind
+        ]
+        per_function, confusions = compare(predicted, TRUTH)
+        assert per_function[1]["kind_match"] is False
+        assert confusions == [
+            {"expected": "lack", "predicted": "pursuit", "function": "F2"}
+        ]
+
+    def test_subject_match_is_tolerant(self):
+        """Subject comparison ignores case and surrounding whitespace."""
+        predicted = [
+            {"id": "F1", "kind": "villainy", "subject": "  hagen "},
+            {"id": "F2", "kind": "lack", "subject": "MARREN"},
+        ]
+        ev = score_genre("detective", predicted, TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["subject_correct"] == 2
+
+    def test_summarise_stamps_corpus_ceiling(self):
+        """Aggregate summary carries the self-derived ceiling (J2)."""
+        ev = score_genre("detective", None, TRUTH, "anthropic", "haiku")
+        summary = summarise([ev])
+        assert summary["corpus"] == "self-derived (upper-bound)"
+        assert summary["total_functions"] == 2
+        assert summary["kind_accuracy"] == "0/2 (0.00)"
