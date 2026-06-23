@@ -1,0 +1,373 @@
+# plot-plan: The Vanished Witness
+# Genre: detective-thriller
+# Kinds used: villainy, lack, pursuit, donor_test, provision, exposure,
+#   recognition, punishment (8 of 16)
+# Source: v4/genre-plots/detective-thriller-the-vanished-witness.md
+
+meta:
+  title: The Vanished Witness
+  genre: detective-thriller
+  synopsis: v5/detective-thriller-the-vanished-witness.txt
+
+agents:
+  - Marren
+  - Lydia
+  - Hagen
+  - Consul Drey
+  - Witness Pell
+
+initial_world:
+  - pred: alive
+    args: [Marren]
+    value: true
+  - pred: alive
+    args: [Lydia]
+    value: true
+  - pred: alive
+    args: [Hagen]
+    value: true
+  - pred: alive
+    args: [Consul Drey]
+    value: true
+  - pred: alive
+    args: [Witness Pell]
+    value: true
+  - pred: at
+    args: [Witness Pell, Safe house]
+    value: true
+  - pred: holds
+    args: [Witness Pell, ledger]
+    value: true
+  - pred: rel
+    args: [Hagen, Consul Drey]
+    value: co-conspirator
+  - pred: rel
+    args: [Marren, Lydia]
+    value: partners
+  - pred: faction
+    args: [Hagen, court]
+    value: true
+  - pred: faction
+    args: [Consul Drey, guild]
+    value: true
+
+initial_belief:
+  - observer: Marren
+    fluent:
+      pred: rel
+      args: [Hagen, Consul Drey]
+    held: neutral
+  - observer: Marren
+    fluent:
+      pred: at
+      args: [Witness Pell, Safe house]
+    held: true
+  - observer: Hagen
+    fluent:
+      pred: holds
+      args: [Witness Pell, ledger]
+    held: true
+
+goals:
+  - pred: alive
+    args: [Witness Pell]
+    value: true
+  - pred: at
+    args: [Witness Pell, Court]
+    value: true
+  - pred: holds
+    args: [Marren, ledger]
+    value: true
+  - pred: alive
+    args: [Hagen]
+    value: true
+
+functions:
+  - id: F1
+    kind: villainy
+    gloss: >
+      The night before trial, Hagen's hired men abduct Witness Pell from
+      the court safe house and burn the building to destroy evidence.
+    subject: Hagen
+    roles:
+      villain: Hagen
+      victim: Witness Pell
+    chapter: 1
+    observers: [Marren]
+    motivation:
+      agent: Hagen
+      goal: protect_Drey
+    threatens:
+      agent: Marren
+      goal: deliver_witness
+    enables: [F2]
+    pre_world:
+      - pred: at
+        args: [Witness Pell, Safe house]
+        value: true
+    eff_world:
+      - pred: at
+        args: [Witness Pell, Safe house]
+        value: false
+      - pred: at
+        args: [Witness Pell, Warehouse]
+        value: true
+    eff_belief:
+      - observer: Marren
+        fluent:
+          pred: alive
+          args: [Witness Pell]
+        held: unknown
+    eff_affect:
+      - op: open
+        char: Marren
+        kind: loss
+
+  - id: F2
+    kind: lack
+    gloss: >
+      Marren arrives at the charred safe house and discovers the witness
+      is gone and the ledger missing — the case collapses without both.
+    subject: Marren
+    roles:
+      hero: Marren
+    chapter: 1
+    observers: [Marren, Lydia]
+    motivation:
+      agent: Marren
+      goal: deliver_witness
+    threatens: null
+    enables: [F3]
+    pre_world:
+      - pred: at
+        args: [Witness Pell, Safe house]
+        value: false
+    eff_belief:
+      - observer: Marren
+        fluent:
+          pred: holds
+          args: [Witness Pell, ledger]
+        held: unknown
+    eff_affect: []
+
+  - id: F3
+    kind: pursuit
+    gloss: >
+      Marren and Lydia trace the abductors through dock manifests and
+      bribed watchmen, narrowing the location to the guild warehouse
+      district.
+    subject: Marren
+    roles:
+      hero: Marren
+      helper: Lydia
+    chapter: 2
+    observers: [Marren, Lydia]
+    motivation:
+      agent: Marren
+      goal: find_Pell
+    threatens:
+      agent: Consul Drey
+      goal: silence_witness
+    enables: [F4]
+    pre_belief:
+      - observer: Marren
+        fluent:
+          pred: alive
+          args: [Witness Pell]
+        held: unknown
+    eff_belief:
+      - observer: Marren
+        fluent:
+          pred: at
+          args: [Witness Pell, Warehouse]
+        held: true
+      - observer: Marren
+        fluent:
+          pred: alive
+          args: [Witness Pell]
+        held: true
+    eff_affect: []
+
+  - id: F4
+    kind: donor_test
+    gloss: >
+      Pell, terrified and mistrustful, refuses to leave the warehouse
+      unless Marren can prove the court is not compromised — Marren must
+      reveal what she knows about Hagen's involvement.
+    subject: Marren
+    roles:
+      hero: Marren
+      donor: Witness Pell
+    chapter: 3
+    observers: [Marren, Witness Pell]
+    motivation:
+      agent: Marren
+      goal: earn_trust
+    threatens: null
+    enables: [F5]
+    pre_world:
+      - pred: at
+        args: [Witness Pell, Warehouse]
+        value: true
+    pre_belief:
+      - observer: Marren
+        fluent:
+          pred: at
+          args: [Witness Pell, Warehouse]
+        held: true
+    eff_belief:
+      - observer: Marren
+        fluent:
+          pred: rel
+          args: [Hagen, Consul Drey]
+        held: suspect
+    eff_affect:
+      - op: open
+        char: Marren
+        kind: betrayal
+
+  - id: F5
+    kind: provision
+    gloss: >
+      Pell, convinced by Marren's honesty, hands over the ledger — a
+      duplicate hidden in his coat lining — and agrees to testify.
+    subject: Witness Pell
+    roles:
+      donor: Witness Pell
+      hero: Marren
+    chapter: 3
+    observers: [Marren, Witness Pell]
+    motivation:
+      agent: Witness Pell
+      goal: seek_justice
+    threatens:
+      agent: Consul Drey
+      goal: silence_witness
+    enables: [F6, F7]
+    pre_world:
+      - pred: holds
+        args: [Witness Pell, ledger]
+        value: true
+    eff_world:
+      - pred: holds
+        args: [Marren, ledger]
+        value: true
+    eff_affect:
+      - op: close
+        char: Marren
+        kind: loss
+
+  - id: F6
+    kind: exposure
+    gloss: >
+      In the courtroom, Marren presents the ledger and names Hagen as
+      the one who ordered the abduction — the magistrate's mask falls
+      in front of the assembled court.
+    subject: Marren
+    roles:
+      hero: Marren
+      false_hero: Hagen
+    chapter: 4
+    observers: [Marren, Lydia, Hagen, Consul Drey]
+    motivation:
+      agent: Marren
+      goal: expose_corruption
+    threatens:
+      agent: Hagen
+      goal: protect_Drey
+    enables: [F7, F8]
+    pre_world:
+      - pred: holds
+        args: [Marren, ledger]
+        value: true
+    eff_belief:
+      - observer: Marren
+        fluent:
+          pred: rel
+          args: [Hagen, Consul Drey]
+        held: co-conspirator
+      - observer: Lydia
+        fluent:
+          pred: rel
+          args: [Hagen, Consul Drey]
+        held: co-conspirator
+    eff_affect:
+      - op: close
+        char: Marren
+        kind: betrayal
+
+  - id: F7
+    kind: recognition
+    gloss: >
+      The court acknowledges Marren's evidence and Pell's testimony;
+      the case against Consul Drey proceeds to sentencing.
+    subject: Marren
+    roles:
+      hero: Marren
+      dispatcher: Court
+    chapter: 5
+    observers: [Marren, Lydia, Witness Pell]
+    motivation:
+      agent: Marren
+      goal: deliver_justice
+    threatens:
+      agent: Consul Drey
+      goal: avoid_prosecution
+    enables: [F8]
+    pre_world:
+      - pred: at
+        args: [Witness Pell, Court]
+        value: true
+      - pred: holds
+        args: [Marren, ledger]
+        value: true
+    pre_belief:
+      - observer: Marren
+        fluent:
+          pred: rel
+          args: [Hagen, Consul Drey]
+        held: co-conspirator
+    eff_affect:
+      - op: open
+        char: Marren
+        kind: hidden_blessing
+
+  - id: F8
+    kind: punishment
+    gloss: >
+      Consul Drey is sentenced to exile; Hagen is stripped of office
+      and barred from the court. The guild's hold on the judiciary
+      is broken.
+    subject: Court
+    roles:
+      dispatcher: Court
+      villain: Consul Drey
+      false_hero: Hagen
+    chapter: 5
+    observers: [Marren, Lydia, Witness Pell]
+    motivation:
+      agent: Court
+      goal: restore_order
+    threatens: null
+    enables: []
+    pre_belief:
+      - observer: Marren
+        fluent:
+          pred: rel
+          args: [Hagen, Consul Drey]
+        held: co-conspirator
+    eff_world:
+      - pred: at
+        args: [Witness Pell, Court]
+        value: true
+      - pred: faction
+        args: [Hagen, court]
+        value: false
+    eff_affect:
+      - op: close
+        char: Marren
+        kind: hidden_blessing
+
+affect_policy:
+  unclosed_is_error: true
+  partial_goal_failure: false

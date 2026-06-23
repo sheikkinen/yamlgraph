@@ -925,3 +925,164 @@ This graph showcases several YAMLGraph capabilities in a single example:
    against at least one non-saga premise (detective thriller, quest) to validate
    genre coverage of the 16-kind alphabet and the layered pipeline's robustness
    across genres.
+
+---
+
+## 11. Review (2026-06-23)
+
+*Critique grounded in the actual YAMLGraph implementation (`graph_loader.py`,
+`edge_compiler.py`, `utils/conditions.py`, `models/graph_schema.py`) and the
+shipped plot model (FR-560/561/562/563). Verified claims are marked ✓; the
+items below are ordered by severity, not by section.*
+
+### 11.1 What is strong
+
+- **The reframe is honest (§0–§1).** Naming the conversion as *structured
+  recognition* rather than generation, and locating the residual recognition
+  problem in the gloss (§3, C2), is the most valuable contribution. It tells a
+  future implementer exactly which field cannot be mechanically trusted.
+- **The pivot is the right load-bearing idea (§3).** Treating the gloss as the
+  intermediate representation — not an annotation — is consistent with the PT2
+  finding and with the shipped model where the gloss already carries narrative
+  specificity the structural fields cannot.
+- **Layer-local retry is the correct response to total-plan-drop (§4).**
+  Preserving frozen upstream work is a genuine improvement over v3's full
+  regeneration, *subject to the convergence caveat in §11.3.*
+- **The capacity argument is plausible (§6a).** Splitting one over-loaded call
+  into focused single-task calls is the right instinct for a small model.
+
+### 11.2 Concrete corrections (the YAML sketch will not lint or load as written)
+
+These are mechanical defects, verified against the schema. They matter because
+the plan positions itself as a runnable YAMLGraph *showcase* — a sketch that
+cannot compile undercuts that claim.
+
+1. **`loop_limit` / `loop_exit` are not node fields. ✓** In the implementation
+   they are **top-level maps** keyed by node name: `loop_limits: {node: int}` and
+   `loop_exits: {node: target}` (`GraphConfigSchema`, `graph_loader.py:156–157`,
+   `edge_compiler.py:271`). The §6c sketch places `loop_limit: 3` and
+   `loop_exit: END` inside each repair node body, where they are not recognized.
+   The linter enforces this: `E008` (loop_limits key must be an existing node)
+   and `E009` (every `loop_exits` key must also appear in `loop_limits`). The
+   sketch must hoist these into two top-level blocks, e.g.:
+   ```yaml
+   loop_limits:
+     validate_agents: 3
+     validate_goals: 3
+     # … one entry per validator that the repair loop re-enters
+   loop_exits:
+     validate_agents: report_failure   # not raw END — see point 3
+   ```
+   Note the loop limit belongs on the **re-entered node in the cycle** (the
+   validator), not on the repair node, since that is the node whose visit count
+   crosses the threshold.
+
+2. **The retry diagnostic (§4) has no node to emit it.** §4 promises a rich
+   `{status, failed_layer, failed_rule, completed_layers, partial_plan}` object
+   on exhaustion, but the mechanism (`loop_exit: END`) routes straight to `END`,
+   which emits nothing. To deliver the §4 contract, `loop_exits` must point at a
+   dedicated `report_failure` Python node that assembles the diagnostic and then
+   goes to `END`. As written, §4 and §6c contradict each other.
+
+3. **The shared `validation` key needs a stated contract.** Every edge branches
+   on `validation.ok == true|false`, and repair prompts read `{validation.flaws}`.
+   Dotted access and lowercase `true`/`false` literals are both supported ✓
+   (`conditions.py` `_resolve_right_value`, `resolve_state_path`). But the plan
+   never states the invariant that **every** Python validator must return
+   `{ok: bool, flaws: list}`. If a validator omits `ok`, `resolve_value` returns
+   `None`, both `== true` and `== false` are `False`, and the node has **no
+   satisfied outgoing edge** — a dangling route. Specify the validator return
+   contract, and add an explicit fallback edge (or a default route) so a missing
+   key fails loud rather than silently stalling.
+
+### 11.3 Design tensions (the parts most likely to fail in practice)
+
+1. **The `state_key: functions` overwrite is the central risk, and it targets
+   the exact weakness the plan invokes.** L4–L7 (`classify_kinds`,
+   `assign_pre_eff`, `assign_enables`, `assign_beliefs_affects`) all write
+   `state_key: functions`. With `parse_json`, each node's return **replaces** the
+   whole list — LangGraph merges the returned dict, so the new `functions` value
+   overwrites the prior one wholesale. That means every layer's small model must
+   **re-serialize the entire accreting functions array, echoing all prior fields
+   verbatim**, four times. The plan's own §6a thesis is that a small model cannot
+   reliably hold and reproduce a large structured object — yet §6d.6 quietly
+   assumes it can do exactly that on every call. This is the plan arguing against
+   itself. A faithful field-drop on any pass corrupts the plan silently (the v2
+   failure mode the whole design exists to kill). **Recommendation:** give each
+   layer its own state key (`functions_kinds`, `functions_preeff`, …) and add a
+   deterministic Python *merge* node that joins by function `id`. The LLM then
+   emits only the fields it owns; the merge is mechanical and lossless. This also
+   makes each layer's validator check a smaller, well-scoped artifact.
+
+2. **The freeze guarantee and Open Question 3 are in direct conflict, and OQ3 is
+   not really open — it is a design decision the plan must make now.** The
+   isolation guarantee (§4: prior layers never regenerate) collides with the
+   recognition reality that a downstream layer can *prove an upstream layer
+   wrong* — most sharply when a gloss (L3) is unclassifiable into any kind (L4).
+   Under the current architecture, a bad gloss makes L4 fail, retry, and fail
+   again until it exhausts and halts; the offending gloss is never revisited. So
+   "worst case 28 calls" (§6e) is optimistic: the realistic worst case is
+   **deterministic halt at L4 on an input the pipeline structurally cannot
+   repair.** Decide explicitly: either (a) permit a bounded, gated re-open of L3
+   when L4 exhausts (breaking strict isolation but enabling convergence), or
+   (b) keep isolation and accept that some synopses are rejected at L4 with a
+   "rewrite the gloss" diagnostic. Both are defensible; silence is not.
+
+3. **The pivot description (§3) contradicts the layer spec (§2).** §3 says
+   "Layers 1–3 are synopsis → prose." But §2 has L1 emit `Fluent`/`Belief`
+   predicates and L2 emit goal predicates — those are *prose → formal*, not
+   prose → prose. Only **L3** is prose → prose. Tighten the framing: the pivot is
+   L3 alone, flanked by formal *extraction* (L1–L2) and formal *classification*
+   (L4–L7). As written, the symmetry is rhetorically neat but factually off.
+
+4. **The cost model assumes independent failures (§6e).** Retries across layers
+   are correlated, not independent: a weak upstream artifact inflates downstream
+   failure rates. The "happy path is cheaper than v3" claim is believable, but
+   the worst/expected case should model correlated failure (and the §11.3.2 halt),
+   or it will mislead capacity planning.
+
+### 11.4 Missing: a v4-specific acceptance gate
+
+v3 had a litmus; v4 inherits it (§5) but defines **no measurable success
+criterion of its own.** "The layered design is required by the model's capacity"
+(§0) is an assertion until there is a falsifiable test. Add one or two concrete
+gates, e.g.:
+
+- **Fault-injection recovery:** inject a dangling precondition into L5 input and
+  assert the pipeline repairs it *without* regenerating L1–L4 (proves the
+  isolation claim mechanically).
+- **First-pass yield:** on N premises, ≥ X% of layers pass their gate on the
+  first attempt with the target small model (proves the capacity claim
+  empirically, not rhetorically).
+
+### 11.5 Empirical grounding is single-genre (elevate OQ5 to a prerequisite)
+
+Every claim about the 16-kind alphabet's coverage rests on one saga (10030-BC).
+OQ5 correctly flags this, but it should not be an *open question parked at the
+end* — it is a **precondition for the plan's core premise.** The hardest layer
+(L4 classification, §2) is precisely the one most sensitive to genre. Run at
+least one non-saga premise through L1–L4 *before* committing to the seven-layer
+build; if the alphabet doesn't fit a thriller or a quest, that reshapes L4's
+prompt design and possibly the vocabulary.
+
+### 11.6 Editorial
+
+- **Section numbering skips §7 and §8** — the body jumps §6 → §9 → §10. Renumber,
+  or restore the missing sections if they were dropped in editing.
+- **§9 ("What this plan does NOT change") substantially restates §5** ("What v4
+  inherits from v3"). Consider merging to avoid drift between two
+  inheritance lists.
+
+### 11.7 Suggested next action
+
+Before building 22 nodes and 14 prompts, do the cheap proofs first:
+1. Resolve §11.3.1 (per-layer keys + merge node) and §11.3.2 (freeze vs. re-open)
+   on paper — they change the graph topology.
+2. Fix the §6c sketch (§11.2) and run `yamlgraph graph lint` on it; a sketch in a
+   showcase doc should pass the linter it advertises.
+3. Run the §11.5 non-saga spike through L1–L4 by hand to de-risk the alphabet.
+
+The conceptual spine (recognition admission + gloss pivot + layered isolation)
+is sound. The risk is entirely in the seams — state accumulation and
+upstream/downstream feedback — and those seams are cheaper to fix in the spec
+than after 14 prompts exist.
