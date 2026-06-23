@@ -1,0 +1,546 @@
+{
+  "agents": [
+    "Hilde",
+    "Gunnar",
+    "Arnulf",
+    "Reinmar",
+    "Svala",
+    "Aschenwulf",
+    "B\u00e4rensch\u00e4del"
+  ],
+  "initial_world": [
+    {
+      "pred": "alive",
+      "args": [
+        "Hilde"
+      ],
+      "value": true
+    },
+    {
+      "pred": "alive",
+      "args": [
+        "Gunnar"
+      ],
+      "value": true
+    },
+    {
+      "pred": "alive",
+      "args": [
+        "Arnulf"
+      ],
+      "value": true
+    },
+    {
+      "pred": "alive",
+      "args": [
+        "Reinmar"
+      ],
+      "value": true
+    },
+    {
+      "pred": "alive",
+      "args": [
+        "Svala"
+      ],
+      "value": true
+    },
+    {
+      "pred": "faction",
+      "args": [
+        "Hilde",
+        "Aschenwulf"
+      ],
+      "value": true
+    },
+    {
+      "pred": "faction",
+      "args": [
+        "Gunnar",
+        "B\u00e4rensch\u00e4del"
+      ],
+      "value": true
+    },
+    {
+      "pred": "faction",
+      "args": [
+        "Arnulf",
+        "Aschenwulf"
+      ],
+      "value": true
+    },
+    {
+      "pred": "faction",
+      "args": [
+        "Svala",
+        "Aschenwulf"
+      ],
+      "value": true
+    },
+    {
+      "pred": "rel",
+      "args": [
+        "Hilde",
+        "Gunnar"
+      ],
+      "value": "enemy"
+    },
+    {
+      "pred": "rel",
+      "args": [
+        "Hilde",
+        "Arnulf"
+      ],
+      "value": "sibling"
+    },
+    {
+      "pred": "holds",
+      "args": [
+        "Aschenwulf",
+        "feud"
+      ],
+      "value": true
+    },
+    {
+      "pred": "holds",
+      "args": [
+        "B\u00e4rensch\u00e4del",
+        "feud"
+      ],
+      "value": true
+    }
+  ],
+  "initial_belief": [
+    {
+      "observer": "Aschenwulf",
+      "fluent": {
+        "pred": "alive",
+        "args": [
+          "Arnulf"
+        ]
+      },
+      "held": true
+    },
+    {
+      "observer": "B\u00e4rensch\u00e4del",
+      "fluent": {
+        "pred": "alive",
+        "args": [
+          "Arnulf"
+        ]
+      },
+      "held": true
+    },
+    {
+      "observer": "Aschenwulf",
+      "fluent": {
+        "pred": "rel",
+        "args": [
+          "Hilde",
+          "Gunnar"
+        ]
+      },
+      "held": "enemy"
+    },
+    {
+      "observer": "B\u00e4rensch\u00e4del",
+      "fluent": {
+        "pred": "rel",
+        "args": [
+          "Hilde",
+          "Gunnar"
+        ]
+      },
+      "held": "enemy"
+    }
+  ],
+  "goals": [
+    {
+      "pred": "alive",
+      "args": [
+        "Hilde"
+      ],
+      "value": true
+    },
+    {
+      "pred": "alive",
+      "args": [
+        "Gunnar"
+      ],
+      "value": true
+    },
+    {
+      "pred": "alive",
+      "args": [
+        "Arnulf"
+      ],
+      "value": true
+    },
+    {
+      "pred": "rel",
+      "args": [
+        "Hilde",
+        "Gunnar"
+      ],
+      "value": "lovers"
+    },
+    {
+      "pred": "holds",
+      "args": [
+        "Aschenwulf",
+        "feud"
+      ],
+      "value": false
+    },
+    {
+      "pred": "holds",
+      "args": [
+        "B\u00e4rensch\u00e4del",
+        "feud"
+      ],
+      "value": false
+    }
+  ],
+  "functions": [
+    {
+      "id": "F1",
+      "kind": "villainy",
+      "subject": "Hilde",
+      "chapter": 1,
+      "observers": [
+        "Aschenwulf",
+        "B\u00e4rensch\u00e4del"
+      ],
+      "pre_world": [
+        {
+          "pred": "rel",
+          "args": [
+            "Hilde",
+            "Gunnar"
+          ],
+          "value": "enemy"
+        }
+      ],
+      "pre_belief": [],
+      "eff_world": [],
+      "eff_belief": [],
+      "eff_affect": [
+        {
+          "op": "open",
+          "char": "Hilde",
+          "kind": "guilt"
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "kind": "villainy",
+      "subject": "Flood",
+      "chapter": 1,
+      "observers": [
+        "Aschenwulf",
+        "B\u00e4rensch\u00e4del"
+      ],
+      "pre_world": [],
+      "pre_belief": [],
+      "eff_world": [],
+      "eff_belief": [
+        {
+          "observer": "Aschenwulf",
+          "fluent": {
+            "pred": "alive",
+            "args": [
+              "Arnulf"
+            ]
+          },
+          "held": false
+        },
+        {
+          "observer": "B\u00e4rensch\u00e4del",
+          "fluent": {
+            "pred": "alive",
+            "args": [
+              "Arnulf"
+            ]
+          },
+          "held": false
+        }
+      ],
+      "eff_affect": [
+        {
+          "op": "open",
+          "char": "Hilde",
+          "kind": "loss"
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "kind": "reconciliation",
+      "subject": "Hilde",
+      "chapter": 2,
+      "observers": [
+        "Hilde",
+        "Gunnar"
+      ],
+      "pre_world": [
+        {
+          "pred": "alive",
+          "args": [
+            "Hilde"
+          ],
+          "value": true
+        },
+        {
+          "pred": "alive",
+          "args": [
+            "Gunnar"
+          ],
+          "value": true
+        }
+      ],
+      "pre_belief": [],
+      "eff_world": [
+        {
+          "pred": "rel",
+          "args": [
+            "Hilde",
+            "Gunnar"
+          ],
+          "value": "allies"
+        }
+      ],
+      "eff_belief": [],
+      "eff_affect": [
+        {
+          "op": "close",
+          "char": "Hilde",
+          "kind": "guilt"
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "kind": "reconciliation",
+      "subject": "Hilde",
+      "chapter": 3,
+      "observers": [
+        "Hilde",
+        "Gunnar"
+      ],
+      "pre_world": [
+        {
+          "pred": "rel",
+          "args": [
+            "Hilde",
+            "Gunnar"
+          ],
+          "value": "allies"
+        }
+      ],
+      "pre_belief": [],
+      "eff_world": [
+        {
+          "pred": "rel",
+          "args": [
+            "Hilde",
+            "Gunnar"
+          ],
+          "value": "lovers"
+        }
+      ],
+      "eff_belief": [
+        {
+          "observer": "Aschenwulf",
+          "fluent": {
+            "pred": "rel",
+            "args": [
+              "Hilde",
+              "Gunnar"
+            ]
+          },
+          "held": "lovers"
+        },
+        {
+          "observer": "B\u00e4rensch\u00e4del",
+          "fluent": {
+            "pred": "rel",
+            "args": [
+              "Hilde",
+              "Gunnar"
+            ]
+          },
+          "held": "lovers"
+        }
+      ],
+      "eff_affect": []
+    },
+    {
+      "id": "F5",
+      "kind": "villainy",
+      "subject": "Svala",
+      "chapter": 4,
+      "observers": [
+        "Aschenwulf",
+        "B\u00e4rensch\u00e4del"
+      ],
+      "pre_world": [],
+      "pre_belief": [
+        {
+          "observer": "Aschenwulf",
+          "fluent": {
+            "pred": "rel",
+            "args": [
+              "Hilde",
+              "Gunnar"
+            ]
+          },
+          "held": "lovers"
+        }
+      ],
+      "eff_world": [],
+      "eff_belief": [],
+      "eff_affect": [
+        {
+          "op": "open",
+          "char": "Hilde",
+          "kind": "guilt"
+        }
+      ]
+    },
+    {
+      "id": "F6",
+      "kind": "return",
+      "subject": "Arnulf",
+      "chapter": 5,
+      "observers": [
+        "Aschenwulf"
+      ],
+      "pre_world": [
+        {
+          "pred": "alive",
+          "args": [
+            "Arnulf"
+          ],
+          "value": true
+        }
+      ],
+      "pre_belief": [
+        {
+          "observer": "Aschenwulf",
+          "fluent": {
+            "pred": "alive",
+            "args": [
+              "Arnulf"
+            ]
+          },
+          "held": false
+        }
+      ],
+      "eff_world": [],
+      "eff_belief": [
+        {
+          "observer": "Aschenwulf",
+          "fluent": {
+            "pred": "alive",
+            "args": [
+              "Arnulf"
+            ]
+          },
+          "held": true
+        },
+        {
+          "observer": "B\u00e4rensch\u00e4del",
+          "fluent": {
+            "pred": "alive",
+            "args": [
+              "Arnulf"
+            ]
+          },
+          "held": true
+        }
+      ],
+      "eff_affect": [
+        {
+          "op": "close",
+          "char": "Hilde",
+          "kind": "loss"
+        }
+      ]
+    },
+    {
+      "id": "F7",
+      "kind": "reconciliation",
+      "subject": "Hilde",
+      "chapter": 6,
+      "observers": [
+        "Aschenwulf",
+        "B\u00e4rensch\u00e4del"
+      ],
+      "pre_world": [
+        {
+          "pred": "rel",
+          "args": [
+            "Hilde",
+            "Gunnar"
+          ],
+          "value": "lovers"
+        }
+      ],
+      "pre_belief": [],
+      "eff_world": [
+        {
+          "pred": "holds",
+          "args": [
+            "Aschenwulf",
+            "feud"
+          ],
+          "value": false
+        },
+        {
+          "pred": "holds",
+          "args": [
+            "B\u00e4rensch\u00e4del",
+            "feud"
+          ],
+          "value": false
+        }
+      ],
+      "eff_belief": [],
+      "eff_affect": [
+        {
+          "op": "close",
+          "char": "Hilde",
+          "kind": "guilt"
+        }
+      ]
+    }
+  ],
+  "order": [
+    [
+      "F1",
+      "F2"
+    ],
+    [
+      "F2",
+      "F3"
+    ],
+    [
+      "F3",
+      "F4"
+    ],
+    [
+      "F4",
+      "F5"
+    ],
+    [
+      "F5",
+      "F6"
+    ],
+    [
+      "F6",
+      "F7"
+    ]
+  ],
+  "turn_budget": null,
+  "intentional_open": []
+}
