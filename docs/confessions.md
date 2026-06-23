@@ -671,6 +671,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `import xdist` appears unused — the module is imported but not referenced.
 - **Penance**: The import IS the test — we're asserting that xdist is importable (installed). F401 cannot understand this pattern.
 
+### CONF-144
+- **File**: [examples/plot_modeller/run.py](../examples/plot_modeller/run.py#L30)
+- **Code**: E402
+- **Sin**: `from nodes.tools import load_glosses` appears after `sys.path` manipulation.
+- **Penance**: The import must follow the `sys.path.insert` that makes the `nodes` package discoverable. This is the standard pattern for standalone example runners that aren't installed packages.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

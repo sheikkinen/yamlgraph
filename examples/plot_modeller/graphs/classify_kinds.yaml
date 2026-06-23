@@ -1,0 +1,66 @@
+metadata:
+  name: classify-kinds
+  description: >
+    FR-570 L4 spike: classify prose beat glosses into the 16-kind Propp-derived
+    alphabet. One LLM node emits YAML text; a Python validator parses and checks
+    it; on failure the LLM retries with the errors in-prompt (max 3 attempts).
+  # No hardcoded provider/model — resolved from the PROVIDER env var at run time.
+  # Run with PROVIDER=anthropic for Haiku-class cost; the spike's model choice is
+  # a run-time decision, not a graph constant (FR-570 J — provider/model removed).
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  glosses:
+    type: list
+    description: "Input: beat glosses with id, gloss, chapter"
+  kinds_raw:
+    type: str
+    description: "Raw LLM YAML text (classify output; default parse_json: false)"
+  kinds:
+    type: list
+    description: "Output: parsed + validated kinds (written by validator on success)"
+  validation:
+    type: dict
+    description: "Validator result: {ok: bool, flaws: list[str]}"
+
+tools:
+  validate_kinds:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: validate_kinds
+
+nodes:
+  classify:
+    type: llm
+    prompt: classify_kinds
+    state_key: kinds_raw      # J1: raw YAML text lands here, not in `kinds`
+
+  validate:
+    type: python
+    tool: validate_kinds
+    state_key: validation
+
+edges:
+  - from: START
+    to: classify
+  - from: classify
+    to: validate
+  - from: validate
+    to: classify
+    condition: "validation.ok == false"
+  - from: validate
+    to: END
+    condition: "validation.ok == true"
+
+# Loop control is keyed on the re-entered node (`classify`). After 3 classify
+# entries the loop exits to END even if validation never passes — evaluate.py
+# then scores the genre as all-wrong (FR-570 J6).
+loop_limits:
+  classify: 3
+  validate: 3
+
+loop_exits:
+  classify: END
+  validate: END
