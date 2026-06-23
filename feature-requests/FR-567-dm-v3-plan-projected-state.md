@@ -42,10 +42,19 @@ A Pydantic model representing the cumulative state at a chapter boundary:
 class ChapterState(BaseModel):
     """Cumulative plan-projected state at a chapter boundary."""
     chapter: int
-    world_truths: dict[str, bool]    # ground predicates (alive, at, holds, ...)
-    beliefs: dict[str, dict[str, bool]]  # observer → predicate → bool
-    open_affects: list[str]          # affect tokens with open but no close
+    # Keyed by Fluent.key() → (WorldPred, tuple[str, ...]); value is bool | str
+    world_truths: dict[tuple[WorldPred, tuple[str, ...]], bool | str]
+    # observer → Fluent.key() → held (bool)
+    beliefs: dict[CharacterId, dict[tuple[WorldPred, tuple[str, ...]], bool]]
+    # (char, kind) pairs with open but no close
+    open_affects: list[tuple[CharacterId, AffectKind]]
 ```
+
+**Note on key types:** `Fluent.key()` returns `(pred, args)` — a hashable tuple.
+`world_truths` maps these keys to `bool | str` values (bool for `alive`/`holds`,
+str for `at`/`faction`/`rel`). Using the existing `Fluent.key()` method avoids
+inventing a string serialization. Pydantic may require a custom serializer for
+tuple keys — the implementation should handle this.
 
 ### 2. `project_chapter_state(plan, chapter) → ChapterState`
 
@@ -71,15 +80,26 @@ Starting from the plan's initial state `I`.
 3. **Initial state invariant.** `project_chapter_state(plan, 0)` equals the plan's
    initial state `I`, formatted as a `ChapterState`.
 4. **Goal satisfaction invariant.** `project_chapter_state(plan, last_chapter)`
-   satisfies all predicates in `G`.
+   satisfies all predicates in `G`. This is a post-FR-566 invariant: it depends on
+   Rule 6 (`_check_goal_reachability`) having verified the plan. For plans validated
+   only by the current 4-check validator, this AC is a best-effort check, not a
+   guarantee.
 5. **Pure function.** No side effects, no LLM calls, no file I/O. Deterministic
    given the same plan and chapter.
 6. **Regression.** All existing `test_plot_*.py` tests pass unchanged.
 
+**Test exemptions (FR-474 J3):** example tests are requirement-exempt — no
+`@pytest.mark.req`, no capability YAML. Diary reflection required for the feat PR
+(diary-gate).
+
 ## Dependencies
 
-- **FR-566 (Phase 1):** complete grammar — the projection relies on all 7 rules being
-  enforced so the projected state is guaranteed consistent.
+- **FR-566 (Phase 1):** soft dependency. The projection logic (`project_chapter_state`)
+  is independent of the grammar completeness — it walks `ordered_functions` and
+  accumulates state without calling `validate_plan`. FR-566 provides the *guarantee*
+  that projected state is consistent (all 7 rules enforced), but FR-567 can be built
+  and tested against the current 4-check validator. Projections of invalid plans may
+  be inconsistent — FR-566 is the guarantee, not the prerequisite.
 - **FR-563 (Enforced):** `schema.py` types (`PlotPlan`, `Function`, `Fluent`, `Belief`,
   `AffectDelta`).
 
