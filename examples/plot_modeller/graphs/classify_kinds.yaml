@@ -59,8 +59,6 @@ edges:
 # then scores the genre as all-wrong (FR-570 J6).
 loop_limits:
   classify: 3
-  validate: 3
 
 loop_exits:
   classify: END
-  validate: END

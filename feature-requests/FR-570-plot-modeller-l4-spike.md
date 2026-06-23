@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — Authority GRANTED (J1 folded into spec; 2026-06-23)
+**Status:** Enforced — GO (optimistic); 28/35 (0.80) overall, blind-corpus re-test pending (2026-06-23)
 **Effort:** 1–2 days
 **Requested:** 2026-06-23
 **Plan:** [`plan-v5-yaml-native-planner.md`](../examples/dungeon_master/docs/plan-v5-yaml-native-planner.md) §8b, §12 step 1
@@ -450,3 +450,62 @@ With these folded, the spike produces exactly what three plan iterations have
 lacked — a measured, falsifiable number — and the corpus's self-derived nature
 is declared rather than hidden. Proceed to Enforce: RED first (validator test
 that reproduces the J1 crash, then the fix), then the run.
+
+---
+
+## Implementation status (2026-06-23, Enforced)
+
+**Verdict: GO (optimistic)** — overall kind accuracy **28/35 (0.80)**, every
+genre ≥ 0.60. Proceed to the full v5 pipeline (FR-571+) only after the two
+conditions below are met.
+
+### Built
+
+| Deliverable | Path | Note |
+|-------------|------|------|
+| L4 graph | `examples/plot_modeller/graphs/classify_kinds.yaml` | lint clean (AC#1); no hardcoded provider/model |
+| L4 prompt | `examples/plot_modeller/prompts/classify_kinds.yaml` | 16-kind glossary + Jinja2 retry block |
+| Validator + loaders | `examples/plot_modeller/nodes/tools.py` | J1 contract: reads `kinds_raw`, writes `kinds` only on success |
+| Evaluator | `examples/plot_modeller/evaluate.py` | J2 ceiling stamp, J3 fractions, J6 all-wrong scoring |
+| Runner | `examples/plot_modeller/run.py` | Mode-1 (isolate L4) across 4 synopses |
+| Tests | `examples/plot_modeller/tests/test_evaluate.py` | 13 tests; J1 crash regression (RED→GREEN) + J6 scoring |
+| Fixtures | `examples/plot_modeller/fixtures/` | snapshot-copied from `docs/v5/` at SHA `d93f446` (J5) |
+
+### Results (anthropic / claude-haiku-4-5, Mode 1, 35 functions)
+
+| Genre | Kind accuracy |
+|-------|---------------|
+| Detective thriller | 7/8 (0.88) |
+| Quest adventure | 8/8 (1.00) |
+| Horror survival | 5/7 (0.71) |
+| Sci-fi hybrid | 8/12 (0.67) |
+| **Overall** | **28/35 (0.80)** |
+
+Subject accuracy 24/35 (0.69) — below the 0.90 aspiration; flagged for the
+role-assignment layer, not blocking the L4 verdict.
+
+### Confusion analysis (J3 — carries the verdict)
+
+The 7 errors are **not** in the warned vocabulary pairs. They cluster around
+**cause-vs-outcome**: `death → villainy`, `death → victory`, `liquidation →
+villainy`, `rescue → provision`. A coherent, addressable failure mode, not a
+sign the vocabulary is the wrong shape.
+
+### Conditions on the GO
+
+1. **Blind-corpus re-test** (J2): this is an upper bound on self-derived data.
+2. **Add cause-vs-outcome disambiguation** to the L4 prompt before the re-test.
+
+### Deviations from the frozen spec
+
+- **Tool registration uses `module:` (dotted import), not `path:`.** The
+  `path:`-relative resolver anchors at the graph's own directory and rejects
+  paths that escape it (`python_tool.py:_resolve_python_tool_path`), so
+  `nodes/tools.py` (a sibling of `graphs/`) was unreachable by path. The
+  established example convention (`examples.diary_digest.nodes.*`) is `module:`,
+  which routes through Python's import system. Added `examples/plot_modeller/__init__.py`.
+- **`validate` node is left out of `loop_limits`/`loop_exits`.** Adding it (to
+  silence lint W012) wrapped the conditional router's `END` target and broke
+  LangGraph compilation (`unknown target 'END'`). The loop is correctly bounded
+  on the re-entered `classify` node; W012 on `validate` is an accepted advisory
+  warning (lint still reports 0 errors, AC#1 satisfied).
