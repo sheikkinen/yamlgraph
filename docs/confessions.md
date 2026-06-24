@@ -677,6 +677,18 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `from nodes.tools import load_glosses, load_glosses_with_kinds, load_synopsis` appears after `sys.path` manipulation.
 - **Penance**: The import must follow the `sys.path.insert` that makes the `nodes` package discoverable. This is the standard pattern for standalone example runners that aren't installed packages.
 
+### CONF-306
+- **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L39)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-144 — the import must follow the `sys.path.insert` that makes the `nodes` package discoverable for this standalone FR-585 spike harness.
+
+### CONF-307
+- **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L41)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-306 — grouped with the `nodes` import below the `sys.path.insert` required by the standalone example runner pattern.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

@@ -1,0 +1,65 @@
+system: >
+  You read story beats and report, for each, the physical world facts it needs
+  and the ones it changes. Only five kinds of thing count as a world fact;
+  everything else is story action and is ignored. Output YAML only — no prose,
+  no code fences.
+
+user: |
+  A WORLD FACT is one of exactly these five things — nothing else counts:
+
+    alive    someone is alive (or no longer alive)
+    at       someone is located in a place
+    holds    someone physically has an object
+    rel      one person's standing toward another (ally, hostile, owes, loyal…)
+    faction  someone belongs to a named group
+
+  Everything else is STORY ACTION, not a world fact — do NOT report it:
+  announcing, deciding, planning, travelling, realizing, learning a secret,
+  testing, reciting, threatening, pursuing, presenting, acknowledging. These
+  move the plot but change no tracked state.
+
+  For each beat give two lists:
+    requires — tracked facts that must ALREADY be true for the beat to happen
+    changes  — tracked facts this beat makes true, or makes false
+
+  MOST BEATS CHANGE NOTHING TRACKED — give them empty lists. A beat where people
+  talk, decide, reveal, or set out on a journey changes no world fact. Report a
+  fact ONLY when one of the five literally flips: someone arrives somewhere new,
+  gains or loses an object, dies, switches allegiance, or a relationship turns.
+  When unsure, leave it OUT.
+
+  Write each fact as one line — subject | relation | object:
+
+    Aldo | at | the harbor
+    Aldo | holds | the ledger
+    Mara | hostile to | Aldo
+    Pell | member of | the Ferrymen
+    Pell | alive |                    (one place — no object)
+    Aldo | no longer at | the vault   (say "no longer" or "not" to negate)
+
+  Use names exactly as the beat text spells them. The relation word must map to
+  one of the five fact-kinds above (a plain synonym is fine: "in"/"reaches" →
+  at, "carries"/"has" → holds, "loyal to"/"hostile to" → rel, "joins" →
+  faction).
+
+  Output one YAML item per beat — empty lists are normal and expected:
+
+  - id: F1
+    requires: []
+    changes: []
+  - id: F2
+    requires:
+      - Aldo | at | the vault
+    changes:
+      - Aldo | no longer at | the vault
+      - Aldo | at | the harbor
+
+  Characters in this story:
+  {% for a in state.agents %}
+  - {{ a }}
+  {% endfor %}
+
+  The beats:
+  {% for g in state.glosses %}
+  - id: {{ g.id }} (ch {{ g.chapter }}, kind {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}

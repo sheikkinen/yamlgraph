@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature (architecture revision)
-**Status:** Judged — Authority GRANTED, spike-gated (2026-06-24)
+**Status:** Enforced (2026-06-24) — Gate 1 FAILED (deconfounded); this FR's split (select→type) KILLed, but the real seam (comprehend→represent; snapshot-not-delta) is untested and is the follow-up's first lever, not a bigger model
 **Effort:** 2–3 days (spike-gated; Node-A spike is ~0.5 day and may KILL early)
 **Requested:** 2026-06-24
 **Predecessor:** FR-584 (L5 prompt-only levers KILLed — salience/roles/subjects all net-negative)
@@ -298,6 +298,123 @@ helper is in scope, not a drop-candidate. Both fold tighter scope, not wider.
   AND call-decomposition have all failed.
 - **Deterministic demotion guardrails.** Movement-pair only if GT scores
   departures; naming-snap only if it beats "do nothing" with zero false-merges.
+
+## Implementation — Gate 1 outcome (2026-06-24)
+
+**Verdict: Gate 1 FAILED (deconfounded). KILL per the stop rule — do not build
+Node B/C; escalate L5 to a larger model.** The KILL was reached in two passes: a
+first pass that was *confounded by prompt defects in the spike itself*, and a
+second pass that *removed those defects and still failed on the primary signal*.
+The two-pass record is kept because the deconfounding is the honest part.
+
+### What was built (the spike, as judged)
+
+- `prompts/assign_pre_eff_salience.yaml` — Node A salience gate. Per beat: the
+  world facts the beat *requires* (must already hold) and the facts it *changes*,
+  each as a `subject | relation | object` triple. No slice schema, no belief
+  nesting, no YAML acrobatics.
+- `examples/plot_modeller/spike_salience_gate.py` — throwaway measurement harness.
+  Runs Node A per GT fixture → a **deliberately dumb keyword adapter**
+  (`_type_triple`, no LLM, J:C1) types each triple → writes `results/l5/<genre>.yaml`
+  → scores via the unchanged evaluator. Validator/retry bypassed on purpose to
+  isolate Node A's selection.
+
+### Pass 1 — confounded (open-vocabulary prompt)
+
+| Metric | Baseline | Pass 1 |
+|---|---|---|
+| World recall | 0.60 | 0.27 |
+| Precision | 0.30 | 0.14 |
+| `at`-FP | 56 | 33 |
+| `rel`-FP | ~15 | **88** |
+| MISS total | 34 | 62 |
+
+Per C3 I investigated before declaring KILL. Dumping the 88 `rel`-FPs revealed
+they were **action verbs** ("traveling to", "pursuing", "announces", "threatens")
+and **belief facts** ("aware of", "knows") — *not* an adapter artifact. **Root
+cause traced to three defects in my own spike prompt, not in the decomposition
+hypothesis:** (a) the vocabulary was never closed, so the model invented free-form
+relations; (b) the DIRECTION example literally demonstrated an action verb as a
+relation (`The Swarm | assimilates | ARIA`), teaching the flood; (c) the prompt
+anchored "most beats have 0–2 facts" when the GT truth is *most beats change
+nothing*. A KILL on a confounded prompt is not an honest falsification, so the
+stop-rule's single permitted Node-A iteration was spent fixing the prompt.
+
+### Pass 2 — deconfounded (closed-vocabulary prompt, the decisive run)
+
+Closed the relation set to the five L5 predicates, deleted the action-verb
+example, re-anchored on "most beats change nothing — empty lists are expected."
+
+| Metric | Baseline | Pass 1 | **Pass 2** |
+|---|---|---|---|
+| World recall | 0.60 | 0.27 | **0.54** |
+| Precision | 0.30 | 0.14 | **0.32** |
+| `at`-FP | 56 | 33 | **86** |
+| `rel`-FP | ~15 | 88 | **0** |
+| MISS total | 34 | 62 | 39 |
+
+The deconfounding worked where it could: `rel`-flood **88 → 0**, recall recovered
+**0.27 → 0.54**, and talk/announce/decide beats now correctly emit **empty** lists
+(salt-road F1–F3 went from 2–3 spurious triples each to `[]`, matching GT `None`).
+That is genuine new discrimination the cleaner prompt unlocked.
+
+**But the wound itself did not move: precision 0.32 ≈ 0.30 baseline** (within
+noise). The over-emission did not disappear — once action-verbs and beliefs were
+forbidden, it **funneled into `at`** (56 → 86 FPs, now 88% of all FPs). The model
+now empties talk-beats correctly but tracks **every leg of every journey** as
+`at`-pairs (salt-road F5–F10 emit a full caravan itinerary: Djenné → river road →
+dry country → Timbuktu), while the GT scores only the *salient* relocations. It
+cannot distinguish a salient arrival from a travel waypoint, so `at`-recall is
+good and `at`-precision is bad **in the same gesture** — the exact FR-584
+mechanism, now isolated to one predicate.
+
+**Tripwire (dual):** PASS required `at`-FP < 30 with recall holding. Pass 2:
+`at`-FP = 86 (worse than baseline), precision flat. **Hard fail.**
+
+### Conclusion
+
+Three prompt architectures now land at the same precision: FR-584 monolith (0.30),
+Pass-1 open-vocab decode (0.14, confounded), Pass-2 closed-vocab decode (0.32). The
+Gate-1 KILL of *this FR's specific split* (Node A salience-select → Node B type)
+**stands** — peeling typing off selection does not move precision.
+
+**But the conclusion must not over-reach (post-enforce reflection, 2026-06-24).**
+All three architectures — including this FR's "decomposition" — share one
+**unexamined fusion**: each asks the model, in a single operation, to *comprehend*
+the narrative (abstract prose → implied persistent world-state) **and** *encode*
+the result (closed-vocabulary typed predicate, correct slice/args/value, salient
+delta). FR-585 split *typing* off *selection*; both are on the encoding side. The
+comprehension↔representation seam was never cut. So the flat 0.30 is a ceiling for
+**single-operation world-encoding**, not a proven ceiling for the task — concluding
+"haiku model ceiling, escalate to a bigger model" repeats, one level up, the Pass-1
+error of inferring a verdict from an architecture that shares an unexamined flaw.
+
+The `at`-waypoint flood is specifically a **delta-salience** failure: "what does
+this beat *change*" forces the model to hold prior state, current state, and
+salience at once. The honest next lever is therefore **not** a bigger model first —
+it is the untested seam:
+
+1. **Snapshot, don't delta.** Ask the model only to *comprehend* — emit a plain
+   world-state **snapshot** after each beat (its easiest mode, "describe the
+   scene"), with no vocabulary or slices. Then let **code** diff consecutive
+   snapshots into typed deltas and collapse intra-chapter `at`-runs to net
+   displacement. Snapshots bundle one hard judgment; salient deltas bundle three.
+2. **Then** type the diffed deltas (mechanical) and, only if the snapshot seam
+   still underperforms, escalate to a larger model — now with the comprehension
+   and encoding loads genuinely separated, so the scaling test is clean.
+
+Node B/C and the deterministic helpers are **not** built — Gate 1 closed this FR's
+split. The Pass-2 prompt and spike harness are retained as measurement artifacts
+(FR-584 C5).
+
+**Handoff for the follow-up FR:** the residual wound is narrow and legible —
+*journey-waypoint over-tracking in `at`* (86 FPs, 88%), with talk-beat and `rel`
+over-emission already solved by the Pass-2 prompt. The follow-up's **first** lever
+is the snapshot-then-deterministic-diff seam above (comprehension/representation
+split), using the Pass-2 prompt only as the encoding baseline; a larger model is
+the *fallback*, not the first move (FR-578 anti-scaling still applies — the real
+framing alternative is untested). No GT input; evaluator frozen. **Drafted as
+`feature-requests/FR-587-plot-modeller-L5-snapshot-then-diff.md`.**
 - **No GT input** (FR-583 leakage KILL stands). Verified: `run_assign_pre_eff`
   passes only `{glosses, agents}`.
 - **Evaluator frozen.** Clean A/B baseline.
