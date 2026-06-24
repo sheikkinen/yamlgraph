@@ -345,3 +345,33 @@ clean double KILL.
 - Part 2 vocab machinery: built, spiked, **reverted** (negative result).
 - L5 remains REVISE at world recall ~0.60 (haiku); blocks FR-579 until a
   non-vocab lever clears the 0.70 confusion bar.
+
+## L5 failure-mode analysis (2026-06-24) — input to the revision FR
+
+Post-spike, every predicted-vs-truth predicate was dissected across all five
+fixtures on the no-vocab baseline (world recall 0.60). The errors are **not
+noise** — they cluster into five systematic competence gaps. Aggregate counts:
+**84 false positives vs 34 misses** — the model over-emits 2.5× more than it
+omits, so **precision (0.16–0.30), not recall, is the wound.** The model mostly
+knows what happens; it cannot tell what is *worth recording*.
+
+| Rank | Failure mode | Evidence | Damage |
+|------|--------------|----------|--------|
+| 1 | **Location flooding (salience blindness)** | 56/84 FPs (67%) are `at`; horror fixture emits `at(char, gallery)` for every character every beat | Precision killer |
+| 2 | **Relation directionality** | GT `rel(The Swarm, ARIA)=assimilated` → pred `rel(ARIA, The Swarm)=assimilated`; wrong relatum `rel(Jonas, The Swarm)` for truth `rel(Jonas, ARIA)` | 9 `rel` miss + 15 FP |
+| 3 | **Ontological blindness to non-character entities** | misses `at(Sunken Crown, Temple)` (×4), `at(Charter letter, Djenné)`, `holds(Ferryman Ossa, passage)` — artifacts are never a fluent's subject | Clean recall hole |
+| 4 | **Mortality bookkeeping (`alive`)** | 4 `alive` misses, ~0 correct; death beats narrated as `at(...)=false`/`rel(...)=captive` instead of `alive=false` | Avoids the simplest predicate |
+| 5 | **Abstraction drift on object tokens** | `shutdown_key`→`airgapped USB drive`, `firmware_channel`→`firmware update`, `Loom`→`Jonas's Loom` | Smallest gap (~8 misses) |
+
+**Why this retroactively kills the vocab lever:** Part 2 attacked #5 (the
+smallest contributor) while the dominant losses are #1 salience and #2
+directionality, which a token list cannot touch. Handing the model a token
+checklist *encouraged* more emissions (amplifying #1) and forced canonical
+tokens into wrong slots (the validator-rejection cascade). The lever was aimed
+at the periphery and recoiled into the centre.
+
+**Pointer to the next lever (see FR-584):** the C5-pre-registered two-step
+pred-then-args decoding maps directly onto these gaps — decide *which* fluents
+matter (salience suppression, #1) and *which role each argument fills*
+(directionality, #2) before naming tokens (#5). A salience-suppression
+instruction alone should move precision from ~0.20 toward ~0.5.
