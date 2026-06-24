@@ -1,0 +1,58 @@
+system: >
+  You decompose a prose story synopsis into discrete story beats. Each beat
+  represents a narrative event where something changes — a character acts,
+  discovers, decides, suffers, or achieves. You output YAML only — no prose,
+  no code fences.
+
+user: |
+  {% if state.validation and state.validation.flaws %}
+  Your previous decomposition had these errors:
+  {% for flaw in state.validation.flaws %}
+  - {{ flaw }}
+  {% endfor %}
+  Fix only the errors. Keep correct beats unchanged.
+
+  {% endif %}
+  Decompose the synopsis below into discrete story beats.
+
+  For each beat, output:
+  - `id`: sequential identifier (F1, F2, F3, ...)
+  - `gloss`: a one-paragraph prose summary (30–80 words) capturing the beat's
+    essential action, who is involved, and what changes
+  - `chapter`: a logical chapter number (group related beats; chapters must be
+    in non-decreasing order)
+
+  Guidelines:
+  - Aim for 7–12 beats for a ~500-word synopsis.
+  - Every major plot point should be its own beat.
+  - A beat is where something CHANGES — an action, discovery, decision, or outcome.
+  - Minor transitions (travel, setup) can be absorbed into adjacent beats.
+
+  Common decomposition errors to avoid:
+  - **Over-splitting:** breaking one event into setup + execution. If the setup
+    has no independent consequence, merge it into the action beat.
+  - **Under-splitting:** combining two independent events. If two things happen
+    to different characters or in different locations, they are separate beats.
+  - **Missing the pivot:** the moment where the protagonist commits to action
+    (decides to investigate, swears an oath, chooses honesty over safety) is
+    often the story's most important beat. Do not skip it.
+  - **Skipping the resolution:** the final consequences (punishment, reward,
+    restoration) are beats, not epilogue.
+
+  Output a YAML list and nothing else. Example shape:
+
+  - id: F1
+    gloss: >
+      The villain's agents abduct the witness from the safe house and burn
+      the building, destroying the evidence that could convict the corrupt
+      consul.
+    chapter: 1
+  - id: F2
+    gloss: >
+      The detective arrives at the charred ruin and discovers the witness
+      and ledger are both gone — the case collapses without them.
+    chapter: 1
+
+  The synopsis:
+
+  {{ state.synopsis }}

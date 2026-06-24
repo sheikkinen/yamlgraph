@@ -1,12 +1,25 @@
-"""FR-570 — Plot Modeller L4 spike tests.
+"""Plot Modeller spike tests — L4 validator/evaluator + L1 evaluator.
 
 Covers the validator (AC#2, AC#5 incl. the J1 crash regression) and the
 evaluator scoring of absent/unparseable output (AC#6, J6).
+FR-573: L1 evaluation — agent recall/precision, world recall, belief recall.
 """
 
 from __future__ import annotations
 
-from evaluate import compare, score_genre, summarise
+from evaluate import (
+    _content_words,
+    _jaccard,
+    compare,
+    score_genre,
+    score_l1,
+    score_l2,
+    score_l3,
+    summarise,
+    summarise_l1,
+    summarise_l2,
+    summarise_l3,
+)
 from nodes.tools import validate_kinds
 
 GLOSSES = [
@@ -141,3 +154,351 @@ class TestEvaluate:
         assert summary["corpus"] == "self-derived (upper-bound)"
         assert summary["total_functions"] == 2
         assert summary["kind_accuracy"] == "0/2 (0.00)"
+
+
+# ---------------------------------------------------------------------------
+# FR-573 — L1 evaluator tests
+# ---------------------------------------------------------------------------
+
+L1_TRUTH = {
+    "agents": ["Marren", "Hagen", "Witness Pell"],
+    "initial_world": [
+        {"pred": "alive", "args": ["Marren"], "value": True},
+        {"pred": "alive", "args": ["Hagen"], "value": True},
+        {"pred": "alive", "args": ["Witness Pell"], "value": True},
+        {"pred": "at", "args": ["Witness Pell", "Safe house"], "value": True},
+    ],
+    "initial_belief": [
+        {
+            "observer": "Marren",
+            "fluent": {"pred": "rel", "args": ["Hagen", "Consul Drey"]},
+            "held": "neutral",
+        }
+    ],
+}
+
+
+class TestScoreL1:
+    """FR-573 — L1 evaluation scoring."""
+
+    def test_golden_perfect_extraction(self):
+        """Perfect extraction → full marks."""
+        predicted = {
+            "agents": ["Marren", "Hagen", "Witness Pell"],
+            "initial_world": [
+                {"pred": "alive", "args": ["Marren"], "value": True},
+                {"pred": "alive", "args": ["Hagen"], "value": True},
+                {"pred": "alive", "args": ["Witness Pell"], "value": True},
+                {"pred": "at", "args": ["Witness Pell", "Safe house"], "value": True},
+            ],
+            "initial_belief": [
+                {
+                    "observer": "Marren",
+                    "fluent": {"pred": "rel", "args": ["Hagen", "Consul Drey"]},
+                    "held": "neutral",
+                }
+            ],
+        }
+        ev = score_l1("detective", predicted, L1_TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["agent_recall"] == "3/3 (1.00)"
+        assert ev["summary"]["agent_precision"] == "3/3 (1.00)"
+        assert ev["summary"]["world_recall"] == "4/4 (1.00)"
+        assert ev["summary"]["belief_recall"] == "1/1 (1.00)"
+        assert ev["summary"]["produced_valid_yaml"] is True
+
+    def test_absent_prediction_scores_zero(self):
+        """None prediction → all zeros, no crash."""
+        ev = score_l1("horror", None, L1_TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["agent_recall"] == "0/3 (0.00)"
+        assert ev["summary"]["produced_valid_yaml"] is False
+
+    def test_tolerant_agent_matching(self):
+        """Agent names with different casing/whitespace still match."""
+        predicted = {
+            "agents": ["marren", "HAGEN", " Witness Pell "],
+            "initial_world": [],
+            "initial_belief": [],
+        }
+        ev = score_l1("detective", predicted, L1_TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["agent_recall"] == "3/3 (1.00)"
+
+    def test_partial_agent_name_matches(self):
+        """A contains/prefix match: 'Pell' matches 'Witness Pell' (C1)."""
+        predicted = {
+            "agents": ["Marren", "Hagen", "Pell"],
+            "initial_world": [],
+            "initial_belief": [],
+        }
+        ev = score_l1("detective", predicted, L1_TRUTH, "anthropic", "haiku")
+        # "pell" is contained in "witness pell"
+        assert ev["summary"]["agent_recall"] == "3/3 (1.00)"
+
+    def test_tolerant_world_matching(self):
+        """World fluents with name variants still match (C1)."""
+        predicted = {
+            "agents": ["Marren", "Hagen", "Witness Pell"],
+            "initial_world": [
+                {"pred": "alive", "args": ["marren"], "value": True},
+                {"pred": "alive", "args": ["Hagen"], "value": True},
+                {"pred": "alive", "args": ["Witness Pell"], "value": True},
+                {
+                    "pred": "at",
+                    "args": ["Witness Pell", "the Safe House"],
+                    "value": True,
+                },
+            ],
+            "initial_belief": [],
+        }
+        ev = score_l1("detective", predicted, L1_TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["world_recall"] == "4/4 (1.00)"
+
+    def test_extra_agents_ok_for_recall(self):
+        """Extra agents lower precision but don't affect recall."""
+        predicted = {
+            "agents": ["Marren", "Hagen", "Witness Pell", "Extra Character"],
+            "initial_world": [],
+            "initial_belief": [],
+        }
+        ev = score_l1("detective", predicted, L1_TRUTH, "anthropic", "haiku")
+        assert ev["summary"]["agent_recall"] == "3/3 (1.00)"
+        assert ev["summary"]["agent_precision"] == "3/4 (0.75)"
+
+    def test_summarise_l1_aggregates(self):
+        """L1 summary aggregates across genres."""
+        ev1 = score_l1("detective", None, L1_TRUTH, "a", "h")
+        ev2 = score_l1(
+            "quest",
+            {"agents": ["A", "B"], "initial_world": [], "initial_belief": []},
+            {"agents": ["A", "B"], "initial_world": [], "initial_belief": []},
+            "a",
+            "h",
+        )
+        summary = summarise_l1([ev1, ev2])
+        # ev1: 0/3, ev2: 2/2 → 2/5
+        assert summary["agent_recall"] == "2/5 (0.40)"
+
+
+# ---------------------------------------------------------------------------
+# FR-574 — L2 evaluator tests
+# ---------------------------------------------------------------------------
+
+L2_TRUTH_GOALS = [
+    {"pred": "alive", "args": ["Witness Pell"], "value": True},
+    {"pred": "holds", "args": ["Marren", "ledger"], "value": True},
+    {"pred": "rel", "args": ["Hagen", "Consul Drey"], "value": "co-conspirator"},
+]
+
+
+class TestScoreL2:
+    """FR-574 — L2 goal evaluation scoring."""
+
+    def test_golden_perfect(self):
+        predicted = [
+            {"pred": "alive", "args": ["Witness Pell"], "value": True},
+            {"pred": "holds", "args": ["Marren", "ledger"], "value": True},
+            {
+                "pred": "rel",
+                "args": ["Hagen", "Consul Drey"],
+                "value": "co-conspirator",
+            },
+        ]
+        ev = score_l2("detective", predicted, L2_TRUTH_GOALS, "a", "h")
+        assert ev["summary"]["goal_recall"] == "3/3 (1.00)"
+        assert ev["summary"]["goal_precision"] == "3/3 (1.00)"
+
+    def test_absent_prediction_zero(self):
+        ev = score_l2("detective", None, L2_TRUTH_GOALS, "a", "h")
+        assert ev["summary"]["goal_recall"] == "0/3 (0.00)"
+        assert ev["summary"]["produced_valid_yaml"] is False
+
+    def test_order_insensitive_rel_args(self):
+        """C3: rel [A, B] should match rel [B, A]."""
+        predicted = [
+            {
+                "pred": "rel",
+                "args": ["Consul Drey", "Hagen"],
+                "value": "co-conspirator",
+            },
+        ]
+        truth = [
+            {
+                "pred": "rel",
+                "args": ["Hagen", "Consul Drey"],
+                "value": "co-conspirator",
+            },
+        ]
+        ev = score_l2("detective", predicted, truth, "a", "h")
+        assert ev["summary"]["goal_recall"] == "1/1 (1.00)"
+
+    def test_tolerant_value_comparison(self):
+        """C3: value 'co-conspirator' vs 'conspirator' — contains match."""
+        predicted = [
+            {"pred": "rel", "args": ["Hagen", "Consul Drey"], "value": "conspirator"},
+        ]
+        truth = [
+            {
+                "pred": "rel",
+                "args": ["Hagen", "Consul Drey"],
+                "value": "co-conspirator",
+            },
+        ]
+        ev = score_l2("detective", predicted, truth, "a", "h")
+        assert ev["summary"]["goal_recall"] == "1/1 (1.00)"
+
+    def test_extra_goals_lower_precision(self):
+        predicted = [
+            {"pred": "alive", "args": ["Witness Pell"], "value": True},
+            {"pred": "alive", "args": ["Marren"], "value": True},  # extra
+        ]
+        truth = [
+            {"pred": "alive", "args": ["Witness Pell"], "value": True},
+        ]
+        ev = score_l2("detective", predicted, truth, "a", "h")
+        assert ev["summary"]["goal_recall"] == "1/1 (1.00)"
+        assert ev["summary"]["goal_precision"] == "1/2 (0.50)"
+
+    def test_summarise_l2_aggregates(self):
+        ev1 = score_l2("d", None, L2_TRUTH_GOALS, "a", "h")
+        ev2 = score_l2(
+            "q",
+            [{"pred": "alive", "args": ["X"], "value": True}],
+            [{"pred": "alive", "args": ["X"], "value": True}],
+            "a",
+            "h",
+        )
+        summary = summarise_l2([ev1, ev2])
+        # 0/3 + 1/1 = 1/4
+        assert summary["goal_recall"] == "1/4 (0.25)"
+
+
+# ---------------------------------------------------------------------------
+# FR-575 — L3 evaluator tests
+# ---------------------------------------------------------------------------
+
+
+class TestContentWords:
+    """C6 — stopword stripping for Jaccard."""
+
+    def test_strips_stopwords(self):
+        words = _content_words("the hero finds a hidden door in the castle")
+        assert "the" not in words
+        assert "a" not in words
+        assert "in" not in words
+        assert "hero" in words
+        assert "hidden" in words
+        assert "door" in words
+        assert "castle" in words
+
+    def test_lowercases(self):
+        words = _content_words("Marren Finds The Ledger")
+        assert "marren" in words
+        assert "finds" in words
+        assert "ledger" in words
+
+
+class TestJaccard:
+    """C6 — Jaccard on content words."""
+
+    def test_identical_sets(self):
+        a = {"hero", "villain", "castle"}
+        assert _jaccard(a, a) == 1.0
+
+    def test_disjoint_sets(self):
+        assert _jaccard({"hero"}, {"villain"}) == 0.0
+
+    def test_partial_overlap(self):
+        # {hero, villain} ∩ {hero, castle} = {hero}, union = {hero, villain, castle}
+        assert abs(_jaccard({"hero", "villain"}, {"hero", "castle"}) - 1 / 3) < 0.01
+
+    def test_empty_sets(self):
+        assert _jaccard(set(), set()) == 1.0
+        assert _jaccard({"hero"}, set()) == 0.0
+
+
+L3_TRUTH_GLOSSES = [
+    {
+        "id": "F1",
+        "gloss": "Hagen's hired men abduct Witness Pell from the safe house and burn the building.",
+        "chapter": 1,
+    },
+    {
+        "id": "F2",
+        "gloss": "Marren arrives at the charred ruin and discovers the witness and ledger are gone.",
+        "chapter": 1,
+    },
+    {
+        "id": "F3",
+        "gloss": "Marren traces the abductors through dock manifests to the warehouse district.",
+        "chapter": 2,
+    },
+]
+
+
+class TestScoreL3:
+    """FR-575 — L3 beat evaluation scoring."""
+
+    def test_golden_exact_glosses(self):
+        """Identical glosses → perfect recall and precision."""
+        ev = score_l3("d", L3_TRUTH_GLOSSES, L3_TRUTH_GLOSSES, "a", "h")
+        assert ev["summary"]["beat_recall"] == "3/3 (1.00)"
+        assert ev["summary"]["beat_precision"] == "3/3 (1.00)"
+        assert ev["summary"]["count_delta"] == 0
+
+    def test_absent_prediction_zero(self):
+        ev = score_l3("d", None, L3_TRUTH_GLOSSES, "a", "h")
+        assert ev["summary"]["beat_recall"] == "0/3 (0.00)"
+        assert ev["summary"]["produced_valid_yaml"] is False
+
+    def test_paraphrased_gloss_matches(self):
+        """A paraphrased gloss with shared content words should match (C6)."""
+        predicted = [
+            {
+                "id": "F1",
+                "gloss": "Hired men abduct Pell from the safe house, burning the building behind them.",
+                "chapter": 1,
+            },
+        ]
+        truth = [
+            {
+                "id": "F1",
+                "gloss": "Hagen's hired men abduct Witness Pell from the safe house and burn the building.",
+                "chapter": 1,
+            },
+        ]
+        ev = score_l3("d", predicted, truth, "a", "h", threshold=0.25)
+        assert ev["summary"]["beat_recall"] == "1/1 (1.00)"
+
+    def test_many_to_one_matching(self):
+        """C5: one coarse predicted beat covering two GT beats counts both."""
+        # One predicted beat covers both F1 and F2
+        predicted = [
+            {
+                "id": "F1",
+                "gloss": "Hagen's men abduct Witness Pell and burn the safe house. "
+                "Marren arrives at the charred ruin and discovers the witness "
+                "and ledger are both gone.",
+                "chapter": 1,
+            },
+        ]
+        ev = score_l3("d", predicted, L3_TRUTH_GLOSSES[:2], "a", "h", threshold=0.25)
+        # Both GT beats should be recalled (many-to-one)
+        assert ev["summary"]["beat_recall"] == "2/2 (1.00)"
+
+    def test_count_delta(self):
+        """Count delta reports the difference in beat counts."""
+        predicted = [{"id": "F1", "gloss": "A beat.", "chapter": 1}]
+        ev = score_l3("d", predicted, L3_TRUTH_GLOSSES, "a", "h")
+        assert ev["summary"]["count_delta"] == 2  # |1 - 3| = 2
+
+    def test_summarise_l3_aggregates(self):
+        ev1 = score_l3("d", None, L3_TRUTH_GLOSSES, "a", "h")
+        ev2 = score_l3(
+            "q",
+            [{"id": "F1", "gloss": "hero finds crown in the temple", "chapter": 1}],
+            [{"id": "F1", "gloss": "hero finds crown in the temple", "chapter": 1}],
+            "a",
+            "h",
+        )
+        summary = summarise_l3([ev1, ev2])
+        # 0/3 + 1/1 = 1/4
+        assert summary["beat_recall"] == "1/4 (0.25)"

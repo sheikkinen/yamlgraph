@@ -61,6 +61,281 @@ def validate_kinds(state: dict) -> dict:
     }
 
 
+def validate_agents(state: dict) -> dict:
+    """Parse and validate the extract_agents node's raw YAML output (J1).
+
+    Reads ``agents_raw`` (raw text). On success writes ``agents``,
+    ``initial_world``, ``initial_belief``, and ``validation``. On failure
+    writes **only** ``validation``, leaving the others absent.
+    """
+    raw = state.get("agents_raw", "")
+    try:
+        data = yaml.safe_load(raw)
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(data, dict):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": [
+                    "expected a YAML mapping with agents/initial_world/initial_belief"
+                ],
+            }
+        }
+
+    flaws: list[str] = []
+
+    # --- agents ---
+    agents_list = data.get("agents")
+    if not isinstance(agents_list, list) or not agents_list:
+        flaws.append("agents: expected non-empty list of character names")
+    elif not all(isinstance(a, str) for a in agents_list):
+        flaws.append("agents: all items must be strings")
+
+    agents_set = set(agents_list) if isinstance(agents_list, list) else set()
+
+    # --- initial_world ---
+    from schema.predicates import Belief, Fluent
+
+    world = data.get("initial_world", [])
+    if not isinstance(world, list):
+        flaws.append("initial_world: expected list")
+        world = []
+    else:
+        for i, w in enumerate(world):
+            try:
+                Fluent.model_validate(w)
+            except Exception as e:
+                flaws.append(f"initial_world[{i}]: invalid fluent — {e}")
+
+    # --- initial_belief ---
+    belief = data.get("initial_belief", [])
+    if not isinstance(belief, list):
+        flaws.append("initial_belief: expected list")
+        belief = []
+    else:
+        for i, b in enumerate(belief):
+            try:
+                Belief.model_validate(b)
+            except Exception as e:
+                flaws.append(f"initial_belief[{i}]: invalid belief — {e}")
+
+    # --- referential checks (only if agents_list is valid) ---
+    if (
+        isinstance(agents_list, list)
+        and agents_list
+        and all(isinstance(a, str) for a in agents_list)
+    ):
+        # Agents referenced in alive predicates
+        alive_agents: set[str] = set()
+        for w in world:
+            if isinstance(w, dict) and w.get("pred") == "alive":
+                args = w.get("args", [])
+                if args:
+                    alive_agents.add(args[0])
+
+        # Every alive predicate's agent must be in agents list
+        for agent in alive_agents - agents_set:
+            flaws.append(f"referenced in initial_world but not in agents list: {agent}")
+
+        # Every agent must have at least one alive predicate
+        for agent in sorted(agents_set - alive_agents):
+            flaws.append(f"{agent}: missing alive predicate in initial_world")
+
+        # Belief observers must be in agents list
+        for b in belief:
+            if isinstance(b, dict):
+                obs = b.get("observer")
+                if obs and obs not in agents_set:
+                    flaws.append(f"initial_belief observer '{obs}' not in agents list")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {
+        "agents": agents_list,
+        "initial_world": world,
+        "initial_belief": belief,
+        "validation": {"ok": True, "flaws": []},
+    }
+
+
+VALID_PREDS = {"alive", "at", "holds", "rel", "faction"}
+
+
+def validate_goals(state: dict) -> dict:
+    """Parse and validate the extract_goals node's raw YAML output (J1).
+
+    Reads ``goals_raw`` (raw text) and ``agents`` (list of agent names).
+    On success writes ``goals`` + ``validation``. On failure writes only
+    ``validation``.
+    """
+    raw = state.get("goals_raw", "")
+    try:
+        data = yaml.safe_load(raw)
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(data, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of goal fluents"],
+            }
+        }
+
+    if not data:
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["goals list must have at least one goal"],
+            }
+        }
+
+    from schema.predicates import Fluent
+
+    agents_list = state.get("agents", [])
+    agents_set = (
+        {a.lower() for a in agents_list} if isinstance(agents_list, list) else set()
+    )
+
+    flaws: list[str] = []
+    seen: set[str] = set()
+
+    for i, item in enumerate(data):
+        # Validate as Fluent
+        try:
+            Fluent.model_validate(item)
+        except Exception as e:
+            flaws.append(f"goals[{i}]: invalid fluent — {e}")
+            continue
+
+        if not isinstance(item, dict):
+            continue
+
+        # Check predicate is in vocabulary
+        pred = item.get("pred", "")
+        if pred not in VALID_PREDS:
+            flaws.append(
+                f"goals[{i}]: unknown predicate '{pred}' (allowed: {', '.join(sorted(VALID_PREDS))})"
+            )
+
+        # Check agent references
+        args = item.get("args", [])
+        for arg in args:
+            # Only check args that look like agent names (not objects/locations)
+            # For alive pred, the arg is always an agent
+            if pred == "alive" and str(arg).lower() not in agents_set:
+                flaws.append(f"goals[{i}]: agent '{arg}' not in agents list")
+            elif pred in ("rel", "faction") and str(args[0]).lower() not in agents_set:
+                flaws.append(f"goals[{i}]: agent '{args[0]}' not in agents list")
+
+        # Check duplicates (same pred+args+value)
+        key = f"{pred}|{'|'.join(str(a) for a in args)}|{item.get('value', True)}"
+        if key in seen:
+            flaws.append(
+                f"goals[{i}]: duplicate goal {pred}({', '.join(str(a) for a in args)})"
+            )
+        seen.add(key)
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {
+        "goals": data,
+        "validation": {"ok": True, "flaws": []},
+    }
+
+
+def validate_glosses(state: dict) -> dict:
+    """Parse and validate the extract_glosses node's raw YAML output (J1).
+
+    Reads ``glosses_raw`` (raw text). On success writes ``glosses`` +
+    ``validation``. On failure writes only ``validation``.
+    """
+    import re
+
+    raw = state.get("glosses_raw", "")
+    try:
+        data = yaml.safe_load(raw)
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(data, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of beat objects"],
+            }
+        }
+
+    flaws: list[str] = []
+
+    # Count bounds
+    if len(data) < 5:
+        flaws.append(f"too few beats ({len(data)}): at least 5 expected")
+    if len(data) > 20:
+        flaws.append(f"too many beats ({len(data)}): at most 20 expected")
+
+    prev_chapter = 0
+    expected_idx = 1
+    for i, item in enumerate(data):
+        if not isinstance(item, dict):
+            flaws.append(f"beats[{i}]: expected a mapping, got {type(item).__name__}")
+            continue
+
+        # Required keys
+        beat_id = item.get("id")
+        gloss = item.get("gloss")
+        chapter = item.get("chapter")
+
+        if not beat_id:
+            flaws.append(f"beats[{i}]: missing 'id'")
+        if not gloss:
+            flaws.append(f"beats[{i}]: missing 'gloss'")
+        if chapter is None:
+            flaws.append(f"beats[{i}]: missing 'chapter'")
+
+        # Sequential IDs: F1, F2, F3, ...
+        if beat_id:
+            m = re.match(r"^F(\d+[a-z]?)$", str(beat_id))
+            if m:
+                idx_str = m.group(1)
+                # Handle sub-beats like F2b — they don't break sequence
+                if idx_str.isdigit():
+                    idx = int(idx_str)
+                    if idx != expected_idx:
+                        flaws.append(
+                            f"beats[{i}]: non-sequential id '{beat_id}' (expected F{expected_idx})"
+                        )
+                    expected_idx = idx + 1
+
+        # Gloss length
+        if isinstance(gloss, str):
+            word_count = len(gloss.split())
+            if word_count < 10:
+                flaws.append(
+                    f"beats[{i}] ({beat_id}): gloss too short ({word_count} words, min 10)"
+                )
+
+        # Chapters: non-decreasing
+        if isinstance(chapter, int):
+            if chapter < prev_chapter:
+                flaws.append(
+                    f"beats[{i}] ({beat_id}): chapter {chapter} < previous {prev_chapter} (must be non-decreasing)"
+                )
+            prev_chapter = chapter
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {
+        "glosses": data,
+        "validation": {"ok": True, "flaws": []},
+    }
+
+
 def load_glosses(ground_truth_path: str | Path) -> list[dict]:
     """Extract glosses from a ground-truth plot, stripping kind/subject labels.
 
