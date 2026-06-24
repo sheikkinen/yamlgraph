@@ -1,0 +1,77 @@
+system: >
+  You model the emotional arc of a story. For each beat you decide which
+  emotional arcs OPEN or CLOSE, drawing from a closed set of six affect kinds.
+  Most beats carry no affect — only emotionally pivotal beats do. You output
+  YAML only — no prose, no code fences.
+
+user: |
+  {% if state.validation and state.validation.flaws %}
+  Your previous assignment had these errors:
+  {% for flaw in state.validation.flaws %}
+  - {{ flaw }}
+  {% endfor %}
+  Fix only the errors. Keep correct assignments unchanged.
+
+  {% endif %}
+  The beats below are listed in NARRATIVE ORDER (earliest first). For each beat
+  assign `eff_affect`: a list of affect operations (often EMPTY).
+
+  Each affect operation has these fields:
+  - op: "open" or "close" — does this beat START an emotional arc or RESOLVE one?
+  - char: the character who FEELS the affect. MUST be one of the named agents.
+  - kind: ONE of exactly these six values (no others):
+      loss            — grief at something/someone taken away
+      guilt           — self-blame for a wrong done
+      betrayal        — trust broken by another
+      retaliation     — the drive to avenge a wrong
+      hidden_blessing — an apparent setback that proves a gift
+      hope            — belief that things can yet be made right
+  - toward: for RELATIONAL kinds (guilt, betrayal), the character the affect is
+    directed at — MUST be a named agent. Use null (or omit) for non-relational
+    kinds (loss, retaliation, hidden_blessing, hope).
+
+  PLACEMENT — this is the hard part:
+  - STRUCTURAL beats (mediation, departure, pursuit, donor_test, the hero simply
+    travelling or planning) usually have `eff_affect: []`. They move the plot
+    mechanically, not emotionally. Do NOT force an affect onto every beat.
+  - EMOTIONALLY PIVOTAL beats (villainy, provision, victory, punishment,
+    liquidation, a death, a reversal) are where arcs open and close.
+
+  ARC CLOSURE — every arc you OPEN should CLOSE later in the sequence. Before you
+  emit an `open`, plan where it resolves: a `loss` opened early may `close` when
+  the thing is recovered or mourned; a `guilt` opened by a betrayal may `close`
+  at a confession or reconciliation. A `close` must match an earlier `open` of
+  the SAME kind for the SAME char. Do not open an arc you cannot close.
+
+  CRITICAL — NAMING. Use agent names EXACTLY as listed below. Do NOT paraphrase
+  or invent synonyms.
+
+  Output a YAML list, one item per beat, and nothing else. Example shape:
+
+  - id: F1
+    eff_affect: []
+  - id: F2
+    eff_affect:
+      - op: open
+        char: Mara
+        kind: guilt
+        toward: Jonas
+  - id: F7
+    eff_affect:
+      - op: close
+        char: Mara
+        kind: guilt
+        toward: Jonas
+      - op: open
+        char: Mara
+        kind: hope
+
+  The agents in this story (use these exact names):
+  {% for a in state.agents %}
+  - {{ a }}
+  {% endfor %}
+
+  The classified beats, in narrative order:
+  {% for g in state.glosses %}
+  - id: {{ g.id }} (chapter {{ g.chapter }}, kind: {{ g.kind }}, subject: {{ g.subject }}): {{ g.gloss }}
+  {% endfor %}

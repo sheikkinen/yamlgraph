@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — Authority GRANTED, execution gated behind FR-577 (2026-06-24)
+**Status:** Enforced — REVISE (affect recall 0.12 haiku / 0.09 sonnet-4-6; model-invariant kind-axis confusion, 2026-06-24)
 **Effort:** 1 day
 **Requested:** 2026-06-24
 **Judged:** 2026-06-24
@@ -273,3 +273,89 @@ execution order (R1). Both layers are GT-isolated, so a parallel draft is sound
 and C3 (explicit null-handling). Gate: affect recall ≥ 0.70,
 denominator-visible, verdict by confusion analysis. One spike, record verdict —
 after FR-577.
+
+## Implementation (2026-06-24)
+
+**Verdict: REVISE.** The gate (affect recall ≥ 0.70) is not met, but the
+sub-threshold result is carried by a **coherent, model-invariant confusion**
+(J:N2) — not the incoherent failure that a KILL requires. Two spikes were run
+under Mode-1 isolation (ground-truth glosses + kinds + agents):
+
+| Model (verified in log: `Creating LLM: anthropic/...`) | affect recall | affect precision |
+|---|---|---|
+| `claude-haiku-4-5` | 4/33 (0.12) | 4/42 (0.10) |
+| `claude-sonnet-4-6` | 3/33 (0.09) | 3/46 (0.07) |
+
+### Decisive finding — the bottleneck is not model capability
+
+Scaling haiku → sonnet-4-6 did **not** move the gate (0.12 → 0.09, within noise;
+precision also flat-to-down). Both `Creating LLM` log lines were verified, so the
+swap genuinely took effect via `ANTHROPIC_MODEL` → `create_llm()`. A 6×-stronger
+model cannot brute-force the gap, which means the limitation is in the **task
+framing**, not the LLM. This redirects the revision hypothesis away from "use a
+bigger model."
+
+### Confusion analysis (identical axis under both models)
+
+Comparing GT vs predictions per beat across all 5 genres:
+
+- **`char` is almost always correct** — the model reliably identifies *who* the
+  emotion belongs to (Naima, Eira, Mara).
+- **`op` (open/close) is roughly correct** — it tracks *when* emotional onset /
+  resolution lands (the right beats carry arcs).
+- **`kind` is the dominant error axis** — the model over-emits generic
+  `hope`/`loss`/`retaliation` and systematically *misses* the moral-relational
+  kinds (`guilt`, `betrayal`). Examples: GT `guilt`→PRED `hope` (scifi F2,
+  both models); GT `loss(toward Jonas)`→PRED `betrayal(toward ARIA)` (scifi F6);
+  GT `betrayal(toward ARIA)` missed or mis-kinded (scifi F7).
+- **`toward` (relational target) is mis-targeted** — Jonas ↔ ARIA swapped
+  (scifi F6/F10), and several relational arcs dropped entirely.
+- **Open/close *pairing* is not tracked** — the close timing is roughly right but
+  *which kind closes* is shuffled (historical F6/F9: `loss`↔`hope` swap).
+
+The model recovers **who** and **roughly when**, but cannot recover the authors'
+specific **emotional kind** — especially the moral-relational arcs that require
+reading inter-character moral debt (guilt/betrayal toward a named target) out of
+a one-line gloss + Proppian kind. This is a stable signal, not stochastic noise:
+the same axis appears across both models and all genres.
+
+### Revision hypothesis (for the re-spike before FR-579 integration)
+
+The exact-match `kind` enforcement (C4) is correct and stays — it is *what
+exposed* the kind-axis confusion; fuzzy matching would have masked it. The fix is
+not the matcher and not the model; candidate levers, in order of expected
+leverage:
+
+1. **Decompose the task**: split affect assignment into (a) "does this beat carry
+   emotional weight?" and (b) "name the kind + relational target," rather than a
+   single per-beat pass — the placement signal (char + op) is already strong and
+   should be preserved while the kind classifier is strengthened.
+2. **Ground the relational kinds**: give the prompt explicit definitions /
+   exemplars for `guilt` and `betrayal` and *require* a `toward` target for them,
+   since the moral-relational arcs are the systematic blind spot.
+3. **Track open/close pairing**: feed the running set of open arcs so a `close`
+   names the same `kind`+`char` it opened, fixing the pairing shuffle.
+4. **Reconsider the input**: gloss + kind may be too thin to recover authorial
+   affect; richer beat context (or L5/L6 effects) may be required input for L7.
+
+Per J:N2 the gate number triggers and the confusion carries the verdict: a
+coherent, prompt-addressable failure cluster → **REVISE**, not KILL. L7 does
+**not** pass to the merge node (FR-579) until a revised spike clears ≥ 0.70.
+
+### Deliverables landed
+
+- `graphs/assign_affects.yaml`, `prompts/assign_affects.yaml`
+- `validate_affects` in `nodes/tools.py` (AffectDelta structural validation,
+  closed-enum `kind`, agent membership for `char`/`toward`, J1 write-on-success;
+  does **not** enforce open/close balance per C1 — that is the FR-579 merge node)
+- `run.py --mode assign-affects` (Mode 7)
+- `score_l7` / `summarise_l7` / `_load_gt_affects` / `main_l7` in `evaluate.py`
+  (recall gate, precision over-emission detector C2, symmetric `toward`
+  null-handling C3, informational open/close balance C1)
+- `tests/test_l7_validator.py` (19 tests, RED→GREEN, J1 + C4 exact-enum)
+- `results/l7/*.yaml`, `results/evaluation/*-l7-eval.yaml`,
+  `results/evaluation/l7-summary.yaml`
+- Spike logs: `logs/l7-spike.log` (haiku), `logs/l7-spike-sonnet.log` (sonnet-4-6)
+
+FR-579 (merge/pipeline) remains blocked on a REVISE re-spike of L7 clearing the
+0.70 gate.

@@ -1,0 +1,68 @@
+metadata:
+  name: assign-affects
+  description: >
+    FR-578 L7 spike: assign emotional affect operations (eff_affect: a list of
+    AffectDelta) to classified beats. One LLM node emits YAML text; a Python
+    validator parses and checks it (AffectDelta structure, closed AffectKind
+    enum, char/toward agent membership); on failure the LLM retries with the
+    errors in-prompt (max 3 attempts).
+  # No hardcoded provider/model — resolved from the PROVIDER env var at run time
+  # (FR-578 J — provider/model is a run-time decision, not a graph constant).
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  glosses:
+    type: list
+    description: "Input: classified beats with id, gloss, chapter, kind, subject (narrative order)"
+  agents:
+    type: list
+    description: "Input: agent names (for the char/toward membership check)"
+  affects_raw:
+    type: str
+    description: "Raw LLM YAML text (assign output; default parse_json: false)"
+  affects:
+    type: list
+    description: "Output: parsed + validated per-beat affects (written by validator on success)"
+  validation:
+    type: dict
+    description: "Validator result: {ok: bool, flaws: list[str]}"
+
+tools:
+  validate_affects:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: validate_affects
+
+nodes:
+  assign:
+    type: llm
+    prompt: assign_affects
+    state_key: affects_raw     # J1: raw YAML text lands here, not in `affects`
+
+  validate:
+    type: python
+    tool: validate_affects
+    state_key: validation
+
+edges:
+  - from: START
+    to: assign
+  - from: assign
+    to: validate
+  - from: validate
+    to: assign
+    condition: "validation.ok == false"
+  - from: validate
+    to: END
+    condition: "validation.ok == true"
+
+# Loop control is keyed on the re-entered node (`assign`). After 3 assign
+# entries the loop exits to END even if validation never passes — evaluate.py
+# then scores the genre as all-wrong (FR-570 J6).
+loop_limits:
+  assign: 3
+
+loop_exits:
+  assign: END

@@ -1415,5 +1415,253 @@ def main_l6(argv: list[str] | None = None) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------
+# L7 evaluation — affects: eff_affect (AffectDelta) per beat (FR-578)
+# ---------------------------------------------------------------------------
+
+
+def _affect_matches(pred: dict, truth: dict) -> bool:
+    """One affect delta matches another (FR-578 criteria).
+
+    ``op`` and ``kind`` are exact (closed enums, C4); ``char`` is tolerant
+    (normalized). ``toward`` is symmetric (C3): GT-null requires pred-null/absent
+    (a hallucinated non-null target is a precision miss, never a free pass);
+    GT-non-null requires a tolerant char match.
+    """
+    if not isinstance(pred, dict) or not isinstance(truth, dict):
+        return False
+    if _norm(pred.get("op")) != _norm(truth.get("op")):
+        return False
+    if _norm(pred.get("kind")) != _norm(truth.get("kind")):
+        return False
+    if _norm(pred.get("char")) != _norm(truth.get("char")):
+        return False
+    t_toward = truth.get("toward")
+    p_toward = pred.get("toward")
+    if t_toward is None:
+        return p_toward is None  # C3: GT-null matches only pred-null/absent
+    if p_toward is None:
+        return False
+    pt, tt = _norm(p_toward), _norm(t_toward)
+    return pt == tt or pt in tt or tt in pt
+
+
+def _match_count(a_deltas: list, b_deltas: list) -> int:
+    """Greedy bipartite count: how many of ``a`` find a distinct match in ``b``."""
+    used: set[int] = set()
+    hits = 0
+    for a in a_deltas:
+        for j, b in enumerate(b_deltas):
+            if j in used:
+                continue
+            if _affect_matches(a, b):
+                hits += 1
+                used.add(j)
+                break
+    return hits
+
+
+def _affect_label(delta: dict) -> str:
+    """Human-readable arc label for the balance report."""
+    char = delta.get("char", "?")
+    kind = delta.get("kind", "?")
+    toward = delta.get("toward")
+    return f"{char}:{kind}->{toward}" if toward else f"{char}:{kind}"
+
+
+def _affect_balance(predicted: list | None) -> dict:
+    """Open/close balance over a predicted plan (informational, C1 — not gating).
+
+    Counts unresolved ``open`` arcs (same char+kind+toward never closed). Balance
+    is a cross-beat plan invariant the merge node (FR-579) enforces; here it is
+    only reported.
+    """
+    if not isinstance(predicted, list):
+        return {"balanced": False, "unclosed": []}
+    open_arcs: dict[tuple, list] = {}
+    for item in predicted:
+        if not isinstance(item, dict):
+            continue
+        for d in item.get("eff_affect") or []:
+            if not isinstance(d, dict):
+                continue
+            key = (_norm(d.get("char")), _norm(d.get("kind")), _norm(d.get("toward")))
+            if _norm(d.get("op")) == "open":
+                open_arcs.setdefault(key, []).append(_affect_label(d))
+            elif _norm(d.get("op")) == "close" and open_arcs.get(key):
+                open_arcs[key].pop()
+    unclosed = [label for labels in open_arcs.values() for label in labels]
+    return {"balanced": len(unclosed) == 0, "unclosed": sorted(unclosed)}
+
+
+def _l7_verdict(affect_recall: float) -> str:
+    """GATE on affect recall: GO>=0.70, REVISE 0.50-0.70, KILL<0.50 (J:N2)."""
+    if affect_recall >= 0.70:
+        return "GO"
+    if affect_recall >= 0.50:
+        return "REVISE"
+    return "KILL"
+
+
+def _l7_counts(predicted: list | None, truth_by_id: dict) -> dict:
+    """Tally recall/precision hits and gt/pred totals over all beats."""
+    counts = {"recall_hits": 0, "gt": 0, "precision_hits": 0, "pred": 0}
+    pred_by_id: dict[str, list] = {}
+    if isinstance(predicted, list):
+        for item in predicted:
+            if isinstance(item, dict) and item.get("id"):
+                ea = item.get("eff_affect")
+                pred_by_id[item["id"]] = ea if isinstance(ea, list) else []
+
+    for bid, t_deltas in truth_by_id.items():
+        p_deltas = pred_by_id.get(bid, [])
+        counts["gt"] += len(t_deltas)
+        counts["pred"] += len(p_deltas)
+        counts["recall_hits"] += _match_count(t_deltas, p_deltas)
+        counts["precision_hits"] += _match_count(p_deltas, t_deltas)
+
+    return counts
+
+
+def score_l7(
+    genre: str,
+    predicted: list | None,
+    truth_by_id: dict,
+    provider: str,
+    model: str,
+) -> dict:
+    """Build L7 evaluation record for one genre (FR-578)."""
+    counts = _l7_counts(predicted, truth_by_id)
+    balance = _affect_balance(predicted)
+    return {
+        "meta": {"genre": genre, "provider": provider, "model": model},
+        "summary": {
+            "affect_recall": _fraction(counts["recall_hits"], counts["gt"]),  # GATE
+            "affect_precision": _fraction(counts["precision_hits"], counts["pred"]),
+            "open_close_balance": balance,  # informational (C1)
+            "produced_valid_yaml": isinstance(predicted, list),
+        },
+        "_counts": counts,  # carried for the summary aggregation
+    }
+
+
+def summarise_l7(evaluations: list[dict]) -> dict:
+    """Aggregate L7 per-genre evaluations into an overall summary (FR-578)."""
+    agg = {"recall_hits": 0, "gt": 0, "precision_hits": 0, "pred": 0}
+    for e in evaluations:
+        for k in agg:
+            agg[k] += e["_counts"][k]
+
+    affect_recall = (agg["recall_hits"] / agg["gt"]) if agg["gt"] else 0.0
+    verdict = _l7_verdict(affect_recall)
+    unclosed = sorted(
+        f"{e['meta']['genre']}: {label}"
+        for e in evaluations
+        for label in e["summary"]["open_close_balance"]["unclosed"]
+    )
+
+    return {
+        "corpus": {
+            "synopses": len(evaluations),
+            "isolation": "ground-truth glosses + kinds + agents (Mode 1)",
+        },
+        "affect_recall": _fraction(agg["recall_hits"], agg["gt"]),  # GATE
+        "affect_precision": _fraction(agg["precision_hits"], agg["pred"]),
+        "open_close_balance": {
+            "balanced": len(unclosed) == 0,
+            "unclosed": unclosed,  # informational (C1)
+        },
+        "per_genre": {
+            e["meta"]["genre"]: {
+                "recall": e["summary"]["affect_recall"],
+                "precision": e["summary"]["affect_precision"],
+            }
+            for e in evaluations
+        },
+        "verdict": verdict,
+        "conditions": [
+            "affect recall >= 0.70 for GO",
+            "borderline 0.50-0.70 defaults to REVISE (J:N2)",
+            "KILL only if < 0.50 AND the confusion pattern is not a fixable prompt issue",
+        ],
+        "note": (
+            "Gate is affect recall — does the model place the arcs the corpus "
+            "authors placed (J:N2). affect_precision is the over-emission detector "
+            "(C2): a low value means the model opens an arc on every emotional beat. "
+            "kind/op are matched exactly (closed enums, C4); char is normalized; "
+            "toward is symmetric (C3 — a hallucinated target is a precision miss). "
+            "open_close_balance is INFORMATIONAL (C1): balance is a merge-node plan "
+            "invariant (FR-579), not a per-layer gate. Denominators are small — read "
+            "the fractions, never a bare percentage (J:C5)."
+        ),
+    }
+
+
+def _load_gt_affects(path: Path) -> dict:
+    """Load per-beat eff_affect deltas, keyed by beat id, from a ground-truth plot."""
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    out: dict[str, list] = {}
+    for fn in data.get("functions", []):
+        out[fn["id"]] = fn.get("eff_affect", []) or []
+    return out
+
+
+def main_l7(argv: list[str] | None = None) -> int:
+    """CLI: evaluate L7 affect assignment results against ground truth."""
+    parser = argparse.ArgumentParser(description="FR-578 L7 evaluator")
+    parser.add_argument("--results-dir", default=str(EXAMPLE_DIR / "results" / "l7"))
+    parser.add_argument(
+        "--ground-truth-dir", default=str(EXAMPLE_DIR / "fixtures" / "ground-truth")
+    )
+    parser.add_argument(
+        "--out-dir", default=str(EXAMPLE_DIR / "results" / "evaluation")
+    )
+    parser.add_argument("--provider", default="unknown")
+    parser.add_argument("--model", default="unknown")
+    args = parser.parse_args(argv)
+
+    results_dir = Path(args.results_dir)
+    gt_dir = Path(args.ground_truth_dir)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    evaluations: list[dict] = []
+    for gt_path in sorted(gt_dir.glob("*.yaml")):
+        genre = _genre_name(gt_path)
+        truth_by_id = _load_gt_affects(gt_path)
+        result_path = results_dir / f"{genre}.yaml"
+        predicted: list | None = None
+        if result_path.exists():
+            try:
+                loaded = yaml.safe_load(result_path.read_text(encoding="utf-8"))
+                predicted = loaded if isinstance(loaded, list) else None
+            except yaml.YAMLError:
+                predicted = None
+
+        evaluation = score_l7(genre, predicted, truth_by_id, args.provider, args.model)
+        evaluations.append(evaluation)
+        out_path = out_dir / f"{genre}-l7-eval.yaml"
+        record = {k: v for k, v in evaluation.items() if k != "_counts"}
+        out_path.write_text(
+            yaml.safe_dump(record, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        ar = evaluation["summary"]["affect_recall"]
+        print(f"  {genre}: affect_recall {ar}")
+
+    if evaluations:
+        summary = summarise_l7(evaluations)
+        (out_dir / "l7-summary.yaml").write_text(
+            yaml.safe_dump(summary, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        print(f"\nOverall affect recall: {summary['affect_recall']}")
+        print(f"Affect precision: {summary['affect_precision']}")
+        print(f"Verdict: {summary['verdict']}")
+    else:
+        print("No ground-truth files found.")
+    return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
