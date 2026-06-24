@@ -12,26 +12,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
+from schema.kinds import FunctionKind
 
-# The 16-kind Propp-derived alphabet (v5 plan Layer 4).
-VALID_KINDS = {
-    "villainy",
-    "lack",
-    "departure",
-    "donor_test",
-    "provision",
-    "struggle",
-    "victory",
-    "liquidation",
-    "return",
-    "pursuit",
-    "rescue",
-    "recognition",
-    "exposure",
-    "punishment",
-    "reconciliation",
-    "death",
-}
+# The 17-kind Propp-derived alphabet — derived from the schema enum (FR-571 AC#7).
+VALID_KINDS = {k.value for k in FunctionKind}
 
 
 def validate_kinds(state: dict) -> dict:
