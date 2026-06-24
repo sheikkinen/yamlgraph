@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (linter / developer experience)
-**Status:** Proposed
+**Status:** In Progress (enforced 2026-06-24 — see Implementation status)
 **Effort:** 1–1.5 days
 **Requested:** 2026-06-24
 **Origin:** Graduated Seed from `docs/diary/diary-2026-06-24-the-hard-part-buried-in-bookkeeping.md`
@@ -113,10 +113,14 @@ corpus and may grow only with a new fixture proving the addition is warranted.
 - [ ] **Calibration witness:** test asserts W026 fires on `assign_pre_eff`,
       `assign_causality`, `assign_affects`, `extract_agents` and stays silent on
       `extract_glosses`, `classify_kinds` (the 7-prompt corpus is the fixture).
-- [ ] W026-1 threshold (default 4) is configurable; a test exercises a custom
-      threshold.
+- [ ] W026-1 threshold defaults to 4, exposed as a `field_threshold: int = 4`
+      function parameter (no lint-config file); a test exercises a non-default
+      value by passing the parameter directly. *(Amended — see Judgement A1.)*
 - [ ] W026-2 regex families are unit-tested for both true positives (the audit
-      phrases) and true negatives (clean prose that must NOT match).
+      phrases) and true negatives. The negatives MUST include the two
+      knife-edge near-miss phrases — `extract_glosses` "Every major plot point
+      should be its own beat" and `classify_kinds` "exactly ONE action type" —
+      proving the curated regexes do not over-match. *(Amended — see Judgement A2.)*
 - [ ] W026 appears in `yamlgraph graph lint --json` output (NDJSON, FR-151) like
       any other issue.
 - [ ] Each new test tagged `@pytest.mark.req("REQ-YG-XXX")`; `req_coverage.py`
@@ -155,3 +159,93 @@ corpus and may grow only with a new fixture proving the addition is warranted.
 - `docs/diary/diary-2026-06-24-the-hard-part-buried-in-bookkeeping.md` (the audit + Seed)
 - `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py` (W023/W024 precedent + registration)
 - ARCHITECTURE.md REQ-YG-406 / CAP-151 (graph lint JSON output W026 must honour)
+
+## Judgement (2026-06-24)
+
+**Verdict: APPROVED — scope frozen with two binding amendments.** The FR is
+clear, minimal, evidence-backed, and internally consistent. Every load-bearing
+claim was verified against the codebase before granting authority.
+
+### Verified
+- **W026 is free.** Highest existing code is W025 (`checks_contracts.py`); W023/W024
+  are the cited prompt-check precedent in `checks_prompts.py`. No collision.
+- **Registration site is real.** `check_mixed_template_syntax` is wired in
+  `graph_linter.py` `lint_graph()`; appending `check_prompt_complexity` there
+  follows the exact `(graph_path, project_root)` signature every other check uses.
+- **Calibration corpus is real.** All 7 prompts exist. Cited phrases confirmed:
+  `assign_pre_eff` "assign FOUR slices"; `assign_causality` "assign THREE fields"
+  + "FORWARD ONLY"; `assign_affects` "every arc you OPEN should CLOSE later";
+  `extract_agents` "Extract three sections". `assign_pre_eff` carries no inline
+  `schema:`, so it is caught by W026-2 (prose) not W026-1 — consistent with the
+  FR's "two complementary detectors" rationale. No calibration claim is fictional.
+
+### A1 — Purge the invented "lint config" interface *(binding)*
+The linter has **no config mechanism**: every check is a pure
+`(graph_path, project_root)` function with hardcoded constants (cf. W021/W022).
+"Configurable via lint config" + "a test exercises a custom threshold" would
+require inventing a config-file loader — a speculative interface the Purge
+commandment forbids. **Resolution:** the threshold is a module constant surfaced
+as a `field_threshold: int = 4` parameter on `check_prompt_complexity`. The test
+exercises a non-default value by passing the argument directly. No config file,
+no new surface. Acceptance criterion amended accordingly.
+
+### A2 — Pin the knife-edge negatives *(binding)*
+The two "stay silent" prompts both contain near-miss phrases: `extract_glosses`
+"**Every** major plot point **should** be its own beat" and `classify_kinds`
+"**exactly ONE** action type". The curated regexes stay silent only because they
+demand a trailing `(later|close)` / `.* and one` the clean prompts lack — a
+deliberate but fragile margin. **Resolution:** these two exact phrases are now
+required members of the true-negative fixture set, so any future loosening of the
+regexes is caught as a calibration regression. Acceptance criterion amended.
+
+### Within scope as written (no change required)
+- Warning severity (not error) — correct; matches W017/W022 incremental-adoption
+  precedent.
+- `extract_goals` left as documented boundary, asserted in neither fire nor
+  silent list — internally consistent, no contradiction.
+- CAP/REQ-YG ID allocation deferred to enforcement — matches repo convention.
+
+**Authority granted to enforce** under the Sermon: RED fixture commit (7-prompt
+corpus, `SKIP=pytest`) then GREEN (`check_prompt_complexity` + registration),
+separately. Scope is frozen to the two detectors and the two amendments above —
+no third detector, no LLM critique, no standalone CLI without a new FR.
+
+## Implementation status (2026-06-24)
+
+**Enforced.** RED → GREEN landed on `docs/dm-v3-paper-tests-and-v4-plan`:
+- RED `62f9c4ce` — `tests/unit/test_linter_prompt_monolith.py` (ImportError) +
+  CAP-172 / REQ-YG-473 registration + ARCHITECTURE.md sync.
+- GREEN `c3769b4f` — `check_prompt_complexity` in `linter/checks_prompts.py`,
+  registered in `linter/graph_linter.py` after `check_mixed_template_syntax`;
+  changelog fragment.
+
+### Decisions
+- **IDs:** CAP-172, REQ-YG-473 (next free at enforcement). ARCHITECTURE.md is
+  generated — synced via `scripts/aggregate_capabilities.py`, not hand-edited.
+- **A1 honoured:** threshold is the `field_threshold: int = 4` parameter; the
+  custom-threshold test calls `check_prompt_complexity(..., field_threshold=3)`
+  directly. No lint-config file invented.
+- **A2 honoured:** the two knife-edge negatives ("Every … should …",
+  "exactly ONE …") are explicit fixture members; the corpus test asserts
+  `FIRE <= fired` and `not (SILENT & fired)`.
+- **Single W026 per prompt:** schema signal (W026-1) preferred; prose (W026-2)
+  only if schema does not already fire — avoids double-warning one prompt.
+- **Line-scoped regexes:** default `.` does not cross newlines, so `.*` stays
+  within a line — no cross-sentence false positives (the A2 risk).
+
+### Verification
+- 7/7 FR-586 tests pass; 296 linter tests pass; `ruff` clean.
+- **Real-prompt calibration** (production `examples/plot_modeller/graphs/*`):
+  fires on `assign_pre_eff`, `assign_causality`, `assign_affects`,
+  `extract_agents`; silent on `extract_glosses`, `classify_kinds`, and the
+  boundary `extract_goals` — exactly the frozen calibration, on the real prompts
+  not just analogues.
+
+### Acceptance criteria
+- [x] `check_prompt_complexity` added; W026 warning-only; exit semantics unchanged.
+- [x] Calibration witness test (fire set / silent set).
+- [x] `field_threshold` parameter; custom-threshold test.
+- [x] W026-2 regex families unit-tested (true positives + knife-edge negatives).
+- [x] W026 surfaced through `lint_graph` (and thus `graph lint --json`).
+- [x] Tests tagged `REQ-YG-473`; `req_coverage --strict` passes; CAP-172 added.
+- [x] W026 documented in `reference/graph-yaml.md` + ARCHITECTURE.md.

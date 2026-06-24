@@ -1065,6 +1065,13 @@ Supported filters in guard expressions: `length`, `file_exists`, `dir_exists`, `
 
 **Lint rule W025:** Warns when guard rules are syntactically valid YAML but not executable guard expressions.
 
+**Lint rule W026 (prompt-monolith):** Warns when a prompt asks one LLM call to make too many independent judgements at once — the attention-overload anti-pattern where the hardest judgement starves under load (FR-584/FR-585). Warning severity only; it never changes lint exit status. Two complementary detectors:
+
+- **W026-1 (inline-schema field count):** an inline `schema:`/`output_schema:` declaring `field_threshold` or more top-level `fields:` (default **4**). Nested fields under one parent count as one — the signal is the number of *independent top-level outputs*, not depth. The threshold is the `field_threshold` parameter of `check_prompt_complexity` (no lint-config file).
+- **W026-2 (prose phrases):** a small curated set of phrases signalling enumerated multi-output (`assign FOUR slices`, `extract three sections`) or a global cross-unit constraint (`forward only`, `every … should … later`). The phrase list is deliberately small — precision over recall — and grows only with a fixture proving the addition is warranted.
+
+Remedy: split discrimination from bookkeeping (FR-585 decode pattern) or push global cross-unit constraints to a deterministic post-pass.
+
 ---
 
 ## Variable Templates
