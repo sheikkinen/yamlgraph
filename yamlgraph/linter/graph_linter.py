@@ -35,6 +35,7 @@ from yamlgraph.linter.checks_contracts import (
 )
 from yamlgraph.linter.checks_prompts import (
     check_mixed_template_syntax,
+    check_prompt_complexity,
     check_unanchored_prompt_variables,
 )
 from yamlgraph.linter.checks_providers import check_thinking_budget
@@ -94,6 +95,7 @@ def lint_graph(
     all_issues.extend(check_prompt_files(graph_path, project_root))
     all_issues.extend(check_unanchored_prompt_variables(graph_path, project_root))
     all_issues.extend(check_mixed_template_syntax(graph_path, project_root))
+    all_issues.extend(check_prompt_complexity(graph_path, project_root))
     all_issues.extend(check_edge_coverage(graph_path))
     all_issues.extend(check_node_types(graph_path))
 
