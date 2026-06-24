@@ -24,12 +24,17 @@ user: |
   - `faction`: a group membership. `{pred: faction, args: [<agent>, <group>], value: true/false}`
 
   Guidance:
-  - Most stories have 2–5 goals (survival + the main quest objective).
-  - Include survival goals (`alive`) for protagonists whose survival is at stake.
+  - Most stories have 3–6 goals. Include **all** goals the synopsis drives
+    toward, including relationship resolutions (`rel`) and group membership
+    changes (`faction`). Do not omit a goal to stay under the count.
+  - Include survival goals (`alive`) for **every character whose life is
+    explicitly threatened or at risk** in the synopsis — protagonists AND
+    secondary characters.
   - Include the main quest objective (e.g. "obtain the crown", "expose the villain").
-  - Do NOT include goals for every character — only those the plot drives toward.
-  - `value: false` means the goal is for something to NOT be true (e.g. villain
-    loses power: `{pred: holds, args: [Villain, power], value: false}`).
+  - Use object, location, and relationship names **exactly as they appear in
+    the synopsis** — do not paraphrase or invent synonyms.
+  - Use `value: false` only when the synopsis explicitly frames the *removal*
+    of something as a story objective.
 
   Characters in this story:
   {% for a in state.agents %}
@@ -47,6 +52,9 @@ user: |
   - pred: at
     args: [Hero, Home]
     value: true
+  - pred: rel
+    args: [Hero, Ally]
+    value: friends
 
   The synopsis:
 

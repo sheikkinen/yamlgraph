@@ -226,12 +226,13 @@ def main(argv: list[str] | None = None) -> int:
 def _norm_args(args: list) -> list[str]:
     """Normalise fluent args for tolerant matching (C1).
 
-    Strips articles, lowercases, collapses whitespace.
+    Strips articles, lowercases, collapses whitespace, normalises
+    underscores to spaces (FR-581 failure mode 3).
     """
     articles = {"a", "an", "the"}
     out: list[str] = []
     for a in args:
-        words = str(a).lower().split()
+        words = str(a).lower().replace("_", " ").split()
         words = [w for w in words if w not in articles]
         out.append(" ".join(words).strip())
     return out
@@ -945,6 +946,235 @@ def main_l3(argv: list[str] | None = None) -> int:
         )
         print(f"\nOverall beat recall: {summary['beat_recall']}")
         print(f"Overall beat precision: {summary['beat_precision']}")
+    else:
+        print("No ground-truth files found.")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# L5 evaluation — assign world/belief pre/eff (FR-576)
+# ---------------------------------------------------------------------------
+
+# Per-beat pre/eff slices scored independently (the gate is combined world).
+_WORLD_SLICES = ("pre_world", "eff_world")
+_BELIEF_SLICES = ("pre_belief", "eff_belief")
+
+
+def _count_belief_matches(predicted: list, truth: list) -> int:
+    """Count GT beliefs matched by predicted (tolerant fluent, exact observer)."""
+    matched = 0
+    used: set[int] = set()
+    for tb in truth:
+        if not isinstance(tb, dict):
+            continue
+        for i, pb in enumerate(predicted):
+            if i in used or not isinstance(pb, dict):
+                continue
+            if _norm(pb.get("observer")) != _norm(tb.get("observer")):
+                continue
+            if _fluent_matches(pb.get("fluent", {}), tb.get("fluent", {})):
+                matched += 1
+                used.add(i)
+                break
+    return matched
+
+
+def _slice_counts(predicted: list | None, truth_by_id: dict) -> dict:
+    """Accumulate per-slice (hits, gt_total, pred_total) across all beats.
+
+    ``predicted`` is a list of ``{id, pre_world, eff_world, pre_belief,
+    eff_belief}``. A ``None``/non-list scores every GT predicate as missed
+    (J6) without raising.
+    """
+    by_id: dict[str, dict] = {}
+    if isinstance(predicted, list):
+        for item in predicted:
+            if isinstance(item, dict) and item.get("id"):
+                by_id[item["id"]] = item
+
+    counts = {
+        slot: {"hits": 0, "gt": 0, "pred": 0}
+        for slot in (*_WORLD_SLICES, *_BELIEF_SLICES)
+    }
+    for bid, gt in truth_by_id.items():
+        pred = by_id.get(bid, {})
+        for slot in _WORLD_SLICES:
+            gt_list = gt.get(slot) or []
+            pred_list = pred.get(slot) or []
+            counts[slot]["gt"] += len(gt_list)
+            counts[slot]["pred"] += len(pred_list)
+            counts[slot]["hits"] += _count_world_matches(pred_list, gt_list)
+        for slot in _BELIEF_SLICES:
+            gt_list = gt.get(slot) or []
+            pred_list = pred.get(slot) or []
+            counts[slot]["gt"] += len(gt_list)
+            counts[slot]["pred"] += len(pred_list)
+            counts[slot]["hits"] += _count_belief_matches(pred_list, gt_list)
+    return counts
+
+
+def score_l5(
+    genre: str,
+    predicted: list | None,
+    truth_by_id: dict,
+    provider: str,
+    model: str,
+) -> dict:
+    """Build L5 evaluation record for one genre (FR-576)."""
+    counts = _slice_counts(predicted, truth_by_id)
+
+    world_hits = counts["pre_world"]["hits"] + counts["eff_world"]["hits"]
+    world_gt = counts["pre_world"]["gt"] + counts["eff_world"]["gt"]
+    pred_total = sum(c["pred"] for c in counts.values())
+    hit_total = sum(c["hits"] for c in counts.values())
+
+    return {
+        "meta": {"genre": genre, "provider": provider, "model": model},
+        "summary": {
+            "world_recall": _fraction(world_hits, world_gt),  # GATE slice
+            "eff_world_recall": _fraction(
+                counts["eff_world"]["hits"], counts["eff_world"]["gt"]
+            ),
+            "pre_world_recall": _fraction(
+                counts["pre_world"]["hits"], counts["pre_world"]["gt"]
+            ),
+            "eff_belief_recall": _fraction(
+                counts["eff_belief"]["hits"], counts["eff_belief"]["gt"]
+            ),
+            "predicate_precision": _fraction(hit_total, pred_total),
+            "produced_valid_yaml": isinstance(predicted, list),
+        },
+        "_counts": counts,  # carried for the summary aggregation
+    }
+
+
+def summarise_l5(evaluations: list[dict]) -> dict:
+    """Aggregate L5 per-genre evaluations into an overall summary (FR-576)."""
+
+    agg = {
+        slot: {"hits": 0, "gt": 0, "pred": 0}
+        for slot in (*_WORLD_SLICES, *_BELIEF_SLICES)
+    }
+    for e in evaluations:
+        for slot, c in e["_counts"].items():
+            agg[slot]["hits"] += c["hits"]
+            agg[slot]["gt"] += c["gt"]
+            agg[slot]["pred"] += c["pred"]
+
+    world_hits = agg["pre_world"]["hits"] + agg["eff_world"]["hits"]
+    world_gt = agg["pre_world"]["gt"] + agg["eff_world"]["gt"]
+    pred_total = sum(c["pred"] for c in agg.values())
+    hit_total = sum(c["hits"] for c in agg.values())
+
+    world_recall = (world_hits / world_gt) if world_gt else 0.0
+    if world_recall >= 0.70:
+        verdict = "GO"
+    elif world_recall >= 0.50:
+        verdict = "REVISE"
+    else:
+        verdict = "KILL"
+
+    return {
+        "corpus": {
+            "synopses": len(evaluations),
+            "isolation": "ground-truth glosses + kinds (Mode 1)",
+        },
+        "world_recall": _fraction(world_hits, world_gt),  # GATE (pre+eff world)
+        "eff_world_recall": _fraction(agg["eff_world"]["hits"], agg["eff_world"]["gt"]),
+        "pre_world_recall": _fraction(agg["pre_world"]["hits"], agg["pre_world"]["gt"]),
+        "eff_belief_recall": _fraction(
+            agg["eff_belief"]["hits"], agg["eff_belief"]["gt"]
+        ),
+        "predicate_precision": _fraction(hit_total, pred_total),
+        "per_genre": {
+            e["meta"]["genre"]: e["summary"]["world_recall"] for e in evaluations
+        },
+        "verdict": verdict,
+        "conditions": [
+            "combined world recall >= 0.70 for GO (denominator = pre_world + eff_world)",
+            "borderline 0.50-0.70 defaults to REVISE (J:N2)",
+            "KILL only if < 0.50 AND the confusion pattern is not a fixable prompt issue",
+        ],
+        "note": (
+            "Gate is combined world recall (pre_world + eff_world) because "
+            "eff_world alone is too small to gate on (J:C3). Matching is tolerant "
+            "(normalized args, contains/prefix) — exact pred+args+value equality "
+            "is forbidden since L5 invents the tokens it is scored on (J:C1). "
+            "eff_belief recall is informational: ground-truth beliefs encode "
+            "full-plot dramatic irony, an upper bound a single-beat view cannot "
+            "recover (J2 leakage, inherited from FR-573 C2). Denominators are "
+            "small — read the per-slice fractions, never a bare percentage (J:C5)."
+        ),
+    }
+
+
+def _load_gt_pre_eff(path: Path) -> dict:
+    """Load per-beat pre/eff slices, keyed by beat id, from a ground-truth plot."""
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    out: dict[str, dict] = {}
+    for fn in data.get("functions", []):
+        out[fn["id"]] = {
+            "pre_world": fn.get("pre_world", []) or [],
+            "eff_world": fn.get("eff_world", []) or [],
+            "pre_belief": fn.get("pre_belief", []) or [],
+            "eff_belief": fn.get("eff_belief", []) or [],
+        }
+    return out
+
+
+def main_l5(argv: list[str] | None = None) -> int:
+    """CLI: evaluate L5 pre/eff assignment results against ground truth."""
+    parser = argparse.ArgumentParser(description="FR-576 L5 evaluator")
+    parser.add_argument("--results-dir", default=str(EXAMPLE_DIR / "results" / "l5"))
+    parser.add_argument(
+        "--ground-truth-dir", default=str(EXAMPLE_DIR / "fixtures" / "ground-truth")
+    )
+    parser.add_argument(
+        "--out-dir", default=str(EXAMPLE_DIR / "results" / "evaluation")
+    )
+    parser.add_argument("--provider", default="unknown")
+    parser.add_argument("--model", default="unknown")
+    args = parser.parse_args(argv)
+
+    results_dir = Path(args.results_dir)
+    gt_dir = Path(args.ground_truth_dir)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    evaluations: list[dict] = []
+    for gt_path in sorted(gt_dir.glob("*.yaml")):
+        genre = _genre_name(gt_path)
+        truth_by_id = _load_gt_pre_eff(gt_path)
+        result_path = results_dir / f"{genre}.yaml"
+        predicted: list | None = None
+        if result_path.exists():
+            try:
+                loaded = yaml.safe_load(result_path.read_text(encoding="utf-8"))
+                predicted = loaded if isinstance(loaded, list) else None
+            except yaml.YAMLError:
+                predicted = None
+
+        evaluation = score_l5(genre, predicted, truth_by_id, args.provider, args.model)
+        evaluations.append(evaluation)
+        out_path = out_dir / f"{genre}-l5-eval.yaml"
+        # Drop the private _counts before writing the per-genre record.
+        record = {k: v for k, v in evaluation.items() if k != "_counts"}
+        out_path.write_text(
+            yaml.safe_dump(record, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        wr = evaluation["summary"]["world_recall"]
+        print(f"  {genre}: world_recall {wr}")
+
+    if evaluations:
+        summary = summarise_l5(evaluations)
+        (out_dir / "l5-summary.yaml").write_text(
+            yaml.safe_dump(summary, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        print(f"\nOverall world recall: {summary['world_recall']}")
+        print(f"Predicate precision: {summary['predicate_precision']}")
+        print(f"Verdict: {summary['verdict']}")
     else:
         print("No ground-truth files found.")
     return 0

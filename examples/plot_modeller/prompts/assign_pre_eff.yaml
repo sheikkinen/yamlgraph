@@ -1,0 +1,82 @@
+system: >
+  You formalize story beats into world-state and belief preconditions and
+  effects. For each beat you assign typed predicates drawn from a closed
+  5-predicate vocabulary. You output YAML only — no prose, no code fences.
+
+user: |
+  {% if state.validation and state.validation.flaws %}
+  Your previous assignment had these errors:
+  {% for flaw in state.validation.flaws %}
+  - {{ flaw }}
+  {% endfor %}
+  Fix only the errors. Keep correct assignments unchanged.
+
+  {% endif %}
+  For each beat below, assign its world-state and belief preconditions and
+  effects.
+
+  WORLD-STATE PREDICATES (the only allowed `pred` values):
+  - alive: args [character]; value true/false — whether a character is alive.
+  - at: args [character, location]; value true/false — character's location.
+  - holds: args [character, object]; value true/false — possession of a thing.
+  - rel: args [character, character]; value is a relationship label string
+    (e.g. allied, hostile, assimilated, entrained, estranged).
+  - faction: args [character, group]; value is a membership label string.
+
+  BELIEF shape (for pre_belief / eff_belief):
+    observer: the character who holds the belief
+    fluent: { pred, args, value }   # a world-state predicate, as above
+    held: what the observer believes about it (true/false or a label string)
+
+  For each beat assign FOUR slices:
+  - pre_world:  world-state fluents that must be TRUE for the beat to happen.
+  - eff_world:  world-state fluents the beat MAKES true (the change it causes).
+  - pre_belief: beliefs that must hold for the beat to happen (often empty).
+  - eff_belief: beliefs the beat changes (often empty).
+
+  CRITICAL — NAMING. Use object, location, character, and relationship names
+  EXACTLY as they appear in the gloss. Do NOT paraphrase or invent synonyms.
+  If a later beat's effect concerns the same object an earlier beat introduced,
+  reuse the earlier beat's exact token. Wrong-token substitution is the single
+  most common failure — copy names verbatim.
+
+  TYPICAL EFFECTS BY KIND (priors, not rules — the gloss governs):
+  - villainy: eff_world often a `rel` turning hostile, or a `holds`/`alive` loss.
+  - lack / mediation: usually a belief change (eff_belief), not a world change.
+  - liquidation: eff_world restores the thing that was lacked (a `holds` regained).
+  - victory / struggle: eff_world often a `rel` or `alive` change on the foe.
+  - recognition / exposure: eff_belief updates a held belief (a truth revealed).
+  - death: the victim may become `alive=false`, OR — for a metaphorical or
+    transformational death — a `rel` change (e.g. assimilated). Read the gloss;
+    do NOT assume alive=false.
+
+  Keep each slice small (0–3 predicates). Empty slices are fine — write `[]`.
+
+  Output a YAML list, one item per beat, and nothing else. Example shape:
+
+  - id: F1
+    pre_world:
+      - pred: holds
+        args: [Hagen, the relic]
+        value: true
+    eff_world:
+      - pred: rel
+        args: [Hagen, Marren]
+        value: hostile
+    pre_belief: []
+    eff_belief:
+      - observer: Marren
+        fluent:
+          pred: holds
+          args: [Hagen, the relic]
+        held: true
+
+  The agents in this story (use these exact names):
+  {% for a in state.agents %}
+  - {{ a }}
+  {% endfor %}
+
+  The classified beats to formalize:
+  {% for g in state.glosses %}
+  - id: {{ g.id }} (chapter {{ g.chapter }}, kind: {{ g.kind }}, subject: {{ g.subject }}): {{ g.gloss }}
+  {% endfor %}

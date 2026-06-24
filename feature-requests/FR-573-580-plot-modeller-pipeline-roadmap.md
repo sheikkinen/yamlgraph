@@ -41,7 +41,7 @@ state, and initial beliefs from a synopsis. Spike against 5 synopses.
 extracted agents. Spike against 5 synopses with ground-truth agents.
 **Gate:** Goals match ground truth structurally (predicate + args correct).
 
-## FR-575 — L3 extract glosses spike
+## FR-575 — L3 extract glosses spike — ENFORCED (GO, beat recall 0.88)
 
 **Phase:** 2c (the hard one)
 **Depends on:** FR-574
@@ -53,17 +53,19 @@ decides where beats begin and end.
 where one beat ends and another begins. The evaluation metric must account for
 this — exact match is too strict; semantic overlap is the right measure.
 
-## FR-576 — L5 assign pre/eff spike
+## FR-576 — L5 assign pre/eff spike — ENFORCED (REVISE, combined world recall 0.55) ([FR-576](FR-576-plot-modeller-L5-assign-pre-eff.md))
 
 **Phase:** 3a
-**Depends on:** FR-575
+**Depends on:** FR-575 (Enforced GO — predecessor gate passed)
 **Scope:** Graph + prompt + validator for assigning world-state and belief
 preconditions/effects to classified beats. Spike against 5 synopses with
 ground-truth glosses + kinds.
-**Gate:** ≥ 70% of predicates match ground truth.
+**Gate:** ≥ 70% of `eff_world` predicates match ground truth (tolerant matching).
 **Risk:** Medium-high. The model must invent predicates, not just classify.
 This is the first formalization layer that requires creative generation within
-a constrained vocabulary (5 predicates × open args).
+a constrained vocabulary (5 predicates × open args). Full spec folds the
+token-substitution mitigation (vocabulary anchor + tolerant matching) and the
+sparse-denominator guard.
 
 ## FR-577 — L6 assign causality spike
 

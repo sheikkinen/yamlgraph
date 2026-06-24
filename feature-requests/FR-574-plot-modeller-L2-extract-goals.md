@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — Authority GRANTED (C3–C4 folded; 2026-06-24)
+**Status:** Enforced — REVISE (goal recall 13/18 = 0.72; follow-up FR-581; 2026-06-24)
 **Effort:** 0.5 day
 **Requested:** 2026-06-23
 **Plan:** [`plan-implementation-phases.md`](../examples/plot_modeller/docs/plan-implementation-phases.md) Phase 2b

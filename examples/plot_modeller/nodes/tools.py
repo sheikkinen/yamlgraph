@@ -358,3 +358,142 @@ def load_glosses(ground_truth_path: str | Path) -> list[dict]:
 def load_synopsis(synopsis_path: str | Path) -> str:
     """Read a prose synopsis fixture as plain text."""
     return Path(synopsis_path).read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# FR-576 L5 — assign world/belief pre/eff to classified beats
+# ---------------------------------------------------------------------------
+
+_PRE_EFF_SLICES = ("pre_world", "eff_world", "pre_belief", "eff_belief")
+
+
+def validate_pre_eff(state: dict) -> dict:
+    """Parse and validate the assign_pre_eff node's raw YAML output (J1).
+
+    Reads ``pre_eff_raw`` (raw text), ``glosses`` (classified beats, for id
+    coverage) and ``agents`` (for the membership check). On success writes
+    ``pre_eff`` + ``validation``; on failure writes **only** ``validation``,
+    leaving ``pre_eff`` absent (J1).
+
+    Deliberately enforces **no kind->effect semantic rule** (J:C2): a ``death``
+    beat need not produce ``alive=false`` — the corpus models one death as a
+    relationship change. Coherence is the evaluator's job, not the validator's.
+    """
+    from schema.predicates import Belief, Fluent
+
+    raw = state.get("pre_eff_raw", "")
+    try:
+        items = yaml.safe_load(raw)
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(items, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of per-beat pre/eff objects"],
+            }
+        }
+
+    agents_set = {_norm_name(a) for a in state.get("agents", []) if isinstance(a, str)}
+
+    flaws: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
+        bid = item.get("id", "?")
+        for slot in ("pre_world", "eff_world"):
+            for i, w in enumerate(item.get(slot) or []):
+                try:
+                    Fluent.model_validate(w)
+                except Exception as e:
+                    flaws.append(f"{bid}.{slot}[{i}]: invalid fluent — {e}")
+                    continue
+                if w.get("pred") not in VALID_PREDS:
+                    flaws.append(
+                        f"{bid}.{slot}[{i}]: unknown predicate '{w.get('pred')}'"
+                    )
+                _check_agent_args(bid, slot, i, w, agents_set, flaws)
+        for slot in ("pre_belief", "eff_belief"):
+            for i, b in enumerate(item.get(slot) or []):
+                try:
+                    Belief.model_validate(b)
+                except Exception as e:
+                    flaws.append(f"{bid}.{slot}[{i}]: invalid belief — {e}")
+                    continue
+                obs = b.get("observer")
+                if agents_set and _norm_name(obs) not in agents_set:
+                    flaws.append(
+                        f"{bid}.{slot}[{i}]: observer '{obs}' not in agents list"
+                    )
+
+    expected = {g["id"] for g in state.get("glosses", [])}
+    got = {item.get("id") for item in items if isinstance(item, dict)}
+    missing = expected - got
+    if missing:
+        flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")
+    orphans = got - expected
+    if orphans:
+        flaws.append(f"orphan ids: {', '.join(sorted(str(o) for o in orphans))}")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {"pre_eff": items, "validation": {"ok": True, "flaws": []}}
+
+
+def _norm_name(name: object) -> str:
+    """Normalise a character name for membership comparison."""
+    return " ".join(str(name or "").split()).strip().lower()
+
+
+def _check_agent_args(
+    bid: str,
+    slot: str,
+    i: int,
+    fluent: dict,
+    agents_set: set[str],
+    flaws: list[str],
+) -> None:
+    """Check that agent-position args reference known agents (tolerant).
+
+    Only args known to be characters are checked: ``alive`` takes a single
+    agent; ``rel``/``faction`` take an agent in position 0. ``at``/``holds``
+    args can be objects/locations and are not membership-checked (mirrors the
+    L2 ``validate_goals`` policy).
+    """
+    if not agents_set:
+        return
+    pred = fluent.get("pred")
+    args = fluent.get("args", []) or []
+    # For alive/rel/faction the character is in arg position 0; at/holds args
+    # may be objects/locations and are not membership-checked (mirrors L2).
+    if (
+        pred in ("alive", "rel", "faction")
+        and args
+        and _norm_name(args[0]) not in agents_set
+    ):
+        flaws.append(f"{bid}.{slot}[{i}]: agent '{args[0]}' not in agents list")
+
+
+def load_glosses_with_kinds(ground_truth_path: str | Path) -> list[dict]:
+    """Load classified beats (id, gloss, chapter, kind, subject) for L5 input.
+
+    Mode 1 (isolate L5): the model receives the ground-truth glosses *and*
+    kinds, and must assign only the pre/eff predicates — isolating L5 accuracy
+    from L3/L4 error.
+    """
+    data = yaml.safe_load(Path(ground_truth_path).read_text(encoding="utf-8"))
+    out: list[dict] = []
+    for fn in data.get("functions", []):
+        out.append(
+            {
+                "id": fn["id"],
+                "gloss": " ".join(str(fn.get("gloss", "")).split()),
+                "chapter": fn.get("chapter"),
+                "kind": fn.get("kind"),
+                "subject": fn.get("subject"),
+            }
+        )
+    return out

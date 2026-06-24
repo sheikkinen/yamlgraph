@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — Authority GRANTED (C5–C6 folded; 2026-06-24)
+**Status:** Enforced — GO (beat recall 42/48 = 0.88, precision 0.87; 2026-06-24)
 **Effort:** 1.5 days
 **Requested:** 2026-06-23
 **Plan:** [`plan-implementation-phases.md`](../examples/plot_modeller/docs/plan-implementation-phases.md) Phase 2c

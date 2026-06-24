@@ -71,6 +71,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Intent + Questionnaire](intent-questionnaire-pattern.md) | Multi-graph routing with session registry |
 | [FSM-as-Conductor](patterns/fsm-as-conductor.md) | statemachine-engine orchestrates lifecycle; YAMLGraph handles LLM |
 | [LLM-as-Gate Pattern](patterns/llm-as-gate.md) | Semantic pass/fail gating with router edges |
+| [Batch-Runner Pattern](patterns/batch-runner.md) | Run a graph over runtime-selected input files; transform on load, collect per-input results |
 
 ### Example Architectures
 

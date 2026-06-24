@@ -10,6 +10,7 @@ from __future__ import annotations
 from evaluate import (
     _content_words,
     _jaccard,
+    _norm_args,
     compare,
     score_genre,
     score_l1,
@@ -369,6 +370,39 @@ class TestScoreL2:
         summary = summarise_l2([ev1, ev2])
         # 0/3 + 1/1 = 1/4
         assert summary["goal_recall"] == "1/4 (0.25)"
+
+
+# ---------------------------------------------------------------------------
+# FR-581 — _norm_args underscore tolerance
+# ---------------------------------------------------------------------------
+
+
+class TestNormArgs:
+    """FR-581 failure mode 3 — underscore/space normalization."""
+
+    def test_underscore_equals_space(self):
+        """charter_letter and charter letter should normalise identically."""
+        assert _norm_args(["charter_letter"]) == _norm_args(["charter letter"])
+
+    def test_strips_articles_and_lowercases(self):
+        assert _norm_args(["The Crown"]) == ["crown"]
+
+    def test_underscore_in_multi_arg(self):
+        assert _norm_args(["firmware_channel", "ARIA"]) == ["firmware channel", "aria"]
+
+
+class TestL2UnderscoreMatch:
+    """FR-581 — underscore tolerance propagates through L2 scoring."""
+
+    def test_holds_underscore_vs_space_matches(self):
+        predicted = [
+            {"pred": "holds", "args": ["Naima", "charter letter"], "value": True},
+        ]
+        truth = [
+            {"pred": "holds", "args": ["Naima", "charter_letter"], "value": True},
+        ]
+        ev = score_l2("historical", predicted, truth, "a", "h")
+        assert ev["summary"]["goal_recall"] == "1/1 (1.00)"
 
 
 # ---------------------------------------------------------------------------
