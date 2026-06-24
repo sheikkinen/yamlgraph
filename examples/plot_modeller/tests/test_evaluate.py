@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from evaluate import (
     _content_words,
+    _fluent_matches,
+    _goal_matches,
     _jaccard,
     _norm_args,
     compare,
@@ -536,3 +538,71 @@ class TestScoreL3:
         summary = summarise_l3([ev1, ev2])
         # 0/3 + 1/1 = 1/4
         assert summary["beat_recall"] == "1/4 (0.25)"
+
+
+class TestArgsJaccardTolerance:
+    """FR-583 Part 1 — multi-word arg Jaccard tolerance at both match seams.
+
+    AC#1: multi-word args match by token Jaccard >= 0.5, single-word args keep
+    exact match, covering BOTH the ``_fluent_matches`` (L1/L5 world) and
+    ``_goal_matches`` (L2) seams (J:C1). RED before implementation.
+    """
+
+    # --- _args_jaccard_match helper contract (AC#2) ---
+    def test_helper_multiword_accepts_at_threshold(self):
+        from evaluate import _args_jaccard_match
+
+        # {seoul, lab} vs {seoul} -> 1/2 = 0.50, at threshold, accept
+        assert _args_jaccard_match("seoul lab", "seoul") is True
+        # {river, road} vs {flooded, river, road} -> 2/3 = 0.67, accept
+        assert _args_jaccard_match("river road", "flooded river road") is True
+
+    def test_helper_multiword_rejects_below_threshold(self):
+        from evaluate import _args_jaccard_match
+
+        # {firmware, update} vs {firmware, channel} -> 1/3 = 0.33, reject
+        assert _args_jaccard_match("firmware update", "firmware channel") is False
+
+    def test_helper_singleword_pair_never_loosens(self):
+        from evaluate import _args_jaccard_match
+
+        # genuine single-word synonyms are not bridged by Jaccard (AC#7)
+        assert _args_jaccard_match("together", "lovers") is False
+
+    # --- _fluent_matches seam (L1/L5 world) ---
+    def test_fluent_multiword_order_swapped_matches(self):
+        """Order-swapped multi-word args (neither a substring of the other) match."""
+        pred = {"pred": "at", "args": ["Mara", "road river"], "value": True}
+        truth = {"pred": "at", "args": ["Mara", "river road"], "value": True}
+        assert _fluent_matches(pred, truth) is True
+
+    def test_fluent_multiword_interleaved_partial_matches(self):
+        """Non-contiguous superset args match when Jaccard >= 0.5."""
+        pred = {"pred": "at", "args": ["Mara", "Seoul quarter lab"], "value": True}
+        truth = {"pred": "at", "args": ["Mara", "Seoul lab"], "value": True}
+        assert _fluent_matches(pred, truth) is True  # 2/3 = 0.67
+
+    def test_fluent_singleword_synonym_still_rejected(self):
+        """Single-word relationship synonyms remain rejected (AC#7)."""
+        pred = {"pred": "rel", "args": ["Mara", "Jonas"], "value": "together"}
+        truth = {"pred": "rel", "args": ["Mara", "Jonas"], "value": "lovers"}
+        assert _fluent_matches(pred, truth) is False
+
+    def test_fluent_multiword_low_overlap_rejected(self):
+        """Distinct multi-word concepts (Jaccard < 0.5) stay rejected."""
+        pred = {"pred": "holds", "args": ["ARIA", "firmware update"], "value": True}
+        truth = {"pred": "holds", "args": ["ARIA", "firmware_channel"], "value": True}
+        assert _fluent_matches(pred, truth) is False
+
+    # --- _goal_matches seam (L2) ---
+    def test_goal_multiword_order_swapped_matches(self):
+        """Order-swapped multi-word goal args match via Jaccard (was rejected)."""
+        pred = {"pred": "wants", "args": ["Mara", "save city"], "value": True}
+        truth = {"pred": "wants", "args": ["Mara", "city save"], "value": True}
+        assert _goal_matches(pred, truth) is True
+
+    def test_goal_singleword_synonym_still_rejected(self):
+        """Single-word goal synonyms remain rejected (AC#7)."""
+        pred = {"pred": "wants", "args": ["Mara", "together"], "value": True}
+        truth = {"pred": "wants", "args": ["Mara", "lovers"], "value": True}
+        assert _goal_matches(pred, truth) is False
