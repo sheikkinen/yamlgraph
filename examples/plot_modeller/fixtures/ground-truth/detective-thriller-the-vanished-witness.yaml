@@ -1,7 +1,8 @@
 # plot-plan: The Vanished Witness
 # Genre: detective-thriller
-# Kinds used: villainy, lack, pursuit, donor_test, provision, exposure,
-#   recognition, punishment (8 of 16)
+# Kinds used: villainy, lack, mediation, pursuit, donor_test, provision,
+#   exposure, recognition, punishment (9 of 17)
+# FR-572 retrofit: +mediation (F2b), +hope (F5→F8), +toward (F4/F6 betrayal)
 # Source: v4/genre-plots/detective-thriller-the-vanished-witness.md
 
 meta:
@@ -137,7 +138,7 @@ functions:
       agent: Marren
       goal: deliver_witness
     threatens: null
-    enables: [F3]
+    enables: [F2b]
     pre_world:
       - pred: at
         args: [Witness Pell, Safe house]
@@ -148,6 +149,25 @@ functions:
           pred: holds
           args: [Witness Pell, ledger]
         held: unknown
+    eff_affect: []
+
+  - id: F2b
+    kind: mediation
+    gloss: >
+      Marren has no court order, no client, no evidence — but she gave
+      Pell her word. She tells Lydia they are going after him, off the
+      record, tonight.
+    subject: Marren
+    roles:
+      hero: Marren
+      helper: Lydia
+    chapter: 1
+    observers: [Marren, Lydia]
+    motivation:
+      agent: Marren
+      goal: deliver_witness
+    threatens: null
+    enables: [F3]
     eff_affect: []
 
   - id: F3
@@ -225,6 +245,7 @@ functions:
       - op: open
         char: Marren
         kind: betrayal
+        toward: Hagen
 
   - id: F5
     kind: provision
@@ -256,6 +277,9 @@ functions:
       - op: close
         char: Marren
         kind: loss
+      - op: open
+        char: Marren
+        kind: hope
 
   - id: F6
     kind: exposure
@@ -295,6 +319,7 @@ functions:
       - op: close
         char: Marren
         kind: betrayal
+        toward: Hagen
 
   - id: F7
     kind: recognition
@@ -367,6 +392,9 @@ functions:
       - op: close
         char: Marren
         kind: hidden_blessing
+      - op: close
+        char: Marren
+        kind: hope
 
 affect_policy:
   unclosed_is_error: true

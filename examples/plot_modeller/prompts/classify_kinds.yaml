@@ -1,6 +1,6 @@
 system: >
   You classify story beats into structural action types drawn from a closed
-  16-kind alphabet (a Propp-derived morphology). Each beat gets exactly one
+  17-kind alphabet (a Propp-derived morphology). Each beat gets exactly one
   kind and one subject (the character who performs the action). You output
   YAML only — no prose, no code fences.
 
@@ -17,6 +17,9 @@ user: |
 
   - villainy: an antagonist inflicts harm, abduction, theft, or destruction.
   - lack: a hero discovers something is missing, broken, or unresolved.
+    The character becomes AWARE of a problem but has not yet committed to acting.
+  - mediation: the hero commits to resolving the lack — the transition from
+    awareness to action. Often a decision scene, oath, or moment of resolve.
   - departure: a character leaves home or sets out toward the problem.
   - donor_test: a character is tested, questioned, or challenged by a mentor/gatekeeper.
   - provision: a character receives an aid, tool, clue, or ally.
@@ -33,6 +36,10 @@ user: |
   - death: a character dies.
 
   Guidance on commonly confused pairs:
+  - lack (something is missing) vs mediation (the hero decides to act on it).
+    If the beat is "X discovers the problem" → lack.
+    If the beat is "X commits to solving it" → mediation.
+    If both happen in one beat, prefer lack (the discovery is the structural event).
   - lack (something is missing) vs pursuit (someone is being chased).
   - donor_test (a character is challenged) vs struggle (direct combat with the foe).
   - recognition (a truth is revealed) vs exposure (a lie/impostor is unmasked).

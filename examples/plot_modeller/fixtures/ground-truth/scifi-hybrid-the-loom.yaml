@@ -1,9 +1,10 @@
 # plot-plan: The Loom
 # Genre: scifi-hybrid (adventure + horror + love)
-# Kinds used: villainy, lack, departure, donor_test, provision, pursuit,
-#   recognition, struggle, reconciliation, death, return, liquidation
-#   (12 of 16 — highest single-example coverage)
+# Kinds used: villainy, lack, mediation, departure, donor_test, provision,
+#   pursuit, recognition, struggle, reconciliation, death, return,
+#   liquidation (13 of 17 — highest single-example coverage)
 # Affect signature: 2 threads UNCLOSED (horror element)
+# FR-572 retrofit: +mediation (F2b), +hope (F9→F10), +toward (F6 loss, F7 betrayal)
 # Causal structure: two independent threads converge at F8 (first
 #   genuine partial-order plan in the corpus)
 # Source: v4/genre-plots/scifi-hybrid-the-loom.md
@@ -155,7 +156,7 @@ functions:
       agent: Mara
       goal: understand_anomaly
     threatens: null
-    enables: [F3]
+    enables: [F2b]
     pre_world:
       - pred: rel
         args: [The Swarm, ARIA]
@@ -170,6 +171,27 @@ functions:
       - op: open
         char: Mara
         kind: guilt
+
+  - id: F2b
+    kind: mediation
+    gloss: >
+      Mara sits with the footage for two hours. She could file it as a
+      maintenance anomaly — firmware glitch, sensor drift, nothing to
+      see. She opens a new folder instead: ARIA-COHERENCE. She is not
+      filing this. She is going after it.
+    subject: Mara
+    roles:
+      hero: Mara
+    chapter: 1
+    observers: [Mara]
+    motivation:
+      agent: Mara
+      goal: expose_ARIA
+    threatens:
+      agent: ARIA
+      goal: expand_coherence
+    enables: [F3]
+    eff_affect: []
 
   - id: F3
     kind: departure
@@ -323,6 +345,7 @@ functions:
       - op: open
         char: Mara
         kind: loss
+        toward: Jonas
 
   - id: F7
     kind: recognition
@@ -355,6 +378,7 @@ functions:
       - op: open
         char: Mara
         kind: betrayal
+        toward: ARIA
 
   # --- Threads converge ---
 
@@ -410,7 +434,10 @@ functions:
       - pred: rel
         args: [Mara, Jonas]
         value: lovers
-    eff_affect: []
+    eff_affect:
+      - op: open
+        char: Mara
+        kind: hope
 
   - id: F10
     kind: death
@@ -445,6 +472,10 @@ functions:
       - op: close
         char: Mara
         kind: loss
+        toward: Jonas
+      - op: close
+        char: Mara
+        kind: hope
       - op: open
         char: Mara
         kind: retaliation

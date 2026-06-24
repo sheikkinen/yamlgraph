@@ -1,8 +1,9 @@
 # plot-plan: The Last Light
 # Genre: horror-survival
 # Kinds used: villainy, departure, pursuit, death, struggle, rescue,
-#   return (7 of 16)
-# Affect signature: 2 threads UNCLOSED (genre-appropriate)
+#   return (7 of 17)
+# Affect signature: 3 threads UNCLOSED (genre-appropriate: guilt, retaliation, hope)
+# FR-572 retrofit: +hope (F6, unclosed), +toward (F3 guilt, F4 retaliation)
 # Source: v4/genre-plots/horror-survival-the-last-light.md
 
 meta:
@@ -180,6 +181,7 @@ functions:
       - op: open
         char: Brynn
         kind: guilt
+        toward: Fen
 
   - id: F4
     kind: death
@@ -210,6 +212,7 @@ functions:
       - op: open
         char: Brynn
         kind: retaliation
+        toward: The Watcher
 
   - id: F5
     kind: struggle
@@ -268,7 +271,10 @@ functions:
       - pred: at
         args: [Aldric, Ventilation shaft]
         value: true
-    eff_affect: []
+    eff_affect:
+      - op: open
+        char: Brynn
+        kind: hope
 
   - id: F7
     kind: return
@@ -304,8 +310,9 @@ functions:
         kind: loss
 
 # Horror genre: unclosed affect threads are the point.
-# guilt (Brynn chose to go deeper) — UNCLOSED
-# retaliation (Fen killed) — UNCLOSED
+# guilt toward Fen (Brynn chose to go deeper) — UNCLOSED
+# retaliation toward The Watcher (Fen killed) — UNCLOSED
+# hope (rescue found the shaft) — UNCLOSED (the ambiguous ending undercuts it)
 affect_policy:
   unclosed_is_error: false
   partial_goal_failure: true

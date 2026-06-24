@@ -1,7 +1,8 @@
 # plot-plan: The Sunken Crown
 # Genre: quest-adventure
-# Kinds used: lack, departure, donor_test, provision, struggle, victory,
-#   return, liquidation (8 of 16)
+# Kinds used: lack, mediation, departure, donor_test, provision, struggle,
+#   victory, return, liquidation (9 of 17)
+# FR-572 retrofit: +mediation (F1b), +hope (F4→F6), +toward (F1/F8 guilt)
 # Source: v4/genre-plots/quest-adventure-the-sunken-crown.md
 
 meta:
@@ -102,11 +103,31 @@ functions:
       agent: Queen Livia
       goal: legitimize_reign
     threatens: null
-    enables: [F2]
+    enables: [F1b]
     eff_affect:
       - op: open
         char: Eira
         kind: guilt
+        toward: Queen Livia
+
+  - id: F1b
+    kind: mediation
+    gloss: >
+      Eira and Gault exchange a look across the throne room. No words.
+      Eira kneels and swears the oath of retrieval — her life for the
+      crown. Gault follows. The choosing, not yet the moving.
+    subject: Eira
+    roles:
+      hero: Eira
+      helper: Thane Gault
+    chapter: 1
+    observers: [Eira, Thane Gault, Queen Livia]
+    motivation:
+      agent: Eira
+      goal: retrieve_crown
+    threatens: null
+    enables: [F2]
+    eff_affect: []
 
   - id: F2
     kind: departure
@@ -213,7 +234,10 @@ functions:
       - pred: holds
         args: [Eira, breathing_reed]
         value: true
-    eff_affect: []
+    eff_affect:
+      - op: open
+        char: Eira
+        kind: hope
 
   - id: F5
     kind: struggle
@@ -284,6 +308,9 @@ functions:
       - op: close
         char: Eira
         kind: loss
+      - op: close
+        char: Eira
+        kind: hope
 
   - id: F7
     kind: return
@@ -353,6 +380,7 @@ functions:
       - op: close
         char: Eira
         kind: guilt
+        toward: Queen Livia
 
 affect_policy:
   unclosed_is_error: true

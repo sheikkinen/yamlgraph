@@ -1,0 +1,357 @@
+# plot-plan: The Salt Road
+# Genre: historical-fiction
+# Kinds used: villainy, lack, mediation, departure, donor_test, provision,
+#   pursuit, rescue, recognition, exposure (10 of 17)
+# Blind corpus: synopsis authored without seeing the 17-kind list (FR-572)
+# Source: fixtures/synopses/historical-fiction-the-salt-road.txt
+
+meta:
+  title: The Salt Road
+  genre: historical-fiction
+  synopsis: historical-fiction-the-salt-road.txt
+
+agents:
+  - Naima
+  - Moussa Keita
+  - Amadou
+  - Diallo
+  - Fatimata
+
+initial_world:
+  - pred: alive
+    args: [Naima]
+    value: true
+  - pred: alive
+    args: [Moussa Keita]
+    value: true
+  - pred: alive
+    args: [Amadou]
+    value: true
+  - pred: alive
+    args: [Diallo]
+    value: true
+  - pred: alive
+    args: [Fatimata]
+    value: true
+  - pred: at
+    args: [Naima, Timbuktu]
+    value: true
+  - pred: at
+    args: [Charter letter, Djenné]
+    value: true
+  - pred: holds
+    args: [Naima, council_seat]
+    value: true
+  - pred: holds
+    args: [Moussa Keita, royal_seal]
+    value: true
+  - pred: rel
+    args: [Naima, Diallo]
+    value: rivals
+  - pred: rel
+    args: [Naima, Amadou]
+    value: trust
+  - pred: faction
+    args: [Moussa Keita, governor]
+    value: true
+  - pred: faction
+    args: [Naima, merchants_council]
+    value: true
+
+initial_belief:
+  - observer: Naima
+    fluent:
+      pred: at
+      args: [Charter letter, Djenné]
+    held: false
+  - observer: Moussa Keita
+    fluent:
+      pred: at
+      args: [Charter letter, Djenné]
+    held: false
+
+goals:
+  - pred: holds
+    args: [Naima, charter_letter]
+    value: true
+  - pred: alive
+    args: [Naima]
+    value: true
+  - pred: alive
+    args: [Amadou]
+    value: true
+
+functions:
+  - id: F1
+    kind: villainy
+    gloss: >
+      Moussa Keita, the governor's nephew, announces a royal salt monopoly:
+      all private salt concessions are forfeit to the crown. The small
+      traders will be destroyed.
+    subject: Moussa Keita
+    roles:
+      villain: Moussa Keita
+    chapter: 1
+    observers: [Naima, Diallo]
+    motivation:
+      agent: Moussa Keita
+      goal: seize_salt_trade
+    threatens:
+      agent: Naima
+      goal: protect_traders
+    enables: [F2]
+    eff_affect:
+      - op: open
+        char: Naima
+        kind: loss
+
+  - id: F2
+    kind: lack
+    gloss: >
+      The council votes to comply. Naima has no leverage — the royal seal
+      makes the monopoly law. Everything her father built is being taken.
+    subject: Naima
+    roles:
+      hero: Naima
+    chapter: 1
+    observers: [Naima, Diallo]
+    motivation:
+      agent: Naima
+      goal: protect_traders
+    threatens: null
+    enables: [F3]
+    eff_affect: []
+
+  - id: F3
+    kind: mediation
+    gloss: >
+      Diallo tells Naima about a sealed letter from the old king granting
+      the merchants' council an irrevocable charter. If it exists, the
+      monopoly is illegal. The letter is in Djenné. Naima decides to go.
+    subject: Naima
+    roles:
+      hero: Naima
+      dispatcher: Diallo
+    chapter: 1
+    observers: [Naima, Diallo]
+    motivation:
+      agent: Naima
+      goal: find_charter
+    threatens:
+      agent: Moussa Keita
+      goal: enforce_monopoly
+    enables: [F4]
+    eff_belief:
+      - observer: Naima
+        fluent:
+          pred: at
+          args: [Charter letter, Djenné]
+        held: true
+    eff_affect:
+      - op: open
+        char: Naima
+        kind: hope
+
+  - id: F4
+    kind: departure
+    gloss: >
+      Naima and Amadou leave Timbuktu at night by river, telling no one on
+      the council. Moussa's agents are already watching the docks.
+    subject: Naima
+    roles:
+      hero: Naima
+      helper: Amadou
+    chapter: 2
+    observers: [Naima, Amadou]
+    motivation:
+      agent: Naima
+      goal: reach_Djenné
+    threatens:
+      agent: Moussa Keita
+      goal: enforce_monopoly
+    enables: [F5]
+    pre_world:
+      - pred: at
+        args: [Naima, Timbuktu]
+        value: true
+    eff_world:
+      - pred: at
+        args: [Naima, Timbuktu]
+        value: false
+      - pred: at
+        args: [Naima, River]
+        value: true
+    eff_affect: []
+
+  - id: F5
+    kind: donor_test
+    gloss: >
+      At the Great Mosque archive, Fatimata demands Naima recite the
+      founding charter of the merchants' council from memory. Naima
+      stumbles on the seventh clause, then corrects herself.
+    subject: Naima
+    roles:
+      hero: Naima
+      donor: Fatimata
+    chapter: 3
+    observers: [Naima, Fatimata]
+    motivation:
+      agent: Fatimata
+      goal: guard_archive
+    threatens: null
+    enables: [F6]
+    pre_world:
+      - pred: at
+        args: [Charter letter, Djenné]
+        value: true
+    eff_belief:
+      - observer: Fatimata
+        fluent:
+          pred: rel
+          args: [Naima, merchants_council]
+        held: worthy
+    eff_affect: []
+
+  - id: F6
+    kind: provision
+    gloss: >
+      Fatimata leads Naima to the sealed vault and gives her the charter
+      letter — clear, unambiguous, bearing the old king's seal.
+    subject: Fatimata
+    roles:
+      donor: Fatimata
+      hero: Naima
+    chapter: 3
+    observers: [Naima, Fatimata]
+    motivation:
+      agent: Fatimata
+      goal: guard_archive
+    threatens:
+      agent: Moussa Keita
+      goal: enforce_monopoly
+    enables: [F7]
+    pre_belief:
+      - observer: Fatimata
+        fluent:
+          pred: rel
+          args: [Naima, merchants_council]
+        held: worthy
+    eff_world:
+      - pred: holds
+        args: [Naima, charter_letter]
+        value: true
+    eff_affect:
+      - op: close
+        char: Naima
+        kind: loss
+
+  - id: F7
+    kind: pursuit
+    gloss: >
+      On the return, Moussa's riders are on the river road. Amadou takes
+      them overland through dry country — no water for two days, torches
+      visible behind them on the second night.
+    subject: Moussa Keita
+    roles:
+      villain: Moussa Keita
+      hero: Naima
+      helper: Amadou
+    chapter: 4
+    observers: [Naima, Amadou]
+    motivation:
+      agent: Moussa Keita
+      goal: recover_letter
+    threatens:
+      agent: Naima
+      goal: deliver_charter
+    enables: [F8]
+    pre_world:
+      - pred: holds
+        args: [Naima, charter_letter]
+        value: true
+    eff_affect:
+      - op: open
+        char: Naima
+        kind: guilt
+        toward: Amadou
+
+  - id: F8
+    kind: rescue
+    gloss: >
+      Amadou tells Naima to go ahead with the letter while he leads the
+      riders away with a decoy fire. She reaches Timbuktu alone.
+    subject: Amadou
+    roles:
+      helper: Amadou
+      hero: Naima
+    chapter: 4
+    observers: [Naima]
+    motivation:
+      agent: Amadou
+      goal: protect_Naima
+    threatens: null
+    enables: [F9]
+    eff_world:
+      - pred: at
+        args: [Naima, Timbuktu]
+        value: true
+    eff_affect: []
+
+  - id: F9
+    kind: exposure
+    gloss: >
+      Naima walks into the council hall during Moussa's collection ceremony
+      and presents the charter letter. The letter is read aloud. The
+      monopoly is illegal. Moussa's decree is suspended by the governor's
+      own representative.
+    subject: Naima
+    roles:
+      hero: Naima
+      false_hero: Moussa Keita
+    chapter: 5
+    observers: [Naima, Moussa Keita, Diallo]
+    motivation:
+      agent: Naima
+      goal: expose_monopoly
+    threatens:
+      agent: Moussa Keita
+      goal: enforce_monopoly
+    enables: [F10]
+    pre_world:
+      - pred: holds
+        args: [Naima, charter_letter]
+        value: true
+      - pred: at
+        args: [Naima, Timbuktu]
+        value: true
+    eff_affect:
+      - op: close
+        char: Naima
+        kind: hope
+
+  - id: F10
+    kind: recognition
+    gloss: >
+      Diallo rises and publicly acknowledges that Issa's daughter has done
+      what the council could not. Naima takes her father's seat — not as
+      his daughter, but as the one who earned it.
+    subject: Diallo
+    roles:
+      hero: Naima
+      dispatcher: Diallo
+    chapter: 5
+    observers: [Naima, Diallo]
+    motivation:
+      agent: Diallo
+      goal: acknowledge_Naima
+    threatens: null
+    enables: []
+    eff_affect:
+      - op: close
+        char: Naima
+        kind: guilt
+        toward: Amadou
+
+affect_policy:
+  unclosed_is_error: true
+  partial_goal_failure: false
