@@ -1180,5 +1180,240 @@ def main_l5(argv: list[str] | None = None) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------
+# L6 evaluation — causality: enables / motivation / threatens (FR-577)
+# ---------------------------------------------------------------------------
+
+
+def _goal_phrase_matches(pred_goal: object, truth_goal: object) -> bool:
+    """Tolerant goal-phrase match (J:C1): snake_case-insensitive, token-overlap.
+
+    Goal phrases are free-form snake_case strings the LLM invents, so exact
+    equality is forbidden (J:C1). Normalize (lowercase, ``_``->space), then
+    accept equality, containment, or >=0.34 Jaccard token overlap.
+    """
+    p = _norm(str(pred_goal or "").replace("_", " "))
+    t = _norm(str(truth_goal or "").replace("_", " "))
+    if not p or not t:
+        return False
+    if p == t or p in t or t in p:
+        return True
+    pt, tt = set(p.split()), set(t.split())
+    if not pt or not tt:
+        return False
+    return len(pt & tt) / len(pt | tt) >= 0.34
+
+
+def _person_goal_matches(pred: object, truth: object) -> bool:
+    """A {agent, goal} pair matches when the agent is exact and the goal is
+    tolerant (J:C3 — informational, never gating)."""
+    if not isinstance(pred, dict) or not isinstance(truth, dict):
+        return False
+    if _norm(pred.get("agent")) != _norm(truth.get("agent")):
+        return False
+    return _goal_phrase_matches(pred.get("goal"), truth.get("goal"))
+
+
+def _l6_counts(predicted: list | None, truth_by_id: dict) -> dict:
+    """Tally enables/motivation/threatens hits, gt, and pred over all beats.
+
+    ``enables`` is matched by exact beat-ID set intersection (IDs are canonical
+    referents, not invented tokens). ``motivation``/``threatens`` use exact
+    agent + tolerant goal; ``agent_hits`` is the softer agent-only signal that
+    drives confusion analysis (J:C3).
+    """
+    counts = {
+        "enables": {"hits": 0, "gt": 0, "pred": 0},
+        "motivation": {"hits": 0, "gt": 0, "agent_hits": 0, "pred": 0},
+        "threatens": {"hits": 0, "gt": 0, "agent_hits": 0, "pred": 0},
+    }
+    pred_by_id: dict[str, dict] = {}
+    if isinstance(predicted, list):
+        for item in predicted:
+            if isinstance(item, dict) and item.get("id"):
+                pred_by_id[item["id"]] = item
+
+    for bid, t in truth_by_id.items():
+        p = pred_by_id.get(bid, {})
+
+        t_en = set(t.get("enables") or [])
+        p_raw = p.get("enables")
+        p_en = set(p_raw) if isinstance(p_raw, list) else set()
+        counts["enables"]["gt"] += len(t_en)
+        counts["enables"]["pred"] += len(p_en)
+        counts["enables"]["hits"] += len(t_en & p_en)
+
+        for slot in ("motivation", "threatens"):
+            tv = t.get(slot)
+            pv = p.get(slot)
+            if tv:
+                counts[slot]["gt"] += 1
+            if pv:
+                counts[slot]["pred"] += 1
+            if tv and pv and _person_goal_matches(pv, tv):
+                counts[slot]["hits"] += 1
+            if (
+                isinstance(tv, dict)
+                and isinstance(pv, dict)
+                and _norm(pv.get("agent")) == _norm(tv.get("agent"))
+            ):
+                counts[slot]["agent_hits"] += 1
+
+    return counts
+
+
+def _l6_verdict(enables_recall: float) -> str:
+    """GATE on enables recall: GO>=0.75, REVISE 0.50-0.75, KILL<0.50 (J:N2)."""
+    if enables_recall >= 0.75:
+        return "GO"
+    if enables_recall >= 0.50:
+        return "REVISE"
+    return "KILL"
+
+
+def score_l6(
+    genre: str,
+    predicted: list | None,
+    truth_by_id: dict,
+    provider: str,
+    model: str,
+) -> dict:
+    """Build L6 evaluation record for one genre (FR-577)."""
+    counts = _l6_counts(predicted, truth_by_id)
+    en, mot, thr = counts["enables"], counts["motivation"], counts["threatens"]
+    return {
+        "meta": {"genre": genre, "provider": provider, "model": model},
+        "summary": {
+            "enables_recall": _fraction(en["hits"], en["gt"]),  # GATE
+            "enables_precision": _fraction(en["hits"], en["pred"]),  # over-link
+            "motivation_recall": _fraction(mot["hits"], mot["gt"]),
+            "motivation_agent_recall": _fraction(mot["agent_hits"], mot["gt"]),
+            "threatens_recall": _fraction(thr["hits"], thr["gt"]),
+            "threatens_agent_recall": _fraction(thr["agent_hits"], thr["gt"]),
+            "produced_valid_yaml": isinstance(predicted, list),
+        },
+        "_counts": counts,  # carried for the summary aggregation
+    }
+
+
+def summarise_l6(evaluations: list[dict]) -> dict:
+    """Aggregate L6 per-genre evaluations into an overall summary (FR-577)."""
+    agg = {
+        "enables": {"hits": 0, "gt": 0, "pred": 0},
+        "motivation": {"hits": 0, "gt": 0, "agent_hits": 0, "pred": 0},
+        "threatens": {"hits": 0, "gt": 0, "agent_hits": 0, "pred": 0},
+    }
+    for e in evaluations:
+        for slot, c in e["_counts"].items():
+            for k, v in c.items():
+                agg[slot][k] += v
+
+    en, mot, thr = agg["enables"], agg["motivation"], agg["threatens"]
+    enables_recall = (en["hits"] / en["gt"]) if en["gt"] else 0.0
+    verdict = _l6_verdict(enables_recall)
+
+    return {
+        "corpus": {
+            "synopses": len(evaluations),
+            "isolation": "ground-truth glosses + kinds (Mode 1)",
+        },
+        "enables_recall": _fraction(en["hits"], en["gt"]),  # GATE
+        "enables_precision": _fraction(en["hits"], en["pred"]),  # over-link detector
+        "motivation_recall": _fraction(mot["hits"], mot["gt"]),
+        "motivation_agent_recall": _fraction(mot["agent_hits"], mot["gt"]),
+        "threatens_recall": _fraction(thr["hits"], thr["gt"]),
+        "threatens_agent_recall": _fraction(thr["agent_hits"], thr["gt"]),
+        "per_genre": {
+            e["meta"]["genre"]: e["summary"]["enables_recall"] for e in evaluations
+        },
+        "verdict": verdict,
+        "conditions": [
+            "enables recall >= 0.75 for GO (denominator computed mechanically, J:C1)",
+            "borderline 0.50-0.75 defaults to REVISE (J:N2)",
+            "KILL only if < 0.50 AND the confusion pattern is not a fixable prompt issue",
+        ],
+        "note": (
+            "Gate is enables recall — the causal backbone (J:N2). enables_precision "
+            "is the over-link detector: a low value means the model invents edges "
+            "the corpus does not authorise (J:C4). motivation/threatens recall are "
+            "INFORMATIONAL (J:C3): goal phrases are free-form, so they use tolerant "
+            "matching (agent exact + goal token-overlap, J:C1) and the *_agent_recall "
+            "softer signal separates 'right agent, different wording' from a true "
+            "miss. Denominators are small — read the fractions, never a bare "
+            "percentage (J:C5)."
+        ),
+    }
+
+
+def _load_gt_causality(path: Path) -> dict:
+    """Load per-beat causality (enables/motivation/threatens), keyed by beat id."""
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    out: dict[str, dict] = {}
+    for fn in data.get("functions", []):
+        out[fn["id"]] = {
+            "enables": fn.get("enables", []) or [],
+            "motivation": fn.get("motivation"),
+            "threatens": fn.get("threatens"),
+        }
+    return out
+
+
+def main_l6(argv: list[str] | None = None) -> int:
+    """CLI: evaluate L6 causality assignment results against ground truth."""
+    parser = argparse.ArgumentParser(description="FR-577 L6 evaluator")
+    parser.add_argument("--results-dir", default=str(EXAMPLE_DIR / "results" / "l6"))
+    parser.add_argument(
+        "--ground-truth-dir", default=str(EXAMPLE_DIR / "fixtures" / "ground-truth")
+    )
+    parser.add_argument(
+        "--out-dir", default=str(EXAMPLE_DIR / "results" / "evaluation")
+    )
+    parser.add_argument("--provider", default="unknown")
+    parser.add_argument("--model", default="unknown")
+    args = parser.parse_args(argv)
+
+    results_dir = Path(args.results_dir)
+    gt_dir = Path(args.ground_truth_dir)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    evaluations: list[dict] = []
+    for gt_path in sorted(gt_dir.glob("*.yaml")):
+        genre = _genre_name(gt_path)
+        truth_by_id = _load_gt_causality(gt_path)
+        result_path = results_dir / f"{genre}.yaml"
+        predicted: list | None = None
+        if result_path.exists():
+            try:
+                loaded = yaml.safe_load(result_path.read_text(encoding="utf-8"))
+                predicted = loaded if isinstance(loaded, list) else None
+            except yaml.YAMLError:
+                predicted = None
+
+        evaluation = score_l6(genre, predicted, truth_by_id, args.provider, args.model)
+        evaluations.append(evaluation)
+        out_path = out_dir / f"{genre}-l6-eval.yaml"
+        record = {k: v for k, v in evaluation.items() if k != "_counts"}
+        out_path.write_text(
+            yaml.safe_dump(record, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        er = evaluation["summary"]["enables_recall"]
+        print(f"  {genre}: enables_recall {er}")
+
+    if evaluations:
+        summary = summarise_l6(evaluations)
+        (out_dir / "l6-summary.yaml").write_text(
+            yaml.safe_dump(summary, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        print(f"\nOverall enables recall: {summary['enables_recall']}")
+        print(f"Enables precision: {summary['enables_precision']}")
+        print(f"Verdict: {summary['verdict']}")
+    else:
+        print("No ground-truth files found.")
+    return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

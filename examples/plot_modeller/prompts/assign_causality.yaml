@@ -1,0 +1,61 @@
+system: >
+  You analyze story beats and assign their causal structure: which beats each
+  beat enables (causes or makes possible), and — when present — the agent
+  motivation and the agent goal each beat threatens. You output YAML only — no
+  prose, no code fences.
+
+user: |
+  {% if state.validation and state.validation.flaws %}
+  Your previous assignment had these errors:
+  {% for flaw in state.validation.flaws %}
+  - {{ flaw }}
+  {% endfor %}
+  Fix only the errors. Keep correct assignments unchanged.
+
+  {% endif %}
+  The beats below are listed in NARRATIVE ORDER (earliest first). For each beat
+  assign THREE fields:
+
+  - enables: a list of beat IDs that this beat causally enables — the beats it
+    causes, triggers, or makes possible. CRITICAL — FORWARD ONLY: a beat may
+    only enable a beat that appears LATER in the list. Never link to an earlier
+    beat or to itself. If a beat enables nothing later (a terminal beat), write
+    `enables: []`.
+
+  - motivation: the agent intent DRIVING this beat, as { agent, goal }, or null.
+    `agent` MUST be one of the named agents below. `goal` is a short snake_case
+    phrase naming what the agent wants (e.g. `expose_the_traitor`,
+    `protect_the_child`). Use null when the beat has no clear agent motivation
+    (e.g. an environmental or incidental beat).
+
+  - threatens: the agent goal this beat puts at risk, as { agent, goal }, or
+    null. `agent` MUST be one of the named agents below. `goal` is the
+    endangered objective. Use null when the beat threatens no one's goal.
+
+  CRITICAL — NAMING. Use agent names EXACTLY as listed below. Do NOT paraphrase
+  or invent synonyms. Reference beats only by their exact IDs.
+
+  Output a YAML list, one item per beat, and nothing else. Example shape:
+
+  - id: F1
+    enables: [F2, F3]
+    motivation:
+      agent: Mara
+      goal: uncover_the_truth
+    threatens: null
+  - id: F2
+    enables: [F3]
+    motivation: null
+    threatens:
+      agent: ARIA
+      goal: preserve_control
+
+  The agents in this story (use these exact names):
+  {% for a in state.agents %}
+  - {{ a }}
+  {% endfor %}
+
+  The classified beats, in narrative order:
+  {% for g in state.glosses %}
+  - id: {{ g.id }} (chapter {{ g.chapter }}, kind: {{ g.kind }}, subject: {{ g.subject }}): {{ g.gloss }}
+  {% endfor %}

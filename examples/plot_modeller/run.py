@@ -6,6 +6,7 @@ Mode 2 (FR-573): extract agents/world/belief from synopsis.
 Mode 3 (FR-574): extract goals from synopsis + agents.
 Mode 4 (FR-575): extract glosses (beat decomposition) from synopsis.
 Mode 5 (FR-576): assign world/belief pre/eff to classified beats.
+Mode 6 (FR-577): assign causality (enables/motivation/threatens) to beats.
 
 Usage:
     PROVIDER=anthropic python examples/plot_modeller/run.py
@@ -13,6 +14,7 @@ Usage:
     PROVIDER=anthropic python examples/plot_modeller/run.py --mode extract-goals
     PROVIDER=anthropic python examples/plot_modeller/run.py --mode extract-glosses
     PROVIDER=anthropic python examples/plot_modeller/run.py --mode assign-pre-eff
+    PROVIDER=anthropic python examples/plot_modeller/run.py --mode assign-causality
 """
 
 from __future__ import annotations
@@ -40,6 +42,7 @@ GRAPH_PATHS = {
     "extract-goals": EXAMPLE_DIR / "graphs" / "extract_goals.yaml",
     "extract-glosses": EXAMPLE_DIR / "graphs" / "extract_glosses.yaml",
     "assign-pre-eff": EXAMPLE_DIR / "graphs" / "assign_pre_eff.yaml",
+    "assign-causality": EXAMPLE_DIR / "graphs" / "assign_causality.yaml",
 }
 GT_DIR = EXAMPLE_DIR / "fixtures" / "ground-truth"
 SYNOPSIS_DIR = EXAMPLE_DIR / "fixtures" / "synopses"
@@ -287,6 +290,50 @@ def _main_assign_pre_eff(args, provider: str) -> int:
     return evaluate_l5(["--provider", provider, "--model", args.model])
 
 
+def run_assign_causality(app, gt_path: Path, agents: list[str]) -> list | None:
+    """Run Mode-6 L6 causality assignment; return causality list or None."""
+    glosses = load_glosses_with_kinds(gt_path)
+    result = app.invoke({"glosses": glosses, "agents": agents})
+    causality = result.get("causality")
+    return causality if isinstance(causality, list) else None
+
+
+def _main_assign_causality(args, provider: str) -> int:
+    """Mode 6: assign causality to classified beats (ground-truth glosses+kinds)."""
+    l6_dir = RESULTS_DIR / "l6"
+    l6_dir.mkdir(parents=True, exist_ok=True)
+
+    gt_paths = sorted(GT_DIR.glob("*.yaml"))
+    if args.genre:
+        gt_paths = [p for p in gt_paths if p.stem == args.genre]
+        if not gt_paths:
+            print(f"No ground-truth file matches '{args.genre}'")
+            return 1
+
+    app = _compile("assign-causality")
+    for gt_path in gt_paths:
+        genre = gt_path.stem
+        agents = _load_gt_agents(gt_path)
+        print(f"▶ assigning causality for {genre} ({len(agents)} agents) ...")
+        try:
+            causality = run_assign_causality(app, gt_path, agents)
+        except Exception as exc:  # J6: hard failure → all-wrong, not a crash
+            print(f"  ✗ run failed: {exc}")
+            causality = None
+        out_path = l6_dir / f"{genre}.yaml"
+        out_path.write_text(
+            yaml.safe_dump(causality, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        n = len(causality) if isinstance(causality, list) else 0
+        print(f"  → wrote causality for {n} beats to {out_path.name}")
+
+    from evaluate import main_l6 as evaluate_l6
+
+    print("\n── L6 evaluation ──")
+    return evaluate_l6(["--provider", provider, "--model", args.model])
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Plot Modeller spike runner")
     parser.add_argument(
@@ -297,6 +344,7 @@ def main(argv: list[str] | None = None) -> int:
             "extract-goals",
             "extract-glosses",
             "assign-pre-eff",
+            "assign-causality",
         ],
         default="classify-kinds",
         help="Which spike mode to run (default: classify-kinds)",
@@ -319,6 +367,8 @@ def main(argv: list[str] | None = None) -> int:
         return _main_extract_glosses(args, provider)
     if args.mode == "assign-pre-eff":
         return _main_assign_pre_eff(args, provider)
+    if args.mode == "assign-causality":
+        return _main_assign_causality(args, provider)
     return _main_classify(args, provider)
 
 

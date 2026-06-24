@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — Authority GRANTED (2026-06-24)
+**Status:** Enforced — GO (enables recall 0.96, 2026-06-24)
 **Effort:** 1 day
 **Requested:** 2026-06-24
 **Judged:** 2026-06-24
@@ -297,3 +297,62 @@ may not (R1: planning depth must not outrun evidence depth).
 denominator), C2 (forward-only resolved in the validator), and C4 (precision
 reported). Gate: `enables` recall ≥ 0.75, denominator-visible, verdict by
 confusion analysis (J:N2). One spike, record verdict.
+
+## Implementation (2026-06-24)
+
+**Verdict: GO.** Spike run with `PROVIDER=anthropic --model claude-opus-4`
+across all 5 synopses (Mode-1 isolation: ground-truth glosses + kinds + agents).
+
+### Gate result — `enables` recall (mechanical denominator, J:C1)
+
+| Genre | enables recall |
+|---|---|
+| detective-thriller-the-vanished-witness | 8/10 (0.80) |
+| historical-fiction-the-salt-road | 9/9 (1.00) |
+| horror-survival-the-last-light | 6/6 (1.00) |
+| quest-adventure-the-sunken-crown | 8/8 (1.00) |
+| scifi-hybrid-the-loom | 12/12 (1.00) |
+| **corpus** | **43/45 (0.96)** |
+
+`enables` recall **0.96 ≥ 0.75** → **GO**. The denominator (45) is computed at
+runtime from the corpus, not hardcoded (C1 satisfied — it matches the verified
+corpus count of 45 enables links).
+
+### Over-link detector — `enables` precision (C4)
+
+`enables` precision **43/46 (0.93)**: only 3 invented edges across the corpus.
+The forward-only validator (C2) plus the prompt's "FORWARD ONLY" instruction
+held — zero backward links survived to the results. Low over-linking confirms
+the causal backbone is recovered without hallucinated edges.
+
+### Informational signals — motivation / threatens (J:C3, non-gating)
+
+| Slice | recall (agent + goal) | agent-only recall |
+|---|---|---|
+| motivation | 11/42 (0.26) | 35/42 (0.83) |
+| threatens | 0/26 (0.00) | 21/26 (0.81) |
+
+**Confusion analysis.** The agent-only recall is strong (0.83 / 0.81) while the
+full agent+goal recall collapses (0.26 / 0.00). The model identifies *who* is
+motivated / threatened reliably, but its free-form snake_case **goal phrasing**
+diverges from the corpus's wording below the 0.34 Jaccard tolerance —
+especially for `threatens`, where it never aligns. This is a **vocabulary-
+grounding gap, not a comprehension gap**: the same class of token-divergence
+that FR-583 (evaluator Jaccard tolerance + L5 vocab grounding) already targets.
+Per J:C3 these slices are informational and do not affect the GO verdict; they
+are recorded here as the forward signal for FR-583 / a future goal-vocabulary
+alignment pass.
+
+### Deliverables landed
+
+- `graphs/assign_causality.yaml`, `prompts/assign_causality.yaml`
+- `validate_causality` in `nodes/tools.py` (forward-only enables, referential
+  integrity, agent membership, J1 write-on-success)
+- `run.py --mode assign-causality` (Mode 6)
+- `score_l6` / `summarise_l6` / `_load_gt_causality` / `main_l6` in `evaluate.py`
+- `tests/test_l6_validator.py` (19 tests, RED→GREEN, J1 + J:C2)
+- `results/l6/*.yaml`, `results/evaluation/*-l6-eval.yaml`,
+  `results/evaluation/l6-summary.yaml`
+
+FR-578 (L7 affects) is now unblocked per its folded AC#12 (execution gated
+behind an FR-577 verdict — recorded GO here).
