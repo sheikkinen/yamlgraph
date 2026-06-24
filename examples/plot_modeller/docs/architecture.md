@@ -33,7 +33,7 @@ Pydantic models that define the plan's vocabulary and structure. Everything that
 appears in a plan file has a typed representation here.
 
 ```
-schema/
+schema/                # all built — FR-571 (Enforced)
 ├── kinds.py          # FunctionKind enum (17 kinds)
 ├── affects.py        # AffectKind enum (6 kinds), AffectDelta model
 ├── predicates.py     # Fluent, Belief (with typed held: bool | str)
@@ -57,12 +57,12 @@ their output.
 
 ```
 validators/
-├── lifecycle.py      # Monotonic: alive → dead is one-way
-├── grounding.py      # Ungrounded reveals: can't reveal what no one was wrong about
-├── causality.py      # Open conditions: every precondition must be satisfiable
-├── reachability.py   # Goal reachability: at least one path reaches each goal
-├── motivation.py     # Motivated action: every function has a reason (Rule 8)
-├── affects.py        # Affect closure: threads close (or policy says they needn't)
+├── lifecycle.py      # exists (FR-571) — Monotonic: alive → dead is one-way
+├── grounding.py      # exists (FR-571) — Ungrounded reveals: can't reveal what no one was wrong about
+├── affects.py        # exists (FR-571) — Affect closure: threads close (or policy says they needn't)
+├── causality.py      # planned (Phase 4) — Open conditions: every precondition must be satisfiable
+├── reachability.py   # planned (Phase 4) — Goal reachability: at least one path reaches each goal
+├── motivation.py     # planned (Phase 4) — Motivated action: every function has a reason (Rule 8)
 └── __init__.py       # validate_plan(plan) → list[Flaw]
 ```
 
@@ -79,15 +79,15 @@ graph (or a subgraph) with its own prompt, validator, and retry logic.
 
 ```
 graphs/
-├── extract_agents.yaml       # L1: agents + initial world/beliefs
-├── extract_goals.yaml        # L2: goals
-├── extract_glosses.yaml      # L3: beat decomposition (the pivot)
-├── classify_kinds.yaml       # L4: kind + subject + roles (exists — FR-570)
-├── assign_pre_eff.yaml       # L5: preconditions + effects
-├── assign_causality.yaml     # L6: enables + motivation + threatens
-├── assign_affects.yaml       # L7: affect open/close operations
-├── merge_plan.yaml           # Merge: join per-layer slices → plan file
-└── pipeline.yaml             # Orchestrator: L1 → L2 → L3 → L4–L7 → merge
+├── extract_agents.yaml       # L1: agents + initial world/beliefs (exists — FR-573)
+├── extract_goals.yaml        # L2: goals (exists — FR-574, REVISE)
+├── extract_glosses.yaml      # L3: beat decomposition (exists — FR-575, GO)
+├── classify_kinds.yaml       # L4: kind + subject + roles (exists — FR-570/572, GO)
+├── assign_pre_eff.yaml       # L5: preconditions + effects (exists — FR-576, REVISE)
+├── assign_causality.yaml     # L6: enables + motivation + threatens (planned — Phase 3)
+├── assign_affects.yaml       # L7: affect open/close operations (planned — Phase 3)
+├── merge_plan.yaml           # Merge: join per-layer slices → plan file (planned — Phase 4)
+└── pipeline.yaml             # Orchestrator: L1 → L2 → L3 → L4–L7 → merge (planned — Phase 4)
 ```
 
 **Design rules:**
@@ -213,24 +213,24 @@ architecture.md (this file)      ← how the pieces fit
 plan-implementation-phases.md    ← when to build what
     │
     ├── schema/                  ← Layer 1: types
-    │     └── (extracted from DM api/plot/)
+    │     └── all 5 modules built (FR-571, Enforced)
     │
     ├── validators/              ← Layer 2: rules
-    │     └── (extracted from DM api/plot/)
+    │     └── lifecycle/grounding/affects built (FR-571); causality/reachability/motivation planned (Phase 4)
     │
     ├── graphs/                  ← Layer 3: pipeline
-    │     └── classify_kinds.yaml (exists — FR-570)
+    │     └── L1–L5 built (FR-570/572/573/574/575/576); L6/L7/merge/pipeline planned
     │
     ├── prompts/                 ← Layer 3: prompts
-    │     └── classify_kinds.yaml (exists — FR-570)
+    │     └── L1–L5 built (FR-570/573/574/575/576)
     │
     ├── nodes/                   ← Layer 3: tool functions
-    │     └── tools.py (exists — FR-570)
+    │     └── tools.py — validators for L1–L5 (FR-570/573/574/575/576)
     │
     ├── fixtures/                ← Test corpus
-    │     └── (exists — FR-570)
+    │     └── 5 synopses + ground-truth plans (FR-570/572)
     │
-    └── evaluate.py              ← Spike evaluator (exists — FR-570)
+    └── evaluate.py              ← Spike evaluator (L3/L4/L5 scoring — FR-570/575/576)
 ```
 
 ## Technology choices

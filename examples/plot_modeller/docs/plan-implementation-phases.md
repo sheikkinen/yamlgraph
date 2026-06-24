@@ -111,6 +111,10 @@ vocabulary. Then:
 
 The self-derived corpus re-test (with mediation added) must also hold ≥ 0.75.
 
+**Result (FR-572, 2026-06-24): GO.** Blind synopsis 0.90; self-derived corpus
+39/48 = 0.81. The KILL gate passed — the 0.80 was not authorial leakage. Pipeline
+construction (Phase 2+) authorised.
+
 ### Risk
 
 Medium. The blind test is the real gate. If the self-derived 0.80 was inflated
@@ -157,6 +161,10 @@ Each layer gets its own spike-and-measure cycle before integration:
   beat decomposition is creative, not mechanical. Gate: ≥ 80% of ground-truth
   beats have a corresponding gloss (fuzzy match on narrative content).
 
+**Results (2026-06-24):** L1 built (FR-573). L2 — **REVISE** (goal recall
+13/18 = 0.72, below the structural-match bar; follow-up FR-581). L3 — **GO**
+(beat recall 42/48 = 0.88, precision 0.87).
+
 ### Gate
 
 All three layers pass their spike gates independently. Then run L1→L2→L3 as a
@@ -202,6 +210,11 @@ adds one formal dimension to the glosses that L3 produced and L4 classified.
   links? Gate: ≥ 75% of `enables` links match ground truth.
 - **L7 spike:** Given glosses + kinds, can the model assign affect open/close
   operations? Gate: ≥ 70% accuracy on affect operations (including `toward`).
+
+**Result so far (2026-06-24):** L5 — **REVISE** (combined world recall
+47/85 = 0.55, below the 0.70 gate; misses are fixable prompt issues — label
+synonyms, token paraphrase, dropped `=false` departures; follow-up prompt FR).
+L6/L7 not yet built.
 
 ### Gate
 
@@ -307,6 +320,17 @@ consumers read.
 
 **Total estimated:** ~2500 lines of code + tests + documentation, across 5
 phases with independent gates.
+
+### Build status (2026-06-24)
+
+| Phase | Status | Evidence |
+|-------|--------|----------|
+| **0** | ✅ Done | FR-571 — schema (5 modules) + 3 validators, 22 tests green |
+| **1** | ✅ GO | FR-572 — blind 0.90, self-derived 0.81; KILL gate passed |
+| **2** | ⚠️ Partial | L1 built (FR-573); L2 **REVISE** 0.72 (FR-574→FR-581); L3 **GO** 0.88 (FR-575) |
+| **3** | ⚠️ Partial | L5 **REVISE** 0.55 (FR-576, follow-up prompt FR); L6/L7 not built |
+| **4** | ⬜ Not started | merge + orchestrator |
+| **5** | ⬜ Not started | plan contract + docs |
 
 ### Dependency graph
 

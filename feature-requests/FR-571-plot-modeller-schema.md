@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Judged — Authority GRANTED (C1–C2 folded into spec; 2026-06-23)
+**Status:** Enforced — GO (schema + 3 validators built; 14 schema + 8 validator tests green; all downstream layers L1–L5 consume it; 2026-06-24)
 **Effort:** 1 day
 **Requested:** 2026-06-23
 **Plan:** [`plan-implementation-phases.md`](../examples/plot_modeller/docs/plan-implementation-phases.md) Phase 0
