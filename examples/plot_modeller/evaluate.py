@@ -243,6 +243,42 @@ def _norm_value(v: object) -> str:
     return str(v).strip().lower()
 
 
+# FR-583 Part 1: token-set Jaccard tolerance for multi-word args. Single-word
+# args keep exact/contains matching — the threshold loosens ONLY multi-word
+# overlaps (order-swapped or non-contiguous), never single-word synonyms.
+_ARGS_JACCARD_THRESHOLD = 0.5
+
+
+def _args_jaccard_match(
+    pa: str, ta: str, threshold: float = _ARGS_JACCARD_THRESHOLD
+) -> bool:
+    """Multi-word arg tolerance (FR-583 Part 1): token-set Jaccard >= threshold.
+
+    Returns False when both sides are single tokens, so genuine single-word
+    synonym gaps (``together`` vs ``lovers``) stay rejected (AC#7). For
+    multi-word args, accepts when ``|intersection| / |union|`` >= threshold,
+    bridging order-swapped (``road river`` vs ``river road``) and non-contiguous
+    superset (``Seoul quarter lab`` vs ``Seoul lab``) overlaps that the
+    substring check misses.
+    """
+    p_tokens = set(pa.split())
+    t_tokens = set(ta.split())
+    if len(p_tokens) <= 1 and len(t_tokens) <= 1:
+        return False
+    return _jaccard(p_tokens, t_tokens) >= threshold
+
+
+def _arg_matches(pa: str, ta: str) -> bool:
+    """Shared per-arg comparator (FR-583 C1): exact, contains/prefix, or
+    multi-word Jaccard fallback. Called by both ``_fluent_matches`` (L1/L5
+    world) and ``_goal_matches`` (L2) so the arg tolerance cannot drift between
+    layers.
+    """
+    if pa == ta or pa in ta or ta in pa:
+        return True
+    return _args_jaccard_match(pa, ta)
+
+
 def _fluent_matches(pred: dict, truth: dict) -> bool:
     """Tolerant fluent matching (C1): same pred, args contains/prefix, value tolerant."""
     if not isinstance(pred, dict) or not isinstance(truth, dict):
@@ -254,8 +290,7 @@ def _fluent_matches(pred: dict, truth: dict) -> bool:
     if len(pred_args) != len(truth_args):
         return False
     for pa, ta in zip(pred_args, truth_args, strict=False):
-        # Contains or prefix match (either direction)
-        if pa != ta and pa not in ta and ta not in pa:
+        if not _arg_matches(pa, ta):
             return False
     # Value: tolerant comparison
     return _norm_value(pred.get("value", True)) == _norm_value(truth.get("value", True))
@@ -531,7 +566,7 @@ def _goal_matches(pred: dict, truth: dict) -> bool:
         return False
     else:
         for pa, ta in zip(pred_args, truth_args, strict=False):
-            if pa != ta and pa not in ta and ta not in pa:
+            if not _arg_matches(pa, ta):
                 return False
 
     # Value: tolerant comparison (contains/prefix)
@@ -546,10 +581,7 @@ def _args_tolerant_match(pred_args: list[str], truth_args: list[str]) -> bool:
         return False
     ps = sorted(pred_args)
     ts = sorted(truth_args)
-    for pa, ta in zip(ps, ts, strict=False):
-        if pa != ta and pa not in ta and ta not in pa:
-            return False
-    return True
+    return all(_arg_matches(pa, ta) for pa, ta in zip(ps, ts, strict=False))
 
 
 def _count_goal_matches(predicted: list, truth: list) -> int:
