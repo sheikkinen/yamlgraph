@@ -631,3 +631,99 @@ def validate_causality(state: dict) -> dict:
         item.setdefault("threatens", None)
 
     return {"causality": items, "validation": {"ok": True, "flaws": []}}
+
+
+# ---------------------------------------------------------------------------
+# FR-578 L7 — assign affects (eff_affect: list[AffectDelta]) to beats
+# ---------------------------------------------------------------------------
+
+_AFFECT_KEYS = {"id", "eff_affect"}
+
+
+def validate_affects(state: dict) -> dict:
+    """Parse and validate the assign_affects node's raw YAML output (J1).
+
+    Reads ``affects_raw`` (raw text), ``glosses`` (classified beats, for id
+    coverage) and ``agents`` (for the char/toward membership check). On success
+    writes the parsed list to ``affects`` plus ``validation``; on failure writes
+    **only** ``validation``, leaving ``affects`` absent (J1).
+
+    The validator checks STRUCTURE only (C1): each ``eff_affect`` item must be a
+    valid ``AffectDelta`` (closed ``AffectKind`` enum — C4, no tolerance; binary
+    ``op``; ``extra="forbid"``) with ``char``/``toward`` drawn from the agent
+    list. It deliberately does **not** enforce open/close balance — that
+    cross-beat plan invariant belongs to the merge node (FR-579), not here.
+    """
+    from schema.affects import AffectDelta
+
+    raw = state.get("affects_raw", "")
+    try:
+        items = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(items, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of per-beat affect objects"],
+            }
+        }
+
+    glosses = state.get("glosses", [])
+    agents_set = {_norm_name(a) for a in state.get("agents", []) if isinstance(a, str)}
+
+    flaws: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
+        bid = item.get("id", "?")
+        extra = set(item) - _AFFECT_KEYS
+        if extra:
+            flaws.append(f"{bid}: unknown keys {sorted(extra)}")
+
+        eff_affect = item.get("eff_affect", [])
+        if not isinstance(eff_affect, list):
+            flaws.append(
+                f"{bid}.eff_affect: expected a list, got {type(eff_affect).__name__}"
+            )
+            continue
+        for i, delta in enumerate(eff_affect):
+            try:
+                model = AffectDelta.model_validate(delta)
+            except Exception as e:
+                flaws.append(f"{bid}.eff_affect[{i}]: invalid AffectDelta — {e}")
+                continue
+            if agents_set and _norm_name(model.char) not in agents_set:
+                flaws.append(
+                    f"{bid}.eff_affect[{i}]: char '{model.char}' not in agents list"
+                )
+            if (
+                model.toward is not None
+                and agents_set
+                and _norm_name(model.toward) not in agents_set
+            ):
+                flaws.append(
+                    f"{bid}.eff_affect[{i}]: toward '{model.toward}' not in agents list"
+                )
+
+    expected = {
+        g["id"] for g in glosses if isinstance(g, dict) and g.get("id") is not None
+    }
+    got = {item.get("id") for item in items if isinstance(item, dict)}
+    missing = expected - got
+    if missing:
+        flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")
+    orphans = got - expected
+    if orphans:
+        flaws.append(f"orphan ids: {', '.join(sorted(str(o) for o in orphans))}")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    # Normalise the absent eff_affect key to an explicit empty list (boundary).
+    for item in items:
+        item.setdefault("eff_affect", [])
+
+    return {"affects": items, "validation": {"ok": True, "flaws": []}}
