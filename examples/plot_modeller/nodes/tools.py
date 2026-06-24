@@ -517,3 +517,117 @@ def load_glosses_with_kinds(ground_truth_path: str | Path) -> list[dict]:
             }
         )
     return out
+
+
+# ---------------------------------------------------------------------------
+# FR-577 L6 — assign causality (enables / motivation / threatens) to beats
+# ---------------------------------------------------------------------------
+
+_CAUSALITY_KEYS = {"id", "enables", "motivation", "threatens"}
+
+
+def validate_causality(state: dict) -> dict:
+    """Parse and validate the assign_causality node's raw YAML output (J1).
+
+    Reads ``causality_raw`` (raw text), ``glosses`` (classified beats, in
+    narrative order) and ``agents`` (for the membership check). On success
+    writes the parsed list to ``causality`` plus ``validation``; on failure
+    writes **only** ``validation``, leaving ``causality`` absent (J1).
+
+    The validator enforces structural and referential integrity, including the
+    **forward-only** ``enables`` invariant (J:C2): a beat may only enable a
+    beat that appears *later* in narrative order. A backward (or self) link is
+    a validation failure that forces a retry — not merely an evaluator miss.
+    ``motivation``/``threatens`` are informational ({agent, goal}|null) and are
+    checked only for shape and agent membership, never for correctness (J:C3).
+    """
+    from schema.functions import Motivation
+
+    raw = state.get("causality_raw", "")
+    try:
+        items = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(items, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of per-beat causality objects"],
+            }
+        }
+
+    glosses = state.get("glosses", [])
+    # Narrative order = the glosses list order. Index defines "later".
+    order = {
+        g["id"]: i
+        for i, g in enumerate(glosses)
+        if isinstance(g, dict) and g.get("id") is not None
+    }
+    valid_ids = set(order)
+    agents_set = {_norm_name(a) for a in state.get("agents", []) if isinstance(a, str)}
+
+    flaws: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
+        bid = item.get("id", "?")
+        extra = set(item) - _CAUSALITY_KEYS
+        if extra:
+            flaws.append(f"{bid}: unknown keys {sorted(extra)}")
+
+        enables = item.get("enables", [])
+        if not isinstance(enables, list):
+            flaws.append(
+                f"{bid}.enables: expected a list, got {type(enables).__name__}"
+            )
+        else:
+            src_idx = order.get(item.get("id"))
+            for tgt in enables:
+                if tgt not in valid_ids:
+                    flaws.append(
+                        f"{bid}.enables: invalid target '{tgt}' (not a beat id)"
+                    )
+                elif src_idx is not None and order[tgt] <= src_idx:
+                    flaws.append(
+                        f"{bid}.enables: backward link to '{tgt}' "
+                        "(a beat may only enable a later beat)"
+                    )
+
+        for slot in ("motivation", "threatens"):
+            val = item.get(slot)
+            if val is None:
+                continue
+            try:
+                Motivation.model_validate(val)
+            except Exception as e:
+                flaws.append(f"{bid}.{slot}: invalid — {e}")
+                continue
+            if agents_set and _norm_name(val.get("agent")) not in agents_set:
+                flaws.append(
+                    f"{bid}.{slot}: agent '{val.get('agent')}' not in agents list"
+                )
+
+    expected = {
+        g["id"] for g in glosses if isinstance(g, dict) and g.get("id") is not None
+    }
+    got = {item.get("id") for item in items if isinstance(item, dict)}
+    missing = expected - got
+    if missing:
+        flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")
+    orphans = got - expected
+    if orphans:
+        flaws.append(f"orphan ids: {', '.join(sorted(str(o) for o in orphans))}")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    # Normalise absent optional keys to explicit null so downstream readers and
+    # the evaluator see a stable shape (boundary normalization).
+    for item in items:
+        item.setdefault("enables", [])
+        item.setdefault("motivation", None)
+        item.setdefault("threatens", None)
+
+    return {"causality": items, "validation": {"ok": True, "flaws": []}}
