@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature (prompt-architecture revision)
-**Status:** Judged — Authority GRANTED (2026-06-24)
+**Status:** Enforced (2026-06-24) — Verdict **REVISE/KILL prompt-only levers**; all three reverted, escalate to architectural decode (see Implementation)
 **Effort:** 1.5–2 days
 **Requested:** 2026-06-24
 **Predecessor:** FR-583 (L5 REVISE; Part 1 Jaccard KEEP, Part 2 vocab KILL)
@@ -122,20 +122,20 @@ paraphrased tokens, and the GT tokens are unreachable without leakage).
 
 ## Acceptance criteria
 
-- [ ] Salience-suppression rule added; re-spike on haiku (verify `Creating LLM`
+- [x] Salience-suppression rule added; re-spike on haiku (verify `Creating LLM`
       log line) regenerates `results/l5`.
-- [ ] `at` false-positive count and predicate precision reported before/after on
+- [x] `at` false-positive count and predicate precision reported before/after on
       every re-score (precision tripwire, inherited from FR-583 C3).
-- [ ] Typed-role `rel` instruction added; scifi `rel` arg-swap count reported.
-- [ ] Confusion analysis re-run (reuse the FR-583 dump method) — the dominant
+- [x] Typed-role `rel` instruction added; scifi `rel` arg-swap count reported.
+- [x] Confusion analysis re-run (reuse the FR-583 dump method) — the dominant
       failure mode must *shift away from* location flooding for the lever to be
       judged working.
-- [ ] **Controlled A/B (FR-583 lesson):** run the revised prompt AND a control
+- [x] **Controlled A/B (FR-583 lesson):** run the revised prompt AND a control
       (revised minus Lever A) at the same temp; compare precision delta and
       catastrophic-failure count, not a single noisy run.
-- [ ] L5 verdict recorded by J:N2 (combined world recall ≥ 0.70 GO; 0.50–0.70
+- [x] L5 verdict recorded by J:N2 (combined world recall ≥ 0.70 GO; 0.50–0.70
       REVISE; KILL only sub-0.50 with non-fixable confusion).
-- [ ] Diary reflection added.
+- [x] Diary reflection added.
 
 ## Stop rule
 
@@ -228,3 +228,69 @@ committed analysis helper); it is not a standing artifact.
 subjects over the existing beat text), unchanged output schema, no `run.py`
 change, no ground-truth input, controlled A/B isolating Lever A, confusion
 re-analysis, J:N2 verdict. Effort 1.5–2 days.
+
+## Implementation (2026-06-24)
+
+All three levers were added to `prompts/assign_pre_eff.yaml` (the only permitted
+file), then a controlled A/B was run on `claude-haiku-4-5` (verified each run via
+the `Creating LLM: anthropic/claude-haiku-4-5` log line). The confusion analyzer
+was promoted from the FR-583 throwaway dump to a committed helper
+(`examples/plot_modeller/analyze_l5_confusion.py`, satisfying C5).
+
+### Controlled A/B results (same temp, haiku-4-5)
+
+| metric | baseline (no lever) | control (B+C) | full (A+B+C) |
+|---|---|---|---|
+| combined world recall | **0.60** | 0.58 | 0.51 |
+| predicate precision | **0.30** | 0.29 | 0.30 |
+| `at` false-positives (flood) | 56 / 84 (67%) | **78 / 105 (74%)** | 44 / 75 (59%) |
+| `at` misses | 12 | 15 | **20** |
+| `rel` false-positives | 15 | 16 | **17** |
+| catastrophic 0-beat runs | 0 | 0 | **1 (salt-road)** |
+
+### Per-lever verdict
+
+- **Lever A (salience suppression) — net-negative.** It is the *only* lever that
+  moves its target metric: isolating it (control→full) cut the `at` flood
+  78→44. But the suppression is **indiscriminate** — `at` misses rose 12→20 in
+  lockstep, so precision stayed **flat (0.29→0.30)** while recall fell 0.58→0.51.
+  Worse, it **destabilised the model**: the salt-road fixture hit the validator
+  loop-limit and emitted **0 beats** (the same catastrophic failure mode the
+  FR-583 Part 2 vocab lever produced). The model floods *and* misses in the same
+  proportion; a blanket "emit only if impossible without it" rule removes signal
+  and noise equally. The precision tripwire (target ~0.45) was never approached.
+- **Lever B (typed `rel` roles) — zero effect.** `rel` false-positives were
+  15 (baseline) → 16 (control) → 17 (full). Naming SOURCE/TARGET in the prompt
+  did **not** reduce directionality errors at this model tier. Dead lever.
+- **Lever C (non-character subjects) — counter-productive.** It increased the
+  flood rather than capturing missed object-locations: `at` FPs rose to **78** in
+  the control (vs 56 baseline). The model dutifully emits more object-`at`
+  predicates, but they are paraphrased tokens that miss the GT answer key, so
+  they land as noise, not recall.
+
+### Verdict (J:N2)
+
+Best variant recall is **0.58** (control) — inside the 0.50–0.70 **REVISE** band,
+above the sub-0.50 KILL floor. But the confusion analysis, which the Judgement
+stipulated *carries* the verdict, shows the prompt-only approach is exhausted:
+one lever is net-negative, one is dead, one is counter-productive, and none moves
+precision (the actual wound) off 0.30. Per the **stop rule** — "do NOT iterate
+prompt wording a fourth time" — the prompt-architecture lever-set is **KILLED**.
+All three levers were reverted (`assign_pre_eff.yaml` restored to baseline).
+
+### Escalation (next FR)
+
+The precision wound (0.30) is not addressable by single-call prompt instruction
+at the haiku tier. The stop rule's named escalation applies: a **true two-node
+decode** — a dedicated salience-gate LLM call that decides *which* fluents a beat
+depends on, feeding an argument-fill call — or a larger model for the L5 node
+only. This is a new FR (blocks FR-579), not a fourth wording iteration.
+
+### Files
+
+- `examples/plot_modeller/analyze_l5_confusion.py` — **committed** (C5 helper;
+  measurement witness; commit `2bc5ab69`).
+- `examples/plot_modeller/prompts/assign_pre_eff.yaml` — levers added, measured,
+  **reverted to baseline** (net-negative; no production change ships).
+- `examples/plot_modeller/logs/l5_abc.log`, `l5_bc_control.log` — spike logs
+  (gitignored).
