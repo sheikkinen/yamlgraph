@@ -87,6 +87,29 @@ class TestValidatePreEffSuccess:
         )
         assert out["validation"]["ok"] is True
 
+    def test_code_fenced_output_is_parsed(self):
+        """Boundary: LLM sometimes wraps YAML in ```yaml ... ``` fences.
+
+        At temp 0.7 the model sporadically emits a fenced block; the raw
+        backtick crashes ``yaml.safe_load`` -> retry -> loop limit -> 0 beats.
+        The validator must strip the fence at the parse boundary.
+        """
+        fenced = f"```yaml\n{VALID_RAW}```\n"
+        out = validate_pre_eff(
+            {"pre_eff_raw": fenced, "glosses": GLOSSES, "agents": AGENTS}
+        )
+        assert out["validation"]["ok"] is True
+        assert len(out["pre_eff"]) == 2
+
+    def test_bare_code_fence_is_parsed(self):
+        """A bare ``` fence (no language tag) must also be stripped."""
+        fenced = f"```\n{VALID_RAW}```"
+        out = validate_pre_eff(
+            {"pre_eff_raw": fenced, "glosses": GLOSSES, "agents": AGENTS}
+        )
+        assert out["validation"]["ok"] is True
+        assert len(out["pre_eff"]) == 2
+
 
 class TestValidatePreEffFailure:
     """Each flaw -> validation fails, pre_eff not written (J1)."""

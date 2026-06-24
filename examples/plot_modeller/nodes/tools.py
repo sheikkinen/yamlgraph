@@ -18,6 +18,26 @@ from schema.kinds import FunctionKind
 VALID_KINDS = {k.value for k in FunctionKind}
 
 
+def _strip_code_fences(raw: str) -> str:
+    """Strip a leading/trailing Markdown code fence from an LLM YAML response.
+
+    Boundary normalization: at temp>0 the model sporadically wraps its YAML in
+    a ```` ```yaml ... ``` ```` block. The raw backtick crashes
+    ``yaml.safe_load`` -> validator retry -> loop limit -> 0 beats. Normalize
+    here, where the external LLM text enters, not downstream.
+    """
+    text = raw.strip()
+    if not text.startswith("```"):
+        return raw
+    lines = text.splitlines()
+    # Drop the opening fence line (``` or ```yaml).
+    lines = lines[1:]
+    # Drop the closing fence line if present.
+    if lines and lines[-1].strip().startswith("```"):
+        lines = lines[:-1]
+    return "\n".join(lines)
+
+
 def validate_kinds(state: dict) -> dict:
     """Parse and validate the classify node's raw YAML output (J1).
 
@@ -27,7 +47,7 @@ def validate_kinds(state: dict) -> dict:
     """
     raw = state.get("kinds_raw", "")
     try:
-        items = yaml.safe_load(raw)
+        items = yaml.safe_load(_strip_code_fences(raw))
     except yaml.YAMLError as e:
         return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
 
@@ -70,7 +90,7 @@ def validate_agents(state: dict) -> dict:
     """
     raw = state.get("agents_raw", "")
     try:
-        data = yaml.safe_load(raw)
+        data = yaml.safe_load(_strip_code_fences(raw))
     except yaml.YAMLError as e:
         return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
 
@@ -173,7 +193,7 @@ def validate_goals(state: dict) -> dict:
     """
     raw = state.get("goals_raw", "")
     try:
-        data = yaml.safe_load(raw)
+        data = yaml.safe_load(_strip_code_fences(raw))
     except yaml.YAMLError as e:
         return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
 
@@ -258,7 +278,7 @@ def validate_glosses(state: dict) -> dict:
 
     raw = state.get("glosses_raw", "")
     try:
-        data = yaml.safe_load(raw)
+        data = yaml.safe_load(_strip_code_fences(raw))
     except yaml.YAMLError as e:
         return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
 
@@ -383,7 +403,7 @@ def validate_pre_eff(state: dict) -> dict:
 
     raw = state.get("pre_eff_raw", "")
     try:
-        items = yaml.safe_load(raw)
+        items = yaml.safe_load(_strip_code_fences(raw))
     except yaml.YAMLError as e:
         return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
 

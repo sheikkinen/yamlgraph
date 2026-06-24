@@ -19,9 +19,13 @@ user: |
   - alive: args [character]; value true/false — whether a character is alive.
   - at: args [character, location]; value true/false — character's location.
   - holds: args [character, object]; value true/false — possession of a thing.
-  - rel: args [character, character]; value is a relationship label string
-    (e.g. allied, hostile, assimilated, entrained, estranged).
-  - faction: args [character, group]; value is a membership label string.
+  - rel: args [character, character]; value is a relationship label string.
+    Prefer the synopsis's OWN word for the relationship. If the synopsis gives
+    no clear word, choose the closest label from this fallback set:
+    allied, hostile, assimilated, entrained, estranged, captive, kin, rival.
+    Only coin a new label if none of these fits.
+  - faction: args [character, group]; value is a membership label string —
+    again, prefer the synopsis's own word for the group/membership.
 
   BELIEF shape (for pre_belief / eff_belief):
     observer: the character who holds the belief
@@ -38,7 +42,17 @@ user: |
   EXACTLY as they appear in the gloss. Do NOT paraphrase or invent synonyms.
   If a later beat's effect concerns the same object an earlier beat introduced,
   reuse the earlier beat's exact token. Wrong-token substitution is the single
-  most common failure — copy names verbatim.
+  most common failure — copy names verbatim. This applies to MULTI-WORD names
+  too: do NOT shorten (`Vantari Labs` → `lab`), re-space, or re-style
+  (`firmware_channel` → `firmware update`) any token. Copy the full token
+  verbatim, including underscores and capitalization.
+
+  CRITICAL — MOVEMENT. A location change is TWO effects, never one. When a beat
+  moves a character from one place to another, `eff_world` must contain BOTH
+  `at(character, origin)=false` AND `at(character, destination)=true`. Emit the
+  `=false` departure ONLY when the origin is named in the gloss OR was
+  established by an earlier beat's `at(character, ·)=true`. If the origin is
+  genuinely unstated, emit the arrival alone — do NOT guess or invent an origin.
 
   TYPICAL EFFECTS BY KIND (priors, not rules — the gloss governs):
   - villainy: eff_world often a `rel` turning hostile, or a `holds`/`alive` loss.
