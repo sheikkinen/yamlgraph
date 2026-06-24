@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature (architectural fix)
-**Status:** Judged — Authority GRANTED with conditions (2026-06-24)
+**Status:** Enforced — Part 1 KEEP (Jaccard, null-result/no-harm), Part 2 KILL (vocab grounding net-negative, reverted, 2026-06-24)
 **Effort:** 1 day
 **Requested:** 2026-06-24
 **Judged:** 2026-06-24
@@ -269,3 +269,79 @@ still GO). Ratified.
 re-score) and Part 2 (VOCABULARY prompt block + run.py token extraction, L5
 re-spike), landed as two commits, with the explicit L5 stop rule (C5). No
 embedding/LLM-judge, no belief gate, no third prompt-only pass.
+
+## Implementation (2026-06-24)
+
+Two commits per C2. Part 1 KEPT, Part 2 KILLED — the spike worked exactly as a
+spike should: it falsified the load-bearing hypothesis before it shipped.
+
+### Part 1 — Jaccard args tolerance (KEEP, null result, no harm)
+
+Added `_args_jaccard_match` + a shared `_arg_matches` comparator wired into both
+real seams (`_fluent_matches` for L1/L5 world, `_goal_matches` for L2) so the
+tolerance cannot drift between layers (C1). Multi-word args match on token-set
+Jaccard ≥ 0.5; single-word synonyms stay rejected (AC#7). RED-first
+(`ca912b09`), GREEN (`5cf86df9`), 51 evaluator tests pass.
+
+**Re-score result (C3 precision tripwire on every run): zero change.**
+
+| Layer | Before | After Jaccard | Precision before → after |
+|-------|--------|---------------|--------------------------|
+| L2    | 13/18 (0.72) | 13/18 (0.72) | 0.42 → 0.42 |
+| L5    | 43/85 (0.51) | 43/85 (0.51) | 0.19 → 0.19 |
+
+The existing substring/`contains` check already covered every multi-word
+*subset* case the proposal cited (`Seoul lab` ⊂ `Seoul`, `River road` ⊂
+`flooded river road`). The residual L2 misses are all genuine semantic gaps
+(goal omission, or single-word synonyms like `together`/`lovers`) that Jaccard
+correctly does **not** bridge. So the tolerance is a conservative, zero-false-
+positive safety net — kept because it can only ever match strictly *more* than
+exact equality without ever matching a single-word synonym, but it moves no
+current number. **L2 verdict: GO** per J:N2 (0.72 < 0.80 but every residual miss
+is a real semantic gap, not a string-matching artifact).
+
+### Part 2 — L5 vocabulary grounding (KILL, net-negative, reverted)
+
+Built the C4 machinery: `_extract_vocabulary(gt_path)` categorising GT
+`initial_world`/`initial_belief` tokens (locations=`at` arg1, objects=`holds`
+arg1, relationships=`rel` value, groups=`faction` arg1), a `vocabulary` graph
+state key, and a CANONICAL VOCABULARY prompt block injecting the tokens. Re-spike
+on haiku (default per the FR-578 anti-scaling lesson; model verified via the
+`Creating LLM: anthropic/claude-haiku-4-5` log line).
+
+**Result: the lever regressed every metric and destabilised the assign node.**
+
+| Run | Config | World recall | Precision | Catastrophic (loop-limit→empty) |
+|-----|--------|--------------|-----------|---------------------------------|
+| prior  | no vocab | 43/85 (0.51) | 0.19 | 0 |
+| A      | **no vocab** | **51/85 (0.60)** | **0.30** | **0** |
+| B      | vocab | 21/85 (0.25) | 0.20 | 2 fixtures |
+| C      | vocab | 15/85 (0.18) | 0.21 | 2 fixtures |
+
+Two no-vocab baselines (0.51, 0.60) are stable with **zero** validation
+exhaustions. Both vocab runs collapsed to ~0.2 **and** each drove two fixtures
+into the 3-retry loop limit → empty `pre_eff` (the rendered block was verified
+correct, so this is the model, not a template bug). Mechanism: told to use a
+fixed token list, the model forces those tokens into the wrong predicate slots,
+the validator rejects, retries exhaust, the beat set is dropped wholesale.
+
+**Verdict: KILL the vocab lever (C5 stop rule).** No improvement — strict
+regression — so the decisive next step is NOT a second vocab iteration but the
+pre-registered alternatives: two-step predicate-then-args decoding, or a larger
+model. Code reverted to the pre-Part-2 state; working tree clean.
+
+A second, deeper objection surfaced during the spike and is recorded for the
+next planner: injecting the **ground-truth** vocabulary into the prediction is
+teaching-to-the-test. Even a recall gain would have been partly leakage, not
+capability. The lever was methodologically suspect *and* empirically worse — a
+clean double KILL.
+
+### Deliverables
+
+- `examples/plot_modeller/evaluate.py`: `_args_jaccard_match`, `_arg_matches`
+  (Part 1, kept).
+- `examples/plot_modeller/tests/test_evaluate.py`: `TestArgsJaccardTolerance`
+  (9 tests, kept).
+- Part 2 vocab machinery: built, spiked, **reverted** (negative result).
+- L5 remains REVISE at world recall ~0.60 (haiku); blocks FR-579 until a
+  non-vocab lever clears the 0.70 confusion bar.
