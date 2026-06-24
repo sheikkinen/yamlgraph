@@ -2,8 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Feature (prompt-architecture revision)
-**Status:** Draft (revision of FR-583 L5 REVISE)
-**Effort:** 1 day
+**Status:** Judged — Authority GRANTED (2026-06-24)
+**Effort:** 1.5–2 days
 **Requested:** 2026-06-24
 **Predecessor:** FR-583 (L5 REVISE; Part 1 Jaccard KEEP, Part 2 vocab KILL)
 **Blocks:** FR-579 (merge/pipeline)
@@ -15,9 +15,10 @@ lever after a controlled A/B showed it regressed every metric. The post-spike
 failure-mode dissection (FR-583 "L5 failure-mode analysis") proved the real
 bottleneck is **not** token naming — it is **84 false positives vs 34 misses**,
 dominated by location flooding (67% of FPs) and relation directionality. This FR
-implements the C5-pre-registered alternative: a **two-step decode** that first
-constrains *which* fluents are salient, then fills *typed argument roles*, before
-any token is named. Precision, not recall, is the primary target.
+implements the C5-pre-registered alternative: **prompt-level reasoning-order
+constraints** that guide the model to first assess *which* fluents are salient,
+then fill *typed argument roles*, before naming tokens — all within the existing
+single LLM call and output schema. Precision, not recall, is the primary target.
 
 ## Value statement
 
@@ -53,9 +54,13 @@ model more tokens to dutifully place. The leverage is in #1 and #2.
 
 ## Proposed solution
 
-A single LLM node remains, but the prompt is restructured into a **two-pass
-decode within one generation** (no second graph node — the model reasons in two
-labelled stages in its YAML output, the validator checks the final stage):
+A single LLM node remains with an unchanged YAML output schema (id, pre_world,
+eff_world, pre_belief, eff_belief per beat). The prompt is restructured to guide
+the model's **reasoning order** — assess salience before emitting predicates,
+orient argument roles before writing `rel` — but the output the validator checks
+is the same shape as today. If this prompt-reasoning-order approach stalls, the
+stop rule escalates to a true two-node decode (separate salience-filter LLM call
+feeding an argument-fill call).
 
 ### Lever A — salience suppression (targets #1, the precision killer)
 
@@ -84,9 +89,26 @@ on the scifi fixture.
 ### Lever C — non-character subject prompt (targets #3)
 
 Add to the predicate guide: artifacts and objects can be the SUBJECT of `at`
-(an object has a location) and the OBJECT of `holds`. Provide the artifact roster
-(extracted mechanically from the gloss/agents — NOT from ground truth, to avoid
-the FR-583 leakage trap).
+(an object has a location) and the OBJECT of `holds`. The roster of such entities
+is read by the model from the **beat text it is already given** — NOT from any
+ground-truth structure.
+
+**Source constraint (anti-leakage, ratified by C4 below):** The L5 node's state
+is exactly `{glosses, agents}` (verified: `graphs/assign_pre_eff.yaml` has no
+`initial_world` key; `run_assign_pre_eff` invokes with only those two). The GT
+`initial_world` is the scored answer key and is forbidden as an input — reading it
+would repeat the FR-583 Part 2 leakage KILL. The glosses already name objects and
+places in the synopsis's own words (e.g. "firmware update" in F1, not the GT
+token `firmware_channel`).
+
+**Therefore Lever C is pure prompt language, no `run.py` change, no new template
+variable, no roster injection:** instruct the model that any object or location
+it reads in a beat may be the subject of `at` / `holds`. This fixes the
+ontological-subject blindness (#3). It does NOT supply canonical tokens — that is
+the #5 naming gap, which stays deferred and off-limits (the glosses carry only
+paraphrased tokens, and the GT tokens are unreachable without leakage).
+
+**Files changed:** `prompts/assign_pre_eff.yaml` only (prompt text).
 
 ### Out of scope (explicit)
 
@@ -138,3 +160,71 @@ time (FR-581/582/583 each hit a prompt-only stop rule; the fourth is ritual).
 - `examples/plot_modeller/prompts/assign_pre_eff.yaml` (Levers A/B/C land here)
 - `examples/plot_modeller/evaluate.py` (frozen — scoring unchanged)
 - `docs/diary/diary-2026-06-24-the-lever-that-taught-to-the-test.md`
+
+## Judgement (2026-06-24)
+
+**Verdict: Authority GRANTED — three conditions folded into spec above.**
+
+FR-584 is the correct next step in the L5 progression: FR-582 hit the
+prompt-wording stop rule, FR-583 Part 2 killed vocabulary grounding, and the
+post-mortem failure analysis (84 FPs vs 34 misses, location flooding at 67%)
+proved precision, not recall, is the wound. The three levers (salience
+suppression, typed rel roles, non-character subjects) target failure modes
+#1, #2, #3 by rank — the first FR in the L5 chain to attack the largest error
+class first. The controlled A/B requirement (learned from FR-583) and the stop
+rule (no fourth prompt iteration) are both sound.
+
+### Conditions (folded)
+
+**C1 — "Two-step decode" reframed as prompt-reasoning-order (folded into
+Summary + Proposed solution).** The original text described "two labelled stages
+in YAML output" but all three levers are prompt instructions — no output schema
+change, no new YAML block, no validator modification. Reframed: the prompt
+guides reasoning order (salience → roles → tokens) within the existing output
+shape. The true two-node decode (separate salience-filter LLM call) is the
+stop-rule escalation, not a deliverable of this FR.
+
+**C2 — Lever C extraction rule specified (folded into Lever C).** Original said
+"extracted mechanically from the gloss/agents" without naming the field, the
+extraction logic, or the caller file. Now specifies: check whether `state.agents`
+already includes non-character entities; scan `state.glosses` / `initial_world`
+for artifact names; name `run.py` if a new template variable is needed.
+
+**C3 — Effort revised to 1.5–2 days (folded into header).** Three prompt
+levers + controlled A/B (two full 5-genre spikes minimum) + confusion
+re-analysis + diary. FR-583 was estimated at 1 day and took a full session for
+Part 1 alone. The mandatory A/B doubles the spike cost.
+
+**C4 — Lever C leakage contradiction corrected (post-judgement check,
+2026-06-24).** The first-pass judgement folded a C2 extraction rule that named
+`initial_world` as a scan source and claimed it was "available to the prompt via
+the synopsis input." Verification falsified both claims: the L5 graph state has
+no `initial_world` key and `run_assign_pre_eff` passes only `{glosses, agents}`;
+`initial_world` is exclusively a ground-truth fixture field — the scored answer
+key. Using it would repeat the exact FR-583 Part 2 leakage that was KILLed. Lever
+C is therefore re-scoped to **pure prompt language over the already-present beat
+text** — no `run.py` change, no roster injection, no GT access. Lever C addresses
+ontology (#3) only; canonical-token naming (#5) stays deferred and unreachable
+without leakage. This correction tightens scope; it does not expand it.
+
+**C5 — Confusion-dump tool is ephemeral (note for enforcement).** AC#4 says
+"reuse the FR-583 dump method," but that script (`tmp_l5_confusion.py`) was
+deleted, not committed. Enforcement must re-create it (or promote it to a small
+committed analysis helper); it is not a standing artifact.
+
+### Validated as correct (carried forward)
+
+- Haiku-first, no model escalation (FR-578 anti-scaling lesson). Ratified.
+- Evaluator frozen (Part 1 Jaccard stays, scoring unchanged). Clean A/B baseline.
+- Out-of-scope list (no GT vocab, no alive lever, no evaluator loosening). All
+  correct.
+- Acceptance criteria AC#1–AC#7 cover the right signals: at-FP count, precision
+  tripwire, rel arg-swap count, confusion shift, controlled A/B, J:N2 verdict.
+- Stop rule: precision ≤ 0.25 AND location flooding dominant → KILL → true
+  two-node decode or model escalation. Correct and non-ritual.
+
+**Frozen scope:** Three prompt-instruction levers in `assign_pre_eff.yaml`
+**and that file only** (salience suppression, typed rel roles, non-character
+subjects over the existing beat text), unchanged output schema, no `run.py`
+change, no ground-truth input, controlled A/B isolating Lever A, confusion
+re-analysis, J:N2 verdict. Effort 1.5–2 days.
