@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature (architecture revision)
-**Status:** Proposed
+**Status:** Judged — Authority GRANTED, spike-gated (2026-06-24)
 **Effort:** 2–3 days (spike-gated; Node-A spike is ~0.5 day and may KILL early)
 **Requested:** 2026-06-24
 **Predecessor:** FR-584 (L5 prompt-only levers KILLed — salience/roles/subjects all net-negative)
@@ -125,7 +125,13 @@ and B land — belief is not the precision wound.
   compete with the gloss text (FR-578 anti-prior lesson).
 - **#12 retry loop** stays, but each node now has a small, single-purpose contract
   that is far cheaper to satisfy than the 12-job monolith — the loop should rarely
-  fire, and never exhaust to empty.
+  fire, and never exhaust to empty. **The retry target for the multi-node flow
+  must be specified before Node B is wired** (J:C2): when `validate_pre_eff`
+  rejects Node B's output, does Node B retry alone (A's selection cached —
+  cheaper, tighter contract) or does the pipeline restart from Node A (handles
+  malformed A output)? The answer determines the graph YAML structure and whether
+  the loop-limit-death failure mode (FR-583 Part 2, FR-584 Lever A) is resolved
+  or inherited.
 
 ### Files
 
@@ -141,16 +147,28 @@ and B land — belief is not the precision wound.
 ## Acceptance criteria
 
 - [ ] **Gate 1 — Node A spike (decides the whole FR).** Build Node A only; for the
-      spike, type its flat output with a throwaway adapter so the existing
-      evaluator can score it. Re-spike on haiku (verify `Creating LLM` log line),
-      regenerate `results/l5`, report precision + `at`-FP via
-      `analyze_l5_confusion.py`. **Tripwire:** if precision does not exceed the
-      0.30 baseline by a clear margin (target ≥ 0.40) with no new catastrophic
-      0-beat runs, KILL — do not build B/C; escalate to a larger model for L5 only.
+      spike, type its flat output with a **dumb throwaway adapter** (keyword/regex
+      mapping, NOT another LLM call — J:C1) so the existing evaluator can score
+      it. Re-spike on haiku (verify `Creating LLM` log line), regenerate
+      `results/l5`, report precision + `at`-FP via `analyze_l5_confusion.py`.
+      The adapter may add noise to recall, but the `at`-FP count (the primary
+      precision signal) depends on Node A *not selecting* non-salient facts — that
+      signal passes through any adapter quality. **Tripwire (dual — keyed on the
+      adapter-robust count first):** PASS requires `at`-FP to drop from the
+      baseline **56 to < 30** *with recall holding* (no new catastrophic 0-beat
+      run), AND the precision ratio trending **≥ 0.40**. The absolute `at`-FP
+      count is the gate; the ratio is fragile under a dumb adapter (it can starve
+      the true-positive numerator), so a halved `at`-FP with a *flat* precision
+      ratio means recall fell too (adapter starvation, not a Node-A failure) —
+      investigate the adapter before KILL. If `at`-FP does not fall materially,
+      KILL — do not build B/C; escalate to a larger model for L5 only.
 - [ ] Node B added; final typed output validates through the unchanged
       `validate_pre_eff`; structured output used so YAML hand-writing (#11) is gone.
-- [ ] Deterministic movement-pair helper added **only if** GT scores departures;
-      otherwise the rule is dropped and that decision recorded.
+- [ ] Deterministic movement-pair helper: GT scores **9 `at … value: false`
+      departures** across the 5 fixtures (verified 2026-06-24, ~10% of `at`
+      fluents), so the helper is **in scope** — build it and confirm it lifts
+      `at` recall without adding `at`-FP. Drop only if it measurably regresses
+      precision.
 - [ ] Naming-snap helper added **only if** it beats "do nothing" on precision with
       zero measured false-merges; otherwise dropped and recorded.
 - [ ] Confusion re-analysis: the dominant FP class must shift away from `at`
@@ -195,3 +213,101 @@ wording more than once — that is the fourth-iteration ritual FR-584 already na
 - `feature-requests/FR-583-plot-modeller-evaluator-tolerance-and-vocab-grounding.md` (leakage KILL; failure-mode analysis)
 - `docs/diary/diary-2026-06-24-the-flood-and-the-miss-are-one-gesture.md` (the structural diagnosis this FR acts on)
 - `examples/plot_modeller/graphs/assign_pre_eff.yaml`, `prompts/assign_pre_eff.yaml`, `nodes/tools.py` (`validate_pre_eff`), `analyze_l5_confusion.py` (measurement witness)
+
+## Judgement (2026-06-24)
+
+**Verdict: Authority GRANTED — spike-gated, two conditions folded into spec.**
+
+FR-585 is the correct architectural escalation. The predecessor chain is clean
+and each step is the right escalation from the previous failure:
+
+| FR | Lever | Outcome |
+|----|-------|---------|
+| FR-581/582 | Prompt wording (×2) | Stop rule: next step architectural |
+| FR-583 P1 | Evaluator Jaccard tolerance | KEEP (null result, no harm) |
+| FR-583 P2 | Vocabulary grounding | KILL (leakage + net-negative) |
+| FR-584 | Prompt reasoning-order (×3 levers) | KILL (precision flat at 0.30) |
+| **FR-585** | **Task decomposition (two-node decode)** | **Named stop-rule escalation** |
+
+The core hypothesis — "salience discrimination starves because it competes with
+11 other cognitive jobs in one LLM call" — is credible and directly supported by
+FR-584's evidence: the salience rule moved the `at` flood directionally but
+precision stayed flat because misses rose in lockstep (*"the flood and the miss
+are one gesture"*). Isolating salience into its own call is the minimal
+architectural test of whether the problem is attention competition.
+
+The spike-gated design (build and measure Node A before B/C/deterministic
+helpers) is the right discipline. Gate 1's tripwire (precision ≥ 0.40 vs 0.30
+baseline) is a 33% relative lift — large enough to distinguish from stochastic
+noise across the 5-genre corpus.
+
+### Verification against the data (checked, not assumed)
+
+- **FR-584 KILL confirmed.** Status: "Enforced (2026-06-24) — Verdict
+  REVISE/KILL prompt-only levers; all three reverted." The stop rule's named
+  escalation was "a true two-node decode or a larger model." FR-585 implements
+  the first option.
+- **Current graph structure verified.** `assign_pre_eff.yaml` is a single
+  LLM→validate→retry graph (lines 38–67), state keys `{glosses, agents}` in /
+  `{pre_eff_raw, pre_eff, validation}` internal. Runner (`run.py:252–257`)
+  passes only `{glosses, agents}` — no GT `initial_world` (leakage constraint
+  holds).
+- **`analyze_l5_confusion.py` exists** (122 lines, committed `2bc5ab69` per
+  FR-584 C5). Measurement witness is standing infrastructure.
+- **Precision baseline is stable.** 0.30 across FR-583 (no-vocab) and FR-584
+  (all levers). Not a single-point reference.
+- **GT scores movement departures (resolves AC#3's deferred conditional).** The
+  ground-truth fixtures contain **9 `at … value: false` fluents** (~10% of all
+  `at` predicates), so the movement-pair helper is in scope rather than a
+  drop-candidate. Checked 2026-06-24; the conditional in AC#3 now governs only
+  whether the helper nets a recall gain, not whether departures exist.
+
+### Conditions (folded into spec)
+
+**C1 — Gate 1 adapter must be dumb (folded into AC#1).** Node A outputs
+natural-language phrases. The throwaway adapter mapping these to typed predicates
+for evaluator scoring must be keyword/regex-based, NOT another LLM call. If the
+adapter is smart (an LLM typing call), Gate 1 tests decomposition + typing
+together and cannot distinguish whether precision gains come from better salience
+selection or better typing. The `at`-FP count depends on Node A *not selecting*
+non-salient facts — that signal passes through any adapter quality.
+
+**C2 — Retry architecture specified before Node B (folded into Bucket 3 #12).**
+The current graph retries the single `assign` node (max 3, loop-limit → END).
+With Node A → Node B → validate, the retry target is ambiguous. Must be settled
+before Node B is wired: retry B only (A cached) or restart from A. Determines
+graph YAML structure and whether loop-limit-death is resolved or inherited.
+
+**C3 — Gate 1 tripwire hardened + movement conditional resolved (post-judgement
+verification pass, 2026-06-24).** Two tightenings from an independent re-check:
+(a) AC#1 named `at`-FP as the adapter-robust signal but keyed the tripwire on the
+precision *ratio*, which a dumb adapter can destabilise by starving the
+true-positive numerator. The tripwire is now dual and keyed on the absolute
+`at`-FP count first (56 → < 30 with recall holding), ratio ≥ 0.40 as
+corroboration. (b) AC#3's deferred "does GT score departures?" was answered by
+inspection — 9 `at = false` fluents exist in the GT fixtures — so the movement
+helper is in scope, not a drop-candidate. Both fold tighter scope, not wider.
+
+### Validated as correct (carried forward)
+
+- **Spike-gated design.** Gate 1 → full pipeline only if passes → KILL if not.
+  Correct and capital-efficient.
+- **Stop rule.** "Do not iterate Node A wording more than once." Prevents
+  fourth-iteration ritual. "Escalate to larger model for L5 only." FR-578
+  anti-scaling lesson is validly spent once prompt-wording, prompt-architecture,
+  AND call-decomposition have all failed.
+- **Deterministic demotion guardrails.** Movement-pair only if GT scores
+  departures; naming-snap only if it beats "do nothing" with zero false-merges.
+- **No GT input** (FR-583 leakage KILL stands). Verified: `run_assign_pre_eff`
+  passes only `{glosses, agents}`.
+- **Evaluator frozen.** Clean A/B baseline.
+- **Effort 2–3 days (spike-gated).** 0.5 day Node A spike (may KILL early),
+  1.5–2 days full pipeline if Gate 1 passes.
+- **Out-of-scope exclusions** (no GT vocab, no evaluator changes, no belief
+  investment, no larger model as first lever). All correct.
+
+**Frozen scope:** Spike-gated two-node decode. Gate 1: Node A + dumb adapter,
+precision vs 0.30 baseline (target ≥ 0.40); KILL if flat. Post-Gate-1: Node B
+(structured output), deterministic helpers (only if measured beneficial), retry
+architecture specified, controlled comparison, J:N2 verdict. Effort 0.5–3 days
+depending on Gate 1.
