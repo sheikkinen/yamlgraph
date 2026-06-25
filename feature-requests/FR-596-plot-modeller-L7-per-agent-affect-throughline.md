@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature (architecture revision — subject-axis decomposition)
-**Status:** Enforced — Gate-1 KILL (per-cast map falsified; protagonist-throughline deferred to follow-up FR) (2026-06-25)
+**Status:** Enforced — Gate-1 KILL (per-cast map falsified; deeper root cause = `affect_recall` is the `world_recall` pathology one layer over — under-determined sparse skeleton; regenerability ruler indicated → FR-597) (2026-06-25)
 **Effort:** ~1 day (spike-gated; Gate 1 may KILL early)
 **Requested:** 2026-06-25
 **Predecessor:** FR-578 (L7 monolithic affect pass — Enforced/REVISE, affect_recall 0.09, model-invariant)
@@ -325,7 +325,7 @@ comprehension is represented*.
    risk). Accepted for Gate 1 — recall is the bar; precision is reported, not gated
    (FR-578 C2).
 
-## Gate-1 Outcome — KILL (per-cast map falsified; protagonist-throughline indicated)
+## Gate-1 Outcome — KILL (per-cast map falsified; `affect_recall` demotion indicated → FR-597)
 
 Ran `examples/plot_modeller/spike_affect.py` on `claude-haiku-4-5` over the 5 GT
 fixtures, mapping over the **GT agent roster** (correction #1). Log:
@@ -363,14 +363,69 @@ license reading the framing as confirmed. The dominant lever is **structural, no
 model-scale**: model scale stays unjustified (the Stop Rule holds — no clean
 attributed prose-missed KILL).
 
-**Indicated follow-up (new scope → back to Plan/Judge).** Re-decompose along the
-**protagonist throughline**: select the single subject/protagonist agent (the
-most-affect-bearing GT char, or the L4 `subject` axis) and run one
-`affect_throughline` + `encode_affect` pass for *that* character only — no full-cast
-map. This is a different decomposition axis than the granted GT-agents map, so it is
-**out of FR-596's frozen scope** and is deferred to a follow-up FR rather than spent
-as the one permitted in-scope wording iteration (which a structural mismatch would
-not heal anyway — `symptom_patch` avoided).
+**Manual inspection — numbers lie (the deeper root cause).** Beyond the cast-flood,
+hand-comparison of the detective output against GT revealed a second, independent
+failure the recall scalar conflates. Restricting to the protagonist (Marren) alone —
+i.e. *granting* the protagonist-throughline fix in advance — the prediction still
+misses on every sub-axis at once:
+
+| Beat | predicted (Marren) | GT (Marren) |
+|---|---|---|
+| F1 | — | open loss |
+| F2 | open loss, open hidden_blessing | — |
+| F4 | open **guilt → Pell** | open **betrayal → Hagen** |
+| F5 | close guilt → Pell | close loss, open hope |
+| F6 | close loss, close hidden_blessing | close betrayal → Hagen |
+| F7 | open hope, close hope | open hidden_blessing |
+| F8 | — | close hidden_blessing, close hope |
+
+The model's Marren throughline is coherent and beat-anchored — it narrates her
+**empathy toward the witness she protects (`guilt → Pell`)**. The GT encodes her
+**moral relation to the antagonist (`betrayal → Hagen`)**. *Both readings regenerate
+the same beats.* The sparse affect skeleton cannot distinguish them, so `affect_recall`
+scored a miss on what is narratively a valid second reading.
+
+**Cross-genre confirmation (`numbers lie` is structural, not detective-specific).**
+The GT affect skeleton is uniformly **mono-protagonist and radically sparse** — 5–8
+deltas spanning ~3–4 matched `open…close` arcs on one character, across all five
+genres (detective→Marren 8, historical→Naima 6, horror→Brynn 5, quest→Eira 6,
+scifi→Mara 8). An ~8-token emotional skeleton is *far* sparser than L5's world-state
+(dozens of `at`/`rel`/belief predicates) and encodes interior states with no unique
+grounding in prose.
+
+**Corrected root cause.** `affect_recall = 0.09` is the **`world_recall` pathology
+one layer over, and worse**: it measures token-agreement against a sparse,
+under-determined, mono-perspective skeleton — not whether the emotional story was
+captured. FR-595 demoted `world_recall` at L5 for exactly this reason (the GT
+world-state could not regenerate its own stories, scoring up to 1.00 underdetermined);
+the L7 affect skeleton is *more* underdetermined still. Chasing 0.09 → 0.50 on this
+ruler is chasing a number that lies. The cast-flood (precision) is real but is the
+*shallower* of the two failures; under-determination caps recall even after the
+protagonist fix.
+
+**Indicated follow-up — two FRs, sequenced (new scope → back to Plan/Judge).**
+The corrected root cause re-orders the work:
+
+1. **FR-597 — L7 affect-regenerability ruler (the affect port of FR-594, FIRST).**
+   Before any model effort is spent lifting the number, port the L5 regenerability
+   probe to L7: feed the GT's *own* affect skeleton back and measure how
+   underdetermined it is (predicted: ≥ L5's 0.70–1.00, given the greater sparsity).
+   If GT is underdetermined, `affect_recall` is demoted as the L7 gate exactly as
+   `world_recall` was at L5 — and FR-579's blocker is reframed: L7 is failing against
+   a ruler that cannot measure affect capture, not because the encoder is weak.
+
+2. **Protagonist-throughline, AGAINST the new ruler (provisional, SECOND).** Only
+   after (1) reframes the gate: re-decompose along the single subject/protagonist
+   agent (most-affect-bearing GT char, or the L4 `subject` axis) — one
+   `affect_throughline` + `encode_affect` pass for that character, no full-cast map.
+   This fixes the cast-flood (precision); the manual inspection above warns it will
+   **not** by itself fix recall while the under-determined skeleton remains the
+   target — hence it must follow, not precede, the ruler reframe.
+
+Both are different decomposition/measurement axes than FR-596's granted GT-agents
+map, so they are **out of FR-596's frozen scope** and deferred to follow-up FRs
+rather than spent as the one permitted in-scope wording iteration (which a structural
+mismatch would not heal anyway — `symptom_patch` avoided).
 
 **Kept deliverables (tested, in scope):** `combine_affects` + `affect_balance`
 (`nodes/tools.py`, 9 unit tests, REQ-YG-020), `prompts/affect_throughline.yaml`,
@@ -382,6 +437,10 @@ The frozen FR-578 evaluator gate was **not** modified.
 
 - FR-578 — the monolithic L7 baseline this FR decomposes (affect_recall 0.09).
 - FR-590 / FR-591 — the L5 per-agent precedent: spike → proven → promoted to graph.
+- FR-594 / FR-595 — the L5 regenerability ruler + `world_recall` demotion this
+  analysis ports to L7 (the corrected root cause above is their L7 analog).
+- FR-597 — the indicated L7 affect-regenerability ruler (affect port of FR-594),
+  to run *before* any protagonist-throughline encoder work.
 - FR-579 — the merge node blocked on L7 clearing its gate.
 - `docs/diary/diary-2026-06-24-the-bigger-model-that-knew-less.md` — the model-
   invariance probe that pointed L7 upstream of the model tier (toward framing).
