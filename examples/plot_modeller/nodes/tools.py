@@ -9,6 +9,7 @@ absent so a later read never sees a raw string where a list is expected (J1).
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -517,6 +518,87 @@ def load_glosses_with_kinds(ground_truth_path: str | Path) -> list[dict]:
             }
         )
     return out
+
+
+# ---------------------------------------------------------------------------
+# FR-593 L5 — story-level vocabulary: deterministic, additive canonicalization
+# ---------------------------------------------------------------------------
+
+
+def canonicalize_glosses(glosses: list[dict], vocab) -> list[dict]:
+    """Additively normalise gloss naming via the story-level alias map (FR-593).
+
+    For each gloss, substitute loose mentions with their canonical token and write
+    the result to a **new** ``canonical_gloss`` field, leaving the original ``gloss``
+    byte-identical. This containment (Judge correction #1) means no other
+    gloss-consuming layer (L4/L6/L7/L8) is perturbed by the L5 naming layer.
+
+    Substitution is **deterministic** (no LLM, no new variance — Judge correction #2):
+    case-insensitive, word-boundary aware, and longest-alias-first so a specific alias
+    (``the old lab``) wins over a substring alias (``lab``). ``vocab`` may be a
+    ``StoryVocab`` or a plain dict with an ``aliases`` mapping.
+    """
+    aliases = (
+        vocab.aliases if hasattr(vocab, "aliases") else (vocab or {}).get("aliases", {})
+    )
+    # longest-alias-first: a multi-word alias must win over a substring of it
+    ordered = sorted(
+        ((k, v) for k, v in (aliases or {}).items() if k),
+        key=lambda kv: len(kv[0]),
+        reverse=True,
+    )
+    patterns = [
+        (re.compile(rf"\b{re.escape(loose)}\b", re.IGNORECASE), canon)
+        for loose, canon in ordered
+    ]
+
+    out: list[dict] = []
+    for g in glosses:
+        text = str(g.get("gloss", ""))
+        for pattern, canon in patterns:
+            text = pattern.sub(canon, text)
+        out.append({**g, "canonical_gloss": text})
+    return out
+
+
+def validate_vocab(state: dict) -> dict:
+    """Parse + ``StoryVocab``-bind the extract_vocab node's YAML output (FR-593, J1).
+
+    On success writes ``vocab`` (validated dict) + ``vocab_validation``; on failure
+    writes **only** ``vocab_validation`` (ok=False), leaving ``vocab`` absent so
+    canonicalization degrades to a safe no-op rather than consuming a raw string
+    (the FR-592 wound — the binding is verified here, at the new consumption path).
+    """
+    from schema.vocab import StoryVocab
+
+    raw = state.get("vocab_raw", "")
+    try:
+        parsed = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"vocab_validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+    if not isinstance(parsed, dict):
+        return {"vocab_validation": {"ok": False, "flaws": ["expected a YAML mapping"]}}
+    try:
+        vocab = StoryVocab.model_validate(parsed)
+    except Exception as e:
+        return {
+            "vocab_validation": {"ok": False, "flaws": [f"invalid StoryVocab: {e}"]}
+        }
+    return {"vocab": vocab.model_dump(), "vocab_validation": {"ok": True, "flaws": []}}
+
+
+def canonicalize_glosses_node(state: dict) -> dict:
+    """Graph adapter: canonicalize ``glosses`` using ``vocab`` from state (FR-593).
+
+    Additive — returns the same glosses with a ``canonical_gloss`` field added. If
+    ``vocab`` is absent (extraction failed), this is a safe no-op
+    (``canonical_gloss`` == ``gloss``), so a vocab failure never blocks the run.
+    """
+    return {
+        "glosses": canonicalize_glosses(
+            state.get("glosses", []), state.get("vocab") or {}
+        )
+    }
 
 
 # ---------------------------------------------------------------------------

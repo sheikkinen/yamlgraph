@@ -312,7 +312,9 @@ def run_perspective(app, gt_path: Path, agents: list[str]) -> tuple[list | None,
     contract is PROVISIONAL (recall-preserving, precision-open — FR-591 J1).
     """
     glosses = load_glosses_with_kinds(gt_path)
-    result = app.invoke({"glosses": glosses, "agents": agents})
+    synopsis_path = SYNOPSIS_DIR / f"{gt_path.stem}.txt"
+    synopsis = load_synopsis(synopsis_path) if synopsis_path.exists() else ""
+    result = app.invoke({"glosses": glosses, "agents": agents, "synopsis": synopsis})
     l5 = result.get("l5")
     perspectives = result.get("perspectives") or []
     return (l5 if isinstance(l5, list) else None), perspectives

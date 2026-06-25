@@ -30,25 +30,47 @@ user: |
     emit at the beat where the bond FORMS or CHANGES.
   - faction: args [{{ state.agent }}, group]; value is a membership label — emit at
     the beat where they JOIN, LEAVE, or SWITCH a group.
-
   RULES:
   - The FIRST argument of every fluent is {{ state.agent }}.
-  - `pre_world` = fluents that must already be true for this beat to happen for this
-    character (often the prior location or a possession being used). `eff_world` =
-    what this beat makes newly true or false for this character.
+  - TRANSITIONS COME IN PAIRS. When {{ state.agent }} MOVES from one place to
+    another, emit BOTH halves in that beat's `eff_world`: the departure
+    `at[{{ state.agent }}, origin] value: false` AND the arrival
+    `at[{{ state.agent }}, destination] value: true`. When they GIVE AWAY, LOSE, or
+    USE UP a possession, emit `holds[{{ state.agent }}, object] value: false`; when
+    they GAIN one, `value: true`. A `value: false` half is as important as the
+    `value: true` half — NEVER emit only the arrival or only the gain. A move with
+    no matching departure, or a hand-off with no matching loss, is an error.
+  - `pre_world` = the specific prior fact THIS beat consumes: the location being left
+    FROM (the origin, not the destination), or the possession being used/given.
+    RESTATE that one precondition here even if you emitted it in an earlier beat — it
+    is the precondition this beat depends on, not a flood. Keep `pre_world` to the
+    1–2 facts the beat truly needs.
+  - NEVER emit `alive` as a standing fact. Emit `alive` ONLY at the exact beat where
+    {{ state.agent }} dies (value false) or is revived (value true). If this
+    character never dies in the account, `alive` must NOT appear anywhere in your
+    output.
+  - Do NOT restate UNRELATED standing facts — a possession or location this beat does
+    not act on. Only the consumed precondition above may repeat across beats.
+  - `eff_world` = what THIS beat newly makes true or false for {{ state.agent }},
+    including BOTH halves of any transition.
+  - Use names EXACTLY as they appear in the beats list (copy the full token — do not
+    shorten "Vantari Labs" to "lab", invent "home"/"apartment", or re-style names).
+    If the account does not name a location/object with a specific token from the
+    beats, do NOT emit a fluent for it.
   - Record ONLY what the account states or directly implies for {{ state.agent }}.
-    Do not restate unchanged standing facts at every beat.
-  - Use names EXACTLY as they appear in the beats list (copy the full token — do
-    not shorten "Vantari Labs" to "lab" or re-style names).
-  - If a beat involves this character at all, prefer emitting its pre/eff over
-    omitting it; keep each slice small (0–3 fluents).
 
   Output a YAML list, one item per beat this character participates in, and
   nothing else:
 
   - id: F1
-    pre_world: []
+    pre_world:
+      - pred: at
+        args: [{{ state.agent }}, Home]
+        value: true
     eff_world:
+      - pred: at
+        args: [{{ state.agent }}, Home]
+        value: false
       - pred: at
         args: [{{ state.agent }}, Warehouse]
         value: true
@@ -64,7 +86,7 @@ user: |
 
   Beat ids and glosses (for exact name tokens and beat numbering only):
   {% for g in state.glosses %}
-  - {{ g.id }} (chapter {{ g.chapter }}): {{ g.gloss }}
+  - {{ g.id }} (chapter {{ g.chapter }}): {{ g.canonical_gloss or g.gloss }}
   {% endfor %}
 
   {{ state.agent }}'s perspective account:

@@ -18,6 +18,10 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
+# Capture caller-provided overrides before .env clobbers them.
+_CALLER_PROVIDER="${PROVIDER:-}"
+_CALLER_MODEL="${ANTHROPIC_MODEL:-}"
+
 if [[ -f .env ]]; then
   set -a
   # shellcheck disable=SC1091
@@ -26,8 +30,8 @@ if [[ -f .env ]]; then
 fi
 
 PYTHON="${PYTHON:-.venv/bin/python}"
-export PROVIDER="${PROVIDER:-anthropic}"
-export ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-haiku-4-5}"
+export PROVIDER="${_CALLER_PROVIDER:-${PROVIDER:-anthropic}}"
+export ANTHROPIC_MODEL="${_CALLER_MODEL:-${ANTHROPIC_MODEL:-claude-haiku-4-5}}"
 
 GENRE_ARG=()
 if [[ $# -ge 1 ]]; then
@@ -35,7 +39,7 @@ if [[ $# -ge 1 ]]; then
 fi
 
 echo "▶ perspective conversion (provider=$PROVIDER model=$ANTHROPIC_MODEL)"
-"$PYTHON" examples/plot_modeller/run.py --mode perspective "${GENRE_ARG[@]}"
+"$PYTHON" examples/plot_modeller/run.py --mode perspective ${GENRE_ARG[@]+"${GENRE_ARG[@]}"}
 
 echo
 echo "▶ L5 confusion x-ray (post-operation, separate from conversion)"

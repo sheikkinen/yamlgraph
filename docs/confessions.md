@@ -707,6 +707,30 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
 - **Penance**: Same as CONF-308 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
 
+### CONF-311
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L25)
+- **Code**: E402
+- **Sin**: `import yaml` appears after `sys.path.insert`.
+- **Penance**: Same as CONF-308 — the import must follow the `sys.path.insert` that makes the `nodes`/repo packages discoverable for this standalone FR-591/592 vocab-encode spike harness.
+
+### CONF-312
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L26)
+- **Code**: E402
+- **Sin**: `from evaluate import _load_gt_pre_eff, score_l5` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-311 — reuses the example's evaluation helpers below the required `sys.path.insert`.
+
+### CONF-313
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L27)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _parse_beats, combine_perspectives, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-311 — grouped with the local `nodes` imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-314
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L33)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-311 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

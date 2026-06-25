@@ -30,7 +30,7 @@ user: |
   The beats of the story (for reference — narrate only the ones that touch
   {{ state.agent }}):
   {% for g in state.glosses %}
-  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.canonical_gloss or g.gloss }}
   {% endfor %}
 
   Write {{ state.agent }}'s account now — prose only.

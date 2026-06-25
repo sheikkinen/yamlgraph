@@ -20,6 +20,18 @@ state:
   agents:
     type: list
     description: "Input: agent names — one perspective subgraph runs per agent"
+  synopsis:
+    type: str
+    description: "Input: prose synopsis — FR-593 vocab source (gloss-absent forms)"
+  vocab_raw:
+    type: str
+    description: "Raw extract_vocab YAML text (parsed by validate_vocab)"
+  vocab:
+    type: dict
+    description: "FR-593 StoryVocab {locations, objects, aliases} (validated)"
+  vocab_validation:
+    type: dict
+    description: "validate_vocab result: {ok: bool, flaws: list[str]}"
   perspectives:
     type: list
     description: "Collected per-agent {agent, viewpoint, beats} records (map output)"
@@ -28,12 +40,35 @@ state:
     description: "Output: unified per-beat pre/eff L5 (combine_perspectives output)"
 
 tools:
+  validate_vocab:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: validate_vocab
+  canonicalize_glosses_node:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: canonicalize_glosses_node
   combine_perspectives:
     type: python
     module: examples.plot_modeller.nodes.tools
     function: combine_perspectives
 
 nodes:
+  extract_vocab:
+    type: llm
+    prompt: extract_vocab           # synopsis + glosses -> StoryVocab YAML (FR-593)
+    state_key: vocab_raw
+
+  validate_vocab:
+    type: python
+    tool: validate_vocab            # parse + StoryVocab-bind -> {vocab, vocab_validation}
+    requires: [vocab_raw]
+
+  canonicalize:
+    type: python
+    tool: canonicalize_glosses_node # additive canonical_gloss field (gloss intact)
+    requires: [glosses]
+
   per_agent:
     type: map
     over: "{state.agents}"
@@ -58,6 +93,12 @@ nodes:
 
 edges:
   - from: START
+    to: extract_vocab
+  - from: extract_vocab
+    to: validate_vocab
+  - from: validate_vocab
+    to: canonicalize
+  - from: canonicalize
     to: per_agent
   - from: per_agent
     to: combine
