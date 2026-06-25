@@ -237,6 +237,49 @@ events whose meaning the regen reversed.
    This is documented in `run.py::_render_world_facts`, kept (not "fixed") for
    parity with the original probe.
 
+## Power Analysis — loop closed (2026-06-25, claude-haiku-4-5)
+
+Correction #4 demanded a minimum-detectable-effect and required *n* before this
+ruler may gate. The corpus runner was executed **5× over all genres**
+(`logs/fr594-power/`, aggregator `tmp/fr594_power.py`):
+
+| Quantity | ours | gt | note |
+|----------|-----:|---:|------|
+| corpus-mean simulability — runs | 0.296 / 0.238 / 0.248 / 0.252 / 0.441 | 0.640 / 0.569 / 0.638 / 0.578 / 0.735 | |
+| corpus-mean simulability — mean ± sd | **0.295 ± 0.085** | **0.632 ± 0.066** | absolute value is noisy (CV 29%) |
+| corpus-mean fidelity — mean ± sd | 0.335 ± 0.023 | 0.358 ± 0.057 | **ours ≈ gt → fidelity does NOT discriminate** |
+| total inverted — mean ± sd | 11.6 ± 1.67 | 6.2 ± 0.84 | ours drifts *more* (honest tension) |
+
+**The signal is the paired GT-anchored discrimination, and it is robust:**
+
+```
+gap (gt_sim − ours_sim) per run:  0.344  0.331  0.390  0.326  0.294
+mean gap = 0.337   sd = 0.035   se = 0.0156   t(4) = 21.6   (p ≪ 0.01)
+```
+
+Every run, without exception, scores ours more regenerable than the GT skeleton.
+This is the well-powered gate: **ours simulability must be robustly below gt
+simulability** (our L5 licenses more of its own narration than the lossy GT
+predicate channel does). It needs no large *n* — the paired margin (0.337) is
+~9× its own sd.
+
+**What is NOT gateable (the underpowered axes):**
+
+- **Absolute single-run simulability thresholds.** Corpus-mean sd 0.085 ⇒ an
+  absolute-threshold gate needs **n ≈ 6 runs for MDE 0.10, n ≈ 23 for MDE 0.05**.
+  A bare-threshold gate at n=1 would flip between runs (ours ranged 0.238–0.441).
+- **Per-genre verdicts.** Worst-cell sd = 0.22 (scifi swung 0.46–1.00). Per-genre
+  gating is hopeless at any feasible *n* — only the corpus mean is stable.
+- **Fidelity as a discriminator.** ours 0.335 ≈ gt 0.358 (overlapping at sd
+  0.023/0.057). Fidelity is a within-encoding quality probe, not an ours-vs-gt
+  signal — it stays **advisory**.
+
+**Loop-closing conclusion:** the ruler may gate, but only as the *paired
+GT-anchored simulability discrimination on the corpus mean*. `world_recall`
+(which FR-594 falsified as scoring a lossy skeleton) is demoted to informational
+in the L5 eval. The metric fix is carried in **FR-595** (this FR built and
+powered the ruler; FR-595 swings it).
+
 ## Alternatives Considered
 
 - **Keep it a spike.** Rejected: a measurement that gates L5 must be declarative,
@@ -251,10 +294,14 @@ events whose meaning the regen reversed.
 
 - Should `world_recall` be *demoted to diagnostic* in the same change, or left in
   place until `l5_measure` has corpus history? (Lean: keep both one cycle, then
-  demote.)
+  demote.) **RESOLVED:** demote now — carried in FR-595, evidenced by the power
+  analysis above (the GT-anchored discrimination is robust at n=5, t=21.6).
 - Fidelity judge variance: single-run temp 0.7 regen is noisy. Declare a
   minimum-detectable-effect + required n before this becomes a *gate* (carry the
-  `gate_underpowered_for_its_margin` lesson from FR-593).
+  `gate_underpowered_for_its_margin` lesson from FR-593). **RESOLVED** by the
+  Power Analysis section: gate on the paired GT-anchored simulability
+  discrimination (corpus mean, robust at n=5); absolute thresholds need n≈6
+  (MDE 0.10); per-genre and fidelity are not gateable.
 - Does the rendering belong in `nodes/tools.py` (plot_modeller-local) or is it a
   reusable primitive worth a shared location? (Lean: local until a second
   consumer appears.)
