@@ -520,6 +520,173 @@ def load_glosses_with_kinds(ground_truth_path: str | Path) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# FR-587 L5 — snapshot-then-diff: derive per-beat pre/eff from world snapshots
+# ---------------------------------------------------------------------------
+
+
+def _fluent_key(fluent: dict) -> tuple:
+    """Identity of a fluent: predicate + normalized arg tuple (value excluded)."""
+    args = tuple(_norm_name(a) for a in (fluent.get("args") or []))
+    return (fluent.get("pred"), args)
+
+
+def _clean_fluent(fluent: dict) -> dict:
+    """Strip a typed fluent down to the three scored fields."""
+    return {
+        "pred": fluent.get("pred"),
+        "args": list(fluent.get("args") or []),
+        "value": fluent.get("value"),
+    }
+
+
+def _entity_of(fluent: dict) -> str | None:
+    """First argument (the moving/owning entity) of a fluent, normalized."""
+    args = fluent.get("args") or []
+    return _norm_name(args[0]) if args else None
+
+
+def _collapse_at_runs(raw: list[dict]) -> None:
+    """Collapse intra-chapter `at`-arrival runs to the run's terminus (in place).
+
+    When the same entity arrives somewhere on two consecutive same-chapter beats,
+    the earlier arrival is an intermediate travel waypoint the ground truth does
+    not score — drop it, keeping only the later (terminus) arrival.
+    """
+    for i in range(1, len(raw)):
+        if raw[i]["chapter"] != raw[i - 1]["chapter"]:
+            continue
+        cur_arrivals = {
+            _entity_of(f)
+            for f in raw[i]["eff"]
+            if f.get("pred") == "at" and f.get("value") is True
+        }
+        if not cur_arrivals:
+            continue
+        prev = raw[i - 1]
+        prev["eff"] = [
+            f
+            for f in prev["eff"]
+            if not (
+                f.get("pred") == "at"
+                and f.get("value") is True
+                and _entity_of(f) in cur_arrivals
+            )
+        ]
+
+
+def _suppress_late_departures(raw: list[dict]) -> None:
+    """Keep only each entity's FIRST `at`-departure; drop later ones (in place).
+
+    Ground truth scores the departure (``at(origin)=false``) only for an entity's
+    first relocation from its established origin; every later relocation is
+    arrival-only. Later departures — and the precondition they reference — are the
+    journey-waypoint flood, so they are removed.
+    """
+    seen: set[str | None] = set()
+    for r in raw:
+        kept: list[dict] = []
+        dropped_keys: set[tuple] = set()
+        for f in r["eff"]:
+            if f.get("pred") == "at" and f.get("value") is False:
+                entity = _entity_of(f)
+                if entity in seen:
+                    dropped_keys.add(_fluent_key(f))
+                    continue
+                seen.add(entity)
+            kept.append(f)
+        r["eff"] = kept
+        if dropped_keys:
+            r["pre"] = [p for p in r["pre"] if _fluent_key(p) not in dropped_keys]
+
+
+def diff_snapshots(snapshots: list[dict]) -> list[dict]:
+    """Derive per-beat pre/eff world slices by diffing ordered state snapshots.
+
+    FR-587 Stage 2 (deterministic, no LLM). Each input snapshot is
+    ``{id, chapter, world: [typed fluent, …]}`` — the COMPLETE world state at a
+    moment. The first snapshot (``F0``) is the opening scene used purely as the
+    baseline and is not emitted; the rest (``F1…Fn``) are diffed against their
+    predecessor:
+
+    - A fluent that **appears** or **changes value** is an effect (new value); the
+      prior fluent it acts on becomes a precondition.
+    - A tracked boolean fact that **disappears** is an effect at value ``false``.
+    - ``at`` is single-valued per character, so every move yields a departure
+      (``at(old)=false``) + arrival (``at(new)=true``) pair. Ground truth scores
+      only *salient* relocation, so two deterministic collapses run afterwards:
+      intra-chapter arrival-run collapse, then first-departure-only. These are the
+      precision rule the model could not apply; both are validated against the GT
+      ``at … value: false`` departures (FR-587 correction #2).
+
+    Belief slices stay empty (FR-585: belief is not the L5 wound).
+    """
+    raw: list[dict] = []
+    prev: dict[tuple, dict] = {}
+    seeded = False
+    for snap in snapshots:
+        if not isinstance(snap, dict):
+            continue
+        cur: dict[tuple, dict] = {}
+        for f in snap.get("world") or []:
+            if isinstance(f, dict) and f.get("pred"):
+                cur[_fluent_key(f)] = f
+        if not seeded:
+            # First snapshot (F0) anchors the baseline; emit nothing for it.
+            prev = cur
+            seeded = True
+            continue
+        eff: list[dict] = []
+        pre: list[dict] = []
+        for key, f in cur.items():
+            pf = prev.get(key)
+            if pf is None:
+                eff.append(_clean_fluent(f))
+            elif pf.get("value") != f.get("value"):
+                eff.append(_clean_fluent(f))
+                pre.append(_clean_fluent(pf))
+        for key, pf in prev.items():
+            if key in cur:
+                continue
+            if pf.get("pred") == "at":
+                eff.append(
+                    {"pred": "at", "args": list(pf.get("args") or []), "value": False}
+                )
+                pre.append(_clean_fluent(pf))
+            elif pf.get("value") is True:
+                eff.append(
+                    {
+                        "pred": pf.get("pred"),
+                        "args": list(pf.get("args") or []),
+                        "value": False,
+                    }
+                )
+                pre.append(_clean_fluent(pf))
+        raw.append(
+            {
+                "id": snap.get("id"),
+                "chapter": snap.get("chapter"),
+                "eff": eff,
+                "pre": pre,
+            }
+        )
+        prev = cur
+
+    _collapse_at_runs(raw)
+    _suppress_late_departures(raw)
+
+    return [
+        {
+            "id": r["id"],
+            "pre_world": r["pre"],
+            "eff_world": r["eff"],
+            "pre_belief": [],
+            "eff_belief": [],
+        }
+        for r in raw
+    ]
+
+
+# ---------------------------------------------------------------------------
 # FR-577 L6 — assign causality (enables / motivation / threatens) to beats
 # ---------------------------------------------------------------------------
 

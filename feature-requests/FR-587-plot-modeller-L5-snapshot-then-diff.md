@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature (architecture revision)
-**Status:** Proposed
+**Status:** Judged — Authority GRANTED (2026-06-25)
 **Effort:** 1–2 days (spike-gated; the snapshot+diff spike is ~0.5 day and may KILL early)
 **Requested:** 2026-06-24
 **Predecessor:** FR-585 (L5 select→type split KILLed; deconfounded). See its Implementation section.
@@ -43,6 +43,79 @@ L5 precision rises toward ~0.5 — unblocking FR-579 — by asking the model onl
 *state* (which it is good at) and delegating *change* and *salience* to
 deterministic code (which never floods), so the journey-waypoint over-tracking that
 caps precision is removed at its source rather than instructed against.
+
+## Judgement (2026-06-25)
+
+**Verdict: Authority GRANTED.** The FR is clear, minimal, and internally
+consistent, and it executes the *exact* next lever FR-585's deconfounded KILL
+named — cut the comprehend→represent seam (snapshot-not-delta), not reach for a
+bigger model first. This is not invented here: FR-585's recorded status, its
+Implementation section, and the repo memory all name snapshot+code-diff as the
+follow-up's first lever and the bigger-model escalation as the fallback only after
+this seam is tested. The discipline is sound throughout — spike-gated with a hard
+tripwire, an explicit KILL path into the FR-578 escalation, clean A/B against the
+frozen FR-585 Pass-2 baseline, the one-iteration rule (FR-584 fourth-iteration
+lesson), and the dumb-adapter / no-GT-leakage constraints carried forward intact.
+Moving *salience* and *change* into deterministic code while asking the LLM only to
+**describe current state** is the correct structural fix for a missing-discrimination
+defect (a faculty wording cannot install), and the `diff_snapshots` helper is
+pure-function and unit-tested.
+
+**Red Hat — is the pain real?** Yes, and rigorously isolated: the wound is a single
+mechanism (`at` over-tracking, 86 FPs = 88% of all FPs, journey-waypoint flooding),
+verified by reading raw output, not just aggregates. The snapshot bundles one
+judgment where the delta prompt bundled three. Building a ~0.5-day spike to test it
+before paying for scale is the cheaper, more diagnostic move.
+
+**Claims verified against the codebase.** FR-585 status = *Gate 1 FAILED
+(deconfounded), select→type KILLed, snapshot-not-delta is the follow-up's first
+lever*; precision baseline 0.30 / closed-vocab 0.32 stable; `_type_triple` dumb
+adapter (`spike_salience_gate.py`), `evaluate.main_l5`, `analyze_l5_confusion.py`,
+and `assign_pre_eff_salience.yaml` all exist as referenced. `diff_snapshots` is
+correctly new.
+
+**Corrections required before enforce (clarifications, do not widen scope):**
+
+1. **Resolve the Gate-1 tripwire's confound (primary correction).** The gate ANDs
+   three conditions — `at`-FP 86→≤30, recall ≥ 0.50, precision ≥ 0.40 — but the
+   spike types snapshots with the *dumb keyword adapter*, which FR-585's C1 showed
+   **caps the absolute precision number** for adapter reasons unrelated to the seam.
+   Pinning an absolute precision ≥ 0.40 gate on a dumb-adapter run risks a
+   **false-KILL on an adapter artifact** — exactly the instrument-confounds-the-metric
+   trap FR-585 was burned by. Make the decision rule explicit: **`at`-FP falling
+   materially below 86 with recall holding (≥ 0.50, no catastrophic 0-beat run) is
+   the GO/KILL decider** (the FR already calls this the "adapter-robust signal");
+   absolute precision ≥ 0.40 is **corroborating, not gating**, on the dumb adapter.
+   If `at`-FP drops but precision stays flat *because of the adapter*, that is a
+   GO into the typed-node stage, not a KILL.
+
+2. **Validate the waypoint-collapse on raw GT before reading the aggregate.** The
+   collapse rule (intra-chapter `at`-run → net displacement) *is* the precision
+   mechanism, so it must not be hill-climbed against the score. Per FR-585 lesson #1
+   (read the raw output before declaring a measurement verdict), confirm the rule
+   reproduces the 9 verified `at … value: false` departures by **inspecting the
+   fixtures directly first**; if GT scores any intermediate leg as salient, narrow
+   or drop the collapse rather than tuning it to the metric. The AC already states
+   the guardrail — this fixes the *order of operations* so the rule is not
+   self-validated through the number it produces.
+
+3. **Pin the REQ-YG ID for the `diff_snapshots` tests (CI-blocking).** ADR-001 +
+   `changelog-req-gate` require the unit tests to carry a valid `@pytest.mark.req`
+   and the `feat` changelog fragment's `req:` to match. Reuse an existing
+   plot_modeller / node-execution REQ rather than minting a new CAP for an example
+   spike; name it before enforce so the gate does not block the PR. Diary reflection
+   is already in the ACs (satisfies `diary-gate`).
+
+**Minor note (not a correction):** `Blocks: FR-579` is a forward reference — FR-579
+(merge/pipeline) is not yet drafted. Keep it aspirational; do not treat "unblock
+FR-579" as a hard dependency of this FR's GO.
+
+**Frozen scope:** Stage 1 (Node A snapshot prompt) + Stage 2 (`diff_snapshots`
+deterministic helper) built and proven together as the spike; the wiring of
+`graphs/assign_pre_eff.yaml` + `run.py` follows only on GO. Gate 1 decides the whole
+FR. One snapshot-wording iteration only. No GT leakage, no evaluator change, no
+belief-layer investment, no LLM in the diff, no larger model before the seam is
+tested. The corrections above are clarifications within this scope, not additions.
 
 ## Problem
 

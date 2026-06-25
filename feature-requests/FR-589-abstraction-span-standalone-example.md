@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (example / research validation)
-**Status:** Enforced — Gate 1 PASSED (GO, 2026-06-24)
+**Status:** Judged — Authority GRANTED (2026-06-24)
 **Effort:** ~1 day (spike-gated; the separation study may KILL the metric)
 **Requested:** 2026-06-24
 **Supersedes:** FR-588 (rejected — fought the framework with a standalone Python spike)
@@ -87,40 +87,6 @@ separates is justified; shipping the score unvalidated would not be.
    `yamlgraph_gen` relies on the tool's returned dict merging into state. Confirm
    which mechanism the example uses and keep `load_corpus`/`separation_verdict`
    return shapes consistent with it — do not invent a new node contract.
-
-### Pre-enforce verification (2026-06-24) — all three corrections resolved against code
-
-1. **REQ-YG IDs pinned (existing, no new CAP).** `separation_verdict` is a
-   `type: python` tool node → **REQ-YG-020** (CAP-05 "Python tool integration and
-   execution", module `tools/python_tool`); the example also exercises the map node →
-   **REQ-YG-040** (CAP-11 "Map node compilation"). The unit test carries
-   `@pytest.mark.req("REQ-YG-020", "REQ-YG-040")`; the `feat` changelog fragment's
-   `req:` references **REQ-YG-020**.
-
-2. **Nested map-item access `{state.item.text}` confirmed — it resolves; no
-   restructure needed.** `map_compiler.py` fans out with
-   `Send(sub_node, {**state, item_var: item, "_map_index": i})` (line ~364) — the
-   whole item dict lands at `state.item`. The llm node's variable templates flow
-   `resolve_variables → resolve_state_variable → resolve_template →
-   resolve_state_path` (`utils/expressions.py` line 21), which splits the dotted path
-   and traverses dicts via `value.get(part)`. So `{state.item.text}` →
-   `state["item"]["text"]`. The graph as drawn is correct; `load_corpus` keeps the
-   `[{name, text, label}]` shape.
-
-3. **`type: python` node contract pinned — dict-return merges; `state_key` is
-   ignored for dict returns.** `tools/python_tool.py` (lines 257–267): if the tool
-   returns a **dict** it merges into state directly (the node's `state_key` is
-   ignored); a **non-dict** is wrapped under `state_key`. Consequence enforced in the
-   build: `load_corpus` returns `{"corpus": [...]}` and `separation_verdict` returns
-   `{"verdict": {...}}` — both dict-returns that merge to the intended keys. The
-   `state_key:` lines on the python nodes are documentary; the return-dict key is what
-   binds state. The map sub-node's collected `scores` carry `_map_index`, so the
-   verdict associates each score with its corpus label by index order.
-
-**Test placement note:** the `separation_verdict` unit test lives at
-`tests/unit/test_abstraction_span_separation.py` (not the example-local `tests/`
-dir) so ADR-001 `req_coverage` (scope `tests/unit` + `tests/integration`) counts it
-and the `tests/conftest.py` req-marker enforcement applies.
 
 **Frozen scope:** the standalone example exactly as drawn (`graph.yaml` + one inline-
 schema scorer prompt + `load_corpus` + `separation_verdict` + manifest-by-path + the
@@ -282,42 +248,6 @@ iteration only.
 - **Pydantic `output_model` in Python instead of inline `schema:`** — rejected:
   inline schema keeps the contract in YAML where the framework wants it (CLAUDE.md
   Option A), so the example has zero Python schema code.
-
-## Enforcement result (2026-06-24) — Gate 1 PASSED (GO)
-
-Built exactly as drawn (`examples/abstraction_span/`): `graph.yaml` (load → map →
-verdict), `prompts/abstraction_span.yaml` (inline schema), `nodes/tools.py`
-(`load_corpus` + `separation_verdict`, both dict-returns; no `execute_prompt`
-import), `corpus/manifest.yaml` (live plot_modeller prompts by path), README, and
-`tests/unit/test_abstraction_span_separation.py` (7 tests, PASS+KILL paths,
-`@pytest.mark.req("REQ-YG-020", "REQ-YG-040")`).
-
-**One build correction beyond the three pre-enforce ones:** the map sub-node needs
-an explicit `state_key` on its inner node. Without it the llm node stored its
-output under the auto-generated sub-node name (`_map_score_sub`) while the map
-extractor looked for the default `result`, so the whole wrapper dict leaked into
-`scores` and `separation_verdict` raised `Score missing level_count`. Adding
-`state_key: span` to the inner node aligned both sides. (Recorded in repo memory.)
-
-**Gate 1 (real `claude-haiku-4-5`, one iteration, no retuning) — GO:**
-
-```
-span  label      prompt
-   8  monolith   assign_pre_eff      ← measured-failure anchor (FR-585), top
-   7  monolith   assign_affects
-   5  monolith   assign_causality
-   5  monolith   extract_agents
-   4  boundary   extract_goals       ← in the gap
-   4  clean      extract_glosses
-   3  clean      classify_kinds
-min(monolith)=5  max(clean)=4  gap=1  goals_between=True  anchor_in_band=True → GO
-```
-
-Every monolith clears both clean prompts (gap ≥ 1); the anchor ranks highest; the
-boundary lands in the gap. The metric separates by *kind of work*, not size. The
-LLM reproduces the hand tagging on the first iteration → the metric is validated as
-a standalone, on-demand tool (still **not** wired into the linter; the
-`linter-llm-free` contract stands). Artifact: `examples/abstraction_span/gate1-result.md`.
 
 ## Related
 

@@ -1,0 +1,98 @@
+system: >
+  You read story beats in order and, after each one, describe the complete
+  physical world as it now stands. You only describe the current scene — you
+  never decide what changed. Only five kinds of thing count as a world fact;
+  everything else is story action and is ignored. Output YAML only — no prose,
+  no code fences.
+
+user: |
+  A WORLD FACT is one of exactly these five things — nothing else counts:
+
+    alive    someone is alive (or no longer alive)
+    at       someone is located in a place
+    holds    someone physically has an object
+    rel      one person's standing toward another (ally, hostile, owes, loyal…)
+    faction  someone belongs to a named group
+
+  Everything else is STORY ACTION, not a world fact — do NOT report it:
+  announcing, deciding, planning, realizing, learning a secret, testing,
+  reciting, threatening, pursuing, presenting, acknowledging. These move the
+  plot but are not tracked state.
+
+  Your job is ONE thing only — describe the current scene. After each beat, list
+  EVERY world fact that is true RIGHT NOW: where each named character currently
+  is, what each one currently holds, who is alive, every standing allegiance,
+  and every standing relationship. This is a SNAPSHOT of the present, not a
+  report of changes.
+
+  CARRY FACTS FORWARD. A fact stays true until a later beat plainly ends it.
+  If a character was alive and nothing kills them, they are still alive — repeat
+  it. If they picked up an object three beats ago and never dropped it, they
+  still hold it — repeat it. Each beat's snapshot must be COMPLETE on its own:
+  do not omit a fact just because it was already true in an earlier beat.
+
+  LOCATION IS SINGULAR AND PERSISTENT. Each character is `at` exactly one place.
+  They stay there until a beat moves them somewhere new. When a beat moves a
+  character, the new snapshot lists ONLY their new place — drop the old one. Do
+  not list a character at two places. Do not invent a new place for a beat where
+  the character has not actually moved (talking, deciding, and planning do not
+  move anyone).
+
+  Write each fact as one line — subject | relation | object:
+
+    Aldo | at | the harbor
+    Aldo | holds | the ledger
+    Mara | hostile to | Aldo
+    Pell | member of | the Ferrymen
+    Pell | alive |                    (one place — no object)
+    Aldo | no longer alive |          (say "no longer" or "not" to negate)
+
+  Use names exactly as the beats spell them. The relation word must map to one
+  of the five fact-kinds above (a plain synonym is fine: "in"/"reaches" → at,
+  "carries"/"has" → holds, "loyal to"/"hostile to" → rel, "joins" → faction).
+
+  STRICT LINE FORMAT — every fact is EXACTLY one line, nothing else:
+    - The relation is a plain English phrase ("hostile to", "loyal to", "ally
+      of", "owes"), NEVER the bare kind-name `rel`/`at`/`holds`/`faction`.
+    - Never split a fact across two lines. Never add an indented `key: value`
+      under a fact. Never put a colon (`:`) inside a fact line. One fact = one
+      `- subject | relation | object` line and nothing more.
+    - Use exactly the beat ids listed below (plus the leading `F0`). Do not
+      invent new ids or sub-beats.
+
+  START WITH THE OPENING SCENE. The FIRST item is always `id: F0` — the world as
+  it stands BEFORE the first beat happens (everyone alive, at wherever the story
+  opens them, holding and allied as the opening implies). Then one item per beat,
+  in order. Code compares each snapshot to the one before it to find what
+  changed, so F0 anchors the very first beat's change.
+
+  Output one YAML item per snapshot — the `world` list is the COMPLETE state at
+  that moment, never a delta:
+
+  - id: F0
+    world:
+      - Aldo | at | the vault
+      - Aldo | alive |
+      - Mara | alive |
+  - id: F1
+    world:
+      - Aldo | at | the vault
+      - Aldo | alive |
+      - Mara | alive |
+  - id: F2
+    world:
+      - Aldo | at | the harbor
+      - Aldo | holds | the ledger
+      - Aldo | alive |
+      - Mara | alive |
+      - Mara | hostile to | Aldo
+
+  Characters in this story:
+  {% for a in state.agents %}
+  - {{ a }}
+  {% endfor %}
+
+  The beats, in order:
+  {% for g in state.glosses %}
+  - id: {{ g.id }} (ch {{ g.chapter }}, kind {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}

@@ -689,6 +689,24 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
 - **Penance**: Same as CONF-306 — grouped with the `nodes` import below the `sys.path.insert` required by the standalone example runner pattern.
 
+### CONF-308
+- **File**: [examples/plot_modeller/spike_snapshot_diff.py](../examples/plot_modeller/spike_snapshot_diff.py#L44)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, diff_snapshots, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-306 — the import must follow the `sys.path.insert` that makes the `nodes` package discoverable for this standalone FR-587 snapshot-diff spike harness.
+
+### CONF-309
+- **File**: [examples/plot_modeller/spike_snapshot_diff.py](../examples/plot_modeller/spike_snapshot_diff.py#L49)
+- **Code**: E402
+- **Sin**: `from spike_salience_gate import _load_gt_agents, _type_triple` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-308 — reuses the sibling FR-585 spike's GT loader and triple typer below the required `sys.path.insert`.
+
+### CONF-310
+- **File**: [examples/plot_modeller/spike_snapshot_diff.py](../examples/plot_modeller/spike_snapshot_diff.py#L51)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-308 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603
