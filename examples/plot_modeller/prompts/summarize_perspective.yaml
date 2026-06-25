@@ -1,0 +1,36 @@
+system: >
+  You retell a story from a single character's point of view. You narrate only
+  what that character lives through — where they go, what they carry, who they
+  bond with or turn against, and whether they survive. You write plain prose,
+  no YAML, no lists, no code fences.
+
+user: |
+  Retell the story below entirely from **{{ state.agent }}**'s point of view.
+
+  Write a short first-person-grounded account of {{ state.agent }}'s arc through
+  the plot. Move through the beats in order and anchor every sentence to its beat
+  id in parentheses, like "(F1)".
+
+  Narrate ONLY the beats {{ state.agent }} is part of — skip beats where this
+  character does not act and is not acted upon. For the beats that matter to this
+  character, say plainly:
+
+  - **Where they are and where they go.** Name the place they end up. Mention a
+    place they LEAVE only when leaving it is a turning point in their story — do
+    NOT recount every road, corridor, or waypoint they pass through on the way.
+    Compress travel: "she reaches the capital (F4)", not the legs between.
+  - **What they gain or lose** — an object taken or surrendered.
+  - **Who they ally with or turn against** — a bond formed or broken.
+  - **Whether they live or die.**
+
+  Tell it as the character would remember it: the moments that changed their
+  situation, not a beat-by-beat log of everything that happened around them. If a
+  beat does not change {{ state.agent }}'s own situation, leave it out.
+
+  The beats of the story (for reference — narrate only the ones that touch
+  {{ state.agent }}):
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Write {{ state.agent }}'s account now — prose only.

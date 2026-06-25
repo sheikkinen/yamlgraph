@@ -8,6 +8,7 @@ Mode 4 (FR-575): extract glosses (beat decomposition) from synopsis.
 Mode 5 (FR-576): assign world/belief pre/eff to classified beats.
 Mode 6 (FR-577): assign causality (enables/motivation/threatens) to beats.
 Mode 7 (FR-578): assign affects (eff_affect: list[AffectDelta]) to beats.
+Mode 8 (FR-591): per-character L5 — viewpoint prose + typed encoding -> combined L5.
 
 Usage:
     PROVIDER=anthropic python examples/plot_modeller/run.py
@@ -17,6 +18,7 @@ Usage:
     PROVIDER=anthropic python examples/plot_modeller/run.py --mode assign-pre-eff
     PROVIDER=anthropic python examples/plot_modeller/run.py --mode assign-causality
     PROVIDER=anthropic python examples/plot_modeller/run.py --mode assign-affects
+    PROVIDER=anthropic python examples/plot_modeller/run.py --mode perspective
 """
 
 from __future__ import annotations
@@ -46,6 +48,7 @@ GRAPH_PATHS = {
     "assign-pre-eff": EXAMPLE_DIR / "graphs" / "assign_pre_eff.yaml",
     "assign-causality": EXAMPLE_DIR / "graphs" / "assign_causality.yaml",
     "assign-affects": EXAMPLE_DIR / "graphs" / "assign_affects.yaml",
+    "perspective": EXAMPLE_DIR / "graphs" / "perspective_l5.yaml",
 }
 GT_DIR = EXAMPLE_DIR / "fixtures" / "ground-truth"
 SYNOPSIS_DIR = EXAMPLE_DIR / "fixtures" / "synopses"
@@ -293,6 +296,82 @@ def _main_assign_pre_eff(args, provider: str) -> int:
     return evaluate_l5(["--provider", provider, "--model", args.model])
 
 
+def _safe_name(name: object) -> str:
+    """Filesystem-safe stem for a character's viewpoint file."""
+    cleaned = "".join(
+        c if c.isalnum() or c in "-_" else "_" for c in str(name or "")
+    ).strip("_")
+    return cleaned or "agent"
+
+
+def run_perspective(app, gt_path: Path, agents: list[str]) -> tuple[list | None, list]:
+    """Run Mode-8 L5 multi-perspective conversion; return (l5, perspectives).
+
+    Fans out one inner subgraph per agent (viewpoint prose -> typed pre/eff),
+    then combines the per-agent records into the unified per-beat L5. The encode
+    contract is PROVISIONAL (recall-preserving, precision-open — FR-591 J1).
+    """
+    glosses = load_glosses_with_kinds(gt_path)
+    result = app.invoke({"glosses": glosses, "agents": agents})
+    l5 = result.get("l5")
+    perspectives = result.get("perspectives") or []
+    return (l5 if isinstance(l5, list) else None), perspectives
+
+
+def _main_perspective(args, provider: str) -> int:
+    """Mode 8: per-character L5 — viewpoint prose + typed encoding -> combined L5.
+
+    Writes the combined L5 to results/l5/<genre>.yaml (scored by the SAME
+    evaluate.main_l5 as assign-pre-eff, so the two L5 producers are comparable)
+    and each agent's POV prose to results/perspectives/<genre>/<agent>.md.
+    """
+    l5_dir = RESULTS_DIR / "l5"
+    persp_dir = RESULTS_DIR / "perspectives"
+    l5_dir.mkdir(parents=True, exist_ok=True)
+    persp_dir.mkdir(parents=True, exist_ok=True)
+
+    gt_paths = sorted(GT_DIR.glob("*.yaml"))
+    if args.genre:
+        gt_paths = [p for p in gt_paths if p.stem == args.genre]
+        if not gt_paths:
+            print(f"No ground-truth file matches '{args.genre}'")
+            return 1
+
+    app = _compile("perspective")
+    for gt_path in gt_paths:
+        genre = gt_path.stem
+        agents = _load_gt_agents(gt_path)
+        print(f"▶ encoding {genre} via {len(agents)} perspectives ...")
+        try:
+            l5, perspectives = run_perspective(app, gt_path, agents)
+        except Exception as exc:  # J6: hard failure → all-wrong, not a crash
+            print(f"  ✗ run failed: {exc}")
+            l5, perspectives = None, []
+        out_path = l5_dir / f"{genre}.yaml"
+        out_path.write_text(
+            yaml.safe_dump(l5, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        genre_dir = persp_dir / genre
+        genre_dir.mkdir(parents=True, exist_ok=True)
+        for rec in perspectives:
+            if not isinstance(rec, dict):
+                continue
+            (genre_dir / f"{_safe_name(rec.get('agent'))}.md").write_text(
+                rec.get("viewpoint") or "", encoding="utf-8"
+            )
+        n = len(l5) if isinstance(l5, list) else 0
+        print(
+            f"  → wrote L5 for {n} beats to {out_path.name}; "
+            f"{len(perspectives)} viewpoints to perspectives/{genre}/"
+        )
+
+    from evaluate import main_l5 as evaluate_l5
+
+    print("\n── L5 (perspective) evaluation ──")
+    return evaluate_l5(["--provider", provider, "--model", args.model])
+
+
 def run_assign_causality(app, gt_path: Path, agents: list[str]) -> list | None:
     """Run Mode-6 L6 causality assignment; return causality list or None."""
     glosses = load_glosses_with_kinds(gt_path)
@@ -393,6 +472,7 @@ def main(argv: list[str] | None = None) -> int:
             "assign-pre-eff",
             "assign-causality",
             "assign-affects",
+            "perspective",
         ],
         default="classify-kinds",
         help="Which spike mode to run (default: classify-kinds)",
@@ -419,6 +499,8 @@ def main(argv: list[str] | None = None) -> int:
         return _main_assign_causality(args, provider)
     if args.mode == "assign-affects":
         return _main_assign_affects(args, provider)
+    if args.mode == "perspective":
+        return _main_perspective(args, provider)
     return _main_classify(args, provider)
 
 

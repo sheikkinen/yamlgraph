@@ -1,0 +1,62 @@
+metadata:
+  name: perspective-agent
+  description: >
+    FR-591 inner subgraph — converts ONE character's slice of the story into a
+    typed perspective record. summarize: retell the plot in that character's POV
+    prose; encode: formalize the prose into typed pre/eff beats (PROVISIONAL
+    contract — recall-preserving, precision-open); assemble: join prose + parsed
+    beats into a single {agent, viewpoint, beats} record. Invoked once per agent
+    by the outer perspective_l5 map node.
+  # No hardcoded provider/model — resolved from the PROVIDER env var at run time.
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  agent:
+    type: str
+    description: "Input: the character whose perspective this subgraph encodes"
+  glosses:
+    type: list
+    description: "Input: classified beats with id, gloss, chapter, kind, subject"
+  viewpoint:
+    type: str
+    description: "First-person POV prose retelling of this character's arc"
+  encoded_raw:
+    type: str
+    description: "Raw LLM YAML text from the encode node (parsed by assemble)"
+  perspective:
+    type: dict
+    description: "Output: {agent, viewpoint, beats} record (parse_perspective output)"
+
+tools:
+  parse_perspective:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: parse_perspective
+
+nodes:
+  summarize:
+    type: llm
+    prompt: summarize_perspective
+    state_key: viewpoint
+
+  encode:
+    type: llm
+    prompt: encode_perspective
+    state_key: encoded_raw
+
+  assemble:
+    type: python
+    tool: parse_perspective        # state dict in -> {"perspective": {...}} out
+    requires: [encoded_raw]
+
+edges:
+  - from: START
+    to: summarize
+  - from: summarize
+    to: encode
+  - from: encode
+    to: assemble
+  - from: assemble
+    to: END

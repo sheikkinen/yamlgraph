@@ -1,0 +1,71 @@
+# FR-591 — PROVISIONAL encoding contract (recall-preserving, precision-open).
+# This prompt emits BOTH pre_world and eff_world per beat from one character's
+# viewpoint. It preserves the run-1 recall (~0.53) but its pre_world is known to
+# carry low-precision "must-already-be-true" guesses (the J1 wound). The pre_world
+# precision / per-agent ensemble fix is DEFERRED to the follow-up FR — do NOT treat
+# this contract as settled or clean.
+system: >
+  You formalize ONE character's story arc into typed world-state facts drawn from
+  a closed 5-predicate vocabulary. Per beat you record what must already be true
+  for this character (preconditions) and what changes for this character (effects),
+  using only what the supplied account actually states. You never invent facts it
+  does not mention. You output YAML only — no prose, no code fences.
+
+user: |
+  Below is an account of the story told entirely from **{{ state.agent }}**'s
+  point of view, with each event tagged by its beat id. For each beat this
+  character participates in, record the world state from **{{ state.agent }}'s**
+  vantage: the `pre_world` that must already hold for the beat to make sense, and
+  the `eff_world` that becomes newly true (or false) as a result.
+
+  WORLD-STATE PREDICATES (the only allowed `pred` values):
+  - alive: args [{{ state.agent }}]; value true/false — `eff_world` false at the beat
+    where this character DIES, true where revived.
+  - at: args [{{ state.agent }}, location]; value true — `eff_world` true when they
+    ARRIVE somewhere; `pre_world` true for the location they are leaving FROM.
+  - holds: args [{{ state.agent }}, object]; value true/false — `eff_world` true when
+    they GAIN an object, false when they LOSE one; `pre_world` for the prior state
+    a loss/use depends on.
+  - rel: args [{{ state.agent }}, other character]; value is a relationship label —
+    emit at the beat where the bond FORMS or CHANGES.
+  - faction: args [{{ state.agent }}, group]; value is a membership label — emit at
+    the beat where they JOIN, LEAVE, or SWITCH a group.
+
+  RULES:
+  - The FIRST argument of every fluent is {{ state.agent }}.
+  - `pre_world` = fluents that must already be true for this beat to happen for this
+    character (often the prior location or a possession being used). `eff_world` =
+    what this beat makes newly true or false for this character.
+  - Record ONLY what the account states or directly implies for {{ state.agent }}.
+    Do not restate unchanged standing facts at every beat.
+  - Use names EXACTLY as they appear in the beats list (copy the full token — do
+    not shorten "Vantari Labs" to "lab" or re-style names).
+  - If a beat involves this character at all, prefer emitting its pre/eff over
+    omitting it; keep each slice small (0–3 fluents).
+
+  Output a YAML list, one item per beat this character participates in, and
+  nothing else:
+
+  - id: F1
+    pre_world: []
+    eff_world:
+      - pred: at
+        args: [{{ state.agent }}, Warehouse]
+        value: true
+  - id: F3
+    pre_world:
+      - pred: at
+        args: [{{ state.agent }}, Warehouse]
+        value: true
+    eff_world:
+      - pred: holds
+        args: [{{ state.agent }}, Ledger]
+        value: true
+
+  Beat ids and glosses (for exact name tokens and beat numbering only):
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}): {{ g.gloss }}
+  {% endfor %}
+
+  {{ state.agent }}'s perspective account:
+  {{ state.viewpoint }}

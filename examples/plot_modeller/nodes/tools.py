@@ -687,6 +687,132 @@ def diff_snapshots(snapshots: list[dict]) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# FR-590/591 L5 — multi-perspective: per-agent viewpoint + encoding -> per-beat L5
+# ---------------------------------------------------------------------------
+
+
+def _dedup_fluents(fluents: list[dict]) -> list[dict]:
+    """Drop fluents sharing a ``_fluent_key`` (pred + normalized args), first wins.
+
+    Symmetric facts (``rel``/``faction``) are reported from BOTH participants'
+    perspectives; collapsing on the value-free key keeps one copy without any
+    salience judgment (FR-590 combine is deterministic, no LLM).
+    """
+    seen: set[tuple] = set()
+    out: list[dict] = []
+    for f in fluents:
+        if not isinstance(f, dict) or not f.get("pred"):
+            continue
+        key = _fluent_key(f)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(_clean_fluent(f))
+    return out
+
+
+def _parse_beats(raw: str) -> list[dict]:
+    """Parse an ``encode_perspective`` YAML payload into a list of beat dicts.
+
+    Tolerant by contract (FR-591): code fences are stripped, a parse error or a
+    non-list payload yields ``[]`` (the agent contributes nothing rather than
+    crashing the whole conversion). Moved from the retired ``spike_perspective.py``
+    so the graph's ``parse_perspective`` tool can depend on it.
+    """
+    text = _strip_code_fences(str(raw))
+    try:
+        beats = yaml.safe_load(text)
+    except yaml.YAMLError:
+        return []
+    return [b for b in beats if isinstance(b, dict)] if isinstance(beats, list) else []
+
+
+def parse_perspective(state: dict) -> dict:
+    """Assemble one agent's perspective record for the FR-591 inner subgraph.
+
+    Reads ``agent`` (the character), ``viewpoint`` (POV prose) and ``encoded_raw``
+    (the encode node's YAML text) from state, and returns a single self-describing
+    ``perspective`` dict ``{agent, viewpoint, beats}`` — the prose joined to its
+    typed encoding so per-stage error attribution stays localizable. The encoding
+    contract is **provisional** (recall-preserving, precision-open — FR-591 J1).
+    """
+    return {
+        "perspective": {
+            "agent": state.get("agent"),
+            "viewpoint": state.get("viewpoint", ""),
+            "beats": _parse_beats(state.get("encoded_raw", "")),
+        }
+    }
+
+
+def _perspective_beats(item: object) -> list[dict]:
+    """Extract an agent's beat list from a collected perspective item.
+
+    Tolerates the three shapes the map collector can yield: a self-describing
+    ``{..., beats: [...]}`` record (FR-591 graph), a nested ``{perspective: {...}}``
+    wrapper, or a bare ``list`` of beats (direct callers / unit tests).
+    """
+    if isinstance(item, dict):
+        if isinstance(item.get("beats"), list):
+            return item["beats"]
+        persp = item.get("perspective")
+        if isinstance(persp, dict) and isinstance(persp.get("beats"), list):
+            return persp["beats"]
+        return []
+    if isinstance(item, list):
+        return item
+    return []
+
+
+def combine_perspectives(perspectives: list | dict) -> list[dict] | dict:
+    """Merge per-agent encodings into the unified per-beat L5 (FR-590/591).
+
+    Each element is one agent's perspective — a ``{agent, viewpoint, beats}``
+    record (FR-591 graph) or a bare list of ``{id, pre_world, eff_world}`` beats
+    (direct callers). The combine groups every agent's fluents by beat ``id``,
+    unions each world slice, and dedups symmetric fluents by ``_fluent_key``.
+    Belief slices stay empty (FR-585: belief is not the L5 wound). No salience
+    logic and no LLM — the per-agent *framing* is the salience filter; combine
+    only assembles what each perspective already chose. Items are ordered by
+    ``_map_index`` when present so the fan-out's collect order is deterministic.
+
+    Dual-mode: as a graph python tool it receives the full state dict and returns
+    ``{"l5": [...]}``; called directly (unit tests, library use) it receives the
+    perspective list and returns the per-beat L5 list.
+    """
+    if isinstance(perspectives, dict):
+        return {"l5": combine_perspectives(perspectives.get("perspectives") or [])}
+    if perspectives and all(isinstance(p, dict) for p in perspectives):
+        perspectives = sorted(perspectives, key=lambda p: p.get("_map_index", 0))
+    order: list[str] = []
+    pre_by_id: dict[str, list[dict]] = {}
+    eff_by_id: dict[str, list[dict]] = {}
+    for item in perspectives or []:
+        for beat in _perspective_beats(item):
+            if not isinstance(beat, dict):
+                continue
+            bid = beat.get("id")
+            if not bid:
+                continue
+            if bid not in pre_by_id:
+                order.append(bid)
+                pre_by_id[bid] = []
+                eff_by_id[bid] = []
+            pre_by_id[bid].extend(beat.get("pre_world") or [])
+            eff_by_id[bid].extend(beat.get("eff_world") or [])
+    return [
+        {
+            "id": bid,
+            "pre_world": _dedup_fluents(pre_by_id[bid]),
+            "eff_world": _dedup_fluents(eff_by_id[bid]),
+            "pre_belief": [],
+            "eff_belief": [],
+        }
+        for bid in order
+    ]
+
+
+# ---------------------------------------------------------------------------
 # FR-577 L6 — assign causality (enables / motivation / threatens) to beats
 # ---------------------------------------------------------------------------
 

@@ -59,6 +59,38 @@ The graph hard-codes **no provider or model** — both resolve from the `PROVIDE
 env var at run time, so the spike's model choice is a deployment decision, not a
 graph constant.
 
+## L5 multi-perspective conversion (FR-591)
+
+A separate `perspective` mode converts classified beats into per-character
+artifacts and a combined L5, entirely in YAMLGraph (no Python harness):
+
+```bash
+# Conversion (the graph) + separate post-analysis, one fixture or all.
+examples/plot_modeller/spike_perspective.sh                       # all genres
+examples/plot_modeller/spike_perspective.sh detective-thriller-the-vanished-witness
+```
+
+- **Outer** `graphs/perspective_l5.yaml` fans out one inner subgraph per agent
+  (`type: map` over `agents`) and deterministically combines the per-agent
+  encodings (`combine_perspectives`, no LLM) into the unified per-beat L5.
+- **Inner** `graphs/perspective_agent.yaml` turns one character's slice into a
+  `{agent, viewpoint, beats}` record: `summarize` (POV prose) → `encode` (typed
+  pre/eff) → `assemble` (`parse_perspective`).
+- Viewpoints are stored to `results/perspectives/<genre>/<agent>.md`; the
+  combined L5 to `results/l5/<genre>.yaml` (scored by the unchanged
+  `evaluate.main_l5`). Scoring and FP attribution
+  (`analyze_l5_confusion.py`) are a **separate post-operation**, not part of
+  the graph.
+
+> **The encoding contract is PROVISIONAL** (recall-preserving, **precision-open**
+> — FR-591 J1). `encode_perspective.yaml` emits `pre_world`+`eff_world` directly:
+> this preserves run-1 recall (~0.50) but its `pre_world` carries low-precision
+> "must-already-be-true" guesses. The pre_world precision fix is **deferred** to
+> the ensemble follow-up FR — do not read this graph as a solved L5. Its value is
+> a reusable authoring primitive (per-character viewpoints) and a diagnosable
+> two-stage probe (comprehension vs representation), both independent of the
+> metric.
+
 ## Go/no-go gate
 
 | Outcome | Kind accuracy | Action |
