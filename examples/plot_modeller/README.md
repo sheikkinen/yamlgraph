@@ -70,9 +70,12 @@ examples/plot_modeller/spike_perspective.sh                       # all genres
 examples/plot_modeller/spike_perspective.sh detective-thriller-the-vanished-witness
 ```
 
-- **Outer** `graphs/perspective_l5.yaml` fans out one inner subgraph per agent
-  (`type: map` over `agents`) and deterministically combines the per-agent
-  encodings (`combine_perspectives`, no LLM) into the unified per-beat L5.
+- **Outer** `graphs/perspective_l5.yaml` first builds a story naming vocabulary
+  (FR-593: `extract_vocab` LLM → `validate_vocab` → `canonicalize`, which adds a
+  `canonical_gloss` to each beat **without touching the original `gloss`**), then
+  fans out one inner subgraph per agent (`type: map` over `agents`) and
+  deterministically combines the per-agent encodings (`combine_perspectives`, no
+  LLM) into the unified per-beat L5. Needs `synopsis` alongside `glosses`/`agents`.
 - **Inner** `graphs/perspective_agent.yaml` turns one character's slice into a
   `{agent, viewpoint, beats}` record: `summarize` (POV prose) → `encode` (typed
   pre/eff) → `assemble` (`parse_perspective`).
@@ -90,6 +93,34 @@ examples/plot_modeller/spike_perspective.sh detective-thriller-the-vanished-witn
 > a reusable authoring primitive (per-character viewpoints) and a diagnosable
 > two-stage probe (comprehension vs representation), both independent of the
 > metric.
+
+### Story-level vocabulary pre-stage (FR-593)
+
+Before the per-agent fan-out, the outer graph canonicalizes loose place/object
+mentions so every later stage names the same thing the same way
+(`the lab`/`the building` → `Vantari Labs`). This is a **head-of-pipeline naming
+normalizer**, not a tail filter — it reframes the rejected FR-592 (which suppressed
+beats whose tokens were absent from the vocabulary).
+
+- `extract_vocab` (LLM) reads `synopsis` + `glosses` → `StoryVocab` YAML
+  (`schema/vocab.py`: `{locations, objects, aliases}`; characters are excluded
+  because the cast is GT-supplied).
+- `validate_vocab` binds it to `StoryVocab` and **degrades gracefully** — on a
+  parse/shape failure it returns `{ok: False}` and an empty vocab, so the next
+  node is a safe no-op (there is no retry loop).
+- `canonicalize` writes an **additive** `canonical_gloss` per beat (the original
+  `gloss` stays byte-identical — containment); `summarize`/`encode` render
+  `{{ g.canonical_gloss or g.gloss }}`.
+
+> **Verdict: KEPT as a non-regression, not a proven win.** The two-run corpus gate
+> straddled every threshold (world_recall 0.46 / 0.49; mean 0.475 clears 0.47 only
+> by noise; evaluator KILL both runs). Canonicalization is *active* (9/13 scifi
+> glosses changed) but recall did not separate from the FR-591 baseline — LLM alias
+> over-mapping (`the nightstand → Mara's apartment`) can replace a GT-matching
+> literal with a non-matching canonical. The deterministic `StoryVocab` +
+> `canonicalize_glosses` core (`tests/unit/test_perspective_vocab_canonicalize.py`,
+> 20/20) is a reusable boundary primitive regardless of the metric. See
+> `feature-requests/FR-593-story-level-vocabulary-pre-analysis-stage.md`.
 
 ## Go/no-go gate
 

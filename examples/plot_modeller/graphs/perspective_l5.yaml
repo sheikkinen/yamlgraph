@@ -1,12 +1,15 @@
 metadata:
   name: perspective-l5
   description: >
-    FR-591 L5 multi-perspective conversion: fan out one inner subgraph per agent
-    (each turns that character's viewpoint prose into typed pre/eff beats), then
-    deterministically combine the per-agent records into the unified per-beat L5.
-    The per-agent ENCODING contract is PROVISIONAL (recall-preserving,
-    precision-open — see encode_perspective.yaml); scoring is a separate
-    post-operation (evaluate.py / analyze_l5_confusion.py), not part of this graph.
+    FR-591 L5 multi-perspective conversion. FR-593 prepends a story-vocabulary
+    pre-stage (extract_vocab -> validate_vocab -> canonicalize) that adds an
+    additive canonical_gloss to each beat (original gloss untouched), then fans
+    out one inner subgraph per agent (each turns that character's viewpoint prose
+    into typed pre/eff beats) and deterministically combines the per-agent records
+    into the unified per-beat L5. The per-agent ENCODING contract is PROVISIONAL
+    (recall-preserving, precision-open - see encode_perspective.yaml); scoring is a
+    separate post-operation (evaluate.py / analyze_l5_confusion.py), not part of
+    this graph.
   # No hardcoded provider/model — resolved from the PROVIDER env var at run time
   # (FR-570/576 J — provider/model is a run-time decision, not a graph constant).
 

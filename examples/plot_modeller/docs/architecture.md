@@ -39,6 +39,7 @@ schema/                # all built — FR-571 (Enforced)
 ├── predicates.py     # Fluent, Belief (with typed held: bool | str)
 ├── functions.py      # Function model (kind, gloss, pre/eff, causal, roles)
 ├── plan.py           # PlotPlan model (meta, agents, world, beliefs, goals, functions, policy)
+├── vocab.py          # StoryVocab (FR-593): {locations, objects, aliases} naming dictionary
 └── __init__.py       # Public API: PlotPlan, Function, Belief, etc.
 ```
 
