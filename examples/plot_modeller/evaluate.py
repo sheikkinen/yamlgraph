@@ -1098,20 +1098,19 @@ def summarise_l5(evaluations: list[dict]) -> dict:
     pred_total = sum(c["pred"] for c in agg.values())
     hit_total = sum(c["hits"] for c in agg.values())
 
-    world_recall = (world_hits / world_gt) if world_gt else 0.0
-    if world_recall >= 0.70:
-        verdict = "GO"
-    elif world_recall >= 0.50:
-        verdict = "REVISE"
-    else:
-        verdict = "KILL"
+    # FR-595: world_recall is DEMOTED from the L5 gate to a diagnostic. FR-594
+    # proved it scores agreement with a lossy GT predicate skeleton, not story
+    # capture; the power analysis (n=5) showed the gateable axis is the
+    # GT-anchored simulability discrimination, stamped in l5-measure-summary.yaml.
+    # This summary therefore reports world_recall but emits no GO/REVISE/KILL.
+    verdict = "informational"
 
     return {
         "corpus": {
             "synopses": len(evaluations),
             "isolation": "ground-truth glosses + kinds (Mode 1)",
         },
-        "world_recall": _fraction(world_hits, world_gt),  # GATE (pre+eff world)
+        "world_recall": _fraction(world_hits, world_gt),  # DIAGNOSTIC (FR-595)
         "eff_world_recall": _fraction(agg["eff_world"]["hits"], agg["eff_world"]["gt"]),
         "pre_world_recall": _fraction(agg["pre_world"]["hits"], agg["pre_world"]["gt"]),
         "eff_belief_recall": _fraction(
@@ -1123,19 +1122,22 @@ def summarise_l5(evaluations: list[dict]) -> dict:
         },
         "verdict": verdict,
         "conditions": [
-            "combined world recall >= 0.70 for GO (denominator = pre_world + eff_world)",
-            "borderline 0.50-0.70 defaults to REVISE (J:N2)",
-            "KILL only if < 0.50 AND the confusion pattern is not a fixable prompt issue",
+            "world_recall is informational only (FR-595): it scores agreement with "
+            "a lossy GT skeleton, not story capture (FR-594).",
+            "the L5 GATE is the GT-anchored simulability discrimination in "
+            "l5-measure-summary.yaml (run --mode measure-l5).",
         ],
         "note": (
-            "Gate is combined world recall (pre_world + eff_world) because "
-            "eff_world alone is too small to gate on (J:C3). Matching is tolerant "
-            "(normalized args, contains/prefix) — exact pred+args+value equality "
-            "is forbidden since L5 invents the tokens it is scored on (J:C1). "
-            "eff_belief recall is informational: ground-truth beliefs encode "
-            "full-plot dramatic irony, an upper bound a single-beat view cannot "
-            "recover (J2 leakage, inherited from FR-573 C2). Denominators are "
-            "small — read the per-slice fractions, never a bare percentage (J:C5)."
+            "world_recall is a DIAGNOSTIC, not the L5 gate (FR-595). The gate is "
+            "the regenerability discrimination (gt_sim - ours_sim, corpus mean) in "
+            "l5-measure-summary.yaml — the only axis the FR-594 power analysis "
+            "(n=5, paired gap 0.337 +/- 0.035, t(4)=21.6) showed is gateable at "
+            "small n. Matching here is tolerant (normalized args, contains/prefix) "
+            "— exact pred+args+value equality is forbidden since L5 invents the "
+            "tokens it is scored on (J:C1). eff_belief recall is informational: "
+            "ground-truth beliefs encode full-plot dramatic irony, an upper bound "
+            "a single-beat view cannot recover. Denominators are small — read the "
+            "per-slice fractions, never a bare percentage (J:C5)."
         ),
     }
 

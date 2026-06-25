@@ -22,6 +22,7 @@ from evaluate import (
     summarise_l1,
     summarise_l2,
     summarise_l3,
+    summarise_l5,
 )
 from nodes.tools import validate_kinds
 
@@ -372,6 +373,49 @@ class TestScoreL2:
         summary = summarise_l2([ev1, ev2])
         # 0/3 + 1/1 = 1/4
         assert summary["goal_recall"] == "1/4 (0.25)"
+
+
+class TestSummariseL5Demotion:
+    """FR-595 — world_recall is demoted from the L5 gate to a diagnostic.
+
+    FR-594 proved world_recall scores agreement with a lossy GT skeleton, not
+    story capture, and the power analysis (n=5) showed the gateable axis is the
+    GT-anchored simulability discrimination (stamped in l5-measure-summary.yaml).
+    summarise_l5 must therefore stop emitting a GO/REVISE/KILL verdict from
+    world_recall. RED before implementation.
+    """
+
+    @staticmethod
+    def _evaluation(genre: str, world_recall: float) -> dict:
+        # world_gt fixed at 10; hits scale to the requested recall.
+        hits = round(world_recall * 10)
+        return {
+            "meta": {"genre": genre},
+            "summary": {"world_recall": f"{hits}/10"},
+            "_counts": {
+                "pre_world": {"hits": hits, "gt": 10, "pred": hits},
+                "eff_world": {"hits": 0, "gt": 0, "pred": 0},
+                "pre_belief": {"hits": 0, "gt": 0, "pred": 0},
+                "eff_belief": {"hits": 0, "gt": 0, "pred": 0},
+            },
+        }
+
+    def test_verdict_is_informational_even_on_low_world_recall(self):
+        # 0.49 world_recall would have been a KILL under the old gate.
+        summary = summarise_l5([self._evaluation("detective", 0.40)])
+        assert summary["verdict"] == "informational"
+
+    def test_verdict_is_informational_even_on_high_world_recall(self):
+        # 0.90 world_recall would have been a GO under the old gate.
+        summary = summarise_l5([self._evaluation("scifi", 0.90)])
+        assert summary["verdict"] == "informational"
+
+    def test_world_recall_retained_as_diagnostic_and_redirects_gate(self):
+        summary = summarise_l5([self._evaluation("horror", 0.60)])
+        # world_recall is still reported — as a diagnostic, not the gate.
+        assert "world_recall" in summary
+        # the note must redirect the L5 gate to the regenerability discrimination.
+        assert "l5-measure-summary" in summary["note"]
 
 
 # ---------------------------------------------------------------------------

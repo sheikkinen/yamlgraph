@@ -1234,3 +1234,50 @@ def combine_l5_measure(state: dict) -> dict:
             "diagnostic_only": True,  # FR-594 Judgement: reports, does not gate
         }
     }
+
+
+# FR-595 powered gate thresholds for the corpus-mean simulability discrimination.
+# Grounded in the FR-594 power analysis (n=5): paired gap gt_sim - ours_sim =
+# 0.337 +/- 0.035, t(4)=21.6. A 0.15 GO floor sits ~4 sd below the observed mean
+# gap, so it is robustly positive at a single corpus run. Gates ONLY on the
+# corpus-mean gap — never on absolute values (corpus-mean sd 0.085 needs n>=6 for
+# MDE 0.10) or per-genre (worst-cell sd 0.22).
+_VERDICT_GO_MARGIN = 0.15
+_VERDICT_REVISE_MARGIN = 0.05
+
+
+def measure_l5_verdict(ours_sim_mean: float, gt_sim_mean: float) -> dict:
+    """Powered L5 gate: the GT-anchored simulability discrimination (FR-595).
+
+    Lower simulability = more regenerable. The gate asks whether OUR encoding is
+    robustly *more* regenerable than the lossy ground-truth predicate skeleton —
+    i.e. ``gap = gt_sim_mean - ours_sim_mean`` is meaningfully positive. This is
+    the only axis the FR-594 power analysis showed is gateable at small n; the
+    verdict therefore reads the corpus mean only and never a per-genre or absolute
+    single-run value.
+    """
+    gap = gt_sim_mean - ours_sim_mean
+    if gap >= _VERDICT_GO_MARGIN:
+        verdict = "GO"
+    elif gap >= _VERDICT_REVISE_MARGIN:
+        verdict = "REVISE"
+    else:
+        verdict = "KILL"
+    return {
+        "verdict": verdict,
+        "gap": gap,
+        "ours_sim_mean": ours_sim_mean,
+        "gt_sim_mean": gt_sim_mean,
+        "basis": "gt_anchored_simulability_discrimination (corpus mean)",
+        "power": (
+            "FR-594 power analysis n=5: paired gap 0.337 +/- 0.035, t(4)=21.6. "
+            "Gates on the corpus-mean gap only; absolute thresholds (sd 0.085) and "
+            "per-genre verdicts (worst-cell sd 0.22) are underpowered and excluded."
+        ),
+        "conditions": [
+            f"GO if gt_sim - ours_sim >= {_VERDICT_GO_MARGIN}",
+            f"REVISE if gap in [{_VERDICT_REVISE_MARGIN}, {_VERDICT_GO_MARGIN})",
+            f"KILL if gap < {_VERDICT_REVISE_MARGIN:.2f} "
+            "(ours no more regenerable than the GT skeleton)",
+        ],
+    }

@@ -38,6 +38,7 @@ from nodes.tools import (  # noqa: E402
     load_glosses,
     load_glosses_with_kinds,
     load_synopsis,
+    measure_l5_verdict,
 )
 
 GRAPH_PATHS = {
@@ -602,16 +603,29 @@ def _summarize_source(rows: list[dict], source: str) -> dict:
 
 def _write_measure_summary(eval_dir: Path, rows: list[dict]) -> None:
     """Write the corpus l5-measure summary, keeping the two axes attributable."""
+    ours = _summarize_source(rows, "ours")
+    gt = _summarize_source(rows, "gt")
+    # FR-595: the powered L5 gate is the GT-anchored simulability discrimination.
+    # world_recall is demoted to a diagnostic in evaluate.py; the gateable verdict
+    # lands here, where the corpus means are computed.
+    verdict = measure_l5_verdict(
+        ours["mean_simulability_ratio"], gt["mean_simulability_ratio"]
+    )
     summary = {
         "corpus": {"genres": len(rows)},
-        "ours": _summarize_source(rows, "ours"),
-        "gt": _summarize_source(rows, "gt"),
+        "ours": ours,
+        "gt": gt,
+        "verdict": verdict,
         "note": (
-            "DIAGNOSTIC ONLY (FR-594): world_recall remains the primary L5 signal "
-            "this cycle. Simulability is deterministic (GT-free); fidelity is an "
-            "LLM judge at temp 0.7 — read inverted_count, not just the mean score. "
-            "Lower simulability ratio = the state machine licenses more of its own "
-            "narration; ours << gt reproduces the probe's discrimination."
+            "L5 GATE (FR-595): gate on `verdict` — the GT-anchored simulability "
+            "discrimination (gt_sim - ours_sim, corpus mean). world_recall is "
+            "demoted to an informational diagnostic (FR-594 proved it scores "
+            "agreement with a lossy GT skeleton, not story capture). Simulability "
+            "is deterministic (GT-free); fidelity is an LLM judge at temp 0.7 and "
+            "stays advisory (it does not discriminate ours from gt) — read "
+            "inverted_count, not just the mean score. Lower simulability ratio = "
+            "the state machine licenses more of its own narration; ours << gt "
+            "reproduces the probe's discrimination."
         ),
     }
     out_path = eval_dir / "l5-measure-summary.yaml"

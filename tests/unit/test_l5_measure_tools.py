@@ -44,6 +44,7 @@ render_l5_beats = _mod.render_l5_beats
 count_underdetermined = _mod.count_underdetermined
 score_simulability = _mod.score_simulability
 combine_l5_measure = _mod.combine_l5_measure
+measure_l5_verdict = _mod.measure_l5_verdict
 
 
 _BEATS = [
@@ -201,3 +202,54 @@ def test_combine_coerces_pydantic_fidelity_model():
     assert "fidelity_inverted" in out["concerns"]
     assert "low_fidelity" in out["concerns"]
     assert out["fidelity"]["score"] == 0.4
+
+
+# ---------------------------------------------------------------------------
+# measure_l5_verdict — FR-595 powered, GT-anchored discrimination gate
+# ---------------------------------------------------------------------------
+#
+# Power analysis (FR-594, n=5): paired gap gt_sim - ours_sim = 0.337 +/- 0.035,
+# t(4)=21.6. The verdict gates ONLY on the corpus-mean gap, never on absolute
+# values (corpus-mean sd 0.085) or per-genre (worst-cell sd 0.22).
+
+
+@pytest.mark.req("REQ-YG-020")
+def test_verdict_go_on_observed_corpus_gap():
+    """The live corpus gap (~0.34, ours more regenerable than GT) is a GO."""
+    out = measure_l5_verdict(0.295, 0.632)
+    assert out["verdict"] == "GO"
+    assert round(out["gap"], 3) == 0.337
+    assert out["ours_sim_mean"] == 0.295
+    assert out["gt_sim_mean"] == 0.632
+
+
+@pytest.mark.req("REQ-YG-020")
+def test_verdict_revise_on_marginal_gap():
+    """A gap inside the noisy band (>=0.05, <0.15) is REVISE, not GO."""
+    out = measure_l5_verdict(0.50, 0.58)
+    assert out["verdict"] == "REVISE"
+
+
+@pytest.mark.req("REQ-YG-020")
+def test_verdict_kill_on_collapsed_gap():
+    """When ours is no more regenerable than the lossy GT skeleton, KILL."""
+    out = measure_l5_verdict(0.60, 0.62)
+    assert out["verdict"] == "KILL"
+
+
+@pytest.mark.req("REQ-YG-020")
+def test_verdict_kill_when_ours_worse_than_gt():
+    """Negative gap (ours LESS regenerable than GT) is a KILL, never GO."""
+    out = measure_l5_verdict(0.70, 0.40)
+    assert out["verdict"] == "KILL"
+    assert out["gap"] < 0
+
+
+@pytest.mark.req("REQ-YG-020")
+def test_verdict_records_gt_anchored_basis_not_absolute():
+    """The verdict must declare it is a GT-anchored paired-gap call, not absolute."""
+    out = measure_l5_verdict(0.295, 0.632)
+    assert "gt_anchored" in out["basis"]
+    # power provenance is carried so a reader cannot mistake it for a single-run
+    # absolute threshold (FR-594 power analysis).
+    assert "power" in out
