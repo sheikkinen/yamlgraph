@@ -1,0 +1,75 @@
+# Abstraction-span — standalone YAMLGraph example (FR-589).
+#
+# Flow: load (python: read corpus) -> score (map: LLM per prompt) -> verdict
+#       (python: deterministic separation gate). The LLM call lives only inside
+#       the map node; orchestration is YAML, file I/O + the gate are Python.
+#
+# Run:
+#   PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+#     yamlgraph graph run examples/abstraction_span/graph.yaml --full
+
+version: "1.0"
+name: abstraction-span
+description: "LLM-scored prompt abstraction-span with a deterministic separation gate"
+
+defaults:
+  provider: anthropic
+  prompts_dir: prompts
+  prompts_relative: true
+
+state:
+  corpus:
+    type: list
+    description: "[{name, text, label}] loaded from the manifest"
+  scores:
+    type: list
+    description: "collected per-prompt abstraction-span scores"
+  verdict:
+    type: dict
+    description: "{passed, min_monolith, max_clean, gap, table, ...}"
+
+tools:
+  load_corpus:
+    type: python
+    module: examples.abstraction_span.nodes.tools
+    function: load_corpus
+    description: "Read the corpus manifest and load each prompt's text"
+  separation_verdict:
+    type: python
+    module: examples.abstraction_span.nodes.tools
+    function: separation_verdict
+    description: "Deterministic separation gate over collected scores"
+
+nodes:
+  load:
+    type: python
+    tool: load_corpus
+    state_key: corpus
+
+  score:
+    type: map
+    over: "{state.corpus}"
+    as: item
+    max_items: 16
+    node:
+      type: llm
+      prompt: abstraction_span
+      state_key: span
+      variables:
+        prompt_text: "{state.item.text}"
+    collect: scores
+
+  verdict:
+    type: python
+    tool: separation_verdict
+    state_key: verdict
+
+edges:
+  - from: START
+    to: load
+  - from: load
+    to: score
+  - from: score
+    to: verdict
+  - from: verdict
+    to: END

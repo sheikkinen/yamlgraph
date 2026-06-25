@@ -1,0 +1,35 @@
+# Abstraction-span corpus (FR-589)
+#
+# References the LIVE plot_modeller prompts by path (single source of truth — no
+# duplicated prompt bodies). Labels are the hand tagging from FR-586 (W026
+# calibration); the LLM scorer must reproduce this separation to pass Gate 1.
+#
+# label:
+#   monolith — fuses many distinct kinds of cognitive operation in one output
+#   clean    — asks for one kind of operation
+#   boundary — the ambiguous middle case (must land between the two bands)
+#
+# Paths are relative to the repository root.
+
+prompts:
+  - name: assign_pre_eff        # measured L5 failure anchor (FR-585, precision ~0.30)
+    path: examples/plot_modeller/prompts/assign_pre_eff.yaml
+    label: monolith
+  - name: assign_causality
+    path: examples/plot_modeller/prompts/assign_causality.yaml
+    label: monolith
+  - name: assign_affects
+    path: examples/plot_modeller/prompts/assign_affects.yaml
+    label: monolith
+  - name: extract_agents
+    path: examples/plot_modeller/prompts/extract_agents.yaml
+    label: monolith
+  - name: extract_goals
+    path: examples/plot_modeller/prompts/extract_goals.yaml
+    label: boundary
+  - name: extract_glosses
+    path: examples/plot_modeller/prompts/extract_glosses.yaml
+    label: clean
+  - name: classify_kinds
+    path: examples/plot_modeller/prompts/classify_kinds.yaml
+    label: clean

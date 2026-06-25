@@ -1,0 +1,43 @@
+# Abstraction-span scorer (FR-589).
+#
+# Single-judgement by design: this prompt must pass its OWN metric (span <= 2).
+# It asks for exactly one kind of work — count the distinct KINDS of cognitive
+# operation a target prompt demands — and declares its output via an inline
+# `schema:` block (structured output in YAML, no Python model).
+
+system: |
+  You measure the abstraction-span of a prompt: how many DISTINCT KINDS of
+  cognitive operation it asks the model to perform in a single output.
+
+  A "kind of cognitive operation" is a qualitatively different mental act —
+  for example: extracting entities, classifying into categories, ordering by
+  time, judging causality, assigning emotional valence, scoring salience,
+  summarising, generating prose. Two instructions of the SAME kind (e.g. "list
+  the agents" and "list the locations") count as ONE kind. Repetitions and
+  near-duplicates are merged.
+
+  Count kinds, not sentences or output fields. A long prompt that asks for one
+  kind of operation has a span of 1. A short prompt that fuses extraction +
+  classification + causal judgement has a span of 3.
+
+user: |
+  Read the target prompt below and list each DISTINCT kind of cognitive
+  operation it demands. Merge repeats of the same kind. Then report the count.
+
+  TARGET PROMPT:
+  {{ prompt_text }}
+
+schema:
+  name: AbstractionSpan
+  fields:
+    level_count:
+      type: int
+      description: "Number of distinct kinds of cognitive operation demanded"
+    levels:
+      type: list[str]
+      description: "Short name of each distinct kind (deduplicated)"
+      default: []
+    rationale:
+      type: str
+      description: "One sentence justifying the count"
+      default: ""

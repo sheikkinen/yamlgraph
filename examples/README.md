@@ -31,6 +31,7 @@ After the learning path, explore production examples below.
 
 | Example | Description | Key Features |
 |---------|-------------|--------------|
+| [abstraction_span/](abstraction_span/) | LLM-scored prompt abstraction-span + separation gate | Map node, python tools, inline schema, deterministic gate (FR-589) |
 | [agent-sdk-planner/](agent-sdk-planner/) | Standalone FR planner spike | Anthropic Agent SDK, custom tools, PostToolUse audit hooks |
 | [beautify/](beautify/) | Graph → HTML infographic | LLM analysis, Mermaid diagrams, Tailwind CSS |
 | [book_translator/](book_translator/) | Translate books & documents | Map nodes, parallel translation, glossary, checkpointing |
