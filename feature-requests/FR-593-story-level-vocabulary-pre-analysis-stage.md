@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Enforcing — Authority GRANTED (2026-06-25)
+**Status:** Kept (2026-06-25) — two-run corpus gate marginal (mean world_recall 0.475 ≥ 0.47); author accepted as non-regression keep. See "Corpus Gate Result" below.
 **Effort:** 1–2 days
 **Requested:** 2026-06-25
 **Predecessor:** FR-592 (REJECTED — late encode-time vocab filter)
@@ -341,7 +341,52 @@ canonical token in the synopsis.
 59%). This is the explicit kill/keep measurement and should be authorized as its own step;
 the alias over-mapping risk above is the first thing the gate run must be read against.
 
-## Related
+## Corpus Gate Result (2026-06-25) — INCONCLUSIVE, leaning KILL
+
+Two full-corpus runs (`logs/fr593-gate-run1.log`, `logs/fr593-gate-run2.log`),
+`claude-haiku-4-5`, all five genres:
+
+| Cell | Run 1 | Run 2 | Gate |
+|------|-------|-------|------|
+| Overall `world_recall` | 39/85 = **0.46** | 42/85 = **0.49** | ≥ 0.47 |
+| horror (falsification) | 8/17 = **0.47** | 12/17 = **0.71** | ≥ 0.71 |
+| scifi (target worst cell) | 4/23 = 0.17 | 5/23 = 0.22 | — |
+| detective | 0.67 | 0.58 | — |
+| historical | 0.78 | 0.78 | — |
+| quest | 0.50 | 0.46 | — |
+| Predicate precision | 39/278 = 0.14 | 42/266 = 0.16 | → improve |
+| Evaluator verdict | **KILL** | **KILL** | — |
+
+**The two runs straddle every threshold.** Run 1 fails *both* primary criteria
+(0.46 recall, 0.47 horror); run 2 passes *both* (0.49, 0.71). The mean recall (0.475)
+clears 0.47 by 0.005 — inside the noise band. Horror swings ±0.24 between runs, far wider
+than the margin the gate is trying to resolve, so n=2 cannot separate signal from the
+FR-591 baseline. The evaluator's own verdict is **KILL on both runs**.
+
+**Mechanism read (why canonicalization bought nothing measurable):** scifi held at
+0.17–0.22 *despite* the probe confirming 9/13 of its glosses were canonicalized. Recall
+only improves when a canonical token tolerant-matches the GT token; the over-mapping
+false-positives (`the nightstand → Mara's apartment`, `the maze → Vantari Labs`) replace a
+GT-matching literal with a non-matching canonical, cancelling gains. Precision never moved
+(0.14 → 0.16), consistent with no net change in `at`-token discipline.
+
+**Decision (author, 2026-06-25): KEEP as-is.** The mean two-run `world_recall` (0.475)
+clears the PRIMARY gate (≥ 0.47), so the REVERT trigger does not fire on the criterion as
+specified. The author accepts the marginal result and the agent's REVERT recommendation is
+overridden. The change is retained at commit `fe413479`.
+
+**Known limitations carried forward (do not re-litigate without new evidence):**
+- The lift over the FR-591 baseline is within run-to-run noise; this is a *non-regression*
+  keep, not a demonstrated win. Treat any future "vocabulary helps recall" claim as
+  unproven until a lower-variance gate (more runs, or a drift-injection eval mode) shows
+  separation.
+- Alias over-mapping (`nightstand → apartment`, `maze → Labs`) remains live. If a later FR
+  revisits recall, constraining `extract_vocab` aliases (drop single-common-noun keys;
+  require the alias key to co-occur with its canonical token in the synopsis) is the first
+  cheap lever to try.
+- The deterministic `canonicalize_glosses` + `StoryVocab` witness core is fully tested
+  (20/20) and stays regardless of recall outcome — it is the audited, reusable boundary
+  primitive.
 
 - `feature-requests/FR-592-perspective-vocab-extraction-stage.md` (REJECTED predecessor)
 - `feature-requests/FR-591-perspective-to-l5-conversion-graph.md`
