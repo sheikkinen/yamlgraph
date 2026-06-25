@@ -1102,3 +1102,135 @@ def validate_affects(state: dict) -> dict:
         item.setdefault("eff_affect", [])
 
     return {"affects": items, "validation": {"ok": True, "flaws": []}}
+
+
+# ---------------------------------------------------------------------------
+# FR-594 L5 — prose-regenerability measurement (the two-axis ruler)
+# ---------------------------------------------------------------------------
+#
+# These three tools are deterministic (no LLM, no ground truth). They graduate
+# the `spike_regenerate_prose.py` probe into reusable graph nodes. The LLM axis
+# (the fidelity judge) lives in `prompts/judge_fidelity.yaml`; only the
+# simulability axis and the combine are scored here.
+#
+# `l5_measure` is DIAGNOSTIC this cycle (FR-594 Judgement): it reports, it does
+# not gate, and `world_recall` remains the primary L5 signal. The two axes are
+# kept orthogonal and attributable (Judge correction #3) — simulability is the
+# deterministic axis, fidelity the noisy LLM axis, and they are never collapsed
+# into one opaque scalar.
+
+# Diagnostic-only thresholds for the `concerns` flags (advisory, NOT a gate —
+# FR-594 Judge correction #4: power-before-gate, so these never block a run).
+_SIMULABILITY_CONCERN_RATIO = 0.5  # >= this share of beats underdetermined
+_FIDELITY_CONCERN_SCORE = 0.5  # fidelity score below this is a concern
+
+_UNDERDETERMINED_RE = re.compile(r"\[UNDERDETERMINED", re.IGNORECASE)
+
+
+def _fact_str(fluent: dict) -> str:
+    """Render one typed fluent as ``pred(arg, arg)=value`` (extracted from spike)."""
+    pred = fluent.get("pred", "?")
+    args = ", ".join(str(a) for a in (fluent.get("args") or []))
+    val = fluent.get("value", "?")
+    return f"{pred}({args})={val}"
+
+
+def render_l5_beats(beats: list | dict) -> str | dict:
+    """Render L5 beats into the predicate stream the regenerate prompt consumes.
+
+    Pure and deterministic (FR-594): each beat becomes ``Beat <id> [<kind>]`` with
+    a ``before:`` line (pre_world) and a ``changes:`` line (eff_world); an empty
+    slice renders as ``(none)`` so a blank line never silently means "no facts".
+
+    Dual-mode, mirroring ``combine_perspectives``: as a graph python tool it
+    receives the full state dict and returns ``{"beats": <rendered str>}`` (reading
+    the raw beat list from ``l5_beats``); called directly (unit tests, the runner)
+    with a list it returns the rendered string.
+
+    Note (FR-594 Judge correction #5): the runner renders ground-truth beats *with*
+    their ``initial_world`` and our beats with ``""`` — that asymmetry is kept for
+    parity with the original probe and is handled by the runner, not here.
+    """
+    if isinstance(beats, dict):
+        return {"beats": render_l5_beats(beats.get("l5_beats") or [])}
+    lines: list[str] = []
+    for b in beats:
+        if not isinstance(b, dict):
+            continue
+        bid = b.get("id", "?")
+        kind = b.get("kind")
+        lines.append(f"Beat {bid}" + (f" [{kind}]" if kind else ""))
+        pre = b.get("pre_world") or []
+        eff = b.get("eff_world") or []
+        lines.append("  before: " + ("; ".join(_fact_str(f) for f in pre) or "(none)"))
+        lines.append("  changes: " + ("; ".join(_fact_str(f) for f in eff) or "(none)"))
+    return "\n".join(lines)
+
+
+def count_underdetermined(prose: str) -> int:
+    """Count ``[UNDERDETERMINED …]`` markers in regenerated prose (FR-594).
+
+    Deterministic: counts the markers WE find, never the model's self-reported
+    ``COVERAGE:`` line (Judge correction #3 — the simulability axis must not trust
+    the same model whose narration it is scoring).
+    """
+    return len(_UNDERDETERMINED_RE.findall(str(prose or "")))
+
+
+def score_simulability(state: dict) -> dict:
+    """Score the simulability axis: underdetermined markers / real beat count (FR-594).
+
+    Graph python tool. Reads ``regen_prose`` (the regenerate node's output) and
+    ``l5_beats`` (the real, deterministic beat count — never the model's claim) and
+    returns ``{"simulability": {underdetermined, beats, ratio}}``. A higher ratio
+    means the state machine licenses *less* of its own narration. Zero beats yields
+    ratio 0.0 (safe, no division).
+    """
+    k = count_underdetermined(state.get("regen_prose", ""))
+    n = len(state.get("l5_beats") or [])
+    ratio = (k / n) if n else 0.0
+    return {"simulability": {"underdetermined": k, "beats": n, "ratio": ratio}}
+
+
+def _as_dict(value: object) -> dict:
+    """Normalize a state value (dict or Pydantic model) to a plain dict (boundary).
+
+    The fidelity axis arrives as a ``FidelityJudgement`` model (schema output of the
+    judge node), while the simulability axis is already a dict (our python tool).
+    Coerce both here, at the consumption boundary, so the combine never depends on
+    which shape the producer used.
+    """
+    if hasattr(value, "model_dump"):
+        return value.model_dump()
+    return value if isinstance(value, dict) else {}
+
+
+def combine_l5_measure(state: dict) -> dict:
+    """Combine the simulability and fidelity axes into one attributable record (FR-594).
+
+    Graph python tool. Merges the deterministic ``simulability`` axis and the noisy
+    LLM ``fidelity`` axis WITHOUT averaging them (Judge correction #3): both axes are
+    preserved verbatim and a ``concerns`` list names *which* axis fired so a future
+    failure is diagnosable, not just observed. ``concerns`` uses advisory,
+    diagnostic-only thresholds — this record reports, it never gates (Judge
+    corrections #1 and #4).
+    """
+    sim = _as_dict(state.get("simulability"))
+    fid = _as_dict(state.get("fidelity"))
+    inverted = fid.get("inverted") or []
+    concerns: list[str] = []
+    if sim.get("ratio", 0.0) >= _SIMULABILITY_CONCERN_RATIO:
+        concerns.append("low_simulability")
+    if inverted:
+        concerns.append("fidelity_inverted")
+    if fid.get("score", 1.0) < _FIDELITY_CONCERN_SCORE:
+        concerns.append("low_fidelity")
+    return {
+        "l5_measure": {
+            "simulability": sim,  # deterministic axis, preserved verbatim
+            "fidelity": fid,  # noisy LLM axis, preserved verbatim
+            "inverted_count": len(inverted),
+            "concerns": concerns,  # attributable: which axis fired
+            "diagnostic_only": True,  # FR-594 Judgement: reports, does not gate
+        }
+    }

@@ -49,6 +49,7 @@ GRAPH_PATHS = {
     "assign-causality": EXAMPLE_DIR / "graphs" / "assign_causality.yaml",
     "assign-affects": EXAMPLE_DIR / "graphs" / "assign_affects.yaml",
     "perspective": EXAMPLE_DIR / "graphs" / "perspective_l5.yaml",
+    "measure-l5": EXAMPLE_DIR / "graphs" / "l5_measure.yaml",
 }
 GT_DIR = EXAMPLE_DIR / "fixtures" / "ground-truth"
 SYNOPSIS_DIR = EXAMPLE_DIR / "fixtures" / "synopses"
@@ -462,6 +463,166 @@ def _main_assign_affects(args, provider: str) -> int:
     return evaluate_l7(["--provider", provider, "--model", args.model])
 
 
+def _render_world_facts(world: list[dict]) -> str:
+    """Render a list of typed fluents as a single predicate line (runner-local).
+
+    Used only to pre-render the ground-truth ``initial_world`` for the
+    ``initial_state`` prompt slot; our encoder emits no initial world, so its
+    ``initial_state`` is "" (FR-594 Judge correction #5: the asymmetry is kept for
+    parity with the original probe, and is documented here rather than "fixed").
+    """
+    parts = []
+    for f in world or []:
+        if not isinstance(f, dict):
+            continue
+        args = ", ".join(str(a) for a in (f.get("args") or []))
+        parts.append(f"{f.get('pred', '?')}({args})={f.get('value', '?')}")
+    return "; ".join(parts)
+
+
+def _gt_l5_beats(gt_path: Path) -> list[dict]:
+    """Ground-truth L5 beats (pre/eff only; glosses stripped) — the target ruler."""
+    data = yaml.safe_load(gt_path.read_text(encoding="utf-8"))
+    return [
+        {
+            "id": fn.get("id"),
+            "kind": fn.get("kind"),
+            "pre_world": fn.get("pre_world"),
+            "eff_world": fn.get("eff_world"),
+        }
+        for fn in data.get("functions") or []
+    ]
+
+
+def run_measure_l5(app, gt_path: Path, source: str) -> dict | None:
+    """Measure one L5 encoding's prose-regenerability (FR-594); return the record.
+
+    ``source`` selects which encoding is the subject: ``ours`` reads our encoder's
+    L5 from ``results/l5/<genre>.yaml`` (initial_state ""); ``gt`` reads the
+    ground-truth functions' pre/eff (initial_state = rendered ``initial_world``).
+    Both are scored on the SAME two axes so the ours≪gt simulability discrimination
+    is reproducible (FR-594 acceptance).
+    """
+    data = yaml.safe_load(gt_path.read_text(encoding="utf-8"))
+    roster = "\n".join(f"- {a}" for a in data.get("agents", []))
+    synopsis_path = SYNOPSIS_DIR / f"{gt_path.stem}.txt"
+    synopsis = load_synopsis(synopsis_path) if synopsis_path.exists() else ""
+
+    if source == "gt":
+        l5_beats = _gt_l5_beats(gt_path)
+        initial_state = _render_world_facts(data.get("initial_world") or [])
+    else:
+        ours_path = RESULTS_DIR / "l5" / f"{gt_path.stem}.yaml"
+        if not ours_path.exists():
+            return None
+        l5_beats = yaml.safe_load(ours_path.read_text(encoding="utf-8")) or []
+        initial_state = ""
+
+    result = app.invoke(
+        {
+            "genre": gt_path.stem,
+            "roster": roster,
+            "initial_state": initial_state,
+            "l5_beats": l5_beats,
+            "synopsis": synopsis,
+        }
+    )
+    measure = result.get("l5_measure")
+    return measure if isinstance(measure, dict) else None
+
+
+def _main_measure_l5(args, provider: str) -> int:
+    """Mode 9 (FR-594): measure L5 prose-regenerability (simulability + fidelity).
+
+    DIAGNOSTIC ONLY — world_recall remains the primary L5 signal this cycle
+    (FR-594 Judgement). Writes per-genre records (both ``ours`` and ``gt`` sources)
+    to results/evaluation/<genre>-l5-measure.yaml and a corpus
+    l5-measure-summary.yaml.
+    """
+    eval_dir = RESULTS_DIR / "evaluation"
+    eval_dir.mkdir(parents=True, exist_ok=True)
+
+    gt_paths = sorted(GT_DIR.glob("*.yaml"))
+    if args.genre:
+        gt_paths = [p for p in gt_paths if p.stem == args.genre]
+        if not gt_paths:
+            print(f"No ground-truth file matches '{args.genre}'")
+            return 1
+
+    app = _compile("measure-l5")
+    rows: list[dict] = []
+    for gt_path in gt_paths:
+        genre = gt_path.stem
+        print(f"▶ measuring L5 regenerability for {genre} ...")
+        record: dict = {"genre": genre}
+        for source in ("ours", "gt"):
+            try:
+                measure = run_measure_l5(app, gt_path, source)
+            except Exception as exc:  # J6: hard failure → record None, not a crash
+                print(f"  ✗ {source} run failed: {exc}")
+                measure = None
+            record[source] = measure
+            if measure:
+                sim = measure.get("simulability", {})
+                fid = measure.get("fidelity", {})
+                print(
+                    f"  → {source}: simulability ratio "
+                    f"{sim.get('ratio', 0.0):.2f} ({sim.get('underdetermined')}/"
+                    f"{sim.get('beats')}); fidelity {fid.get('score')}; "
+                    f"inverted {measure.get('inverted_count')}; "
+                    f"concerns {measure.get('concerns')}"
+                )
+        out_path = eval_dir / f"{genre}-l5-measure.yaml"
+        out_path.write_text(
+            yaml.safe_dump(record, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        rows.append(record)
+
+    _write_measure_summary(eval_dir, rows)
+    return 0
+
+
+def _mean(values: list[float]) -> float:
+    return round(sum(values) / len(values), 3) if values else 0.0
+
+
+def _summarize_source(rows: list[dict], source: str) -> dict:
+    measures = [r[source] for r in rows if isinstance(r.get(source), dict)]
+    return {
+        "mean_simulability_ratio": _mean(
+            [m.get("simulability", {}).get("ratio", 0.0) for m in measures]
+        ),
+        "mean_fidelity_score": _mean(
+            [float(m.get("fidelity", {}).get("score") or 0.0) for m in measures]
+        ),
+        "total_inverted": sum(m.get("inverted_count", 0) for m in measures),
+    }
+
+
+def _write_measure_summary(eval_dir: Path, rows: list[dict]) -> None:
+    """Write the corpus l5-measure summary, keeping the two axes attributable."""
+    summary = {
+        "corpus": {"genres": len(rows)},
+        "ours": _summarize_source(rows, "ours"),
+        "gt": _summarize_source(rows, "gt"),
+        "note": (
+            "DIAGNOSTIC ONLY (FR-594): world_recall remains the primary L5 signal "
+            "this cycle. Simulability is deterministic (GT-free); fidelity is an "
+            "LLM judge at temp 0.7 — read inverted_count, not just the mean score. "
+            "Lower simulability ratio = the state machine licenses more of its own "
+            "narration; ours << gt reproduces the probe's discrimination."
+        ),
+    }
+    out_path = eval_dir / "l5-measure-summary.yaml"
+    out_path.write_text(
+        yaml.safe_dump(summary, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    print(f"\n── L5 measure summary → {out_path.name} ──")
+    print(yaml.safe_dump(summary, sort_keys=False, allow_unicode=True))
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Plot Modeller spike runner")
     parser.add_argument(
@@ -475,6 +636,7 @@ def main(argv: list[str] | None = None) -> int:
             "assign-causality",
             "assign-affects",
             "perspective",
+            "measure-l5",
         ],
         default="classify-kinds",
         help="Which spike mode to run (default: classify-kinds)",
@@ -503,6 +665,8 @@ def main(argv: list[str] | None = None) -> int:
         return _main_assign_affects(args, provider)
     if args.mode == "perspective":
         return _main_perspective(args, provider)
+    if args.mode == "measure-l5":
+        return _main_measure_l5(args, provider)
     return _main_classify(args, provider)
 
 
