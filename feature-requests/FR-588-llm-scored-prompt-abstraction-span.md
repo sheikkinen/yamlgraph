@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (linter / research validation)
-**Status:** Judged (2026-06-24) — Authority GRANTED on narrowed scope; see Judgement
+**Status:** Rejected (2026-06-24) — superseded by FR-589 (rebuilt as a standalone YAMLGraph example); the linter-llm-free enforcement it produced stands
 **Effort:** 1–1.5 days (spike-gated; the validation study is ~0.5 day and may KILL the metric)
 **Requested:** 2026-06-24
 **Origin:** Graduated Seed from `docs/diary/diary-2026-06-24-the-brief-i-would-never-give-a-subagent.md`
@@ -37,7 +37,21 @@ Graph authors get a cheap LLM estimate of a prompt's abstraction-span — the
 hand-tagging FR-585 proved informative — **only after** the score is shown to
 reproduce the existing complexity labels (anchored by the one measured-failure
 point), so the number carries evidence rather than a plausible-looking guess.
+## Rejection (2026-06-24)
 
+**Superseded by FR-589.** This FR was judged and granted authority, but its
+proposed build (Stage 2: a standalone `spike_*.py` importing `execute_prompt` and
+hand-rolling the map loop + structured-output call + verdict) fights the framework's
+own thesis — orchestration belongs in `graph.yaml`, not Python. FR-589 rebuilds the
+identical validation as a **self-contained YAMLGraph example** (graph + prompt + two
+tools, run via `yamlgraph graph run`), carrying forward this FR's hard-won content
+unchanged: the ground-truth honesty (reproduce hand labels, not "predict failure"),
+the **separation** test (not Spearman), and the KILL discipline.
+
+**What survives this rejection:** the `linter-llm-free` import-linter contract
+(`.importlinter`), committed and enforced under this FR, **stands** — the standing
+judgement that the linter never makes an LLM call is independent of how the metric
+is built. FR-589 retains it.
 ## Judgement (2026-06-24)
 
 **Verdict: Authority GRANTED on narrowed scope.** The discipline is sound —
