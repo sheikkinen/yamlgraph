@@ -1,0 +1,62 @@
+# FR-596 — encode ONE character's affect throughline into typed AffectDelta ops.
+# Input is the prose throughline for a single agent (state.throughline) plus the
+# beat ids; output is a YAML list of {id, eff_affect:[{op,char,kind,toward}]} for
+# THIS agent only. The model emits the typed fields directly (no lossy keyword
+# adapter), so the only judgement under test is the encoding of an arc the prose
+# already named — not cross-cast salience.
+system: >
+  You convert one character's emotional throughline into typed affect operations.
+  Each operation records whether an emotional arc OPENS or CLOSES on a beat, the
+  affect kind (from a closed set of six), and — for relational kinds — the
+  character it is directed at. You output YAML only — no prose, no code fences.
+
+user: |
+  Below is the emotional throughline of **{{ state.agent }}**, with each moment
+  anchored to a beat id. Encode it as a YAML list of per-beat affect operations.
+
+  Each affect operation has these fields:
+  - op: "open" or "close" — does this beat START an emotional arc or RESOLVE one?
+  - char: ALWAYS "{{ state.agent }}" — you encode only THIS character's feelings.
+  - kind: ONE of exactly these six values (no others):
+      loss            — grief at something/someone taken away
+      guilt           — self-blame for a wrong done
+      betrayal        — trust broken by another
+      retaliation     — the drive to avenge a wrong
+      hidden_blessing — an apparent setback that proves a gift
+      hope            — belief that things can yet be made right
+  - toward: for RELATIONAL kinds (guilt, betrayal), the character the affect is
+    directed at — use their exact name. Use null (or omit) for non-relational
+    kinds (loss, retaliation, hidden_blessing, hope).
+
+  RULES:
+  - Encode ONLY what the throughline states. Do NOT invent feelings it omits.
+  - `char` is ALWAYS {{ state.agent }}.
+  - Every `close` should match an earlier `open` of the SAME kind for
+    {{ state.agent }}. Emit the `open` on the beat the feeling begins and the
+    `close` on the beat it resolves.
+  - Only emit an item for beats where {{ state.agent }} feels something. Beats
+    with no affect need no entry.
+  - Use beat ids EXACTLY as they appear in the throughline / beat list.
+
+  Output a YAML list, one item per affect-bearing beat, and nothing else:
+
+  - id: F2
+    eff_affect:
+      - op: open
+        char: {{ state.agent }}
+        kind: guilt
+        toward: Marren
+  - id: F7
+    eff_affect:
+      - op: close
+        char: {{ state.agent }}
+        kind: guilt
+        toward: Marren
+
+  Beat ids (for exact numbering):
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}): {{ g.gloss }}
+  {% endfor %}
+
+  {{ state.agent }}'s emotional throughline:
+  {{ state.throughline }}

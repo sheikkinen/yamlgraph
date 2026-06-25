@@ -895,6 +895,106 @@ def combine_perspectives(perspectives: list | dict) -> list[dict] | dict:
 
 
 # ---------------------------------------------------------------------------
+# FR-596 L7 — per-agent affect throughline: combine per-agent deltas -> per-beat
+# ---------------------------------------------------------------------------
+
+
+def _affect_beats(item: object) -> list:
+    """Extract one agent's per-beat affect list from its record (or a bare list).
+
+    Accepts the FR-596 map record ``{agent, throughline, affects: [...]}``, a bare
+    list of ``{id, eff_affect}`` beats (direct callers, unit tests), or a single
+    bare beat. Anything else yields no beats.
+    """
+    if isinstance(item, dict):
+        beats = item.get("affects")
+        if isinstance(beats, list):
+            return beats
+        if item.get("id"):
+            return [item]
+        return []
+    if isinstance(item, list):
+        return item
+    return []
+
+
+def combine_affects(per_agent: list | dict) -> list[dict] | dict:
+    """Merge per-agent affect throughlines into unified per-beat ``eff_affect`` (FR-596).
+
+    Each element is one agent's affect record — a ``{agent, throughline, affects}``
+    map record or a bare list of ``{id, eff_affect}`` beats. The combine groups
+    every agent's deltas by beat ``id`` and **unions** them with **no dedup**:
+    affect is feeler-owned, so two agents never emit the same delta (unlike the
+    symmetric ``rel`` facts in :func:`combine_perspectives`) — the per-agent
+    *framing* is the salience filter, and combine only assembles what each
+    perspective already chose. Items are ordered by ``_map_index`` when present so
+    the fan-out's collect order is deterministic. No salience logic and no LLM.
+
+    Dual-mode: as a graph python tool it receives the full state dict (collected
+    under ``affect_views``) and returns ``{"affects": [...]}``; called directly it
+    receives the per-agent list and returns the per-beat affect list.
+    """
+    if isinstance(per_agent, dict):
+        views = per_agent.get("affect_views") or per_agent.get("perspectives") or []
+        return {"affects": combine_affects(views)}
+    records = list(per_agent or [])
+    if records and all(isinstance(r, dict) for r in records):
+        records = sorted(records, key=lambda r: r.get("_map_index", 0))
+    order: list[str] = []
+    by_id: dict[str, list[dict]] = {}
+    for item in records:
+        for beat in _affect_beats(item):
+            if not isinstance(beat, dict):
+                continue
+            bid = beat.get("id")
+            if not bid:
+                continue
+            if bid not in by_id:
+                order.append(bid)
+                by_id[bid] = []
+            deltas = beat.get("eff_affect")
+            if isinstance(deltas, list):
+                by_id[bid].extend(d for d in deltas if isinstance(d, dict))
+    return [{"id": bid, "eff_affect": by_id[bid]} for bid in order]
+
+
+def _affect_arc_key(delta: dict) -> tuple[str, str, str]:
+    """Identity of an affect arc: normalized (char, kind, toward)."""
+    return (
+        _norm_name(delta.get("char")),
+        " ".join(str(delta.get("kind") or "").split()).strip().lower(),
+        _norm_name(delta.get("toward")),
+    )
+
+
+def affect_balance(beats: list) -> dict:
+    """Per-cell open/close arc balance for ONE agent's affect beats (FR-596 diagnostic).
+
+    Each :class:`AffectDelta` opens or closes an arc keyed by ``(char, kind,
+    toward)``; a ``close`` pops a matching ``open``. Because each agent narrates a
+    self-contained throughline, dangling opens are checkable per cell *before*
+    combine. Returns ``{balanced, unclosed}`` where ``unclosed`` lists the arc
+    labels still open at the end. Pure, no LLM — a diagnostic only, never a gate.
+    """
+    open_arcs: dict[tuple, list[str]] = {}
+    for item in beats or []:
+        if not isinstance(item, dict):
+            continue
+        for delta in item.get("eff_affect") or []:
+            if not isinstance(delta, dict):
+                continue
+            key = _affect_arc_key(delta)
+            op = str(delta.get("op") or "").strip().lower()
+            label = ":".join(p for p in key if p)
+            if op == "open":
+                open_arcs.setdefault(key, []).append(label)
+            elif op == "close" and open_arcs.get(key):
+                open_arcs[key].pop()
+    unclosed = [lbl for labels in open_arcs.values() for lbl in labels]
+    return {"balanced": len(unclosed) == 0, "unclosed": sorted(unclosed)}
+
+
+# ---------------------------------------------------------------------------
 # FR-577 L6 — assign causality (enables / motivation / threatens) to beats
 # ---------------------------------------------------------------------------
 

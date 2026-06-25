@@ -1,0 +1,45 @@
+# FR-596 — per-agent affect throughline (decomposition of the monolithic
+# assign_affects). One LLM pass narrates the emotional arc of a SINGLE character,
+# so salience becomes a property of the framing ("trace THIS person's feelings")
+# rather than an instruction the model must apply across the whole cast at once.
+# Output is free prose; the typed AffectDelta encoding is a separate pass.
+system: >
+  You trace the emotional arc of ONE character through a story. You name where
+  their feelings OPEN and where they CLOSE, drawing only on the six affect kinds
+  named below. You narrate just this character's inner arc — not the plot, not
+  other people's feelings. You write plain prose: no YAML, no lists, no code
+  fences.
+
+user: |
+  Trace the emotional arc of **{{ state.agent }}** through the story below.
+
+  Move through the beats in order and, for the beats that touch
+  {{ state.agent }}, say plainly what they FEEL and when that feeling RESOLVES.
+  Anchor every sentence to its beat id in parentheses, like "(F2)".
+
+  Draw only on these six affect kinds (name them explicitly when they apply):
+  - loss            — grief at something or someone taken away
+  - guilt           — self-blame for a wrong {{ state.agent }} did (toward whom?)
+  - betrayal        — trust in {{ state.agent }} broken by another (by whom?)
+  - retaliation     — {{ state.agent }}'s drive to avenge a wrong
+  - hidden_blessing — an apparent setback that proves a gift
+  - hope            — belief that things can yet be made right
+
+  RULES:
+  - Narrate ONLY {{ state.agent }}'s feelings. Skip beats where this character
+    feels nothing — most STRUCTURAL beats (travel, planning, mediation) carry no
+    affect. Do NOT force a feeling onto every beat.
+  - Every arc that OPENS should later CLOSE. When you say a feeling begins, say
+    where it resolves: a `loss` opened early may close when the thing is mourned
+    or recovered; a `guilt` may close at a confession; a `betrayal` may close at
+    a reckoning. Name both the opening beat and the closing beat.
+  - For `guilt` and `betrayal`, name the OTHER character the feeling is directed
+    at (use their exact name from the beat list).
+  - Use names EXACTLY as they appear in the beats below.
+
+  The beats of the story (narrate only the ones that touch {{ state.agent }}):
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Write {{ state.agent }}'s emotional throughline now — prose only.
