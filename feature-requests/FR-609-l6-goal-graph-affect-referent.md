@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Re-judged after Topology Pre-Check amendment — Authority GRANTED, corr 1 resolved & sharpened (2026-06-26)
+**Status:** Enforced — REFUTED (CLEAN subset, lift +0.000), goal-anchoring line closed (2026-06-26)
 **Effort:** 1.5 days (spike + GT L6 graph extraction)
 **Requested:** 2026-06-26
 
@@ -326,6 +326,52 @@ referent scorer, validator, leak audit, and control-arm discipline.
   candidate FR-610 only if FR-609 confirms referent→placement causality.
 - **Fix it upstream in L6.** Rejected by the 2026-06-26 read: L6 already distinguishes and
   beat-binds the siblings; the gap is L7's blindness, not L6's resolution.
+
+## Enforcement Outcome (2026-06-26) — REFUTED
+
+**Verdict: REFUTED on the CLEAN subset (clean-subset lift +0.000 <= noise 0.020).**
+The FR-607->609 goal-anchoring line is closed. Log: `logs/fr609-live.log`
+(control + mode A, 3 draws @ temp 0.7, claude-haiku-4-5). Mode B was correctly
+SKIPPED — mode A strict 0.250 < KILL 0.50.
+
+| metric | control | mode A (GT-graph ceiling) |
+|---|---|---|
+| strict recall (frozen `_l7_counts`) | 0.250 | 0.250 |
+| relax recall | 0.250 | 0.250 |
+| **CLEAN** placement (horror/historical/scifi) | 0.176 | 0.176 (**lift +0.000**) |
+| QUARANTINED placement (quest/detective) | 0.364 | 0.364 (lift +0.000) |
+| referent binding | — | 0.083 (draws 0.036 / 0.071 / 0.143) |
+| honest lift (modeA.relax − control.relax) | | **+0.000** |
+| close-beat shift (control→modeA) | | 0.367 |
+
+**What the result proves (high-information refutation, not a costume failure):**
+
+1. **The order-leak escape hatch is eliminated.** The +0.000 lift is on the CLEAN
+   (branching) subset — genres where the referent goals form an antichain, so chain
+   order carries *no* placement signal. The graph is the *only* available
+   discriminator there, and at the GT ceiling it moves placement by exactly nothing.
+   This is the clean REFUTED the Topology Pre-Check made interpretable; a
+   total-order-only fixture set could not have produced it.
+2. **The richer injection made anchoring WORSE, not better.** Referent binding fell
+   to 0.083 (mode A mean) vs FR-607's flat-list 0.143. The inter-goal
+   `enables`/`threatens` relations act as *distractors*, not disambiguators: the
+   model still binds the referent its salient close beat serves, and the added
+   structure gives it more to misread. The "materially-more-signal" edge (Open Q3)
+   is real signal the model does not use for this task.
+3. **The mechanism is confirmed (J corr 2).** Close-beat shift 0.367 with *identical*
+   placement recall means mode A reshuffles ~37% of close-beat picks as salience noise
+   around an unchanged accuracy. The causal arrow is **salience → referent**, never
+   **goal → placement**. Fixing the referent label cannot move the frozen gate because
+   the label is downstream of the beat choice, exactly as the FR-607 autopsy predicted.
+
+**Disposition:** goal-anchoring (flat list FR-607, causal graph FR-609) is closed as a
+lever on the frozen open/close gate. The L7 localization ceiling (~0.25 strict at this
+decomposition) is not reachable by naming or structuring the goal. Any future attempt
+must change the *beat-selection* step, not the referent annotation. Frozen
+`main_l7`/`_l7_counts` byte-identical (`git diff --stat evaluate.py`: 119 insertions,
+0 deletions). Witnessed by `tests/test_l7_graph.py` (5 tests, RED→GREEN); the topology
+probe graduated from `tmp/fr609_topology.py` into `evaluate.derive_goal_graph` +
+`spike_affect_graph.py --topology`.
 
 ## Related
 

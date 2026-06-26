@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import re
+from itertools import combinations
 from pathlib import Path
 
 import yaml
@@ -1811,6 +1812,124 @@ def _l7_counts_referent(
         "precision_hits": precision_hits,
         "pred": len(pred_flat),
     }
+
+
+# --- FR-609: beat-free goal-GRAPH extraction + topology (frozen path untouched) ---
+
+
+def _beat_goal(fn: dict) -> str | None:
+    """The one goal a beat is motivated by (``motivation.goal``), or None."""
+    mot = fn.get("motivation")
+    return mot["goal"] if isinstance(mot, dict) and mot.get("goal") else None
+
+
+def _affect_protagonist(truth_by_id: dict) -> str | None:
+    """The character owning the most affect deltas — the protagonist whose sibling
+    goals the L7 pass must disambiguate."""
+    counts: dict[str, int] = {}
+    for deltas in truth_by_id.values():
+        for d in deltas or []:
+            if isinstance(d, dict) and d.get("char"):
+                counts[d["char"]] = counts.get(d["char"], 0) + 1
+    return max(counts, key=counts.get) if counts else None
+
+
+def _reachable(enables: set[tuple[str, str]], start: str) -> set[str]:
+    """Goals reachable from ``start`` along derived inter-goal ``enables`` edges."""
+    seen: set[str] = set()
+    stack = [start]
+    while stack:
+        node = stack.pop()
+        for a, b in enables:
+            if a == node and b not in seen:
+                seen.add(b)
+                stack.append(b)
+    return seen
+
+
+def derive_goal_graph(path: Path) -> dict:
+    """Derive the BEAT-FREE inter-goal causal graph for a GT file (FR-609).
+
+    A goal edge ``g_a -> g_b`` ("g_a enables g_b") is derived from L6 beat->beat
+    ``enables``: when beat X (``motivation.goal = g_a``) enables beat Y
+    (``motivation.goal = g_b``) and ``g_a != g_b``. ``threatens`` edges run
+    adversary-goal -> threatened-goal. ALL beat ids are dropped — the returned graph
+    names only goals and agents, so injecting it cannot leak where a feeling resolves
+    (the anti-tautology gate, J corr 1). Returns the goal nodes (each with its
+    inter-goal relations), the protagonist, the referent goals, the incomparable
+    referent pairs, and the BRANCHING / TOTAL-ORDER topology verdict — a total order
+    over the referent goals is order-leak-suspect (a placement win is confounded).
+    """
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    fns = data.get("functions", [])
+    by_id = {fn.get("id"): fn for fn in fns}
+    truth = _load_gt_affects(path)
+    prot = _affect_protagonist(truth)
+
+    node_agent: dict[str, str] = {}
+    enables: set[tuple[str, str]] = set()
+    threatens: set[tuple[str, str]] = set()
+    for fn in fns:
+        g = _beat_goal(fn)
+        if g:
+            mot = fn.get("motivation")
+            node_agent.setdefault(g, mot.get("agent", "?"))
+        th = fn.get("threatens")
+        if isinstance(th, dict) and th.get("goal"):
+            node_agent.setdefault(th["goal"], th.get("agent", "?"))
+            if g:
+                threatens.add((th["goal"], g))
+        for e in fn.get("enables") or []:
+            tgt = by_id.get(e)
+            g2 = _beat_goal(tgt) if tgt else None
+            if g and g2 and g != g2:
+                enables.add((g, g2))
+
+    refs: set[str] = set()
+    for deltas in truth.values():
+        for d in deltas or []:
+            if isinstance(d, dict) and d.get("referent"):
+                refs.add(d["referent"])
+    ref_list = sorted(refs & set(node_agent))
+    incomparable = [
+        (a, b)
+        for a, b in combinations(ref_list, 2)
+        if b not in _reachable(enables, a) and a not in _reachable(enables, b)
+    ]
+
+    goals = [
+        {
+            "id": g,
+            "agent": node_agent[g],
+            "enables": sorted(b for a, b in enables if a == g),
+            "enabled_by": sorted(a for a, b in enables if b == g),
+            "threatened_by": sorted(adv for adv, tgt in threatens if tgt == g),
+            "threatens": sorted(tgt for adv, tgt in threatens if adv == g),
+        }
+        for g in sorted(node_agent)
+    ]
+    return {
+        "protagonist": prot,
+        "goals": goals,
+        "enables": sorted(enables),
+        "threatens": sorted(threatens),
+        "referent_goals": ref_list,
+        "incomparable_pairs": incomparable,
+        "topology": "BRANCHING" if incomparable else "TOTAL-ORDER",
+    }
+
+
+def goal_graph_partition(gt_dir: Path) -> dict[str, list[str]]:
+    """Partition fixtures into CLEAN (branching — chain order cannot leak placement,
+    so a lift is genuine anchoring) and QUARANTINED (total-order — a placement win is
+    order-confounded and cannot promote the lever). FR-609 J corr 1.
+    """
+    out: dict[str, list[str]] = {"CLEAN": [], "QUARANTINED": []}
+    for path in sorted(Path(gt_dir).glob("*.yaml")):
+        graph = derive_goal_graph(path)
+        bucket = "CLEAN" if graph["topology"] == "BRANCHING" else "QUARANTINED"
+        out[bucket].append(_genre_name(path))
+    return out
 
 
 def score_l7(
