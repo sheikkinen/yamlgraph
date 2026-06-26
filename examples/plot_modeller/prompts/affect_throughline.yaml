@@ -49,6 +49,22 @@ user: |
   - Ground every operation in the beat's own words — the text must show the
     feeling. Never infer affect from the plot's shape or a character's role.
   - Use the kind words and character names EXACTLY as written. No synonyms.
+  - CLOSE-OP KIND — on a "close", name the feeling being RESOLVED, not the
+    surface event on the beat. A resolution beat shows a forceful or positive
+    action that ENDS an earlier negative feeling; name the kind of THAT earlier
+    feeling, identified by its resolution signature below — never the mood or
+    action on the beat's own surface:
+      loss             closes when the lost thing or person is recovered or mourned.
+      guilt            closes when the wrong is confessed, atoned, or one's place is earned.
+      betrayal         closes when the betrayer is exposed, named, or reckoned with.
+      retaliation      closes when the wrong is avenged.
+      hope             closes when the just outcome arrives and things are set right.
+      hidden_blessing  closes when the setback is revealed as a gift.
+    So an exposure or unmasking closes betrayal (not opens retaliation); a
+    triumph that regains what was lost closes loss (not opens hope); a solemn
+    vindication closes hope (not opens loss); earning one's place closes guilt
+    (not opens betrayal). This guidance applies to "close" only — judge every
+    "open" exactly as before, from the beat's own words.
 
   Output a YAML list, one item per affect-bearing beat, and NOTHING else:
 

@@ -140,6 +140,39 @@ def _op_char_on(beat_deltas: list, op: str, char: str) -> list[dict]:
     ]
 
 
+def _kindwrong_members(truth_by_id: dict, pred_by_id: dict) -> list[dict]:
+    """FR-601 — deterministic (c) KIND-WRONG members with the predicted kind.
+
+    A miss is (c) when the model fired op+char on the EXACT GT beat but named a
+    different ``kind``. This needs no LLM licensing pass: after FR-600 dropped or
+    re-anchored the unlicensed deltas, every residual op+char-on-the-exact-beat
+    miss is licensed by construction, so (c) is a pure GT-vs-prediction compare.
+    Carries ``pred_kind`` — the predicted mismatched kind — for the confusion
+    read the Judge gated the prompt edit behind (FR-601 AC#1).
+    """
+    out: list[dict] = []
+    for bid, t_deltas in truth_by_id.items():
+        p_deltas = pred_by_id.get(bid, [])
+        for miss in _unmatched_gt(t_deltas, p_deltas):
+            op = _norm(miss.get("op"))
+            char = _norm(miss.get("char"))
+            kind = _norm(miss.get("kind"))
+            for p in _op_char_on(p_deltas, op, char):
+                if _norm(p.get("kind")) != kind:
+                    out.append(
+                        {
+                            "anchor_id": bid,
+                            "op": op,
+                            "char": miss.get("char"),
+                            "gt_kind": kind,
+                            "pred_kind": _norm(p.get("kind")),
+                            "toward": miss.get("toward"),
+                        }
+                    )
+                    break
+    return out
+
+
 def _licensing_verdict(
     miss: dict,
     anchor_id: str,
@@ -243,6 +276,64 @@ def _add(buckets: dict, bucket: str, op: str) -> None:
     buckets[bucket]["open" if op == "open" else "close"] += 1
 
 
+def kindwrong_report() -> int:
+    """FR-601 -- deterministic (c) KIND-WRONG confusion read on post-FR-600 GT.
+
+    Re-counts (c) on the re-annotated ground truth and the EXISTING classifier
+    output, carrying each member's predicted mismatched kind (AC#1). No LLM, no
+    model run, frozen gate untouched. Persists the close-op confusion pairs the
+    Judge gated the affect_throughline.yaml edit behind.
+
+    DEVIATION (same rationale the Judge endorsed for FR-600): the full probe's
+    _LICENSING_FIXTURES are pinned to the PRE-FR-600 miss set (detective F1 loss,
+    F7 hidden_blessing) which FR-600 re-anchored/dropped -- a verbatim live re-run
+    would FAIL its own pin and re-introduce the non-determinism the freeze exists
+    to kill. (c) is deterministic, so this read needs neither the LLM nor the pin.
+    """
+    from collections import Counter
+
+    rows: list[dict] = []
+    for gt_path in sorted(GT_DIR.glob("*.yaml")):
+        genre = gt_path.stem
+        pred_path = L7_DIR / f"{genre}.yaml"
+        if not pred_path.exists():
+            print(f"  ! {genre}: no classifier output at {pred_path}")
+            continue
+        predicted = yaml.safe_load(pred_path.read_text(encoding="utf-8"))
+        truth_by_id = _load_gt_affects(gt_path)
+        pred_by_id = _pred_by_id(predicted)
+        gloss_by_id = {
+            g["id"]: g.get("gloss", "") for g in load_glosses_with_kinds(gt_path)
+        }
+        for m in _kindwrong_members(truth_by_id, pred_by_id):
+            m["genre"] = genre
+            m["anchor_gloss"] = gloss_by_id.get(m["anchor_id"], "")
+            rows.append(m)
+
+    by_op = Counter(r["op"] for r in rows)
+    pairs = Counter((r["op"], r["gt_kind"], r["pred_kind"]) for r in rows)
+    L7_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = L7_DIR / "kindwrong-pairs.txt"
+    out_path.write_text(
+        yaml.safe_dump(rows, sort_keys=False, allow_unicode=True), encoding="utf-8"
+    )
+    print(
+        f"== (c) KIND-WRONG: {len(rows)} members "
+        f"(open={by_op.get('open', 0)} close={by_op.get('close', 0)}) -> {out_path} =="
+    )
+    for r in rows:
+        tw = f" toward={r['toward']}" if r.get("toward") else ""
+        print(
+            f"  [{r['op']}] {r['genre']} {r['anchor_id']} {r['char']}: "
+            f"GT={r['gt_kind']} PRED={r['pred_kind']}{tw}"
+        )
+        print(f"     anchor: {r['anchor_gloss'][:96]}")
+    print("\n== confusion pairs (op | gt_kind -> pred_kind) ==")
+    for (op, gk, pk), n in pairs.most_common():
+        print(f"  [{op}] {gk} -> {pk}: {n}")
+    return 0
+
+
 def main() -> int:
     provider = os.getenv("PROVIDER", "anthropic")
     model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
@@ -315,6 +406,14 @@ def main() -> int:
                     bucket = _classify_licensed(miss, bid, pred_by_id, order, w)
                     _add(pooled[w], bucket, op)
                     record["bucket_by_window"][w] = bucket
+                if "c_kind_wrong" in record["bucket_by_window"].values():
+                    # FR-601: carry the predicted mismatched kind for (c) members
+                    for p in _op_char_on(
+                        pred_by_id.get(bid, []), op, _norm(miss.get("char"))
+                    ):
+                        if _norm(p.get("kind")) != _norm(miss.get("kind")):
+                            record["pred_kind"] = _norm(p.get("kind"))
+                            break
             if len(miss_records) < 12:
                 miss_records.append(record)
 
@@ -444,4 +543,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import sys
+
+    if "--kindwrong" in sys.argv:  # FR-601: deterministic (c) read, no LLM
+        raise SystemExit(kindwrong_report())
     raise SystemExit(main())
