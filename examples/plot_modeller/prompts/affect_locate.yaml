@@ -54,11 +54,17 @@ user: |
   open: <beat id or null>
   close: <beat id or null>
   toward: <the other character, named as in the beats>
+  {%- if state.explain %}
+  rationale: "<=1 sentence; MUST quote >=3 consecutive words from the cited beat"
+  {%- endif %}
   {% else %}
   Output exactly this YAML shape and nothing else:
 
   open: <beat id or null>
   close: <beat id or null>
+  {%- if state.explain %}
+  rationale: "<=1 sentence; MUST quote >=3 consecutive words from the cited beat"
+  {%- endif %}
   {% endif %}
   The beats:
   {% for g in state.glosses %}

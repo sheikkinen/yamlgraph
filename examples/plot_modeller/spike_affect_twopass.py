@@ -68,6 +68,30 @@ def _beat_num(bid: object) -> int | None:
     return int(m.group(1)) if m else None
 
 
+def _words(text: str) -> list[str]:
+    """Lowercase word tokens, punctuation stripped to spaces."""
+    return re.sub(r"[^a-z0-9]+", " ", str(text).lower()).split()
+
+
+def _rationale_quotes_beat(rationale: str, beat_text: str, min_words: int = 3) -> bool:
+    """FR-606 quote-check (code-side, J: don't trust the model to self-validate).
+
+    True iff ``rationale`` contains >= ``min_words`` CONSECUTIVE words drawn verbatim
+    (case-insensitive, punctuation-insensitive) from ``beat_text``. This is the hard
+    constraint that defeats the FR-598 "novel" trap: an ungrounded essay quotes no
+    span of the beat and fails the lint.
+    """
+    r = _words(rationale)
+    b = _words(beat_text)
+    if len(r) < min_words or len(b) < min_words:
+        return False
+    beat_ngrams = {tuple(b[i : i + min_words]) for i in range(len(b) - min_words + 1)}
+    return any(
+        tuple(r[i : i + min_words]) in beat_ngrams
+        for i in range(len(r) - min_words + 1)
+    )
+
+
 def _skeleton(glosses: list) -> list[dict]:
     """Setup/turn/resolution from beat SEQUENCE only — no affect GT (J: correction 3).
 
@@ -89,7 +113,12 @@ def _skeleton(glosses: list) -> list[dict]:
 
 
 def _pass1_set(
-    glosses: list, agent: str, provider: str, model: str, out_dir: Path
+    glosses: list,
+    agent: str,
+    provider: str,
+    model: str,
+    out_dir: Path,
+    explain: bool = False,
 ) -> list[str]:
     raw = execute_prompt(
         "affect_set",
@@ -98,6 +127,7 @@ def _pass1_set(
             "agent": agent,
             "kinds": KINDS,
             "glossary": GLOSSARY,
+            "explain": explain,
         },
         prompts_dir=PROMPTS_DIR,
         temperature=0.7,
@@ -125,6 +155,7 @@ def _pass2_locate(
     provider: str,
     model: str,
     out_dir: Path,
+    explain: bool = False,
 ) -> dict:
     spec = KIND_SPECS[kind]
     raw = execute_prompt(
@@ -139,6 +170,7 @@ def _pass2_locate(
             "relational": spec["relational"],
             "toward_hint": spec.get("toward_hint", ""),
             "skeleton": skeleton,
+            "explain": explain,
         },
         prompts_dir=PROMPTS_DIR,
         temperature=0.7,
@@ -183,6 +215,73 @@ def _build_predictions(located: dict, agent: str, valid_ids: set) -> list[dict]:
 
 
 SUPPORTED = ["loss", "hope", "guilt", "betrayal"]
+
+
+def _explain_run(provider: str, model: str) -> int:
+    """FR-606 explain-mode autopsy: ONE draw, beat-quoted rationale per delta, linted.
+
+    NOT scored (J: correction 1 — the rationale demand perturbs the output
+    distribution, so an explain draw must never be mixed into a recall number). This
+    prints, per located delta, the model's own one-line reason, the code-side
+    quote-check verdict, and the cited beat's gold prose — the FR-605 autopsy for free.
+    Dumps live under results/l7_twopass_explain/ (separate from scored draws).
+    """
+    explain_dir = RESULTS_DIR / "l7_twopass_explain"
+    print("== FR-606 EXPLAIN MODE (one draw, NOT scored) ==")
+    print(
+        "  rationale demand perturbs placement (J: correction 1) -> this draw is a "
+        "diagnostic, never a recall number.\n"
+    )
+    total = 0
+    quote_ok = 0
+    for gt_path in sorted(GT_DIR.glob("*.yaml")):
+        genre = ev._genre_name(gt_path)
+        tbi = ev._load_gt_affects(gt_path)
+        prot = _protagonist(tbi)
+        glosses = load_glosses_with_kinds(gt_path)
+        gloss_by_id = {str(g.get("id")): str(g.get("gloss", "")) for g in glosses}
+        skeleton = _skeleton(glosses)
+        out_dir = explain_dir / "throughlines" / genre
+
+        named = _pass1_set(glosses, prot, provider, model, out_dir, explain=True)
+        print(f"-- {genre} / {prot} -- named: {', '.join(named) or '(none)'}")
+        for kind in named:
+            try:
+                loc = _pass2_locate(
+                    glosses,
+                    prot,
+                    kind,
+                    skeleton,
+                    provider,
+                    model,
+                    out_dir,
+                    explain=True,
+                )
+            except Exception as exc:  # hard failure -> skip, not a crash
+                print(f"  x {kind}: {exc}")
+                continue
+            rationale = str(loc.get("rationale") or "").strip()
+            cited = " ".join(
+                gloss_by_id.get(str(loc.get(op)), "")
+                for op in ("open", "close")
+                if loc.get(op) is not None
+            )
+            ok = bool(rationale) and _rationale_quotes_beat(rationale, cited)
+            total += 1
+            quote_ok += int(ok)
+            flag = "quote-OK" if ok else "NO-QUOTE"
+            print(
+                f"  {kind:12} open={str(loc.get('open')):>4} "
+                f"close={str(loc.get('close')):>4}  [{flag}]"
+            )
+            print(f"      reason: {rationale or '(empty)'}")
+        print()
+    print(
+        f"== quote-check: {quote_ok}/{total} rationales quoted >=3 consecutive words "
+        f"from a cited beat =="
+    )
+    print(f"   explain dumps: {explain_dir}")
+    return 0
 
 
 def _autopsy(pred: list, tbi: dict, prot: str, order: dict) -> dict:
@@ -307,10 +406,23 @@ def _run_draw(draw: int, provider: str, model: str) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description="FR-605 two-pass affect spike")
     ap.add_argument("--draws", type=int, default=3)
+    ap.add_argument(
+        "--explain",
+        action="store_true",
+        help=(
+            "FR-606: run ONE explain-mode draw that emits a beat-quoted rationale per "
+            "delta, lint each rationale's quote, and print it next to the gold prose. "
+            "NOT scored (J: explain perturbs the distribution) — never folded into a "
+            "recall number; returns before the scored verdict."
+        ),
+    )
     args = ap.parse_args()
     provider = os.getenv("PROVIDER", "anthropic")
     model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
     TWOPASS_L7.mkdir(parents=True, exist_ok=True)
+
+    if args.explain:
+        return _explain_run(provider, model)
 
     arm_a = _arm_a_baseline()
     print("== arm A (char-pinned single pass, baseline from FR-604) ==")
@@ -375,7 +487,7 @@ def main() -> int:
     print("\n== collapse autopsy (two-pass, supported kinds, summed) ==")
     print(f"  hits {ap_tot['hit']}  misses {miss}")
     print(
-        f"  wrong_beat {ap_tot['wrong_beat']} ({wb_share*100:.0f}% of misses)  "
+        f"  wrong_beat {ap_tot['wrong_beat']} ({wb_share * 100:.0f}% of misses)  "
         f"[baseline 71%]  off_by_one {ap_tot['off_by_one']}  "
         f"op_flipped {ap_tot['op_flipped']}  dropped {ap_tot['dropped']}"
     )

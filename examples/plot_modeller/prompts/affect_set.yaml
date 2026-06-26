@@ -34,6 +34,15 @@ user: |
   kinds:
     - loss
     - hope
+  {%- if state.explain %}
+
+  EXPLAIN MODE: after the kinds list, also add a `reasons:` mapping — one line per
+  feeling you named, each MUST quote >=3 consecutive words from the beat that shows
+  it (this is a diagnostic; the kinds list above is unchanged):
+
+  reasons:
+    loss: "<=1 sentence quoting >=3 consecutive words from a beat>"
+  {%- endif %}
 
   The beats:
   {% for g in state.glosses %}
