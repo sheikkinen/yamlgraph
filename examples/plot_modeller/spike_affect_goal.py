@@ -125,8 +125,13 @@ def _locate_goal(
     provider: str,
     model: str,
     out_dir: Path,
+    explain: bool = False,
 ) -> dict:
-    """Pass 2: locate open/close (and referent when goals are injected)."""
+    """Pass 2: locate open/close (and referent when goals are injected).
+
+    When ``explain`` is set, the FR-606 ``{% if state.explain %}`` rationale block
+    fires and each located delta carries the model's own <=1-sentence, >=3-word
+    beat-quoted justification — the probe FR-606 built and FR-607 never turned on."""
     spec = KIND_SPECS[kind]
     prompt = "affect_locate_goal" if goals else "affect_locate"
     state = {
@@ -139,7 +144,7 @@ def _locate_goal(
         "relational": spec["relational"],
         "toward_hint": spec.get("toward_hint", ""),
         "skeleton": skeleton,
-        "explain": False,
+        "explain": explain,
     }
     if goals:
         state["goals"] = goals
@@ -193,7 +198,28 @@ def _build_predictions(
     return [{"id": bid, "eff_affect": deltas} for bid, deltas in by_beat.items()]
 
 
-def _run_arm(mode: str, draw: int, provider: str, model: str, descs: dict) -> dict:
+def _gt_referents(tbi: dict, agent: str) -> dict[str, set[str]]:
+    """GT referent goal(s) per affect kind for the protagonist — the answer key the
+    autopsy scores the model's bound referent against."""
+    out: dict[str, set[str]] = {}
+    for ds in tbi.values():
+        for d in ds:
+            if _norm(d.get("char")) != _norm(agent):
+                continue
+            ref = d.get("referent")
+            if ref:
+                out.setdefault(_norm(d.get("kind")), set()).add(str(ref))
+    return out
+
+
+def _run_arm(
+    mode: str,
+    draw: int,
+    provider: str,
+    model: str,
+    descs: dict,
+    explain: bool = False,
+) -> dict:
     """One draw of one arm. mode in {control, modeA, modeB}."""
     agg = {
         "strict_rh": 0,
@@ -205,6 +231,7 @@ def _run_arm(mode: str, draw: int, provider: str, model: str, descs: dict) -> di
         "set_named": 0,
         "set_gt": 0,
     }
+    arm_autopsy: list[dict] = []
     for gt_path in sorted(GT_DIR.glob("*.yaml")):
         genre = ev._genre_name(gt_path)
         tbi = ev._load_gt_affects(gt_path)
@@ -231,10 +258,34 @@ def _run_arm(mode: str, draw: int, provider: str, model: str, descs: dict) -> di
         for kind in named:
             try:
                 located[kind] = _locate_goal(
-                    glosses, prot, kind, skeleton, goals, provider, model, out_dir
+                    glosses,
+                    prot,
+                    kind,
+                    skeleton,
+                    goals,
+                    provider,
+                    model,
+                    out_dir,
+                    explain=explain,
                 )
             except Exception as exc:  # hard failure -> skip, not a crash
                 print(f"  x {mode}/{genre}/{prot}/{kind}: {exc}")
+
+        if explain and mode == "modeA":
+            gt_refs = _gt_referents(tbi, prot)
+            for kind, loc in located.items():
+                pred_ref = loc.get("referent")
+                refs = gt_refs.get(_norm(kind), set())
+                arm_autopsy.append(
+                    {
+                        "genre": genre,
+                        "kind": kind,
+                        "pred_ref": pred_ref,
+                        "gt_refs": sorted(refs),
+                        "hit": pred_ref is not None and str(pred_ref) in refs,
+                        "rationale": str(loc.get("rationale", "")).strip(),
+                    }
+                )
 
         pred = _build_predictions(located, prot, valid_ids, goal_ids)
 
@@ -259,6 +310,7 @@ def _run_arm(mode: str, draw: int, provider: str, model: str, descs: dict) -> di
         "ref_recall": agg["ref_rh"] / gt if gt else 0.0,
         "set_recall": agg["set_named"] / agg["set_gt"] if agg["set_gt"] else 0.0,
         "counts": agg,
+        "autopsy": arm_autopsy,
     }
 
 
@@ -287,11 +339,20 @@ def _run_arm_draws(
 def main() -> int:
     ap = argparse.ArgumentParser(description="FR-607 goal-anchored affect spike")
     ap.add_argument("--draws", type=int, default=2)
+    ap.add_argument(
+        "--explain",
+        action="store_true",
+        help="FR-606+607 referent autopsy: 1 mode-A draw with the rationale probe on, "
+        "printing the model's own reason for each goal binding (hits and misses).",
+    )
     args = ap.parse_args()
     provider = os.getenv("PROVIDER", "anthropic")
     model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     descs = yaml.safe_load(GOAL_DESCS.read_text(encoding="utf-8"))
+
+    if args.explain:
+        return _explain_autopsy(provider, model, descs)
 
     arm_a = _arm_a_baseline()
     print("== arm A (char-pinned single pass, FR-604 baseline) ==")
@@ -363,6 +424,41 @@ def main() -> int:
             f"{b_strict:.3f} beats arm A {ARM_A_RECALL:.3f}. Goal-anchoring earns its cost."
         )
     print(f"  {verdict}")
+    return 0
+
+
+def _explain_autopsy(provider: str, model: str, descs: dict) -> int:
+    """FR-606 + FR-607 synthesis: run ONE mode-A draw (GT-goal ceiling) with the
+    FR-606 rationale probe on, and read WHY the model binds the goal it binds.
+
+    FR-607 refuted goal-anchoring with referent binding 0.143 — even handed the
+    exact GT goal among leak-audited distractors, the model picks the wrong sibling
+    goal ~86% of the time. That number says THAT it fails; only the model's own
+    rationale (the FR-606 probe FR-607 never turned on) says WHY."""
+    print(
+        "== FR-606+607 referent autopsy: mode A (GT-goal ceiling), 1 draw, --explain ==\n"
+    )
+    res = _run_arm("modeA", 1, provider, model, descs, explain=True)
+    rows = res["autopsy"]
+    hits = [r for r in rows if r["hit"]]
+    misses = [r for r in rows if not r["hit"]]
+    print(
+        f"referent binding: {len(hits)}/{len(rows)} hit "
+        f"({len(hits) / len(rows):.3f})\n"
+        if rows
+        else "no rows\n"
+    )
+    for label, group in (("MISS", misses), ("HIT", hits)):
+        if not group:
+            continue
+        print(f"--- {label} ({len(group)}) ---")
+        for r in group:
+            gt = ", ".join(r["gt_refs"]) or "(none)"
+            print(
+                f"[{label}] {r['genre']}/{r['kind']}: pred={r['pred_ref']}  gt={{{gt}}}"
+            )
+            print(f"        why: {r['rationale'] or '(no rationale emitted)'}")
+        print()
     return 0
 
 

@@ -188,6 +188,37 @@ for future appraisal work: the 28 GT referents (now part of ground truth), the a
 referent scorer, the validator, and the leak audit. The refuted prompts and harness are
 kept as the recorded experiment (per the FR-604/605 spike convention).
 
+## Autopsy Addendum (2026-06-26) — WHY the model binds the wrong goal
+
+The 0.143 referent-binding number says *that* goal-binding fails; it does not say *why*.
+FR-606 built a beat-quoted `rationale` probe precisely to answer such questions but it was
+never turned on (its judge warned it "risks being a default-off field nothing ever turns
+on"). `spike_affect_goal.py --explain` finally consumes it: one mode-A draw with the
+FR-606 probe on, printing the model's own ≥3-word beat-quoted reason for each binding.
+Log: `logs/fr607-referent-autopsy.log`.
+
+**Finding: the errors are not random goal-picking — they are systematic proximate↔terminal
+substitutions, and the referent is entangled with the CLOSE-beat choice.** The model binds
+each feeling to *the goal its chosen close beat resolves*, and it anchors the close on the
+dramatic climax — so it names the terminal goal where the GT scoped the proximate one. Its
+own rationales quote the terminal beat:
+
+| genre / kind | model bound | GT referent | the model's tell |
+|---|---|---|---|
+| quest / hope | `legitimize_queen` (F8 coronation) | `retrieve_crown` (F6 surfacing) | rationale quotes F8 "places the Sunken Crown on Queen Livia's head" |
+| detective / hope | `deliver_witness` | `deliver_justice` | rationale cites F8 "the guild's hold on the judiciary is broken" |
+| horror / hope | `find_exit` | `reach_surface` | rationale quotes F7 "emerge from the shaft into grey daylight" — near-synonym granularity |
+| scifi / guilt | `save_Jonas` (personal) | `expose_ARIA` (systemic) | binds the salient personal goal, not the investigation |
+
+(One apparent miss, salt-road `hidden_blessing` → GT referent `(none)`, is a scoring
+artifact: the GT delta carries no referent, so any binding fails by construction.)
+
+**Implication.** This explains the +0.000 lift mechanically: the goal label is *downstream*
+of where the model ends the arc, so a flat goal list cannot move placement — the lever is
+constraining *which beat counts as the close* (proximate resolution vs terminal climax).
+The disambiguator is likely not a better goal menu but the **L6 enables/threatens edge**
+that pins the close to the proximate goal's beat. Test that before building (see next FR).
+
 ## Alternatives Considered
 
 - **Better beat-placement prompting (continue FR-605's direction).** Rejected by the
