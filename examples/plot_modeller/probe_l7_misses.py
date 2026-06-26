@@ -173,6 +173,72 @@ def _kindwrong_members(truth_by_id: dict, pred_by_id: dict) -> list[dict]:
     return out
 
 
+def _windowed_match(
+    anchor_by_id: dict, cand_by_id: dict, order: list[str], window: int
+) -> tuple[int, list[dict]]:
+    """FR-602 -- greedy windowed bipartite match mirroring frozen ``_match_count``.
+
+    Identical call convention to the gate's ``_match_count`` (``_affect_matches(a, b)``
+    with ``a`` from ``anchor_by_id`` and ``b`` from ``cand_by_id``), but a candidate
+    on a beat within +/-``window`` of the anchor beat may match -- nearest beat first,
+    so an exact-beat match is always preferred and a neighbour is taken only when no
+    exact match remains. ``window=0`` reduces EXACTLY to the per-beat gate (asserted
+    by the sweep tie-out). Each candidate is used at most once (``(beat, pos)`` keyed),
+    so a wider window cannot double-count. Returns ``(hits, neighbour_members)`` where
+    members carry only the off!=0 matches (the beat-displaced recoveries to be read).
+
+    Correction #4 is satisfied for free: ``_affect_matches`` requires op+char+kind
+    (kind exact), so a +/-1 neighbour that differs in kind is NEVER admitted.
+    """
+    from evaluate import _affect_matches  # frozen matcher, imported not copied
+
+    idx_of = {b: k for k, b in enumerate(order)}
+    offsets = [0]
+    for off in range(1, window + 1):
+        offsets += [-off, off]  # nearest-first: 0, -1, +1, -2, +2, ...
+
+    used: set[tuple[str, int]] = set()
+    hits = 0
+    members: list[dict] = []
+    for bid, a_deltas in anchor_by_id.items():
+        i = idx_of.get(bid)
+        for a in a_deltas:
+            for off in offsets:
+                if off == 0:
+                    nb: str | None = bid
+                elif i is None:
+                    continue
+                else:
+                    j = i + off
+                    nb = order[j] if 0 <= j < len(order) else None
+                if nb is None:
+                    continue
+                hit_here = False
+                for pos, b in enumerate(cand_by_id.get(nb, [])):
+                    if (nb, pos) in used:
+                        continue
+                    if _affect_matches(a, b):
+                        used.add((nb, pos))
+                        hits += 1
+                        if off != 0:
+                            members.append(
+                                {
+                                    "anchor_id": bid,
+                                    "cand_id": nb,
+                                    "off": off,
+                                    "op": _norm(a.get("op")),
+                                    "char": a.get("char"),
+                                    "kind": _norm(a.get("kind")),
+                                    "toward": a.get("toward"),
+                                }
+                            )
+                        hit_here = True
+                        break
+                if hit_here:
+                    break
+    return hits, members
+
+
 def _licensing_verdict(
     miss: dict,
     anchor_id: str,
@@ -331,6 +397,172 @@ def kindwrong_report() -> int:
     print("\n== confusion pairs (op | gt_kind -> pred_kind) ==")
     for (op, gk, pk), n in pairs.most_common():
         print(f"  [{op}] {gk} -> {pk}: {n}")
+    return 0
+
+
+def sweep_report() -> int:
+    """FR-602 -- deterministic gate beat-tolerance window sweep on post-FR-600 GT.
+
+    Scores the re-annotated ground truth against the EXISTING (post-FR-601)
+    classifier output at match windows +/-0, +/-1, +/-2, +/-3, reporting BOTH
+    ``affect_recall`` and ``affect_precision`` at each (the precision guard the
+    Judge held load-bearing). Window 0 ties out to the frozen ``_l7_counts`` per
+    genre before any wider window is trusted. NO LLM, NO model run, NO mutation of
+    the canonical gate: the windowing lives in this probe (the copy/flag), the gate
+    in ``evaluate.py`` is imported read-only and stays strict (+/-0).
+
+    The decision artifact: BEAT-OFF recoverable = recall_hits(+/-1) - recall_hits(0).
+    Every off!=0 recall member at +/-1 is dumped (predicted beat id, GT beat id,
+    shared op/char/kind) so the genuine one-beat displacements can be read before
+    any tolerance is recommended (AC#4). If that count is ~0, FR-602 closes unstarted.
+
+    Persists the committed dump (Judge correction #1) to
+    ``fixtures/affect-licensing/fr602-window-sweep.md``.
+    """
+    windows = (0, 1, 2, 3)
+    agg = {w: {"recall_hits": 0, "precision_hits": 0} for w in windows}
+    gt_total = 0
+    pred_total = 0
+    beatoff_at_1: list[dict] = []
+    gloss_lookup: dict[str, dict[str, str]] = {}
+
+    for gt_path in sorted(GT_DIR.glob("*.yaml")):
+        genre = gt_path.stem
+        pred_path = L7_DIR / f"{genre}.yaml"
+        if not pred_path.exists():
+            print(f"  ! {genre}: no classifier output at {pred_path}")
+            continue
+        predicted = yaml.safe_load(pred_path.read_text(encoding="utf-8"))
+        truth_by_id = _load_gt_affects(gt_path)
+        order = list(truth_by_id.keys())
+        # restrict pred to GT beats -- mirrors the frozen gate denominator exactly
+        pred_by_id = {
+            b: v for b, v in _pred_by_id(predicted).items() if b in truth_by_id
+        }
+        gloss_lookup[genre] = {
+            g["id"]: g.get("gloss", "") for g in load_glosses_with_kinds(gt_path)
+        }
+        gt_total += sum(len(v) for v in truth_by_id.values())
+        pred_total += sum(len(v) for v in pred_by_id.values())
+
+        # tie-out: window 0 MUST reproduce the frozen gate before trusting wider w
+        gate = _l7_counts(predicted, truth_by_id)
+        r0, _ = _windowed_match(truth_by_id, pred_by_id, order, 0)
+        p0, _ = _windowed_match(pred_by_id, truth_by_id, order, 0)
+        assert r0 == gate["recall_hits"], (
+            f"{genre}: window-0 recall tie-out FAILED -- {r0} != gate "
+            f"{gate['recall_hits']} (windowed matcher does not replicate the gate)"
+        )
+        assert p0 == gate["precision_hits"], (
+            f"{genre}: window-0 precision tie-out FAILED -- {p0} != gate "
+            f"{gate['precision_hits']}"
+        )
+
+        for w in windows:
+            rh, rmem = _windowed_match(truth_by_id, pred_by_id, order, w)
+            ph, _ = _windowed_match(pred_by_id, truth_by_id, order, w)
+            agg[w]["recall_hits"] += rh
+            agg[w]["precision_hits"] += ph
+            if w == 1:
+                for m in rmem:
+                    m["genre"] = genre
+                    m["gt_gloss"] = gloss_lookup[genre].get(m["anchor_id"], "")
+                    m["pred_gloss"] = gloss_lookup[genre].get(m["cand_id"], "")
+                    beatoff_at_1.append(m)
+
+    def _frac(n: int, d: int) -> float:
+        return round(n / d, 3) if d else 0.0
+
+    recall = {w: _frac(agg[w]["recall_hits"], gt_total) for w in windows}
+    precision = {w: _frac(agg[w]["precision_hits"], pred_total) for w in windows}
+    beatoff_recoverable = agg[1]["recall_hits"] - agg[0]["recall_hits"]
+
+    # --- console report -----------------------------------------------------
+    print(f"== FR-602 window sweep (GT deltas={gt_total}, pred deltas={pred_total}) ==")
+    print(f"{'window':>8} {'recall':>10} {'precision':>11} {'recall_hits':>12}")
+    for w in windows:
+        print(
+            f"{('+/-' + str(w)):>8} {recall[w]:>10.3f} {precision[w]:>11.3f} "
+            f"{agg[w]['recall_hits']:>12}"
+        )
+    print(
+        f"\nBEAT-OFF recoverable at +/-1 (recall_hits[1]-recall_hits[0]): "
+        f"{beatoff_recoverable}"
+    )
+    print(
+        f"precision +/-0 -> +/-1: {precision[0]:.3f} -> {precision[1]:.3f} "
+        f"(delta {precision[1] - precision[0]:+.3f})"
+    )
+    print(f"\n== {len(beatoff_at_1)} genuine +/-1 BEAT-OFF recall members ==")
+    for m in beatoff_at_1:
+        tw = f" toward={m['toward']}" if m.get("toward") else ""
+        print(
+            f"  {m['genre']} GT={m['anchor_id']} -> PRED={m['cand_id']} "
+            f"(off {m['off']:+d}) {m['op']} {m['char']} {m['kind']}{tw}"
+        )
+        print(f"     GT   beat: {m['gt_gloss'][:88]}")
+        print(f"     PRED beat: {m['pred_gloss'][:88]}")
+
+    # --- committed dump (Judge correction #1) -------------------------------
+    fixtures = EXAMPLE_DIR / "fixtures" / "affect-licensing"
+    fixtures.mkdir(parents=True, exist_ok=True)
+    dump = fixtures / "fr602-window-sweep.md"
+    lines = [
+        "# FR-602 Window Sweep (committed dump)",
+        "",
+        "Deterministic gate beat-tolerance sweep on the **post-FR-600** re-annotated",
+        "ground truth and the **post-FR-601** classifier output. No LLM, no model run.",
+        "Canonical `main_l7` / `_l7_counts` imported read-only and untouched; window 0",
+        "ties out to the frozen gate per genre (asserted).",
+        "",
+        "Reproduce:",
+        "",
+        "```bash",
+        "cd examples/plot_modeller && ../../.venv/bin/python probe_l7_misses.py --sweep",
+        "```",
+        "",
+        f"GT deltas: {gt_total}  |  pred deltas (on GT beats): {pred_total}",
+        "",
+        "| window | affect_recall | affect_precision | recall_hits |",
+        "|--------|---------------|------------------|-------------|",
+    ]
+    for w in windows:
+        lines.append(
+            f"| +/-{w} | {recall[w]:.3f} | {precision[w]:.3f} | {agg[w]['recall_hits']} |"
+        )
+    lines += [
+        "",
+        f"**BEAT-OFF recoverable at +/-1** (recall_hits[1]-recall_hits[0]): "
+        f"**{beatoff_recoverable}**",
+        "",
+        f"**Precision guard** +/-0 -> +/-1: {precision[0]:.3f} -> {precision[1]:.3f} "
+        f"(delta {precision[1] - precision[0]:+.3f})",
+        "",
+        f"## Genuine +/-1 BEAT-OFF recall members ({len(beatoff_at_1)})",
+        "",
+    ]
+    if beatoff_at_1:
+        lines += [
+            "| genre | GT beat | PRED beat | off | op | char | kind |",
+            "|-------|---------|-----------|-----|----|----|----|",
+        ]
+        for m in beatoff_at_1:
+            lines.append(
+                f"| {m['genre']} | {m['anchor_id']} | {m['cand_id']} | "
+                f"{m['off']:+d} | {m['op']} | {m['char']} | {m['kind']} |"
+            )
+        lines.append("")
+        for m in beatoff_at_1:
+            lines += [
+                f"- **{m['genre']} {m['anchor_id']} -> {m['cand_id']}** "
+                f"({m['op']} {m['char']} {m['kind']}):",
+                f"  - GT   beat: {m['gt_gloss']}",
+                f"  - PRED beat: {m['pred_gloss']}",
+            ]
+    else:
+        lines.append("_None -- no GT delta is recovered by a +/-1 neighbour._")
+    dump.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"\n== committed dump -> {dump} ==")
     return 0
 
 
@@ -547,4 +779,6 @@ if __name__ == "__main__":
 
     if "--kindwrong" in sys.argv:  # FR-601: deterministic (c) read, no LLM
         raise SystemExit(kindwrong_report())
+    if "--sweep" in sys.argv:  # FR-602: deterministic window sweep, no LLM
+        raise SystemExit(sweep_report())
     raise SystemExit(main())
