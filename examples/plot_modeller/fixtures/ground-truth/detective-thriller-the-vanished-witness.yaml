@@ -150,6 +150,7 @@ functions:
       - op: open
         char: Marren
         kind: loss
+        referent: deliver_witness
 
   - id: F2b
     kind: mediation
@@ -245,6 +246,7 @@ functions:
       - op: open
         char: Marren
         kind: betrayal
+        referent: expose_corruption
         toward: Hagen
 
   - id: F5
@@ -277,9 +279,11 @@ functions:
       - op: close
         char: Marren
         kind: loss
+        referent: deliver_witness
       - op: open
         char: Marren
         kind: hope
+        referent: deliver_justice
 
   - id: F6
     kind: exposure
@@ -319,6 +323,7 @@ functions:
       - op: close
         char: Marren
         kind: betrayal
+        referent: expose_corruption
         toward: Hagen
 
   - id: F7
@@ -389,9 +394,11 @@ functions:
       - op: close
         char: Marren
         kind: hidden_blessing
+        referent: restore_order
       - op: close
         char: Marren
         kind: hope
+        referent: deliver_justice
 
 affect_policy:
   unclosed_is_error: true

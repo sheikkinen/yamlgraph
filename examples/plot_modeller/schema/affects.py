@@ -24,3 +24,7 @@ class AffectDelta(BaseModel):
     char: str
     kind: AffectKind
     toward: str | None = None
+    # FR-607: the goal (a motivation.goal/threatens.goal name) this feeling is an
+    # appraisal of. Optional — present on enriched ground truth and goal-anchored
+    # predictions, absent on the frozen-gate two-pass path.
+    referent: str | None = None

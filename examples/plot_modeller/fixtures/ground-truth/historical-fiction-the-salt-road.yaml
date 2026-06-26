@@ -104,6 +104,7 @@ functions:
       - op: open
         char: Naima
         kind: loss
+        referent: protect_traders
 
   - id: F2
     kind: lack
@@ -151,6 +152,7 @@ functions:
       - op: open
         char: Naima
         kind: hope
+        referent: expose_monopoly
 
   - id: F4
     kind: departure
@@ -244,6 +246,7 @@ functions:
       - op: close
         char: Naima
         kind: loss
+        referent: protect_traders
 
   - id: F7
     kind: pursuit
@@ -324,6 +327,7 @@ functions:
       - op: close
         char: Naima
         kind: hope
+        referent: expose_monopoly
 
   - id: F10
     kind: recognition
@@ -346,6 +350,7 @@ functions:
       - op: close
         char: Naima
         kind: guilt
+        referent: deliver_charter
         toward: Amadou
 
 affect_policy:

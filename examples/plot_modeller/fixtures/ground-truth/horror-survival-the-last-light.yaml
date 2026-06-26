@@ -98,6 +98,7 @@ functions:
       - op: open
         char: Brynn
         kind: loss
+        referent: reach_surface
 
   - id: F2
     kind: departure
@@ -208,6 +209,7 @@ functions:
       - op: open
         char: Brynn
         kind: guilt
+        referent: protect_crew
         toward: Fen
 
   - id: F5
@@ -271,9 +273,11 @@ functions:
       - op: open
         char: Brynn
         kind: hope
+        referent: reach_surface
       - op: close
         char: Brynn
         kind: loss
+        referent: reach_surface
 
   - id: F7
     kind: return

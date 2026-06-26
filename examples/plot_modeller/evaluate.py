@@ -18,6 +18,7 @@ Judgement constraints honoured:
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 
 import yaml
@@ -743,14 +744,115 @@ def main_l2(argv: list[str] | None = None) -> int:
 
 # English stopwords for Jaccard calculation (C6 — strip before computing overlap).
 _STOPWORDS = frozenset(
-    "a an the and or but in on at to for of is are was were be been being "
-    "has have had do does did will would shall should can could may might "
-    "not no nor so yet if then than that this these those it its he she "
-    "his her him they them their we us our you your who whom which what "
-    "with from by as into through during before after above below between "
-    "out up down off over under again further once here there when where "
-    "why how all each every both few more most other some such only own "
-    "same just also very".split()
+    [
+        "a",
+        "an",
+        "the",
+        "and",
+        "or",
+        "but",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "has",
+        "have",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "shall",
+        "should",
+        "can",
+        "could",
+        "may",
+        "might",
+        "not",
+        "no",
+        "nor",
+        "so",
+        "yet",
+        "if",
+        "then",
+        "than",
+        "that",
+        "this",
+        "these",
+        "those",
+        "it",
+        "its",
+        "he",
+        "she",
+        "his",
+        "her",
+        "him",
+        "they",
+        "them",
+        "their",
+        "we",
+        "us",
+        "our",
+        "you",
+        "your",
+        "who",
+        "whom",
+        "which",
+        "what",
+        "with",
+        "from",
+        "by",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "above",
+        "below",
+        "between",
+        "out",
+        "up",
+        "down",
+        "off",
+        "over",
+        "under",
+        "again",
+        "further",
+        "once",
+        "here",
+        "there",
+        "when",
+        "where",
+        "why",
+        "how",
+        "all",
+        "each",
+        "every",
+        "both",
+        "few",
+        "more",
+        "most",
+        "other",
+        "some",
+        "such",
+        "only",
+        "own",
+        "same",
+        "just",
+        "also",
+        "very",
+    ]
 )
 
 
@@ -1555,6 +1657,160 @@ def _l7_counts(predicted: list | None, truth_by_id: dict) -> dict:
         counts["precision_hits"] += _match_count(p_deltas, t_deltas)
 
     return counts
+
+
+# --- FR-607: additive referent-aware scoring (frozen _l7_counts untouched) -------
+
+
+def _goal_vocab(path: Path) -> set[str]:
+    """All goal names in a GT file: ``motivation.goal`` + ``threatens.goal``.
+
+    The named goal vocabulary lives inside ``functions[].motivation``/``threatens``,
+    NOT in the top-level ``goals:`` block (which holds world-state predicates) — see
+    FR-607 judgement correction 2.
+    """
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    vocab: set[str] = set()
+    for fn in data.get("functions", []):
+        for key in ("motivation", "threatens"):
+            blk = fn.get(key)
+            if isinstance(blk, dict) and blk.get("goal"):
+                vocab.add(blk["goal"])
+    return vocab
+
+
+def validate_referents(path: Path) -> list[str]:
+    """Return a list of violations: affect deltas with a missing referent or a
+    referent absent from the file's goal vocabulary. Empty list == valid (FR-607 AC).
+    """
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    vocab = _goal_vocab(path)
+    bad: list[str] = []
+    for fn in data.get("functions", []):
+        for a in fn.get("eff_affect") or []:
+            if not isinstance(a, dict):
+                continue
+            ref = a.get("referent")
+            label = f"{fn.get('id')}: {a.get('op')} {a.get('kind')}"
+            if not ref:
+                bad.append(f"{label} has no referent")
+            elif ref not in vocab:
+                bad.append(f"{label} referent {ref!r} not in goal vocab")
+    return bad
+
+
+def _word_ngrams(text: str, n: int) -> set[tuple[str, ...]]:
+    """Set of n-grams over lowercase word tokens (punctuation-insensitive)."""
+    words = re.findall(r"\w+", str(text or "").lower(), re.UNICODE)
+    return {tuple(words[i : i + n]) for i in range(len(words) - n + 1)}
+
+
+def audit_goal_descriptions(
+    descriptions: dict[str, str],
+    glosses: list[str],
+    *,
+    min_words: int = 3,
+) -> list[str]:
+    """Flag injected goal descriptions that LEAK a beat (FR-607 J correction 2).
+
+    A description leaks when it shares a run of >= ``min_words`` consecutive word
+    tokens with any beat gloss — that is the surface by which an authored goal text
+    can smuggle in where an emotion resolves. Returns ``goal: '<ngram>'`` strings;
+    empty list == clean. Authoring the descriptions is the fattest leak surface, so
+    this audit gates them (witness test asserts zero leaks before live injection).
+    """
+    gloss_ngrams: set[tuple[str, ...]] = set()
+    for g in glosses:
+        gloss_ngrams |= _word_ngrams(g, min_words)
+    leaks: list[str] = []
+    for goal, desc in descriptions.items():
+        for ng in _word_ngrams(desc, min_words):
+            if ng in gloss_ngrams:
+                leaks.append(f"{goal}: {' '.join(ng)!r}")
+    return leaks
+
+
+def _referent_beats(truth_by_id: dict) -> dict[str, set[str]]:
+    """referent goal -> set of beat ids where that goal's affect is annotated."""
+    out: dict[str, set[str]] = {}
+    for bid, deltas in truth_by_id.items():
+        for d in deltas or []:
+            if isinstance(d, dict) and d.get("referent"):
+                out.setdefault(_norm(d["referent"]), set()).add(str(bid))
+    return out
+
+
+def _l7_counts_referent(
+    predicted: list | None,
+    truth_by_id: dict,
+    *,
+    require_referent: bool,
+) -> dict:
+    """FR-607 referent-aware tally (ADDITIVE — frozen ``_l7_counts`` is untouched).
+
+    A predicted delta matches a GT delta when op/kind/char/toward match (the frozen
+    ``_affect_matches``, which already ignores beat) AND the predicted beat falls
+    within the GT goal's annotated beat-set — not only the single annotated beat.
+    With ``require_referent`` the prediction must also NAME the same referent goal.
+
+    J correction 1 (PRIMARY): this LOOSENS the matcher, so it mechanically inflates
+    recall independent of any model gain. The honest lift is
+    ``(goal-injected, require_referent=True)`` minus the control arm
+    ``(pre-existing non-goal two-pass, require_referent=False)``; the False arm is the
+    scorer-relaxation baseline. Precision still guards invention: a referent not in
+    the injected set, or a beat outside any matching goal's set, is a false positive.
+    """
+    ref_beats = _referent_beats(truth_by_id)
+    gt_flat: list[tuple[str, dict]] = [
+        (str(bid), d)
+        for bid, deltas in truth_by_id.items()
+        for d in (deltas or [])
+        if isinstance(d, dict)
+    ]
+    pred_flat: list[tuple[str, dict]] = []
+    if isinstance(predicted, list):
+        for item in predicted:
+            if isinstance(item, dict) and item.get("id"):
+                for d in item.get("eff_affect") or []:
+                    if isinstance(d, dict):
+                        pred_flat.append((str(item["id"]), d))
+
+    def compatible(p_beat: str, p: dict, t_beat: str, t: dict) -> bool:
+        if not _affect_matches(p, t):
+            return False
+        ref = _norm(t.get("referent"))
+        if ref and p_beat not in ref_beats.get(ref, {t_beat}):
+            return False
+        return not (require_referent and _norm(p.get("referent")) != ref)
+
+    used_p: set[int] = set()
+    recall_hits = 0
+    for t_beat, t in gt_flat:
+        for k, (p_beat, p) in enumerate(pred_flat):
+            if k in used_p:
+                continue
+            if compatible(p_beat, p, t_beat, t):
+                recall_hits += 1
+                used_p.add(k)
+                break
+
+    used_t: set[int] = set()
+    precision_hits = 0
+    for p_beat, p in pred_flat:
+        for k, (t_beat, t) in enumerate(gt_flat):
+            if k in used_t:
+                continue
+            if compatible(p_beat, p, t_beat, t):
+                precision_hits += 1
+                used_t.add(k)
+                break
+
+    return {
+        "recall_hits": recall_hits,
+        "gt": len(gt_flat),
+        "precision_hits": precision_hits,
+        "pred": len(pred_flat),
+    }
 
 
 def score_l7(

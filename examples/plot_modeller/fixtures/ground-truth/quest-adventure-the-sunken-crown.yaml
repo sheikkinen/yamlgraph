@@ -234,6 +234,7 @@ functions:
       - op: open
         char: Eira
         kind: hope
+        referent: retrieve_crown
 
   - id: F5
     kind: struggle
@@ -301,9 +302,11 @@ functions:
       - op: close
         char: Eira
         kind: loss
+        referent: retrieve_crown
       - op: close
         char: Eira
         kind: hope
+        referent: retrieve_crown
 
   - id: F7
     kind: return
@@ -373,6 +376,7 @@ functions:
       - op: close
         char: Eira
         kind: guilt
+        referent: legitimize_queen
         toward: Queen Livia
 
 affect_policy:

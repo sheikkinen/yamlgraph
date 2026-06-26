@@ -1,0 +1,36 @@
+# FR-607 mode B helper — derive the protagonist's NAMED goals from the beats so
+# the goal-anchored locate pass can run on MODEL goals (the production path), not
+# only the GT goal vocabulary (mode A, the ceiling). Output mirrors the injected
+# shape the locate pass consumes: a snake_case id + one abstract line. This is a
+# mini-L2: the model proposes what the protagonist is trying to achieve, reading
+# the beats it already sees. Referent ids it later binds will be ITS OWN ids, so
+# mode B is scored on localization recall (open/close vs the frozen gate), not on
+# referent-id match against GT.
+system: >
+  You read a story's beats and name the protagonist's goals — the end-states the
+  character is driving toward across the whole arc. You output YAML only — no prose,
+  no code fences.
+
+user: |
+  Read the beats below and name **{{ state.agent }}**'s goals: the 3–6 end-states
+  {{ state.agent }} is trying to bring about across the story. A goal is a lasting
+  aim (rescue someone, recover an object, expose a wrong, reach a place, keep
+  companions alive) — NOT a single action in one beat.
+
+  For each goal give:
+  - a short snake_case id (e.g. retrieve_crown, protect_crew, expose_lie)
+  - a one-line description of the end-state, in your own words
+
+  Output exactly this YAML shape and nothing else:
+
+  - id: <snake_case>
+    desc: <one line>
+  - id: <snake_case>
+    desc: <one line>
+
+  The beats:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Name {{ state.agent }}'s goals now — YAML only.

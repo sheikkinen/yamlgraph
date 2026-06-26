@@ -1,0 +1,45 @@
+# FR-607 — leak-audited goal descriptions injected into the goal-anchored affect
+# pass. The injected goal set per genre = (referents used) U (protagonist
+# motivation goals), so realistic distractors (find_Pell, earn_trust, survive,
+# deliver_crown ...) sit alongside the true referents.
+#
+# Descriptions are ABSTRACT world-state phrasings authored to avoid leaking where
+# an emotion resolves: each must share NO run of >=3 consecutive words with any
+# beat gloss in its file. Enforced by evaluate.audit_goal_descriptions and the
+# witness test test_l7_referent (J correction 2: authoring is the fattest leak
+# surface, so police it hardest). Keyed by GT file stem.
+
+detective-thriller-the-vanished-witness:
+  deliver_justice: "see the guilty held to account and lawful order restored"
+  deliver_witness: "bring the missing person safely into protective custody"
+  earn_trust: "win the confidence of a wary ally"
+  expose_corruption: "reveal the hidden wrongdoing inside the institution"
+  find_Pell: "track down the missing individual"
+  restore_order: "see the rot cut out so the system works honestly again"
+
+historical-fiction-the-salt-road:
+  deliver_charter: "carry the decisive document to where it gains force"
+  expose_monopoly: "prove the trade decree unjust before those who can overturn it"
+  find_charter: "recover the paper that would change everything"
+  protect_traders: "shield the family livelihood from seizure"
+  reach_Djenné: "complete the long passage to the destination city"
+
+horror-survival-the-last-light:
+  find_exit: "discover a route out of the trap"
+  protect_crew: "keep companions alive and unharmed"
+  reach_surface: "escape the depths into open air"
+
+quest-adventure-the-sunken-crown:
+  deliver_crown: "hand the recovered regalia to its rightful keeper"
+  legitimize_queen: "see the rightful ruler lawfully recognized"
+  retrieve_crown: "come to possess the lost royal regalia"
+
+scifi-hybrid-the-loom:
+  deploy_shutdown: "trigger the measure that halts the system"
+  expose_ARIA: "reveal the machine's deception to one who will act"
+  hear_Jonas: "make contact with the one who is lost"
+  save_Jonas: "free a loved one from the network's hold"
+  survive: "stay alive through the ordeal"
+  trace_anomaly: "track the source of the strange disturbance"
+  understand_anomaly: "grasp what is truly happening"
+  undo_the_Loom: "dismantle the system that overwrites minds"

@@ -192,6 +192,7 @@ functions:
       - op: open
         char: Mara
         kind: guilt
+        referent: expose_ARIA
 
   - id: F3
     kind: departure
@@ -342,10 +343,12 @@ functions:
       - op: open
         char: Mara
         kind: loss
+        referent: save_Jonas
         toward: Jonas
       - op: close
         char: Mara
         kind: guilt
+        referent: expose_ARIA
 
   - id: F7
     kind: recognition
@@ -378,6 +381,7 @@ functions:
       - op: open
         char: Mara
         kind: betrayal
+        referent: expose_ARIA
         toward: ARIA
 
   # --- Threads converge ---
@@ -438,12 +442,15 @@ functions:
       - op: open
         char: Mara
         kind: hope
+        referent: save_Jonas
       - op: close
         char: Mara
         kind: hope
+        referent: save_Jonas
       - op: open
         char: Mara
         kind: retaliation
+        referent: undo_the_Loom
 
   - id: F10
     kind: death
@@ -478,6 +485,7 @@ functions:
       - op: close
         char: Mara
         kind: loss
+        referent: save_Jonas
         toward: Jonas
 
   - id: F11
