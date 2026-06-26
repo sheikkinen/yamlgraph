@@ -566,6 +566,213 @@ def sweep_report() -> int:
     return 0
 
 
+def absent_report() -> int:
+    """Investigation -- decompose the (a) ABSENT residual: promptable or scale?
+
+    ABSENT = the model placed NO op+char+kind match within +/-2 of a licensed GT
+    beat (the residual after FR-600 re-anchoring + FR-601 kind cues). A prompt cue
+    can only convert a perception the model already has, so the lever decision turns
+    on WHY each beat is absent. Deterministic, no LLM: for every ABSENT miss this
+    splits on what the model DID emit, into descending order of promptability:
+
+      perceived_wrong_op  same char on the EXACT beat, wrong op  -> op-confusion cue
+      perceived_near      same char within +/-2 beats            -> anchoring cue
+      perceived_elsewhere same char somewhere in the plan        -> coverage cue
+      engaged_other_char  a delta on the beat, different char    -> whose-feeling cue
+      unperceived         nothing on the beat, char absent       -> detection floor / scale
+
+    The first four mean the model engaged the character or the beat (promptable);
+    only ``unperceived`` is the genuine scale ceiling. Also reports op/kind/relational
+    splits and beat-position thirds so any structural cluster surfaces. Persists to
+    ``results/l7/absent-decomposition.txt`` (gitignored scratch -- investigation, not
+    a judged artifact).
+    """
+    from collections import Counter
+
+    window = 2
+    rows: list[dict] = []
+    for gt_path in sorted(GT_DIR.glob("*.yaml")):
+        genre = gt_path.stem
+        pred_path = L7_DIR / f"{genre}.yaml"
+        if not pred_path.exists():
+            print(f"  ! {genre}: no classifier output at {pred_path}")
+            continue
+        predicted = yaml.safe_load(pred_path.read_text(encoding="utf-8"))
+        truth_by_id = _load_gt_affects(gt_path)
+        order = list(truth_by_id.keys())
+        pred_by_id = _pred_by_id(predicted)
+        gloss_by_id = {
+            g["id"]: g.get("gloss", "") for g in load_glosses_with_kinds(gt_path)
+        }
+        pred_chars = {_norm(d.get("char")) for ds in pred_by_id.values() for d in ds}
+
+        for bid, t_deltas in truth_by_id.items():
+            for miss in _unmatched_gt(t_deltas, pred_by_id.get(bid, [])):
+                if (
+                    _classify_licensed(miss, bid, pred_by_id, order, window)
+                    != "a_absent"
+                ):
+                    continue
+                op = _norm(miss.get("op"))
+                char = _norm(miss.get("char"))
+                kind = _norm(miss.get("kind"))
+                anchor_deltas = pred_by_id.get(bid, [])
+                char_on_anchor = any(
+                    _norm(d.get("char")) == char for d in anchor_deltas
+                )
+                idx = order.index(bid) if bid in order else None
+                char_near = False
+                if idx is not None:
+                    for off in range(-window, window + 1):
+                        if off == 0:
+                            continue
+                        j = idx + off
+                        if 0 <= j < len(order) and any(
+                            _norm(d.get("char")) == char
+                            for d in pred_by_id.get(order[j], [])
+                        ):
+                            char_near = True
+                            break
+
+                if char_on_anchor:
+                    perception = "perceived_wrong_op"
+                elif char_near:
+                    perception = "perceived_near"
+                elif char in pred_chars:
+                    perception = "perceived_elsewhere"
+                elif anchor_deltas:
+                    perception = "engaged_other_char"
+                else:
+                    perception = "unperceived"
+
+                third = "?"
+                if idx is not None and order:
+                    frac = idx / max(1, len(order) - 1)
+                    third = (
+                        "early" if frac < 1 / 3 else "mid" if frac < 2 / 3 else "late"
+                    )
+                rows.append(
+                    {
+                        "genre": genre,
+                        "anchor_id": bid,
+                        "op": op,
+                        "char": miss.get("char"),
+                        "kind": kind,
+                        "toward": miss.get("toward"),
+                        "pos": f"{(idx + 1) if idx is not None else '?'}/{len(order)}",
+                        "third": third,
+                        "perception": perception,
+                        "anchor_gloss": gloss_by_id.get(bid, ""),
+                    }
+                )
+
+    promptable = {
+        "perceived_wrong_op",
+        "perceived_near",
+        "perceived_elsewhere",
+        "engaged_other_char",
+    }
+    n = len(rows)
+    n_promptable = sum(1 for r in rows if r["perception"] in promptable)
+    n_unperceived = n - n_promptable
+
+    print(f"== (a) ABSENT decomposition: {n} members (window +/-{window}) ==\n")
+    order_perc = [
+        "perceived_wrong_op",
+        "perceived_near",
+        "perceived_elsewhere",
+        "engaged_other_char",
+        "unperceived",
+    ]
+    perc = Counter(r["perception"] for r in rows)
+    for p in order_perc:
+        tag = "PROMPTABLE" if p in promptable else "SCALE/FLOOR"
+        print(f"  {p:<20} {perc.get(p, 0):>2}  [{tag}]")
+    print(
+        f"\n  -> promptable (model engaged char or beat): {n_promptable}/{n}"
+        f"   |   unperceived (detection floor): {n_unperceived}/{n}"
+    )
+
+    print("\n  op split:        ", dict(Counter(r["op"] for r in rows)))
+    print("  kind dist:       ", dict(Counter(r["kind"] for r in rows)))
+    rel = Counter("relational" if r["kind"] in _RELATIONAL else "solo" for r in rows)
+    print("  relational/solo: ", dict(rel))
+    print("  position third:  ", dict(Counter(r["third"] for r in rows)))
+
+    print("\n== members ==")
+    for r in sorted(rows, key=lambda x: order_perc.index(x["perception"])):
+        tw = f" toward={r['toward']}" if r.get("toward") else ""
+        print(
+            f"  [{r['perception']:<18}] {r['genre']} {r['anchor_id']} "
+            f"({r['pos']},{r['third']}) {r['op']} {r['char']} {r['kind']}{tw}"
+        )
+        print(f"     anchor: {r['anchor_gloss'][:96]}")
+
+    L7_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = L7_DIR / "absent-decomposition.txt"
+    out_path.write_text(
+        yaml.safe_dump(rows, sort_keys=False, allow_unicode=True), encoding="utf-8"
+    )
+    print(f"\n== dump -> {out_path} ==")
+
+    # --- committed evidence dump -------------------------------------------
+    fixtures = EXAMPLE_DIR / "fixtures" / "affect-licensing"
+    fixtures.mkdir(parents=True, exist_ok=True)
+    md = fixtures / "l7-absent-decomposition.md"
+    lines = [
+        "# L7 (a) ABSENT Decomposition (committed evidence)",
+        "",
+        "Deterministic split of the (a) ABSENT residual (post-FR-600 GT,",
+        "post-FR-601 predictions) by what the model DID emit -- the lever decision",
+        "for whether the next L7 step is prompt engineering or model scale. No LLM.",
+        "",
+        "Reproduce:",
+        "",
+        "```bash",
+        "cd examples/plot_modeller && ../../.venv/bin/python probe_l7_misses.py --absent",
+        "```",
+        "",
+        f"## Perception split ({n} ABSENT members, window +/-{window})",
+        "",
+        "| perception | count | lever |",
+        "|------------|-------|-------|",
+    ]
+    for p in order_perc:
+        tag = "PROMPTABLE" if p in promptable else "SCALE/FLOOR"
+        lines.append(f"| {p} | {perc.get(p, 0)} | {tag} |")
+    lines += [
+        "",
+        f"**Promptable (model engaged char or beat): {n_promptable}/{n}  |  "
+        f"unperceived (detection floor): {n_unperceived}/{n}**",
+        "",
+        "## Structural cuts",
+        "",
+        f"- op split: {dict(Counter(r['op'] for r in rows))}",
+        f"- kind dist: {dict(Counter(r['kind'] for r in rows))}",
+        f"- relational/solo: {dict(rel)}",
+        f"- position third: {dict(Counter(r['third'] for r in rows))}",
+        "",
+        "## Members",
+        "",
+        "| perception | genre | beat | pos | op | char | kind |",
+        "|------------|-------|------|-----|----|----|----|",
+    ]
+    for r in sorted(rows, key=lambda x: order_perc.index(x["perception"])):
+        lines.append(
+            f"| {r['perception']} | {r['genre']} | {r['anchor_id']} | "
+            f"{r['pos']},{r['third']} | {r['op']} | {r['char']} | {r['kind']} |"
+        )
+    lines.append("")
+    for r in sorted(rows, key=lambda x: order_perc.index(x["perception"])):
+        lines.append(
+            f"- **{r['genre']} {r['anchor_id']}** [{r['perception']}] "
+            f"({r['op']} {r['char']} {r['kind']}): {r['anchor_gloss']}"
+        )
+    md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"== committed evidence -> {md} ==")
+    return 0
+
+
 def main() -> int:
     provider = os.getenv("PROVIDER", "anthropic")
     model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
@@ -781,4 +988,6 @@ if __name__ == "__main__":
         raise SystemExit(kindwrong_report())
     if "--sweep" in sys.argv:  # FR-602: deterministic window sweep, no LLM
         raise SystemExit(sweep_report())
+    if "--absent" in sys.argv:  # investigation: decompose (a) ABSENT, no LLM
+        raise SystemExit(absent_report())
     raise SystemExit(main())
