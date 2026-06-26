@@ -1,45 +1,73 @@
-# FR-596 — per-agent affect throughline (decomposition of the monolithic
-# assign_affects). One LLM pass narrates the emotional arc of a SINGLE character,
-# so salience becomes a property of the framing ("trace THIS person's feelings")
-# rather than an instruction the model must apply across the whole cast at once.
-# Output is free prose; the typed AffectDelta encoding is a separate pass.
+# FR-598 — single-pass per-beat affect CLASSIFIER (replaces the FR-596
+# affect_throughline prose narration AND the encode_affect transcription pass).
+# One LLM pass classifies each beat that touches ONE character into a typed
+# AffectDelta op, emitting YAML directly. The prose intermediate is deleted: it
+# was the literary genre that supplied interiority and synonym drift, and its
+# "every arc that opens should close" mandate authored arcs the beats never
+# licensed (the invention engine — FR-598 trace 019f01ef-dfe3 "kill the novel").
 system: >
-  You trace the emotional arc of ONE character through a story. You name where
-  their feelings OPEN and where they CLOSE, drawing only on the six affect kinds
-  named below. You narrate just this character's inner arc — not the plot, not
-  other people's feelings. You write plain prose: no YAML, no lists, no code
+  You classify a single character's affect, beat by beat. For each beat whose
+  text shows this character feeling one of six named kinds, you emit exactly one
+  typed operation — nothing else. Most beats carry no affect and emit nothing.
+  You never narrate, never explain, never connect one beat to another, and never
+  invent a feeling to complete an arc. You output YAML only — no prose, no code
   fences.
 
 user: |
-  Trace the emotional arc of **{{ state.agent }}** through the story below.
+  Classify the affect of **{{ state.agent }}** beat by beat.
 
-  Move through the beats in order and, for the beats that touch
-  {{ state.agent }}, say plainly what they FEEL and when that feeling RESOLVES.
-  Anchor every sentence to its beat id in parentheses, like "(F2)".
+  Go through the beats below in order. For each beat decide: does THIS beat's
+  text plainly show {{ state.agent }} feeling one of the six kinds? If yes, emit
+  ONE operation for that beat. If not — and MOST beats do not — emit nothing.
 
-  Draw only on these six affect kinds (name them explicitly when they apply):
-  - loss            — grief at something or someone taken away
-  - guilt           — self-blame for a wrong {{ state.agent }} did (toward whom?)
-  - betrayal        — trust in {{ state.agent }} broken by another (by whom?)
-  - retaliation     — {{ state.agent }}'s drive to avenge a wrong
-  - hidden_blessing — an apparent setback that proves a gift
-  - hope            — belief that things can yet be made right
+  Each operation has exactly these fields:
+  - id:   the beat id, exactly as written below (e.g. "F4").
+  - op:   "open"  — this beat is where the feeling FIRST shows in the text;
+          "close" — this beat is where an earlier feeling RESOLVES in the text
+                    (is mourned, recovered, avenged, confessed, reconciled, or
+                    relieved). Judge op from THIS beat's words alone.
+  - char: always "{{ state.agent }}".
+  - kind: EXACTLY one of these six words, verbatim — never a synonym:
+          loss             — grief at something/someone taken away
+          guilt            — self-blame for a wrong {{ state.agent }} did
+          betrayal         — {{ state.agent }}'s trust broken by another
+          retaliation      — {{ state.agent }}'s drive to avenge a wrong
+          hidden_blessing  — an apparent setback that proves a gift
+          hope             — belief that things can yet be made right
+  - toward: for the RELATIONAL kinds (guilt, betrayal) ONLY — the OTHER character
+          the feeling is about, named exactly as in the beat. For guilt, the
+          person {{ state.agent }} wronged; for betrayal, the person who broke
+          {{ state.agent }}'s trust. Omit for loss, retaliation, hidden_blessing,
+          hope.
 
-  RULES:
-  - Narrate ONLY {{ state.agent }}'s feelings. Skip beats where this character
-    feels nothing — most STRUCTURAL beats (travel, planning, mediation) carry no
-    affect. Do NOT force a feeling onto every beat.
-  - Every arc that OPENS should later CLOSE. When you say a feeling begins, say
-    where it resolves: a `loss` opened early may close when the thing is mourned
-    or recovered; a `guilt` may close at a confession; a `betrayal` may close at
-    a reckoning. Name both the opening beat and the closing beat.
-  - For `guilt` and `betrayal`, name the OTHER character the feeling is directed
-    at (use their exact name from the beat list).
-  - Use names EXACTLY as they appear in the beats below.
+  RULES — read once, obey exactly:
+  - Default is NONE. If a beat's text does not plainly show {{ state.agent }}
+    feeling a named kind, emit nothing for it. At most one operation per beat.
+  - Classify each beat ON ITS OWN. Do NOT open a feeling because you expect it to
+    close later, and do NOT close one to balance an earlier open. Opens and
+    closes need not pair up; an unmatched open or close is fine.
+  - Ground every operation in the beat's own words — the text must show the
+    feeling. Never infer affect from the plot's shape or a character's role.
+  - Use the kind words and character names EXACTLY as written. No synonyms.
 
-  The beats of the story (narrate only the ones that touch {{ state.agent }}):
+  Output a YAML list, one item per affect-bearing beat, and NOTHING else:
+
+  - id: F4
+    eff_affect:
+      - op: open
+        char: {{ state.agent }}
+        kind: betrayal
+        toward: Hagen
+  - id: F6
+    eff_affect:
+      - op: close
+        char: {{ state.agent }}
+        kind: betrayal
+        toward: Hagen
+
+  The beats:
   {% for g in state.glosses %}
   - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
   {% endfor %}
 
-  Write {{ state.agent }}'s emotional throughline now — prose only.
+  Emit {{ state.agent }}'s affect operations now — YAML only.

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug (prompting defect — wrong output format at the L7 encoder's first stage)
-**Status:** Judged — Authority GRANTED (2026-06-26)
+**Status:** Enforced — hypothesis REFUTED, gate NOT cleared, stop rule fires (2026-06-26)
 **Effort:** ~0.5 day (prompt rewrite + spike re-run against the frozen gate; no graph topology change)
 **Requested:** 2026-06-26
 **REQ:** REQ-YG-020 (reuse — no new CAP)
@@ -207,6 +207,52 @@ already fail there; they are retained only to not regress):**
       scale, or revisit the six-kind taxonomy) — **not** a second wording pass.
 - [ ] Tests updated/added under REQ-YG-020; frozen FR-578 evaluator untouched.
 - [ ] Changelog fragment (`changelog/unreleased/`, `req: REQ-YG-020`) + diary reflection.
+
+## Enforcement Outcome (2026-06-26)
+
+The frozen scope was executed in full: `affect_throughline.yaml` was rewritten into a
+terse per-beat classifier emitting typed YAML directly, the arc-closure mandate was
+**deleted**, `encode_affect.yaml` was **retired** (single node), and `spike_affect.py`
+was updated coherently. Measured against the frozen FR-578 gate
+(`logs/fr598-classifier-spike.log`):
+
+| axis | prose baseline (FR-596) | classifier (FR-598) | direction |
+|------|------------------------|---------------------|-----------|
+| `affect_recall` (the gate) | 0.15 (5/33) | **0.06 (2/33)** | WORSE |
+| `detection` (op+char) | 0.52 | **0.24 (8/33)** | COLLAPSED |
+| `kind \| detection` | 0.18 | 0.12 (1/8) | flat-low |
+| `toward \| relational` | 0/10 | 0/10 | unmoved |
+
+**The hypothesis is REFUTED.** The Judgement's GO condition (correction #4) required
+`kind | detection` to RISE **with `detection` held ≥ ~0.52**. Detection did the
+opposite — it **collapsed** to 0.24. The format change lost the arcs the prose used to
+land.
+
+**Reading the raw output explains why (`read_raw_output_first` — done before trusting
+the aggregate).** The failure mode **inverted**. The prose flooded (over-generated, many
+wrong-kind shots on goal — which a recall gate rewards); the terse classifier went
+**near-silent**. Detective protagonist Marren emits **2** ops (`F2 open loss`,
+`F6 close retaliation`) against GT's **8**; most agents emit 1–2. The Judgement's own
+levers caused this: "default none" + "ground every operation in the beat's own words /
+never infer from plot shape or role" + deleting the arc-completion mandate together
+suppressed emission. Against a recall metric (how many GT deltas we reproduce), fewer
+shots = lower recall. The arc-closure mandate that the Judgement correctly named the
+*invention* engine was also, incidentally, a *coverage* engine.
+
+Note the inversion is genuine, not a tuning artifact: where prose anchored Marren's
+loss to F2 (GT says F1, off-by-one) the classifier does the *same* F2 — placement did
+not improve, only volume fell. The two failure modes (flood vs silence) **bracket** the
+problem: neither register hits recall because the real residual is beat-alignment
+(off-by-one beat ids) and kind-discrimination — not output register.
+
+**Stop rule fires (correction #5).** This was the one permitted format iteration. It is
+spent, and structured classification did **not** clear the gate — it regressed it. Per
+the frozen Judgement, the conclusion is a **real kind-discrimination / beat-granularity
+ceiling**, which fires the **reserved escalation** (FR-578 model scale, or revisiting
+the six-kind taxonomy and the GT beat-granularity), **NOT** a second wording pass on the
+classifier. The classifier rewrite is left in place as the executed frozen experiment
+(L7 has no production graph; the spike is the artifact). A successor FR should carry the
+reserved escalation; this FR is closed as a clean refutation.
 
 ## Alternatives Considered
 

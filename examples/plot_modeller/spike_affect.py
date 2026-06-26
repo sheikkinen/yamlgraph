@@ -1,35 +1,39 @@
 #!/usr/bin/env python3
-"""FR-596 Gate 1 — per-agent affect throughline spike (throwaway harness).
+"""FR-598 — single-pass per-beat affect classifier spike (throwaway harness).
 
-Tests the FR-596 hypothesis in isolation, mirroring the FR-590/591 L5 cure: if
-the LLM narrates the emotional arc of ONE character at a time (so salience is a
-property of the *framing*, not a cross-cast instruction) and a SEPARATE pass
-encodes that single arc into typed AffectDelta ops, does L7 affect_recall climb
-off its 0.09 floor?
+Successor to the FR-596 two-pass spike. FR-598 ("kill the novel") found the L7
+affect_recall floor was caused by the prose intermediate: ``affect_throughline``
+asked haiku for prose narration, and haiku returned a literary novel that
+invented affect (whole arcs for non-characters), blurred kinds, and smeared
+beats. The granted Judgement froze two load-bearing changes: (a) replace the
+prose with a terse per-beat CLASSIFICATION that emits typed YAML directly, and
+(b) DELETE the "every arc that opens should close" mandate (the invention
+engine). The two-pass collapses to one node; ``encode_affect`` is retired.
 
-Pipeline (per fixture, per **GROUND-TRUTH agent** — Judgement correction #1, so a
-feeler the extractor would drop is never structurally unreachable against the
-GT-anchored gate):
-  1. affect_throughline  (LLM, free prose)  → results/l7/throughlines/<genre>/<agent>.md
-  2. encode_affect       (LLM, typed ops, this agent only)
-  3. combine_affects     (deterministic code, no LLM) → results/l7/<genre>.yaml
-  4. evaluate.main_l7    re-scores against GT (the FROZEN FR-578 gate)
+Pipeline (per fixture, per **GROUND-TRUTH agent** — a feeler the extractor would
+drop is never structurally unreachable against the GT-anchored gate):
+  1. affect_throughline  (LLM, typed YAML)  → results/l7/throughlines/<genre>/<agent>.yaml
+  2. combine_affects     (deterministic code, no LLM) → results/l7/<genre>.yaml
+  3. evaluate.main_l7    re-scores against GT (the FROZEN FR-578 gate)
 
 Beyond the official conjunctive affect_recall, the spike reports three additive
-sub-axis diagnostics (Judgement correction #2) that decompose WHERE recall is
-lost — detection (op+char alignment, where char is near-free because each cell
-fixes char to the focal agent), kind-given-detection, and toward-given-relational
-— plus the per-genre agent-coverage ceiling.
+sub-axis diagnostics that decompose WHERE recall is lost — detection (op+char
+alignment, where char is near-free because each cell fixes char to the focal
+agent), kind-given-detection, and toward-given-relational — plus the per-genre
+agent-coverage ceiling.
 
-Verdict (Judgement correction #3) reads the sub-axes to NAME the KILL flavor
-BEFORE citing the aggregate:
-  - detection LOW   → PROSE-MISSED: the framing is falsified; model-scale
-                      escalation (FR-578) is justified.
-  - detection HIGH but kind-given-detection LOW → ENCODE-MISKINDED: the framing is
-                      UNTESTED (arc present, kind mis-encoded); fix encode_affect,
-                      do NOT scale the model.
-  - affect_recall >= 0.50 → GO: promote the spike to a graph (FR-579 unblocks on
-                      the graph EXISTING; production ACCEPT still needs >= 0.70).
+Verdict (FR-598 stop rule) reads the sub-axes to NAME the flavor BEFORE citing
+the aggregate:
+  - detection LOW   → PROSE-MISSED: the per-agent framing is falsified;
+                      model-scale escalation (FR-578) is justified.
+  - detection HELD but kind-given-detection LOW → KIND CEILING: the ONE format
+                      iteration is spent, so a flat kind axis is a real
+                      kind-discrimination / taxonomy ceiling — fire the reserved
+                      escalation (FR-578 model scale, or revisit the six-kind
+                      taxonomy), NOT a second wording pass.
+  - affect_recall >= 0.50 with detection HELD and toward off zero → GO: promote
+                      the classifier to a graph (FR-579 unblocks on the graph
+                      EXISTING; production ACCEPT still needs >= 0.70).
 
 Run:
   set -a; source .env; set +a
@@ -88,7 +92,7 @@ def _norm(s: object) -> str:
 
 
 def _parse_affect_list(raw: str) -> list:
-    """Parse encode_affect output to a list of {id, eff_affect} beats."""
+    """Parse affect_throughline (single-pass classifier) output to beats."""
     try:
         data = yaml.safe_load(_strip_code_fences(str(raw)))
     except yaml.YAMLError:
@@ -96,11 +100,17 @@ def _parse_affect_list(raw: str) -> list:
     return data if isinstance(data, list) else []
 
 
-def _encode_agent(
+def _classify_agent(
     glosses: list, agent: str, provider: str, model: str, genre_dir: Path
 ) -> dict:
-    """Run throughline + encode for one agent; store prose, return the map record."""
-    throughline = execute_prompt(
+    """Run the single-pass per-beat classifier for one agent.
+
+    FR-598 collapses the FR-596 two-pass (prose throughline -> encode) into one
+    node: ``affect_throughline`` now emits typed YAML directly. The raw output is
+    stored to ``<agent>.yaml`` so >=3 samples can be READ before the aggregate is
+    read (forced-observation discipline, Scripture ``read_raw_output_first``).
+    """
+    raw = execute_prompt(
         "affect_throughline",
         state={"glosses": glosses, "agent": agent},
         prompts_dir=PROMPTS_DIR,
@@ -108,20 +118,12 @@ def _encode_agent(
         provider=provider,
         model=model,
     )
-    (genre_dir / f"{_safe_name(agent)}.md").write_text(
-        str(throughline or ""), encoding="utf-8"
-    )
-    raw = execute_prompt(
-        "encode_affect",
-        state={"glosses": glosses, "agent": agent, "throughline": throughline},
-        prompts_dir=PROMPTS_DIR,
-        temperature=0.7,
-        provider=provider,
-        model=model,
+    (genre_dir / f"{_safe_name(agent)}.yaml").write_text(
+        str(raw or ""), encoding="utf-8"
     )
     return {
         "agent": agent,
-        "throughline": throughline,
+        "throughline": raw,
         "affects": _parse_affect_list(raw),
     }
 
@@ -209,7 +211,7 @@ def main() -> int:
         records: list[dict] = []
         for idx, agent in enumerate(agents):
             try:
-                rec = _encode_agent(glosses, agent, provider, model, genre_dir)
+                rec = _classify_agent(glosses, agent, provider, model, genre_dir)
             except Exception as exc:  # hard failure → empty, not a crash
                 print(f"  ✗ {agent}: {exc}")
                 rec = {"agent": agent, "throughline": "", "affects": []}
@@ -267,30 +269,34 @@ def main() -> int:
     if dangling:
         print(f"  dangling open arcs        : {len(dangling)} (per-cell balance)")
 
-    print("\n── Verdict (flavor named BEFORE aggregate — correction #3) ──")
+    print("\n── Verdict (flavor named BEFORE aggregate — FR-598 stop rule) ──")
     if det_recall < _DETECTION_FLOOR:
         print(
             f"  KILL flavor = PROSE-MISSED. Detection recall {det_recall:.2f} < "
-            f"{_DETECTION_FLOOR:.2f}: the throughlines do not even place arcs on "
+            f"{_DETECTION_FLOOR:.2f}: the classifier does not even place arcs on "
             "the right beats — the per-agent FRAMING is FALSIFIED. Model-scale "
-            "escalation (FR-578) is the justified lever. Throughlines are stored "
-            "under results/l7/throughlines/<genre>/<agent>.md for inspection."
+            "escalation (FR-578) is the justified lever. Raw classifier output is "
+            "stored under results/l7/throughlines/<genre>/<agent>.yaml — READ >=3 "
+            "before trusting this aggregate (read_raw_output_first)."
         )
         return 0
     if kind_given_det < _KIND_FLOOR:
         print(
-            f"  KILL flavor = ENCODE-MISKINDED. Detection recall {det_recall:.2f} is "
-            f"healthy but kind|detection {kind_given_det:.2f} < {_KIND_FLOOR:.2f}: "
-            "the arcs ARE in the prose and land on the right beats, but encode_affect "
-            "mis-labels the kind. The FRAMING is UNTESTED — fix encode_affect, do "
-            "NOT scale the model."
+            f"  KIND CEILING. Detection recall {det_recall:.2f} is healthy (arcs land "
+            f"on the right beats) but kind|detection {kind_given_det:.2f} < "
+            f"{_KIND_FLOOR:.2f}. FR-598 already replaced prose with a terse per-beat "
+            "classifier and deleted the arc-closure mandate — the ONE format "
+            "iteration is spent. A flat kind axis here is a real kind-discrimination "
+            "/ taxonomy ceiling, NOT a second wording pass: fire the reserved "
+            "escalation (FR-578 model scale, or revisit the six-kind taxonomy)."
         )
         return 0
     print(
-        "  GO candidate. Detection and kind axes both cleared their floors. If the "
-        f"official affect_recall above is >= {_GO_RECALL:.2f}, promote the spike to a "
-        "graph (FR-579 unblocks on the graph EXISTING; production ACCEPT still needs "
-        ">= 0.70 — L7 stays REVISE until then)."
+        "  GO candidate. Detection HELD and kind|detection cleared their floors with "
+        "toward off zero. If the official affect_recall above is >= "
+        f"{_GO_RECALL:.2f}, promote the classifier to a graph (FR-579 unblocks on the "
+        "graph EXISTING; production ACCEPT still needs >= 0.70 — L7 stays REVISE "
+        "until then)."
     )
     return 0
 
