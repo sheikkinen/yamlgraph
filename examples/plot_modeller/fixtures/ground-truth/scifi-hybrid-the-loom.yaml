@@ -167,10 +167,7 @@ functions:
           pred: rel
           args: [The Swarm, ARIA]
         held: anomalous
-    eff_affect:
-      - op: open
-        char: Mara
-        kind: guilt
+    eff_affect: []
 
   - id: F2b
     kind: mediation
@@ -191,7 +188,10 @@ functions:
       agent: ARIA
       goal: expand_coherence
     enables: [F3]
-    eff_affect: []
+    eff_affect:
+      - op: open
+        char: Mara
+        kind: guilt
 
   - id: F3
     kind: departure
@@ -303,10 +303,7 @@ functions:
       - pred: holds
         args: [Dr. Selin, shutdown_key]
         value: false
-    eff_affect:
-      - op: close
-        char: Mara
-        kind: guilt
+    eff_affect: []
 
   # --- Horror arc (independent thread, converges at F8) ---
 
@@ -346,6 +343,9 @@ functions:
         char: Mara
         kind: loss
         toward: Jonas
+      - op: close
+        char: Mara
+        kind: guilt
 
   - id: F7
     kind: recognition
@@ -438,6 +438,12 @@ functions:
       - op: open
         char: Mara
         kind: hope
+      - op: close
+        char: Mara
+        kind: hope
+      - op: open
+        char: Mara
+        kind: retaliation
 
   - id: F10
     kind: death
@@ -473,12 +479,6 @@ functions:
         char: Mara
         kind: loss
         toward: Jonas
-      - op: close
-        char: Mara
-        kind: hope
-      - op: open
-        char: Mara
-        kind: retaliation
 
   - id: F11
     kind: return

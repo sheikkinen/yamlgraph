@@ -177,11 +177,7 @@ functions:
           pred: alive
           args: [The Watcher]
         held: true
-    eff_affect:
-      - op: open
-        char: Brynn
-        kind: guilt
-        toward: Fen
+    eff_affect: []
 
   - id: F4
     kind: death
@@ -211,8 +207,8 @@ functions:
     eff_affect:
       - op: open
         char: Brynn
-        kind: retaliation
-        toward: The Watcher
+        kind: guilt
+        toward: Fen
 
   - id: F5
     kind: struggle
@@ -275,6 +271,9 @@ functions:
       - op: open
         char: Brynn
         kind: hope
+      - op: close
+        char: Brynn
+        kind: loss
 
   - id: F7
     kind: return
@@ -304,15 +303,13 @@ functions:
       - pred: at
         args: [Aldric, Surface]
         value: true
-    eff_affect:
-      - op: close
-        char: Brynn
-        kind: loss
+    eff_affect: []
 
 # Horror genre: unclosed affect threads are the point.
-# guilt toward Fen (Brynn chose to go deeper) — UNCLOSED
-# retaliation toward The Watcher (Fen killed) — UNCLOSED
+# guilt toward Fen (Brynn chose to go deeper) — UNCLOSED (anchored at F4, where Fen is taken)
+# loss (the descent's cost) — UNCLOSED (anchored at F6, the blind climb that carries its weight)
 # hope (rescue found the shaft) — UNCLOSED (the ambiguous ending undercuts it)
+# FR-600: F3 guilt re-anchored to F4; F7 loss re-anchored to F6; F4 retaliation dropped (unlicensed).
 affect_policy:
   unclosed_is_error: false
   partial_goal_failure: true

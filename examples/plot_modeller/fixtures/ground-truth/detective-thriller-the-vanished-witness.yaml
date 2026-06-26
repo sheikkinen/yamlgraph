@@ -119,10 +119,7 @@ functions:
           pred: alive
           args: [Witness Pell]
         held: unknown
-    eff_affect:
-      - op: open
-        char: Marren
-        kind: loss
+    eff_affect: []
 
   - id: F2
     kind: lack
@@ -149,7 +146,10 @@ functions:
           pred: holds
           args: [Witness Pell, ledger]
         held: unknown
-    eff_affect: []
+    eff_affect:
+      - op: open
+        char: Marren
+        kind: loss
 
   - id: F2b
     kind: mediation
@@ -352,10 +352,7 @@ functions:
           pred: rel
           args: [Hagen, Consul Drey]
         held: co-conspirator
-    eff_affect:
-      - op: open
-        char: Marren
-        kind: hidden_blessing
+    eff_affect: []
 
   - id: F8
     kind: punishment

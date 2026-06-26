@@ -104,11 +104,7 @@ functions:
       goal: legitimize_reign
     threatens: null
     enables: [F1b]
-    eff_affect:
-      - op: open
-        char: Eira
-        kind: guilt
-        toward: Queen Livia
+    eff_affect: []
 
   - id: F1b
     kind: mediation
@@ -269,10 +265,7 @@ functions:
       - pred: at
         args: [Sunken Crown, Temple]
         value: true
-    eff_affect:
-      - op: open
-        char: Eira
-        kind: loss
+    eff_affect: []
 
   - id: F6
     kind: victory

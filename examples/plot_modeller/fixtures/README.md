@@ -56,3 +56,21 @@ The 4 self-derived plans were updated with:
 
 48 glosses covering 15 of 17 kinds across 5 genres. All 3 mediation beats
 correctly classified. `exposure` n=2 (detective + blind), `punishment` n=1.
+
+## FR-600 — Affect is anchored to the EXPERIENTIAL beat, not the causal one
+
+An `eff_affect` delta belongs on the beat whose own gloss text *shows the feeling
+being felt*, not on the beat that causes it. A character can be harmed on one beat
+and visibly grieve on the next — the affect delta goes on the grieving beat.
+
+FR-599's licensing probe found 12 ground-truth affect deltas anchored to beats
+whose text did not license them (the "(e) UNLICENSED" bucket). FR-600 corrected
+them against a human-confirmed frozen verdict (`affect-licensing/fr600-unlicensed-frozen.yaml`):
+7 were re-anchored one beat forward to the experiential beat, 5 were dropped as
+inferred-from-arc rather than shown on any nearby beat. See
+`affect-licensing/fr600-gate-report.md` for the recall decomposition.
+
+When authoring or extending the corpus: place each affect on the beat that
+manifests it in text. If no beat shows the feeling, do not annotate it — affect
+inferred from genre, role, or arc but absent from every gloss is not recoverable
+by a beat-grounded model and inflates the denominator dishonestly.

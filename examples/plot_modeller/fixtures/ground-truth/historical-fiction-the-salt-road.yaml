@@ -269,11 +269,7 @@ functions:
       - pred: holds
         args: [Naima, charter_letter]
         value: true
-    eff_affect:
-      - op: open
-        char: Naima
-        kind: guilt
-        toward: Amadou
+    eff_affect: []
 
   - id: F8
     kind: rescue
