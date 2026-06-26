@@ -651,6 +651,44 @@ def absent_report() -> int:
                     third = (
                         "early" if frac < 1 / 3 else "mid" if frac < 2 / 3 else "late"
                     )
+
+                # FR-603 -- hope-mechanism split (correction 1/2/3). For a hope
+                # miss, decide WHICH lever could recover it from the GT delta count
+                # on the beat and the model's EXACT-BEAT emission (mechanical, no
+                # impression):
+                #   irreducible       the GT beat wants BOTH open hope AND close
+                #                     hope for THIS char on ONE beat -- a fine
+                #                     distinction a beat-grounded classifier may
+                #                     legitimately not make; EXCLUDED from the
+                #                     recoverable denominator (correction 3).
+                #   cap_blocked       multi-delta beat (>=2 GT deltas) where the
+                #                     model already emitted a delta on the EXACT
+                #                     beat -- the "at most one operation per beat"
+                #                     cap forbids the second (hope) delta
+                #                     (mechanism 1).
+                #   hope_open_missed  the model emitted nothing on the exact beat
+                #                     that consumes the cap -- it simply did not
+                #                     name the hope open (mechanism 2).
+                gt_count = len(t_deltas)
+                exact_emit = [
+                    f"{_norm(d.get('op'))} {_norm(d.get('char'))} {_norm(d.get('kind'))}"
+                    for d in anchor_deltas
+                ]
+                mechanism = ""
+                if kind == "hope":
+                    char_hope_ops = {
+                        _norm(d.get("op"))
+                        for d in t_deltas
+                        if _norm(d.get("char")) == char
+                        and _norm(d.get("kind")) == "hope"
+                    }
+                    if {"open", "close"} <= char_hope_ops:
+                        mechanism = "irreducible"
+                    elif anchor_deltas and gt_count >= 2:
+                        mechanism = "cap_blocked"
+                    else:
+                        mechanism = "hope_open_missed"
+
                 rows.append(
                     {
                         "genre": genre,
@@ -662,6 +700,9 @@ def absent_report() -> int:
                         "pos": f"{(idx + 1) if idx is not None else '?'}/{len(order)}",
                         "third": third,
                         "perception": perception,
+                        "gt_count": gt_count,
+                        "exact_emit": exact_emit,
+                        "mechanism": mechanism,
                         "anchor_gloss": gloss_by_id.get(bid, ""),
                     }
                 )
@@ -698,6 +739,42 @@ def absent_report() -> int:
     rel = Counter("relational" if r["kind"] in _RELATIONAL else "solo" for r in rows)
     print("  relational/solo: ", dict(rel))
     print("  position third:  ", dict(Counter(r["third"] for r in rows)))
+
+    # --- FR-603 hope-mechanism split + pre-committed dominance/tie rule -------
+    hope_rows = [r for r in rows if r["kind"] == "hope"]
+    mech = Counter(r["mechanism"] for r in hope_rows)
+    cap_blocked = mech.get("cap_blocked", 0)
+    hope_open_missed = mech.get("hope_open_missed", 0)
+    irreducible = mech.get("irreducible", 0)
+    recoverable = cap_blocked + hope_open_missed  # correction 3 denominator
+    dominant_threshold = 6  # FR-603 pre-committed: dominant = >=6 of recoverable
+    if cap_blocked >= dominant_threshold:
+        lever = "mechanism 1 (cap relaxation) -- DOMINANT (>=6 recoverable)"
+    elif hope_open_missed >= dominant_threshold:
+        lever = "mechanism 2 (hope-open cue) -- DOMINANT (>=6 recoverable)"
+    else:
+        lever = (
+            "near-tie -> mechanism 2 (hope-open cue) FIRST "
+            "(FR-603 tie rule: hope-scoped, low blast radius)"
+        )
+    print(f"\n== FR-603 hope-mechanism split ({len(hope_rows)} hope ABSENT members) ==")
+    print(f"  cap_blocked        {cap_blocked:>2}  [mechanism 1: per-beat cap]")
+    print(
+        f"  hope_open_missed   {hope_open_missed:>2}  [mechanism 2: hope-open not named]"
+    )
+    print(
+        f"  irreducible        {irreducible:>2}  [open+close same kind/char/beat -- EXCLUDED]"
+    )
+    print(
+        f"  -> recoverable denominator: {recoverable} (irreducible {irreducible} excluded)"
+    )
+    print(f"  -> SELECTED LEVER: {lever}")
+    for r in hope_rows:
+        print(
+            f"     [{r['mechanism']:<16}] {r['genre']} {r['anchor_id']} "
+            f"({r['op']} {r['char']}) gt_deltas_on_beat={r['gt_count']} "
+            f"exact_emit={r['exact_emit'] or '[]'}"
+        )
 
     print("\n== members ==")
     for r in sorted(rows, key=lambda x: order_perc.index(x["perception"])):
@@ -751,6 +828,44 @@ def absent_report() -> int:
         f"- kind dist: {dict(Counter(r['kind'] for r in rows))}",
         f"- relational/solo: {dict(rel)}",
         f"- position third: {dict(Counter(r['third'] for r in rows))}",
+        "",
+        "## FR-603 hope-mechanism split",
+        "",
+        "For each hope ABSENT member, the lever that could recover it, decided from",
+        "the GT delta count on the beat and the model's EXACT-BEAT emission:",
+        "",
+        "- `cap_blocked` -- multi-delta beat (>=2 GT deltas) where the model already",
+        '  emitted a delta on the exact beat; the "at most one operation per beat"',
+        "  cap forbids the second (hope) delta (mechanism 1).",
+        "- `hope_open_missed` -- the model emitted nothing on the exact beat to",
+        "  consume the cap; it simply did not name the hope open (mechanism 2).",
+        "- `irreducible` -- the beat wants BOTH open hope AND close hope for the same",
+        "  char on one beat; EXCLUDED from the recoverable denominator (correction 3).",
+        "",
+        "| mechanism | count |",
+        "|-----------|-------|",
+        f"| cap_blocked | {cap_blocked} |",
+        f"| hope_open_missed | {hope_open_missed} |",
+        f"| irreducible (excluded) | {irreducible} |",
+        "",
+        f"**Recoverable denominator: {recoverable}** "
+        f"(irreducible {irreducible} excluded).",
+        "",
+        "**Pre-committed dominance/tie rule (FR-603):** dominant = >=6 of "
+        "recoverable; else near-tie -> hope-open cue (mechanism 2) first.",
+        "",
+        f"**Selected lever: {lever}**",
+        "",
+        "| mechanism | genre | beat | op | char | gt_deltas_on_beat | exact_emit |",
+        "|-----------|-------|------|----|----|-------------------|------------|",
+    ]
+    for r in hope_rows:
+        emit = ", ".join(r["exact_emit"]) if r["exact_emit"] else "(none)"
+        lines.append(
+            f"| {r['mechanism']} | {r['genre']} | {r['anchor_id']} | {r['op']} | "
+            f"{r['char']} | {r['gt_count']} | {emit} |"
+        )
+    lines += [
         "",
         "## Members",
         "",

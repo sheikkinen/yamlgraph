@@ -29,6 +29,42 @@ cd examples/plot_modeller && ../../.venv/bin/python probe_l7_misses.py --absent
 - relational/solo: {'solo': 12, 'relational': 2}
 - position third: {'mid': 3, 'late': 8, 'early': 3}
 
+## FR-603 hope-mechanism split
+
+For each hope ABSENT member, the lever that could recover it, decided from
+the GT delta count on the beat and the model's EXACT-BEAT emission:
+
+- `cap_blocked` -- multi-delta beat (>=2 GT deltas) where the model already
+  emitted a delta on the exact beat; the "at most one operation per beat"
+  cap forbids the second (hope) delta (mechanism 1).
+- `hope_open_missed` -- the model emitted nothing on the exact beat to
+  consume the cap; it simply did not name the hope open (mechanism 2).
+- `irreducible` -- the beat wants BOTH open hope AND close hope for the same
+  char on one beat; EXCLUDED from the recoverable denominator (correction 3).
+
+| mechanism | count |
+|-----------|-------|
+| cap_blocked | 3 |
+| hope_open_missed | 3 |
+| irreducible (excluded) | 2 |
+
+**Recoverable denominator: 6** (irreducible 2 excluded).
+
+**Pre-committed dominance/tie rule (FR-603):** dominant = >=6 of recoverable; else near-tie -> hope-open cue (mechanism 2) first.
+
+**Selected lever: near-tie -> mechanism 2 (hope-open cue) FIRST (FR-603 tie rule: hope-scoped, low blast radius)**
+
+| mechanism | genre | beat | op | char | gt_deltas_on_beat | exact_emit |
+|-----------|-------|------|----|----|-------------------|------------|
+| cap_blocked | detective-thriller-the-vanished-witness | F5 | open | Marren | 2 | close witness pell hope |
+| hope_open_missed | detective-thriller-the-vanished-witness | F8 | close | Marren | 2 | (none) |
+| hope_open_missed | historical-fiction-the-salt-road | F3 | open | Naima | 1 | (none) |
+| cap_blocked | horror-survival-the-last-light | F6 | open | Brynn | 2 | close brynn loss |
+| hope_open_missed | quest-adventure-the-sunken-crown | F4 | open | Eira | 1 | open ferryman ossa hope |
+| cap_blocked | quest-adventure-the-sunken-crown | F6 | close | Eira | 2 | close thane gault hope |
+| irreducible | scifi-hybrid-the-loom | F9 | open | Mara | 3 | open jonas guilt |
+| irreducible | scifi-hybrid-the-loom | F9 | close | Mara | 3 | open jonas guilt |
+
 ## Members
 
 | perception | genre | beat | pos | op | char | kind |
