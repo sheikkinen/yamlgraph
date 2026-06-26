@@ -34,12 +34,26 @@ running (3 branch, 2 linear) pre-registered a CLEAN subset where order carries n
 The +0.000 there is unconfoundable: the graph is the only discriminator and it did
 nothing. Pre-checking the experimental geometry turned a soft null into a hard close.
 
-## The mechanism number that closed it: close-beat shift
+## The mechanism number that closed it: close-beat shift — then the read that corrected it
 
-Close-beat shift 0.367 with *identical* placement recall is the J-corr-2 measurement
-earning its place. The model reshuffles a third of its close-beat picks between arms as
-pure salience noise around an unchanged accuracy. That is the salience→referent arrow,
-measured. Without it the +0.000 is a result; with it, it is a mechanism.
+Close-beat shift 0.367 looked like the J-corr-2 money metric: the model reshuffles a third
+of its close-beat picks between arms. But the numbers only hinted; reading the raw located
+YAML (`results/l7_graph/{control,modeA}/draw*/`) corrected the story. Placement is in fact
+*frozen* across arms — salt-road hope is `F3/F9` in both control and mode A, all six draws;
+the 0.367 is a couple of kinds oscillating `F10/F12`, not the headline. The real finding is
+sharper and it contradicts what the aggregate let me write first: **referent and placement
+are decoupled.** salt-road hope places the beats byte-exact to GT and *still* names
+`find_charter` where GT says `expose_monopoly`. The referent error is not downstream of the
+beat choice — it survives a correct beat choice. And the cleanest case, scifi guilt, was
+handed the disambiguating relations (`expose_ARIA enables trace_anomaly` vs `save_Jonas
+enables deploy_shutdown`) and bound `save_Jonas` anyway, all three draws. The miss has a
+shape: always the concrete/instrumental/personal sibling over the abstract/systemic one.
+
+I had committed "salience→referent, label downstream of beat" from the metrics. The read
+forced an amendment to the FR Outcome. This is the Scripture's `read_raw_output_first` in
+miniature: the close-beat-shift metric was a ruler I built to explain a number, and it
+mildly misled; one `cat` of the per-node YAML said what the ruler could not.
+
 
 ## Heuristic
 
@@ -51,9 +65,14 @@ measured. Without it the +0.000 is a result; with it, it is a mechanism.
 
 ## Seed
 
-The whole FR-596→609 arc moved the referent label and never the gate, because the label
-rides on the beat choice. **Seed:** what is the cheapest intervention on the
-*beat-selection* step itself — not the annotation downstream of it? If the model picks
-the close beat by salience, does forcing it to *first* commit to a beat-pair span (open
-AND close together, before any goal/affect naming) change the placement, where every
-post-hoc relabel has failed?
+The raw read split the problem the aggregate had fused. Placement and referent are
+*independent*: salt-road hope placed the beats exactly and still named the wrong goal, so
+"fix the beat selection" is not obviously the lever — placement was already right where the
+referent was wrong. The referent error has a consistent shape: the model picks the
+concrete/instrumental/personal sibling (`save_Jonas`, `find_charter`) over the
+abstract/systemic one (`expose_ARIA`, `expose_monopoly`). **Seed:** is the
+concrete-over-abstract referent bias even *worth* correcting for the frozen open/close gate,
+given placement was already correct where the referent was wrong? If referent accuracy and
+placement accuracy are uncorrelated across the corpus, the whole referent line is orthogonal
+to the gate — and the next lever must target placement directly, through a mechanism that has
+nothing to do with naming goals at all.

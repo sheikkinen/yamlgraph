@@ -364,6 +364,39 @@ SKIPPED — mode A strict 0.250 < KILL 0.50.
    **goal → placement**. Fixing the referent label cannot move the frozen gate because
    the label is downstream of the beat choice, exactly as the FR-607 autopsy predicted.
 
+### Raw-output read (J:read_raw_output_first) — corrects the mechanism
+
+Reading the per-node located YAML the run wrote (`results/l7_graph/{control,modeA}/draw*/`,
+CLEAN genres) tells the story the +0.000 only hinted at, and **corrects point 3 above**:
+
+- **The graph moved placement by nothing.** salt-road hope is `F3/F9` in BOTH control and
+  mode A (all 6 draws); scifi guilt is `open F6` in both. The beat selection is frozen
+  across arms — the model places the same beats with or without the goal graph. (The 0.367
+  close-beat shift is a few kinds oscillating `F10/F12`, not the dominant story.)
+- **Referent and placement are DECOUPLED — the model places right and still names wrong.**
+  salt-road hope: beats `F3/F9` are **byte-exact GT**, yet the bound referent is
+  `find_charter` where GT says `expose_monopoly`, all three draws. Placement perfect,
+  referent wrong. So the referent error is NOT simply downstream of the beat choice (point 3
+  overstated this); it is an *independent, systematic* mis-bind that persists under correct
+  placement.
+- **The disambiguating structure was present and ignored.** For scifi guilt the injection
+  literally showed `expose_ARIA: enables trace_anomaly, enabled_by understand_anomaly,
+  threatened_by expand_coherence` vs `save_Jonas: enables deploy_shutdown`. GT guilt is
+  `expose_ARIA`; the model bound `save_Jonas` all three draws — the incomparable pair, the
+  cleanest test in the set, failed identically to the flat list.
+- **The miss has a shape:** every wrong referent is the concrete / instrumental /
+  personally-salient sibling over the abstract / systemic / terminal one — scifi guilt
+  `save_Jonas`>`expose_ARIA`, salt-road hope `find_charter`>`expose_monopoly`, horror loss
+  `protect_crew` (anchored on the F4 guilt beat) >`reach_surface`.
+
+**Corrected mechanism:** the goal graph changed neither placement nor referent. The referent
+failure is a **concrete-sibling bias** the causal structure does not touch, *independent of*
+placement accuracy. Any future lever must address that bias directly (e.g. constrain the
+referent to the abstract/terminal goal a feeling's whole arc serves, not the proximate goal
+its salient beat enacts) — and it is now an open question whether such a lever would move the
+frozen gate at all, since placement here was already correct where the referent was wrong.
+
+
 **Disposition:** goal-anchoring (flat list FR-607, causal graph FR-609) is closed as a
 lever on the frozen open/close gate. The L7 localization ceiling (~0.25 strict at this
 decomposition) is not reachable by naming or structuring the goal. Any future attempt
