@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Feature (measurement ruler — affect port of the L5 regenerability graph)
-**Status:** Judged — Authority GRANTED (2026-06-25)
+**Status:** Enforced — Branch (b) REFUTED (2026-06-26); `affect_recall` stands as the L7 gate
 **Effort:** ~1 day (mirrors FR-594; reuses its two-axis design and the `[UNDERDETERMINED]` probe convention)
 **Requested:** 2026-06-25
 **Predecessor:** FR-578 (L7 monolithic affect pass — affect_recall 0.09, model-invariant)
@@ -198,49 +198,83 @@ and the GT affect skeleton (`functions[].eff_affect`).
 
 ## Acceptance Criteria
 
-- [ ] `graphs/l7_measure.yaml` lints clean (`yamlgraph graph lint`).
-- [ ] `render_l7_affect`, `score_affect_simulability`, `combine_l7_measure` are pure
+- [x] `graphs/l7_measure.yaml` lints clean (`yamlgraph graph lint`).
+- [x] `render_l7_affect`, `score_affect_simulability`, `combine_l7_measure` are pure
       python tools in `nodes/tools.py` with `@pytest.mark.req("REQ-YG-020")` unit tests
       (deterministic; no LLM).
-- [ ] `prompts/regenerate_affect_arc.yaml` and `prompts/judge_affect_fidelity.yaml`
+- [x] `prompts/regenerate_affect_arc.yaml` and `prompts/judge_affect_fidelity.yaml`
       exist; the latter has an inline schema (`recovered/missing/inverted/score`).
-- [ ] `run.py --mode measure-l7` produces per-genre + summary YAML for all 5 genres
+- [x] `run.py --mode measure-l7` produces per-genre + summary YAML for all 5 genres
       against live LLM (log captured under `logs/`).
-- [ ] **Witness the under-determination on the DETERMINISTIC channel (Judgement C2,
-      PRIMARY).** Feeding the GT detective affect skeleton, the regenerated arc cannot
-      uniquely recover `betrayal → Hagen` vs the equally-licensed `guilt → Pell`
-      reading. The **load-bearing assertion is a deterministic `[UNDERDETERMINED]`
-      marker on that beat**; a temp-0.7 fidelity-judge `inverted`/`missing` entry may
-      corroborate but cannot stand in for it (the FR-594 deterministic-vs-noisy
-      separation; `plausible_wrong_answer` cure).
-- [ ] **Headline = corpus-POOLED under-determination, not a mean of ratios (Judgement
-      C3).** Per-genre N is ~6 affect-beats, where one marker flip swings a genre ratio
-      ~17 points. Report the headline as **total `[UNDERDETERMINED]` markers / total
-      affect-bearing beats pooled across all five genres**, for BOTH our encoder's L7
-      and the GT skeleton. The thesis is confirmed if the GT pooled ratio is **highly
-      underdetermined (≥ ~0.70)**; a low GT ratio *refutes* the thesis and must be
-      reported honestly.
-- [ ] **Verdict is led by the deterministic simulability axis (Judgement C4).** The L7
-      fidelity judge scores *emotional* content (more subjective than L5's event
-      recovery), so `combine_l7_measure` leans the verdict on the deterministic
-      simulability axis; the fidelity judge informs attribution only and never carries
-      the verdict. The two axes stay orthogonal (never one opaque scalar).
-- [ ] **Binary two-way exit that un-blocks the encoder on BOTH branches (Judgement C1,
-      anti-deferral guard).** The measurement is a one-shot corpus resolution with a
-      declared two-way exit — it resolves the gate question, it does not indefinitely
-      pause L7:
-      - **(a) GT pooled ratio ≥ ~0.70 (thesis confirmed)** → a *separate* demotion FR
-        (the FR-595 analog) moves the L7 gate, and the protagonist-throughline encoder
-        work resumes **against the new ruler**.
-      - **(b) GT pooled ratio low (thesis refuted)** → `affect_recall` stands, and the
-        encoder work resumes **against its original ≥ 0.50 gate**.
-      The FR's Outcome section must record which branch fired and the un-block it
-      authorizes.
-- [ ] `l7_measure` is **diagnostic only**: `affect_recall` stays the primary FR-578
+- [x] **Witness the under-determination on the DETERMINISTIC channel (Judgement C2,
+      PRIMARY).** Carried — and it **REFUTED** the premise: feeding the GT detective
+      affect skeleton, the regenerated arc narrated `betrayal toward Hagen` cleanly
+      with **no `[UNDERDETERMINED]` marker on that beat** ("Hagen has done
+      something... that reads as betrayal"). The deterministic channel pins
+      betrayal→Hagen; the FR-596 "equally licensed `guilt → Pell`" premise does not
+      survive the regenerability probe. Reported honestly per the AC's own refutation
+      clause (the `plausible_wrong_answer` cure cut the other way — the witness
+      disproved the analyst's hypothesis).
+- [x] **Headline = corpus-POOLED under-determination, not a mean of ratios (Judgement
+      C3).** Reported as total `[UNDERDETERMINED]` markers / total affect-bearing
+      beats pooled across all five genres, for BOTH sources. GT pooled ratio is
+      **0.464** (13/28) — **below** the ≥~0.70 confirmation floor; the per-genre
+      detective ratio (0.667) that drove the demotion hypothesis was the corpus
+      *maximum*, and pooling (exactly what C3 mandated) refutes the thesis.
+- [x] **Verdict is led by the deterministic simulability axis (Judgement C4).**
+      `combine_l7_measure` sets `verdict_basis: simulability`; the fidelity judge
+      (mean 0.318 GT / 0.19 ours) informs attribution only and does not carry the
+      verdict. The two axes stay orthogonal.
+- [x] **Binary two-way exit that un-blocks the encoder on BOTH branches (Judgement C1,
+      anti-deferral guard).** `l7_regenerability_exit(0.464)` fired **branch (b)**:
+      thesis refuted, `affect_recall` stands, and the protagonist-throughline encoder
+      work resumes **against its original ≥ 0.50 affect_recall gate**. See Outcome.
+- [x] `l7_measure` is **diagnostic only**: `affect_recall` stays the primary FR-578
       gate, no gating is wired on the new measure, and FR-578/FR-596 are **not**
       re-litigated under it.
-- [ ] Diary reflection added; changelog fragment added (`type: feat, scope:
+- [x] Diary reflection added; changelog fragment added (`type: feat, scope:
       plot-modeller, req: REQ-YG-020`).
+
+## Outcome (Acceptance Run, 2026-06-26)
+
+**Branch (b) — thesis REFUTED.** Corpus run (claude-haiku-4-5, all 5 genres, both
+sources; `logs/fr597-acceptance.log`):
+
+| source | pooled underdetermined | pooled affect-beats | **pooled ratio** | mean fidelity | total inverted |
+|---|---|---|---|---|---|
+| ours | 21 | 36 | **0.583** | 0.19 | 31 |
+| gt   | 13 | 28 | **0.464** | 0.318 | 9 |
+
+`l7_regenerability_exit(0.464)` → `branch: b, thesis: refuted` (0.464 < 0.70).
+
+**What the ruler proved — the opposite of the FR-596 hypothesis.** The GT affect
+skeleton **is** substantially regenerable: fewer than half its affect beats flag
+`[UNDERDETERMINED]` when the model reconstructs the arc from the deltas alone. The
+load-bearing witness sealed it — the detective `betrayal → Hagen` beat regenerated
+cleanly, with no deterministic under-determination marker (`logs/fr597-witness-detective-gt.log`).
+The FR-596 "numbers lie" finding had read `affect_recall = 0.09` as the `world_recall`
+pathology one layer over (an under-determined GT skeleton penalizing valid alternative
+readings). **The regenerability probe refutes that:** the GT skeleton pins its own
+emotional arc, so `affect_recall` is *not* scoring agreement with a lossy target the
+way L5's `world_recall` was. The single-genre detective inspection (0.667) that
+seeded the hypothesis was the corpus maximum; corpus pooling (Judgement C3) was the
+correction that exposed the over-reach.
+
+**Where the 0.09 actually comes from (residual, for the protagonist-throughline FR).**
+With under-determination ruled out as the dominant cause, the surviving drivers of
+`affect_recall = 0.09` are (a) the harness artifact — our full-cast affect map scored
+against a mono-protagonist GT skeleton (precision collapse), and (b) genuine encoding
+divergence — note `ours` pooled ratio **0.583 > gt 0.464**: *our* affect encoding is
+measurably **less** regenerable than the GT, and our fidelity is lower (0.19 vs 0.318)
+with far more inversions (31 vs 9). That ours-worse-than-gt gap is a real, actionable
+signal the encoder work can chase — against the standing `affect_recall ≥ 0.50` gate.
+
+**Un-block authorized (branch b).** `affect_recall` stands as the primary L7 gate. The
+protagonist-throughline encoder work (FR-596 follow-up) resumes against its original
+≥ 0.50 gate — **no demotion FR is opened** (the FR-595 analog is *not* triggered). The
+anti-deferral guard (Judgement C1) did its job: a second regenerability ruler did not
+become a standing excuse to never heal L7; it resolved the gate question in one shot
+and handed the layer back to the encoder.
 
 ## Open Questions
 

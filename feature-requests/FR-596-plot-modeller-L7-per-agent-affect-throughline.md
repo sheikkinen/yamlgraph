@@ -403,6 +403,18 @@ ruler is chasing a number that lies. The cast-flood (precision) is real but is t
 *shallower* of the two failures; under-determination caps recall even after the
 protagonist fix.
 
+> **REFUTED by FR-597 (2026-06-26).** The regenerability probe this hypothesis
+> indicated was built and run — and it **disproved the under-determination claim**.
+> The GT affect skeleton is regenerable (corpus-pooled under-determination **0.464**,
+> below the 0.70 floor; the detective `betrayal → Hagen` beat regenerated cleanly with
+> no `[UNDERDETERMINED]` marker, so the "equally licensed `guilt → Pell`" reading does
+> not survive the probe). `affect_recall` is **not** the `world_recall` pathology one
+> layer over — it is **upheld** as the L7 gate. The single-genre detective ratio (0.667)
+> that seeded this paragraph was the corpus maximum; pooling refuted it. The surviving
+> drivers of 0.09 are the cast-flood harness artifact **and genuine encoding divergence**
+> (our pooled under-determination 0.583 > GT 0.464 — ours is *less* regenerable than the
+> target). See FR-597 Outcome.
+
 **Indicated follow-up — two FRs, sequenced (new scope → back to Plan/Judge).**
 The corrected root cause re-orders the work:
 

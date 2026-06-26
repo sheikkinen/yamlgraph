@@ -35,6 +35,7 @@ if str(EXAMPLE_DIR) not in sys.path:
     sys.path.insert(0, str(EXAMPLE_DIR))
 
 from nodes.tools import (  # noqa: E402
+    l7_regenerability_exit,
     load_glosses,
     load_glosses_with_kinds,
     load_synopsis,
@@ -51,6 +52,7 @@ GRAPH_PATHS = {
     "assign-affects": EXAMPLE_DIR / "graphs" / "assign_affects.yaml",
     "perspective": EXAMPLE_DIR / "graphs" / "perspective_l5.yaml",
     "measure-l5": EXAMPLE_DIR / "graphs" / "l5_measure.yaml",
+    "measure-l7": EXAMPLE_DIR / "graphs" / "l7_measure.yaml",
 }
 GT_DIR = EXAMPLE_DIR / "fixtures" / "ground-truth"
 SYNOPSIS_DIR = EXAMPLE_DIR / "fixtures" / "synopses"
@@ -637,6 +639,178 @@ def _write_measure_summary(eval_dir: Path, rows: list[dict]) -> None:
     print(yaml.safe_dump(summary, sort_keys=False, allow_unicode=True))
 
 
+# ---------------------------------------------------------------------------
+# FR-597 — L7 affect-regenerability runner (the affect port of measure-l5).
+# Same two axes, same ours-vs-gt structure; the headline is corpus-POOLED, not a
+# mean of per-genre ratios (Judge correction #3: per-genre N~6 affect-bearing beats
+# is too small), and the verdict is the binary two-way exit on the GT pooled ratio
+# (Judge correction #1, anti-deferral). DIAGNOSTIC only — affect_recall stays the
+# primary L7 gate (FR-578).
+# ---------------------------------------------------------------------------
+
+
+def _gt_l7_affects(gt_path: Path) -> list[dict]:
+    """Ground-truth L7 affect beats [{id, eff_affect}] — the target ruler.
+
+    Built from the GT ``functions[].eff_affect`` (the same source the frozen FR-578
+    evaluator reads). Beats with empty ``eff_affect`` are kept here verbatim;
+    ``render_l7_affect`` excludes them from the skeleton and the denominator.
+    """
+    data = yaml.safe_load(gt_path.read_text(encoding="utf-8"))
+    return [
+        {"id": fn.get("id"), "eff_affect": fn.get("eff_affect") or []}
+        for fn in data.get("functions") or []
+    ]
+
+
+def run_measure_l7(app, gt_path: Path, source: str) -> dict | None:
+    """Measure one L7 encoding's affect-regenerability (FR-597); return the record.
+
+    ``source`` selects the subject: ``ours`` reads our encoder's L7 from
+    ``results/l7/<genre>.yaml``; ``gt`` reads the ground-truth ``eff_affect``. Both
+    are scored on the SAME two axes so the under-determination of the GT affect
+    skeleton is measured directly (the question affect_recall cannot answer).
+    """
+    data = yaml.safe_load(gt_path.read_text(encoding="utf-8"))
+    roster = "\n".join(f"- {a}" for a in data.get("agents", []))
+    synopsis_path = SYNOPSIS_DIR / f"{gt_path.stem}.txt"
+    synopsis = load_synopsis(synopsis_path) if synopsis_path.exists() else ""
+
+    if source == "gt":
+        affect_beats = _gt_l7_affects(gt_path)
+    else:
+        ours_path = RESULTS_DIR / "l7" / f"{gt_path.stem}.yaml"
+        if not ours_path.exists():
+            return None
+        affect_beats = yaml.safe_load(ours_path.read_text(encoding="utf-8")) or []
+
+    result = app.invoke(
+        {
+            "genre": gt_path.stem,
+            "roster": roster,
+            "affect_beats": affect_beats,
+            "synopsis": synopsis,
+        }
+    )
+    measure = result.get("l7_measure")
+    return measure if isinstance(measure, dict) else None
+
+
+def _main_measure_l7(args, provider: str) -> int:
+    """Mode 10 (FR-597): measure L7 affect-regenerability (simulability + fidelity).
+
+    DIAGNOSTIC ONLY — affect_recall remains the primary L7 gate this cycle
+    (FR-578). Writes per-genre records (both ``ours`` and ``gt`` sources) to
+    results/evaluation/<genre>-l7-measure.yaml and a corpus l7-measure-summary.yaml
+    whose headline is the GT corpus-POOLED under-determination ratio and the binary
+    two-way exit it resolves.
+    """
+    eval_dir = RESULTS_DIR / "evaluation"
+    eval_dir.mkdir(parents=True, exist_ok=True)
+
+    gt_paths = sorted(GT_DIR.glob("*.yaml"))
+    if args.genre:
+        gt_paths = [p for p in gt_paths if p.stem == args.genre]
+        if not gt_paths:
+            print(f"No ground-truth file matches '{args.genre}'")
+            return 1
+
+    app = _compile("measure-l7")
+    rows: list[dict] = []
+    for gt_path in gt_paths:
+        genre = gt_path.stem
+        print(f"▶ measuring L7 affect-regenerability for {genre} ...")
+        record: dict = {"genre": genre}
+        for source in ("ours", "gt"):
+            try:
+                measure = run_measure_l7(app, gt_path, source)
+            except Exception as exc:  # hard failure → record None, not a crash
+                print(f"  ✗ {source} run failed: {exc}")
+                measure = None
+            record[source] = measure
+            if measure:
+                sim = measure.get("simulability", {})
+                fid = measure.get("fidelity", {})
+                print(
+                    f"  → {source}: simulability ratio "
+                    f"{sim.get('ratio', 0.0):.2f} ({sim.get('underdetermined')}/"
+                    f"{sim.get('beats')}); fidelity {fid.get('score')}; "
+                    f"inverted {measure.get('inverted_count')}; "
+                    f"concerns {measure.get('concerns')}"
+                )
+        out_path = eval_dir / f"{genre}-l7-measure.yaml"
+        out_path.write_text(
+            yaml.safe_dump(record, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        rows.append(record)
+
+    _write_l7_measure_summary(eval_dir, rows)
+    return 0
+
+
+def _pool_source(rows: list[dict], source: str) -> dict:
+    """Corpus-POOLED under-determination for one source (Judge correction #3).
+
+    Sums markers and affect-bearing beats across the whole corpus, then divides —
+    never a mean of per-genre ratios, because per-genre N (~6 affect-bearing beats)
+    is too small for a stable ratio. Fidelity is reported as a mean only as an
+    advisory companion to the deterministic pooled axis.
+    """
+    measures = [r[source] for r in rows if isinstance(r.get(source), dict)]
+    total_under = sum(
+        int(m.get("simulability", {}).get("underdetermined", 0) or 0) for m in measures
+    )
+    total_beats = sum(
+        int(m.get("simulability", {}).get("beats", 0) or 0) for m in measures
+    )
+    pooled_ratio = round(total_under / total_beats, 3) if total_beats else 0.0
+    return {
+        "pooled_underdetermined": total_under,
+        "pooled_beats": total_beats,
+        "pooled_ratio": pooled_ratio,
+        "mean_fidelity_score": _mean(
+            [float(m.get("fidelity", {}).get("score") or 0.0) for m in measures]
+        ),
+        "total_inverted": sum(m.get("inverted_count", 0) for m in measures),
+    }
+
+
+def _write_l7_measure_summary(eval_dir: Path, rows: list[dict]) -> None:
+    """Write the corpus l7-measure summary; verdict = the binary two-way exit."""
+    ours = _pool_source(rows, "ours")
+    gt = _pool_source(rows, "gt")
+    # Judge correction #1 (anti-deferral): the verdict is the binary exit on the GT
+    # pooled under-determination — it resolves the gate question and un-blocks the
+    # encoder either way; it does not pause the layer.
+    exit_verdict = l7_regenerability_exit(gt["pooled_ratio"])
+    summary = {
+        "corpus": {"genres": len(rows)},
+        "ours": ours,
+        "gt": gt,
+        "verdict": exit_verdict,
+        "note": (
+            "L7 DIAGNOSTIC (FR-597): affect_recall remains the primary L7 gate "
+            "(FR-578) this cycle. The headline is the GT corpus-POOLED "
+            "under-determination ratio (total markers / total affect-bearing beats), "
+            "NOT a mean of per-genre ratios (Judge correction #3). The verdict is the "
+            "binary two-way exit (Judge correction #1): branch (a) thesis confirmed "
+            "(gt pooled ratio >= 0.70) authorizes a demotion FR and resumes the "
+            "encoder against a new ruler; branch (b) refuted leaves affect_recall "
+            "standing. Simulability is deterministic (GT-free); fidelity is an LLM "
+            "judge of subjective emotional content and is advisory only (Judge "
+            "correction #4) — read inverted_count, not just the mean score."
+        ),
+    }
+    out_path = eval_dir / "l7-measure-summary.yaml"
+    out_path.write_text(
+        yaml.safe_dump(summary, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    print(f"\n── L7 measure summary → {out_path.name} ──")
+    print(yaml.safe_dump(summary, sort_keys=False, allow_unicode=True))
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Plot Modeller spike runner")
     parser.add_argument(
@@ -651,6 +825,7 @@ def main(argv: list[str] | None = None) -> int:
             "assign-affects",
             "perspective",
             "measure-l5",
+            "measure-l7",
         ],
         default="classify-kinds",
         help="Which spike mode to run (default: classify-kinds)",
@@ -681,6 +856,8 @@ def main(argv: list[str] | None = None) -> int:
         return _main_perspective(args, provider)
     if args.mode == "measure-l5":
         return _main_measure_l5(args, provider)
+    if args.mode == "measure-l7":
+        return _main_measure_l7(args, provider)
     return _main_classify(args, provider)
 
 

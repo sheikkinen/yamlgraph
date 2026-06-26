@@ -1381,3 +1381,163 @@ def measure_l5_verdict(ours_sim_mean: float, gt_sim_mean: float) -> dict:
             "(ours no more regenerable than the GT skeleton)",
         ],
     }
+
+
+# ---------------------------------------------------------------------------
+# FR-597 — L7 affect-regenerability ruler (the affect port of the FR-594 tools).
+#
+# Same two orthogonal axes as L5: SIMULABILITY (does the affect skeleton license
+# its own emotional narration? — deterministic, GT-free, scored from
+# [UNDERDETERMINED] markers) and FIDELITY (does that narration match the source's
+# emotional content? — an LLM judge). DIAGNOSTIC this cycle: `affect_recall` stays
+# the primary L7 gate (FR-578); these report, they do not gate. The L7 affect
+# skeleton is far sparser than L5 world-state (5-8 deltas on one protagonist), so
+# the headline is corpus-POOLED, not a mean of per-genre ratios (Judge C3), and the
+# verdict is led by the deterministic simulability axis (Judge C4).
+# ---------------------------------------------------------------------------
+
+# Judge C1 anti-deferral threshold: GT pooled under-determination at/above this
+# confirms the thesis (affect_recall is measuring a lossy skeleton) and authorizes
+# the demotion FR; below it refutes the thesis and affect_recall stands. Either
+# branch un-blocks the protagonist-throughline encoder work.
+_L7_THESIS_FLOOR = 0.70
+
+
+def _affect_delta_str(delta: dict) -> str:
+    """Render one affect delta as ``<op> <char> <kind>[ toward <toward>]`` (FR-597).
+
+    Pure and deterministic. ``toward`` is appended only for relational kinds that
+    carry a target, so the regenerate prompt and the fidelity judge can score
+    ``char`` and ``toward`` separately.
+    """
+    op = delta.get("op", "?")
+    char = delta.get("char", "?")
+    kind = delta.get("kind", "?")
+    toward = delta.get("toward")
+    base = f"{op} {char} {kind}"
+    return f"{base} toward {toward}" if toward else base
+
+
+def render_l7_affect(beats: list | dict) -> str | dict:
+    """Render L7 affect beats into the delta stream the regenerate prompt consumes.
+
+    Pure and deterministic (FR-597), mirroring ``render_l5_beats``: each
+    affect-bearing beat becomes ``Beat <id>`` followed by one indented line per
+    ``eff_affect`` delta. Beats with no affect are skipped entirely — they are not
+    part of the emotional skeleton and must not inflate the denominator that
+    ``score_affect_simulability`` divides by.
+
+    Dual-mode, like ``render_l5_beats``: as a graph python tool it receives the full
+    state dict and returns ``{"affect_skeleton": <rendered str>}`` (reading the raw
+    beat list from ``affect_beats``); called directly (unit tests, the runner) with
+    a list it returns the rendered string.
+    """
+    if isinstance(beats, dict):
+        return {"affect_skeleton": render_l7_affect(beats.get("affect_beats") or [])}
+    lines: list[str] = []
+    for b in beats:
+        if not isinstance(b, dict):
+            continue
+        deltas = b.get("eff_affect") or []
+        if not deltas:
+            continue  # non-affect beat — excluded from the skeleton and denominator
+        lines.append(f"Beat {b.get('id', '?')}")
+        for d in deltas:
+            if isinstance(d, dict):
+                lines.append("  " + _affect_delta_str(d))
+    return "\n".join(lines)
+
+
+def _affect_bearing_count(beats: list | None) -> int:
+    """Count beats that carry at least one affect delta (the real denominator)."""
+    return sum(
+        1 for b in (beats or []) if isinstance(b, dict) and (b.get("eff_affect") or [])
+    )
+
+
+def score_affect_simulability(state: dict) -> dict:
+    """Score the L7 simulability axis: markers / affect-bearing beats (FR-597).
+
+    Graph python tool. Reads ``regen_arc`` (the regenerate node's emotional-arc
+    output) and ``affect_beats`` (the real, deterministic count — never the model's
+    claim) and returns ``{"simulability": {underdetermined, beats, ratio}}``. A
+    higher ratio means the affect skeleton licenses *less* of its own emotional
+    narration. Zero affect-bearing beats yields ratio 0.0 (safe, no division).
+    """
+    k = count_underdetermined(state.get("regen_arc", ""))
+    n = _affect_bearing_count(state.get("affect_beats"))
+    ratio = (k / n) if n else 0.0
+    return {"simulability": {"underdetermined": k, "beats": n, "ratio": ratio}}
+
+
+def combine_l7_measure(state: dict) -> dict:
+    """Combine the L7 simulability and fidelity axes into one attributable record.
+
+    Graph python tool (FR-597). Mirrors ``combine_l5_measure``: the deterministic
+    ``simulability`` axis and the noisy LLM ``fidelity`` axis are preserved verbatim
+    and never averaged (Judge correction #3). ``concerns`` names which axis fired so
+    a future failure is diagnosable. ``verdict_basis`` records that the verdict is
+    led by the deterministic simulability axis (Judge correction #4: the L7 fidelity
+    judge scores subjective emotional content and informs attribution only). This
+    record reports; it never gates (diagnostic only this cycle).
+    """
+    sim = _as_dict(state.get("simulability"))
+    fid = _as_dict(state.get("fidelity"))
+    inverted = fid.get("inverted") or []
+    concerns: list[str] = []
+    if sim.get("ratio", 0.0) >= _SIMULABILITY_CONCERN_RATIO:
+        concerns.append("low_simulability")
+    if inverted:
+        concerns.append("fidelity_inverted")
+    if fid.get("score", 1.0) < _FIDELITY_CONCERN_SCORE:
+        concerns.append("low_fidelity")
+    return {
+        "l7_measure": {
+            "simulability": sim,  # deterministic axis, preserved verbatim
+            "fidelity": fid,  # noisy LLM axis, preserved verbatim
+            "inverted_count": len(inverted),
+            "concerns": concerns,  # attributable: which axis fired
+            "verdict_basis": "simulability",  # Judge C4: simulability-led
+            "diagnostic_only": True,  # FR-597 Judgement: reports, does not gate
+        }
+    }
+
+
+def l7_regenerability_exit(gt_pooled_ratio: float) -> dict:
+    """Resolve the binary two-way exit on the GT pooled under-determination (FR-597).
+
+    Judge correction #1 (anti-deferral guard): this second ruler must not become a
+    standing excuse to never heal L7. The measurement resolves the gate question,
+    it does not pause the layer — BOTH branches un-block the encoder:
+
+    - branch (a), thesis CONFIRMED (``gt_pooled_ratio >= 0.70``): the GT affect
+      skeleton cannot regenerate its own emotional arc, so ``affect_recall`` scores
+      agreement with a lossy skeleton. A separate demotion FR (the FR-595 analog)
+      moves the L7 gate, and the protagonist-throughline encoder work resumes
+      against the new ruler.
+    - branch (b), thesis REFUTED (``gt_pooled_ratio < 0.70``): the GT skeleton *is*
+      regenerable, ``affect_recall`` stands, and the encoder work resumes against
+      its original >= 0.50 gate.
+    """
+    if gt_pooled_ratio >= _L7_THESIS_FLOOR:
+        return {
+            "branch": "a",
+            "thesis": "confirmed",
+            "gt_pooled_ratio": gt_pooled_ratio,
+            "threshold": _L7_THESIS_FLOOR,
+            "authorizes": (
+                "Open a separate demotion FR (FR-595 analog) to move the L7 gate off "
+                "affect_recall; resume the protagonist-throughline encoder work "
+                "against the new regenerability ruler."
+            ),
+        }
+    return {
+        "branch": "b",
+        "thesis": "refuted",
+        "gt_pooled_ratio": gt_pooled_ratio,
+        "threshold": _L7_THESIS_FLOOR,
+        "authorizes": (
+            "affect_recall stands as the L7 gate; resume the protagonist-throughline "
+            "encoder work against its original >= 0.50 affect_recall gate."
+        ),
+    }

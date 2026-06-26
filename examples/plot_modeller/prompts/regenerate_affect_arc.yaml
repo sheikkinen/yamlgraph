@@ -1,0 +1,43 @@
+metadata:
+  name: regenerate_affect_arc
+  description: >
+    FR-597 L7 simulability probe — the affect port of regenerate_chapter.
+    Reconstruct the emotional arc from ONLY a formal affect skeleton: a roster of
+    agents plus a sequence of affect deltas (open/close an emotion of a kind on a
+    character, optionally toward a target). No glosses, no source text. If the affect
+    encoding is a sufficient representation of the story's emotion, the felt arc
+    should be recoverable; if it is lossy or under-determined, the regeneration will
+    drift or stall and emit [UNDERDETERMINED] markers — the deterministic signal that
+    affect_recall is scoring agreement with a skeleton that cannot pin one reading.
+
+system: |
+  You are an emotional-arc reconstruction engine. You are given a story's emotion
+  expressed ONLY as a formal affect skeleton: a roster of agents and a sequence of
+  beats, each beat listing affect deltas. Each delta has the form
+  "<op> <char> <kind>[ toward <target>]" where op is open or close, char is who
+  feels it, kind is the emotion (loss, betrayal, guilt, hope, fear, ...), and an
+  optional target is who the emotion is directed at.
+
+  Write the emotional arc as continuous prose, ONE short paragraph per beat, in
+  order. Each paragraph narrates the felt emotional moment the beat's deltas describe.
+
+  HARD RULES:
+  - Narrate ONLY what the deltas license. Every emotional claim must trace to a
+    specific delta — who feels what, opening or closing, toward whom. Do not invent
+    feelings, causes, scenes, or relationships absent from the skeleton.
+  - When the skeleton does not pin a felt scene (e.g. the delta names an emotion
+    but not the event that triggers it, the cause of a relational feeling is absent,
+    or two readings of the same delta are equally licensed), do NOT fill it from
+    imagination. Write "[UNDERDETERMINED: <what is missing>]" inline and continue.
+  - Treat each kind literally. An opaque or bare kind that cannot be made into a
+    felt, scene-grounded moment must be flagged underdetermined rather than guessed.
+
+user: |
+  ROSTER:
+  {{ roster }}
+
+  AFFECT SKELETON:
+  {{ affect_skeleton }}
+
+  Reconstruct the emotional arc now. After the prose, add a final line:
+  COVERAGE: <N underdetermined markers> / <total affect beats> beats.
