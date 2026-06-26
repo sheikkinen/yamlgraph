@@ -1,0 +1,447 @@
+#!/usr/bin/env python3
+"""FR-599 — L7 affect-recall miss-decomposition probe (read-only, throwaway).
+
+The FR-578 gate reports one number — ``affect_recall`` — and the FR-598 enforce
+left it on the floor (~0.06-0.15) after REFUTING the "kill the novel" hypothesis.
+The aggregate cannot say WHICH lever the reserved escalation should pull. This
+probe consumes the FROZEN gate's own inputs (the FR-598 classifier output under
+``results/l7/<genre>.yaml`` + the ground-truth fixtures) and partitions every
+GT delta the gate counts as a MISS into five mutually-exclusive buckets, each
+naming a different, differently-priced lever:
+
+  (e) UNLICENSED   the GT anchor beat's own words do not license the affect at all
+                   -> GT re-annotation / cross-beat context  (checked FIRST)
+  (a) ABSENT       licensed, but the model placed nothing matching anywhere near
+                   -> model scale (FR-578)
+  (b) BEAT-OFF     right op+char+kind on a neighbour within +/-N, wrong exact beat
+                   -> evaluator beat tolerance / GT granularity
+  (c) KIND-WRONG   right op+char on the EXACT GT beat, wrong kind
+                   -> six-kind taxonomy revision
+  (d) TOWARD-WRONG right op+char+kind on the exact relational beat, wrong toward
+                   -> relational-direction prompt/taxonomy gap
+
+The probe REPLICATES the frozen ``_l7_counts`` beat-keyed grouping and ties out
+to it (reconstructed hits == gate ``recall_hits``) before any bucket is trusted
+(Judgement correction #1). Every bucket is reported x window (+/-1/+/-2/+/-3) x op
+(open/close) (corrections #2/#3); BEAT-OFF requires a kind-match on the neighbour
+(correction #4). Bucket (e) is decided by an LLM licensing pass that is
+fixture-pinned to two hand-adjudicated known answers (correction #5) and gated
+conservatively with every member dumped for a human read (correction #6).
+
+It changes NOTHING: no evaluator edit, no model run for scoring, no taxonomy
+change. It ends in one named dominant lever (or "multi-cause -> split successors").
+
+Run:
+  set -a; source .env; set +a
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+    .venv/bin/python examples/plot_modeller/probe_l7_misses.py
+
+REQ-YG-020.
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import yaml
+
+# Run as a script: Python puts this file's dir (examples/plot_modeller) on
+# sys.path[0], so ``evaluate`` and ``nodes`` import without path surgery.
+from evaluate import _l7_counts, _load_gt_affects
+from nodes.tools import _strip_code_fences, load_glosses_with_kinds
+
+from yamlgraph.executor import execute_prompt
+
+EXAMPLE_DIR = Path(__file__).resolve().parent
+GT_DIR = EXAMPLE_DIR / "fixtures" / "ground-truth"
+PROMPTS_DIR = EXAMPLE_DIR / "prompts"
+RESULTS_DIR = EXAMPLE_DIR / "results"
+L7_DIR = RESULTS_DIR / "l7"
+
+WINDOWS = (1, 2, 3)
+_RELATIONAL = ("guilt", "betrayal")
+_NEIGHBOR_CTX = 2  # +/- beats of gloss context handed to the licensing pass
+
+# corr.#5 — fixture-pinned known answers the licensing pass MUST reproduce.
+# (genre stem, beat id, op, char, kind) -> (licensed, neighbor_licensed)
+_LICENSING_FIXTURES: dict[tuple, tuple[bool, bool]] = {
+    ("detective-thriller-the-vanished-witness", "F1", "open", "marren", "loss"): (
+        False,  # licensed: anchor subject is Hagen, Marren unnamed
+        True,  # neighbor_licensed: F2 "Marren discovers ... case collapses"
+    ),
+    (
+        "detective-thriller-the-vanished-witness",
+        "F7",
+        "open",
+        "marren",
+        "hidden_blessing",
+    ): (
+        False,  # licensed: F7 is a clean positive, no setback-that-proves-a-gift
+        False,  # neighbor_licensed: licensed by no nearby gloss
+    ),
+    # close-op known answer (the open-op fixtures above cannot catch an
+    # open-biased judge that flags every close as unlicensed): F5 "Pell hands
+    # over the ledger ... agrees to testify" RECOVERS the lost case -> close loss
+    # IS licensed at its anchor.
+    ("detective-thriller-the-vanished-witness", "F5", "close", "marren", "loss"): (
+        True,  # licensed: the resolution (recovery) is shown on the anchor beat
+        False,  # neighbor_licensed only meaningful when unlicensed
+    ),
+}
+
+
+def _norm(s: object) -> str:
+    return " ".join(str(s or "").split()).strip().lower()
+
+
+def _pred_by_id(predicted: list | None) -> dict[str, list]:
+    """Beat-keyed predicted deltas — identical grouping to frozen ``_l7_counts``."""
+    out: dict[str, list] = {}
+    if isinstance(predicted, list):
+        for item in predicted:
+            if isinstance(item, dict) and item.get("id"):
+                ea = item.get("eff_affect")
+                out[item["id"]] = ea if isinstance(ea, list) else []
+    return out
+
+
+def _unmatched_gt(t_deltas: list, p_deltas: list) -> list:
+    """The GT deltas with no distinct match in ``p_deltas`` (the per-beat MISSES).
+
+    Mirrors the greedy bipartite pairing inside frozen ``_match_count`` exactly,
+    but returns the unmatched GT deltas instead of only their count — so
+    ``len(t) - len(_unmatched_gt(t, p)) == _match_count(t, p)`` by construction
+    (asserted in the tie-out).
+    """
+    from evaluate import _affect_matches  # local: same matcher the gate uses
+
+    used: set[int] = set()
+    misses: list = []
+    for a in t_deltas:
+        for j, b in enumerate(p_deltas):
+            if j in used:
+                continue
+            if _affect_matches(a, b):
+                used.add(j)
+                break
+        else:
+            misses.append(a)
+    return misses
+
+
+def _op_char_on(beat_deltas: list, op: str, char: str) -> list[dict]:
+    return [
+        d
+        for d in beat_deltas
+        if isinstance(d, dict)
+        and _norm(d.get("op")) == op
+        and _norm(d.get("char")) == char
+    ]
+
+
+def _licensing_verdict(
+    miss: dict,
+    anchor_id: str,
+    glosses: list[dict],
+    provider: str,
+    model: str,
+) -> dict:
+    """LLM licensing pass for ONE missed GT delta (corr.#5/#6).
+
+    Recognition, not generation: the affect is given; the pass only judges whether
+    the anchor beat licenses it (default LICENSED — conservative) and, if not,
+    whether a neighbour within +/-_NEIGHBOR_CTX does. Returns a dict with
+    ``licensed`` / ``neighbor_licensed`` / ``reason``.
+    """
+    by_id = {g["id"]: g for g in glosses}
+    order = [g["id"] for g in glosses]
+    anchor = by_id.get(anchor_id, {})
+    idx = order.index(anchor_id) if anchor_id in order else 0
+    neighbors = [
+        {"id": order[j], "gloss": by_id[order[j]]["gloss"]}
+        for j in range(
+            max(0, idx - _NEIGHBOR_CTX), min(len(order), idx + _NEIGHBOR_CTX + 1)
+        )
+        if order[j] != anchor_id
+    ]
+    raw = execute_prompt(
+        "affect_licensing",
+        state={
+            "op": _norm(miss.get("op")),
+            "char": miss.get("char"),
+            "kind": _norm(miss.get("kind")),
+            "toward": miss.get("toward"),
+            "anchor_id": anchor_id,
+            "anchor_gloss": anchor.get("gloss", ""),
+            "neighbors": neighbors,
+        },
+        prompts_dir=PROMPTS_DIR,
+        temperature=0.0,  # corr.#5: fixture-pin demands a calibratable judge
+        provider=provider,
+        model=model,
+    )
+    try:
+        parsed = yaml.safe_load(_strip_code_fences(str(raw))) or {}
+    except yaml.YAMLError:
+        parsed = {}
+    licensed = bool(parsed.get("licensed", True))  # corr.#6 default: LICENSED
+    return {
+        "licensed": licensed,
+        # neighbor_licensed only meaningful when unlicensed
+        "neighbor_licensed": (not licensed) and bool(parsed.get("neighbor_licensed")),
+        "reason": str(parsed.get("reason", "")).strip(),
+    }
+
+
+def _classify_licensed(
+    miss: dict, anchor_id: str, pred_by_id: dict, order: list[str], window: int
+) -> str:
+    """Bucket a LICENSED miss into a/b/c/d at one window (corr.#2/#3/#4)."""
+    op = _norm(miss.get("op"))
+    char = _norm(miss.get("char"))
+    kind = _norm(miss.get("kind"))
+    toward = _norm(miss.get("toward"))
+    relational = kind in _RELATIONAL
+
+    # exact beat: op+char present -> KIND-WRONG (c) or TOWARD-WRONG (d)
+    for p in _op_char_on(pred_by_id.get(anchor_id, []), op, char):
+        if _norm(p.get("kind")) == kind:
+            if relational and _norm(p.get("toward")) != toward:
+                return "d_toward_wrong"
+            # same op+char+kind(+toward) on exact beat but still a miss -> residual
+            continue
+        return "c_kind_wrong"
+
+    # neighbour within +/-window with op+char+KIND match (corr.#4) -> BEAT-OFF (b)
+    if anchor_id in order:
+        idx = order.index(anchor_id)
+        for off in range(1, window + 1):
+            for nb in (idx - off, idx + off):
+                if 0 <= nb < len(order):
+                    for p in _op_char_on(pred_by_id.get(order[nb], []), op, char):
+                        if _norm(p.get("kind")) == kind:
+                            return "b_beat_off"
+
+    return "a_absent"  # explicit residual
+
+
+def _blank_buckets() -> dict[str, dict[str, int]]:
+    return {
+        b: {"open": 0, "close": 0}
+        for b in (
+            "e_unlicensed",
+            "a_absent",
+            "b_beat_off",
+            "c_kind_wrong",
+            "d_toward_wrong",
+        )
+    }
+
+
+def _add(buckets: dict, bucket: str, op: str) -> None:
+    buckets[bucket]["open" if op == "open" else "close"] += 1
+
+
+def main() -> int:
+    provider = os.getenv("PROVIDER", "anthropic")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+
+    # window -> bucket -> {open, close}
+    pooled: dict[int, dict] = {w: _blank_buckets() for w in WINDOWS}
+    pooled_hits = 0
+    pooled_gt = 0
+    miss_records: list[dict] = []  # dumped + read (read_raw_output_first)
+    e_members: list[dict] = []  # every (e) classification (corr.#6 human-read)
+    fixture_results: dict[tuple, tuple[bool, bool]] = {}
+
+    for gt_path in sorted(GT_DIR.glob("*.yaml")):
+        genre = gt_path.stem
+        pred_path = L7_DIR / f"{genre}.yaml"
+        if not pred_path.exists():
+            print(
+                f"  ! {genre}: no classifier output at {pred_path} — run spike_affect first"
+            )
+            continue
+        predicted = yaml.safe_load(pred_path.read_text(encoding="utf-8"))
+        truth_by_id = _load_gt_affects(gt_path)
+        glosses = load_glosses_with_kinds(gt_path)
+        order = [g["id"] for g in glosses]
+        pred_by_id = _pred_by_id(predicted)
+
+        # --- tie-out to the FROZEN gate (corr.#1) ----------------------------
+        gate = _l7_counts(predicted, truth_by_id)
+        recon_hits = 0
+        misses: list[tuple[str, dict]] = []  # (anchor beat id, missed GT delta)
+        for bid, t_deltas in truth_by_id.items():
+            p_deltas = pred_by_id.get(bid, [])
+            recon_hits += len(t_deltas) - len(_unmatched_gt(t_deltas, p_deltas))
+            for m in _unmatched_gt(t_deltas, p_deltas):
+                misses.append((bid, m))
+        assert recon_hits == gate["recall_hits"], (
+            f"{genre}: tie-out FAILED — reconstructed hits {recon_hits} != "
+            f"gate recall_hits {gate['recall_hits']} (probe does not replicate the gate)"
+        )
+        pooled_hits += gate["recall_hits"]
+        pooled_gt += gate["gt"]
+
+        # --- bucket every miss: (e) FIRST, then a/b/c/d per window -----------
+        for bid, miss in misses:
+            op = _norm(miss.get("op"))
+            lic = _licensing_verdict(miss, bid, glosses, provider, model)
+            key = (genre, bid, op, _norm(miss.get("char")), _norm(miss.get("kind")))
+            if key in _LICENSING_FIXTURES:
+                fixture_results[key] = (lic["licensed"], lic["neighbor_licensed"])
+
+            record = {
+                "genre": genre,
+                "anchor_id": bid,
+                "gt_delta": {k: miss.get(k) for k in ("op", "char", "kind", "toward")},
+                "anchor_gloss": next(
+                    (g["gloss"] for g in glosses if g["id"] == bid), ""
+                ),
+                "licensing": lic,
+            }
+
+            if not lic["licensed"]:  # (e) UNLICENSED — window-independent
+                for w in WINDOWS:
+                    _add(pooled[w], "e_unlicensed", op)
+                record["bucket"] = "e_unlicensed"
+                record["neighbor_licensed"] = lic["neighbor_licensed"]
+                e_members.append(record)
+            else:
+                record["bucket_by_window"] = {}
+                for w in WINDOWS:
+                    bucket = _classify_licensed(miss, bid, pred_by_id, order, w)
+                    _add(pooled[w], bucket, op)
+                    record["bucket_by_window"][w] = bucket
+            if len(miss_records) < 12:
+                miss_records.append(record)
+
+    # --- corr.#5: fixture-pin — the licensing pass MUST reproduce known answers
+    print("\n== Licensing fixture-pin (corr.#5) ==")
+    pin_ok = True
+    for key, expected in _LICENSING_FIXTURES.items():
+        got = fixture_results.get(key)
+        ok = got == expected
+        pin_ok = pin_ok and ok
+        genre, bid, op, char, kind = key
+        print(
+            f"  [{'OK' if ok else 'FAIL'}] {genre} {bid} {op} {char} {kind}: "
+            f"expected licensed/neighbor={expected}, got={got}"
+        )
+    if not pin_ok:
+        print(
+            "\nPROBE FAILS: the licensing pass did not reproduce its known-answer "
+            "fixtures — an uncalibrated judge is not evidence (corr.#5). Re-run or "
+            "fix the licensing prompt before trusting any (e) classification."
+        )
+        return 1
+
+    # --- forced raw read BEFORE the aggregate (read_raw_output_first) ---------
+    L7_DIR.mkdir(parents=True, exist_ok=True)
+    samples_path = L7_DIR / "miss-samples.txt"
+    samples_path.write_text(
+        yaml.safe_dump(miss_records, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    e_path = L7_DIR / "unlicensed-members.txt"
+    e_path.write_text(
+        yaml.safe_dump(e_members, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    assert len(miss_records) >= 3, "need >=3 miss records dumped to read first"
+    print(
+        f"\n== {len(miss_records)} miss records dumped -> {samples_path} (READ before the aggregate) =="
+    )
+    for r in miss_records[:3]:
+        d = r["gt_delta"]
+        b = r.get("bucket") or r.get("bucket_by_window", {}).get(2, "?")
+        print(
+            f"  {r['genre']} {r['anchor_id']} [{b}] {d['op']} {d['char']} {d['kind']}"
+            f"{(' -> ' + str(d['toward'])) if d.get('toward') else ''}"
+        )
+        print(f"     anchor: {r['anchor_gloss'][:96]}")
+        print(f"     licensing: {r['licensing']['reason'][:96]}")
+    print(
+        f"\n== {len(e_members)} UNLICENSED (e) members dumped -> {e_path} (corr.#6: read EVERY one) =="
+    )
+    for r in e_members:
+        d = r["gt_delta"]
+        print(
+            f"  {r['genre']} {r['anchor_id']} {d['op']} {d['char']} {d['kind']} "
+            f"neighbor_licensed={r['neighbor_licensed']} :: {r['licensing']['reason'][:80]}"
+        )
+
+    # --- aggregate: 5 buckets x window x op, with conservation check ----------
+    order_b = [
+        "e_unlicensed",
+        "a_absent",
+        "b_beat_off",
+        "c_kind_wrong",
+        "d_toward_wrong",
+    ]
+    label = {
+        "e_unlicensed": "(e) UNLICENSED  -> GT re-annotation / cross-beat",
+        "a_absent": "(a) ABSENT      -> model scale (FR-578)",
+        "b_beat_off": "(b) BEAT-OFF    -> evaluator tolerance / GT granularity",
+        "c_kind_wrong": "(c) KIND-WRONG  -> six-kind taxonomy",
+        "d_toward_wrong": "(d) TOWARD-WRONG-> relational-direction gap",
+    }
+    total_misses = pooled_gt - pooled_hits
+    print(
+        f"\n== Miss decomposition (pooled: {pooled_gt} GT deltas, {pooled_hits} hits, "
+        f"{total_misses} misses) =="
+    )
+    for w in WINDOWS:
+        buckets = pooled[w]
+        bsum = sum(c["open"] + c["close"] for c in buckets.values())
+        assert pooled_hits + bsum == pooled_gt, (
+            f"conservation FAILED at window +/-{w}: hits {pooled_hits} + buckets "
+            f"{bsum} != GT total {pooled_gt}"
+        )
+        print(f"\n  window +/-{w}:")
+        for b in order_b:
+            o, c = buckets[b]["open"], buckets[b]["close"]
+            tot = o + c
+            pct = (100.0 * tot / total_misses) if total_misses else 0.0
+            print(
+                f"    {label[b]:<46} {tot:>3} ({pct:4.0f}% of misses)  open={o} close={c}"
+            )
+        print(
+            f"    conservation: {pooled_hits} hits + {bsum} misses == {pooled_gt} GT  [OK]"
+        )
+
+    # --- verdict: one dominant lever, or multi-cause -------------------------
+    w_ref = 2  # report the dominant lever at the middle window
+    buckets = pooled[w_ref]
+    totals = {b: buckets[b]["open"] + buckets[b]["close"] for b in order_b}
+    dom = max(totals, key=lambda b: totals[b])
+    dom_pct = (100.0 * totals[dom] / total_misses) if total_misses else 0.0
+    print("\n== Verdict (dominant lever at window +/-2; window-sensitivity carried) ==")
+    if dom_pct > 50.0:
+        print(f"  DOMINANT: {label[dom]}  ({dom_pct:.0f}% of misses).")
+        # op-split call-out for ABSENT (corr.#3): close-heavy points at FR-598's
+        # deleted arc-closure mandate, not a model ceiling.
+        if (
+            dom == "a_absent"
+            and buckets["a_absent"]["close"] > buckets["a_absent"]["open"]
+        ):
+            print(
+                "  NOTE: ABSENT is close-heavy -> the FR-598 deleted arc-closure "
+                "mandate ('the novel was also the net'), NOT a model ceiling."
+            )
+        print(
+            "  -> name the successor FR carrying THIS lever, with the window-sensitivity "
+            "and op-split above as its evidence."
+        )
+    else:
+        print(
+            f"  MULTI-CAUSE: no bucket > 50% (top is {label[dom]} at {dom_pct:.0f}%). "
+            "Split the escalation into per-bucket successor FRs; do not pull one lever."
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
