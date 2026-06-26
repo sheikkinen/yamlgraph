@@ -415,6 +415,52 @@ protagonist fix.
 > (our pooled under-determination 0.583 > GT 0.464 — ours is *less* regenerable than the
 > target). See FR-597 Outcome.
 
+> **CORRECTED AGAIN by apples-to-apples recall probe (2026-06-26, `logs/l7-recall-breakdown.log`).**
+> The "cast-flood harness artifact" is **not a driver of the gate at all.** The gate is
+> `affect_recall = recall_hits / gt` (frozen `evaluate._l7_counts`): it counts how many *GT*
+> deltas we reproduce, so extra cast can **only raise or hold** recall — never lower it. Proof
+> (detective): full-roster recall **0/8**; our protagonist-only (Marren) track **also 0/8**,
+> identical. The full roster is the recall *ceiling*; cast-flood is a *precision* symptom, not
+> the gate driver. The **real** drivers of recall = 0 on the protagonist track are: (1) **char
+> displacement** — on some beats (F1, F8) we emit no protagonist delta at all (affect parked on
+> other cast); (2) **kind confusion** — even when `char = Marren` (F4–F7), we assign the wrong
+> affect *kind* (`guilt` for GT `betrayal`, `hope` for GT `hidden_blessing`, `loss` for GT
+> `betrayal`). Since match requires exact `op + kind + char`, right-char/wrong-kind is a recall
+> miss. **Consequence:** the "bind `char` to `subject`" idea (FR-598) is *insufficient* — it may
+> fix F1/F8 displacement but F4–F7 already have the right char and miss on kind. The actionable
+> FR must target **affect-kind assignment / arc-coherence on the protagonist**, not cast
+> selection. The protagonist-throughline follow-up below remains correct in *removing the
+> full-cast map*, but its stated rationale ("fixes the cast-flood / precision") is the wrong
+> reason — its real value is forcing single-subject **kind** discipline.
+
+> **ROOT CAUSE FOUND — the output is a novel (2026-06-26, cited trace, Commandment 9).**
+> Reading the raw `affect_throughline` output (the step deferred behind two FRs of metric
+> tooling) showed the prompting error in one read: it asks for *prose narration of a single
+> character's arc* (`"You write plain prose: no YAML, no lists, no code fences"` / `"Narrate
+> ONLY {{ state.agent }}'s feelings"`), and haiku returns a 300–450-word **literary character
+> study**. The novelist's instincts — complete the arc, supply interiority, reach for evocative
+> diction, thread causality across beats — are exactly what (a) **invent** affect to fill the
+> arc (`guilt → Pell`, `retaliation`, all absent from GT), (b) **blur** kinds via literary
+> synonyms (`hidden_blessing` for GT `hope`), and (c) **suppress** the relation that breaks the
+> heroic shape (Marren's own `betrayal → Hagen`). Beat-level localization
+> (`logs/l7-kind-localization.log`) confirms `encode_affect` transcribes the prose *faithfully*
+> — so the defect is born upstream in the **narration**, not the encode pass. This *refutes the
+> spike's own `ENCODE-MISKINDED` verdict*: it is **PROSE-MISKINDED**.
+>
+> **Cited LangSmith traces** (project `pr-showcase`, EU; spike run 2026-06-26 03:18 UTC):
+> - throughline (agent *The Swarm*, scifi "The Loom") — **658 completion tokens of prose**,
+>   8.93s, anthropomorphizing a rat hive-mind with invented `loss`/`betrayal → Jonas`/
+>   `retaliation`/`hidden_blessing`:
+>   `https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f01ef-dfe3-7412-8180-b6410cab26a3`
+> - adjacent `encode_affect` — 124 completion tokens, 1.44s (faithful compression of the prose):
+>   `https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/019f01ef-da3b-70b2-8407-e59675df72a9`
+>
+> **Corrected FR-598 scope:** *kill the novel* — replace free-prose throughline narration with
+> a terse per-beat **classification** (one line per affect-bearing beat: `<id>: <open|close>
+> <kind> [toward <char>]`, closed-vocabulary kind, default *none*, no narrative connective
+> tissue or affect ungrounded in a source phrase), likely collapsing the two-pass into one.
+> Measured against the standing `affect_recall ≥ 0.50` gate.
+
 **Indicated follow-up — two FRs, sequenced (new scope → back to Plan/Judge).**
 The corrected root cause re-orders the work:
 
