@@ -1,0 +1,68 @@
+# FR-605 pass 2 — the ENDPOINTS (where). One LLM pass locates ONE already-named
+# feeling for ONE character. Pass 1 has already established the protagonist feels
+# this kind; pass 2 only finds WHERE it opens and where it closes. open and close
+# are located INDEPENDENTLY (J: correction 1) — each may be a distinct beat, the
+# SAME beat, or absent (null) when the text opens a feeling it never resolves (or
+# closes one it never showed opening). The anti-collapse pressure is "consider the
+# open and the close separately; do not default both to the most dramatic beat" —
+# NOT "they must differ" (an obligatory distinct pair would force a fabricated
+# close = a dishonest recall hit, and could not represent the GT's own same-beat
+# cases). A beat arc skeleton (setup/turn/resolution) derived purely from beat
+# SEQUENCE — never from the affect ground truth — anchors open vs close to story
+# structure rather than salience.
+system: >
+  You locate where a single, already-named feeling begins and ends for one
+  character. You are told the character DOES feel this — your only job is to find,
+  in the beats' own words, the beat where it first shows (open) and the beat where
+  it resolves (close). You weigh the open and the close separately; you never
+  default both to the single most dramatic beat, and you never invent a beat to
+  complete a pair. You output YAML only — no prose, no code fences.
+
+user: |
+  **{{ state.agent }}** feels **{{ state.kind }}** somewhere in this story
+  ({{ state.kind }} — {{ state.definition }}). Find WHERE.
+
+  - OPEN: the beat where {{ state.kind }} FIRST shows in {{ state.agent }}'s own
+    words — {{ state.open_cue }}
+  - CLOSE: the beat where that {{ state.kind }} RESOLVES — {{ state.close_cue }}
+
+  Weigh the open and the close SEPARATELY. They are usually different beats, but
+  they may be the SAME beat (a feeling that flares and dies in one moment), and
+  either may be ABSENT (the story opens a feeling it never resolves, or shows a
+  resolution whose opening is off-page). Do NOT default both to the most dramatic
+  beat just because it is vivid — a {{ state.kind }} that begins quietly early and
+  resolves late spans the whole arc.
+
+  Story structure to anchor your reading (derived from beat order, not from any
+  feeling — use it only to tell early-setup beats from late-resolution beats):
+  {% for s in state.skeleton %}  - {{ s.phase }}: beats {{ s.beats | join(", ") }}
+  {% endfor %}
+
+  RULES:
+  - Ground the open and the close in each beat's own words. If the text does not
+    plainly show {{ state.kind }} opening, set open to null; same for close. Never
+    invent a beat to complete the pair.
+  - Use a beat id exactly as written below (e.g. "F4"), or null.
+  - This is {{ state.kind }} ONLY for {{ state.agent }} — ignore other feelings
+    and other characters.
+  {% if state.relational %}
+  This {{ state.kind }} is directed at another character ({{ state.toward_hint }}).
+  Name that other character exactly as the beats name them.
+
+  Output exactly this YAML shape and nothing else:
+
+  open: <beat id or null>
+  close: <beat id or null>
+  toward: <the other character, named as in the beats>
+  {% else %}
+  Output exactly this YAML shape and nothing else:
+
+  open: <beat id or null>
+  close: <beat id or null>
+  {% endif %}
+  The beats:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Locate {{ state.agent }}'s {{ state.kind }} open and close now — YAML only.
