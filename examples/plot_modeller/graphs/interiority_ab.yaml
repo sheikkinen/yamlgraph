@@ -115,11 +115,15 @@ nodes:
   judge_ba1:
     type: llm
     prompt: interiority/judge_pair
+    model: claude-sonnet-4-6   # stronger judge than the haiku writers (trustworthy discrimination)
+    temperature: 0.3
     state_key: verdict_ba1
 
   judge_ba0:
     type: llm
     prompt: interiority/judge_pair_a0
+    model: claude-sonnet-4-6   # stronger judge than the haiku writers (trustworthy discrimination)
+    temperature: 0.3
     state_key: verdict_ba0
 
   tally:

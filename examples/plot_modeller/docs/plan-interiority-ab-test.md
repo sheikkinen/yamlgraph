@@ -1,7 +1,7 @@
 # Plan: Interiority A/B — does authored inner state beat improvised inner state?
 
 **Date:** 2026-06-27
-**Status:** Proposed (standalone falsification experiment). This is the **gate** on
+**Status:** **RESOLVED — GO** (see [Results](#results-2026-06-27-floodmark-8-draws) below). This is the **gate** on
 [plan-generative-roundtrip.md](plan-generative-roundtrip.md): the round-trip's whole premise is that
 *authored* character interiority produces more coherent narrative than *improvised* interiority. That
 premise is currently unproven. This experiment proves or kills it for one afternoon's cost, before any
@@ -142,3 +142,53 @@ branch is the valuable one: it saves a large build for the price of one A/B grap
 3. At least one raw triple is read and annotated *before* any aggregate is reported.
 4. A one-paragraph verdict (GO / KILL / REVISE) feeds back into plan-generative-roundtrip.md.
 5. No Python runner orchestrates the arms; tools are leaf-level (load, blind-shuffle, tally) only.
+
+---
+
+## Results (2026-06-27, Floodmark, 8 draws) {#results-2026-06-27-floodmark-8-draws}
+
+**Premise:** Floodmark Saga blurb (`outputs/dungeon-master/10026-BC/story.md`).
+**Scene:** the documented failure — mid-march several days after the flood took Hilde's brother
+Arnulf, grief sitting unspoken under the column. This is the exact "feelings vanish suddenly" complaint
+the round-trip aims to fix.
+**Writers:** all three arms on `claude-haiku-4-5` (fixed writer; the only variable between arms is the
+injected sheet). **Judge:** pinned to `claude-sonnet-4-6` (stronger tier than the writers) with
+verbatim quote-backing required for every defect. **Draws:** 8 independent runs, seed alternating 0/1
+to counterbalance blind slot position. Logs: `logs/interiority-batch/run-{1..8}.log`.
+
+### Honest contrast — B (interiority) vs A1 (clean surface control)
+
+| | wins | rate |
+|---|---|---|
+| **B (interiority)** | **6 / 8** | **75%** |
+| A1 (surface) | 1 / 8 | 12.5% |
+| tie | 1 / 8 | 12.5% |
+
+When B won, the surface arm carried 2–3 quote-backed defects vs B's 0–1. The single A1 win (run 4) was
+*honest*: the judge dinged arm B with two verbatim-quoted opened-but-unclosed threads ("The clan
+watched. Let them watch."; "Gunnar's breath caught beside her. She didn't look at him.") — the
+technique's own failure mode, not a misread. The judge punishes either side on evidence.
+
+### Secondary contrast — B (interiority) vs A0 (bare, no sheet)
+
+| | wins | rate |
+|---|---|---|
+| B (interiority) | 4 / 8 | 50% |
+| A0 (bare) | 1 / 8 | 12.5% |
+| tie | 3 / 8 | 37.5% |
+
+### Verdict: **GO**
+
+B beats the clean surface control A1 in a clear majority (75% ≥ 70%) **with fewer defects** — the plan's
+GO band. The mechanism is visible in the raw verdicts: the *surface* arm repeatedly opens a grief beat
+about Arnulf and then suspends it (run 7: "some part of her still refused to settle on which was true …
+she didn't have to decide" — named, then dropped), reproducing the documented Floodmark complaint,
+while the interiority arm closes its affect arc to the scene's end.
+
+**Nuance worth carrying forward:** B's margin over A1 (75%) is much larger than over A0 (50%, mostly
+ties). On short single scenes the *bare* writer already carries feeling adequately; the surface sheet
+actively *hurts* by anchoring attention on appearance/manner while leaving affect threads open. So the
+interiority sheet's value is sharpest against the realistic alternative — a character bible with looks
+and voice but no inner-state arc — not against an unguided writer. The round-trip should therefore pair
+the inner-state sheet with the *scene-spanning* claim (open → carry → close a named feeling), since that
+is where authored interiority demonstrably beats the surface-bible baseline.
