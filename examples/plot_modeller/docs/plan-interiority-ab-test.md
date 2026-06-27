@@ -1,11 +1,12 @@
 # Plan: Interiority A/B — does authored inner state beat improvised inner state?
 
 **Date:** 2026-06-27
-**Status:** **CONDITIONAL — GO on active scenes; test confounded on passive scenes.** Floodmark (an
-*active* scene) cleared the GO band (75%). The Loom/ARIA generalization probe did not — but the REVISE
-re-test isolated *why*: the cross-character interior leak was a fixable prompt bug (now fixed; B rose
-25%->50% vs A1), and the residual gap is a **scene-affordance confound** — the Loom scene is a
-deferred-action scene that penalises explicit goal-statement across all arms, exposing arm B most.
+**Status:** **CONDITIONAL — GO on adrenaline-rush scenes; the touchy-feely test was graded by an
+adrenaline rubric.** Floodmark (an adrenaline-rush scene) cleared the GO band (75%). The Loom/ARIA probe
+did not — but the REVISE re-test isolated *why*: the cross-character interior leak was a fixable prompt
+bug (now fixed; B rose 25%->50% vs A1), and the residual gap is that a **touchy-feely scene was judged
+for resolution-through-action**, which under-credits the arm that names feeling most. The technique and
+the affect-closure check must branch on scene type (adrenaline-rush vs touchy-feely).
 See [Results](#results-2026-06-27-floodmark-8-draws), [Generalization probe](#generalization-2026-06-27-loom-8-draws),
 and [REVISE re-test](#revise-2026-06-27-loom-v2-8-draws). This is the **gate** on
 [plan-generative-roundtrip.md](plan-generative-roundtrip.md): the round-trip's whole premise is that
@@ -283,12 +284,34 @@ A residual impossible-knowledge variant also survived (Mara citing an unestablis
 synchronization spread") — but that is a **plot-fact** leak, not the cross-character interior leak the
 clause targeted; it is a separate, narrower fix.
 
+### The sharper frame: adrenaline-rush vs touchy-feely scenes
+
+"Active vs passive" undersells it. There are two scene archetypes that resolve a feeling in *opposite*
+ways:
+
+- **Adrenaline-rush scenes** — external stakes, action-forward. A feeling resolves by being *spent
+  through a choice* (Hilde holds the line; grief carried through the march). The interiority sheet's
+  "open → carry → close **through action**" claim holds here → Floodmark GO.
+- **Touchy-feely scenes** — emotion *is* the event; action is suppressed or absent. A feeling resolves
+  by being *recognised, named, or shifted in dialogue*, not by a choice (Mara losing Jonas, forbidden
+  to act yet).
+
+So the Loom result is not merely "confounded" — it is a **touchy-feely scene graded by an adrenaline
+rubric.** The judge prompt asks for feelings "carried through to the scene's end" and flags "opened
+feeling never carried"; that criterion *assumes resolution-through-action*. On a touchy-feely scene the
+resolution is internal, so the judge under-credits exactly the arm (B) that names the feeling most. Both
+the writer instruction **and** the judge rubric are scene-type-blind.
+
 ### Revised verdict
 
-- **The technique is validated on active scenes** (Floodmark GO) and the interior-leak bug is fixed.
-- **The scifi probe was confounded** by a passive scene; it does not refute interiority, it reveals that
-  the A/B is only meaningful when the scene affords action.
-- **Next clean test:** re-run the Loom battery on an *active* scifi scene (Mara breaking into the server
-  facility, triggering the rollback — feelings driving visible choices) before drawing any genre
-  conclusion. And the round-trip's scene-selection / beat-binding must guarantee each affect unit lands
-  on a beat that *affords action*, or the closure check will punish the most explicit arm unfairly.
+- **Validated on adrenaline-rush scenes** (Floodmark GO); the interior-leak bug is fixed.
+- **The Loom probe was a touchy-feely scene judged by an adrenaline rubric** — it does not refute
+  interiority; it shows the A/B (and the affect-closure check) must branch on scene type.
+- **Two fixes before any genre conclusion:** (1) re-run the Loom battery on an *adrenaline* scifi scene
+  (Mara breaking into the server, triggering the rollback — feeling spent through choice) to confirm the
+  GO transfers; (2) give the judge a **touchy-feely closure mode** — a feeling may close by being named,
+  recognised, or shifted in dialogue, not only by action — and re-grade the existing Loom v2 draws under
+  it. If B then leads, the gap was the rubric, not the technique.
+- **Round-trip consequence:** scene beats must carry a `scene_type` (adrenaline | touchy-feely) tag, and
+  the affect-closure validator must accept the matching resolution mode, or it will punish the most
+  explicit arm on every reflective scene.
