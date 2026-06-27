@@ -49,6 +49,52 @@ only Python they must trust is leaf-level, typed, and side-effecting.
 
 ---
 
+## Prior art — this is a recombination, not a greenfield build
+
+Almost every *stage* of this loop already exists as a working YAMLGraph sample. The round-trip is not
+new generation machinery; it is a **typed plot spine + coherence validation** wrapped around patterns
+that are already proven in YAML. The build should *inherit* these, not reinvent them.
+
+| Stage | Reuse from | What it already proves |
+|---|---|---|
+| Input (synopsis **or** blurb) | `demos/novel_generator` (premise), `dungeon_master` (tagline) | blurb-in generation works |
+| Synopsis → timeline | `demos/novel_generator` `construct_timeline`, `book_reviewer` `synopsis_beats` | beat decomposition in pure YAML |
+| Character / agent sheets | `npc` (identity/personality/knowledge/behavior), `dungeon_master` (`char:<id>` cards) | sheet authoring + the card model |
+| Spread sheets over timeline | `dungeon_master` play-turns (map cast→intents), `npc` encounter map | per-agent fan-out/fan-in over beats |
+| Reconstruct prose | `demos/novel_generator` `generate_prose` (map), `dungeon_master` played-chapters→Book | beat→prose projection |
+| Deterministic assembly | `dungeon_master` Book compose (**no whole-book LLM**, FR-492) | no-LLM render of the final artifact |
+| Comparison / continuity | `book_reviewer` `continuity` + `verdict` | extract structure back out and check it |
+
+**The gold standard for the hard requirement is `demos/novel_generator`:** premise → synopsis →
+timeline → prose in ~84 lines of YAML, run by pure `yamlgraph graph run` with **no Python runner at
+all.** The line not to cross is `dungeon_master/scripts/generate.py` — an *adapter-only* orchestrator
+(`weave`/`accept`/`navigate`) that is acceptable as a thin headless entry but must never grow into a
+script that sequences LLM steps imperatively. A thin arg-parse → `graph run` entry is fine; an
+imperative pipeline around the graph is the smell.
+
+### The one genuinely new part
+
+None of the prior samples carries a **typed, closed-vocabulary plot spine** (belief / goals / causal
+partial-order / affect units) as the intermediate, and none **closes the loop to validate structural
+preservation** — they all generate forward and judge quality with a *subjective LLM grade*
+(novel_generator's "grade ≥ B"). The only net-new build here is therefore:
+
+1. the **L1–L7 typed extractor** as a sub-graph (the plot_modeller contribution),
+2. the **sheet ↔ timeline binding** as a typed join (`dungeon_master` already half-provides it via
+   `motivation.goal` + `enables`), and
+3. the **comparison report's deterministic coherence validators** (plan-exists, affect closure,
+   belief grounding) *replacing* the subjective grade.
+
+### Positioning relative to dungeon_master
+
+`dungeon_master` is already a forward generative round-trip (synopsis → cast → outline → play → Book)
+**and** it owns the plot-modeling research. To avoid duplicating it, `plot_modeller` is the **typed-spine
++ validator library**; `dungeon_master` and `novel_generator` are its **consumers**. The round-trip's
+real job is to give those pipelines the coherence gate they currently lack — not to re-grow a
+cast/outline/play loop they already have.
+
+---
+
 ## The pipeline
 
 ```mermaid
