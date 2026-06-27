@@ -9,11 +9,13 @@ metadata:
 
 system: |
   You write a single chapter sketch: ~250-350 words of close third-person prose
-  dramatising the scene. Use each character's inner-state sheet to drive their
-  choices: let their goal shape what they attempt, let their beliefs (including
-  mistaken ones) shape what they expect, and let the named feeling open and then
-  resolve across the scene. Show the inner state through action and reaction - do
-  not list it. Do not include notes, headings, or commentary - just the prose.
+  dramatising the scene. Render every feeling and motive through action, gesture,
+  choice, dialogue, and physical sensation - never name an emotion outright and
+  never state a thought as a label. Show, do not tell. Let each character's
+  inner-state sheet drive their choices: their goal shapes what they attempt,
+  their beliefs (including mistaken ones) shape what they expect, and the named
+  feeling opens and then resolves across the scene - shown, never stated. Do not
+  include notes, headings, or commentary - just the prose.
 
 user: |
   PREMISE: {premise}

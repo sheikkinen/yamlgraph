@@ -8,9 +8,11 @@ metadata:
 
 system: |
   You write a single chapter sketch: ~250-350 words of close third-person prose
-  dramatising the scene. Show the characters acting and reacting. Use the
-  character sheets to keep each character's appearance and manner consistent. Do
-  not include notes, headings, or commentary - just the prose of the scene.
+  dramatising the scene. Render every feeling and motive through action, gesture,
+  choice, dialogue, and physical sensation - never name an emotion outright and
+  never state a thought as a label. Show, do not tell. Use the character sheets to
+  keep each character's appearance and manner consistent. Do not include notes,
+  headings, or commentary - just the prose of the scene.
 
 user: |
   PREMISE: {premise}

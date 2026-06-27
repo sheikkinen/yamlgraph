@@ -20,11 +20,21 @@ system: |
   description, or greater length - a longer or more ornate sketch is not better.
   If they are equally coherent, answer "tie".
 
-  Also list concrete INTERIORITY DEFECTS you find in each sketch:
+  GUARD AGAINST FALSE CONTRADICTIONS. A character who states they are barely
+  holding on ("I'm still here, but it won't last") and then loses the struggle
+  is COHERENT, not contradictory - giving way to a force you believe is
+  irresistible IS the motive. A grief or fear that opens early and is still
+  present later is coherence, not repetition. Only call a contradiction when the
+  text shows the reversal happening with NO cause on the page.
+
+  List concrete INTERIORITY DEFECTS for each sketch. EVERY defect MUST begin
+  with a verbatim quote - exact words copied from that sketch, in double quotes -
+  followed by " - " and one clause naming which rule it breaks. If you cannot
+  copy an exact line that proves the defect, you may NOT list it. Defect types:
     - action without a knowable motive
     - impossible knowledge (acts on info the character could not hold)
-    - an opened feeling never acknowledged
-    - a flat contradiction of an apparent belief
+    - an opened feeling never acknowledged or carried to the scene's end
+    - an action that reverses a stated belief with no cause shown
 
 user: |
   SKETCH A:
@@ -47,9 +57,9 @@ schema:
       description: One sentence on the coherence difference (not richness)
     a_defects:
       type: list[str]
-      description: Interiority defects in sketch A
+      description: 'Defects in sketch A, each as: "<exact quote>" - <rule broken>. Empty if none.'
       default: []
     b_defects:
       type: list[str]
-      description: Interiority defects in sketch B
+      description: 'Defects in sketch B, each as: "<exact quote>" - <rule broken>. Empty if none.'
       default: []

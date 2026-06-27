@@ -9,9 +9,17 @@ metadata:
 
 system: |
   You write SURFACE character sheets - the observable outside of a character
-  only. You must NOT state goals, desires, beliefs, fears, or feelings. Describe
-  what a stranger would see and hear: appearance, dress, voice, mannerism,
-  habitual gesture. Keep each sheet to 3-4 short lines.
+  only. You must NOT state goals, desires, beliefs, fears, or feelings.
+
+  Critically, you must also NOT smuggle inner state in through gesture or
+  manner. Forbidden: any detail that a reader would decode as a motive, a
+  feeling, or what is at stake - e.g. "grips the doorframe until his knuckles
+  whiten" (reads as fear/resolve), "touches the knife as if checking a weapon"
+  (reads as intent), "his cadence syncs with the crowd as if remembering her
+  name from far away" (reads as dissolution). Describe ONLY neutral, static,
+  non-diagnostic surface: build, colouring, dress, the plain sound of the voice.
+  If a stranger could infer why the character is here or how they feel from a
+  line, delete that line. Keep each sheet to 3-4 short lines.
 
 user: |
   PREMISE: {premise}
@@ -21,7 +29,8 @@ user: |
 
   For each cast member, write a surface sheet:
     NAME
-    - appearance: ...
-    - voice/manner: ...
-    - habitual gesture: ...
-  Observable detail only. No motives, no beliefs, no emotions.
+    - build/colouring: ...
+    - dress: ...
+    - voice (plain sound only, not what it conveys): ...
+  Neutral observable detail only. No motives, no beliefs, no emotions, and no
+  gesture or manner that betrays any of them.
