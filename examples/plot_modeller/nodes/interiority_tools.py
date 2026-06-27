@@ -17,6 +17,17 @@ from __future__ import annotations
 VALID_WINNERS = {"A", "B", "TIE"}
 
 
+def _as_dict(value: object) -> dict:
+    """Normalise a state value (dict or Pydantic model) to a plain dict (boundary).
+
+    A schema'd judge node returns a ``PairVerdict`` Pydantic model, not a dict, so
+    coerce here at the consumption boundary before any ``.get`` — never downstream.
+    """
+    if hasattr(value, "model_dump"):
+        return value.model_dump()
+    return value if isinstance(value, dict) else {}
+
+
 def _norm_winner(raw: object) -> str:
     """Normalise a judge ``winner`` field to ``A`` / ``B`` / ``TIE`` at the boundary."""
     token = str(raw or "").strip().upper()
@@ -90,12 +101,12 @@ def tally_ab(state: dict) -> dict:
     preference rates that decide GO / KILL / REVISE.
     """
     ba1 = _resolve(
-        state.get("verdict_ba1") or {},
+        _as_dict(state.get("verdict_ba1")),
         state.get("p1_a_arm", "A"),
         state.get("p1_b_arm", "B"),
     )
     ba0 = _resolve(
-        state.get("verdict_ba0") or {},
+        _as_dict(state.get("verdict_ba0")),
         state.get("p2_a_arm", "A"),
         state.get("p2_b_arm", "B"),
     )
