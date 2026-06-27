@@ -1,11 +1,13 @@
 # Plan: Interiority A/B — does authored inner state beat improvised inner state?
 
 **Date:** 2026-06-27
-**Status:** **CONDITIONAL — GO on Floodmark, REVISE on scifi.** The Floodmark draws cleared the GO
-band (75%), but a second-genre generalization probe (The Loom / ARIA) did **not**: B beats the bare
-arm A0 but **ties/loses to the surface arm A1**, and surfaces a reproducible cross-character
-impossible-knowledge defect. See [Results](#results-2026-06-27-floodmark-8-draws) and
-[Generalization probe](#generalization-2026-06-27-loom-8-draws). This is the **gate** on
+**Status:** **CONDITIONAL — GO on active scenes; test confounded on passive scenes.** Floodmark (an
+*active* scene) cleared the GO band (75%). The Loom/ARIA generalization probe did not — but the REVISE
+re-test isolated *why*: the cross-character interior leak was a fixable prompt bug (now fixed; B rose
+25%->50% vs A1), and the residual gap is a **scene-affordance confound** — the Loom scene is a
+deferred-action scene that penalises explicit goal-statement across all arms, exposing arm B most.
+See [Results](#results-2026-06-27-floodmark-8-draws), [Generalization probe](#generalization-2026-06-27-loom-8-draws),
+and [REVISE re-test](#revise-2026-06-27-loom-v2-8-draws). This is the **gate** on
 [plan-generative-roundtrip.md](plan-generative-roundtrip.md): the round-trip's whole premise is that
 *authored* character interiority produces more coherent narrative than *improvised* interiority. That
 premise is currently unproven. This experiment proves or kills it for one afternoon's cost, before any
@@ -242,3 +244,51 @@ plausibly observe; never let one character voice or act on another character's u
 re-run the Loom battery. If B then beats A1, the defect was a prompt leak (fixable) rather than an
 intrinsic limit of the closed-vocabulary sheet. Until that re-test clears, the round-trip's coherence
 validators must include an **impossible-knowledge / interior-leak check**, not only affect closure.
+
+---
+
+## REVISE re-test (2026-06-27, The Loom v2, 8 draws) {#revise-2026-06-27-loom-v2-8-draws}
+
+Applied the proposed REVISE — added to the B sketch prompt: *each sheet is that character's PRIVATE
+interior; a character may act only on what they could plausibly observe, and must never voice, name, or
+act on another character's unspoken thoughts, plans, or feelings.* Re-ran the same 8-draw Loom battery.
+Logs: `logs/interiority-batch-loom-v2/run-{1..8}.log`.
+
+| contrast | v1 (pre-REVISE) | v2 (post-REVISE) |
+|---|---|---|
+| **B vs A1 (surface)** | B 25% / A1 37.5% / tie 37.5% | **B 50% / A1 25% / tie 25%** |
+| B vs A0 (bare) | B 62.5% | B 25% / A0 37.5% / tie 37.5% |
+
+### What the REVISE fixed
+
+The blatant cross-character leak from v1 is **gone**: no v2 run reproduces Jonas voicing Mara's secret
+plan ("I understand why you need to break into the facility", "I can feel you thinking it"). B's honest
+contrast vs the surface bible improved from losing (25%) to leading (50%). The prompt clause did its job.
+
+### Why scifi still isn't GO — a scene-affordance confound (not an interiority failure)
+
+Reading the raw `verdict_ba0` cases (runs 1, 5, 7), the bare arm beats B for a consistent reason that is
+*not* a property of the technique: **the Loom scene is a deferred-action / bide-your-time scene.** Mara
+must feel urgency (the airgapped drive in her bag, Jonas dissolving) but deliberately *not act yet* —
+she keeps him talking and waits. The judge repeatedly convicts whichever arm states that urgency most
+explicitly for "opened feeling never carried" / "action reverses stated belief" (e.g. *"the airgapped
+drive… burning through her ribs"* named, then she sits and keeps talking). Arm B names the goal most —
+by design — so it is *most* exposed; the bare arm, stating less, trips the criterion less.
+
+Contrast Floodmark: an **active** scene (Hilde leads the march, rations, holds the line) where feelings
+are carried *through* visible choices — exactly the affordance interiority needs. The Loom scene gives
+feelings nowhere to go, so explicit goal-statement becomes a liability for every arm.
+
+A residual impossible-knowledge variant also survived (Mara citing an unestablished "six hours before
+synchronization spread") — but that is a **plot-fact** leak, not the cross-character interior leak the
+clause targeted; it is a separate, narrower fix.
+
+### Revised verdict
+
+- **The technique is validated on active scenes** (Floodmark GO) and the interior-leak bug is fixed.
+- **The scifi probe was confounded** by a passive scene; it does not refute interiority, it reveals that
+  the A/B is only meaningful when the scene affords action.
+- **Next clean test:** re-run the Loom battery on an *active* scifi scene (Mara breaking into the server
+  facility, triggering the rollback — feelings driving visible choices) before drawing any genre
+  conclusion. And the round-trip's scene-selection / beat-binding must guarantee each affect unit lands
+  on a beat that *affords action*, or the closure check will punish the most explicit arm unfairly.
