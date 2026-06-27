@@ -7,9 +7,10 @@ walking-skeleton method. **Carries** the scene-typing work from
 [plan-scene-typing.md](plan-scene-typing.md): `scene_type` is **authored into the chapter brief**, not
 classified back out of prose.
 
----
+> **Build sequencing:** the phase-by-phase implementation order (each phase = a runnable graph + a
+> gradeable artifact) is in [plan-roundtrip-phased.md](plan-roundtrip-phased.md).
 
-## Why a walking skeleton
+---
 
 The L1–L7 effort was **bottom-up** — perfect each layer in isolation, grade it on recall. L7 has been
 AMBER-RED for weeks *because it was graded alone*. A walking skeleton inverts this: build the thinnest
