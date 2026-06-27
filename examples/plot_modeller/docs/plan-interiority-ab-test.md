@@ -320,6 +320,10 @@ the writer instruction **and** the judge rubric are scene-type-blind.
 
 ## Scene classification — adopt the canonical taxonomy, don't invent one {#scene-classification-research}
 
+> **Graduated to a build plan:** the actionable spec (schema, L4b classifier, writer/judge inputs,
+> build order) now lives in [plan-scene-typing.md](plan-scene-typing.md). The summary below is the
+> evidence trail that motivated it.
+
 "Adrenaline-rush vs touchy-feely" is a folk re-derivation of a classification fiction craft formalised
 sixty years ago. We should adopt the established vocabulary so the round-trip's `scene_type` tag is
 grounded in prior art, not coined here.
