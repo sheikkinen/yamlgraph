@@ -1,7 +1,11 @@
 # Plan: Interiority A/B — does authored inner state beat improvised inner state?
 
 **Date:** 2026-06-27
-**Status:** **RESOLVED — GO** (see [Results](#results-2026-06-27-floodmark-8-draws) below). This is the **gate** on
+**Status:** **CONDITIONAL — GO on Floodmark, REVISE on scifi.** The Floodmark draws cleared the GO
+band (75%), but a second-genre generalization probe (The Loom / ARIA) did **not**: B beats the bare
+arm A0 but **ties/loses to the surface arm A1**, and surfaces a reproducible cross-character
+impossible-knowledge defect. See [Results](#results-2026-06-27-floodmark-8-draws) and
+[Generalization probe](#generalization-2026-06-27-loom-8-draws). This is the **gate** on
 [plan-generative-roundtrip.md](plan-generative-roundtrip.md): the round-trip's whole premise is that
 *authored* character interiority produces more coherent narrative than *improvised* interiority. That
 premise is currently unproven. This experiment proves or kills it for one afternoon's cost, before any
@@ -192,3 +196,49 @@ interiority sheet's value is sharpest against the realistic alternative — a ch
 and voice but no inner-state arc — not against an unguided writer. The round-trip should therefore pair
 the inner-state sheet with the *scene-spanning* claim (open → carry → close a named feeling), since that
 is where authored interiority demonstrably beats the surface-bible baseline.
+
+---
+
+## Generalization probe (2026-06-27, The Loom / ARIA, 8 draws) {#generalization-2026-06-27-loom-8-draws}
+
+Same harness, same judge (`claude-sonnet-4-6`), same writer (`claude-haiku-4-5`), 8 draws with seed
+parity. Premise: the scifi synopsis `fixtures/synopses/scifi-hybrid-the-loom.txt`. Scene: the
+structurally-matched affect beat — Mara at home the evening after Seoul, the certainty that she is
+already losing Jonas to the Loom sitting unspoken under tactical action. Logs:
+`logs/interiority-batch-loom/run-{1..8}.log`.
+
+### Honest contrast — B (interiority) vs A1 (surface)
+
+| | wins | rate |
+|---|---|---|
+| B (interiority) | 2 / 8 | 25% |
+| **A1 (surface)** | **3 / 8** | **37.5%** |
+| tie | 3 / 8 | 37.5% |
+
+B vs A0 (bare): B 5 / 8 (62.5%) — structure still helps over nothing.
+
+### The pattern flips: REVISE, not GO
+
+This is the plan's **REVISE** band exactly — *B > A0 but B ≈ A1* (here A1 even edges ahead). The Floodmark
+GO does **not** generalize; its 75% was genre/scene-specific.
+
+### New failure mode — cross-character impossible knowledge (reproducible)
+
+All three A1 wins convict arm B for the **same** quote-backed defect: the interiority sheet describes
+each character's *private* interior, and "let each character's inner-state sheet drive their choices"
+leads the writer to let one character *act on another's* interior.
+
+- Run 6: Jonas — *"I can feel you thinking it" / "I know what you're going to say"* (reads Mara's unspoken intent, no mechanism).
+- Run 3: Jonas — *"I understand now why you need to break into the facility"* (knows of the airgapped drive that exists only in Mara's bag and her private thoughts).
+- Run 4: *"He knew what she was going to say because he was already thinking it."*
+
+On a premise literally about minds dissolving into each other (ARIA phase-lock), the writer reaches for
+the mind-meld early and the judge flags it as premature/incoherent. The Norse scene never triggered it.
+
+### Proposed REVISE (next experiment, before any GO generalizes)
+
+Add a boundary clause to the B sketch instruction: *a character may act only on what they could
+plausibly observe; never let one character voice or act on another character's unspoken interior.* Then
+re-run the Loom battery. If B then beats A1, the defect was a prompt leak (fixable) rather than an
+intrinsic limit of the closed-vocabulary sheet. Until that re-test clears, the round-trip's coherence
+validators must include an **impossible-knowledge / interior-leak check**, not only affect closure.
