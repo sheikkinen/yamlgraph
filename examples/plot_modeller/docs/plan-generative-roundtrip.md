@@ -95,6 +95,29 @@ preservation** — they all generate forward and judge quality with a *subjectiv
 real job is to give those pipelines the coherence gate they currently lack — not to re-grow a
 cast/outline/play loop they already have.
 
+### External corroboration — the framework survey (2026-06-27)
+
+The survey in [`../../../docs/research/llm-novel-generation-frameworks.md`](../../../docs/research/llm-novel-generation-frameworks.md)
+independently supports two of this plan's load-bearing bets:
+
+- **The recognition→generation pivot is the field consensus, not a local hunch.** Every successful
+  system surveyed — Re3, DOC, CONCOCT, RecurrentGPT, Dramatron, AgentWrite, Agents' Room, and all the
+  commercial tools — runs **plan → outline → draft → revise**, i.e. *author a structure and project it
+  into prose*. **None** recognises structure back out of prose. That is exactly the reframe this plan
+  rests on: the L1–L7 vocabulary's value is as an **authoring palette on the project-out side**, never a
+  recogniser graded on recall.
+- **The deterministic coherence validator is the one genuinely-missing piece, confirmed.** The field
+  controls coherence (Re3 rerank), outline detail (DOC), pacing (CONCOCT), length (LongWriter), and
+  world continuity (lorebooks) — but every one of them closes with a **subjective LLM quality grade**,
+  never a typed structural-preservation check. Net-new build #3 is the gap the literature also leaves
+  open.
+
+One caveat the survey does **not** see but we paid for (see
+[diary 2026-06-27 *the rubric already had an opinion*](../../../docs/diary/diary-2026-06-27-the-rubric-already-had-an-opinion.md)):
+it treats specialised validators as trustworthy by construction. They are not — a judge prompt can
+carry the same hidden bias as the generator. Every validator in build #3 must have its **rubric prose
+read for undisclosed assumptions**, not just its output measured.
+
 ---
 
 ## The pipeline

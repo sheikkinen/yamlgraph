@@ -66,3 +66,18 @@ behaviour ("a close is an action that...") as if exhaustive — and demand they
 enumerate their alternatives or admit they are one branch? The close-op would have
 tripped it: it asserted a single resolution mode in the grammar of a definition.
 What other rubrics in the stack quietly define away half of what they grade?
+
+## Addendum — the field shares the blind spot
+
+Re-reading the novel-generation framework survey
+(`docs/research/llm-novel-generation-frameworks.md`) after this, I noticed the
+trap is not just mine. The whole literature controls one measurable axis at a time
+with a specialised judge — coherence (Re3), pacing (CONCOCT), continuity
+(lorebooks) — and **every survey treats those judges as trustworthy by
+construction.** None asks whether the validator's own instruction smuggles a bias.
+CONCOCT proved "pacing is a measurable axis, not an emergent accident"; this
+session's mirror is "a validator's bias is a readable sentence, not an emergent
+accident." The heuristic generalises beyond plot_modeller: *the cheapest audit of
+any specialised judge is to read its rubric for closed-class assertions before you
+trust a single score it emits.* The field measures judge **outputs**; almost
+nobody reads judge **instructions**. That gap is where our close-op hid for weeks.

@@ -143,6 +143,33 @@ A/B — both are coherence checks, not affect checks.
 
 ---
 
+## Prior art — affect closure is the missing control axis
+
+The novel-generation literature ([survey](../../../docs/research/llm-novel-generation-frameworks.md))
+is the strongest *external* argument for this plan, precisely by **omission**. Every framework controls
+exactly one measurable axis the monolithic generator gets wrong — and not one of them is affect:
+
+| axis | specialised control | framework |
+|---|---|---|
+| coherence | rerank / edit pass | Re3 |
+| outline detail | detailed controller | DOC |
+| **pacing** | concreteness judge | CONCOCT |
+| length | plan-decompose + SFT | LongWriter |
+| world continuity | bible / lorebook / codex | NovelAI, NovelCrafter |
+| specialisation | per-role agents | Agents' Room, Dramatron |
+| **affect closure** | *(none — this plan)* | — |
+
+**CONCOCT is the precedent to copy.** Its thesis — *"pacing is a measurable, controllable axis, not an
+emergent accident; a small specialised judge can steer a large generator"* — is this plan's thesis with
+"pacing" replaced by "affect closure." The parallel is mechanical, not loose: CONCOCT found pacing needs
+a *concreteness* axis to become steerable; we found affect needs a *scene_type* (close-mode) axis to
+become gradeable. In both, the big generator carries a hidden default bias and a small typed control
+corrects it. So `scene_type` is **CONCOCT-for-emotion** — and because no surveyed system (academic or
+commercial) operationalises Swain's Scene/Sequel affect-closure distinction, it is also genuinely new
+relative to the field, not a re-implementation.
+
+---
+
 ## Where it lands in the existing pipeline (investigated 2026-06-27)
 
 Surveyed the affect model already in the codebase:
