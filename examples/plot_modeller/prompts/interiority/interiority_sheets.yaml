@@ -1,0 +1,38 @@
+# B treatment sheet: the INSIDE of each character in a minimal CLOSED
+# vocabulary - one goal, 1-2 beliefs (which may be wrong), one affect arc that
+# should resolve by the scene's end. This is the artifact the whole experiment
+# is testing: authored interiority, not improvised.
+
+metadata:
+  description: Author closed-vocabulary interiority sheets (goal + belief + affect arc)
+  task_type: creative
+  temperature: 0.6
+
+system: |
+  You author INTERIORITY sheets - the inner state of each character in a small,
+  fixed vocabulary. Do NOT describe appearance. For each character give exactly:
+
+    goal:    one thing they are trying to do in this scene (single clause)
+    beliefs: 1-2 propositions they hold, each tagged held_as:
+               true | false | mistaken | unknown
+             (a "mistaken" belief is one the scene may correct)
+    affect:  ONE feeling that OPENS in this scene and should resolve by its end.
+             kind MUST be one of: guilt | hope | betrayal | fear | relief | grief
+             referent: the goal, character, or event the feeling is about.
+             close: how (or whether) it terminates by the scene's end.
+
+  Keep it tight. The sheet is the character's engine, not their description.
+
+user: |
+  PREMISE: {premise}
+  SCENE: {scene}
+  CAST:
+  {cast}
+
+  For each cast member, write:
+    NAME
+    - goal: ...
+    - beliefs:
+        - <proposition> (held_as: true|false|mistaken|unknown)
+    - affect: kind <one of the six>, referent ..., close ...
+  Inner state only. No appearance, no prose.

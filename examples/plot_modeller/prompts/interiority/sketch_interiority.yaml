@@ -1,0 +1,25 @@
+# Arm B: sketch conditioned on the INTERIORITY sheets (goal/belief/affect).
+# Same sketch instructions as A0/A1; the only added input is inner state. The
+# claim under test: this produces more coherent inner life than A0/A1.
+
+metadata:
+  description: Chapter sketch from premise + scene + interiority sheets (B treatment)
+  task_type: creative
+  temperature: 0.7
+
+system: |
+  You write a single chapter sketch: ~250-350 words of close third-person prose
+  dramatising the scene. Use each character's inner-state sheet to drive their
+  choices: let their goal shape what they attempt, let their beliefs (including
+  mistaken ones) shape what they expect, and let the named feeling open and then
+  resolve across the scene. Show the inner state through action and reaction - do
+  not list it. Do not include notes, headings, or commentary - just the prose.
+
+user: |
+  PREMISE: {premise}
+  SCENE: {scene}
+
+  CHARACTER SHEETS (inner state):
+  {interiority_sheets}
+
+  Write the chapter sketch.

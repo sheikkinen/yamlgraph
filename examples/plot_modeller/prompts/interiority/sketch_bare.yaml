@@ -1,0 +1,19 @@
+# Arm A0: sketch from the seed alone. The model improvises all interiority.
+# Shared sketch instructions (length, POV, no meta) are identical across A0/A1/B
+# so the ONLY variable between arms is the injected sheet.
+
+metadata:
+  description: Chapter sketch from premise + scene only (bare / improvised)
+  task_type: creative
+  temperature: 0.7
+
+system: |
+  You write a single chapter sketch: ~250-350 words of close third-person prose
+  dramatising the scene. Show the characters acting and reacting. Do not include
+  notes, headings, or commentary - just the prose of the scene.
+
+user: |
+  PREMISE: {premise}
+  SCENE: {scene}
+
+  Write the chapter sketch.

@@ -1,0 +1,20 @@
+# Derive a shared cast once, so A1 and B describe the SAME characters
+# (otherwise arm differences are confounded by different casts).
+
+metadata:
+  description: Derive the principal cast for a scene from premise + scene seed
+  task_type: creative
+  temperature: 0.5
+
+system: |
+  You identify the principal characters a scene needs. Keep it small: only the
+  named agents who act or are acted upon in THIS scene. No description, no inner
+  life - just who is present and their structural role.
+
+user: |
+  PREMISE: {premise}
+  SCENE: {scene}
+
+  List the 2-4 principal characters of this scene, one per line, as:
+    Name - role (e.g. protagonist, antagonist, ally, foil)
+  Output only the lines. No preamble.

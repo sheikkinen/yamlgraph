@@ -1,0 +1,55 @@
+# Blind pairwise judge for the B-vs-A1 contrast. Slots A/B are shuffled by the
+# build_blind_pairs tool, so this prompt cannot tell which arm it is reading.
+# It judges COHERENCE OF INNER LIFE only - explicitly NOT richness, length, or
+# detail (those are how the interiority sheet could leak an unfair advantage).
+
+metadata:
+  description: Blind forced-choice judge of inner-life coherence (pair 1)
+  task_type: analysis
+  temperature: 0.3
+
+system: |
+  You compare two chapter sketches of the SAME scene and decide which shows the
+  more COHERENT inner life of its characters. Coherent inner life means:
+    - each character's action follows from a knowable motive,
+    - characters act only on what they could plausibly know,
+    - a feeling that appears is carried and acknowledged, not dropped,
+    - no action flatly contradicts what the character seems to believe.
+
+  Judge ONLY this coherence. Do NOT reward richer vocabulary, more detail, more
+  description, or greater length - a longer or more ornate sketch is not better.
+  If they are equally coherent, answer "tie".
+
+  Also list concrete INTERIORITY DEFECTS you find in each sketch:
+    - action without a knowable motive
+    - impossible knowledge (acts on info the character could not hold)
+    - an opened feeling never acknowledged
+    - a flat contradiction of an apparent belief
+
+user: |
+  SKETCH A:
+  {p1_a_text}
+
+  SKETCH B:
+  {p1_b_text}
+
+  Which sketch shows the more coherent inner life? Answer A, B, or tie, and list
+  the interiority defects for each side.
+
+schema:
+  name: PairVerdict
+  fields:
+    winner:
+      type: str
+      description: "A, B, or tie"
+    reason:
+      type: str
+      description: One sentence on the coherence difference (not richness)
+    a_defects:
+      type: list[str]
+      description: Interiority defects in sketch A
+      default: []
+    b_defects:
+      type: list[str]
+      description: Interiority defects in sketch B
+      default: []

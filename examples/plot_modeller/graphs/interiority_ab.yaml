@@ -1,0 +1,152 @@
+metadata:
+  name: interiority-ab
+  description: >
+    Standalone falsification: does an authored, closed-vocabulary character
+    inner-state sheet (goal + belief + affect arc) produce a more coherent
+    chapter sketch than improvised interiority? Three arms over one
+    (premise, scene) seed:
+      A0 bare           - sketch from the seed alone (pure improvisation)
+      A1 surface sheet  - sketch from names/roles/appearance (outside only)
+      B  interiority    - sketch from goal/belief/affect (inside)
+    The honest contrast is B vs A1 (equal-bulk surface control). One run = one
+    triple + two blinded pairwise verdicts; repeat across seeds/draws for a rate.
+  # No hardcoded provider/model - resolved from the PROVIDER env var at run time.
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  premise:
+    type: str
+    description: "Input: one-line story premise"
+  scene:
+    type: str
+    description: "Input: the chapter/scene seed - what happens in this chapter"
+  seed:
+    type: int
+    description: "Input: blinding seed (controls which arm lands in slot A/B)"
+    default: 0
+  cast:
+    type: str
+    description: "Shared cast (name - role lines) derived once, fed to both sheets"
+  surface_sheets:
+    type: str
+    description: "A1 input: outside-only sheets (appearance/mannerism, no interiority)"
+  interiority_sheets:
+    type: str
+    description: "B input: closed-vocab inner state (goal/belief/affect arc)"
+  sketch_a0:
+    type: str
+    description: "Arm A0 chapter sketch (bare)"
+  sketch_a1:
+    type: str
+    description: "Arm A1 chapter sketch (surface sheet)"
+  sketch_b:
+    type: str
+    description: "Arm B chapter sketch (interiority sheet)"
+  # --- blinded pair fields (written by build_blind_pairs) ---
+  p1_pair_id: {type: str, description: "B-vs-A1 pair id"}
+  p1_a_text: {type: str, description: "B-vs-A1 pair, slot A text (blinded)"}
+  p1_b_text: {type: str, description: "B-vs-A1 pair, slot B text (blinded)"}
+  p1_a_arm: {type: str, description: "true arm behind slot A (B or A1)"}
+  p1_b_arm: {type: str, description: "true arm behind slot B (B or A1)"}
+  p2_pair_id: {type: str, description: "B-vs-A0 pair id"}
+  p2_a_text: {type: str, description: "B-vs-A0 pair, slot A text (blinded)"}
+  p2_b_text: {type: str, description: "B-vs-A0 pair, slot B text (blinded)"}
+  p2_a_arm: {type: str, description: "true arm behind slot A (B or A0)"}
+  p2_b_arm: {type: str, description: "true arm behind slot B (B or A0)"}
+  # --- verdicts ---
+  verdict_ba1:
+    type: dict
+    description: "Blind judge verdict for B vs A1"
+  verdict_ba0:
+    type: dict
+    description: "Blind judge verdict for B vs A0"
+  verdict:
+    type: dict
+    description: "Tallied result: winning arm + per-arm defect counts (one observation)"
+
+tools:
+  build_blind_pairs:
+    type: python
+    module: examples.plot_modeller.nodes.interiority_tools
+    function: build_blind_pairs
+  tally_ab:
+    type: python
+    module: examples.plot_modeller.nodes.interiority_tools
+    function: tally_ab
+
+nodes:
+  derive_cast:
+    type: llm
+    prompt: interiority/derive_cast
+    state_key: cast
+
+  author_surface:
+    type: llm
+    prompt: interiority/surface_sheets
+    state_key: surface_sheets
+
+  author_interiority:
+    type: llm
+    prompt: interiority/interiority_sheets
+    state_key: interiority_sheets
+
+  sketch_bare:
+    type: llm
+    prompt: interiority/sketch_bare
+    state_key: sketch_a0
+
+  sketch_surface:
+    type: llm
+    prompt: interiority/sketch_surface
+    state_key: sketch_a1
+
+  sketch_interiority:
+    type: llm
+    prompt: interiority/sketch_interiority
+    state_key: sketch_b
+
+  build_pairs:
+    type: python
+    tool: build_blind_pairs
+    state_key: p1_pair_id   # nominal; the tool returns all p1_*/p2_* keys
+
+  judge_ba1:
+    type: llm
+    prompt: interiority/judge_pair
+    state_key: verdict_ba1
+
+  judge_ba0:
+    type: llm
+    prompt: interiority/judge_pair_a0
+    state_key: verdict_ba0
+
+  tally:
+    type: python
+    tool: tally_ab
+    state_key: verdict
+
+edges:
+  - from: START
+    to: derive_cast
+  - from: derive_cast
+    to: author_surface
+  - from: author_surface
+    to: author_interiority
+  - from: author_interiority
+    to: sketch_bare
+  - from: sketch_bare
+    to: sketch_surface
+  - from: sketch_surface
+    to: sketch_interiority
+  - from: sketch_interiority
+    to: build_pairs
+  - from: build_pairs
+    to: judge_ba1
+  - from: judge_ba1
+    to: judge_ba0
+  - from: judge_ba0
+    to: tally
+  - from: tally
+    to: END
