@@ -143,6 +143,52 @@ A/B — both are coherence checks, not affect checks.
 
 ---
 
+## Where it lands in the existing pipeline (investigated 2026-06-27)
+
+Surveyed the affect model already in the codebase:
+
+- **dungeon_master** already models the character emotional arc as `eff_affect: [{op: open|close, char,
+  kind}]` per authored beat ([v5 genre-plots](../../dungeon_master/docs/v5/genre-plots/scifi-hybrid-the-loom.yaml)).
+  This is the most advanced affect model we have, and it carries **no** scene_type.
+- **plot_modeller L7** (`affect_throughline`, the AMBER-RED layer) re-derives that same
+  `{id, eff_affect: [{op: open|close, char, kind, toward}]}` shape *out of* prose, one character at a
+  time, per beat.
+- **novel_generator** has no affect layer at all; its beat is a `beat_id|act|summary|characters|importance`
+  string and its prose prompt hard-codes the action-biased default ("end with tension or forward
+  momentum") — the scene-type-blind rubric in its purest form.
+
+**The decisive finding — the L7 close-op is already proactive-only.** Reading
+`prompts/affect_throughline.yaml` lines 48-66, the `close` operation is defined entirely in terms of
+*action*: "a resolution beat shows a forceful or positive **action** that ENDS an earlier negative
+feeling" - loss closes when *recovered or mourned*, betrayal when the betrayer is *exposed or reckoned
+with*, retaliation when the wrong is *avenged*. A feeling that resolves by being **recognised, named,
+or decided in dialogue or thought** matches none of these signatures, so the classifier emits **nothing**
+- the open dangles. That is the Loom mis-grade, reproduced at the *extraction* layer, and a concrete
+root cause of L7's dangling-open / AMBER-RED problem. Scene type is not a cosmetic add-on; it is the
+**missing input to the close-op decision** that is currently dropping every reactive close.
+
+### Architecture decision: per-beat tag feeding the close-op, NOT a heavy second pass
+
+The fork was "standalone L4b classifier vs co-emit with the affect op." Resolution:
+
+- **`scene_type` is a clean per-beat judgement** (this beat's own words say whether the feeling is spent
+  through a choice or processed internally) - exactly the single-beat classification FR-598 "kill the
+  novel" proved is safe. It does **not** carry the cross-beat dependency that makes the close-op the
+  AMBER-RED part.
+- Therefore tag `scene_type` per beat (cheaply - it can even ride the existing `classify_kinds`/L4 pass,
+  since both are per-beat closed-vocab classifications of the same gloss), and **feed it into the
+  close-op rule**: on a `proactive` beat a close still requires the forceful/positive action; on a
+  `reactive` beat a close may be a recognition / naming / decision in dialogue or thought.
+- Do **not** overload the affect-throughline pass by making it *infer* scene_type while also doing the
+  cross-beat close inference - that repeats the FR-598 overload mistake. scene_type arrives as an
+  **input** to that pass, already decided.
+
+This makes the cheapest, highest-leverage experiment clear: **widen the L7 close-op with the reactive
+branch and re-measure the dangling-open rate** - if reactive closes stop being dropped, scene_type
+earns its place by moving L7 off AMBER-RED, before any round-trip wiring.
+
+---
+
 ## Build order
 
 1. **Closed vocabularies** — freeze `scene_type ∈ {proactive, reactive}` and `mode` set; write the
@@ -159,6 +205,23 @@ A/B — both are coherence checks, not affect checks.
 
 Steps 4 and 5 are the two falsification follow-ups carried over from the interiority A/B; step 4 is the
 cheaper one (re-grade existing draws, no new generation).
+
+### Cheapest first move (recommended)
+
+Before the full classifier build, run the **L7 close-op widening** the investigation above points to,
+because it tests the whole premise on the layer that is already RED and needs no new generation:
+
+1. Add a `reactive` close branch to `prompts/affect_throughline.yaml` (a feeling may also close by being
+   recognised, named, or decided in dialogue or thought — not only by a forceful action), gated so it
+   only applies where the beat is reactive.
+2. Re-run the existing L7 affect battery and measure the **dangling-open rate** (opens with no matching
+   close) before vs after.
+3. If reactive closes stop dangling without inflating false closes, scene_type has earned its place by
+   moving L7 off AMBER-RED — *then* promote it to a first-class per-beat tag (steps 1–2 above) so the
+   branch is driven by an explicit field rather than re-judged inside the close prompt.
+
+This inverts the risk: prove the dimension changes a real verdict on the RED layer first, build the
+tagging infrastructure second.
 
 ---
 
