@@ -3,7 +3,9 @@
 **Date:** 2026-06-27
 **Status:** Proposed (high-level architecture). This is the *destination* the measurement re-leveling
 serves; [plan-next-phase.md](plan-next-phase.md) (steps N1–N6) is the prerequisite that makes the
-analysis half honest enough to project back out.
+analysis half honest enough to project back out. **Gated by**
+[plan-interiority-ab-test.md](plan-interiority-ab-test.md) — the cheap falsification that proves the
+core premise (authored interiority beats improvised) before this pipeline is built.
 **Companions:** [reflections-L1-L6.md](reflections-L1-L6.md) (why analysis alone was the wrong frame),
 [status-L1-L7.md](status-L1-L7.md) (the per-layer verdicts this loop inherits),
 [`../../dungeon_master/docs/research-results-modeling-plot.md`](../../dungeon_master/docs/research-results-modeling-plot.md)
