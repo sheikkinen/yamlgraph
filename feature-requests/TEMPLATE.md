@@ -19,6 +19,20 @@ Brief description of the feature or bug.
 
 What problem does this solve? Why is it needed?
 
+## Raw Output Read (measurement / metric-tooling FRs only)
+
+<!-- REQUIRED for any FR that adds or changes a scorer, an *_measure graph, an
+     evaluate.py metric, or a score_*/combine_* tool. Delete this section for FRs
+     that touch no measurement code. -->
+<!-- read_raw_output_first (Scripture): READ the rawest artifact a stage emits
+     BEFORE you build a ruler for it. cat, not a new metric, is the first
+     diagnostic. The gate checks presence; this section must show substance. -->
+
+- **Samples read:** link/path to >= K raw output samples dumped to disk.
+- **What I saw:** one concrete, specific, surprising detail per sample
+  (e.g. "The Swarm is not a person, yet the prose authored it a four-kind arc").
+  A generated dump cannot produce this line; only a real read can.
+
 ## Proposed Solution
 
 How should it work? Include code examples if relevant.
@@ -41,3 +55,4 @@ What other approaches were considered?
 ## Related
 
 - Link to related issues, PRs, or files
+- LangSmith trace as a separate file

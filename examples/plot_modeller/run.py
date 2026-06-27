@@ -693,7 +693,16 @@ def run_measure_l7(app, gt_path: Path, source: str) -> dict | None:
         }
     )
     measure = result.get("l7_measure")
-    return measure if isinstance(measure, dict) else None
+    if not isinstance(measure, dict):
+        return None
+    # Persist the regenerated prose alongside the scores so the measurement is
+    # auditable by hand later (FR-597 manual-inspection discipline): the skeleton
+    # that was fed in and the emotional arc the model reconstructed from it.
+    return {
+        **measure,
+        "affect_skeleton": result.get("affect_skeleton"),
+        "regen_arc": result.get("regen_arc"),
+    }
 
 
 def _main_measure_l7(args, provider: str) -> int:

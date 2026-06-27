@@ -11,18 +11,18 @@ Reproduce:
 cd examples/plot_modeller && ../../.venv/bin/python probe_l7_misses.py --sweep
 ```
 
-GT deltas: 28  |  pred deltas (on GT beats): 49
+GT deltas: 28  |  pred deltas (on GT beats): 51
 
 | window | affect_recall | affect_precision | recall_hits |
 |--------|---------------|------------------|-------------|
-| +/-0 | 0.214 | 0.122 | 6 |
-| +/-1 | 0.250 | 0.143 | 7 |
-| +/-2 | 0.321 | 0.184 | 9 |
-| +/-3 | 0.357 | 0.204 | 10 |
+| +/-0 | 0.214 | 0.118 | 6 |
+| +/-1 | 0.250 | 0.137 | 7 |
+| +/-2 | 0.250 | 0.137 | 7 |
+| +/-3 | 0.429 | 0.235 | 12 |
 
 **BEAT-OFF recoverable at +/-1** (recall_hits[1]-recall_hits[0]): **1**
 
-**Precision guard** +/-0 -> +/-1: 0.122 -> 0.143 (delta +0.021)
+**Precision guard** +/-0 -> +/-1: 0.118 -> 0.137 (delta +0.019)
 
 ## Genuine +/-1 BEAT-OFF recall members (1)
 
