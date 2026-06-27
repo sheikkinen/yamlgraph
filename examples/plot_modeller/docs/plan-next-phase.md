@@ -6,6 +6,8 @@
 results.
 **Companions:** [status-L1-L7.md](status-L1-L7.md) (verdicts and numbers),
 [reflections-L1-L6.md](reflections-L1-L6.md) (why the framing changed),
+[plan-generative-roundtrip.md](plan-generative-roundtrip.md) (the destination these steps serve — the
+synopsis-in, synopsis-out loop that uses reconstruction as the gold),
 [`../../dungeon_master/docs/research-results-modeling-plot.md`](../../dungeon_master/docs/research-results-modeling-plot.md)
 (the lane model and the authoring-consistency checks this plan adopts).
 
