@@ -315,3 +315,65 @@ the writer instruction **and** the judge rubric are scene-type-blind.
 - **Round-trip consequence:** scene beats must carry a `scene_type` (adrenaline | touchy-feely) tag, and
   the affect-closure validator must accept the matching resolution mode, or it will punish the most
   explicit arm on every reflective scene.
+
+---
+
+## Scene classification — adopt the canonical taxonomy, don't invent one {#scene-classification-research}
+
+"Adrenaline-rush vs touchy-feely" is a folk re-derivation of a classification fiction craft formalised
+sixty years ago. We should adopt the established vocabulary so the round-trip's `scene_type` tag is
+grounded in prior art, not coined here.
+
+### The canonical pair: proactive vs reactive (Swain)
+
+Dwight V. Swain, *Techniques of the Selling Writer* (1965), split passages into **Scene** and **Sequel**;
+Jack Bickham (*Scene and Structure*, 1993) and Randy Ingermanson / Evan Marshall later reframed the same
+split as **proactive** vs **reactive** scenes:
+
+| | Swain | structure | resolution | our folk term |
+|---|---|---|---|---|
+| **Proactive** | Scene | Goal → Conflict → **Disaster** | feeling *spent through the choice / disaster* | adrenaline-rush |
+| **Reactive** | Sequel | **Reaction** → Dilemma → Decision | feeling *processed → resolved in a Decision* | touchy-feely |
+
+This is exactly the open/close-mode distinction the Loom probe exposed: a proactive scene closes a
+feeling through action; a reactive scene closes it internally, by reaching a decision or recognition.
+
+### The mechanism that mandates "less emotional input in a pure action scene"
+
+Swain's small-scale unit is the **Motivation–Reaction Unit (MRU)**: external Motivation → internal
+Reaction, where the Reaction is strictly ordered **Feeling → Reflex → Rational action/speech** and parts
+may be *dropped*. In a proactive scene the Reaction compresses to Feeling+Reflex (*"a bolt of adrenaline…
+he jerked the rifle"*) — interior is spent, not dwelt on; lingering interior kills pace. In a reactive
+Sequel the Reaction *expands* into the whole Dilemma→Decision. So "use less emotional input in an action
+scene" is not a stylistic preference — it is the MRU prescription: **dose affect by scene type.**
+
+### A second, orthogonal axis: fiction-writing mode
+
+A scene is *also* typed by the mode dominating its presentation — **action, dialogue, feelings, thought,
+narration, description, exposition** (Wikipedia, *fiction-writing mode*; Evan Marshall, *The Marshall
+Plan for Novel Writing*). This is a finer sub-tag under proactive/reactive (e.g. a reactive scene
+rendered mostly in *dialogue* vs mostly in *thought*), useful for deciding *how* the affect resolves.
+
+### Proposed schema for the round-trip
+
+```yaml
+scene_type: proactive | reactive          # Swain/Marshall; the affect-dosage + closure switch
+mode: action | dialogue | feeling | thought | ...   # fiction-writing mode; optional sub-tag
+```
+
+**Affect-dosage policy (writer):**
+- *proactive* — goal + belief lead; the named feeling is a brief visceral spike (Feeling→Reflex),
+  resolved *through* the disaster/choice. Low explicit-interior budget.
+- *reactive* — the feeling leads; the scene *is* the affect arc (Reaction→Dilemma→Decision), resolved
+  internally. High explicit-interior budget.
+
+**Closure rubric (judge) — must branch on `scene_type`:**
+- *proactive* — feeling closes if it is **spent in a choice / the disaster lands**; a feeling merely
+  named and then dropped *is* a defect.
+- *reactive* — feeling closes if it is **recognised, named, or shifted toward a decision in dialogue or
+  thought**; resolution-through-action is *not* required, and demanding it under-credits the most
+  explicit arm (the Loom v2 mis-grade).
+
+**Sources:** Swain, *Techniques of the Selling Writer* (1965), pp. 84–85, 96–100; Bickham, *Scene and
+Structure* (1993); Ingermanson, "Writing the Perfect Scene" (proactive/reactive + MRU); Marshall, *The
+Marshall Plan for Novel Writing* (1998); Wikipedia, *Scene and sequel* and *Fiction-writing mode*.
