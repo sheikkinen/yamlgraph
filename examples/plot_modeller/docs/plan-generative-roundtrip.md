@@ -216,6 +216,10 @@ arc, not the gloss).
 The round-trip does **not** wait for every layer to be perfect. Its power is that it is
 **self-diagnosing**, so it can be stood up as a thin skeleton early and used to *drive* the N1–N6 work:
 
+> **Concrete build:** the walking-skeleton instantiation of step 1 — characters + chapter briefs, with
+> named reuse of `novel_generator` and `dungeon_master` and `scene_type` authored into the brief — is
+> specified in [plan-roundtrip-skeleton.md](plan-roundtrip-skeleton.md).
+
 1. **Stand up the skeleton loop first** (full-synopsis mode, one genre): analysis → sheets → timeline
    → spread → reconstruct → structural compare, accepting whatever each layer currently produces.
 2. **Read the comparison report to localise the lossy lane** — the divergence points straight at the
