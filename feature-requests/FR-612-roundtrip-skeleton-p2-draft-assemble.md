@@ -2,9 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Feature
-**Status:** Proposed
 **Effort:** 1 day
 **Requested:** 2026-06-28
+**Status:** Judged — Authority GRANTED with corrections (2026-06-28)
 
 ## Summary
 
@@ -16,6 +16,37 @@ with **no whole-book LLM**. First whole story from the skeleton. Phase 2 of
 
 Proves the affect-dose control end to end: reactive chapters foreground interior, proactive
 chapters spend feeling in action — the whole reason scene_type is authored on the brief.
+
+## Judgement (2026-06-28)
+
+**Verdict: Authority GRANTED with corrections.** Authority gate for Phase 2.
+
+**Claims verified.** `examples/demos/novel_generator/prompts/prose/generate_beat.yaml` exists and
+carries the action-biased default the FR describes. The FR-492 deterministic Book-compose
+(no whole-book LLM) is the right assemble pattern; the dose-by-`scene_type` clause is the
+payload that makes P1's authored field do work.
+
+**Correction 1 (PRIMARY).** The dose-contrast DoD is eyeball/N=1. Acceptable as a **P2** DoD
+**only** because P3 converts it to a number and P4 proves it moves. Make explicit that P2 does
+**not** claim the dose is *correct* — only that contrast is *visible*. The number that proves
+dose-control is P4's, not P2's; otherwise P2 risks declaring victory on an unmeasured eyeball
+(the demo trap this whole skeleton exists to escape).
+
+**Correction 2 (secondary).** `assemble_book` concatenates `chapter_drafts` "by chapter_id", but
+map fan-in order is **not** guaranteed. Sort explicitly by a total `chapter_id` order inside the
+leaf; do not rely on `collect` ordering, or the deterministic-assembly AC is silently violated.
+
+**Frozen scope.** Readable multi-chapter `book` via a deterministic no-LLM concat (explicit
+chapter ordering); visible — not validated — dose contrast. Only leaf tools are Python.
+
+## Decision fold (2026-06-28) — the gate measures the plan, so P2 stays visible-not-validated
+
+Under decision (a) the P3 gate measures the **authored briefs'** closure, not this prose. So P2's
+dose contrast remains an **eyeball** signal by design — P2 claims the contrast is *visible*, never
+that it is *correct*. The number that validates dose-control is P4's `authored_dangling_rate` move;
+whether the prose actually delivers the authored dose is P5's prose-vs-plan check
+([FR-615](FR-615-roundtrip-skeleton-p5-roundtrip-closure.md)). Resolves Judge Correction 1 by
+naming exactly which later phase carries the proof.
 
 ## Problem
 

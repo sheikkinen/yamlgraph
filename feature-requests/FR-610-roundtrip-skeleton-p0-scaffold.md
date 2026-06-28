@@ -2,9 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
 **Effort:** 0.5 days
 **Requested:** 2026-06-28
+**Status:** Judged — Authority GRANTED (2026-06-28)
 
 ## Summary
 
@@ -18,6 +18,42 @@ skeleton specified in
 
 Graph authors get a frozen, lint-green topology to build into incrementally — every later
 phase fills a node rather than re-wiring, so the structural risk is paid down once, up front.
+
+## Judgement (2026-06-28)
+
+**Verdict: Authority GRANTED.** P0 carries no measurement and is buildable now. This is the
+authority gate for Phase 0 of the chain.
+
+**Claims verified.** The reuse assets exist: `graphs/interiority_ab.yaml`,
+`prompts/interiority/derive_cast.yaml` + `interiority_sheets.yaml`, and the Loom synopsis fixture
+`fixtures/synopses/scifi-hybrid-the-loom.txt` (+ its ground-truth). The skeleton method — freeze
+the spine before any node is smart — is the correct inversion of the bottom-up L1–L7 failure that
+stalled L7 by grading it in isolation. The structural risk is paid down once, up front; sound.
+
+**Correction 1 (PRIMARY).** "Topology frozen" must mean the P0 **spine**
+(premise → cast → briefs → draft-map → assemble → gate) does not re-wire — **not** that no node
+may ever be added. P5 ([FR-615](FR-615-roundtrip-skeleton-p5-roundtrip-closure.md)) adds
+`reconstruct_synopsis`, `roundtrip_diff`, and a comparison-side `classify_scene_type`. If the
+AC's "frozen" forbids additive nodes, P0 contradicts P5. Restate the freeze as **spine
+immutability with additive extension permitted off the critical path**.
+
+**Correction 2 (secondary).** The stub `coherence_gate` returns `{}` and the stub draft is prose-
+free, so the END-reachable AC is satisfiable while the fan-in is a no-op. The DoD "prints a stub
+book" should assert the `assemble_book` leaf actually concatenated the map output (non-empty,
+ordered) — otherwise P0 can go green with a broken map fan-in that only surfaces in P2.
+
+**Frozen scope.** Lint-green spine + END reached + `assemble_book` is a real deterministic concat.
+No smart nodes. Additive nodes in later phases do not violate the freeze.
+
+## Decision fold (2026-06-28) — brief state carries the authored affect arc (option a)
+
+The chain adopts **option (a)** (closure measured structurally over the authored briefs). Two small
+P0 consequences:
+- The `briefs` state key must accommodate per-chapter `scene_type` + `eff_affect` (authored affect
+  open/close ops) that P1 fills — reserve the shape now so P1 is purely additive.
+- "Topology frozen" means **spine immutability** (premise → cast → briefs → draft-map → assemble →
+  gate does not re-wire), **with additive nodes permitted off the critical path** (resolving Judge
+  Correction 1; P5 adds `reconstruct_synopsis`/`roundtrip_diff` without violating the freeze).
 
 ## Problem
 

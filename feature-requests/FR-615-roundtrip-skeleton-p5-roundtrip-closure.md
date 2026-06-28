@@ -2,9 +2,9 @@
 
 **Priority:** LOW
 **Type:** Feature
-**Status:** Proposed (deferred — gated on FR-610..614)
 **Effort:** 2 days
 **Requested:** 2026-06-28
+**Status:** Judged — Authority GRANTED in principle; DEFERRED, gated on P0–P4 + Raw Output Read (2026-06-28)
 
 ## Summary
 
@@ -20,6 +20,42 @@ required for the skeleton to be useful; build only after P0–P4 hold.
 Turns the skeleton into the full round-trip the architecture targets — synopsis → typed
 structure → synopsis′ — where reconstruction fidelity becomes a deterministic coherence signal
 independent of any judge's taste.
+
+## Judgement (2026-06-28)
+
+**Verdict: Authority GRANTED in PRINCIPLE; DEFERRED.** Gated on P0–P4 holding and on its own Raw
+Output Read (K ≥ 5 synopsis pairs). Correctly LOW priority and off the critical path.
+
+**Claims verified.** The L4b-classifier-**comparison-side-only** discipline is consistent with the
+entire arc — `scene_type` is authored, so recognition is only ever a preservation check, never a
+generation input. "Reconstruction is the gold" is the architecture's strongest deterministic,
+judge-independent signal; approving the principle is sound.
+
+**Correction 1 (secondary).** `roundtrip_diff`'s "deterministic preservation number" is **not**
+deterministic if event alignment is done by an LLM. Specify the diff is over **structured extracted
+events** (deterministic set/edge comparison), or it inherits the judge-taste it claims to escape —
+contradicting the value statement.
+
+**Correction 2 (secondary).** Hold the deferral firmly: do not let P5's reconstruction ambition
+pull scope forward into the skeleton. P5 begins only after P3 yields a real baseline and P4 moves
+it — and only after its Raw Output Read is filled from real (synopsis, synopsis′) pairs.
+
+**Frozen scope.** Stays off the critical path. Authority to build conditioned on P0–P4 holding,
+deterministic structured diff, and K ≥ 5 reconstruction-pair reads logged before commit.
+
+## Decision fold (2026-06-28) — P5 owns the prose-vs-plan dangling check (option a consequence)
+
+P3 ([FR-613](FR-613-roundtrip-skeleton-p3-coherence-gate.md)) measures closure **structurally over
+the authored briefs** (option (a)). The prose-side question P3 deliberately rejected — *does the
+generated prose actually deliver the authored close?* (the rejected option (b)) — lands **here**, on
+the comparison side, alongside the L4b `scene_type` preservation check:
+
+- Add `classify_affect_prose` (llm, comparison side only): extract affect opens/closes from the
+  generated prose and diff them against the **authored** `eff_affect` arc. An authored close the
+  prose never delivers is a *prose dangling* — the legitimate book-level signal P3's plan-level
+  metric cannot see.
+- This is also where P4's precision claim is independently audited: P4 hand-checks reactive closes
+  against prose at Raw-Output-Read scale; P5 mechanizes that check across all chapters.
 
 ## Problem
 
@@ -47,6 +83,9 @@ kept off the generative critical path.
 - `classify_scene_type` (L4b, llm): recognise scene_type from each generated chapter's prose;
   **comparison side only** — compare against the authored brief `scene_type` to score
   preservation. Never inserted on the generative path.
+- `classify_affect_prose` (llm, comparison side only): extract affect opens/closes from the prose
+  and diff against the authored `eff_affect` arc — the prose-vs-plan dangling check (option (b),
+  routed here because P3 measures the plan, not the prose).
 - Optional additional gate validators: plan-exists, cast-consistency, entry/exit-state
   hand-off continuity.
 
