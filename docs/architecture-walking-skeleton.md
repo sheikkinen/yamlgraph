@@ -154,9 +154,15 @@ author may emit a recognition/decision `close` op. It is applied to the **roundt
 prompt, never to the shared classifier — so the prior baselines are untouched and the blast radius is
 zero.
 
-A precision guard binds this fix: a falling `authored_dangling_rate` could be honest reactive closes
-*or* over-emitted balance (closing opens that should dangle). Each new reactive close is cross-checked
-against the prose — the exact failure mode that refuted earlier close-op widenings.
+**The tautology guard (the binding criterion).** Under decision (a), P4 edits the very rule that
+authors the metric — so `authored_dangling_rate` falls *by fiat*: instruct the author to emit reactive
+closes and the number drops whether or not the prose delivers a single one. The rate proves
+**emission, not fidelity** (a textbook plausible-wrong-answer: it passes the shape check, semantically
+empty). The binding success criterion is therefore the **paired** result, recorded *both or neither*:
+the rate falls **AND** every new reactive close is witnessed deliverable in the prose (the K≥5 raw
+read). A bare rate win is forbidden. P5 mechanizes this cross-check across all chapters; until it lands
+the manual K≥5 read is the sole, HARD guard — which is why **P5 is not truly optional** for the
+skeleton to make an honest fidelity claim.
 
 ---
 
@@ -191,7 +197,7 @@ work (see the per-phase FR for acceptance criteria and Judgement).
 | **P1** cast + briefs | FR-611 | real sheets + briefs carrying authored `scene_type` **and** `eff_affect` | every brief has both fields; scene_type labels match summaries |
 | **P2** draft + assemble | FR-612 | scene_type-dosed chapters, deterministically assembled `book` | readable book; **visible** (not yet validated) dose contrast |
 | **P3** coherence gate | FR-613 | `authored_dangling_rate` baseline, split by scene_type | first number — the baseline P4 must move |
-| **P4** authoring-rule fix | FR-614 | reactive close branch in the roundtrip-local authoring prompt | reactive `authored_dangling_rate` falls; proactive stable; closes precision-checked |
+| **P4** authoring-rule fix | FR-614 | reactive close branch in the roundtrip-local authoring prompt | **paired**: reactive `authored_dangling_rate` falls AND each new reactive close witnessed in prose (K≥5); proactive stable; a bare rate win is not a pass |
 | **P5** round-trip closure (deferred) | FR-615 | `reconstruct_synopsis`, `roundtrip_diff`, prose-vs-plan + scene_type preservation checks | reconstruction fidelity; prose honors the plan |
 
 **Topology freeze:** P0 freezes the **spine** (premise → cast → briefs → draft-map → assemble →

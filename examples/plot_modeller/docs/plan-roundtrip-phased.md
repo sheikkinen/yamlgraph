@@ -110,14 +110,17 @@ fix it there — never in the shared prose classifier.
 |---|---|
 | Baseline (RED) | From Phase 3: record `authored_dangling_rate` on reactive vs proactive chapters. Expect reactive ≫ proactive — the authoring prompt only knows action-resolution closes. |
 | Widen the AUTHORING rule | In the roundtrip-local brief/affect-authoring prompt (`prompts/roundtrip/outline_briefs.yaml` or a dedicated affect-authoring node) add a **reactive close branch**: for `scene_type == reactive`, author a close op when a feeling is resolved by recognition/naming/decision. **Do NOT touch the shared `affect_throughline.yaml`** (it baselines the prior affect arc). |
-| Re-measure (GREEN) | Re-run; reactive `authored_dangling_rate` drops without inflating proactive false-closes. |
-| Precision guard | The new reactive closes must be **real** — cross-check against the prose (Raw Output Read sample) that each authored close is one the chapter actually delivers, not an over-emitted balance trick. |
+| Re-measure (GREEN = the PAIRED result) | The binding criterion is **both or neither**: reactive `authored_dangling_rate` drops vs Phase 3 (proactive false-closes not inflated) **AND** every new reactive close is witnessed *deliverable in the prose* at the K≥5 raw read. |
+| Tautology guard (PRIMARY) | Under decision (a), P4 edits the very rule that authors the metric, so the rate falls **by fiat** — instruct the author to emit reactive closes and the number drops whether or not the prose delivers one. The rate proves **emission, not fidelity**. The prose cross-check is the headline signal, not a parenthetical. Until P5 mechanizes it across all chapters, the K≥5 manual cross-check is the **sole** guard and is HARD, not advisory. |
 
 **Run:** full graph, before/after.
-**Gradeable DoD:** reactive `authored_dangling_rate` falls measurably vs the Phase 3 baseline;
-proactive rate stable; reactive closes precision-checked against prose. Numbers recorded. (The
-carried-over "cheapest first move" from [plan-scene-typing.md](plan-scene-typing.md), now an
-authoring-rule fix inside the harness instead of an isolated-layer classifier edit.)
+**Gradeable DoD (paired — both or neither):** reactive `authored_dangling_rate` falls measurably vs
+the Phase 3 baseline **and** every new reactive close is witnessed deliverable in the prose (K≥5);
+proactive rate stable. **A bare rate win is forbidden** — emission without witnessed fidelity is not a
+pass. Both results recorded together. P5 mechanizes this cross-check across all chapters; until then
+the manual K≥5 read is the sole, HARD guard. (The carried-over "cheapest first move" from
+[plan-scene-typing.md](plan-scene-typing.md), now an authoring-rule fix inside the harness instead of
+an isolated-layer classifier edit.)
 
 ---
 

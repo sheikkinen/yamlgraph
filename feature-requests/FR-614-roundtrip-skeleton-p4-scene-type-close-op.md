@@ -4,7 +4,7 @@
 **Type:** Enhancement
 **Effort:** 1 day
 **Requested:** 2026-06-28
-**Status:** Judged — Authority GRANTED (design); FINAL authority WITHHELD pending Raw Output Read + corrections (2026-06-28)
+**Status:** Re-judged after Decision fold — Authority SUSTAINED (design); FINAL authority WITHHELD pending Raw Output Read + tautology guard (2026-06-28)
 
 ## Summary
 
@@ -73,11 +73,38 @@ corrections and changes the edit site:
   close-op; the "(or the draft/gate path)" escape hatch is removed.
 - **Corr 2 (fork discipline) — RESOLVED by construction.** We never touch the shared
   `affect_throughline.yaml`, so the prior affect-arc baselines are untouched. No fork needed.
-- **Corr 1 (reactive precision) — STILL BINDING, reframed.** A falling `authored_dangling_rate`
-  could be honest reactive closes **or** over-emitted balance (the author closing opens that should
-  dangle). The Raw Output Read must cross-check each new reactive close against the **prose**: the
-  authored close must be one the chapter actually delivers, not a count-lowering trick.
+- **Corr 1 (reactive precision) — STILL BINDING, inverted to PRIMARY.** A falling
+  `authored_dangling_rate` could be honest reactive closes **or** over-emitted balance (the author
+  closing opens that should dangle). Under option (a) P4 edits the rule that authors the metric, so
+  the rate falls **by fiat** — it proves EMISSION, not FIDELITY. The binding success criterion is the
+  **paired** result, recorded *both or neither*: the rate falls **AND** every new reactive close is
+  witnessed deliverable in the prose at the K≥5 raw read. A bare rate win is forbidden.
 - The metric is `authored_dangling_rate` (per FR-613), not "dangling opens in the book."
+
+## Re-Judgement (2026-06-28)
+
+**Authority SUSTAINED (design); Corrections 2 & 3 closed, Correction 1 SHARPENED to a PRIMARY
+blocker.** The fold resolves edit-site and fork discipline cleanly: P4 edits the roundtrip-local
+authoring rule (`prompts/roundtrip/outline_briefs.yaml`), never the shared `affect_throughline.yaml`;
+the prior affect-arc baselines are untouched by construction; the "(or the draft/gate path)" escape
+hatch is removed. Good.
+
+**Correction 1 — the tautology guard (now PRIMARY).** Under option (a) the metric P4 moves
+(`authored_dangling_rate`) is computed from the authored briefs, and P4 edits the rule that authors
+them. The number therefore drops **by fiat**: instruct the author to emit reactive closes and the
+dangling rate falls whether or not the prose delivers a single one. `authored_dangling_rate ↓`
+proves EMISSION, not FIDELITY — a textbook plausible-wrong-answer (passes the shape check,
+semantically empty). The fold's prose cross-check is the only real signal, yet the GREEN DoD (plan
+line 117) reads the rate drop as the headline and the cross-check as a parenthetical
+"(+ precision check)". **Invert that.** P4's binding success criterion is the PAIRED result —
+reactive rate ↓ AND every new reactive close witnessed *deliverable in the prose* at the K ≥ 5 raw
+read — recorded both or neither. A bare `authored_dangling_rate` win is forbidden; it is the number
+moving for the wrong reason. P5 mechanizes this across all chapters, but P5 is deferred, so at
+P4-completion the K ≥ 5 manual cross-check is the **sole** guard and must be HARD, not advisory.
+
+**Frozen scope (re-affirmed).** Reactive `authored_dangling_rate` falls AND each authored reactive
+close is witnessed in prose (K ≥ 5) AND proactive rate stable AND shared `affect_throughline.yaml`
+untouched. Emission without witnessed fidelity is not a pass.
 
 ## Problem
 
@@ -106,16 +133,20 @@ the close-op decision, not a cosmetic tag.
   (`prompts/roundtrip/outline_briefs.yaml` or a dedicated affect-authoring node): for
   `scene_type == reactive`, author a `close` op when a feeling is resolved by
   recognition/naming/decision. **Never edit the shared `affect_throughline.yaml`.**
-- Re-measure (GREEN): reactive `authored_dangling_rate` drops; proactive rate stays stable (no new
-  false-closes); each new reactive close is precision-checked against the prose.
+- Re-measure (GREEN = the PAIRED result, both or neither): reactive `authored_dangling_rate` drops
+  AND every new reactive close is witnessed deliverable in the prose (K≥5); proactive rate stays
+  stable (no new false-closes). A bare rate drop is **not a pass** — the rate is movable by fiat, so
+  emission without witnessed fidelity is forbidden. Until P5 mechanizes the cross-check, the manual
+  K≥5 read is the sole, HARD guard.
 
 ## Acceptance Criteria
 
 - [ ] RED baseline recorded before the change (failing/high reactive authored-dangling rate).
-- [ ] Reactive `authored_dangling_rate` falls measurably vs the P3 baseline.
-- [ ] Each new reactive close is precision-checked against the prose (real close, not over-emission).
+- [ ] **PAIRED pass (both or neither):** reactive `authored_dangling_rate` falls measurably vs the P3
+      baseline **AND** every new reactive close is witnessed deliverable in the prose (K≥5 raw read).
+- [ ] A bare rate win is **forbidden** — emission without witnessed fidelity is not a pass.
 - [ ] Proactive `authored_dangling_rate` unchanged within noise (no false-close inflation).
-- [ ] Before/after numbers recorded in the phased plan's results log.
+- [ ] Both results (rate + prose-witness) recorded together in the phased plan's results log.
 - [ ] Edit applied to the roundtrip-local authoring prompt; shared `affect_throughline.yaml` untouched.
 - [ ] Change gated on authored `scene_type`; no cross-beat inference smuggled in (FR-598-safe).
 
