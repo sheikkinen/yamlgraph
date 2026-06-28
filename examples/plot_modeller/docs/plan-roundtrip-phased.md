@@ -6,6 +6,9 @@
 **Method:** walking skeleton — each phase produces a **runnable graph** and a **gradeable artifact**.
 No phase ends on "it compiles"; every phase ends on a number or a readable output.
 
+**Tracked as feature requests:** P0 → FR-610, P1 → FR-611, P2 → FR-612, P3 → FR-613,
+P4 → FR-614, P5 → FR-615 (dependency chain; each FR is the authority gate for its phase).
+
 **Invariants across all phases**
 - One graph file: `examples/plot_modeller/graphs/roundtrip_skeleton.yaml`. All flow lives here.
 - Run shape (never a Python runner): `set -a; source .env; set +a; PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 .venv/bin/yamlgraph graph run examples/plot_modeller/graphs/roundtrip_skeleton.yaml --var ... --full`
