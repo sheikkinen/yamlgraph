@@ -51,10 +51,6 @@ state:
 
 # Leaf tools - the only Python in the skeleton.
 tools:
-  stub_draft_chapter:
-    type: python
-    module: examples.plot_modeller.nodes.roundtrip_tools
-    function: stub_draft_chapter
   assemble_book:
     type: python
     module: examples.plot_modeller.nodes.roundtrip_tools
@@ -79,16 +75,20 @@ nodes:
     parse_json: true
     state_key: briefs
 
-  # P2 (FR-612) swaps the sub-node stub for an LLM prose node (scene_type dose).
+  # P2 (FR-612): draft each chapter via an LLM prose node, dosed by the brief's
+  # scene_type. Inline schema echoes chapter_id/title so assemble_book can
+  # impose a deterministic chapter_id order independent of map fan-in (corr 2).
   draft_chapter:
     type: map
     over: "{state.briefs.chapters}"
     as: brief
     max_items: 50
     node:
-      type: python
-      tool: stub_draft_chapter
+      prompt: roundtrip/draft_chapter
       state_key: draft
+      variables:
+        brief: "{state.brief}"
+        cast: "{state.cast}"
     collect: chapter_drafts
 
   # Real at P0: deterministic, no-LLM, chapter_id-ordered concat (FR-492).

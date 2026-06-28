@@ -13,32 +13,12 @@ an empty assembly raises — so P0 cannot go green on a broken map fan-in that
 would otherwise only surface in P2.
 
 Later phases *fill* these nodes (P1 swaps the cast/brief stubs for LLM nodes,
-P2 swaps the draft stub) without re-wiring the spine.
+P2 swaps the draft stub for an LLM prose node) without re-wiring the spine.
 """
 
 from __future__ import annotations
 
 from typing import Any
-
-
-def stub_draft_chapter(state: dict[str, Any]) -> dict[str, Any]:
-    """P0 stub map sub-node: emit a placeholder draft for one brief.
-
-    The map injects the current brief as ``state['brief']``. The returned draft
-    carries ``chapter_id`` so :func:`assemble_book` can impose a deterministic
-    order independent of the non-deterministic map fan-in. Replaced by an LLM
-    prose node in P2 (FR-612).
-    """
-    brief = state.get("brief") or {}
-    chapter_id = brief.get("chapter_id", 0)
-    title = brief.get("title", f"Chapter {chapter_id}")
-    return {
-        "draft": {
-            "chapter_id": chapter_id,
-            "title": title,
-            "text": f"[stub prose for {title}]",
-        }
-    }
 
 
 def assemble_book(state: dict[str, Any]) -> dict[str, Any]:
@@ -55,6 +35,12 @@ def assemble_book(state: dict[str, Any]) -> dict[str, Any]:
             "assemble_book: no chapter_drafts to assemble - the map fan-in is empty"
         )
     ordered = sorted(drafts, key=lambda d: d["chapter_id"])
+    ids = [d["chapter_id"] for d in ordered]
+    if len(set(ids)) != len(ids):
+        raise ValueError(
+            f"assemble_book: duplicate chapter_id in drafts {ids} - an LLM draft"
+            " echoed the wrong chapter_id, so the order is not well-defined"
+        )
     book = "\n\n".join(f"## {d['title']}\n\n{d['text']}" for d in ordered)
     if not book.strip():
         raise ValueError("assemble_book: assembled book is empty")

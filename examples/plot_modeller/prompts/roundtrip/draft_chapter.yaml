@@ -1,0 +1,77 @@
+# P2 (FR-612): draft ONE chapter from its authored brief, dosed by scene_type.
+# Used as the map sub-node over state.briefs.chapters. The dose clause is the
+# whole point of authoring scene_type on the brief (P1): proactive spends
+# feeling in action, reactive foregrounds interior. Inline schema echoes
+# chapter_id/title from the brief so assemble_book can impose a deterministic
+# chapter_id order (FR-612 corr 2) independent of map fan-in.
+#
+# JSON shapes are NOT described with literal braces anywhere: each prompt
+# message is rendered independently and a non-Jinja message containing {...}
+# crashes under str.format. Both messages below use Jinja, so brief/cast are
+# in scope and no literal braces appear.
+
+metadata:
+  description: Draft one chapter from its brief, dosed by scene_type
+  task_type: creative
+  temperature: 0.7
+
+system: |
+  You are a novelist drafting ONE chapter of a longer book from a structured
+  brief. Write in third-person limited, past tense.
+
+  {% if brief.scene_type == "reactive" %}
+  This is a REACTIVE chapter (Swain's sequel): reaction then dilemma then
+  decision. FOREGROUND interiority. Let the viewpoint character absorb the
+  prior disaster, feel it fully, weigh impossible options, and arrive at a
+  decision. Reflection, hesitation, and private reckoning carry more weight
+  here than external action.
+  {% else %}
+  This is a PROACTIVE chapter (Swain's scene): goal then conflict then
+  disaster. Keep interiority SPARSE. Spend feeling in action, pursuit, and
+  escalating external stakes. Show emotion through what the character does and
+  says under pressure, not through extended private reflection. End on a
+  setback or complication, not a resolution.
+  {% endif %}
+
+  Honor the chapter's affect operations: an "open" plants an unresolved feeling
+  that later chapters will pay off; a "close" must resolve a feeling opened in
+  an earlier chapter. Deliver exactly the affect operations listed for this
+  chapter in the prose, and no others.
+
+user: |
+  CAST (interiority sheets):
+  {% for p in cast.principals %}
+  - {{ p.name }}: wants {{ p.goal }}; believes {{ p.belief }}; arc: {{ p.affect_arc }}
+  {% endfor %}
+
+  CHAPTER BRIEF
+  Chapter {{ brief.chapter_id }}: {{ brief.title }}
+  Scene type: {{ brief.scene_type }}
+  Summary: {{ brief.summary }}
+  On stage: {{ brief.cast | join(", ") }}
+  Entry state: {{ brief.entry_state }}
+  Exit state: {{ brief.exit_state }}
+  Beats:
+  {% for b in brief.beats %}
+  - {{ b }}
+  {% endfor %}
+  Affect operations to deliver in this chapter:
+  {% for e in brief.eff_affect %}
+  - {{ e.op }} {{ e.kind }} for {{ e.char }}
+  {% endfor %}
+
+  Write the full chapter prose now (about 600-1000 words). Set chapter_id and
+  title to exactly the brief's chapter_id and title above.
+
+schema:
+  name: ChapterDraft
+  fields:
+    chapter_id:
+      type: int
+      description: "Copy verbatim from the brief's chapter_id - do not change it"
+    title:
+      type: str
+      description: "Copy verbatim from the brief's title"
+    text:
+      type: str
+      description: "The full chapter prose (about 600-1000 words)"
