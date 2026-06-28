@@ -34,11 +34,11 @@ state:
     description: "Input: optional genre hint"
     default: ""
   cast:
-    type: str
-    description: "Character interiority sheets (derive_cast)"
+    type: dict
+    description: "Cast interiority sheets {principals: [{name, goal, belief, affect_arc}]}"
   briefs:
-    type: list
-    description: "Ordered chapter briefs, each carrying authored scene_type + eff_affect"
+    type: dict
+    description: "{chapters: [...]} - each brief carries authored scene_type + eff_affect"
   book:
     type: str
     description: "Deterministically assembled, chapter_id-ordered book"
@@ -51,14 +51,6 @@ state:
 
 # Leaf tools - the only Python in the skeleton.
 tools:
-  stub_derive_cast:
-    type: python
-    module: examples.plot_modeller.nodes.roundtrip_tools
-    function: stub_derive_cast
-  stub_outline_briefs:
-    type: python
-    module: examples.plot_modeller.nodes.roundtrip_tools
-    function: stub_outline_briefs
   stub_draft_chapter:
     type: python
     module: examples.plot_modeller.nodes.roundtrip_tools
@@ -73,22 +65,24 @@ tools:
     function: coherence_gate
 
 nodes:
-  # P1 (FR-611) swaps this stub for an LLM node: synopsis -> interiority sheets.
+  # P1 (FR-611): synopsis -> 2-4 principal interiority sheets (parse_json).
   derive_cast:
-    type: python
-    tool: stub_derive_cast
+    type: llm
+    prompt: roundtrip/derive_cast
+    parse_json: true
     state_key: cast
 
-  # P1 (FR-611) swaps this stub for an LLM node authoring scene_type + eff_affect.
+  # P1 (FR-611): synopsis -> ordered chapter briefs authoring scene_type + eff_affect.
   outline_chapter_briefs:
-    type: python
-    tool: stub_outline_briefs
+    type: llm
+    prompt: roundtrip/outline_briefs
+    parse_json: true
     state_key: briefs
 
   # P2 (FR-612) swaps the sub-node stub for an LLM prose node (scene_type dose).
   draft_chapter:
     type: map
-    over: "{state.briefs}"
+    over: "{state.briefs.chapters}"
     as: brief
     max_items: 50
     node:

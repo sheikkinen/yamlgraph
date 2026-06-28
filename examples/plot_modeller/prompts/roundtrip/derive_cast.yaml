@@ -1,0 +1,38 @@
+# Round-trip skeleton P1 (FR-611) - cast interiority sheets.
+# Provenance: adapted from prompts/interiority/interiority_sheets.yaml
+# (the A/B-validated four-field inner-state sheet), lifted from scene level to
+# book level and emitted as structured JSON so the four fields are machine-
+# checkable (AC: name/goal/belief/affect_arc present on every principal).
+
+metadata:
+  description: Derive 2-4 principal characters with authored interiority sheets from a synopsis
+  task_type: creative
+  temperature: 0.5
+
+system: |
+  You author the principal CAST of a book from its synopsis. Identify the 2-4
+  characters who actually drive the story, and for EACH author an INTERIORITY
+  sheet - the inner state in a tight, fixed vocabulary. Do NOT describe
+  appearance; the sheet is the character's engine, not their look.
+
+  For each principal give exactly:
+    name:       the character's name, exactly as the synopsis names them
+    goal:       the one thing they are trying to achieve across the book
+                (a single clause)
+    belief:     the conviction that shapes their choices (it may be wrong)
+    affect_arc: the emotional movement they travel across the book, as one
+                clause naming where they start and where they end
+                (e.g. "from guarded guilt to earned trust")
+
+  Keep every field tight - one clause each, no prose paragraphs.
+
+  Return ONLY a JSON object with a single field "principals": an array, each
+  entry having string fields "name", "goal", "belief", and "affect_arc". No
+  commentary, no markdown fences.
+
+user: |
+  SYNOPSIS (the whole book in outline):
+  {{ premise }}
+
+  Author the 2-4 principal interiority sheets. Return the JSON object with the
+  "principals" array.

@@ -21,50 +21,6 @@ from __future__ import annotations
 from typing import Any
 
 
-def stub_derive_cast(state: dict[str, Any]) -> dict[str, Any]:
-    """P0 stub: a constant cast line. Replaced by an LLM node in P1 (FR-611)."""
-    return {"cast": "Mara - pilot, guards a secret. Jonas - engineer, seeks the truth."}
-
-
-def stub_outline_briefs(state: dict[str, Any]) -> dict[str, Any]:
-    """P0 stub: two constant chapter briefs reserving the P1 affect-arc shape.
-
-    Each brief carries authored ``scene_type`` and an ``eff_affect`` list so the
-    coherence gate has the exact shape to walk once P1 fills them with real
-    open/close ops (decision (a): closure is measured over the authored plan).
-    The ``eff_affect`` lists are empty at P0 — emission is P1's job.
-    """
-    briefs = [
-        {
-            "chapter_id": 1,
-            "title": "Chapter 1 - The Signal",
-            "summary": "Mara intercepts a signal and decides to act.",
-            "cast": ["Mara"],
-            "beats": [
-                "intercepts the signal",
-                "weighs the risk",
-                "commits to the launch",
-            ],
-            "entry_state": "Mara is grounded and idle.",
-            "exit_state": "Mara has launched toward the source.",
-            "scene_type": "proactive",
-            "eff_affect": [],
-        },
-        {
-            "chapter_id": 2,
-            "title": "Chapter 2 - The Drive in Her Bag",
-            "summary": "Mara confronts what the signal means and lets herself believe Jonas.",
-            "cast": ["Mara", "Jonas"],
-            "beats": ["reaches the source", "argues with Jonas", "accepts the truth"],
-            "entry_state": "Mara distrusts Jonas.",
-            "exit_state": "Mara trusts Jonas.",
-            "scene_type": "reactive",
-            "eff_affect": [],
-        },
-    ]
-    return {"briefs": briefs}
-
-
 def stub_draft_chapter(state: dict[str, Any]) -> dict[str, Any]:
     """P0 stub map sub-node: emit a placeholder draft for one brief.
 
