@@ -4,7 +4,7 @@
 **Type:** Enhancement
 **Effort:** 1 day
 **Requested:** 2026-06-28
-**Status:** Re-judged after Decision fold — Authority SUSTAINED (design); FINAL authority WITHHELD pending Raw Output Read + tautology guard (2026-06-28)
+**Status:** Re-judged (pass 2) — tautology guard RESOLVED (now a binding AC); Authority SUSTAINED (design); FINAL authority WITHHELD pending Raw Output Read only (2026-06-28)
 
 ## Summary
 
@@ -105,6 +105,21 @@ P4-completion the K ≥ 5 manual cross-check is the **sole** guard and must be H
 **Frozen scope (re-affirmed).** Reactive `authored_dangling_rate` falls AND each authored reactive
 close is witnessed in prose (K ≥ 5) AND proactive rate stable AND shared `affect_throughline.yaml`
 untouched. Emission without witnessed fidelity is not a pass.
+
+## Re-Judgement (pass 2 — 2026-06-28)
+
+**Tautology guard RESOLVED; Authority SUSTAINED (design).** The PRIMARY blocker is now folded into
+the contract, not left as advice: the Acceptance Criteria carry the **PAIRED pass (both or neither)**
+— reactive rate falls AND every new reactive close is witnessed deliverable in prose (K ≥ 5) — and
+explicitly **forbid a bare rate win** ("emission without witnessed fidelity is not a pass"), with
+both results recorded together. That is the inversion I demanded, now enforceable at the AC level
+rather than parenthetical in a DoD. The design-of-record [architecture-walking-skeleton.md](../docs/architecture-walking-skeleton.md)
+§4 carries the same guard verbatim and §6 P5 is named "not truly optional" — consistent across
+plan, doc, and FR.
+
+No open corrections remain on the **design**. FINAL authority is still WITHHELD on the single
+standing gate every measurement FR carries: the K ≥ 5 Raw Output Read, fillable only once P3 emits
+real per-sample reactive close-op emissions. That is the dependency chain, not a defect.
 
 ## Problem
 

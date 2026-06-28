@@ -4,7 +4,7 @@
 **Type:** Feature
 **Effort:** 2 days
 **Requested:** 2026-06-28
-**Status:** Judged — Authority GRANTED in principle; DEFERRED, gated on P0–P4 + Raw Output Read (2026-06-28)
+**Status:** Re-judged after Decision fold — Authority SUSTAINED in principle; DEFERRED, now owns prose-vs-plan fidelity check (2026-06-28)
 
 ## Summary
 
@@ -56,6 +56,19 @@ the comparison side, alongside the L4b `scene_type` preservation check:
   metric cannot see.
 - This is also where P4's precision claim is independently audited: P4 hand-checks reactive closes
   against prose at Raw-Output-Read scale; P5 mechanizes that check across all chapters.
+
+## Re-Judgement (2026-06-28)
+
+**Authority SUSTAINED in principle; DEFERRED.** The fold gives P5 a sharper mandate: it now owns the
+prose-vs-plan dangling check (`classify_affect_prose`, the rejected option (b)) AND mechanizes P4's
+precision audit across all chapters. This is the correct home for both — the expensive prose-fidelity
+check belongs off the skeleton's critical path.
+
+Note the dependency this creates: P4's tautology guard is only manually spot-checked (K ≥ 5) until
+P5 lands, so **P5 is not truly optional for the chain to make an honest fidelity claim** — it is the
+mechanized proof that P4's number was not gamed by fiat. Keep it deferred for BUILD order, but it is
+the fidelity-closure the skeleton's headline ultimately depends on. `roundtrip_diff` must remain a
+deterministic structured-event diff (Correction 1, still binding). Sustained.
 
 ## Problem
 

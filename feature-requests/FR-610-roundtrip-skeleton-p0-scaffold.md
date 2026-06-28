@@ -4,7 +4,7 @@
 **Type:** Feature
 **Effort:** 0.5 days
 **Requested:** 2026-06-28
-**Status:** Judged — Authority GRANTED (2026-06-28)
+**Status:** Re-judged after Decision fold — Authority SUSTAINED, corrections resolved (2026-06-28)
 
 ## Summary
 
@@ -54,6 +54,20 @@ P0 consequences:
 - "Topology frozen" means **spine immutability** (premise → cast → briefs → draft-map → assemble →
   gate does not re-wire), **with additive nodes permitted off the critical path** (resolving Judge
   Correction 1; P5 adds `reconstruct_synopsis`/`roundtrip_diff` without violating the freeze).
+
+## Re-Judgement (2026-06-28)
+
+**Authority SUSTAINED.** The fold resolves Correction 1 exactly: "frozen" now means spine
+immutability with additive nodes permitted off the critical path, and the `briefs` state reserves
+`scene_type` + `eff_affect` so P1 is purely additive. Correction 2 (the stub `assemble_book` must
+be a real, non-empty, ordered concat of the map output) is **not** addressed by the fold — restate
+it as a P0 DoD assertion, or P0 can go green on a broken map fan-in that only surfaces in P2.
+Otherwise sustained.
+
+**Pass 2 (2026-06-28).** Correction 2 is now resolved in the design-of-record
+[architecture-walking-skeleton.md](../docs/architecture-walking-skeleton.md) §6: the P0 gradeable
+signal is explicitly "`assemble_book` really concatenates" (non-empty ordered concat), closing the
+last open item. Authority SUSTAINED, no open corrections.
 
 ## Problem
 

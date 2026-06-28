@@ -4,7 +4,7 @@
 **Type:** Feature
 **Effort:** 1 day
 **Requested:** 2026-06-28
-**Status:** Judged — Authority GRANTED with corrections (2026-06-28)
+**Status:** Re-judged after Decision fold — Authority SUSTAINED, corrections resolved (2026-06-28)
 
 ## Summary
 
@@ -62,6 +62,18 @@ deterministically, not the prose. This adds a load-bearing requirement to P1:
   precondition** — re-verified in the P3/P4 Raw Output Reads, since P4 gates its number-move on
   `scene_type == reactive`. The independent L4b preservation check stays deferred to P5, but label
   correctness is checked by hand on every reactive sample inspected at P3/P4.
+
+## Re-Judgement (2026-06-28)
+
+**Authority SUSTAINED.** Both corrections resolved: the real prompt `interiority_sheets.yaml` is
+cited, and `scene_type` *correctness* is elevated to a P4 precondition hand-checked on every
+reactive sample at P3/P4. The fold ADDS a load-bearing requirement — the outline node must author
+`eff_affect` open/close ops onto each brief, else the structural gate has nothing to walk. Concur.
+
+One consequence the chain must own: P1 is now the **sole author** of the affect arc the entire
+skeleton grades. The new `eff_affect` AC ("non-empty op list") checks **presence, not
+correctness**; arc fidelity is only witnessed downstream (P3/P4 raw read, P5 mechanized). Acceptable
+for a skeleton, but P1 must claim an *authored* arc, never a *faithful* one.
 
 ## Problem
 

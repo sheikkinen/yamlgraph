@@ -4,7 +4,7 @@
 **Type:** Feature
 **Effort:** 1 day
 **Requested:** 2026-06-28
-**Status:** Judged — Authority GRANTED with corrections (2026-06-28)
+**Status:** Re-judged after Decision fold — Authority SUSTAINED, corrections resolved (2026-06-28)
 
 ## Summary
 
@@ -47,6 +47,20 @@ that it is *correct*. The number that validates dose-control is P4's `authored_d
 whether the prose actually delivers the authored dose is P5's prose-vs-plan check
 ([FR-615](FR-615-roundtrip-skeleton-p5-roundtrip-closure.md)). Resolves Judge Correction 1 by
 naming exactly which later phase carries the proof.
+
+## Re-Judgement (2026-06-28)
+
+**Authority SUSTAINED.** Correction 1 resolved precisely: P2 stays *visible-not-validated* and
+names P4 (`authored_dangling_rate`) and P5 (prose-vs-plan) as the proof carriers, so P2 cannot
+declare victory on an unmeasured eyeball. Correction 2 (deterministic chapter ordering) remains
+unaddressed — bind it: sort `chapter_drafts` by a total `chapter_id` order inside the leaf, never
+rely on map `collect` order, or the deterministic-assembly AC is silently violated. Otherwise
+sustained.
+
+**Pass 2 (2026-06-28).** Correction 2 is now resolved in the design-of-record
+[architecture-walking-skeleton.md](../docs/architecture-walking-skeleton.md) §2: `assemble_book`
+"concatenate `chapter_drafts` in explicit `chapter_id` order" — the total-order sort is named, not
+left to `collect`. Authority SUSTAINED, no open corrections.
 
 ## Problem
 

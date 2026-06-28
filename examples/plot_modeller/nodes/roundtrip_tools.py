@@ -48,9 +48,67 @@ def assemble_book(state: dict[str, Any]) -> dict[str, Any]:
 
 
 def coherence_gate(state: dict[str, Any]) -> dict[str, Any]:
-    """P0 stub gate: an empty coherence report.
+    """Deterministic coherence gate: ``authored_dangling_rate`` over the plan.
 
-    P3 (FR-613) fills this with the deterministic ``authored_dangling_rate``
-    walk over the authored briefs' ``eff_affect`` ops, split by ``scene_type``.
+    Decision (a) (FR-613): the gate measures the **authored briefs'** affect
+    arc, never the prose. It walks the ``eff_affect`` open/close ops the briefs
+    carry, in ``chapter_id`` order, and reports how many authored opens never
+    close — split by the chapter's authored ``scene_type``.
+
+    The algorithm mirrors :func:`validators.affects.check_affect_closure`
+    (FR-571) — an ordered, last-open-wins pop-walk keyed on ``(char, kind)`` —
+    but the brief is a plain JSON dict, not a ``PlotPlan.Function``, and the
+    metric needs per-``scene_type`` denominators the validator does not emit, so
+    the same deterministic walk is implemented directly here (no LLM judge on
+    the path).
+
+    Pre-registered denominators (FR-613/FR-614): per ``scene_type``,
+    ``authored_dangling_rate = unclosed authored opens / all authored opens``,
+    where a dangling open is attributed to the ``scene_type`` of the chapter
+    that *opened* it. This is a **plan-closure** number, not a prose claim —
+    whether the prose delivers the authored close is P5's job (FR-615).
     """
-    return {"coherence": {}}
+    chapters = sorted(
+        (state.get("briefs") or {}).get("chapters") or [],
+        key=lambda c: c.get("chapter_id", 0),
+    )
+
+    opens_by_type: dict[str, int] = {}
+    live: dict[tuple[str | None, str | None], str] = {}
+    for ch in chapters:
+        scene_type = ch.get("scene_type", "unknown")
+        for delta in ch.get("eff_affect") or []:
+            key = (delta.get("char"), delta.get("kind"))
+            if delta.get("op") == "open":
+                opens_by_type[scene_type] = opens_by_type.get(scene_type, 0) + 1
+                live[key] = scene_type
+            elif delta.get("op") == "close":
+                live.pop(key, None)
+
+    dangling_by_type: dict[str, int] = {}
+    for origin_scene_type in live.values():
+        dangling_by_type[origin_scene_type] = (
+            dangling_by_type.get(origin_scene_type, 0) + 1
+        )
+
+    by_scene_type: dict[str, dict[str, Any]] = {}
+    for scene_type in sorted(set(opens_by_type) | set(dangling_by_type)):
+        opens = opens_by_type.get(scene_type, 0)
+        dangling = dangling_by_type.get(scene_type, 0)
+        by_scene_type[scene_type] = {
+            "authored_opens": opens,
+            "dangling": dangling,
+            "authored_dangling_rate": (dangling / opens) if opens else 0.0,
+        }
+
+    total_opens = sum(opens_by_type.values())
+    total_dangling = sum(dangling_by_type.values())
+    report = {
+        "authored_dangling_rate": (total_dangling / total_opens)
+        if total_opens
+        else 0.0,
+        "authored_opens": total_opens,
+        "dangling": total_dangling,
+        "by_scene_type": by_scene_type,
+    }
+    return {"coherence": report}

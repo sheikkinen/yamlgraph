@@ -4,7 +4,7 @@
 **Type:** Feature
 **Effort:** 1 day
 **Requested:** 2026-06-28
-**Status:** Judged — Authority GRANTED (design); FINAL authority WITHHELD pending Raw Output Read (2026-06-28)
+**Status:** Re-judged after Decision fold — option (a) declared, Authority SUSTAINED (design); FINAL authority WITHHELD pending Raw Output Read (2026-06-28)
 
 ## Summary
 
@@ -72,6 +72,21 @@ pop-walk, no LLM judge on the roundtrip path. Consequences:
 **Resolving Judge Correction 2 (denominator pre-registration):** the reactive split is
 `unclosed authored opens in reactive chapters / all authored opens in reactive chapters`; the
 proactive split is the same over proactive chapters. Fixed before any baseline is recorded.
+
+## Re-Judgement (2026-06-28)
+
+**Authority SUSTAINED (design); the crux is resolved.** The fold declares option (a): closure is
+measured structurally over the authored briefs' `eff_affect`, the metric is renamed
+`authored_dangling_rate`, the gate reads `briefs` not `book`, and the denominator is pre-registered
+(Correction 2 closed). Prose stays a side-witness in the Raw Output Read, never a metric input —
+internally consistent.
+
+One consequence the fold must carry into P4 (and the rename already half-does): under (a) the metric
+reads what P1 authored and P4 edits the authoring rule, so `authored_dangling_rate` is **movable by
+construction**. It proves authoring EMISSION, not story FIDELITY. Acceptable for a deterministic
+first number ONLY because fidelity is routed to P5 — but the P3 baseline must be labelled
+"authored-plan closure," never "the book's closure." The rename does this; hold the line. FINAL
+authority remains gated on the K ≥ 5 raw read once P2 lands.
 
 ## Problem
 
