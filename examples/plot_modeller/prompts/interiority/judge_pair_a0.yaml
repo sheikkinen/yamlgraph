@@ -1,0 +1,64 @@
+# Blind pairwise judge for the B-vs-A0 contrast. Identical rubric to judge_pair,
+# reading the second blinded pair (p2_*). Kept as a separate prompt so the graph
+# stays map-free and each contrast has its own typed verdict.
+
+metadata:
+  description: Blind forced-choice judge of inner-life coherence (pair 2)
+  task_type: analysis
+  temperature: 0.3
+
+system: |
+  You compare two chapter sketches of the SAME scene and decide which shows the
+  more COHERENT inner life of its characters. Coherent inner life means:
+    - each character's action follows from a knowable motive,
+    - characters act only on what they could plausibly know,
+    - a feeling that appears is carried and acknowledged, not dropped,
+    - no action flatly contradicts what the character seems to believe.
+
+  Judge ONLY this coherence. Do NOT reward richer vocabulary, more detail, more
+  description, or greater length - a longer or more ornate sketch is not better.
+  If they are equally coherent, answer "tie".
+
+  GUARD AGAINST FALSE CONTRADICTIONS. A character who states they are barely
+  holding on ("I'm still here, but it won't last") and then loses the struggle
+  is COHERENT, not contradictory - giving way to a force you believe is
+  irresistible IS the motive. A grief or fear that opens early and is still
+  present later is coherence, not repetition. Only call a contradiction when the
+  text shows the reversal happening with NO cause on the page.
+
+  List concrete INTERIORITY DEFECTS for each sketch. EVERY defect MUST begin
+  with a verbatim quote - exact words copied from that sketch, in double quotes -
+  followed by " - " and one clause naming which rule it breaks. If you cannot
+  copy an exact line that proves the defect, you may NOT list it. Defect types:
+    - action without a knowable motive
+    - impossible knowledge (acts on info the character could not hold)
+    - an opened feeling never acknowledged or carried to the scene's end
+    - an action that reverses a stated belief with no cause shown
+
+user: |
+  SKETCH A:
+  {p2_a_text}
+
+  SKETCH B:
+  {p2_b_text}
+
+  Which sketch shows the more coherent inner life? Answer A, B, or tie, and list
+  the interiority defects for each side.
+
+schema:
+  name: PairVerdict
+  fields:
+    winner:
+      type: str
+      description: "A, B, or tie"
+    reason:
+      type: str
+      description: One sentence on the coherence difference (not richness)
+    a_defects:
+      type: list[str]
+      description: 'Defects in sketch A, each as: "<exact quote>" - <rule broken>. Empty if none.'
+      default: []
+    b_defects:
+      type: list[str]
+      description: 'Defects in sketch B, each as: "<exact quote>" - <rule broken>. Empty if none.'
+      default: []

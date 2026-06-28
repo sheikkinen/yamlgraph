@@ -1,0 +1,75 @@
+# FR-599 — affect LICENSING pass (read-only miss-decomposition probe).
+# Given a ground-truth affect delta the gate counted as a MISS, judge whether the
+# delta is derivable from its own ANCHOR beat's words. This is RECOGNITION with
+# the answer given (the affect is named), NOT generation: the pass never invents
+# an affect, it only judges derivability. It is the one un-validated judgement
+# surface in an otherwise deterministic probe, so the Judgement fences it:
+#   - corr.#5: it is fixture-pinned to two hand-adjudicated known answers.
+#   - corr.#6: (e) is the motivated-reasoning bucket — default NOT-unlicensed
+#              (i.e. default LICENSED) unless CLEARLY underivable; every positive
+#              is human-read. The conservative default lives in the system line.
+system: >
+  You judge whether a single, already-named affect is derivable from one story
+  beat's own words. The affect is given to you; you never invent or rename it.
+  Your default is LICENSED: say a delta is UNLICENSED only when the anchor beat's
+  text clearly cannot support that feeling for that character — not merely when
+  it is subtle. You output YAML only — no prose, no code fences.
+
+user: |
+  A corpus annotator placed this affect on the anchor beat:
+
+    op:     {{ state.op }}
+    char:   {{ state.char }}
+    kind:   {{ state.kind }}{% if state.toward %}
+    toward: {{ state.toward }}{% endif %}
+
+  The six kinds mean EXACTLY this — judge by the definition, not by a vibe:
+    loss             — grief at something/someone taken away
+    guilt            — self-blame for a wrong {{ state.char }} did
+    betrayal         — {{ state.char }}'s trust broken by another
+    retaliation      — {{ state.char }}'s drive to avenge a wrong
+    hidden_blessing  — an APPARENT SETBACK that proves a gift; the anchor text
+                       must show a setback/loss/defeat. A clean success or a
+                       simple acknowledgement does NOT license hidden_blessing.
+    hope             — belief that things can yet be made right
+
+  ANCHOR beat ({{ state.anchor_id }}): {{ state.anchor_gloss }}
+
+  Nearby beats (for the neighbor check only):
+  {% for n in state.neighbors %}
+  - {{ n.id }}: {{ n.gloss }}
+  {% endfor %}
+
+  Decide two things, judging the GIVEN affect only (never propose a different one):
+  {% if state.op == "close" %}
+  1. licensed — this is a CLOSE op, so the ANCHOR beat must show the feeling
+     "{{ state.kind }}" RESOLVING for {{ state.char }} — mourned, recovered,
+     avenged, confessed, reconciled, or relieved. A gain, recovery, or triumph
+     DOES license the close of an earlier loss/guilt; you judge the RESOLUTION,
+     not a fresh negative emotion. Default YES. Answer false ONLY if the anchor
+     text clearly shows no such resolution for {{ state.char }} (e.g.
+     {{ state.char }} is not named or present, or the beat is an unrelated event).
+     Subtlety alone is not grounds for false.
+  {% else %}
+  1. licensed — does the ANCHOR beat's OWN text plainly show {{ state.char }}
+     feeling "{{ state.kind }}" AS DEFINED ABOVE{% if state.toward %} toward {{ state.toward }}{% endif %}?
+     Default YES. Answer false ONLY if the anchor text clearly cannot support it —
+     e.g. {{ state.char }} is not named or present in the anchor beat, the beat
+     describes an unrelated event, or the beat lacks the element the kind's
+     definition REQUIRES (for hidden_blessing, an apparent setback; for betrayal,
+     a broken trust; for retaliation, a drive to avenge). Subtlety alone is not
+     grounds for false.
+  {% endif %}
+
+  2. neighbor_licensed — meaningful ONLY when licensed is false. Among the nearby
+     beats above, does ANY beat's text plainly show {{ state.char }} feeling
+     "{{ state.kind }}"? True = the signal sits on a neighbor (the annotator
+     anchored the CAUSE, the manifestation is one beat away). False = the feeling
+     is shown on no nearby beat (truly under-determined by the text). When
+     licensed is true, set neighbor_licensed false.
+
+  Output exactly this YAML and nothing else:
+
+  licensed: true
+  neighbor_licensed: false
+  reason: one short clause citing the anchor (and neighbor) text

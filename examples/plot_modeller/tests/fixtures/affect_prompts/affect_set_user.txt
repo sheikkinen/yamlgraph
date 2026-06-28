@@ -1,0 +1,39 @@
+Which of these feelings does **Brynn** plainly carry somewhere in
+the story below? Name only the ones the text actually shows — most stories show
+only two or three.
+
+Candidate feelings:
+  - loss: a goal is gone
+  - hope: a goal looks reachable
+  - guilt: self harmed another
+  - betrayal: ally defected
+
+
+RULES — read once, obey exactly:
+- Default is the EMPTY set. Name a feeling ONLY if at least one beat's own words
+  plainly show Brynn feeling it. If you are reaching, leave it out.
+- This is about WHICH feelings, not where or how many times. Do not locate them,
+  do not count opens or closes — just name the set.
+- Ground every named feeling in the beats' words, never in Brynn's
+  role or the plot's expected shape.
+- A feeling felt by a DIFFERENT character is not Brynn's — leave it out.
+
+Output a YAML list of the feeling names (verbatim from the candidates), and
+nothing else. Example shape:
+
+kinds:
+  - loss
+  - hope
+
+The beats:
+
+- F1 (chapter 1, lack): Brynn learns the Sunken Crown is lost.
+
+- F4 (chapter 2, struggle): Brynn dives; the Watcher takes Fen; Fen is gone.
+
+- F6 (chapter 3, victory): Brynn surfaces with the Sunken Crown.
+
+- F8 (chapter 4, liquidation): Brynn places the Crown on Queen Livia's head; the lack is liquidated.
+
+
+Name Brynn's feeling set now — YAML only.

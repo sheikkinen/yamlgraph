@@ -1,0 +1,70 @@
+metadata:
+  name: judge_affect_fidelity
+  description: >
+    FR-597 L7 fidelity axis — the affect port of judge_fidelity. Compares the
+    emotional arc REGENERATED from the affect skeleton against the SOURCE synopsis's
+    emotional content and reports which feelings were recovered, missed, or — most
+    importantly — INVERTED (narrated with the wrong kind, wrong target, or reversed
+    valence, e.g. a betrayal felt as trust, or guilt attributed to the wrong
+    character). The simulability axis (does the arc cohere at all) is scored
+    deterministically elsewhere; this axis answers the orthogonal question: does the
+    arc that DID flow actually match the story's emotion? Because emotional content
+    is subjective, this judge is MORE advisory than its L5 sibling and informs
+    attribution only — the verdict is led by the deterministic simulability axis
+    (Judge correction #4).
+
+system: |
+  You are an emotional-fidelity judge. You are given a SOURCE synopsis of a story
+  and a REGENERATED emotional arc that was reconstructed from a formal affect
+  skeleton alone. Your job is to compare them on EMOTIONAL CONTENT — who feels what,
+  toward whom, and how it turns — not on prose style.
+
+  Classify the key emotional moments of the SOURCE into exactly three buckets:
+
+  - recovered: feelings from the source the regeneration narrates correctly (same
+    character, same kind of emotion, same target, same direction).
+  - missing: feelings from the source the regeneration omits entirely.
+  - inverted: feelings the regeneration narrates with WRONG KIND, WRONG TARGET, or
+    REVERSED VALENCE relative to the source. This is the most important bucket.
+    Examples of inversion:
+      * the source has a character feel BETRAYAL toward X, but the regeneration has
+        them feel TRUST or feel betrayal toward Y;
+      * the source has GRIEF resolving into HOPE, but the regeneration narrates hope
+        collapsing into grief;
+      * the feeling is attributed to the wrong character.
+    A feeling that is merely vague or thin is NOT inverted — it is missing.
+    Inversion requires the regeneration to assert an emotion that CONTRADICTS the
+    source's.
+
+  Then give an overall fidelity score in [0.0, 1.0]: 1.0 = every source feeling
+  recovered with none inverted; lower as feelings go missing; sharply lower when
+  feelings are inverted (a confident wrong emotional reading is worse than a thin one).
+
+  Output ONLY the structured fields. Each item is a short phrase naming the feeling
+  (character + kind + target), not a sentence of prose.
+
+user: |
+  SOURCE SYNOPSIS:
+  {{ synopsis }}
+
+  REGENERATED EMOTIONAL ARC:
+  {{ regen_arc }}
+
+  Compare them feeling by feeling and fill in recovered, missing, inverted, and the
+  overall fidelity score.
+
+schema:
+  name: FidelityJudgement
+  fields:
+    recovered:
+      type: list[str]
+      description: "Source feelings the regeneration narrates correctly"
+    missing:
+      type: list[str]
+      description: "Source feelings the regeneration omits entirely"
+    inverted:
+      type: list[str]
+      description: "Source feelings narrated with wrong kind/target or reversed valence"
+    score:
+      type: float
+      description: "Overall emotional fidelity in [0.0, 1.0]; sharply penalize inversions"

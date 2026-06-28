@@ -1,0 +1,109 @@
+metadata:
+  name: l7-measure
+  description: >
+    FR-597 L7 affect-regenerability ruler — the affect port of l5_measure. Measures
+    an L7 affect encoding by whether its emotional arc is regenerable from the affect
+    deltas alone, on two orthogonal axes: SIMULABILITY (does the affect skeleton
+    license its own emotional narration? — deterministic, GT-free, scored from
+    [UNDERDETERMINED] markers) and FIDELITY (does that narration match the source
+    synopsis's emotional content? — an LLM judge that flags missing and INVERTED
+    feelings). The two axes are kept attributable and never collapsed (Judge
+    correction #3); the verdict is led by the deterministic simulability axis (Judge
+    correction #4). DIAGNOSTIC this cycle: it reports, it does not gate, and
+    affect_recall remains the primary L7 signal (FR-578). Graduates the manual
+    affect-skeleton inspection that demoted affect_recall the way world_recall fell.
+  # No hardcoded provider/model — resolved from the PROVIDER env var at run time.
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  genre:
+    type: str
+    description: "Input: corpus genre/story stem (for the record header)"
+  roster:
+    type: str
+    description: "Input: agent roster lines fed to the regenerate prompt"
+  affect_beats:
+    type: list
+    description: "Input: raw L7 beats [{id, eff_affect}] — the real, deterministic count"
+  synopsis:
+    type: str
+    description: "Input: source synopsis — the fidelity judge's emotional reference"
+  affect_skeleton:
+    type: str
+    description: "Rendered affect-delta stream (render_l7_affect output)"
+  regen_arc:
+    type: str
+    description: "Emotional arc reconstructed from the affect skeleton alone (llm output)"
+  simulability:
+    type: dict
+    description: "Deterministic axis: {underdetermined, beats, ratio}"
+  fidelity:
+    type: dict
+    description: "LLM axis: {recovered, missing, inverted, score}"
+  l7_measure:
+    type: dict
+    description: "Output: combined, attributable record (diagnostic only)"
+
+tools:
+  render_l7_affect:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: render_l7_affect
+  score_affect_simulability:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: score_affect_simulability
+  combine_l7_measure:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: combine_l7_measure
+
+nodes:
+  render_affect:
+    type: python
+    tool: render_l7_affect            # affect_beats list -> rendered delta stream
+    requires: [affect_beats]
+
+  regenerate:
+    type: llm
+    prompt: regenerate_affect_arc      # state -> emotional arc + [UNDERDETERMINED]
+    state_key: regen_arc
+    variables:                         # map state -> the prompt's top-level vars
+      roster: "{state.roster}"
+      affect_skeleton: "{state.affect_skeleton}"
+    requires: [affect_skeleton]
+
+  score_simulability:
+    type: python
+    tool: score_affect_simulability    # deterministic UNDERDETERMINED / affect-beats
+    requires: [regen_arc]
+
+  judge_fidelity:
+    type: llm
+    prompt: judge_affect_fidelity      # regen vs synopsis -> recovered/missing/inverted/score
+    state_key: fidelity
+    variables:
+      synopsis: "{state.synopsis}"
+      regen_arc: "{state.regen_arc}"
+    requires: [regen_arc]
+
+  verdict:
+    type: python
+    tool: combine_l7_measure           # two axes -> one attributable record
+    requires: [fidelity]
+
+edges:
+  - from: START
+    to: render_affect
+  - from: render_affect
+    to: regenerate
+  - from: regenerate
+    to: score_simulability
+  - from: score_simulability
+    to: judge_fidelity
+  - from: judge_fidelity
+    to: verdict
+  - from: verdict
+    to: END

@@ -179,44 +179,52 @@ def check_state_declarations(  # noqa: C901
     return issues
 
 
+def _collect_node_tools(
+    node_name: str,
+    node_config: dict[str, Any],
+    defined_tools: set[str],
+    used_tools: set[str],
+    issues: list[LintIssue],
+) -> None:
+    """Collect a node's tool references into ``used_tools`` and emit E003 for
+    any reference to an undefined tool.
+
+    Map nodes nest the executed node under ``node:`` (FR-621); recurse one level
+    so tools used only inside a map sub-node are seen by the reachability walk.
+    """
+    refs: list[str] = list(node_config.get("tools", []))  # agent node list
+    single_tool = node_config.get("tool")  # tool / python single ref
+    if single_tool:
+        refs.append(single_tool)
+
+    for tool in refs:
+        used_tools.add(tool)
+        if tool not in defined_tools:
+            issues.append(
+                LintIssue(
+                    severity="error",
+                    code="E003",
+                    message=f"Tool '{tool}' referenced in node '{node_name}' "
+                    f"but not defined in tools section",
+                    fix=f"Add tool '{tool}' to the tools section or remove reference",
+                )
+            )
+
+    sub = node_config.get("node")
+    if isinstance(sub, dict):
+        _collect_node_tools(node_name, sub, defined_tools, used_tools, issues)
+
+
 def check_tool_references(graph_path: Path) -> list[LintIssue]:
     """Check that all tool references in nodes are defined."""
-    issues = []
+    issues: list[LintIssue] = []
     graph = load_graph(graph_path)
 
     defined_tools = set(graph.get("tools", {}).keys())
     used_tools: set[str] = set()
 
     for node_name, node_config in graph.get("nodes", {}).items():
-        # Check tools list (for type: agent nodes)
-        node_tools = node_config.get("tools", [])
-        for tool in node_tools:
-            used_tools.add(tool)
-            if tool not in defined_tools:
-                issues.append(
-                    LintIssue(
-                        severity="error",
-                        code="E003",
-                        message=f"Tool '{tool}' referenced in node '{node_name}' "
-                        f"but not defined in tools section",
-                        fix=f"Add tool '{tool}' to the tools section or remove reference",
-                    )
-                )
-
-        # Check single tool property (for type: tool and type: python nodes)
-        single_tool = node_config.get("tool")
-        if single_tool:
-            used_tools.add(single_tool)
-            if single_tool not in defined_tools:
-                issues.append(
-                    LintIssue(
-                        severity="error",
-                        code="E003",
-                        message=f"Tool '{single_tool}' referenced in node '{node_name}' "
-                        f"but not defined in tools section",
-                        fix=f"Add tool '{single_tool}' to the tools section or remove reference",
-                    )
-                )
+        _collect_node_tools(node_name, node_config, defined_tools, used_tools, issues)
 
     for tool in defined_tools - used_tools:
         issues.append(

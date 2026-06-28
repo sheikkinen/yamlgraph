@@ -1,0 +1,319 @@
+# plot-plan: The Last Light
+# Genre: horror-survival
+# Kinds used: villainy, departure, pursuit, death, struggle, rescue,
+#   return (7 of 17)
+# Affect signature: 3 threads UNCLOSED (genre-appropriate: guilt, retaliation, hope)
+# FR-572 retrofit: +hope (F6, unclosed), +toward (F3 guilt, F4 retaliation)
+# Source: v4/genre-plots/horror-survival-the-last-light.md
+
+meta:
+  title: The Last Light
+  genre: horror-survival
+  synopsis: v5/horror-survival-the-last-light.txt
+
+agents:
+  - Brynn
+  - Aldric
+  - Fen
+  - The Watcher
+
+initial_world:
+  - pred: alive
+    args: [Brynn]
+    value: true
+  - pred: alive
+    args: [Aldric]
+    value: true
+  - pred: alive
+    args: [Fen]
+    value: true
+  - pred: alive
+    args: [The Watcher]
+    value: true
+  - pred: at
+    args: [Brynn, Deep gallery]
+    value: true
+  - pred: at
+    args: [Aldric, Deep gallery]
+    value: true
+  - pred: at
+    args: [Fen, Deep gallery]
+    value: true
+  - pred: holds
+    args: [Brynn, lamp]
+    value: true
+  - pred: holds
+    args: [Aldric, charge]
+    value: true
+
+initial_belief:
+  - observer: Brynn
+    fluent:
+      pred: alive
+      args: [The Watcher]
+    held: false
+  - observer: Aldric
+    fluent:
+      pred: alive
+      args: [The Watcher]
+    held: false
+  - observer: Fen
+    fluent:
+      pred: alive
+      args: [The Watcher]
+    held: false
+
+goals:
+  - pred: alive
+    args: [Brynn]
+    value: true
+  - pred: alive
+    args: [Aldric]
+    value: true
+  - pred: alive
+    args: [Fen]
+    value: true
+  - pred: at
+    args: [Brynn, Surface]
+    value: true
+
+functions:
+  - id: F1
+    kind: villainy
+    gloss: >
+      A secondary collapse seals the main shaft. The three miners are
+      trapped in the deep gallery with one lamp and one explosive charge.
+    subject: Collapse
+    roles:
+      villain: Collapse
+      victim: Brynn
+    chapter: 1
+    observers: [Brynn, Aldric, Fen]
+    motivation: null
+    threatens:
+      agent: Brynn
+      goal: reach_surface
+    enables: [F2]
+    eff_affect:
+      - op: open
+        char: Brynn
+        kind: loss
+        referent: reach_surface
+
+  - id: F2
+    kind: departure
+    gloss: >
+      Brynn leads the group deeper into the abandoned tunnels, the only
+      direction that isn't rubble. The lamp flickers.
+    subject: Brynn
+    roles:
+      hero: Brynn
+      helper: Aldric
+    chapter: 1
+    observers: [Brynn, Aldric, Fen]
+    motivation:
+      agent: Brynn
+      goal: find_exit
+    threatens: null
+    enables: [F3]
+    pre_world:
+      - pred: holds
+        args: [Brynn, lamp]
+        value: true
+    eff_world:
+      - pred: at
+        args: [Brynn, Deep gallery]
+        value: false
+      - pred: at
+        args: [Brynn, Abandoned tunnels]
+        value: true
+      - pred: at
+        args: [Aldric, Abandoned tunnels]
+        value: true
+      - pred: at
+        args: [Fen, Abandoned tunnels]
+        value: true
+    eff_affect: []
+
+  - id: F3
+    kind: pursuit
+    gloss: >
+      Scraping sounds echo from behind — something large, moving in the
+      dark, pausing when they stop talking. Fen panics and shouts. The
+      sounds accelerate.
+    subject: The Watcher
+    roles:
+      villain: The Watcher
+      victim: Fen
+    chapter: 2
+    observers: [Brynn, Aldric, Fen]
+    motivation: null
+    threatens:
+      agent: Brynn
+      goal: protect_crew
+    enables: [F4]
+    pre_world:
+      - pred: alive
+        args: [The Watcher]
+        value: true
+    pre_belief:
+      - observer: Brynn
+        fluent:
+          pred: alive
+          args: [The Watcher]
+        held: false
+    eff_belief:
+      - observer: Brynn
+        fluent:
+          pred: alive
+          args: [The Watcher]
+        held: true
+      - observer: Aldric
+        fluent:
+          pred: alive
+          args: [The Watcher]
+        held: true
+      - observer: Fen
+        fluent:
+          pred: alive
+          args: [The Watcher]
+        held: true
+    eff_affect: []
+
+  - id: F4
+    kind: death
+    gloss: >
+      Fen stumbles in the dark and cries out. The Watcher takes him.
+      Brynn and Aldric hear it happen but cannot see. When the lamp
+      steadies, Fen is gone.
+    subject: The Watcher
+    roles:
+      villain: The Watcher
+      victim: Fen
+    chapter: 3
+    observers: [Brynn, Aldric]
+    motivation: null
+    threatens:
+      agent: Brynn
+      goal: protect_crew
+    enables: [F5]
+    pre_world:
+      - pred: alive
+        args: [Fen]
+        value: true
+    eff_world:
+      - pred: alive
+        args: [Fen]
+        value: false
+    eff_affect:
+      - op: open
+        char: Brynn
+        kind: guilt
+        referent: protect_crew
+        toward: Fen
+
+  - id: F5
+    kind: struggle
+    gloss: >
+      Aldric detonates his last charge to collapse a side tunnel behind
+      them, buying time. The blast is deafening. The lamp goes out.
+    subject: Aldric
+    roles:
+      hero: Aldric
+      villain: The Watcher
+    chapter: 4
+    observers: [Brynn, Aldric]
+    motivation:
+      agent: Aldric
+      goal: buy_time
+    threatens: null
+    enables: [F6]
+    pre_world:
+      - pred: holds
+        args: [Aldric, charge]
+        value: true
+    eff_world:
+      - pred: holds
+        args: [Aldric, charge]
+        value: false
+      - pred: holds
+        args: [Brynn, lamp]
+        value: false
+    eff_affect: []
+
+  - id: F6
+    kind: rescue
+    gloss: >
+      In total darkness, Brynn feels moving air — a ventilation shaft.
+      She and Aldric climb blind, hands on the rock walls, the scraping
+      sounds resuming below.
+    subject: Brynn
+    roles:
+      hero: Brynn
+      helper: Aldric
+    chapter: 5
+    observers: [Brynn, Aldric]
+    motivation:
+      agent: Brynn
+      goal: reach_surface
+    threatens: null
+    enables: [F7]
+    pre_world:
+      - pred: at
+        args: [Brynn, Abandoned tunnels]
+        value: true
+    eff_world:
+      - pred: at
+        args: [Brynn, Ventilation shaft]
+        value: true
+      - pred: at
+        args: [Aldric, Ventilation shaft]
+        value: true
+    eff_affect:
+      - op: open
+        char: Brynn
+        kind: hope
+        referent: reach_surface
+      - op: close
+        char: Brynn
+        kind: loss
+        referent: reach_surface
+
+  - id: F7
+    kind: return
+    gloss: >
+      Brynn and Aldric emerge from the shaft into grey daylight. They
+      do not speak. Behind them, the shaft exhales cold air. Something
+      moves, far down.
+    subject: Brynn
+    roles:
+      hero: Brynn
+      helper: Aldric
+    chapter: 6
+    observers: [Brynn, Aldric]
+    motivation:
+      agent: Brynn
+      goal: reach_surface
+    threatens: null
+    enables: []
+    pre_world:
+      - pred: at
+        args: [Brynn, Ventilation shaft]
+        value: true
+    eff_world:
+      - pred: at
+        args: [Brynn, Surface]
+        value: true
+      - pred: at
+        args: [Aldric, Surface]
+        value: true
+    eff_affect: []
+
+# Horror genre: unclosed affect threads are the point.
+# guilt toward Fen (Brynn chose to go deeper) — UNCLOSED (anchored at F4, where Fen is taken)
+# loss (the descent's cost) — UNCLOSED (anchored at F6, the blind climb that carries its weight)
+# hope (rescue found the shaft) — UNCLOSED (the ambiguous ending undercuts it)
+# FR-600: F3 guilt re-anchored to F4; F7 loss re-anchored to F6; F4 retaliation dropped (unlicensed).
+affect_policy:
+  unclosed_is_error: false
+  partial_goal_failure: true

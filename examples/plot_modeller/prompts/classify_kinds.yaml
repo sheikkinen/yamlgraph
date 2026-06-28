@@ -1,0 +1,65 @@
+system: >
+  You classify story beats into structural action types drawn from a closed
+  17-kind alphabet (a Propp-derived morphology). Each beat gets exactly one
+  kind and one subject (the character who performs the action). You output
+  YAML only — no prose, no code fences.
+
+user: |
+  {% if state.validation and state.validation.flaws %}
+  Your previous classification had these errors:
+  {% for flaw in state.validation.flaws %}
+  - {{ flaw }}
+  {% endfor %}
+  Fix only the errors. Keep correct classifications unchanged.
+
+  {% endif %}
+  Classify each beat below into exactly ONE action type from this alphabet:
+
+  - villainy: an antagonist inflicts harm, abduction, theft, or destruction.
+  - lack: a hero discovers something is missing, broken, or unresolved.
+    The character becomes AWARE of a problem but has not yet committed to acting.
+  - mediation: the hero commits to resolving the lack — the transition from
+    awareness to action. Often a decision scene, oath, or moment of resolve.
+  - departure: a character leaves home or sets out toward the problem.
+  - donor_test: a character is tested, questioned, or challenged by a mentor/gatekeeper.
+  - provision: a character receives an aid, tool, clue, or ally.
+  - struggle: the hero and antagonist clash directly in open conflict.
+  - victory: the antagonist is defeated or the decisive obstacle is overcome.
+  - liquidation: the original lack/harm is repaired; the missing thing is restored.
+  - return: a character travels back from the ordeal toward home/safety.
+  - pursuit: the hero is chased, hunted, or actively threatened with capture.
+  - rescue: the hero is saved from pursuit or mortal danger by intervention.
+  - recognition: a hidden truth, identity, or fact is revealed and acknowledged.
+  - exposure: a false claim, disguise, or impostor is unmasked.
+  - punishment: a wrongdoer faces consequences, arrest, or retribution.
+  - reconciliation: a relational or emotional rupture is healed or closed.
+  - death: a character dies.
+
+  Guidance on commonly confused pairs:
+  - lack (something is missing) vs mediation (the hero decides to act on it).
+    If the beat is "X discovers the problem" → lack.
+    If the beat is "X commits to solving it" → mediation.
+    If both happen in one beat, prefer lack (the discovery is the structural event).
+  - lack (something is missing) vs pursuit (someone is being chased).
+  - donor_test (a character is challenged) vs struggle (direct combat with the foe).
+  - recognition (a truth is revealed) vs exposure (a lie/impostor is unmasked).
+  - reconciliation (a bond is healed) vs victory (a foe is beaten).
+
+  For each beat output one YAML list item with:
+    id: the beat id, unchanged
+    kind: one action type from the alphabet above
+    subject: the character who performs the action
+
+  Output a YAML list and nothing else. Example shape:
+
+  - id: F1
+    kind: villainy
+    subject: Hagen
+  - id: F2
+    kind: lack
+    subject: Marren
+
+  The beats to classify:
+  {% for g in state.glosses %}
+  - id: {{ g.id }} (chapter {{ g.chapter }}): {{ g.gloss }}
+  {% endfor %}

@@ -1,0 +1,61 @@
+system: >
+  You extract the story's goals from a prose synopsis. Goals are end-state
+  conditions that the plot drives toward — what must be true when the story
+  resolves. You output YAML only — no prose, no code fences.
+
+user: |
+  {% if state.validation and state.validation.flaws %}
+  Your previous extraction had these errors:
+  {% for flaw in state.validation.flaws %}
+  - {{ flaw }}
+  {% endfor %}
+  Fix only the errors. Keep correct extractions unchanged.
+
+  {% endif %}
+  Given the synopsis and character list below, extract the story's **goals**
+  as typed predicates. Goals are what the plot is trying to achieve — the
+  conditions that define success or failure.
+
+  Use ONLY these five predicate types:
+  - `alive`: a character survives. `{pred: alive, args: [<agent>], value: true}`
+  - `at`: a character reaches a location. `{pred: at, args: [<agent>, <location>], value: true}`
+  - `holds`: a character possesses an object. `{pred: holds, args: [<agent>, <object>], value: true/false}`
+  - `rel`: a relationship between characters. `{pred: rel, args: [<agent1>, <agent2>], value: <relationship>}`
+  - `faction`: a group membership. `{pred: faction, args: [<agent>, <group>], value: true/false}`
+
+  Guidance:
+  - Most stories have 3–6 goals. Include **all** goals the synopsis drives
+    toward, including relationship resolutions (`rel`) and group membership
+    changes (`faction`). Do not omit a goal to stay under the count.
+  - Include survival goals (`alive`) for **every character whose life is
+    explicitly threatened or at risk** in the synopsis — protagonists AND
+    secondary characters.
+  - Include the main quest objective (e.g. "obtain the crown", "expose the villain").
+  - Use object, location, and relationship names **exactly as they appear in
+    the synopsis** — do not paraphrase or invent synonyms.
+  - Use `value: false` only when the synopsis explicitly frames the *removal*
+    of something as a story objective.
+
+  Characters in this story:
+  {% for a in state.agents %}
+  - {{ a }}
+  {% endfor %}
+
+  Output a YAML list of goal predicates and nothing else. Example shape:
+
+  - pred: alive
+    args: [Hero]
+    value: true
+  - pred: holds
+    args: [Hero, crown]
+    value: true
+  - pred: at
+    args: [Hero, Home]
+    value: true
+  - pred: rel
+    args: [Hero, Ally]
+    value: friends
+
+  The synopsis:
+
+  {{ state.synopsis }}

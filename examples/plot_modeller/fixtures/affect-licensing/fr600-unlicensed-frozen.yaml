@@ -1,0 +1,207 @@
+# FR-600 frozen (e) UNLICENSED fixture — the human-confirmed 12-member verdict from
+# FR-599's non-deterministic licensing pass, pinned so GT edits are reproducible from a
+# committed artifact (not a live LLM call). 7 re_anchor (neighbor_licensed=true), 5 drop
+# (neighbor_licensed=false). Source: results/l7/unlicensed-members.txt (gitignored).
+- genre: detective-thriller-the-vanished-witness
+  anchor_id: F1
+  gt_delta:
+    op: open
+    char: Marren
+    kind: loss
+    toward: null
+  anchor_gloss: The night before trial, Hagen's hired men abduct Witness Pell from the court safe house
+    and burn the building to destroy evidence.
+  licensing:
+    licensed: false
+    neighbor_licensed: true
+    reason: anchor beat describes only the abduction and burning (external events); F2 shows Marren discovering
+      the loss and its consequences, plainly manifesting grief at what is taken away.
+  action: re_anchor
+  target_beat: F2
+- genre: detective-thriller-the-vanished-witness
+  anchor_id: F7
+  gt_delta:
+    op: open
+    char: Marren
+    kind: hidden_blessing
+    toward: null
+  anchor_gloss: The court acknowledges Marren's evidence and Pell's testimony; the case against Consul
+    Drey proceeds to sentencing.
+  licensing:
+    licensed: false
+    neighbor_licensed: false
+    reason: The anchor beat describes a successful court outcome (acknowledgement, case proceeding to
+      sentencing) with no apparent setback, loss, or defeat required to license hidden_blessing. F8 shows
+      the actual sentencing and consequences, but neither F7 nor F8 presents an initial setback that later
+      proves beneficial.
+  action: drop
+  target_beat: null
+- genre: historical-fiction-the-salt-road
+  anchor_id: F7
+  gt_delta:
+    op: open
+    char: Naima
+    kind: guilt
+    toward: Amadou
+  anchor_gloss: On the return, Moussa's riders are on the river road. Amadou takes them overland through
+    dry country — no water for two days, torches visible behind them on the second night.
+  licensing:
+    licensed: false
+    neighbor_licensed: false
+    reason: The anchor beat describes Amadou's tactical decision (overland route, avoiding torches) with
+      no textual indication that Naima feels self-blame toward him at that moment. Naima is not present
+      in F7, and the beat contains no statement or action from which her guilt is derivable.
+  action: drop
+  target_beat: null
+- genre: horror-survival-the-last-light
+  anchor_id: F3
+  gt_delta:
+    op: open
+    char: Brynn
+    kind: guilt
+    toward: Fen
+  anchor_gloss: Scraping sounds echo from behind — something large, moving in the dark, pausing when they
+    stop talking. Fen panics and shouts. The sounds accelerate.
+  licensing:
+    licensed: false
+    neighbor_licensed: true
+    reason: F3 shows only Fen's panic and accelerating sounds; Brynn's internal self-blame is not shown
+      until F4, when Fen is taken and Brynn hears but cannot prevent it.
+  action: re_anchor
+  target_beat: F4
+- genre: horror-survival-the-last-light
+  anchor_id: F4
+  gt_delta:
+    op: open
+    char: Brynn
+    kind: retaliation
+    toward: The Watcher
+  anchor_gloss: Fen stumbles in the dark and cries out. The Watcher takes him. Brynn and Aldric hear it
+    happen but cannot see. When the lamp steadies, Fen is gone.
+  licensing:
+    licensed: false
+    neighbor_licensed: false
+    reason: The anchor beat shows Fen taken and Brynn helpless to act; no text shows Brynn's drive to
+      avenge, only her inability to prevent the loss.
+  action: drop
+  target_beat: null
+- genre: horror-survival-the-last-light
+  anchor_id: F7
+  gt_delta:
+    op: close
+    char: Brynn
+    kind: loss
+    toward: null
+  anchor_gloss: Brynn and Aldric emerge from the shaft into grey daylight. They do not speak. Behind them,
+    the shaft exhales cold air. Something moves, far down.
+  licensing:
+    licensed: false
+    neighbor_licensed: true
+    reason: F7 shows emergence and escape with no mourning or resolution of loss; F6 shows Brynn and Aldric
+      climbing blind in darkness, which carries the weight of what they've left behind or lost in the
+      shaft.
+  action: re_anchor
+  target_beat: F6
+- genre: quest-adventure-the-sunken-crown
+  anchor_id: F1
+  gt_delta:
+    op: open
+    char: Eira
+    kind: guilt
+    toward: Queen Livia
+  anchor_gloss: 'Queen Livia summons Eira and Gault: without the Sunken Crown, the southern lords will
+    not swear fealty, and Kael''s army will crush them within the month.'
+  licensing:
+    licensed: false
+    neighbor_licensed: false
+    reason: The anchor beat describes a dire military situation and Eira's oath, but contains no text
+      showing Eira blaming herself for a wrong she did to Queen Livia.
+  action: drop
+  target_beat: null
+- genre: quest-adventure-the-sunken-crown
+  anchor_id: F5
+  gt_delta:
+    op: open
+    char: Eira
+    kind: loss
+    toward: null
+  anchor_gloss: Inside the flooded temple, Eira dives past the second gate while Gault holds off Kael's
+    raiders who arrived by a different route. The water is black and the reed is her only air.
+  licensing:
+    licensed: false
+    neighbor_licensed: false
+    reason: The anchor beat describes Eira actively diving and progressing toward her goal with a tool
+      (the reed) provided to her; no loss, deprivation, or grief is shown in the text itself.
+  action: drop
+  target_beat: null
+- genre: scifi-hybrid-the-loom
+  anchor_id: F2
+  gt_delta:
+    op: open
+    char: Mara
+    kind: guilt
+    toward: null
+  anchor_gloss: Mara reviews the overnight lab footage and sees the rats. They aren't behaving like rats
+    anymore — they breathe in unison, turn in unison, sleep in a single mass. The telemetry shows their
+    neural oscillations are phase-locked.
+  licensing:
+    licensed: false
+    neighbor_licensed: true
+    reason: anchor beat F2 shows Mara observing an anomaly with no textual marker of self-blame; F2b shows
+      her choosing not to file it as a glitch, which implies guilt over complicity or negligence in allowing
+      the anomaly to proceed unreported.
+  action: re_anchor
+  target_beat: F2b
+- genre: scifi-hybrid-the-loom
+  anchor_id: F5
+  gt_delta:
+    op: close
+    char: Mara
+    kind: guilt
+    toward: null
+  anchor_gloss: Selin gives Mara an airgapped USB drive containing the shutdown key — a firmware rollback
+    that disables the write-path on all Looms simultaneously. It needs physical access to the Vantari
+    root server.
+  licensing:
+    licensed: false
+    neighbor_licensed: true
+    reason: F5 shows Selin giving Mara the key with no indication of guilt resolution; F6–F7 reveal Mara's
+      dawning horror at what she has enabled in Jonas, licensing guilt on those neighbor beats.
+  action: re_anchor
+  target_beat: F6
+- genre: scifi-hybrid-the-loom
+  anchor_id: F10
+  gt_delta:
+    op: close
+    char: Mara
+    kind: hope
+    toward: null
+  anchor_gloss: Mara inserts the USB drive and triggers the firmware rollback. Jonas collapses. When he
+    stands again, his eyes are steady, his breathing synchronized with the watchers. The moment of lucidity
+    is gone. Jonas is gone.
+  licensing:
+    licensed: false
+    neighbor_licensed: true
+    reason: The anchor beat shows Jonas's lucidity and selfhood extinguished—a final loss, not a resolution
+      of hope. F9 shows Mara's hope (Jonas asking her to act, their moment of connection) before the rollback
+      destroys it.
+  action: re_anchor
+  target_beat: F9
+- genre: scifi-hybrid-the-loom
+  anchor_id: F10
+  gt_delta:
+    op: open
+    char: Mara
+    kind: retaliation
+    toward: null
+  anchor_gloss: Mara inserts the USB drive and triggers the firmware rollback. Jonas collapses. When he
+    stands again, his eyes are steady, his breathing synchronized with the watchers. The moment of lucidity
+    is gone. Jonas is gone.
+  licensing:
+    licensed: false
+    neighbor_licensed: true
+    reason: The anchor beat shows Mara executing a mercy killing (rolling back Jonas's consciousness),
+      not avenging a wrong. The drive to retaliate appears in F9, where Jonas's plea "Do it" frames the
+      act as his request, not her vengeance.
+  action: re_anchor
+  target_beat: F9

@@ -1,0 +1,66 @@
+system: >
+  You extract the cast of characters (agents), the initial world state, and
+  initial beliefs from a prose story synopsis. You output YAML only — no
+  prose, no code fences, no commentary.
+
+user: |
+  {% if state.validation and state.validation.flaws %}
+  Your previous extraction had these errors:
+  {% for flaw in state.validation.flaws %}
+  - {{ flaw }}
+  {% endfor %}
+  Fix only the errors. Keep correct extractions unchanged.
+
+  {% endif %}
+  Extract three sections from the synopsis below.
+
+  1. **agents** — every named character who acts in the story. Use the exact
+     name as it appears in the synopsis (e.g. "Witness Pell", not just "Pell").
+     Minor characters are included if they take an action or are acted upon.
+
+  2. **initial_world** — the world state at the story's opening:
+     - `alive` predicates: one `pred: alive, args: [<agent>], value: true`
+       for EVERY agent in the agents list.
+     - `at` predicates: `pred: at, args: [<agent>, <location>], value: true`
+       for agents whose starting location is stated or strongly implied.
+     - `holds` predicates: `pred: holds, args: [<agent>, <object>], value: true`
+       for agents who possess a named object at the start.
+     - `rel` predicates: `pred: rel, args: [<agent1>, <agent2>], value: <relationship>`
+       for stated relationships between agents (e.g. partners, rivals, co-conspirator).
+     - `faction` predicates: `pred: faction, args: [<agent>, <group>], value: true`
+       for group memberships or institutional roles.
+
+  3. **initial_belief** — beliefs that are explicitly stated as wrong, unknown,
+     or uncertain at the story's opening. Only include beliefs that are MARKED
+     as non-default in the text (e.g. "she does not know that...",
+     "he mistakenly believes..."). If no such beliefs are stated, output an
+     empty list.
+
+  Output format (YAML only, no other text):
+
+  agents:
+    - Character One
+    - Character Two
+  initial_world:
+    - pred: alive
+      args: [Character One]
+      value: true
+    - pred: alive
+      args: [Character Two]
+      value: true
+    - pred: at
+      args: [Character One, Home]
+      value: true
+    - pred: rel
+      args: [Character One, Character Two]
+      value: partners
+  initial_belief:
+    - observer: Character One
+      fluent:
+        pred: rel
+        args: [Character Two, Villain]
+      held: unknown
+
+  The synopsis:
+
+  {{ state.synopsis }}

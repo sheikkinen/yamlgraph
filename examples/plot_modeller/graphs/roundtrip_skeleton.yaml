@@ -1,0 +1,120 @@
+# Round-trip walking skeleton - P0 scaffold (FR-610)
+# ==================================================
+# The thinnest end-to-end loop: premise -> cast -> chapter briefs -> draft map
+# -> deterministic assemble -> coherence gate. Every "smart" node is a STUB
+# returning a constant; only the spine and the deterministic assembly are real.
+# Later phases FILL a node (P1 cast+briefs, P2 prose, P3 gate) without re-wiring
+# this spine. All flow is declared here - the only Python is leaf tools.
+#
+# Run (no runner):
+#   .venv/bin/yamlgraph graph run \
+#     examples/plot_modeller/graphs/roundtrip_skeleton.yaml \
+#     --var premise="A pilot intercepts a signal that unravels a lie" --full
+
+metadata:
+  name: roundtrip-skeleton
+  description: >
+    Walking-skeleton round-trip: a synopsis is expanded into authored character
+    sheets and chapter briefs (each declaring scene_type + an eff_affect arc),
+    drafted per chapter via a map node, assembled deterministically, then
+    measured by a coherence gate. P0 = lint-green stub spine.
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+# Spine state. The `briefs` shape reserves the authored affect arc (scene_type +
+# eff_affect) that P1 fills, so P1 is purely additive (decision (a)). The map
+# `collect` key `chapter_drafts` is auto-reduced (list append) - do not declare.
+state:
+  premise:
+    type: str
+    description: "Input: one-line story premise / synopsis"
+  genre:
+    type: str
+    description: "Input: optional genre hint"
+    default: ""
+  cast:
+    type: dict
+    description: "Cast interiority sheets {principals: [{name, goal, belief, affect_arc}]}"
+  briefs:
+    type: dict
+    description: "{chapters: [...]} - each brief carries authored scene_type + eff_affect"
+  book:
+    type: str
+    description: "Deterministically assembled, chapter_id-ordered book"
+  chapter_count:
+    type: int
+    description: "Number of chapters assembled (assemble_book assertion witness)"
+  coherence:
+    type: dict
+    description: "Coherence report (P3 fills authored_dangling_rate; P0 = {})"
+
+# Leaf tools - the only Python in the skeleton.
+tools:
+  assemble_book:
+    type: python
+    module: examples.plot_modeller.nodes.roundtrip_tools
+    function: assemble_book
+  coherence_gate:
+    type: python
+    module: examples.plot_modeller.nodes.roundtrip_tools
+    function: coherence_gate
+
+nodes:
+  # P1 (FR-611): synopsis -> 2-4 principal interiority sheets (parse_json).
+  derive_cast:
+    type: llm
+    prompt: roundtrip/derive_cast
+    parse_json: true
+    state_key: cast
+
+  # P1 (FR-611): synopsis -> ordered chapter briefs authoring scene_type + eff_affect.
+  outline_chapter_briefs:
+    type: llm
+    prompt: roundtrip/outline_briefs
+    parse_json: true
+    state_key: briefs
+
+  # P2 (FR-612): draft each chapter via an LLM prose node, dosed by the brief's
+  # scene_type. Inline schema echoes chapter_id/title so assemble_book can
+  # impose a deterministic chapter_id order independent of map fan-in (corr 2).
+  draft_chapter:
+    type: map
+    over: "{state.briefs.chapters}"
+    as: brief
+    max_items: 50
+    node:
+      prompt: roundtrip/draft_chapter
+      state_key: draft
+      variables:
+        brief: "{state.brief}"
+        cast: "{state.cast}"
+    collect: chapter_drafts
+
+  # Real at P0: deterministic, no-LLM, chapter_id-ordered concat (FR-492).
+  assemble_book:
+    type: python
+    tool: assemble_book
+    state_key: book
+
+  # P3 (FR-613) fills this with the authored_dangling_rate walk.
+  coherence_gate:
+    type: python
+    tool: coherence_gate
+    state_key: coherence
+
+# Linear spine + map fan-out/fan-in. Frozen: later phases add nodes only off
+# this critical path (P5's reconstruct_synopsis / roundtrip_diff).
+edges:
+  - from: START
+    to: derive_cast
+  - from: derive_cast
+    to: outline_chapter_briefs
+  - from: outline_chapter_briefs
+    to: draft_chapter
+  - from: draft_chapter
+    to: assemble_book
+  - from: assemble_book
+    to: coherence_gate
+  - from: coherence_gate
+    to: END

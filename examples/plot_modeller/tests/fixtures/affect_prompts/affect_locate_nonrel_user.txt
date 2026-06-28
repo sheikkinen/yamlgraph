@@ -1,0 +1,46 @@
+**Brynn** feels **loss** somewhere in this story
+(loss — a goal/possession is gone). Find WHERE.
+
+- OPEN: the beat where loss FIRST shows in Brynn's own
+  words — first shows the loss
+- CLOSE: the beat where that loss RESOLVES — the loss resolves
+
+Weigh the open and the close SEPARATELY. They are usually different beats, but
+they may be the SAME beat (a feeling that flares and dies in one moment), and
+either may be ABSENT (the story opens a feeling it never resolves, or shows a
+resolution whose opening is off-page). Do NOT default both to the most dramatic
+beat just because it is vivid — a loss that begins quietly early and
+resolves late spans the whole arc.
+
+Story structure to anchor your reading (derived from beat order, not from any
+feeling — use it only to tell early-setup beats from late-resolution beats):
+  - setup: beats F1
+  - turn: beats F4
+  - resolution: beats F6, F8
+
+
+RULES:
+- Ground the open and the close in each beat's own words. If the text does not
+  plainly show loss opening, set open to null; same for close. Never
+  invent a beat to complete the pair.
+- Use a beat id exactly as written below (e.g. "F4"), or null.
+- This is loss ONLY for Brynn — ignore other feelings
+  and other characters.
+
+Output exactly this YAML shape and nothing else:
+
+open: <beat id or null>
+close: <beat id or null>
+
+The beats:
+
+- F1 (chapter 1, lack): Brynn learns the Sunken Crown is lost.
+
+- F4 (chapter 2, struggle): Brynn dives; the Watcher takes Fen; Fen is gone.
+
+- F6 (chapter 3, victory): Brynn surfaces with the Sunken Crown.
+
+- F8 (chapter 4, liquidation): Brynn places the Crown on Queen Livia's head; the lack is liquidated.
+
+
+Locate Brynn's loss open and close now — YAML only.

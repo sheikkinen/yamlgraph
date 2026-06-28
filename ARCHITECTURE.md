@@ -487,6 +487,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 169 | CAP-169 Dungeon Master Web UI | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/routes/story` | REQ-YG-435 – 437 |
 | 170 | CAP-170 Dungeon Master Web UI v2 (Journey-First) | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story` | REQ-YG-468 – 471 |
 | 171 | CAP-171 Executor Plain-Text Content Normalization | `yamlgraph/executor.py`, `yamlgraph/utils/llm_factory_async.py`, `yamlgraph/utils/content.py` | REQ-YG-472 |
+| 172 | CAP-172 Prompt-Monolith Linter Check (W026) | `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-473 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2135,6 +2136,16 @@ The synchronous and asynchronous plain-text invoke paths normalize response.cont
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-472 | executor.PromptExecutor._invoke_with_retry (sync, no output_model) and utils/llm_factory_async.invoke_async (async, no output_model) normalize response.content to str via shared normalize_content(); list-of-parts content from Gemini-on-Vertex (with thought-signature parts) is collapsed to a string rather than leaked raw into state | `yamlgraph/executor.py`, `yamlgraph/utils/llm_factory_async.py`, `yamlgraph/utils/content.py`, `tests/unit/test_executor_retry.py` |
+
+### 172. CAP-172 Prompt-Monolith Linter Check (W026)
+
+A static graph-lint check, W026, flags a prompt that asks one LLM call to make too many independent judgements at once — the attention-overload anti-pattern FR-584 proved empirically costs accuracy (a single L5 prompt fusing ~12 jobs starved its load-bearing salience judgement) and FR-585 decomposes. check_prompt_complexity is graph-driven (reuses the node -> prompt-path resolution) and warning-severity only: it never changes lint exit semantics. Two complementary detectors: W026-1 counts top-level fields in an inline schema/output_schema (default threshold 4, exposed as a field_threshold function parameter — no lint-config file); W026-2 matches a small curated set of prose phrases (enumerated multi-output and global cross-unit constraints). Calibrated against the plot_modeller 7-prompt audit: fires on the four monoliths (assign_pre_eff, assign_causality, assign_affects, extract_agents) and stays silent on the two clean prompts (extract_glosses, classify_kinds).
+
+**Feature Request:** FR-586
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-473 | check_prompt_complexity emits W026 at warning severity when a prompt fuses too many independent judgements — via inline-schema top-level field count (>= field_threshold, default 4) or curated prose phrases (enumerated multi-output, global cross-unit constraint); calibrated to fire on the four plot_modeller monoliths and stay silent on the two clean prompts; graph lint exit semantics unchanged | `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, `tests/unit/test_linter_prompt_monolith.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -55,24 +55,61 @@ entity in the plan's agents set or introduced in `I` or `F`. This is a closed-wo
 check: no dangling references.
 
 ```python
-def _check_grounding(plan: PlotPlan) -> list[str]:
+def _extract_terms(obj: Fluent | Belief | AffectDelta) -> set[str]:
+    """Extract entity names from typed pre/eff objects."""
+    if isinstance(obj, Fluent):
+        return set(obj.args)  # e.g. ("Arnulf",) for alive, ("Arnulf", "Mountain") for at
+    if isinstance(obj, Belief):
+        return {obj.observer} | set(obj.fluent.args)
+    if isinstance(obj, AffectDelta):
+        return {obj.char}
+    return set()
+
+def _check_grounding(plan: PlotPlan, order: list[Function]) -> list[PlanFlaw]:
     """Rule 1: every term in every predicate refers to a declared entity."""
-    known = {a for a in plan.agents}
-    # Add entities introduced by initial state predicates
-    for f in plan.initial_state:
-        known.update(_extract_terms(f))
-    errors = []
-    for fn in plan.functions:
-        for p in fn.pre + fn.eff:
-            for term in _extract_terms(p):
+    known: set[str] = set(plan.agents)
+    # Add entities introduced by initial state
+    for f in plan.initial_world:
+        known.update(f.args)
+    for b in plan.initial_belief:
+        known.add(b.observer)
+        known.update(b.fluent.args)
+    flaws: list[PlanFlaw] = []
+    for fn in order:
+        for obj in fn.pre_world + fn.eff_world:  # Fluent
+            for term in obj.args:
                 if term not in known:
-                    errors.append(f"ungrounded term {term!r} in {fn.id}")
+                    flaws.append(PlanFlaw(
+                        code="ungrounded_term", function_id=fn.id,
+                        detail=f"{fn.id} references {term!r} not in agents or initial state.",
+                    ))
+        for obj in fn.pre_belief + fn.eff_belief:  # Belief
+            for term in _extract_terms(obj):
+                if term not in known:
+                    flaws.append(PlanFlaw(
+                        code="ungrounded_term", function_id=fn.id,
+                        detail=f"{fn.id} references {term!r} not in agents or initial state.",
+                    ))
+        for obj in fn.eff_affect:  # AffectDelta
+            if obj.char not in known:
+                flaws.append(PlanFlaw(
+                    code="ungrounded_term", function_id=fn.id,
+                    detail=f"{fn.id} references {obj.char!r} not in agents or initial state.",
+                ))
     for g in plan.goals:
-        for term in _extract_terms(g):
+        for term in g.args:
             if term not in known:
-                errors.append(f"ungrounded term {term!r} in goal")
-    return errors
+                flaws.append(PlanFlaw(
+                    code="ungrounded_term", function_id="(goal)",
+                    detail=f"goal references {term!r} not in agents or initial state.",
+                ))
+    return flaws
 ```
+
+**Note on `_extract_terms`:** The helper handles the three object shapes in `pre`/`eff`
+lists: `Fluent` (uses `.args`), `Belief` (uses `.observer` + `.fluent.args`),
+`AffectDelta` (uses `.char`). All entity arguments are untyped strings — grounding
+treats every arg as an entity reference regardless of sort.
 
 ### 2. `_check_goal_reachability(plan)` — Rule 6
 
@@ -80,14 +117,45 @@ Every predicate in `G` is either (a) in `I` and never negated by any `F.eff`, or
 (b) established by some `F.eff` and never negated by a later `F'.eff`.
 
 ```python
-def _check_goal_reachability(plan: PlotPlan) -> list[str]:
-    """Rule 6: every goal predicate is reachable from the plan's functions."""
-    errors = []
+def _check_goal_reachability(plan: PlotPlan, order: list[Function]) -> list[PlanFlaw]:
+    """Rule 6: every goal predicate is reachable — in I (never negated) or established by F.eff (never negated later)."""
+    flaws: list[PlanFlaw] = []
     for g in plan.goals:
-        if not _is_reachable(g, plan):
-            errors.append(f"unreachable goal: {g}")
-    return errors
+        g_key = g.key()
+        # Case (a): in initial_world and never negated by any function
+        in_initial = any(f.key() == g_key and f.value == g.value for f in plan.initial_world)
+        negated_after_initial = any(
+            e.key() == g_key and e.value != g.value
+            for fn in order for e in fn.eff_world
+        )
+        if in_initial and not negated_after_initial:
+            continue
+        # Case (b): established by some function and never negated by a later one
+        last_producer_idx = None
+        for i, fn in enumerate(order):
+            for e in fn.eff_world:
+                if e.key() == g_key and e.value == g.value:
+                    last_producer_idx = i
+        if last_producer_idx is not None:
+            negated_later = any(
+                e.key() == g_key and e.value != g.value
+                for fn in order[last_producer_idx + 1:] for e in fn.eff_world
+            )
+            if not negated_later:
+                continue
+        flaws.append(PlanFlaw(
+            code="unreachable_goal", function_id="(goal)",
+            detail=f"goal {g.pred}({', '.join(g.args)})={g.value!r} is not reachable.",
+        ))
+    return flaws
 ```
+
+**Note on temporal validity:** Rule 6's "never negated by a later F'.eff" is an
+*existence-based* forward scan over the ordered functions, not a temporal-validity
+proof. It checks whether the last producer of the goal predicate is followed by a
+contradicting effect. This is consistent with Rule 2's existence-based posture —
+temporal validity (a goal's producer is negated by an intermediate function and
+later re-established) is a solver concern, permanently owned by `unified-planning`.
 
 ### 3. Vocabulary expansion
 
@@ -112,21 +180,42 @@ authoring LLM can use the complete vocabulary.
    error. A well-formed plan passes.
 3. **Vocabulary complete.** `FunctionKind` has 10 members. `AffectKind` has 5 members.
    Existing fixtures and tests still pass (the 4 existing kinds are unchanged).
-4. **New kinds exercised.** At least one fixture uses a new `FunctionKind` and one uses
-   a new `AffectKind`, proving the expanded vocabulary is wired.
-5. **Prompt updated.** `author_plot_plan.yaml` lists all 10 action kinds and 5 affect
+4. **New flaw codes.** `FlawCode` grows by two: `"ungrounded_term"` (Rule 1) and
+   `"unreachable_goal"` (Rule 6). Doctrine: no code without an emitter (FR-560 J4b).
+5. **New kinds exercised.** At least one fixture uses a new `FunctionKind` and one uses
+   a new `AffectKind`, exercising the full parse→validate→project pipeline (not just
+   schema construction).
+6. **Prompt updated.** `author_plot_plan.yaml` lists all 10 action kinds and 5 affect
    kinds.
-6. **Regression.** All existing `test_plot_*.py` tests pass unchanged.
+7. **Regression.** All existing `test_plot_*.py` tests pass unchanged.
+
+**Test exemptions (FR-474 J3):** example tests are requirement-exempt — no
+`@pytest.mark.req`, no capability YAML. Diary reflection required for the feat PR
+(diary-gate).
 
 ## Dependencies
 
 - **FR-565 (Enforced):** producer integration (the pipeline that fires validation).
 - **FR-563 (Enforced):** `schema.py`, `validate.py`, `author.py` (the validation infrastructure).
 
+## Risks
+
+- **Prompt expansion changes LLM behavior.** Adding 6 new `FunctionKind` values means
+  the authoring LLM may author plans using `death`, `pursuit`, etc. The existing
+  `parse_plot_plan` drops off-alphabet kinds — after expansion, the alphabet is wider,
+  so more kinds survive parsing. New action signatures (e.g., `departure(subject, from,
+  to)` where `from`/`to` are Places) introduce args that are untyped strings. Grounding
+  must treat all args as entity references. Mitigated by AC5 (fixture exercises full
+  pipeline with new kinds).
+- **`FlawCode` growth.** Two new codes widen the `Literal` type. Downstream consumers
+  that pattern-match on `FlawCode` (e.g., repair-loop feedback) must handle the new
+  codes. Mitigated by AC4 (new codes have emitters and fixtures).
+
 ## Out of Scope
 
-- Rule 2 (causal closure) temporal validity strengthening — partial check is sufficient
-  for this phase.
+- Rule 2 (causal closure) temporal validity strengthening — existence-based check is
+  the permanent pure-check posture; temporal validity is the `unified-planning`
+  solver's concern.
 - Sort typing (Place, Object as first-class types) — strings are sufficient for the
   current vocabulary.
 - `unified-planning` solver integration — the seven pure checks make it optional.

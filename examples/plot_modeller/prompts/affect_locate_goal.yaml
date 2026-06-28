@@ -1,0 +1,90 @@
+# FR-607 pass 2 (goal-anchored fork of affect_locate) — locate the ENDPOINTS of
+# one already-named feeling AND bind it to the goal it is ABOUT. The hypothesis:
+# an emotion is an appraisal of events RELATIVE TO A GOAL (Lazarus 1991, Roseman
+# 1996, OCC), so naming the goal the feeling concerns sharpens where it opens and
+# closes — a loss opens when the goal is threatened and closes when it is defeated;
+# a hope opens when a path to the goal appears. The model is GIVEN a fixed set of
+# the protagonist's candidate goals (id + an abstract, leak-audited one-line
+# description — descriptions share no >=3-word run with any beat, so they cannot
+# smuggle in where the feeling resolves) and must pick exactly one as the referent.
+#
+# Forked, NOT replacing affect_locate (FR-605 remains the frozen-gate path). Only
+# additions vs the fork parent: the goals block, the referent output line, and the
+# goal-anchoring instruction.
+system: >
+  You locate where a single, already-named feeling begins and ends for one
+  character, and you identify which of the character's goals that feeling is about.
+  You are told the character DOES feel this — your job is to find, in the beats'
+  own words, the beat where it first shows (open) and the beat where it resolves
+  (close), and to bind it to exactly one supplied goal. You weigh the open and the
+  close separately; you never default both to the single most dramatic beat, and
+  you never invent a beat to complete a pair. You output YAML only — no prose, no
+  code fences.
+
+user: |
+  **{{ state.agent }}** feels **{{ state.kind }}** somewhere in this story
+  ({{ state.kind }} — {{ state.definition }}). Find WHERE, and which GOAL it is about.
+
+  {{ state.agent }}'s goals (a feeling is an appraisal of events relative to a goal
+  — pick the ONE goal this {{ state.kind }} most directly concerns):
+  {% for go in state.goals %}  - {{ go.id }}: {{ go.desc }}
+  {% endfor %}
+
+  - OPEN: the beat where {{ state.kind }} FIRST shows in {{ state.agent }}'s own
+    words — {{ state.open_cue }}
+  - CLOSE: the beat where that {{ state.kind }} RESOLVES — {{ state.close_cue }}
+  - REFERENT: the one goal id above that this {{ state.kind }} is about. A loss
+    concerns the goal being threatened or defeated; a hope, the goal a path opens
+    toward; guilt, the goal whose pursuit harmed someone; betrayal, the goal an
+    ally's turn obstructs. Choose the goal the FEELING tracks, not merely the goal
+    active in the beat.
+
+  Weigh the open and the close SEPARATELY. They are usually different beats, but
+  they may be the SAME beat (a feeling that flares and dies in one moment), and
+  either may be ABSENT (the story opens a feeling it never resolves, or shows a
+  resolution whose opening is off-page). Do NOT default both to the most dramatic
+  beat just because it is vivid — a {{ state.kind }} that begins quietly early and
+  resolves late spans the whole arc.
+
+  Story structure to anchor your reading (derived from beat order, not from any
+  feeling — use it only to tell early-setup beats from late-resolution beats):
+  {% for s in state.skeleton %}  - {{ s.phase }}: beats {{ s.beats | join(", ") }}
+  {% endfor %}
+
+  RULES:
+  - Ground the open and the close in each beat's own words. If the text does not
+    plainly show {{ state.kind }} opening, set open to null; same for close. Never
+    invent a beat to complete the pair.
+  - Use a beat id exactly as written below (e.g. "F4"), or null.
+  - referent MUST be one of the goal ids listed above, exactly as written.
+  - This is {{ state.kind }} ONLY for {{ state.agent }} — ignore other feelings
+    and other characters.
+  {% if state.relational %}
+  This {{ state.kind }} is directed at another character ({{ state.toward_hint }}).
+  Name that other character exactly as the beats name them.
+
+  Output exactly this YAML shape and nothing else:
+
+  open: <beat id or null>
+  close: <beat id or null>
+  toward: <the other character, named as in the beats>
+  referent: <one goal id from the list above>
+  {%- if state.explain %}
+  rationale: "<=1 sentence; MUST quote >=3 consecutive words from the cited beat"
+  {%- endif %}
+  {% else %}
+  Output exactly this YAML shape and nothing else:
+
+  open: <beat id or null>
+  close: <beat id or null>
+  referent: <one goal id from the list above>
+  {%- if state.explain %}
+  rationale: "<=1 sentence; MUST quote >=3 consecutive words from the cited beat"
+  {%- endif %}
+  {% endif %}
+  The beats:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Locate {{ state.agent }}'s {{ state.kind }} open, close, and referent now — YAML only.

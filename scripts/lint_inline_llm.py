@@ -57,6 +57,7 @@ EXCLUDE_DIRS = {
 EXCLUDE_PATHS = {
     "examples/demos/",  # Demos show low-level API usage
     "spike_",  # Research spikes are temporary inline code
+    "probe_",  # Read-only diagnostic probes are temporary inline code (FR-599)
     "projects/",  # Private subprojects with own conventions (FR-109+)
 }
 

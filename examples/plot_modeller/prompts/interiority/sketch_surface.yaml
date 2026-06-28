@@ -1,0 +1,24 @@
+# Arm A1: sketch conditioned on the SURFACE sheets (outside only). Same sketch
+# instructions as A0/B; the only added input is observable description.
+
+metadata:
+  description: Chapter sketch from premise + scene + surface sheets (A1 control)
+  task_type: creative
+  temperature: 0.7
+
+system: |
+  You write a single chapter sketch: ~250-350 words of close third-person prose
+  dramatising the scene. Render every feeling and motive through action, gesture,
+  choice, dialogue, and physical sensation - never name an emotion outright and
+  never state a thought as a label. Show, do not tell. Use the character sheets to
+  keep each character's appearance and manner consistent. Do not include notes,
+  headings, or commentary - just the prose of the scene.
+
+user: |
+  PREMISE: {premise}
+  SCENE: {scene}
+
+  CHARACTER SHEETS (surface):
+  {surface_sheets}
+
+  Write the chapter sketch.

@@ -1,0 +1,111 @@
+metadata:
+  name: l5-measure
+  description: >
+    FR-594 L5 prose-regenerability ruler. Measures an L5 encoding by whether its
+    chapter prose is regenerable from the data alone, on two orthogonal axes:
+    SIMULABILITY (does the state machine license its own narration? — deterministic,
+    GT-free, scored from [UNDERDETERMINED] markers) and FIDELITY (does that narration
+    match the source synopsis? — an LLM judge that flags missing and, crucially,
+    INVERTED events). The two axes are kept attributable and are never collapsed into
+    one scalar (Judge correction #3). This graph is DIAGNOSTIC this cycle: it reports,
+    it does not gate, and world_recall remains the primary L5 signal (Judge
+    corrections #1, #4). Graduates the spike_regenerate_prose.py probe.
+  # No hardcoded provider/model — resolved from the PROVIDER env var at run time.
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  genre:
+    type: str
+    description: "Input: corpus genre/story stem (for the record header)"
+  roster:
+    type: str
+    description: "Input: agent roster lines fed to the regenerate prompt"
+  initial_state:
+    type: str
+    description: "Input: rendered initial world state ('' for our encoder; GT only)"
+  l5_beats:
+    type: list
+    description: "Input: raw L5 beats [{id, pre_world, eff_world, ...}] to render"
+  synopsis:
+    type: str
+    description: "Input: source synopsis — the fidelity judge's reference"
+  beats:
+    type: str
+    description: "Rendered predicate stream (render_l5_beats output)"
+  regen_prose:
+    type: str
+    description: "Chapter reconstructed from the state machine alone (llm output)"
+  simulability:
+    type: dict
+    description: "Deterministic axis: {underdetermined, beats, ratio}"
+  fidelity:
+    type: dict
+    description: "LLM axis: {recovered, missing, inverted, score}"
+  l5_measure:
+    type: dict
+    description: "Output: combined, attributable record (diagnostic only)"
+
+tools:
+  render_l5_beats:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: render_l5_beats
+  score_simulability:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: score_simulability
+  combine_l5_measure:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: combine_l5_measure
+
+nodes:
+  render_beats:
+    type: python
+    tool: render_l5_beats           # l5_beats list -> rendered predicate stream
+    requires: [l5_beats]
+
+  regenerate:
+    type: llm
+    prompt: regenerate_chapter       # state -> chapter prose + [UNDERDETERMINED]
+    state_key: regen_prose
+    variables:                       # map state -> the prompt's top-level vars
+      roster: "{state.roster}"
+      initial_state: "{state.initial_state}"
+      beats: "{state.beats}"
+    requires: [beats]
+
+  score_simulability:
+    type: python
+    tool: score_simulability         # deterministic UNDERDETERMINED / beats
+    requires: [regen_prose]
+
+  judge_fidelity:
+    type: llm
+    prompt: judge_fidelity           # regen vs synopsis -> recovered/missing/inverted/score
+    state_key: fidelity
+    variables:
+      synopsis: "{state.synopsis}"
+      regen_prose: "{state.regen_prose}"
+    requires: [regen_prose]
+
+  verdict:
+    type: python
+    tool: combine_l5_measure         # two axes -> one attributable record
+    requires: [fidelity]
+
+edges:
+  - from: START
+    to: render_beats
+  - from: render_beats
+    to: regenerate
+  - from: regenerate
+    to: score_simulability
+  - from: score_simulability
+    to: judge_fidelity
+  - from: judge_fidelity
+    to: verdict
+  - from: verdict
+    to: END

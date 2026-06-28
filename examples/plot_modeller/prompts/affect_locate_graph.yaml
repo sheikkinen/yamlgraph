@@ -1,0 +1,107 @@
+# FR-609 pass 2 (goal-GRAPH-anchored fork of affect_locate_goal) — locate the
+# ENDPOINTS of one already-named feeling AND bind it to the goal it is ABOUT, given
+# the protagonist's goal CAUSAL GRAPH rather than a flat goal list. FR-607 refuted
+# the flat list (honest lift +0.000): with two sibling goal NAMES and no relation
+# between them, the model defaulted the referent to whichever its close-beat choice
+# served. This fork injects the inter-goal `enables`/`threatens` structure (which
+# goal is a sub-goal that opens a path TOWARD which super-goal, and which adversary
+# goal threatens it) so the model can pick the right sibling from STRUCTURE.
+#
+# CRITICAL — beat-free (anti-tautology, J corr 1): the graph names only goals and
+# agents; every beat id is stripped upstream by evaluate.derive_goal_graph. If a
+# beat id leaked in, a feeling whose referent is that goal could read its close beat
+# straight off the graph (a leak, not a test). The goals are presented in SHUFFLED
+# order so chain order itself cannot be read off the listing.
+#
+# Forked, NOT replacing affect_locate (FR-605 remains the frozen-gate path) nor
+# affect_locate_goal (FR-607). Only additions vs the FR-607 parent: each goal now
+# carries its inter-goal relations, and the referent rule cites the causal relation.
+system: >
+  You locate where a single, already-named feeling begins and ends for one
+  character, and you identify which of the character's goals that feeling is about.
+  You are told the character DOES feel this — your job is to find, in the beats'
+  own words, the beat where it first shows (open) and the beat where it resolves
+  (close), and to bind it to exactly one supplied goal. You are given the goals as a
+  CAUSAL GRAPH — which goal enables which, and which rival goal threatens which — so
+  you can tell a sub-goal (a step on the way) from the super-goal it serves. You
+  weigh the open and the close separately; you never default both to the single most
+  dramatic beat, and you never invent a beat to complete a pair. You output YAML
+  only — no prose, no code fences.
+
+user: |
+  **{{ state.agent }}** feels **{{ state.kind }}** somewhere in this story
+  ({{ state.kind }} — {{ state.definition }}). Find WHERE, and which GOAL it is about.
+
+  {{ state.agent }}'s goals, as a causal graph (a feeling is an appraisal of events
+  relative to a goal — pick the ONE goal this {{ state.kind }} most directly
+  concerns). Each goal lists which goals it ENABLES (it is a step toward them),
+  which goals it is ENABLED BY (its own prerequisites), and which rival goals
+  THREATEN it:
+  {% for go in state.goals %}  - {{ go.id }}: {{ go.desc }}
+      pursued by: {{ go.agent }}
+      enables: {{ go.enables | join(", ") if go.enables else "(nothing — a terminal goal)" }}
+      enabled by: {{ go.enabled_by | join(", ") if go.enabled_by else "(nothing — a root goal)" }}
+      threatened by: {{ go.threatened_by | join(", ") if go.threatened_by else "(no rival goal)" }}
+  {% endfor %}
+
+  - OPEN: the beat where {{ state.kind }} FIRST shows in {{ state.agent }}'s own
+    words — {{ state.open_cue }}
+  - CLOSE: the beat where that {{ state.kind }} RESOLVES — {{ state.close_cue }}
+  - REFERENT: the one goal id above that this {{ state.kind }} is about. Use the
+    GRAPH to choose between sibling goals: a hope tracks the SUB-goal a path opens
+    toward (the nearest step it ENABLES), not the distant super-goal that step
+    eventually serves, unless the beats show the super-goal's OWN resolution; a loss
+    concerns the goal being threatened or defeated; guilt, the goal whose pursuit
+    harmed someone; betrayal, the goal an ally's turn obstructs. Choose the goal the
+    FEELING tracks, reading the causal relation — not merely the goal active in the
+    close beat.
+
+  Weigh the open and the close SEPARATELY. They are usually different beats, but
+  they may be the SAME beat (a feeling that flares and dies in one moment), and
+  either may be ABSENT (the story opens a feeling it never resolves, or shows a
+  resolution whose opening is off-page). Do NOT default both to the most dramatic
+  beat just because it is vivid — a {{ state.kind }} that begins quietly early and
+  resolves late spans the whole arc.
+
+  Story structure to anchor your reading (derived from beat order, not from any
+  feeling — use it only to tell early-setup beats from late-resolution beats):
+  {% for s in state.skeleton %}  - {{ s.phase }}: beats {{ s.beats | join(", ") }}
+  {% endfor %}
+
+  RULES:
+  - Ground the open and the close in each beat's own words. If the text does not
+    plainly show {{ state.kind }} opening, set open to null; same for close. Never
+    invent a beat to complete the pair.
+  - Use a beat id exactly as written below (e.g. "F4"), or null.
+  - referent MUST be one of the goal ids listed above, exactly as written.
+  - This is {{ state.kind }} ONLY for {{ state.agent }} — ignore other feelings
+    and other characters.
+  {% if state.relational %}
+  This {{ state.kind }} is directed at another character ({{ state.toward_hint }}).
+  Name that other character exactly as the beats name them.
+
+  Output exactly this YAML shape and nothing else:
+
+  open: <beat id or null>
+  close: <beat id or null>
+  toward: <the other character, named as in the beats>
+  referent: <one goal id from the list above>
+  {%- if state.explain %}
+  rationale: "<=1 sentence; MUST quote >=3 consecutive words from the cited beat"
+  {%- endif %}
+  {% else %}
+  Output exactly this YAML shape and nothing else:
+
+  open: <beat id or null>
+  close: <beat id or null>
+  referent: <one goal id from the list above>
+  {%- if state.explain %}
+  rationale: "<=1 sentence; MUST quote >=3 consecutive words from the cited beat"
+  {%- endif %}
+  {% endif %}
+  The beats:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Locate {{ state.agent }}'s {{ state.kind }} open, close, and referent now — YAML only.

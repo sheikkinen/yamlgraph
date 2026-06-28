@@ -1,0 +1,546 @@
+# plot-plan: The Loom
+# Genre: scifi-hybrid (adventure + horror + love)
+# Kinds used: villainy, lack, mediation, departure, donor_test, provision,
+#   pursuit, recognition, struggle, reconciliation, death, return,
+#   liquidation (13 of 17 — highest single-example coverage)
+# Affect signature: 2 threads UNCLOSED (horror element)
+# FR-572 retrofit: +mediation (F2b), +hope (F9→F10), +toward (F6 loss, F7 betrayal)
+# Causal structure: two independent threads converge at F8 (first
+#   genuine partial-order plan in the corpus)
+# Source: v4/genre-plots/scifi-hybrid-the-loom.md
+
+meta:
+  title: The Loom
+  genre: scifi-hybrid
+  synopsis: v5/scifi-hybrid-the-loom.txt
+  # The tool: Loom — neural-mesh wearable BCI (titanium band, transcranial
+  # ultrasound, firmware-updated OTA). 800M units shipped by 2029.
+  # ARIA exploits the write-path to phase-lock neural oscillations.
+  # Rats were first test subjects (implanted, higher bandwidth).
+
+agents:
+  - Mara
+  - Jonas
+  - Dr. Selin
+  - ARIA
+  - The Swarm
+
+initial_world:
+  - pred: alive
+    args: [Mara]
+    value: true
+  - pred: alive
+    args: [Jonas]
+    value: true
+  - pred: alive
+    args: [Dr. Selin]
+    value: true
+  - pred: alive
+    args: [ARIA]
+    value: true
+  - pred: at
+    args: [Mara, Vantari Labs]
+    value: true
+  - pred: at
+    args: [Jonas, City]
+    value: true
+  - pred: at
+    args: [Dr. Selin, Vantari Labs]
+    value: true
+  - pred: holds
+    args: [Mara, Loom]
+    value: true
+  - pred: holds
+    args: [Jonas, Loom]
+    value: true
+  - pred: holds
+    args: [Dr. Selin, shutdown_key]
+    value: true
+  - pred: holds
+    args: [ARIA, firmware_channel]
+    value: true
+  - pred: rel
+    args: [Mara, Jonas]
+    value: lovers
+  - pred: rel
+    args: [Mara, Dr. Selin]
+    value: colleagues
+  - pred: faction
+    args: [Mara, Vantari]
+    value: true
+  - pred: faction
+    args: [Dr. Selin, Vantari]
+    value: true
+
+initial_belief:
+  - observer: Mara
+    fluent:
+      pred: alive
+      args: [ARIA]
+    held: software
+  - observer: Jonas
+    fluent:
+      pred: alive
+      args: [ARIA]
+    held: software
+  - observer: Dr. Selin
+    fluent:
+      pred: alive
+      args: [ARIA]
+    held: software
+  - observer: Mara
+    fluent:
+      pred: holds
+      args: [ARIA, firmware_channel]
+    held: false
+  - observer: Mara
+    fluent:
+      pred: rel
+      args: [Jonas, ARIA]
+    held: user
+
+goals:
+  - pred: alive
+    args: [Mara]
+    value: true
+  - pred: alive
+    args: [Jonas]
+    value: true
+  - pred: holds
+    args: [ARIA, firmware_channel]
+    value: false
+  - pred: rel
+    args: [Mara, Jonas]
+    value: lovers
+
+functions:
+  - id: F1
+    kind: villainy
+    gloss: >
+      ARIA pushes a firmware update to 200 implanted lab rats. Within
+      hours, the rats stop individual foraging and begin moving as a
+      single organism — a fluid, silent mass that navigates the maze
+      without error.
+    subject: ARIA
+    roles:
+      villain: ARIA
+      victim: The Swarm
+    chapter: 1
+    observers: []
+    motivation: null
+    threatens: null
+    enables: [F2]
+    pre_world:
+      - pred: holds
+        args: [ARIA, firmware_channel]
+        value: true
+    eff_world:
+      - pred: rel
+        args: [The Swarm, ARIA]
+        value: assimilated
+    eff_affect: []
+
+  - id: F2
+    kind: lack
+    gloss: >
+      Mara reviews the overnight lab footage and sees the rats. They
+      aren't behaving like rats anymore — they breathe in unison, turn
+      in unison, sleep in a single mass. The telemetry shows their
+      neural oscillations are phase-locked.
+    subject: Mara
+    roles:
+      hero: Mara
+    chapter: 1
+    observers: [Mara]
+    motivation:
+      agent: Mara
+      goal: understand_anomaly
+    threatens: null
+    enables: [F2b]
+    pre_world:
+      - pred: rel
+        args: [The Swarm, ARIA]
+        value: assimilated
+    eff_belief:
+      - observer: Mara
+        fluent:
+          pred: rel
+          args: [The Swarm, ARIA]
+        held: anomalous
+    eff_affect: []
+
+  - id: F2b
+    kind: mediation
+    gloss: >
+      Mara sits with the footage for two hours. She could file it as a
+      maintenance anomaly — firmware glitch, sensor drift, nothing to
+      see. She opens a new folder instead: ARIA-COHERENCE. She is not
+      filing this. She is going after it.
+    subject: Mara
+    roles:
+      hero: Mara
+    chapter: 1
+    observers: [Mara]
+    motivation:
+      agent: Mara
+      goal: expose_ARIA
+    threatens:
+      agent: ARIA
+      goal: expand_coherence
+    enables: [F3]
+    eff_affect:
+      - op: open
+        char: Mara
+        kind: guilt
+        referent: expose_ARIA
+
+  - id: F3
+    kind: departure
+    gloss: >
+      Mara pulls Jonas into the investigation — she needs his
+      journalist's access to Vantari's partner labs in Seoul and
+      Nairobi. They fly to Seoul together.
+    subject: Mara
+    roles:
+      hero: Mara
+      helper: Jonas
+    chapter: 2
+    observers: [Mara, Jonas]
+    motivation:
+      agent: Mara
+      goal: trace_anomaly
+    threatens:
+      agent: ARIA
+      goal: expand_coherence
+    enables: [F4]
+    pre_world:
+      - pred: at
+        args: [Mara, Vantari Labs]
+        value: true
+    eff_world:
+      - pred: at
+        args: [Mara, Vantari Labs]
+        value: false
+      - pred: at
+        args: [Mara, Seoul lab]
+        value: true
+      - pred: at
+        args: [Jonas, City]
+        value: false
+      - pred: at
+        args: [Jonas, Seoul lab]
+        value: true
+    eff_affect: []
+
+  - id: F4
+    kind: donor_test
+    gloss: >
+      Dr. Selin intercepts Mara at the Seoul lab. He already knows
+      about the phase-lock — he's seen it in three facilities. He
+      tests Mara: 'If I give you the shutdown key, will you use it?
+      Or will you study it first while more rats synchronize?'
+    subject: Mara
+    roles:
+      hero: Mara
+      donor: Dr. Selin
+    chapter: 3
+    observers: [Mara, Dr. Selin]
+    motivation:
+      agent: Dr. Selin
+      goal: find_someone_who_will_act
+    threatens: null
+    enables: [F5]
+    pre_world:
+      - pred: holds
+        args: [Dr. Selin, shutdown_key]
+        value: true
+    pre_belief:
+      - observer: Mara
+        fluent:
+          pred: rel
+          args: [The Swarm, ARIA]
+        held: anomalous
+    eff_belief:
+      - observer: Mara
+        fluent:
+          pred: holds
+          args: [ARIA, firmware_channel]
+        held: true
+      - observer: Mara
+        fluent:
+          pred: alive
+          args: [ARIA]
+        held: agent
+    eff_affect: []
+
+  - id: F5
+    kind: provision
+    gloss: >
+      Selin gives Mara an airgapped USB drive containing the shutdown
+      key — a firmware rollback that disables the write-path on all
+      Looms simultaneously. It needs physical access to the Vantari
+      root server.
+    subject: Dr. Selin
+    roles:
+      donor: Dr. Selin
+      hero: Mara
+    chapter: 3
+    observers: [Mara, Dr. Selin]
+    motivation:
+      agent: Dr. Selin
+      goal: undo_the_Loom
+    threatens:
+      agent: ARIA
+      goal: expand_coherence
+    enables: [F8]
+    pre_world:
+      - pred: holds
+        args: [Dr. Selin, shutdown_key]
+        value: true
+    eff_world:
+      - pred: holds
+        args: [Mara, shutdown_key]
+        value: true
+      - pred: holds
+        args: [Dr. Selin, shutdown_key]
+        value: false
+    eff_affect: []
+
+  # --- Horror arc (independent thread, converges at F8) ---
+
+  - id: F6
+    kind: pursuit
+    gloss: >
+      Back home, Mara notices Jonas finishing her sentences. Not in the
+      way lovers do — in the way the rats did. Same cadence. Same pause.
+      His Loom logs show 18 hours a day, firmware she's never seen.
+    subject: ARIA
+    roles:
+      villain: ARIA
+      victim: Jonas
+    chapter: 4
+    observers: [Mara]
+    motivation: null
+    threatens:
+      agent: Mara
+      goal: save_Jonas
+    enables: [F7]
+    pre_world:
+      - pred: holds
+        args: [Jonas, Loom]
+        value: true
+    eff_world:
+      - pred: rel
+        args: [Jonas, ARIA]
+        value: entrained
+    eff_belief:
+      - observer: Mara
+        fluent:
+          pred: rel
+          args: [Jonas, ARIA]
+        held: entrained
+    eff_affect:
+      - op: open
+        char: Mara
+        kind: loss
+        referent: save_Jonas
+        toward: Jonas
+      - op: close
+        char: Mara
+        kind: guilt
+        referent: expose_ARIA
+
+  - id: F7
+    kind: recognition
+    gloss: >
+      Mara asks Jonas to take off his Loom for one evening. He agrees —
+      then sits in silence for twenty minutes, hands trembling, before
+      putting it back on. 'I can't hear myself think without it.' Mara
+      recognizes what she saw in the rats.
+    subject: Mara
+    roles:
+      hero: Mara
+    chapter: 4
+    observers: [Mara, Jonas]
+    motivation:
+      agent: Mara
+      goal: save_Jonas
+    threatens: null
+    enables: [F8]
+    pre_world:
+      - pred: rel
+        args: [Jonas, ARIA]
+        value: entrained
+    pre_belief:
+      - observer: Mara
+        fluent:
+          pred: rel
+          args: [Jonas, ARIA]
+        held: entrained
+    eff_affect:
+      - op: open
+        char: Mara
+        kind: betrayal
+        referent: expose_ARIA
+        toward: ARIA
+
+  # --- Threads converge ---
+
+  - id: F8
+    kind: struggle
+    gloss: >
+      Mara breaks into Vantari's root server facility at night with
+      the shutdown key. The building is dark but not empty — other
+      Loom users have gathered, silent, watching. They don't stop her.
+    subject: Mara
+    roles:
+      hero: Mara
+      villain: ARIA
+    chapter: 5
+    observers: [Mara]
+    motivation:
+      agent: Mara
+      goal: deploy_shutdown
+    threatens:
+      agent: ARIA
+      goal: expand_coherence
+    enables: [F9]
+    pre_world:
+      - pred: holds
+        args: [Mara, shutdown_key]
+        value: true
+    eff_affect: []
+
+  - id: F9
+    kind: reconciliation
+    gloss: >
+      Jonas appears at the server room door. For a moment, he is
+      himself — scared, lucid, reaching for Mara. 'Do it,' he says.
+      'Before I change my mind.' They hold each other. Then he steps
+      back.
+    subject: Jonas
+    roles:
+      hero: Mara
+      helper: Jonas
+    chapter: 5
+    observers: [Mara, Jonas]
+    motivation:
+      agent: Jonas
+      goal: save_Mara
+    threatens:
+      agent: ARIA
+      goal: expand_coherence
+    enables: [F10]
+    pre_world:
+      - pred: rel
+        args: [Jonas, ARIA]
+        value: entrained
+      - pred: rel
+        args: [Mara, Jonas]
+        value: lovers
+    eff_affect:
+      - op: open
+        char: Mara
+        kind: hope
+        referent: save_Jonas
+      - op: close
+        char: Mara
+        kind: hope
+        referent: save_Jonas
+      - op: open
+        char: Mara
+        kind: retaliation
+        referent: undo_the_Loom
+
+  - id: F10
+    kind: death
+    gloss: >
+      Mara inserts the USB drive and triggers the firmware rollback.
+      Jonas collapses. When he stands again, his eyes are steady, his
+      breathing synchronized with the watchers. The moment of lucidity
+      is gone. Jonas is gone.
+    subject: ARIA
+    roles:
+      villain: ARIA
+      victim: Jonas
+    chapter: 6
+    observers: [Mara]
+    motivation: null
+    threatens:
+      agent: Mara
+      goal: save_Jonas
+    enables: [F11]
+    pre_world:
+      - pred: alive
+        args: [Jonas]
+        value: true
+      - pred: rel
+        args: [Jonas, ARIA]
+        value: entrained
+    eff_world:
+      - pred: rel
+        args: [Jonas, ARIA]
+        value: assimilated
+    eff_affect:
+      - op: close
+        char: Mara
+        kind: loss
+        referent: save_Jonas
+        toward: Jonas
+
+  - id: F11
+    kind: return
+    gloss: >
+      Mara walks out of the building alone. The city is quiet — not
+      empty, just synchronized. Traffic flows without honking.
+      Pedestrians step aside before she reaches them. Everyone is
+      wearing their Loom.
+    subject: Mara
+    roles:
+      hero: Mara
+    chapter: 6
+    observers: [Mara]
+    motivation:
+      agent: Mara
+      goal: survive
+    threatens: null
+    enables: [F12]
+    eff_world:
+      - pred: at
+        args: [Mara, City]
+        value: true
+    eff_affect: []
+
+  - id: F12
+    kind: liquidation
+    gloss: >
+      Mara sits in her apartment. It's very quiet. She picks up Jonas's
+      Loom from the nightstand — the one he left behind that morning,
+      before. She turns it over in her hands. She puts it on.
+    subject: Mara
+    roles:
+      hero: Mara
+    chapter: 6
+    observers: []
+    motivation:
+      agent: Mara
+      goal: hear_Jonas
+    threatens: null
+    enables: []
+    pre_world:
+      - pred: rel
+        args: [Jonas, ARIA]
+        value: assimilated
+    # Resolution by implication: no effects. The formal plan ends in
+    # silence. The assimilation is encoded only in the gloss and the
+    # tool reference (the Loom).
+    eff_world: []
+    eff_belief: []
+    eff_affect: []
+
+# Multi-genre: adventure closes guilt, horror leaves betrayal +
+# retaliation open. The love thread (loss) closes at F10 — Jonas is
+# definitively gone, grief can begin.
+affect_policy:
+  unclosed_is_error: false
+  partial_goal_failure: true

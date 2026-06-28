@@ -1,0 +1,68 @@
+metadata:
+  name: extract-agents
+  description: >
+    FR-573 L1 spike: extract agents, initial world state, and initial beliefs
+    from a prose synopsis. One LLM node emits YAML text; a Python validator
+    parses and checks it; on failure the LLM retries with the errors in-prompt
+    (max 3 attempts).
+  # No hardcoded provider/model — resolved from the PROVIDER env var at run time.
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+state:
+  synopsis:
+    type: str
+    description: "Input: prose synopsis text"
+  agents_raw:
+    type: str
+    description: "Raw LLM YAML text (extract output; default parse_json: false)"
+  agents:
+    type: list
+    description: "Output: parsed agent names (written by validator on success)"
+  initial_world:
+    type: list
+    description: "Output: parsed world-state fluents (written by validator on success)"
+  initial_belief:
+    type: list
+    description: "Output: parsed initial beliefs (written by validator on success)"
+  validation:
+    type: dict
+    description: "Validator result: {ok: bool, flaws: list[str]}"
+
+tools:
+  validate_agents:
+    type: python
+    module: examples.plot_modeller.nodes.tools
+    function: validate_agents
+
+nodes:
+  extract:
+    type: llm
+    prompt: extract_agents
+    state_key: agents_raw      # J1: raw YAML text lands here, not in `agents`
+
+  validate:
+    type: python
+    tool: validate_agents
+    state_key: validation
+
+edges:
+  - from: START
+    to: extract
+  - from: extract
+    to: validate
+  - from: validate
+    to: extract
+    condition: "validation.ok == false"
+  - from: validate
+    to: END
+    condition: "validation.ok == true"
+
+# Loop control: after 3 extract entries the loop exits to END even if
+# validation never passes — the evaluator scores the genre as all-wrong.
+loop_limits:
+  extract: 3
+
+loop_exits:
+  extract: END

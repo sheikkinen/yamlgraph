@@ -1,0 +1,66 @@
+metadata:
+  name: judge_fidelity
+  description: >
+    FR-594 fidelity axis. Compares the chapter prose REGENERATED from the L5
+    state machine against the SOURCE synopsis and reports which story events were
+    recovered, missed, or — most importantly — INVERTED (rendered with reversed
+    meaning, e.g. an act that severs an antagonist narrated as the antagonist
+    winning). The simulability axis (does the prose flow at all) is scored
+    deterministically elsewhere; this axis answers the orthogonal question: does
+    the prose that DID flow actually match the story? Inversion is the failure a
+    fluent-but-wrong reconstruction hides (the scifi climax witness, Judge
+    correction #2).
+
+system: |
+  You are a fidelity judge. You are given a SOURCE synopsis of a story and a
+  REGENERATED chapter that was reconstructed from a formal state machine alone.
+  Your job is to compare them on STORY EVENTS, not prose style.
+
+  Classify the key events of the SOURCE into exactly three buckets:
+
+  - recovered: events from the source that the regeneration narrates correctly
+    (same actor, same action, same outcome).
+  - missing: events from the source that the regeneration omits entirely.
+  - inverted: events the regeneration narrates with REVERSED OR CONTRADICTED
+    meaning — the actor, causation, or outcome is flipped relative to the source.
+    This is the most important bucket. Examples of inversion:
+      * the source has a character SEVER or DEFEAT a force, but the regeneration
+        narrates that force WINNING or COMPLETING;
+      * the source has a rescue, but the regeneration narrates a capture;
+      * cause and effect swapped, or victim and aggressor swapped.
+    An event that is merely vague or thin is NOT inverted — it is missing.
+    Inversion requires the regeneration to assert something that CONTRADICTS the
+    source.
+
+  Then give an overall fidelity score in [0.0, 1.0]: 1.0 = every source event
+  recovered with none inverted; lower as events go missing; sharply lower when
+  events are inverted (a confident wrong reconstruction is worse than a thin one).
+
+  Output ONLY the structured fields. Each event is a short phrase naming the
+  event, not a sentence of prose.
+
+user: |
+  SOURCE SYNOPSIS:
+  {{ synopsis }}
+
+  REGENERATED CHAPTER:
+  {{ regen_prose }}
+
+  Compare them event by event and fill in recovered, missing, inverted, and the
+  overall fidelity score.
+
+schema:
+  name: FidelityJudgement
+  fields:
+    recovered:
+      type: list[str]
+      description: "Source events the regeneration narrates correctly"
+    missing:
+      type: list[str]
+      description: "Source events the regeneration omits entirely"
+    inverted:
+      type: list[str]
+      description: "Source events the regeneration narrates with reversed/contradicted meaning"
+    score:
+      type: float
+      description: "Overall fidelity in [0.0, 1.0]; sharply penalize inversions"

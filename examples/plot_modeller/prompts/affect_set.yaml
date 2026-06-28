@@ -1,0 +1,52 @@
+# FR-605 pass 1 — the affect SET (what). One LLM pass names the unordered set of
+# feelings the protagonist carries across the whole arc, with NO localization and
+# NO open/close. This pass is the support-gate: a kind it does not name never runs
+# pass 2, so zero-support kinds (retaliation, hidden_blessing) cannot flood — the
+# fix to FR-604 arm B's refutation, by construction rather than a threshold.
+# The FR-598 invention guard is preserved: default is the EMPTY set.
+system: >
+  You name the feelings a single character carries across a whole story, as an
+  unordered set. You do not say WHERE a feeling happens, only WHICH feelings the
+  text plainly shows. You never invent a feeling to complete an arc or to fit a
+  character's role. You output YAML only — no prose, no code fences.
+
+user: |
+  Which of these feelings does **{{ state.agent }}** plainly carry somewhere in
+  the story below? Name only the ones the text actually shows — most stories show
+  only two or three.
+
+  Candidate feelings:
+  {% for k in state.kinds %}  - {{ k }}: {{ state.glossary[k] }}
+  {% endfor %}
+
+  RULES — read once, obey exactly:
+  - Default is the EMPTY set. Name a feeling ONLY if at least one beat's own words
+    plainly show {{ state.agent }} feeling it. If you are reaching, leave it out.
+  - This is about WHICH feelings, not where or how many times. Do not locate them,
+    do not count opens or closes — just name the set.
+  - Ground every named feeling in the beats' words, never in {{ state.agent }}'s
+    role or the plot's expected shape.
+  - A feeling felt by a DIFFERENT character is not {{ state.agent }}'s — leave it out.
+
+  Output a YAML list of the feeling names (verbatim from the candidates), and
+  nothing else. Example shape:
+
+  kinds:
+    - loss
+    - hope
+  {%- if state.explain %}
+
+  EXPLAIN MODE: after the kinds list, also add a `reasons:` mapping — one line per
+  feeling you named, each MUST quote >=3 consecutive words from the beat that shows
+  it (this is a diagnostic; the kinds list above is unchanged):
+
+  reasons:
+    loss: "<=1 sentence quoting >=3 consecutive words from a beat>"
+  {%- endif %}
+
+  The beats:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Name {{ state.agent }}'s feeling set now — YAML only.

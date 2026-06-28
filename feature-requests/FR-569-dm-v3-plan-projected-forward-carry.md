@@ -45,24 +45,36 @@ A validation function that compares the chapter close's proposed delta against t
 plan's projected state:
 
 - **Plan-covered lanes** (lifecycle, belief, affect): the plan's projected state is
-  **authoritative**. The close's proposed delta for these lanes is validated against
-  the projection — contradictions are rejected.
+  **authoritative**. The close's proposed delta for these lanes is **overridden** by
+  the plan's projection — the prose delta is informational, not load-bearing.
 - **Prose-covered lanes** (location, inventory, relationships): the close's proposed
   delta is **validated** for safety (protected-character death is rejected) but
   otherwise accepted.
 - **Merged state** = plan projection (for covered lanes) + validated prose delta
   (for uncovered lanes).
 
+**Recovery strategy (load-bearing).** When the prose contradicts the plan (e.g., the
+LLM kills a protected character), the close does **not** reject the chapter or retry.
+Instead, it **overrides** the plan-covered lanes with the plan's projection and logs
+the contradiction as a diagnostic. The prose text is accepted as-is (the Final Cut
+already ran); only the derived state is corrected. This is option (b): accept the
+chapter but override the delta. Rationale: the plan's projection is the source of
+truth for lifecycle/belief/affect, and the prose is the source of truth for the
+reader experience — they can momentarily disagree, and the state wins.
+
 ### 2. Protected set enforcement
 
 The plan's `goals` predicates define a protected set — characters and predicates that
-must hold at the finale. This protected set is fed to:
-- The director (turn-level steering)
-- The final cut (chapter-level review)
-- The chapter close (commit-level validation)
+must hold at the finale. `protected_set(plan)` (project.py:101) already exists and
+returns goal fluents' subject characters. It currently reaches the realize seam
+(`beat_instruction` in `invoke_turn`) via FR-564. This FR extends the protected set
+to additional consumers:
+- The director (turn-level steering) — **new**
+- The final cut (chapter-level review) — **new**
+- The chapter close (commit-level validation) — **new**
 
-A prose death of a character in the protected set is **rejected** at close time, not
-just logged.
+A prose death of a character in the protected set is **overridden** at close time
+(plan projection wins) and logged as a diagnostic.
 
 ### 3. `apply_chapter_close` amendment
 
@@ -76,17 +88,25 @@ onto the close's physical delta:
 ### 4. Integration
 
 `close_chapter` checks for an attached plan. If present, calls `validate_close`
-before committing the delta. If the delta contradicts the plan, the close is rejected
-with a diagnostic. The strangler-fig posture: without a plan, the existing
-prose-derived close runs unchanged.
+before committing the delta. Two mechanisms apply:
+- **Plan-covered lanes** (lifecycle, belief, affect): contradictions are **overridden**
+  by the plan's projection and logged as diagnostics. The chapter is not rejected.
+- **Prose-covered lanes** (location, inventory, relationships): a protected-character
+  death is **rejected** (the close refuses to commit a death the plan needs alive).
+
+The strangler-fig posture: without a plan, the existing prose-derived close runs
+unchanged.
 
 ## Acceptance Criteria
 
-1. **Plan contradiction rejected.** A chapter close that asserts `alive(Arnulf) = false`
-   when the plan's projection has `alive(Arnulf) = true` at that chapter is rejected
-   with a diagnostic.
-2. **Protected-character death caught.** A prose death of a character needed for a
-   later plan function is rejected before commit.
+1. **Plan contradiction overridden.** A chapter close whose prose-derived delta asserts
+   `Fluent(pred="alive", args=("Arnulf",), value=False)` when the plan's projection
+   has `Fluent(pred="alive", args=("Arnulf",), value=True)` at that chapter is
+   overridden: the committed state uses the plan's projection, and the contradiction
+   is logged as a diagnostic.
+2. **Protected-character death caught.** A prose-covered-lane death of a character in
+   the protected set (needed for a later plan function) is rejected before commit.
+   Plan-covered-lane deaths are overridden by the plan's projection (AC1).
 3. **Plan projection authoritative.** The forward-carry for lifecycle/belief/affect
    comes from `project_chapter_state`, not prose parsing.
 4. **Prose delta accepted for uncovered lanes.** Location, inventory, and relationship
@@ -96,12 +116,24 @@ prose-derived close runs unchanged.
 6. **Strangler-fig.** Without a plan, `close_chapter` runs byte-for-byte unchanged.
 7. **Regression.** All existing close and plot tests pass unchanged.
 
+**Test exemptions (FR-474 J3):** example tests are requirement-exempt — no
+`@pytest.mark.req`, no capability YAML. Diary reflection required for the feat PR
+(diary-gate).
+
 ## Dependencies
 
-- **FR-567 (Phase 2):** `project_chapter_state` — the projection function.
-- **FR-568 (Phase 3):** plan-derived outline — ensures chapter structure matches plan.
-- **FR-566 (Phase 1):** complete grammar — the projection is only trustworthy if all
-  7 rules are enforced.
+- **FR-567 (Phase 2):** `project_chapter_state` — the projection function (hard
+  dependency).
+- **FR-566 (Phase 1):** complete grammar — the projection is only guaranteed
+  consistent if all 7 rules are enforced (soft dependency — FR-569 can ship on the
+  current 4-check validator with the understanding that unchecked rules may allow
+  inconsistent projections).
+
+**Note:** FR-568 (plan-derived outline) is **not** a dependency. The close validates
+the chapter's *result* against the plan's *projection*, regardless of how the chapter
+was outlined. A chapter outlined by the old `outline_chapters` path but closed with
+`validate_close` still catches plan contradictions. FR-568 and FR-569 can ship
+independently.
 
 ## Out of Scope
 
@@ -113,9 +145,13 @@ prose-derived close runs unchanged.
 
 ## Risks
 
-- **Prose/plan conflict UX.** When `validate_close` rejects a prose delta, the
-  generation must recover — either retry the chapter with a corrected directive, or
-  fall back to plan-less close. The recovery strategy needs design.
+- **Prose/plan divergence visibility.** When the plan overrides a prose-derived delta,
+  the prose text may describe events that the committed state doesn't reflect (e.g.,
+  prose says "Arnulf fell" but the state says `alive(Arnulf) = true`). The diagnostic
+  log makes this visible but a reader of the prose alone sees the contradiction.
+  Mitigated by the Final Cut (which already constrains prose against confirmed-dead
+  characters via FR-510/511) and by the director's protected-set awareness (which
+  steers the LLM away from killing protected characters in the first place).
 - **Partial coverage.** The plan covers lifecycle/belief/affect but not
   location/inventory/relationships. The merged state has two provenance sources, which
   adds complexity to debugging.

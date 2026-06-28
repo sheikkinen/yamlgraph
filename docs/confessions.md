@@ -671,6 +671,192 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `import xdist` appears unused — the module is imported but not referenced.
 - **Penance**: The import IS the test — we're asserting that xdist is importable (installed). F401 cannot understand this pattern.
 
+### CONF-144
+- **File**: [examples/plot_modeller/run.py](../examples/plot_modeller/run.py#L37)
+- **Code**: E402
+- **Sin**: `from nodes.tools import load_glosses, load_glosses_with_kinds, load_synopsis` appears after `sys.path` manipulation.
+- **Penance**: The import must follow the `sys.path.insert` that makes the `nodes` package discoverable. This is the standard pattern for standalone example runners that aren't installed packages.
+
+### CONF-306
+- **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L39)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-144 — the import must follow the `sys.path.insert` that makes the `nodes` package discoverable for this standalone FR-585 spike harness.
+
+### CONF-307
+- **File**: [examples/plot_modeller/spike_salience_gate.py](../examples/plot_modeller/spike_salience_gate.py#L41)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-306 — grouped with the `nodes` import below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-308
+- **File**: [examples/plot_modeller/spike_snapshot_diff.py](../examples/plot_modeller/spike_snapshot_diff.py#L44)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, diff_snapshots, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-306 — the import must follow the `sys.path.insert` that makes the `nodes` package discoverable for this standalone FR-587 snapshot-diff spike harness.
+
+### CONF-309
+- **File**: [examples/plot_modeller/spike_snapshot_diff.py](../examples/plot_modeller/spike_snapshot_diff.py#L49)
+- **Code**: E402
+- **Sin**: `from spike_salience_gate import _load_gt_agents, _type_triple` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-308 — reuses the sibling FR-585 spike's GT loader and triple typer below the required `sys.path.insert`.
+
+### CONF-310
+- **File**: [examples/plot_modeller/spike_snapshot_diff.py](../examples/plot_modeller/spike_snapshot_diff.py#L51)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-308 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-311
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L25)
+- **Code**: E402
+- **Sin**: `import yaml` appears after `sys.path.insert`.
+- **Penance**: Same as CONF-308 — the import must follow the `sys.path.insert` that makes the `nodes`/repo packages discoverable for this standalone FR-591/592 vocab-encode spike harness.
+
+### CONF-312
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L26)
+- **Code**: E402
+- **Sin**: `from evaluate import _load_gt_pre_eff, score_l5` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-311 — reuses the example's evaluation helpers below the required `sys.path.insert`.
+
+### CONF-313
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L27)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _parse_beats, combine_perspectives, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-311 — grouped with the local `nodes` imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-314
+- **File**: [examples/plot_modeller/spike_vocab_encode.py](../examples/plot_modeller/spike_vocab_encode.py#L33)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-311 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-315
+- **File**: [examples/plot_modeller/spike_affect.py](../examples/plot_modeller/spike_affect.py#L56)
+- **Code**: E402
+- **Sin**: `from evaluate import _load_gt_affects, main_l7` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-308 — the import must follow the `sys.path.insert` that makes the example's `evaluate` module discoverable for this standalone FR-596 affect-throughline spike harness.
+
+### CONF-316
+- **File**: [examples/plot_modeller/spike_affect.py](../examples/plot_modeller/spike_affect.py#L57)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, affect_balance, combine_affects, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-315 — grouped with the local `nodes` imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-317
+- **File**: [examples/plot_modeller/spike_affect.py](../examples/plot_modeller/spike_affect.py#L64)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-315 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-318
+- **File**: [examples/plot_modeller/spike_affect_per_kind.py](../examples/plot_modeller/spike_affect_per_kind.py#L54)
+- **Code**: E402
+- **Sin**: `import evaluate as ev` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-315 — the import must follow the `sys.path.insert` that makes the example's `evaluate` module discoverable for this standalone FR-604 per-kind affect-detection spike harness.
+
+### CONF-319
+- **File**: [examples/plot_modeller/spike_affect_per_kind.py](../examples/plot_modeller/spike_affect_per_kind.py#L55)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, combine_affects, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-318 — grouped with the local `nodes` imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-320
+- **File**: [examples/plot_modeller/spike_affect_per_kind.py](../examples/plot_modeller/spike_affect_per_kind.py#L61)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-318 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-321
+- **File**: [examples/plot_modeller/spike_affect_twopass.py](../examples/plot_modeller/spike_affect_twopass.py#L46)
+- **Code**: E402
+- **Sin**: `import evaluate as ev` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-318 — the import must follow the `sys.path.insert` that makes the example's `evaluate` module discoverable for this standalone FR-605 two-pass affect-localization spike harness.
+
+### CONF-322
+- **File**: [examples/plot_modeller/spike_affect_twopass.py](../examples/plot_modeller/spike_affect_twopass.py#L47)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-321 — grouped with the local `nodes` imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-323
+- **File**: [examples/plot_modeller/spike_affect_twopass.py](../examples/plot_modeller/spike_affect_twopass.py#L48)
+- **Code**: E402
+- **Sin**: `from spike_affect_per_kind import (...)` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-321 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-324
+- **File**: [examples/plot_modeller/spike_affect_twopass.py](../examples/plot_modeller/spike_affect_twopass.py#L56)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-321 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-325
+- **File**: [examples/plot_modeller/spike_affect_goal.py](../examples/plot_modeller/spike_affect_goal.py#L50)
+- **Code**: E402
+- **Sin**: `import evaluate as ev` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-321 — the import must follow the `sys.path.insert` that makes the example's `evaluate` module discoverable for this standalone FR-607 goal-anchored affect-referent spike harness.
+
+### CONF-326
+- **File**: [examples/plot_modeller/spike_affect_goal.py](../examples/plot_modeller/spike_affect_goal.py#L51)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-325 — grouped with the local `nodes` imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-327
+- **File**: [examples/plot_modeller/spike_affect_goal.py](../examples/plot_modeller/spike_affect_goal.py#L52)
+- **Code**: E402
+- **Sin**: `from spike_affect_per_kind import (...)` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-325 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-328
+- **File**: [examples/plot_modeller/spike_affect_goal.py](../examples/plot_modeller/spike_affect_goal.py#L58)
+- **Code**: E402
+- **Sin**: `from spike_affect_twopass import _pass1_set, _skeleton` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-325 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-329
+- **File**: [examples/plot_modeller/spike_affect_goal.py](../examples/plot_modeller/spike_affect_goal.py#L60)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-325 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-330
+- **File**: [examples/plot_modeller/spike_affect_graph.py](../examples/plot_modeller/spike_affect_graph.py#L50)
+- **Code**: E402
+- **Sin**: `import evaluate as ev` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-325 — the import must follow the `sys.path.insert` that makes the example's `evaluate` module discoverable for this standalone FR-609 goal-graph affect-referent spike harness.
+
+### CONF-331
+- **File**: [examples/plot_modeller/spike_affect_graph.py](../examples/plot_modeller/spike_affect_graph.py#L51)
+- **Code**: E402
+- **Sin**: `from nodes.tools import _strip_code_fences, load_glosses_with_kinds` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-330 — grouped with the local `nodes` imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-332
+- **File**: [examples/plot_modeller/spike_affect_graph.py](../examples/plot_modeller/spike_affect_graph.py#L52)
+- **Code**: E402
+- **Sin**: `from spike_affect_goal import (...)` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-330 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-333
+- **File**: [examples/plot_modeller/spike_affect_graph.py](../examples/plot_modeller/spike_affect_graph.py#L57)
+- **Code**: E402
+- **Sin**: `from spike_affect_per_kind import (...)` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-330 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-334
+- **File**: [examples/plot_modeller/spike_affect_graph.py](../examples/plot_modeller/spike_affect_graph.py#L63)
+- **Code**: E402
+- **Sin**: `from spike_affect_twopass import _pass1_set, _skeleton` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-330 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
+### CONF-335
+- **File**: [examples/plot_modeller/spike_affect_graph.py](../examples/plot_modeller/spike_affect_graph.py#L65)
+- **Code**: E402
+- **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
+- **Penance**: Same as CONF-330 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

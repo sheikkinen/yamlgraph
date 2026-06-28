@@ -12,3 +12,24 @@ layers =
     yamlgraph.cli
     yamlgraph.graph_loader : yamlgraph.node_factory : yamlgraph.executor : yamlgraph.linter : yamlgraph.edge_compiler : yamlgraph.node_compiler : yamlgraph.map_compiler : yamlgraph.routing : yamlgraph.graph_cache : yamlgraph.schema_loader : yamlgraph.data_loader : yamlgraph.discovery : yamlgraph.executor_async : yamlgraph.interactive_tool : yamlgraph.mcp_server : yamlgraph.a2a_server : yamlgraph.a2a_message
     yamlgraph.tools : yamlgraph.models : yamlgraph.utils : yamlgraph.config : yamlgraph.constants : yamlgraph.storage : yamlgraph.contrib : yamlgraph.executor_base : yamlgraph.error_handlers : yamlgraph.verification
+
+[importlinter:contract:linter-llm-free]
+# Judgement (2026-06-24, FR-588): the linter is a pure, offline, deterministic
+# AST/YAML analyzer. It must never make an LLM call — no API keys, no network,
+# no non-determinism inside a tool that runs in pre-commit and CI. An LLM-scored
+# complexity metric (FR-588) lives in a standalone command, never wired into the
+# linter. This contract forbids any linter module from importing the executor or
+# LLM-factory layer directly. The single legitimate transitive bridge —
+# checks_semantic importing graph_loader for loop detection — is exempted below;
+# that path reaches the executor only incidentally, never to invoke a model.
+name = Linter stays LLM-free (no executor or LLM-factory imports)
+type = forbidden
+source_modules =
+    yamlgraph.linter
+forbidden_modules =
+    yamlgraph.executor
+    yamlgraph.executor_async
+    yamlgraph.executor_base
+    yamlgraph.utils.llm_factory
+ignore_imports =
+    yamlgraph.linter.checks_semantic -> yamlgraph.graph_loader

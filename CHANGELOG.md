@@ -8,6 +8,750 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.6]
+
+### Added
+- **FR-602 L7 gate beat-tolerance experiment (CLOSED UNSTARTED)**: Add a deterministic `--sweep` mode to `probe_l7_misses.py` that scores the re-annotated GT against the classifier at match windows +/-0..+/-3, reporting `affect_recall` AND `affect_precision` at each (window 0 ties out to the frozen gate per genre; canonical `evaluate.py` imported read-only and untouched). Decision: relaxing the FR-578 gate to +/-1 recovers exactly **one** GT delta (a single one-beat-late `open loss` tail displacement), far below the >=3 evidentiary bar the AC requires before any loosening. The beat-off misses that motivated this FR were already absorbed by FR-600 (re-anchoring) and FR-601 (kind discrimination). **Exact-beat matching stays; the frozen gate is not loosened.** Committed measurement dump at `fixtures/affect-licensing/fr602-window-sweep.md`. (REQ-YG-020)
+- **FR-599 L7 affect-recall miss-decomposition probe**: Read-only diagnostic
+  (`examples/plot_modeller/probe_l7_misses.py`) that partitions every GT affect delta the
+  frozen FR-578 gate counts as a miss into five mutually-exclusive buckets (UNLICENSED /
+  ABSENT / BEAT-OFF / KIND-WRONG / TOWARD-WRONG), each × window (±1/±2/±3) × op
+  (open/close), ties out to the gate's own `_l7_counts` recall_hits, and routes the
+  reserved escalation to one named lever. Verdict on the haiku corpus: **MULTI-CAUSE** —
+  UNLICENSED ground truth and model-scale ABSENT tied at 39%, so no single lever clears
+  the floor. The UNLICENSED bucket uses a fixture-pinned, conservatively-gated LLM
+  licensing pass (`affect_licensing.yaml`); reading every (e) member caught an open-biased
+  judge and flipped the verdict from single- to multi-cause. (REQ-YG-020)
+- **FR-597 L7 affect-regenerability ruler**: Added a diagnostic `l7_measure` graph (the affect port of FR-594's `l5_measure`) measuring whether an L7 affect encoding's emotional arc is regenerable from the affect deltas alone, on two orthogonal axes — deterministic *simulability* (`[UNDERDETERMINED]` markers / affect-bearing beats) and an advisory LLM *fidelity* judge. New pure tools `render_l7_affect`/`score_affect_simulability`/`combine_l7_measure`, prompts `regenerate_affect_arc`/`judge_affect_fidelity`, and `run.py --mode measure-l7` with a corpus-POOLED headline. The binary anti-deferral exit fired **branch (b) — thesis REFUTED**: the GT affect skeleton is regenerable (pooled under-determination 0.464 < 0.70; detective `betrayal→Hagen` regenerated cleanly), so `affect_recall` stands as the primary L7 gate and the protagonist-throughline encoder work resumes against its original ≥0.50 gate. Diagnostic only; FR-578 gate untouched. (REQ-YG-020)
+- **FR-594 L5 prose-regenerability measurement graph**: Graduate the
+  `spike_regenerate_prose.py` probe into a declarative five-node graph
+  (`l5_measure.yaml`): render L5 beats → regenerate the chapter from only the
+  world-state machine → count `[UNDERDETERMINED]` markers (deterministic
+  simulability) → judge the regen against the synopsis (LLM fidelity) →
+  `combine_l5_measure` into a two-axis verdict that keeps the axes orthogonal and
+  attributable (never one averaged scalar). Adds three pure tools
+  (`render_l5_beats`, `score_simulability`, `combine_l5_measure`), a
+  `judge_fidelity` prompt, eleven `REQ-YG-020` unit tests, and a
+  `run.py --mode measure-l5` corpus runner. Diagnostic only — `world_recall`
+  remains the primary L5 signal. The acceptance run reproduced the probe's
+  discrimination (ours simulability 0.313 ≪ gt 0.697) and witnessed the fidelity
+  judge firing non-empty `inverted` on scifi climax-drift. The retired spike is
+  deleted. (REQ-YG-020)
+- **FR-593 Story-Level Vocabulary (deterministic core)**: Add `StoryVocab`
+  (`schema/vocab.py`) as the validated structured binding for `extract_vocab` — a bare
+  string is rejected, making the FR-592 markdown-string regression impossible to
+  reintroduce. Add `canonicalize_glosses` (`nodes/tools.py`): a pure, deterministic,
+  additive alias substitution (case-insensitive, longest-alias-first, word-boundary
+  aware) that writes a new `canonical_gloss` field and leaves the original `gloss`
+  byte-identical, so no other gloss-consuming layer (L4/L6/L7/L8) is perturbed. The
+  corpus precision/recall acceptance gate (world_recall ≥ 0.47 over two runs) is a
+  separate validation run. (REQ-YG-020)
+- **FR-591 Perspective-to-L5 conversion graph**: Promote the per-character L5
+  decomposition from a throwaway Python spike into a proper YAMLGraph graph — an
+  outer `perspective_l5.yaml` (map-over-agents) fanning out an inner
+  `perspective_agent.yaml` subgraph (viewpoint prose → typed encoding →
+  `parse_perspective` assembly), then a deterministic `combine_perspectives`
+  union into the unified per-beat L5. Adds a `perspective` run mode and a
+  `spike_perspective.sh` driver; conversion is separated from scoring. The
+  per-character ENCODING contract is **provisional** (recall-preserving,
+  precision-open). (REQ-YG-020)
+- **FR-589 Abstraction-span example**: Standalone graph-native example
+  (`examples/abstraction_span/`) that LLM-scores a prompt's abstraction-span (count
+  of distinct kinds of cognitive operation) via a `map` node and gates the score
+  with a deterministic `separation_verdict` Python tool. Gate 1 passed: the metric
+  reproduces the hand monolith/clean labels on `claude-haiku-4-5`. No linter
+  integration (the `linter-llm-free` contract stands). (REQ-YG-020)
+- **FR-587 L5 snapshot-then-diff spike (Gate 1 KILL)**: Added a comprehend/represent
+  spike for the plot_modeller L5 wound — Node A emits per-beat world-state
+  *snapshots* (`prompts/assign_pre_eff_snapshot.yaml`) and a deterministic
+  `diff_snapshots` helper (`nodes/tools.py`) computes the salient change
+  (intra-chapter `at`-run collapse + first-departure-only). Gate 1 on
+  `claude-haiku-4-5`: `at`-FP fell only 86→69 (still 85% of all FPs) with recall
+  0.32 — below the 0.50 floor — so the snapshot+diff seam is falsified at this tier
+  and the work escalates to FR-578 (larger model). `diff_snapshots` ships as a
+  unit-tested pure helper regardless of the spike verdict. (REQ-YG-020)
+- **FR-586 W026 Prompt-Monolith Lint**: `yamlgraph graph lint` now warns (W026) when a prompt fuses too many independent judgements into one LLM call — the attention-overload anti-pattern that starves the hardest judgement under load. Two static detectors: inline-schema top-level field count (default ≥4, configurable via the `field_threshold` parameter) and a curated set of prose phrases (enumerated multi-output, global cross-unit constraints). Warning severity only; lint exit semantics unchanged. (REQ-YG-473)
+- **FR-583 Part 1 — evaluator Jaccard arg tolerance**: Add `_args_jaccard_match`
+  + shared `_arg_matches` per-arg comparator, called by both `_fluent_matches`
+  (L1/L5 world) and `_goal_matches` (L2) so multi-word arg tolerance cannot
+  drift between layers (J:C1). Multi-word args match on token-set Jaccard ≥ 0.5
+  (order-swapped / non-contiguous overlap); single-word synonyms stay rejected
+  (AC#7). Re-score is conservative: L2 13/18 (0.72) and L5 43/85 (0.51)
+  unchanged with precision flat (L2 0.42, L5 0.19) — zero manufactured positives
+  (C3). The residual L2 misses are all genuine semantic gaps (goal omission or
+  single-word synonym), not multi-word strictness → L2 GO per J:N2.
+- **FR-582 L5 pre/eff prompt revise — REVISE (stop rule)**: three prompt
+  revisions (label vocabulary, multi-word token anchor, move-decomposition
+  rule) plus code-fence parse fix across all 5 validators. Combined world
+  recall flat at 0.55 (Haiku), regressed to 0.51 (Sonnet). Stop rule
+  triggered: next step is architectural.
+- **FR-578 L7 assign-affects spike — REVISE verdict**: Wired Mode 7
+  (`run.py --mode assign-affects`), the L7 graph/prompt, and the `evaluate.py`
+  L7 scorer (recall gate, precision over-emission detector C2, symmetric
+  `toward` null-handling C3, informational open/close balance C1). Two-model
+  spike: affect recall 4/33 (0.12) on `claude-haiku-4-5`, 3/33 (0.09) on
+  `claude-sonnet-4-6`. Model-invariant kind-axis confusion (char/op correct,
+  `kind` and relational `toward` wrong) → REVISE, not KILL (J:N2): the bottleneck
+  is task framing, not model capability. L7 blocks the FR-579 merge node until a
+  revised spike clears the 0.70 gate.
+- **FR-578 L7 assign affects spike**: LLM-validator-retry graph assigns emotional
+  affect operations (`eff_affect`: list of `AffectDelta`) to classified beats.
+  `validate_affects` checks AffectDelta structure (closed `AffectKind` enum,
+  binary `op`, `extra="forbid"`) and `char`/`toward` agent membership (J1
+  write-on-success). C1: open/close balance is NOT enforced in the validator (it
+  is a merge-node plan invariant, FR-579). C4: `kind` matching is exact (no
+  tolerance). Affect recall is the gate; precision is reported as an
+  over-emission detector (C2).
+- **FR-577 L6 assign causality spike**: LLM-validator-retry graph assigns
+  causal structure (`enables`, `motivation`, `threatens`) to classified beats.
+  `validate_causality` enforces forward-only `enables` links (J:C2: a beat may
+  only enable a later beat; a backward or self link is a validation failure that
+  forces retry), referential integrity, orphan/missing id coverage, and
+  `motivation`/`threatens` shape + agent membership via the `Motivation` schema
+  (J:C3, informational). Enables recall is the gate; precision is reported as an
+  over-link detector. Denominators are computed mechanically (J:C1).
+- **FR-577 L6 spike GO (enables 0.96)**: end-to-end causality layer —
+  `assign_causality` graph/prompt, `run.py --mode assign-causality` (Mode 6),
+  and the `main_l6` evaluator (`score_l6`/`summarise_l6`). Spike across 5
+  synopses: enables recall 43/45 (0.96) ≥ 0.75 gate → GO, precision 43/46
+  (0.93). motivation/threatens recall are informational (J:C3); agent-only
+  recall 0.83/0.81 vs full recall 0.26/0.00 isolates a goal-vocabulary gap
+  (forward signal for FR-583), not a comprehension gap. Unblocks FR-578 (L7).
+- **FR-576 L5 assign pre/eff spike**: LLM-validator-retry graph assigns
+  world-state and belief preconditions/effects (`pre_world`, `eff_world`,
+  `pre_belief`, `eff_belief`) to classified beats. `validate_pre_eff` enforces
+  Fluent/Belief structure, the 5-predicate vocabulary, and agent membership —
+  with NO kind→effect semantic rule (J:C2: the corpus models one death as a
+  `rel` change, not `alive=false`). Tolerant predicate matching (J:C1).
+  Combined world recall 47/85 (0.55). Verdict: **REVISE** — token substitution
+  + departure under-modeling are fixable prompt issues, not a capability
+  collapse (follow-up prompt FR, analogous to FR-581 for L2).
+- **FR-575 L3 extract glosses spike**: LLM-validator-retry graph decomposes
+  prose synopsis into 7–12 discrete story beats (id, gloss, chapter).
+  `validate_glosses` checks sequential IDs, word count, non-decreasing chapters.
+  Many-to-one beat matching (C5), stopword-stripped Jaccard calibrated at 0.15
+  threshold (C6). Beat recall 42/48 (0.88). Verdict: **GO**.
+- **FR-574 L2 extract goals spike**: LLM-validator-retry graph extracts story
+  goals as typed Fluent predicates from synopsis + agent list. `validate_goals`
+  checks predicate vocabulary, agent references, duplicates. Order-insensitive
+  matching for symmetric predicates (C3). Goal recall 13/18 (0.72). Verdict:
+  **REVISE** — inherent goal-inference ambiguity; spike measured + recorded (C4).
+- **FR-573 L1 extract agents spike**: LLM-validator-retry graph extracts
+  agents, initial world state, and initial beliefs from prose synopsis.
+  `validate_agents` checks structure, agent references, alive predicates.
+  Tolerant matching (C1: normalize + contains/prefix). Agent recall 22/24
+  (0.92). Verdict: **GO**.
+- **FR-572 Plot Modeller vocabulary validation (KILL gate)**: Retrofitted 4
+  ground-truth plans with mediation (3 plans), hope affects (4 plans), relational
+  toward (4 plans). Authored blind synopsis (historical fiction, 10 functions).
+  Updated classify prompt to 17 kinds. Self-derived 30/38 (0.79), blind 9/10
+  (0.90). Verdict: **GO** — pipeline construction may proceed.
+- **FR-571 Plot Modeller schema + validators**: Typed core for the Plot Modeller
+  — 17-kind FunctionKind enum, 6-kind AffectKind enum, relational `toward`,
+  `held: bool | str` beliefs, `extra="forbid"` on all models. Validators for
+  monotonic lifecycle, belief grounding, affect closure (policy-aware). Deliberate
+  fork from DM schema. 30 tests, all 4 ground-truth fixtures parse cleanly.
+- **FR-570 Plot Modeller L4 spike**: Standalone example that classifies prose
+  beat glosses into a 16-kind Propp-derived action alphabet using an LLM node
+  with YAML output, a validator retry loop, and ground-truth evaluation across 4
+  genre synopses. Includes a frozen fixture corpus with the self-derived ceiling
+  documented (J2). First run: 28/35 (0.80) overall — a GO trigger, optimistic
+  pending a blind-corpus re-test.
+- **FR-565 DM v3 producer integration (author & attach plot plan)**: wires the
+  `plot_plan.yaml` authoring graph into the headless generation pipeline.
+  `doc_ops.author_plot_plan(doc, story_dir)` runs the graph (author → validate →
+  bounded repair), parses through the tolerant boundary (`parse_plot_plan`), and
+  attaches through the gated `write_plot_plan` seam. Triple-validated (J1): graph
+  repair loop, `write_plot_plan` gate, `parse_plot_plan` boundary.
+  `generate_story(enable_plot_plan=True)` calls it after cast derivation; the
+  `--plot-plan` CLI flag and `$PLOT_PLAN` env var activate it.
+  `chapter_nav.write_plot_plan` now stores `plan.model_dump()` for JSON
+  serialization; `attached_plot_plan` reconstructs via `PlotPlan.model_validate()`.
+  Graceful degradation: `InvalidPlotPlan` is caught in `generate_story`, continuing
+  without a plan. A book with no plan is byte-for-byte v2 (dormancy invariant).
+- **FR-565 Plot plan default-on**: v3 plot plan is now enabled by default in `generate.py`; use `--no-plot-plan` to revert to v2 generation. (REQ-YG-162)
+- **FR-564 DM v3 M4b -- realize (beat-driven turn instruction)**: closes the v3 plot lane.
+  `plot.realize.beat_instruction(plan, chapter) -> str` renders authored beat(s) at a chapter
+  into a turn instruction, focalized on belief (never world-truth). A chapter carrying no beat
+  returns `''` (byte-for-byte passthrough). `plot.project.belief_at(plan, chapter)` exposes the
+  observer-dimensioned belief timeline that `exclusion_set` collapses; realize focalizes grief
+  from `believes(clan, not alive(Arnulf))` while world-truth stays untouched.  Additive wiring
+  inside `invoke_turn` (turn_ops.py) merges the beat directive into the stage instruction, gated
+  on `attached_plot_plan(doc)` -- no plan attached means byte-for-byte v2 passthrough (dormancy
+  invariant). Milestone closure: author (M4a) -> attach (M4a) -> validate (M0-M3) -> exclude
+  (M1) -> realize (M4b), end-to-end.
+- **FR-563 DM v3 M4a -- author & attach (activate the plot lane)**: turns the dormant v3 plot
+  validator into an attachable steering surface. A tolerant boundary parse
+  `plot.author.parse_plot_plan(raw)` mirrors `parse_world_state` -- it drops unknown fields and
+  off-alphabet functions/atoms from the authoring LLM's JSON and never raises (a hopeless payload
+  yields an empty plan). A `plot.author.plot_validate_plan` python node returns
+  `{"validation": {"ok", "flaws"}}` merged at the state top level, so the new `plot_plan.yaml`
+  graph routes DETERMINISTICALLY on conditional edges (`validation.ok == true/false`), not an LLM
+  router, with a `loop_limits`/`loop_exits`-bounded author -> validate -> repair cycle that
+  re-prompts with the concrete flaws. Authoring is engine-free: only the four pure checks run,
+  never the optional UP solve. `chapter_nav.write_plot_plan` is the sole, GATED owner of
+  `doc["plot_plan"]` -- it runs `validate_plan` and raises `InvalidPlotPlan` before committing, so
+  the attached-plan contract is un-bypassable -- and attaching a plan brings the FR-560 exclusion
+  seam alive (Arnulf excluded at ch3, released at ch6). Authoring half of M4; realize + production
+  driver wiring are M4b (FR-564).
+- **FR-562 DM v3 M3 -- affect closure**: the fourth and final hand-written narrative check. A pure,
+  engine-free `validate._check_affect_closure(plan, order)` flags every opened affect unit
+  (`AffectDelta(op="open", char, kind)`) with no later `close` of the same `(char, kind)` as a new
+  `unclosed_affect` flaw localized to the opening beat -- the dropped-confrontation class. A typed
+  per-unit `PlotPlan.intentional_open` allowlist exempts deliberately unresolved endings (a global
+  flag would gut the check). The check is an ordered pop-walk, not a symmetric count, so a
+  close-then-reopen of the same unit is residual debt on the reopening beat. The report gains an
+  affect-ledger column (opened-at / closed-at / debt). Completes the four-check narrative validator
+  half (lifecycle, grounding, antecedent, closure); `unreachable`/`causal_threat` remain planner-owned.
+- **FR-561 DM v3 M2 -- causal trio hardened**: the floodmark plot model now hardens three causal
+  classes. A pure, engine-free antecedent check (`validate._check_causal_antecedent`) flags the
+  phantom-reversal class as `open_condition` -- a beat whose precondition has no authored producer
+  and is not in the initial state. Capped reachability is enforced via a typed
+  `PlotPlan.turn_budget` compiled as a unary counter (no numeric fluents; the pinned classical
+  Fast Downward engine rejects `Int`), so a plan whose cumulative `cost_turns` exceeds the budget is
+  proven unsolvable. A forced-window threat is proven unsolvable against the existing encoding (no
+  `build_problem` change). The report gains a causal-health line (cumulative turns vs budget +
+  open-condition list).
+- **FR-560 DM v3 M1 belief lane**: Graduated the floodmark plot-model spike into a typed
+  `examples/dungeon_master/api/plot/` leaf package (`schema`/`up_model`/`validate`/`project`/
+  `report`). Added pure belief-lane projections (`chapter_cast`/`exclusion_set`/`protected_set`),
+  an ungrounded-reveal grounding check, and an additive plan-optional exclusion seam in
+  `compile_opening_onepager` (byte-identical when no plan is attached). `unified-planning` stays
+  optional -- projection, grounding, the seam, and the report run pure.
+- **FR-559 floodmark plot-model spike (M0)**: standalone `unified-planning` spike under
+  `examples/dungeon_master/spikes/floodmark_up/` proving a classical planner can author the typed
+  floodmark `PlotPlan`, compile belief-as-fluent, and prove the early-reveal variant unsolvable
+  (complete blind-A* search) while the world-revival variant trips the hand-written
+  monotonic-lifecycle invariant. Optional `unified-planning[fast-downward]` install; the test
+  skips gracefully when absent.
+- **FR-558 DM v2 Gate-on-Write Funnel (Contract C)**: Bound the per-card playability battery to the one typed write seam so no authoring path can commit an un-playable chapter card ungated. Added `examples/dungeon_master/api/card_gate.py` with `ChapterGateError` and `gate_chapter_card` (composes `reversal_pack_gap` + `unplayable_beat_gap`, tagging gaps by kind). `chapter_nav.write_chapter_card` now runs the gate after structural validation and raises before committing (the funnel; `card_gate` imported lazily to keep the static graph acyclic). Routed `outline_ops._packed_chapters`, `_unplayable_chapters`, and `reoutline_chapter_beats` through `gate_chapter_card` -- the detectors are no longer wired directly in `outline_ops` -- while keeping each caller's bounded retry loop (J3, passing path byte-identical). The sequence-level `composition_gap` stays outline-level (J1 arity split). The generalization tightens `reoutline_chapter_beats` to also reject an unplayable time-skip-epilogue final beat, witnessed by a new condemning test. 413 DM tests pass.
+- **FR-557 DM v2 turn engine (Contract B)**: Extract the doc-free engine core of
+  `turn_ops.invoke_turn` into a new `turn_engine` module -- typed request/result
+  packets (`TurnRequest`, `TurnResult`, and a CLOSED `TurnExtras` set), the single
+  turn-graph invocation, intent normalization, and the beat-FSM helpers
+  (`_phase_for_count`, `_satisfied_indices`, `_apply_beat_ledger`,
+  `_direction_dict`) moved verbatim. The adapter keeps assembly and gating (roster
+  scope, cast bundles, memory/lifecycle gates) and now builds a `TurnRequest` and
+  calls `turn_engine.play_turn`. A golden characterization test pins the
+  byte-identical turn record and recap across the move; no behavior changes.
+- **FR-556 DM v2 Typed StoryDoc Contract + Sole Accessor (Contract A)**: Added a permissive Pydantic `StoryDoc`/`Chapters`/`ChapterCard` backbone to `examples/dungeon_master/api/story_doc.py` with `parse()` (boundary validation) and `validate_chapter_card()` (raising `InvalidChapterCard`). Promoted `chapter_nav` to the one typed accessor: added the `chapter_turns` getter and the `write_chapter_card` setter that rejects a structurally-invalid card before committing. Migrated the read-only instruments cluster (`witness_metrics`, `prose_continuity`, `prompt_salience`) off the raw `doc["chapters"]...` reach-in onto the accessor, and routed `expand_chapters` through the setter so chapter authoring funnels through one validated write seam. The boundary parse is bound to writes, not reads, so loading a legacy book that degrades today never raises mid-run (J2). 42/42 live books validate against `StoryDoc`.
+- **FR-554 Recap present-fact preservation**: Add `revived_actors` to the DM v2 continuity witness -- a deterministic, visibility-not-gate gauge that flags an exited character (declared in an earlier turn's `cast_exits`) narrated on stage again in a strictly-later recap, excluding possessive-only aftermath mentions (`Arnulf's fallen body`). On 10035-BC it reads 10 incidents (Ch8 Arnulf exited t5, on stage t6-t14 -- the "surges up once more" resurrection the reviewer flagged). Acts on the FR-553 present-but-ignored finding by hoisting the already-present "who is gone this chapter" fact from buried scene prose into salient standing constraints: a `GONE THIS CHAPTER` clause in `turn_recap.yaml` (the gone must not act) and a `revival` continuity class in `turn_direct.yaml`, plumbed via a new `gone_this_chapter` turn-graph variable. Salience, not prompt mass; no new graph, no new LLM call, no mutating gate.
+- **FR-553 Turn-director prompt-salience witness**: Add `examples/dungeon_master/api/prompt_salience.py` -- a deterministic, visibility-not-gate harness that recomputes `running_scene` offline and tiktoken-counts the director's actual scene mass (correcting the premise that a turn's ~12.3k tokens was the director prompt; it is the 5-call turn-graph sum, dominated by the intent sub-calls), and cross-references each continuity break against whether its subject was present in the opening scene at the failing turn. On 10035-BC the director scene peaks at ~2k tokens (never 12k) and 2/2 continuity breaks were present-but-ignored (0 presence gaps), redirecting the continuity fix from prompt mass toward wording/recap. Wired into the continuity witness; no change to generation behavior.
+- **FR-548 DM v2 World Codex**: Add an outline-time World Codex stage to the Dungeon Master
+  example. A non-visitable side-effect graph (`world_codex.yaml`) derives faction + location
+  backstory from the accepted synopsis as a `parse_json` `{factions, locations}` object;
+  `doc_ops.expand_codex` normalizes it at the boundary (missing string fields default to `""`,
+  unknown keys dropped, non-list arrays coerced, unnamed entries dropped) and persists it as
+  immutable reference under `doc["codex"]` -- no `reviewed` gate, idempotent on re-accept,
+  sequenced on synopsis-accept after `expand_roster`. `final_cut` weaves it as grounding texture
+  through a `{% if world_codex %}`-guarded block, so a doc with no codex renders a byte-identical
+  compose. Backstory is additive: it states a world, it never reverses one, so it adds zero
+  cross-seam reversible state.
+- **FR-545 Allegiance-Transition Ledger Witness**: Add `allegiance_ledger.allegiance_transitions`,
+  a deterministic no-LLM witness that reads the FINAL committed `world_state.relationships` and
+  reports bi-temporal stance reversals (a closed edge `valid_to == K` reconciled into a new edge
+  `valid_from == K` whose type crosses a frozen opposed stance-pole pair) between roster pairs.
+  `transition_count` counts grounded reversals; `ungrounded_count` flags those without a recap
+  citation. Emitted as an additive `allegiance_transitions` block in `continuity_witness.json`
+  (visibility-not-gate). Tighten `chapter_close.yaml` to require an `update`/`invalidate` op for
+  stance changes (side switch, cooling), not only bare type turns, so the ledger records the flips
+  the witness reads. Scope is named pairwise edges only; role/collective resets stay the reviewer's.
+- **FR-544 Overlay-Trail Witness**: Persist the FR-541 derived character overlay
+  as an `overlay_trail` block in `continuity_witness.json`. `overlay_trail_summary`
+  reuses `character_overlay.derive_overlay` (no duplicated accrual) to recompute,
+  per chapter, the CURRENT STATE each roster character entered from; characters with
+  an empty overlay are omitted (sparse-is-truth). Visibility-not-gate; `story.json`
+  is unchanged (the overlay stays a derived projection, never authored state).
+- **FR-542 DM v2 seam fact reversal**: Two boundary defenses against the
+  cross-chapter fact reversal class (10029-BC "Arnulf swept away yet logged alive").
+  **Part A** (interim): a new `ledger_reconcile` leaf reconciles the close-chapter
+  `world_state` ledger against the director's reported `cast_exits` at the close
+  boundary — any benched actor the prose-derived ledger left reading present is
+  marked absent before the next chapter inherits it (pure, roster-bounded, no LLM).
+  **Part B** (the novel, generic contribution): a `fact_reversal` leaf with a
+  deterministic `fact_reversal_gap(prev_card, card)` that diffs a chapter's resolved
+  events and forbidden regressions against the next chapter's facts, flagging a
+  reversal of the SAME subject across a FROZEN antonym set. Surfaced as a
+  visibility-only `fact_reversal` block in the continuity witness (posture:
+  visibility-not-gate). The cast-exit accrual moved to `turn_state` beside its
+  `turn_direction`/`chapter_turns` siblings (FR-536 concern seam).
+- **FR-541 DM v2 character state overlays**: A character's ORIGIN sheet is
+  immutable (voice, backstory, who they were at the start), so the intent node read
+  the same sheet in chapter 1 and chapter 7 and a character who died and returned
+  still acted from their pre-death self (flat arcs in 10029-BC). A new
+  `character_overlay` leaf derives a per-chapter CURRENT STATE overlay by accruing
+  the committed `character_state_deltas` of prior chapters (deterministic,
+  last-write-wins, additive — empty until a delta exists). The overlay REUSES
+  `lifecycle_resolver`'s existing delta fold rather than duplicating it (one
+  narrowing rule, two paths). `invoke_turn` carries the overlay in each cast bundle,
+  and `character_intent.yaml` layers it as a CURRENT STATE block ALONGSIDE (never
+  replacing) the ORIGIN sheet, so a chapter with no prior delta reproduces today's
+  intent context exactly.
+- **FR-540 DM v2 chapter entry/exit contracts**: The partitioner authored
+  `summary`/`beats`/`cast` but never stated what is true at a chapter's open/close,
+  so two adjacent chapters could each be locally coherent yet fail to COMPOSE
+  (10029-BC Ch2->Ch3: isolated-grief close into assembled-crowd open, no
+  transition). The outline now emits authored `entry_state`/`exit_state` chapter
+  contracts (`_state_field` parser, stored per card in `expand_chapters`), and a new
+  `composition_gap` leaf flags an adjacent pair whose configurations contradict by a
+  FROZEN antonym set {present<->absent, together<->scattered} — deterministic,
+  roster-bounded for the presence concept, no LLM. The outline partitioner re-rolls
+  on a composition gap (bounded retry, the FR-525/FR-528 pattern) and raises if
+  unresolved. `running_scene` surfaces `entry_state` as an explicit turn-1 framing
+  block. This is the SOCIAL-configuration seam, carved distinct from the PHYSICAL
+  lethal-seam owned by `seam_precondition_gap` (a pure lethal case is not flagged
+  here). Absent contracts degrade additively — a pre-FR-540 story replays
+  byte-identical.
+- **FR-539 Seam-Aware Final Cut**: The dungeon_master Final Cut narrator now
+  composes each chapter with peripheral vision across the seam. A new
+  `cast_entrances` deriver leaf computes the candidate entrance manifest
+  (`resolve_chapter_cast(cid) − on_page(prev)`, new/returning/continuing, with the
+  entrant's own inherited ledger row), and the prior chapter's bounded closing
+  prose is fed into the next chapter's Final Cut prompt as `PREVIOUS CHAPTER — HOW
+  IT ENDED`. The narrator is instructed to open by establishing each entrant. The
+  manifest is narrator input only — it never suppresses FR-538's prose-outcome
+  `seam_entrance_gap` (paired B1).
+- **FR-538 DM v2 seam-entrance witness**: A deterministic `seam_entrance_gap`
+  detector flags any **roster** character who acts in a chapter's final-cut prose
+  but crossed the chapter seam with no on-page arrival — present in chapter N,
+  neither on-page in N−1 nor staged arriving in N. The gating signal is prose
+  establishment (an arrival/reposition token-run near the entrant, mirroring
+  `seam_precondition_gap`'s bridge check), never a manifest lookup, so FR-539's
+  `cast_entrances` cannot suppress a gap without narrating an arrival. Gaps are
+  classified `new`/`returning`/`continuing` from prior on-page history plus the
+  inherited `character_lifecycle`. The detector lives in a new leaf
+  `seam_entrance.py` (a sibling of `gap_detectors`, which was at the 450-line
+  ceiling) and is emitted as an additive, non-gating `seam_entrance` block in the
+  continuity witness. Roster lens only: non-roster named NPCs are out of scope
+  (they overlap the status/resurrection rail).
+- **FR-537 DM v2 chapter-scoped cast**: A chapter now declares its focal `cast` in
+  the outline, and the play loop animates only that cast instead of the whole
+  reviewed roster. A single `resolve_chapter_cast` leaf unions the authored cast
+  with the roster characters named in the chapter's beats (beats-as-floor,
+  word-bounded matching), and that resolution is applied at both roster-narrowing
+  sites — the prose-control cast (`build_allowed_scene_cast`) and the per-turn
+  intents roster built inline in `invoke_turn` (the measured defect: off-chapter
+  characters were animated every turn). This is a SCOPE narrowing distinct from
+  the lifecycle STATUS gates and composes with them. Authored cast names are
+  normalized against the roster at the `expand_chapters` boundary (unknowns dropped
+  with a warning); an empty resolved cast falls back to the full reviewed roster,
+  so a `cast`-less story reproduces today's behavior (additive feature).
+- **FR-534 DM v2 protected-character projection**: The chapter-open precedence
+  that already blocks contradictory lifecycle states (`chapter_memory >
+  live_synopsis > seam_packet`) is now also projected into prose generation, so
+  the narrator and final-cut composer can no longer kill a character the story
+  plan requires to survive. A new `api/lifecycle_resolver.py` becomes the single
+  source of truth for that precedence (shared by the open-gate and the prose
+  side), and derives a `protected_cast` (highest-precedence state alive AND named
+  by a plan guard). The turn director must not retire a protected character, and
+  the final-cut prompt carries a may-not-die constraint symmetric to the existing
+  dead-within-chapter rule (FR-519). Closes the asymmetry the FR-533 spike found:
+  the gate refused the resurrection but the composer was never told the character
+  was protected.
+- **FR-530 DM v2 continuity witness (Stage 1)**: `generate_and_review.sh` now emits a per-run, machine-readable continuity witness (`continuity_witness.json` with the reviewer's `Continuity` score and break count) after review. Strictly non-blocking (visibility, not a gate -- FR-522 posture): a missing review or low score never fails the run. The JSON is the join key for FR-531's continuity report. Stage 2 (per-seam corrective re-roll) remains out of scope.
+- **FR-522 DM v2 scripted single-chapter replay witness**: Promoted the throwaway
+  script that falsified FR-521's S1 into a first-class, tested witness. A continuity
+  change can now be measured as a controlled experiment — re-play **one** chapter
+  from its inherited start (every prior chapter held constant, the only changed
+  variable the code under test) and compare its director-continuity flag count
+  against the recorded baseline, instead of re-generating a whole confounded book.
+  The doc-shape reset is one named, tested site
+  (`turn_ops.reset_chapter_for_replay`); the impure LLM-driving loop lives in a new
+  `api/chapter_replay.py` (deep-copies the doc so the caller's is never mutated, and
+  is mockable so a test proves a prior chapter stays byte-identical); the
+  deterministic measurement lives in `witness_metrics.chapter_actor_flag_metrics`
+  and reports the **director-flag** count beside the **intent-map acting** count per
+  turn — so a change that injects text into the scene (which `running_scene` feeds
+  to all three turn nodes) cannot inflate the flag count without the independent
+  acting count exposing it (FR-521's metric-pollution lesson). Witness instrument,
+  not a gate — never wired into CI; measurement is unit-tested, live replay is run
+  by hand.
+- **FR-519 DM v2 intra-chapter prose-vs-state enforcement (Phase 1)**: The
+  per-chapter final cut now receives the chapter's committed physical state as a
+  hard constraint. Confirmed-dead characters are split into `dead_before_open`
+  (never appear) and `dead_within_chapter` (may act only up to their death), and a
+  `possession_facts` block tells the model who holds what so the prose cannot let a
+  character use an object it just lost. The close-graph output is threaded into
+  `invoke_final_cut` because the chapter's own `world_state` is not committed until
+  after the final cut runs. Warn-only diagnostics (`DEAD_CHARACTER_ACTS_POST_DEATH`,
+  `OBJECT_USED_AFTER_LOSS`) measure the residual without raising. Witnessed on
+  10021-BC ch6: possession contradictions cleared; the within-chapter post-death
+  residual triggered the FR-520 Phase-2 working-memory gate.
+- **FR-514–518 World Ledger as Agent Memory**: The DM v2 forward-carry relationship
+  ledger gains update-delta semantics. The chapter close emits grounded
+  `operations` (add/reaffirm/update/invalidate) instead of regenerating the whole
+  relationship web; deterministic code in `world_state.py` applies them to the
+  inherited ledger with a carry-forward floor (FR-514), bi-temporal
+  `valid_from`/`valid_to` reconciliation that closes-and-opens on a type change
+  instead of overwriting (FR-515), mechanical active→dormant decay on a chapter
+  schedule (FR-517), ranked top-K cast-relevant retrieval into turn context
+  (FR-516), and a grounded consolidation merge primitive (FR-518). The FR-513
+  per-relationship grounding gate is preserved per-operation.
+- **FR-513 Emotional State in World Ledger**: The DM v2 `world_state` ledger now
+  carries a typed `relationships` array (romantic_bond, alliance, enmity,
+  hierarchy, rivalry) so emotional and alliance facts persist across chapter
+  boundaries instead of resetting from context-window proximity. Relationships are
+  grounded at the boundary — `parse_world_state` drops any bond lacking
+  `recap_citations` or fewer than two named parties (no hallucinated lovers).
+  `format_world_state` renders them compactly with a `relationships` selector:
+  `active` (turn context, dormant/archived excluded) vs `all` (close
+  carry-forward, status-labelled). `running_scene` threads active relationships
+  into turn-1 play context; `chapter_close.yaml` extracts them from the recaps.
+- **FR-505 Witness continuity metrics**: A deterministic witness module and CLI
+  script that score a generated DM v2 manuscript's continuity (the reviewer-grid
+  replacement), surfacing carry-forward breaks as measurable signal.
+- **FR-499 Phase A structured world_state ledger**: The DM v2 forward-carry
+  `world_state` was a free-prose string — which let one chapter silently
+  contradict an earlier chapter's facts (a phantom hand-axe, a seized staff
+  wielded again, a wedged slab climbed over). Phase A replaces it with a typed,
+  Pydantic-validated ledger (`characters[]{name, faction, status, location,
+  inventory[]}`, `objects[]{name, holder, location}`, `facts[]`) emitted by
+  `chapter_close`, persisted on the chapter card, and threaded through every
+  carry-forward touch-point. A deterministic `format_world_state` renders it back
+  to terse prompt text for the next chapter's play and close — never a raw dict
+  repr, and never into the rendered manuscript. Detection-only: the ledger informs
+  continuity but does not yet block (Phase B deferred).
+- **FR-498 roster FACTION/INVENTORY labels**: The DM v2 character sheet gains two
+  EXACT uppercase labels — `FACTION:` (a single canonical clan/side token, or
+  `unaligned`) and `INVENTORY:` (a terse list of what they carry, subsuming
+  APPEARANCE's "what they carry"). The faction token is the fixed affiliation later
+  chapters carry forward, closing the front-boundary gap that let a played
+  character silently flip clans. The director's `continuity` channel is told to
+  flag faction-mismatch and unprovenanced-item use as advisory breaks (detection
+  only — no blocking). The cast render still glosses to the `SUMMARY:` value alone,
+  so neither new label leaks into the manuscript.
+- **FR-497 Book Reviewer example**: A stand-alone YAMLGraph example that critiques
+  a book-shaped Markdown manuscript with a decomposed `map → reduce` pipeline — the
+  deliberate opposite of a single "almighty prompt". No LLM call sees the whole
+  book (one chapter per review, two adjacent chapters per continuity check,
+  summaries-only for synopsis delivery), and no LLM emits a number: every score in
+  the final review is computed by a deterministic Python reduce, with the model
+  writing only a one-line prose verdict. Includes pure parse/lint/reduce tests, a
+  fully mocked graph run, a tested K4 prompt-scope gate, and an import-purity check.
+- **FR-488 DM v2 Book-Scope Chapters**: Add a Chapters planning stage after the synopsis. Synopsis-accept splits the book outline into a fixed, ordered set of chapter cards (structured `{title, summary}` outline), and each chapter expands into full prose plus an explicit `world_state` ledger that is carried forward into the next chapter — the consistency anchor book scope rests on. Independent of the preplan/play gate; new `chapter_outline.yaml`/`chapter.yaml` graphs and pure `chapter_ops` module.
+- **FR-487 DM v2 full-text walkthrough (the rendered finish)**: A `walkthrough`
+  terminal leaf that renders the **full text** of each played turn — the scene as
+  it could be read aloud or performed — by composing three already-authored layers:
+  the FR-485 cut spine (structural order + emphasis), the FR-486 per-character
+  performance (spoken `dialogue`, visible `expression`, acted `intent`), and a new
+  whole-arc director-staging pass (a curtain-up `setting` plus per-turn
+  location/blocking deltas that carry cross-turn continuity). The render is a
+  per-turn map — global de-repetition and climax weight already ride in on the cut
+  spine — validated 1:1 against the played turns by the **reused**
+  `validate_cut_turns` (no new alignment contract; alignment composes because the
+  spine is itself 1:1 to the played arc). The private `thinking` is dropped at the
+  assembly boundary and never reaches the page. Additive `doc["walkthrough"] =
+  {setting, turns:[{n, text}]}`, gated on the scene being complete **and** the
+  FR-485 cut being present; the recaps, both Final Cuts, and the per-turn
+  performance stay byte-for-byte immutable.
+- **FR-486 DM v2 wider per-turn character performance**: Each character's per-turn
+  `character_intent` output widens from `{thinking, intent}` to
+  `{thinking, intent, dialogue, expression}` — a captured **side-channel the arc
+  never reads**. `intent` stays first and explicitly singular (one decisive
+  action), `thinking` stays private, `expression` is its only public projection
+  (the visible facial/bodily tell), and `dialogue` is the spoken line. The turn
+  director and recap are untouched, so the played arc still converges on `intent`
+  alone; a mandatory seam-freeze test asserts `dialogue`/`expression` appear in
+  neither `turn_direct` nor `turn_recap`. Missing performance keys on older turns
+  default to `""` (a benign normalization, the deliberate asymmetry against
+  FR-485's alignment validator which raises). The turn card surfaces "Says"/"Shows"
+  rows when present. This authors the performance layer that FR-487's full-text
+  walkthrough renders, rather than inventing it at render time.
+- **FR-485 DM v2 turn-structured Final Cut**: A sibling of the FR-484 Final Cut
+  that **keeps the turn skeleton** instead of dissolving it — once a Dungeon
+  Master scene plays to completion, a terminal **Final Cut (Turns)** leaf composes
+  one polished segment per played turn, aligned 1:1 to the play-by-play, spending
+  the whole-arc knowledge on de-repetition (each standing fact established once,
+  in the turn that introduces it) and climax emphasis. Its centre is a
+  deterministic alignment validator that asserts exactly one segment per played
+  turn and **raises** on any divergence — never silently re-keying, padding, or
+  truncating — which turns FR-484's eyeball-only de-repetition into a checkable
+  post-condition. A separate `final_cut_turns` artifact gated identically on the
+  scene being complete; the played turns and the FR-484 continuous cut are left
+  untouched, so the two finishes coexist.
+- **FR-484 DM v2 post-play Final Cut**: After a Dungeon Master scene plays to
+  completion, a terminal **Final Cut** leaf composes one continuous scene
+  narration from the whole played arc — every turn recap, the canonical beats,
+  and a deterministic climax marker derived from the director's phase sequence.
+  It states each standing fact once instead of re-establishing it every turn, and
+  gives the pivotal turn prose weight proportionate to its drama. The played
+  turns are left byte-for-byte untouched; the Final Cut is a separate composed
+  artifact, unlocked once the director reports the scene complete.
+- **FR-483 DM v2 scene-pivotal non-roster actors**: A Dungeon Master scene may
+  now turn on an actor the roster does not carry — a beast, a third party, a
+  force of nature the synopsis introduces. The key-scene prompt permits casting
+  one such pivotal non-roster actor (named consistently across the scene card),
+  and the director's continuity check no longer flags it as a phantom: a flag is
+  a breach only when its subject is in neither the roster nor the scene's declared
+  CHARACTERS. A genuinely-invented name with no provenance is still flagged.
+- **FR-482 DM v2 cumulative canonical beats**: The Dungeon Master director's
+  `beats_satisfied` is now bound to the frozen key-scene's canonical `BEATS` and
+  accumulated across turns. Each turn's free-text beat phrases are fuzzy-matched
+  (difflib, with an acceptance floor and a runner-up margin) onto the scene's own
+  beat vocabulary and unioned with prior turns, so the field is a stable,
+  de-duplicated subset read in scene order — with a `k / N` progress count on the
+  Director card. A phrase matching nothing is dropped, never invented.
+- **FR-481 DM v2 Director card & monotonic phase**: The Dungeon Master play turn
+  now always shows the director's structured judgement as a compact, read-only
+  Director card (phase badge, satisfied beats, narrator steer, scene-complete, and
+  the continuity flags folded in) instead of discarding all but two signals. The
+  director's `phase` is clamped to never run backwards across turns
+  (`opening<rising<climax<resolved`), so the recorded arc is monotonic regardless
+  of what the model returns.
+- **FR-480 DM Roster/Scene Name Binding**: The Dungeon Master key-scene generator
+  is now bound to the rostered character names. The roster's display names are
+  threaded into `key_scene.yaml` as an authoritative cast, so the scene cannot
+  mint a character name the roster never sanctioned (e.g. `Brog` vs `Broga`) —
+  removing the continuity drift at the generation boundary rather than flagging it
+  every turn downstream.
+- **FR-479 DM Director/Narrator Split**: The Dungeon Master play loop now runs a
+  structured `direct` node before the prose `recap` node. The director judges
+  scene `phase`, emits an opening `establishing` description, signals
+  `scene_complete` (stopping the plain next-turn advance), and raises
+  informational `continuity` flags when a non-rostered character takes decisive
+  action — surfaced to the DM, never auto-applied.
+- **FR-478 DM v2 button-press feedback**: every slow press in the Dungeon Master web UI (Iterate, Accept, and breadcrumb nav links) now shows a uniform busy overlay and locks out double-presses while the LLM draft is in flight. A single full-viewport `#busy` overlay in `base.html` (outside `#app-body`) replaces the per-card `#gen-spinner`; `hx-disabled-elt` is avoided because it is a no-op on `<a>` anchors.
+- **FR-477 DM v2 Turn Operation**: Add the play loop to the Dungeon Master v2
+  prototype. Once the preplan is reviewed, a Play branch unlocks and each turn
+  runs the cast through private intents (THINKING + INTENT) that consolidate
+  into one authoritative recap. Prototype under the FR-474 J3 regime (no CAP/REQ).
+- **FR-475 Dungeon Master v2 — Navigable Scene + Characters**: The preplan that
+  follows the synopsis is reshaped from a single linear *plot* step into a
+  synopsis-derived tree — a **key scene** leaf and a **characters** roster that
+  spawns one navigable card per character — reachable by breadcrumb navigation
+  rather than a one-way accept-advance cursor. Scene and character cards share the
+  synopsis weave/edit/accept control. The key-scene prompt emits a dry scene
+  breakdown (SUMMARY / INT-EXT / LOCATION / TIME / CHARACTERS / START / BEATS /
+  END) and the character prompt a dry D&D-style sheet (SUMMARY / ROLE / ORIGIN /
+  APPEARANCE / PERSONALITY / DRIVE / BOND / FLAW). Prototype regime (FR-474 J3):
+  no CAP/REQ; walkthrough coverage stays under `examples/dungeon_master/tests/`.
+- **FR-473 Iterable Text Card**: The shared editable-prose card (synopsis and
+  woven beat) gained a 3-line prompt textarea plus **Iterate** and **Accept**.
+  *Iterate* runs a shared `refine` prompt ("apply `<prompt>` to `<text>`"),
+  replaces the text in place, and re-renders; an empty prompt is a pure save.
+  Text autosaves on change. Iterating a beat returns it to a draft and never
+  writes the chapter file (only Accept commits). Synopsis *Regenerate* and beat
+  *Re-roll* are removed in favor of Iterate. (REQ-YG-471)
+- **FR-472 DM Web UI v2 — On-Demand Beat Generation**: A chosen planned beat can now be woven on demand via a new stateless `weave-beat.yaml` graph (`plan_all` map over cast → `weave` → `normalize_beat`; no checkpointer, interrupt, or loop), returning editable prose with status `generated`; Accept persists the prose (verbatim or edited), appends it to the chapter file via the new `append_beat_to_chapter` helper, and flips status to `committed`. Generation is random-access — any chapter/beat in any order — completing the journey-first v2 redesign. (REQ-YG-470)
+- **FR-471 DM Web UI v2 — Outline Navigation**: The dungeon-master web outline now lists chapters as navigation links; opening a chapter lazily materializes its beat stubs once (a `materialized` guard keeps revisits idempotent and preserves DM edits), chapter summaries and beat stubs are inline-editable and persist to the story document, and a breadcrumb links back to the outline while naming the current chapter. (REQ-YG-469)
+- **FR-470 DM Web UI v2 — Synopsis Review**: The dungeon-master web board is now
+  journey-first. Preplan stops at the story skeleton (no eager weave) and renders
+  an editable **synopsis card**; the DM can **regenerate**, **edit**, or **accept**
+  the synopsis (logline, conflict, themes, tone, arc) before browsing the outline.
+  A per-session story document (`story_doc` over `story.json`) is the source of
+  truth; the v1 turn-loop checkpointer is retired from the web path (CAP-169
+  retired, superseded by CAP-170). (REQ-YG-468)
+- **FR-468 Dungeon Master Web UI — Demo & Docs**: A deterministic, key-free
+  `api/demo.py` drives a full browser-style session through every DM control and
+  records `api/demo-output.log`. The example README gains a Web UI section with the
+  `uvicorn` run command, the route table, and the demo walkthrough. (REQ-YG-437)
+- **FR-468 Dungeon Master Web UI — Server & Session**: New `examples/dungeon_master/api/`
+  FastAPI app wraps both DM graphs. A stateless `DMSession` adapter preplans a story
+  and drives the interrupt turn loop, detecting completion via `aget_state(...).next`
+  and overriding the YAML `:memory:` checkpointer with a process-stable singleton
+  (MemorySaver, or Redis when `REDIS_URL` is set). HTMX routes `POST /story/preplan`
+  and `POST /story/turn` swap a single `#app-body` region. (REQ-YG-435)
+- **FR-468 Dungeon Master Web UI — Theme & Controls**: Parchment/ink storybook
+  templates render the beat card with all six DM controls (accept, retry, edit,
+  nudge, next-chapter, end), a chapter progress strip, a preplan `hx-indicator`
+  spinner, and a completion panel with a restart link. (REQ-YG-436)
+- **DM Web UI v2 — Synopsis as one editable text**: The synopsis is now generated
+  and stored as a single prose paragraph instead of five structured fields. The
+  synopsis card and the woven-beat view share one full-height editable component
+  (`text_block.html`), so both fill the stage the same way. Downstream preplan
+  prompts (plot, chapters, cast) now consume `{{ synopsis }}` as clean text rather
+  than a Python-repr dict. (REQ-YG-468)
+
+### Removed
+- **FR-598 L7 affect throughline — kill the novel (hypothesis REFUTED)**: Rewrote
+  `affect_throughline.yaml` from free-prose narration into a single-pass per-beat
+  **classifier** (typed YAML, closed verbatim vocabulary, default none, no cross-beat
+  connective tissue, the "every arc that opens should close" completion mandate
+  **deleted**), **retired** `encode_affect.yaml` (two-pass collapsed to one node), and
+  updated `spike_affect.py` coherently. Measured against the frozen FR-578 gate the
+  hypothesis was **refuted**: `detection` collapsed 0.52 → 0.24 and `affect_recall`
+  regressed 0.15 → 0.06. Reading the raw output (`read_raw_output_first`) showed the
+  failure mode inverted — the prose flooded (recall rewards shots on goal) while the
+  terse classifier went near-silent (Marren 2 ops vs GT 8). The one permitted format
+  iteration is spent; the residual is a real beat-alignment / kind-discrimination
+  ceiling that fires the reserved escalation, not a second wording pass. The frozen
+  FR-578 evaluator was not modified. (REQ-YG-020)
+- **FR-550 Roll back DM v2 World Codex (FR-548)**: Remove the synopsis-derived World Codex stage. It authored immutable world prose *before the action existed, from a plot synopsis* -- a placement defect that leaked non-roster characters and plot-derived "factions" into the codex (verified live in the 10034-BC story). Excised the `expand_codex`/`_normalize_codex`/`_codex_entries` boundary, the `_format_world_codex` Final Cut weave, the `world_codex.yaml` graph + prompt, and the `WORLD_CODEX_GRAPH` wiring. A permanent regression guard (`tests/test_no_world_codex.py`) condemns any re-introduction. The length/depth goal is re-earned soundly by FR-551 (supporting-cast tier) and FR-552 (world bible).
+- **FR-504 Retire the free-text beat fallback**: The DM v2 director now has a
+  single beat-judgement regime. A non-empty, ordered `beats` list is a validated
+  boundary contract (`chapter_ops._require_beats`) — a chapter outline that emits
+  no beats is rejected at the parse boundary instead of silently falling back. The
+  FR-491 free-text path (`_canonicalize_beats`, `_clamp_phase`, `_PHASE_ORDER`, and
+  the `_apply_beat_ledger` `N == 0` branch) is deleted; `phase`/`scene_complete`
+  are always computed from the finite `k / N` ledger.
+
+### Fixed
+- **FR-621 Linter descends into map sub-nodes**: `check_tool_references()` now
+  collects tool references from a node *and* its `type: map` sub-node (nested
+  under `node:`). This removes a W001 false positive (a tool used only inside a
+  map sub-node was reported "defined but never used") and closes an E003 false
+  negative (an undefined tool referenced inside a map sub-node passed lint and
+  failed only at runtime). (REQ-YG-003)
+- **FR-601 L7 close-op kind discrimination**: Add a per-kind close-op resolution-signature cue to the `affect_throughline` classifier so a `close` names the feeling being *resolved* (loss recovered, guilt atoned, betrayal exposed, hope vindicated) instead of the resolving beat's surface action or valence. The four close-op KIND-WRONG confusions (`betrayal->retaliation`, `hope->loss`, `guilt->betrayal`, `loss->hope`) became hits; deterministic before/after on the re-annotated GT: (c) KIND-WRONG 6->3 (close 4->1), affect_recall 0.107->0.214, affect_precision 0.064->0.122, (a) ABSENT 17->14. Open-op path byte-identical (16 insertions, 0 deletions); frozen FR-578 gate untouched. (REQ-YG-020)
+- **FR-600 L7 Affect Experiential Re-Anchoring**: Corrected 12 mis-anchored L7 ground-truth
+  affect deltas from FR-599's UNLICENSED bucket against a human-confirmed frozen fixture —
+  7 re-anchored one beat forward to the experiential beat, 5 dropped as inferred-from-arc.
+  The frozen FR-578 gate is untouched. Recall 0.061→0.107, but the model-skill-only gain
+  (denominator held at 33) is 0.061→0.091; the rest is the denominator shrinking by 5 drops.
+  The (e)=12 bucket re-partitions to 1 HIT / 5 ABSENT / 1 KIND-WRONG / 0 (e), confirming the
+  MULTI-CAUSE verdict. (REQ-YG-020)
+- **FR-596 L7 per-agent affect throughline (Gate-1 KILL)**: Added the pure
+  `combine_affects` + `affect_balance` helpers (per-beat union of feeler-owned
+  affect deltas, no dedup), the `affect_throughline` / `encode_affect` decomposition
+  prompts, and the `spike_affect.py` Gate-1 harness (maps over the GT agent roster,
+  reports detection / kind-given-detection / toward-given-relational sub-axes and
+  the agent-coverage ceiling). Gate 1 KILLed the full-cast decomposition: the L7
+  ground truth authors affect as a single protagonist's throughline (every fixture's
+  deltas sit on one character), so mapping over the whole cast over-generates ~N×
+  and collapses precision (0.03) while affect_recall stays 0.09. The frozen FR-578
+  evaluator gate was not modified. (REQ-YG-020)
+- **FR-595 Demote world_recall, gate L5 on regenerability discrimination**: The L5
+  layer no longer gates on `world_recall` (which FR-594 proved scores agreement
+  with a lossy ground-truth predicate skeleton, not story capture). `summarise_l5`
+  now emits `verdict: "informational"` and retains `world_recall` as a diagnostic.
+  The powered L5 gate is the new `measure_l5_verdict` pure tool — the GT-anchored
+  simulability discrimination (`gt_sim − ours_sim`, corpus mean), grounded in the
+  FR-594 power analysis (n=5, paired gap 0.337 ± 0.035, t(4)=21.6). The live corpus
+  flips from a false KILL (world_recall 0.49) to GO (gap 0.294). (REQ-YG-020)
+- **FR-555 Reversal-gate the state-aware re-outline boundary**: `outline_ops.reoutline_chapter_beats` now gates its re-authored beats with the same `reversal_pack_gap` detector and bounded `_reversal_feedback` retry-then-raise discipline as the partition gate (`outline_chapters`, FR-525). A re-outline that re-packs an actor's removal-and-return into one chapter (the 10036-BC Ch3 Arnulf early-reveal: frozen summary "presumed dead" + a beat asserting he is "alive") is now re-rolled with feedback and, if still packed after `_OUTLINE_MAX_ATTEMPTS`, raised -- never committed. Closes the second, previously ungated authoring boundary the FR-523 re-outline introduced.
+- **FR-547 Fact-Reversal Entity-Disagreement Suppression**: Fix a false positive in the DM v2
+  `fact_reversal` continuity witness where two facts about DIFFERENT named characters sharing only
+  an incidental locative token (e.g. `Reinmar arrived at the flood zone` vs `Arnulf is still
+  missing in the flood zone`) composed a phantom `present <-> absent` reversal. `fact_reversal_gap`
+  gains an optional `entities` set (a corpus proper-noun lexicon) and suppresses a reversal only
+  when both lines name DISJOINT entities -- a pure veto that never strips a subject, so reversals
+  about places that name no entity (a sealed ford reopened) still fire. The lexicon is built in
+  `emit_continuity_witness._proper_noun_entities` from tokens capitalized non-sentence-initial at
+  least twice across the committed prose (recovering off-roster names the roster omits, while
+  locatives stay out), unioned with roster name-tokens. The cited 10032-BC witness now reports
+  `fact_reversal.gap_count == 0`.
+- **FR-543 Seam-entrance lexicon hygiene**: The DM v2 seam-entrance witness
+  (`seam_entrance.seam_entrance_gap`) no longer clears an unbridged entrance with
+  an exit/fall sentence. The arrival lexicon (`_ESTABLISH_TOKENS`) had borrowed the
+  exit-edge reposition tokens (`into the water`, `slips`, `loses footing`,
+  `down the bank`, `goes back`, `back for`), so a character's later death-fall
+  wrongly counted as their arrival. Those inversion-prone tokens are purged; the
+  establish set now contains only unambiguous arrival verbs.
+- **FR-532 Reviewer continuity-axis calibration**: Calibrated the `book_reviewer` continuity critic against a large-model human-proxy reference over a 4-book DM sample (33 breaks). 61% of critic-flagged breaks were physical micro-state a reader glides past; all reader-real breaks were lifecycle/identity/relationship/plot. Narrowed the `continuity` system prompt to report only reader-salient breaks (de-saturating the flat 1/5 score to 4/3/2/1 on the sample) and **descoped FR-529** (the positional seam pin would fix 0 of 13 reader-real breaks). Added a reproducible calibration harness (`scripts/calibrate_continuity_axis.py`) and committed per-seam labels.
+- **DM v2 unplayable-epilogue outline gate (FR-528)**: The whole-book partitioner
+  could author a chapter's FINAL beat as a time-skip epilogue ("By autumn, ... a
+  settlement that ends the blood-feud"). A chapter resolves only when its director
+  computes `scene_complete = (k == n)` over `n = len(beats)`; a beat that resolves
+  only after a season passes can never be enacted inside the 16-turn cap (FR-501),
+  so `scene_complete` never fires and the chapter rides the cap replaying its
+  already-resolved confrontation -- the no-progress tail FR-527 mis-treated as a
+  play-loop symptom. The cure normalizes at the partitioner boundary
+  (`the_one_law`): a deterministic `unplayable_beat_gap` witness fires when a
+  chapter's last beat LEADS with a future-time-skip marker, and `outline_chapters`
+  re-rolls with the violation fed back (instructing an in-scene resolution or a
+  summary fold), then RAISES after the bounded retry rather than emitting a
+  cap-riding chapter (Commandment 6). The leading-anchor discriminator (not mere
+  co-occurrence of "settlement"/"feud") was validated against the 10025-BC CH8
+  epilogue versus the clean present-tense resolutions of 10020/10022/10023/10024-BC.
+- **FR-526 DM v2 close-seam lifecycle coherence invariant**: A close seam could
+  commit a `CharacterLifecycle` row that was `confirmed_dead` yet carried a non-null
+  `allowed_reappearance_from_chapter` (observed in `10024-BC` Ch3) — the clamp
+  reconciled the reappearance index but never the state. A new pure, packet-only
+  invariant (`_enforce_reappearance_state_coherence`), applied at the close seam after
+  the clamp, softens `confirmed_dead` to `missing_presumed_dead` when a reappearance is
+  planned (preserving the authored return intent), leaving genuine deaths untouched.
+  Defense-in-depth behind FR-525.
+- **FR-525 DM v2 outliner split-gate**: The whole-book chapter partitioner
+  (`outline_chapters`) now runs the deterministic `reversal_pack_gap` witness over
+  every authored chapter; when a chapter packs the same actor's removal AND return —
+  a reversal the 16-turn chapter cap (FR-501) cannot play, leaving the return a
+  phantom (`beat_coverage_gap`) — the outline is re-invoked with the violation fed
+  back (bounded retry) and RAISES if the pack survives, never emitting a packed
+  outline downstream.
+- **FR-523 DM witness tolerates legacy world_state**: `seam_precondition_gap` now normalizes the carried `world_state` at the boundary via `parse_world_state`, so scanning older books (pre-FR-499A) that store `world_state` as a free-prose string no longer crashes with `AttributeError`.
+- **FR-523 DM v2 state-aware chapter re-outline**: The chapter outliner was
+  state-blind — it wrote every chapter's beats from the synopsis alone, before any
+  chapter played, so a lethal beat ("Arnulf is swept away by the flood") could land
+  on an actor the prior chapter left safe on the higher bank with no beat bridging
+  the two. The generator then teleported the actor to satisfy the beat and the
+  director was blamed at play time for a contradiction the planner authored. After a
+  chapter closes and commits its `world_state`/`seam_packet`, the next unplayed
+  chapter's beats are now re-authored from that carried physical state
+  (`chapter_reoutline.yaml`), so a hazard death/exit is bridged by a reposition beat
+  that first moves the character into reach — killing the seam-teleport in the spec
+  (the One Law: normalize at the outliner boundary, not downstream in the prose).
+  Beats-only: title and summary stay frozen. Condemned first by the deterministic
+  `witness_metrics.seam_precondition_gap` witness and its fixture (RED), then cleared
+  by the re-outline (GREEN, mocked-graph gate with a non-vacuity negative control).
+- **FR-521 DM v2 drop a within-chapter exited actor from the running cast**: When
+  a chapter killed or swept away a character mid-chapter, the per-character intent
+  map kept generating intents for them (a drowned brother hauling himself back up
+  the bank turn after turn), because the only signal — the director's free-text
+  `continuity` flag — was advisory and the intent map ignored it. The director now
+  emits a **structured** `cast_exits` field naming rostered characters who have left
+  the scene this chapter (they may act up to and including their exit turn). The
+  turn's roster filter accumulates those exits across the chapter's prior turns and
+  drops the actor from the cast for every later turn — turning detection into
+  enforcement. Never empties the cast (the chapter's turn cap closes it instead).
+  Also widens within-chapter death detection so `missing_presumed_dead` is treated
+  as a chapter-scoped death-point (the swept-away state the confirmed-only filter
+  excluded), while the cross-chapter before-open bar stays `confirmed_dead`-only so
+  a synopsis return is never barred (Arnulf ch6). Witnessed on 10022-BC Ch3: Arnulf
+  re-flags dropped 8/16 → 0/16, with Arnulf acting through his exit turn then
+  benched. Supersedes the rejected FR-520 and the reverted advisory feed-forward
+  (which raised the break 8/16 → 13/16: asking a generator not to is not a gate).
+- **FR-505 Final Cut de-gridding (deterministic seam + metrics):** Added beat-grouped Final Cut context with cue-carrying performance cards (`dialogue`/`expression`), introduced deterministic prose quality proxies (`round_robin_paragraph_fraction`, `cue_uptake`) with unit tests, and hardened chapter fixtures to align with beat-group composition inputs.
+- **FR-503 Finite beat ledger for the DM director**: The DM v2 director no longer
+  judges chapter progress from a free-text summary with no anchor — chapter
+  outlines now emit an ordered list of 3–6 key-event **beats**, the director
+  selects the satisfied beats **by number** over that finite list, and `phase` /
+  `scene_complete` are **computed** in Python from `k / N` (opening → rising →
+  climax → resolved) rather than guessed by the model. The running scene surfaces
+  the **beats still to portray** so both the characters and the director drive
+  toward the next unsatisfied beat instead of looping a single struggle until the
+  FR-501 turn cap fires. A chapter with no enumerated beats falls back to the
+  FR-491 free-text path (no divide-by-zero). Fixes the cross-provider stall where
+  chapters never left `"rising"` and most closed only via the cap.
+- **FR-501 Per-Chapter Turn Budget**: Bound the DM v2 play loop with a per-chapter turn budget (`turn_ops.CHAPTER_TURN_CAP = 16`). A chapter's only natural exit is its director emitting `scene_complete`; a director that never resolves (observed live with a diffusion provider stuck in the "rising" phase for 91 turns) consumed the entire book `turn_cap` on one chapter. `chapter_should_close(doc, cid, n)` force-closes a chapter once it plays its full budget without resolving, so the book always terminates under any provider.
+- **FR-499A Reasoning Budget**: Cap the `chapter_close` node's hidden reasoning via `thinking_budget: 512` and raise `max_tokens` to 8000. gemini-3.5-flash spends reasoning tokens from the completion budget before emitting JSON; a 2000-token cap was consumed entirely by reasoning (~1921 tok), leaving an empty `world_state` ledger. The threshold is kept below 1024 so it bounds Gemini reasoning on vertex yet is ignored on non-thinking providers (inception/mercury) rather than raising. A config-boundary test pins both guards.
+- **FR-487 DM v2 finish chain**: Accepting a closing artifact now walks the DM
+  through all three — the continuous Final Cut (FR-484) → the turn-structured
+  Final Cut (FR-485) → the full-text Walkthrough (FR-487) — instead of stranding
+  the page on the first finish (the reported "Final Cut shown, then the page
+  closed"). The chain also drafts the FR-485 cut spine the Walkthrough renders, so
+  the rendered finish is reachable through Accept without a manual breadcrumb
+  detour. The Walkthrough is the true terminal leaf; accepting it stays put.
+- **FR-477 DM turn scene framing**: Fix the play loop replaying the scene's
+  aftermath instead of starting from the opening. The key scene is a plan
+  (SUMMARY/BEATS/END describe the intended arc, not events that have happened);
+  `running_scene` now labels the plan apart from what has actually happened, and
+  the turn prompts act from the current moment so turn 1 begins at the START.
+- **FR-476 Normalize Plain-Text LLM Content at the Executor Boundary**: The sync
+  (`PromptExecutor._invoke_with_retry`) and async (`invoke_async`) plain-text
+  invoke paths now normalize `response.content` via the shared
+  `normalize_content()` utility. Providers that return content as a list of
+  part-dicts — notably Google Gemini 2.5+/3.x on Vertex, which attaches
+  thought-signature parts — no longer leak the raw Python list into graph state.
+  Completes FR-264's boundary normalization for the executor. (REQ-YG-472)
+- **book-reviewer: coerce null `issues` to empty list at provider boundary:** Azure returns `null` for `ChapterReview.issues` when no issues are found; add a `field_validator` to normalize `None → []` at the LLM output entry seam.
+- **Book reviewer null-field coercion**: Review model before-validators coerce a
+  null or non-list `criteria`/`breaks` from the LLM provider into an empty list at
+  the schema boundary, so a malformed provider response normalizes rather than
+  raising downstream.
+- **DM `generate_and_review.sh` interpreter resolution**: The convenience script no longer requires a pre-activated venv — it resolves a Python interpreter via `$PYTHON` override, then the repo-local `.venv/bin/python`, then `python3`/`python`, fixing the `python: command not found` (exit 127) failure when run from a fresh shell.
+- **DM v2 LLM failure/denial feedback**: A declined or failed generation is now
+  shown to the DM instead of vanishing. An empty completion (the shape a Vertex/
+  Gemini content-policy block usually takes) is surfaced as a "request declined"
+  message rather than silently blanking the card, and the blank is never persisted
+  over the draft (Commandment 6). A provider error recorded by the graph surfaces
+  its real reason. The failure renders as a banner above the card — keeping the
+  breadcrumb and the DM's draft intact for an in-place retry — and returns 2xx so
+  htmx actually swaps it in (a 4xx body was previously dropped, leaving no feedback
+  at all).
+- **DM roster cap**: Cap the Dungeon Master casting prompt to the 2-4 principal
+  characters who drive the story (collapsing factions into their leader) instead
+  of listing every character who acts or speaks.
+
 ## [0.5.5]
 
 ### Added

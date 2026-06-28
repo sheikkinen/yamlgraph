@@ -1,0 +1,34 @@
+id: CAP-172
+name: Prompt-Monolith Linter Check (W026)
+description: >
+  A static graph-lint check, W026, flags a prompt that asks one LLM call to
+  make too many independent judgements at once — the attention-overload
+  anti-pattern FR-584 proved empirically costs accuracy (a single L5 prompt
+  fusing ~12 jobs starved its load-bearing salience judgement) and FR-585
+  decomposes. check_prompt_complexity is graph-driven (reuses the node ->
+  prompt-path resolution) and warning-severity only: it never changes lint
+  exit semantics. Two complementary detectors: W026-1 counts top-level fields
+  in an inline schema/output_schema (default threshold 4, exposed as a
+  field_threshold function parameter — no lint-config file); W026-2 matches a
+  small curated set of prose phrases (enumerated multi-output and global
+  cross-unit constraints). Calibrated against the plot_modeller 7-prompt audit:
+  fires on the four monoliths (assign_pre_eff, assign_causality, assign_affects,
+  extract_agents) and stays silent on the two clean prompts (extract_glosses,
+  classify_kinds).
+modules:
+  - yamlgraph/linter/checks_prompts.py
+  - yamlgraph/linter/graph_linter.py
+requirements:
+  - id: REQ-YG-473
+    description: >
+      check_prompt_complexity emits W026 at warning severity when a prompt
+      fuses too many independent judgements — via inline-schema top-level
+      field count (>= field_threshold, default 4) or curated prose phrases
+      (enumerated multi-output, global cross-unit constraint); calibrated to
+      fire on the four plot_modeller monoliths and stay silent on the two
+      clean prompts; graph lint exit semantics unchanged
+    modules:
+      - yamlgraph/linter/checks_prompts.py
+      - yamlgraph/linter/graph_linter.py
+      - tests/unit/test_linter_prompt_monolith.py
+fr: FR-586

@@ -1,0 +1,46 @@
+system: >
+  You build a small naming dictionary for a story so that every later stage refers
+  to the same place or object by one canonical name. You read the synopsis and the
+  beat glosses and return the canonical names plus an alias map from loose mentions
+  to those canonical names. You output YAML only — no prose, no code fences.
+
+user: |
+  Read the story below and produce its naming vocabulary.
+
+  Return THREE things as a YAML mapping:
+  - locations: the canonical name of every distinct place that matters to the plot.
+    Prefer the most specific proper name the story uses (e.g. "Vantari Labs", not
+    "the lab"). One entry per real place.
+  - objects: the canonical name of every distinct significant object — a thing a
+    character can hold, take, give, or lose.
+  - aliases: a mapping from each loose or partial mention that appears in the beats
+    to its canonical name above ("the lab" -> "Vantari Labs", "home" -> "Mara's
+    Apartment", "the drive" -> "Firmware Drive"). Map ONLY to a canonical token you
+    listed in locations or objects.
+
+  Rules:
+  - Canonical names must be drawn from the story's own words; do not invent.
+  - Keys in `aliases` are the exact lowercase loose phrases as they appear in the
+    beat prose; values are the canonical tokens.
+  - Include every shorthand the beats use for a place or object you listed.
+  - Do NOT include characters — the cast is supplied separately.
+
+  Output exactly this YAML shape and nothing else:
+
+  locations:
+    - Vantari Labs
+    - Mara's Apartment
+  objects:
+    - Firmware Drive
+  aliases:
+    the lab: Vantari Labs
+    home: Mara's Apartment
+    the drive: Firmware Drive
+
+  SYNOPSIS:
+  {{ state.synopsis }}
+
+  BEATS:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}): {{ g.gloss }}
+  {% endfor %}

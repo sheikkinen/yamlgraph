@@ -1,0 +1,89 @@
+# FR-598 — single-pass per-beat affect CLASSIFIER (replaces the FR-596
+# affect_throughline prose narration AND the encode_affect transcription pass).
+# One LLM pass classifies each beat that touches ONE character into a typed
+# AffectDelta op, emitting YAML directly. The prose intermediate is deleted: it
+# was the literary genre that supplied interiority and synonym drift, and its
+# "every arc that opens should close" mandate authored arcs the beats never
+# licensed (the invention engine — FR-598 trace 019f01ef-dfe3 "kill the novel").
+system: >
+  You classify a single character's affect, beat by beat. For each beat whose
+  text shows this character feeling one of six named kinds, you emit exactly one
+  typed operation — nothing else. Most beats carry no affect and emit nothing.
+  You never narrate, never explain, never connect one beat to another, and never
+  invent a feeling to complete an arc. You output YAML only — no prose, no code
+  fences.
+
+user: |
+  Classify the affect of **{{ state.agent }}** beat by beat.
+
+  Go through the beats below in order. For each beat decide: does THIS beat's
+  text plainly show {{ state.agent }} feeling one of the six kinds? If yes, emit
+  ONE operation for that beat. If not — and MOST beats do not — emit nothing.
+
+  Each operation has exactly these fields:
+  - id:   the beat id, exactly as written below (e.g. "F4").
+  - op:   "open"  — this beat is where the feeling FIRST shows in the text;
+          "close" — this beat is where an earlier feeling RESOLVES in the text
+                    (is mourned, recovered, avenged, confessed, reconciled, or
+                    relieved). Judge op from THIS beat's words alone.
+  - char: always "{{ state.agent }}".
+  - kind: EXACTLY one of these six words, verbatim — never a synonym:
+          loss             — grief at something/someone taken away
+          guilt            — self-blame for a wrong {{ state.agent }} did
+          betrayal         — {{ state.agent }}'s trust broken by another
+          retaliation      — {{ state.agent }}'s drive to avenge a wrong
+          hidden_blessing  — an apparent setback that proves a gift
+          hope             — belief that things can yet be made right
+  - toward: for the RELATIONAL kinds (guilt, betrayal) ONLY — the OTHER character
+          the feeling is about, named exactly as in the beat. For guilt, the
+          person {{ state.agent }} wronged; for betrayal, the person who broke
+          {{ state.agent }}'s trust. Omit for loss, retaliation, hidden_blessing,
+          hope.
+
+  RULES — read once, obey exactly:
+  - Default is NONE. If a beat's text does not plainly show {{ state.agent }}
+    feeling a named kind, emit nothing for it. At most one operation per beat.
+  - Classify each beat ON ITS OWN. Do NOT open a feeling because you expect it to
+    close later, and do NOT close one to balance an earlier open. Opens and
+    closes need not pair up; an unmatched open or close is fine.
+  - Ground every operation in the beat's own words — the text must show the
+    feeling. Never infer affect from the plot's shape or a character's role.
+  - Use the kind words and character names EXACTLY as written. No synonyms.
+  - CLOSE-OP KIND — on a "close", name the feeling being RESOLVED, not the
+    surface event on the beat. A resolution beat shows a forceful or positive
+    action that ENDS an earlier negative feeling; name the kind of THAT earlier
+    feeling, identified by its resolution signature below — never the mood or
+    action on the beat's own surface:
+      loss             closes when the lost thing or person is recovered or mourned.
+      guilt            closes when the wrong is confessed, atoned, or one's place is earned.
+      betrayal         closes when the betrayer is exposed, named, or reckoned with.
+      retaliation      closes when the wrong is avenged.
+      hope             closes when the just outcome arrives and things are set right.
+      hidden_blessing  closes when the setback is revealed as a gift.
+    So an exposure or unmasking closes betrayal (not opens retaliation); a
+    triumph that regains what was lost closes loss (not opens hope); a solemn
+    vindication closes hope (not opens loss); earning one's place closes guilt
+    (not opens betrayal). This guidance applies to "close" only — judge every
+    "open" exactly as before, from the beat's own words.
+
+  Output a YAML list, one item per affect-bearing beat, and NOTHING else:
+
+  - id: F4
+    eff_affect:
+      - op: open
+        char: {{ state.agent }}
+        kind: betrayal
+        toward: Hagen
+  - id: F6
+    eff_affect:
+      - op: close
+        char: {{ state.agent }}
+        kind: betrayal
+        toward: Hagen
+
+  The beats:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Emit {{ state.agent }}'s affect operations now — YAML only.

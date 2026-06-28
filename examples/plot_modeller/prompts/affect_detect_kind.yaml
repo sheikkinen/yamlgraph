@@ -1,0 +1,74 @@
+# FR-604 — per-kind affect DETECTOR (arm B). One LLM pass detects ONE affect
+# kind for ONE focal character across all beats, removing the FR-598 single-pass
+# one-op-per-beat cap and the six-way kind competition. The harness
+# (spike_affect_per_kind.py) runs this six times per protagonist and unions the
+# outputs. The FR-598 invention guard is PRESERVED as a hard precision floor:
+# removing the cap AND the kind competition is the maximal over-emission config
+# (J: correction 2), so each detector is told, hard, that MOST beats emit nothing
+# for its kind.
+system: >
+  You detect ONE named feeling for ONE character, beat by beat. You emit a typed
+  operation only on a beat whose own text plainly shows {{ state.agent }} feeling
+  {{ state.kind }} — nothing else. Most beats do NOT show this feeling; emit
+  nothing for them. You never narrate, never explain, never connect beats, and
+  never invent a feeling to complete an arc. You output YAML only — no prose, no
+  code fences.
+
+user: |
+  Detect only **{{ state.kind }}** for **{{ state.agent }}**, beat by beat.
+
+  {{ state.kind }} — {{ state.definition }}
+
+  Go through the beats below in order. For each beat decide ONE question: does
+  THIS beat's text plainly show {{ state.agent }} feeling {{ state.kind }}? If
+  yes, emit one operation for that beat. If not — and MOST beats do not show
+  {{ state.kind }} — emit nothing. You are looking for {{ state.kind }} ONLY;
+  ignore every other feeling.
+
+  Each operation has exactly these fields:
+  - id:   the beat id, exactly as written below (e.g. "F4").
+  - op:   "open"  — this beat is where {{ state.kind }} FIRST shows in the text:
+                    {{ state.open_cue }}
+          "close" — this beat is where an earlier {{ state.kind }} RESOLVES:
+                    {{ state.close_cue }}
+          Judge op from THIS beat's words alone.
+  - char: always "{{ state.agent }}".
+  - kind: always "{{ state.kind }}" — verbatim, never a synonym.
+  {% if state.relational %}- toward: the OTHER character this {{ state.kind }} is about,
+          named exactly as in the beat ({{ state.toward_hint }}).
+  {% else %}# (no toward field for {{ state.kind }})
+  {% endif %}
+
+  RULES — read once, obey exactly:
+  - Default is NONE. {{ state.agent }} feels {{ state.kind }} on only a few beats
+    across the whole story, often none. If a beat's text does not plainly show
+    {{ state.kind }}, emit nothing for it.
+  - Classify each beat ON ITS OWN. Do NOT open {{ state.kind }} because you expect
+    it to close later, and do NOT close it to balance an earlier open. An
+    unmatched open or close is fine.
+  - Ground every operation in the beat's own words — the text must show
+    {{ state.agent }} feeling {{ state.kind }}. Never infer it from the plot's
+    shape or a character's role. If you are reaching, emit nothing.
+  - This is {{ state.kind }} ONLY. If the beat shows a DIFFERENT feeling, that is
+    another detector's job — emit nothing here.
+
+  Concrete signatures of {{ state.kind }} for {{ state.agent }}:
+  {% for ex in state.exemplars %}  - {{ ex }}
+  {% endfor %}
+
+  Output a YAML list, one item per beat where {{ state.agent }} feels
+  {{ state.kind }}, and NOTHING else. Example shape:
+
+  - id: F4
+    eff_affect:
+      - op: open
+        char: {{ state.agent }}
+        kind: {{ state.kind }}{% if state.relational %}
+        toward: <the other character>{% endif %}
+
+  The beats:
+  {% for g in state.glosses %}
+  - {{ g.id }} (chapter {{ g.chapter }}, {{ g.kind }}): {{ g.gloss }}
+  {% endfor %}
+
+  Emit {{ state.agent }}'s {{ state.kind }} operations now — YAML only.

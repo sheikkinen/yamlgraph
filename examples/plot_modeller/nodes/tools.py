@@ -1,0 +1,1543 @@
+"""FR-570 — Plot Modeller L4 spike: validator + corpus loaders.
+
+The classify LLM node writes raw YAML *text* to ``kinds_raw`` (a non-JSON LLM
+node returns the raw response string — ``llm_nodes.py``). ``validate_kinds``
+parses that text, checks it, and — only on success — writes the parsed list to
+``kinds``. On failure it writes **only** ``validation``, leaving ``kinds``
+absent so a later read never sees a raw string where a list is expected (J1).
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+import yaml
+from schema.kinds import FunctionKind
+
+# The 17-kind Propp-derived alphabet — derived from the schema enum (FR-571 AC#7).
+VALID_KINDS = {k.value for k in FunctionKind}
+
+
+def _strip_code_fences(raw: str) -> str:
+    """Strip a leading/trailing Markdown code fence from an LLM YAML response.
+
+    Boundary normalization: at temp>0 the model sporadically wraps its YAML in
+    a ```` ```yaml ... ``` ```` block. The raw backtick crashes
+    ``yaml.safe_load`` -> validator retry -> loop limit -> 0 beats. Normalize
+    here, where the external LLM text enters, not downstream.
+    """
+    text = raw.strip()
+    if not text.startswith("```"):
+        return raw
+    lines = text.splitlines()
+    # Drop the opening fence line (``` or ```yaml).
+    lines = lines[1:]
+    # Drop the closing fence line if present.
+    if lines and lines[-1].strip().startswith("```"):
+        lines = lines[:-1]
+    return "\n".join(lines)
+
+
+def validate_kinds(state: dict) -> dict:
+    """Parse and validate the classify node's raw YAML output (J1).
+
+    Reads ``kinds_raw`` (raw text). On success writes the parsed list to
+    ``kinds`` plus ``validation``. On failure writes **only** ``validation``,
+    leaving ``kinds`` absent.
+    """
+    raw = state.get("kinds_raw", "")
+    try:
+        items = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    # yaml.safe_load("") returns None; a scalar is also not a list (J1 crash guard).
+    if not isinstance(items, list):
+        return {"validation": {"ok": False, "flaws": ["expected a YAML list of items"]}}
+
+    flaws: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
+        if item.get("kind") not in VALID_KINDS:
+            flaws.append(f"{item.get('id', '?')}: unknown kind '{item.get('kind')}'")
+        if not item.get("subject"):
+            flaws.append(f"{item.get('id', '?')}: missing subject")
+
+    expected = {g["id"] for g in state.get("glosses", [])}
+    got = {item.get("id") for item in items if isinstance(item, dict)}
+    missing = expected - got
+    if missing:
+        flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")
+
+    if flaws:
+        # J1: do NOT write `kinds` on failure — leave it absent.
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {
+        "kinds": items,
+        "validation": {"ok": True, "flaws": []},
+    }
+
+
+def validate_agents(state: dict) -> dict:
+    """Parse and validate the extract_agents node's raw YAML output (J1).
+
+    Reads ``agents_raw`` (raw text). On success writes ``agents``,
+    ``initial_world``, ``initial_belief``, and ``validation``. On failure
+    writes **only** ``validation``, leaving the others absent.
+    """
+    raw = state.get("agents_raw", "")
+    try:
+        data = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(data, dict):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": [
+                    "expected a YAML mapping with agents/initial_world/initial_belief"
+                ],
+            }
+        }
+
+    flaws: list[str] = []
+
+    # --- agents ---
+    agents_list = data.get("agents")
+    if not isinstance(agents_list, list) or not agents_list:
+        flaws.append("agents: expected non-empty list of character names")
+    elif not all(isinstance(a, str) for a in agents_list):
+        flaws.append("agents: all items must be strings")
+
+    agents_set = set(agents_list) if isinstance(agents_list, list) else set()
+
+    # --- initial_world ---
+    from schema.predicates import Belief, Fluent
+
+    world = data.get("initial_world", [])
+    if not isinstance(world, list):
+        flaws.append("initial_world: expected list")
+        world = []
+    else:
+        for i, w in enumerate(world):
+            try:
+                Fluent.model_validate(w)
+            except Exception as e:
+                flaws.append(f"initial_world[{i}]: invalid fluent — {e}")
+
+    # --- initial_belief ---
+    belief = data.get("initial_belief", [])
+    if not isinstance(belief, list):
+        flaws.append("initial_belief: expected list")
+        belief = []
+    else:
+        for i, b in enumerate(belief):
+            try:
+                Belief.model_validate(b)
+            except Exception as e:
+                flaws.append(f"initial_belief[{i}]: invalid belief — {e}")
+
+    # --- referential checks (only if agents_list is valid) ---
+    if (
+        isinstance(agents_list, list)
+        and agents_list
+        and all(isinstance(a, str) for a in agents_list)
+    ):
+        # Agents referenced in alive predicates
+        alive_agents: set[str] = set()
+        for w in world:
+            if isinstance(w, dict) and w.get("pred") == "alive":
+                args = w.get("args", [])
+                if args:
+                    alive_agents.add(args[0])
+
+        # Every alive predicate's agent must be in agents list
+        for agent in alive_agents - agents_set:
+            flaws.append(f"referenced in initial_world but not in agents list: {agent}")
+
+        # Every agent must have at least one alive predicate
+        for agent in sorted(agents_set - alive_agents):
+            flaws.append(f"{agent}: missing alive predicate in initial_world")
+
+        # Belief observers must be in agents list
+        for b in belief:
+            if isinstance(b, dict):
+                obs = b.get("observer")
+                if obs and obs not in agents_set:
+                    flaws.append(f"initial_belief observer '{obs}' not in agents list")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {
+        "agents": agents_list,
+        "initial_world": world,
+        "initial_belief": belief,
+        "validation": {"ok": True, "flaws": []},
+    }
+
+
+VALID_PREDS = {"alive", "at", "holds", "rel", "faction"}
+
+
+def validate_goals(state: dict) -> dict:
+    """Parse and validate the extract_goals node's raw YAML output (J1).
+
+    Reads ``goals_raw`` (raw text) and ``agents`` (list of agent names).
+    On success writes ``goals`` + ``validation``. On failure writes only
+    ``validation``.
+    """
+    raw = state.get("goals_raw", "")
+    try:
+        data = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(data, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of goal fluents"],
+            }
+        }
+
+    if not data:
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["goals list must have at least one goal"],
+            }
+        }
+
+    from schema.predicates import Fluent
+
+    agents_list = state.get("agents", [])
+    agents_set = (
+        {a.lower() for a in agents_list} if isinstance(agents_list, list) else set()
+    )
+
+    flaws: list[str] = []
+    seen: set[str] = set()
+
+    for i, item in enumerate(data):
+        # Validate as Fluent
+        try:
+            Fluent.model_validate(item)
+        except Exception as e:
+            flaws.append(f"goals[{i}]: invalid fluent — {e}")
+            continue
+
+        if not isinstance(item, dict):
+            continue
+
+        # Check predicate is in vocabulary
+        pred = item.get("pred", "")
+        if pred not in VALID_PREDS:
+            flaws.append(
+                f"goals[{i}]: unknown predicate '{pred}' (allowed: {', '.join(sorted(VALID_PREDS))})"
+            )
+
+        # Check agent references
+        args = item.get("args", [])
+        for arg in args:
+            # Only check args that look like agent names (not objects/locations)
+            # For alive pred, the arg is always an agent
+            if pred == "alive" and str(arg).lower() not in agents_set:
+                flaws.append(f"goals[{i}]: agent '{arg}' not in agents list")
+            elif pred in ("rel", "faction") and str(args[0]).lower() not in agents_set:
+                flaws.append(f"goals[{i}]: agent '{args[0]}' not in agents list")
+
+        # Check duplicates (same pred+args+value)
+        key = f"{pred}|{'|'.join(str(a) for a in args)}|{item.get('value', True)}"
+        if key in seen:
+            flaws.append(
+                f"goals[{i}]: duplicate goal {pred}({', '.join(str(a) for a in args)})"
+            )
+        seen.add(key)
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {
+        "goals": data,
+        "validation": {"ok": True, "flaws": []},
+    }
+
+
+def validate_glosses(state: dict) -> dict:
+    """Parse and validate the extract_glosses node's raw YAML output (J1).
+
+    Reads ``glosses_raw`` (raw text). On success writes ``glosses`` +
+    ``validation``. On failure writes only ``validation``.
+    """
+    import re
+
+    raw = state.get("glosses_raw", "")
+    try:
+        data = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(data, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of beat objects"],
+            }
+        }
+
+    flaws: list[str] = []
+
+    # Count bounds
+    if len(data) < 5:
+        flaws.append(f"too few beats ({len(data)}): at least 5 expected")
+    if len(data) > 20:
+        flaws.append(f"too many beats ({len(data)}): at most 20 expected")
+
+    prev_chapter = 0
+    expected_idx = 1
+    for i, item in enumerate(data):
+        if not isinstance(item, dict):
+            flaws.append(f"beats[{i}]: expected a mapping, got {type(item).__name__}")
+            continue
+
+        # Required keys
+        beat_id = item.get("id")
+        gloss = item.get("gloss")
+        chapter = item.get("chapter")
+
+        if not beat_id:
+            flaws.append(f"beats[{i}]: missing 'id'")
+        if not gloss:
+            flaws.append(f"beats[{i}]: missing 'gloss'")
+        if chapter is None:
+            flaws.append(f"beats[{i}]: missing 'chapter'")
+
+        # Sequential IDs: F1, F2, F3, ...
+        if beat_id:
+            m = re.match(r"^F(\d+[a-z]?)$", str(beat_id))
+            if m:
+                idx_str = m.group(1)
+                # Handle sub-beats like F2b — they don't break sequence
+                if idx_str.isdigit():
+                    idx = int(idx_str)
+                    if idx != expected_idx:
+                        flaws.append(
+                            f"beats[{i}]: non-sequential id '{beat_id}' (expected F{expected_idx})"
+                        )
+                    expected_idx = idx + 1
+
+        # Gloss length
+        if isinstance(gloss, str):
+            word_count = len(gloss.split())
+            if word_count < 10:
+                flaws.append(
+                    f"beats[{i}] ({beat_id}): gloss too short ({word_count} words, min 10)"
+                )
+
+        # Chapters: non-decreasing
+        if isinstance(chapter, int):
+            if chapter < prev_chapter:
+                flaws.append(
+                    f"beats[{i}] ({beat_id}): chapter {chapter} < previous {prev_chapter} (must be non-decreasing)"
+                )
+            prev_chapter = chapter
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {
+        "glosses": data,
+        "validation": {"ok": True, "flaws": []},
+    }
+
+
+def load_glosses(ground_truth_path: str | Path) -> list[dict]:
+    """Extract glosses from a ground-truth plot, stripping kind/subject labels.
+
+    Mode 1 (isolate L4): the model receives only ``id``, ``gloss``, ``chapter``
+    and must predict ``kind`` and ``subject`` itself.
+    """
+    data = yaml.safe_load(Path(ground_truth_path).read_text(encoding="utf-8"))
+    glosses: list[dict] = []
+    for fn in data.get("functions", []):
+        glosses.append(
+            {
+                "id": fn["id"],
+                "gloss": " ".join(str(fn.get("gloss", "")).split()),
+                "chapter": fn.get("chapter"),
+            }
+        )
+    return glosses
+
+
+def load_synopsis(synopsis_path: str | Path) -> str:
+    """Read a prose synopsis fixture as plain text."""
+    return Path(synopsis_path).read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# FR-576 L5 — assign world/belief pre/eff to classified beats
+# ---------------------------------------------------------------------------
+
+_PRE_EFF_SLICES = ("pre_world", "eff_world", "pre_belief", "eff_belief")
+
+
+def validate_pre_eff(state: dict) -> dict:
+    """Parse and validate the assign_pre_eff node's raw YAML output (J1).
+
+    Reads ``pre_eff_raw`` (raw text), ``glosses`` (classified beats, for id
+    coverage) and ``agents`` (for the membership check). On success writes
+    ``pre_eff`` + ``validation``; on failure writes **only** ``validation``,
+    leaving ``pre_eff`` absent (J1).
+
+    Deliberately enforces **no kind->effect semantic rule** (J:C2): a ``death``
+    beat need not produce ``alive=false`` — the corpus models one death as a
+    relationship change. Coherence is the evaluator's job, not the validator's.
+    """
+    from schema.predicates import Belief, Fluent
+
+    raw = state.get("pre_eff_raw", "")
+    try:
+        items = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(items, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of per-beat pre/eff objects"],
+            }
+        }
+
+    agents_set = {_norm_name(a) for a in state.get("agents", []) if isinstance(a, str)}
+
+    flaws: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
+        bid = item.get("id", "?")
+        for slot in ("pre_world", "eff_world"):
+            for i, w in enumerate(item.get(slot) or []):
+                try:
+                    Fluent.model_validate(w)
+                except Exception as e:
+                    flaws.append(f"{bid}.{slot}[{i}]: invalid fluent — {e}")
+                    continue
+                if w.get("pred") not in VALID_PREDS:
+                    flaws.append(
+                        f"{bid}.{slot}[{i}]: unknown predicate '{w.get('pred')}'"
+                    )
+                _check_agent_args(bid, slot, i, w, agents_set, flaws)
+        for slot in ("pre_belief", "eff_belief"):
+            for i, b in enumerate(item.get(slot) or []):
+                try:
+                    Belief.model_validate(b)
+                except Exception as e:
+                    flaws.append(f"{bid}.{slot}[{i}]: invalid belief — {e}")
+                    continue
+                obs = b.get("observer")
+                if agents_set and _norm_name(obs) not in agents_set:
+                    flaws.append(
+                        f"{bid}.{slot}[{i}]: observer '{obs}' not in agents list"
+                    )
+
+    expected = {g["id"] for g in state.get("glosses", [])}
+    got = {item.get("id") for item in items if isinstance(item, dict)}
+    missing = expected - got
+    if missing:
+        flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")
+    orphans = got - expected
+    if orphans:
+        flaws.append(f"orphan ids: {', '.join(sorted(str(o) for o in orphans))}")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    return {"pre_eff": items, "validation": {"ok": True, "flaws": []}}
+
+
+def _norm_name(name: object) -> str:
+    """Normalise a character name for membership comparison."""
+    return " ".join(str(name or "").split()).strip().lower()
+
+
+def _check_agent_args(
+    bid: str,
+    slot: str,
+    i: int,
+    fluent: dict,
+    agents_set: set[str],
+    flaws: list[str],
+) -> None:
+    """Check that agent-position args reference known agents (tolerant).
+
+    Only args known to be characters are checked: ``alive`` takes a single
+    agent; ``rel``/``faction`` take an agent in position 0. ``at``/``holds``
+    args can be objects/locations and are not membership-checked (mirrors the
+    L2 ``validate_goals`` policy).
+    """
+    if not agents_set:
+        return
+    pred = fluent.get("pred")
+    args = fluent.get("args", []) or []
+    # For alive/rel/faction the character is in arg position 0; at/holds args
+    # may be objects/locations and are not membership-checked (mirrors L2).
+    if (
+        pred in ("alive", "rel", "faction")
+        and args
+        and _norm_name(args[0]) not in agents_set
+    ):
+        flaws.append(f"{bid}.{slot}[{i}]: agent '{args[0]}' not in agents list")
+
+
+def load_glosses_with_kinds(ground_truth_path: str | Path) -> list[dict]:
+    """Load classified beats (id, gloss, chapter, kind, subject) for L5 input.
+
+    Mode 1 (isolate L5): the model receives the ground-truth glosses *and*
+    kinds, and must assign only the pre/eff predicates — isolating L5 accuracy
+    from L3/L4 error.
+    """
+    data = yaml.safe_load(Path(ground_truth_path).read_text(encoding="utf-8"))
+    out: list[dict] = []
+    for fn in data.get("functions", []):
+        out.append(
+            {
+                "id": fn["id"],
+                "gloss": " ".join(str(fn.get("gloss", "")).split()),
+                "chapter": fn.get("chapter"),
+                "kind": fn.get("kind"),
+                "subject": fn.get("subject"),
+            }
+        )
+    return out
+
+
+# ---------------------------------------------------------------------------
+# FR-593 L5 — story-level vocabulary: deterministic, additive canonicalization
+# ---------------------------------------------------------------------------
+
+
+def canonicalize_glosses(glosses: list[dict], vocab) -> list[dict]:
+    """Additively normalise gloss naming via the story-level alias map (FR-593).
+
+    For each gloss, substitute loose mentions with their canonical token and write
+    the result to a **new** ``canonical_gloss`` field, leaving the original ``gloss``
+    byte-identical. This containment (Judge correction #1) means no other
+    gloss-consuming layer (L4/L6/L7/L8) is perturbed by the L5 naming layer.
+
+    Substitution is **deterministic** (no LLM, no new variance — Judge correction #2):
+    case-insensitive, word-boundary aware, and longest-alias-first so a specific alias
+    (``the old lab``) wins over a substring alias (``lab``). ``vocab`` may be a
+    ``StoryVocab`` or a plain dict with an ``aliases`` mapping.
+    """
+    aliases = (
+        vocab.aliases if hasattr(vocab, "aliases") else (vocab or {}).get("aliases", {})
+    )
+    # longest-alias-first: a multi-word alias must win over a substring of it
+    ordered = sorted(
+        ((k, v) for k, v in (aliases or {}).items() if k),
+        key=lambda kv: len(kv[0]),
+        reverse=True,
+    )
+    patterns = [
+        (re.compile(rf"\b{re.escape(loose)}\b", re.IGNORECASE), canon)
+        for loose, canon in ordered
+    ]
+
+    out: list[dict] = []
+    for g in glosses:
+        text = str(g.get("gloss", ""))
+        for pattern, canon in patterns:
+            text = pattern.sub(canon, text)
+        out.append({**g, "canonical_gloss": text})
+    return out
+
+
+def validate_vocab(state: dict) -> dict:
+    """Parse + ``StoryVocab``-bind the extract_vocab node's YAML output (FR-593, J1).
+
+    On success writes ``vocab`` (validated dict) + ``vocab_validation``; on failure
+    writes **only** ``vocab_validation`` (ok=False), leaving ``vocab`` absent so
+    canonicalization degrades to a safe no-op rather than consuming a raw string
+    (the FR-592 wound — the binding is verified here, at the new consumption path).
+    """
+    from schema.vocab import StoryVocab
+
+    raw = state.get("vocab_raw", "")
+    try:
+        parsed = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"vocab_validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+    if not isinstance(parsed, dict):
+        return {"vocab_validation": {"ok": False, "flaws": ["expected a YAML mapping"]}}
+    try:
+        vocab = StoryVocab.model_validate(parsed)
+    except Exception as e:
+        return {
+            "vocab_validation": {"ok": False, "flaws": [f"invalid StoryVocab: {e}"]}
+        }
+    return {"vocab": vocab.model_dump(), "vocab_validation": {"ok": True, "flaws": []}}
+
+
+def canonicalize_glosses_node(state: dict) -> dict:
+    """Graph adapter: canonicalize ``glosses`` using ``vocab`` from state (FR-593).
+
+    Additive — returns the same glosses with a ``canonical_gloss`` field added. If
+    ``vocab`` is absent (extraction failed), this is a safe no-op
+    (``canonical_gloss`` == ``gloss``), so a vocab failure never blocks the run.
+    """
+    return {
+        "glosses": canonicalize_glosses(
+            state.get("glosses", []), state.get("vocab") or {}
+        )
+    }
+
+
+# ---------------------------------------------------------------------------
+# FR-587 L5 — snapshot-then-diff: derive per-beat pre/eff from world snapshots
+# ---------------------------------------------------------------------------
+
+
+def _fluent_key(fluent: dict) -> tuple:
+    """Identity of a fluent: predicate + normalized arg tuple (value excluded)."""
+    args = tuple(_norm_name(a) for a in (fluent.get("args") or []))
+    return (fluent.get("pred"), args)
+
+
+def _clean_fluent(fluent: dict) -> dict:
+    """Strip a typed fluent down to the three scored fields."""
+    return {
+        "pred": fluent.get("pred"),
+        "args": list(fluent.get("args") or []),
+        "value": fluent.get("value"),
+    }
+
+
+def _entity_of(fluent: dict) -> str | None:
+    """First argument (the moving/owning entity) of a fluent, normalized."""
+    args = fluent.get("args") or []
+    return _norm_name(args[0]) if args else None
+
+
+def _collapse_at_runs(raw: list[dict]) -> None:
+    """Collapse intra-chapter `at`-arrival runs to the run's terminus (in place).
+
+    When the same entity arrives somewhere on two consecutive same-chapter beats,
+    the earlier arrival is an intermediate travel waypoint the ground truth does
+    not score — drop it, keeping only the later (terminus) arrival.
+    """
+    for i in range(1, len(raw)):
+        if raw[i]["chapter"] != raw[i - 1]["chapter"]:
+            continue
+        cur_arrivals = {
+            _entity_of(f)
+            for f in raw[i]["eff"]
+            if f.get("pred") == "at" and f.get("value") is True
+        }
+        if not cur_arrivals:
+            continue
+        prev = raw[i - 1]
+        prev["eff"] = [
+            f
+            for f in prev["eff"]
+            if not (
+                f.get("pred") == "at"
+                and f.get("value") is True
+                and _entity_of(f) in cur_arrivals
+            )
+        ]
+
+
+def _suppress_late_departures(raw: list[dict]) -> None:
+    """Keep only each entity's FIRST `at`-departure; drop later ones (in place).
+
+    Ground truth scores the departure (``at(origin)=false``) only for an entity's
+    first relocation from its established origin; every later relocation is
+    arrival-only. Later departures — and the precondition they reference — are the
+    journey-waypoint flood, so they are removed.
+    """
+    seen: set[str | None] = set()
+    for r in raw:
+        kept: list[dict] = []
+        dropped_keys: set[tuple] = set()
+        for f in r["eff"]:
+            if f.get("pred") == "at" and f.get("value") is False:
+                entity = _entity_of(f)
+                if entity in seen:
+                    dropped_keys.add(_fluent_key(f))
+                    continue
+                seen.add(entity)
+            kept.append(f)
+        r["eff"] = kept
+        if dropped_keys:
+            r["pre"] = [p for p in r["pre"] if _fluent_key(p) not in dropped_keys]
+
+
+def diff_snapshots(snapshots: list[dict]) -> list[dict]:
+    """Derive per-beat pre/eff world slices by diffing ordered state snapshots.
+
+    FR-587 Stage 2 (deterministic, no LLM). Each input snapshot is
+    ``{id, chapter, world: [typed fluent, …]}`` — the COMPLETE world state at a
+    moment. The first snapshot (``F0``) is the opening scene used purely as the
+    baseline and is not emitted; the rest (``F1…Fn``) are diffed against their
+    predecessor:
+
+    - A fluent that **appears** or **changes value** is an effect (new value); the
+      prior fluent it acts on becomes a precondition.
+    - A tracked boolean fact that **disappears** is an effect at value ``false``.
+    - ``at`` is single-valued per character, so every move yields a departure
+      (``at(old)=false``) + arrival (``at(new)=true``) pair. Ground truth scores
+      only *salient* relocation, so two deterministic collapses run afterwards:
+      intra-chapter arrival-run collapse, then first-departure-only. These are the
+      precision rule the model could not apply; both are validated against the GT
+      ``at … value: false`` departures (FR-587 correction #2).
+
+    Belief slices stay empty (FR-585: belief is not the L5 wound).
+    """
+    raw: list[dict] = []
+    prev: dict[tuple, dict] = {}
+    seeded = False
+    for snap in snapshots:
+        if not isinstance(snap, dict):
+            continue
+        cur: dict[tuple, dict] = {}
+        for f in snap.get("world") or []:
+            if isinstance(f, dict) and f.get("pred"):
+                cur[_fluent_key(f)] = f
+        if not seeded:
+            # First snapshot (F0) anchors the baseline; emit nothing for it.
+            prev = cur
+            seeded = True
+            continue
+        eff: list[dict] = []
+        pre: list[dict] = []
+        for key, f in cur.items():
+            pf = prev.get(key)
+            if pf is None:
+                eff.append(_clean_fluent(f))
+            elif pf.get("value") != f.get("value"):
+                eff.append(_clean_fluent(f))
+                pre.append(_clean_fluent(pf))
+        for key, pf in prev.items():
+            if key in cur:
+                continue
+            if pf.get("pred") == "at":
+                eff.append(
+                    {"pred": "at", "args": list(pf.get("args") or []), "value": False}
+                )
+                pre.append(_clean_fluent(pf))
+            elif pf.get("value") is True:
+                eff.append(
+                    {
+                        "pred": pf.get("pred"),
+                        "args": list(pf.get("args") or []),
+                        "value": False,
+                    }
+                )
+                pre.append(_clean_fluent(pf))
+        raw.append(
+            {
+                "id": snap.get("id"),
+                "chapter": snap.get("chapter"),
+                "eff": eff,
+                "pre": pre,
+            }
+        )
+        prev = cur
+
+    _collapse_at_runs(raw)
+    _suppress_late_departures(raw)
+
+    return [
+        {
+            "id": r["id"],
+            "pre_world": r["pre"],
+            "eff_world": r["eff"],
+            "pre_belief": [],
+            "eff_belief": [],
+        }
+        for r in raw
+    ]
+
+
+# ---------------------------------------------------------------------------
+# FR-590/591 L5 — multi-perspective: per-agent viewpoint + encoding -> per-beat L5
+# ---------------------------------------------------------------------------
+
+
+def _dedup_fluents(fluents: list[dict]) -> list[dict]:
+    """Drop fluents sharing a ``_fluent_key`` (pred + normalized args), first wins.
+
+    Symmetric facts (``rel``/``faction``) are reported from BOTH participants'
+    perspectives; collapsing on the value-free key keeps one copy without any
+    salience judgment (FR-590 combine is deterministic, no LLM).
+    """
+    seen: set[tuple] = set()
+    out: list[dict] = []
+    for f in fluents:
+        if not isinstance(f, dict) or not f.get("pred"):
+            continue
+        key = _fluent_key(f)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(_clean_fluent(f))
+    return out
+
+
+def _parse_beats(raw: str) -> list[dict]:
+    """Parse an ``encode_perspective`` YAML payload into a list of beat dicts.
+
+    Tolerant by contract (FR-591): code fences are stripped, a parse error or a
+    non-list payload yields ``[]`` (the agent contributes nothing rather than
+    crashing the whole conversion). Moved from the retired ``spike_perspective.py``
+    so the graph's ``parse_perspective`` tool can depend on it.
+    """
+    text = _strip_code_fences(str(raw))
+    try:
+        beats = yaml.safe_load(text)
+    except yaml.YAMLError:
+        return []
+    return [b for b in beats if isinstance(b, dict)] if isinstance(beats, list) else []
+
+
+def parse_perspective(state: dict) -> dict:
+    """Assemble one agent's perspective record for the FR-591 inner subgraph.
+
+    Reads ``agent`` (the character), ``viewpoint`` (POV prose) and ``encoded_raw``
+    (the encode node's YAML text) from state, and returns a single self-describing
+    ``perspective`` dict ``{agent, viewpoint, beats}`` — the prose joined to its
+    typed encoding so per-stage error attribution stays localizable. The encoding
+    contract is **provisional** (recall-preserving, precision-open — FR-591 J1).
+    """
+    return {
+        "perspective": {
+            "agent": state.get("agent"),
+            "viewpoint": state.get("viewpoint", ""),
+            "beats": _parse_beats(state.get("encoded_raw", "")),
+        }
+    }
+
+
+def _perspective_beats(item: object) -> list[dict]:
+    """Extract an agent's beat list from a collected perspective item.
+
+    Tolerates the three shapes the map collector can yield: a self-describing
+    ``{..., beats: [...]}`` record (FR-591 graph), a nested ``{perspective: {...}}``
+    wrapper, or a bare ``list`` of beats (direct callers / unit tests).
+    """
+    if isinstance(item, dict):
+        if isinstance(item.get("beats"), list):
+            return item["beats"]
+        persp = item.get("perspective")
+        if isinstance(persp, dict) and isinstance(persp.get("beats"), list):
+            return persp["beats"]
+        return []
+    if isinstance(item, list):
+        return item
+    return []
+
+
+def combine_perspectives(perspectives: list | dict) -> list[dict] | dict:
+    """Merge per-agent encodings into the unified per-beat L5 (FR-590/591).
+
+    Each element is one agent's perspective — a ``{agent, viewpoint, beats}``
+    record (FR-591 graph) or a bare list of ``{id, pre_world, eff_world}`` beats
+    (direct callers). The combine groups every agent's fluents by beat ``id``,
+    unions each world slice, and dedups symmetric fluents by ``_fluent_key``.
+    Belief slices stay empty (FR-585: belief is not the L5 wound). No salience
+    logic and no LLM — the per-agent *framing* is the salience filter; combine
+    only assembles what each perspective already chose. Items are ordered by
+    ``_map_index`` when present so the fan-out's collect order is deterministic.
+
+    Dual-mode: as a graph python tool it receives the full state dict and returns
+    ``{"l5": [...]}``; called directly (unit tests, library use) it receives the
+    perspective list and returns the per-beat L5 list.
+    """
+    if isinstance(perspectives, dict):
+        return {"l5": combine_perspectives(perspectives.get("perspectives") or [])}
+    if perspectives and all(isinstance(p, dict) for p in perspectives):
+        perspectives = sorted(perspectives, key=lambda p: p.get("_map_index", 0))
+    order: list[str] = []
+    pre_by_id: dict[str, list[dict]] = {}
+    eff_by_id: dict[str, list[dict]] = {}
+    for item in perspectives or []:
+        for beat in _perspective_beats(item):
+            if not isinstance(beat, dict):
+                continue
+            bid = beat.get("id")
+            if not bid:
+                continue
+            if bid not in pre_by_id:
+                order.append(bid)
+                pre_by_id[bid] = []
+                eff_by_id[bid] = []
+            pre_by_id[bid].extend(beat.get("pre_world") or [])
+            eff_by_id[bid].extend(beat.get("eff_world") or [])
+    return [
+        {
+            "id": bid,
+            "pre_world": _dedup_fluents(pre_by_id[bid]),
+            "eff_world": _dedup_fluents(eff_by_id[bid]),
+            "pre_belief": [],
+            "eff_belief": [],
+        }
+        for bid in order
+    ]
+
+
+# ---------------------------------------------------------------------------
+# FR-596 L7 — per-agent affect throughline: combine per-agent deltas -> per-beat
+# ---------------------------------------------------------------------------
+
+
+def _affect_beats(item: object) -> list:
+    """Extract one agent's per-beat affect list from its record (or a bare list).
+
+    Accepts the FR-596 map record ``{agent, throughline, affects: [...]}``, a bare
+    list of ``{id, eff_affect}`` beats (direct callers, unit tests), or a single
+    bare beat. Anything else yields no beats.
+    """
+    if isinstance(item, dict):
+        beats = item.get("affects")
+        if isinstance(beats, list):
+            return beats
+        if item.get("id"):
+            return [item]
+        return []
+    if isinstance(item, list):
+        return item
+    return []
+
+
+def combine_affects(per_agent: list | dict) -> list[dict] | dict:
+    """Merge per-agent affect throughlines into unified per-beat ``eff_affect`` (FR-596).
+
+    Each element is one agent's affect record — a ``{agent, throughline, affects}``
+    map record or a bare list of ``{id, eff_affect}`` beats. The combine groups
+    every agent's deltas by beat ``id`` and **unions** them with **no dedup**:
+    affect is feeler-owned, so two agents never emit the same delta (unlike the
+    symmetric ``rel`` facts in :func:`combine_perspectives`) — the per-agent
+    *framing* is the salience filter, and combine only assembles what each
+    perspective already chose. Items are ordered by ``_map_index`` when present so
+    the fan-out's collect order is deterministic. No salience logic and no LLM.
+
+    Dual-mode: as a graph python tool it receives the full state dict (collected
+    under ``affect_views``) and returns ``{"affects": [...]}``; called directly it
+    receives the per-agent list and returns the per-beat affect list.
+    """
+    if isinstance(per_agent, dict):
+        views = per_agent.get("affect_views") or per_agent.get("perspectives") or []
+        return {"affects": combine_affects(views)}
+    records = list(per_agent or [])
+    if records and all(isinstance(r, dict) for r in records):
+        records = sorted(records, key=lambda r: r.get("_map_index", 0))
+    order: list[str] = []
+    by_id: dict[str, list[dict]] = {}
+    for item in records:
+        for beat in _affect_beats(item):
+            if not isinstance(beat, dict):
+                continue
+            bid = beat.get("id")
+            if not bid:
+                continue
+            if bid not in by_id:
+                order.append(bid)
+                by_id[bid] = []
+            deltas = beat.get("eff_affect")
+            if isinstance(deltas, list):
+                by_id[bid].extend(d for d in deltas if isinstance(d, dict))
+    return [{"id": bid, "eff_affect": by_id[bid]} for bid in order]
+
+
+def _affect_arc_key(delta: dict) -> tuple[str, str, str]:
+    """Identity of an affect arc: normalized (char, kind, toward)."""
+    return (
+        _norm_name(delta.get("char")),
+        " ".join(str(delta.get("kind") or "").split()).strip().lower(),
+        _norm_name(delta.get("toward")),
+    )
+
+
+def affect_balance(beats: list) -> dict:
+    """Per-cell open/close arc balance for ONE agent's affect beats (FR-596 diagnostic).
+
+    Each :class:`AffectDelta` opens or closes an arc keyed by ``(char, kind,
+    toward)``; a ``close`` pops a matching ``open``. Because each agent narrates a
+    self-contained throughline, dangling opens are checkable per cell *before*
+    combine. Returns ``{balanced, unclosed}`` where ``unclosed`` lists the arc
+    labels still open at the end. Pure, no LLM — a diagnostic only, never a gate.
+    """
+    open_arcs: dict[tuple, list[str]] = {}
+    for item in beats or []:
+        if not isinstance(item, dict):
+            continue
+        for delta in item.get("eff_affect") or []:
+            if not isinstance(delta, dict):
+                continue
+            key = _affect_arc_key(delta)
+            op = str(delta.get("op") or "").strip().lower()
+            label = ":".join(p for p in key if p)
+            if op == "open":
+                open_arcs.setdefault(key, []).append(label)
+            elif op == "close" and open_arcs.get(key):
+                open_arcs[key].pop()
+    unclosed = [lbl for labels in open_arcs.values() for lbl in labels]
+    return {"balanced": len(unclosed) == 0, "unclosed": sorted(unclosed)}
+
+
+# ---------------------------------------------------------------------------
+# FR-577 L6 — assign causality (enables / motivation / threatens) to beats
+# ---------------------------------------------------------------------------
+
+_CAUSALITY_KEYS = {"id", "enables", "motivation", "threatens"}
+
+
+def validate_causality(state: dict) -> dict:
+    """Parse and validate the assign_causality node's raw YAML output (J1).
+
+    Reads ``causality_raw`` (raw text), ``glosses`` (classified beats, in
+    narrative order) and ``agents`` (for the membership check). On success
+    writes the parsed list to ``causality`` plus ``validation``; on failure
+    writes **only** ``validation``, leaving ``causality`` absent (J1).
+
+    The validator enforces structural and referential integrity, including the
+    **forward-only** ``enables`` invariant (J:C2): a beat may only enable a
+    beat that appears *later* in narrative order. A backward (or self) link is
+    a validation failure that forces a retry — not merely an evaluator miss.
+    ``motivation``/``threatens`` are informational ({agent, goal}|null) and are
+    checked only for shape and agent membership, never for correctness (J:C3).
+    """
+    from schema.functions import Motivation
+
+    raw = state.get("causality_raw", "")
+    try:
+        items = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(items, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of per-beat causality objects"],
+            }
+        }
+
+    glosses = state.get("glosses", [])
+    # Narrative order = the glosses list order. Index defines "later".
+    order = {
+        g["id"]: i
+        for i, g in enumerate(glosses)
+        if isinstance(g, dict) and g.get("id") is not None
+    }
+    valid_ids = set(order)
+    agents_set = {_norm_name(a) for a in state.get("agents", []) if isinstance(a, str)}
+
+    flaws: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
+        bid = item.get("id", "?")
+        extra = set(item) - _CAUSALITY_KEYS
+        if extra:
+            flaws.append(f"{bid}: unknown keys {sorted(extra)}")
+
+        enables = item.get("enables", [])
+        if not isinstance(enables, list):
+            flaws.append(
+                f"{bid}.enables: expected a list, got {type(enables).__name__}"
+            )
+        else:
+            src_idx = order.get(item.get("id"))
+            for tgt in enables:
+                if tgt not in valid_ids:
+                    flaws.append(
+                        f"{bid}.enables: invalid target '{tgt}' (not a beat id)"
+                    )
+                elif src_idx is not None and order[tgt] <= src_idx:
+                    flaws.append(
+                        f"{bid}.enables: backward link to '{tgt}' "
+                        "(a beat may only enable a later beat)"
+                    )
+
+        for slot in ("motivation", "threatens"):
+            val = item.get(slot)
+            if val is None:
+                continue
+            try:
+                Motivation.model_validate(val)
+            except Exception as e:
+                flaws.append(f"{bid}.{slot}: invalid — {e}")
+                continue
+            if agents_set and _norm_name(val.get("agent")) not in agents_set:
+                flaws.append(
+                    f"{bid}.{slot}: agent '{val.get('agent')}' not in agents list"
+                )
+
+    expected = {
+        g["id"] for g in glosses if isinstance(g, dict) and g.get("id") is not None
+    }
+    got = {item.get("id") for item in items if isinstance(item, dict)}
+    missing = expected - got
+    if missing:
+        flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")
+    orphans = got - expected
+    if orphans:
+        flaws.append(f"orphan ids: {', '.join(sorted(str(o) for o in orphans))}")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    # Normalise absent optional keys to explicit null so downstream readers and
+    # the evaluator see a stable shape (boundary normalization).
+    for item in items:
+        item.setdefault("enables", [])
+        item.setdefault("motivation", None)
+        item.setdefault("threatens", None)
+
+    return {"causality": items, "validation": {"ok": True, "flaws": []}}
+
+
+# ---------------------------------------------------------------------------
+# FR-578 L7 — assign affects (eff_affect: list[AffectDelta]) to beats
+# ---------------------------------------------------------------------------
+
+_AFFECT_KEYS = {"id", "eff_affect"}
+
+
+def validate_affects(state: dict) -> dict:
+    """Parse and validate the assign_affects node's raw YAML output (J1).
+
+    Reads ``affects_raw`` (raw text), ``glosses`` (classified beats, for id
+    coverage) and ``agents`` (for the char/toward membership check). On success
+    writes the parsed list to ``affects`` plus ``validation``; on failure writes
+    **only** ``validation``, leaving ``affects`` absent (J1).
+
+    The validator checks STRUCTURE only (C1): each ``eff_affect`` item must be a
+    valid ``AffectDelta`` (closed ``AffectKind`` enum — C4, no tolerance; binary
+    ``op``; ``extra="forbid"``) with ``char``/``toward`` drawn from the agent
+    list. It deliberately does **not** enforce open/close balance — that
+    cross-beat plan invariant belongs to the merge node (FR-579), not here.
+    """
+    from schema.affects import AffectDelta
+
+    raw = state.get("affects_raw", "")
+    try:
+        items = yaml.safe_load(_strip_code_fences(raw))
+    except yaml.YAMLError as e:
+        return {"validation": {"ok": False, "flaws": [f"YAML parse error: {e}"]}}
+
+    if not isinstance(items, list):
+        return {
+            "validation": {
+                "ok": False,
+                "flaws": ["expected a YAML list of per-beat affect objects"],
+            }
+        }
+
+    glosses = state.get("glosses", [])
+    agents_set = {_norm_name(a) for a in state.get("agents", []) if isinstance(a, str)}
+
+    flaws: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            flaws.append(f"non-mapping item: {item!r}")
+            continue
+        bid = item.get("id", "?")
+        extra = set(item) - _AFFECT_KEYS
+        if extra:
+            flaws.append(f"{bid}: unknown keys {sorted(extra)}")
+
+        eff_affect = item.get("eff_affect", [])
+        if not isinstance(eff_affect, list):
+            flaws.append(
+                f"{bid}.eff_affect: expected a list, got {type(eff_affect).__name__}"
+            )
+            continue
+        for i, delta in enumerate(eff_affect):
+            try:
+                model = AffectDelta.model_validate(delta)
+            except Exception as e:
+                flaws.append(f"{bid}.eff_affect[{i}]: invalid AffectDelta — {e}")
+                continue
+            if agents_set and _norm_name(model.char) not in agents_set:
+                flaws.append(
+                    f"{bid}.eff_affect[{i}]: char '{model.char}' not in agents list"
+                )
+            if (
+                model.toward is not None
+                and agents_set
+                and _norm_name(model.toward) not in agents_set
+            ):
+                flaws.append(
+                    f"{bid}.eff_affect[{i}]: toward '{model.toward}' not in agents list"
+                )
+
+    expected = {
+        g["id"] for g in glosses if isinstance(g, dict) and g.get("id") is not None
+    }
+    got = {item.get("id") for item in items if isinstance(item, dict)}
+    missing = expected - got
+    if missing:
+        flaws.append(f"missing: {', '.join(sorted(str(m) for m in missing))}")
+    orphans = got - expected
+    if orphans:
+        flaws.append(f"orphan ids: {', '.join(sorted(str(o) for o in orphans))}")
+
+    if flaws:
+        return {"validation": {"ok": False, "flaws": flaws}}
+
+    # Normalise the absent eff_affect key to an explicit empty list (boundary).
+    for item in items:
+        item.setdefault("eff_affect", [])
+
+    return {"affects": items, "validation": {"ok": True, "flaws": []}}
+
+
+# ---------------------------------------------------------------------------
+# FR-594 L5 — prose-regenerability measurement (the two-axis ruler)
+# ---------------------------------------------------------------------------
+#
+# These three tools are deterministic (no LLM, no ground truth). They graduate
+# the `spike_regenerate_prose.py` probe into reusable graph nodes. The LLM axis
+# (the fidelity judge) lives in `prompts/judge_fidelity.yaml`; only the
+# simulability axis and the combine are scored here.
+#
+# `l5_measure` is DIAGNOSTIC this cycle (FR-594 Judgement): it reports, it does
+# not gate, and `world_recall` remains the primary L5 signal. The two axes are
+# kept orthogonal and attributable (Judge correction #3) — simulability is the
+# deterministic axis, fidelity the noisy LLM axis, and they are never collapsed
+# into one opaque scalar.
+
+# Diagnostic-only thresholds for the `concerns` flags (advisory, NOT a gate —
+# FR-594 Judge correction #4: power-before-gate, so these never block a run).
+_SIMULABILITY_CONCERN_RATIO = 0.5  # >= this share of beats underdetermined
+_FIDELITY_CONCERN_SCORE = 0.5  # fidelity score below this is a concern
+
+_UNDERDETERMINED_RE = re.compile(r"\[UNDERDETERMINED", re.IGNORECASE)
+
+
+def _fact_str(fluent: dict) -> str:
+    """Render one typed fluent as ``pred(arg, arg)=value`` (extracted from spike)."""
+    pred = fluent.get("pred", "?")
+    args = ", ".join(str(a) for a in (fluent.get("args") or []))
+    val = fluent.get("value", "?")
+    return f"{pred}({args})={val}"
+
+
+def render_l5_beats(beats: list | dict) -> str | dict:
+    """Render L5 beats into the predicate stream the regenerate prompt consumes.
+
+    Pure and deterministic (FR-594): each beat becomes ``Beat <id> [<kind>]`` with
+    a ``before:`` line (pre_world) and a ``changes:`` line (eff_world); an empty
+    slice renders as ``(none)`` so a blank line never silently means "no facts".
+
+    Dual-mode, mirroring ``combine_perspectives``: as a graph python tool it
+    receives the full state dict and returns ``{"beats": <rendered str>}`` (reading
+    the raw beat list from ``l5_beats``); called directly (unit tests, the runner)
+    with a list it returns the rendered string.
+
+    Note (FR-594 Judge correction #5): the runner renders ground-truth beats *with*
+    their ``initial_world`` and our beats with ``""`` — that asymmetry is kept for
+    parity with the original probe and is handled by the runner, not here.
+    """
+    if isinstance(beats, dict):
+        return {"beats": render_l5_beats(beats.get("l5_beats") or [])}
+    lines: list[str] = []
+    for b in beats:
+        if not isinstance(b, dict):
+            continue
+        bid = b.get("id", "?")
+        kind = b.get("kind")
+        lines.append(f"Beat {bid}" + (f" [{kind}]" if kind else ""))
+        pre = b.get("pre_world") or []
+        eff = b.get("eff_world") or []
+        lines.append("  before: " + ("; ".join(_fact_str(f) for f in pre) or "(none)"))
+        lines.append("  changes: " + ("; ".join(_fact_str(f) for f in eff) or "(none)"))
+    return "\n".join(lines)
+
+
+def count_underdetermined(prose: str) -> int:
+    """Count ``[UNDERDETERMINED …]`` markers in regenerated prose (FR-594).
+
+    Deterministic: counts the markers WE find, never the model's self-reported
+    ``COVERAGE:`` line (Judge correction #3 — the simulability axis must not trust
+    the same model whose narration it is scoring).
+    """
+    return len(_UNDERDETERMINED_RE.findall(str(prose or "")))
+
+
+def score_simulability(state: dict) -> dict:
+    """Score the simulability axis: underdetermined markers / real beat count (FR-594).
+
+    Graph python tool. Reads ``regen_prose`` (the regenerate node's output) and
+    ``l5_beats`` (the real, deterministic beat count — never the model's claim) and
+    returns ``{"simulability": {underdetermined, beats, ratio}}``. A higher ratio
+    means the state machine licenses *less* of its own narration. Zero beats yields
+    ratio 0.0 (safe, no division).
+    """
+    k = count_underdetermined(state.get("regen_prose", ""))
+    n = len(state.get("l5_beats") or [])
+    ratio = (k / n) if n else 0.0
+    return {"simulability": {"underdetermined": k, "beats": n, "ratio": ratio}}
+
+
+def _as_dict(value: object) -> dict:
+    """Normalize a state value (dict or Pydantic model) to a plain dict (boundary).
+
+    The fidelity axis arrives as a ``FidelityJudgement`` model (schema output of the
+    judge node), while the simulability axis is already a dict (our python tool).
+    Coerce both here, at the consumption boundary, so the combine never depends on
+    which shape the producer used.
+    """
+    if hasattr(value, "model_dump"):
+        return value.model_dump()
+    return value if isinstance(value, dict) else {}
+
+
+def combine_l5_measure(state: dict) -> dict:
+    """Combine the simulability and fidelity axes into one attributable record (FR-594).
+
+    Graph python tool. Merges the deterministic ``simulability`` axis and the noisy
+    LLM ``fidelity`` axis WITHOUT averaging them (Judge correction #3): both axes are
+    preserved verbatim and a ``concerns`` list names *which* axis fired so a future
+    failure is diagnosable, not just observed. ``concerns`` uses advisory,
+    diagnostic-only thresholds — this record reports, it never gates (Judge
+    corrections #1 and #4).
+    """
+    sim = _as_dict(state.get("simulability"))
+    fid = _as_dict(state.get("fidelity"))
+    inverted = fid.get("inverted") or []
+    concerns: list[str] = []
+    if sim.get("ratio", 0.0) >= _SIMULABILITY_CONCERN_RATIO:
+        concerns.append("low_simulability")
+    if inverted:
+        concerns.append("fidelity_inverted")
+    if fid.get("score", 1.0) < _FIDELITY_CONCERN_SCORE:
+        concerns.append("low_fidelity")
+    return {
+        "l5_measure": {
+            "simulability": sim,  # deterministic axis, preserved verbatim
+            "fidelity": fid,  # noisy LLM axis, preserved verbatim
+            "inverted_count": len(inverted),
+            "concerns": concerns,  # attributable: which axis fired
+            "diagnostic_only": True,  # FR-594 Judgement: reports, does not gate
+        }
+    }
+
+
+# FR-595 powered gate thresholds for the corpus-mean simulability discrimination.
+# Grounded in the FR-594 power analysis (n=5): paired gap gt_sim - ours_sim =
+# 0.337 +/- 0.035, t(4)=21.6. A 0.15 GO floor sits ~4 sd below the observed mean
+# gap, so it is robustly positive at a single corpus run. Gates ONLY on the
+# corpus-mean gap — never on absolute values (corpus-mean sd 0.085 needs n>=6 for
+# MDE 0.10) or per-genre (worst-cell sd 0.22).
+_VERDICT_GO_MARGIN = 0.15
+_VERDICT_REVISE_MARGIN = 0.05
+
+
+def measure_l5_verdict(ours_sim_mean: float, gt_sim_mean: float) -> dict:
+    """Powered L5 gate: the GT-anchored simulability discrimination (FR-595).
+
+    Lower simulability = more regenerable. The gate asks whether OUR encoding is
+    robustly *more* regenerable than the lossy ground-truth predicate skeleton —
+    i.e. ``gap = gt_sim_mean - ours_sim_mean`` is meaningfully positive. This is
+    the only axis the FR-594 power analysis showed is gateable at small n; the
+    verdict therefore reads the corpus mean only and never a per-genre or absolute
+    single-run value.
+    """
+    gap = gt_sim_mean - ours_sim_mean
+    if gap >= _VERDICT_GO_MARGIN:
+        verdict = "GO"
+    elif gap >= _VERDICT_REVISE_MARGIN:
+        verdict = "REVISE"
+    else:
+        verdict = "KILL"
+    return {
+        "verdict": verdict,
+        "gap": gap,
+        "ours_sim_mean": ours_sim_mean,
+        "gt_sim_mean": gt_sim_mean,
+        "basis": "gt_anchored_simulability_discrimination (corpus mean)",
+        "power": (
+            "FR-594 power analysis n=5: paired gap 0.337 +/- 0.035, t(4)=21.6. "
+            "Gates on the corpus-mean gap only; absolute thresholds (sd 0.085) and "
+            "per-genre verdicts (worst-cell sd 0.22) are underpowered and excluded."
+        ),
+        "conditions": [
+            f"GO if gt_sim - ours_sim >= {_VERDICT_GO_MARGIN}",
+            f"REVISE if gap in [{_VERDICT_REVISE_MARGIN}, {_VERDICT_GO_MARGIN})",
+            f"KILL if gap < {_VERDICT_REVISE_MARGIN:.2f} "
+            "(ours no more regenerable than the GT skeleton)",
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
+# FR-597 — L7 affect-regenerability ruler (the affect port of the FR-594 tools).
+#
+# Same two orthogonal axes as L5: SIMULABILITY (does the affect skeleton license
+# its own emotional narration? — deterministic, GT-free, scored from
+# [UNDERDETERMINED] markers) and FIDELITY (does that narration match the source's
+# emotional content? — an LLM judge). DIAGNOSTIC this cycle: `affect_recall` stays
+# the primary L7 gate (FR-578); these report, they do not gate. The L7 affect
+# skeleton is far sparser than L5 world-state (5-8 deltas on one protagonist), so
+# the headline is corpus-POOLED, not a mean of per-genre ratios (Judge C3), and the
+# verdict is led by the deterministic simulability axis (Judge C4).
+# ---------------------------------------------------------------------------
+
+# Judge C1 anti-deferral threshold: GT pooled under-determination at/above this
+# confirms the thesis (affect_recall is measuring a lossy skeleton) and authorizes
+# the demotion FR; below it refutes the thesis and affect_recall stands. Either
+# branch un-blocks the protagonist-throughline encoder work.
+_L7_THESIS_FLOOR = 0.70
+
+
+def _affect_delta_str(delta: dict) -> str:
+    """Render one affect delta as ``<op> <char> <kind>[ toward <toward>]`` (FR-597).
+
+    Pure and deterministic. ``toward`` is appended only for relational kinds that
+    carry a target, so the regenerate prompt and the fidelity judge can score
+    ``char`` and ``toward`` separately.
+    """
+    op = delta.get("op", "?")
+    char = delta.get("char", "?")
+    kind = delta.get("kind", "?")
+    toward = delta.get("toward")
+    base = f"{op} {char} {kind}"
+    return f"{base} toward {toward}" if toward else base
+
+
+def render_l7_affect(beats: list | dict) -> str | dict:
+    """Render L7 affect beats into the delta stream the regenerate prompt consumes.
+
+    Pure and deterministic (FR-597), mirroring ``render_l5_beats``: each
+    affect-bearing beat becomes ``Beat <id>`` followed by one indented line per
+    ``eff_affect`` delta. Beats with no affect are skipped entirely — they are not
+    part of the emotional skeleton and must not inflate the denominator that
+    ``score_affect_simulability`` divides by.
+
+    Dual-mode, like ``render_l5_beats``: as a graph python tool it receives the full
+    state dict and returns ``{"affect_skeleton": <rendered str>}`` (reading the raw
+    beat list from ``affect_beats``); called directly (unit tests, the runner) with
+    a list it returns the rendered string.
+    """
+    if isinstance(beats, dict):
+        return {"affect_skeleton": render_l7_affect(beats.get("affect_beats") or [])}
+    lines: list[str] = []
+    for b in beats:
+        if not isinstance(b, dict):
+            continue
+        deltas = b.get("eff_affect") or []
+        if not deltas:
+            continue  # non-affect beat — excluded from the skeleton and denominator
+        lines.append(f"Beat {b.get('id', '?')}")
+        for d in deltas:
+            if isinstance(d, dict):
+                lines.append("  " + _affect_delta_str(d))
+    return "\n".join(lines)
+
+
+def _affect_bearing_count(beats: list | None) -> int:
+    """Count beats that carry at least one affect delta (the real denominator)."""
+    return sum(
+        1 for b in (beats or []) if isinstance(b, dict) and (b.get("eff_affect") or [])
+    )
+
+
+def score_affect_simulability(state: dict) -> dict:
+    """Score the L7 simulability axis: markers / affect-bearing beats (FR-597).
+
+    Graph python tool. Reads ``regen_arc`` (the regenerate node's emotional-arc
+    output) and ``affect_beats`` (the real, deterministic count — never the model's
+    claim) and returns ``{"simulability": {underdetermined, beats, ratio}}``. A
+    higher ratio means the affect skeleton licenses *less* of its own emotional
+    narration. Zero affect-bearing beats yields ratio 0.0 (safe, no division).
+    """
+    k = count_underdetermined(state.get("regen_arc", ""))
+    n = _affect_bearing_count(state.get("affect_beats"))
+    ratio = (k / n) if n else 0.0
+    return {"simulability": {"underdetermined": k, "beats": n, "ratio": ratio}}
+
+
+def combine_l7_measure(state: dict) -> dict:
+    """Combine the L7 simulability and fidelity axes into one attributable record.
+
+    Graph python tool (FR-597). Mirrors ``combine_l5_measure``: the deterministic
+    ``simulability`` axis and the noisy LLM ``fidelity`` axis are preserved verbatim
+    and never averaged (Judge correction #3). ``concerns`` names which axis fired so
+    a future failure is diagnosable. ``verdict_basis`` records that the verdict is
+    led by the deterministic simulability axis (Judge correction #4: the L7 fidelity
+    judge scores subjective emotional content and informs attribution only). This
+    record reports; it never gates (diagnostic only this cycle).
+    """
+    sim = _as_dict(state.get("simulability"))
+    fid = _as_dict(state.get("fidelity"))
+    inverted = fid.get("inverted") or []
+    concerns: list[str] = []
+    if sim.get("ratio", 0.0) >= _SIMULABILITY_CONCERN_RATIO:
+        concerns.append("low_simulability")
+    if inverted:
+        concerns.append("fidelity_inverted")
+    if fid.get("score", 1.0) < _FIDELITY_CONCERN_SCORE:
+        concerns.append("low_fidelity")
+    return {
+        "l7_measure": {
+            "simulability": sim,  # deterministic axis, preserved verbatim
+            "fidelity": fid,  # noisy LLM axis, preserved verbatim
+            "inverted_count": len(inverted),
+            "concerns": concerns,  # attributable: which axis fired
+            "verdict_basis": "simulability",  # Judge C4: simulability-led
+            "diagnostic_only": True,  # FR-597 Judgement: reports, does not gate
+        }
+    }
+
+
+def l7_regenerability_exit(gt_pooled_ratio: float) -> dict:
+    """Resolve the binary two-way exit on the GT pooled under-determination (FR-597).
+
+    Judge correction #1 (anti-deferral guard): this second ruler must not become a
+    standing excuse to never heal L7. The measurement resolves the gate question,
+    it does not pause the layer — BOTH branches un-block the encoder:
+
+    - branch (a), thesis CONFIRMED (``gt_pooled_ratio >= 0.70``): the GT affect
+      skeleton cannot regenerate its own emotional arc, so ``affect_recall`` scores
+      agreement with a lossy skeleton. A separate demotion FR (the FR-595 analog)
+      moves the L7 gate, and the protagonist-throughline encoder work resumes
+      against the new ruler.
+    - branch (b), thesis REFUTED (``gt_pooled_ratio < 0.70``): the GT skeleton *is*
+      regenerable, ``affect_recall`` stands, and the encoder work resumes against
+      its original >= 0.50 gate.
+    """
+    if gt_pooled_ratio >= _L7_THESIS_FLOOR:
+        return {
+            "branch": "a",
+            "thesis": "confirmed",
+            "gt_pooled_ratio": gt_pooled_ratio,
+            "threshold": _L7_THESIS_FLOOR,
+            "authorizes": (
+                "Open a separate demotion FR (FR-595 analog) to move the L7 gate off "
+                "affect_recall; resume the protagonist-throughline encoder work "
+                "against the new regenerability ruler."
+            ),
+        }
+    return {
+        "branch": "b",
+        "thesis": "refuted",
+        "gt_pooled_ratio": gt_pooled_ratio,
+        "threshold": _L7_THESIS_FLOOR,
+        "authorizes": (
+            "affect_recall stands as the L7 gate; resume the protagonist-throughline "
+            "encoder work against its original >= 0.50 affect_recall gate."
+        ),
+    }

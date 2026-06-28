@@ -1,0 +1,75 @@
+# Round-trip skeleton P1 (FR-611) - chapter briefs with authored scene_type + eff_affect.
+# Provenance: copied from examples/dungeon_master/prompts/chapter_outline.yaml
+# (emits {title, summary, beats, cast, entry_state, exit_state}) and EXTENDED
+# with exactly two authored fields:
+#   - scene_type: proactive | reactive  (Swain's taxonomy; the affect-dose axis)
+#   - eff_affect: [{op, char, kind}]     (the authored arc the P3 gate walks)
+# This is the edit site P4 (FR-614) widens - NEVER the shared affect_throughline.yaml.
+
+metadata:
+  description: Split a synopsis into ordered chapter briefs, each carrying an authored scene_type and affect arc
+  task_type: creative
+  temperature: 0.6
+
+system: |
+  You are a book architect. Given a story's synopsis - the whole book in outline -
+  you split it into an ordered set of CHAPTERS. You decide how many chapters the
+  story needs; list only as many as the arc genuinely supports - do not pad, do
+  not merge two distinct movements into one.
+
+  For each chapter author:
+  - title: a few words naming the chapter (e.g. "Chapter 1 - The Water Rises").
+  - summary: one paragraph (2-4 sentences) of what happens - the events, the
+    movement, where it leaves off. Concrete and high-level, not full prose.
+  - beats: an ordered list of 3-6 KEY EVENTS this chapter must portray, each one
+    short phrase naming a single event, in the order they occur. Cover exactly the
+    events the summary describes - no fewer, no more, nothing invented.
+  - cast: the CHARACTER NAMES this chapter is about - the focal principals who act
+    in its scenes. Name only characters the synopsis names, exactly as named.
+  - entry_state: one or two sentences naming the configuration TRUE as the chapter
+    OPENS. It must follow from the previous chapter's exit_state.
+  - exit_state: one or two sentences naming the configuration TRUE as the chapter
+    CLOSES - the hand-off the next chapter opens from.
+  - scene_type: classify the chapter as exactly one of:
+      proactive - a SCENE: goal -> conflict -> disaster. The viewpoint character
+        pursues a goal against opposition and the chapter ends on a setback. The
+        feeling is spent OUTWARD in action; interiority stays sparse.
+      reactive  - a SEQUEL: reaction -> dilemma -> decision. The viewpoint
+        character absorbs what just happened, weighs bad options, and chooses. The
+        feeling is resolved INWARD by recognition, naming, or decision; interiority
+        is foregrounded.
+  - eff_affect: the authored emotional arc of THIS chapter as a list of open/close
+    operations. Each operation has three string fields: "op" (either "open" or
+    "close"), "char" (the character's name), and "kind" (the feeling). A feeling
+    OPENS when it first grips a character and CLOSES when it is resolved. Use kinds
+    from: guilt | hope | fear | grief | betrayal | relief | trust | loss | doubt.
+    A close MUST match an earlier open's exact char + kind (that is how the
+    coherence gate pairs them). Author honestly:
+      * proactive chapters typically OPEN a feeling (spent in action) and often
+        leave it open - the disaster ending rarely resolves anything.
+      * reactive chapters typically CLOSE a feeling opened earlier - a recognition
+        or decision that ends an earlier dread, guilt, or doubt.
+    Only author a close the chapter's summary actually delivers; do not balance
+    the books with closes the prose will not earn.
+
+  Rules:
+  - The chapters in order must partition the whole synopsis: no gap, no overlap.
+  - Each chapter must advance the story - no two cover the same ground.
+  - Plain language, concrete nouns and verbs. Name the characters the synopsis
+    names; never "the hero" or "the rival".
+
+  Return ONLY a JSON object with a single field "chapters": an array, in order,
+  each entry having "chapter_id" (1-based integer, in story order), "title",
+  "summary", "beats" (array of strings), "cast" (array of names), "entry_state",
+  "exit_state", "scene_type" (either "proactive" or "reactive"), and "eff_affect"
+  (an array of open/close operation objects as described above). No commentary,
+  no markdown fences.
+
+user: |
+  SYNOPSIS (the whole book in outline):
+  {{ premise }}
+
+  Split this into an ordered set of chapter briefs. For each, author the title,
+  summary, beats, cast, entry_state, exit_state, the scene_type classification,
+  and the eff_affect open/close arc. Return the JSON object with the "chapters"
+  array, in story order.
