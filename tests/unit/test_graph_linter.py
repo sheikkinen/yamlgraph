@@ -351,6 +351,80 @@ class TestCheckToolReferences:
         assert len(warnings) >= 1
         assert any("unused_tool" in i.message for i in warnings)
 
+    @pytest.mark.req("REQ-YG-003")
+    def test_map_subnode_tool_not_unused(self, temp_graph_dir):
+        """Tool used only inside a map sub-node must not trigger W001 (FR-621)."""
+        graph = {
+            "version": "1.0",
+            "name": "test",
+            "tools": {
+                "draft_tool": {
+                    "type": "python",
+                    "function": "mod.draft",
+                    "description": "Draft tool",
+                }
+            },
+            "nodes": {
+                "fanout": {
+                    "type": "map",
+                    "over": "{state.items}",
+                    "as": "item",
+                    "node": {
+                        "type": "python",
+                        "tool": "draft_tool",  # used only inside the sub-node
+                        "state_key": "draft",
+                    },
+                    "collect": "drafts",
+                }
+            },
+            "edges": [
+                {"from": "START", "to": "fanout"},
+                {"from": "fanout", "to": "END"},
+            ],
+        }
+        graph_path = write_graph(temp_graph_dir, graph)
+
+        issues = check_tool_references(graph_path)
+        warnings = [i for i in issues if i.severity == "warning"]
+        assert not any("draft_tool" in i.message for i in warnings)
+
+    @pytest.mark.req("REQ-YG-003")
+    def test_map_subnode_undefined_tool_errors(self, temp_graph_dir):
+        """Undefined tool referenced inside a map sub-node must error E003 (FR-621)."""
+        graph = {
+            "version": "1.0",
+            "name": "test",
+            "tools": {
+                "defined_tool": {
+                    "type": "python",
+                    "function": "mod.draft",
+                    "description": "Defined tool",
+                }
+            },
+            "nodes": {
+                "fanout": {
+                    "type": "map",
+                    "over": "{state.items}",
+                    "as": "item",
+                    "node": {
+                        "type": "python",
+                        "tool": "undefined_tool",  # not in tools section
+                        "state_key": "draft",
+                    },
+                    "collect": "drafts",
+                }
+            },
+            "edges": [
+                {"from": "START", "to": "fanout"},
+                {"from": "fanout", "to": "END"},
+            ],
+        }
+        graph_path = write_graph(temp_graph_dir, graph)
+
+        issues = check_tool_references(graph_path)
+        errors = [i for i in issues if i.severity == "error"]
+        assert any(i.code == "E003" and "undefined_tool" in i.message for i in errors)
+
 
 # --- Test check_prompt_files ---
 
