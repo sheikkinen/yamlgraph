@@ -488,6 +488,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 170 | CAP-170 Dungeon Master Web UI v2 (Journey-First) | `examples/dungeon_master/api/session`, `examples/dungeon_master/api/story_doc`, `examples/dungeon_master/api/routes/story` | REQ-YG-468 – 471 |
 | 171 | CAP-171 Executor Plain-Text Content Normalization | `yamlgraph/executor.py`, `yamlgraph/utils/llm_factory_async.py`, `yamlgraph/utils/content.py` | REQ-YG-472 |
 | 172 | CAP-172 Prompt-Monolith Linter Check (W026) | `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-473 |
+| 173 | CAP-173 Write Data File Tool | `tools/write_data_file_tool` | REQ-YG-474 – 477 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2146,6 +2147,19 @@ A static graph-lint check, W026, flags a prompt that asks one LLM call to make t
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-473 | check_prompt_complexity emits W026 at warning severity when a prompt fuses too many independent judgements — via inline-schema top-level field count (>= field_threshold, default 4) or curated prose phrases (enumerated multi-output, global cross-unit constraint); calibrated to fire on the four plot_modeller monoliths and stay silent on the two clean prompts; graph lint exit semantics unchanged | `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, `tests/unit/test_linter_prompt_monolith.py` |
+
+### 173. CAP-173 Write Data File Tool
+
+Built-in write_data_file tool type that writes structured data (dict/list) to a YAML file within the workspace. Symmetric counterpart to data_files read directive. Graph-relative path resolution, atomic writes, path traversal guard, and self-modification guard via compile-time closure.
+
+**Feature Request:** FR-625
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-474 | parse_write_data_file_tools() extracts tools with type: write_data_file from YAML tools section and returns WriteDataFileToolConfig instances. | `tools/write_data_file_tool` |
+| REQ-YG-475 | write_data_file tool writes structured data to a YAML file at a graph-relative path, creating parent directories as needed. Atomic write via tempfile + os.replace. | `tools/write_data_file_tool` |
+| REQ-YG-476 | write_data_file tool rejects absolute paths and path traversal (.. segments) that escape the graph root directory. | `tools/write_data_file_tool` |
+| REQ-YG-477 | write_data_file tool refuses to overwrite the graph file itself or files under its prompts_dir (self-modification guard via compile-time closure). | `tools/write_data_file_tool` |
 
 <!-- END GENERATED CAPABILITIES -->
 

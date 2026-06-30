@@ -20,6 +20,10 @@ from yamlgraph.tools.schema_loader_tool import (
     SchemaLoaderToolConfig,
     build_schema_loader_tool,
 )
+from yamlgraph.tools.write_data_file_tool import (
+    WriteDataFileToolConfig,
+    build_write_data_file_tool,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,16 +48,20 @@ class PythonToolConfig:
 
 
 def load_python_function(
-    config: PythonToolConfig | SchemaLoaderToolConfig,
+    config: PythonToolConfig | SchemaLoaderToolConfig | WriteDataFileToolConfig,
     *,
     graph_root: Path | None = None,
     tool_name: str = "",
+    graph_path: Path | None = None,
+    prompts_dir: Path | None = None,
 ) -> Callable:
     """Load a Python function from module path or file path.
 
     Args:
         config: Python tool configuration or schema loader tool configuration
         graph_root: Graph root directory for graph-relative tool loading
+        graph_path: Path to graph YAML file (for write_data_file self-mod guard)
+        prompts_dir: Path to prompts directory (for write_data_file self-mod guard)
 
     Returns:
         The loaded function
@@ -64,6 +72,19 @@ def load_python_function(
         ImportError: If module cannot be imported
         AttributeError: If function not found in module
     """
+    if isinstance(config, WriteDataFileToolConfig):
+        if graph_root is None:
+            raise ValueError(
+                "WriteDataFileToolConfig requires graph_root for path resolution"
+            )
+        return build_write_data_file_tool(
+            tool_name or "write_data_file",
+            config,
+            graph_root=graph_root,
+            graph_path=graph_path,
+            prompts_dir=prompts_dir,
+        )
+
     if isinstance(config, SchemaLoaderToolConfig):
         if graph_root is None:
             raise ValueError(

@@ -1,0 +1,38 @@
+id: CAP-173
+name: Write Data File Tool
+status: active
+fr: FR-625
+description: >
+  Built-in write_data_file tool type that writes structured data (dict/list)
+  to a YAML file within the workspace. Symmetric counterpart to data_files
+  read directive. Graph-relative path resolution, atomic writes, path
+  traversal guard, and self-modification guard via compile-time closure.
+modules:
+  - tools/write_data_file_tool
+requirements:
+  - id: REQ-YG-474
+    description: >
+      parse_write_data_file_tools() extracts tools with type: write_data_file
+      from YAML tools section and returns WriteDataFileToolConfig instances.
+    modules:
+      - tools/write_data_file_tool
+  - id: REQ-YG-475
+    description: >
+      write_data_file tool writes structured data to a YAML file at a
+      graph-relative path, creating parent directories as needed. Atomic
+      write via tempfile + os.replace.
+    modules:
+      - tools/write_data_file_tool
+  - id: REQ-YG-476
+    description: >
+      write_data_file tool rejects absolute paths and path traversal
+      (.. segments) that escape the graph root directory.
+    modules:
+      - tools/write_data_file_tool
+  - id: REQ-YG-477
+    description: >
+      write_data_file tool refuses to overwrite the graph file itself or
+      files under its prompts_dir (self-modification guard via compile-time
+      closure).
+    modules:
+      - tools/write_data_file_tool

@@ -21,6 +21,7 @@ from yamlgraph.storage.checkpointer_factory import get_checkpointer
 from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
 from yamlgraph.tools.schema_loader_tool import parse_schema_loader_tools
 from yamlgraph.tools.shell import parse_tools
+from yamlgraph.tools.write_data_file_tool import parse_write_data_file_tools
 from yamlgraph.utils.validators import validate_config
 
 # Type alias for dynamic state
@@ -260,12 +261,19 @@ def _parse_all_tools(
     tools = parse_tools(config.tools)
     python_tools = parse_python_tools(config.tools)
     schema_loader_tools = parse_schema_loader_tools(config.tools)
+    write_data_file_tools = parse_write_data_file_tools(config.tools)
     python_tools.update(schema_loader_tools)
+    python_tools.update(write_data_file_tools)
     graph_root = (
         config.source_path.parent.resolve()
         if config.source_path
         else Path.cwd().resolve()
     )
+
+    # Resolve prompts_dir for write_data_file self-modification guard
+    prompts_dir: Path | None = None
+    if config.prompts_dir and config.source_path:
+        prompts_dir = (config.source_path.parent / config.prompts_dir).resolve()
 
     # Build callable registry for tool_call nodes
     callable_registry: dict[str, Callable] = {}
@@ -276,6 +284,8 @@ def _parse_all_tools(
                 tool_config,
                 graph_root=graph_root,
                 tool_name=name,
+                graph_path=config.source_path,
+                prompts_dir=prompts_dir,
             )
         except (ImportError, AttributeError, ValueError, TypeError) as e:
             if config.tool_load_mode == TOOL_LOAD_MODE_WARN:
