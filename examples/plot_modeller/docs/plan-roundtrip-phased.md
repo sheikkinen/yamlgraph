@@ -157,8 +157,8 @@ Stop and read the gate after P3 before deciding whether P4 is still the right la
 
 | Phase | Date | Artifact / number | Notes |
 |---|---|---|---|
-| P0 | | lint green | |
-| P1 | | briefs w/ scene_type + eff_affect | |
-| P2 | | assembled book | |
-| P3 | | authored_dangling_rate baseline | proactive __ / reactive __ |
-| P4 | | authored_dangling_rate after | reactive ↓ to __ (+ precision check) |
+| P0 | 2026-06-28 | lint green, real ordered assemble | `1e8069b8` |
+| P1 | 2026-06-28 | briefs w/ scene_type + eff_affect | `6befd4ca` |
+| P2 | 2026-06-28 | assembled 5-chapter book | `05c3ec42`; `_map_index`≠`chapter_id` proves sort load-bearing |
+| P3 | 2026-06-28 | authored_dangling_rate baseline = **0.40** | **proactive 1.0 (2/2) / reactive 0.0 (0/3)** — INVERTS the P4 hypothesis (1 draw, Loom) |
+| P4 | | — | **STOP / read the gate first**: reactive already closes; the proactive danglers (fear, loss) read as story-correct horror non-closure. P4-as-conceived may not be the lane. |
