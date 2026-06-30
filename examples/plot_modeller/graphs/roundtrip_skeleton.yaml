@@ -48,6 +48,9 @@ state:
   coherence:
     type: dict
     description: "Coherence report (P3 fills authored_dangling_rate; P0 = {})"
+  artifacts:
+    type: dict
+    description: "persist_run witness {run_dir, run_id, files: [...]} (FR-623)"
 
 # Leaf tools - the only Python in the skeleton.
 tools:
@@ -59,6 +62,10 @@ tools:
     type: python
     module: examples.plot_modeller.nodes.roundtrip_tools
     function: coherence_gate
+  persist_run:
+    type: python
+    module: examples.plot_modeller.nodes.roundtrip_tools
+    function: persist_run
 
 nodes:
   # P1 (FR-611): synopsis -> 2-4 principal interiority sheets (parse_json).
@@ -103,6 +110,13 @@ nodes:
     tool: coherence_gate
     state_key: coherence
 
+  # FR-623: deterministic side-effect leaf - write cast/briefs/book/coherence to a
+  # run-stamped dir so every run is durable (no --export-state). Additive tail node.
+  persist_run:
+    type: python
+    tool: persist_run
+    state_key: artifacts
+
 # Linear spine + map fan-out/fan-in. Frozen: later phases add nodes only off
 # this critical path (P5's reconstruct_synopsis / roundtrip_diff).
 edges:
@@ -117,4 +131,6 @@ edges:
   - from: assemble_book
     to: coherence_gate
   - from: coherence_gate
+    to: persist_run
+  - from: persist_run
     to: END

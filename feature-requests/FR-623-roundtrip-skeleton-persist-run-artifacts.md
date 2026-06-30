@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged (2026-06-30) — Authority GRANTED after folding 4 corrections (Corr 1 manifest model/provider sourced from env, not state; Corr 2 `artifacts` declared in `state:` block; Corr 3 microsecond run_id + disambiguator; Corr 4 redundant gitignore AC reworded). Scope frozen.
+**Status:** Implemented (2026-06-30) — `persist_run` leaf added (RED `tests/unit/test_roundtrip_persist_run.py` -> GREEN, 9 tests), graph wired (tool + `artifacts` state key + tail node/edges), lints clean, full end-to-end run on the detective fixture produced `examples/plot_modeller/docs/demo-run/...`. All 8 ACs met.
 **Effort:** 0.5 day
 **Requested:** 2026-06-30
 

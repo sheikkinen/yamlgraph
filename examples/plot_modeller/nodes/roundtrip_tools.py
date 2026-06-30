@@ -18,6 +18,11 @@ P2 swaps the draft stub for an LLM prose node) without re-wiring the spine.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import os
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 
@@ -112,3 +117,80 @@ def coherence_gate(state: dict[str, Any]) -> dict[str, Any]:
         "by_scene_type": by_scene_type,
     }
     return {"coherence": report}
+
+
+def persist_run(state: dict[str, Any]) -> dict[str, Any]:
+    """Write the round-trip run's artifacts to a run-stamped directory (FR-623).
+
+    Deterministic side-effect leaf (no LLM): the tail of the skeleton spine. Each
+    finished stage key is written as its own file under
+    ``<base>/<run_id>/`` where ``base`` is ``YAMLGRAPH_ROUNDTRIP_OUT`` (default
+    ``outputs/roundtrip/``) and ``run_id`` is ``<UTC ts, microsecond>-<premise
+    hash>``. The microsecond stamp (Corr 3) keeps two draws of one premise
+    distinct so the Loom 0.40-vs-0.00 case is separable after the fact.
+
+    ``provider``/``model`` are NOT in graph state (Corr 1) — they are sourced from
+    the run environment (``PROVIDER`` / ``ANTHROPIC_MODEL``/``*_MODEL``) and
+    recorded as ``"(unset)"`` when absent. Raises if any of ``cast``/``briefs``/
+    ``book``/``coherence`` is missing, mirroring :func:`assemble_book`, so a broken
+    upstream stage cannot yield a silent/empty run dir.
+    """
+    for required in ("cast", "briefs", "book", "coherence"):
+        if state.get(required) is None:
+            raise ValueError(
+                f"persist_run: missing required stage '{required}' - an upstream"
+                " node did not produce it, so the run dir would be incomplete"
+            )
+
+    premise = state.get("premise") or ""
+    premise_hash = hashlib.sha256(premise.encode("utf-8")).hexdigest()[:8]
+    now = datetime.now(UTC)
+    run_id = f"{now.strftime('%Y%m%dT%H%M%S-%f')}Z-{premise_hash}"
+
+    base = Path(os.environ.get("YAMLGRAPH_ROUNDTRIP_OUT") or "outputs/roundtrip")
+    run_dir = base / run_id
+    # The microsecond stamp distinguishes draws; a counter suffix guards the
+    # (rare) same-microsecond collision so artifacts never clobber (Corr 3).
+    suffix = 1
+    while run_dir.exists():
+        run_id = f"{now.strftime('%Y%m%dT%H%M%S-%f')}Z-{premise_hash}-{suffix}"
+        run_dir = base / run_id
+        suffix += 1
+    run_dir.mkdir(parents=True, exist_ok=False)
+
+    provider = os.environ.get("PROVIDER") or "(unset)"
+    model = os.environ.get("ANTHROPIC_MODEL") or os.environ.get("MODEL") or "(unset)"
+    manifest = {
+        "run_id": run_id,
+        "created_utc": now.isoformat(),
+        "premise": premise,
+        "genre": state.get("genre") or "",
+        "provider": provider,
+        "model": model,
+        "chapter_count": state.get("chapter_count"),
+        "note": "per-node model overrides (FR-622) are not captured by a single field",
+    }
+
+    def _dump_json(name: str, obj: Any) -> str:
+        (run_dir / name).write_text(
+            json.dumps(obj, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return name
+
+    files = [
+        _dump_json("manifest.json", manifest),
+        _dump_json("cast.json", state["cast"]),
+        _dump_json("briefs.json", state["briefs"]),
+        _dump_json("coherence.json", state["coherence"]),
+    ]
+    (run_dir / "book.md").write_text(state["book"], encoding="utf-8")
+    files.append("book.md")
+
+    return {
+        "artifacts": {
+            "run_dir": str(run_dir),
+            "run_id": run_id,
+            "files": files,
+        }
+    }
