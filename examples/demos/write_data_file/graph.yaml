@@ -1,0 +1,41 @@
+version: "1.0"
+name: write-data-file-demo
+description: Accumulating world bible via read-compress-write cycle
+prompts_relative: true
+prompts_dir: prompts
+
+data_files:
+  wiki: wiki/world.yaml
+
+state:
+  new_fact: str
+  updated_wiki: dict
+  _written: str
+
+tools:
+  save_wiki:
+    type: write_data_file
+    state_key: _written
+
+nodes:
+  compress:
+    type: llm
+    prompt: compress
+    state_key: updated_wiki
+    provider: google
+    temperature: 0.2
+
+  persist:
+    type: python
+    tool: save_wiki
+    variables:
+      path: "wiki/world.yaml"
+      data: "{state.updated_wiki}"
+
+edges:
+  - from: START
+    to: compress
+  - from: compress
+    to: persist
+  - from: persist
+    to: END

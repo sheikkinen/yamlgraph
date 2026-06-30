@@ -90,6 +90,10 @@ def build_write_data_file_tool(
         if data is None:
             raise ValueError(f"write_data_file tool '{name}': 'data' must not be None")
 
+        # Normalize Pydantic models to plain dicts (LLM outputs are often BaseModel)
+        if hasattr(data, "model_dump"):
+            data = data.model_dump()
+
         # Reject absolute paths
         if Path(rel_path).is_absolute():
             raise ValueError(

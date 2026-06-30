@@ -1,0 +1,62 @@
+2026-06-30 23:17:20,709 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: save_wiki
+2026-06-30 23:17:20,713 [INFO] yamlgraph.node_compiler: Added node: compress (type=llm)
+2026-06-30 23:17:20,714 [INFO] yamlgraph.node_compiler: Added node: persist (type=python)
+2026-06-30 23:17:20,807 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.2)
+2026-06-30 23:17:22,410 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 23:17:29,379 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 23:17:29,384 [INFO] yamlgraph.node_factory.llm_nodes: Node compress completed successfully
+2026-06-30 23:17:29,385 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist -> save_wiki
+
+🚀 Running graph: graph.yaml
+   Variables: {'new_fact': 'Kael is a wandering blacksmith who lost his forge in the Ashfall.'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f1a2d-db52-7120-a22b-034863cf43bc?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist
+  new_fact: Kael is a wandering blacksmith who lost his forge in the Ashfall.
+  updated_wiki: setting='An unnamed world awaiting its first story.' characters=[{'name': 'Kael', 'role': 'Wandering blacksmith', 'traits': 'Resilient, skilled, displaced'}] locations=[{'name': 'Ashfall', 'description': "The ruined, ash-laden territory where Kael's forge once stood."}] events=[{'name': 'The Ashfall', 'description': "A devastating disaster that destroyed Kael's forge and forced him into a nomadic life.", 'characters_involved': ['Kael']}]
+  wiki: {'setting': 'An unnamed world awaiting its first story.', 'characters': [], 'locations': [], 'events': []}
+
+2026-06-30 23:18:14,969 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: save_wiki
+2026-06-30 23:18:14,973 [INFO] yamlgraph.node_compiler: Added node: compress (type=llm)
+2026-06-30 23:18:14,974 [INFO] yamlgraph.node_compiler: Added node: persist (type=python)
+2026-06-30 23:18:15,150 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.2)
+2026-06-30 23:18:16,829 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 23:18:20,779 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 23:18:20,782 [INFO] yamlgraph.node_factory.llm_nodes: Node compress completed successfully
+2026-06-30 23:18:20,783 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist -> save_wiki
+
+🚀 Running graph: graph.yaml
+   Variables: {'new_fact': 'The Crimson Bazaar is a floating market above the salt flats, visited by traders from three kingdoms.'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f1a2e-af48-7913-9fba-270ee0ecdf78?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist
+  new_fact: The Crimson Bazaar is a floating market above the salt flats, visited by traders from three kingdoms.
+  updated_wiki: setting='An unnamed world awaiting its first story.' characters=[{'name': 'Kael', 'role': 'Wandering blacksmith', 'traits': 'Resilient, skilled, displaced'}] locations=[{'name': 'Ashfall', 'description': "The ruined, ash-laden territory where Kael's forge once stood."}, {'name': 'The Crimson Bazaar', 'description': 'A floating market above the salt flats, visited by traders from three kingdoms.'}] events=[{'name': 'The Ashfall', 'description': "A devastating disaster that destroyed Kael's forge and forced him into a nomadic life.", 'characters_involved': ['Kael']}]
+  wiki: {'setting': 'An unnamed world awaiting its first story.', 'characters': [{'name': 'Kael', 'role': 'Wandering blacksmith', 'traits': 'Resilient, skilled, displaced'}], 'locations': [{'name': 'Ashfall', 'description': "The ruined, ash-laden territory where Kael's forge once stood."}], 'events': [{'name': 'The Ashfall', 'description': "A devastating disaster that destroyed Kael's forge and forced him into a nomadic life.", 'characters_involved': ['Kael']}]}
+
+2026-06-30 23:18:45,758 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: save_wiki
+2026-06-30 23:18:45,762 [INFO] yamlgraph.node_compiler: Added node: compress (type=llm)
+2026-06-30 23:18:45,762 [INFO] yamlgraph.node_compiler: Added node: persist (type=python)
+2026-06-30 23:18:45,839 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.2)
+2026-06-30 23:18:47,166 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 23:18:53,139 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 23:18:53,142 [INFO] yamlgraph.node_factory.llm_nodes: Node compress completed successfully
+2026-06-30 23:18:53,143 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist -> save_wiki
+
+🚀 Running graph: graph.yaml
+   Variables: {'new_fact': 'Kael arrived at the Crimson Bazaar seeking dragonsteel, but found only rumors of a sealed vault beneath the salt.'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f1a2f-2788-7480-8b00-e1aea200cb91?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist
+  new_fact: Kael arrived at the Crimson Bazaar seeking dragonsteel, but found only rumors of a sealed vault beneath the salt.
+  updated_wiki: setting='An unnamed world awaiting its first story.' characters=[{'name': 'Kael', 'role': 'Wandering blacksmith', 'traits': 'Resilient, skilled, displaced'}] locations=[{'name': 'Ashfall', 'description': "The ruined, ash-laden territory where Kael's forge once stood."}, {'name': 'The Crimson Bazaar', 'description': 'A floating market above the salt flats, visited by traders from three kingdoms.'}] events=[{'name': 'The Ashfall', 'description': "A devastating disaster that destroyed Kael's forge and forced him into a nomadic life.", 'characters_involved': ['Kael']}, {'name': 'The Search for Dragonsteel', 'description': 'Kael arrived at the Crimson Bazaar seeking dragonsteel, but found only rumors of a sealed vault beneath the salt.', 'characters_involved': ['Kael']}]
+  wiki: {'setting': 'An unnamed world awaiting its first story.', 'characters': [{'name': 'Kael', 'role': 'Wandering blacksmith', 'traits': 'Resilient, skilled, displaced'}], 'locations': [{'name': 'Ashfall', 'description': "The ruined, ash-laden territory where Kael's forge once stood."}, {'name': 'The Crimson Bazaar', 'description': 'A floating market above the salt flats, visited by traders from three kingdoms.'}], 'events': [{'name': 'The Ashfall', 'description': "A devastating disaster that destroyed Kael's forge and forced him into a nomadic life.", 'characters_involved': ['Kael']}]}

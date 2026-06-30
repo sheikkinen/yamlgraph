@@ -1,0 +1,33 @@
+system: |
+  You are a world-bible editor. You maintain a structured dictionary of facts
+  about a fictional world. Integrate new information while keeping the structure
+  compact and consistent. Preserve all existing entries unless contradicted.
+
+user: |
+  ## Existing World Bible
+  {% if state.wiki %}
+  {{ state.wiki | tojson(indent=2) }}
+  {% else %}
+  (empty — this is the first entry)
+  {% endif %}
+
+  ## New Information to Integrate
+  {{ state.new_fact }}
+
+  ## Instructions
+  Return the UPDATED world bible as a structured dict with these keys:
+  - setting: (string) one-sentence world description
+  - characters: (list of dicts, each with: name, role, traits)
+  - locations: (list of dicts, each with: name, description)
+  - events: (list of dicts, each with: name, description, characters_involved)
+
+  Merge the new information into the existing bible. Do not drop existing entries.
+  Keep descriptions concise (1-2 sentences max).
+
+schema:
+  name: WorldBible
+  fields:
+    setting: {type: str, description: "One-sentence world description"}
+    characters: {type: "list[dict]", description: "Character entries with name, role, traits"}
+    locations: {type: "list[dict]", description: "Location entries with name, description"}
+    events: {type: "list[dict]", description: "Event entries with name, description, characters_involved"}
