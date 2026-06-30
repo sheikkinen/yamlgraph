@@ -4,7 +4,7 @@
 **Type:** Feature
 **Effort:** 1 day
 **Requested:** 2026-06-28
-**Status:** Re-judged after Decision fold — option (a) declared, Authority SUSTAINED (design); FINAL authority WITHHELD pending Raw Output Read (2026-06-28)
+**Status:** Raw Output Read FILLED (K=6, 2026-06-30) — gate IMPLEMENTED and runs, but the read REFUTES it as a coherence signal (self-report, non-reproducible). Superseded by FR-622 (re-scope). FINAL authority WITHHELD.
 
 ## Summary
 
@@ -104,9 +104,30 @@ closure (opens that never close = dangling).
 > raw artifact is the P2 `book`, dumped to `logs/p3-raw/` and read end-to-end before the
 > `dangling_open_rate` aggregate is computed.
 
-- **Samples read:** _TBD — link `logs/p3-raw/*.md` once P2 lands._
-- **What I saw:** _TBD — one concrete per-sample detail (e.g. "reactive ch.3 opens guilt in
-  dialogue and never names a close; the action-default close-op had nothing to match")._
+- **Samples read:** K = 6 across 5 genres (`logs/p3-raw/{quest-adventure-the-sunken-crown,
+  detective-thriller-the-vanished-witness, historical-fiction-the-salt-road,
+  horror-survival-the-last-light, scifi-hybrid-the-loom}.log`, plus an earlier Loom draw). Each
+  read end-to-end; authored arc parsed and walked by hand; prose spot-read.
+- **What I saw (per sample, concrete):**
+  - **quest / sunken-crown** — 5 chapters, 4 labelled proactive + 1 reactive; arc closes cleanly
+    (rate 0.0). The single reactive chapter carries one lone `close` op.
+  - **detective / vanished-witness** — `Marren/hope` opened ch2, never closed → flagged dangling.
+    But the prose renders **Marren as "he" in ch1** ("his revolver", "chose it himself") and
+    **"she" in ch2** ("her boots", "her finger"): a character-identity flip the affect gate is
+    blind to, and a worse coherence defect than the dangling it did flag.
+  - **historical / salt-road** — reactive rate 1.0 (3/3 dangle), but the causes are positional:
+    `relief` is **opened in ch8, the final chapter** (cannot close), and `grief` opened ch1 is a
+    thematic through-line. Not a recognition-gap.
+  - **horror / last-light** — 12 opens across **4 chapters all labelled proactive** despite
+    grief/guilt/loss content; `loss` opened in the final chapter. rate 0.75 is a labelling +
+    downer-ending artifact.
+  - **scifi / loom (draw 2)** — ch4 emits `close Mara/hope` for a thread **never opened** (a
+    phantom close the pop-walk silently swallows). Overall 0.0.
+  - **scifi / loom (draw 1)** — same premise, **0.40** (proactive 1.0). Two draws of one premise
+    give opposite numbers.
+- **Verdict:** the metric measures the **author's self-report in an abstract symbol layer
+  decoupled from the prose**, and is non-reproducible across draws. It is not a coherence signal
+  as built. See FR-622 (re-scope) and `docs/diary/diary-2026-06-30-grading-the-self-report.md`.
 
 ## Proposed Solution
 

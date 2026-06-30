@@ -4,7 +4,7 @@
 **Type:** Enhancement
 **Effort:** 1 day
 **Requested:** 2026-06-28
-**Status:** Re-judged (pass 2) — tautology guard RESOLVED (now a binding AC); Authority SUSTAINED (design); FINAL authority WITHHELD pending Raw Output Read only (2026-06-28)
+**Status:** REFUTED by the FR-613 K=6 Raw Output Read (2026-06-30) — the reactive≫proactive dangling hypothesis does not hold across 5 premises; danglers are positional (last-chapter opens) / phantom closes / scene_type mislabels, not a recognition-gap. No reactive close-op to widen under decision (a). Superseded by FR-622. DO NOT BUILD.
 
 ## Summary
 
