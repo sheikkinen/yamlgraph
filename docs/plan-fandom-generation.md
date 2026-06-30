@@ -296,6 +296,7 @@ that rots.
 
 ## 12. Related
 
+- [plan-fandom-architecture.md](plan-fandom-architecture.md) — the subsystem architecture (8 subsystems, two loops, interface contracts) that implements this plan.
 - [plan-ledger-memory.md](plan-ledger-memory.md) — the dynamic-canon mutation model.
 - [FR-552](../feature-requests/FR-552-dm-v2-world-bible.md) — world bible as ground-truth input (static canon).
 - [FR-551](../feature-requests/FR-551-dm-v2-supporting-cast-tier.md) — cast (coherence) vs. world bible (depth) axes.
