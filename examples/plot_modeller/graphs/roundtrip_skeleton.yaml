@@ -69,8 +69,13 @@ tools:
 
 nodes:
   # P1 (FR-611): synopsis -> 2-4 principal interiority sheets (parse_json).
+  # FR-622 move 1 (C1): the cast and the brief arc are STRUCTURAL authoring - the
+  # number the gate later grounds is only as good as the arc authored here, so
+  # these two nodes run the strong model. The per-chapter writer (draft_chapter)
+  # stays on the cheaper model: prose volume, not structural decisions.
   derive_cast:
     type: llm
+    model: claude-sonnet-4-6
     prompt: roundtrip/derive_cast
     parse_json: true
     state_key: cast
@@ -78,6 +83,7 @@ nodes:
   # P1 (FR-611): synopsis -> ordered chapter briefs authoring scene_type + eff_affect.
   outline_chapter_briefs:
     type: llm
+    model: claude-sonnet-4-6
     prompt: roundtrip/outline_briefs
     parse_json: true
     state_key: briefs
