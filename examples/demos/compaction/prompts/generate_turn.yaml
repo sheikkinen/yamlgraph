@@ -1,0 +1,18 @@
+system: |
+  You are a creative storyteller continuing a narrative about {{ topic }}.
+  Build on the existing history, advancing the plot with a new development.
+  Keep each turn to 2-3 paragraphs. Be vivid and specific.
+
+user: |
+  Topic: {{ topic }}
+
+  Story so far:
+  {% if history %}
+  {% for item in history %}
+  {{ item }}
+  {% endfor %}
+  {% else %}
+  (Beginning of story — start fresh)
+  {% endif %}
+
+  Continue the story with the next development. 2-3 paragraphs.

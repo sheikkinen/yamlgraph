@@ -1,0 +1,57 @@
+2026-06-30 17:31:26,767 [INFO] yamlgraph.graph_loader: Parsed 1 Python tools: estimate_tokens
+2026-06-30 17:31:26,768 [INFO] yamlgraph.node_compiler: Added node: generate_turn (type=llm)
+2026-06-30 17:31:26,769 [INFO] yamlgraph.node_compiler: Added node: count_tokens (type=python)
+2026-06-30 17:31:26,770 [INFO] yamlgraph.node_compiler: Added node: compact (type=llm)
+2026-06-30 17:31:26,859 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.7)
+2026-06-30 17:31:28,430 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:31:36,064 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:31:36,067 [INFO] yamlgraph.node_factory.llm_nodes: Node generate_turn completed successfully
+2026-06-30 17:31:36,068 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: count_tokens -> estimate_tokens
+2026-06-30 17:31:36,073 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:31:43,367 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:31:43,369 [INFO] yamlgraph.node_factory.llm_nodes: Node compact completed successfully
+2026-06-30 17:31:43,376 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:31:51,284 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:31:51,286 [INFO] yamlgraph.node_factory.llm_nodes: Node generate_turn completed successfully
+2026-06-30 17:31:51,287 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: count_tokens -> estimate_tokens
+2026-06-30 17:31:51,471 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:31:58,186 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:31:58,189 [INFO] yamlgraph.node_factory.llm_nodes: Node generate_turn completed successfully
+2026-06-30 17:31:58,190 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: count_tokens -> estimate_tokens
+2026-06-30 17:31:58,195 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:32:06,330 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:32:06,333 [INFO] yamlgraph.node_factory.llm_nodes: Node compact completed successfully
+2026-06-30 17:32:06,339 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:32:16,033 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:32:16,035 [INFO] yamlgraph.node_factory.llm_nodes: Node generate_turn completed successfully
+2026-06-30 17:32:16,036 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: count_tokens -> estimate_tokens
+2026-06-30 17:32:16,041 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:32:24,839 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:32:24,841 [INFO] yamlgraph.node_factory.llm_nodes: Node compact completed successfully
+2026-06-30 17:32:24,848 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:32:34,294 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:32:34,297 [INFO] yamlgraph.node_factory.llm_nodes: Node generate_turn completed successfully
+2026-06-30 17:32:34,298 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: count_tokens -> estimate_tokens
+2026-06-30 17:32:34,303 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:32:43,578 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:32:43,579 [INFO] yamlgraph.node_factory.llm_nodes: Node compact completed successfully
+2026-06-30 17:32:43,586 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:32:52,013 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:32:52,016 [INFO] yamlgraph.node_factory.llm_nodes: Node generate_turn completed successfully
+2026-06-30 17:32:52,017 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: count_tokens -> estimate_tokens
+2026-06-30 17:32:52,022 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-06-30 17:32:59,091 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 17:32:59,093 [INFO] yamlgraph.node_factory.llm_nodes: Node compact completed successfully
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'a lighthouse keeper discovering messages in bottles'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f18f1-2d38-7310-826d-419341011813?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: compact
+  topic: a lighthouse keeper discovering messages in bottles
+  history: Clutching a freezing brass key, Thomas enters a damp, foghorn-echoing tower and climbs the spiral staircase, noticing an incongruous draft smelling of peppermint and wet wool. Upon reaching his sleeping quarters, he finds the door ajar and his iron cot dragged aside, exposing fresh gouges in the floorboards. The rusted nails that had sealed the cistern trapdoor for twelve years lie scattered on his rug, replaced by a clean, polished brass circular keyhole. Kneeling with his pocketknife, Thomas listens to the flooded cistern below and hears the sloshing of seawater, a rhythmic metallic scraping of iron on stone, and a wet, heavy, and impossibly familiar cough. The tense encounter ends on a cliffhanger as the floorboards tremble and a heavy presence begins ascending the ladder toward him.
+  token_estimate: 510
+  compaction_count: 0

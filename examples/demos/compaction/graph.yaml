@@ -1,0 +1,90 @@
+# Compaction Pattern Demo (FR-616)
+# Demonstrates context compaction using existing primitives:
+# guard-gated LLM summarization + passthrough state reset.
+#
+# Pattern: generate in loop → estimate tokens → compact if over threshold
+# Uses: guards (conditional skip), python (token count), llm (summarize),
+#       passthrough (state reset), loop_limits (safety)
+
+version: "1.0"
+name: compaction-demo
+description: Long-running loop with automatic context compaction via guards
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: google
+  temperature: 0.7
+
+state:
+  topic: str
+  history:
+    type: list
+    reducer: add
+  token_estimate: int
+  compaction_count: int
+
+tools:
+  estimate_tokens:
+    type: python
+    module: examples.demos.compaction.tools
+    function: estimate_tokens
+    description: Estimate token count of history state
+
+nodes:
+  # Generate a new conversation turn — appends to history
+  generate_turn:
+    type: llm
+    prompt: generate_turn
+    variables:
+      topic: "{state.topic}"
+      history: "{state.history}"
+    state_key: history
+    skip_if_exists: false
+
+  # Count tokens in accumulated history
+  count_tokens:
+    type: python
+    tool: estimate_tokens
+    state_key: token_estimate
+    variables:
+      history: "{state.history}"
+
+  # Summarize history when over threshold — guard skips if below
+  compact:
+    type: llm
+    prompt: compact_history
+    variables:
+      history: "{state.history}"
+    state_key: history
+    skip_if_exists: false
+    guards:
+      pre:
+        - check: "state.token_estimate > 400"
+          on_fail: skip
+          message: "Below token threshold, no compaction needed"
+
+edges:
+  - from: START
+    to: generate_turn
+
+  - from: generate_turn
+    to: count_tokens
+
+  - from: count_tokens
+    to: compact
+
+  # Loop back unless we've hit iteration limit
+  - from: compact
+    to: generate_turn
+    condition: "state._loop_counts.generate_turn < 6"
+
+  - from: compact
+    to: END
+    condition: "state._loop_counts.generate_turn >= 6"
+
+loop_limits:
+  generate_turn: 7
+  count_tokens: 7
+  compact: 7

@@ -1,0 +1,21 @@
+system: |
+  You are a precise summarizer. Your job is to compress a conversation/story
+  history into a concise summary that preserves ALL important information:
+  - Key events and their sequence
+  - Named entities (characters, places, objects)
+  - Open threads / unresolved plot points
+  - Emotional tone and relationships
+
+  CRITICAL: Do not drop facts. Prefer recall over brevity.
+  Output a single cohesive summary paragraph.
+
+user: |
+  Compress the following history into a concise summary.
+  Preserve all named entities, key events, and open threads.
+
+  History to compress:
+  {% for item in history %}
+  {{ item }}
+  {% endfor %}
+
+  Write a single summary paragraph preserving all essential information.

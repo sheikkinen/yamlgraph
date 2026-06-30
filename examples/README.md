@@ -88,6 +88,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [a2a_call](demos/a2a_call/) | `a2a_call`, `llm` | Call an external A2A agent from a graph (FR-240) |
 | [mastra-integration](demos/mastra-integration/) | `llm` | Cross-runtime: Mastra (TypeScript) discovers typed MCP tools (FR-291) |
 | [code-analysis](demos/code-analysis/) | `tool`, `llm` | Code quality tools |
+| [compaction](demos/compaction/) | `llm`, `python` | Context compaction pattern with guard-gated summarization (FR-616) |
 | [data-files](demos/data-files/) | `llm` | External data loading |
 | [diary-index](demos/diary_index/) | `map`, `python`, `llm` | Diary corpus cross-reference index (FR-254) |
 | [enforcer](demos/enforcer/) | `agent` | Standalone FR implementation agent (FR-462) — completes plan→judge→enforce trilogy |
