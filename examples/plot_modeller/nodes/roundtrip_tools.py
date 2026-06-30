@@ -52,6 +52,87 @@ def assemble_book(state: dict[str, Any]) -> dict[str, Any]:
     return {"book": book, "chapter_count": len(ordered)}
 
 
+def validate_authored_arc(briefs: dict[str, Any]) -> list[dict[str, Any]]:
+    """Deterministically reject the invalid arcs the FR-613 K=6 read condemned.
+
+    Walks the authored ``briefs`` arc in ``chapter_id`` order (no LLM, no prose)
+    and returns structural violations (FR-622 move 2 / C2). Each is a dict
+    ``{kind, chapter_id, char, affect, detail}``. Three rules, each anchored to a
+    specific defect the read found:
+
+    - ``phantom_close`` - a ``close`` for a ``(char, kind)`` thread not currently
+      open (loom draw2: ``close Mara/hope`` for a thread never opened). The bare
+      pop-walk swallowed these silently.
+    - ``final_chapter_open`` - an ``open`` in the last chapter, which cannot close
+      by position (salt-road ``relief`` ch8; horror ``loss`` ch4).
+    - ``scene_type_dose`` - a ``proactive`` chapter that accumulates >= 2 opens
+      with no close (horror 4/4 proactive over grief/guilt/loss). Per the MRU
+      prescription a proactive scene spends feeling through action (low dose); a
+      lingering, accumulating interior load is reactive-class work mislabelled
+      proactive. A single visceral spike (1 open) and an all-close climax
+      (feeling spent through the disaster) are legitimate and never flagged.
+    """
+    chapters = sorted(
+        (briefs or {}).get("chapters") or [],
+        key=lambda c: c.get("chapter_id", 0),
+    )
+    if not chapters:
+        return []
+    last_chapter_id = chapters[-1].get("chapter_id", 0)
+
+    violations: list[dict[str, Any]] = []
+    live: set[tuple[str | None, str | None]] = set()
+    for ch in chapters:
+        cid = ch.get("chapter_id", 0)
+        scene_type = ch.get("scene_type", "unknown")
+        ops = ch.get("eff_affect") or []
+        opens_here = 0
+        closes_here = 0
+        for delta in ops:
+            key = (delta.get("char"), delta.get("kind"))
+            if delta.get("op") == "open":
+                opens_here += 1
+                live.add(key)
+                if cid == last_chapter_id and len(chapters) > 1:
+                    violations.append(
+                        {
+                            "kind": "final_chapter_open",
+                            "chapter_id": cid,
+                            "char": key[0],
+                            "affect": key[1],
+                            "detail": "affect opened in the last chapter cannot close by position",
+                        }
+                    )
+            elif delta.get("op") == "close":
+                closes_here += 1
+                if key not in live:
+                    violations.append(
+                        {
+                            "kind": "phantom_close",
+                            "chapter_id": cid,
+                            "char": key[0],
+                            "affect": key[1],
+                            "detail": "close of a (char, kind) thread never opened",
+                        }
+                    )
+                else:
+                    live.discard(key)
+        if scene_type == "proactive" and opens_here >= 2 and closes_here == 0:
+            violations.append(
+                {
+                    "kind": "scene_type_dose",
+                    "chapter_id": cid,
+                    "char": None,
+                    "affect": None,
+                    "detail": (
+                        f"proactive chapter accumulates {opens_here} unclosed opens; "
+                        "a proactive scene spends feeling (low dose), it does not linger"
+                    ),
+                }
+            )
+    return violations
+
+
 def coherence_gate(state: dict[str, Any]) -> dict[str, Any]:
     """Deterministic coherence gate: ``authored_dangling_rate`` over the plan.
 
@@ -108,6 +189,8 @@ def coherence_gate(state: dict[str, Any]) -> dict[str, Any]:
 
     total_opens = sum(opens_by_type.values())
     total_dangling = sum(dangling_by_type.values())
+    violations = validate_authored_arc(state.get("briefs") or {})
+    arc_valid = not violations
     report = {
         "authored_dangling_rate": (total_dangling / total_opens)
         if total_opens
@@ -115,6 +198,11 @@ def coherence_gate(state: dict[str, Any]) -> dict[str, Any]:
         "authored_opens": total_opens,
         "dangling": total_dangling,
         "by_scene_type": by_scene_type,
+        # FR-622 move 2 (C2): an invalid arc must not silently score 0.0. The
+        # verdict fails on a structural violation OR an unclosed authored open.
+        "arc_valid": arc_valid,
+        "arc_violations": violations,
+        "verdict": "pass" if arc_valid and total_dangling == 0 else "fail",
     }
     return {"coherence": report}
 
