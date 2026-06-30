@@ -1,0 +1,22 @@
+{
+  "principals": [
+    {
+      "affect_arc": "from naive faith in institutional integrity to hard-won belief in personal honesty as the only reliable foundation",
+      "belief": "the court system can be trusted to deliver justice if given the evidence",
+      "goal": "recover the witness and ledger to convict Consul Drey",
+      "name": "Detective Marren"
+    },
+    {
+      "affect_arc": "from paralyzed terror and paranoia to fragile hope through one person's refusal to deceive",
+      "belief": "the entire legal system is compromised and no one can be trusted",
+      "goal": "survive and escape the conspiracy that hunts him",
+      "name": "Pell"
+    },
+    {
+      "affect_arc": "from hidden authority to exposed complicity and public disgrace",
+      "belief": "power flows to those willing to corrupt institutions and eliminate witnesses",
+      "goal": "silence Pell and destroy the ledger to protect the guild's control",
+      "name": "Magistrate Hagen"
+    }
+  ]
+}

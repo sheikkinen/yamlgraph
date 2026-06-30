@@ -1,0 +1,152 @@
+{
+  "chapters": [
+    {
+      "beats": [
+        "Hired men breach the safe house",
+        "Pell is dragged from his quarters",
+        "The building is set ablaze",
+        "Marren arrives to find the ruin",
+        "Witness and ledger are gone"
+      ],
+      "cast": [
+        "Pell",
+        "Marren"
+      ],
+      "chapter_id": 1,
+      "eff_affect": [
+        {
+          "char": "Marren",
+          "kind": "fear",
+          "op": "open"
+        }
+      ],
+      "entry_state": "The trial against Consul Drey is set to begin tomorrow. Pell, the sole witness who can convict, is secured in a court safe house with the ledger that proves Drey ordered the killing.",
+      "exit_state": "The safe house is a burned husk. Pell and the ledger have been abducted by coordinated operatives. The case against Drey is in collapse.",
+      "scene_type": "proactive",
+      "summary": "The night before the trial, hired men breach the court safe house, drag Pell from his bed, and set the building ablaze. Detective Marren arrives at the charred ruin to find both witness and ledger vanished, the case gutted before it can reach the courtroom. The abduction is clean and coordinated—someone inside the system ordered it.",
+      "title": "Chapter 1 - The Safe House Burns"
+    },
+    {
+      "beats": [
+        "Lydia searches records for the abductors",
+        "Bribed dock watchmen are identified",
+        "Forged manifests are uncovered",
+        "The trail leads to the harbor district",
+        "A guild warehouse is located"
+      ],
+      "cast": [
+        "Marren",
+        "Lydia"
+      ],
+      "chapter_id": 2,
+      "eff_affect": [
+        {
+          "char": "Marren",
+          "kind": "doubt",
+          "op": "open"
+        }
+      ],
+      "entry_state": "Marren stands in the ruins of the safe house with no witness, no ledger, and no case. She must find Pell before the trial collapses entirely.",
+      "exit_state": "Marren has traced the abductors to a specific location—a guild warehouse in the harbor district. The conspiracy is large and organized, reaching into the dock and beyond.",
+      "scene_type": "proactive",
+      "summary": "With Lydia working the records, Marren traces the abductors through bribed dock watchmen and forged manifests, following the trail to a guild warehouse in the harbor district. Each layer of the conspiracy reveals deeper corruption, and the pattern points not to random criminals but to organized power operating inside the court system itself.",
+      "title": "Chapter 2 - The Thread Through the Harbor"
+    },
+    {
+      "beats": [
+        "Marren locates Pell in the warehouse",
+        "Pell is paralyzed by fear",
+        "Pell reveals his suspicion of court corruption",
+        "Pell demands the truth about Magistrate Hagen",
+        "Marren confronts the choice between lie and honesty"
+      ],
+      "cast": [
+        "Marren",
+        "Pell"
+      ],
+      "chapter_id": 3,
+      "eff_affect": [
+        {
+          "char": "Marren",
+          "kind": "guilt",
+          "op": "open"
+        }
+      ],
+      "entry_state": "Marren has found the warehouse where Pell is being held. She arrives to extract him and return him to testify.",
+      "exit_state": "Marren stands before Pell, knowing she must either deceive him with reassurance or confess that Hagen—her own superior—is Drey's co-conspirator and orchestrated the abduction.",
+      "scene_type": "reactive",
+      "summary": "Marren finds Pell in the warehouse, but he is half-mad with fear and will not move. He has guessed that the court itself is rotten and refuses to leave unless Marren tells him the truth about Magistrate Hagen—the man who hired her, whom Pell has realized must be complicit in the abduction. Marren faces a choice: comfort him with a lie or risk everything on honesty.",
+      "title": "Chapter 3 - The Witness in the Dark"
+    },
+    {
+      "beats": [
+        "Marren confesses Hagen's guilt to Pell",
+        "Pell accepts the truth",
+        "Pell produces the duplicate ledger from his coat",
+        "Pell agrees to testify",
+        "Marren and Pell move to the courtroom"
+      ],
+      "cast": [
+        "Marren",
+        "Pell"
+      ],
+      "chapter_id": 4,
+      "eff_affect": [
+        {
+          "char": "Marren",
+          "kind": "guilt",
+          "op": "close"
+        },
+        {
+          "char": "Marren",
+          "kind": "hope",
+          "op": "open"
+        }
+      ],
+      "entry_state": "Marren must decide whether to lie to Pell or tell him the truth about Magistrate Hagen's betrayal. Pell will not move until he knows.",
+      "exit_state": "Marren has spoken the truth and won Pell's trust. She holds the duplicate ledger and Pell is committed to testifying. They are ready to enter the courtroom.",
+      "scene_type": "reactive",
+      "summary": "Marren chooses honesty over the comfortable lie. She tells Pell that Magistrate Hagen is indeed Drey's co-conspirator and the architect of the abduction. Pell, convinced by her truth-telling, slips her a duplicate ledger sewn into his coat lining and agrees to testify. Together they move toward the courtroom.",
+      "title": "Chapter 4 - The Truth Spoken"
+    },
+    {
+      "beats": [
+        "Marren presents the duplicate ledger to the court",
+        "Marren names Magistrate Hagen aloud",
+        "Hagen's guilt is exposed before all",
+        "Pell testifies to the court",
+        "Drey is sentenced to exile",
+        "Hagen is stripped of office and barred from the bench"
+      ],
+      "cast": [
+        "Marren",
+        "Pell",
+        "Magistrate Hagen",
+        "Consul Drey"
+      ],
+      "chapter_id": 5,
+      "eff_affect": [
+        {
+          "char": "Marren",
+          "kind": "hope",
+          "op": "close"
+        },
+        {
+          "char": "Marren",
+          "kind": "fear",
+          "op": "close"
+        },
+        {
+          "char": "Marren",
+          "kind": "doubt",
+          "op": "close"
+        }
+      ],
+      "entry_state": "Marren enters the courtroom with the duplicate ledger and Pell ready to testify. The court is assembled, including Magistrate Hagen, who believes the case collapsed in the fire.",
+      "exit_state": "The trial is concluded. Drey is exiled, Hagen is stripped of office, and the guild's corruption is broken. The case is won through truth-telling and evidence.",
+      "scene_type": "proactive",
+      "summary": "In the courtroom, Marren lays the duplicate ledger before the assembled court and names Magistrate Hagen aloud as Drey's co-conspirator. Hagen's mask falls in front of everyone, his guilt exposed. The court accepts the evidence and Pell's testimony; Drey is sentenced to exile, Hagen is stripped of office and barred from the bench, and the guild's long grip on the judiciary is finally broken.",
+      "title": "Chapter 5 - The Reckoning"
+    }
+  ]
+}

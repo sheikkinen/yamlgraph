@@ -1,0 +1,17 @@
+{
+  "authored_dangling_rate": 0.0,
+  "authored_opens": 4,
+  "by_scene_type": {
+    "proactive": {
+      "authored_dangling_rate": 0.0,
+      "authored_opens": 2,
+      "dangling": 0
+    },
+    "reactive": {
+      "authored_dangling_rate": 0.0,
+      "authored_opens": 2,
+      "dangling": 0
+    }
+  },
+  "dangling": 0
+}
