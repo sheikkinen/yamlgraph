@@ -7,10 +7,10 @@ version: "1.0"
 name: novel-fandom-draft
 description: Draft chapter prose from plot path beats, gate for entity leaks
 prompts_relative: true
-prompts_dir: ../prompts
+prompts_dir: prompts
 
 data_files:
-  canon: "../canon/*.yaml"
+  canon: "canon/*.yaml"
 
 state:
   plot_path: dict
@@ -22,7 +22,7 @@ state:
 tools:
   prose_gate:
     type: python
-    path: ../nodes/prose_gate.py
+    path: nodes/prose_gate.py
     function: check_prose_mentions
 
 nodes:

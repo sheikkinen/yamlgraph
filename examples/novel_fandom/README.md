@@ -61,8 +61,11 @@ yamlgraph graph run examples/novel_fandom/graph.yaml \
 ```
 examples/novel_fandom/
 ├── graph.yaml          # Gated accumulation loop (draft → gate → fix → persist)
+├── find_path.yaml      # Plot pathfinder (retrieve tensions → LLM → gate → fix)
+├── draft.yaml          # Prose drafting (map beats → chapters → prose gate)
+├── close.yaml          # Close loop (extract deltas → apply to canon)
 ├── canon/              # Seed canon (flat, globbed as canon/*.yaml)
-├── nodes/ref_gate.py   # Reference + lane gate
+├── nodes/              # Python gate nodes (ref_gate, path_gate, prose_gate, etc.)
 ├── prompts/            # LLM prompt templates
 ├── schema/canon.py     # Pydantic page models
 └── tests/              # Schema + gate tests

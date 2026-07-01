@@ -25,6 +25,15 @@ def retrieve_window(state: dict[str, Any]) -> dict[str, Any]:
     window = state.get("window", "")
     roster = state.get("roster", [])
 
+    # CLI --var passes roster as a JSON string; parse it if needed
+    if isinstance(roster, str):
+        import json
+
+        try:
+            roster = json.loads(roster)
+        except (json.JSONDecodeError, ValueError):
+            roster = []
+
     roster_pages = []
     tensions: list[dict[str, Any]] = []
 

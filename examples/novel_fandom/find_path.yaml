@@ -8,10 +8,10 @@ version: "1.0"
 name: novel-fandom-find-path
 description: Plot pathfinder — traverse canon tensions to propose dramatic beats
 prompts_relative: true
-prompts_dir: ../prompts
+prompts_dir: prompts
 
 data_files:
-  canon: "../canon/*.yaml"
+  canon: "canon/*.yaml"
 
 state:
   window: str
@@ -23,11 +23,11 @@ state:
 tools:
   retrieve_window:
     type: python
-    path: ../nodes/retrieve_window.py
+    path: nodes/retrieve_window.py
     function: retrieve_window
   path_gate:
     type: python
-    path: ../nodes/path_gate.py
+    path: nodes/path_gate.py
     function: check_path_references
 
 nodes:
