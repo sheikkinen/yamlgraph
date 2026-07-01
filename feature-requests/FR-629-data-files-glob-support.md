@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — Authority GRANTED (2026-07-01)
+**Status:** Implemented (2026-07-01) — commit `4430f068`. `data_files` accepts glob patterns (e.g. `wiki/*.yaml`), loaded as a dict keyed by file stem.
 **Effort:** 0.5 day
 **Requested:** 2026-07-01
 

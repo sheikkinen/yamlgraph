@@ -1,6 +1,9 @@
 # Fandom-Style Canon-First Generation
 
-**Status:** Design north-star (no authority granted; precedes any FR).
+**Status:** Design north-star (**judged** — [plan-fandom-judgement.md](plan-fandom-judgement.md)
+approved the thesis; scope is an *example application* `examples/fandom/`, not a framework
+feature). The generic wiki-memory kernel is **shipped** (FR-628/629); see
+[plan-fandom-architecture-2.md](plan-fandom-architecture-2.md) for what remains.
 **Thesis:** Model the world, its characters, and its major events as a typed,
 cross-linked **canon graph** *before* any story is envisioned. Plotting is then a
 *traversal* — finding a storyline between predefined characters and their fixed
@@ -155,17 +158,22 @@ is exactly what the reground work was reaching for.
 
 | Piece | Asset | Status |
 |---|---|---|
-| Persistence primitive (write canon back) | [FR-625 `write_data_file`](../feature-requests/FR-625-write-data-file-tool.md) | judged, **not built** |
-| Accumulating-wiki demo | [FR-626 world bible demo](../feature-requests/FR-626-write-data-file-demo.md) | judged, **not built** |
-| Read primitive (`data_files`) | [reference/graph-yaml.md](../reference/graph-yaml.md) | shipped |
+| Persistence primitive (write canon back) | [FR-625 `write_data_file`](../feature-requests/FR-625-write-data-file-tool.md) | **shipped** (`yamlgraph/tools/write_data_file_tool.py`) |
+| Accumulating-wiki demo | [FR-626 world bible demo](../feature-requests/FR-626-write-data-file-demo.md) | **shipped** |
+| **Gated-accumulation kernel** (propose → verify-refs → fix → persist) | [FR-628 wiki-memory demo](../feature-requests/FR-628-wiki-memory-gated-demo.md) — [examples/demos/wiki-memory/](../examples/demos/wiki-memory/) | **shipped**; deterministic `ref_gate.py` no-orphan gate proven on 3-page tech-radar |
+| Read primitive (`data_files`) | [reference/graph-yaml.md](../reference/graph-yaml.md) | shipped; now **glob** (`wiki/*.yaml`, [FR-629](../feature-requests/FR-629-data-files-glob-support.md)) |
 | Ground-truth world bible (static canon thesis) | [FR-552](../feature-requests/FR-552-dm-v2-world-bible.md) | approved; no authored canon yet |
 | Delta-mutation discipline (dynamic canon) | [plan-ledger-memory.md](plan-ledger-memory.md) | north-star; FR-514–518 |
-| No-leak invariant | [test_no_world_codex.py](../examples/dungeon_master/tests/test_no_world_codex.py) | shipped (one example) |
+| No-leak invariant | [test_no_world_codex.py](../examples/dungeon_master/tests/test_no_world_codex.py) + [FR-628 `ref_gate.py`](../examples/demos/wiki-memory/) | shipped (no-orphan); no-leak half open ([FR-627](../feature-requests/FR-627-canon-link-gate.md)) |
 | Top-down skeleton to invert | [roundtrip_skeleton.yaml](../examples/plot_modeller/graphs/roundtrip_skeleton.yaml), [roundtrip_tools.py](../examples/plot_modeller/nodes/roundtrip_tools.py) | shipped |
 | Goal/affect vocabulary the path search reuses | [plot_modeller vision.md](../examples/plot_modeller/docs/vision.md) | shipped |
 
-Nothing here composes the three pieces yet. This is materially larger than a tweak to
-the existing skeleton — it is a new example with a typed multi-entity canon store.
+The **gated-accumulation kernel now exists** ([FR-628](../feature-requests/FR-628-wiki-memory-gated-demo.md)): a
+single graph with one deterministic gate proves the propose → verify → fix → persist loop on a flat
+3-page wiki. Canon-first is no longer greenfield — it is a **scale-up** of that kernel from flat
+tech-radar pages to a typed multi-entity canon graph plus plot traversal and prose. Building the
+kernel already paid a dividend: it surfaced three framework boundary defects
+([FR-630](../feature-requests/FR-630-loop-exits-end-bug.md) / [FR-631](../feature-requests/FR-631-variable-string-interpolation.md) / [FR-632](../feature-requests/FR-632-pydantic-tojson-boundary.md)), all now fixed.
 
 ---
 
@@ -297,6 +305,8 @@ that rots.
 ## 12. Related
 
 - [plan-fandom-architecture.md](plan-fandom-architecture.md) — the subsystem architecture (8 subsystems, two loops, interface contracts) that implements this plan.
+- [plan-fandom-architecture-2.md](plan-fandom-architecture-2.md) — post-FR-628 scope-down: what remains after the generic kernel shipped (fiction-specific S3/S6/S7/S8 + enriched schema, 4.5–6.5 day estimate).
+- [plan-fandom-judgement.md](plan-fandom-judgement.md) — the formal judgement of these plans (C1–C5 resolutions, M1–M3 gaps).
 - [plan-ledger-memory.md](plan-ledger-memory.md) — the dynamic-canon mutation model.
 - [FR-552](../feature-requests/FR-552-dm-v2-world-bible.md) — world bible as ground-truth input (static canon).
 - [FR-551](../feature-requests/FR-551-dm-v2-supporting-cast-tier.md) — cast (coherence) vs. world bible (depth) axes.

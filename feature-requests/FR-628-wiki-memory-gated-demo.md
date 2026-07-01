@@ -2,7 +2,7 @@ findings to doc# FR-628: Wiki Memory with Reference Gate — Gated Knowledge Acc
 
 **Priority:** MEDIUM
 **Type:** Feature (demo)
-**Status:** Judged — Authority GRANTED, clear to enforce (2026-07-01)
+**Status:** Implemented (2026-07-01) — commit `78b56fdc`. Demo shipped at `examples/demos/wiki-memory/` (graph.yaml, `nodes/ref_gate.py` deterministic no-orphan gate, seed wiki, `demo-output.log`). Surfaced framework defects FR-630/631/632.
 **Effort:** 1 day
 **Requested:** 2026-07-01
 

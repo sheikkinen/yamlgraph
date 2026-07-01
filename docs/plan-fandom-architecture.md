@@ -1,7 +1,13 @@
 # Fandom Generation — System Architecture
 
-**Status:** Design north-star (no authority granted; companion to
-[plan-fandom-generation.md](plan-fandom-generation.md)).
+**Status:** Design north-star (companion to
+[plan-fandom-generation.md](plan-fandom-generation.md)). **Judged** —
+[plan-fandom-judgement.md](plan-fandom-judgement.md) conditionally approved this as a
+north-star, **not** an implementation spec (scope = an *example application*
+`examples/fandom/`, not a framework feature). **Superseded for the generic case** by
+[plan-fandom-architecture-2.md](plan-fandom-architecture-2.md): FR-628/629 shipped the
+generic wiki-memory kernel, so S1/S2/S4 and flat S5 are done; v2 retains only the
+fiction-specific, unshipped remainder (S3/S6/S7/S8 + enriched schema).
 **Scope:** the *subsystems* and their contracts. The generation plan answers
 *why canon-first*; this answers *what parts exist, who owns what, and how data
 flows between them*.
@@ -292,22 +298,31 @@ is mechanical.
 
 | Subsystem | Status | Anchor asset / FR |
 |---|---|---|
-| S1 Canon Store | partial | `data_files` shipped; typed schema **not built** |
-| S2 Access Layer (CRUD) | **not built** | depends on [FR-625](../feature-requests/FR-625-write-data-file-tool.md) |
+| S1 Canon Store | **kernel shipped** | `data_files` + **glob** ([FR-629](../feature-requests/FR-629-data-files-glob-support.md)) load; typed multi-type schema not built |
+| S2 Access Layer (CRUD) | **partial** | `write_data_file` shipped ([FR-625](../feature-requests/FR-625-write-data-file-tool.md)); FR-628 `save_page` proves persist; typed CRUD wrapper not built |
 | S3 Index / Retrieval | **not built** | discipline from [FR-516](../feature-requests/FR-516-dm-v2-ranked-topk-ledger-retrieval.md) |
-| S4 Integrity Gate | specced | [FR-627](../feature-requests/FR-627-canon-link-gate.md); generalizes [test_no_world_codex.py](../examples/dungeon_master/tests/test_no_world_codex.py) |
-| S5 Authoring Pipeline | **not built** | [FR-552](../feature-requests/FR-552-dm-v2-world-bible.md), [FR-626](../feature-requests/FR-626-write-data-file-demo.md) |
+| S4 Integrity Gate | **kernel shipped** | [FR-628 `ref_gate.py`](../examples/demos/wiki-memory/) ships no-orphan + fix-loop; no-leak half open ([FR-627](../feature-requests/FR-627-canon-link-gate.md)) |
+| S5 Authoring Pipeline | **partial** | flat gated-accumulation loop shipped ([FR-628](../feature-requests/FR-628-wiki-memory-gated-demo.md)); tiered/topological build not built ([FR-552](../feature-requests/FR-552-dm-v2-world-bible.md)) |
 | S6 Plot Pathfinder | **not built** | inverts [roundtrip_skeleton.yaml](../examples/plot_modeller/graphs/roundtrip_skeleton.yaml) |
 | S7 Prose Generation | partial | `draft_chapter` map shape shipped |
 | S8 Close / Reconcile | specced | [FR-513–518](../feature-requests/FR-513-dm-v2-emotional-state-in-world-ledger.md), [FR-515](../feature-requests/FR-515-dm-v2-bitemporal-ledger-reconciliation.md) |
+
+**The FR-628 wiki-memory demo ([examples/demos/wiki-memory/](../examples/demos/wiki-memory/)) is
+the working kernel of S1+S2+S4+S5.** It composes a glob-loaded store, a persist tool, a
+deterministic no-orphan gate, and a propose→verify→fix→persist loop into one graph — the
+load-bearing subsystems, proven end-to-end on a flat 3-page wiki. What remains is *scale and type*:
+a multi-entity typed schema (S1), a CRUD wrapper (S2), the no-leak half of the gate (S4/FR-627),
+tiered authoring (S5), and the play-loop subsystems (S3/S6/S7/S8). Building the kernel also fixed
+three framework boundary defects ([FR-630](../feature-requests/FR-630-loop-exits-end-bug.md)/[FR-631](../feature-requests/FR-631-variable-string-interpolation.md)/[FR-632](../feature-requests/FR-632-pydantic-tojson-boundary.md)).
 
 ---
 
 ## 7. Build sequencing (composition order)
 
-Bottom-up, each a separate FR with a RED test. The order is forced by dependency:
-you cannot gate what you cannot write, cannot author tiers without a gate, cannot
-traverse without authored canon.
+The flat kernel of steps 1–3 already exists as the FR-628 wiki-memory demo; the
+sequence below is the **typed scale-up**, bottom-up, each a separate FR with a RED
+test. The order is forced by dependency: you cannot gate what you cannot write,
+cannot author tiers without a gate, cannot traverse without authored canon.
 
 1. **S1 + S2** — typed canon schema + CRUD leaf tool (on
    [FR-625](../feature-requests/FR-625-write-data-file-tool.md)). *Test:* create →
@@ -327,27 +342,46 @@ Steps 1–2 unblock everything and contain no LLM — they can land first and st
 
 ---
 
-## 8. Risks / open questions (decide before the first FR)
+## 8. Decisions (resolved by [plan-fandom-judgement.md](plan-fandom-judgement.md))
 
-- **Seeding fork (inherited from §9):** S5 Option A (hand-authored tiers) vs Option B
-  (LLM-bootstrap + freeze-gate). Architecture supports both; B is safe *only* because
-  S4 sits on the freeze boundary.
-- **Index staleness vs cost:** lazy rebuild (S3) risks a window where index lags
-  store. Mitigation: retrieval returns ids only (contract §5.2), so a stale index
-  surfaces a wrong *candidate set*, never wrong *content* — the gate still catches
-  leaks. Acceptable.
-- **CRUD granularity:** is `update_page(delta)` the right unit, or should S8 emit
-  edge-level ops directly? Lean edge-level to match the delta-ledger
-  ([FR-513–518](../feature-requests/FR-513-dm-v2-emotional-state-in-world-ledger.md)).
-- **Contradiction detection depth:** S4's scheduled lint can catch *structural*
-  contradictions (two `valid` exclusive edges) deterministically, but *semantic*
-  contradictions in prose need an LLM pass — which reopens the cost/trust question.
-  Keep semantic contradiction *advisory + logged*, structural *blocking*.
+The judgement converted the former open questions into commitments. An implementing
+FR inherits these as constraints, not choices.
+
+- **Scope (C1):** this is an **example application** (`examples/fandom/`), *not* a
+  framework feature. The only framework-level FRs are [FR-625](../feature-requests/FR-625-write-data-file-tool.md)
+  (`write_data_file`) and [FR-627](../feature-requests/FR-627-canon-link-gate.md)
+  (canon-link gate as a reusable tool). Everything else is example-scoped.
+- **Seeding fork (C2):** the plans stay agnostic, but the **S5 FR must commit** to
+  Option A (hand-authored tiers) or B (LLM-bootstrap + freeze-gate). B is proven at
+  small scale by FR-628 and is the practical choice at novel scale *only* because S4
+  sits on the freeze boundary.
+- **CRUD granularity (C3):** **committed to edge-level ops** — S8 emits edge-level
+  deltas, matching the ledger discipline ([FR-513–518](../feature-requests/FR-513-dm-v2-emotional-state-in-world-ledger.md)).
+  `update_page(delta)` is a convenience wrapper over edge ops, not the primitive.
+- **Static/dynamic split (v2 §5B):** enforced by a `lane: static|dynamic` field on the
+  page schema (simpler than directory-based); the gate rejects writes to `lane: static`
+  pages after creation.
+- **Semantic contradiction (C4):** structural contradictions are **blocking**; semantic
+  contradictions are **advisory + logged**. FR-627 must define the escalation threshold
+  at which accumulated advisory findings become blocking, or state that they never do
+  and why (Scripture `audit_as_ritual`: 3+ audits without fix = ritual).
+- **First slice (C5):** S1+S2+S4 are sufficient to prove the thesis; S3/S5(tiered)/S6/
+  S7/S8 are downstream FRs. The FR-628 kernel already delivers the flat form of S1/S2/S4.
+- **Concurrency (M3):** **single-writer** is an explicit constraint. `propose → gate →
+  commit` (§5.1) assumes no concurrent play-loop/build-loop writers; atomicity across
+  concurrent iterations is out of scope until stated otherwise.
+- **Index staleness vs cost:** lazy rebuild (S3) risks a window where index lags store.
+  Mitigation: retrieval returns ids only (contract §5.2), so a stale index surfaces a
+  wrong *candidate set*, never wrong *content* — the gate still catches leaks. Acceptable.
+  v2 defers S3 entirely until canon exceeds the context window (~200 pages).
 
 ---
 
 ## 9. Related
 
+- [plan-fandom-architecture-2.md](plan-fandom-architecture-2.md) — the post-FR-628
+  scope-down; the current implementation map (fiction-specific remainder + estimate).
+- [plan-fandom-judgement.md](plan-fandom-judgement.md) — the formal judgement (C1–C5, M1–M3).
 - [plan-fandom-generation.md](plan-fandom-generation.md) — the why/what this
   architecture implements (the inversion, two canons, no-leak, prior art, tooling).
 - [FR-627 canon-link gate](../feature-requests/FR-627-canon-link-gate.md) — S4.

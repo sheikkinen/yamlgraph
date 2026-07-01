@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — Authority GRANTED with constraints (2026-07-01)
+**Status:** Implemented (2026-07-01) — commit `4742576d` (three boundary fixes from the FR-628 wiki-memory demo).
 **Effort:** 1 day
 **Requested:** 2026-07-01
 **Surfaced by:** FR-628 wiki-memory demo

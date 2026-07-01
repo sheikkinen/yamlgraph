@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — Authority GRANTED, Option A (2026-07-01)
+**Status:** Implemented (2026-07-01) — commit `4742576d` (Option A; three boundary fixes from the FR-628 wiki-memory demo).
 **Effort:** 0.5 day
 **Requested:** 2026-07-01
 **Surfaced by:** FR-628 wiki-memory demo
