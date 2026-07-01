@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Draft
+**Status:** Judged — Authority GRANTED (2026-07-01)
 **Effort:** 0.5 day
 **Requested:** 2026-07-01
 **Surfaced by:** FR-628 wiki-memory demo
@@ -47,3 +47,24 @@ Same normalization needed in `routing.py:make_expr_router_fn` where
 - [ ] Existing tests still pass
 - [ ] Add unit test: graph with `loop_exits: X: END` completes without error
 - [ ] Linter behavior unchanged (already correct)
+
+## Judgement
+
+**Verdict: GRANTED — enforce immediately.**
+
+This is a clear bug with linter/runtime disagreement — the most dangerous class
+of defect (user gets false confidence from lint passing). The fix is mechanical:
+two lines of normalization following the exact pattern already used 4 times in
+the same file (lines 99, 175, 180, 206).
+
+**Scope freeze:**
+- Fix `edge_compiler.py` line ~271: normalize `loop_exit_target`
+- Fix `routing.py` line ~82: normalize return value in `expr_router_fn`
+- One unit test proving `loop_exits: X: END` compiles and routes correctly
+- No other changes
+
+**Enforcement order:**
+1. RED: Test that compiles a graph with `loop_exits: node: END` + condition edges, invokes it, asserts it reaches END
+2. GREEN: Two-line fix in edge_compiler + routing
+3. Verify existing test suite still passes
+4. Commit

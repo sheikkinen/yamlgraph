@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Draft
+**Status:** Judged — Authority GRANTED with constraints (2026-07-01)
 **Effort:** 1 day
 **Requested:** 2026-07-01
 **Surfaced by:** FR-628 wiki-memory demo
@@ -68,3 +68,27 @@ def resolve_template(template: str | Any, state: dict[str, Any]) -> Any:
 - [ ] `{state.missing}` in interpolation left as-is (not crash)
 - [ ] Arithmetic expressions unaffected
 - [ ] Linter warns on mixed interpolation with non-existent state paths
+
+## Judgement
+
+**Verdict: GRANTED — with constraints.**
+
+The pain is real (FR-628 forced a Python node workaround) and the fix is
+well-scoped. The regex approach is correct: `{state.X}` embedded in a larger
+string must always stringify.
+
+**Constraints:**
+- Drop the linter warning criterion (scope creep — separate FR if needed)
+- The regex must NOT match `{state.X + 1}` arithmetic patterns inside larger
+  strings — verify with test
+- `None` → leave placeholder unreplaced (fail visible, per existing convention)
+- Only `{state.path}` syntax — do NOT support `{var_name}` without `state.`
+  prefix (that would clash with simple variable substitution in prompts)
+
+**Enforcement order:**
+1. RED: Test `resolve_template("wiki/{state.id}.yaml", {"id": "nodejs"})` → `"wiki/nodejs.yaml"`
+2. RED: Test full `{state.X}` still returns dict (not stringified)
+3. RED: Test `{state.missing}` in mixed string → unchanged placeholder
+4. GREEN: Add interpolation branch in `resolve_template()`
+5. Verify all 4200+ tests pass
+6. Commit
