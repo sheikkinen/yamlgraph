@@ -202,6 +202,35 @@ class TestResolveTemplate:
         state = {"draft": Draft(text="Content")}
         assert resolve_template("{state.draft.text}", state) == "Content"
 
+    @pytest.mark.req("REQ-YG-013")
+    def test_string_interpolation_basic(self):
+        """FR-631: Mixed string with {state.X} resolves embedded paths."""
+        state = {"page": {"id": "nodejs"}}
+        result = resolve_template("wiki/{state.page.id}.yaml", state)
+        assert result == "wiki/nodejs.yaml"
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_string_interpolation_preserves_full_expression_type(self):
+        """FR-631: Full {state.X} still returns original type (dict)."""
+        state = {"data": {"key": "value"}}
+        result = resolve_template("{state.data}", state)
+        assert result == {"key": "value"}
+        assert isinstance(result, dict)
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_string_interpolation_missing_leaves_placeholder(self):
+        """FR-631: Missing path in interpolation left as-is."""
+        state = {"a": 1}
+        result = resolve_template("path/{state.missing}/file.yaml", state)
+        assert result == "path/{state.missing}/file.yaml"
+
+    @pytest.mark.req("REQ-YG-013")
+    def test_string_interpolation_multiple_placeholders(self):
+        """FR-631: Multiple interpolations in one string."""
+        state = {"dir": "wiki", "name": "nodejs"}
+        result = resolve_template("{state.dir}/{state.name}.yaml", state)
+        assert result == "wiki/nodejs.yaml"
+
 
 class TestArithmeticExpressions:
     """Tests for arithmetic expressions in resolve_template."""

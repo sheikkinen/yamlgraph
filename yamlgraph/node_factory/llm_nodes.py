@@ -265,16 +265,25 @@ def _evaluate_post_guards(
 
         if post_decision.violation is not None:
             guard_errors.append(post_decision.violation)
+        # FR-632: Normalize Pydantic at boundary even on guard violation path
+        normalized = _normalize_result(result)
         return (
             result,
             guard_errors,
             {
-                cfg.state_key: result,
+                cfg.state_key: normalized,
                 "current_step": node_name,
                 "_loop_counts": loop_counts,
                 "errors": guard_errors,
             },
         )
+
+
+def _normalize_result(result: Any) -> Any:
+    """FR-632: Normalize Pydantic models to dicts at the LLM output boundary."""
+    if hasattr(result, "model_dump") and hasattr(type(result), "model_fields"):
+        return result.model_dump()
+    return result
 
 
 def _run_node(
@@ -357,6 +366,10 @@ def _run_node(
     guard_errors.extend(post_guard_errors)
     if post_update is not None:
         return post_update
+
+    # FR-632: Normalize Pydantic models to dicts at the LLM output boundary.
+    # Downstream nodes (Jinja2 tojson, write_data_file) expect plain dicts.
+    result = _normalize_result(result)
 
     result, violation = _apply_verification(
         cfg, node_name, result, state, attempt_execute

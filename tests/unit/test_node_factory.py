@@ -171,7 +171,7 @@ class TestCreateNodeFunction:
             assert call_kwargs[1]["temperature"] == 0.8
             assert call_kwargs[1]["variables"]["topic"] == "machine learning"
 
-        assert result["generated"] == mock_result
+        assert result["generated"] == mock_result.model_dump()
         assert result["current_step"] == "generate"
 
     @pytest.mark.req("REQ-YG-009", "REQ-YG-045")
@@ -276,7 +276,7 @@ class TestCreateNodeFunction:
 
             # Prompt should have been resolved
             mock.assert_called_once()
-            assert result["opening"] == mock_result
+            assert result["opening"] == mock_result.model_dump()
 
     @pytest.mark.req("REQ-YG-009", "REQ-YG-045")
     def test_node_uses_explicit_prompts_dir(self, sample_state, tmp_path):
@@ -312,7 +312,7 @@ class TestCreateNodeFunction:
             result = node_fn(sample_state)
 
             mock.assert_called_once()
-            assert result["greeting"] == mock_result
+            assert result["greeting"] == mock_result.model_dump()
 
     @pytest.mark.req("REQ-YG-009", "REQ-YG-045")
     def test_node_parse_json_enabled(self, sample_state):

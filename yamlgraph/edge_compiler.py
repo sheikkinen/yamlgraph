@@ -269,6 +269,9 @@ def _add_conditional_edges(
     # Add expression-based conditional edges
     for source_node, expr_edges in expression_edges.items():
         loop_exit_target = (loop_exits or {}).get(source_node)
+        # FR-630: Normalize YAML string "END" to LangGraph sentinel
+        if loop_exit_target == "END":
+            loop_exit_target = END
         targets = {target for _, target in expr_edges}
         targets.add(END)  # END is always a reachable target
         if loop_exit_target:

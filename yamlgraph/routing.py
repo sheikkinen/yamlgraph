@@ -75,7 +75,8 @@ def make_expr_router_fn(
         # Check loop limit first
         if state.get("_loop_limit_reached"):
             if loop_exit_target:
-                return loop_exit_target
+                # FR-630: Normalize "END" string to sentinel
+                return END if loop_exit_target == "END" else loop_exit_target
             return END
 
         for condition, target in edges:

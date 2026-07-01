@@ -1,4 +1,4 @@
-# FR-628: Wiki Memory with Reference Gate — Gated Knowledge Accumulation Demo
+findings to doc# FR-628: Wiki Memory with Reference Gate — Gated Knowledge Accumulation Demo
 
 **Priority:** MEDIUM
 **Type:** Feature (demo)

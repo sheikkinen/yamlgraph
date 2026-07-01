@@ -263,7 +263,7 @@ class TestLoadAndCompile:
             result = compiled.invoke(initial_state)
 
             assert result.get("generated") is not None
-            assert result["generated"].title == "Test"
+            assert result["generated"]["title"] == "Test"
 
 
 # =============================================================================

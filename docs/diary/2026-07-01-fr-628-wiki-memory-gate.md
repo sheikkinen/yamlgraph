@@ -44,6 +44,36 @@ a property, remove that same constraint from the LLM prompt. Redundant
 constraints make the gate untestable and hide its value. Let the LLM be
 creative; let the gate be strict.
 
+## Framework Defects Surfaced
+
+Three issues are framework bugs, not demo-local workarounds:
+
+### 1. `loop_exits: node: END` crashes at runtime (BUG)
+The linter (`checks_semantic.py:86`) explicitly accepts `"END"` as a valid
+target. But `edge_compiler.py` adds it to `targets` as the string `"END"`,
+then the route_mapping loop checks `t == END` (the `"__end__"` constant).
+String `"END"` ≠ sentinel `END`, so it becomes an unmapped route and the
+router crashes: "unknown target 'END'". Fix: normalize `"END"` → `END`
+constant in `edge_compiler.py:275` before adding to targets.
+
+### 2. Variable string interpolation unsupported
+`resolve_template()` requires the ENTIRE string to be `{state.X}`. A mixed
+string like `wiki/{state.drafted_page.id}.yaml` returns unchanged because
+line 192 checks `startswith("{") and endswith("}")`. This forces graph
+authors to compute paths in Python nodes. Fix: support f-string style
+interpolation when a template contains `{state.` but also has surrounding
+text.
+
+### 3. Pydantic models not serializable in Jinja2 `tojson`
+LLM structured outputs stay as BaseModel in state. When a Jinja2 prompt
+uses `{{ state.field | tojson }}`, it crashes because `json.dumps()` can't
+serialize Pydantic models. The framework should either:
+(a) `model_dump()` at LLM output boundary (in `llm_nodes.py` before storing), or
+(b) Register a custom Jinja2 `tojson` filter that handles BaseModel.
+
+**Priority:** #1 is a clear bug (linter/runtime disagree). #2 and #3 are
+feature gaps that push complexity into user Python code.
+
 ## Seed
 Could the gate pattern generalize into a reusable `verification_gate` node type
 in YAML (analogous to `verification-gate` demo) that auto-loops with a fixer

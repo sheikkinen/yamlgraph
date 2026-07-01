@@ -700,7 +700,7 @@ class TestRefactoredCreateNodeFunction:
 
             mock.assert_called_once()
             assert mock.call_args[1]["temperature"] == 0.8
-            assert result["generated"] == mock_result
+            assert result["generated"] == mock_result.model_dump()
 
     @pytest.mark.req("REQ-YG-223")
     def test_resolve_config_is_pure(self, minimal_node_config):
@@ -806,3 +806,33 @@ def test_pre_guard_skip_returns_explicit_skipped_metadata():
     assert result["_skipped"] is True
     assert result["_skip_reason"] == "guard"
     assert result["generated"] is None
+
+
+@pytest.mark.req("REQ-YG-004")
+def test_pydantic_model_normalized_to_dict_at_boundary():
+    """FR-632: LLM structured output is model_dump'd before storing in state."""
+    from unittest.mock import patch
+
+    from pydantic import BaseModel, Field
+
+    from yamlgraph.node_factory.llm_nodes import create_node_function
+
+    class WikiPage(BaseModel):
+        id: str = Field(description="Page id")
+        summary: str = Field(description="Summary")
+
+    page = WikiPage(id="nodejs", summary="A JS runtime")
+
+    node_fn = create_node_function(
+        "draft",
+        {"prompt": "draft", "state_key": "drafted_page"},
+        {},
+    )
+
+    with patch("yamlgraph.node_factory.llm_nodes.execute_prompt", return_value=page):
+        result = node_fn({})
+
+    # Must be a plain dict, not a Pydantic model
+    assert isinstance(result["drafted_page"], dict)
+    assert result["drafted_page"]["id"] == "nodejs"
+    assert result["drafted_page"]["summary"] == "A JS runtime"

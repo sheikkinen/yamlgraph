@@ -17,6 +17,9 @@ _CHAINED_OP_PATTERN = re.compile(
     r"(?:state\.[a-zA-Z_][\w.]*|[0-9]+(?:\.[0-9]+)?)\s*[+\-*/]\s*"
 )
 
+# FR-631: Pattern for embedded {state.path} in larger strings (interpolation)
+_INTERPOLATION_PATTERN = re.compile(r"\{state\.([^}+\-*/]+)\}")
+
 
 def resolve_state_path(path: str, state: dict[str, Any]) -> Any:
     """Resolve a dotted path to a value from state.
@@ -190,6 +193,17 @@ def resolve_template(template: str | Any, state: dict[str, Any]) -> Any:
         return template
 
     if not (template.startswith("{") and template.endswith("}")):
+        # FR-631: String interpolation — {state.X} embedded in larger string
+        if "{state." in template:
+
+            def _replace(match: re.Match) -> str:
+                path = match.group(1).strip()
+                value = resolve_state_path(path, state)
+                if value is None:
+                    return match.group(0)  # Leave placeholder as-is
+                return str(value)
+
+            return _INTERPOLATION_PATTERN.sub(_replace, template)
         return template
 
     # Check for arithmetic expression first

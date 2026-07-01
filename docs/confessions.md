@@ -179,10 +179,10 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Same as CONF-037 — hardcoded `["git", "diff", "--cached", "--name-only"]` for staged change detection.
 
 ### CONF-039
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L285)
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L294)
 - **Code**: C901 (cognitive complexity > 15)
 - **Sin**: Nested `node_fn` still orchestrates loop guards, requirements checks, execution, verification, routing, and error dispatch in one closure.
-- **Penance**: FR-223 already extracted core helpers (`_apply_verification`, `_resolve_route`, `_handle_error`), but closure structure keeps orchestration complexity above threshold. Suppressed temporarily to preserve node-factory behavior while follow-up decomposition lands.
+- **Penance**: FR-223 already extracted core helpers (`_apply_verification`, `_resolve_route`, `_handle_error`), and FR-632 extracted `_normalize_result`, but closure structure keeps orchestration complexity above threshold. Suppressed while follow-up decomposition lands.
 
 ### CONF-040
 - **File**: [yamlgraph/utils/timing_tracker.py](../yamlgraph/utils/timing_tracker.py#L50)

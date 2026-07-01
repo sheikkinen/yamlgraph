@@ -592,6 +592,59 @@ class TestLoopExits:
         graph = compile_graph(config)
         assert graph is not None
 
+    @pytest.mark.req("REQ-YG-093")
+    def test_loop_exits_end_target_compiles_and_routes(self):
+        """FR-630: loop_exits: node: END must compile and route to graph end."""
+        from unittest.mock import MagicMock, patch
+
+        from yamlgraph.graph_loader import GraphConfig, compile_graph
+
+        config_dict = {
+            "version": "1.0",
+            "name": "test-loop-exits-end",
+            "nodes": {
+                "draft": {"prompt": "draft", "state_key": "current_draft"},
+                "critique": {"prompt": "critique", "state_key": "critique"},
+                "refine": {"prompt": "refine", "state_key": "current_draft"},
+            },
+            "edges": [
+                {"from": "START", "to": "draft"},
+                {"from": "draft", "to": "critique"},
+                {
+                    "from": "critique",
+                    "to": "refine",
+                    "condition": "critique.score < 0.8",
+                },
+                {
+                    "from": "critique",
+                    "to": "END",
+                    "condition": "critique.score >= 0.8",
+                },
+                {"from": "refine", "to": "critique"},
+            ],
+            "loop_limits": {"critique": 3},
+            "loop_exits": {"critique": "END"},
+        }
+        config = GraphConfig(config_dict)
+        state_graph = compile_graph(config)
+        assert state_graph is not None
+        graph = state_graph.compile()
+
+        # Invoke with loop limit reached — should route to END, not crash
+        mock_llm = MagicMock()
+        mock_llm.invoke.return_value = MagicMock(content="test")
+        with patch("yamlgraph.executor.create_llm", return_value=mock_llm):
+            result = graph.invoke(
+                {
+                    "current_draft": "draft",
+                    "critique": {"score": 0.5},
+                    "_loop_limit_reached": True,
+                    "_loop_counts": {"critique": 3},
+                }
+            )
+        # Should complete without "unknown target 'END'" error
+        assert result is not None
+
     # --- Lint rules ---
 
     @pytest.mark.req("REQ-YG-093")
