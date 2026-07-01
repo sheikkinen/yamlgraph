@@ -412,6 +412,12 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Sin**: `create_agent_node` has high cyclomatic complexity due to tool registration loop, LLM config resolution, multi-turn message handling, agent iteration loop with tool calls, and structured output extraction.
 - **Penance**: The function is a factory that builds a closure capturing configuration. The inner `node_fn` orchestrates the agent loop which is inherently sequential and branching. Splitting further would scatter the closure's captured variables across multiple functions with no clarity gain.
 
+### CONF-049
+- **File**: [yamlgraph/cli/__init__.py](../yamlgraph/cli/__init__.py#L323)
+- **Code**: S104
+- **Sin**: Binding A2A server to `0.0.0.0` (all interfaces) as default.
+- **Penance**: A2A server is a development tool that must be network-accessible for agent-to-agent communication. The default matches standard server practice (FastAPI, uvicorn). Production deployments control binding via `--host` flag.
+
 ### CONF-301
 - **File**: [tests/unit/test_fr346_fsm_bridge_shared_module_red.py](../tests/unit/test_fr346_fsm_bridge_shared_module_red.py#L19)
 - **Code**: PLC0415

@@ -129,6 +129,12 @@ def create_parser() -> argparse.ArgumentParser:
         dest="export_state",
         help="Write full state JSON to this path after run (for inter-run chaining)",
     )
+    graph_run_parser.add_argument(
+        "--stream",
+        action="store_true",
+        default=False,
+        help="Stream LLM tokens to stdout in real-time (mutually exclusive with --json)",
+    )
 
     # graph info
     graph_info_parser = graph_subparsers.add_parser(

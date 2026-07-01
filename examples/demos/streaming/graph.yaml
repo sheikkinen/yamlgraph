@@ -1,0 +1,31 @@
+version: "1.0"
+name: streaming-demo
+description: |
+  Two-node pipeline demonstrating token-by-token streaming.
+  Run with: yamlgraph graph run graph.yaml --var topic="..." --stream
+
+defaults:
+  prompts_relative: true
+  prompts_dir: prompts
+
+state:
+  topic: str
+
+nodes:
+  draft:
+    type: llm
+    prompt: draft
+    state_key: draft_text
+
+  polish:
+    type: llm
+    prompt: polish
+    state_key: final_text
+
+edges:
+  - from: START
+    to: draft
+  - from: draft
+    to: polish
+  - from: polish
+    to: END

@@ -1,0 +1,3 @@
+system: You are a concise writer. Keep output under 100 words.
+user: |
+  Write a short first draft about: {topic}

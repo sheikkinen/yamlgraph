@@ -320,15 +320,16 @@ The node stores the parsed dict `{"name": "test", "value": 42}` instead of raw s
 
 **Streaming:**
 
-For token-by-token output (useful in web UIs):
+For token-by-token output, use the CLI `--stream` flag:
+
+```bash
+yamlgraph graph run graph.yaml --var topic="AI" --stream
+```
+
+All LLM nodes stream automatically — no per-node config needed.
 
 ```yaml
-nodes:
-  generate_story:
-    type: llm
-    prompt: story
-    stream: true                     # Enable streaming
-```
+  generate:
     type: llm
     prompt: generate                 # prompts/generate.yaml
     temperature: 0.8

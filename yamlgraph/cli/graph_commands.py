@@ -22,6 +22,7 @@ from yamlgraph.cli.helpers import (
     parse_vars,
     require_graph_config,
 )
+from yamlgraph.executor_async import run_graph_streaming_native
 from yamlgraph.models.state_builder import generate_typeddict_code
 
 _setup_timeout = _graph_run_helpers._setup_timeout
@@ -38,6 +39,26 @@ _emit_success_output = _graph_run_helpers._emit_success_output
 _handle_optional_exports = _graph_run_helpers._handle_optional_exports
 
 
+def _run_streaming(graph_path: str, initial_state: dict, config: dict) -> None:
+    """Execute graph in streaming mode, printing tokens to stdout (FR-633)."""
+    import asyncio
+
+    from yamlgraph.models.streaming import StreamEvent
+
+    async def _stream():
+        async for item in run_graph_streaming_native(
+            graph_path, initial_state, config=config
+        ):
+            if isinstance(item, StreamEvent):
+                if item.type == "error":
+                    print(f"\n❌ {item.error}", file=sys.stderr)
+            else:
+                print(item, end="", flush=True)
+        print()  # Final newline
+
+    asyncio.run(_stream())
+
+
 def cmd_graph_run(args: Namespace) -> None:
     """Run any graph with provided variables.
 
@@ -52,7 +73,12 @@ def cmd_graph_run(args: Namespace) -> None:
 
     graph_path = Path(args.graph_path)
     json_mode = getattr(args, "json", False)
+    stream_mode = getattr(args, "stream", False)
     error_stream = sys.stderr if json_mode else sys.stdout
+
+    if stream_mode and json_mode:
+        print("❌ --stream and --json are mutually exclusive", file=sys.stderr)
+        sys.exit(1)
 
     if not graph_path.exists():
         print(f"❌ Graph file not found: {graph_path}", file=error_stream)
@@ -92,6 +118,12 @@ def cmd_graph_run(args: Namespace) -> None:
         initial_state, config, tracker, timeout, tracer, share_flag, timing_tracker = (
             _build_run_config(args, graph_config, initial_state)
         )
+
+        # FR-633: Streaming mode — bypass invoke, use native streaming
+        if stream_mode:
+            _run_streaming(str(graph_path), initial_state, config)
+            return
+
         use_async = getattr(args, "use_async", False)
 
         # FR-027: Set up timeout guard (signal.alarm on Unix)

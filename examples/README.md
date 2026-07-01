@@ -118,6 +118,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [system-status](demos/system-status/) | `tool` | Shell tool execution |
 | [tavily_rag](demos/tavily_rag/) | `python`, `llm` | Domain-specific RAG with Tavily retrieval |
 | [thinking](demos/thinking/) | `llm` | Extended thinking with configurable depth (FR-071) |
+| [tool-call](demos/tool-call/) | `python`, `tool_call` | Dynamic tool dispatch from graph state |
 | [verified-search](demos/verified-search/) | `agent`, `llm` | Evaluation-first search with verification |
 | [web-research](demos/web-research/) | `agent` | Web search agent |
 | [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |

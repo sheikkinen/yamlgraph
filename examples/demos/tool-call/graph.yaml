@@ -1,0 +1,47 @@
+version: "1.0"
+name: tool-call-demo
+description: Demonstrates tool_call node type — dynamic tool dispatch from state
+
+state:
+  text: str
+  task: dict
+  result: dict
+
+tools:
+  word_count:
+    type: python
+    module: examples.demos.tool-call.tools
+    function: word_count
+    description: "Count words in text"
+  char_count:
+    type: python
+    module: examples.demos.tool-call.tools
+    function: char_count
+    description: "Count characters in text"
+  prepare_task:
+    type: python
+    module: examples.demos.tool-call.tools
+    function: prepare_task
+    description: "Build task dict from text input"
+
+nodes:
+  prepare:
+    type: python
+    tool: prepare_task
+    state_key: task
+    variables:
+      text: "{state.text}"
+
+  dispatch:
+    type: tool_call
+    tool: "{state.task.tool}"
+    args: "{state.task.args}"
+    state_key: result
+
+edges:
+  - from: START
+    to: prepare
+  - from: prepare
+    to: dispatch
+  - from: dispatch
+    to: END

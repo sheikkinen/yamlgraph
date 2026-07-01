@@ -1,0 +1,4 @@
+system: You are an editor. Improve clarity and flow. Keep output under 100 words.
+user: |
+  Polish this draft:
+  {draft_text}

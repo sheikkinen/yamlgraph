@@ -60,36 +60,18 @@ async def main():
 asyncio.run(main())
 ```
 
-## YAML Node Config
+## CLI Streaming (FR-633)
 
-Enable streaming for graph nodes:
+Stream any graph from the command line:
 
-```yaml
-nodes:
-  generate:
-    type: llm
-    prompt: my-prompt
-    stream: true  # Enable streaming
-    state_key: response
+```bash
+yamlgraph graph run examples/demos/streaming/graph.yaml --var topic="AI" --stream
 ```
 
-### Streaming Node Factory
+Tokens print to stdout as they are generated. All LLM nodes in the graph
+stream automatically — no per-node configuration needed.
 
-```python
-from yamlgraph.node_factory import create_streaming_node
-
-node_config = {
-    "prompt": "greet",
-    "state_key": "greeting",
-    "on_token": lambda t: print(t, end=""),  # Optional callback
-}
-
-streaming_node = create_streaming_node("generate", node_config)
-
-async for token in streaming_node(state):
-    # Process each token
-    pass
-```
+`--stream` and `--json` are mutually exclusive.
 
 ## Collecting Tokens
 
@@ -166,11 +148,7 @@ except Exception as e:
 Run the streaming demo:
 
 ```bash
-# Real LLM streaming
-python scripts/demo_streaming.py
-
-# Mock mode (no LLM)
-python scripts/demo_streaming.py --verify
+yamlgraph graph run examples/demos/streaming/graph.yaml --var topic="streaming" --stream
 ```
 
 ## Graph-Level Streaming (FR-029)

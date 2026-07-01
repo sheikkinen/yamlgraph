@@ -1,0 +1,16 @@
+2026-07-01 11:21:57,271 [INFO] yamlgraph.node_compiler: Added node: draft (type=llm)
+2026-07-01 11:21:57,272 [INFO] yamlgraph.node_compiler: Added node: polish (type=llm)
+2026-07-01 11:21:57,276 [INFO] yamlgraph.executor_async: Compiling graph: examples/demos/streaming/graph.yaml
+2026-07-01 11:21:57,278 [INFO] yamlgraph.executor_async: Loaded graph config: streaming-demo v1.0
+2026-07-01 11:21:57,280 [INFO] yamlgraph.node_compiler: Added node: draft (type=llm)
+2026-07-01 11:21:57,280 [INFO] yamlgraph.node_compiler: Added node: polish (type=llm)
+2026-07-01 11:21:57,354 [INFO] yamlgraph.utils.llm_factory: Creating LLM: deepseek/deepseek-v4-flash (temp=0.7)
+2026-07-01 11:21:59,101 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+🚀 Running graph: graph.yaml
+   Variables: {'topic': 'streaming in LLM frameworks'}
+
+Streaming in LLM frameworks enables real-time token-by-token output, critical for smooth chatbot interactions. Frameworks like LangChain and vLLM implement streaming via async generators or callbacks, reducing perceived latency. This pattern allows users to see responses form progressively, improving UX without waiting for full generation. Efficient streaming requires careful buffer management and cancelation support.2026-07-01 11:22:01,177 [INFO] yamlgraph.node_factory.llm_nodes: Node draft completed successfully
+2026-07-01 11:22:01,514 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+LLM frameworks use streaming for real-time token-by-token output, essential for smooth chatbot interactions. LangChain and vLLM implement it via async generators or callbacks, reducing perceived latency. Users see responses build progressively, improving UX without waiting for full generation. Efficient streaming requires careful buffer management and cancellation support2026-07-01 11:22:05,468 [INFO] yamlgraph.node_factory.llm_nodes: Node polish completed successfully
+.

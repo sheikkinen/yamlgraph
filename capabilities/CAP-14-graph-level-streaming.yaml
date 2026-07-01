@@ -25,4 +25,10 @@ requirements:
       optional `node_filter`
     modules:
       - executor_async
-fr: legacy
+  - id: REQ-YG-480
+    description: >
+      CLI streaming: `yamlgraph graph run --stream` uses
+      `run_graph_streaming_native()` for real-time token output to stdout
+    modules:
+      - cli
+fr: FR-633

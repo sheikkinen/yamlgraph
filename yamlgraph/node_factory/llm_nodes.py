@@ -417,23 +417,6 @@ def create_node_function(
     Returns:
         Node function compatible with LangGraph
     """
-    from yamlgraph.node_factory.streaming import create_streaming_node
-
-    # Streaming early-return (before config resolution needs output_model)
-    prompts_relative = defaults.get("prompts_relative", False)
-    prompts_dir = defaults.get("prompts_dir")
-    if prompts_dir:
-        prompts_dir = Path(prompts_dir)
-
-    if node_config.get("stream", False):
-        return create_streaming_node(
-            node_name,
-            node_config,
-            graph_path=graph_path,
-            prompts_dir=prompts_dir,
-            prompts_relative=prompts_relative,
-        )
-
     cfg = resolve_llm_node_config(node_name, node_config, defaults, graph_path)
 
     def node_fn(state: dict) -> dict:
