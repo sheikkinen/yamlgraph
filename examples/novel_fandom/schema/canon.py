@@ -100,12 +100,37 @@ class Rule(BaseModel):
     references: list[str] = Field(default_factory=list)
 
 
+class Premise(BaseModel):
+    """The thematic seed of the fiction world."""
+
+    type: Literal["premise"] = "premise"
+    id: str
+    lane: Literal["static", "dynamic"]
+    text: str
+    genre_tags: list[str] = Field(default_factory=list)
+    era: str = ""
+    themes: list[str] = Field(default_factory=list)
+    references: list[str] = Field(default_factory=list)
+
+
+class Synopsis(BaseModel):
+    """Full-disclosure reveal-all prose expanding the premise."""
+
+    type: Literal["synopsis"] = "synopsis"
+    id: str
+    lane: Literal["static", "dynamic"]
+    text: str
+    references: list[str] = Field(default_factory=list)
+
+
 PAGE_MODELS: dict[str, type[BaseModel]] = {
     "character": Character,
     "event": Event,
     "faction": Faction,
     "location": Location,
+    "premise": Premise,
     "rule": Rule,
+    "synopsis": Synopsis,
 }
 
 

@@ -1,0 +1,23 @@
+type: premise
+id: ashfall_premise
+lane: static
+text: >
+  Two centuries after the Ashfall — a cataclysm that shattered the old
+  forge-kingdoms — the survivors cling to a brittle peace. The Ashguard,
+  once a warrior order of legendary blade-bearers, is diminished to a
+  handful of guilt-ridden sentinels. The Emberwrights, an artisan guild
+  that once served the forges, have risen to political ambition. Between
+  them stands the Ashfall Pact, a non-aggression treaty that everyone
+  honours and no one trusts. When a lone Ashguard blade-bearer discovers
+  that the Pact was built on a lie, the question becomes whether truth
+  is worth the war it will reignite.
+genre_tags:
+  - fantasy
+  - drama
+era: post-cataclysm
+themes:
+  - guilt
+  - legacy
+  - truth vs stability
+  - vengeance vs forgiveness
+references: []

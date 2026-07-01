@@ -1,0 +1,28 @@
+name: Novel Fandom Wiki Core Types
+id: CAP-179
+status: active
+fr: FR-642
+feature_request: FR-642
+description: >
+  Premise and Synopsis page types for the novel_fandom canon. Premise is the
+  thematic seed (text, genre_tags, era, themes). Synopsis is full-disclosure
+  reveal-all prose expanding the premise. Both follow the standard canon
+  contract (id, type, lane, references) and are validated by the existing
+  ref_gate. Seed canon includes hand-authored premise and synopsis pages.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-492
+    description: >
+      Premise page type validates correctly: accepts valid premise data with
+      text field, rejects missing text and invalid lane values, registered
+      in PAGE_MODELS. Seed canon contains at least one premise page.
+    modules:
+      - examples
+  - id: REQ-YG-493
+    description: >
+      Synopsis page type validates correctly: accepts valid synopsis data with
+      text field, rejects missing text and invalid lane values, registered
+      in PAGE_MODELS. Seed synopsis references premise and passes ref_gate.
+    modules:
+      - examples

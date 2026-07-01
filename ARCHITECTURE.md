@@ -494,6 +494,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 176 | CAP-176 Novel Fandom Enriched World Model | `examples` | REQ-YG-484 – 486 |
 | 177 | CAP-177 Novel Fandom Plot Pathfinder | `examples` | REQ-YG-487 – 488 |
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
+| 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2226,6 +2227,17 @@ Prose drafting and close loop for the novel_fandom example. Maps plot path beats
 | REQ-YG-489 | apply_deltas supports add_event, add_edge, update_valence, and invalidate_edge operations on the dynamic canon. Each op type individually tested. | `examples` |
 | REQ-YG-490 | Carry-forward floor: zero delta ops leave the dynamic canon unchanged. Lane guard: ops targeting lane:static pages are rejected. Target validation: ops referencing non-existent entities are rejected. | `examples` |
 | REQ-YG-491 | Invalidate-not-delete: contradicting facts set valid_to on the existing edge, never delete. Bi-temporal reconciliation preserves history. Prose mention gate: extracted entity mentions from prose are checked against canon, non-canon mentions rejected. | `examples` |
+
+### 179. CAP-179 Novel Fandom Wiki Core Types
+
+Premise and Synopsis page types for the novel_fandom canon. Premise is the thematic seed (text, genre_tags, era, themes). Synopsis is full-disclosure reveal-all prose expanding the premise. Both follow the standard canon contract (id, type, lane, references) and are validated by the existing ref_gate. Seed canon includes hand-authored premise and synopsis pages.
+
+**Feature Request:** FR-642
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-492 | Premise page type validates correctly: accepts valid premise data with text field, rejects missing text and invalid lane values, registered in PAGE_MODELS. Seed canon contains at least one premise page. | `examples` |
+| REQ-YG-493 | Synopsis page type validates correctly: accepts valid synopsis data with text field, rejects missing text and invalid lane values, registered in PAGE_MODELS. Seed synopsis references premise and passes ref_gate. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 
