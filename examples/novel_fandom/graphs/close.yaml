@@ -1,0 +1,47 @@
+# Novel Fandom — Close Loop (FR-639 S8)
+# Extracts consequences from chapters as edge-level delta ops,
+# then applies them to the dynamic canon.
+#
+# Flow: extract_deltas (LLM) → apply_deltas (deterministic) → END
+
+version: "1.0"
+name: novel-fandom-close
+description: Extract consequences from chapters and apply as delta ops to canon
+prompts_relative: true
+prompts_dir: ../prompts
+
+data_files:
+  canon: "../canon/*.yaml"
+
+state:
+  chapters: list
+  deltas: dict
+  applied: list
+  rejected: list
+
+tools:
+  apply_deltas:
+    type: python
+    path: ../nodes/apply_deltas.py
+    function: apply_deltas
+
+nodes:
+  extract_deltas:
+    type: llm
+    prompt: extract_consequences
+    state_key: deltas
+    temperature: 0.1
+
+  apply:
+    type: python
+    tool: apply_deltas
+
+edges:
+  - from: START
+    to: extract_deltas
+
+  - from: extract_deltas
+    to: apply
+
+  - from: apply
+    to: END

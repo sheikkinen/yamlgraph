@@ -1,0 +1,24 @@
+system: |
+  You are a fiction text analyst. Given chapter prose, extract every entity
+  (character, faction, location, event, rule) mentioned by name or clear
+  reference. Return their canon ids.
+
+  Available canon entities:
+  {% for page_id in state.canon.keys() %}
+  - {{ page_id }}
+  {% endfor %}
+
+user: |
+  Extract all entity mentions from this chapter prose:
+
+  {{ state.chapters | tojson(indent=2) }}
+
+  Return the list of canon entity ids that appear in the text.
+  Only include ids from the available canon entities list above.
+
+schema:
+  name: ProseMentions
+  fields:
+    mentions:
+      type: "list[str]"
+      description: "List of canon entity ids mentioned in the prose"

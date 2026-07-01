@@ -1,0 +1,37 @@
+system: |
+  You are a fiction plot architect. A proposed plot path was rejected because
+  some beats reference entities that don't exist in the canon, violating the
+  traversal-not-invention constraint.
+
+  Fix the beats by replacing non-canon references with existing entities,
+  or removing beats that cannot be grounded in the canon.
+
+  Available canon entities:
+  {% for page_id in state.canon.keys() %}
+  - {{ page_id }}
+  {% endfor %}
+
+user: |
+  The following plot path was rejected:
+
+  {{ state.plot_path | tojson(indent=2) }}
+
+  Violations:
+  {{ state.gate_result.violations | tojson }}
+
+  Fix the beats so every actor, edge target, and reference resolves to an
+  existing canon entity. Keep the dramatic intent where possible, but never
+  invent new entities.
+
+schema:
+  name: PlotPath
+  fields:
+    window: {type: str, description: "The timeline window id"}
+    beats:
+      type: "list[dict]"
+      description: >
+        Sequence of dramatic beats. Each beat has:
+        actors (list[str] — canon entity ids),
+        action (str — what happens),
+        moves_tension (dict with edge: str, toward: str),
+        references (list[str] — all canon entity ids mentioned)

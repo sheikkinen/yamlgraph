@@ -1,0 +1,30 @@
+name: Novel Fandom Plot Pathfinder
+id: CAP-177
+status: active
+fr: FR-638
+feature_request: FR-638
+description: >
+  Plot pathfinder for the novel_fandom example. Given a timeline window and
+  character roster, deterministically retrieves open tensions from canon
+  (unmet goals, fears, internal conflicts, unresolved edges, triggers),
+  then an LLM proposes dramatic beats that traverse those tensions.
+  A gate verifies every beat references only existing canon entities.
+  Traversal-not-invention: the pathfinder creates no new entities.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-487
+    description: >
+      retrieve_window deterministically filters canon by window and roster,
+      returning roster pages with open tensions (unmet goals, fears,
+      wants≠needs conflicts, unresolved relationship edges, triggers)
+      and applicable world rules. No LLM, no mocks needed for testing.
+    modules:
+      - examples
+  - id: REQ-YG-488
+    description: >
+      Path gate checks all beat references (actors, references, edge targets)
+      resolve to existing canon entity ids. Beats with orphan references are
+      rejected. Traversal-not-invention enforced.
+    modules:
+      - examples

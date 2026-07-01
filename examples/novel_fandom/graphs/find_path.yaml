@@ -1,0 +1,77 @@
+# Novel Fandom — Plot Pathfinder (FR-638)
+# Traversal-not-invention: finds dramatic paths over existing canon tensions.
+#
+# Flow: retrieve_window → find_path (LLM) → gate → (valid: END) | (invalid: fix → gate)
+# Every beat must reference only existing canon entities.
+
+version: "1.0"
+name: novel-fandom-find-path
+description: Plot pathfinder — traverse canon tensions to propose dramatic beats
+prompts_relative: true
+prompts_dir: ../prompts
+
+data_files:
+  canon: "../canon/*.yaml"
+
+state:
+  window: str
+  roster: list
+  context: dict
+  plot_path: dict
+  gate_result: dict
+
+tools:
+  retrieve_window:
+    type: python
+    path: ../nodes/retrieve_window.py
+    function: retrieve_window
+  path_gate:
+    type: python
+    path: ../nodes/path_gate.py
+    function: check_path_references
+
+nodes:
+  retrieve_context:
+    type: python
+    tool: retrieve_window
+
+  find_path:
+    type: llm
+    prompt: find_plot_path
+    state_key: plot_path
+    temperature: 0.7
+
+  gate_path:
+    type: python
+    tool: path_gate
+
+  fix_path:
+    type: llm
+    prompt: fix_plot_path
+    state_key: plot_path
+    temperature: 0.3
+
+edges:
+  - from: START
+    to: retrieve_context
+
+  - from: retrieve_context
+    to: find_path
+
+  - from: find_path
+    to: gate_path
+
+  - from: gate_path
+    to: END
+    condition: gate_result.valid == true
+
+  - from: gate_path
+    to: fix_path
+    condition: gate_result.valid == false
+
+  - from: fix_path
+    to: gate_path
+
+loop_limits:
+  gate_path: 3
+  fix_path: 3

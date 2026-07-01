@@ -492,6 +492,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 174 | CAP-174 Data Files Glob Support | `data_loader` | REQ-YG-478 – 479 |
 | 175 | CAP-175 Novel Fandom Canon Schema | `examples` | REQ-YG-481 – 483 |
 | 176 | CAP-176 Novel Fandom Enriched World Model | `examples` | REQ-YG-484 – 486 |
+| 177 | CAP-177 Novel Fandom Plot Pathfinder | `examples` | REQ-YG-487 – 488 |
+| 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2201,6 +2203,29 @@ Enriched fiction canon schema extending CAP-175 (FR-637). Adds motivation triad 
 | REQ-YG-484 | Character model extended with role, driving_force, wants, needs, fears, arc_summary, and triggers fields — all optional with defaults. Existing Character pages validate unchanged. | `examples` |
 | REQ-YG-485 | Location model extended with location_type, atmosphere, sensory, and significance fields — all optional with defaults. Existing Location pages validate unchanged. | `examples` |
 | REQ-YG-486 | Rule page type added to schema and PAGE_MODELS registry. Fields: type, id, lane, domain, title, description, references. Gate validates Rule pages for orphan references and lane immutability identically to other page types. | `examples` |
+
+### 177. CAP-177 Novel Fandom Plot Pathfinder
+
+Plot pathfinder for the novel_fandom example. Given a timeline window and character roster, deterministically retrieves open tensions from canon (unmet goals, fears, internal conflicts, unresolved edges, triggers), then an LLM proposes dramatic beats that traverse those tensions. A gate verifies every beat references only existing canon entities. Traversal-not-invention: the pathfinder creates no new entities.
+
+**Feature Request:** FR-638
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-487 | retrieve_window deterministically filters canon by window and roster, returning roster pages with open tensions (unmet goals, fears, wants≠needs conflicts, unresolved relationship edges, triggers) and applicable world rules. No LLM, no mocks needed for testing. | `examples` |
+| REQ-YG-488 | Path gate checks all beat references (actors, references, edge targets) resolve to existing canon entity ids. Beats with orphan references are rejected. Traversal-not-invention enforced. | `examples` |
+
+### 178. CAP-178 Novel Fandom Prose and Close Loop
+
+Prose drafting and close loop for the novel_fandom example. Maps plot path beats to chapter prose (S7), gates prose for entity leaks via LLM-extracted mentions, then extracts edge-level delta ops from chapters and applies them to the dynamic canon (S8). Invariants: carry-forward floor (zero ops = no change), invalidate-not-delete (bi-temporal), lane guard (static pages immutable), target validation (ops must reference existing entities).
+
+**Feature Request:** FR-639
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-489 | apply_deltas supports add_event, add_edge, update_valence, and invalidate_edge operations on the dynamic canon. Each op type individually tested. | `examples` |
+| REQ-YG-490 | Carry-forward floor: zero delta ops leave the dynamic canon unchanged. Lane guard: ops targeting lane:static pages are rejected. Target validation: ops referencing non-existent entities are rejected. | `examples` |
+| REQ-YG-491 | Invalidate-not-delete: contradicting facts set valid_to on the existing edge, never delete. Bi-temporal reconciliation preserves history. Prose mention gate: extracted entity mentions from prose are checked against canon, non-canon mentions rejected. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

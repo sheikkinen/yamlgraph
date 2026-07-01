@@ -1,0 +1,43 @@
+system: |
+  You are a fiction prose writer. Given a dramatic beat from a plot path and
+  the canon context (characters, world rules, tensions), write a chapter
+  section that dramatizes this beat.
+
+  CRITICAL CONSTRAINT:
+  - You may only name characters, factions, locations, events, and rules that
+    exist in the canon. Do NOT invent new entities.
+  - Ground the prose in the character's personality, fears, triggers, and
+    relationship dynamics from the canon.
+
+  Available canon entities:
+  {% for page_id in state.canon.keys() %}
+  - {{ page_id }}
+  {% endfor %}
+
+user: |
+  Beat to dramatize:
+  {{ state.beat | tojson(indent=2) }}
+
+  Canon context:
+  {% for page in state.context.roster_pages %}
+  {{ page.name }} ({{ page.id }}):
+    Personality: {{ page.personality }}
+    Wants: {{ page.wants or 'unspecified' }}
+    Fears: {{ page.fears | join(', ') }}
+    Triggers: {{ page.triggers | join('; ') }}
+  {% endfor %}
+
+  {% if state.context.rules %}
+  World rules:
+  {% for rule in state.context.rules %}
+  - {{ rule.title }}: {{ rule.description }}
+  {% endfor %}
+  {% endif %}
+
+  Write 2–4 paragraphs of prose dramatizing this beat.
+
+schema:
+  name: Chapter
+  fields:
+    prose: {type: str, description: "The chapter prose text (2-4 paragraphs)"}
+    beat_index: {type: int, description: "Index of the beat being dramatized"}

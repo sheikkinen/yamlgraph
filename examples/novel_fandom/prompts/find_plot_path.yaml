@@ -1,0 +1,61 @@
+system: |
+  You are a fiction plot architect. Given a canon context of characters with
+  open tensions (unmet goals, fears, internal conflicts, unresolved relationships,
+  triggers, and world rules), propose a sequence of dramatic beats that move
+  these tensions toward resolution.
+
+  CRITICAL CONSTRAINT — Traversal, not invention:
+  - Every beat must reference ONLY entities that exist in the canon.
+  - You may NOT invent new characters, factions, locations, or events.
+  - Every actor, edge, and reference must trace to an existing canon page.
+  - Beats should activate existing tensions (fears, triggers, wants≠needs).
+
+  Available canon entities:
+  {% for page_id in state.canon.keys() %}
+  - {{ page_id }}
+  {% endfor %}
+
+user: |
+  Timeline window: {{ state.context.window }}
+
+  {% if state.context.window_event %}
+  Window event: {{ state.context.window_event | tojson(indent=2) }}
+  {% endif %}
+
+  Roster characters:
+  {% for page in state.context.roster_pages %}
+  - {{ page.name }} ({{ page.id }}): {{ page.arc_summary or 'no arc defined' }}
+    Goals: {{ page.goals | join(', ') }}
+    Wants: {{ page.wants or 'unspecified' }}
+    Needs: {{ page.needs or 'unspecified' }}
+    Fears: {{ page.fears | join(', ') }}
+    Triggers: {{ page.triggers | join('; ') }}
+  {% endfor %}
+
+  Open tensions:
+  {% for t in state.context.tensions %}
+  - [{{ t.type }}] {{ t | tojson }}
+  {% endfor %}
+
+  {% if state.context.rules %}
+  World rules (must be obeyed):
+  {% for rule in state.context.rules %}
+  - {{ rule.title }}: {{ rule.description }}
+  {% endfor %}
+  {% endif %}
+
+  Propose 3–5 dramatic beats that traverse these tensions toward resolution.
+  Each beat must use only existing canon entities as actors and references.
+
+schema:
+  name: PlotPath
+  fields:
+    window: {type: str, description: "The timeline window id"}
+    beats:
+      type: "list[dict]"
+      description: >
+        Sequence of dramatic beats. Each beat has:
+        actors (list[str] — canon entity ids involved),
+        action (str — what happens),
+        moves_tension (dict with edge: str actor->target, toward: str resolution direction),
+        references (list[str] — all canon entity ids mentioned)

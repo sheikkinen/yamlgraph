@@ -1,0 +1,37 @@
+name: Novel Fandom Prose and Close Loop
+id: CAP-178
+status: active
+fr: FR-639
+feature_request: FR-639
+description: >
+  Prose drafting and close loop for the novel_fandom example. Maps plot path
+  beats to chapter prose (S7), gates prose for entity leaks via LLM-extracted
+  mentions, then extracts edge-level delta ops from chapters and applies them
+  to the dynamic canon (S8). Invariants: carry-forward floor (zero ops = no
+  change), invalidate-not-delete (bi-temporal), lane guard (static pages
+  immutable), target validation (ops must reference existing entities).
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-489
+    description: >
+      apply_deltas supports add_event, add_edge, update_valence, and
+      invalidate_edge operations on the dynamic canon. Each op type
+      individually tested.
+    modules:
+      - examples
+  - id: REQ-YG-490
+    description: >
+      Carry-forward floor: zero delta ops leave the dynamic canon unchanged.
+      Lane guard: ops targeting lane:static pages are rejected. Target
+      validation: ops referencing non-existent entities are rejected.
+    modules:
+      - examples
+  - id: REQ-YG-491
+    description: >
+      Invalidate-not-delete: contradicting facts set valid_to on the existing
+      edge, never delete. Bi-temporal reconciliation preserves history.
+      Prose mention gate: extracted entity mentions from prose are checked
+      against canon, non-canon mentions rejected.
+    modules:
+      - examples

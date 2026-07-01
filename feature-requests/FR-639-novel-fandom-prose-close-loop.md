@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (example)
-**Status:** Approved
+**Status:** Implemented
 **Effort:** 2–3 days
 **Requested:** 2026-07-01
 

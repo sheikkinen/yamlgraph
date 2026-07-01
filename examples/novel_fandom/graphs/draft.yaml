@@ -1,0 +1,62 @@
+# Novel Fandom — Draft Chapters (FR-639 S7)
+# Maps plot path beats → chapter prose, then gates for leaked entities.
+#
+# Flow: map(beats→chapters) → extract_mentions (LLM) → prose_gate → END
+
+version: "1.0"
+name: novel-fandom-draft
+description: Draft chapter prose from plot path beats, gate for entity leaks
+prompts_relative: true
+prompts_dir: ../prompts
+
+data_files:
+  canon: "../canon/*.yaml"
+
+state:
+  plot_path: dict
+  context: dict
+  chapters: list
+  prose_mentions: dict
+  gate_result: dict
+
+tools:
+  prose_gate:
+    type: python
+    path: ../nodes/prose_gate.py
+    function: check_prose_mentions
+
+nodes:
+  draft_chapters:
+    type: map
+    over: "{state.plot_path.beats}"
+    as: beat
+    max_items: 10
+    collect: chapters
+    node:
+      type: llm
+      prompt: draft_chapter
+      state_key: chapter
+      temperature: 0.8
+
+  extract_mentions:
+    type: llm
+    prompt: extract_prose_mentions
+    state_key: prose_mentions
+    temperature: 0.1
+
+  gate_prose:
+    type: python
+    tool: prose_gate
+
+edges:
+  - from: START
+    to: draft_chapters
+
+  - from: draft_chapters
+    to: extract_mentions
+
+  - from: extract_mentions
+    to: gate_prose
+
+  - from: gate_prose
+    to: END
