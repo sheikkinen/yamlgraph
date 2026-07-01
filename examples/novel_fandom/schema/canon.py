@@ -1,6 +1,6 @@
 """Pydantic models for novel_fandom canon pages.
 
-Typed schemas for fiction entities: Character, Event, Faction, Location.
+Typed schemas for fiction entities: Character, Event, Faction, Location, Rule.
 Each page has a lane (static|dynamic) for immutability control.
 """
 
@@ -32,6 +32,13 @@ class Character(BaseModel):
     relationships: list[Relationship] = Field(default_factory=list)
     references: list[str] = Field(default_factory=list)
     timeline_entry: str = ""
+    role: Literal["protagonist", "antagonist", "supporting", "minor"] = "supporting"
+    driving_force: str = ""
+    wants: str = ""
+    needs: str = ""
+    fears: list[str] = Field(default_factory=list)
+    arc_summary: str = ""
+    triggers: list[str] = Field(default_factory=list)
 
 
 class Event(BaseModel):
@@ -69,6 +76,28 @@ class Location(BaseModel):
     name: str
     description: str = ""
     references: list[str] = Field(default_factory=list)
+    location_type: str = ""
+    atmosphere: list[str] = Field(default_factory=list)
+    sensory: list[str] = Field(default_factory=list)
+    significance: str = ""
+
+
+class Rule(BaseModel):
+    """A world constraint that the story must obey."""
+
+    type: Literal["rule"] = "rule"
+    id: str
+    lane: Literal["static", "dynamic"]
+    domain: Literal[
+        "magic_system",
+        "character_state",
+        "physical_constraint",
+        "social_rule",
+        "temporal_rule",
+    ]
+    title: str
+    description: str = ""
+    references: list[str] = Field(default_factory=list)
 
 
 PAGE_MODELS: dict[str, type[BaseModel]] = {
@@ -76,6 +105,7 @@ PAGE_MODELS: dict[str, type[BaseModel]] = {
     "event": Event,
     "faction": Faction,
     "location": Location,
+    "rule": Rule,
 }
 
 

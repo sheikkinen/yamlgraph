@@ -2,9 +2,20 @@ type: character
 id: maren
 lane: static
 name: Maren
+role: supporting
 goals:
   - "Preserve the old pacts between factions"
   - "Guide Kaelen without repeating her own failures"
+driving_force: "Atonement for a past betrayal that shattered the original pacts"
+wants: "To see the factions reconciled under the old accords"
+needs: "To accept that some debts cannot be repaid"
+fears:
+  - "That Kaelen will repeat her mistakes"
+  - "That the Emberwrights will discover what she did"
+arc_summary: "haunted peacemaker → truth-teller"
+triggers:
+  - "If someone invokes the old pacts → becomes fiercely protective and eloquent"
+  - "If confronted with her past betrayal → withdraws into silence"
 personality: "patient, perceptive, haunted"
 faction: emberwrights
 relationships:

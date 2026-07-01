@@ -869,6 +869,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
 - **Penance**: Internal test helper; the return type varies dynamically depending on which module is loaded. Type annotation would be `types.ModuleType` which adds no value to callers that immediately destructure attributes.
 
+### CONF-337
+- **File**: [tests/unit/test_fr640_novel_fandom_enriched.py](../tests/unit/test_fr640_novel_fandom_enriched.py#L27)
+- **Code**: ANN202
+- **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
+- **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

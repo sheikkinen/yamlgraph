@@ -2,13 +2,24 @@ type: character
 id: voss
 lane: static
 name: Voss
+role: antagonist
 goals:
   - "Claim the Emberbrand before Kaelen"
   - "Prove the Ashguard unworthy of the old forge"
+driving_force: "Resentment that the Ashguard squandered the Emberwrights' finest work"
+wants: "The Emberbrand and the prestige it carries"
+needs: "Recognition that his craft has worth beyond weapons"
+fears:
+  - "That the Emberwrights are fading into irrelevance"
+  - "That Kaelen might actually deserve the blade"
+arc_summary: "bitter rival → reluctant craftsman-ally"
+triggers:
+  - "If someone dismisses Emberwright craftsmanship → erupts with contempt"
+  - "If shown genuine respect for his skill → momentarily drops his guard"
 personality: "cunning, charismatic, bitter"
 faction: emberwrights
 relationships:
   - {to: kaelen, kind: rival, valence: enmity}
   - {to: maren, kind: reluctant_peer, valence: respect}
-references: [emberwrights, kaelen, maren, age_of_cinders]
+references: [emberwrights, kaelen, maren, age_of_cinders, emberbrand_rule]
 timeline_entry: age_of_cinders

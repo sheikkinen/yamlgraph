@@ -1,0 +1,36 @@
+name: Novel Fandom Enriched World Model
+id: CAP-176
+status: active
+fr: FR-640
+feature_request: FR-640
+description: >
+  Enriched fiction canon schema extending CAP-175 (FR-637). Adds motivation
+  triad (driving_force/wants/needs/fears/arc_summary/role) and reactive triggers
+  to Character, atmosphere and sensory detail to Location, and a new Rule page
+  type for world constraints. All new fields optional with defaults. Gate
+  validates Rule pages identically to existing types.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-484
+    description: >
+      Character model extended with role, driving_force, wants, needs, fears,
+      arc_summary, and triggers fields — all optional with defaults. Existing
+      Character pages validate unchanged.
+    modules:
+      - examples
+  - id: REQ-YG-485
+    description: >
+      Location model extended with location_type, atmosphere, sensory, and
+      significance fields — all optional with defaults. Existing Location
+      pages validate unchanged.
+    modules:
+      - examples
+  - id: REQ-YG-486
+    description: >
+      Rule page type added to schema and PAGE_MODELS registry. Fields: type,
+      id, lane, domain, title, description, references. Gate validates Rule
+      pages for orphan references and lane immutability identically to other
+      page types.
+    modules:
+      - examples

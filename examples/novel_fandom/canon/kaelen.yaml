@@ -2,13 +2,24 @@ type: character
 id: kaelen
 lane: static
 name: Kaelen
+role: protagonist
 goals:
   - "Reforge the Emberbrand with dragonsteel"
   - "Avenge the Ashfall"
+driving_force: "Guilt over surviving the Ashfall when others didn't"
+wants: "Vengeance against House Voss"
+needs: "To forgive himself for surviving"
+fears:
+  - "That the Ashfall was his fault"
+  - "That Maren's faith in him is misplaced"
+arc_summary: "guilt-driven avenger → reluctant forgiver"
+triggers:
+  - "If someone questions Ashguard's honour → becomes aggressive and reckless"
+  - "If offered forgiveness by an Emberwright → freezes, torn between pride and need"
 personality: "disciplined, stoic, grudge-bearing"
 faction: ashguard
 relationships:
   - {to: maren, kind: mentor, valence: trust}
   - {to: voss, kind: rival, valence: enmity}
-references: [ashguard, maren, voss, age_of_cinders]
+references: [ashguard, maren, voss, age_of_cinders, emberbrand_rule]
 timeline_entry: age_of_cinders

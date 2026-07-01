@@ -1,0 +1,7 @@
+type: rule
+id: emberbrand_rule
+lane: static
+domain: magic_system
+title: "Emberbrand Reforging"
+description: "The Emberbrand can only be reforged with dragonsteel quenched in living flame. Dragonsteel is held exclusively by the Emberwrights."
+references: [kaelen, emberwrights]

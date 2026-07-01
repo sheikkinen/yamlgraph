@@ -1,0 +1,7 @@
+type: rule
+id: ashfall_pact
+lane: static
+domain: social_rule
+title: "The Ashfall Pact"
+description: "After the Ashfall, surviving factions swore mutual non-aggression. Any faction that breaks the pact forfeits its claim to the old forge and its dragonsteel stores."
+references: [ashguard, emberwrights, age_of_cinders]

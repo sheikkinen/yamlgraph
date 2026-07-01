@@ -491,6 +491,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 173 | CAP-173 Write Data File Tool | `tools/write_data_file_tool` | REQ-YG-474 – 477 |
 | 174 | CAP-174 Data Files Glob Support | `data_loader` | REQ-YG-478 – 479 |
 | 175 | CAP-175 Novel Fandom Canon Schema | `examples` | REQ-YG-481 – 483 |
+| 176 | CAP-176 Novel Fandom Enriched World Model | `examples` | REQ-YG-484 – 486 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2188,6 +2189,18 @@ Typed, multi-entity fiction canon for the novel_fandom example application. Pyda
 | REQ-YG-481 | Pydantic models (Character, Event, Faction, Location) validate canon pages. Each model enforces required fields: id, type, lane, references. Character has goals, personality, faction, relationships with typed valence. Event has participants, consequences, valid_from/valid_to for bi-temporal history. | `examples` |
 | REQ-YG-482 | Reference-integrity gate rejects pages with orphan references (references that don't resolve to existing canon page ids). Reuses FR-628 gate logic with lane-immutability extension. | `examples` |
 | REQ-YG-483 | Lane-immutability gate rejects writes to existing lane:static pages. Dynamic pages (lane:dynamic) can be updated. Gate checks lane field on the existing page and rejects if static and page already exists. | `examples` |
+
+### 176. CAP-176 Novel Fandom Enriched World Model
+
+Enriched fiction canon schema extending CAP-175 (FR-637). Adds motivation triad (driving_force/wants/needs/fears/arc_summary/role) and reactive triggers to Character, atmosphere and sensory detail to Location, and a new Rule page type for world constraints. All new fields optional with defaults. Gate validates Rule pages identically to existing types.
+
+**Feature Request:** FR-640
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-484 | Character model extended with role, driving_force, wants, needs, fears, arc_summary, and triggers fields — all optional with defaults. Existing Character pages validate unchanged. | `examples` |
+| REQ-YG-485 | Location model extended with location_type, atmosphere, sensory, and significance fields — all optional with defaults. Existing Location pages validate unchanged. | `examples` |
+| REQ-YG-486 | Rule page type added to schema and PAGE_MODELS registry. Fields: type, id, lane, domain, title, description, references. Gate validates Rule pages for orphan references and lane immutability identically to other page types. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

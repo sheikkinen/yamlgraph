@@ -179,7 +179,7 @@ class TestCanonSchema:
     @pytest.mark.req("REQ-YG-481")
     def test_all_seed_pages_validate(self, seed_canon: dict[str, dict]) -> None:
         """Every seed canon page validates against its Pydantic model."""
-        assert len(seed_canon) >= 6, f"Expected ≥6 seed pages, got {len(seed_canon)}"
+        assert len(seed_canon) >= 8, f"Expected ≥8 seed pages, got {len(seed_canon)}"
         for page_id, data in seed_canon.items():
             page = validate_page(data)
             assert page.id == page_id
