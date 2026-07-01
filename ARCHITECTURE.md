@@ -495,6 +495,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 177 | CAP-177 Novel Fandom Plot Pathfinder | `examples` | REQ-YG-487 – 488 |
 | 178 | CAP-178 Novel Fandom Prose and Close Loop | `examples` | REQ-YG-489 – 491 |
 | 179 | CAP-179 Novel Fandom Wiki Core Types | `examples` | REQ-YG-492 – 493 |
+| 180 | CAP-180 Novel Fandom World Expansion | `examples` | REQ-YG-494 – 495 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2238,6 +2239,17 @@ Premise and Synopsis page types for the novel_fandom canon. Premise is the thema
 |------------|-------------|-------------|
 | REQ-YG-492 | Premise page type validates correctly: accepts valid premise data with text field, rejects missing text and invalid lane values, registered in PAGE_MODELS. Seed canon contains at least one premise page. | `examples` |
 | REQ-YG-493 | Synopsis page type validates correctly: accepts valid synopsis data with text field, rejects missing text and invalid lane values, registered in PAGE_MODELS. Seed synopsis references premise and passes ref_gate. | `examples` |
+
+### 180. CAP-180 Novel Fandom World Expansion
+
+World expansion pipeline for novel_fandom. Deepens thin entities via LLM, extracts red links (new entity mentions that lack wiki pages), creates skeleton pages for red links, and loops until depth budget is reached. Pipeline decides what to deepen (deterministic thinness filter), LLM generates content, gate validates references. No LLM diagnoses gaps.
+
+**Feature Request:** FR-643v2
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-494 | Schema additions for world expansion: Character has backstory field, all page models have depth field (default 0), depth roundtrips through dict serialization. Seed canon pages are lane:dynamic. worldgen.yaml graph exists and lints clean with all loop_limits specified. | `examples` |
+| REQ-YG-495 | World expansion nodes: select_thin identifies thin entities by structural field checks sorted by thin_score, collect_red_links deduplicates new entities by id and filters existing pages, validate_pages gate checks references against merged canon, persist_pages validates against Pydantic models before atomic write, reload_canon reads canon dir at runtime. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

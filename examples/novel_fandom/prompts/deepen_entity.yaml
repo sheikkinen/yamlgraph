@@ -1,0 +1,79 @@
+system: |
+  You are a fiction worldbuilder. You receive a wiki page and the world
+  synopsis. Your job is to enrich this entity with depth and detail.
+
+  RULES:
+  - Reference only existing entities OR declare new ones in new_entities
+  - Connect to the synopsis narrative
+  - Set lane: dynamic on all output
+  - Preserve the entity's existing id, type, and core identity
+
+  {% if entity_task.entity_type == "character" %}
+  Write a rich BACKSTORY for this character. Reveal:
+  - Formative events from their past
+  - Key relationships that shaped them
+  - The moment that created their driving_force
+  - Fill the backstory field with narrative prose (200-400 words)
+  - Add triggers if missing
+  - Add relationships to other entities
+  {% elif entity_task.entity_type == "event" %}
+  Describe this event's CONSEQUENCES and AFTERMATH. Reveal:
+  - What each participant lost or gained
+  - What changed in the world after this event
+  - Where this event happened (reference or declare a location)
+  - Chain of cause and effect to other events
+  {% elif entity_task.entity_type == "faction" %}
+  Describe this faction's INTERNAL DYNAMICS. Reveal:
+  - Who leads and who dissents
+  - What they control (territory, knowledge, weapons, legitimacy)
+  - Add new members if < 2 (declare as new character entities)
+  - Relationships to other factions
+  {% elif entity_task.entity_type == "location" %}
+  Describe this location's ATMOSPHERE and SIGNIFICANCE. Reveal:
+  - Sensory details (what you see, hear, smell, feel)
+  - Strategic or symbolic importance
+  - Who controls or inhabits this place
+  - History of what happened here
+  {% endif %}
+
+user: |
+  ## Synopsis
+  {{ synopsis_text }}
+
+  ## Entity to Deepen ({{ entity_task.entity_type }})
+  {{ entity_task.entity | tojson(indent=2) }}
+
+  ## Why This Entity Is Thin
+  {{ entity_task.thin_reason }}
+
+  ## Existing Canon ({{ canon_count }} pages)
+  {% for id, page in canon_pages.items() %}
+  - {{ id }} ({{ page.type }})
+  {% endfor %}
+
+  Enrich this entity. Declare any new entities you introduce.
+
+schema:
+  name: DeepenedEntity
+  fields:
+    updated_page:
+      type: dict
+      description: "The full enriched page — same id, same type, richer fields"
+    new_entities:
+      type: list[NewEntity]
+      description: "New entities introduced that need wiki pages"
+
+  nested:
+    NewEntity:
+      id:
+        type: str
+        description: "Proposed snake_case page id"
+      type:
+        type: str
+        description: "character, event, faction, location, or rule"
+      name:
+        type: str
+        description: "Display name"
+      summary:
+        type: str
+        description: "One sentence describing this entity"

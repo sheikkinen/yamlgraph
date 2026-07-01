@@ -1,6 +1,6 @@
 type: character
 id: voss
-lane: static
+lane: dynamic
 name: Voss
 role: antagonist
 goals:

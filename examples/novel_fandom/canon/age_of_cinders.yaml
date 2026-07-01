@@ -1,6 +1,6 @@
 type: event
 id: age_of_cinders
-lane: static
+lane: dynamic
 window: age_of_cinders
 participants: [kaelen, maren, voss]
 consequences:

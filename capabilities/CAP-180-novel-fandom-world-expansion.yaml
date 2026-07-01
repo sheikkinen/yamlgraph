@@ -1,0 +1,31 @@
+name: Novel Fandom World Expansion
+id: CAP-180
+status: active
+fr: FR-643v2
+feature_request: FR-643v2
+description: >
+  World expansion pipeline for novel_fandom. Deepens thin entities via LLM,
+  extracts red links (new entity mentions that lack wiki pages), creates
+  skeleton pages for red links, and loops until depth budget is reached.
+  Pipeline decides what to deepen (deterministic thinness filter), LLM
+  generates content, gate validates references. No LLM diagnoses gaps.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-494
+    description: >
+      Schema additions for world expansion: Character has backstory field,
+      all page models have depth field (default 0), depth roundtrips through
+      dict serialization. Seed canon pages are lane:dynamic. worldgen.yaml
+      graph exists and lints clean with all loop_limits specified.
+    modules:
+      - examples
+  - id: REQ-YG-495
+    description: >
+      World expansion nodes: select_thin identifies thin entities by structural
+      field checks sorted by thin_score, collect_red_links deduplicates new
+      entities by id and filters existing pages, validate_pages gate checks
+      references against merged canon, persist_pages validates against Pydantic
+      models before atomic write, reload_canon reads canon dir at runtime.
+    modules:
+      - examples

@@ -1,6 +1,6 @@
 type: character
 id: maren
-lane: static
+lane: dynamic
 name: Maren
 role: supporting
 goals:

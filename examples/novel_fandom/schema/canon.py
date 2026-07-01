@@ -26,6 +26,7 @@ class Character(BaseModel):
     id: str
     lane: Literal["static", "dynamic"]
     name: str
+    depth: int = 0
     goals: list[str] = Field(default_factory=list)
     personality: str = ""
     faction: str = ""
@@ -39,6 +40,7 @@ class Character(BaseModel):
     fears: list[str] = Field(default_factory=list)
     arc_summary: str = ""
     triggers: list[str] = Field(default_factory=list)
+    backstory: str = ""
 
 
 class Event(BaseModel):
@@ -47,6 +49,7 @@ class Event(BaseModel):
     type: Literal["event"] = "event"
     id: str
     lane: Literal["static", "dynamic"]
+    depth: int = 0
     window: str = ""
     participants: list[str] = Field(default_factory=list)
     consequences: list[str] = Field(default_factory=list)
@@ -62,6 +65,7 @@ class Faction(BaseModel):
     id: str
     lane: Literal["static", "dynamic"]
     name: str
+    depth: int = 0
     description: str = ""
     members: list[str] = Field(default_factory=list)
     references: list[str] = Field(default_factory=list)
@@ -74,6 +78,7 @@ class Location(BaseModel):
     id: str
     lane: Literal["static", "dynamic"]
     name: str
+    depth: int = 0
     description: str = ""
     references: list[str] = Field(default_factory=list)
     location_type: str = ""
@@ -88,6 +93,7 @@ class Rule(BaseModel):
     type: Literal["rule"] = "rule"
     id: str
     lane: Literal["static", "dynamic"]
+    depth: int = 0
     domain: Literal[
         "magic_system",
         "character_state",
@@ -106,6 +112,7 @@ class Premise(BaseModel):
     type: Literal["premise"] = "premise"
     id: str
     lane: Literal["static", "dynamic"]
+    depth: int = 0
     text: str
     genre_tags: list[str] = Field(default_factory=list)
     era: str = ""
@@ -119,6 +126,7 @@ class Synopsis(BaseModel):
     type: Literal["synopsis"] = "synopsis"
     id: str
     lane: Literal["static", "dynamic"]
+    depth: int = 0
     text: str
     references: list[str] = Field(default_factory=list)
 

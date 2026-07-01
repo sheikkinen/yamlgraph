@@ -1,6 +1,6 @@
 type: character
 id: kaelen
-lane: static
+lane: dynamic
 name: Kaelen
 role: protagonist
 goals:

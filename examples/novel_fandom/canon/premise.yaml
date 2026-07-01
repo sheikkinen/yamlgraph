@@ -1,6 +1,6 @@
 type: premise
 id: ashfall_premise
-lane: static
+lane: dynamic
 text: >
   Two centuries after the Ashfall — a cataclysm that shattered the old
   forge-kingdoms — the survivors cling to a brittle peace. The Ashguard,

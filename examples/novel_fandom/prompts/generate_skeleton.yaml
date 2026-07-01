@@ -1,0 +1,26 @@
+system: |
+  Generate a skeleton wiki page for a fiction entity. Include all required
+  fields for the page type. Set lane: dynamic.
+
+  Keep content minimal — just enough to be a valid page. Names, ids,
+  basic relationships. This entity will be deepened in a later iteration.
+
+  All references must point to existing page ids provided below.
+
+user: |
+  ## Entity to Create
+  ID: {{ red_link.id }}
+  Type: {{ red_link.type }}
+  Name: {{ red_link.name }}
+  Summary: {{ red_link.summary }}
+
+  ## Synopsis Context
+  {{ synopsis_text }}
+
+  ## Existing Canon (ids only)
+  {% for id in canon_pages.keys() %}
+  - {{ id }} ({{ canon_pages[id].type }})
+  {% endfor %}
+
+  Generate the skeleton page as a flat YAML-compatible dict.
+  Set depth to {{ (red_link.depth | default(0)) + 1 }}.

@@ -1,0 +1,145 @@
+# Novel Fandom — World Expansion (FR-643v2)
+# Deepen thin entities, grow wiki via red links, repeat.
+#
+# Pattern: reload → select thin → deepen (LLM) → collect red links →
+#          create skeletons (LLM) → gate → persist → reload
+#
+# No LLM diagnoses. Pipeline decides, LLM generates, gate validates.
+
+version: "1.0"
+name: novel-fandom-worldgen
+description: Expand wiki — deepen thin entities, grow via red links
+prompts_relative: true
+prompts_dir: prompts
+
+data_files:
+  canon: "canon/*.yaml"
+
+state:
+  canon_pages: dict
+  canon_count: int
+  synopsis_text: str
+  thin_entities: list
+  deepened: list
+  red_links: list
+  red_link_count: int
+  skeletons: list
+  max_depth: int
+  done: bool
+  gate_result: dict
+  written_paths: list
+  written_count: int
+
+variables:
+  max_depth: 2
+
+tools:
+  reload_canon:
+    type: python
+    path: nodes/reload_canon.py
+    function: reload_canon
+  select_thin:
+    type: python
+    path: nodes/select_thin.py
+    function: select_thin
+  collect_red_links:
+    type: python
+    path: nodes/collect_red_links.py
+    function: collect_red_links
+  validate_pages:
+    type: python
+    path: nodes/validate_pages.py
+    function: validate_pages
+  persist_pages:
+    type: python
+    path: nodes/persist_pages.py
+    function: persist_pages
+
+nodes:
+  reload:
+    type: python
+    tool: reload_canon
+
+  select:
+    type: python
+    tool: select_thin
+
+  deepen:
+    type: map
+    over: "{state.thin_entities}"
+    as: entity_task
+    max_items: 5
+    collect: deepened
+    node:
+      type: llm
+      prompt: deepen_entity
+      state_key: result
+      temperature: 0.7
+
+  collect:
+    type: python
+    tool: collect_red_links
+
+  create_skeletons:
+    type: map
+    over: "{state.red_links}"
+    as: red_link
+    max_items: 10
+    collect: skeletons
+    node:
+      type: llm
+      prompt: generate_skeleton
+      state_key: skeleton
+      temperature: 0.3
+
+  gate:
+    type: python
+    tool: validate_pages
+
+  persist:
+    type: python
+    tool: persist_pages
+
+edges:
+  - from: START
+    to: reload
+
+  - from: reload
+    to: select
+
+  - from: select
+    to: END
+    condition: done == true
+
+  - from: select
+    to: deepen
+    condition: done == false
+
+  - from: deepen
+    to: collect
+
+  - from: collect
+    to: create_skeletons
+    condition: red_link_count > 0
+
+  - from: collect
+    to: gate
+    condition: red_link_count == 0
+
+  - from: create_skeletons
+    to: gate
+
+  - from: gate
+    to: persist
+
+  - from: persist
+    to: reload
+
+loop_limits:
+  reload: 4
+  select: 4
+  deepen: 3
+  collect: 3
+  create_skeletons: 3
+  gate: 3
+  persist: 3

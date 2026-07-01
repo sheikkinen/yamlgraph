@@ -893,6 +893,18 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
 - **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
 
+### CONF-341
+- **File**: [tests/unit/test_fr643v2_novel_fandom_worldgen.py](../tests/unit/test_fr643v2_novel_fandom_worldgen.py#L32)
+- **Code**: ANN202
+- **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
+- **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
+
+### CONF-342
+- **File**: [examples/novel_fandom/nodes/persist_pages.py](../examples/novel_fandom/nodes/persist_pages.py#L52)
+- **Code**: BLE001
+- **Sin**: Bare `except Exception` catches all exceptions during Pydantic validation.
+- **Penance**: Intentional — unknown page types or malformed data from LLM output should be skipped, not crash the pipeline. The warning is logged.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603
