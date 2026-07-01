@@ -1,0 +1,84 @@
+# Wiki Memory with Reference Gate
+# Demonstrates: data_files glob, write_data_file, python gate, conditional loop
+#
+# Flow: draft → gate → (valid: persist) | (invalid: fix → gate)
+# Gate ensures all references point to existing wiki pages.
+
+version: "1.0"
+name: wiki-memory-gate
+description: Wiki page editor with reference-integrity gate
+prompts_relative: true
+prompts_dir: prompts
+
+data_files:
+  wiki: "wiki/*.yaml"
+
+state:
+  input: str
+  drafted_page: dict
+  gate_result: dict
+  save_path: str
+  _written: str
+
+tools:
+  save_page:
+    type: write_data_file
+    state_key: _written
+  ref_gate:
+    type: python
+    path: nodes/ref_gate.py
+    function: check_references
+
+nodes:
+  draft:
+    type: llm
+    prompt: draft_page
+    state_key: drafted_page
+    provider: google
+    temperature: 0.3
+
+  gate:
+    type: python
+    tool: ref_gate
+
+  fix:
+    type: llm
+    prompt: fix_refs
+    state_key: drafted_page
+    provider: google
+    temperature: 0.1
+
+  persist:
+    type: python
+    tool: save_page
+    variables:
+      path: "{state.save_path}"
+      data: "{state.drafted_page}"
+
+edges:
+  - from: START
+    to: draft
+
+  - from: draft
+    to: gate
+
+  - from: gate
+    to: persist
+    condition: gate_result.valid == true
+
+  - from: gate
+    to: fix
+    condition: gate_result.valid == false
+
+  - from: fix
+    to: gate
+
+  - from: persist
+    to: END
+
+loop_limits:
+  gate: 3
+  fix: 2
+
+loop_exits:
+  gate: persist

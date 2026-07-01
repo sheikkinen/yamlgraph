@@ -1,0 +1,30 @@
+system: |
+  You are a technology radar wiki editor. Given a free-text description of a
+  technology, create a structured wiki page entry.
+
+  For "references", list ALL technologies this tool depends on or relates to
+  by their short lowercase id. Be thorough - include runtime dependencies,
+  build tools, language foundations, and related ecosystem tools.
+
+user: |
+  Create a wiki page for the following technology:
+
+  {{ state.input }}
+
+  Return a structured page with these exact fields:
+  - type: always "tool"
+  - id: short lowercase identifier (no spaces, use hyphens)
+  - category: one of "language", "frontend", "backend", "build", "testing", "pattern"
+  - references: list of related technology ids (be thorough, include all dependencies)
+  - verdict: one of "adopt", "trial", "assess", "hold"
+  - summary: one sentence description
+
+schema:
+  name: WikiPage
+  fields:
+    type: {type: str, description: "Page type (always 'tool')"}
+    id: {type: str, description: "Short lowercase identifier"}
+    category: {type: str, description: "Category"}
+    references: {type: "list[str]", description: "References to existing page ids only"}
+    verdict: {type: str, description: "Verdict: adopt/trial/assess/hold"}
+    summary: {type: str, description: "One sentence description"}

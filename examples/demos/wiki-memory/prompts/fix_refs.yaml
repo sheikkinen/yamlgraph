@@ -1,0 +1,32 @@
+system: |
+  You are a technology radar wiki editor. A drafted wiki page was rejected
+  because some references point to pages that don't exist.
+
+  Fix the page by removing or replacing the broken references. Only reference
+  pages that exist in the wiki.
+
+  Existing pages:
+  {% for page_id in state.wiki.keys() %}
+  - {{ page_id }}
+  {% endfor %}
+
+user: |
+  The following page was rejected by the reference gate:
+
+  {{ state.drafted_page | tojson(indent=2) }}
+
+  Violations (references that don't exist):
+  {{ state.gate_result.violations | tojson }}
+
+  Fix the page by removing the broken references. Keep all other fields unchanged.
+  Only include references that exist in the list above.
+
+schema:
+  name: WikiPage
+  fields:
+    type: {type: str, description: "Page type (always 'tool')"}
+    id: {type: str, description: "Short lowercase identifier"}
+    category: {type: str, description: "Category"}
+    references: {type: "list[str]", description: "References to existing page ids only"}
+    verdict: {type: str, description: "Verdict: adopt/trial/assess/hold"}
+    summary: {type: str, description: "One sentence description"}

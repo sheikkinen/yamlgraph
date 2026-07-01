@@ -1,0 +1,7 @@
+type: tool
+id: typescript
+category: language
+references:
+  - javascript
+verdict: adopt
+summary: Typed superset of JavaScript that compiles to plain JS.

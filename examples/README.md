@@ -91,6 +91,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [compaction](demos/compaction/) | `llm`, `python` | Context compaction pattern with guard-gated summarization (FR-616) |
 | [data-files](demos/data-files/) | `llm` | External data loading |
 | [write_data_file](demos/write_data_file/) | `llm`, `python` | Accumulating world bible via read→augment→write-back (FR-626) |
+| [wiki-memory](demos/wiki-memory/) | `llm`, `python` | Wiki with reference-integrity gate and inter-run state (FR-628) |
 | [diary-index](demos/diary_index/) | `map`, `python`, `llm` | Diary corpus cross-reference index (FR-254) |
 | [enforcer](demos/enforcer/) | `agent` | Standalone FR implementation agent (FR-462) — completes plan→judge→enforce trilogy |
 | [feature-brainstorm](demos/feature-brainstorm/) | `agent` | Self-analysis |
@@ -202,6 +203,7 @@ yamlgraph graph run examples/npc/npc-creation.yaml \
 - **questionnaire/** - Schema-driven field collection
 - **demos/data-files/** - Simple data_files demonstration
 - **demos/write_data_file/** - Read→augment→write-back cycle (world bible)
+- **demos/wiki-memory/** - Wiki with reference-integrity gate and inter-run state
 
 ### Soul Pattern (Agent Personality)
 - **soul/** - Give AI agents consistent personality via data_files

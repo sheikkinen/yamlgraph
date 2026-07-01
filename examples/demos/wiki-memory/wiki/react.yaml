@@ -1,0 +1,8 @@
+type: tool
+id: react
+category: frontend
+references:
+  - javascript
+  - typescript
+verdict: adopt
+summary: Component-based UI library with virtual DOM for building interactive interfaces.

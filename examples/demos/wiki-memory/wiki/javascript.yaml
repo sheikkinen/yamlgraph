@@ -1,0 +1,6 @@
+type: tool
+id: javascript
+category: language
+references: []
+verdict: adopt
+summary: Dynamic, prototype-based scripting language for web and server development.

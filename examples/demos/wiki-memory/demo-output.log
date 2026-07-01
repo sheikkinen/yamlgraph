@@ -1,0 +1,97 @@
+=== Run 1: Node.js (valid refs - should pass gate directly) ===
+2026-07-01 08:36:40,977 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: ref_gate, save_page
+2026-07-01 08:36:40,981 [INFO] yamlgraph.node_compiler: Added node: draft (type=llm)
+2026-07-01 08:36:40,982 [INFO] yamlgraph.node_compiler: Added node: gate (type=python)
+2026-07-01 08:36:40,986 [INFO] yamlgraph.node_compiler: Added node: fix (type=llm)
+2026-07-01 08:36:40,986 [INFO] yamlgraph.node_compiler: Added node: persist (type=python)
+2026-07-01 08:36:41,078 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.3)
+2026-07-01 08:36:42,758 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-01 08:36:45,931 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-01 08:36:45,933 [INFO] yamlgraph.node_factory.llm_nodes: Node draft completed successfully
+2026-07-01 08:36:45,935 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gate -> ref_gate
+2026-07-01 08:36:45,942 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.1)
+2026-07-01 08:36:45,976 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-01 08:36:48,395 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-01 08:36:48,398 [INFO] yamlgraph.node_factory.llm_nodes: Node fix completed successfully
+2026-07-01 08:36:48,399 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gate -> ref_gate
+2026-07-01 08:36:48,401 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist -> save_page
+
+🚀 Running graph: graph.yaml
+   Variables: {'input': 'Node.js - a server-side JavaScript runtime built on V8'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f1c2d-f224-7bf2-9dbd-83c45ef6e0d4?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist
+  input: Node.js - a server-side JavaScript runtime built on V8
+  drafted_page: {'type': 'tool', 'id': 'nodejs', 'category': 'backend', 'references': ['javascript', 'typescript'], 'verdict': 'adopt', 'summary': "A cross-platform, open-source JavaScript runtime environment built on Chrome's V8 engine for executing server-side code."}
+  gate_result: {'valid': True, 'violations': []}
+  save_path: wiki/nodejs.yaml
+  wiki: {'javascript': {'type': 'tool', 'id': 'javascript', 'category': 'language', 'references': [], 'verdict': 'adopt', 'summary': 'Dynamic, prototype-based scripting language for web and server development.'}, 'react': {'type': 'tool', 'id': 'react', 'category': 'frontend', 'references': ['javascript', 'typescript'], 'verdict': 'adopt', 'summary': 'Component-based UI library with virtual DOM for building interactive interfaces.'}, 'typescript': {'type': 'tool', 'id': 'typescript', 'category': 'language', 'references': ['javascript'], 'verdict': 'adopt', 'summary': 'Typed superset of JavaScript that compiles to plain JS.'}}
+
+
+=== Run 2: Express.js (references nodejs from Run 1) ===
+2026-07-01 08:36:50,197 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: ref_gate, save_page
+2026-07-01 08:36:50,201 [INFO] yamlgraph.node_compiler: Added node: draft (type=llm)
+2026-07-01 08:36:50,202 [INFO] yamlgraph.node_compiler: Added node: gate (type=python)
+2026-07-01 08:36:50,205 [INFO] yamlgraph.node_compiler: Added node: fix (type=llm)
+2026-07-01 08:36:50,206 [INFO] yamlgraph.node_compiler: Added node: persist (type=python)
+2026-07-01 08:36:50,287 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.3)
+2026-07-01 08:36:51,819 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-01 08:36:55,041 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-01 08:36:55,044 [INFO] yamlgraph.node_factory.llm_nodes: Node draft completed successfully
+2026-07-01 08:36:55,045 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gate -> ref_gate
+2026-07-01 08:36:55,053 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.1)
+2026-07-01 08:36:55,089 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-01 08:36:57,497 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-01 08:36:57,503 [INFO] yamlgraph.node_factory.llm_nodes: Node fix completed successfully
+2026-07-01 08:36:57,504 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gate -> ref_gate
+2026-07-01 08:36:57,506 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist -> save_page
+
+🚀 Running graph: graph.yaml
+   Variables: {'input': 'Express.js - a minimal web framework for Node.js'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f1c2e-1625-75c1-8453-1063111344ab?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist
+  input: Express.js - a minimal web framework for Node.js
+  drafted_page: {'type': 'tool', 'id': 'express', 'category': 'backend', 'references': ['nodejs', 'javascript', 'typescript'], 'verdict': 'adopt', 'summary': 'A minimal and flexible Node.js web application framework that provides a robust set of features for building web and mobile applications.'}
+  gate_result: {'valid': True, 'violations': []}
+  save_path: wiki/express.yaml
+  wiki: {'javascript': {'type': 'tool', 'id': 'javascript', 'category': 'language', 'references': [], 'verdict': 'adopt', 'summary': 'Dynamic, prototype-based scripting language for web and server development.'}, 'nodejs': {'type': 'tool', 'id': 'nodejs', 'category': 'backend', 'references': ['javascript', 'typescript'], 'verdict': 'adopt', 'summary': "A cross-platform, open-source JavaScript runtime environment built on Chrome's V8 engine for executing server-side code."}, 'react': {'type': 'tool', 'id': 'react', 'category': 'frontend', 'references': ['javascript', 'typescript'], 'verdict': 'adopt', 'summary': 'Component-based UI library with virtual DOM for building interactive interfaces.'}, 'typescript': {'type': 'tool', 'id': 'typescript', 'category': 'language', 'references': ['javascript'], 'verdict': 'adopt', 'summary': 'Typed superset of JavaScript that compiles to plain JS.'}}
+
+
+=== Run 3: Webpack (invalid refs - gate rejects, fix corrects) ===
+2026-07-01 08:36:59,104 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: ref_gate, save_page
+2026-07-01 08:36:59,108 [INFO] yamlgraph.node_compiler: Added node: draft (type=llm)
+2026-07-01 08:36:59,109 [INFO] yamlgraph.node_compiler: Added node: gate (type=python)
+2026-07-01 08:36:59,112 [INFO] yamlgraph.node_compiler: Added node: fix (type=llm)
+2026-07-01 08:36:59,112 [INFO] yamlgraph.node_compiler: Added node: persist (type=python)
+2026-07-01 08:36:59,189 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.3)
+2026-07-01 08:37:00,562 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-01 08:37:03,573 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-01 08:37:03,577 [INFO] yamlgraph.node_factory.llm_nodes: Node draft completed successfully
+2026-07-01 08:37:03,579 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gate -> ref_gate
+2026-07-01 08:37:03,586 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.1)
+2026-07-01 08:37:03,621 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-01 08:37:05,998 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-01 08:37:06,002 [INFO] yamlgraph.node_factory.llm_nodes: Node fix completed successfully
+2026-07-01 08:37:06,003 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gate -> ref_gate
+2026-07-01 08:37:06,005 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist -> save_page
+
+🚀 Running graph: graph.yaml
+   Variables: {'input': 'Webpack - a module bundler for JavaScript that depends on Node.js, uses tapable plugin system, integrates with Babel and PostCSS'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f1c2e-38ee-79a0-8ad2-e78d521c79d4?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist
+  input: Webpack - a module bundler for JavaScript that depends on Node.js, uses tapable plugin system, integrates with Babel and PostCSS
+  drafted_page: {'type': 'tool', 'id': 'webpack', 'category': 'build', 'references': ['nodejs', 'javascript'], 'verdict': 'adopt', 'summary': 'A highly configurable module bundler for modern JavaScript applications that compiles assets, scripts, and stylesheets.'}
+  gate_result: {'valid': True, 'violations': []}
+  save_path: wiki/webpack.yaml
+  wiki: {'express': {'type': 'tool', 'id': 'express', 'category': 'backend', 'references': ['nodejs', 'javascript', 'typescript'], 'verdict': 'adopt', 'summary': 'A minimal and flexible Node.js web application framework that provides a robust set of features for building web and mobile applications.'}, 'javascript': {'type': 'tool', 'id': 'javascript', 'category': 'language', 'references': [], 'verdict': 'adopt', 'summary': 'Dynamic, prototype-based scripting language for web and server development.'}, 'nodejs': {'type': 'tool', 'id': 'nodejs', 'category': 'backend', 'references': ['javascript', 'typescript'], 'verdict': 'adopt', 'summary': "A cross-platform, open-source JavaScript runtime environment built on Chrome's V8 engine for executing server-side code."}, 'react': {'type': 'tool', 'id': 'react', 'category': 'frontend', 'references': ['javascript', 'typescript'], 'verdict': 'adopt', 'summary': 'Component-based UI library with virtual DOM for building interactive interfaces.'}, 'typescript': {'type': 'tool', 'id': 'typescript', 'category': 'language', 'references': ['javascript'], 'verdict': 'adopt', 'summary': 'Typed superset of JavaScript that compiles to plain JS.'}}
