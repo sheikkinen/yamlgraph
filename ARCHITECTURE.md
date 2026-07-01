@@ -490,6 +490,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 172 | CAP-172 Prompt-Monolith Linter Check (W026) | `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-473 |
 | 173 | CAP-173 Write Data File Tool | `tools/write_data_file_tool` | REQ-YG-474 – 477 |
 | 174 | CAP-174 Data Files Glob Support | `data_loader` | REQ-YG-478 – 479 |
+| 175 | CAP-175 Novel Fandom Canon Schema | `examples` | REQ-YG-481 – 483 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2175,6 +2176,18 @@ Extends the data_files directive to accept glob patterns (e.g. wiki/*.yaml), loa
 |------------|-------------|-------------|
 | REQ-YG-478 | data_files with glob metacharacters (* ? [) expands the pattern via Path.glob() and returns a dict keyed by filename stem. Empty matches return empty dict. Files sorted alphabetically for deterministic ordering. | `data_loader` |
 | REQ-YG-479 | data_files glob rejects ** (recursive) patterns with a clear DataFileError. Glob patterns that escape graph directory raise DataFileError. Symlinks escaping graph dir are silently skipped. | `data_loader` |
+
+### 175. CAP-175 Novel Fandom Canon Schema
+
+Typed, multi-entity fiction canon for the novel_fandom example application. Pydantic-backed page schemas (Character, Event, Faction, Location) with lane-based immutability (static/dynamic) enforced by a reference-integrity gate. Hand-authored seed canon with cross-linked references and no orphans.
+
+**Feature Request:** FR-637
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-481 | Pydantic models (Character, Event, Faction, Location) validate canon pages. Each model enforces required fields: id, type, lane, references. Character has goals, personality, faction, relationships with typed valence. Event has participants, consequences, valid_from/valid_to for bi-temporal history. | `examples` |
+| REQ-YG-482 | Reference-integrity gate rejects pages with orphan references (references that don't resolve to existing canon page ids). Reuses FR-628 gate logic with lane-immutability extension. | `examples` |
+| REQ-YG-483 | Lane-immutability gate rejects writes to existing lane:static pages. Dynamic pages (lane:dynamic) can be updated. Gate checks lane field on the existing page and rejects if static and page already exists. | `examples` |
 
 <!-- END GENERATED CAPABILITIES -->
 

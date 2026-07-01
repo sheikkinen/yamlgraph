@@ -1,0 +1,7 @@
+type: faction
+id: emberwrights
+lane: static
+name: The Emberwrights
+description: "Artisan guild of smiths and shapers. Pragmatic, innovative, politically ambitious."
+members: [maren, voss]
+references: [maren, voss]

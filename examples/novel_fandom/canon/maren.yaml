@@ -1,0 +1,14 @@
+type: character
+id: maren
+lane: static
+name: Maren
+goals:
+  - "Preserve the old pacts between factions"
+  - "Guide Kaelen without repeating her own failures"
+personality: "patient, perceptive, haunted"
+faction: emberwrights
+relationships:
+  - {to: kaelen, kind: protege, valence: trust}
+  - {to: voss, kind: wary_ally, valence: caution}
+references: [emberwrights, kaelen, voss, age_of_cinders]
+timeline_entry: age_of_cinders

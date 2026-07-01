@@ -1,0 +1,25 @@
+2026-07-01 14:49:40,039 [INFO] yamlgraph.graph_loader: Parsed 2 Python tools: ref_gate, save_page
+2026-07-01 14:49:40,047 [INFO] yamlgraph.node_compiler: Added node: draft (type=llm)
+2026-07-01 14:49:40,048 [INFO] yamlgraph.node_compiler: Added node: gate (type=python)
+2026-07-01 14:49:40,054 [INFO] yamlgraph.node_compiler: Added node: fix (type=llm)
+2026-07-01 14:49:40,055 [INFO] yamlgraph.node_compiler: Added node: persist (type=python)
+2026-07-01 14:49:40,180 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0.3)
+2026-07-01 14:49:42,389 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-01 14:49:48,726 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-01 14:49:48,732 [INFO] yamlgraph.node_factory.llm_nodes: Node draft completed successfully
+2026-07-01 14:49:48,733 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: gate -> ref_gate
+2026-07-01 14:49:48,735 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist -> save_page
+
+🚀 Running graph: graph.yaml
+   Variables: {'input': 'A new dynamic character named Rhael, a wandering scholar from the Emberwrights who studies the old forge. Allied with Maren, distrusted by Kaelen.'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/019f1d83-6c60-7ac0-a9f6-956f3c0fde7f?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist
+  input: A new dynamic character named Rhael, a wandering scholar from the Emberwrights who studies the old forge. Allied with Maren, distrusted by Kaelen.
+  drafted_page: {'type': 'character', 'id': 'rhael', 'lane': 'dynamic', 'name': 'Rhael', 'goals': ['Study the ancient forge secrets of the Emberwrights', 'Uncover the lost history of the old forge', 'Aid Maren in preserving historical knowledge'], 'personality': 'Inquisitive, cautious, and deeply academic, with a quiet reverence for the remnants of the past.', 'faction': 'emberwrights', 'relationships': [{'to': 'maren', 'kind': 'Ally', 'valence': 1.0}, {'to': 'kaelen', 'kind': 'Distrusted', 'valence': -1.0}], 'description': '', 'members': [], 'participants': [], 'consequences': [], 'window': '', 'valid_from': '', 'references': ['emberwrights', 'maren', 'kaelen']}
+  gate_result: {'valid': True, 'violations': []}
+  save_path: canon/rhael.yaml
+  canon: {'age_of_cinders': {'type': 'event', 'id': 'age_of_cinders', 'lane': 'static', 'window': 'age_of_cinders', 'participants': ['kaelen', 'maren', 'voss'], 'consequences': ['The old forge lies dormant', 'Ashguard and Emberwrights contest the right to relight it'], 'valid_from': 'epoch', 'valid_to': None, 'references': ['kaelen', 'maren', 'voss', 'ashguard', 'emberwrights']}, 'ashguard': {'type': 'faction', 'id': 'ashguard', 'lane': 'static', 'name': 'The Ashguard', 'description': 'Warrior order sworn to defend the old forge. Disciplined, traditional, diminished after the Ashfall.', 'members': ['kaelen'], 'references': ['kaelen']}, 'emberwrights': {'type': 'faction', 'id': 'emberwrights', 'lane': 'static', 'name': 'The Emberwrights', 'description': 'Artisan guild of smiths and shapers. Pragmatic, innovative, politically ambitious.', 'members': ['maren', 'voss'], 'references': ['maren', 'voss']}, 'kaelen': {'type': 'character', 'id': 'kaelen', 'lane': 'static', 'name': 'Kaelen', 'goals': ['Reforge the Emberbrand with dragonsteel', 'Avenge the Ashfall'], 'personality': 'disciplined, stoic, grudge-bearing', 'faction': 'ashguard', 'relationships': [{'to': 'maren', 'kind': 'mentor', 'valence': 'trust'}, {'to': 'voss', 'kind': 'rival', 'valence': 'enmity'}], 'references': ['ashguard', 'maren', 'voss', 'age_of_cinders'], 'timeline_entry': 'age_of_cinders'}, 'maren': {'type': 'character', 'id': 'maren', 'lane': 'static', 'name': 'Maren', 'goals': ['Preserve the old pacts between factions', 'Guide Kaelen without repeating her own failures'], 'personality': 'patient, perceptive, haunted', 'faction': 'emberwrights', 'relationships': [{'to': 'kaelen', 'kind': 'protege', 'valence': 'trust'}, {'to': 'voss', 'kind': 'wary_ally', 'valence': 'caution'}], 'references': ['emberwrights', 'kaelen', 'voss', 'age_of_cinders'], 'timeline_entry': 'age_of_cinders'}, 'voss': {'type': 'character', 'id': 'voss', 'lane': 'static', 'name': 'Voss', 'goals': ['Claim the Emberbrand before Kaelen', 'Prove the Ashguard unworthy of the old forge'], 'personality': 'cunning, charismatic, bitter', 'faction': 'emberwrights', 'relationships': [{'to': 'kaelen', 'kind': 'rival', 'valence': 'enmity'}, {'to': 'maren', 'kind': 'reluctant_peer', 'valence': 'respect'}], 'references': ['emberwrights', 'kaelen', 'maren', 'age_of_cinders'], 'timeline_entry': 'age_of_cinders'}}

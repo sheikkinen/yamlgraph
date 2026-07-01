@@ -46,6 +46,7 @@ After the learning path, explore production examples below.
 | [ebook/](ebook/) | eBook authoring pipeline | File-based write→judge→amend pattern |
 | [fsm-router/](fsm-router/) | FSM + YAMLGraph integration | statemachine-engine, LLM routing, job orchestration |
 | [npc/](npc/) | D&D NPC generator | Multi-graph, map nodes, parallel NPCs |
+| [novel_fandom/](novel_fandom/) | Fiction canon management | Typed canon schema, ref gate, lane immutability (FR-637) |
 | [ocr_cleanup/](ocr_cleanup/) | OCR text cleanup | Map nodes, PDF extraction, parallel LLM cleanup |
 | [openai_proxy/](openai_proxy/) | OpenAI-compatible guardrail proxy | Echo→validate→respond pipeline, `/v1/chat/completions` |
 | [philosopher/](philosopher/) | Chaplain philosopher workspace stub | Placeholder directory; active graph moved to `.chaplain/graphs/` |

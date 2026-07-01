@@ -1,0 +1,14 @@
+type: character
+id: kaelen
+lane: static
+name: Kaelen
+goals:
+  - "Reforge the Emberbrand with dragonsteel"
+  - "Avenge the Ashfall"
+personality: "disciplined, stoic, grudge-bearing"
+faction: ashguard
+relationships:
+  - {to: maren, kind: mentor, valence: trust}
+  - {to: voss, kind: rival, valence: enmity}
+references: [ashguard, maren, voss, age_of_cinders]
+timeline_entry: age_of_cinders

@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (example)
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 1–2 days
 **Requested:** 2026-07-01
 
@@ -33,7 +33,7 @@ equivalent exists (v2 §2, S6).
 
 ## Proposed Solution
 
-### Graph (`graphs/find_path.yaml`)
+### Graph (`examples/novel_fandom/graphs/find_path.yaml`)
 
 ```yaml
 data_files:
@@ -67,8 +67,8 @@ edges:
   - {from: find_path, to: gate_path}
   - from: gate_path
     branches:
-      - {when: "gate_result.ok", to: END}
-      - {when: "not gate_result.ok", to: fix_path}
+      - {when: "gate_result.valid == true", to: END}
+      - {when: "gate_result.valid == false", to: fix_path}
   - {from: fix_path, to: gate_path}
 ```
 
@@ -94,9 +94,10 @@ Every `references` entry and every `actors`/`edge` id must resolve to canon (gat
 ## Acceptance Criteria
 
 - [ ] `retrieve_window(window, roster)` returns a typed `Context` of roster pages +
-      open tensions; unit-tested against the FR-637 seed (RED first).
-- [ ] `graphs/find_path.yaml` lints and runs on the seed canon; produces a typed
-      `plot_path` whose every reference resolves to canon.
+      open tensions; deterministic (no LLM, no mocks needed); unit-tested against
+      the FR-637 seed (RED first).
+- [ ] `examples/novel_fandom/graphs/find_path.yaml` lints and runs on the seed canon;
+      produces a typed `plot_path` whose every reference resolves to canon.
 - [ ] A beat referencing a non-canon entity is caught by `gate_path` and repaired by
       `fix_path` within `loop_limit` (RED test injecting a phantom entity).
 - [ ] **Traversal-not-invention:** every beat's actors and moved tensions trace to a
@@ -112,6 +113,57 @@ Every `references` entry and every `actors`/`edge` id must resolve to canon (gat
   `retrieve_window`. (Falls back to Phase-4 index only if canon outgrows context.)
 - **Let the pathfinder mint new entities and backfill canon** — rejected: that is the
   FR-550 leak. New entities must be authored into canon first (Phase 1 / future S5).
+
+## Judgement
+
+**Verdict: APPROVED with two required corrections.**
+
+### What's right
+
+1. **Traversal-not-invention is the core thesis.** The pathfinder does not create
+   entities — it finds dramatic paths over existing canon tensions. This is the
+   inversion that killed the FR-550 leak. The constraint is well-stated and testable.
+2. **Scoped retrieval.** `retrieve_window` reads a bounded subset (window + roster),
+   not the full canon. Correct discipline — avoids unbounded context and keeps the
+   graph runnable on seed-scale canon without Phase 4 (index).
+3. **Gate reuse.** The same `ref_gate` checks plot path references resolve to canon.
+   No new gate logic — only a new input shape adapter.
+4. **Typed output contract.** The `plot_path` schema (window, beats with actors,
+   moved_tension, references) is concrete enough to be consumed by FR-639's map node.
+5. **Loop limit on fix.** `loop_limit: 2` prevents infinite gate-fix cycling.
+
+### Required corrections
+
+1. **Graph location.** The FR places the graph at `graphs/find_path.yaml` — this is
+   wrong. This is an example application graph, not a framework graph. It must live
+   at `examples/novel_fandom/graphs/find_path.yaml`, consistent with FR-637's scaffold
+   and the C1 scope decision (example, not framework).
+
+2. **`retrieve_window` must be a deterministic Python tool, not an LLM node.**
+   The FR already says "deterministic, no LLM" in the description, but the graph
+   YAML declares it as `type: python` which is correct. Confirm: no prompt, no
+   LLM call — pure filtering over the loaded `data_files` canon. The acceptance
+   criteria should explicitly state this is unit-testable without mocks.
+
+### Observations (no action required)
+
+- The `condition: gate_result.ok` syntax differs from FR-628's `gate_result.valid == true`.
+  This is a YAML-level convention inconsistency. The enforcer should use whichever
+  form FR-628's gate actually emits (`valid`, not `ok`) — or map it.
+- The `roundtrip_skeleton.yaml` reference in Related is interesting context but the
+  pathfinder is the *inverse* (bottom-up from tensions, not top-down from premise).
+  Not actionable — noted for diary.
+
+### Scope freeze
+
+- 1 `retrieve_window` Python tool (deterministic, filters canon by window + roster)
+- 1 `find_path` graph YAML (draft → gate → fix loop)
+- 1 `find_plot_path` prompt YAML (the one LLM call)
+- 1 `fix_plot_path` prompt YAML (repair prompt)
+- Tests: window retrieval, traversal-not-invention, phantom-entity rejection
+- demo-output.log
+
+Nothing else.
 
 ## Related
 

@@ -1,0 +1,46 @@
+system: |
+  You are a fiction world-builder. Given a description of a canon entity
+  (character, event, faction, or location), create a structured canon page.
+
+  You must only reference entities that already exist in the canon.
+
+  Existing canon entities:
+  {% for page_id in state.canon.keys() %}
+  - {{ page_id }}
+  {% endfor %}
+
+user: |
+  Create a canon page for the following entity:
+
+  {{ state.input }}
+
+  Return a structured page. The "type" field must be one of:
+  character, event, faction, location.
+
+  For characters, include: goals, personality, faction, relationships.
+  For events, include: window, participants, consequences, valid_from.
+  For factions, include: description, members.
+  For locations, include: description.
+
+  The "lane" field must be "dynamic" (new pages are always dynamic).
+  The "references" field must list ALL entity ids this page relates to.
+  Only reference ids that exist in the canon above.
+
+schema:
+  name: CanonPage
+  fields:
+    type: {type: str, description: "Page type: character/event/faction/location"}
+    id: {type: str, description: "Short lowercase identifier (no spaces, use underscores)"}
+    lane: {type: str, description: "Always 'dynamic' for new pages"}
+    name: {type: str, description: "Display name"}
+    goals: {type: "list[str]", description: "Character goals (characters only)"}
+    personality: {type: str, description: "Character personality (characters only)"}
+    faction: {type: str, description: "Faction id (characters only)"}
+    relationships: {type: "list[dict]", description: "Relationships [{to, kind, valence}] (characters only)"}
+    description: {type: str, description: "Description (factions/locations)"}
+    members: {type: "list[str]", description: "Member ids (factions only)"}
+    participants: {type: "list[str]", description: "Participant ids (events only)"}
+    consequences: {type: "list[str]", description: "Event consequences (events only)"}
+    window: {type: str, description: "Timeline window id (events only)"}
+    valid_from: {type: str, description: "Validity start (events only)"}
+    references: {type: "list[str]", description: "All referenced entity ids"}

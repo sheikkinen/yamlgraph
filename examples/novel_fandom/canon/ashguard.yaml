@@ -1,0 +1,7 @@
+type: faction
+id: ashguard
+lane: static
+name: The Ashguard
+description: "Warrior order sworn to defend the old forge. Disciplined, traditional, diminished after the Ashfall."
+members: [kaelen]
+references: [kaelen]

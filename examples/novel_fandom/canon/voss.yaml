@@ -1,0 +1,14 @@
+type: character
+id: voss
+lane: static
+name: Voss
+goals:
+  - "Claim the Emberbrand before Kaelen"
+  - "Prove the Ashguard unworthy of the old forge"
+personality: "cunning, charismatic, bitter"
+faction: emberwrights
+relationships:
+  - {to: kaelen, kind: rival, valence: enmity}
+  - {to: maren, kind: reluctant_peer, valence: respect}
+references: [emberwrights, kaelen, maren, age_of_cinders]
+timeline_entry: age_of_cinders

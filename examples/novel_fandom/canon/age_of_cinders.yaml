@@ -1,0 +1,11 @@
+type: event
+id: age_of_cinders
+lane: static
+window: age_of_cinders
+participants: [kaelen, maren, voss]
+consequences:
+  - "The old forge lies dormant"
+  - "Ashguard and Emberwrights contest the right to relight it"
+valid_from: "epoch"
+valid_to: null
+references: [kaelen, maren, voss, ashguard, emberwrights]

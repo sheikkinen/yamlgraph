@@ -1,0 +1,35 @@
+name: Novel Fandom Canon Schema
+id: CAP-175
+status: active
+fr: FR-637
+feature_request: FR-637
+description: >
+  Typed, multi-entity fiction canon for the novel_fandom example application.
+  Pydantic-backed page schemas (Character, Event, Faction, Location) with
+  lane-based immutability (static/dynamic) enforced by a reference-integrity gate.
+  Hand-authored seed canon with cross-linked references and no orphans.
+modules:
+  - examples
+requirements:
+  - id: REQ-YG-481
+    description: >
+      Pydantic models (Character, Event, Faction, Location) validate canon pages.
+      Each model enforces required fields: id, type, lane, references.
+      Character has goals, personality, faction, relationships with typed valence.
+      Event has participants, consequences, valid_from/valid_to for bi-temporal history.
+    modules:
+      - examples
+  - id: REQ-YG-482
+    description: >
+      Reference-integrity gate rejects pages with orphan references (references
+      that don't resolve to existing canon page ids). Reuses FR-628 gate logic
+      with lane-immutability extension.
+    modules:
+      - examples
+  - id: REQ-YG-483
+    description: >
+      Lane-immutability gate rejects writes to existing lane:static pages.
+      Dynamic pages (lane:dynamic) can be updated. Gate checks lane field
+      on the existing page and rejects if static and page already exists.
+    modules:
+      - examples

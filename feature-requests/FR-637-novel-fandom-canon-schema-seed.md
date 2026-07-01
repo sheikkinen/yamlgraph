@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (example)
-**Status:** Proposed
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-07-01
 
@@ -39,23 +39,30 @@ a `lane` field, not directories (v2 §5B).
 
 ```
 examples/novel_fandom/
-├── graph.yaml               # reuse FR-628 gated-accumulation loop (draft→gate→fix→persist)
+├── graph.yaml               # copy-and-adapt FR-628 gated-accumulation loop (draft→gate→fix→persist)
 ├── schema/
 │   └── canon.py             # Pydantic models: Character, Event, Faction, Location
 ├── nodes/
 │   └── ref_gate.py          # reuse FR-628 gate + lane-immutability check
-├── canon/                   # hand-authored seed (Option A — zero leak risk)
-│   ├── characters/kaelen.yaml
-│   ├── characters/maren.yaml
-│   ├── characters/voss.yaml
-│   ├── factions/ashguard.yaml
-│   ├── factions/emberwrights.yaml
-│   └── timeline/age_of_cinders.yaml
+├── canon/                   # hand-authored seed (flat — data_files rejects **)
+│   ├── kaelen.yaml
+│   ├── maren.yaml
+│   ├── voss.yaml
+│   ├── ashguard.yaml
+│   ├── emberwrights.yaml
+│   └── age_of_cinders.yaml
+├── prompts/
+│   ├── draft_page.yaml
+│   └── fix_refs.yaml
 ├── tests/
 │   └── test_canon_schema.py
 ├── README.md
 └── demo-output.log
 ```
+
+> **Implementation note:** Canon files are flat (`canon/*.yaml`) instead of
+> in subdirectories. FR-629's `data_files` glob rejects recursive `**` patterns.
+> The `type` field in each page discriminates page types.
 
 ### Enriched page schema (typed, Pydantic-backed)
 
@@ -110,6 +117,52 @@ rejected.
   simpler and works with a single glob.
 - **LLM-bootstrap the seed (Option B)** — deferred: unnecessary risk at 6-page scale;
   hand-authoring is trivial and zero-leak.
+
+## Judgement
+
+**Verdict: APPROVED — scope is clear, minimal, and well-grounded.**
+
+### What's right
+
+1. **Clean dependency chain.** All prerequisites are shipped (FR-628 kernel, FR-629 glob,
+   FR-630/631 boundary fixes). No speculative dependencies.
+2. **Correct scope boundary.** This is an example application in `examples/novel_fandom/`,
+   not a framework change. The judgement's C1 decision is respected.
+3. **Reuse over reinvention.** The gate is reused unchanged from FR-628; the only
+   addition is the `lane` immutability check — a single conditional.
+4. **Hand-authored seed (Option A).** At 6 pages this is the right call. Zero-leak,
+   zero-cost, zero-risk. Option B (LLM-bootstrap) correctly deferred.
+5. **Schema is concrete.** Goals, relationships with valence, timeline entries —
+   these are the typed tensions that Phase 2's pathfinder needs to traverse.
+   Without them, FR-638 has nothing to read.
+6. **Acceptance criteria are testable.** Each criterion is a RED-first test or a
+   mechanical check (lint, gate, demo-output.log).
+
+### Corrections
+
+1. **Location: `examples/novel_fandom/`, not `examples/demos/novel_fandom/`.** The FR
+   says `examples/novel_fandom/` — correct. This is a full example (like `examples/npc/`),
+   not a minimal demo. Confirm the scaffold does NOT go under `examples/demos/`.
+2. **Page types in schema.** The FR lists `Character`, `Event`, `Faction`, `Location` in
+   `schema/canon.py`. The seed only includes characters, factions, and a timeline entry.
+   `Location` schema can be defined but needs no seed page in Phase 1 — acceptable
+   forward declaration. Do not add seed pages for types that aren't used.
+3. **REQ-YG-XXX placeholder.** The acceptance criteria reference `REQ-YG-XXX` — a real
+   requirement ID must be minted (create a `CAP-*.yaml` entry) before enforcement begins.
+4. **graph.yaml reuse.** The FR says "reuse FR-628 gated-accumulation loop" but the
+   graph must be a new file at `examples/novel_fandom/graph.yaml` that mirrors the
+   structure, not a symlink. The gate tool import path changes. Confirm copy-and-adapt,
+   not import.
+
+### Scope freeze
+
+- 4 Pydantic models (`Character`, `Event`, `Faction`, `Location`)
+- 6 hand-authored seed YAML files (3 characters, 2 factions, 1 timeline)
+- 1 `lane` check added to the gate (single `if`)
+- Tests for schema validation + lane guard + orphan detection
+- README + demo-output.log
+
+Nothing else.
 
 ## Related
 

@@ -863,6 +863,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `from yamlgraph.executor import execute_prompt` appears after `sys.path` manipulation.
 - **Penance**: Same as CONF-330 — grouped with the local imports below the `sys.path.insert` required by the standalone example runner pattern.
 
+### CONF-336
+- **File**: [tests/unit/test_fr637_novel_fandom_canon.py](../tests/unit/test_fr637_novel_fandom_canon.py#L33)
+- **Code**: ANN202
+- **Sin**: `_load()` helper returns `types.ModuleType` but annotated with `# noqa: ANN202`.
+- **Penance**: Internal test helper; the return type varies dynamically depending on which module is loaded. Type annotation would be `types.ModuleType` which adds no value to callers that immediately destructure attributes.
+
 ### CONF-143
 - **File**: [tests/unit/test_fr296_watcher_fsm_startup_script.py](../tests/unit/test_fr296_watcher_fsm_startup_script.py#L116)
 - **Code**: S603

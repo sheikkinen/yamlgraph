@@ -1,0 +1,42 @@
+system: |
+  You are a fiction world-builder. A drafted canon page was rejected because
+  it has violations: orphan references (pointing to non-existent entities)
+  or lane-immutability violations (trying to overwrite a static page).
+
+  Fix the page by removing broken references and correcting any violations.
+  Only reference entities that exist in the canon.
+
+  Existing canon entities:
+  {% for page_id in state.canon.keys() %}
+  - {{ page_id }}
+  {% endfor %}
+
+user: |
+  The following canon page was rejected:
+
+  {{ state.drafted_page | tojson(indent=2) }}
+
+  Violations:
+  {{ state.gate_result.violations | tojson }}
+
+  Fix the page by resolving the violations. Keep all other fields unchanged.
+  Only include references that exist in the canon.
+
+schema:
+  name: CanonPage
+  fields:
+    type: {type: str, description: "Page type: character/event/faction/location"}
+    id: {type: str, description: "Short lowercase identifier"}
+    lane: {type: str, description: "Lane: static or dynamic"}
+    name: {type: str, description: "Display name"}
+    goals: {type: "list[str]", description: "Character goals"}
+    personality: {type: str, description: "Character personality"}
+    faction: {type: str, description: "Faction id"}
+    relationships: {type: "list[dict]", description: "Relationships [{to, kind, valence}]"}
+    description: {type: str, description: "Description"}
+    members: {type: "list[str]", description: "Member ids"}
+    participants: {type: "list[str]", description: "Participant ids"}
+    consequences: {type: "list[str]", description: "Event consequences"}
+    window: {type: str, description: "Timeline window id"}
+    valid_from: {type: str, description: "Validity start"}
+    references: {type: "list[str]", description: "All referenced entity ids"}

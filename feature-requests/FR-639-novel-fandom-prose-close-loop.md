@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature (example)
-**Status:** Proposed
+**Status:** Approved
 **Effort:** 2–3 days
 **Requested:** 2026-07-01
 
@@ -32,7 +32,7 @@ Prose must also be gated: a chapter may not name an entity absent from canon.
 
 ## Proposed Solution
 
-### Draft graph (`graphs/draft.yaml`, S7)
+### Draft graph (`examples/novel_fandom/graphs/draft.yaml`, S7)
 
 ```yaml
 nodes:
@@ -40,13 +40,17 @@ nodes:
     type: map                   # fan out over plot_path.beats
     prompt: draft_chapter       # grounded in retrieved canon context
     state_key: chapters
+  extract_mentions:
+    type: llm
+    prompt: extract_prose_mentions  # extract entity names from prose → structured references list
+    state_key: prose_mentions
   gate_prose:
     type: python
-    tool: prose_ref_gate        # no leaked entities in prose (reused gate, prose-scan)
+    tool: ref_gate              # check extracted mentions resolve to canon (reused gate)
     state_key: prose_gate
 ```
 
-### Close graph (`graphs/close.yaml`, S8)
+### Close graph (`examples/novel_fandom/graphs/close.yaml`, S8)
 
 ```yaml
 nodes:
@@ -69,6 +73,8 @@ nodes:
 - **Bi-temporal reconcile:** a contradicting fact sets `valid_to` on the old edge
   (invalidate), never deletes it ([FR-515](./FR-515-dm-v2-bitemporal-ledger-reconciliation.md)).
 - **Lane guard:** rejects any op targeting a `lane: static` page.
+- **Target validation:** rejects any op whose target entities don't exist in canon
+  (deterministic pre-check — the delta-extraction LLM may hallucinate targets).
 - **Single-writer:** `propose → gate → commit` assumes no concurrent writer (M3).
 
 ### Dynamic page shape
@@ -88,13 +94,18 @@ references: [kaelen, voss, ashguard]
 
 ## Acceptance Criteria
 
-- [ ] `graphs/draft.yaml` maps beats → chapters grounded in retrieved canon; lints + runs.
-- [ ] `prose_ref_gate` rejects a chapter naming a non-canon entity (RED test first).
+- [ ] `examples/novel_fandom/graphs/draft.yaml` maps beats → chapters grounded in
+      retrieved canon; lints + runs.
+- [ ] `extract_prose_mentions` + `ref_gate` rejects a chapter naming a non-canon
+      entity (RED test first). Prose entity extraction is a separate LLM step feeding
+      structured references into the existing gate.
 - [ ] `apply_deltas` supports `add_event`, `add_edge`, `update_valence`,
       `invalidate_edge`; each unit-tested (RED first).
 - [ ] **Carry-forward floor:** a zero-op close leaves dynamic canon byte-identical. (Test.)
 - [ ] **Invalidate-not-delete:** a contradicting fact sets `valid_to`, old edge retained. (Test.)
 - [ ] **Lane guard:** an op targeting a `lane: static` page is rejected. (Test.)
+- [ ] **Target validation:** `apply_deltas` rejects an op referencing a non-existent
+      canon entity (RED test first).
 - [ ] End-to-end: pathfind (FR-638) → draft → close grows the dynamic canon by exactly
       the extracted ops, and a re-run over the next window builds on them.
 - [ ] Tests tagged `@pytest.mark.req("REQ-YG-XXX")`; capability entry added.
@@ -108,6 +119,80 @@ references: [kaelen, voss, ashguard]
   the audit trail (Graphiti discipline).
 - **Regenerate the dynamic store each close** — rejected: the regenerate-whole-store
   failure mode the ledger work exists to prevent.
+
+## Judgement
+
+**Verdict: APPROVED with three required corrections.**
+
+This is the highest-risk FR in the trilogy. The close loop is where the delta-ledger
+discipline either holds or leaks. The judgement is strict.
+
+### What's right
+
+1. **Edge-level ops as the primitive.** `add_event`, `add_edge`, `update_valence`,
+   `invalidate_edge` — exactly the ledger granularity from plan-ledger-memory.md and
+   FR-513–518. No page-level overwrites. Correct.
+2. **Carry-forward floor.** Zero ops ⇒ no change. The single most important invariant
+   (killed the FR-550 Ch5 zero-dropout). Explicitly stated and testable.
+3. **Invalidate-not-delete.** Bi-temporal reconciliation (`valid_to` on old edge, new
+   edge opens with `valid_from`). History preserved. Correct Graphiti discipline.
+4. **Lane guard.** Ops targeting `lane: static` pages rejected. Prevents dynamic close
+   from corrupting hand-authored canon.
+5. **Two separate graphs (draft + close).** Correct decomposition — the map-over-beats
+   step is independent from the delta extraction. They compose sequentially but are
+   separately testable.
+6. **Single-writer assumption (M3).** Explicitly stated. Correct for Phase 3 — no
+   concurrent writes at example-scale.
+
+### Required corrections
+
+1. **Graph locations.** Same as FR-638: `graphs/draft.yaml` and `graphs/close.yaml`
+   must live under `examples/novel_fandom/graphs/`, not the framework `graphs/`
+   directory. This is an example application (C1).
+
+2. **`prose_ref_gate` is the gate applied to prose text, not structured data.**
+   The FR says "reused gate, prose-scan" but the existing `ref_gate` checks
+   `references` in a structured dict. Prose is unstructured text — entity mentions
+   must be *extracted* before they can be checked against canon. This is a new
+   capability: a prose-scan step (regex or LLM-extracted entity list) feeding into
+   the existing reference check. The FR must acknowledge this is **not** a pure reuse
+   of `ref_gate` but a new adapter that extracts mentions from prose, then delegates
+   to the existing reference check. Add a `prose_mention_extractor` step or confirm
+   the draft prompt forces entity names into a structured `references` field alongside
+   the prose text.
+
+3. **`apply_deltas` must validate op targets exist in canon before writing.**
+   The FR describes the ops but doesn't state: what happens when `update_valence`
+   references a non-existent edge, or `add_edge` references a non-existent entity?
+   The gate catches reference violations in the *plot path*, but the *delta extraction*
+   is a separate LLM call that could hallucinate targets. Add: `apply_deltas` rejects
+   any op whose target entities don't exist in canon (deterministic pre-check, no LLM).
+
+### Observations (no action required)
+
+- The `extract_consequences` prompt will need careful design. The LLM must emit
+  structured ops, not prose summaries. The prompt should use an inline schema or
+  Pydantic output model to constrain the shape. This is a prompting concern, not
+  a structural one.
+- The end-to-end acceptance criterion (pathfind → draft → close → re-run) is ambitious
+  for a 2–3 day effort. Consider whether the e2e test can use mock LLM responses
+  for the draft/extract steps while keeping `apply_deltas` real. The important
+  invariants (carry-forward, invalidate-not-delete, lane guard) are all deterministic
+  and testable without LLM.
+
+### Scope freeze
+
+- 1 `draft.yaml` graph (map beats → chapters)
+- 1 `close.yaml` graph (extract deltas → apply)
+- 1 `draft_chapter` prompt YAML
+- 1 `extract_consequences` prompt YAML (with inline schema for ops)
+- 1 `prose_ref_gate` or prose-mention-extractor + gate adapter
+- 1 `apply_deltas` Python tool (4 ops, carry-forward floor, bi-temporal, lane guard)
+- Tests: each op type, carry-forward floor, invalidate-not-delete, lane guard,
+  op-target validation, prose leak detection
+- demo-output.log
+
+Nothing else.
 
 ## Related
 
