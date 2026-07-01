@@ -9,6 +9,21 @@ from __future__ import annotations
 from typing import Any
 
 
+def _extract_ref_ids(refs: list) -> list[str]:
+    """Extract string ids from references that may be strings or dicts."""
+    ids = []
+    for ref in refs:
+        if isinstance(ref, str):
+            ids.append(ref)
+        elif isinstance(ref, dict):
+            # LLM may return {to: "kaelen"} or {target: "kaelen"} or {id: "kaelen"}
+            for key in ("to", "target", "id"):
+                if key in ref:
+                    ids.append(ref[key])
+                    break
+    return ids
+
+
 def validate_pages(state: dict[str, Any]) -> dict[str, Any]:
     """Validate references for deepened and skeleton pages.
 
@@ -27,8 +42,11 @@ def validate_pages(state: dict[str, Any]) -> dict[str, Any]:
             if isinstance(page, dict) and "id" in page:
                 merged_ids.add(page["id"])
     for skel in skeletons:
-        if isinstance(skel, dict) and "id" in skel:
-            merged_ids.add(skel["id"])
+        if isinstance(skel, dict):
+            # May be wrapped in {page: {...}} from schema
+            page = skel.get("page", skel) if "page" in skel else skel
+            if isinstance(page, dict) and "id" in page:
+                merged_ids.add(page["id"])
 
     violations: list[str] = []
 
@@ -40,7 +58,7 @@ def validate_pages(state: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(page, dict):
             continue
         pid = page.get("id", "?")
-        for ref in page.get("references", []):
+        for ref in _extract_ref_ids(page.get("references", [])):
             if ref != pid and ref not in merged_ids:
                 violations.append(f"{pid}: orphan ref '{ref}'")
 
@@ -48,8 +66,11 @@ def validate_pages(state: dict[str, Any]) -> dict[str, Any]:
     for skel in skeletons:
         if not isinstance(skel, dict):
             continue
-        pid = skel.get("id", "?")
-        for ref in skel.get("references", []):
+        page = skel.get("page", skel) if "page" in skel else skel
+        if not isinstance(page, dict):
+            continue
+        pid = page.get("id", "?")
+        for ref in _extract_ref_ids(page.get("references", [])):
             if ref != pid and ref not in merged_ids:
                 violations.append(f"{pid}: orphan ref '{ref}'")
 

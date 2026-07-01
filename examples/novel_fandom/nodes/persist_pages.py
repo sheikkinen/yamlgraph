@@ -26,7 +26,11 @@ def _load_page_models() -> dict:
     )
     mod = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
     spec.loader.exec_module(mod)  # type: ignore[union-attr]
-    return mod.PAGE_MODELS  # type: ignore[attr-defined]
+    page_models = mod.PAGE_MODELS  # type: ignore[attr-defined]
+    # Rebuild models to resolve deferred annotations (from __future__ import annotations)
+    for model_cls in page_models.values():
+        model_cls.model_rebuild()
+    return page_models
 
 
 def _validate_and_write(
@@ -98,8 +102,35 @@ def _persist_impl(
     for skeleton in state.get("skeletons", []):
         if not isinstance(skeleton, dict):
             continue
-        path = _validate_and_write(skeleton, canon_dir, page_models, overwrite=False)
-        if path:
-            written.append(path)
+        # Extract page from schema wrapper (schema returns {page: dict})
+        page = skeleton.get("page", skeleton)
+        if not isinstance(page, dict):
+            continue
+        # Skeletons bypass Pydantic validation — they are deliberately minimal
+        # and will be deepened (with full validation) on the next loop iteration.
+        if "id" not in page or "type" not in page:
+            continue
+        page.setdefault("lane", "dynamic")
+        target = canon_dir / f"{page['id']}.yaml"
+        if target.exists():
+            continue
+        fd, tmp_path = tempfile.mkstemp(
+            dir=canon_dir, suffix=".tmp", prefix=".persist_"
+        )
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                yaml.safe_dump(
+                    page,
+                    f,
+                    default_flow_style=False,
+                    allow_unicode=True,
+                    sort_keys=False,
+                )
+            os.replace(tmp_path, target)
+            written.append(str(target))
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+            raise
 
     return {"written_paths": written, "written_count": len(written)}

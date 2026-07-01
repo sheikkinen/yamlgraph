@@ -75,6 +75,10 @@ nodes:
       prompt: deepen_entity
       state_key: result
       temperature: 0.7
+      variables:
+        canon_pages: "{state.canon_pages}"
+        canon_count: "{state.canon_count}"
+        synopsis_text: "{state.synopsis_text}"
 
   collect:
     type: python
@@ -89,8 +93,11 @@ nodes:
     node:
       type: llm
       prompt: generate_skeleton
-      state_key: skeleton
+      state_key: page
       temperature: 0.3
+      variables:
+        canon_pages: "{state.canon_pages}"
+        synopsis_text: "{state.synopsis_text}"
 
   gate:
     type: python
@@ -136,8 +143,8 @@ edges:
     to: reload
 
 loop_limits:
-  reload: 4
-  select: 4
+  reload: 3
+  select: 3
   deepen: 3
   collect: 3
   create_skeletons: 3

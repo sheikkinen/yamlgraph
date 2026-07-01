@@ -22,5 +22,12 @@ user: |
   - {{ id }} ({{ canon_pages[id].type }})
   {% endfor %}
 
-  Generate the skeleton page as a flat YAML-compatible dict.
+  Generate the skeleton page as a JSON dict with at minimum: id, type, name, lane, depth, references.
   Set depth to {{ (red_link.depth | default(0)) + 1 }}.
+
+schema:
+  name: SkeletonPage
+  fields:
+    page:
+      type: dict
+      description: "The skeleton page dict with id, type, name, lane (dynamic), depth, references, and type-specific fields"

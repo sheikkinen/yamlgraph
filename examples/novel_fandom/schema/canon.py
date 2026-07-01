@@ -4,8 +4,6 @@ Typed schemas for fiction entities: Character, Event, Faction, Location, Rule.
 Each page has a lane (static|dynamic) for immutability control.
 """
 
-from __future__ import annotations
-
 from typing import Literal
 
 from pydantic import BaseModel, Field

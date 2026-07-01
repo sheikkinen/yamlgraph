@@ -60,20 +60,5 @@ schema:
       type: dict
       description: "The full enriched page — same id, same type, richer fields"
     new_entities:
-      type: list[NewEntity]
-      description: "New entities introduced that need wiki pages"
-
-  nested:
-    NewEntity:
-      id:
-        type: str
-        description: "Proposed snake_case page id"
-      type:
-        type: str
-        description: "character, event, faction, location, or rule"
-      name:
-        type: str
-        description: "Display name"
-      summary:
-        type: str
-        description: "One sentence describing this entity"
+      type: list[dict]
+      description: "New entities introduced that need wiki pages. Each dict has: id (snake_case page id), type (character/event/faction/location/rule), name (display name), summary (one sentence)"

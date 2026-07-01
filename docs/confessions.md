@@ -900,7 +900,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Same as CONF-336 — internal test helper, dynamically loaded module, type annotation adds no value.
 
 ### CONF-342
-- **File**: [examples/novel_fandom/nodes/persist_pages.py](../examples/novel_fandom/nodes/persist_pages.py#L52)
+- **File**: [examples/novel_fandom/nodes/persist_pages.py](../examples/novel_fandom/nodes/persist_pages.py#L56)
 - **Code**: BLE001
 - **Sin**: Bare `except Exception` catches all exceptions during Pydantic validation.
 - **Penance**: Intentional — unknown page types or malformed data from LLM output should be skipped, not crash the pipeline. The warning is logged.
