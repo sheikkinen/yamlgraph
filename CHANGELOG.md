@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7]
+
+### Added
+- **FR-631 Variable string interpolation**: `resolve_template()` now supports `wiki/{state.page.id}.yaml` embedded path resolution in node variables.
+- **FR-629 data_files Glob Support**: `data_files` now accepts glob patterns (e.g. `wiki/*.yaml`), loading all matching files into state as a dict keyed by filename stem. Completes read-write symmetry with `write_data_file` — write creates files, glob discovers them. Zero matches return empty dict. Recursive `**` rejected. Same security model as single-file paths. (REQ-YG-478, REQ-YG-479)
+- **FR-628 Wiki Memory Gate Demo**: Inter-run wiki with reference-integrity gate — draft → gate → fix loop using `data_files` glob and `write_data_file`.
+- **FR-626 Write Data File Demo**: Adds `examples/demos/write_data_file/` demonstrating the read→augment→write-back cycle. A world bible accumulates structured knowledge (characters, locations, events) across CLI invocations — zero custom Python. Also fixes Pydantic model serialization in `write_data_file` tool (`.model_dump()` normalization at boundary). (REQ-YG-475)
+- **FR-625 Built-in write_data_file Tool**: Adds `type: write_data_file` tool type that writes structured data (dict/list) to YAML files within the graph workspace. Symmetric counterpart to `data_files` read directive. Features: graph-relative path resolution, atomic writes (tempfile + os.replace), path traversal guard, self-modification guard via compile-time closure (graph file and prompts_dir protected). YAML-only in v1. (REQ-YG-474, REQ-YG-475, REQ-YG-476, REQ-YG-477)
+
+### Fixed
+- **FR-632 Pydantic boundary normalization**: LLM structured outputs are now `model_dump()`'d to plain dicts before storing in state. Fixes `tojson` crashes in downstream Jinja2 prompts.
+- **FR-630 loop_exits END target**: Normalize YAML string "END" to LangGraph sentinel in edge compiler and router. Previously crashed at runtime despite linter accepting it.
+
 ## [0.5.6]
 
 ### Added
