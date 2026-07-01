@@ -6,6 +6,59 @@
 **Effort:** 1–2 days
 **Requested:** 2026-07-01
 
+## Rejudgement (2026-07-01)
+
+**Verdict: REMAINS REJECTED — dependency chain complete, but open questions unresolved.**
+
+The original rejection had six reasons. Three are now resolved, three persist.
+
+### Resolved
+
+1. ~~Dependency chain not met.~~ FR-640, FR-638, FR-639 all shipped. The enriched
+   schema exists, the pathfinder consumes it, the close loop writes to it.
+2. ~~No consumer exists.~~ The pathfinder (FR-638) reads the canon. A consumer
+   exists and is tested.
+3. ~~The problem it solves doesn't exist yet.~~ Still true at 8-page scale, but
+   the dependency chain being complete means the pipeline *could* exercise it.
+   This objection is weaker now — demoted from blocker to observation.
+
+### Still blocking
+
+4. **Single-pass extraction is still unproven.** No spike has validated that a
+   single structured-output call can produce 10+ cross-referenced entities with
+   consistent references. The FR proposes `list[dict]` as the output type — at
+   scale this will produce orphan references between entities extracted in the
+   same call. The gated-accumulation pattern (extract one page → gate → fix → next)
+   would be safer but is not what the FR proposes. **Spike first.**
+
+5. **Freeze governance is still underspecified.** The FR says "human or LLM judge"
+   but defines no criteria. What makes a dynamic page worthy of promotion? Schema
+   validity (the gate already checks this)? Semantic coherence (needs a judge
+   prompt)? Narrative consistency with existing static pages? Without a defined
+   criterion, the freeze step is a UI button with no semantics. **Define the
+   review criterion before implementation.**
+
+6. **Graph shape still violates the gated-accumulation pattern.** The proposed
+   `extract.yaml` is a straight pipeline: synopsis → extract → write. No gate-fix
+   loop. The FR-637/638/639 trilogy established that every write path goes through
+   draft→gate→fix→persist. This FR should follow the same pattern: extract pages
+   one at a time (or in batches) through the existing gate-fix loop, not bypass it
+   with a `validate_and_write` monolith. **Redesign the graph shape.**
+
+### Updated resubmission criteria
+
+- [x] FR-640, FR-638, FR-639 all shipped.
+- [ ] At least one full pipeline run (pathfind → draft → close) completed on
+      the seed canon, demonstrating that the pipeline works end-to-end.
+- [ ] Single-pass extraction validated in a spike: feed a 2-paragraph premise
+      to an LLM, get 10+ entities with consistent cross-references, run them
+      through the existing gate. Report orphan rate.
+- [ ] Freeze governance defined: one of (a) human reviews and approves,
+      (b) LLM judge with explicit criteria, (c) automatic after N successful
+      pipeline runs without gate violations.
+- [ ] Graph shape redesigned to use the gated-accumulation pattern (iterate
+      pages through gate-fix loop), not a straight pipeline.
+
 ## Summary
 
 Add an `extract_canon` node that takes a free-text premise, generates a synopsis
@@ -263,8 +316,18 @@ edges:
 ## Dependencies
 
 - **FR-637** (shipped): canon schema, gate, seed files.
-- **FR-640** (proposed): enriched schema with motivation triad, triggers, Rule
-  type. This FR's extraction prompt targets the FR-640 schema.
+- **FR-640** (shipped): enriched schema with motivation triad, triggers, Rule type.
+- **FR-638** (shipped): plot pathfinder — consumer of extracted canon.
+- **FR-639** (shipped): prose + close loop — full pipeline exercised.
+
+### Resubmission status
+
+Three of four resubmission criteria now met:
+
+- [x] FR-640, FR-638, FR-639 all shipped.
+- [ ] At least one full pipeline run (pathfind → draft → close) completed.
+- [ ] Single-pass extraction validated in a spike.
+- [ ] Freeze governance defined: who/what approves promotion to static?
 
 ## Related
 
