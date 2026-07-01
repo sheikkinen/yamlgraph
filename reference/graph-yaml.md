@@ -701,8 +701,8 @@ Execute a tool where name and arguments come from state (LLM-driven orchestratio
 nodes:
   execute_tool:
     type: tool_call
-    tool_name: "{state.selected_tool}"
-    tool_args: "{state.tool_arguments}"
+    tool: "{state.selected_tool}"
+    args: "{state.tool_arguments}"
     state_key: tool_result
 ```
 
@@ -710,8 +710,8 @@ nodes:
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| `tool_name` | `string` | Yes | State expression resolving to tool name |
-| `tool_args` | `string` | Yes | State expression resolving to args dict |
+| `tool` | `string` | Yes | State expression resolving to tool name |
+| `args` | `string` | Yes | State expression resolving to args dict |
 | `state_key` | `string` | No | Where to store result |
 
 See [Tool Call Nodes Reference](tool-call-nodes.md) for agent integration patterns.

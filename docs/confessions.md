@@ -1169,6 +1169,12 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: `subprocess.run(cmd, ...)` is flagged as potentially executing untrusted input.
 - **Penance**: Command is a fixed argv list for `statemachine_engine.database.cli send-event`; inputs are structured message fields serialized into JSON and passed as an argument (no shell expansion, `shell=True` is not used).
 
+### CONF-256
+- **File**: [scripts/node_type_coverage.py](../scripts/node_type_coverage.py#L63)
+- **Code**: S112
+- **Sin**: `try-except-continue` silently skips YAML files that fail to parse.
+- **Penance**: Script scans all `*.yaml` under demos/ — some may be prompt templates or malformed. Skipping unparseable files is the correct behavior for a coverage scanner; logging would add noise without value.
+
 ---
 
 ## Process Exceptions
