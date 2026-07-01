@@ -200,6 +200,22 @@ fields:
 
 **Empty files** return `{}` (empty dict), not `null`.
 
+**Glob patterns** (FR-629): When a value contains glob metacharacters (`*`, `?`, `[`),
+all matching files are loaded into a dict keyed by filename stem:
+
+```yaml
+data_files:
+  wiki: "wiki/*.yaml"   # → state.wiki = {"page1": {...}, "page2": {...}}
+```
+
+- **Zero matches** → empty dict (no error)
+- **Sorted alphabetically** for deterministic ordering
+- **Recursive `**` patterns are not supported** (raises error)
+- Same path-traversal security as single files
+
+This enables the read→write cycle with `write_data_file`: each run writes a
+page to `wiki/<id>.yaml`, and the next run discovers all pages automatically.
+
 **State collision:** If input provides a key that matches a `data_files` key, the input value wins.
 
 ---

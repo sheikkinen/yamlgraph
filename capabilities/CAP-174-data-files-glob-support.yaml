@@ -1,0 +1,26 @@
+name: Data Files Glob Support
+id: CAP-174
+status: active
+fr: FR-629
+feature_request: FR-629
+description: >
+  Extends the data_files directive to accept glob patterns (e.g. wiki/*.yaml),
+  loading all matching files into state as a dict keyed by filename stem.
+  Completes read-write symmetry with write_data_file tool.
+modules:
+  - data_loader
+requirements:
+  - id: REQ-YG-478
+    description: >
+      data_files with glob metacharacters (* ? [) expands the pattern via
+      Path.glob() and returns a dict keyed by filename stem. Empty matches
+      return empty dict. Files sorted alphabetically for deterministic ordering.
+    modules:
+      - data_loader
+  - id: REQ-YG-479
+    description: >
+      data_files glob rejects ** (recursive) patterns with a clear
+      DataFileError. Glob patterns that escape graph directory raise
+      DataFileError. Symlinks escaping graph dir are silently skipped.
+    modules:
+      - data_loader

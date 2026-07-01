@@ -489,6 +489,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 171 | CAP-171 Executor Plain-Text Content Normalization | `yamlgraph/executor.py`, `yamlgraph/utils/llm_factory_async.py`, `yamlgraph/utils/content.py` | REQ-YG-472 |
 | 172 | CAP-172 Prompt-Monolith Linter Check (W026) | `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-473 |
 | 173 | CAP-173 Write Data File Tool | `tools/write_data_file_tool` | REQ-YG-474 – 477 |
+| 174 | CAP-174 Data Files Glob Support | `data_loader` | REQ-YG-478 – 479 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -2160,6 +2161,17 @@ Built-in write_data_file tool type that writes structured data (dict/list) to a 
 | REQ-YG-475 | write_data_file tool writes structured data to a YAML file at a graph-relative path, creating parent directories as needed. Atomic write via tempfile + os.replace. | `tools/write_data_file_tool` |
 | REQ-YG-476 | write_data_file tool rejects absolute paths and path traversal (.. segments) that escape the graph root directory. | `tools/write_data_file_tool` |
 | REQ-YG-477 | write_data_file tool refuses to overwrite the graph file itself or files under its prompts_dir (self-modification guard via compile-time closure). | `tools/write_data_file_tool` |
+
+### 174. CAP-174 Data Files Glob Support
+
+Extends the data_files directive to accept glob patterns (e.g. wiki/*.yaml), loading all matching files into state as a dict keyed by filename stem. Completes read-write symmetry with write_data_file tool.
+
+**Feature Request:** FR-629
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-478 | data_files with glob metacharacters (* ? [) expands the pattern via Path.glob() and returns a dict keyed by filename stem. Empty matches return empty dict. Files sorted alphabetically for deterministic ordering. | `data_loader` |
+| REQ-YG-479 | data_files glob rejects ** (recursive) patterns with a clear DataFileError. Glob patterns that escape graph directory raise DataFileError. Symlinks escaping graph dir are silently skipped. | `data_loader` |
 
 <!-- END GENERATED CAPABILITIES -->
 
